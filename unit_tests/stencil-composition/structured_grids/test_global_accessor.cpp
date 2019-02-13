@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define PEDANTIC_DISABLED
+#define GT_PEDANTIC_DISABLED
 
 #include <gtest/gtest.h>
 
@@ -67,7 +67,7 @@ struct functor1 {
     typedef make_param_list<sol, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(sol()) += eval(bd()).value() + eval(bd()).int_value;
     }
 };
@@ -80,7 +80,7 @@ struct functor2 {
     typedef make_param_list<sol, in, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(sol()) += eval(in()) + eval(bd()).int_value;
     }
 };
@@ -92,7 +92,7 @@ struct functor_with_procedure_call {
     typedef make_param_list<sol, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         call_proc<functor1>::with(eval, sol(), bd());
     }
 };
@@ -104,7 +104,7 @@ struct functor1_with_assignment {
     typedef make_param_list<sol, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(sol()) = eval(bd()).value() + eval(bd()).int_value;
     }
 };
@@ -116,7 +116,7 @@ struct functor_with_function_call {
     typedef make_param_list<sol, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(sol()) = call<functor1_with_assignment>::return_type<double>::with(eval, bd());
     }
 };

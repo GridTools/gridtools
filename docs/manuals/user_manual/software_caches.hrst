@@ -37,7 +37,7 @@ computation is shown below
     grid,
     make_multistage(
         execute<parallel>(),
-        define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_f1(), p_f2())),
+        define_caches(cache<cache_type::ij, cache_io_policy::local>(p_f1(), p_f2())),
         make_stage<lap_function>(p_f1(), p_f2(), p_in()),
         make_stage<lap_function>(p_out(), p_f1(), p_f2())
     )
@@ -113,6 +113,6 @@ The possible values are:
 .. figure:: figures/kcache_ex.png
    :scale: 50 %
 
-   Representation of an implementation for a ``cache<cache_type::K, cache_io_policy::fill_and_flush>`` that is used within a
+   Representation of an implementation for a ``cache<cache_type::k, cache_io_policy::fill_and_flush>`` that is used within a
    stencil with extent ``<-2, 1>`` in the vertical dimension and implemented as a ring-buffer with 4 levels (in order to allocate all possible offsetted accesses). The three operations
    are triggered automatically by the library for a `fill_and_flush` cache when the vertical loop transition from level 9 to level 10.

@@ -46,7 +46,7 @@
 #include "esf.hpp"
 #include "independent_esf.hpp"
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "structured_grids/esf_metafunctions.hpp"
 #else
 #include "icosahedral_grids/esf_metafunctions.hpp"
@@ -71,7 +71,7 @@ namespace gridtools {
      */
     template <typename Esf>
     struct esf_args {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
+        GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
         typedef typename Esf::args_t type;
     };
 
@@ -82,8 +82,8 @@ namespace gridtools {
      */
     template <typename Esf, typename Pred, typename Index>
     struct esf_get_arg_at {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
+        GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
+        GT_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
         typedef typename boost::mpl::at<typename Esf::args_t, Index>::type placeholder_type;
         typedef typename boost::mpl::if_<Pred,
             typename boost::mpl::pair<placeholder_type,
@@ -96,7 +96,7 @@ namespace gridtools {
      */
     template <typename Esf, typename Index>
     struct is_written_temp {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
+        GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
         typedef typename esf_param_list<Esf>::type param_list_t;
         typedef typename boost::mpl::if_<is_tmp_arg<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
             typename boost::mpl::if_<is_accessor_readonly<typename boost::mpl::at<param_list_t, Index>::type>,
@@ -110,7 +110,7 @@ namespace gridtools {
      */
     template <typename Esf>
     struct is_written {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
+        GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
         template <typename Index>
         struct apply {
             typedef typename boost::mpl::if_<is_plh<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
@@ -124,7 +124,7 @@ namespace gridtools {
 
     template <typename EsfF>
     struct esf_get_w_temps_per_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), GT_INTERNAL_ERROR);
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> iter_range;
         typedef typename boost::mpl::fold<iter_range,
             boost::mpl::vector0<>,
@@ -143,8 +143,8 @@ namespace gridtools {
      */
     template <typename EsfF, typename Pred = boost::false_type>
     struct esf_get_w_per_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
+        GT_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
+        GT_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
         typedef typename boost::mpl::fold<range,
             boost::mpl::vector0<>,
@@ -161,9 +161,9 @@ namespace gridtools {
      */
     template <typename EsfF, typename Pred = boost::false_type>
     struct esf_get_the_only_w_per_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<typename esf_get_w_per_functor<EsfF, Pred>::type>::type::value == 1),
+        GT_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
+        GT_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
+        GT_STATIC_ASSERT((boost::mpl::size<typename esf_get_w_per_functor<EsfF, Pred>::type>::type::value == 1),
             "Each ESF should have a single output argument");
         typedef typename boost::mpl::at_c<typename esf_get_w_per_functor<EsfF>::type, 0>::type type;
     };
@@ -178,8 +178,8 @@ namespace gridtools {
      */
     template <typename EsfF, typename Pred = boost::false_type>
     struct esf_get_r_per_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
+        GT_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
+        GT_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
         typedef typename boost::mpl::fold<range,
             boost::mpl::vector0<>,
@@ -194,7 +194,7 @@ namespace gridtools {
      */
     template <typename EsfSequence>
     struct compute_readwrite_args {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Wrong Type");
+        GT_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Wrong Type");
         typedef typename boost::mpl::fold<EsfSequence,
             boost::mpl::set0<>,
             copy_into_set<esf_get_w_per_functor<boost::mpl::_2>, boost::mpl::_1>>::type type;
@@ -233,8 +233,7 @@ namespace gridtools {
     template <typename ESFList>
     struct unwrap_independent {
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of<ESFList, is_esf_descriptor>::value), "Error: ESFList must be a list of ESFs");
+        GT_STATIC_ASSERT((is_sequence_of<ESFList, is_esf_descriptor>::value), "Error: ESFList must be a list of ESFs");
 
         template <typename CurrentList, typename CurrentElement>
         struct populate {

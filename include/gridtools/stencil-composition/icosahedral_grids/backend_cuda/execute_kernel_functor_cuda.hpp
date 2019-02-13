@@ -35,6 +35,10 @@
 */
 #pragma once
 
+#ifdef GT_VERBOSE
+#include <iostream>
+#endif
+
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/gt_assert.hpp"
@@ -53,7 +57,7 @@ namespace gridtools {
         template <int VBoundary>
         struct padded_boundary
             : boost::mpl::integral_c<int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8))> {
-            GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
         template <typename RunFunctorArguments, size_t NumThreads>
@@ -147,15 +151,13 @@ namespace gridtools {
             } else if (threadIdx.y < iminus_limit) {
                 static constexpr auto padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-                GRIDTOOLS_STATIC_ASSERT(
-                    jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
                 const int padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-                GRIDTOOLS_STATIC_ASSERT(
-                    jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
 
                 iblock = threadIdx.x % padded_boundary_ + ntx;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
@@ -186,19 +188,19 @@ namespace gridtools {
          */
         template <typename RunFunctorArguments>
         struct execute_kernel_functor_cuda {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
-            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable<local_domain_t>::value, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable<grid_t>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(cuda_util::is_cloneable<local_domain_t>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(cuda_util::is_cloneable<grid_t>::value, GT_INTERNAL_ERROR);
 
             // ctor
             explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
                 : m_local_domain(local_domain), m_grid(grid) {}
 
             void operator()() {
-#ifdef VERBOSE
+#ifdef GT_VERBOSE
                 short_t count;
                 GT_CUDA_CHECK(cudaGetDeviceCount(&count));
 
@@ -255,7 +257,7 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
-#ifdef VERBOSE
+#ifdef GT_VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
                 printf("nbx = %d, nby = %d, nbz = %d\n", nbx, nby, nbz);
                 printf("nx = %d, ny = %d, nz = %d\n", nx, ny, nz);

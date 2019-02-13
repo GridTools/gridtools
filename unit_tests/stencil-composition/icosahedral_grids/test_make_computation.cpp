@@ -65,7 +65,7 @@ namespace make_computation_test {
         using param_list = make_param_list<in>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, axis) {}
+        GT_FUNCTION static void apply(Evaluation &eval, axis) {}
     };
 } // namespace make_computation_test
 

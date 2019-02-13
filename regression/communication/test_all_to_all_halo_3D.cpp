@@ -220,7 +220,7 @@ namespace test_all_to_all_halo_3D {
 #ifdef STANDALONE
 int main(int argc, char **argv) {
 
-#ifdef _USE_GPU_
+#ifdef GT_USE_GPU
     device_binding();
 #endif
 

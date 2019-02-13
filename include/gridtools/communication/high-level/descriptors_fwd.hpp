@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _DESCRIPTORS_FWD_H_
-#define _DESCRIPTORS_FWD_H_
+#pragma once
 
 namespace gridtools {
     template <typename DataType, int DIMS, typename>
@@ -56,4 +55,3 @@ namespace gridtools {
     template <int DIMS, typename Haloexch, typename proc_layout, typename Gcl_Arch, int versiono>
     class hndlr_generic;
 } // namespace gridtools
-#endif

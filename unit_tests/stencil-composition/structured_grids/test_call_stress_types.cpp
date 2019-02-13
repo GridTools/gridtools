@@ -94,7 +94,7 @@ namespace {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<forced_tag>, out_type>{};
 
@@ -109,7 +109,7 @@ namespace {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             auto result =
                 call<simple_callee_with_forced_return_type>::return_type<special_type<forced_tag>>::with(eval, in{});
 
@@ -135,7 +135,7 @@ namespace {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<in1_tag>, out_type>{};
 
@@ -150,7 +150,7 @@ namespace {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             auto result = call<simple_callee_with_deduced_return_type>::with(eval, in{});
 
             using result_type = decltype(result);
@@ -179,7 +179,7 @@ namespace {
         typedef make_param_list<in2, local, out, in1> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             // the new convention is that the return type (here "out) is deduced from the first argument in the call
             (void)ASSERT_TYPE_EQ<special_type<in2_tag>, out_type>{};
@@ -202,7 +202,7 @@ namespace {
         typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             // the expected type differs here in "call" vs "call_proc"
             (void)ASSERT_TYPE_EQ<special_type<in1_tag>, out_type>{};
@@ -228,7 +228,7 @@ namespace {
         typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
@@ -263,7 +263,7 @@ namespace {
         typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             // in contrast to the example where this is stage is called from "call" (not "call_proc")
             // the type here is different!
@@ -290,7 +290,7 @@ namespace {
         typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 

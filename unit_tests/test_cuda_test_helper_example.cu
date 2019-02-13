@@ -39,7 +39,7 @@
 #include <gtest/gtest.h>
 
 struct cuda_test_example1 {
-    static bool GT_FUNCTION Do() {
+    static bool GT_FUNCTION apply() {
         if (3 == 3)
             return true;
         else
@@ -47,7 +47,7 @@ struct cuda_test_example1 {
     }
 };
 struct cuda_test_example2 {
-    static bool GT_FUNCTION Do(int a, int b) {
+    static bool GT_FUNCTION apply(int a, int b) {
         if (a == b)
             return true;
         else

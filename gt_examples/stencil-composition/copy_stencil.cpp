@@ -48,7 +48,6 @@
 */
 namespace gt = gridtools;
 
-
 #ifdef __CUDACC__
 using target_t = gt::target::cuda;
 #else
@@ -67,7 +66,7 @@ struct copy_functor {
     using param_list = gt::make_param_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval(in());
     }
 };

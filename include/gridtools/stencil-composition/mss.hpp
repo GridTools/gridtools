@@ -52,9 +52,9 @@ namespace gridtools {
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence = std::tuple<>>
     struct mss_descriptor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), GT_INTERNAL_ERROR);
         typedef ExecutionEngine execution_engine_t;
         typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;

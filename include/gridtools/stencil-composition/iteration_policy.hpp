@@ -48,9 +48,9 @@ namespace gridtools {
     /**\brief policy defining the behaviour on the vertical direction*/
     template <class From, class To, enumtype::execution ExecutionType>
     struct iteration_policy {
-        GRIDTOOLS_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(level_to_index<From>::value <= level_to_index<From>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(level_to_index<From>::value <= level_to_index<From>::value, GT_INTERNAL_ERROR);
 
         using from = From;
         using to = To;
@@ -61,13 +61,13 @@ namespace gridtools {
 
         template <typename IterateDomain>
         GT_FUNCTION static void increment(IterateDomain &eval) {
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
             eval.increment_k();
         }
 
         template <typename IterateDomain>
         GT_FUNCTION static void increment_by(IterateDomain &eval, int_t step) {
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
             eval.increment_k(step);
         }
 
@@ -77,9 +77,9 @@ namespace gridtools {
     /**\brief specialization for the backward iteration loop over k*/
     template <class From, class To>
     struct iteration_policy<From, To, enumtype::backward> {
-        GRIDTOOLS_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(level_to_index<From>::value >= level_to_index<From>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(level_to_index<From>::value >= level_to_index<From>::value, GT_INTERNAL_ERROR);
 
         using from = From;
         using to = To;
@@ -91,13 +91,13 @@ namespace gridtools {
 
         template <typename Domain>
         GT_FUNCTION static void increment(Domain &dom) {
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<Domain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<Domain>::value, GT_INTERNAL_ERROR);
             dom.template increment_k<-1>();
         }
 
         template <typename IterateDomain>
         GT_FUNCTION static void increment_by(IterateDomain &eval, int_t step) {
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
             eval.increment_k(-step);
         }
 

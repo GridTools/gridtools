@@ -51,7 +51,7 @@ struct TensionShearFunction {
     using param_list = make_param_list<T_sqr_s, S_sqr_uv, u_in, v_in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {}
+    GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 struct SmagCoeffFunction {
@@ -64,7 +64,7 @@ struct SmagCoeffFunction {
     using param_list = make_param_list<smag_u, smag_v, T_sqr_s, S_sqr_uv>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {}
+    GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 struct SmagUpdateFunction {
@@ -79,7 +79,7 @@ struct SmagUpdateFunction {
     using param_list = make_param_list<u_out, v_out, u_in, v_in, smag_u, smag_v>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {}
+    GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 TEST(multiple_outputs, compute_extents) {

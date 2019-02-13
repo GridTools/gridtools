@@ -79,7 +79,7 @@
 #include "./backend_cuda/tmp_storage.hpp"
 #include "./backend_x86/tmp_storage.hpp"
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "./structured_grids/tmp_storage.hpp"
 #else
 #include "./icosahedral_grids/tmp_storage.hpp"
@@ -100,7 +100,7 @@ namespace gridtools {
     template <class MaxExtent, class ArgTag, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid>
     DataStore make_tmp_data_store(
         Backend const &, plh<ArgTag, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
-        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         using namespace tmp_storage;
         using storage_info_t = typename DataStore::storage_info_t;
         static constexpr auto backend = typename Backend::backend_ids_t{};
@@ -114,9 +114,9 @@ namespace gridtools {
 
     template <class StorageInfo, class MaxExtent, class Backend, class Stride, class BlockNo, class PosInBlock>
     GT_FUNCTION int_t get_tmp_storage_offset(Backend const &backend,
-        Stride const &RESTRICT stride,
-        BlockNo const &RESTRICT block_no,
-        PosInBlock const &RESTRICT pos_in_block) {
+        Stride const &GT_RESTRICT stride,
+        BlockNo const &GT_RESTRICT block_no,
+        PosInBlock const &GT_RESTRICT pos_in_block) {
         using namespace tmp_storage;
         static constexpr auto block_size =
             make_pos3(block_i_size(Backend{}), block_j_size(Backend{}), block_k_size(Backend{}));

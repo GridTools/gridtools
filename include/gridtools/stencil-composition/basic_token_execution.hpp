@@ -82,7 +82,7 @@ namespace gridtools {
         */
         template <typename RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
         struct run_f_on_interval {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
 
             typedef typename RunFunctorArguments::execution_type_t execution_engine;
 
@@ -124,7 +124,7 @@ namespace gridtools {
 
             template <class LoopInterval>
             GT_FUNCTION void operator()() const {
-                GRIDTOOLS_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
                 using from_t = GT_META_CALL(meta::first, LoopInterval);
                 using to_t = GT_META_CALL(meta::second, LoopInterval);
                 using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));

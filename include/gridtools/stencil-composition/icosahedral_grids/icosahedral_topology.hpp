@@ -513,9 +513,9 @@ namespace gridtools {
     template <typename SrcLocation, typename DestLocation, uint_t Color>
     struct connectivity {
 
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<SrcLocation>::value), "Error: unknown src location type");
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<DestLocation>::value), "Error: unknown dst location type");
-        GRIDTOOLS_STATIC_ASSERT(Color < SrcLocation::n_colors::value, "Error: Color index beyond color length");
+        GT_STATIC_ASSERT((is_location_type<SrcLocation>::value), "Error: unknown src location type");
+        GT_STATIC_ASSERT((is_location_type<DestLocation>::value), "Error: unknown dst location type");
+        GT_STATIC_ASSERT(Color < SrcLocation::n_colors::value, "Error: Color index beyond color length");
 
         GT_FUNCTION constexpr static auto offsets() GT_AUTO_RETURN(
             from<SrcLocation>::template to<DestLocation>::template with_color<static_uint<Color>>::offsets());
@@ -562,13 +562,13 @@ namespace gridtools {
             typename std::enable_if<is_all_integral<IntTypes...>::value, int>::type = 0>
         data_store_t<LocationType, ValueType, Halo, Selector> make_storage(
             char const *name, IntTypes... extra_dims) const {
-            GRIDTOOLS_STATIC_ASSERT(is_location_type<LocationType>::value, "ERROR: location type is wrong");
-            GRIDTOOLS_STATIC_ASSERT(is_selector<Selector>::value, "ERROR: dimension selector is wrong");
-            GRIDTOOLS_STATIC_ASSERT(
+            GT_STATIC_ASSERT(is_location_type<LocationType>::value, "ERROR: location type is wrong");
+            GT_STATIC_ASSERT(is_selector<Selector>::value, "ERROR: dimension selector is wrong");
+            GT_STATIC_ASSERT(
                 Selector::size == sizeof...(IntTypes) + 4, "ERROR: Mismatch between Selector and extra-dimensions");
 
             using meta_storage_type = meta_storage_t<LocationType, Halo, Selector>;
-            GRIDTOOLS_STATIC_ASSERT(Selector::size == meta_storage_type::layout_t::masked_length,
+            GT_STATIC_ASSERT(Selector::size == meta_storage_type::layout_t::masked_length,
                 "ERROR: Mismatch between Selector and space dimensions");
 
             return {{m_dims[0], LocationType::n_colors::value, m_dims[1], m_dims[2], extra_dims...}, name};

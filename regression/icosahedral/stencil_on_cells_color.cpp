@@ -57,7 +57,7 @@ struct on_cells_color_functor {
     using param_list = make_param_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         if (Color == downward_triangle)
             eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return rhs - lhs; }, float_type{}, in()));
         else

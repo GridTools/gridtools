@@ -147,7 +147,7 @@ __global__ void m_packZUKernel_generic(const value_type *__restrict__ d_data,
 template <typename array_t>
 void m_packZU_generic(array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab, int *d_msgsize) {
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // just some timing stuff
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -177,7 +177,7 @@ void m_packZU_generic(array_t const &fields, typename array_t::value_type::value
         int nbz = (nz + ntz - 1) / ntz;
         dim3 blocks(nbx, nby, nbz);
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
         printf("PACK ZU Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
             nbx,
             nby,
@@ -202,7 +202,7 @@ void m_packZU_generic(array_t const &fields, typename array_t::value_type::value
          ny,
          0);
 // clang-format on
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
             cudaError_t err = cudaGetLastError();
             if (err != cudaSuccess) {
                 printf("KLF in %s : %s\n", __FILE__, cudaGetErrorString(err));
@@ -212,7 +212,7 @@ void m_packZU_generic(array_t const &fields, typename array_t::value_type::value
         }
     }
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
     cudaEventRecord(stop, 0);

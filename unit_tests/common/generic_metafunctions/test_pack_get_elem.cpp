@@ -41,6 +41,6 @@
 using namespace gridtools;
 
 TEST(pack_get_elem, test) {
-    GRIDTOOLS_STATIC_ASSERT((pack_get_elem<2>::apply(3, 6, 7) == 7), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((pack_get_elem<1>::apply(-3, -6, 7) == -6), "ERROR");
+    GT_STATIC_ASSERT((pack_get_elem<2>::apply(3, 6, 7) == 7), "ERROR");
+    GT_STATIC_ASSERT((pack_get_elem<1>::apply(-3, -6, 7) == -6), "ERROR");
 }

@@ -47,23 +47,23 @@ using icosahedral_topology_t = icosahedral_topology<backend_t>;
 TEST(icosahedral_topology, layout) {
     using alayout_t = icosahedral_topology_t::layout_t<selector<1, 1, 1, 1>>;
 #ifdef __CUDACC__
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<3, 2, 1, 0>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<3, 2, 1, 0>>::value), "ERROR");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<0, 1, 2, 3>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<0, 1, 2, 3>>::value), "ERROR");
 #endif
 
     using alayout_2d_t = icosahedral_topology_t::layout_t<selector<1, 1, 1, 0>>;
 #ifdef __CUDACC__
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<2, 1, 0, -1>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<2, 1, 0, -1>>::value), "ERROR");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<0, 1, 2, -1>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<0, 1, 2, -1>>::value), "ERROR");
 #endif
 
     using alayout_6d_t = icosahedral_topology_t::layout_t<selector<1, 1, 1, 1, 1, 1>>;
 #ifdef __CUDACC__
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<5, 4, 3, 2, 1, 0>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<5, 4, 3, 2, 1, 0>>::value), "ERROR");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<2, 3, 4, 5, 0, 1>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<2, 3, 4, 5, 0, 1>>::value), "ERROR");
 #endif
 }
 
@@ -82,14 +82,14 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<1>(), 3);
         ASSERT_EQ(ameta.total_length<2>(), 6);
         ASSERT_EQ(ameta.total_length<3>(), 7);
-#ifdef BACKEND_MC
+#ifdef GT_BACKEND_MC
         // 3rd dimension is padded for MC
         ASSERT_EQ(ameta.padded_length<0>(), 4);
         ASSERT_EQ(ameta.padded_length<1>(), 3);
         ASSERT_EQ(ameta.padded_length<2>(), 6);
         ASSERT_EQ(ameta.padded_length<3>(), 8);
 #endif
-#ifdef BACKEND_CUDA
+#ifdef GT_BACKEND_CUDA
         // 3rd dimension is padded for CUDA
         ASSERT_EQ(ameta.padded_length<0>(), 4);
         ASSERT_EQ(ameta.padded_length<1>(), 3);
@@ -108,11 +108,11 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<1>(), 3);
         ASSERT_EQ(ameta.total_length<2>(), 6);
         ASSERT_EQ(ameta.total_length<3>(), 7);
-#ifdef BACKEND_MC
+#ifdef GT_BACKEND_MC
         // 3rd dimension is padded for MC
         ASSERT_EQ(ameta.padded_length<3>(), 8);
 #endif
-#ifdef BACKEND_CUDA
+#ifdef GT_BACKEND_CUDA
         ASSERT_EQ(ameta.padded_length<3>(), 32);
 #endif
         ASSERT_EQ(ameta.total_length<4>(), 8);

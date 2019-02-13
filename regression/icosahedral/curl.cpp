@@ -56,7 +56,7 @@ struct curl : regression_fixture<2> {
     storage_type<vertices> out_vertices = make_storage<vertices>();
 
     ~curl() {
-        constexpr double precision = FLOAT_PRECISION == 4 ? 1e-4 : 1e-9;
+        constexpr double precision = GT_FLOAT_PRECISION == 4 ? 1e-4 : 1e-9;
         verify(make_storage<vertices>(repo.curl_u), out_vertices, precision);
     }
 };

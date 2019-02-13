@@ -55,7 +55,7 @@ namespace cs_test {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };

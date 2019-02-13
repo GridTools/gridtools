@@ -59,7 +59,7 @@ namespace gridtools {
 
     template <typename MssDescriptor>
     struct mss_split_esfs {
-        GRIDTOOLS_STATIC_ASSERT(is_mss_descriptor<MssDescriptor>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_mss_descriptor<MssDescriptor>::value, GT_INTERNAL_ERROR);
 
         using execution_engine_t = typename mss_descriptor_execution_engine<MssDescriptor>::type;
 
@@ -88,7 +88,7 @@ namespace gridtools {
      */
     template <typename Msses>
     struct split_mss_into_independent_esfs {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Msses, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_sequence_of<Msses, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::reverse_fold<Msses,
             boost::mpl::vector0<>,
@@ -103,7 +103,7 @@ namespace gridtools {
      */
     template <typename MssFuseEsfStrategy, typename MssDescriptors, typename ExtentMap, typename Axis>
     struct build_mss_components_array {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssDescriptors, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_sequence_of<MssDescriptors, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
 
         using mss_seq_t = typename boost::mpl::eval_if<MssFuseEsfStrategy,
             boost::mpl::identity<MssDescriptors>,

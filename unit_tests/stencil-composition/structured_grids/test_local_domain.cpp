@@ -70,7 +70,7 @@ struct dummy_functor {
     typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval);
+    GT_FUNCTION static void apply(Evaluation &eval);
 };
 
 typedef backend<target::x86, grid_type_t, strategy::naive> naive_backend_t;
