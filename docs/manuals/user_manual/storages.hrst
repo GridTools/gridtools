@@ -317,9 +317,9 @@ the ``storage-facility`` which returns the correct types for the chosen backend.
 .. code-block:: gridtools
 
     // get the correct 3D layouted and aligned storage info suitable for the CUDA backend
-    typedef storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
     // get a data store suitable for CUDA
-    typedef storage_traits<backend_t>::data_store_t<double, storage_info_t> data_store_t;
+    using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t si(128, 128, 80);
     data_store_t ds(si);
