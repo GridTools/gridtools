@@ -132,4 +132,10 @@ namespace gridtools {
     template <class Backend, class Arg, class... Args>
     auto make_positional_computation(Arg const &arg, Args &&... args)
         GT_AUTO_RETURN((_impl::make_computation_dispatch<true, Backend>(arg, std::forward<Args>(args)...)));
+
+    // user protection only, catch the case where no backend is specified
+    template <class... Args>
+    computation<> make_computation(Args &&...) {
+        GT_STATIC_ASSERT(!sizeof...(Args), "No backend was specified on a call to make_computation");
+    }
 } // namespace gridtools
