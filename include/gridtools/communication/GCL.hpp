@@ -53,8 +53,6 @@
 // workaround that uses host buffering to avoid bad sends for messages larger than 512 kB on Cray systems
 //#define HOSTWORKAROUND
 
-#define _USE_DATATYPES_
-
 inline bool checkCudaStatus(cudaError_t status) {
     if (status != cudaSuccess) {
         std::cout << cudaGetErrorString(status) << std::endl;
