@@ -253,7 +253,8 @@ void m_unpackXU_variadic(value_type **d_msgbufTab_r,
         ny,
         nz);
 
-    just some timing stuff cudaEvent_t start, stop;
+    // just some timing stuff
+    cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
