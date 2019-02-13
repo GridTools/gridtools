@@ -411,7 +411,7 @@ present in ``make_computation`` at run time in the ``run`` method.
 There are other details that pertain :term:`Placeholders<Placeholder>`,
 :term:`Grid` and also other |GT|
 constructs that can greatly improve performance of the computations, especially
-:term:`Software-Managed Caches<Software-Manged Cache>`.
+:term:`Software-Managed Caches<Software-Managed Cache>`.
 
 .. _backend-selection:
 
