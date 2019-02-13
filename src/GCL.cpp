@@ -115,7 +115,7 @@ namespace gridtools {
     }
 
 #ifdef GCL_TRACE
-    // initialize static instance_ to NULL
+    // initialize static instance_ to nullptr
     template <>
     stats_collector<1> *stats_collector<1>::instance_ = 0;
     template <>

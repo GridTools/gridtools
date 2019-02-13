@@ -165,7 +165,7 @@ namespace gridtools {
     template <typename T>
     clonable_to_gpu<T>::~clonable_to_gpu() {
         cudaFree(gpu_object_ptr);
-        gpu_object_ptr = NULL;
+        gpu_object_ptr = nullptr;
     }
 #endif
     /** @} */

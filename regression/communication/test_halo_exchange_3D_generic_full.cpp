@@ -187,7 +187,7 @@ namespace halo_exchange_3D_generic_full {
             DIM3 + MAX3(H3m1, H3m2, H3m3) + MAX3(H3p1, H3p3, H3p3));
 #undef MAX3
         he.setup(3,
-            gridtools::field_on_the_fly<int, layoutmap, pattern_type::traits>(NULL, h_example), // BEWARE!!!!
+            gridtools::field_on_the_fly<int, layoutmap, pattern_type::traits>(nullptr, h_example), // BEWARE!!!!
             std::max(sizeof(triple_t<USE_DOUBLE, T1>::data_type),
                 std::max(sizeof(triple_t<USE_DOUBLE, T2>::data_type),
                     sizeof(triple_t<USE_DOUBLE, T3>::data_type)) // Estimates the size
@@ -321,29 +321,29 @@ namespace halo_exchange_3D_generic_full {
 
         MPI_Barrier(MPI_COMM_WORLD);
 
-        gettimeofday(&start_tv, NULL);
+        gettimeofday(&start_tv, nullptr);
         he.pack(vect);
 
-        gettimeofday(&stop1_tv, NULL);
+        gettimeofday(&stop1_tv, nullptr);
         he.exchange();
 
-        gettimeofday(&stop2_tv, NULL);
+        gettimeofday(&stop2_tv, nullptr);
         he.unpack(vect);
 
-        gettimeofday(&stop3_tv, NULL);
+        gettimeofday(&stop3_tv, nullptr);
 #else
         MPI_Barrier(MPI_COMM_WORLD);
 
-        gettimeofday(&start_tv, NULL);
+        gettimeofday(&start_tv, nullptr);
         he.pack(field1, field2, field3);
 
-        gettimeofday(&stop1_tv, NULL);
+        gettimeofday(&stop1_tv, nullptr);
         he.exchange();
 
-        gettimeofday(&stop2_tv, NULL);
+        gettimeofday(&stop2_tv, nullptr);
         he.unpack(field1, field2, field3);
 
-        gettimeofday(&stop3_tv, NULL);
+        gettimeofday(&stop3_tv, nullptr);
 #endif
 
         lapse_time1 =

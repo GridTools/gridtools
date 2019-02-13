@@ -224,7 +224,7 @@ namespace halo_exchange_3D_all {
 #endif
         MPI_Barrier(gridtools::GCL_WORLD);
 
-        gettimeofday(&start_tv, NULL);
+        gettimeofday(&start_tv, nullptr);
 
 #ifdef VECTOR_INTERFACE
         he.pack(vect);
@@ -232,11 +232,11 @@ namespace halo_exchange_3D_all {
         he.pack(vect[0], vect[1], vect[2]);
 #endif
 
-        gettimeofday(&stop1_tv, NULL);
+        gettimeofday(&stop1_tv, nullptr);
 
         he.exchange();
 
-        gettimeofday(&stop2_tv, NULL);
+        gettimeofday(&stop2_tv, nullptr);
 
 #ifdef VECTOR_INTERFACE
         he.unpack(vect);
@@ -245,7 +245,7 @@ namespace halo_exchange_3D_all {
 #endif
 
         MPI_Barrier(MPI_COMM_WORLD);
-        gettimeofday(&stop3_tv, NULL);
+        gettimeofday(&stop3_tv, nullptr);
 
         lapse_time1 =
             ((static_cast<double>(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast<double>(stop1_tv.tv_usec)) -

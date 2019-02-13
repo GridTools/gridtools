@@ -57,7 +57,7 @@ namespace gridtools {
                     }
                     return ptr;
                 } else {
-                    return NULL;
+                    return nullptr;
                 }
             }
 

@@ -50,13 +50,13 @@ namespace gridtools {
                 if (sz)
                     return new T[sz];
                 else
-                    return NULL;
+                    return nullptr;
             }
 
             static void free(T *t) {
                 if (!t)
                     delete[] t;
-                t = NULL;
+                t = nullptr;
             }
         };
 
@@ -74,14 +74,14 @@ namespace gridtools {
                     }
                     return ptr;
                 } else {
-                    return NULL;
+                    return nullptr;
                 }
             }
 
             static void free(T *t) {
                 if (!t)
                     cudaError_t status = cudaFree(t);
-                t = NULL;
+                t = nullptr;
             }
         };
 #endif

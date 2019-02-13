@@ -423,15 +423,15 @@ namespace gridtools {
                                     kk_P);
                             } else {
                                 send_size[translate()(ii, jj, kk)] = 0;
-                                send_buffer[translate()(ii, jj, kk)] = NULL;
+                                send_buffer[translate()(ii, jj, kk)] = nullptr;
 
-                                base_type::m_haloexch.register_send_to_buffer(NULL, 0, ii_P, jj_P, kk_P);
+                                base_type::m_haloexch.register_send_to_buffer(nullptr, 0, ii_P, jj_P, kk_P);
 
                                 recv_size[translate()(ii, jj, kk)] = 0;
 
-                                recv_buffer[translate()(ii, jj, kk)] = NULL;
+                                recv_buffer[translate()(ii, jj, kk)] = nullptr;
 
-                                base_type::m_haloexch.register_receive_from_buffer(NULL, 0, ii_P, jj_P, kk_P);
+                                base_type::m_haloexch.register_receive_from_buffer(nullptr, 0, ii_P, jj_P, kk_P);
                             }
                         }
 

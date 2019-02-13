@@ -76,7 +76,7 @@ namespace gridtools {
             the pointer value is used to determine if a message should be
             sent or not. If not null, a mpi send/receive is issued.
          */
-        packet() : mpidt(), ptr(NULL), send_r(), recv_r() {}
+        packet() : mpidt(), ptr(nullptr), send_r(), recv_r() {}
 
         /** This is the basic constructor. Given the MPI datatype and the
             pointer to data, the packet is constructed. If pointer is
@@ -93,13 +93,13 @@ namespace gridtools {
             correspondig dual operation is issued, unexpected results
             would show up.
 
-            \return true if the pointer in the packet is not NULL
+            \return true if the pointer in the packet is not nullptr
          */
-        bool full() const { return ptr != NULL; }
+        bool full() const { return ptr != nullptr; }
 
         /** The opposite of full().
 
-            \return true if the pointer in the packet is NULL
+            \return true if the pointer in the packet is nullptr
          */
         bool emtpy() const { return !full(); }
 

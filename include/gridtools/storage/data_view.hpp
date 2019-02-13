@@ -91,7 +91,7 @@ namespace gridtools {
          * @brief data_view constructor
          */
         GT_FUNCTION data_view()
-            : m_raw_ptr(NULL), m_state_machine_ptr(NULL), m_storage_info(NULL), m_device_view(false) {}
+            : m_raw_ptr(nullptr), m_state_machine_ptr(nullptr), m_storage_info(nullptr), m_device_view(false) {}
 
         /**
          * @brief data_view constructor. This constructor is normally not called by the user because it is more
