@@ -44,7 +44,7 @@
 #include "../../meta.hpp"
 #include "../arg.hpp"
 #include "../extent.hpp"
-#include "../hasdo.hpp"
+#include "../has_apply.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../location_type.hpp"
 #include "./icosahedral_topology.hpp"
@@ -82,12 +82,12 @@ namespace gridtools {
 
     namespace impl_ {
         template <class T>
-        GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_do<T>::value || std::is_void<T>::value);
+        GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_apply<T>::value || std::is_void<T>::value);
 
         template <class ItDomain, class Args, class LocationType, uint_t Color>
         struct evaluator {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<ItDomain>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iterate_domain<ItDomain>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
 
             ItDomain const &m_it_domain;
 
@@ -121,11 +121,11 @@ namespace gridtools {
      */
     template <class Functors, class Extent, class Args, class LocationType>
     struct stage {
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<impl_::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<impl_::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
 
@@ -137,7 +137,7 @@ namespace gridtools {
             using eval_t = impl_::evaluator<ItDomain, Args, LocationType, Color>;
             using functor_t = GT_META_CALL(meta::at_c, (Functors, Color));
             eval_t eval{it_domain};
-            functor_t::Do(eval);
+            functor_t::apply(eval);
         }
 
         template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>
@@ -166,9 +166,8 @@ namespace gridtools {
     struct compound_stage {
         using extent_t = typename Stage::extent_t;
 
-        GRIDTOOLS_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
 
         template <uint_t Color>
         struct contains_color : disjunction<typename Stage::template contains_color<Color>,
@@ -185,7 +184,7 @@ namespace gridtools {
 
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             Stage::exec(it_domain);
             (void)(int[]){((void)Stages::exec(it_domain), 0)...};
         }

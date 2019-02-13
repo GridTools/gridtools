@@ -52,7 +52,7 @@ namespace gridtools {
      */
     template <typename Mss1, typename Mss2, typename Condition>
     struct condition {
-        GRIDTOOLS_STATIC_ASSERT((std::is_convertible<Condition, std::function<bool()>>::value),
+        GT_STATIC_ASSERT((std::is_convertible<Condition, std::function<bool()>>::value),
             "Condition should be nullary boolean functor.");
         Condition m_value;
         Mss1 m_first;

@@ -41,13 +41,15 @@
 #include "../common/host_device.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/type_traits.hpp"
-#include "./hasdo.hpp"
+#include "./has_apply.hpp"
 #include "./interval.hpp"
 #include "./level.hpp"
 
 namespace gridtools {
     namespace _impl {
-        template <class Functor, class Index, bool HasDo = has_do<Functor, GT_META_CALL(index_to_level, Index)>::value>
+        template <class Functor,
+            class Index,
+            bool HasApply = has_apply<Functor, GT_META_CALL(index_to_level, Index)>::value>
         struct find_from_index {
             using type = typename find_from_index<Functor, typename Index::prior>::type;
         };
@@ -63,7 +65,7 @@ namespace gridtools {
         template <class Functor,
             class FromIndex,
             class ToIndex = FromIndex,
-            bool HasDo = has_do<Functor, GT_META_CALL(make_interval, (FromIndex, ToIndex))>::value>
+            bool HasApply = has_apply<Functor, GT_META_CALL(make_interval, (FromIndex, ToIndex))>::value>
         struct find_to_index {
             using type = typename find_to_index<Functor, FromIndex, typename ToIndex::next>::type;
         };
@@ -77,7 +79,7 @@ namespace gridtools {
             class FromIndex,
             class ToIndex = FromIndex,
             class Interval = GT_META_CALL(make_interval, (FromIndex, ToIndex)),
-            bool HasDo = has_do<Functor, Interval>::value>
+            bool HasApply = has_apply<Functor, Interval>::value>
         struct find_interval_impl {
             using type = typename find_interval_impl<Functor, FromIndex, typename ToIndex::next>::type;
         };
@@ -89,9 +91,9 @@ namespace gridtools {
 
         template <class Functor, class Index, class FromIndex = typename find_from_index<Functor, Index>::type>
         struct find_interval {
-            GRIDTOOLS_STATIC_ASSERT(FromIndex::value <= Index::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(FromIndex::value <= Index::value, GT_INTERNAL_ERROR);
             using to_index_t = typename find_to_index<Functor, FromIndex>::type;
-            GRIDTOOLS_STATIC_ASSERT(FromIndex::value <= to_index_t::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(FromIndex::value <= to_index_t::value, GT_INTERNAL_ERROR);
             using type = conditional_t<(to_index_t::value < Index::value),
                 void,
                 GT_META_CALL(make_interval, (FromIndex, to_index_t))>;
@@ -111,20 +113,20 @@ namespace gridtools {
             using param_list = typename Functor::param_list;
 
             template <class Eval>
-            static GT_FUNCTION auto Do(Eval &eval) GT_AUTO_RETURN(Functor::template Do<Eval &>(eval, Interval{}));
+            static GT_FUNCTION auto apply(Eval &eval) GT_AUTO_RETURN(Functor::template apply<Eval &>(eval, Interval{}));
         };
     } // namespace _impl
 
     GT_META_LAZY_NAMESPACE {
         template <class Functor, class Index, class = void>
         struct bind_functor_with_interval {
-            GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = void;
         };
 
         template <class Index>
         struct bind_functor_with_interval<void, Index, void> {
-            GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = void;
         };
 
@@ -132,22 +134,22 @@ namespace gridtools {
         struct bind_functor_with_interval<Functor,
             Index,
             enable_if_t<_impl::is_interval_overload_defined<Functor, Index>::value>> {
-            GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = _impl::bound_functor<Functor, typename _impl::find_interval<Functor, Index>::type>;
         };
 
         template <class Functor, class Index>
         struct bind_functor_with_interval<Functor,
             Index,
-            enable_if_t<!_impl::is_interval_overload_defined<Functor, Index>::value && has_do<Functor>::value>> {
-            GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            enable_if_t<!_impl::is_interval_overload_defined<Functor, Index>::value && has_apply<Functor>::value>> {
+            GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = Functor;
         };
     }
     /**
      *   Takes an elementary functor (Functor) and the level index (Index) as an input; deduces the interval that should
      *   be used for the range from Index to Index::next and produces the functor where the deduced interval is bound.
-     *   I.e. the new functor has the Do method with a single argument and delegates to the original one.
+     *   I.e. the new functor has the apply method with a single argument and delegates to the original one.
      *
      *   Corner cases:
      *     - if `void` is passed as a Functor the return will be also `void`

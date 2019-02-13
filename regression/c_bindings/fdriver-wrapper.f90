@@ -38,7 +38,7 @@ program main
     use implementation_wrapper
     implicit none
     integer, parameter :: i = 9, j = 10, k = 11
-    real(FLOAT_PRECISION), dimension(i, j, k) :: in, out
+    real(GT_FLOAT_PRECISION), dimension(i, j, k) :: in, out
     type(c_ptr) in_handle, out_handle, stencil
     integer(c_int) :: cnt
 

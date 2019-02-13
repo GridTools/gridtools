@@ -75,14 +75,14 @@ struct forward_thomas {
     using param_list = gt::make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<1, 0>) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, 0>) {
         eval(sup{}) = eval(sup{}) / (eval(diag{}) - eval(sup{0, 0, -1}) * eval(inf{}));
         eval(rhs{}) =
             (eval(rhs{}) - eval(inf{}) * eval(rhs{0, 0, -1})) / (eval(diag{}) - eval(sup{0, 0, -1}) * eval(inf{}));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::first_level) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::first_level) {
         eval(sup{}) = eval(sup{}) / eval(diag{});
         eval(rhs{}) = eval(rhs{}) / eval(diag{});
     }
@@ -97,12 +97,12 @@ struct backward_thomas {
     using param_list = gt::make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<0, -1>) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::modify<0, -1>) {
         eval(out{}) = eval(rhs{}) - eval(sup{}) * eval(out{0, 0, 1});
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::last_level) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::last_level) {
         eval(out{}) = eval(rhs{});
     }
 };

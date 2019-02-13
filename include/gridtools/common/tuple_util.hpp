@@ -124,8 +124,8 @@
 
 #ifndef GT_TARGET_ITERATING
 //// DON'T USE #pragma once HERE!!!
-#ifndef GRIDTOOLS_COMMON_TUPLE_UTIL_HPP_
-#define GRIDTOOLS_COMMON_TUPLE_UTIL_HPP_
+#ifndef GT_COMMON_TUPLE_UTIL_HPP_
+#define GT_COMMON_TUPLE_UTIL_HPP_
 
 #include <array>
 #include <tuple>
@@ -385,7 +385,7 @@ namespace gridtools {
 #include GT_ITERATE_ON_TARGETS()
 #undef GT_FILENAME
 
-#endif // GRIDTOOLS_COMMON_TUPLE_UTIL_HPP_
+#endif // GT_COMMON_TUPLE_UTIL_HPP_
 #else  // GT_TARGET_ITERATING
 
 namespace gridtools {
@@ -560,7 +560,7 @@ namespace gridtools {
                         class First = GT_META_CALL(meta::first, GT_META_CALL(to_types, Tup)),
                         class Res = GT_META_CALL(from_types, (First, GT_META_CALL(meta::flatten, Accessors)))>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
-                        GRIDTOOLS_STATIC_ASSERT(size<decay_t<Tup>>::value != 0, "can not flatten empty tuple");
+                        GT_STATIC_ASSERT(size<decay_t<Tup>>::value != 0, "can not flatten empty tuple");
                         using generators = GT_META_CALL(meta::flatten,
                             (GT_META_CALL(meta::transform,
                                 (get_inner_generators, GT_META_CALL(meta::make_indices_for, Accessors), Accessors))));
@@ -807,7 +807,7 @@ namespace gridtools {
                             meta::transform, (get_inner_tuple_f<Tup>::template apply, Types)),
                         class Res = GT_META_CALL(from_types, (First, InnerTuples))>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
-                        GRIDTOOLS_STATIC_ASSERT(
+                        GT_STATIC_ASSERT(
                             tuple_util::size<decay_t<Tup>>::value, "tuple_util::transpose input should not be empty");
                         using inner_indices_t = GT_META_CALL(meta::make_indices_for, GT_META_CALL(to_types, First));
                         using generators_t = GT_META_CALL(meta::transform, (get_generator, inner_indices_t));

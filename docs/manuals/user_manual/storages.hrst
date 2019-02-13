@@ -242,7 +242,7 @@ synchronization they have to be activated manually via a call to ``reactivate_ho
 
     ...
     auto host_view_ds = make_host_view(ds);
-    auto ro_host_view_ds = make_host_view<access_mode::ReadOnly>(ds);
+    auto ro_host_view_ds = make_host_view<access_mode::read_only>(ds);
     // check if view is consistent
     assert(check_consistency(ds, ro_host_view_ds));
     assert(check_consistency(ds, host_view_ds));
@@ -282,7 +282,7 @@ The ``data_view`` construction is usually performed with specific `makers` and t
    auto view1 = make_host_view<Access>(data_store);
    auto view2 = make_device_view<Access>(data_store);
 
-Access is either ``access_mode::ReadOnly`` or ``access_mode::ReadWrite`` and the definitions are found in ``storage/common/definitions.hpp``. ``view1`` can be used by a host thread to access data elements, since the view `points` to host memory. ``view2`` is a view that can be passed to a CUDA kernel, for instance, since it points to GPU memory, so that the kernel can use ``view::operator()`` to access data elements.
+Access is either ``access_mode::read_only`` or ``access_mode::read_write`` and the definitions are found in ``storage/common/definitions.hpp``. ``view1`` can be used by a host thread to access data elements, since the view `points` to host memory. ``view2`` is a view that can be passed to a CUDA kernel, for instance, since it points to GPU memory, so that the kernel can use ``view::operator()`` to access data elements.
 
 The ``data_view`` object provides methods for performing following things:
 

@@ -58,7 +58,7 @@ namespace gridtools {
 
     template <class Accessor>
     struct accessor_index {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
         using type = typename Accessor::index_t;
     };
 } // namespace gridtools

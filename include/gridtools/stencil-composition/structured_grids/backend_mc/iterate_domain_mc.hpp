@@ -115,10 +115,10 @@ namespace gridtools {
      */
     template <typename IterateDomainArguments>
     class iterate_domain_mc {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
 
         using backend_traits_t = backend_traits_from_id<target::mc>;
 
@@ -136,7 +136,7 @@ namespace gridtools {
             meta::st_contains<typename local_domain_t::tmp_storage_info_ptr_list, StorageInfo const *>;
 
         /* ij-cache types and meta functions */
-        using ij_caches_t = typename boost::mpl::copy_if<cache_sequence_t, cache_is_type<cache_type::IJ>>::type;
+        using ij_caches_t = typename boost::mpl::copy_if<cache_sequence_t, cache_is_type<cache_type::ij>>::type;
         using ij_cache_indices_t =
             typename boost::mpl::transform<ij_caches_t, cache_to_index<boost::mpl::_1, local_domain_t>>::type;
         using ij_cache_indexset_t = typename boost::mpl::
@@ -150,10 +150,10 @@ namespace gridtools {
         using data_ptrs_map_t = typename local_domain_t::data_ptr_fusion_map;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
+        static const uint_t n_meta_storages = boost::mpl::size<storage_info_ptrs_t>::value;
 
-        using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
-        using array_index_t = array<int_t, N_META_STORAGES>;
+        using strides_cached_t = strides_cached<n_meta_storages - 1, storage_info_ptrs_t>;
+        using array_index_t = array<int_t, n_meta_storages>;
         // *************** end of type definitions **************
 
       private:
@@ -188,7 +188,7 @@ namespace gridtools {
 
           private:
             iterate_domain_mc const &m_it_domain;
-            array<int_t, N_META_STORAGES> &m_index_array;
+            array<int_t, n_meta_storages> &m_index_array;
         };
 
         using data_ptr_offsets_t =
@@ -223,7 +223,7 @@ namespace gridtools {
         /** @brief Returns the current data index at offset (0, 0, 0) per meta storage. */
         GT_FUNCTION array_index_t index() const {
             array_index_t index_array;
-            for_each<GT_META_CALL(meta::make_indices_c, N_META_STORAGES)>(index_getter(*this, index_array));
+            for_each<GT_META_CALL(meta::make_indices_c, n_meta_storages)>(index_getter(*this, index_array));
             return index_array;
         }
 
@@ -234,7 +234,7 @@ namespace gridtools {
         GT_FUNCTION void enable_ij_caches() { m_enable_ij_caches = true; }
 
         /**
-         * @brief Method called in the Do methods of the functors.
+         * @brief Method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders.
          */
         template <class Arg, enumtype::intent Intent, uint_t I>
@@ -243,7 +243,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief Method called in the Do methods of the functors.
+         * @brief Method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders with arguments.
          */
         template <class Arg, enumtype::intent Intent, class Acc, class... Args>

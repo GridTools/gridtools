@@ -88,7 +88,7 @@ struct integration {
     using param_list = make_param_list<phi_t, psi_t, jac, f, result>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         dimension<1> i;
         dimension<2> j;
         dimension<3> k;

@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _NUMERICS_H_
-#define _NUMERICS_H_
+#pragma once
 
 #include "defs.hpp"
 #include "host_device.hpp"
@@ -71,5 +70,3 @@ namespace gridtools {
         /** @} */
     } // namespace _impl
 } // namespace gridtools
-
-#endif

@@ -68,7 +68,7 @@ TEST(unfold_independent, test) {
 
     using sequence = unwrap_independent<mss_type::esf_sequence_t>::type;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<sequence>::type::value == 7), "");
+    GT_STATIC_ASSERT((boost::mpl::size<sequence>::type::value == 7), "");
 
-    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<sequence, is_esf_descriptor>::value), "");
+    GT_STATIC_ASSERT((is_sequence_of<sequence, is_esf_descriptor>::value), "");
 }

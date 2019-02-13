@@ -70,7 +70,7 @@ namespace gridtools {
          */
         template <uint_t V>
         GT_FUNCTION static constexpr uint_t at() {
-            GRIDTOOLS_STATIC_ASSERT(
+            GT_STATIC_ASSERT(
                 (V < sizeof...(N)), GT_INTERNAL_ERROR_MSG("Out of bounds access in halo type discovered."));
             return get_value_from_pack(V, N...);
         }

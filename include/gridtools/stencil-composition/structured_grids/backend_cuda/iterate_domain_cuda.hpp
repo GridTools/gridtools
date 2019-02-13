@@ -63,7 +63,7 @@ namespace gridtools {
         iterate_domain_cuda(iterate_domain_cuda const &) = delete;
         iterate_domain_cuda &operator=(iterate_domain_cuda const &) = delete;
 
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
 
         typedef iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> super;
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
@@ -95,7 +95,7 @@ namespace gridtools {
 
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
-        shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
+        shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         iterate_domain_cache_t m_iterate_domain_cache;
 
       public:
@@ -122,10 +122,10 @@ namespace gridtools {
         GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
-        GT_FUNCTION strides_cached_t const &RESTRICT strides_impl() const {
+        GT_FUNCTION strides_cached_t const &GT_RESTRICT strides_impl() const {
             return m_pshared_iterate_domain->strides();
         }
-        GT_FUNCTION strides_cached_t &RESTRICT strides_impl() { return m_pshared_iterate_domain->strides(); }
+        GT_FUNCTION strides_cached_t &GT_RESTRICT strides_impl() { return m_pshared_iterate_domain->strides(); }
 
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory
@@ -167,7 +167,7 @@ namespace gridtools {
 
         template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
             m_iterate_domain_cache.template slide_caches<IterationPolicy>();
         }
 
@@ -178,7 +178,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void fill_caches(bool first_level) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
             m_iterate_domain_cache.template fill_caches<IterationPolicy>(*this, first_level);
         }
 
@@ -189,7 +189,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void flush_caches(bool last_level) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
             m_iterate_domain_cache.template flush_caches<IterationPolicy>(*this, last_level);
         }
     };

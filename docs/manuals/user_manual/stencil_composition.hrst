@@ -156,7 +156,7 @@ Each region already defines a :term:`Vertical Interval` which can be queried fro
    ...
    
 Note that the :term:`Intervals<Interval>` are compile time object, i.e. C++ types. These :term:`Intervals<Interval>`
-are used for defining which :term:`Do-Method` version of the stencil operator should be used during the iteration.
+are used for defining which :term:`Apply-Method` version of the stencil operator should be used during the iteration.
 
 :term:`Interval` provides meta-functions which allow to define modified :term:`Intervals<Interval>`
 

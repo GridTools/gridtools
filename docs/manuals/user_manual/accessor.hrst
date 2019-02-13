@@ -135,12 +135,12 @@ Note that you can still access the other dimensions with an offset, by using the
 Expressions
 ^^^^^^^^^^^^^^^^^^
 
-The Do method example provided in :ref:`stencil-operator-example` showed the basic syntax to access data.
+The `apply`-method example provided in :ref:`stencil-operator-example` showed the basic syntax to access data.
 
 .. code-block:: gridtools
 
  template <typename Evaluation>
- GT_FUNCTION static void Do(Evaluation &eval) {
+ GT_FUNCTION static void apply(Evaluation &eval) {
      eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
      if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
          eval(out()) = 0.;
@@ -156,7 +156,7 @@ It is possible to embed the expressions in a single eval, i.e.
 
  using namespace expressions;
  template <typename Evaluation>
- GT_FUNCTION static void Do(Evaluation &eval) {
+ GT_FUNCTION static void apply(Evaluation &eval) {
      eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
      if (eval(out() * (in(1, 0, 0) - in(0, 0, 0)) > 0) {
          eval(out()) = 0.;
@@ -180,7 +180,7 @@ useful for instance if we want to evaluate it multiple times
  using namespace expressions;
  constexpr auto cond = out() * (in(1, 0, 0) - in(0, 0, 0);
  template <typename Evaluation>
- GT_FUNCTION static void Do(Evaluation &eval) {
+ GT_FUNCTION static void apply(Evaluation &eval) {
      eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
      if (eval(cond) > 0) {
          eval(out()) = 0.;
@@ -234,7 +234,7 @@ in the do method
 
 There is a special case for which we have a dedicated API: i.e. when the user defined object
 (the global parameter)
-defines the parenthesis operator ``operator()``, and we want to call that operator from the Do method.
+defines the parenthesis operator ``operator()``, and we want to call that operator from the :term:`Apply-Method`.
 In that case the :term:`Accessor's<Accessor>` parenthesis operator can be used and the arguments will be
 automatically forwarded to the global parameter. An example is the case in which we want to pass
 a small matrix as a global parameter:

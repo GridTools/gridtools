@@ -49,12 +49,12 @@ struct shift_acc_forward_flush {
     typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(out()) = eval(in());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_high) {
         eval(out()) = eval(out(0, 0, -1)) + eval(in());
     }
 };
@@ -67,12 +67,12 @@ struct shift_acc_backward_flush {
     typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_low) {
         eval(out()) = eval(out(0, 0, 1)) + eval(in());
     }
 };
@@ -96,7 +96,7 @@ TEST_F(kcachef, flush_forward) {
         p_in() = m_in,
         make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::flush>(p_out())),
+            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
             make_stage<shift_acc_forward_flush>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -106,7 +106,7 @@ TEST_F(kcachef, flush_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -137,7 +137,7 @@ TEST_F(kcachef, flush_backward) {
         p_in() = m_in,
         make_multistage // mss_descriptor
         (execute<backward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::flush>(p_out())),
+            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
             make_stage<shift_acc_backward_flush>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -147,7 +147,7 @@ TEST_F(kcachef, flush_backward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);

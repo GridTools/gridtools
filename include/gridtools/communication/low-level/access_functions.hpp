@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _ACCESS_FUNCTIONS_H_
-#define _ACCESS_FUNCTIONS_H_
+#pragma once
 
 #include "../../common/array.hpp"
 
@@ -52,4 +51,3 @@ namespace gridtools {
         }
     } // namespace _gcl_internal
 } // namespace gridtools
-#endif

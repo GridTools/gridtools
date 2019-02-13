@@ -105,10 +105,10 @@ namespace gridtools {
     template <typename Layout, bool... Bitmask>
     struct filter_layout<Layout, selector<Bitmask...>> {
         typedef selector<Bitmask...> dim_selector_t;
-        GRIDTOOLS_STATIC_ASSERT((is_selector<dim_selector_t>::value), "Error: Dimension selector is wrong");
+        GT_STATIC_ASSERT((is_selector<dim_selector_t>::value), "Error: Dimension selector is wrong");
         typedef boost::mpl::vector_c<bool, Bitmask...> dim_selector_vec_t;
-        GRIDTOOLS_STATIC_ASSERT((is_layout_map<Layout>::value), "Error: need a layout map type");
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT((is_layout_map<Layout>::value), "Error: need a layout map type");
+        GT_STATIC_ASSERT(
             (sizeof...(Bitmask) >= Layout::masked_length), "Error: need to specifiy at least 4 dimensions");
 
         template <uint_t NumNullDims, typename Seq_>

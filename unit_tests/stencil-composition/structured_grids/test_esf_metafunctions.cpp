@@ -56,7 +56,7 @@ struct functor0 {
     typedef make_param_list<in0, in1, in2, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor1 {
@@ -68,7 +68,7 @@ struct functor1 {
     typedef make_param_list<in0, out, in2, in3> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor2 {
@@ -79,7 +79,7 @@ struct functor2 {
     typedef make_param_list<in0, in1, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor3 {
@@ -91,7 +91,7 @@ struct functor3 {
     typedef make_param_list<in0, in1, out, in3> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor4 {
@@ -103,7 +103,7 @@ struct functor4 {
     typedef make_param_list<in0, in1, in2, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor5 {
@@ -115,7 +115,7 @@ struct functor5 {
     typedef make_param_list<in0, in1, in2, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor6 {
@@ -127,7 +127,7 @@ struct functor6 {
     typedef make_param_list<out, in1, in2, in3> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 std::ostream &operator<<(std::ostream &s, functor0) { return s << "functor0"; }
@@ -172,35 +172,27 @@ int main() {
 
     typedef compute_extents_of<init_map_of_extents<placeholders>::type>::for_mss<mss_t>::type final_map;
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o0>::type, extent<-5, 11, -10, 10, -5, 13>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, extent<-5, 11, -10, 10, -5, 13>>::type::value),
         "o0 extent<-5, 11, -10, 10, -5, 13> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o1>::type, extent<-5, 9, -10, 8, -3, 10>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o1>::type, extent<-5, 9, -10, 8, -3, 10>>::type::value),
         "o1 extent<-5, 9, -10, 8, -3, 10> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o2>::type, extent<-2, 8, -8, 7, -3, 8>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o2>::type, extent<-2, 8, -8, 7, -3, 8>>::type::value),
         "o2 extent<-2, 8, -8, 7, -3, 8> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o3>::type, extent<-1, 5, -5, 7, 0, 6>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o3>::type, extent<-1, 5, -5, 7, 0, 6>>::type::value),
         "o3 extent<-1, 5, -5, 7, 0, 6> ");
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o4>::type, extent<0, 4, -5, 4, 0, 3>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o4>::type, extent<0, 4, -5, 4, 0, 3>>::type::value),
         "o4 extent<0, 4, -5, 4, 0, 3> ");
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o5>::type, extent<0, 3, -3, 2, 0, 0>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o5>::type, extent<0, 3, -3, 2, 0, 0>>::type::value),
         "o5 extent<0, 3, -3, 2, 0, 0> ");
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o6>::type, extent<0, 0, 0, 0, 0, 0>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o6>::type, extent<0, 0, 0, 0, 0, 0>>::type::value),
         "o6 extent<0, 0, 0, 0, 0, 0> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in0>::type, extent<-8, 11, -13, 13, -7, 13>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in0>::type, extent<-8, 11, -13, 13, -7, 13>>::type::value),
         "in0 extent<-8, 11, -13, 13, -7, 13> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in1>::type, extent<-6, 12, -10, 12, -6, 15>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in1>::type, extent<-6, 12, -10, 12, -6, 15>>::type::value),
         "in1 extent<-6, 12, -10, 12, -6, 15> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in2>::type, extent<-8, 14, -11, 12, -5, 14>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in2>::type, extent<-8, 14, -11, 12, -5, 14>>::type::value),
         "in2 extent<-8, 14, -11, 12, -5, 14> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in3>::type, extent<-5, 10, -11, 10, -3, 10>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in3>::type, extent<-5, 10, -11, 10, -3, 10>>::type::value),
         "in3 extent<-5, 10, -11, 10, -3, 10> ");
     /* total placeholders (rounded to 10) _SIZE = 20*/
     return 0;
