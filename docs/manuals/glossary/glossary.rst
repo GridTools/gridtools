@@ -10,7 +10,7 @@ Glossary
 
   Backend
     |GT| provides several backends, allowing to run the same code efficiently
-    on different hardware architectures. See :ref:`backend-selection`.
+    on different hardware architectures. See section :ref:`backend-selection`.
 
   Iteration Point
     A 3D tuple of indices. The horizontal indices are often denoted by `i` and
@@ -66,42 +66,43 @@ Glossary
 
   Vertical Interval
     A compile-time defined subset of an :term:`Iteration Space`, possibly
-    covering only parts of the vertical iteration range. See
-    :ref:`vertical-regions`.
+    covering only parts of the vertical iteration range. See section
+    :ref:`vertical_regions`.
 
   Vertical Region
     A :term:`Vertical Interval` with associated run-time vertical iteration
-    range. See :ref:`vertical-regions`.
+    range. See section :ref:`vertical_regions`.
 
   Axis
     An object consisting of a collection of disjoint :term:`Vertical
-    Regions<Vertical Region>` of an :term:`Iteration Space`. See
+    Regions<Vertical Region>` of an :term:`Iteration Space`. See section
     :ref:`stencil-composition`.
 
   Stencil Operator
-    Struct or class that defines a stencil operation. See
+    Struct or class that defines a stencil operation. See section
     :ref:`stencil_operators`.
 
   Placeholder
     Placeholders allow compile-time naming of :term:`Stencil Operator`
-    arguments. See :ref:`placeholders`.
+    arguments. See section :ref:`placeholders`.
 
   Stage
     A :term:`Stencil Operator` with associated
-    :term:`Placeholders<Placeholder>`. See :ref:`composition_of_stencils`.
+    :term:`Placeholders<Placeholder>`. See section
+    :ref:`composition_of_stencils`.
 
   Multi-Stage Computation
     A partially-order collection of :term:`Stages<Stage>` with an associated
-    :term:`Execution Order`. See :ref:`composition_of_stencils`.
+    :term:`Execution Order`. See section :ref:`composition_of_stencils`.
 
   Computation
     A sequence of :term:`Mutli-Stage Computations<Multi-Stage Computation>`
     associated with a :term:`Grid`. This is an executable composition of
-    multiple stencils. See :ref:`composition_of_stencils`.
+    multiple stencils. See section :ref:`composition_of_stencils`.
 
   Halo Descriptor
-    An object defining the :term:`Halo` regions of a :term:`Computation`. See section
-    :ref:`halo-descriptor`.
+    An object defining the :term:`Halo` regions of a :term:`Computation`. See
+    section :ref:`halo-descriptor`.
 
   Boundary Condition
     A functor describing boundary conditions for one or multiple :term:`Data
@@ -120,7 +121,7 @@ Glossary
     See section :ref:`caches`.
 
   Cache
-    See :term:`Software-Managed Caches`.
+    See :term:`Software-Managed Cache`.
 
   Cache Type
     The kind of a :term:`Software-Managed Cache`. See section
@@ -144,7 +145,7 @@ Glossary
 
   Halo Exchange
     Communication of :term:`Halo` data points between multiple processes. See
-    :ref:`halo-exchanges`.
+    section :ref:`halo-exchanges`.
 
   GCL
     The |GT| Communication Module. See section :ref:`halo-exchanges`.
