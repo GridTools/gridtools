@@ -97,22 +97,22 @@ value can be one of the following (where we indicate the basic mean of implement
 Cache Policy
 ^^^^^^^^^^^^
 
-The ``cache_policy`` specifies a synchronization policy between the data in the cache and the data in main memory. A scratch-pad can be used
+The ``cache_policy`` specifies a synchronization policy between the data in the :term:`Cache` and the data in main memory. A scratch-pad can be used
 in order to allocate temporary computations that do not require data persistency across multiple stencils. However often the data that is
-being cached is already present in main memory fields. In this case, the software managed caches of |GT| gives the possibility
-to specify a cache policy that allows to synchronize the main memory with the cached field.
+being cached is already present in main memory fields. In this case, the :term:`Software-Managed Caches<Software-Managed Cache>` of |GT| gives the possibility
+to specify a :term:`Cache Policy` that allows to synchronize the main memory with the cached field.
 The possible values are:
 
 #. ``fill``: fill the scratch-pad buffer with data from main memory field before use.
 
-#. ``flush``: After the execution of the stencil operators the data in the cache is written back into the main memory fields.
+#. ``flush``: After the execution of the stencil operators the data in the :term:`Cache` is written back into the main memory fields.
 
 #. ``fill_and_flush``: The combination of ``fill`` and ``flush``
 
 #. ``local``: The scratch-pad data is not persistent and only available within the scope of a multi-stage.
 
  :numref:`fig_kcache_ex` graphically depicts an example of all the ordered operations that are executed when a ``fill_and_flush``
-  cache is used in a forward vertical loop. 
+ :term:`Cache` is used in a forward vertical loop.
  
 .. _fig_kcache_ex:
 .. figure:: figures/kcache_ex.png
@@ -120,4 +120,4 @@ The possible values are:
 
    Representation of an implementation for a ``cache<cache_type::K, cache_io_policy::fill_and_flush>`` that is used within a
    stencil with :term:`Extent` ``<-2, 1>`` in the vertical dimension and implemented as a ring-buffer with 4 levels (in order to allocate all possible offsetted accesses). The three operations
-   are triggered automatically by the library for a `fill_and_flush` cache when the vertical loop transition from level 9 to level 10.
+   are triggered automatically by the library for a `fill_and_flush` :term:`Cache` when the vertical loop transition from level 9 to level 10.
