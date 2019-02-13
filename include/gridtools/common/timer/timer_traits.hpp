@@ -56,7 +56,7 @@ namespace gridtools {
         using type = timer_dummy;
     };
 #else
-#ifdef __CUDACC__ // TODO think about ENABLE_CUDA instead
+#ifdef GT_USE_GPU
     template <>
     struct timer_traits<target::cuda> {
         using type = timer_cuda;
