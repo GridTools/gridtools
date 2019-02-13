@@ -8,6 +8,8 @@ Different :term:`Backends<Backend>` are available for different kinds of storage
 
 The storage has the notion of ``halo``. This in turns allows the user of the storage to distinguish between the ``inner_region`` and the ``outer_region``, where the latter includes the halos. The halo is symmetric in the storage class, that is, the number of halo points at the two ends of a dimension is the same. Different dimensions may have different numbers of halo points. The main reason for including halos in the storage is to enforce the alignment of the storage in the inner region to improve the performance of stencil operations.
 
+.. _storage-info:
+
 ------------------
 Storage Info
 ------------------
@@ -173,6 +175,8 @@ The ``data_store`` object provides methods for performing following things:
 
  The :term:`Data Store` cannot be used to modify or access the data.
  In order to do so we use the view concept.
+
+.. _data-view:
 
 --------------
 Data View

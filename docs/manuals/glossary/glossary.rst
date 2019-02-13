@@ -36,20 +36,20 @@ Glossary
     A (compile time) sequence of integer values, defining the storage layout of
     a :term:`Data Store`. See section :ref:`storage-module`. Also used to
     define the process layout in an multi-process setup. For this usage, see
-    section :ref:`halo-exchanges`.
+    section :ref:`storage-info`.
 
   Storage Info
     This concept describes the dimensions, alignment and layout of a
-    multidimensional array. See section :ref:`storage-module`.
+    multidimensional array. See section :ref:`storage-info`.
 
   Data Store
     A ``data_store`` object manages a logical multidimensional array of values.
-    See section :ref:`storage-module`.
+    See section :ref:`data-store`.
 
   Data View
     A ``data_view`` object allows to access and modify the elements of a
     :term:`Data Store` through tuple of indices. See section
-    :ref:`storage-module`.
+    :ref:`data-view`.
 
   Extent
     The maximum relative offsets at which data is accessed around the
@@ -67,11 +67,11 @@ Glossary
   Vertical Interval
     A compile-time defined subset of an :term:`Iteration Space`, possibly
     covering only parts of the vertical iteration range. See
-    :ref:`stencil-composition`.
+    :ref:`vertical-regions`.
 
   Vertical Region
     A :term:`Vertical Interval` with associated run-time vertical iteration
-    range.  See :ref:`stencil-composition`.
+    range. See :ref:`vertical-regions`.
 
   Axis
     An object consisting of a collection of disjoint :term:`Vertical
@@ -100,7 +100,8 @@ Glossary
     multiple stencils. See :ref:`composition_of_stencils`.
 
   Halo Descriptor
-    An object defining the halo regions of a :term:`Data Store`. See section :ref:`halo-descriptor`.
+    An object defining the halo regions of a :term:`Data Store`. See section
+    :ref:`halo-descriptor`.
 
   Boundary Condition
     A functor describing boundary conditions for one or multiple :term:`Data
