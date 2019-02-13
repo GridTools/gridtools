@@ -34,12 +34,12 @@ thread.
 
  Old |GT| indexing approach.
 
-The index is computed as follows. If there is no halo the index will be 
+The index is computed as follows. If there is no :term:`Halo` the index will be 
 
 .. math::
   i = (block\_id\_x * block\_size\_x + thread\_id\_x) * stride\_i + (block\_id\_y * block\_size\_y + thread\_id\_y) * stride\_j
 
-In case of a halo the index is shifted into the right direction (like visible in :numref:`fig_block_contents`).
+In case of a :term:`Halo` the index is shifted into the right direction (like visible in :numref:`fig_block_contents`).
 
 
 --------------------------------
@@ -47,13 +47,13 @@ Issues Regarding Temporaries
 --------------------------------
 
 Temporary storages share the same ``storage_info`` because they all have the same size. The problem with temporaries is that
-computations in the halo region have to be redundant because we don't know when the data will be available. To solve the 
+computations in the :term:`Halo` region have to be redundant because we don't know when the data will be available. To solve the 
 problem with redundant computations the temporary storages, that are allocated in the ``intermediate``, are extended by a certain 
-number of elements. The size of the CUDA block is known beforehand and also the size of the halo and the number of blocks/threads 
+number of elements. The size of the CUDA block is known beforehand and also the size of the :term:`Halo` and the number of blocks/threads 
 is known. With this information an extended temporary storage can be instantiated. For performance reasons we want the first 
-non-halo data point of each block to be in an aligned memory position. Therefore we add a certain number of padding elements between 
+non-:term:`Halo` data point of each block to be in an aligned memory position. Therefore we add a certain number of padding elements between 
 the blocks. :numref:`fig_temporary` compares the non-aligned versus the aligned storages. The green dots
-are marking the halo points. It can be seen that each block has its own halo region. The blue squares are padding elements and the yellow
+are marking the :term:`Halo` points. It can be seen that each block has its own :term:`Halo` region. The blue squares are padding elements and the yellow
 squares are data points. As visible on the right part of the drawing the first data point should be in an aligned memory position.
 In order to achieve this padding elements are added between the blocks.
 
@@ -91,18 +91,18 @@ Multiple Temporaries with Different Halo
 Formerly |GT| used one ``storage_info`` per temporary storage. This is convenient but consumes more resources than needed.
 Therefore it was replaced by the more resource efficient \"one ``storage_info`` for all temporaries\" solution.
 The temporaries are all having the same size. So the stride information can be shared in the backend. The only problem occurs
-when different temporaries (with the same size, as mentioned before) are accessing different halos. The base pointer is set 
-correctly only for the temporary that is using the maximum halo. All the other temporaries are unaligned by $max\_halo - used\_halo$
-points. This happens for instance when computing the horizontal diffusion. The flx and fly temporaries use different halos. In this case
-the temporary written in the flx stage will be properly aligned because it is accessing the maximum halo in the aligned direction (x direction). The second temporary written in the fly stage will be unaligned because it does not use the halo points in x-direction. In order to fix this alignment mistake 
+when different temporaries (with the same size, as mentioned before) are accessing different :term:`Halos<Halo>`. The base pointer is set 
+correctly only for the temporary that is using the maximum :term:`Halo`. All the other temporaries are unaligned by $max\_halo - used\_halo$
+points. This happens for instance when computing the horizontal diffusion. The flx and fly temporaries use different :term:`Halos<Halo>`. In this case
+the temporary written in the flx stage will be properly aligned because it is accessing the maximum :term:`Halo` in the aligned direction (x direction). The second temporary written in the fly stage will be unaligned because it does not use the :term:`Halo` points in x-direction. In order to fix this alignment mistake 
 the missing offset is added when setting the base pointer. The information that is passed to the algorithm that extracts the base pointer knows about
-the used halo of each ``storage`` and also the maximum halo in the alinged direction. A value of $max\_halo - used\_halo$ is added to each base pointer.
+the used :term:`Halo` of each ``storage`` and also the maximum :term:`Halo` in the alinged direction. A value of $max\_halo - used\_halo$ is added to each base pointer.
 
 ---------------------------------------------------
 Passing Huge Types Down to the Offset Computation
 ---------------------------------------------------
 
-In order to fix the alignment when using different halos we have to pass a lot of type information from the ``intermediate`` down to the backend. This is exhaustive for the compiler and the performance suffers. This could lead to problems, especially when trying to compile computations with many stages and
+In order to fix the alignment when using different :term:`Halos<Halo>` we have to pass a lot of type information from the ``intermediate`` down to the backend. This is exhaustive for the compiler and the performance suffers. This could lead to problems, especially when trying to compile computations with many stages and
 a high number of fields.
 
 
@@ -111,10 +111,10 @@ Updated Indexing Algorithm
 --------------------------------
 
 The new indexing approach tries to avoid the strategy of setting the base pointer to the first point of the block. The new approach is to set the
-pointer to the first non-halo point of the block. The method that is setting the index of each cuda thread has to be modified. :numref:`fig_new_temporary_block_contents` shows the new indexing. As shown, the first non halo point is used as base pointer. The index
+pointer to the first non-:term:`Halo` point of the block. The method that is setting the index of each cuda thread has to be modified. :numref:`fig_new_temporary_block_contents` shows the new indexing. As shown, the first non :term:`Halo` point is used as base pointer. The index
 is also modified in order to point to the correct data location.
 
 .. _fig_new_temporary_block_contents:
 .. figure:: figures/new_temporary_block_contents.png
 
- Per-block private base pointers to first non-halo point of the block.
+ Per-block private base pointers to first non-:term:`Halo` point of the block.

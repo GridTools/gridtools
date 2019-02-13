@@ -427,11 +427,11 @@ storages are allocated in the call to ``make_computation`` and freed in the dest
 Besides 
 the simplifications in the code (no explicit storage needed), the
 concept of temporaries allows |GT| to apply optimization. While normal storages
-have a fixed size, temporaries can have block-private halos which are used for redundant computation.
+have a fixed size, temporaries can have block-private :term:`Halos<Halo>` which are used for redundant computation.
 
 .. note::
 
-   It might be semantically incorrect to replace a temporary with a normal storage, as normal storages don't have the halo
+   It might be semantically incorrect to replace a temporary with a normal storage, as normal storages don't have the :term:`Halo`
    region for redundant computation. In such case several threads (OpenMP or CUDA) will write the same location multiple
    times. As long as all threads write the same data (which is a requirement for correctness of |GT|), this should be
    no problem for correctness on current hardware (might change in the future) but might have side-effects on performance.

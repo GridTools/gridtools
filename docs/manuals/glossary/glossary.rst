@@ -100,7 +100,7 @@ Glossary
     multiple stencils. See :ref:`composition_of_stencils`.
 
   Halo Descriptor
-    An object defining the halo regions of a :term:`Data Store`. See section
+    An object defining the :term:`Halo` regions of a :term:`Computation`. See section
     :ref:`halo-descriptor`.
 
   Boundary Condition
@@ -133,6 +133,18 @@ Glossary
   Alignment
     Alignment of the first elements along the contiguous data axis in a :term:`Data
     Store`. See section :ref:`storage-info`.
+
+  Halo
+    Additional data points around the main compute data. Used for
+    :term:`Boundary Conditions<Boundary Condition>` or distributed computations
+    (see :term:`Halo Exchanges<Halo Exchange>`). :term:`Halo` information is
+    also stored in the :term:`Storage Info` to allow correct data
+    :term:`Alignment`.  The size of the :term:`Halo` regions is often described
+    by a :term:`Halo Descriptor`.
+
+  Halo Exchange
+    Communication of :term:`Halo` data points between multiple processes. See
+    :ref:`halo-exchanges`.
 
   GCL
     The |GT| Communication Module. See section :ref:`halo-exchanges`.

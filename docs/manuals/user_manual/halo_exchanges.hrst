@@ -7,7 +7,7 @@ Halo Exchanges
 Introduction
 ----------------
 
-The communication module in |GT| is dubbed GCL. It's a low level
+The communication module in |GT| is dubbed :term:`GCL`. It's a low level
 halo-update interface for 3D fields that takes 3D arrays of some
 types, and the descriptions of the halos, and perform the exchanges in
 a scalable way.
@@ -38,15 +38,11 @@ identifiers of them are tuples of indices. This naturally maps to a 3D
 decomposition of a data field.
 
 ^^^^^^^^^^^^^^^^
-Layout Map
-^^^^^^^^^^^^^^^^
-
-:term:`Layout Maps<Layout Map>` are described in the storage Section of the documentation,
-here we discuss its use in the communication module. The communication
+The communication
 layer need two layouts: one for describing the data, and one for the
 processor grid. For the user, the dimensions of the data are always
 indicated as first, second, and third (or i, j, k), it is the
-``layout_map`` that indicates the stride orders, as in the following example:
+:term:`Layout Map` that indicates the stride orders, as in the following example:
 
 For instance:
 
@@ -55,14 +51,14 @@ For instance:
   //         i, j, k
   layout_map<1, 0, 2>
 
-This map indicates that the first dimension in the data (i) is the
+This :term:`Layout Map` indicates that the first dimension in the data (i) is the
 second in the increasing stride order, while the second (j) has the
 biggest stride, and last dimension (k) is the one with stride 1. The
 largest strides are associated to smaller indices, so that
 ``layout_map<0, 1, 2>`` corresponds to a C-layout, while
 ``layout_map<2, 1, 0>`` to a Fortran layout.
 
-The second template :term:`Layout Map` in the halo exchange
+The second template :term:`Layout Map` in the :term:`Halo Exchange`
 pattern is the map between data coordinates and the processor
 grid coordinates.
 
@@ -159,7 +155,7 @@ the name of arguments should be self-explanatory:
 GCL Communication Module
 -------------------------
 
-Now we are ready to describe the halo exchange patterns objects. The first one is ``halo_exchange_dynamic_ut``. The ``ut`` suffix stands for ``uniform types``, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The type of the object is defined as in this example:
+Now we are ready to describe the :term:`Halo Exchange` patterns objects. The first one is ``halo_exchange_dynamic_ut``. The ``ut`` suffix stands for ``uniform types``, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The type of the object is defined as in this example:
 
 .. code-block:: gridtools
 
@@ -174,7 +170,7 @@ The template arguments are:
 4. the number of dimensions of the data/processing grid, and it has to be set to 3 (the GCL was designed to work with other dimensionalities, but the version in |GT| is a stripped down version waiting for the next more general interfaces);
 5. the place where the data live. The options for this arguments are ``gcl_gpu``, ``gcl_cpu`` and ``gcl_mc``.
 
-The halo exchange object can be instantiated as:
+The :term:`Halo Exchange` object can be instantiated as:
 
 .. code-block:: gridtools
 
