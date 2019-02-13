@@ -19,5 +19,5 @@ are three different ways of executing on the `K` dimension:
   executed after index `k+1`;
 - `parallel`: No order is specified and execution can happen concurrently.
 
-An execution strategy for a computation is indicated by ``execute::order``,
+An execution strategy for a computation is indicated by ``execute::order()``,
 where `order` is one of the `K` dimension execution orders: ``forward``, ``backward``, ``parallel``.
