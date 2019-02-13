@@ -6,7 +6,7 @@
 Glossary
 =========
 
-.. glossary::
+.. glossary:: :sorted:
 
   Backend
     |GT| provides several backends, allowing to run the same code efficiently
