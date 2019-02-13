@@ -43,7 +43,7 @@
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/timer/timer_traits.hpp"
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
 #include "../communication/GCL.hpp"
 #include "../communication/halo_exchange.hpp"
 #include "../communication/low-level/proc_grids_3D.hpp"
@@ -56,7 +56,7 @@
 
 namespace gridtools {
 
-#ifndef _GCL_MPI_
+#ifndef GCL_MPI
     // This provides an processing grid that works on a single process
     // to be used without periodic boundary conditions, this enables
     // the grid predicate to work
@@ -303,7 +303,7 @@ namespace gridtools {
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
-                access_mode::ReadWrite,
+                access_mode::read_write,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);
         }
@@ -314,7 +314,7 @@ namespace gridtools {
         template <typename Stores, uint_t... Ids>
         void call_unpack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
-                access_mode::ReadWrite,
+                access_mode::read_write,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);
         }

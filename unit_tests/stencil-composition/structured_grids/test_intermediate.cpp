@@ -50,20 +50,20 @@ namespace test_intermediate {
         using in1 = accessor<0, enumtype::in, extent<0, 1, -1, 0, 0, 1>>;
         using in2 = accessor<1, enumtype::in, extent<0, 1, -1, 0, -1, 1>>;
         using out = accessor<2, enumtype::inout, extent<>>;
-        using arg_list = boost::mpl::vector<in1, in2, out>;
+        using param_list = make_param_list<in1, in2, out>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 
     struct stage2 {
         using in1 = accessor<0, enumtype::in, extent<-1, 0, 0, 1, -1, 0>>;
         using in2 = accessor<1, enumtype::in, extent<-1, 1, -1, 0, -1, 1>>;
         using out = accessor<2, enumtype::inout, extent<>>;
-        using arg_list = boost::mpl::vector<in1, in2, out>;
+        using param_list = make_param_list<in1, in2, out>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 } // namespace test_intermediate
 

@@ -64,10 +64,10 @@ namespace positional_when_debug_test {
 
     struct test_functor {
         typedef gridtools::accessor<0, gridtools::enumtype::inout> in;
-        typedef boost::mpl::vector1<in> arg_list;
+        typedef gridtools::make_param_list<in> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval.i();
             eval.j();
             eval.k();

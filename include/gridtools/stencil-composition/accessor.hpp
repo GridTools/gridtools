@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "./structured_grids/accessor.hpp"
 #include "./structured_grids/accessor_mixed.hpp"
 #else

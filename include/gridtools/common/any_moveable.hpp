@@ -112,7 +112,7 @@ namespace gridtools {
 
     template <class T>
     T any_cast(any_moveable &&src) {
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             std::is_rvalue_reference<T &&>::value || std::is_const<typename std::remove_reference<T>::type>::value,
             "any_cast shall not be used for getting nonconst references to temporary objects");
         return any_cast<T>(src);

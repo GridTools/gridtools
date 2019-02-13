@@ -48,7 +48,7 @@ namespace gridtools {
       private:
         using meta_storage_t = storage_info_interface<0, Layout>;
 
-        GRIDTOOLS_STATIC_ASSERT(Layout::masked_length == sizeof...(Dims),
+        GT_STATIC_ASSERT(Layout::masked_length == sizeof...(Dims),
             GT_INTERNAL_ERROR_MSG("Mismatch in layout length and passed number of dimensions."));
 
       public:

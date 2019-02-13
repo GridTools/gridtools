@@ -91,10 +91,10 @@ namespace {
     struct simple_callee_with_forced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<forced_tag>, out_type>{};
 
@@ -106,10 +106,10 @@ namespace {
     struct simple_caller_with_forced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             auto result =
                 call<simple_callee_with_forced_return_type>::return_type<special_type<forced_tag>>::with(eval, in{});
 
@@ -132,10 +132,10 @@ namespace {
     struct simple_callee_with_deduced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<in1_tag>, out_type>{};
 
@@ -147,10 +147,10 @@ namespace {
     struct simple_caller_with_deduced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             auto result = call<simple_callee_with_deduced_return_type>::with(eval, in{});
 
             using result_type = decltype(result);
@@ -176,10 +176,10 @@ namespace {
         typedef in_accessor<1> local;
         typedef inout_accessor<2> out;
         typedef in_accessor<3> in1;
-        typedef boost::mpl::vector<in2, local, out, in1> arg_list;
+        typedef make_param_list<in2, local, out, in1> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             // the new convention is that the return type (here "out) is deduced from the first argument in the call
             (void)ASSERT_TYPE_EQ<special_type<in2_tag>, out_type>{};
@@ -199,10 +199,10 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef boost::mpl::vector<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             // the expected type differs here in "call" vs "call_proc"
             (void)ASSERT_TYPE_EQ<special_type<in1_tag>, out_type>{};
@@ -225,10 +225,10 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef boost::mpl::vector<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
@@ -260,10 +260,10 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef boost::mpl::vector<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             // in contrast to the example where this is stage is called from "call" (not "call_proc")
             // the type here is different!
@@ -287,10 +287,10 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef boost::mpl::vector<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 

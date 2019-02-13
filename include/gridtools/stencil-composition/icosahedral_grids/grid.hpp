@@ -41,8 +41,8 @@ namespace gridtools {
 
     template <typename Axis, typename GridTopology>
     struct grid : grid_base<Axis> {
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology<GridTopology>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_interval<Axis>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_grid_topology<GridTopology>::value), GT_INTERNAL_ERROR);
 
         typedef GridTopology grid_topology_t;
 

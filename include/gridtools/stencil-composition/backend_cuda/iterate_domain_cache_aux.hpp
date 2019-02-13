@@ -117,8 +117,8 @@ namespace gridtools {
             cache_io_policy CacheIOPolicy>
         struct io_cache_functor_base {
           private:
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
 
             IterateDomain const &m_it_domain;
             KCachesTuple &m_kcaches;
@@ -141,8 +141,8 @@ namespace gridtools {
              */
             template <typename Idx, int_t SyncStart, int_t SyncEnd = SyncStart>
             GT_FUNCTION void sync() const {
-                GRIDTOOLS_STATIC_ASSERT(forward || backward, "k-caches only support forward and backward iteration");
-                GRIDTOOLS_STATIC_ASSERT(fill || flush, "io policy must be either fill or flush");
+                GT_STATIC_ASSERT(forward || backward, "k-caches only support forward and backward iteration");
+                GT_STATIC_ASSERT(fill || flush, "io policy must be either fill or flush");
                 static constexpr uint_t sync_size = (uint_t)(SyncEnd - SyncStart + 1);
                 using range = GT_META_CALL(meta::make_indices_c, sync_size);
                 auto &cache_st = boost::fusion::at_key<Idx>(m_kcaches);

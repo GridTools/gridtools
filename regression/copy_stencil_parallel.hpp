@@ -64,11 +64,11 @@ namespace copy_stencil {
     struct copy_functor {
         typedef accessor<0, enumtype::in> in;
         typedef accessor<1, enumtype::inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         /* static const auto expression=in(1,0,0)-out(); */
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -117,8 +117,8 @@ namespace copy_stencil {
             pattern_type;
 
         pattern_type he(gridtools::boollist<3>(false, false, false), CartComm);
-#ifdef VERBOSE
-        printf("halo exchange ok\n");
+#ifdef GT_VERBOSE
+        std::cout << "halo exchange ok" << std::endl;
 #endif
 
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
@@ -140,8 +140,8 @@ namespace copy_stencil {
 
         he.setup(3);
 
-#ifdef VERBOSE
-        printf("halo set up\n");
+#ifdef GT_VERBOSE
+        std::cout << "halo set up" << std::endl;
 #endif
 
         auto c_grid = he.comm();
@@ -173,24 +173,24 @@ namespace copy_stencil {
             p_out{} = out,
             gridtools::make_multistage // mss_descriptor
             (execute<forward>(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
-#ifdef VERBOSE
-        printf("computation instantiated\n");
+#ifdef GT_VERBOSE
+        std::cout << "computation instantiated" << std::endl;
 #endif
 
-#ifdef VERBOSE
-        printf("computation steady\n");
+#ifdef GT_VERBOSE
+        std::cout << "computation steady" << std::endl;
 #endif
 
         copy.run();
 
-#ifdef VERBOSE
-        printf("computation run\n");
+#ifdef GT_VERBOSE
+        std::cout << "computation run" << std::endl;
 #endif
 
         copy.sync_bound_data_stores();
 
-#ifdef VERBOSE
-        printf("computation finalized\n");
+#ifdef GT_VERBOSE
+        std::cout << "computation finalized" << std::endl;
 #endif
 
         gridtools::array<gridtools::halo_descriptor, 3> halos;
@@ -217,25 +217,25 @@ namespace copy_stencil {
 
         he.pack(vec);
 
-#ifdef VERBOSE
-        printf("copy packed \n");
+#ifdef GT_VERBOSE
+        std::cout << "copy packed " << std::endl;
 #endif
 
         he.exchange();
 
-#ifdef VERBOSE
-        printf("copy exchanged\n");
+#ifdef GT_VERBOSE
+        std::cout << "copy exchanged" << std::endl;
 #endif
         he.unpack(vec);
 
-#ifdef VERBOSE
-        printf("copy unpacked\n");
+#ifdef GT_VERBOSE
+        std::cout << "copy unpacked" << std::endl;
 #endif
 
         MPI_Barrier(GCL_WORLD);
 
         out.sync();
-        auto v_out_h = make_host_view<access_mode::ReadOnly>(out);
+        auto v_out_h = make_host_view<access_mode::read_only>(out);
 
         for (uint_t i = halo[0]; i < d1 - halo[0]; ++i)
             for (uint_t j = halo[1]; j < d2 - halo[1]; ++j)

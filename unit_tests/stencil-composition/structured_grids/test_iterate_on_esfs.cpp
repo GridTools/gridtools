@@ -52,12 +52,11 @@
 
 namespace gridtools {
     namespace {
-        using boost::mpl::vector;
 
         template <int I>
         struct functor {
             static const int thevalue = I;
-            using arg_list = vector<in_accessor<0>, inout_accessor<1>>;
+            using param_list = boost::mpl::vector<in_accessor<0>, inout_accessor<1>>;
         };
 
         typedef storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
@@ -90,20 +89,21 @@ namespace gridtools {
         template <typename Msses>
         using get_odd = typename with_operators<is_odd, sum>::iterate_on_esfs<boost::mpl::int_<0>, Msses>::type;
 
-        using basic_t = vector<an_mss<an_esf<0>, an_esf<1>, an_esf<2>, an_esf<3>, an_esf<4>>>;
+        using basic_t = boost::mpl::vector<an_mss<an_esf<0>, an_esf<1>, an_esf<2>, an_esf<3>, an_esf<4>>>;
         static_assert(get_even<basic_t>::value == 3, "");
         static_assert(get_odd<basic_t>::value == 2, "");
 
-        using two_multistages_t = vector<an_mss<an_esf<0>, an_esf<1>, an_esf<2>>, an_mss<an_esf<3>, an_esf<4>>>;
+        using two_multistages_t =
+            boost::mpl::vector<an_mss<an_esf<0>, an_esf<1>, an_esf<2>>, an_mss<an_esf<3>, an_esf<4>>>;
         static_assert(get_even<two_multistages_t>::value == 3, "");
         static_assert(get_odd<two_multistages_t>::value == 2, "");
 
         using two_multistages_independent_t =
-            vector<an_mss<an_esf<0>, an_independent<an_esf<1>, an_esf<2>>>, an_mss<an_esf<3>, an_esf<4>>>;
+            boost::mpl::vector<an_mss<an_esf<0>, an_independent<an_esf<1>, an_esf<2>>>, an_mss<an_esf<3>, an_esf<4>>>;
         static_assert(get_even<two_multistages_independent_t>::value == 3, "");
         static_assert(get_odd<two_multistages_independent_t>::value == 2, "");
 
-        using just_independent_t = vector<an_mss<an_independent<an_esf<1>, an_esf<2>>>, an_mss<an_esf<4>>>;
+        using just_independent_t = boost::mpl::vector<an_mss<an_independent<an_esf<1>, an_esf<2>>>, an_mss<an_esf<4>>>;
         static_assert(get_even<just_independent_t>::value == 2, "");
         static_assert(get_odd<just_independent_t>::value == 1, "");
 

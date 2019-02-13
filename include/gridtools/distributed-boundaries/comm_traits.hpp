@@ -39,7 +39,7 @@
 #include "../common/defs.hpp"
 #include "../common/layout_map.hpp"
 #include "../communication/GCL.hpp"
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
 #include "../communication/low-level/proc_grids_3D.hpp"
 #else
 #include "./mock_pattern.hpp"
@@ -47,7 +47,7 @@
 
 namespace gridtools {
 
-#ifndef _GCL_MPI_
+#ifndef GCL_MPI
     using namespace mock_;
 #endif
 

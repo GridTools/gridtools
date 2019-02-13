@@ -157,7 +157,7 @@ namespace gridtools {
         // long double not supported in device code
         template <typename ErrorTrigger = double>
         GT_FUNCTION_DEVICE double fabs(long double val) {
-            GRIDTOOLS_STATIC_ASSERT((sizeof(ErrorTrigger) == 0), "long double is not supported in device code");
+            GT_STATIC_ASSERT((sizeof(ErrorTrigger) == 0), "long double is not supported in device code");
             return 0.;
         }
 #endif
@@ -234,7 +234,7 @@ namespace gridtools {
 #ifdef __CUDA_ARCH__
         template <typename ErrorTrigger = int>
         GT_FUNCTION double fmod(long double x, long double y) { // return value double to suppress warning
-            GRIDTOOLS_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");
+            GT_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");
             return -1.;
         }
 #else
@@ -259,7 +259,7 @@ namespace gridtools {
 #ifdef __CUDA_ARCH__
         template <typename ErrorTrigger = int>
         GT_FUNCTION double trunc(long double val) { // return value double to suppress warning
-            GRIDTOOLS_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");
+            GT_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");
             return 1.;
         }
 #else

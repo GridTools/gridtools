@@ -34,13 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
 struct functor {
     using a0 = gridtools::accessor<0, gridtools::enumtype::inout>;
     using a1 = gridtools::accessor<1, gridtools::enumtype::inout>;
 
-    typedef boost::mpl::vector<a0, a1> arg_list;
+    typedef gridtools::make_param_list<a0, a1> param_list;
 };
 
 struct fake_storage_type {
@@ -67,7 +68,7 @@ TEST(unfold_independent, test) {
 
     using sequence = unwrap_independent<mss_type::esf_sequence_t>::type;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<sequence>::type::value == 7), "");
+    GT_STATIC_ASSERT((boost::mpl::size<sequence>::type::value == 7), "");
 
-    GRIDTOOLS_STATIC_ASSERT((is_sequence_of<sequence, is_esf_descriptor>::value), "");
+    GT_STATIC_ASSERT((is_sequence_of<sequence, is_esf_descriptor>::value), "");
 }

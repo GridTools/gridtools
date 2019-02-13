@@ -66,11 +66,11 @@ namespace gridtools {
         typename Color,
         typename ArgSequence>
     struct esf_descriptor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgSequence, is_plh>::value),
+        GT_STATIC_ASSERT((is_sequence_of<ArgSequence, is_plh>::value),
             "wrong types for the list of parameter placeholders\n"
             "check the make_stage syntax");
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology<Grid>::value), "Error: wrong grid type");
-        GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Error: wrong color type");
+        GT_STATIC_ASSERT((is_grid_topology<Grid>::value), "Error: wrong grid type");
+        GT_STATIC_ASSERT((is_color_type<Color>::value), "Error: wrong color type");
 
         template <uint_t C>
         using esf_function = Functor<C>;
@@ -79,20 +79,20 @@ namespace gridtools {
         using args_t = ArgSequence;
         using color_t = Color;
 
-        GRIDTOOLS_STATIC_ASSERT((are_location_types_compatible<args_t, typename Functor<0>::arg_list>::value),
+        GT_STATIC_ASSERT((are_location_types_compatible<args_t, typename Functor<0>::param_list>::value),
             "Location types of placeholders and accessors must match");
 
-        BOOST_MPL_HAS_XXX_TRAIT_DEF(arg_list)
-        GRIDTOOLS_STATIC_ASSERT(has_arg_list<esf_function<0>>::type::value,
-            "The type arg_list was not found in a user functor definition. All user functors must have a type alias "
-            "called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor "
+        BOOST_MPL_HAS_XXX_TRAIT_DEF(param_list)
+        GT_STATIC_ASSERT(has_param_list<esf_function<0>>::type::value,
+            "The type param_list was not found in a user functor definition. All user functors must have a type alias "
+            "called \'param_list\', which is an MPL vector containing the list of accessors defined in the functor "
             "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
             "using v2=global_accessor<1>; \n using v3=accessor<2>; \n using "
-            "arg_list=boost::mpl::vector<v1, v3>;");
+            "param_list=boost::mpl::vector<v1, v3>;");
 
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
-        typedef
-            typename impl::make_arg_with_extent_map<args_t, typename esf_function<0>::arg_list>::type args_with_extents;
+        typedef typename impl::make_arg_with_extent_map<args_t, typename esf_function<0>::param_list>::type
+            args_with_extents;
     };
 
     template <template <uint_t> class Functor,
@@ -121,7 +121,7 @@ namespace gridtools {
         typename Color,
         typename ArgSequence>
     struct esf_descriptor_with_extent : public esf_descriptor<Functor, Grid, LocationType, Color, ArgSequence> {
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "stage descriptor is expecting a extent type");
+        GT_STATIC_ASSERT((is_extent<Extent>::value), "stage descriptor is expecting a extent type");
     };
 
     template <template <uint_t> class Functor,

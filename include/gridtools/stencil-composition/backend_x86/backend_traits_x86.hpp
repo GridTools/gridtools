@@ -76,12 +76,12 @@ namespace gridtools {
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid>
             static void run(
                 LocalDomain const &local_domain, Grid const &grid, const execution_info_x86 &execution_info) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
                 // each strategy executes a different high level loop for a mss
                 strategy_from_id_x86<typename backend_ids_t::strategy_id_t>::template mss_loop<
@@ -97,7 +97,7 @@ namespace gridtools {
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_x86<typename BackendIds::strategy_id_t> type;
         };
 

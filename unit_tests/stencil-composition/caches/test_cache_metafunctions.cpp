@@ -61,10 +61,10 @@ typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> x_interval;
 struct functor1 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0>, 6> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>, 5> buff;
-    typedef boost::mpl::vector<in, buff> arg_list;
+    typedef make_param_list<in, buff> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 typedef storage_traits<target::x86>::storage_info_t<0, 2> storage_info_ij_t;
@@ -81,18 +81,18 @@ typedef decltype(gridtools::make_stage<functor1>(p_buff(), p_out())) esf2_t;
 struct functor2 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 
-typedef detail::cache_impl<IJ, p_in, cache_io_policy::fill> cache1_t;
-typedef detail::cache_impl<IJ, p_buff, cache_io_policy::fill> cache2_t;
-typedef detail::cache_impl<K, p_out, cache_io_policy::local> cache3_t;
-typedef detail::cache_impl<K, p_notin, cache_io_policy::local> cache4_t;
+typedef detail::cache_impl<cache_type::ij, p_in, cache_io_policy::fill> cache1_t;
+typedef detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::fill> cache2_t;
+typedef detail::cache_impl<cache_type::k, p_out, cache_io_policy::local> cache3_t;
+typedef detail::cache_impl<cache_type::k, p_notin, cache_io_policy::local> cache4_t;
 typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
 typedef decltype(gridtools::make_stage<functor2>(p_in(), p_notin())) esf1k_t;
@@ -103,8 +103,7 @@ typedef boost::mpl::vector2<esf1k_t, esf2k_t> esfk_sequence_t;
 TEST(cache_metafunctions, cache_used_by_esfs) {
     typedef caches_used_by_esfs<esf_sequence_t, caches_t>::type caches_used_t;
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<caches_used_t, boost::mpl::vector3<cache1_t, cache2_t, cache3_t>>::value), "WRONG");
+    GT_STATIC_ASSERT((boost::mpl::equal<caches_used_t, make_param_list<cache1_t, cache2_t, cache3_t>>::value), "WRONG");
     ASSERT_TRUE(true);
 }
 
@@ -128,9 +127,9 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
 
     typedef extract_ij_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
-                                boost::mpl::map2<boost::mpl::pair<cache1_t, extent<-1, 2, -2, 1>>,
-                                    boost::mpl::pair<cache2_t, extent<-2, 2, -3, 2>>>>::value),
+    GT_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
+                         boost::mpl::map2<boost::mpl::pair<cache1_t, extent<-1, 2, -2, 1>>,
+                             boost::mpl::pair<cache2_t, extent<-2, 2, -3, 2>>>>::value),
         "ERROR");
 }
 
@@ -154,9 +153,9 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
 
     typedef extract_k_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
-                                boost::mpl::map2<boost::mpl::pair<cache3_t, extent<0, 0, 0, 0, 0, 1>>,
-                                    boost::mpl::pair<cache4_t, extent<0, 0, 0, 0, -1, 1>>>>::value),
+    GT_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
+                         boost::mpl::map2<boost::mpl::pair<cache3_t, extent<0, 0, 0, 0, 0, 1>>,
+                             boost::mpl::pair<cache4_t, extent<0, 0, 0, 0, -1, 1>>>>::value),
         "ERROR");
 }
 
@@ -181,10 +180,10 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
 
     typedef extract_ij_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    typedef get_cache_storage_tuple<IJ, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
+    typedef get_cache_storage_tuple<cache_type::ij, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
         cache_storage_tuple_t;
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::equal<cache_storage_tuple_t,
             boost::fusion::map<boost::fusion::pair<static_uint<0>,
                                    cache_storage<cache1_t, block_size<32, 4, 1>, extent<-1, 2, -2, 1>, p_in>>,
@@ -214,10 +213,10 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
 
     typedef extract_k_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    typedef get_cache_storage_tuple<K, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
+    typedef get_cache_storage_tuple<cache_type::k, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
         cache_storage_tuple_t;
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::equal<cache_storage_tuple_t,
             boost::fusion::map<boost::fusion::pair<static_uint<3>,
                                    cache_storage<cache3_t, block_size<1, 1, 1>, extent<0, 0, 0, 0, 0, 1>, p_out>>,

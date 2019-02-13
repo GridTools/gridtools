@@ -148,7 +148,7 @@ void m_unpackZL(array_t const &d_data_array,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     printf("UnpackZL Launch grid (%d,%d,%d) with (%d,%d) threads tot: %dx%dx%d\n", nbx, nby, nbz, ntx, nty, nx, ny, nz);
 
     // just some timing stuff
@@ -172,7 +172,7 @@ void m_unpackZL(array_t const &d_data_array,
                                                           + (halo[1].begin()-halo[1].minus())*halo[0].total_length()
                                                           + (halo[2].begin()-halo[2].minus())*halo[0].total_length() *halo[1].total_length(), i );
 // clang-format on
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
         int err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("Kernel launch failure\n");
@@ -181,7 +181,7 @@ void m_unpackZL(array_t const &d_data_array,
 #endif
     }
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
     cudaEventRecord(stop, 0);
@@ -221,7 +221,7 @@ int call_kernel_ZL_u(Blocks blocks,
     m_unpackZLKernel<<<blocks, threads, b, ZL_stream>>>(
         d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, tranlation_const, i);
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     int err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("Kernel launch failure\n");
@@ -258,7 +258,7 @@ void m_unpackZL_variadic(value_type **d_msgbufTab_r,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     printf("UnpackZL Launch grid (%d,%d,%d) with (%d,%d) threads tot: %dx%dx%d\n", nbx, nby, nbz, ntx, nty, nx, ny, nz);
 
     // just some timing stuff
@@ -283,7 +283,7 @@ void m_unpackZL_variadic(value_type **d_msgbufTab_r,
             (halo[2].begin() - halo[2].minus()) * halo[0].total_length() * halo[1].total_length(),
         Ids)...};
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
     cudaEventRecord(stop, 0);

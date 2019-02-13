@@ -52,10 +52,10 @@ namespace rw_test {
         typedef accessor<6, in, extent<4>> i3;
         typedef accessor<7, inout> o3;
 
-        typedef boost::mpl::vector8<i0, o0, i1, o1, i2, o2, i3, o3> arg_list;
+        typedef make_param_list<i0, o0, i1, o1, i2, o2, i3, o3> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 } // namespace rw_test
 
@@ -75,33 +75,33 @@ TEST(esf, read_write) {
     typedef arg<6, cell_storage_type> pi3;
     typedef arg<7, cell_storage_type> po3;
 
-    typedef boost::mpl::vector8<pi0, po0, pi1, po1, pi2, po2, pi3, po3> args;
+    typedef make_param_list<pi0, po0, pi1, po1, pi2, po2, pi3, po3> args;
 
     typedef esf_descriptor<test_functor, args> esf_t;
 
-    GRIDTOOLS_STATIC_ASSERT(is_accessor_readonly<test_functor::i0>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(!is_accessor_readonly<test_functor::o0>::type::value, "");
+    GT_STATIC_ASSERT(is_accessor_readonly<test_functor::i0>::type::value, "");
+    GT_STATIC_ASSERT(!is_accessor_readonly<test_functor::o0>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(is_accessor_readonly<test_functor::i1>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(!is_accessor_readonly<test_functor::o1>::type::value, "");
+    GT_STATIC_ASSERT(is_accessor_readonly<test_functor::i1>::type::value, "");
+    GT_STATIC_ASSERT(!is_accessor_readonly<test_functor::o1>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(is_accessor_readonly<test_functor::i2>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(!is_accessor_readonly<test_functor::o2>::type::value, "");
+    GT_STATIC_ASSERT(is_accessor_readonly<test_functor::i2>::type::value, "");
+    GT_STATIC_ASSERT(!is_accessor_readonly<test_functor::o2>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(is_accessor_readonly<test_functor::i3>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(!is_accessor_readonly<test_functor::o3>::type::value, "");
+    GT_STATIC_ASSERT(is_accessor_readonly<test_functor::i3>::type::value, "");
+    GT_STATIC_ASSERT(!is_accessor_readonly<test_functor::o3>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<0>>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(is_written<esf_t>::apply<static_int<1>>::type::value, "");
+    GT_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<0>>::type::value, "");
+    GT_STATIC_ASSERT(is_written<esf_t>::apply<static_int<1>>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<2>>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(is_written<esf_t>::apply<static_int<3>>::type::value, "");
+    GT_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<2>>::type::value, "");
+    GT_STATIC_ASSERT(is_written<esf_t>::apply<static_int<3>>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<4>>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(is_written<esf_t>::apply<static_int<5>>::type::value, "");
+    GT_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<4>>::type::value, "");
+    GT_STATIC_ASSERT(is_written<esf_t>::apply<static_int<5>>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<6>>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(is_written<esf_t>::apply<static_int<7>>::type::value, "");
+    GT_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<6>>::type::value, "");
+    GT_STATIC_ASSERT(is_written<esf_t>::apply<static_int<7>>::type::value, "");
 
     EXPECT_TRUE(true);
 }

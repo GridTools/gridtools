@@ -46,7 +46,7 @@ namespace gridtools {
         typedef typename boost::is_same<typename _grid_::has_communicator, boost::true_type>::type type;
     };
 
-#ifndef _GCL_MPI_
+#ifndef GCL_MPI
 #define MPI_Comm int
 #endif
 
@@ -62,7 +62,7 @@ namespace gridtools {
         return gridtools::GCL_WORLD;
     }
 
-#ifndef _GCL_MPI_
+#ifndef GCL_MPI
 #undef MPI_Comm
 #endif
 } // namespace gridtools

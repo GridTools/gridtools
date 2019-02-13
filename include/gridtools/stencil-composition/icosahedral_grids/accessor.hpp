@@ -54,7 +54,7 @@ namespace gridtools {
         typename Extent = extent<>,
         ushort_t FieldDimensions = 4>
     struct accessor : accessor_base<FieldDimensions> {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
+        GT_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
         using index_t = static_uint<ID>;
         static constexpr enumtype::intent intent = Intent;
         using extent_t = Extent;

@@ -133,7 +133,7 @@ void m_unpackZL_generic(
     // more statistics
     int niter = fields.size();
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -159,7 +159,7 @@ void m_unpackZL_generic(
         int nbz = (nz + ntz - 1) / ntz;
         dim3 blocks(nbx, nby, nbz);
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
         printf("UNPACK ZL Launch grid (%d,%d,%d) with (%d,%d) threads tot: %dx%dx%d\n",
             nbx,
             nby,
@@ -184,7 +184,7 @@ void m_unpackZL_generic(
          + (fields[i].halos[1].begin()-fields[i].halos[1].minus())*fields[i].halos[0].total_length()
          + (fields[i].halos[2].begin()-fields[i].halos[2].minus())*fields[i].halos[0].total_length() *fields[i].halos[1].total_length(), 0 );
 // clang-format on
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
             int err = cudaGetLastError();
             if (err != cudaSuccess) {
                 printf("KLF in %s\n", __FILE__);
@@ -194,7 +194,7 @@ void m_unpackZL_generic(
         }
     }
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
     cudaEventRecord(stop, 0);

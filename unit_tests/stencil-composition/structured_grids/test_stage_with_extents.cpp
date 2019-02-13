@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define PEDANTIC_DISABLED // too stringent for this test
+#define GT_PEDANTIC_DISABLED // too stringent for this test
 
 #include <iostream>
 
@@ -53,19 +53,19 @@ namespace test_iterate_domain {
     struct stage1 {
         typedef accessor<0, enumtype::in, extent<42, 42, 42, 42>, 6> in;
         typedef accessor<1, enumtype::inout, extent<>, 4> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 
     struct stage2 {
         typedef accessor<0, enumtype::in, extent<42, 42, 42, 42>, 6> in;
         typedef accessor<1, enumtype::inout, extent<>, 4> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 } // namespace test_iterate_domain
 

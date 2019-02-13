@@ -47,10 +47,10 @@ template <uint_t>
 struct test_on_cells_functor {
     using in = in_accessor<0, enumtype::cells, extent<-1, 1, -1, 1>>;
     using out = inout_accessor<1, enumtype::cells>;
-    using arg_list = boost::mpl::vector<in, out>;
+    using param_list = make_param_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return lhs + rhs; }, 0., in{}));
     }
 };

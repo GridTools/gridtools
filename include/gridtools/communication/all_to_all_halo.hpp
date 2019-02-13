@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _ALL_TO_ALL_HALO_H_
-#define _ALL_TO_ALL_HALO_H_
+#pragma once
 
 #include "../common/halo_descriptor.hpp"
 #include "low-level/Generic_All_to_All.hpp"
@@ -148,4 +147,3 @@ namespace gridtools {
         void wait() { a2a.wait(); }
     };
 } // namespace gridtools
-#endif

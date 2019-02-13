@@ -88,21 +88,21 @@ TEST(DataStoreTest, Simple) {
     constexpr storage_info_interface<2, layout_map<2, 1, 0>, halo<2, 1, 0>, alignment<16>> csiha(7, 5, 3);
 
     // check sizes, strides, and alignment
-    GRIDTOOLS_STATIC_ASSERT(csi.total_length<0>() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.total_length<1>() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.total_length<2>() == 3, "dimension check failed.");
+    GT_STATIC_ASSERT(csi.total_length<0>() == 3, "dimension check failed.");
+    GT_STATIC_ASSERT(csi.total_length<1>() == 3, "dimension check failed.");
+    GT_STATIC_ASSERT(csi.total_length<2>() == 3, "dimension check failed.");
 
-    GRIDTOOLS_STATIC_ASSERT(csi.stride<0>() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.stride<1>() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.stride<2>() == 9, "stride check failed.");
+    GT_STATIC_ASSERT(csi.stride<0>() == 1, "stride check failed.");
+    GT_STATIC_ASSERT(csi.stride<1>() == 3, "stride check failed.");
+    GT_STATIC_ASSERT(csi.stride<2>() == 9, "stride check failed.");
 
-    GRIDTOOLS_STATIC_ASSERT(csih.total_length<0>() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.total_length<1>() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.total_length<2>() == 3, "dimension check failed.");
+    GT_STATIC_ASSERT(csih.total_length<0>() == 7, "dimension check failed.");
+    GT_STATIC_ASSERT(csih.total_length<1>() == 5, "dimension check failed.");
+    GT_STATIC_ASSERT(csih.total_length<2>() == 3, "dimension check failed.");
 
-    GRIDTOOLS_STATIC_ASSERT(csih.stride<0>() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.stride<1>() == 7, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.stride<2>() == 35, "stride check failed.");
+    GT_STATIC_ASSERT(csih.stride<0>() == 1, "stride check failed.");
+    GT_STATIC_ASSERT(csih.stride<1>() == 7, "stride check failed.");
+    GT_STATIC_ASSERT(csih.stride<2>() == 35, "stride check failed.");
 
     EXPECT_EQ(csiha.total_length<0>(), 7);
     EXPECT_EQ(csiha.total_length<1>(), 5);
@@ -253,7 +253,7 @@ TEST(DataStoreTest, ExternalPointer) {
     storage_info_t si(10, 10, 10);
     double *external_ptr = new double[si.padded_total_length()];
     // create a data_store with externally managed storage
-    data_store<cuda_storage<double>, storage_info_t> ds(si, external_ptr, ownership::ExternalCPU);
+    data_store<cuda_storage<double>, storage_info_t> ds(si, external_ptr, ownership::external_cpu);
     ds.sync();
     // create a copy (double free checks)
     data_store<cuda_storage<double>, storage_info_t> ds_cpy = ds;
@@ -297,7 +297,7 @@ TEST(DataStoreTest, ExternalGPUPointer) {
         cudaMemcpyHostToDevice);
     ASSERT_TRUE((err == cudaSuccess));
     // create a data_store with externally managed storage
-    data_store<cuda_storage<double>, storage_info_t> ds(si, external_gpu_ptr, ownership::ExternalGPU);
+    data_store<cuda_storage<double>, storage_info_t> ds(si, external_gpu_ptr, ownership::external_gpu);
     ds.sync();
     // create some copies
     data_store<cuda_storage<double>, storage_info_t> ds_cpy_1(ds);

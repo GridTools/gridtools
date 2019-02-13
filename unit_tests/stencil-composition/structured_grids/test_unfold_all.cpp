@@ -35,6 +35,7 @@
 */
 #include <gtest/gtest.h>
 
+//#include <gridtools/stencil-composition/esf.hpp>
 #include <gridtools/stencil-composition/conditionals/if_.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
@@ -44,10 +45,10 @@ struct functor {
 
     typedef gridtools::accessor<0, gridtools::enumtype::inout> a0;
     typedef gridtools::accessor<1, gridtools::enumtype::in> a1;
-    typedef boost::mpl::vector2<a0, a1> arg_list;
+    typedef gridtools::make_param_list<a0, a1> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {}
+    GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 bool predicate() { return false; }

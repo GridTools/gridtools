@@ -99,7 +99,7 @@ namespace gridtools {
      */
     template <uint_t Dim>
     struct get_layout<Dim, true> {
-        GRIDTOOLS_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
+        GT_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
         typedef typename _impl::layout_map_ext_asc<Dim - 3, 0, layout_map<Dim - 3, Dim - 2, Dim - 1>>::type type;
     };
 
@@ -116,7 +116,7 @@ namespace gridtools {
      */
     template <uint_t Dim>
     struct get_layout<Dim, false> {
-        GRIDTOOLS_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
+        GT_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
         typedef typename _impl::layout_map_ext_dsc<Dim - 1, layout_map<Dim - 1>>::type type;
     };
 
@@ -208,7 +208,7 @@ namespace gridtools {
     struct get_special_layout<layout_map<Dims...>, selector<Bitmask...>> {
         // <1,1,0,0,1,1>
         typedef typename variadic_to_vector<boost::mpl::int_<Bitmask>...>::type bitmask_vec;
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             (boost::mpl::count_if<bitmask_vec, boost::is_same<boost::mpl::int_<-1>, boost::mpl::_1>>::value <
                 sizeof...(Dims)),
             GT_INTERNAL_ERROR_MSG("Masking out all dimensions makes no sense."));

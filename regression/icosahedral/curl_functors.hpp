@@ -51,10 +51,10 @@ namespace ico_operators {
         using weights = inout_accessor<2, vertices, 5>;
         using edge_orientation = in_accessor<3, vertices, extent<>, 5>;
 
-        using arg_list = boost::mpl::vector<dual_area_reciprocal, dual_edge_length, weights, edge_orientation>;
+        using param_list = make_param_list<dual_area_reciprocal, dual_edge_length, weights, edge_orientation>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation eval) {
+        GT_FUNCTION static void apply(Evaluation eval) {
             constexpr dimension<5> edge;
             constexpr auto neighbors_offsets = connectivity<vertices, edges, Color>::offsets();
             int_t e = 0;
@@ -72,10 +72,10 @@ namespace ico_operators {
         using weights = in_accessor<1, vertices, extent<>, 5>;
         using out_vertices = inout_accessor<2, vertices>;
 
-        using arg_list = boost::mpl::vector<in_edges, weights, out_vertices>;
+        using param_list = make_param_list<in_edges, weights, out_vertices>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation eval) {
+        GT_FUNCTION static void apply(Evaluation eval) {
             constexpr dimension<5> edge;
             constexpr auto neighbors_offsets = connectivity<vertices, edges, Color>::offsets();
             float_type t = 0;
@@ -95,10 +95,10 @@ namespace ico_operators {
         using dual_edge_length = in_accessor<2, edges, extent<-1, 0, -1, 0>>;
         using out_vertices = inout_accessor<3, vertices>;
 
-        using arg_list = boost::mpl::vector<in_edges, dual_area_reciprocal, dual_edge_length, out_vertices>;
+        using param_list = make_param_list<in_edges, dual_area_reciprocal, dual_edge_length, out_vertices>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation eval) {
+        GT_FUNCTION static void apply(Evaluation eval) {
             constexpr auto neighbor_offsets = connectivity<vertices, edges, Color>::offsets();
             eval(out_vertices()) = -eval(in_edges(neighbor_offsets[0])) * eval(dual_edge_length(neighbor_offsets[0])) +
                                    eval(in_edges(neighbor_offsets[1])) * eval(dual_edge_length(neighbor_offsets[1])) -
