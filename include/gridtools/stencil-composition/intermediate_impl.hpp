@@ -98,8 +98,18 @@ namespace gridtools {
             }
         };
 
+        template <class T>
+        struct is_std_vector : std::false_type {};
+
+        template <class T>
+        struct is_std_vector<std::vector<T>> : std::true_type {};
+
         template <class Arg>
         struct get_storage_info {
+            GT_STATIC_ASSERT(!is_std_vector<typename Arg::data_store_t>::value,
+                "A std::vector was bound to an arg, but no expand_factor was given. Maybe you forgot to specify the "
+                "expand_factor in make_computation?");
+            GT_STATIC_ASSERT(is_data_store<typename Arg::data_store_t>::value, "Unexpected type bound to arg.");
             using type = typename Arg::data_store_t::storage_info_t;
         };
 
