@@ -4,7 +4,7 @@ Execution Model
 ===============
 
 Stencil operations are executed in a three dimensional index
-space. This means that the :term:`iteration space<iterationspace>`
+space. This means that the :term:`Iteration Space`
 is three dimensional. The first two dimensions of the iteration space,
 usually referred to as `I` and `J` dimensions identify the `IJ`
 plane. There is no prescription on how the stencil operators in

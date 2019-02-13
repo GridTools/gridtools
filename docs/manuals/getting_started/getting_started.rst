@@ -99,13 +99,13 @@ typically looks like
    :language: gridtools
    :lines: 8
 
-for the CUDA backed or
+for the CUDA :term:`Backend` or
  
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :lines: 10
 
-for the CPU backend and the backend
+for the CPU :term:`Backend` and the :term:`Backend`
  
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
@@ -238,7 +238,7 @@ two ``accessor`` s are parameters of the functor, i.e. they are mapped to
 fields passed to the functor. They contain compile-time information if
 they are only used as input parameters, e.g. the ``in`` accessor in the
 example, or if we want to write into the associated field (``inout``). Additionally,
-the ``extent`` defines which grid-points are needed by the stencil relative
+the ``extent`` defines which grid points are needed by the stencil relative
 to the current point. The format for the extent is
 
 .. code-block:: gridtools
@@ -263,7 +263,7 @@ functor. The ``param_list`` is a |GT| keyword which has to be defined for each s
 A ``Do``-method needs as first parameter a context
 object, usually called ``eval``, which is created and passed to the method by the library on
 invocation. This object contains, among other things, the index of the
-active grid point and the mapping of data-pointers to the ``accessor`` s. The
+active grid point (:term:`Iteration Point`) and the mapping of data-pointers to the ``accessor`` s. The
 second argument is optional and specifies the interval on the :math:`k`-axis where this implementation
 of the ``Do``-method should be executed. This allows to apply a different update-logic on
 intervals by overloading the ``Do``-method. We will define intervals
@@ -293,7 +293,7 @@ the loop-logic.
 The |GT| stencil, does not contain any
 information about the loop-logic, i.e. about the domain where we want to apply the stencil operation,
 since we need to specify it in a platform-independent syntax, a *domain specific embedded language*
-(DSEL), such that the backend can decide on the specific implementation.
+(DSEL), such that the :term:`Backend` can decide on the specific implementation.
 
 For our example this looks as follows
 
@@ -328,7 +328,7 @@ largest. Other execution modes are ``forward`` and ``backward``. For performance
 whenever possible.
 
 In the last line the stencil is
-executed. The data stores ``phi`` and ``lap`` are bound to its placeholders.
+executed. The :term:`Data Stores<Data Store>` ``phi`` and ``lap`` are bound to its placeholders.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Full GridTools Laplacian
@@ -344,7 +344,7 @@ There are some points which we did not discuss so far. For a first look at |GT| 
 we won't discuss them now in detail. In brief:
 
 - In order to use the :math:`(i,j,k)` syntax we need to define the symbols to point to the respective dimensions.
-- A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code. We use this to set the backend.
+- A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code. We use this to set the :term:`Backend`.
 
 -------------------------------------
 Assembling stencils: smoothing filter

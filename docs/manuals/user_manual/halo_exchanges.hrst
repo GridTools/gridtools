@@ -41,7 +41,7 @@ decomposition of a data field.
 Layout Map
 ^^^^^^^^^^^^^^^^
 
-Layout maps are described in the storage Section of the documentation,
+:term:`Layout Maps<Layout Map>` are described in the storage Section of the documentation,
 here we discuss its use in the communication module. The communication
 layer need two layouts: one for describing the data, and one for the
 processor grid. For the user, the dimensions of the data are always
@@ -62,7 +62,7 @@ largest strides are associated to smaller indices, so that
 ``layout_map<0, 1, 2>`` corresponds to a C-layout, while
 ``layout_map<2, 1, 0>`` to a Fortran layout.
 
-The second template layout map in the halo exchange
+The second template :term:`Layout Map` in the halo exchange
 pattern is the map between data coordinates and the processor
 grid coordinates.
 
@@ -169,7 +169,7 @@ Now we are ready to describe the halo exchange patterns objects. The first one i
 The template arguments are:
 
 1. the layout if the data;
-2. the mapping between the data dimensions and processing grid, as described above (leave it as ``layout_map<0, 1, 2>`` if in doubt);
+2. the mapping between the data dimensions and processing :term:`Grid`, as described above (leave it as ``layout_map<0, 1, 2>`` if in doubt);
 3. the type of the values to be exchanged;
 4. the number of dimensions of the data/processing grid, and it has to be set to 3 (the GCL was designed to work with other dimensionalities, but the version in |GT| is a stripped down version waiting for the next more general interfaces);
 5. the place where the data live. The options for this arguments are ``gcl_gpu``, ``gcl_cpu`` and ``gcl_mc``.
@@ -232,7 +232,7 @@ An alternative pattern is:
 
   using pattern_type = halo_exchange_generic<layout_map<0, 1, 2>, 3, arch_type>;
 
-Now the ``layout_map`` in the type is the mapping of dimensions to the
+Now the :term:`Layout Map` in the type is the mapping of dimensions to the
 computing grid, 3 is the number of dimensions, and arch_type is either
 ``gcl_gpu``, ``gcl_cpu`` or ``gcl_mc``.
 
