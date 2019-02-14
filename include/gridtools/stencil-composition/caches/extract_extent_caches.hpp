@@ -58,7 +58,7 @@ namespace gridtools {
                 meta::rename,
                 (enclosing_extent,
                     GT_META_CALL(meta::transform,
-                        (get_extent, Args, copy_into_variadic<typename esf_arg_list<Esf>::type, meta::list<>>))));
+                        (get_extent, Args, copy_into_variadic<typename esf_param_list<Esf>::type, meta::list<>>))));
         };
     } // namespace extract_extent_caches_impl_
 

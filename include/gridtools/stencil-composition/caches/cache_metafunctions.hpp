@@ -67,8 +67,8 @@ namespace gridtools {
 
     template <class Caches, class Esfs>
     struct get_k_cache_storage_tuple {
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
 
         template <class Cache, class Arg = typename Cache::arg_t>
         GT_META_DEFINE_ALIAS(make_item,
@@ -81,7 +81,7 @@ namespace gridtools {
 
     template <class Caches, class MaxExtent, int_t ITile, int_t JTile>
     struct get_ij_cache_storage_tuple {
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
 
         template <class Cache, class Arg = typename Cache::arg_t>
         GT_META_DEFINE_ALIAS(make_item,

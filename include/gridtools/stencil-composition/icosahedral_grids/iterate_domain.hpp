@@ -65,10 +65,6 @@ namespace gridtools {
 
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
-        typedef strides_cached<n_meta_storages - 1, storage_info_ptrs_t> strides_cached_t;
-
-        using array_index_t = array<int_t, n_meta_storages>;
-
       protected:
         using strides_cached_t = strides_cached<n_meta_storages - 1, storage_info_ptrs_t>;
 

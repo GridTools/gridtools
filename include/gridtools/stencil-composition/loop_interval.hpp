@@ -105,8 +105,8 @@ namespace gridtools {
         template <class LoopIntervals,
             class Extents = GT_META_CALL(loop_interval_impl_::all_extents_of_loop_intervals, LoopIntervals)>
         struct get_extent_from_loop_intervals : meta::lazy::first<Extents> {
-            GRIDTOOLS_STATIC_ASSERT(meta::all_are_same<Extents>::value, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_extent, Extents>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(meta::all_are_same<Extents>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_extent, Extents>::value), GT_INTERNAL_ERROR);
         };
 
         template <class LoopIntervals, template <class...> class L>

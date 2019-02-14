@@ -47,7 +47,7 @@
 
 namespace gridtools {
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
     template <class T, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
     class ij_cache_storage {
         GT_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);
@@ -111,8 +111,8 @@ namespace gridtools {
 
     template <class Arg, int_t ITile, int_t JTile, class Extent>
     struct make_ij_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
         using type = ij_cache_storage<typename Arg::data_store_t::data_t,
             Arg::location_t::n_colors::value,
             ITile + Extent::iplus::value - Extent::iminus::value,
