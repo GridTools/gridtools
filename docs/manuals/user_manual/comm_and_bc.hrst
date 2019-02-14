@@ -101,7 +101,7 @@ The ``distributed_boundary`` object allows the user to query the properties of t
    int PI, PJ, PK;
    cabc.proc_grid().dims(PI, PJ, PK); // Sizes of the current grid of processes
 
-When invoking the boundary application and :term:`Halo`-update operations the user calls the ``exchange`` member of ``distributed_boundaries``. The arguments of ``exchange`` are either :term:`Data Stores<Data Store>` stores or ``bind_bc`` objects which associate a :term:`Boundary Condition` to :term:`Data Stores<Data Store>`. The :term:`Data Stores<Data Store>` passed directly to the ``exchange`` methods have their :term:`Halo` updates according to the :term:`Halo` and periodicity information specified at ``distributed_boundaries`` object construction. The ``bind_bc`` arguments are treated differently.
+When invoking the boundary application and :term:`Halo`-update operations the user calls the ``exchange`` member of ``distributed_boundaries``. The arguments of ``exchange`` are either :term:`Data Stores<Data Store>` stores or ``bind_bc`` objects which associate a boundary condition to :term:`Data Stores<Data Store>`. The :term:`Data Stores<Data Store>` passed directly to the ``exchange`` methods have their :term:`Halo` updates according to the :term:`Halo` and periodicity information specified at ``distributed_boundaries`` object construction. The ``bind_bc`` arguments are treated differently.
 
 ``bind_bc`` accepts as first argument a boundary condition object and a list of fields that will be passed to it, for instance:
 

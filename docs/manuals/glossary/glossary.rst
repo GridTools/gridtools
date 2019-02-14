@@ -25,10 +25,6 @@ Glossary
     |GT| provides several backends, allowing to run the same code efficiently
     on different hardware architectures. See section :ref:`backend-selection`.
 
-  Boundary Condition
-    A functor describing boundary conditions for one or multiple :term:`Data
-    Stores<Data Store>`. See section :ref:`boundary-conditions`.
-
   Cache
     See :term:`Software-Managed Cache`.
 
@@ -87,12 +83,13 @@ Glossary
     section :ref:`defining_iteration_space`.
 
   Halo
-    Additional data points around the main compute data. Used for
-    :term:`Boundary Conditions<Boundary Condition>` or distributed computations
-    (see :term:`Halo Exchanges<Halo Exchange>`). :term:`Halo` information is
-    also stored in the :term:`Storage Info` to allow correct data
-    :term:`Alignment`.  The size of the :term:`Halo` regions is often described
-    by a :term:`Halo Descriptor`.
+    Additional data points around the main compute data. Used for boundary
+    conditions or distributed computations (see :term:`Halo Exchanges<Halo
+    Exchange>`). :term:`Halo` information is also stored in the :term:`Storage
+    Info` to allow correct data :term:`Alignment`. The size of the :term:`Halo`
+    regions is often described by a :term:`Halo Descriptor`. For boundary
+    conditions, see sections :ref:`boundary-conditions` and
+    :ref:`distributed-boundary-conditions`.
 
   Halo Descriptor
     An object defining the :term:`Halo` regions of a :term:`Computation`. See
