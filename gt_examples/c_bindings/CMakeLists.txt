@@ -1,11 +1,34 @@
-# we set up a generic target that holds the options required for all backends
-add_library(GridToolsExample INTERFACE)
-target_compile_definitions(GridToolsExample INTERFACE GT_STRUCTURED_GRIDS)
-target_compile_options(GridToolsExample INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
-target_link_libraries(GridToolsExample INTERFACE gridtools)
+if( CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR )
 
-include(workaround_cuda)
-_workaround_cuda(GridToolsExample)
+    set(STANDALONE ON)
+
+    # for simplicity of this CMakeLists, we only enable the mc target in the standalone
+    set(GT_ENABLE_TARGET_MC ON)
+
+    cmake_minimum_required(VERSION 3.12.4)
+
+    project(GridTools_CBindings)
+
+    set(CMAKE_CXX_STANDARD 11)
+
+    find_package(GridTools REQUIRED)
+    list(APPEND CMAKE_MODULE_PATH "${GridTools_MODULE_PATH}")
+
+    # use the structured grid interface
+    add_library(GridToolsExample INTERFACE)
+    target_compile_definitions(GridToolsExample INTERFACE GT_STRUCTURED_GRIDS)
+    target_link_libraries(GridToolsExample INTERFACE GridTools::gridtools)
+
+    include(gt_bindings)
+
+else()
+
+    set(STANDALONE OFF)
+
+    add_library(GridToolsExample INTERFACE)
+    target_link_libraries(GridToolsExample INTERFACE GridToolsTest)
+
+endif()
 
 if(GT_ENABLE_TARGET_MC)
     # our bindings library is different for mc and cuda-backend. This CCMake function
@@ -17,7 +40,9 @@ if(GT_ENABLE_TARGET_MC)
         add_executable(example_driver_mc_c driver_mc.c)
         target_link_libraries(example_driver_mc_c copy_stencil_lib_mc_c)
 
-        install_example(example_driver_mc_c)
+        if (NOT STANDALONE)
+            install_example(example_driver_mc_c)
+        endif()
     endif()
 
     if (CMAKE_Fortran_COMPILER_LOADED)
@@ -29,7 +54,9 @@ if(GT_ENABLE_TARGET_MC)
         # this helper enables the preprocessor by setting a compiler-dependent flag
         enable_fortran_preprocessing_on_target(example_driver_fortran)
 
-        install_example(example_driver_fortran)
+        if (NOT STANDALONE)
+            install_example(example_driver_fortran)
+        endif()
     endif()
 endif(GT_ENABLE_TARGET_MC)
 
@@ -41,6 +68,8 @@ if(GT_ENABLE_TARGET_CUDA)
         add_executable(example_driver_cu_c driver_cu.c)
         target_link_libraries(example_driver_cu_c copy_stencil_lib_cu_c)
 
-        install_example(example_driver_cu_c)
+        if (NOT STANDALONE)
+            install_example(example_driver_cu_c)
+        endif()
     endif()
 endif(GT_ENABLE_TARGET_CUDA)
