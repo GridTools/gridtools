@@ -51,10 +51,10 @@ namespace ico_operators {
         using orientation_of_normal = in_accessor<2, cells, extent<>, 5>;
         using weights = inout_accessor<3, cells, 5>;
 
-        using arg_list = make_arg_list<edge_length, cell_area_reciprocal, orientation_of_normal, weights>;
+        using param_list = make_param_list<edge_length, cell_area_reciprocal, orientation_of_normal, weights>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation eval) {
+        GT_FUNCTION static void apply(Evaluation eval) {
             constexpr dimension<5> edge;
             constexpr auto neighbors_offsets = connectivity<cells, edges, Color>::offsets();
             int_t e = 0;
@@ -72,10 +72,10 @@ namespace ico_operators {
         using weights = in_accessor<1, cells, extent<>, 5>;
         using out_cells = inout_accessor<2, cells>;
 
-        using arg_list = make_arg_list<in_edges, weights, out_cells>;
+        using param_list = make_param_list<in_edges, weights, out_cells>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation eval) {
+        GT_FUNCTION static void apply(Evaluation eval) {
             constexpr auto neighbors_offsets = connectivity<cells, edges, Color>::offsets();
             constexpr dimension<5> edge;
 
@@ -96,10 +96,10 @@ namespace ico_operators {
         using cell_area_reciprocal = in_accessor<2, cells>;
         using out_cells = inout_accessor<3, cells>;
 
-        using arg_list = make_arg_list<in_edges, edge_length, cell_area_reciprocal, out_cells>;
+        using param_list = make_param_list<in_edges, edge_length, cell_area_reciprocal, out_cells>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation eval) {
+        GT_FUNCTION static void apply(Evaluation eval) {
             constexpr auto neighbors_offsets = connectivity<cells, edges, Color>::offsets();
             double t = 0;
             for (auto neighbor_offset : neighbors_offsets)

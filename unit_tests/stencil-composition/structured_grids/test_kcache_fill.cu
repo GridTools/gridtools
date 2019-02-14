@@ -47,19 +47,19 @@ struct shift_acc_forward_fill {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
     typedef accessor<1, enumtype::inout, extent<>> out;
 
-    typedef make_arg_list<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(out()) = eval(in()) + eval(in(0, 0, 1));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody) {
         eval(out()) = eval(in(0, 0, -1)) + eval(in()) + eval(in(0, 0, 1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in(0, 0, -1)) + eval(in());
     }
 };
@@ -69,19 +69,19 @@ struct shift_acc_backward_fill {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
     typedef accessor<1, enumtype::inout, extent<>> out;
 
-    typedef make_arg_list<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in()) + eval(in(0, 0, -1));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody) {
         eval(out()) = eval(in(0, 0, 1)) + eval(in()) + eval(in(0, 0, -1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(out()) = eval(in()) + eval(in(0, 0, 1));
     }
 };
@@ -91,10 +91,10 @@ struct copy_fill {
     typedef accessor<0, enumtype::in> in;
     typedef accessor<1, enumtype::inout, extent<>> out;
 
-    typedef make_arg_list<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+    GT_FUNCTION static void apply(Evaluation &eval, kfull) {
         eval(out()) = eval(in());
     }
 };
@@ -119,7 +119,7 @@ TEST_F(kcachef, fill_forward) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::fill>(p_in())),
+            define_caches(cache<cache_type::k, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -129,7 +129,7 @@ TEST_F(kcachef, fill_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -159,7 +159,7 @@ TEST_F(kcachef, fill_backward) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<backward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::fill>(p_in())),
+            define_caches(cache<cache_type::k, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_backward_fill>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -169,7 +169,7 @@ TEST_F(kcachef, fill_backward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -197,7 +197,7 @@ TEST_F(kcachef, fill_copy_forward) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::fill>(p_in())),
+            define_caches(cache<cache_type::k, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<copy_fill>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -207,7 +207,7 @@ TEST_F(kcachef, fill_copy_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);

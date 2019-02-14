@@ -38,37 +38,37 @@
 #include "../common/defs.hpp"
 #include "../stencil-composition/backend.hpp"
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 using grid_type_t = gridtools::grid_type::structured;
 #else
 using grid_type_t = gridtools::grid_type::icosahedral;
 #endif
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
 using float_type = float;
-#elif FLOAT_PRECISION == 8
+#elif GT_FLOAT_PRECISION == 8
 using float_type = double;
 #else
 #error float precision not properly set (4 or 8 bytes supported)
 #endif
 
-#ifdef BACKEND_X86
+#ifdef GT_BACKEND_X86
 using target_t = gridtools::target::x86;
-#ifdef BACKEND_STRATEGY_NAIVE
+#ifdef GT_BACKEND_STRATEGY_NAIVE
 using strategy_t = gridtools::strategy::naive;
 #else
 using strategy_t = gridtools::strategy::block;
 #endif
-#elif defined(BACKEND_MC)
+#elif defined(GT_BACKEND_MC)
 using target_t = gridtools::target::mc;
 using strategy_t = gridtools::strategy::block;
-#elif defined(BACKEND_CUDA)
+#elif defined(GT_BACKEND_CUDA)
 using target_t = gridtools::target::cuda;
 using strategy_t = gridtools::strategy::block;
 #else
-#define NO_BACKEND
+#define GT_NO_BACKEND
 #endif
 
-#ifndef NO_BACKEND
+#ifndef GT_NO_BACKEND
 using backend_t = gridtools::backend<target_t, grid_type_t, strategy_t>;
 #endif

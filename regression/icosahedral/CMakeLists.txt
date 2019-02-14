@@ -25,7 +25,7 @@ if(GT_ENABLE_TARGET_X86)
     foreach(srcfile IN LISTS SOURCES)
         add_executable(${srcfile}_x86_naive ${srcfile}.cpp)
         target_link_libraries(${srcfile}_x86_naive regression_main GridToolsTestX86)
-        target_compile_definitions(${srcfile}_x86_naive PRIVATE BACKEND_STRATEGY_NAIVE)
+        target_compile_definitions(${srcfile}_x86_naive PRIVATE GT_BACKEND_STRATEGY_NAIVE)
 
         add_executable(${srcfile}_x86_block ${srcfile}.cpp)
         target_link_libraries(${srcfile}_x86_block regression_main GridToolsTestX86)

@@ -44,9 +44,9 @@
 namespace gridtools {
 
     template <typename Esf>
-    struct esf_arg_list {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-        typedef typename Esf::esf_function::arg_list type;
+    struct esf_param_list {
+        GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
+        typedef typename Esf::esf_function::param_list type;
     };
 
     /** Retrieve the extent in esf_descriptor_with_extents

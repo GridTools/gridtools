@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "./structured_grids/backend.hpp"
 #else
 #include "./icosahedral_grids/backend.hpp"

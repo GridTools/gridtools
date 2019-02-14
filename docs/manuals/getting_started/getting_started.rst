@@ -36,7 +36,7 @@ In the following we will walk through the following steps:
 -   The |GT| coordinate system and its notation.
 -   Storages: how does |GT| manage the input and output fields.
 -   The first stencil: calculating :math:`L`, the second order Laplacian of :math:`\phi`.
--   The final stencil: function calls, Do-method overloads and temporaries
+-   The final stencil: function calls, apply-method overloads and temporaries
 
 -----------------
 Coordinate System
@@ -85,7 +85,7 @@ following capabilities:
 
 -   access an element with :math:`(i,j,k)` syntax
 
--   syncronization between CPU memory and a device (e.g. a CUDA capable GPU)
+-   synchronization between CPU memory and a device (e.g. a CUDA capable GPU)
 
 ^^^^^^^
 Backend
@@ -121,7 +121,7 @@ See :ref:`backend-selection` for details.
 The storage type
 ^^^^^^^^^^^^^^^^
 
-For efficient memory access the index ordering might depend on the target architecure, therefore the
+For efficient memory access the index ordering might depend on the target architecture, therefore the
 memory layout will implicitly decided by target via the storage traits as follows.
 
 For each storage type we need to define the type of the data we want to
@@ -158,7 +158,7 @@ We can now
 
 -   retrieve the name of the field,
 -   create a view and read and write values in the field using the parenthesis syntax,
--   syncronize data between device and host (in CUDA mode).
+-   synchronize data between device and host (in CUDA mode).
 
 
 .. literalinclude:: code/test_gt_storage.cpp
@@ -223,7 +223,7 @@ Update-logic: GridTools 2D Laplacian
 
 The update-logic is implemented with state-less functors. A
 |GT| functor is a ``struct`` or ``class`` providing a *static* method
-called ``Do``. The update-logic is implemented in these ``Do``-methods.
+called ``apply``. The update-logic is implemented in these ``apply``-methods.
 As the functors are state-less (no member variables, static methods
 only) they can be passed by type, i.e. at compile-time, and therefore
 allow for compile-time optimizations.
@@ -233,7 +233,7 @@ allow for compile-time optimizations.
    :start-after: using namespace gridtools;
    :end-before: int main() {
 
-In addition to the ``Do``-method, the functor contains ``accessor`` s. These
+In addition to the ``apply``-method, the functor contains ``accessor`` s. These
 two ``accessor`` s are parameters of the functor, i.e. they are mapped to
 fields passed to the functor. They contain compile-time information if
 they are only used as input parameters, e.g. the ``in`` accessor in the
@@ -258,18 +258,18 @@ library.)
 
 The first template argument is an index defining the order of the
 parameters, i.e. the order in which the fields are passed to the
-functor. The ``arg_list`` is a |GT| keyword which has to be defined for each stencil.
+functor. The ``param_list`` is a |GT| keyword which has to be defined for each stencil.
 
-A ``Do``-method needs as first parameter a context
+A ``apply``-method needs as first parameter a context
 object, usually called ``eval``, which is created and passed to the method by the library on
 invocation. This object contains, among other things, the index of the
 active grid point and the mapping of data-pointers to the ``accessor`` s. The
 second argument is optional and specifies the interval on the :math:`k`-axis where this implementation
-of the ``Do``-method should be executed. This allows to apply a different update-logic on
-intervals by overloading the ``Do``-method. We will define intervals
+of the ``apply``-method should be executed. This allows to apply a different update-logic on
+intervals by overloading the ``apply``-method. We will define intervals
 later. If the second parameter is not specified, a default interval is assumed.
 
-The body of the ``Do``-method looks quite similar to the one in the
+The body of the ``apply``-method looks quite similar to the one in the
 naive implementation, except that each
 field access has to be wrapped by a call to the context object ``eval``.
 This is necessary to map the compile-time parameter, the ``accessor``, to
@@ -328,7 +328,7 @@ largest. Other execution modes are ``forward`` and ``backward``. For performance
 whenever possible.
 
 In the last line the stencil is
-executed. The datastores ``phi`` and ``lap`` are bound to its placeholders.
+executed. The data stores ``phi`` and ``lap`` are bound to its placeholders.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Full GridTools Laplacian
@@ -365,7 +365,7 @@ section: how to define special regions in the :math:`k`-direction; how to use
 |GT| temporaries and how to call functors from functors.
 
 ^^^^^^^^^^^^^^^^^^
-Do-method overload
+`apply`-method overload
 ^^^^^^^^^^^^^^^^^^
 
 Our first |GT| implementation will be very close to the naive
@@ -379,7 +379,7 @@ we can specialize the computation in the :math:`k`-direction:
 
 We use two different
 intervals, the ``lower_domain`` and the ``upper_domain``, and provide an overload of the
-``Do``-method for each interval.
+``apply``-method for each interval.
 
 The intervals are defined as
 
@@ -461,7 +461,7 @@ follows
 .. literalinclude:: code/gt_smoothing_variant3_operator.hpp
    :language: gridtools
 
-In ``call`` we specify the functorw which we want to apply.
+In ``call`` we specify the functor which we want to apply.
 In ``with`` the 
 ``eval`` is forwarded, followed by all the input arguments for the functor. The functor in the call is required to 
 have exactly one ``inout_accessor`` which will be the return value of the call.

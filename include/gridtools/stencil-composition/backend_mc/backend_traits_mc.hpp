@@ -42,7 +42,7 @@
 #include "../structured_grids/backend_mc/execute_kernel_functor_mc.hpp"
 #include "../structured_grids/backend_mc/strategy_mc.hpp"
 
-#ifdef ENABLE_METERS
+#ifdef GT_ENABLE_METERS
 #include "timer_mc.hpp"
 #else
 #include "../timer_dummy.hpp"
@@ -81,12 +81,12 @@ namespace gridtools {
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid, typename ExecutionInfo>
             GT_FUNCTION static void run(
                 LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &execution_info) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
                 strgrid::execute_kernel_functor_mc<RunFunctorArgs>(local_domain, grid)(execution_info);
             }
@@ -100,11 +100,11 @@ namespace gridtools {
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_mc<typename BackendIds::strategy_id_t> type;
         };
 
-#ifdef ENABLE_METERS
+#ifdef GT_ENABLE_METERS
         typedef timer_mc performance_meter_t;
 #else
         typedef timer_dummy performance_meter_t;

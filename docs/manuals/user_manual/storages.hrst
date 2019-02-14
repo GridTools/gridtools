@@ -1,6 +1,6 @@
 .. _storage-module:
 
-Storage module
+Storage Module
 ================================
 
 The storage module is one of the main modules in |GT|. Main target of this module is to provide proper means to access, view, and modify data. The detail of the hardware is hidden to the user, but the user is responsible for indicating what storage is needed, and this is indicated by the name of the storage class.
@@ -9,7 +9,7 @@ Different backends are available for different kinds of storages (e.g., ``Cuda``
 The storage has the notion of ``halo``. This in turns allows the user of the storage to distinguish between the ``inner_region`` and the ``outer_region``, where the latter includes the halos. The halo is symmetric in the storage class, that is, the number of halo points at the two ends of a dimension is the same. Different dimensions may have different numbers of halo points. The main reason for including halos in the storage is to enforce the alignment of the storage in the inner region to improve the performance of stencil operations.
 
 ------------------
-Storage info
+Storage Info
 ------------------
 
 The storage info element can be seen as a meta data object that keep information about a storage. This information is alignment, data layout in memory, halo areas, dimensionality, size of the storage, etc.
@@ -25,7 +25,7 @@ for host storage infos.
 
  cuda_storage_info<Id, Layout, Halo, Alignment>(Dims...)
 
-for cuda storage infos.
+for CUDA storage infos.
 
 :numref:`fig_storage_info` shows a depiction of the ``storage_info`` compile-time data.
 
@@ -51,9 +51,9 @@ Passed type information:
  but with different dimensionality you must use a different ID.
 
 
-* **Layout map:** Information about the memory layout. The ``layout_map`` template takes a permuation of the value from ``0`` to ``N-1``, where ``N`` is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides. For instance a C array ``X[i][j][k]`` layout would be equivalent to ``layout_map<0, 1, 2>``. The dimension with stride 1 has the highest index. A Fortran style array ``X[i][j][k]`` layout would be equivalent to ``layout_map<2, 1, 0>``. There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked dimensions are ignored. For instance a ``storage_info`` with ``layout_map<1, -1, 0>`` describes a 3-dimensional storage but the j dimension is masked. In this case the storage behave as a 3D array whose sizes are ``(N, 1, L)``, when accessing an element ``(i, j, k)``, the ``j`` index is ignored. There are not bound checks for masked dimensions. The reason is that this use case is designed to allow implementing planes with an orientation to be used in stencils.
+* **Layout map:** Information about the memory layout. The ``layout_map`` template takes a permutation of the value from ``0`` to ``N - 1``, where ``N`` is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides. For instance a C array ``X[i][j][k]`` layout would be equivalent to ``layout_map<0, 1, 2>``. The dimension with stride 1 has the highest index. A Fortran style array ``X[i][j][k]`` layout would be equivalent to ``layout_map<2, 1, 0>``. There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked dimensions are ignored. For instance a ``storage_info`` with ``layout_map<1, -1, 0>`` describes a 3-dimensional storage but the j dimension is masked. In this case the storage behave as a 3D array whose sizes are ``(N, 1, L)``, when accessing an element ``(i, j, k)``, the ``j`` index is ignored. There are not bound checks for masked dimensions. The reason is that this use case is designed to allow implementing planes with an orientation to be used in stencils.
 
-* **Alignment:** Information about the alignment in terms of number of bytes. There is the possibility to provide information about how the data points should be aligned in memory. The alignment is enforced to the first elements in the inner region of the dimension with stride one. This provides a huge performance gain for some architectures (e.g., GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data points of the stride-one dimension in memory. The Host backend uses no alignment (``alignment<1>``) by default. The Cuda backend uses a default alignment of 32 data elements (``alignment<32>``).
+* **Alignment:** Information about the alignment in terms of number of bytes. There is the possibility to provide information about how the data points should be aligned in memory. The alignment is enforced to the first elements in the inner region of the dimension with stride one. This provides a huge performance gain for some architectures (e.g., GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data points of the stride-one dimension in memory. The Host backend uses no alignment (``alignment<1>``) by default. The CUDA backend uses a default alignment of 32 data elements (``alignment<32>``).
 
 * **Halo:** The halo information has to be passed as type information to the storage info. Reason for this is that the proper alignment can only be computed with given halo information. The storage info object provides aligned data points (non-halo points) for the stride 1 dimension. The halo information is given as follows: ``halo<Sizes...>`` where sizes is the halo size at both ends of the corresponding dimension, in terms of element sizes. E.g., ``halo<2, 4, 0>`` is a halo of size 2 in direction I+ and I-, halo of size 4 in direction J+ and J-, and no halo in K.
 
@@ -69,7 +69,7 @@ Please note that the size of the halo has to be added to the arguments that are 
 
 .. code-block:: gridtools
 
-    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8> > storage_info_t;
+    using storage_info_t = host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>>;
     storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
 A visual representation of the storage info is given in :numref:`fig_storage_info_example`.
@@ -102,7 +102,7 @@ A visual representation of the storage info is given in :numref:`fig_storage_inf
 .. _data-store:
 
 ---------------
-Data store
+Data Store
 ---------------
 
 Once the ``storage_info`` object is created a ``data_store`` can be created. A ``data_store`` is keeping together the ``storage_info`` object, a data type and the actual memory allocation (see also :numref:`fig_data_store`). The main purpose of the ``data_store`` is to provide means for synchronizing, keeping consistency, cleaning up memory, etc. A ``data_store`` can be copied and moved (shallow copy), but the underlying allocated storage in not copied (no deep-copy). When copying a ``data_store`` both instances will point to the same data. Basically it has the same behaviour as a shared pointer.
@@ -127,8 +127,8 @@ use managed data stores. The data store can be initialized with a value or lambd
 
 .. code-block:: gridtools
 
-    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8> > storage_info_t;
-    typedef data_store<host_storage<double>, storage_info_t> data_store_t;
+    using storage_info_t = host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>>;
+    using data_store_t = data_store<host_storage<double>, storage_info_t>;
     storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
     // standard use cases
@@ -175,15 +175,15 @@ The ``data_store`` object provides methods for performing following things:
  In order to do so we use the view concept.
 
 --------------
-Data view
+Data View
 --------------
 
 The view provides means to modify the data stored in a ``data_store``.
-Views can be generated (at the moment) for both Host (cpu) and Device (gpu).
+Views can be generated (at the moment) for both Host (CPU) and Device (GPU).
 Internally the view is a very simple struct that contains a pointer to the
 data and provides an ``operator()(...)`` in order to access and modify the data
 at a given coordinate. The view can be created in a read only mode or read-write. The read-only views
-can be benefitial because read only views do not trigger synchronizations with the devices.
+can be beneficial because read only views do not trigger synchronizations with the devices.
 
 **Example**:
 
@@ -202,8 +202,8 @@ In case of a ``host_storage`` there is no device view available.
     }
     ...
     // instantiate a data_store
-    typedef cuda_storage_info<0, layout_map<1, 0> > storage_info_t;
-    typedef data_store<cuda_storage<double>, storage_info_t> data_store_t;
+    using storage_info_t = cuda_storage_info<0, layout_map<1, 0>>;
+    using data_store_t = data_store<cuda_storage<double>, storage_info_t>;
 
     storage_info_t si(20, 20);
     data_store_t ds(si);
@@ -238,7 +238,7 @@ synchronization they have to be activated manually via a call to ``reactivate_ho
 
     ...
     auto host_view_ds = make_host_view(ds);
-    auto ro_host_view_ds = make_host_view<access_mode::ReadOnly>(ds);
+    auto ro_host_view_ds = make_host_view<access_mode::read_only>(ds);
     // check if view is consistent
     assert(check_consistency(ds, ro_host_view_ds));
     assert(check_consistency(ds, host_view_ds));
@@ -278,7 +278,7 @@ The ``data_view`` construction is usually performed with specific `makers` and t
    auto view1 = make_host_view<Access>(data_store);
    auto view2 = make_device_view<Access>(data_store);
 
-Access is either ``access_mode::ReadOnly`` or ``access_mode::ReadWrite`` and the definitions are found in ``storage/common/definitions.hpp``. ``view1`` can be used by a host thread to access data elements, since the view `points` to host memory. ``view2`` is a view that can be passed to a CUDA kernel, for instance, since it points to GPU memory, so that the kernel can use ``view::operator()`` to access data elements.
+Access is either ``access_mode::read_only`` or ``access_mode::read_write`` and the definitions are found in ``storage/common/definitions.hpp``. ``view1`` can be used by a host thread to access data elements, since the view `points` to host memory. ``view2`` is a view that can be passed to a CUDA kernel, for instance, since it points to GPU memory, so that the kernel can use ``view::operator()`` to access data elements.
 
 The ``data_view`` object provides methods for performing following things:
 
@@ -302,7 +302,7 @@ The ``data_view`` object provides methods for performing following things:
 * `bool check_consistency(DataStore const&, DataView const&)`: perform a full check if the given view can be used to modify or access the data in a proper way.
 
 -------------------------
-Storage facility
+Storage Facility
 -------------------------
 
 Writing the types all the time is cumbersome and unneeded. To get rid of this effort the storage module provides
@@ -316,16 +316,17 @@ the ``storage-facility`` which returns the correct types for the chosen backend.
 
 .. code-block:: gridtools
 
-    #define BACKEND platform::cuda
     // get the correct 3D layouted and aligned storage info suitable for the CUDA backend
-    typedef storage_traits<BACKEND>::storage_info_t<0, 3> storage_info_t;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
     // get a data store suitable for CUDA
-    typedef storage_traits<BACKEND>::data_store_t<double, storage_info_t> data_store_t;
+    using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t si(128, 128, 80);
     data_store_t ds(si);
     ...
 
+``backend_t`` specifies the backend that will execute the computation, see
+:ref:`backend-selection`.
 
 **Interface**:
 

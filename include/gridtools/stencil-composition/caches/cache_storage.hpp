@@ -50,8 +50,8 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
     template <class T, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
     class ij_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(JSize > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(JSize > 0, GT_INTERNAL_ERROR);
 
         T m_values[JSize][ISize];
 
@@ -73,8 +73,8 @@ namespace gridtools {
 
     template <class Arg, int_t ITile, int_t JTile, class Extent>
     struct make_ij_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
         using type = ij_cache_storage<typename Arg::data_store_t::data_t,
             ITile + Extent::iplus::value - Extent::iminus::value,
             JTile + Extent::jplus::value - Extent::jminus::value,
@@ -84,9 +84,9 @@ namespace gridtools {
 #else
     template <class T, int_t NumColors, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
     class ij_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(JSize > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(NumColors > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(JSize > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(NumColors > 0, GT_INTERNAL_ERROR);
 
         T m_values[JSize][NumColors][ISize];
 
@@ -127,8 +127,8 @@ namespace gridtools {
     template <class Arg, class T, int_t Minus, int_t Plus>
     class k_cache_storage {
 
-        GRIDTOOLS_STATIC_ASSERT(Minus <= 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(Plus >= 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(Minus <= 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(Plus >= 0, GT_INTERNAL_ERROR);
 
         T m_values[Plus - Minus + 1];
 
@@ -197,17 +197,17 @@ namespace gridtools {
 
     template <class Arg, class Extent>
     struct make_k_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             Extent::iminus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             Extent::iplus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             Extent::jminus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             Extent::jplus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
 
-        GRIDTOOLS_STATIC_ASSERT(Extent::kminus::value <= 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(Extent::kplus::value >= 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(Extent::kminus::value <= 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(Extent::kplus::value >= 0, GT_INTERNAL_ERROR);
 
         using type =
             k_cache_storage<Arg, typename Arg::data_store_t::data_t, Extent::kminus::value, Extent::kplus::value>;

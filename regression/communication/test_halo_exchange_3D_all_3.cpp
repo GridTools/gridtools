@@ -234,21 +234,21 @@ namespace halo_exchange_3D_all_3 {
 
         MPI_Barrier(gridtools::GCL_WORLD);
 
-        gettimeofday(&start_tv, NULL);
+        gettimeofday(&start_tv, nullptr);
 
         he.pack(vect);
 
-        gettimeofday(&stop1_tv, NULL);
+        gettimeofday(&stop1_tv, nullptr);
 
         he.start_exchange();
         //  MPI_Barrier(MPI_COMM_WORLD);
         he.wait();
 
-        gettimeofday(&stop2_tv, NULL);
+        gettimeofday(&stop2_tv, nullptr);
 
         he.unpack(vect);
 
-        gettimeofday(&stop3_tv, NULL);
+        gettimeofday(&stop3_tv, nullptr);
 
         lapse_time1 =
             ((static_cast<double>(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast<double>(stop1_tv.tv_usec)) -
@@ -755,7 +755,7 @@ namespace halo_exchange_3D_all_3 {
 
 #ifdef STANDALONE
 int main(int argc, char **argv) {
-#ifdef _USE_GPU_
+#ifdef GT_USE_GPU
     device_binding();
 #endif
 

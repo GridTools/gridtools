@@ -55,7 +55,7 @@ namespace gridtools {
     struct is_ij_cache : std::false_type {};
 
     template <typename Arg, cache_io_policy cacheIOPolicy>
-    struct is_ij_cache<detail::cache_impl<cache_type::IJ, Arg, cacheIOPolicy>> : std::true_type {};
+    struct is_ij_cache<detail::cache_impl<cache_type::ij, Arg, cacheIOPolicy>> : std::true_type {};
 
     /**
      * @struct is_k_cache
@@ -65,7 +65,7 @@ namespace gridtools {
     struct is_k_cache : std::false_type {};
 
     template <typename Arg, cache_io_policy cacheIOPolicy>
-    struct is_k_cache<detail::cache_impl<cache_type::K, Arg, cacheIOPolicy>> : std::true_type {};
+    struct is_k_cache<detail::cache_impl<cache_type::k, Arg, cacheIOPolicy>> : std::true_type {};
 
     /**
      * @struct is_flushing_cache

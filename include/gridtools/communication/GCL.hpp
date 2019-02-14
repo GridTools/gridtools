@@ -33,11 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _GCL_H_
-#define _GCL_H_
+#pragma once
 
 #include <iostream>
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
 #include <mpi.h>
 #endif
 
@@ -49,12 +48,10 @@
 
 #include "low-level/gcl_arch.hpp"
 
-#ifdef _GCL_GPU_
+#ifdef GCL_GPU
 
 // workaround that uses host buffering to avoid bad sends for messages larger than 512 kB on Cray systems
-//#define HOSTWORKAROUND
-
-#define _USE_DATATYPES_
+//#define GCL_HOSTWORKAROUND
 
 inline bool checkCudaStatus(cudaError_t status) {
     if (status != cudaSuccess) {
@@ -65,7 +62,7 @@ inline bool checkCudaStatus(cudaError_t status) {
 }
 #endif
 
-#ifdef _GCL_GPU_
+#ifdef GCL_GPU
 #ifdef GCL_MULTI_STREAMS
 #ifdef GCL_USE_3
 extern cudaStream_t ZL_stream;
@@ -96,7 +93,7 @@ namespace gridtools {
 
     enum packing_version { version_mpi_pack = 0, version_datatype, version_manual };
 
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
     extern MPI_Comm GCL_WORLD;
 #else
     extern int GCL_WORLD;
@@ -111,5 +108,3 @@ namespace gridtools {
     void GCL_Finalize();
 
 } // namespace gridtools
-
-#endif

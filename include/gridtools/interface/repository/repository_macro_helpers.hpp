@@ -51,34 +51,34 @@
  * @brief data_store_types_tuple is a tuple of the form (DataStoreType, DimTuple). The following macros
  * provide named getters to the tuple elements.
  */
-#define GTREPO_data_store_types_get_typename(data_store_types_tuple) BOOST_PP_TUPLE_ELEM(0, data_store_types_tuple)
-#define GTREPO_data_store_types_get_dim_tuple(data_store_types_tuple) BOOST_PP_TUPLE_ELEM(1, data_store_types_tuple)
+#define GT_REPO_data_store_types_get_typename(data_store_types_tuple) BOOST_PP_TUPLE_ELEM(0, data_store_types_tuple)
+#define GT_REPO_data_store_types_get_dim_tuple(data_store_types_tuple) BOOST_PP_TUPLE_ELEM(1, data_store_types_tuple)
 /*
  * @brief data_stores_tuple is a tuple of the form (DataStoreType, MemberName). The following macros
  * provide named getters to the tuple elements.
  */
-#define GTREPO_data_stores_get_typename(data_stores_tuple) BOOST_PP_TUPLE_ELEM(0, data_stores_tuple)
-#define GTREPO_data_stores_get_member_name(data_stores_tuple) BOOST_PP_TUPLE_ELEM(1, data_stores_tuple)
-#define GTREPO_data_stores_get_member_name_underscore(data_stores_tuple) \
+#define GT_REPO_data_stores_get_typename(data_stores_tuple) BOOST_PP_TUPLE_ELEM(0, data_stores_tuple)
+#define GT_REPO_data_stores_get_member_name(data_stores_tuple) BOOST_PP_TUPLE_ELEM(1, data_stores_tuple)
+#define GT_REPO_data_stores_get_member_name_underscore(data_stores_tuple) \
     BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, data_stores_tuple), _)
 
 /*
- * GTREPO_max_in_tuple returns the maximum value in a BOOST_PP tuple
+ * GT_REPO_max_in_tuple returns the maximum value in a BOOST_PP tuple
  */
-#define GTREPO_max_fold_op(d, state, x) BOOST_PP_MAX_D(d, state, x)
-#define GTREPO_max_in_tuple_fold(list) BOOST_PP_LIST_FOLD_LEFT(GTREPO_max_fold_op, 0, list)
-#define GTREPO_max_in_tuple(tuple) GTREPO_max_in_tuple_fold(BOOST_PP_TUPLE_TO_LIST(tuple))
+#define GT_REPO_max_fold_op(d, state, x) BOOST_PP_MAX_D(d, state, x)
+#define GT_REPO_max_in_tuple_fold(list) BOOST_PP_LIST_FOLD_LEFT(GT_REPO_max_fold_op, 0, list)
+#define GT_REPO_max_in_tuple(tuple) GT_REPO_max_in_tuple_fold(BOOST_PP_TUPLE_TO_LIST(tuple))
 
 /*
- * GTREPO_max_dim returns the maximum dim in the DimensionTuple in the whole data_store_types sequence
+ * GT_REPO_max_dim returns the maximum dim in the DimensionTuple in the whole data_store_types sequence
  */
-#define GTREPO_max_dim_fold_op(d, state, x) \
-    BOOST_PP_MAX_D(d, state, GTREPO_max_in_tuple(GTREPO_data_store_types_get_dim_tuple(x)))
-#define GTREPO_max_dim(data_store_types_seq) BOOST_PP_SEQ_FOLD_LEFT(GTREPO_max_dim_fold_op, 0, data_store_types_seq)
+#define GT_REPO_max_dim_fold_op(d, state, x) \
+    BOOST_PP_MAX_D(d, state, GT_REPO_max_in_tuple(GT_REPO_data_store_types_get_dim_tuple(x)))
+#define GT_REPO_max_dim(data_store_types_seq) BOOST_PP_SEQ_FOLD_LEFT(GT_REPO_max_dim_fold_op, 0, data_store_types_seq)
 
 /*
- * @brief GTREPO_has_dim returns 0 if no dimensions are provided in at least one (DataStoreType, DimTuple) tuple
+ * @brief GT_REPO_has_dim returns 0 if no dimensions are provided in at least one (DataStoreType, DimTuple) tuple
  */
-#define GTREPO_has_dim_fold_op(d, state, x) BOOST_PP_MIN_D(d, state, BOOST_PP_DEC(BOOST_PP_TUPLE_SIZE(x)))
-#define GTREPO_has_dim(data_store_types_seq) \
-    BOOST_PP_BOOL(BOOST_PP_SEQ_FOLD_LEFT(GTREPO_has_dim_fold_op, 1, data_store_types_seq))
+#define GT_REPO_has_dim_fold_op(d, state, x) BOOST_PP_MIN_D(d, state, BOOST_PP_DEC(BOOST_PP_TUPLE_SIZE(x)))
+#define GT_REPO_has_dim(data_store_types_seq) \
+    BOOST_PP_BOOL(BOOST_PP_SEQ_FOLD_LEFT(GT_REPO_has_dim_fold_op, 1, data_store_types_seq))

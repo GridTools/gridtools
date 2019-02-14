@@ -50,7 +50,7 @@ namespace gridtools {
             struct mss_split_esfs;
             template <class ExecutionEngine, class EsfSequence, class CacheSequence>
             struct mss_split_esfs<mss_descriptor<ExecutionEngine, EsfSequence, CacheSequence>> {
-                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
                 template <class Esf>
                 GT_META_DEFINE_ALIAS(
                     make_mss, meta::id, (mss_descriptor<ExecutionEngine, std::tuple<Esf>, std::tuple<>>));

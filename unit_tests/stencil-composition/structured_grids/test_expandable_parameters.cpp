@@ -80,10 +80,10 @@ struct copy_functor {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef make_arg_list<out, in> arg_list;
+    typedef make_param_list<out, in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(out{}) = eval(in{});
     }
 };
@@ -94,10 +94,10 @@ struct copy_functor_with_expression {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef make_arg_list<out, in> arg_list;
+    typedef make_param_list<out, in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         // use an expression which is equivalent to a copy to simplify the check
         eval(out{}) = eval(2. * in{} - in{});
     }
@@ -109,10 +109,10 @@ struct call_proc_copy_functor {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef make_arg_list<out, in> arg_list;
+    typedef make_param_list<out, in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         call_proc<copy_functor>::with(eval, out(), in());
     }
 };
@@ -123,10 +123,10 @@ struct call_copy_functor {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef make_arg_list<out, in> arg_list;
+    typedef make_param_list<out, in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(out()) = call<copy_functor>::with(eval, in());
     }
 };
@@ -136,10 +136,10 @@ TEST_F(expandable_parameters_copy, call_copy) { run_computation<call_copy_functo
 struct shift_functor {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef make_arg_list<out> arg_list;
+    typedef make_param_list<out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(out()) = eval(out(0, 0, -1));
     }
 };
@@ -147,14 +147,14 @@ struct shift_functor {
 struct call_shift_functor {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef make_arg_list<out> arg_list;
+    typedef make_param_list<out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, axis<1>::full_interval::modify<1, 0>) {
+    GT_FUNCTION static void apply(Evaluation &eval, axis<1>::full_interval::modify<1, 0>) {
         call_proc<shift_functor>::with(eval, out());
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, axis<1>::full_interval::first_level) {}
+    GT_FUNCTION static void apply(Evaluation &eval, axis<1>::full_interval::first_level) {}
 };
 
 TEST_F(expandable_parameters, call_shift) {
@@ -179,7 +179,7 @@ TEST_F(expandable_parameters, caches) {
     run_computation(p_in = in,
         p_out = out,
         make_multistage(execute<forward>(),
-            define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_tmp)),
+            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
             make_stage<copy_functor>(p_out, p_tmp)));
     verify({in, in, in, in, in}, out);

@@ -68,9 +68,9 @@ namespace gridtools {
         template <typename RunFunctorArguments, typename IterateDomain, typename Grid>
         struct color_execution_functor {
           private:
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
             template <class Color>
             GT_META_DEFINE_ALIAS(has_color,
@@ -111,7 +111,7 @@ namespace gridtools {
          */
         template <typename RunFunctorArguments>
         struct execute_kernel_functor_x86 {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;

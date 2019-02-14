@@ -33,13 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define PEDANTIC_DISABLED // too stringent for this test
+#define GT_PEDANTIC_DISABLED // too stringent for this test
 
-#ifdef BACKEND_X86
+#ifdef GT_BACKEND_X86
 #include <gridtools/stencil-composition/structured_grids/backend_x86/iterate_domain_x86.hpp>
 #endif
 
-#ifdef BACKEND_MC
+#ifdef GT_BACKEND_MC
 #include <gridtools/stencil-composition/structured_grids/backend_mc/iterate_domain_mc.hpp>
 #endif
 
@@ -61,9 +61,9 @@ namespace gridtools {
         using out_acc = inout_accessor<2, extent<>, 2>;
 
         struct dummy_functor {
-            using arg_list = make_arg_list<in_acc, buff_acc, out_acc>;
+            using param_list = make_param_list<in_acc, buff_acc, out_acc>;
             template <typename Evaluation>
-            GT_FUNCTION static void Do(Evaluation &eval);
+            GT_FUNCTION static void apply(Evaluation &eval);
         };
 
         using layout_ijkp_t = layout_map<3, 2, 1, 0>;
@@ -116,23 +116,23 @@ namespace gridtools {
                     std::tuple<>,
                     gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
-#ifdef BACKEND_MC
+#ifdef GT_BACKEND_MC
             using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
 #endif
 
-#ifdef BACKEND_X86
+#ifdef GT_BACKEND_X86
             using it_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
 #endif
 
             it_domain_t it_domain(local_domain1);
 
-#ifndef BACKEND_MC
+#ifndef GT_BACKEND_MC
 
             it_domain.assign_stride_pointers<backend_traits_t>();
 #endif
 
 // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
-#ifndef BACKEND_MC
+#ifndef GT_BACKEND_MC
             it_domain.initialize({}, {}, {});
 #endif
             auto inv = make_host_view(in);
@@ -158,7 +158,7 @@ namespace gridtools {
             ASSERT_EQ(0, index[0]);
             ASSERT_EQ(0, index[1]);
             ASSERT_EQ(0, index[2]);
-#ifndef BACKEND_MC
+#ifndef GT_BACKEND_MC
             index[0] += 3;
             index[1] += 2;
             index[2] += 1;
@@ -174,7 +174,7 @@ namespace gridtools {
             auto mdb = buff.get_storage_info_ptr();
             auto mdi = in.get_storage_info_ptr();
 
-#ifdef BACKEND_MC
+#ifdef GT_BACKEND_MC
             it_domain.set_i_block_index(1);
             it_domain.set_j_block_index(1);
             it_domain.set_k_block_index(1);

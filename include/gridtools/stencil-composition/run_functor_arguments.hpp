@@ -58,11 +58,11 @@ namespace gridtools {
     template <typename BackendIds, typename LocalDomain, typename EsfSequence, typename CacheSequence, typename Grid>
     struct iterate_domain_arguments {
 
-        GRIDTOOLS_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, CacheSequence>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_cache, CacheSequence>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
         typedef LocalDomain local_domain_t;
@@ -88,12 +88,12 @@ namespace gridtools {
         typename ExecutionEngine   // the execution engine
         >
     struct run_functor_arguments {
-        GRIDTOOLS_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_execution_engine<ExecutionEngine>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_loop_interval, LoopIntervals>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_execution_engine<ExecutionEngine>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_loop_interval, LoopIntervals>::value), GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
         typedef EsfSequence esf_sequence_t;

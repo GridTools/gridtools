@@ -45,10 +45,10 @@ struct copy_functor {
     using in = in_accessor<0>;
     using out = inout_accessor<1>;
 
-    using arg_list = make_arg_list<in, out>;
+    using param_list = make_param_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval(in());
     }
 };

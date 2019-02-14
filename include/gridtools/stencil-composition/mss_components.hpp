@@ -73,7 +73,7 @@ namespace gridtools {
      */
     template <typename MssDescriptor, typename ExtentMap, typename Axis>
     struct mss_components {
-        GRIDTOOLS_STATIC_ASSERT(is_mss_descriptor<MssDescriptor>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_mss_descriptor<MssDescriptor>::value, GT_INTERNAL_ERROR);
         typedef MssDescriptor mss_descriptor_t;
 
         typedef typename MssDescriptor::execution_engine_t execution_engine_t;

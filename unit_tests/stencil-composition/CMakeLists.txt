@@ -35,7 +35,7 @@ if (GT_TESTS_STRUCTURED_GRID)
         add_custom_x86_test(
             TARGET multi_types_naive_${var_suffix}
             SOURCES structured_grids/multi_types_test.cpp
-            COMPILE_DEFINITIONS FUNCTIONS_${variation} BACKEND_STRATEGY_NAIVE
+            COMPILE_DEFINITIONS FUNCTIONS_${variation} GT_BACKEND_STRATEGY_NAIVE
             )
 
         add_custom_mc_test(

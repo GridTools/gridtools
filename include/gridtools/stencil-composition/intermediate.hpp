@@ -97,7 +97,7 @@ namespace gridtools {
         using has_extent = typename with_operators<is_esf_with_extent, gt_or>::template iterate_on_esfs<std::false_type,
             MssDescs>::type;
 
-        GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
+        GT_STATIC_ASSERT((has_extent::value == has_all_extents::value),
             "The computation appears to have stages with and without extents being specified at the same time. A "
             "computation should have all stages with extents or none.");
         using type = typename boost::mpl::not_<has_all_extents>::type;
@@ -178,10 +178,10 @@ namespace gridtools {
         Grid,
         std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
         std::tuple<MssDescriptors...>> {
-        GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_backend<Backend>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-        GRIDTOOLS_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_mss_descriptor>...>::value),
+        GT_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_mss_descriptor>...>::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
         using branch_selector_t = branch_selector<MssDescriptors...>;
@@ -208,10 +208,10 @@ namespace gridtools {
             meta::rename<std::tuple, meta::transform<to_arg_storage_pair, tmp_placeholders_t>>;
 #endif
 
-        GRIDTOOLS_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
+        GT_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
             "some bound placeholders are not used in mss descriptors");
 
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             meta::is_set_fast<meta::list<BoundPlaceholders...>>::value, "bound placeholders should be all different");
 
         template <class Arg>
@@ -318,9 +318,9 @@ namespace gridtools {
             arg_storage_pair<Args, DataStores> const &... srcs) {
             if (m_meter)
                 m_meter->start();
-            GRIDTOOLS_STATIC_ASSERT((conjunction<meta::st_contains<free_placeholders_t, Args>...>::value),
+            GT_STATIC_ASSERT((conjunction<meta::st_contains<free_placeholders_t, Args>...>::value),
                 "some placeholders are not used in mss descriptors");
-            GRIDTOOLS_STATIC_ASSERT(
+            GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
 
             // make views from bound storages again (in the case old views got inconsistent)
@@ -372,7 +372,7 @@ namespace gridtools {
             class LazyResult = enable_if_t<!boost::mpl::is_void_<ExtentMap>::value,
                 boost::mpl::at<typename ExtentMap::type, Placeholder>>>
         static constexpr typename LazyResult::type get_arg_extent(Placeholder) {
-            GRIDTOOLS_STATIC_ASSERT(is_plh<Placeholder>::value, "");
+            GT_STATIC_ASSERT(is_plh<Placeholder>::value, "");
             return {};
         }
         template <class Placeholder, class ExtentMap = extent_map_t>

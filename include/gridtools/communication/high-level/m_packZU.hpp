@@ -166,7 +166,7 @@ void m_packZU(array_t const &d_data_array,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     printf("packZU Launch grid (%d,%d,%d) with (%d,%d) threads, tot (%dx%dx%d)\n", nbx, nby, nbz, ntx, nty, nx, ny, nz);
 
     // just some timing stuff
@@ -186,7 +186,7 @@ void m_packZU(array_t const &d_data_array,
         // clang-format off
       m_packZUKernel<<<blocks, threads, 0, ZU_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
 // clang-format on
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
         int err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("Kernel launch failure\n");
@@ -195,7 +195,7 @@ void m_packZU(array_t const &d_data_array,
 #endif
     }
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
     cudaEventRecord(stop, 0);
@@ -233,7 +233,7 @@ int call_kernel_ZU(Blocks blocks,
     unsigned int i) {
     m_packZUKernel<<<blocks, threads, b, ZU_stream>>>(d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     int err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("Kernel launch failure\n");
@@ -271,7 +271,7 @@ void m_packZU_variadic(value_type **d_msgbufTab,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     printf("packZU Launch grid (%d,%d,%d) with (%d,%d) threads, tot (%dx%dx%d)\n", nbx, nby, nbz, ntx, nty, nx, ny, nz);
 
     // just some timing stuff
@@ -297,7 +297,7 @@ void m_packZU_variadic(value_type **d_msgbufTab,
         ny,
         Ids)...};
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
     cudaEventRecord(stop, 0);

@@ -57,7 +57,7 @@ namespace gridtools {
     template <typename IterateDomainArguments>
     class iterate_domain_cuda
         : public iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> {
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
 
         using base_t = iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments>;
 
@@ -73,7 +73,7 @@ namespace gridtools {
             shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>;
 
       private:
-        shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
+        shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         uint_t m_block_size_i;
         uint_t m_block_size_j;
         // array storing the (i,j) position of the current thread within the block
@@ -92,7 +92,7 @@ namespace gridtools {
          */
         template <typename Extent>
         GT_FUNCTION bool is_thread_in_domain() const {
-            GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
             return m_thread_pos[0] >= Extent::iminus::value &&
                    m_thread_pos[0] < (int)m_block_size_i + Extent::iplus::value &&
                    m_thread_pos[1] >= Extent::jminus::value &&

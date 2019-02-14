@@ -66,8 +66,8 @@ namespace gridtools {
     template <typename ArgType, typename DataStoreType>
     struct arg_storage_pair {
 
-        GRIDTOOLS_STATIC_ASSERT(is_plh<ArgType>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<typename ArgType::data_store_t, DataStoreType>::type::value),
+        GT_STATIC_ASSERT(is_plh<ArgType>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((std::is_same<typename ArgType::data_store_t, DataStoreType>::type::value),
             "DataStoreType type not compatible with placeholder storage type, when associating placeholder to actual "
             "data store");
 
@@ -111,7 +111,7 @@ namespace gridtools {
      */
     template <class Tag, typename DataStoreType, typename LocationType, bool Temporary>
     struct plh {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value),
+        GT_STATIC_ASSERT((is_location_type<LocationType>::value),
             "The third template argument of a placeholder must be a location_type");
         typedef DataStoreType data_store_t;
 

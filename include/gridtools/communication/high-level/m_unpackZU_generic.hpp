@@ -127,7 +127,7 @@ template <typename array_t>
 void m_unpackZU_generic(
     array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab_r, const int *d_msgsize_r) {
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -156,7 +156,7 @@ void m_unpackZU_generic(
         int nbz = (nz + ntz - 1) / ntz;
         dim3 blocks(nbx, nby, nbz); // assuming fields[i].halos[2].minus==fields[i].halos[2].plus
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
         printf("UNPACK ZU Launch grid (%d,%d,%d) with (%d,%d) threads tot: %dx%dx%d\n",
             nbx,
             nby,
@@ -180,7 +180,7 @@ void m_unpackZU_generic(
          + (fields[i].halos[1].begin()-fields[i].halos[1].minus())*fields[i].halos[0].total_length()
          + (fields[i].halos[2].end()+1)*fields[i].halos[0].total_length() *fields[i].halos[1].total_length(), 0 );
 // clang-format on
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
             cudaError_t err = cudaGetLastError();
             if (err != cudaSuccess) {
                 printf("KLF in %s : %s\n", __FILE__, cudaGetErrorString(err));
@@ -190,7 +190,7 @@ void m_unpackZU_generic(
         }
     }
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
     cudaEventRecord(stop, 0);
