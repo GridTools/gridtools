@@ -1,6 +1,6 @@
 # we set up a generic target that holds the options required for all backends
 add_library(GridToolsExample INTERFACE)
-target_compile_definitions(GridToolsExample INTERFACE STRUCTURED_GRIDS)
+target_compile_definitions(GridToolsExample INTERFACE GT_STRUCTURED_GRIDS)
 target_compile_options(GridToolsExample INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 
 if(GT_ENABLE_TARGET_MC)
