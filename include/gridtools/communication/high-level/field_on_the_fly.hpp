@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _FIELD_ON_THE_FLY_H_
-#define _FIELD_ON_THE_FLY_H_
+#pragma once
 
 namespace gridtools {
     /**
@@ -215,5 +214,3 @@ namespace gridtools {
 
     // };
 } // namespace gridtools
-
-#endif

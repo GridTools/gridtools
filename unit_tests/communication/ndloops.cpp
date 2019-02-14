@@ -144,7 +144,7 @@ TEST(Communication, ndloops) {
 
     std::cout << "start regular\n";
 
-    gettimeofday(&start_tv, NULL);
+    gettimeofday(&start_tv, nullptr);
     double res = 0;
     for (int i = 0; i < N; ++i)
         for (int j = 0; j < N; ++j)
@@ -153,7 +153,7 @@ TEST(Communication, ndloops) {
                     int idx = l + k * N + j * N * N + i * N * N * N;
                     res += storage[idx];
                 }
-    gettimeofday(&stop_tv, NULL);
+    gettimeofday(&stop_tv, nullptr);
 
     time = (((double)stop_tv.tv_sec + 1 / 1000000.0 * (double)stop_tv.tv_usec) -
                ((double)start_tv.tv_sec + 1 / 1000000.0 * (double)start_tv.tv_usec)) *
@@ -172,9 +172,9 @@ TEST(Communication, ndloops) {
     std::cout << "start loop\n";
 
     sumup summ(N, storage);
-    gettimeofday(&start_tv, NULL);
+    gettimeofday(&start_tv, nullptr);
     gridtools::loop<4>()(ab, summ, tuple);
-    gettimeofday(&stop_tv, NULL);
+    gettimeofday(&stop_tv, nullptr);
 
     time = (((double)stop_tv.tv_sec + 1 / 1000000.0 * (double)stop_tv.tv_usec) -
                ((double)start_tv.tv_sec + 1 / 1000000.0 * (double)start_tv.tv_usec)) *
@@ -193,9 +193,9 @@ TEST(Communication, ndloops) {
     std::cout << "start loop with access function\n";
 
     sumup2 summ2(N, storage);
-    gettimeofday(&start_tv, NULL);
+    gettimeofday(&start_tv, nullptr);
     gridtools::access_loop<4, sumup2>()(ab, dimensions, summ2);
-    gettimeofday(&stop_tv, NULL);
+    gettimeofday(&stop_tv, nullptr);
 
     time = (((double)stop_tv.tv_sec + 1 / 1000000.0 * (double)stop_tv.tv_usec) -
                ((double)start_tv.tv_sec + 1 / 1000000.0 * (double)start_tv.tv_usec)) *

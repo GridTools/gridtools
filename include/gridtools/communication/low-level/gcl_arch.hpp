@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _GCL_ARCH_
-#define _GCL_ARCH_
+#pragma once
 
 /** \file
     In this file the different types of architectures are
@@ -65,5 +64,3 @@ namespace gridtools {
      */
     struct gcl_mc {}; // Not supported, placed here only for illustration.
 } // namespace gridtools
-
-#endif

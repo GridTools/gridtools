@@ -50,11 +50,11 @@ struct shift_acc_forward_fill_and_flush {
     typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_high) {
         eval(in()) = eval(in()) + eval(in(0, 0, -1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(in()) = eval(in());
     }
 };
@@ -66,11 +66,11 @@ struct shift_acc_backward_fill_and_flush {
     typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_low) {
         eval(in()) = eval(in()) + eval(in(0, 0, 1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(in()) = eval(in());
     }
 };
@@ -82,7 +82,7 @@ struct copy_fill {
     typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+    GT_FUNCTION static void apply(Evaluation &eval, kfull) {
         eval(in()) = eval(in());
     }
 };
@@ -94,7 +94,7 @@ struct scale_fill {
     typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+    GT_FUNCTION static void apply(Evaluation &eval, kfull) {
         eval(in()) = 2 * eval(in());
     }
 };
@@ -116,12 +116,12 @@ TEST_F(kcachef, fill_and_flush_forward) {
         p_in{} = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill_and_flush>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -148,12 +148,12 @@ TEST_F(kcachef, fill_and_flush_backward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute<backward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<shift_acc_backward_fill_and_flush>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -179,12 +179,12 @@ TEST_F(kcachef, fill_copy_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute<forward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<copy_fill>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -210,12 +210,12 @@ TEST_F(kcachef, fill_scale_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute<forward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<scale_fill>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -233,11 +233,11 @@ struct do_nothing {
     typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kbody) {}
 };
 
 TEST_F(kcachef, fill_copy_forward_with_extent) {
@@ -257,12 +257,12 @@ TEST_F(kcachef, fill_copy_forward_with_extent) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute<forward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<do_nothing>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);

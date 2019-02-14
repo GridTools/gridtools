@@ -53,7 +53,7 @@ namespace gridtools {
      */
     template <typename MssDescriptor, typename ExtentMap, typename Axis>
     struct mss_components {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), GT_INTERNAL_ERROR);
         typedef MssDescriptor mss_descriptor_t;
 
         typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
@@ -63,8 +63,8 @@ namespace gridtools {
         typedef typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type linear_esf_t;
 
         typedef typename get_extent_sizes<MssDescriptor, ExtentMap>::type extent_sizes_t;
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<extent_sizes_t, is_extent>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT((is_sequence_of<extent_sizes_t, is_extent>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(
             boost::mpl::size<extent_sizes_t>::value == boost::mpl::size<linear_esf_t>::value, GT_INTERNAL_ERROR);
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
 

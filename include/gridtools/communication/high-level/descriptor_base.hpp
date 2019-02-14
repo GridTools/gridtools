@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _DESCRIPTOR_BASE_H_
-#define _DESCRIPTOR_BASE_H_
+#pragma once
 
 namespace gridtools {
     /**
@@ -107,5 +106,3 @@ namespace gridtools {
         grid_type const &comm() const { return m_grid; }
     };
 } // namespace gridtools
-
-#endif

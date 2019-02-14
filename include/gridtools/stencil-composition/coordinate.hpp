@@ -43,7 +43,7 @@
  *  coord_* are expected to be like std::integral_constant of size_t
  */
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "./structured_grids/coordinate.hpp"
 #else
 #include "./icosahedral_grids/coordinate.hpp"

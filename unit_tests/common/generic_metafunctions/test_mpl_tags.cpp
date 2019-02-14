@@ -41,22 +41,22 @@
 #include <gtest/gtest.h>
 
 TEST(integralconstant, comparison) {
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::greater<std::integral_constant<int, 5>, std::integral_constant<int, 4>>::type::value), "");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::less<std::integral_constant<int, 4>, std::integral_constant<int, 5>>::type::value), "");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::greater_equal<std::integral_constant<int, 5>, std::integral_constant<int, 4>>::type::value), "");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::less_equal<std::integral_constant<int, 4>, std::integral_constant<int, 5>>::type::value), "");
 }
 
 TEST(integralconstant, arithmetic) {
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::plus<std::integral_constant<int, 5>, std::integral_constant<int, 4>>::type::value == 9), "");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::minus<std::integral_constant<int, 5>, std::integral_constant<int, 4>>::type::value == 1), "");
 }

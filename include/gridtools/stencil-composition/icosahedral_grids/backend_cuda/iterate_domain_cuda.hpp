@@ -52,8 +52,8 @@ namespace gridtools {
     template <typename IterateDomainArguments>
     class iterate_domain_cuda
         : public iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+        GT_DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
+        GT_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
         typedef iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> super;
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
@@ -73,7 +73,7 @@ namespace gridtools {
             shared_iterate_domain_t;
 
       private:
-        shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
+        shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         uint_t m_block_size_i;
         uint_t m_block_size_j;
         // array storing the (i,j) position of the current thread within the block
@@ -90,7 +90,7 @@ namespace gridtools {
          */
         template <typename Extent>
         GT_FUNCTION bool is_thread_in_domain() const {
-            GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
             return m_thread_pos[0] >= Extent::iminus::value &&
                    m_thread_pos[0] < (int)m_block_size_i + Extent::iplus::value &&
                    m_thread_pos[1] >= Extent::jminus::value &&
@@ -107,12 +107,12 @@ namespace gridtools {
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
 
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides_impl() const {
+        strides_cached_t const &GT_RESTRICT strides_impl() const {
             //        assert((m_pshared_iterate_domain);
             return m_pshared_iterate_domain->strides();
         }
         GT_FUNCTION
-        strides_cached_t &RESTRICT strides_impl() {
+        strides_cached_t &GT_RESTRICT strides_impl() {
             //        assert((m_pshared_iterate_domain));
             return m_pshared_iterate_domain->strides();
         }
@@ -121,7 +121,7 @@ namespace gridtools {
          */
         template <size_t Index, uint_t Color, typename ReturnType, typename Accessor>
         GT_FUNCTION ReturnType get_cache_value_impl(Accessor const &_accessor) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
             return m_pshared_iterate_domain->template get_ij_cache<static_uint<Index>>().template at<Color>(
@@ -147,15 +147,15 @@ namespace gridtools {
         // kcaches not yet implemented
         template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
         template <typename IterationPolicy>
         GT_FUNCTION void flush_caches(bool) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
         template <typename IterationPolicy>
         GT_FUNCTION void fill_caches(bool) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
     };
 

@@ -58,11 +58,11 @@ namespace {
         typedef typename boost::mpl::
             fold<set_of_vecs, boost::mpl::set0<>, copy_into_set<boost::mpl::_2, boost::mpl::_1>>::type result;
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains<result, myt<0>>::type::value == true), "is not in set");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains<result, myt<1>>::type::value == true), "is not in set");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains<result, myt<2>>::type::value == true), "is not in set");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains<result, myt<3>>::type::value == true), "is not in set");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<result>::type::value == 4), "set has wrong size");
+        GT_STATIC_ASSERT((boost::mpl::contains<result, myt<0>>::type::value == true), "is not in set");
+        GT_STATIC_ASSERT((boost::mpl::contains<result, myt<1>>::type::value == true), "is not in set");
+        GT_STATIC_ASSERT((boost::mpl::contains<result, myt<2>>::type::value == true), "is not in set");
+        GT_STATIC_ASSERT((boost::mpl::contains<result, myt<3>>::type::value == true), "is not in set");
+        GT_STATIC_ASSERT((boost::mpl::size<result>::type::value == 4), "set has wrong size");
         return true;
     }
 
@@ -75,10 +75,10 @@ namespace {
         typedef typename boost::mpl::
             fold<set_of_vecs, boost::mpl::set0<>, copy_into_set<boost::mpl::_2, boost::mpl::_1>>::type result;
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains<result, myt<0>>::type::value == true), "is not in set");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains<result, myt<1>>::type::value == true), "is not in set");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains<result, myt<2>>::type::value == true), "is not in set");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<result>::type::value == 3), "set has wrong size");
+        GT_STATIC_ASSERT((boost::mpl::contains<result, myt<0>>::type::value == true), "is not in set");
+        GT_STATIC_ASSERT((boost::mpl::contains<result, myt<1>>::type::value == true), "is not in set");
+        GT_STATIC_ASSERT((boost::mpl::contains<result, myt<2>>::type::value == true), "is not in set");
+        GT_STATIC_ASSERT((boost::mpl::size<result>::type::value == 3), "set has wrong size");
         return true;
     }
 } // namespace

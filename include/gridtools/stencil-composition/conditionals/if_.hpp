@@ -68,10 +68,10 @@ namespace gridtools {
     */
     template <typename Mss1, typename Mss2, typename Condition>
     condition<Mss1, Mss2, Condition> if_(Condition cond, Mss1 const &mss1_, Mss2 const &mss2_) {
-        GRIDTOOLS_STATIC_ASSERT((std::is_convertible<Condition, std::function<bool()>>::value),
+        GT_STATIC_ASSERT((std::is_convertible<Condition, std::function<bool()>>::value),
             "Condition should be nullary boolean functor.");
-        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of<Mss1, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of<Mss2, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_condition_tree_of<Mss1, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_condition_tree_of<Mss2, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
         return condition<Mss1, Mss2, Condition>{cond, mss1_, mss2_};
     }
 } // namespace gridtools

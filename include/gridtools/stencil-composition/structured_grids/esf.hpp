@@ -114,7 +114,7 @@ namespace gridtools {
      */
     template <typename ESF, typename ArgArray>
     struct esf_descriptor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgArray, is_plh>::value),
+        GT_STATIC_ASSERT((is_sequence_of<ArgArray, is_plh>::value),
             "wrong types for the list of parameter placeholders\n"
             "check the make_stage syntax");
 
@@ -128,14 +128,14 @@ namespace gridtools {
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////
         BOOST_MPL_HAS_XXX_TRAIT_DEF(param_list)
-        GRIDTOOLS_STATIC_ASSERT(has_param_list<esf_function>::type::value,
+        GT_STATIC_ASSERT(has_param_list<esf_function>::type::value,
             "The type param_list was not found in a user functor definition. All user functors must have a type alias "
             "called \'param_list\', which is an MPL vector containing the list of accessors defined in the functor "
             "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
             "using v2=global_accessor<1>; \n using v3=accessor<2>; \n using "
             "param_list=boost::mpl::vector<v1, v3>;");
 
-        GRIDTOOLS_STATIC_ASSERT(_impl::check_param_list<typename esf_function::param_list>::value,
+        GT_STATIC_ASSERT(_impl::check_param_list<typename esf_function::param_list>::value,
             "The list of accessors in a user functor (i.e. the param_list type to be defined on each functor) does not "
             "have increasing index");
 
@@ -150,7 +150,7 @@ namespace gridtools {
         static const ushort_t len = check_holes::len;
 
         // actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value),
+        GT_STATIC_ASSERT((len == boost::mpl::size<index_set>::type::value),
             "You specified different accessors with the same index. Check the indexes of the accessor definitions.");
 
         // checking if the index list contains holes (a common error is to define a list of types with indexes which are
@@ -160,7 +160,7 @@ namespace gridtools {
                 test;
         // check if the index list contains holes (a common error is to define a list of types with indexes which are
         // not contiguous)
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_>::value),
+        GT_STATIC_ASSERT((boost::is_same<typename test::type, boost::mpl::void_>::value),
             "the index list contains holes:\n "
             "The numeration of the placeholders is not contiguous. You have to define each accessor with a unique "
             "identifier ranging "
@@ -173,7 +173,7 @@ namespace gridtools {
 
     template <typename ESF, typename Extent, typename ArgArray>
     struct esf_descriptor_with_extent : esf_descriptor<ESF, ArgArray> {
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "stage descriptor is expecting a extent type");
+        GT_STATIC_ASSERT((is_extent<Extent>::value), "stage descriptor is expecting a extent type");
     };
 
     template <typename ESF, typename Extent, typename ArgArray>
@@ -181,7 +181,7 @@ namespace gridtools {
 
     template <typename ESF>
     struct is_esf_with_extent : boost::mpl::false_ {
-        GRIDTOOLS_STATIC_ASSERT(is_esf_descriptor<ESF>::type::value,
+        GT_STATIC_ASSERT(is_esf_descriptor<ESF>::type::value,
             GT_INTERNAL_ERROR_MSG("is_esf_with_extents expects an esf_descripto as template argument"));
     };
 

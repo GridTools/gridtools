@@ -57,7 +57,7 @@ struct lap_functor {
         make_param_list<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         constexpr auto neighbors_offsets_cell = connectivity<enumtype::edges, enumtype::cells, Color>::offsets();
 
         float_type grad_n{(eval(in_cells(neighbors_offsets_cell[1])) - eval(in_cells(neighbors_offsets_cell[0]))) *
@@ -138,7 +138,7 @@ TEST_F(lap, flow_convention) {
         p_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.edge_length_reciprocal),
         p_out_edges = out_edges,
         make_multistage(enumtype::execute<enumtype::forward>(),
-            define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_div_on_cells)),
+            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_div_on_cells)),
             make_stage<div_functor_flow_convention_connectivity, topology_t, cells>(
                 p_in_edges, p_edge_length, p_cell_area_reciprocal, p_div_on_cells),
             make_stage<curl_functor_flow_convention, topology_t, vertices>(

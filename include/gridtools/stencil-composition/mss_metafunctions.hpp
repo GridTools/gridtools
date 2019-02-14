@@ -73,13 +73,13 @@ namespace gridtools {
      */
     template <typename... MssParameters>
     struct extract_mss_caches {
-#ifdef __DISABLE_CACHING__
+#ifdef GT_DISABLE_CACHING
         typedef std::tuple<> type;
 #else
         using tuple_of_caches = GT_META_CALL(
             meta::filter, (_impl::is_sequence_of_caches, std::tuple<MssParameters...>));
 
-        GRIDTOOLS_STATIC_ASSERT(meta::length<tuple_of_caches>::value < 2,
+        GT_STATIC_ASSERT(meta::length<tuple_of_caches>::value < 2,
             "Wrong number of sequence of caches. Probably caches are defined in multiple dinstinct instances of "
             "define_caches\n"
             "Only one instance of define_caches is allowed.");

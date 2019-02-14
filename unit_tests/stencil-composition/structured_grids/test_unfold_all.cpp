@@ -48,7 +48,7 @@ struct functor {
     typedef gridtools::make_param_list<a0, a1> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {}
+    GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 bool predicate() { return false; }

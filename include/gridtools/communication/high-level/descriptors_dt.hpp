@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _DESCRIPTORS_DT_H_
-#define _DESCRIPTORS_DT_H_
+#pragma once
 
 #include "../../common/array.hpp"
 #include "../../common/boollist.hpp"
@@ -348,7 +347,7 @@ namespace gridtools {
             : base_type(c, comm, dimensions), halo() {}
 
         ~hndlr_dynamic_ut() {
-#ifdef _GCL_CHECK_DESTRUCTOR
+#ifdef GCL_CHECK_DESTRUCTOR
             std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
 
@@ -638,7 +637,7 @@ namespace gridtools {
         hndlr_generic(grid_type const &g) : base_type(g) {}
 
         ~hndlr_generic() {
-#ifdef _GCL_CHECK_DESTRUCTOR
+#ifdef GCL_CHECK_DESTRUCTOR
             std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
 
@@ -907,4 +906,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-#endif

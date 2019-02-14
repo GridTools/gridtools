@@ -63,7 +63,7 @@ namespace copy_stencils_3D_2D_1D_0D {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };

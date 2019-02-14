@@ -49,8 +49,8 @@ namespace gridtools {
     class iterate_domain_x86
         : public iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> // CRTP
     {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_x86);
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+        GT_DISALLOW_COPY_AND_ASSIGN(iterate_domain_x86);
+        GT_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
         typedef iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> super;
 
@@ -61,17 +61,17 @@ namespace gridtools {
 
         GT_FORCE_INLINE iterate_domain_x86(local_domain_t const &local_domain_) : super(local_domain_), m_strides(0) {}
 
-        strides_cached_t &RESTRICT strides_impl() {
+        strides_cached_t &GT_RESTRICT strides_impl() {
             assert(m_strides);
             return *m_strides;
         }
 
-        strides_cached_t const &RESTRICT strides_impl() const {
+        strides_cached_t const &GT_RESTRICT strides_impl() const {
             assert(m_strides);
             return *m_strides;
         }
 
-        void set_strides_pointer_impl(strides_cached_t *RESTRICT strides) {
+        void set_strides_pointer_impl(strides_cached_t *GT_RESTRICT strides) {
             assert(strides);
             m_strides = strides;
         }
@@ -84,7 +84,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
         /**
@@ -92,7 +92,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void flush_caches(bool) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
         /**
@@ -100,7 +100,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void fill_caches(bool) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
         template <typename Extent>
@@ -109,7 +109,7 @@ namespace gridtools {
         }
 
       private:
-        strides_cached_t *RESTRICT m_strides;
+        strides_cached_t *GT_RESTRICT m_strides;
     };
 
     template <typename IterateDomainArguments>

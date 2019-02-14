@@ -97,9 +97,9 @@ namespace gridtools {
      */
     template <sign I_, sign J_, sign K_>
     struct direction {
-        static const sign I = I_;
-        static const sign J = J_;
-        static const sign K = K_;
+        static constexpr sign i = I_;
+        static constexpr sign j = J_;
+        static constexpr sign k = K_;
     };
 
     /** @brief Facility to print direction, useful for debugging

@@ -40,7 +40,7 @@
 #include "common/definitions.hpp"
 #include "data_store.hpp"
 
-#ifdef _USE_GPU_
+#ifdef GT_USE_GPU
 #include "storage_traits_cuda.hpp"
 
 #include "storage_cuda/data_view_helpers.hpp"

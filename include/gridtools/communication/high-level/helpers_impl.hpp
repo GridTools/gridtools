@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _HELPERS_IMPL_H_
-#define _HELPERS_IMPL_H_
+#pragma once
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "descriptors_fwd.hpp"
 
@@ -51,17 +50,17 @@ namespace gridtools {
                 if (sz)
                     return new T[sz];
                 else
-                    return NULL;
+                    return nullptr;
             }
 
             static void free(T *t) {
                 if (!t)
                     delete[] t;
-                t = NULL;
+                t = nullptr;
             }
         };
 
-#ifdef _GCL_GPU_
+#ifdef GCL_GPU
         template <typename T>
         struct gcl_alloc<T, gcl_gpu> {
 
@@ -75,14 +74,14 @@ namespace gridtools {
                     }
                     return ptr;
                 } else {
-                    return NULL;
+                    return nullptr;
                 }
             }
 
             static void free(T *t) {
                 if (!t)
                     cudaError_t status = cudaFree(t);
-                t = NULL;
+                t = nullptr;
             }
         };
 #endif
@@ -202,4 +201,3 @@ namespace gridtools {
 
     } // namespace _impl
 } // namespace gridtools
-#endif

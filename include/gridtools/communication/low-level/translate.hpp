@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _TRANSLATE_H_
-#define _TRANSLATE_H_
+#pragma once
 
 #include "../../common/layout_map_metafunctions.hpp"
 
@@ -97,5 +96,3 @@ namespace gridtools {
         inline int operator()(int I, int J, int K) { return (J + 1) * 9 + (K + 1) * 3 + I + 1; }
     };
 } // namespace gridtools
-
-#endif

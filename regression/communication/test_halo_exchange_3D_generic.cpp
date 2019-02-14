@@ -146,7 +146,7 @@ namespace halo_exchange_3D_generic {
         */
         // he.setup(100, halo_dsc, sizeof(double));
         he.setup(3,
-            gridtools::field_on_the_fly<int, layoutmap, pattern_type::traits>(NULL, halo_dsc),
+            gridtools::field_on_the_fly<int, layoutmap, pattern_type::traits>(nullptr, halo_dsc),
             sizeof(triple_t<USE_DOUBLE>)); // Estimates the size
 
         file << "Proc: (" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")\n";
@@ -245,30 +245,30 @@ namespace halo_exchange_3D_generic {
 
         MPI_Barrier(MPI_COMM_WORLD);
 
-        gettimeofday(&start_tv, NULL);
+        gettimeofday(&start_tv, nullptr);
         he.pack(vect);
 
-        gettimeofday(&stop1_tv, NULL);
+        gettimeofday(&stop1_tv, nullptr);
         he.exchange();
 
-        gettimeofday(&stop2_tv, NULL);
+        gettimeofday(&stop2_tv, nullptr);
         he.unpack(vect);
 
-        gettimeofday(&stop3_tv, NULL);
+        gettimeofday(&stop3_tv, nullptr);
 #else
 
         MPI_Barrier(MPI_COMM_WORLD);
-        gettimeofday(&start_tv, NULL);
+        gettimeofday(&start_tv, nullptr);
         he.pack(field1, field2, field3);
 
-        gettimeofday(&stop1_tv, NULL);
+        gettimeofday(&stop1_tv, nullptr);
         he.exchange();
 
-        gettimeofday(&stop2_tv, NULL);
+        gettimeofday(&stop2_tv, nullptr);
         he.unpack(field1, field2, field3);
 
         MPI_Barrier(MPI_COMM_WORLD);
-        gettimeofday(&stop3_tv, NULL);
+        gettimeofday(&stop3_tv, nullptr);
 #endif
 
         lapse_time1 =
@@ -697,7 +697,7 @@ namespace halo_exchange_3D_generic {
 
 #ifdef STANDALONE
 int main(int argc, char **argv) {
-#ifdef _USE_GPU_
+#ifdef GT_USE_GPU
     device_binding();
 #endif
 

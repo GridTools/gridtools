@@ -431,7 +431,8 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> = 0>
-            GT_FUNCTION auto shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &RESTRICT offset)
+            GT_FUNCTION auto shift(
+                T &GT_RESTRICT obj, Stride const &GT_RESTRICT stride, Offset const &GT_RESTRICT offset)
                 GT_AUTO_RETURN(sid_shift(obj, stride, offset));
 
             /**
@@ -479,7 +480,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
-            shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &) {
+            shift(T &GT_RESTRICT obj, Stride const &GT_RESTRICT stride, Offset const &) {
                 obj += stride;
             }
 
@@ -490,7 +491,7 @@ namespace gridtools {
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value &&
                                     is_integral_constant_of<Offset, -1>::value && has_dec_assignment<T, Stride>::value>
-            shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &) {
+            shift(T &GT_RESTRICT obj, Stride const &GT_RESTRICT stride, Offset const &) {
                 obj -= stride;
             }
 
@@ -500,7 +501,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
-            shift(T &RESTRICT obj, Stride const &RESTRICT, Offset const &offset) {
+            shift(T &GT_RESTRICT obj, Stride const &GT_RESTRICT, Offset const &offset) {
                 obj += offset;
             }
 
@@ -525,7 +526,7 @@ namespace gridtools {
                             !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
                             !(has_dec_assignment<T, Stride>::value && (is_integral_constant_of<Stride, -1>::value ||
                                                                           is_integral_constant_of<Offset, -1>::value))>
-                shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &RESTRICT offset) {
+                shift(T &GT_RESTRICT obj, Stride const &GT_RESTRICT stride, Offset const &GT_RESTRICT offset) {
                 obj += stride * offset;
             }
 
@@ -584,22 +585,22 @@ namespace gridtools {
         // Meta functions
 
 #if GT_BROKEN_TEMPLATE_ALIASES
-#define SID_DELEGATE_FROM_IMPL(name) \
-    template <class Sid>             \
+#define GT_SID_DELEGATE_FROM_IMPL(name) \
+    template <class Sid>                \
     struct name : meta::id<concept_impl_::name<Sid>> {}
 #else
-#define SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
+#define GT_SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
 #endif
 
-        SID_DELEGATE_FROM_IMPL(ptr_type);
-        SID_DELEGATE_FROM_IMPL(ptr_diff_type);
-        SID_DELEGATE_FROM_IMPL(reference_type);
-        SID_DELEGATE_FROM_IMPL(strides_type);
-        SID_DELEGATE_FROM_IMPL(strides_kind);
+        GT_SID_DELEGATE_FROM_IMPL(ptr_type);
+        GT_SID_DELEGATE_FROM_IMPL(ptr_diff_type);
+        GT_SID_DELEGATE_FROM_IMPL(reference_type);
+        GT_SID_DELEGATE_FROM_IMPL(strides_type);
+        GT_SID_DELEGATE_FROM_IMPL(strides_kind);
 
-        SID_DELEGATE_FROM_IMPL(default_ptr_diff);
+        GT_SID_DELEGATE_FROM_IMPL(default_ptr_diff);
 
-#undef SID_DELEGATE_FROM_IMPL
+#undef GT_SID_DELEGATE_FROM_IMPL
 
         // Runtime functions
         using concept_impl_::get_origin;
