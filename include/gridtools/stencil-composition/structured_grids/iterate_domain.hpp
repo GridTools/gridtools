@@ -172,7 +172,7 @@ namespace gridtools {
         }
 
         template <class Arg, class DataStore = typename Arg::data_store_t, class Data = typename DataStore::data_t>
-        GT_FUNCTION Data &deref_for_k_cache(int_t k_offset) const {
+        GT_FUNCTION Data *deref_for_k_cache(int_t k_offset) const {
             using storage_info_t = typename DataStore::storage_info_t;
             static constexpr auto storage_info_index =
                 meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
@@ -180,9 +180,9 @@ namespace gridtools {
             int_t offset = m_index[storage_info_index] +
                            stride<storage_info_t, 2>(strides().template get<storage_info_index>()) * k_offset;
 
-            assert(pointer_oob_check<storage_info_t>(local_domain, offset));
-
-            return *(boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + offset);
+            return pointer_oob_check<storage_info_t>(local_domain, offset)
+                       ? boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + offset
+                       : nullptr;
         }
 
         /**

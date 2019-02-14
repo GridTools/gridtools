@@ -37,7 +37,6 @@
 
 #include <type_traits>
 
-#include "../../common/array.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
@@ -134,15 +133,15 @@ namespace gridtools {
 
         template <sync_type SyncType, class Data>
         GT_FUNCTION enable_if_t<SyncType == sync_type::fill> sync_at(Data const &data, int_t k) {
-            m_values[k - Minus] = data.template deref_for_k_cache<Arg>(k);
+            if (auto *src = data.template deref_for_k_cache<Arg>(k))
+                m_values[k - Minus] = *src;
         }
 
         template <sync_type SyncType, class Data>
         GT_FUNCTION enable_if_t<SyncType == sync_type::flush> sync_at(Data const &data, int_t k) {
-            data.template deref_for_k_cache<Arg>(k) = m_values[k - Minus];
+            if (auto *dst = data.template deref_for_k_cache<Arg>(k))
+                *dst = m_values[k - Minus];
         }
-
-        using range_t = array<int_t, 2>;
 
         template <enumtype::execution Policy, sync_type SyncType>
         GT_META_DEFINE_ALIAS(sync_point,
@@ -187,11 +186,10 @@ namespace gridtools {
             sync_type SyncType,
             class Data,
             int_t SyncPoint = sync_point<Policy, SyncType>::value>
-        GT_FUNCTION void sync(Data const &data, bool sync_all, range_t validity) {
+        GT_FUNCTION void sync(Data const &data, bool sync_all) {
             int_t last = sync_all ? Plus : SyncPoint;
             for (int_t k = sync_all ? Minus : SyncPoint; k <= last; ++k)
-                if (k >= validity[0] && k <= validity[1])
-                    sync_at<SyncType>(data, k);
+                sync_at<SyncType>(data, k);
         }
     };
 

@@ -108,14 +108,14 @@ namespace gridtools {
          * \param first_level indicates that this function is called the first time in the k-loop
          */
         template <class IterationPolicy, class IterateDomain>
-        GT_FUNCTION void fill_caches(IterateDomain const &it_domain, bool first_level, array<int_t, 2> validity) {
+        GT_FUNCTION void fill_caches(IterateDomain const &it_domain, bool first_level) {
             GT_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
 
             using filling_cache_args_t = GT_META_CALL(
                 meta::transform, (cache_parameter, GT_META_CALL(meta::filter, (is_filling_cache, cache_sequence_t))));
 
             _impl::sync_caches<filling_cache_args_t, IterationPolicy::value, sync_type::fill>(
-                it_domain, m_k_caches_tuple, first_level, validity);
+                it_domain, m_k_caches_tuple, first_level);
         }
 
         /**
@@ -126,14 +126,14 @@ namespace gridtools {
          * \param last_level indicates that this function is called the last time in the k-loop
          */
         template <typename IterationPolicy, typename IterateDomain>
-        GT_FUNCTION void flush_caches(IterateDomain const &it_domain, bool last_level, array<int_t, 2> validity) {
+        GT_FUNCTION void flush_caches(IterateDomain const &it_domain, bool last_level) {
             GT_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
 
             using flushing_cache_args_t = GT_META_CALL(
                 meta::transform, (cache_parameter, GT_META_CALL(meta::filter, (is_flushing_cache, cache_sequence_t))));
 
             _impl::sync_caches<flushing_cache_args_t, IterationPolicy::value, sync_type::flush>(
-                it_domain, m_k_caches_tuple, last_level, validity);
+                it_domain, m_k_caches_tuple, last_level);
         }
     };
 } // namespace gridtools
