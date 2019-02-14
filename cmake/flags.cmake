@@ -1,13 +1,12 @@
 include (CMakeDependentOption)
 
+set( CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON CACHE INTERNAL "" )
+
 option( GT_ENABLE_PYUTILS "If on, Python utility scripts will be configured" OFF)
 option( GT_ENABLE_TARGET_CUDA "Compile CUDA GPU backend examples and unit tests" ${CUDA_AVAILABLE})
 option( GT_ENABLE_TARGET_X86 "Compile x86 backend examples and unit tests" ${OPENMP_AVAILABLE} )
 option( GT_ENABLE_TARGET_MC "Compile MC backend examples and unit tests" ${OPENMP_AVAILABLE} )
 option( GT_USE_MPI "Compile with MPI support" ${MPI_AVAILABLE} )
-# we are aware of CMAKE_EXPORT_NO_PACKAGE_REGISTRY, but in our experience, it is better to
-# reverse this default
-option( GT_EXPORT_INTO_PACKAGE_REGISTRY "If on, creates an entry in the CMake package registry" OFF )
 
 # TODO remove when implementing smaller-grained test enablers
 option( GT_GCL_ONLY "If on only library is build but not the examples and tests" OFF )

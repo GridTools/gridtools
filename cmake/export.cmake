@@ -1,7 +1,5 @@
-if (GT_EXPORT_INTO_PACKAGE_REGISTRY)
-    # this registers the build-tree with a global CMake-registry
-    export(PACKAGE GridTools)
-endif()
+# this registers the build-tree with a global CMake-registry
+export(PACKAGE GridTools)
 
 include(CMakePackageConfigHelpers)
 
