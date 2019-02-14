@@ -108,7 +108,7 @@ namespace gridtools {
             typedef strategy_from_id_cuda<typename BackendIds::strategy_id_t> type;
         };
 
-#ifdef ENABLE_METERS
+#ifdef GT_ENABLE_METERS
         typedef timer_cuda performance_meter_t;
 #else
         typedef timer_dummy performance_meter_t;
