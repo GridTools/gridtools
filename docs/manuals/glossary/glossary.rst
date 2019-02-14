@@ -79,6 +79,15 @@ Glossary
     same (single) read-only data value on the whole :term:`Iteration Space`.
     See section :ref:`global-accessor`.
 
+  Global Boundary
+    Boundary of the :term:`Global Domain` when using distributed computing. See
+    section :ref:`distributed-boundary-conditions`.
+
+  Global Domain
+    The compute domain that is composed from all domains of the subprocesses
+    that participate in a distributed computation. See section
+    :ref:`distributed-boundary-conditions`.
+
   Grid
     The grid is the object that defines the :term:`Iteration Space`. See
     section :ref:`defining_iteration_space`.
@@ -98,7 +107,8 @@ Glossary
 
   Halo Exchange
     Communication of :term:`Halo` data points between multiple processes. See
-    section :ref:`halo-exchanges`.
+    section :ref:`halo-exchanges` and section
+    :term:`distributed-boundary-conditions`.
 
   Interval
     Subset of the points along an axis of an :term:`Iteration Space`. Often
