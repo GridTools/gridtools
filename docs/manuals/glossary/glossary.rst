@@ -37,7 +37,7 @@ Glossary
     :ref:`cache-type`.
 
   Computation
-    A sequence of :term:`Mutli-Stage Computations<Multi-Stage Computation>`
+    A sequence of :term:`Multi-Stage Computations<Multi-Stage Computation>`
     associated with a :term:`Grid`. This is an executable composition of
     multiple stencils. See section :ref:`composition_of_stencils`.
 
