@@ -51,7 +51,8 @@ Glossary
     :ref:`data-view`.
 
   Apply-Method
-    Main method of a :term:`Stencil Operator`. See section
+    Main method of a :term:`Stencil Operator`. Multiple overloads can exist for
+    different :term:`Vertical Intervals<Vertical Interval>`. See section
     :ref:`stencil_operators_apply_method`.
 
   Elementary Stencil
