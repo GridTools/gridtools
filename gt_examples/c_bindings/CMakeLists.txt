@@ -1,8 +1,11 @@
+# we set up a generic target that holds the options required for all backends
 add_library(GridToolsExample INTERFACE)
 target_compile_definitions(GridToolsExample INTERFACE STRUCTURED_GRIDS)
 target_compile_options(GridToolsExample INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 
 if(GT_ENABLE_TARGET_MC)
+    # our bindings library is different for mc and cuda-backend. This CCMake function
+    # generates two targets, once suffixed with _c and once suffixed with _fortran.
     add_bindings_library(copy_stencil_lib_mc SOURCES copy_stencil_wrapper.cpp)
     target_link_libraries(copy_stencil_lib_mc PUBLIC GridToolsExample)
 
@@ -19,6 +22,7 @@ if(GT_ENABLE_TARGET_MC)
         add_executable(example_driver_fortran driver.f90)
         target_link_libraries(example_driver_fortran copy_stencil_lib_mc_fortran)
         set_target_properties(example_driver_fortran PROPERTIES LINKER_LANGUAGE Fortran)
+        # this helper enables the preprocessor by setting a compiler-dependent flag
         enable_fortran_preprocessing_on_target(example_driver_fortran)
 
         install_example(example_driver_fortran)
