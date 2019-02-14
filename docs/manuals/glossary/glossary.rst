@@ -47,7 +47,7 @@ Glossary
 
   Data View
     A ``data_view`` object allows to access and modify the elements of a
-    :term:`Data Store` through tuple of indices. See section
+    :term:`Data Store` through a tuple of indices. See section
     :ref:`data-view`.
 
   Apply-Method
