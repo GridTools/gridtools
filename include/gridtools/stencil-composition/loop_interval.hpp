@@ -49,7 +49,7 @@ namespace gridtools {
      * From level means the level from what iteration along k-axis should start. It can be upper than ToLevel
      * if the execution direction is backward.
      *
-     * It is assumed that for any elementary functor within the computation at most one Do overload is used for all
+     * It is assumed that for any elementary functor within the computation at most one apply overload is used for all
      * points in this interval. In other words each elementary functor could be bound to a single interval.
      *
      * @tparam FromLevel interval level where the execution should start
@@ -58,8 +58,8 @@ namespace gridtools {
      */
     template <class FromLevel, class ToLevel, class Payload>
     struct loop_interval {
-        GRIDTOOLS_STATIC_ASSERT(is_level<FromLevel>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_level<ToLevel>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_level<FromLevel>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_level<ToLevel>::value, GT_INTERNAL_ERROR);
 
         using type = loop_interval;
     };
@@ -105,8 +105,8 @@ namespace gridtools {
         template <class LoopIntervals,
             class Extents = GT_META_CALL(loop_interval_impl_::all_extents_of_loop_intervals, LoopIntervals)>
         struct get_extent_from_loop_intervals : meta::lazy::first<Extents> {
-            GRIDTOOLS_STATIC_ASSERT(meta::all_are_same<Extents>::value, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_extent, Extents>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(meta::all_are_same<Extents>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_extent, Extents>::value), GT_INTERNAL_ERROR);
         };
 
         template <class LoopIntervals, template <class...> class L>

@@ -77,7 +77,7 @@ namespace gridtools {
 
     template <typename Value, Value First, Value... Args, template <Value...> class VariadicHolder, uint_t Threshold>
     struct shorten<Value, VariadicHolder<First, Args...>, Threshold> {
-        GRIDTOOLS_STATIC_ASSERT((Threshold <= sizeof...(Args) + 1), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((Threshold <= sizeof...(Args) + 1), GT_INTERNAL_ERROR);
         using type = typename impl::shorten_impl<0, Value, Threshold, VariadicHolder<>, First, Args...>::type;
     };
 } // namespace gridtools

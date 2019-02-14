@@ -48,9 +48,9 @@ namespace gridtools {
         namespace multi_shift_impl_ {
             template <class Ptr, class Strides, class Offsets>
             struct shift_f {
-                Ptr &RESTRICT m_ptr;
-                Strides const &RESTRICT m_strides;
-                Offsets const &RESTRICT m_offsets;
+                Ptr &GT_RESTRICT m_ptr;
+                Strides const &GT_RESTRICT m_strides;
+                Offsets const &GT_RESTRICT m_offsets;
 
                 template <class I>
                 GT_FUNCTION void operator()() const {
@@ -65,7 +65,7 @@ namespace gridtools {
          */
         template <class Ptr, class Strides, class Offsets>
         GT_FUNCTION void multi_shift(
-            Ptr &RESTRICT ptr, Strides const &RESTRICT strides, Offsets const &RESTRICT offsets) {
+            Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets const &GT_RESTRICT offsets) {
             using indices_t = GT_META_CALL(meta::make_indices, tuple_util::size<Offsets>);
             host_device::for_each_type<indices_t>(
                 multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});

@@ -69,14 +69,14 @@ namespace gridtools {
            (DataField0, Datafield1, DataField2, ...)*/
         template <typename Direction, typename... DataField>
         void loop(DataField &... data_field) const {
-            for (int_t i = halo_descriptors[0].loop_low_bound_outside(Direction::I);
-                 i <= halo_descriptors[0].loop_high_bound_outside(Direction::I);
+            for (int_t i = halo_descriptors[0].loop_low_bound_outside(Direction::i);
+                 i <= halo_descriptors[0].loop_high_bound_outside(Direction::i);
                  ++i) {
-                for (int_t j = halo_descriptors[1].loop_low_bound_outside(Direction::J);
-                     j <= halo_descriptors[1].loop_high_bound_outside(Direction::J);
+                for (int_t j = halo_descriptors[1].loop_low_bound_outside(Direction::j);
+                     j <= halo_descriptors[1].loop_high_bound_outside(Direction::j);
                      ++j) {
-                    for (int_t k = halo_descriptors[2].loop_low_bound_outside(Direction::K);
-                         k <= halo_descriptors[2].loop_high_bound_outside(Direction::K);
+                    for (int_t k = halo_descriptors[2].loop_low_bound_outside(Direction::k);
+                         k <= halo_descriptors[2].loop_high_bound_outside(Direction::k);
                          ++k) {
                         boundary_function(Direction(), data_field..., i, j, k);
                     }

@@ -37,7 +37,6 @@
 
 #include <type_traits>
 
-#include "../../common/array.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
@@ -47,11 +46,11 @@
 
 namespace gridtools {
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
     template <class T, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
     class ij_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(JSize > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(JSize > 0, GT_INTERNAL_ERROR);
 
         T m_values[JSize][ISize];
 
@@ -73,8 +72,8 @@ namespace gridtools {
 
     template <class Arg, int_t ITile, int_t JTile, class Extent>
     struct make_ij_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
         using type = ij_cache_storage<typename Arg::data_store_t::data_t,
             ITile + Extent::iplus::value - Extent::iminus::value,
             JTile + Extent::jplus::value - Extent::jminus::value,
@@ -84,9 +83,9 @@ namespace gridtools {
 #else
     template <class T, int_t NumColors, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
     class ij_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(JSize > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(NumColors > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(JSize > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(NumColors > 0, GT_INTERNAL_ERROR);
 
         T m_values[JSize][NumColors][ISize];
 
@@ -111,8 +110,8 @@ namespace gridtools {
 
     template <class Arg, int_t ITile, int_t JTile, class Extent>
     struct make_ij_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
         using type = ij_cache_storage<typename Arg::data_store_t::data_t,
             Arg::location_t::n_colors::value,
             ITile + Extent::iplus::value - Extent::iminus::value,
@@ -127,22 +126,22 @@ namespace gridtools {
     template <class Arg, class T, int_t Minus, int_t Plus>
     class k_cache_storage {
 
-        GRIDTOOLS_STATIC_ASSERT(Minus <= 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(Plus >= 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(Minus <= 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(Plus >= 0, GT_INTERNAL_ERROR);
 
         T m_values[Plus - Minus + 1];
 
         template <sync_type SyncType, class Data>
         GT_FUNCTION enable_if_t<SyncType == sync_type::fill> sync_at(Data const &data, int_t k) {
-            m_values[k - Minus] = data.template deref_for_k_cache<Arg>(k);
+            if (auto *src = data.template deref_for_k_cache<Arg>(k))
+                m_values[k - Minus] = *src;
         }
 
         template <sync_type SyncType, class Data>
         GT_FUNCTION enable_if_t<SyncType == sync_type::flush> sync_at(Data const &data, int_t k) {
-            data.template deref_for_k_cache<Arg>(k) = m_values[k - Minus];
+            if (auto *dst = data.template deref_for_k_cache<Arg>(k))
+                *dst = m_values[k - Minus];
         }
-
-        using range_t = array<int_t, 2>;
 
         template <enumtype::execution Policy, sync_type SyncType>
         GT_META_DEFINE_ALIAS(sync_point,
@@ -187,27 +186,26 @@ namespace gridtools {
             sync_type SyncType,
             class Data,
             int_t SyncPoint = sync_point<Policy, SyncType>::value>
-        GT_FUNCTION void sync(Data const &data, bool sync_all, range_t validity) {
+        GT_FUNCTION void sync(Data const &data, bool sync_all) {
             int_t last = sync_all ? Plus : SyncPoint;
             for (int_t k = sync_all ? Minus : SyncPoint; k <= last; ++k)
-                if (k >= validity[0] && k <= validity[1])
-                    sync_at<SyncType>(data, k);
+                sync_at<SyncType>(data, k);
         }
     };
 
     template <class Arg, class Extent>
     struct make_k_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             Extent::iminus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             Extent::iplus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             Extent::jminus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             Extent::jplus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
 
-        GRIDTOOLS_STATIC_ASSERT(Extent::kminus::value <= 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(Extent::kplus::value >= 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(Extent::kminus::value <= 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(Extent::kplus::value >= 0, GT_INTERNAL_ERROR);
 
         using type =
             k_cache_storage<Arg, typename Arg::data_store_t::data_t, Extent::kminus::value, Extent::kplus::value>;

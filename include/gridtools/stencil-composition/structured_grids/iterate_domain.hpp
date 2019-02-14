@@ -66,7 +66,7 @@ namespace gridtools {
     class iterate_domain {
       private:
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
         using caches_t = typename IterateDomainArguments::cache_sequence_t;
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, caches_t);
@@ -75,16 +75,16 @@ namespace gridtools {
         using storage_info_ptrs_t = typename local_domain_t::storage_info_ptr_fusion_list;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
+        static const uint_t n_meta_storages = boost::mpl::size<storage_info_ptrs_t>::value;
 
       protected:
-        using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
+        using strides_cached_t = strides_cached<n_meta_storages - 1, storage_info_ptrs_t>;
         using iterate_domain_arguments_t = IterateDomainArguments;
 
         GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_) {}
 
       public:
-        using array_index_t = array<int_t, N_META_STORAGES>;
+        using array_index_t = array<int_t, n_meta_storages>;
 
       private:
         // ******************* members *******************
@@ -172,7 +172,7 @@ namespace gridtools {
         }
 
         template <class Arg, class DataStore = typename Arg::data_store_t, class Data = typename DataStore::data_t>
-        GT_FUNCTION Data &deref_for_k_cache(int_t k_offset) const {
+        GT_FUNCTION Data *deref_for_k_cache(int_t k_offset) const {
             using storage_info_t = typename DataStore::storage_info_t;
             static constexpr auto storage_info_index =
                 meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
@@ -180,13 +180,13 @@ namespace gridtools {
             int_t offset = m_index[storage_info_index] +
                            stride<storage_info_t, 2>(strides().template get<storage_info_index>()) * k_offset;
 
-            assert(pointer_oob_check<storage_info_t>(local_domain, offset));
-
-            return *(boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + offset);
+            return pointer_oob_check<storage_info_t>(local_domain, offset)
+                       ? boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + offset
+                       : nullptr;
         }
 
         /**
-         * @brief Method called in the Do methods of the functors.
+         * @brief Method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders.
          */
         template <class Arg, enumtype::intent Intent, uint_t I>
@@ -195,7 +195,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief method called in the Do methods of the functors.
+         * @brief method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders with arguments.
          */
         template <class Arg, enumtype::intent Intent, class Acc, class... Args>
@@ -204,7 +204,7 @@ namespace gridtools {
                 acc.get_arguments(),
                 meta::index_sequence_for<Args...>()));
 
-        /** @brief method called in the Do methods of the functors.
+        /** @brief method called in the apply methods of the functors.
          *
          * Specialization for the offset_tuple placeholder (i.e. for extended storages, containing multiple snapshots of
          * data fields with the same dimension and memory layout)
@@ -245,7 +245,7 @@ namespace gridtools {
             using data_t = typename Arg::data_store_t::data_t;
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
+            GT_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
                 "requested accessor index lower than zero. Check that when you define the accessor you specify the "
                 "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
                 "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "

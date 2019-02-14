@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _STATS_COLLECTOR_H_
-#define _STATS_COLLECTOR_H_
+#pragma once
 
 #include <iomanip>
 #include <map>
@@ -579,5 +578,3 @@ namespace gridtools {
     extern stats_collector<3> &stats_collector_3D;
 
 } // namespace gridtools
-
-#endif

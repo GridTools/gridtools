@@ -60,7 +60,7 @@ namespace gridtools {
     template <typename IterateDomainArguments>
     class iterate_domain_cuda
         : public iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> {
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
 
         using base_t = iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments>;
 
@@ -85,7 +85,7 @@ namespace gridtools {
 
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
-        shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
+        shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         iterate_domain_cache_t m_iterate_domain_cache;
 
       public:
@@ -152,7 +152,7 @@ namespace gridtools {
 
         template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
             m_iterate_domain_cache.template slide_caches<IterationPolicy>();
         }
 
@@ -162,9 +162,9 @@ namespace gridtools {
          * \tparam IterationPolicy forward: backward
          */
         template <typename IterationPolicy>
-        GT_FUNCTION void fill_caches(bool first_level, array<int_t, 2> validity) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template fill_caches<IterationPolicy>(*this, first_level, validity);
+        GT_FUNCTION void fill_caches(bool first_level) {
+            GT_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
+            m_iterate_domain_cache.template fill_caches<IterationPolicy>(*this, first_level);
         }
 
         /**
@@ -173,9 +173,9 @@ namespace gridtools {
          * \tparam IterationPolicy forward: backward
          */
         template <typename IterationPolicy>
-        GT_FUNCTION void flush_caches(bool last_level, array<int_t, 2> validity) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template flush_caches<IterationPolicy>(*this, last_level, validity);
+        GT_FUNCTION void flush_caches(bool last_level) {
+            GT_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
+            m_iterate_domain_cache.template flush_caches<IterationPolicy>(*this, last_level);
         }
     };
 

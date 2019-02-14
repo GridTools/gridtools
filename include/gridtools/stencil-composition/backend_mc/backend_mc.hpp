@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 
 // This file contains all header files required by the mc backend
 #ifdef _OPENMP

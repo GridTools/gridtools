@@ -86,11 +86,11 @@ Basic concepts
     (See [[Splitters]]) A `Level` that includes all the `Interval` s in a given computation.
 
   `OperatorFunction`
-    A decorated class, also referred to as functor (improperly so), which provides `Do` methods each  accepting two arguments: an template argument matching an `AccessorPack` and an `Interval`. The `Interval`s of the different `Do` overloads must define a contiguous and not overlapping `Axis`.
+    A decorated class, also referred to as functor (improperly so), which provides `apply` methods each  accepting two arguments: an template argument matching an `AccessorPack` and an `Interval`. The `Interval`s of the different `apply` overloads must define a contiguous and not overlapping `Axis`.
 
     .. note:: 
       The named accessors are not strictly necessary for the `OperatorFunction` to be well defined, they are useful shortcuts and they define mnemonics.
-      The OperatorFunction is executed by calling a `static void void Do(...)` method. This was necessary in pre-C++11 versions, but now we can depart 
+      The OperatorFunction is executed by calling a `static void void apply(...)` method. This was necessary in pre-C++11 versions, but now we can depart 
       from requiring `static` (even though it may be useful to enforce it to prevent stateful classes).
 
   `DataFieldPack` 
@@ -109,7 +109,7 @@ Basic concepts
     .. note::
       The `Computation` deduces the `IterationSpace` from the `Grid` and the `ExecutionOrder` defined in the `MultiStageCompuptation`. 
       The `Interval` s from the `OperatorFunction` s from which the `MultiStageComputation` is composed are taken into accoun to select the proper 
-      overloads of the `Do` member functions. The data is taken from the `DataFieldAggregator` and the `Placeholder` s. 
+      overloads of the `apply` member functions. The data is taken from the `DataFieldAggregator` and the `Placeholder` s. 
       This specifies all the information needed to execute the computation.
 
 ---------------

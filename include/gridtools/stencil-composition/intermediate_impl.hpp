@@ -114,7 +114,7 @@ namespace gridtools {
                 boost::mpl::set0<>>::type,
             get_storage_info_map_element<boost::mpl::_>>>::type;
 
-        template <typename Elem, access_mode AccessMode = access_mode::ReadWrite, typename Enable = void>
+        template <typename Elem, access_mode AccessMode = access_mode::read_write, typename Enable = void>
         struct get_view;
 
         template <typename Elem, access_mode AccessMode>

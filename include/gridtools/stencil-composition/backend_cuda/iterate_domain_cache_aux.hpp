@@ -43,7 +43,6 @@
 
 #include <boost/fusion/include/at_key.hpp>
 
-#include "../../common/array.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
@@ -71,19 +70,16 @@ namespace gridtools {
             ItDomain const &m_it_domain;
             Caches &m_caches;
             bool m_sync_all;
-            array<int_t, 2> m_validity;
 
             template <class Arg>
             GT_FUNCTION void operator()() const {
-                boost::fusion::at_key<Arg>(m_caches).template sync<Policy, SyncType>(
-                    m_it_domain, m_sync_all, m_validity);
+                boost::fusion::at_key<Arg>(m_caches).template sync<Policy, SyncType>(m_it_domain, m_sync_all);
             }
         };
         template <class Args, enumtype::execution Policy, sync_type SyncType, class ItDomain, class Caches>
-        GT_FUNCTION void sync_caches(
-            ItDomain const &it_domain, Caches &caches, bool sync_all, array<int_t, 2> validity) {
+        GT_FUNCTION void sync_caches(ItDomain const &it_domain, Caches &caches, bool sync_all) {
             host_device::for_each_type<Args>(
-                sync_caches_f<Policy, SyncType, ItDomain, Caches>{it_domain, caches, sync_all, validity});
+                sync_caches_f<Policy, SyncType, ItDomain, Caches>{it_domain, caches, sync_all});
         }
 
     } // namespace _impl

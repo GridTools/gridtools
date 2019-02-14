@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define PEDANTIC_DISABLED
+#define GT_PEDANTIC_DISABLED
 
 #include <gtest/gtest.h>
 
@@ -64,10 +64,10 @@ struct functor1 {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
-    typedef make_arg_list<sol, bd> arg_list;
+    typedef make_param_list<sol, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(sol()) += eval(bd()).value() + eval(bd()).int_value;
     }
 };
@@ -77,10 +77,10 @@ struct functor2 {
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>> in;
     typedef global_accessor<2> bd;
 
-    typedef make_arg_list<sol, in, bd> arg_list;
+    typedef make_param_list<sol, in, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(sol()) += eval(in()) + eval(bd()).int_value;
     }
 };
@@ -89,10 +89,10 @@ struct functor_with_procedure_call {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
-    typedef make_arg_list<sol, bd> arg_list;
+    typedef make_param_list<sol, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         call_proc<functor1>::with(eval, sol(), bd());
     }
 };
@@ -101,10 +101,10 @@ struct functor1_with_assignment {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
-    typedef make_arg_list<sol, bd> arg_list;
+    typedef make_param_list<sol, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(sol()) = eval(bd()).value() + eval(bd()).int_value;
     }
 };
@@ -113,10 +113,10 @@ struct functor_with_function_call {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
-    typedef make_arg_list<sol, bd> arg_list;
+    typedef make_param_list<sol, bd> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(sol()) = call<functor1_with_assignment>::return_type<double>::with(eval, bd());
     }
 };

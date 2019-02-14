@@ -55,10 +55,10 @@
 #endif
 
 #ifdef __CUDA_ARCH__
-#define ASSERT_OR_THROW(cond, msg) assert(cond)
+#define GT_ASSERT_OR_THROW(cond, msg) assert(cond)
 #else
-#define ASSERT_OR_THROW(cond, msg) \
-    if (!(cond))                   \
+#define GT_ASSERT_OR_THROW(cond, msg) \
+    if (!(cond))                      \
     throw std::runtime_error(msg)
 #endif
 /** @} */

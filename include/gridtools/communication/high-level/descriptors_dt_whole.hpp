@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _DESCRIPTORS_DT_WHOLE_H_
-#define _DESCRIPTORS_DT_WHOLE_H_
+#pragma once
 
 #include "../../common/array.hpp"
 #include "../../common/gt_assert.hpp"
@@ -232,7 +231,7 @@ namespace gridtools {
                                 const int j_P = pack_get_elem<map_type::template at<1>()>::apply(i, j, k);
                                 const int k_P = pack_get_elem<map_type::template at<2>()>::apply(i, j, k);
 
-                                base_type::m_haloexch.register_send_to_buffer(NULL, MPI_INT, 0, i_P, j_P, k_P);
+                                base_type::m_haloexch.register_send_to_buffer(nullptr, MPI_INT, 0, i_P, j_P, k_P);
                             }
 
                             if (halo.mpdt_outside(eta).second) {
@@ -251,7 +250,7 @@ namespace gridtools {
                                 const int j_P = pack_get_elem<map_type::template at<1>()>::apply(i, j, k);
                                 const int k_P = pack_get_elem<map_type::template at<2>()>::apply(i, j, k);
 
-                                base_type::m_haloexch.register_receive_from_buffer(NULL, MPI_INT, 0, i_P, j_P, k_P);
+                                base_type::m_haloexch.register_receive_from_buffer(nullptr, MPI_INT, 0, i_P, j_P, k_P);
                             }
                         }
                     }
@@ -283,5 +282,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-
-#endif

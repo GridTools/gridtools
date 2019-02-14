@@ -61,15 +61,15 @@ namespace gridtools {
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
+        static const uint_t n_meta_storages = boost::mpl::size<storage_info_ptrs_t>::value;
 
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
       protected:
-        using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
+        using strides_cached_t = strides_cached<n_meta_storages - 1, storage_info_ptrs_t>;
 
       private:
-        using array_index_t = array<int_t, N_META_STORAGES>;
+        using array_index_t = array<int_t, n_meta_storages>;
 
         local_domain_t const &m_local_domain;
         array_index_t m_index;
@@ -84,7 +84,7 @@ namespace gridtools {
         /**
            @brief returns the strides as const reference
         */
-        GT_FUNCTION strides_cached_t &RESTRICT strides() {
+        GT_FUNCTION strides_cached_t &GT_RESTRICT strides() {
             return static_cast<IterateDomainImpl *>(this)->strides_impl();
         }
 

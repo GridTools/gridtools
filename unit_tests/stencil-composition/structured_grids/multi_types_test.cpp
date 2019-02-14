@@ -152,10 +152,10 @@ namespace multi_types_test {
         typedef accessor<0, enumtype::in> in;
         typedef accessor<1, enumtype::inout> out;
 
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, region) {
+        GT_FUNCTION static void apply(Evaluation &eval, region) {
             eval(out()).i = eval(in()).i + 1;
             eval(out()).j = eval(in()).j + 1;
             eval(out()).k = eval(in()).k + 1;
@@ -166,10 +166,10 @@ namespace multi_types_test {
         typedef accessor<0, enumtype::inout> out;
         typedef accessor<1, enumtype::in> in;
 
-        typedef make_arg_list<out, in> arg_list;
+        typedef make_param_list<out, in> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, region) {
+        GT_FUNCTION static void apply(Evaluation &eval, region) {
 #ifdef FUNCTIONS_PROCEDURES
             type1 result;
             call_proc<function0, region>::with(eval, in(), result);
@@ -187,10 +187,10 @@ namespace multi_types_test {
         typedef accessor<1, enumtype::in> in;
         typedef accessor<2, enumtype::in> temp;
 
-        typedef make_arg_list<out, in, temp> arg_list;
+        typedef make_param_list<out, in, temp> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, region) {
+        GT_FUNCTION static void apply(Evaluation &eval, region) {
             eval(out()) = eval(temp()) + eval(in());
         }
     };
@@ -201,10 +201,10 @@ namespace multi_types_test {
         typedef accessor<1, enumtype::in> temp;
         typedef accessor<2, enumtype::in> in;
 
-        typedef make_arg_list<out, temp, in> arg_list;
+        typedef make_param_list<out, temp, in> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, region) {
+        GT_FUNCTION static void apply(Evaluation &eval, region) {
             eval(out()) = eval(temp()) - eval(in());
         }
     };

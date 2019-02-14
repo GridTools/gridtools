@@ -108,7 +108,7 @@ namespace gridtools {
     struct backend_base {
 
 #ifdef __CUDACC__
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<BackendId, target::cuda>::value),
+        GT_STATIC_ASSERT((std::is_same<BackendId, target::cuda>::value),
             "Beware: you are compiling with nvcc, and most probably "
             "want to use the cuda backend, but the backend you are "
             "instantiating is another one!!");
@@ -166,9 +166,9 @@ namespace gridtools {
         template <typename MssComponents, typename Grid, typename LocalDomains>
         static void run(Grid const &grid, LocalDomains const &local_domains) {
             // TODO: I would swap the arguments coords and local_domains, for consistency
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
             strategy_traits_t::template fused_mss_loop<MssComponents, backend_ids_t>::run(local_domains, grid);
         }
