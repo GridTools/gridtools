@@ -2,6 +2,10 @@
 add_library(GridToolsExample INTERFACE)
 target_compile_definitions(GridToolsExample INTERFACE GT_STRUCTURED_GRIDS)
 target_compile_options(GridToolsExample INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
+target_link_libraries(GridToolsExample INTERFACE gridtools)
+
+include(workaround_cuda)
+_workaround_cuda(GridToolsExample)
 
 if(GT_ENABLE_TARGET_MC)
     # our bindings library is different for mc and cuda-backend. This CCMake function
