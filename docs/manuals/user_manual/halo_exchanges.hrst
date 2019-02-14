@@ -38,8 +38,11 @@ identifiers of them are tuples of indices. This naturally maps to a 3D
 decomposition of a data field.
 
 ^^^^^^^^^^^^^^^^
-The communication
-layer need two layouts: one for describing the data, and one for the
+Layout Map
+^^^^^^^^^^^^^^^^
+
+The communication layer needs two :term:`Layout Maps<Layout Map>`:
+one for describing the data, and one for the
 processor grid. For the user, the dimensions of the data are always
 indicated as first, second, and third (or i, j, k), it is the
 :term:`Layout Map` that indicates the stride orders, as in the following example:
