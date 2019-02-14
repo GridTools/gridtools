@@ -37,7 +37,7 @@ Glossary
     :ref:`cache-type`.
 
   Computation
-    A sequence of :term:`Mutli-Stage Computations<Multi-Stage Computation>`
+    A sequence of :term:`Multi-Stage Computations<Multi-Stage Computation>`
     associated with a :term:`Grid`. This is an executable composition of
     multiple stencils. See section :ref:`composition_of_stencils`.
 
@@ -47,7 +47,7 @@ Glossary
 
   Data View
     A ``data_view`` object allows to access and modify the elements of a
-    :term:`Data Store` through tuple of indices. See section
+    :term:`Data Store` through a tuple of indices. See section
     :ref:`data-view`.
 
   Apply-Method
