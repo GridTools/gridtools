@@ -87,5 +87,16 @@ namespace gridtools {
          */
         template <template <class...> class Pred, class List>
         GT_META_DEFINE_ALIAS(any_of, any, (GT_META_CALL(transform, (Pred, List))));
+
+        template <class List>
+        struct all_are_same;
+
+        template <template <class...> class L>
+        struct all_are_same<L<>> : std::true_type {};
+
+        template <template <class...> class L, class T, class... Ts>
+        struct all_are_same<L<T, Ts...>>
+            : std::is_same<list<Ts...>, GT_META_CALL(repeat_c, (GT_SIZEOF_3_DOTS(Ts), T))> {};
+
     } // namespace meta
 } // namespace gridtools

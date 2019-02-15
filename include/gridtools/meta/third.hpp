@@ -33,28 +33,21 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include <boost/mpl/if.hpp>
-#include <boost/mpl/void.hpp>
+#include "macros.hpp"
 
 namespace gridtools {
-    /** \addtogroup common
-        @{
-        \addtogroup allmeta
-        @{
-        \addtogroup mplutil
-        @{
-    */
-
-    /**
-     * Replaces an mpl sequence by void_ if the sequence is empty. Otherwise, CUDA will complain about a non-empty
-     * ctor if used in shared memory.
-     */
-    template <typename T>
-    using void_if_empty_t = typename boost::mpl::if_<boost::mpl::size<T>, T, boost::mpl::void_>::type;
-
-    /** @} */
-    /** @} */
-    /** @} */
+    namespace meta {
+        GT_META_LAZY_NAMESPACE {
+            template <class>
+            struct third;
+            template <template <class...> class L, class T, class U, class Q, class... Ts>
+            struct third<L<T, U, Q, Ts...>> {
+                using type = Q;
+            };
+        }
+        GT_META_DELEGATE_TO_LAZY(third, (class List), (List));
+    } // namespace meta
 } // namespace gridtools

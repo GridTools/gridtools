@@ -43,8 +43,8 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/functional.hpp>
+#include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
-
 #include <gridtools/stencil-composition/conditionals/condition.hpp>
 
 namespace gridtools {
@@ -72,49 +72,56 @@ namespace gridtools {
             EXPECT_EQ(actual.m_second, -2);
         }
 
+        struct checker_f {
+            template <class Actual, class Expected>
+            void operator()(Actual const &actual, Expected const &expected) const {
+                EXPECT_EQ(actual, expected);
+            }
+        };
+
         TEST(branch_selector, empty) {
             auto testee = make_branch_selector();
             static_assert(std::is_same<decltype(testee)::all_leaves_t, std::tuple<>>::value, "all_leaves");
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple());
+            testee.apply(checker_f{}, std::make_tuple());
         }
 
         TEST(branch_selector, minimalistic) {
             auto testee = make_branch_selector(1);
             static_assert(std::is_same<decltype(testee)::all_leaves_t, std::tuple<int>>::value, "all_leaves");
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1));
+            testee.apply(checker_f{}, std::make_tuple(1));
         }
 
         TEST(branch_selector, no_conditions) {
             auto testee = make_branch_selector(1, 2);
             static_assert(std::is_same<decltype(testee)::all_leaves_t, std::tuple<int, int>>::value, "all_leaves");
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1, 2));
+            testee.apply(checker_f{}, std::make_tuple(1, 2));
         }
 
         TEST(branch_selector, one_condition) {
             bool key;
             auto testee = make_branch_selector(make_node(1, 2, [&] { return key; }));
             key = true;
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1));
+            testee.apply(checker_f{}, std::make_tuple(1));
             key = false;
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2));
+            testee.apply(checker_f{}, std::make_tuple(2));
         }
 
         TEST(branch_selector, one_condition_with_prefix) {
             bool key;
             auto testee = make_branch_selector(0, make_node(1, 2, [&] { return key; }));
             key = true;
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(0, 1));
+            testee.apply(checker_f{}, std::make_tuple(0, 1));
             key = false;
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(0, 2));
+            testee.apply(checker_f{}, std::make_tuple(0, 2));
         }
 
         TEST(branch_selector, one_condition_with_suffix) {
             bool key;
             auto testee = make_branch_selector(make_node(1, 2, [&] { return key; }), 3);
             key = true;
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1, 3));
+            testee.apply(checker_f{}, std::make_tuple(1, 3));
             key = false;
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2, 3));
+            testee.apply(checker_f{}, std::make_tuple(2, 3));
         }
 
         TEST(branch_selector, condition_tree) {
@@ -123,11 +130,11 @@ namespace gridtools {
                 make_branch_selector(make_node(1, make_node(2, 3, [&] { return keys[1]; }), [&] { return keys[0]; }));
             static_assert(std::is_same<decltype(testee)::all_leaves_t, std::tuple<int, int, int>>::value, "all_leaves");
             keys = {true};
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1));
+            testee.apply(checker_f{}, std::make_tuple(1));
             keys = {false, true};
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2));
+            testee.apply(checker_f{}, std::make_tuple(2));
             keys = {false, false};
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(3));
+            testee.apply(checker_f{}, std::make_tuple(3));
         }
 
         TEST(branch_selector, two_conditions) {
@@ -135,44 +142,23 @@ namespace gridtools {
             auto testee = make_branch_selector(
                 make_node(1, 2, [&] { return keys[0]; }), make_node(10, 20, [&] { return keys[1]; }));
             keys = {true, true};
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1, 10));
+            testee.apply(checker_f{}, std::make_tuple(1, 10));
             keys = {true, false};
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1, 20));
+            testee.apply(checker_f{}, std::make_tuple(1, 20));
             keys = {false, true};
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2, 10));
+            testee.apply(checker_f{}, std::make_tuple(2, 10));
             keys = {false, false};
-            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2, 20));
+            testee.apply(checker_f{}, std::make_tuple(2, 20));
         }
-
-        template <size_t I>
-        using val_t = std::integral_constant<size_t, I>;
-
-        struct get_elem_f {
-            template <size_t I>
-            size_t operator()(val_t<I>) const {
-                return I;
-            }
-        };
 
         TEST(branch_selector, different_types) {
+            using namespace literals;
             bool key;
-            auto testee = make_branch_selector(make_node(val_t<1>{}, val_t<2>{}, [&] { return key; }));
+            auto testee = make_branch_selector(make_node(1_c, 2_c, [&] { return key; }));
             key = true;
-            auto fun = tuple_util::transform(get_elem_f{});
-            EXPECT_EQ(testee.apply(fun), std::make_tuple(1));
+            testee.apply(checker_f{}, std::make_tuple(1));
             key = false;
-            EXPECT_EQ(testee.apply(fun), std::make_tuple(2));
+            testee.apply(checker_f{}, std::make_tuple(2));
         }
-
-        struct second_f {
-            template <typename T, typename U>
-            U operator()(T t, U u) const {
-                return u;
-            }
-        };
-
-        TEST(branch_selector, extra_args) { EXPECT_EQ(make_branch_selector(1).apply(second_f{}, 8), 8); }
-
-        TEST(branch_selector, void_return) { make_branch_selector(1).apply(noop{}); }
     } // namespace
 } // namespace gridtools
