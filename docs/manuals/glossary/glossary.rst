@@ -68,8 +68,9 @@ Glossary
     :ref:`execution-model`.
 
   Extent
-    The maximum relative offsets at which data is accessed around the
-    :term:`Iteration Point`. See section :ref:`stencil_operators`.
+    The maximum relative offsets along the coordinate axes at which data is
+    accessed around the :term:`Iteration Point`. See section
+    :ref:`stencil_operators`.
 
   GCL
     The |GT| Communication Module. See section :ref:`halo-exchanges`.
