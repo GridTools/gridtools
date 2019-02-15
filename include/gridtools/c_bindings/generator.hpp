@@ -46,11 +46,12 @@
 
 #include <boost/function_types/parameter_types.hpp>
 #include <boost/function_types/result_type.hpp>
-#include <boost/mpl/for_each.hpp>
 #include <boost/optional.hpp>
 #include <boost/type_index.hpp>
 
+#include "../common/generic_metafunctions/copy_into_variadic.hpp"
 #include "../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+#include "../meta/transform.hpp"
 
 #include "function_wrapper.hpp"
 
@@ -117,14 +118,20 @@ namespace gridtools {
                     ++m_count;
                 }
             };
+            template <typename T>
+            GT_META_DEFINE_ALIAS(wrap_boxed, boxed, T);
 
-            template <class Signature, class TypeToStr, class Fun>
+            template <class Signature,
+                class TypeToStr,
+                class Fun,
+                class Params = GT_META_CALL(meta::transform,
+                    (wrap_boxed,
+                        copy_into_variadic<typename boost::function_types::parameter_types<Signature>::type,
+                            std::tuple<>>))>
             void for_each_param(TypeToStr &&type_to_str, Fun &&fun) {
-                namespace m = boost::mpl;
                 int count = 0;
-                m::for_each<typename boost::function_types::parameter_types<Signature>::type, boxed<m::_>>(
-                    for_each_param_helper_f<TypeToStr, Fun>{
-                        std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), count});
+                for_each<Params>(for_each_param_helper_f<TypeToStr, Fun>{
+                    std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), count});
             };
 
             template <class CSignature>
