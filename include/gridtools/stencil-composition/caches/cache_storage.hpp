@@ -172,12 +172,14 @@ namespace gridtools {
          */
         template <enumtype::execution Policy>
         GT_FUNCTION enable_if_t<Policy == enumtype::forward> slide() {
+#pragma unroll
             for (int_t k = 0; k < Plus - Minus; ++k)
                 m_values[k] = m_values[k + 1];
         }
 
         template <enumtype::execution Policy>
         GT_FUNCTION enable_if_t<Policy == enumtype::backward> slide() {
+#pragma unroll
             for (int_t k = Plus - Minus; k > 0; --k)
                 m_values[k] = m_values[k - 1];
         }
@@ -187,9 +189,12 @@ namespace gridtools {
             class Data,
             int_t SyncPoint = sync_point<Policy, SyncType>::value>
         GT_FUNCTION void sync(Data const &data, bool sync_all) {
-            int_t last = sync_all ? Plus : SyncPoint;
-            for (int_t k = sync_all ? Minus : SyncPoint; k <= last; ++k)
-                sync_at<SyncType>(data, k);
+            if (sync_all)
+#pragma unroll
+                for (int_t k = Minus; k <= Plus; ++k)
+                    sync_at<SyncType>(data, k);
+            else
+                sync_at<SyncType>(data, SyncPoint);
         }
     };
 
