@@ -67,34 +67,23 @@ namespace gridtools {
                 "does not match the list of arguments defined within the ESF, like\n"
                 "    typedef boost::mpl::vector2<arg_in, arg_out> param_list.");
 #endif
-            template <typename Accessor>
-            struct _get_extent {
-                typedef typename Accessor::extent_t type;
-            };
 
             /** Given the list of placeholders (Plcs) and the list of arguemnts of a
                 stencil operator (Accessors), this struct will insert the placeholder type
                 (as key) and the corresponding extent into an mpl::map.
             */
-            template <typename Plcs, typename LArgs>
-            struct from {
-                template <typename CurrentMap, typename Index>
-                struct insert {
-
-                    typedef typename boost::mpl::at_c<LArgs, Index::value>::type accessor_t;
-                    typedef typename boost::mpl::insert<CurrentMap,
-                        typename boost::mpl::pair<typename boost::mpl::at_c<Plcs, Index::value>::type,
-                            typename _get_extent<accessor_t>::type>>::type type;
-                };
-            };
+            template <typename CurrentMap, typename Index>
+            struct do_insert
+                : boost::mpl::insert<CurrentMap,
+                      typename boost::mpl::pair<typename boost::mpl::at_c<Placeholders, Index::value>::type,
+                          typename boost::mpl::at_c<Accessors, Index::value>::type::extent_t>> {};
 
             // Note: only the accessors of storage type are considered in the sequence
             typedef typename boost::mpl::range_c<uint_t, 0, boost::mpl::size<Accessors>::type::value> iter_range;
 
             /** Here the iteration begins by filling an empty map */
-            typedef typename boost::mpl::fold<iter_range,
-                boost::mpl::map0<>,
-                typename from<Placeholders, Accessors>::template insert<boost::mpl::_1, boost::mpl::_2>>::type type;
+            typedef typename boost::mpl::
+                fold<iter_range, boost::mpl::map0<>, do_insert<boost::mpl::_1, boost::mpl::_2>>::type type;
         };
     } // namespace impl
 } // namespace gridtools

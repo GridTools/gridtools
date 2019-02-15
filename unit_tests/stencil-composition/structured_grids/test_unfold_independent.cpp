@@ -33,42 +33,41 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
+
+#include <gridtools/stencil-composition/esf_metafunctions.hpp>
+
+#include <gtest/gtest.h>
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
-struct functor {
-    using a0 = gridtools::accessor<0, gridtools::enumtype::inout>;
-    using a1 = gridtools::accessor<1, gridtools::enumtype::inout>;
+namespace gridtools {
+    namespace {
+        struct functor {
+            using a0 = accessor<0, enumtype::inout>;
+            using a1 = accessor<1, enumtype::inout>;
 
-    typedef gridtools::make_param_list<a0, a1> param_list;
-};
+            using param_list = make_param_list<a0, a1>;
+        };
 
-struct fake_storage_type {
-    using value_type = int;
-    using iterator = int *;
-};
+        struct fake_storage_type {
+            using value_type = int;
+        };
 
-TEST(unfold_independent, test) {
+        constexpr arg<0, fake_storage_type> p0;
+        constexpr arg<1, fake_storage_type> p1;
+        constexpr auto stage = make_stage<functor>(p0, p1);
 
-    using namespace gridtools;
+        using mss_type = decltype(make_multistage(enumtype::execute<enumtype::forward>(),
+            stage,
+            stage,
+            stage,
+            make_independent(stage, stage, make_independent(stage, stage))));
 
-    typedef arg<0, fake_storage_type> p0;
-    typedef arg<1, fake_storage_type> p1;
+        using testee_t = GT_META_CALL(unwrap_independent, mss_type::esf_sequence_t);
 
-    using esf_type = decltype(make_stage<functor>(p0(), p1()));
+        static_assert(meta::length<testee_t>::value == 7, "");
+        static_assert(meta::all_of<is_esf_descriptor, testee_t>::value, "");
 
-    using mss_type = decltype(make_multistage(enumtype::execute<enumtype::forward>(),
-        make_stage<functor>(p0(), p1()),
-        make_stage<functor>(p0(), p1()),
-        make_stage<functor>(p0(), p1()),
-        make_independent(make_stage<functor>(p0(), p1()),
-            make_stage<functor>(p0(), p1()),
-            make_independent(make_stage<functor>(p0(), p1()), make_stage<functor>(p0(), p1())))));
-
-    using sequence = unwrap_independent<mss_type::esf_sequence_t>::type;
-
-    GT_STATIC_ASSERT((boost::mpl::size<sequence>::type::value == 7), "");
-
-    GT_STATIC_ASSERT((is_sequence_of<sequence, is_esf_descriptor>::value), "");
-}
+        TEST(dummy, dumy) {}
+    } // namespace
+} // namespace gridtools
