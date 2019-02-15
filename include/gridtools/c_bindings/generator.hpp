@@ -101,11 +101,6 @@ namespace gridtools {
                 return boost::typeindex::type_id<typename recursive_remove_cv<T>::type>().pretty_name();
             }
 
-            template <class T>
-            struct boxed {
-                using type = boxed;
-            };
-
             template <class TypeToStr, class Fun>
             struct for_each_param_helper_f {
                 TypeToStr m_type_to_str;
@@ -113,24 +108,20 @@ namespace gridtools {
                 int &m_count;
 
                 template <class T>
-                void operator()(boxed<T>) const {
+                void operator()() const {
                     m_fun(m_type_to_str.template operator()<T>(), m_count);
                     ++m_count;
                 }
             };
-            template <typename T>
-            GT_META_DEFINE_ALIAS(wrap_boxed, boxed, T);
 
             template <class Signature,
                 class TypeToStr,
                 class Fun,
-                class Params = GT_META_CALL(meta::transform,
-                    (wrap_boxed,
-                        copy_into_variadic<typename boost::function_types::parameter_types<Signature>::type,
-                            std::tuple<>>))>
+                class Params =
+                    copy_into_variadic<typename boost::function_types::parameter_types<Signature>::type, std::tuple<>>>
             void for_each_param(TypeToStr &&type_to_str, Fun &&fun) {
                 int count = 0;
-                for_each<Params>(for_each_param_helper_f<TypeToStr, Fun>{
+                for_each_type<Params>(for_each_param_helper_f<TypeToStr, Fun>{
                     std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), count});
             };
 
