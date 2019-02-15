@@ -69,15 +69,14 @@
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
-
+#include "../meta.hpp"
 #include "./arg.hpp"
+#include "./backend_cuda/tmp_storage.hpp"
+#include "./backend_x86/tmp_storage.hpp"
 #include "./block.hpp"
 #include "./grid.hpp"
 #include "./location_type.hpp"
 #include "./pos3.hpp"
-
-#include "./backend_cuda/tmp_storage.hpp"
-#include "./backend_x86/tmp_storage.hpp"
 
 #ifdef GT_STRUCTURED_GRIDS
 #include "./structured_grids/tmp_storage.hpp"
@@ -94,6 +93,11 @@ namespace gridtools {
         template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
         GT_FUNCTION int_t get_k_block_offset(Backend const &, uint_t /*block_size*/, uint_t /*block_no*/) {
             return 0;
+        }
+
+        template <class Backend>
+        constexpr std::true_type needs_allocate_cached_tmp(Backend const &) {
+            return {};
         }
     } // namespace tmp_storage
 
@@ -127,5 +131,10 @@ namespace gridtools {
                stride.k *
                    (get_k_block_offset<StorageInfo, MaxExtent>(backend, block_size.k, block_no.k) + pos_in_block.k);
     };
+
+    template <class Backend>
+    GT_META_DEFINE_ALIAS(needs_allocate_cached_tmp,
+        meta::id,
+        decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(typename Backend::backend_ids_t{})));
 
 } // namespace gridtools
