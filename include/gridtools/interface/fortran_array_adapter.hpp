@@ -52,7 +52,9 @@ namespace gridtools {
                 m_cpp_pointer = get_ptr_to_first_element(data_store);
 
                 if (!m_fortran_pointer)
-                    throw std::runtime_error("No array to assigned to!");
+                    throw std::runtime_error("No array to assigned to fortran_array_adapter");
+                if (!m_cpp_pointer)
+                    throw std::runtime_error("Datastore not allocated");
 
                 // verify dimensions of fortran array
                 for (uint_t c_dim = 0, fortran_dim = 0; c_dim < Layout::masked_length; ++c_dim) {
