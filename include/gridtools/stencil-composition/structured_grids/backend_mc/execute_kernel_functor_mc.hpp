@@ -54,8 +54,6 @@ namespace gridtools {
             (iterate_domain_mc<iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
                     typename RunFunctorArguments::local_domain_t,
                     typename RunFunctorArguments::esf_sequence_t,
-                    typename RunFunctorArguments::extent_sizes_t,
-                    typename RunFunctorArguments::max_extent_t,
                     typename RunFunctorArguments::cache_sequence_t,
                     typename RunFunctorArguments::grid_t>>));
 

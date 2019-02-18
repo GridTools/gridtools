@@ -69,7 +69,7 @@ Please note that the size of the halo has to be added to the arguments that are 
 
 .. code-block:: gridtools
 
-    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8> > storage_info_t;
+    using storage_info_t = host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>>;
     storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
 A visual representation of the storage info is given in :numref:`fig_storage_info_example`.
@@ -127,8 +127,8 @@ use managed data stores. The data store can be initialized with a value or lambd
 
 .. code-block:: gridtools
 
-    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8> > storage_info_t;
-    typedef data_store<host_storage<double>, storage_info_t> data_store_t;
+    using storage_info_t = host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>>;
+    using data_store_t = data_store<host_storage<double>, storage_info_t>;
     storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
     // standard use cases
@@ -202,8 +202,8 @@ In case of a ``host_storage`` there is no device view available.
     }
     ...
     // instantiate a data_store
-    typedef cuda_storage_info<0, layout_map<1, 0> > storage_info_t;
-    typedef data_store<cuda_storage<double>, storage_info_t> data_store_t;
+    using storage_info_t = cuda_storage_info<0, layout_map<1, 0>>;
+    using data_store_t = data_store<cuda_storage<double>, storage_info_t>;
 
     storage_info_t si(20, 20);
     data_store_t ds(si);
@@ -316,16 +316,17 @@ the ``storage-facility`` which returns the correct types for the chosen backend.
 
 .. code-block:: gridtools
 
-    #define BACKEND platform::cuda
     // get the correct 3D layouted and aligned storage info suitable for the CUDA backend
-    typedef storage_traits<BACKEND>::storage_info_t<0, 3> storage_info_t;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
     // get a data store suitable for CUDA
-    typedef storage_traits<BACKEND>::data_store_t<double, storage_info_t> data_store_t;
+    using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t si(128, 128, 80);
     data_store_t ds(si);
     ...
 
+``backend_t`` specifies the backend that will execute the computation, see
+:ref:`backend-selection`.
 
 **Interface**:
 

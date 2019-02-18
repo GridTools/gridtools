@@ -39,7 +39,6 @@
 
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
-#include "../empty_iterate_domain_cache.hpp"
 #include "strategy_x86.hpp"
 
 #ifdef GT_ENABLE_METERS
@@ -104,11 +103,6 @@ namespace gridtools {
         struct select_strategy {
             GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_x86<typename BackendIds::strategy_id_t> type;
-        };
-
-        template <typename IterateDomainArguments>
-        struct select_iterate_domain_cache {
-            typedef empty_iterate_domain_cache type;
         };
 
 #ifdef GT_ENABLE_METERS

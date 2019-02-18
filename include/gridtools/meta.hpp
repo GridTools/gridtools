@@ -221,6 +221,7 @@
 #include "meta/second.hpp"
 #include "meta/st_contains.hpp"
 #include "meta/st_position.hpp"
+#include "meta/third.hpp"
 #include "meta/transform.hpp"
 #include "meta/type_traits.hpp"
 #include "meta/utility.hpp"
