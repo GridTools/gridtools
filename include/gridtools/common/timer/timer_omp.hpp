@@ -37,6 +37,7 @@
 
 #include "../defs.hpp"
 #include "timer.hpp"
+#include <limits>
 #include <string>
 
 namespace gridtools {
@@ -72,7 +73,7 @@ namespace gridtools {
 #if defined(_OPENMP)
             return omp_get_wtime() - startTime_;
 #else
-            return -100;
+            return std::numeric_limits<double>::quiet_NaN();
 #endif
         }
 

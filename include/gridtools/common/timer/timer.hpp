@@ -36,6 +36,7 @@
 #pragma once
 
 #include "../host_device.hpp"
+#include <cmath>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -88,7 +89,7 @@ namespace gridtools {
          */
         GT_FUNCTION_HOST std::string to_string() const {
             std::ostringstream out;
-            if (m_total_time < 0)
+            if (m_total_time < 0 || std::isnan(m_total_time))
                 out << m_name << "\t[s]\t"
                     << "NO_TIMES_AVAILABLE"
                     << " (" << m_counter << "x called)";

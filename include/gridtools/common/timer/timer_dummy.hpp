@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "timer.hpp"
+#include <limits>
 #include <string>
 
 namespace gridtools {
@@ -61,6 +62,6 @@ namespace gridtools {
         /**
          * Pause the stop watch
          */
-        GT_FUNCTION_HOST double pause_impl() { return -1.0; }
+        GT_FUNCTION_HOST double pause_impl() { return std::numeric_limits<double>::quiet_NaN(); }
     };
 } // namespace gridtools
