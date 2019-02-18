@@ -1,6 +1,6 @@
 #!/bin/bash
 # run this script from the root directory
-if [ ! -f $PWD/LICENSE ] ; then
+if [ ! -f $PWD/tools/check_license/GRIDTOOLS_HEADER ] ; then
     echo "you have to run the script ./tools/check_license/check_license.sh from the root of the sources"
     exit -1
 fi
@@ -10,7 +10,7 @@ for file in `find . -regextype posix-egrep -regex ".*\.(hpp|cpp|cu)$" `; do
         echo $file
         if [ "$1" == "fix" ]; then
             echo "/*
-$(cat LICENSE)
+$(cat tools/check_license/GRIDTOOLS_HEADER)
 */
 $(cat $file)" > $file
         fi
@@ -18,7 +18,7 @@ $(cat $file)" > $file
         if [ "$1" == "update" ]; then
             sed -i '0,/\*\//d' $file
             echo "/*
-$(cat LICENSE)
+$(cat tools/check_license/GRIDTOOLS_HEADER)
 */
 $(cat $file)" > $file
         fi
