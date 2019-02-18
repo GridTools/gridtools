@@ -38,7 +38,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 constexpr int level_offset_limit = 1;
 
@@ -48,10 +48,10 @@ using level_t = level<Splitter, Offset, level_offset_limit>;
 typedef interval<level_t<0, -1>, level_t<1, -1>> x_interval;
 
 struct functor0 {
-    typedef accessor<0, enumtype::in, extent<0, 0, -1, 3, -2, 0>> in0;
-    typedef accessor<1, enumtype::in, extent<-1, 1, 0, 2, -1, 2>> in1;
-    typedef accessor<2, enumtype::in, extent<-3, 3, -1, 2, 0, 1>> in2;
-    typedef accessor<3, enumtype::inout> out;
+    typedef accessor<0, intent::in, extent<0, 0, -1, 3, -2, 0>> in0;
+    typedef accessor<1, intent::in, extent<-1, 1, 0, 2, -1, 2>> in1;
+    typedef accessor<2, intent::in, extent<-3, 3, -1, 2, 0, 1>> in2;
+    typedef accessor<3, intent::inout> out;
 
     typedef make_param_list<in0, in1, in2, out> param_list;
 
@@ -60,10 +60,10 @@ struct functor0 {
 };
 
 struct functor1 {
-    typedef accessor<0, enumtype::in, extent<0, 1, -1, 2, 0, 0>> in0;
-    typedef accessor<1, enumtype::inout> out;
-    typedef accessor<2, enumtype::in, extent<-3, 0, -3, 0, 0, 2>> in2;
-    typedef accessor<3, enumtype::in, extent<0, 2, 0, 2, -2, 3>> in3;
+    typedef accessor<0, intent::in, extent<0, 1, -1, 2, 0, 0>> in0;
+    typedef accessor<1, intent::inout> out;
+    typedef accessor<2, intent::in, extent<-3, 0, -3, 0, 0, 2>> in2;
+    typedef accessor<3, intent::in, extent<0, 2, 0, 2, -2, 3>> in3;
 
     typedef make_param_list<in0, out, in2, in3> param_list;
 
@@ -72,9 +72,9 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, enumtype::in, extent<-3, 3, -1, 0, -2, 1>> in0;
-    typedef accessor<1, enumtype::in, extent<-3, 1, -2, 1, 0, 2>> in1;
-    typedef accessor<2, enumtype::inout> out;
+    typedef accessor<0, intent::in, extent<-3, 3, -1, 0, -2, 1>> in0;
+    typedef accessor<1, intent::in, extent<-3, 1, -2, 1, 0, 2>> in1;
+    typedef accessor<2, intent::inout> out;
 
     typedef make_param_list<in0, in1, out> param_list;
 
@@ -83,10 +83,10 @@ struct functor2 {
 };
 
 struct functor3 {
-    typedef accessor<0, enumtype::in, extent<0, 3, 0, 1, -2, 0>> in0;
-    typedef accessor<1, enumtype::in, extent<-2, 3, 0, 2, -3, 1>> in1;
-    typedef accessor<2, enumtype::inout> out;
-    typedef accessor<3, enumtype::in, extent<-1, 3, -3, 0, -3, 2>> in3;
+    typedef accessor<0, intent::in, extent<0, 3, 0, 1, -2, 0>> in0;
+    typedef accessor<1, intent::in, extent<-2, 3, 0, 2, -3, 1>> in1;
+    typedef accessor<2, intent::inout> out;
+    typedef accessor<3, intent::in, extent<-1, 3, -3, 0, -3, 2>> in3;
 
     typedef make_param_list<in0, in1, out, in3> param_list;
 
@@ -95,10 +95,10 @@ struct functor3 {
 };
 
 struct functor4 {
-    typedef accessor<0, enumtype::in, extent<0, 3, -2, 1, -3, 2>> in0;
-    typedef accessor<1, enumtype::in, extent<-2, 3, 0, 3, -3, 2>> in1;
-    typedef accessor<2, enumtype::in, extent<-1, 1, 0, 3, 0, 3>> in2;
-    typedef accessor<3, enumtype::inout> out;
+    typedef accessor<0, intent::in, extent<0, 3, -2, 1, -3, 2>> in0;
+    typedef accessor<1, intent::in, extent<-2, 3, 0, 3, -3, 2>> in1;
+    typedef accessor<2, intent::in, extent<-1, 1, 0, 3, 0, 3>> in2;
+    typedef accessor<3, intent::inout> out;
 
     typedef make_param_list<in0, in1, in2, out> param_list;
 
@@ -107,10 +107,10 @@ struct functor4 {
 };
 
 struct functor5 {
-    typedef accessor<0, enumtype::in, extent<-3, 1, -1, 2, -1, 1>> in0;
-    typedef accessor<1, enumtype::in, extent<0, 1, -2, 2, 0, 3>> in1;
-    typedef accessor<2, enumtype::in, extent<0, 2, 0, 3, -1, 2>> in2;
-    typedef accessor<3, enumtype::inout> out;
+    typedef accessor<0, intent::in, extent<-3, 1, -1, 2, -1, 1>> in0;
+    typedef accessor<1, intent::in, extent<0, 1, -2, 2, 0, 3>> in1;
+    typedef accessor<2, intent::in, extent<0, 2, 0, 3, -1, 2>> in2;
+    typedef accessor<3, intent::inout> out;
 
     typedef make_param_list<in0, in1, in2, out> param_list;
 
@@ -119,10 +119,10 @@ struct functor5 {
 };
 
 struct functor6 {
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, extent<0, 3, -3, 2, 0, 0>> in1;
-    typedef accessor<2, enumtype::in, extent<-3, 2, 0, 2, -1, 2>> in2;
-    typedef accessor<3, enumtype::in, extent<-1, 0, -1, 0, -1, 3>> in3;
+    typedef accessor<0, intent::inout> out;
+    typedef accessor<1, intent::in, extent<0, 3, -3, 2, 0, 0>> in1;
+    typedef accessor<2, intent::in, extent<-3, 2, 0, 2, -1, 2>> in2;
+    typedef accessor<3, intent::in, extent<-1, 0, -1, 0, -1, 3>> in3;
 
     typedef make_param_list<out, in1, in2, in3> param_list;
 
@@ -160,7 +160,7 @@ int main() {
     typedef decltype(make_stage<functor4>(o0(), o1(), o3(), o4())) functor4__;
     typedef decltype(make_stage<functor5>(in3(), o4(), in0(), o5())) functor5__;
     typedef decltype(make_stage<functor6>(o6(), o5(), in1(), in2())) functor6__;
-    typedef decltype(make_multistage(execute<forward>(),
+    typedef decltype(make_multistage(execute::forward(),
         functor0__(),
         functor1__(),
         functor2__(),

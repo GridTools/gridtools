@@ -53,13 +53,13 @@ using gridtools::extent;
 using gridtools::level;
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 namespace copy_stencils_3D_2D_1D_0D {
     struct copy_functor {
         static const int n_args = 2;
         typedef accessor<0> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<1, intent::inout> out;
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
@@ -105,7 +105,7 @@ namespace copy_stencils_3D_2D_1D_0D {
         auto copy = gridtools::make_computation<backend_t>(grid_,
             p_in() = in,
             p_out() = out,
-            gridtools::make_multistage(execute<forward>(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
+            gridtools::make_multistage(execute::forward(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
 
         copy.run();
 

@@ -39,13 +39,12 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
 
 struct shif_acc_forward {
 
-    typedef accessor<0, ::in, extent<>> in;
-    typedef accessor<1, ::inout, extent<>> out;
-    typedef accessor<2, ::inout, extent<0, 0, 0, 0, -1, 0>> buff;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<>> out;
+    typedef accessor<2, intent::inout, extent<0, 0, 0, 0, -1, 0>> buff;
 
     typedef make_param_list<in, out, buff> param_list;
 
@@ -65,9 +64,9 @@ struct shif_acc_forward {
 
 struct biside_large_kcache_forward {
 
-    typedef accessor<0, ::in, extent<>> in;
-    typedef accessor<1, ::inout, extent<>> out;
-    typedef accessor<2, ::inout, extent<0, 0, 0, 0, -2, 1>> buff;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<>> out;
+    typedef accessor<2, intent::inout, extent<0, 0, 0, 0, -2, 1>> buff;
 
     typedef make_param_list<in, out, buff> param_list;
 
@@ -98,9 +97,9 @@ struct biside_large_kcache_forward {
 
 struct biside_large_kcache_backward {
 
-    typedef accessor<0, ::in, extent<>> in;
-    typedef accessor<1, ::inout, extent<>> out;
-    typedef accessor<2, ::inout, extent<0, 0, 0, 0, -1, 2>> buff;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<>> out;
+    typedef accessor<2, intent::inout, extent<0, 0, 0, 0, -1, 2>> buff;
 
     typedef make_param_list<in, out, buff> param_list;
 
@@ -131,9 +130,9 @@ struct biside_large_kcache_backward {
 
 struct shif_acc_backward {
 
-    typedef accessor<0, ::in, extent<>> in;
-    typedef accessor<1, ::inout, extent<>> out;
-    typedef accessor<2, ::inout, extent<0, 0, 0, 0, 0, 1>> buff;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<>> out;
+    typedef accessor<2, intent::inout, extent<0, 0, 0, 0, 0, 1>> buff;
 
     typedef make_param_list<in, out, buff> param_list;
 
@@ -174,8 +173,7 @@ TEST_F(kcachef, local_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        gridtools::make_multistage // mss_descriptor
-        (execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<shif_acc_forward>(p_in(), p_out(), p_buff())));
 
@@ -212,8 +210,7 @@ TEST_F(kcachef, local_backward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        gridtools::make_multistage // mss_descriptor
-        (execute<backward>(),
+        gridtools::make_multistage(execute::backward(),
             define_caches(cache<cache_type::k, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<shif_acc_backward>(p_in(), p_out(), p_buff())));
 
@@ -261,13 +258,9 @@ TEST_F(kcachef, biside_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        gridtools::make_multistage // mss_descriptor
-        (execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::local>(p_buff())),
-            gridtools::make_stage<biside_large_kcache_forward>(p_in() // esf_descriptor
-                ,
-                p_out(),
-                p_buff())));
+            gridtools::make_stage<biside_large_kcache_forward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
 
@@ -314,8 +307,7 @@ TEST_F(kcachef, biside_backward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        gridtools::make_multistage // mss_descriptor
-        (execute<backward>(),
+        gridtools::make_multistage(execute::backward(),
             define_caches(cache<cache_type::k, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<biside_large_kcache_backward>(p_in(), p_out(), p_buff())));
 

@@ -43,7 +43,7 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 using namespace expressions;
 
 using layout_map_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, target::x86>::value,
@@ -306,7 +306,7 @@ namespace assembly {
             p_jac() = jac,
             p_f() = f,
             p_result() = result,
-            make_multistage(execute<forward>(), make_stage<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+            make_multistage(execute::forward(), make_stage<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp.run();
         fe_comp.sync_bound_data_stores();

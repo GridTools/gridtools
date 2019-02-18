@@ -103,7 +103,7 @@ namespace gridtools {
             template <template <class...> class L, class Stage, class Index>
             GT_FUNCTION void operator()(L<Stage, Index>) const {
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using iteration_policy_t = iteration_policy<From, To, execution_type_t::iteration>;
+                using iteration_policy_t = iteration_policy<From, To, execution_type_t>;
 
                 const int_t k_first = m_grid.template value_at<From>();
                 const int_t k_last = m_grid.template value_at<To>();
@@ -159,7 +159,7 @@ namespace gridtools {
             template <class Stage>
             GT_FUNCTION void operator()(Stage) const {
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using iteration_policy_t = iteration_policy<From, To, execution_type_t::iteration>;
+                using iteration_policy_t = iteration_policy<From, To, execution_type_t>;
                 using extent_t = typename Stage::extent_t;
 
                 const int_t i_first = extent_t::iminus::value;

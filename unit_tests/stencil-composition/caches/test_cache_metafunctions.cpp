@@ -47,7 +47,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 typedef storage_traits<target::x86>::storage_info_t<0, 2> storage_info_ij_t;
 typedef storage_traits<target::x86>::data_store_t<float_type, storage_info_ij_t> storage_type;
@@ -58,8 +58,8 @@ typedef arg<1, storage_type> p_buff;
 typedef arg<3, storage_type> p_notin;
 
 struct functor2 {
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 0>> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
     typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>

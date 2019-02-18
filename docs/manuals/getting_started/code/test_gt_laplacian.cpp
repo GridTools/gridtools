@@ -6,7 +6,6 @@
 
 using namespace gridtools;
 using namespace gridtools::expressions;
-using namespace gridtools::enumtype; // TODO we need to fix this!
 
 #ifdef __CUDACC__
 using target_t = target::cuda;
@@ -59,7 +58,7 @@ int main() {
     auto laplacian = make_computation<backend_t>(          //
         my_grid,                                           //
         make_multistage(                                   //
-            execute<parallel>(),                           //
+            execute::parallel(),                           //
             make_stage<lap_function>(arg_phi(), arg_lap()) //
             ));                                            //
 

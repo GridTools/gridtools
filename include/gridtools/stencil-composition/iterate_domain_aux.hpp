@@ -400,11 +400,11 @@ namespace gridtools {
     template <size_t Index, class CachesMap>
     struct index_is_cached : boost::mpl::has_key<CachesMap, static_uint<Index>> {};
 
-    template <class Arg, enumtype::intent Intent>
+    template <class Arg, intent Intent>
     struct deref_type : std::add_lvalue_reference<typename Arg::data_store_t::data_t> {};
 
     template <class Arg>
-    struct deref_type<Arg, enumtype::in> {
+    struct deref_type<Arg, intent::in> {
         using type = typename Arg::data_store_t::data_t;
     };
 } // namespace gridtools

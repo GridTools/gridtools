@@ -56,7 +56,7 @@ TEST_F(positional_stencil, test) {
     auto out = make_storage();
 
     make_positional_computation<backend_t>(
-        make_grid(), p_0 = out, make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor>(p_0)))
+        make_grid(), p_0 = out, make_multistage(execute::forward(), make_stage<functor>(p_0)))
         .run();
 
     verify(make_storage([](int i, int j, int k) { return i + j + k; }), out);

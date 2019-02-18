@@ -51,7 +51,7 @@
 namespace gridtools {
     namespace _impl {
 
-        template <enumtype::execution Policy, class Caches>
+        template <typename Policy, class Caches>
         struct slide_caches_f {
             Caches &m_caches;
 
@@ -60,12 +60,12 @@ namespace gridtools {
                 boost::fusion::at_key<Arg>(m_caches).template slide<Policy>();
             }
         };
-        template <class Args, enumtype::execution Policy, class Caches>
+        template <class Args, typename Policy, class Caches>
         GT_FUNCTION void slide_caches(Caches &caches) {
             host_device::for_each_type<Args>(slide_caches_f<Policy, Caches>{caches});
         }
 
-        template <enumtype::execution Policy, sync_type SyncType, class ItDomain, class Caches>
+        template <typename Policy, sync_type SyncType, class ItDomain, class Caches>
         struct sync_caches_f {
             ItDomain const &m_it_domain;
             Caches &m_caches;
@@ -76,7 +76,7 @@ namespace gridtools {
                 boost::fusion::at_key<Arg>(m_caches).template sync<Policy, SyncType>(m_it_domain, m_sync_all);
             }
         };
-        template <class Args, enumtype::execution Policy, sync_type SyncType, class ItDomain, class Caches>
+        template <class Args, typename Policy, sync_type SyncType, class ItDomain, class Caches>
         GT_FUNCTION void sync_caches(ItDomain const &it_domain, Caches &caches, bool sync_all) {
             host_device::for_each_type<Args>(
                 sync_caches_f<Policy, SyncType, ItDomain, Caches>{it_domain, caches, sync_all});

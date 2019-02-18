@@ -133,7 +133,7 @@ namespace gridtools {
                 using from_t = GT_META_CALL(meta::first, LoopInterval);
                 using to_t = GT_META_CALL(meta::second, LoopInterval);
                 using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
-                using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t::iteration>;
+                using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t>;
                 const auto k_interval = get_k_interval<from_t, to_t>(
                     typename RunFunctorArguments::backend_ids_t{}, execution_type_t{}, m_grid);
                 constexpr auto is_first = std::is_same<LoopInterval, first_t>::value;
@@ -178,7 +178,7 @@ namespace gridtools {
                 using from_t = GT_META_CALL(meta::first, LoopInterval);
                 using to_t = GT_META_CALL(meta::second, LoopInterval);
                 using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
-                using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t::iteration>;
+                using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t>;
                 const auto k_interval = get_k_interval<from_t, to_t>(
                     typename RunFunctorArguments::backend_ids_t{}, execution_type_t{}, m_grid);
                 k_loop<iteration_policy_t, stage_groups_t>(k_interval.first, k_interval.second);

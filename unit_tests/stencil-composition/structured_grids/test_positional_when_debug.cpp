@@ -63,7 +63,7 @@ namespace positional_when_debug_test {
     using x_interval = axis_t::get_interval<0>;
 
     struct test_functor {
-        typedef gridtools::accessor<0, gridtools::enumtype::inout> in;
+        typedef gridtools::accessor<0, gridtools::intent::inout> in;
         typedef gridtools::make_param_list<in> param_list;
 
         template <typename Evaluation>
@@ -78,7 +78,7 @@ namespace positional_when_debug_test {
 TEST(test_make_computation, positional_when_debug) {
 
     using namespace gridtools;
-    using namespace gridtools::enumtype;
+    using namespace gridtools::execute;
 
     typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
     typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
@@ -86,8 +86,7 @@ TEST(test_make_computation, positional_when_debug) {
     typedef arg<0, storage_t> p_in;
 
     make_computation<backend_t>(positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
-        make_multistage // mss_descriptor
-        (execute<forward>(), make_stage<positional_when_debug_test::test_functor>(p_in())));
+        make_multistage(execute::forward(), make_stage<positional_when_debug_test::test_functor>(p_in())));
 }
 
 #ifdef __WAS_DEBUG

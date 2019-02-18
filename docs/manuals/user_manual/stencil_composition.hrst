@@ -264,7 +264,7 @@ the following example for a diffusion operator.
 .. code-block:: gridtools
 
  auto multi_stage = make_multistage(
-     execute<forward>(),
+     execute::forward(),
      make_stage<lap_operator>(p_lap(), p_in()),
      make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
      make_stage<fly_operator>(p_fly(), p_in(), p_lap()),
@@ -289,7 +289,7 @@ the iteration space, must be provided. The final example is:
  auto horizontal_diffusion = make_computation<backend_t>(
      grid,
      make_multistage(
-         execute<forward>(),
+         execute::forward(),
          make_stage<lap_operator>(p_lap(), p_in()),
          make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
          make_stage<fly_operator>(p_fly(), p_in(), p_lap()),
@@ -314,7 +314,7 @@ dependencies the user can specify that they are independent:
  auto horizontal_diffusion = make_computation<backend_t>(
      grid,
      make_multistage(
-         execute<forward>(),
+         execute::forward(),
          make_stage<lap_operator>(p_lap(), p_in()),
          make_independent(
              make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
@@ -344,11 +344,11 @@ advection example:
  auto vertical_advection = make_computation<backend_t>(
      grid,
      make_multistage(
-         execute<forward>(),
+         execute::forward(),
          make_stage<forward_op>(p_utens_stage(), p_wcon()),
      ),
      make_multistage(
-         execute<backward>(),
+         execute::backward(),
          make_stage<backward_op>(p_utens_stage(), p_u_pos())
      )
  );
@@ -393,7 +393,7 @@ assign those fields to the respective placeholders directly in the
      p_out() = out_data, // data assignment happens here
      p_in() = in_data, // and here
      make_multistage(
-         execute<forward>(),
+         execute::forward(),
          make_stage<lap_operator>(p_lap(), p_in()),
          make_independent(
              make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
