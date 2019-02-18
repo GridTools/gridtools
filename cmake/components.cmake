@@ -38,9 +38,11 @@ CMAKE_DEPENDENT_OPTION(INSTALL_INTERFACE "Interface component" OFF "NOT INSTALL_
 CMAKE_DEPENDENT_OPTION(INSTALL_TOOLS "Tools component" OFF "NOT INSTALL_ALL" ON)
 
 macro( turn_on comp )
-       if(NOT ${comp} AND NOT INSTALL_ALL)
-          message("Enabling component ${comp}.")
+       if(NOT ${comp})
           set( ${comp} ON )
+          if(NOT INSTALL_ALL)
+              message("Enabling component ${comp}.")
+          endif()
        endif()
 endmacro( turn_on )
 
