@@ -70,7 +70,7 @@ struct expandable_parameters_copy : expandable_parameters {
         arg<0, storages_t> p_out;
         arg<1, storages_t> p_in;
         expandable_parameters::run_computation(
-            p_in = in, p_out = out, make_multistage(execute<forward>(), make_stage<Functor>(p_out, p_in)));
+            p_in = in, p_out = out, make_multistage(execute::forward(), make_stage<Functor>(p_out, p_in)));
     }
 
     ~expandable_parameters_copy() { verify(in, out); }
@@ -165,7 +165,7 @@ TEST_F(expandable_parameters, call_shift) {
 
     storages_t actual = {in(14), in(15), in(16), in(17), in(18)};
     arg<0, storages_t> plh;
-    run_computation(plh = actual, make_multistage(execute<forward>(), make_stage<call_shift_functor>(plh)));
+    run_computation(plh = actual, make_multistage(execute::forward(), make_stage<call_shift_functor>(plh)));
     verify({expected(14), expected(15), expected(16), expected(17), expected(18)}, actual);
 }
 
@@ -178,7 +178,7 @@ TEST_F(expandable_parameters, caches) {
     tmp_arg<1> p_tmp;
     run_computation(p_in = in,
         p_out = out,
-        make_multistage(execute<forward>(),
+        make_multistage(execute::forward(),
             define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
             make_stage<copy_functor>(p_out, p_tmp)));

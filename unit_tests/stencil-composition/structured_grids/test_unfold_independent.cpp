@@ -43,8 +43,8 @@
 namespace gridtools {
     namespace {
         struct functor {
-            using a0 = accessor<0, enumtype::inout>;
-            using a1 = accessor<1, enumtype::inout>;
+            using a0 = accessor<0, intent::inout>;
+            using a1 = accessor<1, intent::inout>;
 
             using param_list = make_param_list<a0, a1>;
         };
@@ -57,11 +57,8 @@ namespace gridtools {
         constexpr arg<1, fake_storage_type> p1 = {};
         constexpr auto stage = make_stage<functor>(p0, p1);
 
-        using mss_type = decltype(make_multistage(enumtype::execute<enumtype::forward>(),
-            stage,
-            stage,
-            stage,
-            make_independent(stage, stage, make_independent(stage, stage))));
+        using mss_type = decltype(make_multistage(
+            execute::forward(), stage, stage, stage, make_independent(stage, stage, make_independent(stage, stage))));
 
         using testee_t = GT_META_CALL(unwrap_independent, mss_type::esf_sequence_t);
 
