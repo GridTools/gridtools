@@ -35,19 +35,17 @@
 */
 #pragma once
 
+#include "../cuda_util.hpp"
+#include <cuda_runtime.h>
 #include <memory>
 #include <string>
 
-#include <cuda_runtime.h>
-
-#include "../cuda_util.hpp"
 #include "timer.hpp"
 
 namespace gridtools {
 
     /**
      * @class timer_cuda
-     * CUDA implementation of the Timer interface
      */
     class timer_cuda : public timer<timer_cuda> // CRTP
     {
@@ -66,22 +64,13 @@ namespace gridtools {
       public:
         timer_cuda(std::string name) : timer<timer_cuda>(name) {}
 
-        /**
-         * Reset counters
-         */
         void set_impl(double) {}
 
-        /**
-         * Start the stop watch
-         */
         void start_impl() {
             // insert a start event
             GT_CUDA_CHECK(cudaEventRecord(m_start.get(), 0));
         }
 
-        /**
-         * Pause the stop watch
-         */
         double pause_impl() {
             // insert stop event and wait for it
             GT_CUDA_CHECK(cudaEventRecord(m_stop.get(), 0));

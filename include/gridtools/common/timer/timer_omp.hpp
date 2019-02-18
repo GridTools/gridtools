@@ -44,7 +44,6 @@ namespace gridtools {
 
     /**
      * @class timer_omp
-     * omp timers implementation of the Timer interface
      */
     class timer_omp : public timer<timer_omp> // CRTP
     {
@@ -52,23 +51,14 @@ namespace gridtools {
         timer_omp(std::string name) : timer<timer_omp>(name) { startTime_ = 0.0; }
         ~timer_omp() {}
 
-        /**
-         * Reset counters
-         */
         void set_impl(double const &time_) { startTime_ = time_; }
 
-        /**
-         * Start the stop watch
-         */
         void start_impl() {
 #if defined(_OPENMP)
             startTime_ = omp_get_wtime();
 #endif
         }
 
-        /**
-         * Pause the stop watch
-         */
         double pause_impl() {
 #if defined(_OPENMP)
             return omp_get_wtime() - startTime_;
