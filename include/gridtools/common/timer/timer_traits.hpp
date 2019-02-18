@@ -40,7 +40,7 @@
 #ifndef GT_ENABLE_METERS
 #include "timer_dummy.hpp"
 #else
-#ifdef __CUDACC__
+#ifdef GT_USE_GPU
 #include "timer_cuda.hpp"
 #endif
 #include "timer_omp.hpp"
