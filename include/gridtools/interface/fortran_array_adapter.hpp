@@ -45,6 +45,9 @@ namespace gridtools {
           public:
             adapter(fortran_array_adapter &view, DataStore &data_store) {
 
+                if (!data_store.valid())
+                    throw std::runtime_error("Invalid data_store");
+
                 storage_info_rt si = make_storage_info_rt(*data_store.get_storage_info_ptr());
                 m_dims = si.total_lengths();
                 m_cpp_strides = si.strides();
@@ -52,7 +55,7 @@ namespace gridtools {
                 m_cpp_pointer = get_ptr_to_first_element(data_store);
 
                 if (!m_fortran_pointer)
-                    throw std::runtime_error("No array to assigned to!");
+                    throw std::runtime_error("No array to assigned to fortran_array_adapter");
 
                 // verify dimensions of fortran array
                 for (uint_t c_dim = 0, fortran_dim = 0; c_dim < Layout::masked_length; ++c_dim) {

@@ -53,22 +53,22 @@ namespace gridtools {
 #ifndef GT_ENABLE_METERS
     template <typename T>
     struct timer_traits {
-        using type = timer_dummy;
+        using timer_type = timer_dummy;
     };
 #else
 #ifdef GT_USE_GPU
     template <>
     struct timer_traits<target::cuda> {
-        using type = timer_cuda;
+        using timer_type = timer_cuda;
     };
 #endif
     template <>
     struct timer_traits<target::x86> {
-        using type = timer_omp;
+        using timer_type = timer_omp;
     };
     template <>
     struct timer_traits<target::mc> {
-        using type = timer_omp;
+        using timer_type = timer_omp;
     };
 #endif
 } // namespace gridtools

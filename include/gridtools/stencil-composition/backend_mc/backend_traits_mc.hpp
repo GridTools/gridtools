@@ -40,8 +40,6 @@
 #include "../../common/functional.hpp"
 #include "../../common/timer/timer_traits.hpp"
 #include "../backend_traits_fwd.hpp"
-#include "../empty_iterate_domain_cache.hpp"
-
 #include "../structured_grids/backend_mc/execute_kernel_functor_mc.hpp"
 #include "../structured_grids/backend_mc/strategy_mc.hpp"
 
@@ -101,7 +99,7 @@ namespace gridtools {
             typedef strategy_from_id_mc<typename BackendIds::strategy_id_t> type;
         };
 
-        using performance_meter_t = typename timer_traits<target::mc>::type;
+        using performance_meter_t = typename timer_traits<target::mc>::timer_type;
     };
 
 } // namespace gridtools

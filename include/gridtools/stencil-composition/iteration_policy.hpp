@@ -58,6 +58,7 @@ namespace gridtools {
         static constexpr enumtype::execution value = ExecutionType;
 
         GT_FUNCTION static int_t increment(int_t &k) { return ++k; }
+        GT_FUNCTION static int_t decrement(int_t &k) { return --k; }
 
         template <typename IterateDomain>
         GT_FUNCTION static void increment(IterateDomain &eval) {
@@ -86,8 +87,8 @@ namespace gridtools {
 
         static constexpr enumtype::execution value = enumtype::backward;
 
-        GT_FUNCTION
-        static int_t increment(int_t &k) { return --k; }
+        GT_FUNCTION static int_t increment(int_t &k) { return --k; }
+        GT_FUNCTION static int_t decrement(int_t &k) { return ++k; }
 
         template <typename Domain>
         GT_FUNCTION static void increment(Domain &dom) {

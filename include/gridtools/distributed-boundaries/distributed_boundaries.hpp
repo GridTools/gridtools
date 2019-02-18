@@ -137,7 +137,7 @@ namespace gridtools {
             CTraits::version>;
 
       private:
-        using performance_meter_t = typename timer_traits<typename CTraits::compute_arch>::type;
+        using performance_meter_t = typename timer_traits<typename CTraits::compute_arch>::timer_type;
 
         array<halo_descriptor, 3> m_halos;
         array<int_t, 3> m_sizes;

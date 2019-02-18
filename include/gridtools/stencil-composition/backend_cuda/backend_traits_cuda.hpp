@@ -37,9 +37,6 @@
 
 #include <cuda_runtime.h>
 
-#include <boost/mpl/eval_if.hpp>
-#include <boost/mpl/quote.hpp>
-
 #include "../../common/defs.hpp"
 #include "../../common/timer/timer_traits.hpp"
 #include "../../storage/data_store.hpp"
@@ -47,7 +44,6 @@
 #include "../backend_traits_fwd.hpp"
 #include "../grid_traits_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
-#include "iterate_domain_cache.hpp"
 #include "strategy_cuda.hpp"
 
 /**@file
@@ -107,12 +103,7 @@ namespace gridtools {
             typedef strategy_from_id_cuda<typename BackendIds::strategy_id_t> type;
         };
 
-        template <typename IterateDomainArguments>
-        struct select_iterate_domain_cache {
-            typedef iterate_domain_cache<IterateDomainArguments> type;
-        };
-
-        using performance_meter_t = typename timer_traits<target::cuda>::type;
+        using performance_meter_t = typename timer_traits<target::cuda>::timer_type;
     };
 
 } // namespace gridtools

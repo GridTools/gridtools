@@ -40,7 +40,6 @@
 #include "../../common/functional.hpp"
 #include "../../common/timer/timer_traits.hpp"
 #include "../backend_traits_fwd.hpp"
-#include "../empty_iterate_domain_cache.hpp"
 #include "strategy_x86.hpp"
 
 /**@file
@@ -101,12 +100,7 @@ namespace gridtools {
             typedef strategy_from_id_x86<typename BackendIds::strategy_id_t> type;
         };
 
-        template <typename IterateDomainArguments>
-        struct select_iterate_domain_cache {
-            typedef empty_iterate_domain_cache type;
-        };
-
-        using performance_meter_t = typename timer_traits<target::x86>::type;
+        using performance_meter_t = typename timer_traits<target::x86>::timer_type;
     };
 
 } // namespace gridtools

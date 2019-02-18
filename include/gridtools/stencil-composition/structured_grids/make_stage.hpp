@@ -54,10 +54,10 @@ namespace gridtools {
      * Extents are derived from the stage definitions.
      */
     template <typename ESF, typename... Args>
-    esf_descriptor<ESF, std::tuple<Args...>> make_stage(Args...) {
+    constexpr esf_descriptor<ESF, std::tuple<Args...>> make_stage(Args...) {
         GT_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "Malformed make_stage");
-#ifdef GT_PEDANTIC // find a way to enable this check also with generic accessors
-        GT_STATIC_ASSERT(sizeof...(Args) == boost::mpl::size<typename ESF::param_list>::value,
+#ifdef PEDANTIC // find a way to enable this check also with generic accessors
+        GT_STATIC_ASSERT(sizeof...(Args) == boost::mpl::size<typename ESF::arg_list>::value,
             "wrong number of arguments passed to the make_esf");
 #endif
         return {};
@@ -69,10 +69,10 @@ namespace gridtools {
      * Extents are given as a template argument.
      */
     template <typename ESF, typename Extent, typename... Args>
-    esf_descriptor_with_extent<ESF, Extent, std::tuple<Args...>> make_stage_with_extent(Args...) {
+    constexpr esf_descriptor_with_extent<ESF, Extent, std::tuple<Args...>> make_stage_with_extent(Args...) {
         GT_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "Malformed make_stage");
-#ifdef GT_PEDANTIC // find a way to enable this check also with generic accessors
-        GT_STATIC_ASSERT((sizeof...(Args) == boost::mpl::size<typename ESF::param_list>::value),
+#ifdef PEDANTIC // find a way to enable this check also with generic accessors
+        GT_STATIC_ASSERT(sizeof...(Args) == boost::mpl::size<typename ESF::arg_list>::value,
             "wrong number of arguments passed to the make_esf");
 #endif
         return {};
