@@ -38,15 +38,10 @@
 #include <utility>
 
 #include "../../common/functional.hpp"
+#include "../../common/timer/timer_traits.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../structured_grids/backend_mc/execute_kernel_functor_mc.hpp"
 #include "../structured_grids/backend_mc/strategy_mc.hpp"
-
-#ifdef GT_ENABLE_METERS
-#include "timer_mc.hpp"
-#else
-#include "../timer_dummy.hpp"
-#endif
 
 /**@file
 @brief type definitions and structures specific for the Mic backend
@@ -104,11 +99,7 @@ namespace gridtools {
             typedef strategy_from_id_mc<typename BackendIds::strategy_id_t> type;
         };
 
-#ifdef GT_ENABLE_METERS
-        typedef timer_mc performance_meter_t;
-#else
-        typedef timer_dummy performance_meter_t;
-#endif
+        using performance_meter_t = typename timer_traits<target::mc>::timer_type;
     };
 
 } // namespace gridtools

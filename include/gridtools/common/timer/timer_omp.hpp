@@ -35,43 +35,35 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../timer.hpp"
+#include "../defs.hpp"
+#include "timer.hpp"
+#include <limits>
+#include <string>
 
 namespace gridtools {
 
     /**
-     * @class timer_x86
-     * host implementation of the Timer interface
+     * @class timer_omp
      */
-    class timer_x86 : public timer<timer_x86> // CRTP
+    class timer_omp : public timer<timer_omp> // CRTP
     {
       public:
-        timer_x86(std::string name) : timer<timer_x86>(name) { startTime_ = 0.0; }
-        ~timer_x86() {}
+        timer_omp(std::string name) : timer<timer_omp>(name) { startTime_ = 0.0; }
+        ~timer_omp() {}
 
-        /**
-         * Reset counters
-         */
         void set_impl(double const &time_) { startTime_ = time_; }
 
-        /**
-         * Start the stop watch
-         */
         void start_impl() {
 #if defined(_OPENMP)
             startTime_ = omp_get_wtime();
 #endif
         }
 
-        /**
-         * Pause the stop watch
-         */
         double pause_impl() {
 #if defined(_OPENMP)
             return omp_get_wtime() - startTime_;
 #else
-            return -100;
+            return std::numeric_limits<double>::quiet_NaN();
 #endif
         }
 

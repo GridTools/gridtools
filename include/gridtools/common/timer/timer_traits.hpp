@@ -35,47 +35,40 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../timer.hpp"
+#include "../defs.hpp"
+
+#ifndef GT_ENABLE_METERS
+#include "timer_dummy.hpp"
+#else
+#ifdef GT_USE_GPU
+#include "timer_cuda.hpp"
+#endif
+#include "timer_omp.hpp"
+#endif
 
 namespace gridtools {
+    template <typename T>
+    struct timer_traits;
 
-    /**
-     * @class timer_mc
-     * mc implementation of the Timer interface
-     */
-    class timer_mc : public timer<timer_mc> // CRTP
-    {
-      public:
-        timer_mc(std::string name) : timer<timer_mc>(name) { startTime_ = 0.0; }
-        ~timer_mc() {}
-
-        /**
-         * Reset counters
-         */
-        void set_impl(double const &time_) { startTime_ = time_; }
-
-        /**
-         * Start the stop watch
-         */
-        void start_impl() {
-#if defined(_OPENMP)
-            startTime_ = omp_get_wtime();
-#endif
-        }
-
-        /**
-         * Pause the stop watch
-         */
-        double pause_impl() {
-#if defined(_OPENMP)
-            return omp_get_wtime() - startTime_;
-#else
-            return -100;
-#endif
-        }
-
-      private:
-        double startTime_;
+#ifndef GT_ENABLE_METERS
+    template <typename T>
+    struct timer_traits {
+        using timer_type = timer_dummy;
     };
+#else
+#ifdef GT_USE_GPU
+    template <>
+    struct timer_traits<target::cuda> {
+        using timer_type = timer_cuda;
+    };
+#endif
+    template <>
+    struct timer_traits<target::x86> {
+        using timer_type = timer_omp;
+    };
+    template <>
+    struct timer_traits<target::mc> {
+        using timer_type = timer_omp;
+    };
+#endif
 } // namespace gridtools

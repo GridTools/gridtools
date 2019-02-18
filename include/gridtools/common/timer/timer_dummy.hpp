@@ -35,12 +35,13 @@
 */
 #pragma once
 #include "timer.hpp"
+#include <limits>
 #include <string>
 
 namespace gridtools {
 
     /**
-     * @class TimerDummy
+     * @class timer_dummy
      * Dummy timer implementation doing nothing in order to avoid runtime overhead
      */
     class timer_dummy : public timer<timer_dummy> // CRTP
@@ -48,19 +49,10 @@ namespace gridtools {
       public:
         GT_FUNCTION_HOST timer_dummy(std::string name) : timer<timer_dummy>(name) {}
 
-        /**
-         * Reset counters
-         */
         GT_FUNCTION_HOST void set_impl(double const & /*time_*/) {}
 
-        /**
-         * Start the stop watch
-         */
         GT_FUNCTION_HOST void start_impl() {}
 
-        /**
-         * Pause the stop watch
-         */
-        GT_FUNCTION_HOST double pause_impl() { return 0.0; }
+        GT_FUNCTION_HOST double pause_impl() { return std::numeric_limits<double>::quiet_NaN(); }
     };
 } // namespace gridtools
