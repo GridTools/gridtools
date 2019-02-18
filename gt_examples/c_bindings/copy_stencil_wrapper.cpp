@@ -67,9 +67,6 @@ namespace {
         }
     };
 
-} // namespace
-
-namespace {
     using p_in = gt::arg<0, data_store_t>;
     using p_out = gt::arg<1, data_store_t>;
 
