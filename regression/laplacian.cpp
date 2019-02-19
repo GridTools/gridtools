@@ -43,10 +43,10 @@ using namespace gridtools;
 struct lap {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 1, -1, 1>>;
-    using arg_list = boost::mpl::vector<out, in>;
+    using param_list = make_param_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = 4 * eval(in()) - (eval(in(1, 0)) + eval(in(0, 1)) + eval(in(-1, 0)) + eval(in(0, -1)));
     }
 };
@@ -60,9 +60,7 @@ TEST_F(laplacian, test) {
     };
     auto out = make_storage(-7.3);
 
-    make_computation(p_0 = out,
-        p_1 = make_storage(in),
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<lap>(p_0, p_1)))
+    make_computation(p_0 = out, p_1 = make_storage(in), make_multistage(execute::forward(), make_stage<lap>(p_0, p_1)))
         .run();
 
     verify(make_storage(ref), out);

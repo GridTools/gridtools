@@ -40,11 +40,12 @@
 #include "../../common/defs.hpp"
 #include "../block.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../pos3.hpp"
 
 namespace gridtools {
     template <class Base>
     struct positional_iterate_domain : Base {
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<Base>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_iterate_domain<Base>::value, GT_INTERNAL_ERROR);
 
         struct array_index_t {
             typename Base::array_index_t index;

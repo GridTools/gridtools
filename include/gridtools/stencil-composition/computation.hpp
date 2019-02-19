@@ -42,6 +42,7 @@
 #include "../common/defs.hpp"
 #include "../common/permute_to.hpp"
 #include "../meta/type_traits.hpp"
+#include "accessor_intent.hpp"
 #include "arg.hpp"
 #include "extent.hpp"
 
@@ -63,7 +64,7 @@ namespace gridtools {
             struct iface_arg {
                 virtual ~iface_arg() = default;
                 virtual rt_extent get_arg_extent(Arg) const = 0;
-                virtual enumtype::intent get_arg_intent(Arg) const = 0;
+                virtual intent get_arg_intent(Arg) const = 0;
             };
 
             template <class T, class Arg>
@@ -71,7 +72,7 @@ namespace gridtools {
                 rt_extent get_arg_extent(Arg) const override {
                     return static_cast<const T *>(this)->m_obj.get_arg_extent(Arg());
                 }
-                enumtype::intent get_arg_intent(Arg) const override {
+                intent get_arg_intent(Arg) const override {
                     return static_cast<const T *>(this)->m_obj.get_arg_intent(Arg());
                 }
             };
@@ -86,7 +87,7 @@ namespace gridtools {
      */
     template <class... Args>
     class computation {
-        GRIDTOOLS_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "template parameters should be args");
+        GT_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "template parameters should be args");
 
         using arg_storage_pair_crefs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t> const &...>;
 
@@ -123,7 +124,7 @@ namespace gridtools {
 
         template <class Obj>
         computation(Obj obj) : m_impl(new impl<Obj>{std::move(obj)}) {
-            GRIDTOOLS_STATIC_ASSERT((!std::is_same<typename std::decay<Obj>::type, computation>::value),
+            GT_STATIC_ASSERT((!std::is_same<typename std::decay<Obj>::type, computation>::value),
                 GT_INTERNAL_ERROR_MSG("computation move ctor got shadowed"));
             // TODO(anstaf): Check that Obj satisfies computation concept here.
         }
@@ -152,7 +153,7 @@ namespace gridtools {
         }
 
         template <class Arg>
-        enable_if_t<meta::st_contains<meta::list<Args...>, Arg>::value, enumtype::intent> get_arg_intent(Arg) const {
+        enable_if_t<meta::st_contains<meta::list<Args...>, Arg>::value, intent> get_arg_intent(Arg) const {
             return static_cast<_impl::computation_detail::iface_arg<Arg> const &>(*m_impl).get_arg_intent(Arg());
         }
     };

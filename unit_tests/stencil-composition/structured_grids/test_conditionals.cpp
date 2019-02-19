@@ -48,11 +48,11 @@ namespace test_conditionals {
     template <uint_t Id>
     struct functor {
 
-        typedef accessor<0, enumtype::inout> p_dummy;
-        typedef boost::mpl::vector1<p_dummy> arg_list;
+        typedef accessor<0, intent::inout> p_dummy;
+        typedef make_param_list<p_dummy> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(p_dummy()) = +Id;
         }
     };
@@ -74,10 +74,10 @@ namespace test_conditionals {
         auto comp_ = make_computation<backend_t>(grid_,
             p_dummy() = dummy,
             if_(cond,
-                make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor<0>>(p_dummy())),
+                make_multistage(execute::forward(), make_stage<functor<0>>(p_dummy())),
                 if_(cond2,
-                    make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor<1>>(p_dummy())),
-                    make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor<2>>(p_dummy())))));
+                    make_multistage(execute::forward(), make_stage<functor<1>>(p_dummy())),
+                    make_multistage(execute::forward(), make_stage<functor<2>>(p_dummy())))));
 
         comp_.run();
         comp_.sync_bound_data_stores();

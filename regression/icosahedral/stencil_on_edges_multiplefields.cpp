@@ -55,10 +55,10 @@ struct test_on_edges_functor {
     using in1 = in_accessor<0, enumtype::edges, extent<1, -1, 1, -1>>;
     using in2 = in_accessor<1, enumtype::edges, extent<1, -1, 1, -1>>;
     using out = inout_accessor<2, enumtype::edges>;
-    using arg_list = boost::mpl::vector<in1, in2, out>;
+    using param_list = make_param_list<in1, in2, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out{}) = eval(
             on_edges([](float_type in1, float_type in2, float_type res) { return in1 + in2 * float_type{.1} + res; },
                 float_type{},
@@ -85,8 +85,7 @@ TEST_F(stencil_on_edges_multiplefields, test) {
     auto comp = make_computation(p_in1 = make_storage<edges>(in1),
         p_in2 = make_storage<edges>(in2),
         p_out = out,
-        make_multistage(enumtype::execute<enumtype::forward>(),
-            make_stage<test_on_edges_functor, topology_t, edges>(p_in1, p_in2, p_out)));
+        make_multistage(execute::forward(), make_stage<test_on_edges_functor, topology_t, edges>(p_in1, p_in2, p_out)));
     comp.run();
     verify(make_storage<edges>(ref), out);
     benchmark(comp);

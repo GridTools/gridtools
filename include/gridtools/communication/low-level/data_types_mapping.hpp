@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef DATA_TYPES_MAPPING_H_
-#define DATA_TYPES_MAPPING_H_
+#pragma once
 
 namespace gridtools {
     namespace _impl {
@@ -106,4 +105,3 @@ namespace gridtools {
         };
     } // namespace _impl
 } // namespace gridtools
-#endif

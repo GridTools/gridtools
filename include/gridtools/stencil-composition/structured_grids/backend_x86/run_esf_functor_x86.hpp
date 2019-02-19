@@ -44,7 +44,7 @@ namespace gridtools {
         template <class StageGroups, class ItDomain>
         GT_FUNCTION static void exec(ItDomain &it_domain) {
             using stages_t = GT_META_CALL(meta::flatten, StageGroups);
-            GRIDTOOLS_STATIC_ASSERT(meta::length<stages_t>::value == 1, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(meta::length<stages_t>::value == 1, GT_INTERNAL_ERROR);
             using stage_t = GT_META_CALL(meta::first, stages_t);
             stage_t::exec(it_domain);
         }

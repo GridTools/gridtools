@@ -33,6 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "call_interfaces.hpp"
 #endif

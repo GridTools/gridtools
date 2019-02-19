@@ -70,7 +70,7 @@ TEST_F(div, reduction_into_scalar) {
         p_orientation_of_normal = make_storage_4d<cells, edges_of_cells_storage_type>(3, repo.orientation_of_normal),
         p_div_weights = make_storage_4d<cells>(3),
         p_out_cells = out_cells,
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(execute::forward(),
             make_stage<div_prep_functor, topology_t, cells>(
                 p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights),
             make_stage<div_functor_reduction_into_scalar, topology_t, cells>(p_in_edges, p_div_weights, p_out_cells)))
@@ -82,7 +82,7 @@ TEST_F(div, flow_convention) {
         p_edge_length = make_storage<edges, edge_2d_storage_type>(repo.edge_length),
         p_cell_area_reciprocal = make_storage<cells, cell_2d_storage_type>(repo.cell_area_reciprocal),
         p_out_cells = out_cells,
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(execute::forward(),
             make_stage<div_functor_flow_convention_connectivity, topology_t, cells>(
                 p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells)))
         .run();

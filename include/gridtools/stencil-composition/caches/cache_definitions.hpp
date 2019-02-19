@@ -55,10 +55,10 @@ namespace gridtools {
      * @enum cache_type
      * enum with the different types of cache available
      */
-    enum cache_type {
-        IJ, // IJ caches require synchronization capabilities, as different (i,j) grid points are
+    enum class cache_type {
+        ij, // ij caches require synchronization capabilities, as different (i,j) grid points are
             // processed by parallel cores. GPU backend keeps them in shared memory
-        K // processing of all the K elements is done by same thread, so resources for K caches can be private
+        k // processing of all the k elements is done by same thread, so resources for k caches can be private
           // and do not require synchronization. GPU backend uses registers.
     };
 } // namespace gridtools

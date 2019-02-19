@@ -48,7 +48,6 @@
 #include "../meta/utility.hpp"
 
 namespace gridtools {
-
 #ifdef __INTEL_COMPILER
     namespace _impl {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
@@ -163,7 +162,7 @@ namespace gridtools {
      */
     template <ushort_t Dim>
     class accessor_base {
-        GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
+        GT_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
 #ifdef __INTEL_COMPILER
         /* The Intel compiler does not want to vectorize when we use a real array here. */
@@ -211,7 +210,7 @@ namespace gridtools {
               m_workaround(Dim)
 #endif
         {
-            GRIDTOOLS_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>, dimension<Is>...>>::value),
+            GT_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>, dimension<Is>...>>::value),
                 "all dimensions should be of different indicies");
         }
 
@@ -224,15 +223,15 @@ namespace gridtools {
 
     template <short_t Idx, ushort_t Dim>
     GT_FUNCTION constexpr int_t &get(accessor_base<Dim> &acc) noexcept {
-        GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
-        GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
+        GT_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+        GT_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
         return get<Idx>(acc.offsets());
     }
 
     template <short_t Idx, ushort_t Dim>
     GT_FUNCTION constexpr const int_t &get(const accessor_base<Dim> &acc) noexcept {
-        GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
-        GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
+        GT_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+        GT_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
         return get<Idx>(acc.offsets());
     }
 

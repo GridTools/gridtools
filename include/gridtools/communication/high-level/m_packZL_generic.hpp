@@ -152,7 +152,7 @@ void m_packZL_generic(
 //                      const gridtools::field_on_the_fly<T1,T2,T3> * halo_d)
 {
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // just some timing stuff
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -182,7 +182,7 @@ void m_packZL_generic(
         int nbz = (nz + ntz - 1) / ntz;
         dim3 blocks(nbx, nby, nbz);
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
         printf("ZL -- PACK Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
             nbx,
             nby,
@@ -207,7 +207,7 @@ void m_packZL_generic(
          ny,
          0);
 // clang-format on
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
             cudaError_t err = cudaGetLastError();
             if (err != cudaSuccess) {
                 printf("KLF in %s : %s\n", __FILE__, cudaGetErrorString(err));
@@ -219,7 +219,7 @@ void m_packZL_generic(
 
 // more timing stuff and conversion into reasonable units
 // for display
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);
 

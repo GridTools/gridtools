@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define PEDANTIC_DISABLED // too stringent for this test
+#define GT_PEDANTIC_DISABLED // too stringent for this test
 
 #include <iostream>
 
@@ -47,25 +47,24 @@
 
 namespace test_iterate_domain {
     using namespace gridtools;
-    using namespace enumtype;
 
     // This is the definition of the special regions in the "vertical" direction
     struct stage1 {
-        typedef accessor<0, enumtype::in, extent<42, 42, 42, 42>, 6> in;
-        typedef accessor<1, enumtype::inout, extent<>, 4> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef accessor<0, intent::in, extent<42, 42, 42, 42>, 6> in;
+        typedef accessor<1, intent::inout, extent<>, 4> out;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 
     struct stage2 {
-        typedef accessor<0, enumtype::in, extent<42, 42, 42, 42>, 6> in;
-        typedef accessor<1, enumtype::inout, extent<>, 4> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef accessor<0, intent::in, extent<42, 42, 42, 42>, 6> in;
+        typedef accessor<1, intent::inout, extent<>, 4> out;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 } // namespace test_iterate_domain
 
@@ -84,8 +83,8 @@ TEST(testdomain, iterate_domain_with_extents) {
 
     auto grid = gridtools::make_grid(di, dj, 3);
     {
-        auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
-            make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()));
+        auto mss_ =
+            make_multistage(execute::forward(), make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()));
         auto computation_ = make_computation<backend<target::x86, grid_type_t, strategy::naive>>(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
@@ -93,7 +92,7 @@ TEST(testdomain, iterate_domain_with_extents) {
             std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
     {
-        auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
+        auto mss_ = make_multistage(execute::forward(),
             make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in()));
         auto computation_ = make_computation<backend<target::x86, grid_type_t, strategy::naive>>(grid, mss_);
@@ -103,11 +102,11 @@ TEST(testdomain, iterate_domain_with_extents) {
             std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
     {
-        auto mss1_ = make_multistage(enumtype::execute<enumtype::forward>(),
+        auto mss1_ = make_multistage(execute::forward(),
             make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in()));
 
-        auto mss2_ = make_multistage(enumtype::execute<enumtype::forward>(),
+        auto mss2_ = make_multistage(execute::forward(),
             make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 
@@ -118,11 +117,11 @@ TEST(testdomain, iterate_domain_with_extents) {
             std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
     {
-        auto mss1_ = make_multistage(enumtype::execute<enumtype::forward>(),
+        auto mss1_ = make_multistage(execute::forward(),
             make_independent(make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
                 make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in())));
 
-        auto mss2_ = make_multistage(enumtype::execute<enumtype::forward>(),
+        auto mss2_ = make_multistage(execute::forward(),
             make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 

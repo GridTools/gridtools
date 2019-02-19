@@ -41,15 +41,15 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 struct functor1 {
     typedef accessor<0> in;
     typedef accessor<1> out;
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {}
+    GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
@@ -66,22 +66,20 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
     typedef decltype(make_stage<functor1>(p_in(), p_buff())) esf1_t;
     typedef decltype(make_stage<functor1>(p_buff(), p_out())) esf2_t;
 
-    typedef decltype(make_multistage // mss_descriptor
-        (execute<forward>(),
-            define_caches(cache<IJ, cache_io_policy::local>(p_buff(), p_out())),
-            esf1_t(), // esf_descriptor
-            esf2_t()  // esf_descriptor
-            )) mss_t;
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<mss_t::esf_sequence_t, boost::mpl::vector2<esf1_t, esf2_t>>::value), "ERROR");
+    typedef decltype(make_multistage(execute::forward(),
+        define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff(), p_out())),
+        esf1_t(), // esf_descriptor
+        esf2_t()  // esf_descriptor
+        )) mss_t;
+    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, make_param_list<esf1_t, esf2_t>>::value), "ERROR");
 
-#ifndef __DISABLE_CACHING__
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<mss_t::cache_sequence_t,
-                                boost::mpl::vector2<detail::cache_impl<IJ, p_buff, cache_io_policy::local>,
-                                    detail::cache_impl<IJ, p_out, cache_io_policy::local>>>::value),
+#ifndef GT_DISABLE_CACHING
+    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::cache_sequence_t,
+                         boost::mpl::vector2<detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::local>,
+                             detail::cache_impl<cache_type::ij, p_out, cache_io_policy::local>>>::value),
         "ERROR\nLists do not match");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::empty<mss_t::cache_sequence_t>::value), "ERROR\nList not empty");
+    GT_STATIC_ASSERT((boost::mpl::empty<mss_t::cache_sequence_t>::value), "ERROR\nList not empty");
 #endif
 
     ASSERT_TRUE(true);

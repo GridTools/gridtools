@@ -44,26 +44,25 @@
 using gridtools::accessor;
 using gridtools::arg;
 using gridtools::extent;
+using gridtools::intent;
 using gridtools::level;
 using gridtools::tmp_arg;
 using gridtools::uint_t;
-
-using namespace gridtools::enumtype;
 
 namespace {
 
     template <typename Axis>
     struct parallel_functor {
         typedef accessor<0> in;
-        typedef accessor<1, inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef accessor<1, intent::inout> out;
+        typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<0>) {
+        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<0>) {
             eval(out()) = eval(in());
         }
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<1>) {
+        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
             eval(out()) = 2 * eval(in());
         }
     };
@@ -71,11 +70,11 @@ namespace {
     template <typename Axis>
     struct parallel_functor_on_upper_interval {
         typedef accessor<0> in;
-        typedef accessor<1, inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef accessor<1, intent::inout> out;
+        typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<1>) {
+        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
             eval(out()) = eval(in());
         }
     };
@@ -106,7 +105,7 @@ void run_test() {
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(
-            execute<parallel>(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
+            gridtools::execute::parallel(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
 
     comp.run();
 
@@ -148,7 +147,7 @@ void run_test_with_temporary() {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        gridtools::make_multistage(execute<parallel>(),
+        gridtools::make_multistage(gridtools::execute::parallel(),
             gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_tmp()),
             gridtools::make_stage<parallel_functor<Axis>>(p_tmp(), p_out())));
 
@@ -171,16 +170,14 @@ TEST(structured_grid, kparallel) { //
     run_test<gridtools::axis<2>>();
 }
 
-TEST(structured_grid, kparallel_with_extentoffsets_around_interval) {
-    run_test<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
-}
+TEST(structured_grid, kparallel_with_extentoffsets_around_interval) { run_test<gridtools::axis<2, 3, 5>>(); }
 
 TEST(structured_grid, kparallel_with_temporary) { //
     run_test_with_temporary<gridtools::axis<2>>();
 }
 
 TEST(structured_grid, kparallel_with_extentoffsets_around_interval_and_temporary) {
-    run_test_with_temporary<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
+    run_test_with_temporary<gridtools::axis<2, 3, 5>>();
 }
 
 TEST(structured_grid, kparallel_with_unused_intervals) {
@@ -208,8 +205,8 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        gridtools::make_multistage(
-            execute<parallel>(), gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
+        gridtools::make_multistage(gridtools::execute::parallel(),
+            gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
 
     comp.run();
 

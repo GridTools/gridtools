@@ -49,38 +49,38 @@ constexpr int halo_size = 1;
 namespace test_cache_stencil {
 
     using namespace gridtools;
-    using namespace enumtype;
+    using namespace execute;
 
     struct functor1 {
-        typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef accessor<0, intent::in> in;
+        typedef accessor<1, intent::inout> out;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
 
     struct functor2 {
-        typedef accessor<0, enumtype::in, extent<-1, 1, -1, 1>> in;
-        typedef accessor<1, enumtype::inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef accessor<0, intent::in, extent<-1, 1, -1, 1>> in;
+        typedef accessor<1, intent::inout> out;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) =
                 (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
         }
     };
 
     struct functor3 {
-        typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef accessor<0, intent::in> in;
+        typedef accessor<1, intent::inout> out;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in()) + 1;
         }
     };
@@ -96,7 +96,7 @@ namespace test_cache_stencil {
 } // namespace test_cache_stencil
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 using namespace test_cache_stencil;
 
 class cache_stencil : public ::testing::Test {
@@ -135,8 +135,8 @@ TEST_F(cache_stencil, ij_cache) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage // mss_descriptor
-        (execute<parallel>(),
-            define_caches(cache<IJ, cache_io_policy::local>(p_buff())),
+        (execute::parallel(),
+            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff())),
             make_stage<functor1>(p_in(), p_buff()),
             make_stage<functor1>(p_buff(), p_out())));
 
@@ -144,7 +144,7 @@ TEST_F(cache_stencil, ij_cache) {
 
     stencil.sync_bound_data_stores();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
@@ -172,7 +172,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage // mss_descriptor
-        (execute<parallel>(),
+        (execute::parallel(),
             // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
             make_stage<functor1>(p_in(), p_buff()), // esf_descriptor
             make_stage<functor2>(p_buff(), p_out()) // esf_descriptor
@@ -182,7 +182,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
 
     stencil.sync_bound_data_stores();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
@@ -210,12 +210,12 @@ TEST_F(cache_stencil, multi_cache) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage // mss_descriptor
-        (execute<parallel>(),
+        (execute::parallel(),
             // test if define_caches works properly with multiple vectors of caches.
             // in this toy example two vectors are passed (IJ cache vector for p_buff
             // and p_buff_2, IJ cache vector for p_buff_3)
-            define_caches(
-                cache<IJ, cache_io_policy::local>(p_buff(), p_buff_2()), cache<IJ, cache_io_policy::local>(p_buff_3())),
+            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff(), p_buff_2()),
+                cache<cache_type::ij, cache_io_policy::local>(p_buff_3())),
             make_stage<functor3>(p_in(), p_buff()),       // esf_descriptor
             make_stage<functor3>(p_buff(), p_buff_2()),   // esf_descriptor
             make_stage<functor3>(p_buff_2(), p_buff_3()), // esf_descriptor

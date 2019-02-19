@@ -4,12 +4,12 @@
 
 #define MY_FIELDTYPES (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1, 2))(JKDataStore, (0, 1, 2))
 #define MY_FIELDS (IJKDataStore, ijkfield)(IJDataStore, ijfield)(JKDataStore, jkfield)
-GRIDTOOLS_MAKE_REPOSITORY(exported_repository, MY_FIELDTYPES, MY_FIELDS)
+GT_MAKE_REPOSITORY(exported_repository, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 
 #define MY_FIELDS (IJKDataStore, ijkfield)(IJDataStore, ijfield)(JKDataStore, jkfield)
-GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(exported_repository, exported, , MY_FIELDS)
+GT_MAKE_REPOSITORY_BINDINGS(exported_repository, exported, , MY_FIELDS)
 #undef MY_FIELDS
 
 namespace {

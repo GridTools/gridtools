@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _GCL_PARAMETERS_H_
-#define _GCL_PARAMETERS_H_
+#pragma once
 
 /** \file
     File containing Constant Values used in defining GCL capabilities
@@ -44,5 +43,3 @@
  * 2 interface of halo exchange
  */
 #define GCL_MAX_FIELDS 24
-
-#endif

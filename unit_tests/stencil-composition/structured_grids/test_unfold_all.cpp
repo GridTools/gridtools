@@ -35,6 +35,7 @@
 */
 #include <gtest/gtest.h>
 
+//#include <gridtools/stencil-composition/esf.hpp>
 #include <gridtools/stencil-composition/conditionals/if_.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
@@ -42,12 +43,12 @@
 template <gridtools::uint_t Id>
 struct functor {
 
-    typedef gridtools::accessor<0, gridtools::enumtype::inout> a0;
-    typedef gridtools::accessor<1, gridtools::enumtype::in> a1;
-    typedef boost::mpl::vector2<a0, a1> arg_list;
+    typedef gridtools::accessor<0, gridtools::intent::inout> a0;
+    typedef gridtools::accessor<1, gridtools::intent::in> a1;
+    typedef gridtools::make_param_list<a0, a1> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {}
+    GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 bool predicate() { return false; }
@@ -64,7 +65,7 @@ TEST(unfold_all, test) {
     typedef arg<0, storage_t> p0;
     typedef arg<1, storage_t> p1;
 
-    auto mss1 = make_multistage(enumtype::execute<enumtype::forward>(),
+    auto mss1 = make_multistage(execute::forward(),
         make_stage<functor<0>>(p0(), p1()),
         make_stage<functor<1>>(p0(), p1()),
         make_stage<functor<2>>(p0(), p1()),
@@ -72,7 +73,7 @@ TEST(unfold_all, test) {
             make_stage<functor<4>>(p0(), p1()),
             make_independent(make_stage<functor<5>>(p0(), p1()), make_stage<functor<6>>(p0(), p1()))));
 
-    auto mss2 = make_multistage(enumtype::execute<enumtype::forward>(),
+    auto mss2 = make_multistage(execute::forward(),
         make_stage<functor<7>>(p0(), p1()),
         make_stage<functor<8>>(p0(), p1()),
         make_stage<functor<9>>(p0(), p1()),

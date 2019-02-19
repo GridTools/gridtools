@@ -43,7 +43,7 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 using namespace expressions;
 
 using layout_map_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, target::x86>::value,
@@ -183,7 +183,7 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
                             }
                         }
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
@@ -201,10 +201,10 @@ namespace assembly {
         typedef in_accessor<2, extent<>, 4> jac;
         typedef in_accessor<3, extent<>, 6> f;
         typedef inout_accessor<4, extent<>, 6> result;
-        typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
+        typedef make_param_list<phi, psi, jac, f, result> param_list;
         using quad = dimension<7>;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             dimension<1> i;
             dimension<2> j;
             dimension<3> k;
@@ -306,7 +306,7 @@ namespace assembly {
             p_jac() = jac,
             p_f() = f,
             p_result() = result,
-            make_multistage(execute<forward>(), make_stage<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+            make_multistage(execute::forward(), make_stage<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp.run();
         fe_comp.sync_bound_data_stores();

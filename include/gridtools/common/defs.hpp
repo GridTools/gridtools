@@ -77,11 +77,11 @@
 
 /** Macro to enable additional checks that may catch some errors in user code
  */
-#ifndef PEDANTIC_DISABLED
-#define PEDANTIC
+#ifndef GT_PEDANTIC_DISABLED
+#define GT_PEDANTIC
 #endif
 
-#define RESTRICT __restrict__
+#define GT_RESTRICT __restrict__
 
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1
@@ -102,9 +102,10 @@
 #endif
 
 // max limit of indices for metastorages, beyond indices are reserved for library
-#ifndef META_STORAGE_INDEX_LIMIT
-#define META_STORAGE_INDEX_LIMIT 1000
+#ifndef GT_META_STORAGE_INDEX_LIMIT
+#define GT_META_STORAGE_INDEX_LIMIT 1000
 #endif
+static const unsigned int metastorage_library_indices_limit = GT_META_STORAGE_INDEX_LIMIT;
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -118,8 +119,8 @@ namespace gridtools {
 #endif
 
 // macro defining empty copy constructors and assignment operators
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-    TypeName(const TypeName &);            \
+#define GT_DISALLOW_COPY_AND_ASSIGN(TypeName) \
+    TypeName(const TypeName &);               \
     TypeName &operator=(const TypeName &)
 
 // check boost::optional workaround for CUDA9.2
@@ -159,29 +160,7 @@ namespace gridtools {
         struct icosahedral {};
     } // namespace grid_type
 
-    /** \namespace enumtype
-       @brief enumeration types*/
-    namespace enumtype {
-        /**
-           @section enumtypes Gridtools enumeration types
-           @{
-         */
-
-        /*
-         * accessor I/O policy
-         */
-        enum intent { in, inout };
-
-#ifdef __CUDACC__
-        static const unsigned int vector_width = 32;
-#else
-        static const unsigned int vector_width = 4;
-#endif
-        static const unsigned int metastorage_library_indices_limit = META_STORAGE_INDEX_LIMIT;
-
-    } // namespace enumtype
-
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
+#define GT_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 
 #define GT_INTERNAL_ERROR                                                                                       \
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \

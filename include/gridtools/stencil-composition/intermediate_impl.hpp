@@ -114,7 +114,7 @@ namespace gridtools {
                 boost::mpl::set0<>>::type,
             get_storage_info_map_element<boost::mpl::_>>>::type;
 
-        template <typename Elem, access_mode AccessMode = access_mode::ReadWrite, typename Enable = void>
+        template <typename Elem, access_mode AccessMode = access_mode::read_write, typename Enable = void>
         struct get_view;
 
         template <typename Elem, access_mode AccessMode>
@@ -219,6 +219,26 @@ namespace gridtools {
             tuple_util::for_each_in_cartesian_product(set_view_to_local_domain_f{}, view_infos, local_domains);
         }
 
+        template <class Mss>
+        struct non_cached_tmp_f {
+            using local_caches_t = GT_META_CALL(meta::filter, (is_local_cache, typename Mss::cache_sequence_t));
+            using cached_args_t = GT_META_CALL(meta::transform, (cache_parameter, local_caches_t));
+
+            template <class Arg>
+            GT_META_DEFINE_ALIAS(
+                apply, bool_constant, (is_tmp_arg<Arg>::value && !meta::st_contains<cached_args_t, Arg>::value));
+        };
+
+        template <class Mss>
+        GT_META_DEFINE_ALIAS(extract_non_cached_tmp_args_from_mss,
+            meta::filter,
+            (non_cached_tmp_f<Mss>::template apply, GT_META_CALL(extract_placeholders_from_mss, Mss)));
+
+        template <class Msses,
+            class ArgLists = GT_META_CALL(meta::transform, (extract_non_cached_tmp_args_from_mss, Msses))>
+        GT_META_DEFINE_ALIAS(
+            extract_non_cached_tmp_args_from_msses, meta::dedup, (GT_META_CALL(meta::flatten, ArgLists)));
+
         template <class MaxExtent, class Backend>
         struct get_tmp_arg_storage_pair_generator {
             template <class ArgStoragePair>
@@ -230,14 +250,9 @@ namespace gridtools {
                     return make_tmp_data_store<MaxExtent>(backend, arg, grid);
                 }
             };
+
             template <class T>
-#if GT_BROKEN_TEMPLATE_ALIASES
-            struct apply {
-                using type = generator<T>;
-            };
-#else
-            using apply = generator<T>;
-#endif
+            GT_META_DEFINE_ALIAS(apply, meta::id, generator<T>);
         };
 
         template <class MaxExtent, class Backend, class Res, class Grid>
@@ -247,36 +262,24 @@ namespace gridtools {
             return tuple_util::generate<generators, Res>(grid);
         }
 
-        template <class Esf, class Extent>
-        struct extent_for_tmp
-            : std::conditional<boost::mpl::empty<typename esf_get_w_temps_per_functor<Esf>::type>::value,
-                  extent<>,
-                  Extent> {};
-
-        template <class Extents>
-        struct fold_extents : boost::mpl::fold<Extents, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>> {
-        };
-
-        template <class MssComponents>
-        struct get_max_extent_for_tmp_from_mss_components
-            : fold_extents<typename boost::mpl::transform<typename MssComponents::linear_esf_t,
-                  typename MssComponents::extent_sizes_t,
-                  extent_for_tmp<boost::mpl::_1, boost::mpl::_2>>::type> {};
-
-        template <class MssComponentsList>
-        struct get_max_extent_for_tmp : fold_extents<boost::mpl::transform_view<MssComponentsList,
-                                            get_max_extent_for_tmp_from_mss_components<boost::mpl::_>>> {};
+        template <class MssComponentsList,
+            class Extents = GT_META_CALL(
+                meta::transform, (get_max_extent_for_tmp_from_mss_components, MssComponentsList))>
+        GT_META_DEFINE_ALIAS(get_max_extent_for_tmp, meta::rename, (enclosing_extent, Extents));
 
         template <class MaxExtent, bool IsStateful>
         struct get_local_domain {
-            template <class MssComponents, class Msses = std::tuple<typename MssComponents::mss_descriptor_t>>
-            GT_META_DEFINE_ALIAS(
-                apply, local_domain, (GT_META_CALL(extract_placeholders, Msses), MaxExtent, IsStateful));
+            template <class MssComponents>
+            GT_META_DEFINE_ALIAS(apply,
+                local_domain,
+                (GT_META_CALL(extract_placeholders_from_mss, typename MssComponents::mss_descriptor_t),
+                    MaxExtent,
+                    IsStateful));
         };
 
         template <class MssComponentsList,
             bool IsStateful,
-            class MaxExtentForTmp = typename get_max_extent_for_tmp<MssComponentsList>::type,
+            class MaxExtentForTmp = GT_META_CALL(get_max_extent_for_tmp, MssComponentsList),
             class GetLocalDomain = _impl::get_local_domain<MaxExtentForTmp, IsStateful>>
         GT_META_DEFINE_ALIAS(get_local_domains, meta::transform, (GetLocalDomain::template apply, MssComponentsList));
 
@@ -284,7 +287,7 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(rw_args_from_mss,
             meta::id,
             (copy_into_variadic<
-                typename compute_readwrite_args<typename mss_descriptor_linear_esf_sequence<Mss>::type>::type,
+                typename compute_readwrite_args<GT_META_CALL(unwrap_independent, typename Mss::esf_sequence_t)>::type,
                 std::tuple<>>));
 
         template <class Msses,

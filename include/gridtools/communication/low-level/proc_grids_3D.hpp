@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _PROC_GRIDS_3D_H_
-#define _PROC_GRIDS_3D_H_
+#pragma once
 
 #include "../../common/array.hpp"
 #include "../../common/boollist.hpp"
@@ -49,7 +48,7 @@
 
 namespace gridtools {
 
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
     /** \class MPI_3D_process_grid_t
      * Class that provides a representation of a 3D process grid given an MPI CART
      * It requires the MPI CART to be defined before the grid is created
@@ -127,7 +126,7 @@ namespace gridtools {
             \param[out] t_S Number of elements in third dimension
         */
         void dims(int &t_R, int &t_C, int &t_S) const {
-            GRIDTOOLS_STATIC_ASSERT(ndims == 3, "this interface supposes ndims=3");
+            GT_STATIC_ASSERT(ndims == 3, "this interface supposes ndims=3");
             t_R = m_dimensions[0];
             t_C = m_dimensions[1];
             t_S = m_dimensions[2];
@@ -139,14 +138,14 @@ namespace gridtools {
         */
         template <class Array>
         void fill_dims(Array &array) const {
-            GRIDTOOLS_STATIC_ASSERT(ndims == 3, "this interface supposes ndims=3");
+            GT_STATIC_ASSERT(ndims == 3, "this interface supposes ndims=3");
             array[0] = m_dimensions[0];
             array[1] = m_dimensions[1];
             array[2] = m_dimensions[2];
         }
 
         void dims(int &t_R, int &t_C) const {
-            GRIDTOOLS_STATIC_ASSERT(ndims == 2, "this interface supposes ndims=2");
+            GT_STATIC_ASSERT(ndims == 2, "this interface supposes ndims=2");
             t_R = m_dimensions[0];
             t_C = m_dimensions[1];
         }
@@ -168,14 +167,14 @@ namespace gridtools {
             \param[out] t_S Coordinate in third dimension
         */
         void coords(int &t_R, int &t_C, int &t_S) const {
-            GRIDTOOLS_STATIC_ASSERT(ndims == 3, "this interface supposes ndims=3");
+            GT_STATIC_ASSERT(ndims == 3, "this interface supposes ndims=3");
             t_R = m_coordinates[0];
             t_C = m_coordinates[1];
             t_S = m_coordinates[2];
         }
 
         void coords(int &t_R, int &t_C) const {
-            GRIDTOOLS_STATIC_ASSERT(ndims == 2, "this interface supposes ndims=2");
+            GT_STATIC_ASSERT(ndims == 2, "this interface supposes ndims=2");
             t_R = m_coordinates[0];
             t_C = m_coordinates[1];
         }
@@ -264,7 +263,7 @@ namespace gridtools {
         }
 
         array<bool, ndims> periodic() const {
-            GRIDTOOLS_STATIC_ASSERT(period_type::m_size == ndims, "Dimensions not matching");
+            GT_STATIC_ASSERT(period_type::m_size == ndims, "Dimensions not matching");
             return m_cyclic.value();
         }
 
@@ -277,5 +276,3 @@ namespace gridtools {
 #endif
 
 } // namespace gridtools
-
-#endif

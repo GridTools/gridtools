@@ -45,10 +45,10 @@ template <uint_t>
 struct functor_copy {
     using out = inout_accessor<0, enumtype::cells>;
     using in = in_accessor<1, enumtype::cells>;
-    using arg_list = boost::mpl::vector<out, in>;
+    using param_list = make_param_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out{}) = eval(in{});
     }
 };
@@ -62,8 +62,7 @@ TEST_F(copy_stencil_icosahedral, test) {
     auto out = make_storage<cells>();
     make_computation(p_out = out,
         p_in = in,
-        make_multistage(
-            enumtype::execute<enumtype::parallel>(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
+        make_multistage(execute::parallel(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
         .run();
     verify(in, out);
 }

@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _HALO_EXCHANGE_2D_DT_H
-#define _HALO_EXCHANGE_2D_DT_H
+#pragma once
 
 #include "../GCL.hpp"
 #include "translate.hpp"
@@ -166,15 +165,15 @@ namespace gridtools {
 
           public:
             explicit sr_buffers() {
-                m_buffers[0] = NULL;
-                m_buffers[1] = NULL;
-                m_buffers[2] = NULL;
-                m_buffers[3] = NULL;
-                m_buffers[4] = NULL;
-                m_buffers[5] = NULL;
-                m_buffers[6] = NULL;
-                m_buffers[7] = NULL;
-                m_buffers[8] = NULL;
+                m_buffers[0] = nullptr;
+                m_buffers[1] = nullptr;
+                m_buffers[2] = nullptr;
+                m_buffers[3] = nullptr;
+                m_buffers[4] = nullptr;
+                m_buffers[5] = nullptr;
+                m_buffers[6] = nullptr;
+                m_buffers[7] = nullptr;
+                m_buffers[8] = nullptr;
                 m_size[0] = 0;
                 m_size[1] = 0;
                 m_size[2] = 0;
@@ -587,5 +586,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-
-#endif

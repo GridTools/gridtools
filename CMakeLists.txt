@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 cmake_policy(SET CMP0048 NEW)
-project(GridTools VERSION 0.19.0 LANGUAGES CXX)
+project(GridTools VERSION 0.20.0 LANGUAGES CXX)
 
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -108,6 +108,8 @@ if(BUILD_TESTING)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)
+  
+  add_subdirectory(docs/manuals/getting_started/code)
 endif()
 
 # ===============

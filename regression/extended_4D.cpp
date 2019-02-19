@@ -85,10 +85,10 @@ struct integration {
     using f = in_accessor<3, extent<>, 6>;
     using result = inout_accessor<4, extent<>, 6>;
 
-    using arg_list = boost::mpl::vector<phi_t, psi_t, jac, f, result>;
+    using param_list = make_param_list<phi_t, psi_t, jac, f, result>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         dimension<1> i;
         dimension<2> j;
         dimension<3> k;
@@ -187,8 +187,7 @@ TEST_F(extended_4d, test) {
         p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
         p_f = make_storage(f),
         p_result = result,
-        make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)))
+        make_multistage(execute::forward(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)))
         .run();
 
     verify(make_storage(ref), result);

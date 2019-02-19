@@ -8,9 +8,10 @@
 .. _user-manual:
 
 =======================================
-User Manual
+|GT| User Manual
 =======================================
 
+.. include:: introduction.hrst
 .. include:: storages.hrst
 .. include:: DSL_introduction.hrst
 .. include:: stencil_operators.hrst
@@ -18,12 +19,9 @@ User Manual
 .. include:: execution_model.hrst
 .. include:: stencil_composition.hrst
 .. include:: advanced_functionality.hrst
-.. include:: performance.hrst
 .. include:: boundary_condition.hrst
 .. include:: halo_exchanges.hrst
 .. include:: comm_and_bc.hrst
 .. include:: data_management.hrst
 .. include:: interface.hrst
 .. include:: benchmarking.hrst
-.. include:: serialbox_and_porting.hrst
-

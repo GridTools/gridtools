@@ -61,16 +61,16 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct dummy_functor {
-    typedef accessor<0, inout> in;
+    typedef accessor<0, intent::inout> in;
     typedef accessor<1> out;
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval);
+    GT_FUNCTION static void apply(Evaluation &eval);
 };
 
 typedef backend<target::x86, grid_type_t, strategy::naive> naive_backend_t;
@@ -90,7 +90,7 @@ typedef intermediate<false,
     grid<axis<1>::axis_interval_t>,
     std::tuple<>,
     std::tuple<decltype(make_multistage // mss_descriptor
-        (execute<forward>(),
+        (execute::forward(),
             make_stage<dummy_functor>(p_in(), p_buff()),
             make_stage<dummy_functor>(p_buff(), p_out())))>>
     intermediate_t;

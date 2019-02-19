@@ -40,8 +40,8 @@
 #include <gridtools/storage/storage_cuda/cuda_storage.hpp>
 
 __global__ void initial_check_s1(int *s) {
-    ASSERT_OR_THROW((s[0] == 10), "check failed");
-    ASSERT_OR_THROW((s[1] == 10), "check failed");
+    GT_ASSERT_OR_THROW((s[0] == 10), "check failed");
+    GT_ASSERT_OR_THROW((s[1] == 10), "check failed");
     if (s[0] != 10 || s[1] != 10) {
         s[0] = -1;
         s[1] = -1;
@@ -49,15 +49,15 @@ __global__ void initial_check_s1(int *s) {
 }
 
 __global__ void check_s1(int *s) {
-    ASSERT_OR_THROW((s[0] == 10), "check failed");
-    ASSERT_OR_THROW((s[1] == 20), "check failed");
+    GT_ASSERT_OR_THROW((s[0] == 10), "check failed");
+    GT_ASSERT_OR_THROW((s[1] == 20), "check failed");
     s[0] = 30;
     s[1] = 40;
 }
 
 __global__ void check_s2(int *s) {
-    ASSERT_OR_THROW((s[0] == 100), "check failed");
-    ASSERT_OR_THROW((s[1] == 200), "check failed");
+    GT_ASSERT_OR_THROW((s[0] == 100), "check failed");
+    GT_ASSERT_OR_THROW((s[1] == 200), "check failed");
     s[0] = 300;
     s[1] = 400;
 }
@@ -67,9 +67,8 @@ TEST(StorageHostTest, Simple) {
     gridtools::cuda_storage<int> s1(2);
     gridtools::cuda_storage<int> s2(2);
     // test the is_storage check
-    GRIDTOOLS_STATIC_ASSERT(
-        gridtools::is_storage<decltype(s1)>::type::value, "is_storage check is not working anymore");
-    GRIDTOOLS_STATIC_ASSERT(!gridtools::is_storage<int>::type::value, "is_storage check is not working anymore");
+    GT_STATIC_ASSERT(gridtools::is_storage<decltype(s1)>::type::value, "is_storage check is not working anymore");
+    GT_STATIC_ASSERT(!gridtools::is_storage<int>::type::value, "is_storage check is not working anymore");
     // write some values
     s1.get_cpu_ptr()[0] = 10;
     s1.get_cpu_ptr()[1] = 20;

@@ -82,7 +82,7 @@ namespace gridtools {
         struct function_aggregator_offsets {
             typedef typename boost::fusion::result_of::as_vector<PassedArguments>::type accessors_list_t;
             CallerAggregator &m_caller_aggregator;
-            ReturnType *RESTRICT m_result;
+            ReturnType *GT_RESTRICT m_result;
             accessors_list_t const m_accessors_list;
 
             template <typename Accessor>
@@ -165,13 +165,13 @@ namespace gridtools {
 
         template <class Functor, class Region, class Eval>
         GT_FUNCTION enable_if_t<!std::is_void<Region>::value> call_functor(Eval &eval) {
-            Functor::template Do<Eval &>(eval, Region{});
+            Functor::template apply<Eval &>(eval, Region{});
         }
 
         // overload for the default interval (Functor with one argument)
         template <class Functor, class Region, class Eval>
         GT_FUNCTION enable_if_t<std::is_void<Region>::value> call_functor(Eval &eval) {
-            Functor::template Do<Eval &>(eval);
+            Functor::template apply<Eval &>(eval);
         }
     } // namespace _impl
 
@@ -181,7 +181,7 @@ namespace gridtools {
 
         \tparam Functos The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is not
-       called and will result in compilation error. The user is responsible for calling the proper Do overload)
+       called and will result in compilation error. The user is responsible for calling the proper apply overload)
         \tparam ReturnType Can be set or will be deduced from the first input argument
         \tparam Offi Offset along the i-direction (usually modified using at<...>)
         \tparam Offj Offset along the j-direction
@@ -194,9 +194,9 @@ namespace gridtools {
         int Offj = 0,
         int Offk = 0>
     struct call {
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
-            "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
-            "called stencil function");
+        GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
+            "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
+            "the called stencil function");
 
         /** This alias is used to move the computation at a certain offset
          */
@@ -234,7 +234,7 @@ namespace gridtools {
         GT_FUNCTION static typename get_result_type<Evaluator, Args...>::type with(
             Evaluator &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
+            GT_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
             typedef typename get_result_type<Evaluator, Args...>::type result_type;
@@ -363,7 +363,7 @@ namespace gridtools {
         \tparam Functor The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is
        not
-       called and will result in compilation error. The user is responsible for calling the proper Do overload)
+       called and will result in compilation error. The user is responsible for calling the proper apply overload)
         \tparam Offi Offset along the i-direction (usually modified using at<...>)
         \tparam Offj Offset along the j-direction
         \tparam Offk Offset along the k-direction
@@ -371,9 +371,9 @@ namespace gridtools {
     template <typename Functor, typename Region = void, int Offi = 0, int Offj = 0, int Offk = 0>
     struct call_proc {
 
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
-            "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
-            "called stencil function");
+        GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
+            "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
+            "the called stencil function");
 
         /** This alias is used to move the computation at a certain offset
          */

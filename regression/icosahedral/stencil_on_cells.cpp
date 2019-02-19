@@ -47,10 +47,10 @@ template <uint_t>
 struct test_on_cells_functor {
     using in = in_accessor<0, enumtype::cells, extent<-1, 1, -1, 1>>;
     using out = inout_accessor<1, enumtype::cells>;
-    using arg_list = boost::mpl::vector<in, out>;
+    using param_list = make_param_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return lhs + rhs; }, 0., in{}));
     }
 };
@@ -70,8 +70,7 @@ TEST_F(stencil_on_cells, test) {
     auto out = make_storage<cells>();
     auto comp = make_computation(p_in = make_storage<cells>(in),
         p_out = out,
-        make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<test_on_cells_functor, topology_t, cells>(p_in, p_out)));
+        make_multistage(execute::forward(), make_stage<test_on_cells_functor, topology_t, cells>(p_in, p_out)));
     comp.run();
     verify(make_storage<cells>(ref), out);
     benchmark(comp);

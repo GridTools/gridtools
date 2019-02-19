@@ -46,11 +46,12 @@
 
 #include <boost/function_types/parameter_types.hpp>
 #include <boost/function_types/result_type.hpp>
-#include <boost/mpl/for_each.hpp>
 #include <boost/optional.hpp>
 #include <boost/type_index.hpp>
 
+#include "../common/generic_metafunctions/copy_into_variadic.hpp"
 #include "../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+#include "../meta/transform.hpp"
 
 #include "function_wrapper.hpp"
 
@@ -100,11 +101,6 @@ namespace gridtools {
                 return boost::typeindex::type_id<typename recursive_remove_cv<T>::type>().pretty_name();
             }
 
-            template <class T>
-            struct boxed {
-                using type = boxed;
-            };
-
             template <class TypeToStr, class Fun>
             struct for_each_param_helper_f {
                 TypeToStr m_type_to_str;
@@ -112,19 +108,21 @@ namespace gridtools {
                 int &m_count;
 
                 template <class T>
-                void operator()(boxed<T>) const {
+                void operator()() const {
                     m_fun(m_type_to_str.template operator()<T>(), m_count);
                     ++m_count;
                 }
             };
 
-            template <class Signature, class TypeToStr, class Fun>
+            template <class Signature,
+                class TypeToStr,
+                class Fun,
+                class Params =
+                    copy_into_variadic<typename boost::function_types::parameter_types<Signature>::type, std::tuple<>>>
             void for_each_param(TypeToStr &&type_to_str, Fun &&fun) {
-                namespace m = boost::mpl;
                 int count = 0;
-                m::for_each<typename boost::function_types::parameter_types<Signature>::type, boxed<m::_>>(
-                    for_each_param_helper_f<TypeToStr, Fun>{
-                        std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), count});
+                for_each_type<Params>(for_each_param_helper_f<TypeToStr, Fun>{
+                    std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), count});
             };
 
             template <class CSignature>

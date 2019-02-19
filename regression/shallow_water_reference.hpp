@@ -44,7 +44,7 @@
 
 */
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 namespace {
     template <int exponent>

@@ -36,9 +36,8 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include "length.hpp"
+#include "list.hpp"
 #include "macros.hpp"
 #include "make_indices.hpp"
 #include "mp_find.hpp"
@@ -52,10 +51,10 @@ namespace gridtools {
          *
          *  @pre All elements in Set are different.
          */
-        template <class Set,
-            class T,
-            class Pair = GT_META_CALL(mp_find, (GT_META_CALL(zip, (Set, GT_META_CALL(make_indices_for, Set))), T))>
-        struct st_position : std::conditional<std::is_void<Pair>::value, length<Set>, lazy::second<Pair>>::type::type {
-        };
+        template <class Set, class T>
+        struct st_position
+            : lazy::second<GT_META_CALL(mp_find,
+                  (GT_META_CALL(zip, (Set, GT_META_CALL(make_indices_for, Set))), T, meta::list<void, length<Set>>))>::
+                  type {};
     } // namespace meta
 } // namespace gridtools

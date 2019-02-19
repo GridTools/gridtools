@@ -48,10 +48,10 @@ template <uint_t>
 struct test_on_edges_functor {
     using in = in_accessor<0, enumtype::edges, extent<-1, 1, -1, 1>>;
     using out = inout_accessor<1, enumtype::edges>;
-    using arg_list = boost::mpl::vector<in, out>;
+    using param_list = make_param_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out{}) = eval(on_edges(binop::sum{}, float_type{}, in{}));
     }
 };
@@ -71,8 +71,7 @@ TEST_F(stencil_on_edges, test) {
     auto out = make_storage<edges>();
     make_computation(p_in = make_storage<edges>(in),
         p_out = out,
-        make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<test_on_edges_functor, topology_t, edges>(p_in, p_out)))
+        make_multistage(execute::forward(), make_stage<test_on_edges_functor, topology_t, edges>(p_in, p_out)))
         .run();
     verify(make_storage<edges>(ref), out);
 }

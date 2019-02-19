@@ -63,7 +63,7 @@ TEST(DataViewTest, Simple) {
     data_store_t ds(si);
     // create a rw view and fill with some data
     data_view<data_store_t> dv = make_host_view(ds);
-    GRIDTOOLS_STATIC_ASSERT((is_data_view<decltype(dv)>::value), "is_data_view check failed");
+    GT_STATIC_ASSERT((is_data_view<decltype(dv)>::value), "is_data_view check failed");
     dv(0, 0, 0) = 50;
     dv(1, 0, 0) = 60;
 
@@ -105,7 +105,7 @@ TEST(DataViewTest, Simple) {
     EXPECT_EQ(50, dv(0, 0, 0));
     EXPECT_EQ(dv(1, 0, 0), 60);
     // create a ro view
-    data_view<data_store_t, access_mode::ReadOnly> dvro = make_host_view<access_mode::ReadOnly>(ds);
+    data_view<data_store_t, access_mode::read_only> dvro = make_host_view<access_mode::read_only>(ds);
     // check if data is the same
     EXPECT_EQ(50, dvro(0, 0, 0));
     EXPECT_EQ(dvro(1, 0, 0), 60);
@@ -118,7 +118,7 @@ TEST(DataViewTest, Simple) {
     // sync, create a device view and call kernel
     ds.sync();
     auto devv = make_device_view(ds);
-    GRIDTOOLS_STATIC_ASSERT((is_data_view<decltype(devv)>::value), "is_data_view check failed");
+    GT_STATIC_ASSERT((is_data_view<decltype(devv)>::value), "is_data_view check failed");
     EXPECT_TRUE(check_consistency(ds, devv));
     EXPECT_FALSE(check_consistency(ds, dv));
     EXPECT_FALSE(check_consistency(ds, dvro));
@@ -142,7 +142,7 @@ TEST(DataViewTest, Simple) {
     // create and allocate a second storage
     data_store_t ds_tmp(si);
     // again create a view
-    data_view<data_store_t> dv_tmp = make_host_view<access_mode::ReadWrite>(ds_tmp);
+    data_view<data_store_t> dv_tmp = make_host_view<access_mode::read_write>(ds_tmp);
     // the combination ds_tmp <--> dv/dvro is not a valid view
     EXPECT_FALSE(check_consistency(ds, dv_tmp));
     EXPECT_FALSE(check_consistency(ds_tmp, devv));
@@ -165,8 +165,8 @@ TEST(DataViewTest, ZeroSize) {
     typedef data_store<cuda_storage<double>, storage_info_t> data_store_t;
     // create and allocate a data_store
     data_store_t ds;
-    data_view<data_store_t, access_mode::ReadOnly> hv = make_host_view<access_mode::ReadOnly>(ds);
-    data_view<data_store_t, access_mode::ReadOnly> dv = make_device_view<access_mode::ReadOnly>(ds);
+    data_view<data_store_t, access_mode::read_only> hv = make_host_view<access_mode::read_only>(ds);
+    data_view<data_store_t, access_mode::read_only> dv = make_device_view<access_mode::read_only>(ds);
 }
 
 TEST(DataViewTest, Looping) {
@@ -176,7 +176,7 @@ TEST(DataViewTest, Looping) {
     typedef data_store<cuda_storage<triplet>, storage_info_t> data_store_t;
 
     data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
-    auto view = make_host_view<access_mode::ReadWrite>(ds);
+    auto view = make_host_view<access_mode::read_write>(ds);
 
     for (int i = view.begin<0>(); i <= view.end<0>(); ++i) {
         for (int j = view.begin<1>(); j <= view.end<1>(); ++j) {
@@ -203,8 +203,8 @@ TEST(DataViewTest, TargetView) {
 
     data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
 
-    auto target_view = make_target_view<access_mode::ReadOnly>(ds);
-    auto device_view = make_device_view<access_mode::ReadOnly>(ds);
+    auto target_view = make_target_view<access_mode::read_only>(ds);
+    auto device_view = make_device_view<access_mode::read_only>(ds);
 
     ASSERT_EQ(advanced::get_raw_pointer_of(device_view), advanced::get_raw_pointer_of(target_view));
 }
@@ -216,7 +216,7 @@ TEST(DataViewTest, CheckMemorySpace) {
     typedef data_store<cuda_storage<int>, storage_info_t> data_store_t;
 
     data_store_t ds(si, -1, "ds");
-    auto view = make_device_view<access_mode::ReadWrite>(ds);
+    auto view = make_device_view<access_mode::read_write>(ds);
 
 #ifndef NDEBUG
     EXPECT_THROW(view(0, 0, 1), std::runtime_error);

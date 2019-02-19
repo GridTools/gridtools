@@ -48,10 +48,10 @@ struct prepare_tracers {
     using data_nnow = in_accessor<1>;
     using rho = in_accessor<2>;
 
-    using arg_list = boost::mpl::vector<data, data_nnow, rho>;
+    using param_list = make_param_list<data, data_nnow, rho>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(data()) = eval(rho()) * eval(data_nnow());
     }
 };
@@ -77,7 +77,7 @@ TEST_F(advection_pdbott_prepare_tracers, test) {
         p_out = out,
         p_in = in,
         p_rho = make_storage(1.1),
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<prepare_tracers>(p_out, p_in, p_rho)));
+        make_multistage(execute::forward(), make_stage<prepare_tracers>(p_out, p_in, p_rho)));
 
     comp.run();
     for (size_t i = 0; i != out.size(); ++i)

@@ -77,10 +77,10 @@ namespace gridtools {
         GT_META_CALL(extract_mss_esfs, (MssParameters...)),
         typename extract_mss_caches<MssParameters...>::type>
     make_multistage(ExecutionEngine, MssParameters...) {
-        GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value),
-            "The first argument passed to make_multistage must be the execution engine (e.g. execute<forward>(), "
-            "execute<backward>(), execute<parallel>()");
-        GRIDTOOLS_STATIC_ASSERT(conjunction<is_mss_parameter<MssParameters>...>::value,
+        GT_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value),
+            "The first argument passed to make_multistage must be the execution engine (e.g. execute::forward(), "
+            "execute::backward(), execute::parallel())");
+        GT_STATIC_ASSERT(conjunction<is_mss_parameter<MssParameters>...>::value,
             "wrong set of mss parameters passed to make_multistage construct.\n"
             "Check that arguments passed are either :\n"
             " * caches from define_caches(...) construct or\n"

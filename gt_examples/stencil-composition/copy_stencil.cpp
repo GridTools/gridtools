@@ -41,7 +41,6 @@
 #include <boost/mpl/vector.hpp>
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/tools/backend_select.hpp>
 
 /**
   @file
@@ -49,17 +48,25 @@
 */
 namespace gt = gridtools;
 
+#ifdef __CUDACC__
+using target_t = gt::target::cuda;
+#else
+using target_t = gt::target::mc;
+#endif
+
+using backend_t = gt::backend<target_t, gt::grid_type::structured, gt::strategy::block>;
+
 using storage_info_t = gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
-using data_store_t = gt::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t>;
+using data_store_t = gt::storage_traits<backend_t::backend_id_t>::data_store_t<double, storage_info_t>;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
-    using in = gt::accessor<0, gt::enumtype::in>;
-    using out = gt::accessor<1, gt::enumtype::inout>;
-    using arg_list = boost::mpl::vector<in, out>;
+    using in = gt::accessor<0, gt::intent::in>;
+    using out = gt::accessor<1, gt::intent::inout>;
+    using param_list = gt::make_param_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval(in());
     }
 };
@@ -121,8 +128,7 @@ int main(int argc, char **argv) {
     auto copy = gt::make_computation<backend_t>(grid,
         p_in{} = in,
         p_out{} = out,
-        gt::make_multistage(
-            gt::enumtype::execute<gt::enumtype::parallel>{}, gt::make_stage<copy_functor>(p_in{}, p_out{})));
+        gt::make_multistage(gt::execute::parallel{}, gt::make_stage<copy_functor>(p_in{}, p_out{})));
 
     copy.run();
 

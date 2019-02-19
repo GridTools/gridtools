@@ -42,7 +42,6 @@
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../meta.hpp"
-
 #include "./arg.hpp"
 #include "./extent.hpp"
 
@@ -68,16 +67,11 @@ namespace gridtools {
      * to adapt it for a particular functor. This version does not provide grid
      * to the function operator
      *
-     * @tparam StoragePointers The mpl vector of the storage pointer types
-     * @tparam MetaData The mpl vector of the meta data pointer types sequence
-     * @tparam EsfArgs The mpl vector of the args (i.e. placeholders for the storages)
-                       for the current ESF
-     * @tparam IsStateful The flag stating if the local_domain is aware of the position in the iteration domain
      */
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain {
-        GRIDTOOLS_STATIC_ASSERT(is_extent<MaxExtentForTmp>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, EsfArgs>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_extent<MaxExtentForTmp>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_plh, EsfArgs>::value), GT_INTERNAL_ERROR);
 
         using type = local_domain;
 
@@ -96,9 +90,6 @@ namespace gridtools {
         using storage_info_ptr_fusion_list = typename boost::fusion::result_of::as_vector<storage_info_ptr_list>::type;
         using size_array = array<uint_t, meta::length<storage_info_ptr_list>::value>;
 
-        template <class N>
-        struct get_arg : meta::lazy::at_c<EsfArgs, N::value> {};
-
         data_ptr_fusion_map m_local_data_ptrs;
         storage_info_ptr_fusion_list m_local_storage_info_ptrs;
         size_array m_local_padded_total_lengths;
@@ -115,12 +106,9 @@ namespace gridtools {
 
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain_is_stateful<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> : bool_constant<IsStateful> {};
-
-    template <class>
-    struct local_domain_esf_args;
 } // namespace gridtools
 
-#ifdef _USE_GPU_
+#ifdef GT_USE_GPU
 #include "../common/cuda_util.hpp"
 
 namespace gridtools {

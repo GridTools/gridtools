@@ -37,23 +37,14 @@
 
 #include <cuda_runtime.h>
 
-#include <boost/mpl/eval_if.hpp>
-#include <boost/mpl/quote.hpp>
-
 #include "../../common/defs.hpp"
+#include "../../common/timer/timer_traits.hpp"
 #include "../../storage/data_store.hpp"
 
 #include "../backend_traits_fwd.hpp"
 #include "../grid_traits_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
-#include "iterate_domain_cache.hpp"
 #include "strategy_cuda.hpp"
-
-#ifdef ENABLE_METERS
-#include "timer_cuda.hpp"
-#else
-#include "../timer_dummy.hpp"
-#endif
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -92,7 +83,7 @@ namespace gridtools {
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid, typename ExecutionInfo>
             static void run(LocalDomain &local_domain, const Grid &grid, ExecutionInfo &&) {
                 typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
@@ -108,20 +99,11 @@ namespace gridtools {
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_cuda<typename BackendIds::strategy_id_t> type;
         };
 
-        template <typename IterateDomainArguments>
-        struct select_iterate_domain_cache {
-            typedef iterate_domain_cache<IterateDomainArguments> type;
-        };
-
-#ifdef ENABLE_METERS
-        typedef timer_cuda performance_meter_t;
-#else
-        typedef timer_dummy performance_meter_t;
-#endif
+        using performance_meter_t = typename timer_traits<target::cuda>::timer_type;
     };
 
 } // namespace gridtools

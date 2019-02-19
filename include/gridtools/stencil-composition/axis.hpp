@@ -55,10 +55,10 @@ namespace gridtools {
       private:
         template <size_t... IntervalIDs>
         struct interval_impl {
-            GRIDTOOLS_STATIC_ASSERT((is_continuous(IntervalIDs...)), "Intervals must be continuous.");
+            GT_STATIC_ASSERT((is_continuous(IntervalIDs...)), "Intervals must be continuous.");
             static constexpr size_t min_id = constexpr_min(IntervalIDs...);
             static constexpr size_t max_id = constexpr_max(IntervalIDs...);
-            GRIDTOOLS_STATIC_ASSERT((max_id < NIntervals), "Interval ID out of bounds for this axis.");
+            GT_STATIC_ASSERT((max_id < NIntervals), "Interval ID out of bounds for this axis.");
 
             using type = interval<level<min_id, 1, LevelOffsetLimit>, level<max_id + 1, -1, LevelOffsetLimit>>;
         };
@@ -82,12 +82,6 @@ namespace gridtools {
         using get_interval = typename interval_impl<IntervalIDs...>::type;
 
         static constexpr int_t level_offset_limit = LevelOffsetLimit;
-
-        template <int_t NewExtraOffsetsAroundFullInterval>
-        using with_extra_offsets = axis<NIntervals, NewExtraOffsetsAroundFullInterval, LevelOffsetLimit>;
-
-        template <int_t NewLevelOffsetLimit>
-        using with_offset_limit = axis<NIntervals, ExtraOffsetsAroundFullInterval, NewLevelOffsetLimit>;
 
       private:
         array<uint_t, NIntervals> interval_sizes_;

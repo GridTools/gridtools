@@ -34,7 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "./linearize_mss_functions.hpp"
+
+#include "../meta.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "esf_metafunctions.hpp"
 #include "make_loop_intervals.hpp"
@@ -43,6 +44,25 @@
 #include "stages_maker.hpp"
 
 namespace gridtools {
+
+    namespace mss_comonents_impl_ {
+        template <class Esf>
+        GT_META_DEFINE_ALIAS(esf_produce_temporary,
+            bool_constant,
+            !boost::mpl::empty<typename esf_get_w_temps_per_functor<Esf>::type>::value);
+
+        template <class ExtentMap>
+        struct get_extent_f {
+            template <class Esf>
+            GT_META_DEFINE_ALIAS(apply, meta::id, (typename get_extent_for<Esf, ExtentMap>::type));
+        };
+
+        template <class Esfs,
+            class ExtentMap,
+            class TmpEsfs = GT_META_CALL(meta::filter, (esf_produce_temporary, Esfs)),
+            class Extents = GT_META_CALL(meta::transform, (get_extent_f<ExtentMap>::template apply, TmpEsfs))>
+        GT_META_DEFINE_ALIAS(get_max_extent_for_tmp, meta::rename, (enclosing_extent, Extents));
+    } // namespace mss_comonents_impl_
 
     /**
      * @brief the mss components contains meta data associated to a mss descriptor.
@@ -53,19 +73,17 @@ namespace gridtools {
      */
     template <typename MssDescriptor, typename ExtentMap, typename Axis>
     struct mss_components {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_mss_descriptor<MssDescriptor>::value, GT_INTERNAL_ERROR);
         typedef MssDescriptor mss_descriptor_t;
 
-        typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
+        typedef typename MssDescriptor::execution_engine_t execution_engine_t;
 
         /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
             esf structs. Independent functors are listed one after the other.*/
-        typedef typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type linear_esf_t;
+        using linear_esf_t = GT_META_CALL(unwrap_independent, typename MssDescriptor::esf_sequence_t);
 
-        typedef typename get_extent_sizes<MssDescriptor, ExtentMap>::type extent_sizes_t;
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<extent_sizes_t, is_extent>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            boost::mpl::size<extent_sizes_t>::value == boost::mpl::size<linear_esf_t>::value, GT_INTERNAL_ERROR);
+        using extent_map_t = ExtentMap;
+
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
 
         // For historical reasons the user provided axis interval is stripped by one level from the right to produce
@@ -83,4 +101,9 @@ namespace gridtools {
 
     template <typename T>
     GT_META_DEFINE_ALIAS(is_mss_components, meta::is_instantiation_of, (mss_components, T));
+
+    template <class MssComponents>
+    GT_META_DEFINE_ALIAS(get_max_extent_for_tmp_from_mss_components,
+        mss_comonents_impl_::get_max_extent_for_tmp,
+        (typename MssComponents::linear_esf_t, typename MssComponents::extent_map_t));
 } // namespace gridtools

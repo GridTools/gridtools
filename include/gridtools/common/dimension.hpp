@@ -48,17 +48,13 @@ namespace gridtools {
     */
 
     /**
-       @section enumtype
-       @{
        @brief The following struct defines one specific component of a field
        It contains a direction (compile time constant, specifying the ID of the component),
        and a value (runtime value, which is storing the offset in the given direction).
-       As everything what is inside the enumtype namespace, the dimension keyword is
-       supposed to be used at the application interface level.
     */
     template <ushort_t Coordinate>
     struct dimension {
-        GRIDTOOLS_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
+        GT_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
 
         GT_FUNCTION constexpr dimension() : value(0) {}
 

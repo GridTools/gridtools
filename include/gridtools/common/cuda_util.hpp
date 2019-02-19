@@ -77,7 +77,7 @@ namespace gridtools {
 
         template <class T>
         unique_cuda_ptr<T> make_clone(T const &src) {
-            GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
             unique_cuda_ptr<T> res = cuda_malloc<T>();
             GT_CUDA_CHECK(cudaMemcpy(res.get(), &src, sizeof(T), cudaMemcpyHostToDevice));
             return res;
@@ -85,7 +85,7 @@ namespace gridtools {
 
         template <class T>
         T from_clone(unique_cuda_ptr<T> const &clone) {
-            GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
             T res;
             GT_CUDA_CHECK(cudaMemcpy(&res, clone.get(), sizeof(T), cudaMemcpyDeviceToHost));
             return res;

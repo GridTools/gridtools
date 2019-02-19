@@ -51,10 +51,10 @@ using alignment_test = regression_fixture<2>;
 struct not_aligned {
     using acc = inout_accessor<0>;
     using out = inout_accessor<1>;
-    using arg_list = boost::mpl::vector<acc, out>;
+    using param_list = make_param_list<acc, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         auto *ptr = &eval(acc{});
         constexpr auto alignment = sizeof(decltype(*ptr)) * alignment_test::storage_info_t::alignment_t::value;
         constexpr auto halo_size = alignment_test::halo_size;
@@ -69,7 +69,7 @@ TEST_F(alignment_test, test) {
     make_positional_computation<backend_t>(make_grid(),
         p_0 = make_storage(),
         p_out = out,
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<not_aligned>(p_0, p_out)))
+        make_multistage(execute::forward(), make_stage<not_aligned>(p_0, p_out)))
         .run();
     verify(make_storage<bool_storage>(false), out);
 }

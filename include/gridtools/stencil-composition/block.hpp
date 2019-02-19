@@ -66,7 +66,7 @@
 #include "./backend_cuda/block.hpp"
 #include "./backend_x86/block.hpp"
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "./structured_grids/block.hpp"
 #endif
 
@@ -86,7 +86,7 @@ namespace gridtools {
     }
     template <class Backend, class Grid>
     uint_t block_k_size(Backend const &, Grid const &grid) {
-        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         return grid.k_total_length();
     }
 } // namespace gridtools

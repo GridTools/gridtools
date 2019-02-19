@@ -44,10 +44,10 @@ template <uint_t>
 struct functor_copy {
     using out = inout_accessor<0, enumtype::cells>;
     using in = in_accessor<1, enumtype::cells>;
-    using arg_list = boost::mpl::vector<out, in>;
+    using param_list = make_param_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out{}) = eval(in{});
     }
 };
@@ -74,8 +74,7 @@ TEST_F(expandable_parameters_icosahedral, test) {
         make_grid(),
         p_out = out,
         p_in = in,
-        make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
+        make_multistage(execute::forward(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
         .run();
 
     for (size_t i = 0; i != in.size(); ++i)

@@ -45,10 +45,10 @@ struct copy_functor {
     using in = in_accessor<0>;
     using out = inout_accessor<1>;
 
-    using arg_list = boost::mpl::vector<in, out>;
+    using param_list = make_param_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval(in());
     }
 };
@@ -59,9 +59,8 @@ struct copy_stencil : regression_fixture<0> {
 };
 
 TEST_F(copy_stencil, test) {
-    auto comp = make_computation(p_0 = in,
-        p_1 = out,
-        make_multistage(enumtype::execute<enumtype::parallel>(), make_stage<copy_functor>(p_0, p_1)));
+    auto comp =
+        make_computation(p_0 = in, p_1 = out, make_multistage(execute::parallel(), make_stage<copy_functor>(p_0, p_1)));
 
     comp.run();
     verify(in, out);
@@ -71,8 +70,7 @@ TEST_F(copy_stencil, test) {
 TEST_F(copy_stencil, with_extents) {
     make_computation(p_0 = in,
         p_1 = out,
-        make_multistage(
-            enumtype::execute<enumtype::parallel>(), make_stage_with_extent<copy_functor, extent<>>(p_0, p_1)))
+        make_multistage(execute::parallel(), make_stage_with_extent<copy_functor, extent<>>(p_0, p_1)))
         .run();
     verify(in, out);
 }

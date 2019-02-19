@@ -40,7 +40,6 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
 
 namespace cs_test {
 
@@ -52,10 +51,10 @@ namespace cs_test {
     struct test_functor {
         typedef in_accessor<0, icosahedral_topology_t::cells, extent<1>> in;
         typedef inout_accessor<1, icosahedral_topology_t::cells> out;
-        typedef boost::mpl::vector2<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -105,7 +104,7 @@ TEST(test_copy_stencil, run) {
         p_in_cells() = in_cells,
         p_out_cells() = out_cells,
         gridtools::make_multistage // mss_descriptor
-        (execute<forward>(),
+        (execute::forward(),
             gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                 p_in_cells(), p_out_cells())));
     copy.run();

@@ -53,8 +53,8 @@ GT_FUNCTION static constexpr bool check_and(Args... args) {
 
 GT_FUNCTION
 static bool test_accumulate_and() {
-    GRIDTOOLS_STATIC_ASSERT((check_and(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3})), "Error");
-    GRIDTOOLS_STATIC_ASSERT((!check_and(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3}, 7)), "Error");
+    GT_STATIC_ASSERT((check_and(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3})), "Error");
+    GT_STATIC_ASSERT((!check_and(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3}, 7)), "Error");
 
     return true;
 }
@@ -62,10 +62,10 @@ static bool test_accumulate_and() {
 GT_FUNCTION
 static bool test_accumulate_or() {
 
-    GRIDTOOLS_STATIC_ASSERT((check_or(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3})), "Error");
-    GRIDTOOLS_STATIC_ASSERT((check_or(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3})), "Error");
-    GRIDTOOLS_STATIC_ASSERT((check_or(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3}, 7)), "Error");
-    GRIDTOOLS_STATIC_ASSERT((!check_or(-2, 3, 7)), "Error");
+    GT_STATIC_ASSERT((check_or(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3})), "Error");
+    GT_STATIC_ASSERT((check_or(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3})), "Error");
+    GT_STATIC_ASSERT((check_or(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3}, 7)), "Error");
+    GT_STATIC_ASSERT((!check_or(-2, 3, 7)), "Error");
 
     return true;
 }

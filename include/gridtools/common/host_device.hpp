@@ -44,7 +44,7 @@
     @{
 */
 
-#ifdef _USE_GPU_
+#ifdef GT_USE_GPU
 #include <cuda_runtime.h>
 #endif
 

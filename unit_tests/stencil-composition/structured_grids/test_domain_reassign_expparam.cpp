@@ -55,12 +55,12 @@
 
 namespace gridtools {
     struct test_functor {
-        using in = accessor<0, enumtype::in, extent<>>;
-        using out = accessor<1, enumtype::inout, extent<>>;
-        using arg_list = boost::mpl::vector<in, out>;
+        using in = accessor<0, intent::in, extent<>>;
+        using out = accessor<1, intent::inout, extent<>>;
+        using param_list = make_param_list<in, out>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -85,7 +85,7 @@ namespace gridtools {
         fixture()
             : m_computation{make_computation<backend_t>(expand_factor<2>{},
                   m_grid,
-                  make_multistage(enumtype::execute<enumtype::forward>(),
+                  make_multistage(execute::forward(),
                       make_stage<test_functor>(p_in{}, p_tmp{}),
                       make_stage<test_functor>(p_tmp{}, p_out{})))} {}
 
@@ -98,7 +98,7 @@ namespace gridtools {
         bool verify(storage_t const &lhs, storage_t const &rhs) {
             lhs.sync();
             rhs.sync();
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
             const double precision = 1e-6;
 #else
             const double precision = 1e-10;

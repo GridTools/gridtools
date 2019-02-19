@@ -48,11 +48,11 @@ namespace gridtools {
                     m_procedures[generic_name].push_back(concrete_name);
                 }
                 friend std::ostream &operator<<(std::ostream &strm, fortran_generics const &obj) {
+                    const std::string prefix = "    ";
                     for (auto &&item : obj.m_procedures) {
                         strm << "  interface " << item.first << "\n";
-                        const std::string prefix = "";
                         std::string line = "";
-                        line += "    procedure ";
+                        line += "procedure ";
                         bool need_comma = false;
                         for (auto &&procedure : item.second) {
                             if (need_comma)
@@ -145,7 +145,7 @@ namespace gridtools {
                 auto next_it = it + max_line_length - line_divider.size() - current_prefix.size();
                 while (*(next_it - 1) != ',') {
                     --next_it;
-                    ASSERT_OR_THROW(next_it != line.begin() + 1, "Too long line cannot be wrapped");
+                    GT_ASSERT_OR_THROW(next_it != line.begin() + 1, "Too long line cannot be wrapped");
                 }
 
                 ret.append(current_prefix);

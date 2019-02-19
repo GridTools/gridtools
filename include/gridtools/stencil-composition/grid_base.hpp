@@ -66,7 +66,7 @@ namespace gridtools {
 
     template <typename Axis>
     struct grid_base {
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_interval<Axis>::value), GT_INTERNAL_ERROR);
         typedef Axis axis_type;
 
         static constexpr int_t size = Axis::ToLevel::splitter - Axis::FromLevel::splitter + 1;
@@ -114,13 +114,13 @@ namespace gridtools {
 
         template <class Level, int_t Offset = Level::offset>
         GT_FUNCTION enable_if_t<(Offset > 0), uint_t> value_at() const {
-            GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
             return value_list[Level::splitter] + Offset - 1;
         }
 
         template <class Level, int_t Offset = Level::offset>
         GT_FUNCTION enable_if_t<(Offset <= 0), uint_t> value_at() const {
-            GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
             return value_list[Level::splitter] - static_cast<uint_t>(-Offset);
         }
 

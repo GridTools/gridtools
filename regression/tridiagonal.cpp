@@ -66,16 +66,16 @@ struct forward_thomas {
     using diag = in_accessor<2>;   // b
     using sup = inout_accessor<3>; // c
     using rhs = inout_accessor<4>; // d
-    using arg_list = boost::mpl::vector<out, inf, diag, sup, rhs>;
+    using param_list = make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<1, 0>) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, 0>) {
         eval(sup{}) = eval(sup{} / (diag{} - sup{0, 0, -1} * inf{}));
         eval(rhs{}) = eval((rhs{} - inf{} * rhs{0, 0, -1}) / (diag{} - sup{0, 0, -1} * inf{}));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::first_level) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::first_level) {
         eval(sup{}) = eval(sup{}) / eval(diag{});
         eval(rhs{}) = eval(rhs{}) / eval(diag{});
     }
@@ -87,15 +87,15 @@ struct backward_thomas {
     using diag = in_accessor<2>;   // b
     using sup = inout_accessor<3>; // c
     using rhs = inout_accessor<4>; // d
-    using arg_list = boost::mpl::vector<out, inf, diag, sup, rhs>;
+    using param_list = make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<0, 1>) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::modify<0, -1>) {
         eval(out{}) = eval(rhs{} - sup{} * out{0, 0, 1});
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::last_level) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::last_level) {
         eval(out{}) = eval(rhs{});
     }
 };
@@ -120,10 +120,8 @@ TEST_F(tridiagonal, test) {
         p_sup = sup,
         p_rhs = rhs,
         p_out = out,
-        make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
-        make_multistage(
-            enumtype::execute<enumtype::backward>(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)))
+        make_multistage(execute::forward(), make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
+        make_multistage(execute::backward(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)))
         .run();
 
     verify(make_storage(1.), out);

@@ -36,7 +36,7 @@
 
 #include <iomanip>
 
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
 #include <mpi.h>
 #endif
 
@@ -124,7 +124,7 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.total_length<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
-#ifndef _GCL_MPI_
+#ifndef GCL_MPI
     {
         // If MPI is not defined, the communication cannot be periodic.
         // This allows testing without MPI
@@ -132,7 +132,7 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     }
 #endif
 
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
     int dims[3] = {0, 0, 0};
 
     MPI_Dims_create(PROCS, 3, dims);
@@ -348,7 +348,7 @@ TEST(DistributedBoundaries, Test) {
     halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.total_length<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
     int dims[3] = {0, 0, 0};
 
     MPI_Dims_create(PROCS, 3, dims);
@@ -534,6 +534,8 @@ TEST(DistributedBoundaries, Test) {
     }
 
     EXPECT_TRUE(ok);
+
+    std::cout << cabc.print_meters() << std::endl;
 
     EXPECT_THROW(cabc.exchange(a, b, c, d), std::runtime_error);
 }

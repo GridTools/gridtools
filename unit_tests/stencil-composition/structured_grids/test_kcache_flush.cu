@@ -39,40 +39,39 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
 
 struct shift_acc_forward_flush {
 
-    typedef accessor<0, enumtype::in, extent<>> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(out()) = eval(in());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_high) {
         eval(out()) = eval(out(0, 0, -1)) + eval(in());
     }
 };
 
 struct shift_acc_backward_flush {
 
-    typedef accessor<0, enumtype::in, extent<>> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_low) {
         eval(out()) = eval(out(0, 0, 1)) + eval(in());
     }
 };
@@ -94,19 +93,16 @@ TEST_F(kcachef, flush_forward) {
     auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
-        make_multistage // mss_descriptor
-        (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::flush>(p_out())),
-            make_stage<shift_acc_forward_flush>(p_in() // esf_descriptor
-                ,
-                p_out())));
+        make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
+            make_stage<shift_acc_forward_flush>(p_in(), p_out())));
 
     kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -135,19 +131,16 @@ TEST_F(kcachef, flush_backward) {
     auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
-        make_multistage // mss_descriptor
-        (execute<backward>(),
-            define_caches(cache<K, cache_io_policy::flush>(p_out())),
-            make_stage<shift_acc_backward_flush>(p_in() // esf_descriptor
-                ,
-                p_out())));
+        make_multistage(execute::backward(),
+            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
+            make_stage<shift_acc_backward_flush>(p_in(), p_out())));
 
     kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);

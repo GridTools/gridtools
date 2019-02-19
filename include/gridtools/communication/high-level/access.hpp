@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _GCL_ACCESS_H_
-#define _GCL_ACCESS_H_
+#pragma once
 
 namespace gridtools {
 
@@ -57,4 +56,3 @@ namespace gridtools {
         return index;
     }
 } // namespace gridtools
-#endif

@@ -54,10 +54,10 @@ struct wlap_function {
     using crlato = in_accessor<2>;
     using crlatu = in_accessor<3>;
 
-    using arg_list = boost::mpl::vector<out, in, crlato, crlatu>;
+    using param_list = make_param_list<out, in, crlato, crlatu>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval(in(1, 0)) + eval(in(-1, 0)) - float_type{2} * eval(in()) +
                       eval(crlato()) * (eval(in(0, 1)) - eval(in())) + eval(crlatu()) * (eval(in(0, -1)) - eval(in()));
     }
@@ -70,10 +70,10 @@ struct divflux_function {
     using crlato = in_accessor<3>;
     using coeff = in_accessor<4>;
 
-    using arg_list = boost::mpl::vector<out, in, lap, crlato, coeff>;
+    using param_list = make_param_list<out, in, lap, crlato, coeff>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         auto fluxx = eval(lap(1, 0)) - eval(lap());
         auto fluxx_m = eval(lap()) - eval(lap(-1, 0));
 
@@ -103,8 +103,8 @@ TEST_F(simple_hori_diff, test) {
         p_out = out,
         p_crlato = make_storage<j_storage_type>(repo.crlato),
         p_crlatu = make_storage<j_storage_type>(repo.crlatu),
-        make_multistage(enumtype::execute<enumtype::forward>(),
-            define_caches(cache<IJ, cache_io_policy::local>(p_lap)),
+        make_multistage(execute::forward(),
+            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_lap)),
             make_stage<wlap_function>(p_lap, p_in, p_crlato, p_crlatu),
             make_stage<divflux_function>(p_out, p_in, p_lap, p_crlato, p_coeff)));
 

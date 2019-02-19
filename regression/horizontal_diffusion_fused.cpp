@@ -50,10 +50,10 @@ struct lap_function {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 1, -1, 1>>;
 
-    using arg_list = boost::mpl::vector<out, in>;
+    using param_list = make_param_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) =
             float_type{4} * eval(in()) - (eval(in(1, 0)) + eval(in(0, 1)) + eval(in(-1, 0)) + eval(in(0, -1)));
     }
@@ -63,10 +63,10 @@ struct flx_function {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 2, -1, 1>>;
 
-    using arg_list = boost::mpl::vector<out, in>;
+    using param_list = make_param_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         auto lap_hi = call<lap_function>::with(eval, in(1, 0));
         auto lap_lo = call<lap_function>::with(eval, in(0, 0));
         auto flx = lap_hi - lap_lo;
@@ -78,10 +78,10 @@ struct fly_function {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 1, -1, 2>>;
 
-    using arg_list = boost::mpl::vector<out, in>;
+    using param_list = make_param_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         auto lap_hi = call<lap_function>::with(eval, in(0, 1));
         auto lap_lo = call<lap_function>::with(eval, in(0, 0));
         auto fly = lap_hi - lap_lo;
@@ -94,10 +94,10 @@ struct out_function {
     using in = in_accessor<1, extent<-2, 2, -2, 2>>;
     using coeff = in_accessor<2>;
 
-    using arg_list = boost::mpl::vector<out, in, coeff>;
+    using param_list = make_param_list<out, in, coeff>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         auto flx_hi = call<flx_function>::with(eval, in(0, 0));
         auto flx_lo = call<flx_function>::with(eval, in(-1, 0));
 
@@ -122,7 +122,7 @@ TEST_F(horizontal_diffusion_fused, test) {
     auto comp = make_computation(p_in = make_storage(repo.in),
         p_out = out,
         p_coeff = make_storage(repo.coeff),
-        make_multistage(enumtype::execute<enumtype::parallel>(), make_stage<out_function>(p_out, p_in, p_coeff)));
+        make_multistage(execute::parallel(), make_stage<out_function>(p_out, p_in, p_coeff)));
 
     comp.run();
     verify(make_storage(repo.out), out);
