@@ -40,8 +40,7 @@ implicit none
 
   end interface
   interface generic_create_data_store
-        procedure generic_create_data_store0, generic_create_data_store1
-
+    procedure generic_create_data_store0, generic_create_data_store1
   end interface
 contains
 end
