@@ -86,6 +86,7 @@ namespace gridtools {
      */
     template <typename ExecutionEngine,
         typename... MssParameters,
+        // Check argument types before mss_descriptor is instantiated to get nicer error messages
         bool ArgsOk = _impl::check_make_multistage_args<ExecutionEngine, MssParameters...>::value>
     mss_descriptor<ExecutionEngine,
         GT_META_CALL(extract_mss_esfs, (MssParameters...)),
