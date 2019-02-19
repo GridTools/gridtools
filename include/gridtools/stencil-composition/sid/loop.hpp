@@ -52,7 +52,7 @@ namespace gridtools {
     namespace sid {
         namespace loop_impl_ {
 
-            template <size_t I, class T>
+            template <class Key, class T>
             struct generic_loop {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
@@ -70,7 +70,7 @@ namespace gridtools {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
-                        auto &&stride = get_stride<I>(strides);
+                        auto &&stride = get_stride<Key>(strides);
                         for (T i = 0; i < m_num_steps; ++i) {
                             m_fun(ptr, strides);
                             shift(ptr, stride, m_step);
@@ -97,11 +97,11 @@ namespace gridtools {
                         if (m_num_steps <= 0)
                             return;
                         if (++m_pos == m_num_steps) {
-                            shift(ptr, get_stride<I>(strides), m_step * (1 - m_num_steps));
+                            shift(ptr, get_stride<Key>(strides), m_step * (1 - m_num_steps));
                             m_pos = 0;
                             m_outer.next(ptr, strides);
                         } else {
-                            shift(ptr, get_stride<I>(strides), m_step);
+                            shift(ptr, get_stride<Key>(strides), m_step);
                         }
                     }
 
@@ -120,7 +120,7 @@ namespace gridtools {
                     template <class Ptr, class Strides>
                     void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         --m_pos;
-                        shift(ptr, get_stride<I>(strides), m_step);
+                        shift(ptr, get_stride<Key>(strides), m_step);
                     }
 
                     GT_FUNCTION bool done() const { return m_pos > 0; }
@@ -129,7 +129,7 @@ namespace gridtools {
                 constexpr GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_step, m_num_steps}; }
             };
 
-            template <size_t I, class T, ptrdiff_t Step>
+            template <class Key, class T, ptrdiff_t Step>
             struct known_step_loop {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
@@ -145,7 +145,7 @@ namespace gridtools {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
-                        auto &&stride = get_stride<I>(strides);
+                        auto &&stride = get_stride<Key>(strides);
                         for (T i = 0; i < m_num_steps; ++i) {
                             m_fun(ptr, strides);
                             shift(ptr, stride, integral_constant<T, Step>{});
@@ -172,11 +172,11 @@ namespace gridtools {
                         if (m_num_steps <= 0)
                             return;
                         if (++m_pos == m_num_steps) {
-                            shift(ptr, get_stride<I>(strides), Step * (1 - m_num_steps));
+                            shift(ptr, get_stride<Key>(strides), Step * (1 - m_num_steps));
                             m_pos = 0;
                             m_outer.next(ptr, strides);
                         } else {
-                            shift(ptr, get_stride<I>(strides), integral_constant<T, Step>{});
+                            shift(ptr, get_stride<Key>(strides), integral_constant<T, Step>{});
                         }
                     }
 
@@ -194,7 +194,7 @@ namespace gridtools {
                     template <class Ptr, class Strides>
                     void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         --m_pos;
-                        shift(ptr, get_stride<I>(strides), integral_constant<T, Step>{});
+                        shift(ptr, get_stride<Key>(strides), integral_constant<T, Step>{});
                     }
 
                     GT_FUNCTION bool done() const { return m_pos > 0; }
@@ -203,8 +203,8 @@ namespace gridtools {
                 constexpr GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_num_steps}; }
             };
 
-            template <size_t I, class T>
-            struct known_step_loop<I, T, 0> {
+            template <class Key, class T>
+            struct known_step_loop<Key, T, 0> {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 T m_num_steps;
@@ -266,7 +266,7 @@ namespace gridtools {
                 constexpr GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_num_steps}; }
             };
 
-            template <size_t I, class T, T NumSteps>
+            template <class Key, class T, T NumSteps>
             struct known_num_steps_loop {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
@@ -279,7 +279,7 @@ namespace gridtools {
 
                     template <class Ptr, class Strides>
                     void GT_FUNCTION operator()(Ptr &GT_RESTRICT ptr, const Strides &GT_RESTRICT strides) const {
-                        auto &&stride = get_stride<I>(strides);
+                        auto &&stride = get_stride<Key>(strides);
                         // TODO(anstaf): to figure out if for_each<make_indices_c<NumSteps>>(...) produces better code.
                         for (T i = 0; i < NumSteps; ++i) {
                             m_fun(ptr, strides);
@@ -305,11 +305,11 @@ namespace gridtools {
                     void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         if (++m_pos == NumSteps) {
                             constexpr T num_steps_back = 1 - NumSteps;
-                            shift(ptr, get_stride<I>(strides), m_step * num_steps_back);
+                            shift(ptr, get_stride<Key>(strides), m_step * num_steps_back);
                             m_pos = 0;
                             m_outer.next(ptr, strides);
                         } else {
-                            shift(ptr, get_stride<I>(strides), m_step);
+                            shift(ptr, get_stride<Key>(strides), m_step);
                         }
                     }
 
@@ -328,7 +328,7 @@ namespace gridtools {
                     template <class Ptr, class Strides>
                     void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         --m_pos;
-                        shift(ptr, get_stride<I>(strides), m_step);
+                        shift(ptr, get_stride<Key>(strides), m_step);
                     }
 
                     GT_FUNCTION bool done() const { return m_pos > 0; }
@@ -337,7 +337,7 @@ namespace gridtools {
                 constexpr GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_step, NumSteps}; }
             };
 
-            template <size_t I, class T, ptrdiff_t NumSteps, ptrdiff_t Step>
+            template <class Key, class T, ptrdiff_t NumSteps, ptrdiff_t Step>
             struct all_known_loop {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
@@ -347,7 +347,7 @@ namespace gridtools {
 
                     template <class Ptr, class Strides>
                     void GT_FUNCTION operator()(Ptr &GT_RESTRICT ptr, const Strides &GT_RESTRICT strides) const {
-                        auto &&stride = get_stride<I>(strides);
+                        auto &&stride = get_stride<Key>(strides);
                         for (T i = 0; i < (T)NumSteps; ++i) {
                             m_fun(ptr, strides);
                             shift(ptr, stride, integral_constant<T, Step>{});
@@ -370,11 +370,11 @@ namespace gridtools {
                     void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         if (++m_pos == NumSteps) {
                             constexpr T offset_back = Step * (1 - NumSteps);
-                            shift(ptr, get_stride<I>(strides), offset_back);
+                            shift(ptr, get_stride<Key>(strides), offset_back);
                             m_pos = 0;
                             m_outer.next(ptr, strides);
                         } else {
-                            shift(ptr, get_stride<I>(strides), Step);
+                            shift(ptr, get_stride<Key>(strides), Step);
                         }
                     }
 
@@ -392,7 +392,7 @@ namespace gridtools {
                     template <class Ptr, class Strides>
                     void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         --m_pos;
-                        shift(ptr, get_stride<I>(strides), Step);
+                        shift(ptr, get_stride<Key>(strides), Step);
                     }
 
                     GT_FUNCTION bool done() const { return m_pos > 0; }
@@ -401,8 +401,8 @@ namespace gridtools {
                 constexpr GT_FUNCTION outer_most_cursor_f make_cursor() const { return {NumSteps}; }
             };
 
-            template <size_t I, class T, ptrdiff_t NumSteps>
-            struct all_known_loop<I, T, NumSteps, 0> {
+            template <class Key, class T, ptrdiff_t NumSteps>
+            struct all_known_loop<Key, T, NumSteps, 0> {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
@@ -456,8 +456,8 @@ namespace gridtools {
                 constexpr GT_FUNCTION outer_most_cursor_f make_cursor() const { return {NumSteps}; }
             };
 
-            template <size_t I, class T>
-            struct all_known_loop<I, T, 1, 0> {
+            template <class Key, class T>
+            struct all_known_loop<Key, T, 1, 0> {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
@@ -484,8 +484,8 @@ namespace gridtools {
                 constexpr GT_FUNCTION outer_most_cursor_f make_cursor() const { return {false}; }
             };
 
-            template <size_t I, class T>
-            struct all_known_loop<I, T, 0, 0> {
+            template <class Key, class T>
+            struct all_known_loop<Key, T, 0, 0> {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
@@ -547,7 +547,7 @@ namespace gridtools {
         } // namespace loop_impl_
 
         /**
-         *   A set of `make_loop<I>(num_steps, step = 1)` overloads
+         *   A set of `make_loop<Key>(num_steps, step = 1)` overloads
          *
          *   @tparam I dimension index
          *   @param num_steps number of iterations in the loop. Can be of integral or integral_constant type
@@ -560,7 +560,7 @@ namespace gridtools {
          *     1. One dimensional traversal:
          *     ```
          *     // define the way we are going to traverse the data
-         *     auto loop = sid::make_loop<2>(32);
+         *     auto loop = sid::make_loop<k>(32);
          *
          *     // define what we are going to do with the data
          *     auto loop_body = [](auto& ptr, auto const& strides) { ... }
@@ -576,9 +576,9 @@ namespace gridtools {
          *     ```
          *     // define traversal path: k dimension is innermost and will be traversed backward
          *     auto multi_loop = compose(
-         *       sid::make_loop<0>(i_size),
-         *       sid::make_loop<1>(j_size),
-         *       sid::make_loop<2>(k_size, -1_c));
+         *       sid::make_loop<i>(i_size),
+         *       sid::make_loop<j>(j_size),
+         *       sid::make_loop<k>(k_size, -1_c));
          *
          *     // define what we are going to do with the data
          *     auto loop_body = [](auto& ptr, auto const& strides) { ... }
@@ -604,56 +604,56 @@ namespace gridtools {
          *      `make_loop` goes with the large number of overloads to benefit from the fact that some aspects of
          *      traversal description are known in compile time.
          */
-        template <size_t I,
+        template <class Key,
             class T1,
             class T2,
             class T = common_type_t<T1, T2>,
             enable_if_t<std::is_integral<T1>::value && std::is_integral<T2>::value, int> = 0>
-        constexpr GT_FUNCTION loop_impl_::generic_loop<I, make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
+        constexpr GT_FUNCTION loop_impl_::generic_loop<Key, make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
             return {num_steps, step};
         }
 
-        template <size_t I,
+        template <class Key,
             class T1,
             class T2 = int,
             T2 Step = 1,
             class T = common_type_t<T1, T2>,
             enable_if_t<std::is_integral<T1>::value, int> = 0>
-        constexpr GT_FUNCTION loop_impl_::known_step_loop<I, make_signed_t<T>, Step> make_loop(
+        constexpr GT_FUNCTION loop_impl_::known_step_loop<Key, make_signed_t<T>, Step> make_loop(
             T1 num_steps, std::integral_constant<T2, Step> = {}) {
             return {num_steps};
         }
 
-        template <size_t I,
+        template <class Key,
             class T1,
             T1 NumStepsV,
             class T2,
             class T = common_type_t<T1, T2>,
             enable_if_t<std::is_integral<T1>::value && (NumStepsV > 1), int> = 0>
-        constexpr GT_FUNCTION loop_impl_::known_num_steps_loop<I, make_signed_t<T>, NumStepsV> make_loop(
+        constexpr GT_FUNCTION loop_impl_::known_num_steps_loop<Key, make_signed_t<T>, NumStepsV> make_loop(
             std::integral_constant<T1, NumStepsV>, T2 step) {
             return {step};
         }
 
-        template <size_t I,
+        template <class Key,
             class T1,
             T1 NumStepsV,
             class T2,
             class T = common_type_t<T1, T2>,
             enable_if_t<std::is_integral<T1>::value && (NumStepsV == 0 || NumStepsV == 1), int> = 0>
-        constexpr GT_FUNCTION loop_impl_::all_known_loop<I, make_signed_t<T>, NumStepsV, 0> make_loop(
+        constexpr GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, 0> make_loop(
             std::integral_constant<T1, NumStepsV>, T2) {
             return {};
         }
 
-        template <size_t I,
+        template <class Key,
             class T1,
             T1 NumStepsV,
             class T2 = int,
             T2 StepV = 1,
             class T = common_type_t<T1, T2>,
             enable_if_t<(NumStepsV >= 0), int> = 0>
-        constexpr GT_FUNCTION loop_impl_::all_known_loop<I, make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
+        constexpr GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
         make_loop(std::integral_constant<T1, NumStepsV>, std::integral_constant<T2, StepV> = {}) {
             return {};
         }

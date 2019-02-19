@@ -244,17 +244,7 @@ namespace gridtools {
                 };
             };
 
-            constexpr size_t max_impl(size_t acc, size_t const *cur, size_t const *last) {
-                return cur == last ? acc : max_impl(*cur > acc ? *cur : acc, cur + 1, last);
-            }
-
-            template <size_t... Vals>
-            struct max {
-                static constexpr size_t values[] = {Vals...};
-                static constexpr size_t value = max_impl(0, values, values + sizeof...(Vals));
-            };
-
-            template <class I, class Strides>
+            template <class Key, class Strides, class I = meta::st_position<GT_META_CALL(get_keys, Strides), Key>>
 #if GT_BROKEN_TEMPLATE_ALIASES
             struct normalized_stride_type : std::conditional<(I::value < tuple_util::size<Strides>::value),
                                                 tuple_util::lazy::element<I::value, Strides>,
@@ -266,15 +256,15 @@ namespace gridtools {
                 meta::lazy::id<default_stride>>::type::type;
 #endif
 
-            template <class StrideIndices>
+            template <class Keys>
             struct normalize_strides_f;
 
-            template <template <class...> class L, class... Is>
-            struct normalize_strides_f<L<Is...>> {
+            template <template <class...> class L, class... Keys>
+            struct normalize_strides_f<L<Keys...>> {
                 template <class Sid, class Strides = GT_META_CALL(strides_type, Sid)>
-                constexpr tuple<GT_META_CALL(normalized_stride_type, (Is, decay_t<Strides>))...> operator()(
+                constexpr tuple<GT_META_CALL(normalized_stride_type, (Keys, decay_t<Strides>))...> operator()(
                     Sid const &sid) const {
-                    return {get_stride<Is::value>(get_strides(sid))...};
+                    return {get_stride<Keys>(get_strides(sid))...};
                 }
             };
         } // namespace composite_impl_
@@ -312,22 +302,21 @@ namespace gridtools {
             template <class... Ts>
             GT_META_DEFINE_ALIAS(compress, meta::id, (typename compressed_t::template composite<Ts...>));
 
-            // A helper for generating strides_t
-            // It is a tuple containing indices of the strides to generate
-            using stride_indices_t = GT_META_CALL(meta::make_indices_c,
-                (composite_impl_::max<tuple_util::size<GT_META_CALL(strides_type, Sids)>::value...>::value, tuple));
+            using stride_keys_t = GT_META_CALL(
+                meta::dedup, GT_META_CALL(meta::concat, GT_META_CALL(get_keys, GT_META_CALL(strides_type, Sids))...));
 
             // A helper for generating strides_t
-            // It is a metafuntion from the stride index to the stride type
-            template <class I>
+            // It is a meta function from the stride key to the stride type
+            template <class Key>
             GT_META_DEFINE_ALIAS(get_stride_type,
                 compress,
                 (GT_META_CALL(
-                    composite_impl_::normalized_stride_type, (I, decay_t < GT_META_CALL(strides_type, Sids)) >)...));
+                    composite_impl_::normalized_stride_type, (Key, decay_t < GT_META_CALL(strides_type, Sids)) >)...));
 
             // all `SID` types are here
             using ptr_t = composite_impl_::composite_ptr<GT_META_CALL(ptr_type, Sids)...>;
-            using strides_t = GT_META_CALL(meta::transform, (get_stride_type, stride_indices_t));
+            using strides_t = GT_META_CALL(meta::rename,
+                (meta::ctor<tuple<>>::apply, GT_META_CALL(meta::transform, (get_stride_type, stride_keys_t))));
             using ptr_diff_t = GT_META_CALL(compress, (GT_META_CALL(ptr_diff_type, Sids)...));
 
           public:
@@ -348,7 +337,7 @@ namespace gridtools {
             friend GT_SID_COMPOSITE_CONSTEXPR strides_t sid_get_strides(composite const &obj) {
                 return tuple_util::transform(typename compressed_t::convert_f{},
                     tuple_util::transpose(
-                        tuple_util::transform(composite_impl_::normalize_strides_f<stride_indices_t>{}, obj.m_sids)));
+                        tuple_util::transform(composite_impl_::normalize_strides_f<stride_keys_t>{}, obj.m_sids)));
             }
 
 #undef GT_SID_COMPOSITE_CONSTEXPR

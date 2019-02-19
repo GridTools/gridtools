@@ -39,6 +39,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
@@ -646,10 +647,9 @@ namespace gridtools {
          *  If `I` exceeds the actual number of strides, integral_constant<int_t, 0> is returned.
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
-        template <size_t I, class Strides, enable_if_t<(I < tuple_util::size<decay_t<Strides>>::value), int> = 0>
-        constexpr GT_FUNCTION auto get_stride(Strides &&strides)
-            GT_AUTO_RETURN(tuple_util::host_device::get<I>(strides));
-        template <size_t I, class Strides, enable_if_t<(I >= tuple_util::size<decay_t<Strides>>::value), int> = 0>
+        template <class Key, class Strides, enable_if_t<has_key<decay_t<Strides>, Key>::value, int> = 0>
+        constexpr GT_FUNCTION auto get_stride(Strides &&strides) GT_AUTO_RETURN(host_device::at_key<Key>(strides));
+        template <class Key, class Strides, enable_if_t<!has_key<decay_t<Strides>, Key>::value, int> = 0>
         constexpr GT_FUNCTION default_stride get_stride(Strides &&) {
             return {};
         }
