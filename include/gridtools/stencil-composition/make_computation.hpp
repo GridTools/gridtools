@@ -43,6 +43,7 @@
 #include "../meta/defs.hpp"
 #include "../meta/transform.hpp"
 #include "../meta/type_traits.hpp"
+#include "computation.hpp"
 #include "expandable_parameters/expand_factor.hpp"
 #include "expandable_parameters/intermediate_expand.hpp"
 #include "grid.hpp"
