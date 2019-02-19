@@ -44,18 +44,17 @@
 using gridtools::accessor;
 using gridtools::arg;
 using gridtools::extent;
+using gridtools::intent;
 using gridtools::level;
 using gridtools::tmp_arg;
 using gridtools::uint_t;
-
-using namespace gridtools::enumtype;
 
 namespace {
 
     template <typename Axis>
     struct parallel_functor {
         typedef accessor<0> in;
-        typedef accessor<1, inout> out;
+        typedef accessor<1, intent::inout> out;
         typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
@@ -71,7 +70,7 @@ namespace {
     template <typename Axis>
     struct parallel_functor_on_upper_interval {
         typedef accessor<0> in;
-        typedef accessor<1, inout> out;
+        typedef accessor<1, intent::inout> out;
         typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
@@ -106,7 +105,7 @@ void run_test() {
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(
-            execute<parallel>(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
+            gridtools::execute::parallel(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
 
     comp.run();
 
@@ -148,7 +147,7 @@ void run_test_with_temporary() {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        gridtools::make_multistage(execute<parallel>(),
+        gridtools::make_multistage(gridtools::execute::parallel(),
             gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_tmp()),
             gridtools::make_stage<parallel_functor<Axis>>(p_tmp(), p_out())));
 
@@ -206,8 +205,8 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        gridtools::make_multistage(
-            execute<parallel>(), gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
+        gridtools::make_multistage(gridtools::execute::parallel(),
+            gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
 
     comp.run();
 

@@ -49,7 +49,7 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace gridtools::enumtype;
+using namespace gridtools::execute;
 using namespace gridtools::expressions;
 
 namespace {
@@ -175,7 +175,7 @@ namespace {
 TEST_F(test_expressions, integration_test) {
     auto comp = gridtools::make_positional_computation<backend_t>(grid,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<::test_functor>(p_val2(), p_val3(), p_out())));
+            execute::forward(), gridtools::make_stage<::test_functor>(p_val2(), p_val3(), p_out())));
 
     int index = 0;
 

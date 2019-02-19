@@ -120,10 +120,8 @@ TEST_F(tridiagonal, test) {
         p_sup = sup,
         p_rhs = rhs,
         p_out = out,
-        make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
-        make_multistage(
-            enumtype::execute<enumtype::backward>(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)))
+        make_multistage(execute::forward(), make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
+        make_multistage(execute::backward(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)))
         .run();
 
     verify(make_storage(1.), out);

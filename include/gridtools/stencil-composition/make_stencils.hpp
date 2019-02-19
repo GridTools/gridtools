@@ -67,8 +67,8 @@ namespace gridtools {
         template <typename ExecutionEngine, typename... MssParameters>
         struct check_make_multistage_args : std::true_type {
             GT_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value),
-                "The first argument passed to make_multistage must be the execution engine (e.g. execute<forward>(), "
-                "execute<backward>(), execute<parallel>()");
+                "The first argument passed to make_multistage must be the execution engine (e.g. execute::forward(), "
+                "execute::backward(), execute::parallel()");
             GT_STATIC_ASSERT(conjunction<is_mss_parameter<MssParameters>...>::value,
                 "wrong set of mss parameters passed to make_multistage construct.\n"
                 "Check that arguments passed are either :\n"

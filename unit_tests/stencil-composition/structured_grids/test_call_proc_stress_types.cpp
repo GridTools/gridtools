@@ -48,7 +48,7 @@
  */
 
 using namespace gridtools;
-using namespace gridtools::enumtype;
+using namespace gridtools::execute;
 using namespace gridtools::expressions;
 
 namespace {
@@ -138,7 +138,7 @@ TEST_F(call_proc_stress_types, triple_nesting_with_type_switching) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in{} = in,
         p_out{} = out,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<triple_nesting_with_type_switching_first_stage>(p_out(), p_in())));
     comp.run();
 }

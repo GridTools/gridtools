@@ -33,24 +33,21 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <gridtools/common/defs.hpp>
-#include <gridtools/common/generic_metafunctions/accumulate_tparams_until.hpp>
-#include <gridtools/common/generic_metafunctions/binary_ops.hpp>
-#include <gridtools/common/gt_assert.hpp>
 
-using namespace gridtools;
+#pragma once
+
+#include "macros.hpp"
 
 namespace gridtools {
-
-    template <int_t... Vals>
-    struct test_container {};
+    namespace meta {
+        GT_META_LAZY_NAMESPACE {
+            template <class>
+            struct third;
+            template <template <class...> class L, class T, class U, class Q, class... Ts>
+            struct third<L<T, U, Q, Ts...>> {
+                using type = Q;
+            };
+        }
+        GT_META_DELEGATE_TO_LAZY(third, (class List), (List));
+    } // namespace meta
 } // namespace gridtools
-
-TEST(accumulate_tparams_until, first_few_vals) {
-    using ref = test_container<1, -2, 3, -3, 4, 5>;
-    using test = test_container<1, -2, 3, -2, 4, 5>;
-
-    GT_STATIC_ASSERT((accumulate_tparams_until<equal, logical_and, ref, test, 3>::value), "ERROR");
-    GT_STATIC_ASSERT((!accumulate_tparams_until<equal, logical_and, ref, test, 4>::value), "ERROR");
-}

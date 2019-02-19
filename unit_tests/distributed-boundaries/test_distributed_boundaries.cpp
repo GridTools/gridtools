@@ -535,5 +535,7 @@ TEST(DistributedBoundaries, Test) {
 
     EXPECT_TRUE(ok);
 
+    std::cout << cabc.print_meters() << std::endl;
+
     EXPECT_THROW(cabc.exchange(a, b, c, d), std::runtime_error);
 }

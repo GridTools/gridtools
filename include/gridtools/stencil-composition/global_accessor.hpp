@@ -65,7 +65,7 @@ namespace gridtools {
       public:
         typedef GlobalAccessor super;
         typedef typename super::index_t index_t;
-        static const constexpr enumtype::intent intent = enumtype::in;
+        static const constexpr intent intent_v = intent::in;
 
         GT_FUNCTION
         global_accessor_with_arguments(Args &&... args_) : m_arguments(std::forward<Args>(args_)...) {}
@@ -88,7 +88,7 @@ namespace gridtools {
     template <uint_t I>
     struct global_accessor {
 
-        static const constexpr enumtype::intent intent = enumtype::in;
+        static const constexpr intent intent_v = intent::in;
 
         typedef global_accessor<I> type;
 

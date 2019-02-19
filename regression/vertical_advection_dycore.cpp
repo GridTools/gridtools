@@ -44,7 +44,7 @@
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
- */
+  */
 
 using namespace gridtools;
 
@@ -205,7 +205,7 @@ TEST_F(vertical_advection_dycore, test) {
         p_u_pos = make_storage(repo.u_pos),
         p_utens = make_storage(repo.utens),
         p_dtr_stage = make_storage<scalar_storage_type>(repo.dtr_stage),
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::local>(p_acol),
                 cache<cache_type::k, cache_io_policy::local>(p_bcol),
                 cache<cache_type::k, cache_io_policy::flush>(p_ccol),
@@ -213,7 +213,7 @@ TEST_F(vertical_advection_dycore, test) {
                 cache<cache_type::k, cache_io_policy::fill>(p_u_stage)),
             make_stage<u_forward_function>(
                 p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
-        make_multistage(enumtype::execute<enumtype::backward>(),
+        make_multistage(execute::backward(),
             define_caches(cache<cache_type::k, cache_io_policy::local>(p_data_col)),
             make_stage<u_backward_function>(p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col)));
     comp.run();
@@ -228,7 +228,7 @@ TEST_F(vertical_advection_dycore, with_extents) {
         p_u_pos = make_storage(repo.u_pos),
         p_utens = make_storage(repo.utens),
         p_dtr_stage = make_storage<scalar_storage_type>(repo.dtr_stage),
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::local>(p_acol),
                 cache<cache_type::k, cache_io_policy::local>(p_bcol),
                 cache<cache_type::k, cache_io_policy::flush>(p_ccol),
@@ -236,7 +236,7 @@ TEST_F(vertical_advection_dycore, with_extents) {
                 cache<cache_type::k, cache_io_policy::fill>(p_u_stage)),
             make_stage_with_extent<u_forward_function, extent<>>(
                 p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
-        make_multistage(enumtype::execute<enumtype::backward>(),
+        make_multistage(execute::backward(),
             define_caches(cache<cache_type::k, cache_io_policy::local>(p_data_col)),
             make_stage_with_extent<u_backward_function, extent<>>(
                 p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col)))

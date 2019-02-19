@@ -55,8 +55,8 @@
 
 namespace gridtools {
     struct test_functor {
-        using in = accessor<0, enumtype::in, extent<>>;
-        using out = accessor<1, enumtype::inout, extent<>>;
+        using in = accessor<0, intent::in, extent<>>;
+        using out = accessor<1, intent::inout, extent<>>;
         using param_list = make_param_list<in, out>;
 
         template <typename Evaluation>
@@ -85,7 +85,7 @@ namespace gridtools {
         fixture()
             : m_computation{make_computation<backend_t>(expand_factor<2>{},
                   m_grid,
-                  make_multistage(enumtype::execute<enumtype::forward>(),
+                  make_multistage(execute::forward(),
                       make_stage<test_functor>(p_in{}, p_tmp{}),
                       make_stage<test_functor>(p_tmp{}, p_out{})))} {}
 

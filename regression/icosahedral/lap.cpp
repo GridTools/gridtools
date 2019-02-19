@@ -113,7 +113,7 @@ TEST_F(lap, weights) {
         p_dual_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length_reciprocal),
         p_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.edge_length_reciprocal),
         p_out_edges = out_edges,
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(execute::forward(),
             make_stage<div_prep_functor, topology_t, cells>(
                 p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights),
             make_stage<curl_prep_functor, topology_t, vertices>(
@@ -137,7 +137,7 @@ TEST_F(lap, flow_convention) {
         p_dual_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length_reciprocal),
         p_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.edge_length_reciprocal),
         p_out_edges = out_edges,
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(execute::forward(),
             define_caches(cache<cache_type::ij, cache_io_policy::local>(p_div_on_cells)),
             make_stage<div_functor_flow_convention_connectivity, topology_t, cells>(
                 p_in_edges, p_edge_length, p_cell_area_reciprocal, p_div_on_cells),

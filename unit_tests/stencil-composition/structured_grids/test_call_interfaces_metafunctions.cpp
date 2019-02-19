@@ -46,17 +46,17 @@
 struct pretent_aggregator {
     using value_type = double;
 
-    template <gridtools::uint_t I, gridtools::enumtype::intent Intent, typename Range, gridtools::ushort_t N>
+    template <gridtools::uint_t I, gridtools::intent Intent, typename Range, gridtools::ushort_t N>
     constexpr value_type operator()(gridtools::accessor<I, Intent, Range, N>) const {
         return static_cast<value_type>(I + 1000);
     }
 };
 
 struct pretent_function {
-    typedef gridtools::accessor<0, gridtools::enumtype::in> a0;
-    typedef gridtools::accessor<1, gridtools::enumtype::inout> a1;
-    typedef gridtools::accessor<2, gridtools::enumtype::in> a2;
-    typedef gridtools::accessor<3, gridtools::enumtype::inout> a3;
+    typedef gridtools::accessor<0, gridtools::intent::in> a0;
+    typedef gridtools::accessor<1, gridtools::intent::inout> a1;
+    typedef gridtools::accessor<2, gridtools::intent::in> a2;
+    typedef gridtools::accessor<3, gridtools::intent::inout> a3;
 
     template <typename Eval>
     static void apply(Eval &eval) {
@@ -106,8 +106,8 @@ TEST(call_interfaces_metafunctions, compile_time_basic_tests) {
     x.value() = 999;
     EXPECT_TRUE(x.value() == 999);
 
-    accessor<0, enumtype::in, extent<1, 1, 1, 1>> a0;
-    accessor<1, enumtype::inout> a2;
+    accessor<0, intent::in, extent<1, 1, 1, 1>> a0;
+    accessor<1, intent::inout> a2;
     float a1 = 3.14;
     int a3 = 666;
 
@@ -122,8 +122,8 @@ TEST(call_interfaces_metafunctions, compile_time_basic_tests) {
 TEST(call_interfaces_metafunctions, call_pretent_procedure) {
     using namespace gridtools;
 
-    accessor<0, enumtype::in, extent<1, 1, 1, 1>> a0;
-    accessor<1, enumtype::inout> a2;
+    accessor<0, intent::in, extent<1, 1, 1, 1>> a0;
+    accessor<1, intent::inout> a2;
     double a1 = 3.14;
     double a3 = 666;
 
@@ -134,32 +134,32 @@ TEST(call_interfaces_metafunctions, call_pretent_procedure) {
 }
 
 struct actual_function {
-    typedef gridtools::accessor<0, gridtools::enumtype::in> a0;
-    typedef gridtools::accessor<1, gridtools::enumtype::inout> a1;
-    typedef gridtools::accessor<2, gridtools::enumtype::in> a2;
+    typedef gridtools::accessor<0, gridtools::intent::in> a0;
+    typedef gridtools::accessor<1, gridtools::intent::inout> a1;
+    typedef gridtools::accessor<2, gridtools::intent::in> a2;
 
     typedef gridtools::make_param_list<a0, a1, a2> param_list;
 };
 
 struct another_function {
-    typedef gridtools::accessor<0, gridtools::enumtype::inout> out;
-    typedef gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<-1, 1, -1, 1>> in;
+    typedef gridtools::accessor<0, gridtools::intent::inout> out;
+    typedef gridtools::accessor<1, gridtools::intent::in, gridtools::extent<-1, 1, -1, 1>> in;
 
     typedef gridtools::make_param_list<out, in> param_list;
 };
 
 struct non_function_swap {
-    typedef gridtools::accessor<1, gridtools::enumtype::inout> out;
-    typedef gridtools::accessor<0, gridtools::enumtype::inout> in;
+    typedef gridtools::accessor<1, gridtools::intent::inout> out;
+    typedef gridtools::accessor<0, gridtools::intent::inout> in;
 
     typedef gridtools::make_param_list<in, out> param_list;
 };
 
 struct another_non_function {
 
-    typedef gridtools::accessor<0, gridtools::enumtype::inout> out;
-    typedef gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<0, 1, 0, 0>> in;
-    typedef gridtools::accessor<2, gridtools::enumtype::inout> lap;
+    typedef gridtools::accessor<0, gridtools::intent::inout> out;
+    typedef gridtools::accessor<1, gridtools::intent::in, gridtools::extent<0, 1, 0, 0>> in;
+    typedef gridtools::accessor<2, gridtools::intent::inout> lap;
 
     typedef gridtools::make_param_list<out, in, lap> param_list;
 };

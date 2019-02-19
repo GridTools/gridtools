@@ -161,10 +161,9 @@ int main() {
         p_sup = sup,
         p_rhs = rhs,
         p_out = out,
-        gt::make_multistage(gt::enumtype::execute<gt::enumtype::forward>(),
-            gt::make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
-        gt::make_multistage(gt::enumtype::execute<gt::enumtype::backward>(),
-            gt::make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)));
+        gt::make_multistage(gt::execute::forward(), gt::make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
+        gt::make_multistage(
+            gt::execute::backward(), gt::make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)));
 
     // Executing the computation
     trid_solve.run();

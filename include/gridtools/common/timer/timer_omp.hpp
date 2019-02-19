@@ -35,36 +35,39 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/unzip.hpp"
-#include "../../common/gt_assert.hpp"
-#include "../../common/host_device.hpp"
-#include "../../storage/common/storage_info_interface.hpp"
+#include "../defs.hpp"
+#include "timer.hpp"
+#include <limits>
+#include <string>
 
 namespace gridtools {
 
-    template <typename Layout, uint_t... Dims>
-    struct meta_storage_cache {
-      private:
-        using meta_storage_t = storage_info_interface<0, Layout>;
-
-        GT_STATIC_ASSERT(Layout::masked_length == sizeof...(Dims),
-            GT_INTERNAL_ERROR_MSG("Mismatch in layout length and passed number of dimensions."));
-
+    /**
+     * @class timer_omp
+     */
+    class timer_omp : public timer<timer_omp> // CRTP
+    {
       public:
-        using layout_t = Layout;
+        timer_omp(std::string name) : timer<timer_omp>(name) { startTime_ = 0.0; }
+        ~timer_omp() {}
 
-        GT_FUNCTION
-        static constexpr uint_t padded_total_length() { return meta_storage_t(Dims...).padded_total_length(); }
+        void set_impl(double const &time_) { startTime_ = time_; }
 
-        template <ushort_t Id>
-        GT_FUNCTION static constexpr int_t stride() {
-            return meta_storage_t(Dims...).template stride<Id>();
+        void start_impl() {
+#if defined(_OPENMP)
+            startTime_ = omp_get_wtime();
+#endif
         }
 
-        template <ushort_t Id>
-        GT_FUNCTION static constexpr int_t dim() {
-            return meta_storage_t(Dims...).template total_length<Id>();
+        double pause_impl() {
+#if defined(_OPENMP)
+            return omp_get_wtime() - startTime_;
+#else
+            return std::numeric_limits<double>::quiet_NaN();
+#endif
         }
+
+      private:
+        double startTime_;
     };
 } // namespace gridtools

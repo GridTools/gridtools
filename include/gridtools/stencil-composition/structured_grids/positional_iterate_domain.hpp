@@ -40,6 +40,7 @@
 #include "../../common/defs.hpp"
 #include "../block.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../pos3.hpp"
 
 namespace gridtools {
     template <class Base>

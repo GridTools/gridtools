@@ -73,7 +73,7 @@ TEST_F(curl, weights) {
         p_edge_orientation = make_storage_4d<vertices, edges_of_vertices_storage_type>(6, repo.edge_orientation),
         p_in_edges = make_storage<edges>(repo.u),
         p_out_vertices = out_vertices,
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(execute::forward(),
             make_stage<curl_prep_functor, topology_t, vertices>(
                 p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation),
             make_stage<curl_functor_weights, topology_t, vertices>(p_in_edges, p_curl_weights, p_out_vertices)))
@@ -85,7 +85,7 @@ TEST_F(curl, flow_convention) {
         p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
         p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
         p_out_vertices = out_vertices,
-        make_multistage(enumtype::execute<enumtype::parallel>(),
+        make_multistage(execute::parallel(),
             make_stage<curl_functor_flow_convention, topology_t, vertices>(
                 p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_out_vertices)))
         .run();

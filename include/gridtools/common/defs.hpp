@@ -105,6 +105,7 @@
 #ifndef GT_META_STORAGE_INDEX_LIMIT
 #define GT_META_STORAGE_INDEX_LIMIT 1000
 #endif
+static const unsigned int metastorage_library_indices_limit = GT_META_STORAGE_INDEX_LIMIT;
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -158,28 +159,6 @@ namespace gridtools {
         struct structured {};
         struct icosahedral {};
     } // namespace grid_type
-
-    /** \namespace enumtype
-       @brief enumeration types*/
-    namespace enumtype {
-        /**
-           @section enumtypes Gridtools enumeration types
-           @{
-         */
-
-        /*
-         * accessor I/O policy
-         */
-        enum intent { in, inout };
-
-#ifdef __CUDACC__
-        static const unsigned int vector_width = 32;
-#else
-        static const unsigned int vector_width = 4;
-#endif
-        static const unsigned int metastorage_library_indices_limit = GT_META_STORAGE_INDEX_LIMIT;
-
-    } // namespace enumtype
 
 #define GT_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 

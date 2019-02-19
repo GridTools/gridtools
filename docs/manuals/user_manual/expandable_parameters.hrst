@@ -34,7 +34,7 @@ The implementation requires the user to specify an integer ```expand_factor``` w
         expand_factor<4>,
         domain_,
         grid_,
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor>(p())));
+        make_multistage(execute::forward(), make_stage<functor>(p())));
 
 The vector of
 storages is then partitioned into chunks of ``expand_factor`` size (with a remainder). Each

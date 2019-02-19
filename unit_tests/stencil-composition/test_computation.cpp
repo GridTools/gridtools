@@ -83,7 +83,7 @@ namespace gridtools {
                 return {0, 0, 0, 0, 0, 0};
             }
             template <typename Arg>
-            static constexpr std::integral_constant<enumtype::intent, enumtype::in> get_arg_intent(Arg) {
+            static constexpr std::integral_constant<intent, intent::in> get_arg_intent(Arg) {
                 return {};
             }
         };

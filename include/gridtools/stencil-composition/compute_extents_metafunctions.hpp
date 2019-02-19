@@ -42,7 +42,6 @@
 
 #include "../common/gt_assert.hpp"
 #include "esf_metafunctions.hpp"
-#include "linearize_mss_functions.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"
 
@@ -245,7 +244,7 @@ namespace gridtools {
                 typedef typename remove_global_accessors<outputs_original>::type outputs;
 
 #ifndef __CUDACC__
-                GT_STATIC_ASSERT((check_all_extents_are_same_upto<outputs, extent<>, 4>::type::value),
+                GT_STATIC_ASSERT(check_all_horizotal_extents_are_zero<outputs>::type::value,
                     "Horizontal extents of the outputs of ESFs are not all empty. "
                     "All outputs must have empty (horizontal) extents");
 #endif
@@ -306,9 +305,8 @@ namespace gridtools {
             // We need to obtain the proper linearization (unfolding
             // independents) of the list of stages and and then we
             // need to go from the outputs to the inputs (the reverse)
-            typedef typename boost::mpl::reverse<
-                typename unwrap_independent<typename mss_descriptor_esf_sequence<MssDescriptor>::type>::type>::type
-                ESFs;
+            using ESFs = GT_META_CALL(
+                meta::reverse, GT_META_CALL(unwrap_independent, typename MssDescriptor::esf_sequence_t));
 
             // The return of this metafunction is here. We need to
             // update the map of plcaholderss. A numerical value helps
@@ -361,7 +359,7 @@ namespace gridtools {
             typedef
                 typename boost::mpl::fold<Outputs, boost::true_type, _new_value<boost::mpl::_1, boost::mpl::_2>>::type
                     type;
-            static const bool value = type::value;
+            static constexpr bool value = type::value;
         };
 
         template <typename Element>
@@ -380,39 +378,23 @@ namespace gridtools {
     template <typename Esf, typename ExtentMap, class = void>
     struct get_extent_for {
 
-        GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((_impl::is_extent_map<ExtentMap>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(_impl::is_extent_map<ExtentMap>::value, GT_INTERNAL_ERROR);
 
-        typedef typename esf_get_w_per_functor<Esf>::type w_plcs;
-        typedef typename boost::mpl::at_c<w_plcs, 0>::type first_out;
-        typedef typename boost::mpl::at<ExtentMap, first_out>::type extent;
+        using w_plcs = typename esf_get_w_per_functor<Esf>::type;
+        using first_out = typename boost::mpl::at_c<w_plcs, 0>::type;
+        using type = typename boost::mpl::at<ExtentMap, first_out>::type;
         // TODO recover
         //                GT_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs,
         //                extent >::value),
         //                    "The output of the ESF do not have all the save extents, so it is not possible to
         //                    select the "
         //                    "extent for the whole ESF.");
-
-        typedef extent type;
     };
 
     template <typename Esf, typename ExtentMap>
-    struct get_extent_for<Esf, ExtentMap, typename std::enable_if<is_esf_with_extent<Esf>::value>::type> {
-        using type = typename esf_extent<Esf>::type;
-    };
+    struct get_extent_for<Esf, ExtentMap, enable_if_t<is_esf_with_extent<Esf>::value>> : esf_extent<Esf> {};
 
-    /** This is the metafucntion to iterate over the esfs of a multi-stage stencil
-        and gather the outputs (check that they have the same extents), and associate
-        to them the corresponding extent */
-    template <typename Mss, typename ExtentMap>
-    struct get_extent_sizes {
-        GT_STATIC_ASSERT((is_mss_descriptor<Mss>::value), GT_INTERNAL_ERROR);
-
-        // Iterate over each ESF of the MSS to generate a vector of extens whose elements correspond to the elements of
-        // the esfs vector (this is to comply with the API for the backend)
-        using type = typename boost::mpl::transform<typename mss_descriptor_linear_esf_sequence<Mss>::type,
-            get_extent_for<boost::mpl::_, ExtentMap>>::type;
-    };
     /**
      * @}
      */

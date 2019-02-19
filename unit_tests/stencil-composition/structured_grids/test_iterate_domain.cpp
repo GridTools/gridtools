@@ -102,7 +102,7 @@ namespace gridtools {
             auto grid = make_grid(d1, d2, d3);
 
             auto mss_ = gridtools::make_multistage // mss_descriptor
-                (enumtype::execute<enumtype::forward>(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
+                (execute::forward(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
             auto computation_ = make_computation<gridtools::backend<target::x86, grid_type_t, strategy::naive>>(
                 grid, p_in = in, p_buff = buff, p_out = out, mss_);
             auto local_domain1 = std::get<0>(computation_.local_domains());
@@ -112,10 +112,8 @@ namespace gridtools {
             using iterate_domain_arguments_t =
                 iterate_domain_arguments<backend_ids<target::x86, grid_type_t, strategy::naive>,
                     decltype(local_domain1),
-                    make_param_list<esf_t>,
-                    make_param_list<extent<>>,
-                    extent<>,
-                    make_param_list<>,
+                    std::tuple<esf_t>,
+                    std::tuple<>,
                     gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
 #ifdef GT_BACKEND_MC
@@ -129,12 +127,8 @@ namespace gridtools {
             it_domain_t it_domain(local_domain1);
 
 #ifndef GT_BACKEND_MC
-            typedef typename it_domain_t::strides_cached_t strides_t;
-            strides_t strides;
 
-            it_domain.set_strides_pointer_impl(&strides);
-
-            it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
+            it_domain.assign_stride_pointers<backend_traits_t>();
 #endif
 
 // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
@@ -144,19 +138,19 @@ namespace gridtools {
             auto inv = make_host_view(in);
             inv(0, 0, 0, 0) = 0.; // is accessor<0>
 
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_in), enumtype::in>(in_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_in), intent::in>(in_acc())));
 
             // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
             auto buffv = make_host_view(buff);
             buffv(0, 0, 0) = 0.; // is accessor<1>
 
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_buff), enumtype::in>(buff_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_buff), intent::in>(buff_acc())));
 
             auto outv = make_host_view(out);
             outv(0, 0) = 0.; // is accessor<2>
 
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), enumtype::inout>(out_acc())));
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), enumtype::inout>(out_acc(0, 0))));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), intent::inout>(out_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), intent::inout>(out_acc(0, 0))));
 
             // check index initialization and increment
 
@@ -196,19 +190,6 @@ namespace gridtools {
             EXPECT_EQ(index[0] + mdi->stride<0>() + mdi->stride<1>() + mdi->stride<2>(), new_index[0]);
             EXPECT_EQ(index[1] + mdb->stride<0>() + mdb->stride<1>() + mdb->stride<2>(), new_index[1]);
             EXPECT_EQ(index[2] + mdo->stride<0>() + mdo->stride<1>(), new_index[2]);
-
-#ifndef GT_BACKEND_MC
-            // check strides initialization
-            // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.
-            EXPECT_EQ(mdi->stride<3>(), strides.get<0>()[0]);
-            EXPECT_EQ(mdi->stride<2>(), strides.get<0>()[1]);
-            EXPECT_EQ(mdi->stride<1>(), strides.get<0>()[2]); // 4D storage
-
-            EXPECT_EQ(mdb->stride<0>(), strides.get<1>()[0]);
-            EXPECT_EQ(mdb->stride<1>(), strides.get<1>()[1]); // 3D storage
-
-            EXPECT_EQ(mdo->stride<0>(), strides.get<2>()[0]); // 2D storage
-#endif
         }
     } // namespace
 } // namespace gridtools

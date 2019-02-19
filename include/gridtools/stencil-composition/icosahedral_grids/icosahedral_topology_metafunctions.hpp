@@ -43,7 +43,6 @@
 
 namespace gridtools {
     namespace impl {
-
         /**
          * @brief Computes a unique identifier (to be used for metastorages) given a list of index values
          */
@@ -76,7 +75,7 @@ namespace gridtools {
         template <int_t LocationTypeIndex, bool... B>
         struct compute_uuid<LocationTypeIndex, selector<B...>> {
             static constexpr ushort_t value =
-                enumtype::metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector<2>(0, B...);
+                metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector<2>(0, B...);
         };
     } // namespace impl
 } // namespace gridtools
