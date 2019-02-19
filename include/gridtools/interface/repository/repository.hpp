@@ -291,6 +291,7 @@
  * @brief Creates the fortran bindings for the repository. Must be called from a cpp file.
  * @param name class name for the repository
  * @param fortran_name name that will be used to identify the repository in the fortran binding
+ * @param prefix prefix that will be appended to bindings
  * @param data_stores_seq BOOST_PP sequence of tuples of the form (DataStoreType, VariableName)
  *
  * Main macro is GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper. Here we just add extra parenthesis to the input to make
