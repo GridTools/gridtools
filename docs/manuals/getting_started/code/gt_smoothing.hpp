@@ -1,3 +1,5 @@
+#pragma once
+
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
@@ -5,7 +7,6 @@
 
 using namespace gridtools;
 using namespace gridtools::expressions;
-using namespace gridtools::enumtype; // TODO we need to fix this!
 
 #ifdef __CUDACC__
 using target_t = target::cuda;

@@ -50,7 +50,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 struct bc_basic {
 

@@ -178,8 +178,8 @@ namespace gridtools {
         Grid,
         std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
         std::tuple<MssDescriptors...>> {
-        GT_STATIC_ASSERT((is_backend<Backend>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_backend<Backend>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
         GT_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_mss_descriptor>...>::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
@@ -189,24 +189,22 @@ namespace gridtools {
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
-        using placeholders_t = GT_META_CALL(extract_placeholders, all_mss_descriptors_t);
+        using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, all_mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
         using non_tmp_placeholders_t = GT_META_CALL(meta::filter, (meta::not_<is_tmp_arg>::apply, placeholders_t));
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-        template <class Arg>
-        struct to_arg_storage_pair {
-            using type = arg_storage_pair<Arg, typename Arg::data_store_t>;
-        };
-        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::rename,
-            (meta::defer<std::tuple>::apply, GT_META_CALL(meta::transform, (to_arg_storage_pair, tmp_placeholders_t))));
-#else
-        template <class Arg>
-        using to_arg_storage_pair = arg_storage_pair<Arg, typename Arg::data_store_t>;
+        using non_cached_tmp_placeholders_t = GT_META_CALL(
+            _impl::extract_non_cached_tmp_args_from_msses, all_mss_descriptors_t);
 
-        using tmp_arg_storage_pair_tuple_t =
-            meta::rename<std::tuple, meta::transform<to_arg_storage_pair, tmp_placeholders_t>>;
-#endif
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(to_arg_storage_pair, meta::id, (arg_storage_pair<Arg, typename Arg::data_store_t>));
+
+        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::transform,
+            (to_arg_storage_pair,
+                GT_META_CALL(meta::if_,
+                    (GT_META_CALL(needs_allocate_cached_tmp, Backend),
+                        tmp_placeholders_t,
+                        non_cached_tmp_placeholders_t))));
 
         GT_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
             "some bound placeholders are not used in mss descriptors");
@@ -233,17 +231,14 @@ namespace gridtools {
             boost::mpl::void_>::type;
 
       private:
-        template <typename MssDescs>
-        using convert_to_mss_components_array_t =
-            copy_into_variadic<typename build_mss_components_array<typename Backend::mss_fuse_esfs_strategy,
-                                   MssDescs,
-                                   extent_map_t,
-                                   typename Grid::axis_type>::type,
-                std::tuple<>>;
+        template <class MssDescs>
+        GT_META_DEFINE_ALIAS(convert_to_mss_components_array,
+            build_mss_components_array,
+            (Backend::mss_fuse_esfs_strategy::value, MssDescs, extent_map_t, typename Grid::axis_type));
 
-        using mss_components_array_t = convert_to_mss_components_array_t<all_mss_descriptors_t>;
+        using mss_components_array_t = GT_META_CALL(convert_to_mss_components_array, all_mss_descriptors_t);
 
-        using max_extent_for_tmp_t = typename _impl::get_max_extent_for_tmp<mss_components_array_t>::type;
+        using max_extent_for_tmp_t = GT_META_CALL(_impl::get_max_extent_for_tmp, mss_components_array_t);
 
       public:
         // creates a tuple of local domains
@@ -254,7 +249,7 @@ namespace gridtools {
             template <typename MssDescs>
             void operator()(
                 MssDescs const &mss_descriptors, Grid const &grid, local_domains_t const &local_domains) const {
-                Backend::template run<convert_to_mss_components_array_t<MssDescs>>(grid, local_domains);
+                Backend::template run<GT_META_CALL(convert_to_mss_components_array, MssDescs)>(grid, local_domains);
             }
         };
 
@@ -295,7 +290,6 @@ namespace gridtools {
               // a functor with a chosen condition branch
               m_branch_selector(std::move(msses)),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
-              // that ensures, that only
               m_tmp_arg_storage_pair_tuple(dedup_storage_info(
                   _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(
                       grid))),
@@ -363,9 +357,8 @@ namespace gridtools {
 
         template <class Placeholder,
             class RwArgs = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t),
-            enumtype::intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? enumtype::intent::inout
-                                                                                    : enumtype::intent::in>
-        static constexpr std::integral_constant<enumtype::intent, Intent> get_arg_intent(Placeholder) {
+            intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? intent::inout : intent::in>
+        static constexpr std::integral_constant<intent, Intent> get_arg_intent(Placeholder) {
             return {};
         }
 

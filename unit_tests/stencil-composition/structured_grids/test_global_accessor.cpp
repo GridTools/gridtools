@@ -43,7 +43,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 using storage_traits_t = typename backend_t::storage_traits_t;
 using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
@@ -61,7 +61,7 @@ struct boundary {
 };
 
 struct functor1 {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
@@ -73,8 +73,8 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>> in;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0>> in;
     typedef global_accessor<2> bd;
 
     typedef make_param_list<sol, in, bd> param_list;
@@ -86,7 +86,7 @@ struct functor2 {
 };
 
 struct functor_with_procedure_call {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
@@ -98,7 +98,7 @@ struct functor_with_procedure_call {
 };
 
 struct functor1_with_assignment {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
@@ -110,7 +110,7 @@ struct functor1_with_assignment {
 };
 
 struct functor_with_function_call {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
@@ -149,7 +149,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
     auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_bd() = bd_,
-        make_multistage(execute<forward>(), make_stage<functor1>(p_sol(), p_bd())));
+        make_multistage(execute::forward(), make_stage<functor1>(p_sol(), p_bd())));
 
     bc_eval.run();
     // fetch data and check
@@ -210,7 +210,7 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
     auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_bd() = bd_,
-        make_multistage(execute<forward>(), make_stage<functor_with_procedure_call>(p_sol(), p_bd())));
+        make_multistage(execute::forward(), make_stage<functor_with_procedure_call>(p_sol(), p_bd())));
 
     bc_eval.run();
 
@@ -234,7 +234,7 @@ TEST_F(global_accessor_single_stage, with_function_call) {
     auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_bd() = bd_,
-        make_multistage(execute<forward>(), make_stage<functor_with_function_call>(p_sol(), p_bd())));
+        make_multistage(execute::forward(), make_stage<functor_with_function_call>(p_sol(), p_bd())));
 
     bc_eval.run();
 
@@ -280,7 +280,7 @@ TEST(test_global_accessor, multiple_stages) {
         p_tmp() = tmp_,
         p_bd() = bd_,
         make_multistage(
-            execute<forward>(), make_stage<functor1>(p_tmp(), p_bd()), make_stage<functor2>(p_sol(), p_tmp(), p_bd())));
+            execute::forward(), make_stage<functor1>(p_tmp(), p_bd()), make_stage<functor2>(p_sol(), p_tmp(), p_bd())));
 
     bc_eval.run();
     // fetch data and check

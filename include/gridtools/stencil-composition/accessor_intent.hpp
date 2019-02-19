@@ -34,17 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/set.hpp>
 
 namespace gridtools {
-
     /**
-     * @brief The empty_iterate_domain_cache struct
-     * empty implementation of an iterate domain cache, as host backend does not use caches
+     * @brief accessor I/O policy
      */
-    struct empty_iterate_domain_cache {
-        typedef boost::mpl::map0<> ij_caches_map_t;
-        typedef boost::mpl::set0<> all_caches_t;
-    };
+    enum class intent { in, inout };
 } // namespace gridtools

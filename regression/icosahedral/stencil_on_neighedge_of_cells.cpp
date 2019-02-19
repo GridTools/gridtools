@@ -70,8 +70,7 @@ TEST_F(stencil_on_neighedge_of_cells, Test) {
     auto out = make_storage<cells>();
     make_computation(p_in = make_storage<edges>(in),
         p_out = out,
-        make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_out)))
+        make_multistage(execute::forward(), make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_out)))
         .run();
     verify(make_storage<cells>(ref), out);
 }

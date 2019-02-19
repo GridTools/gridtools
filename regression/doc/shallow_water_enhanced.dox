@@ -198,7 +198,7 @@ The following part constitutes the core of the MSS definition
 It generates a tree of stages, which may or may not be dependent on each other, each of which constitutes an ESF and is defined by one of the functors described in \ref ssec_kernels "the previous section".
 These functors are indeed passed as template arguments to the make_esf helper function. The
 \code
-execute<forward>()
+execute::forward()
 \endcode
 keyword specifies the order of the loops in the z direction.
 

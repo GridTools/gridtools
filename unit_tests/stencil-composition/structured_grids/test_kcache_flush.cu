@@ -39,12 +39,11 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
 
 struct shift_acc_forward_flush {
 
-    typedef accessor<0, enumtype::in, extent<>> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef make_param_list<in, out> param_list;
 
@@ -61,8 +60,8 @@ struct shift_acc_forward_flush {
 
 struct shift_acc_backward_flush {
 
-    typedef accessor<0, enumtype::in, extent<>> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
 
     typedef make_param_list<in, out> param_list;
 
@@ -94,12 +93,9 @@ TEST_F(kcachef, flush_forward) {
     auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
-        make_multistage // mss_descriptor
-        (execute<forward>(),
+        make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
-            make_stage<shift_acc_forward_flush>(p_in() // esf_descriptor
-                ,
-                p_out())));
+            make_stage<shift_acc_forward_flush>(p_in(), p_out())));
 
     kcache_stencil.run();
 
@@ -135,12 +131,9 @@ TEST_F(kcachef, flush_backward) {
     auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
-        make_multistage // mss_descriptor
-        (execute<backward>(),
+        make_multistage(execute::backward(),
             define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
-            make_stage<shift_acc_backward_flush>(p_in() // esf_descriptor
-                ,
-                p_out())));
+            make_stage<shift_acc_backward_flush>(p_in(), p_out())));
 
     kcache_stencil.run();
 

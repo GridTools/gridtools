@@ -35,62 +35,74 @@
 */
 #pragma once
 
-#include <memory>
+#include "../host_device.hpp"
+#include <cmath>
+#include <sstream>
 #include <string>
-
-#include <cuda_runtime.h>
-
-#include "../../common/cuda_util.hpp"
-#include "../timer.hpp"
+#include <utility>
 
 namespace gridtools {
 
     /**
-     * @class timer_cuda
-     * CUDA implementation of the Timer interface
+     * @class Timer
+     * Measures total elapsed time between all start and stop calls
      */
-    class timer_cuda : public timer<timer_cuda> // CRTP
-    {
-        using event_holder =
-            std::unique_ptr<CUevent_st, std::integral_constant<decltype(&cudaEventDestroy), cudaEventDestroy>>;
-
-        static event_holder create_event() {
-            cudaEvent_t event;
-            GT_CUDA_CHECK(cudaEventCreate(&event));
-            return event_holder{event};
-        }
-
-        event_holder m_start = create_event();
-        event_holder m_stop = create_event();
+    template <typename TimerImpl>
+    class timer {
+      protected:
+        timer(std::string name) : m_name(std::move(name)) {}
 
       public:
-        timer_cuda(std::string name) : timer<timer_cuda>(name) {}
-
         /**
          * Reset counters
          */
-        void set_impl(double) {}
+        GT_FUNCTION_HOST void reset() {
+            m_total_time = 0;
+            m_counter = 0;
+        }
 
         /**
          * Start the stop watch
          */
-        void start_impl() {
-            // insert a start event
-            GT_CUDA_CHECK(cudaEventRecord(m_start.get(), 0));
-        }
+        GT_FUNCTION_HOST void start() { impl().start_impl(); }
 
         /**
          * Pause the stop watch
          */
-        double pause_impl() {
-            // insert stop event and wait for it
-            GT_CUDA_CHECK(cudaEventRecord(m_stop.get(), 0));
-            GT_CUDA_CHECK(cudaEventSynchronize(m_stop.get()));
-
-            // compute the timing
-            float result;
-            GT_CUDA_CHECK(cudaEventElapsedTime(&result, m_start.get(), m_stop.get()));
-            return result * 0.001; // convert ms to s
+        GT_FUNCTION_HOST void pause() {
+            m_total_time += impl().pause_impl();
+            m_counter++;
         }
+
+        /**
+         * @return total elapsed time [s]
+         */
+        GT_FUNCTION_HOST double total_time() const { return m_total_time; }
+
+        /**
+         * @return how often the timer was paused
+         */
+        GT_FUNCTION_HOST size_t count() const { return m_counter; }
+
+        /**
+         * @return total elapsed time [s] as string
+         */
+        GT_FUNCTION_HOST std::string to_string() const {
+            std::ostringstream out;
+            if (m_total_time < 0 || std::isnan(m_total_time))
+                out << m_name << "\t[s]\t"
+                    << "NO_TIMES_AVAILABLE"
+                    << " (" << m_counter << "x called)";
+            else
+                out << m_name << "\t[s]\t" << m_total_time << " (" << m_counter << "x called)";
+            return out.str();
+        }
+
+      private:
+        TimerImpl &impl() { return *static_cast<TimerImpl *>(this); }
+
+        std::string m_name;
+        double m_total_time = 0;
+        size_t m_counter = 0;
     };
 } // namespace gridtools

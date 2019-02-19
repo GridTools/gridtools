@@ -38,6 +38,7 @@
 #include "../common/defs.hpp"
 #include "../meta.hpp"
 #include "./execution_types.hpp"
+#include "./extent.hpp"
 #include "./level.hpp"
 
 namespace gridtools {
@@ -66,7 +67,7 @@ namespace gridtools {
     template <class T>
     GT_META_DEFINE_ALIAS(is_loop_interval, meta::is_instantiation_of, (loop_interval, T));
 
-    namespace _impl {
+    namespace loop_interval_impl_ {
         GT_META_LAZY_NAMESPACE {
             template <class>
             struct reverse_loop_interval;
@@ -76,22 +77,47 @@ namespace gridtools {
             };
         }
         GT_META_DELEGATE_TO_LAZY(reverse_loop_interval, class T, T);
-    } // namespace _impl
+
+        template <class Stage>
+        GT_META_DEFINE_ALIAS(get_extent_from_stage, meta::id, typename Stage::extent_t);
+
+        template <class Interval,
+            class StageGroups = GT_META_CALL(meta::at_c, (Interval, 2)),
+            class Stages = GT_META_CALL(meta::flatten, StageGroups)>
+        GT_META_DEFINE_ALIAS(get_extents_from_interval, meta::transform, (get_extent_from_stage, Stages));
+
+        template <class LoopIntervals,
+            class ExtentsList = GT_META_CALL(meta::transform, (get_extents_from_interval, LoopIntervals))>
+        GT_META_DEFINE_ALIAS(all_extents_of_loop_intervals, meta::flatten, ExtentsList);
+
+    } // namespace loop_interval_impl_
 
     GT_META_LAZY_NAMESPACE {
         template <class Execute, class LoopIntervals>
         struct order_loop_intervals : meta::lazy::id<LoopIntervals> {};
 
-        template <uint_t BlockSize, class LoopIntervals>
-        struct order_loop_intervals<enumtype::execute<enumtype::backward, BlockSize>, LoopIntervals> {
-            using type = GT_META_CALL(
-                meta::reverse, (GT_META_CALL(meta::transform, (_impl::reverse_loop_interval, LoopIntervals))));
+        template <class LoopIntervals>
+        struct order_loop_intervals<execute::backward, LoopIntervals> {
+            using type = GT_META_CALL(meta::reverse,
+                (GT_META_CALL(meta::transform, (loop_interval_impl_::reverse_loop_interval, LoopIntervals))));
         };
+
+        template <class LoopIntervals,
+            class Extents = GT_META_CALL(loop_interval_impl_::all_extents_of_loop_intervals, LoopIntervals)>
+        struct get_extent_from_loop_intervals : meta::lazy::first<Extents> {
+            GT_STATIC_ASSERT(meta::all_are_same<Extents>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_extent, Extents>::value), GT_INTERNAL_ERROR);
+        };
+
+        template <class LoopIntervals, template <class...> class L>
+        struct get_extent_from_loop_intervals<LoopIntervals, L<>> : meta::lazy::id<extent<>> {};
     }
     /**
-     * Applies executution policy to the list of loop intervals.
+     * Applies execution policy to the list of loop intervals.
      * For backward execution loop_intervals are reversed and for each interval From and To levels got swapped.
      */
     GT_META_DELEGATE_TO_LAZY(order_loop_intervals, (class Execute, class LoopIntervals), (Execute, LoopIntervals));
+
+    GT_META_DELEGATE_TO_LAZY(get_extent_from_loop_intervals, class LoopIntervals, LoopIntervals);
 
 } // namespace gridtools

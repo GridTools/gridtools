@@ -39,18 +39,18 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 namespace rw_test {
     struct test_functor {
-        typedef accessor<0, in, extent<0>> i0;
-        typedef accessor<1, inout> o0;
-        typedef accessor<2, in, extent<2>> i1;
-        typedef accessor<3, inout> o1;
-        typedef accessor<4, in, extent<3>> i2;
-        typedef accessor<5, inout> o2;
-        typedef accessor<6, in, extent<4>> i3;
-        typedef accessor<7, inout> o3;
+        typedef accessor<0, intent::in, extent<0>> i0;
+        typedef accessor<1, intent::inout> o0;
+        typedef accessor<2, intent::in, extent<2>> i1;
+        typedef accessor<3, intent::inout> o1;
+        typedef accessor<4, intent::in, extent<3>> i2;
+        typedef accessor<5, intent::inout> o2;
+        typedef accessor<6, intent::in, extent<4>> i3;
+        typedef accessor<7, intent::inout> o3;
 
         typedef make_param_list<i0, o0, i1, o1, i2, o2, i3, o3> param_list;
 

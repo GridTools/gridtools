@@ -48,7 +48,6 @@
 #include "../meta/utility.hpp"
 
 namespace gridtools {
-
 #ifdef __INTEL_COMPILER
     namespace _impl {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base

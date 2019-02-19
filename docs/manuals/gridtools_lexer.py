@@ -4,6 +4,8 @@ from pygments.lexers.c_cpp import CppLexer
 
 gridtools_keywords = ((
         'accessor',
+        'in_accessor',
+        'inout_accessor',
         'aggregator_type',
         'arg',
         'tmp_arg',
@@ -27,8 +29,6 @@ gridtools_keywords = ((
         'grid',
         'icosahedral_topology',
         'IJ',
-        'in',
-        'inout',
         'interval',
         'K',
         'layout_map',

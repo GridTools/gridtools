@@ -25,11 +25,11 @@ The syntax we expose for `if_` statements is reported in the following example:
      grid,
      if_([&flag] { return flag; },
          make_multistage(
-             execute<forward>(),
+             execute::forward(),
              make_stage<functor0>(p())
          ),
          make_multistage(
-             execute<forward>(),
+             execute::forward(),
              make_stage<functor1>(p())
          )
      )
@@ -51,16 +51,16 @@ The conditionals can also be nested:
      grid,
      if_(cond,
          make_multistage(
-             execute<forward>(),
+             execute::forward(),
              make_stage<functor0>(p())
          ),
          if_(cond2,
              make_multistage(
-                 execute<forward>(),
+                 execute::forward(),
                  make_stage<functor1>(p())
              ),
              make_multistage(
-                 execute<forward>(),
+                 execute::forward(),
                  make_stage<functor2>(p())
              )
          )
@@ -80,22 +80,22 @@ exemplified in the following snippet
  auto comp_ = make_computation<backend_t>(
      grid,
      make_multistage(
-         execute<parallel>(),
+         execute::parallel(),
          make_stage<functor0>(p_tmp(), p_in()),
      ),
      switch_(cond,
          case_(0,
-             make_multistage(execute<forward>(),
+             make_multistage(execute::forward(),
                  make_stage<functor1>(p_out(), p_tmp()),
              )
          ),
          case_(1,
-             make_multistage(execute<forward>(),
+             make_multistage(execute::forward(),
                  make_stage<functor2>(p_out(), p_tmp())
              )
          ),
          case_(2,
-             make_multistage(execute<forward>(),
+             make_multistage(execute::forward(),
                  make_stage<functor3>(p_out(), p_tmp())
              )
          )

@@ -131,7 +131,8 @@ namespace gridtools {
                 class Caches,
                 class Indices = GT_META_CALL(meta::make_indices_c, ExpandFactor),
                 class IndicesAndCaches = GT_META_CALL(meta::cartesian_product, (Indices, Caches)),
-                class ExpandedCaches = GT_META_CALL(meta::transform, (convert_cache_f, IndicesAndCaches))>
+                class RawExpandedCaches = GT_META_CALL(meta::transform, (convert_cache_f, IndicesAndCaches)),
+                class ExpandedCaches = GT_META_CALL(meta::dedup, RawExpandedCaches)>
             GT_META_DEFINE_ALIAS(expand_caches, meta::rename, (meta::ctor<std::tuple<>>::apply, ExpandedCaches));
 
             template <size_t ExpandFactor, class ArgStoragePair>

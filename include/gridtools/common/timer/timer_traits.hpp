@@ -35,36 +35,40 @@
 */
 #pragma once
 
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/pair.hpp>
+#include "../defs.hpp"
+
+#ifndef GT_ENABLE_METERS
+#include "timer_dummy.hpp"
+#else
+#ifdef GT_USE_GPU
+#include "timer_cuda.hpp"
+#endif
+#include "timer_omp.hpp"
+#endif
 
 namespace gridtools {
-    /** \ingroup common
-        @{
-        \ingroup allmeta
-        @{
-        \ingroup fusionutil
-        @{
-    */
+    template <typename T>
+    struct timer_traits;
 
-    /**
-     * \brief extract an mpl map from a fusion map
-     */
-    template <typename FusionMap>
-    struct fusion_map_to_mpl_map {
-        template <typename MplMap, typename FusionPair>
-        struct insert_pair_to_map {
-            typedef typename boost::mpl::insert<MplMap,
-                boost::mpl::pair<typename FusionPair::first_type, typename FusionPair::second_type>>::type type;
-        };
-
-        typedef typename boost::mpl::
-            fold<FusionMap, boost::mpl::map0<>, insert_pair_to_map<boost::mpl::_1, boost::mpl::_2>>::type type;
+#ifndef GT_ENABLE_METERS
+    template <typename T>
+    struct timer_traits {
+        using timer_type = timer_dummy;
     };
-    /** @} */
-    /** @} */
-    /** @} */
-
+#else
+#ifdef GT_USE_GPU
+    template <>
+    struct timer_traits<target::cuda> {
+        using timer_type = timer_cuda;
+    };
+#endif
+    template <>
+    struct timer_traits<target::x86> {
+        using timer_type = timer_omp;
+    };
+    template <>
+    struct timer_traits<target::mc> {
+        using timer_type = timer_omp;
+    };
+#endif
 } // namespace gridtools
