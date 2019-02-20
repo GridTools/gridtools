@@ -131,6 +131,7 @@ namespace gridtools {
         array<int, _impl::static_pow3<DIMS>::value> recv_size;
         int *d_send_size;
         int *d_recv_size;
+        bool max_fields_n_;
 
         halo_descriptor *halo_d;   // pointer to halo descr on device
         halo_descriptor *halo_d_r; // pointer to halo descr on device
@@ -225,6 +226,8 @@ namespace gridtools {
            \param max_fields_n Maximum number of data fields that will be passed to the communication functions
         */
         void setup(const int max_fields_n) {
+
+            max_fields_n_ = max_fields_n;
 
             typedef translate_t<3, default_layout_map<3>::type> translate;
             typedef translate_t<3, proc_layout> translate_P;
@@ -540,6 +543,16 @@ namespace gridtools {
                 m_packXU_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
             }
 
+            for (int i = -1; i <= 1; ++i)
+                for (int j = -1; j <= 1; ++j)
+                    for (int k = -1; k <= 1; ++k)
+                        if (i != 0 || j != 0 || k != 0) {
+                            base_type::m_haloexch.set_send_to_size(
+                                send_size[translate()(i, j, k)] / max_fields_n_ * sizeof...(fields), i, j, k);
+                            base_type::m_haloexch.set_receive_from_size(
+                                send_size[translate()(-i, -j, -k)] / max_fields_n_ * sizeof...(fields), -i, -j, -k);
+                        }
+
 #ifdef GCL_MULTI_STREAMS
             cudaStreamSynchronize(ZL_stream);
             cudaStreamSynchronize(ZU_stream);
@@ -607,6 +620,17 @@ namespace gridtools {
             if (send_size[translate()(1, 0, 0)]) {
                 m_packXU(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
             }
+
+            for (int i = -1; i <= 1; ++i)
+                for (int j = -1; j <= 1; ++j)
+                    for (int k = -1; k <= 1; ++k)
+                        if (i != 0 || j != 0 || k != 0) {
+                            base_type::m_haloexch.set_send_to_size(
+                                send_size[translate()(i, j, k)] / max_fields_n_ * fields.size(), i, j, k);
+                            base_type::m_haloexch.set_receive_from_size(
+                                send_size[translate()(-i, -j, -k)] / max_fields_n_ * fields.size(), -i, -j, -k);
+                        }
+
 // perform device syncronization to ensure that packing is finished
 // before MPI is called with the device pointers, otherwise stale
 // information can be sent
