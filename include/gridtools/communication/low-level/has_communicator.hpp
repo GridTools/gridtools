@@ -1,5 +1,5 @@
 /*
- * GridTools Libraries
+ * GridTools
  *
  * Copyright (c) 2019, ETH Zurich
  * All rights reserved.
