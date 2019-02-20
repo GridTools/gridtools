@@ -1,0 +1,25 @@
+.wy-side-nav-search {
+    background-color: white;
+}
+.wy-side-nav-search > div.version, .wy-side-nav-search > a {
+    color: #343131;
+}
+.wy-side-nav-search input {
+    background: #e3e3e3;
+    color: #343131;
+}
+.wy-nav-content a {
+    color: rgb(166, 11, 22);
+}
+.wy-nav-content a:hover {
+    color: rgb(226, 0, 36);
+}
+.wy-nav-content a:visited {
+    color: rgb(240, 155, 155);
+}
+.rst-content .note .admonition-title {
+    background: rgb(226, 0, 36);
+}
+.rst-content .note {
+    background: rgb(250, 220, 220);
+}
