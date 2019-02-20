@@ -51,7 +51,7 @@ namespace gridtools {
     using make_param_list = boost::mpl::vector<list...>;
 } // namespace gridtools
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./structured_grids/esf.hpp"
 #else
 #include "./icosahedral_grids/esf.hpp"

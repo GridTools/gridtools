@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "../structured_grids/backend_x86/execute_kernel_functor_x86.hpp"
 #else
 #include "../icosahedral_grids/backend_x86/execute_kernel_functor_x86.hpp"

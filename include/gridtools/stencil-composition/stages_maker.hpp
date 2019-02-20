@@ -36,7 +36,7 @@
 
 #pragma once
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./structured_grids/stages_maker.hpp"
 #else
 #include "./icosahedral_grids/stages_maker.hpp"

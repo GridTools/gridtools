@@ -33,6 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "call_interfaces.hpp"
 #endif

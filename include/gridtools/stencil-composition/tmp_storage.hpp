@@ -78,7 +78,7 @@
 #include "./location_type.hpp"
 #include "./pos3.hpp"
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./structured_grids/tmp_storage.hpp"
 #else
 #include "./icosahedral_grids/tmp_storage.hpp"

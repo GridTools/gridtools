@@ -1,4 +1,4 @@
-if( GT_TESTS_STRUCTURED_GRID )
+if( NOT GT_TESTS_ICOSAHEDRAL_GRID )
     set( EXAMPLES_SRCFILES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
 
     if(GT_ENABLE_TARGET_MC)
