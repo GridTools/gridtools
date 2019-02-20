@@ -1,3 +1,11 @@
+! GridTools
+!
+! Copyright (c) 2019, ETH Zurich
+! All rights reserved.
+!
+! Please, refer to the LICENSE file in the root directory.
+! SPDX-License-Identifier: BSD-3-Clause
+
 subroutine call_repository() bind (c, name="call_repository")
 
     use iso_c_binding
