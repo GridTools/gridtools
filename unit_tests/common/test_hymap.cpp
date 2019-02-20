@@ -52,8 +52,7 @@ namespace gridtools {
         struct c;
 
         TEST(tuple_like, smoke) {
-            using keys_t = meta::list<a, b, c>;
-            using testee_t = hymap<keys_t, std::tuple<int, double, void *>>;
+            using testee_t = hymap_ctor<std::tuple>::keys<a, b, c>::values<int, double, void *>;
 
             static_assert(tuple_util::size<testee_t>::value == 3, "");
 
@@ -67,16 +66,8 @@ namespace gridtools {
             EXPECT_EQ(nullptr, tuple_util::get<2>(testee));
         }
 
-        struct add_2_f {
-            template <class T>
-            T operator()(T x) const {
-                return x + 2;
-            }
-        };
-
         TEST(at_key, smoke) {
-            using keys_t = meta::list<a, b>;
-            using testee_t = hymap<keys_t, std::tuple<int, double>>;
+            using testee_t = hymap_ctor<std::tuple>::keys<a, b>::values<int, double>;
             testee_t testee{42, 5.3};
 
             static_assert(has_key<testee_t, a>::value, "");
@@ -99,9 +90,15 @@ namespace gridtools {
             EXPECT_EQ(5.3, (at_key<integral_constant<int, 1>>(testee)));
         }
 
+        struct add_2_f {
+            template <class T>
+            T operator()(T x) const {
+                return x + 2;
+            }
+        };
+
         TEST(tuple_like, transform) {
-            using keys_t = meta::list<a, b>;
-            using testee_t = hymap<keys_t, std::tuple<int, double>>;
+            using testee_t = hymap_ctor<std::tuple>::keys<a, b>::values<int, double>;
 
             testee_t src = {42, 5.3};
             auto dst = tuple_util::transform(add_2_f{}, src);
@@ -111,7 +108,7 @@ namespace gridtools {
         }
 
         TEST(make_hymap, smoke) {
-            auto testee = make_hymap<meta::list<a, b>, std::tuple>(42, 5.3);
+            auto testee = tuple_util::make<hymap_ctor<std::tuple>::keys<a, b>::values>(42, 5.3);
 
             EXPECT_EQ(42, at_key<a>(testee));
             EXPECT_EQ(5.3, at_key<b>(testee));

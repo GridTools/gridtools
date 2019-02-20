@@ -48,31 +48,6 @@ For information: http://eth-cscs.github.io/gridtools/
 
 namespace gridtools {
 
-    template <class Keys, class Values>
-    struct hymap : Values {
-        GT_STATIC_ASSERT(tuple_util::size<Values>::value == meta::length<Keys>::value, "invalid hymap");
-
-        using Values::Values;
-
-        friend GT_META_CALL(tuple_util::traits::to_types, Values) tuple_to_types(hymap);
-
-        struct from_types_f {
-            template <class... Types>
-#if GT_BROKEN_TEMPLATE_ALIASES
-            struct apply {
-                using type =
-                    hymap<Keys, typename tuple_util::traits::from_types<Values>::type::template apply<Types...>::type>;
-            };
-#else
-            using apply = hymap<Keys, typename tuple_util::traits::from_types<Values>::template apply<Types...>>;
-#endif
-        };
-
-        friend from_types_f tuple_from_types(hymap);
-
-        friend Keys hymap_get_keys(hymap);
-    };
-
     namespace hymap_impl_ {
 
         template <class I>
@@ -107,6 +82,22 @@ namespace gridtools {
     template <class Map, class Key>
     GT_META_DEFINE_ALIAS(has_key, meta::st_contains, (hymap_impl_::get_keys<Map>, Key));
 
+    template <template <class...> class L>
+    struct hymap_ctor {
+        template <class... Keys>
+        struct keys {
+            template <class... Vals>
+            struct values : L<Vals...> {
+                GT_STATIC_ASSERT(sizeof...(Vals) == sizeof...(Keys), "invalid hymap");
+                using L<Vals...>::L;
+
+                friend keys hymap_get_keys(values const &) { return {}; }
+
+                using type = values;
+            };
+            using type = keys;
+        };
+    };
 } // namespace gridtools
 
 #define GT_FILENAME <gridtools/common/hymap.hpp>
@@ -118,17 +109,11 @@ namespace gridtools {
 
 namespace gridtools {
     GT_TARGET_NAMESPACE {
-
         template <class Key,
             class Map,
             class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, decay_t<Map>), Key))>
         GT_TARGET GT_FORCE_INLINE constexpr auto at_key(Map && map) noexcept GT_AUTO_RETURN(
             tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(const_expr::forward<Map>(map)));
-
-        template <class Keys, template <class...> class L, class... Vals>
-        GT_TARGET GT_FORCE_INLINE constexpr hymap<Keys, L<Vals...>> make_hymap(Vals const &... vals) {
-            return {vals...};
-        }
     }
 } // namespace gridtools
 
