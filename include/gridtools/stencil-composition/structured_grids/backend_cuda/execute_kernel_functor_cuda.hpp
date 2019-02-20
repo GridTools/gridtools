@@ -152,8 +152,8 @@ namespace gridtools {
             } else if (threadIdx.y < iminus_limit) {
                 static constexpr auto padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <=
-                                     block_i_size(backend_ids<target::cuda, grid_type::structured, strategy::block>{}),
+                GT_STATIC_ASSERT(
+                    jboundary_limit * padded_boundary_ <= block_i_size(backend_ids<target::cuda, strategy::block>{}),
                     GT_INTERNAL_ERROR);
 
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
@@ -161,8 +161,8 @@ namespace gridtools {
             } else if (threadIdx.y < iplus_limit) {
                 static constexpr auto padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <=
-                                     block_i_size(backend_ids<target::cuda, grid_type::structured, strategy::block>{}),
+                GT_STATIC_ASSERT(
+                    jboundary_limit * padded_boundary_ <= block_i_size(backend_ids<target::cuda, strategy::block>{}),
                     GT_INTERNAL_ERROR);
                 iblock = threadIdx.x % padded_boundary_ + ntx;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;

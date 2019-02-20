@@ -54,7 +54,7 @@ using target_t = gt::target::cuda;
 using target_t = gt::target::mc;
 #endif
 
-using backend_t = gt::backend<target_t, gt::grid_type::structured, gt::strategy::block>;
+using backend_t = gt::backend<target_t>;
 
 using storage_info_t = gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
 using data_store_t = gt::storage_traits<backend_t::backend_id_t>::data_store_t<double, storage_info_t>;

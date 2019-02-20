@@ -52,8 +52,8 @@ struct static_type_tests {
 
 #ifdef __CUDACC__
 // static type tests for Cuda backend
-template <class GridBackend, class Strategy>
-struct static_type_tests<backend<target::cuda, GridBackend, Strategy>> {
+template <class Strategy>
+struct static_type_tests<backend<target::cuda, Strategy>> {
     using storage_traits_t = storage_traits<target::cuda>;
 
     /*########## STORAGE INFO CHECKS ########## */
@@ -85,8 +85,8 @@ struct static_type_tests<backend<target::cuda, GridBackend, Strategy>> {
 #endif
 
 // static type tests for Mic backend
-template <class GridBackend, class Strategy>
-struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
+template <class Strategy>
+struct static_type_tests<backend<target::mc, Strategy>> {
     using storage_traits_t = storage_traits<target::mc>;
 
     /*########## STORAGE INFO CHECKS ########## */
@@ -129,8 +129,8 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
 };
 
 // static type tests for Host backend
-template <class GridBackend, class Strategy>
-struct static_type_tests<backend<target::x86, GridBackend, Strategy>> {
+template <class Strategy>
+struct static_type_tests<backend<target::x86, Strategy>> {
     using storage_traits_t = storage_traits<target::x86>;
 
     /*########## STORAGE INFO CHECKS ########## */
@@ -506,23 +506,20 @@ struct static_layout_tests {
 };
 
 #ifdef __CUDACC__
-template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<target::cuda, GridBackend, Strategy>>
-    : static_layout_tests_decreasing<target::cuda> {};
+template <class Strategy>
+struct static_layout_tests<backend<target::cuda, Strategy>> : static_layout_tests_decreasing<target::cuda> {};
 #endif
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
-template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<target::mc, GridBackend, Strategy>>
-    : static_layout_tests_decreasing_swappedxy<target::mc> {};
+template <class Strategy>
+struct static_layout_tests<backend<target::mc, Strategy>> : static_layout_tests_decreasing_swappedxy<target::mc> {};
 #else
-template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<target::mc, GridBackend, Strategy>> : static_layout_tests_increasing<target::mc> {};
+template <class Strategy>
+struct static_layout_tests<backend<target::mc, Strategy>> : static_layout_tests_increasing<target::mc> {};
 #endif
 
-template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<target::x86, GridBackend, Strategy>> : static_layout_tests_increasing<target::x86> {
-};
+template <class Strategy>
+struct static_layout_tests<backend<target::x86, Strategy>> : static_layout_tests_increasing<target::x86> {};
 
 template class static_layout_tests<backend_t>;
 

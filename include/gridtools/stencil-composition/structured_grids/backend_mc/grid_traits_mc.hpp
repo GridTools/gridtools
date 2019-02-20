@@ -42,7 +42,7 @@
 
 namespace gridtools {
     template <class Args>
-    struct kernel_functor_executor<backend_ids<target::mc, grid_type::structured, strategy::block>, Args> {
+    struct kernel_functor_executor<backend_ids<target::mc, strategy::block>, Args> {
         using type = strgrid::execute_kernel_functor_mc<Args>;
     };
 } // namespace gridtools

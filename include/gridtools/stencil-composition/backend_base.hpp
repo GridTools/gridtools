@@ -104,7 +104,7 @@ namespace gridtools {
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
     */
-    template <class BackendId, class GridId, class StrategyId>
+    template <class BackendId, class StrategyId>
     struct backend_base {
 
 #ifdef __CUDACC__
@@ -114,9 +114,9 @@ namespace gridtools {
             "instantiating is another one!!");
 #endif
 
-        typedef backend_base<BackendId, GridId, StrategyId> this_type;
+        typedef backend_base<BackendId, StrategyId> this_type;
 
-        typedef backend_ids<BackendId, GridId, StrategyId> backend_ids_t;
+        typedef backend_ids<BackendId, StrategyId> backend_ids_t;
 
         typedef backend_traits_from_id<BackendId> backend_traits_t;
         typedef storage_traits<BackendId> storage_traits_t;
@@ -124,7 +124,6 @@ namespace gridtools {
 
         using strategy_id_t = StrategyId;
         using backend_id_t = BackendId;
-        using grid_id_t = GridId;
 
         /**
             Method to retrieve a global parameter

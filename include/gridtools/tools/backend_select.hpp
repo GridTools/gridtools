@@ -38,12 +38,6 @@
 #include "../common/defs.hpp"
 #include "../stencil-composition/backend.hpp"
 
-#ifndef GT_ICOSAHEDRAL_GRIDS
-using grid_type_t = gridtools::grid_type::structured;
-#else
-using grid_type_t = gridtools::grid_type::icosahedral;
-#endif
-
 #if GT_FLOAT_PRECISION == 4
 using float_type = float;
 #elif GT_FLOAT_PRECISION == 8
@@ -70,5 +64,5 @@ using strategy_t = gridtools::strategy::block;
 #endif
 
 #ifndef GT_NO_BACKEND
-using backend_t = gridtools::backend<target_t, grid_type_t, strategy_t>;
+using backend_t = gridtools::backend<target_t>;
 #endif

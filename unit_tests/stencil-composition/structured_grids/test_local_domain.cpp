@@ -73,7 +73,7 @@ struct dummy_functor {
     GT_FUNCTION static void apply(Evaluation &eval);
 };
 
-typedef backend<target::x86, grid_type_t, strategy::naive> naive_backend_t;
+typedef backend<target::x86, strategy::naive> naive_backend_t;
 typedef layout_map<2, 1, 0> layout_ijk_t;
 typedef layout_map<0, 1, 2> layout_kji_t;
 typedef storage_info_interface<0, layout_ijk_t> meta_ijk_t;
@@ -86,7 +86,7 @@ typedef arg<1, storage_buff_t> p_buff;
 typedef arg<2, storage_t> p_out;
 
 typedef intermediate<false,
-    backend<target::x86, grid_type_t, strategy::naive>,
+    backend<target::x86, strategy::naive>,
     grid<axis<1>::axis_interval_t>,
     std::tuple<>,
     std::tuple<decltype(make_multistage // mss_descriptor

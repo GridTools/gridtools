@@ -154,12 +154,6 @@ namespace gridtools {
         struct block {};
     } // namespace strategy
 
-    /** tags specifying the type of grid to use */
-    namespace grid_type {
-        struct structured {};
-        struct icosahedral {};
-    } // namespace grid_type
-
 #define GT_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 
 #define GT_INTERNAL_ERROR                                                                                       \

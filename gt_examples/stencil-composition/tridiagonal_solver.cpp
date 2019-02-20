@@ -59,7 +59,7 @@ using target_t = gt::target::cuda;
 using target_t = gt::target::mc;
 #endif
 
-using backend_t = gt::backend<target_t, gt::grid_type::structured, gt::strategy::block>;
+using backend_t = gt::backend<target_t>;
 
 // This is the definition of the special regions in the "vertical" direction
 using axis_t = gt::axis<1>;

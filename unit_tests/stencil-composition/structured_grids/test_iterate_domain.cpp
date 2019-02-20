@@ -103,18 +103,17 @@ namespace gridtools {
 
             auto mss_ = gridtools::make_multistage // mss_descriptor
                 (execute::forward(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
-            auto computation_ = make_computation<gridtools::backend<target::x86, grid_type_t, strategy::naive>>(
+            auto computation_ = make_computation<gridtools::backend<target::x86, strategy::naive>>(
                 grid, p_in = in, p_buff = buff, p_out = out, mss_);
             auto local_domain1 = std::get<0>(computation_.local_domains());
 
             using esf_t = decltype(gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
 
-            using iterate_domain_arguments_t =
-                iterate_domain_arguments<backend_ids<target::x86, grid_type_t, strategy::naive>,
-                    decltype(local_domain1),
-                    std::tuple<esf_t>,
-                    std::tuple<>,
-                    gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
+            using iterate_domain_arguments_t = iterate_domain_arguments<backend_ids<target::x86, strategy::naive>,
+                decltype(local_domain1),
+                std::tuple<esf_t>,
+                std::tuple<>,
+                gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
 #ifdef GT_BACKEND_MC
             using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
