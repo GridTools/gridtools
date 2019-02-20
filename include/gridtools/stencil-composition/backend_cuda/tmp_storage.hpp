@@ -58,8 +58,8 @@ namespace gridtools {
             template <class StorageInfo,
                 class MaxExtent,
                 int_t UsedHalo = -MaxExtent::iminus::value,
-                uint_t StorageHalo =
-                    StorageInfo::halo_t::template at<coord_i<backend_ids<target::cuda, strategy::block>>::value>()>
+                uint_t StorageHalo = StorageInfo::halo_t::at(
+                    coord_i<backend_ids<target::cuda, strategy::block>>::value)>
             GT_FUNCTION constexpr uint_t additional_i_offset() {
                 return StorageHalo > UsedHalo ? StorageHalo - UsedHalo : 0;
             }
