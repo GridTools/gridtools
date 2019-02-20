@@ -17,9 +17,9 @@
 .wy-nav-content a:visited {
     color: rgb(240, 155, 155);
 }
-.rst-content .note .admonition-title {
+.rst-content .note .admonition-title, .rst-content .admonition-todo .admonition-title {
     background: rgb(226, 0, 36);
 }
-.rst-content .note {
+.rst-content .note, .rst-content .admonition-todo {
     background: rgb(250, 220, 220);
 }
