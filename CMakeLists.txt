@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 cmake_policy(SET CMP0048 NEW)
-file(READ "version.txt" GT_VERSION)
+file(STRINGS "version.txt" GT_VERSION)
 project(GridTools VERSION ${GT_VERSION} LANGUAGES CXX)
 
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
