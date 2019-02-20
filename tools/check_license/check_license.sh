@@ -14,7 +14,7 @@ execludelist=(\
     "./regression/c_bindings/implementation_wrapper_float.h" \
     )
 
-for file in `find . -regextype posix-egrep -regex ".*\.(h|hpp|cpp|cu)$" -not -path "./build*" -not -path "./tools/*" -not -path "./docs/*"`; do
+for file in `find . -regextype posix-egrep -regex ".*\.(h|hpp|cpp|cu|c|cpp.in)$" -not -path "./build*" -not -path "./tools/*" -not -path "./docs/*"`; do
 
     if [[ ! " ${execludelist[@]} " =~ " ${file} " ]]; then # if not in exclude list
         if ! grep -q "Copyright (c) " $file ; then
