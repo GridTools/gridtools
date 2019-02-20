@@ -297,10 +297,10 @@
  * Main macro is GT_MAKE_REPOSITORY_BINDINGS_helper. Here we just add extra parenthesis to the input to make
  * user-code look nicer (no double parenthesis)
  *
- * Suppose you have a repository with name = "CRep", fortran_name = "FRep" and datastores named "u" and "v".
- * This will generate the following fortran bindings:
- *     set_FRep_u(repo, arr) sets CRep.u()
- *     set_FRep_v(repo, arr) sets CRep.v()
+ * Suppose you have a repository with name = "CRep", fortran_name = "FRep", datastores named "u" and "v" and prefix set
+ * to "prefix_". This will generate the following fortran bindings:
+ *      prefix_set_FRep_u(repo, arr) sets CRep.u()
+ *      prefix_set_FRep_v(repo, arr) sets CRep.v()
  */
 #define GT_MAKE_REPOSITORY_BINDINGS(name, fortran_name, prefix, data_stores_seq) \
     GT_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, prefix, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))
