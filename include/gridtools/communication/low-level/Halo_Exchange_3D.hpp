@@ -687,7 +687,7 @@ namespace gridtools {
             assert((J >= -1 && J <= 1));
             assert((K >= -1 && K <= 1));
 
-            m_send_buffers.size(I, J, K) = s;
+            m_recv_buffers.size(I, J, K) = s;
         }
 
         /** Function to set receive buffers sizes if the size must be

@@ -557,10 +557,10 @@ namespace gridtools {
                                     jj_P,
                                     kk_P);
                                 base_type::m_haloexch.set_receive_from_size(
-                                    send_size[translate()(ii, jj, kk)] * sizeof...(fields) * sizeof(DataType),
-                                    -ii_P,
-                                    -jj_P,
-                                    -kk_P);
+                                    recv_size[translate()(ii, jj, kk)] * sizeof...(fields) * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
                             }
                         }
 
@@ -649,10 +649,10 @@ namespace gridtools {
                                     jj_P,
                                     kk_P);
                                 base_type::m_haloexch.set_receive_from_size(
-                                    send_size[translate()(ii, jj, kk)] * fields.size() * sizeof(DataType),
-                                    -ii_P,
-                                    -jj_P,
-                                    -kk_P);
+                                    recv_size[translate()(ii, jj, kk)] * fields.size() * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
                             }
                         }
 
