@@ -142,7 +142,7 @@
 #include "pair.hpp"
 
 #define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                              \
-    template <class... Args>                                                                                        \
+    template <class... Args, enable_if_t<std::is_constructible<decltype(member_name), Args &&...>::value, int> = 0> \
     constexpr GT_FUNCTION class_name(Args &&... args) noexcept : member_name{const_expr::forward<Args>(args)...} {} \
     GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name);                                                                      \
     class_name(class_name const &) = default;                                                                       \

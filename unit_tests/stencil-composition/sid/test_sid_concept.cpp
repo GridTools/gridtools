@@ -75,7 +75,7 @@ namespace gridtools {
             struct dim_0;
             struct dim_1;
 
-            using strides = hymap_ctor<tuple>::keys<dim_0, dim_1>::values<stride, stride>;
+            using strides = hymap::keys<dim_0, dim_1>::values<stride, stride>;
 
             struct strides_kind;
             struct bounds_validator_kind;

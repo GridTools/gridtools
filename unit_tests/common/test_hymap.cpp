@@ -52,7 +52,7 @@ namespace gridtools {
         struct c;
 
         TEST(tuple_like, smoke) {
-            using testee_t = hymap_ctor<std::tuple>::keys<a, b, c>::values<int, double, void *>;
+            using testee_t = hymap::keys<a, b, c>::values<int, double, void *>;
 
             static_assert(tuple_util::size<testee_t>::value == 3, "");
 
@@ -67,7 +67,7 @@ namespace gridtools {
         }
 
         TEST(at_key, smoke) {
-            using testee_t = hymap_ctor<std::tuple>::keys<a, b>::values<int, double>;
+            using testee_t = hymap::keys<a, b>::values<int, double>;
             testee_t testee{42, 5.3};
 
             static_assert(has_key<testee_t, a>::value, "");
@@ -98,7 +98,7 @@ namespace gridtools {
         };
 
         TEST(tuple_like, transform) {
-            using testee_t = hymap_ctor<std::tuple>::keys<a, b>::values<int, double>;
+            using testee_t = hymap::keys<a, b>::values<int, double>;
 
             testee_t src = {42, 5.3};
             auto dst = tuple_util::transform(add_2_f{}, src);
@@ -108,11 +108,10 @@ namespace gridtools {
         }
 
         TEST(make_hymap, smoke) {
-            auto testee = tuple_util::make<hymap_ctor<std::tuple>::keys<a, b>::values>(42, 5.3);
+            auto testee = tuple_util::make<hymap::keys<a, b>::values>(42, 5.3);
 
             EXPECT_EQ(42, at_key<a>(testee));
             EXPECT_EQ(5.3, at_key<b>(testee));
         }
-
     } // namespace
 } // namespace gridtools

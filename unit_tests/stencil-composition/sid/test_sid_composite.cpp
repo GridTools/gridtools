@@ -168,15 +168,15 @@ namespace gridtools {
 
         TEST(composite, custom_dims) {
             double const one[5] = {0, 10, 20, 30, 40};
-            auto strides_one = tu::make<hymap_ctor<tuple>::keys<dim_x>::values>(1_c);
+            auto strides_one = tu::make<hymap::keys<dim_x>::values>(1_c);
 
             double two = -1;
 
             double three[4][3][5] = {};
-            auto strides_three = tu::make<hymap_ctor<tuple>::keys<dim_z, dim_y, dim_x>::values>(1_c, 5_c, 15_c);
+            auto strides_three = tu::make<hymap::keys<dim_z, dim_y, dim_x>::values>(1_c, 5_c, 15_c);
 
-            char four[3][4][5] = {};
-            auto strides_four = tu::make<hymap_ctor<tuple>::keys<dim_y, dim_z, dim_x>::values>(1_c, 5_c, 20_c);
+            char four[6][4][5] = {};
+            auto strides_four = tu::make<hymap::keys<dim_y, dim_z, dim_x>::values>(1_c, 5_c, 20_c);
 
             auto testee = tu::make<sid::composite_ctor::keys<a, b, c, d>::values> //
                 (                                                                 //

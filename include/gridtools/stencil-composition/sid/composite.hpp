@@ -196,7 +196,7 @@ namespace gridtools {
                 struct composite_ptr {
                     GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Ptrs), GT_INTERNAL_ERROR);
 
-                    typename hymap_ctor<tuple>::template keys<Keys...>::template values<Ptrs...> m_vals;
+                    typename hymap::keys<Keys...>::template values<Ptrs...> m_vals;
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
                     constexpr GT_FUNCTION auto operator*() const
@@ -258,8 +258,10 @@ namespace gridtools {
                         constexpr composite(Args &&... args) noexcept
                             : composite(tuple<Args &&...>{std::forward<Args &&>(args)...}) {}
 
-                        template <class... Args, enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
-                        constexpr composite(tuple<Args...> &&tup) noexcept
+                        template <template <class...> class L,
+                            class... Args,
+                            enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
+                        constexpr composite(L<Args...> &&tup) noexcept
                             : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {}
 
                         GT_DECLARE_DEFAULT_EMPTY_CTOR(composite);
@@ -293,8 +295,8 @@ namespace gridtools {
                     }
 
                     struct convert_f {
-                        template <class... Ts>
-                        constexpr composite<remove_reference_t<Ts>...> operator()(tuple<Ts...> &&tup) const {
+                        template <template <class...> class L, class... Ts>
+                        constexpr composite<remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
                             return {std::move(tup)};
                         }
                     };
@@ -306,7 +308,7 @@ namespace gridtools {
                     GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
                     GT_STATIC_ASSERT(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 
-                    typename hymap_ctor<tuple>::template keys<Keys...>::template values<Sids...> m_sids;
+                    typename hymap::keys<Keys...>::template values<Sids...> m_sids;
 
                     // Extracted lists of raw kinds (uncompresed)
                     using strides_kinds_t = meta::list<GT_META_CALL(strides_kind, Sids)...>;
@@ -321,7 +323,14 @@ namespace gridtools {
                     using stride_keys_t = GT_META_CALL(meta::dedup,
                         GT_META_CALL(meta::concat, GT_META_CALL(get_keys, GT_META_CALL(strides_type, Sids))...));
 
-                    using stride_hymap_keys_t = GT_META_CALL(meta::rename, (hymap_ctor<tuple>::keys, stride_keys_t));
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2
+                    struct stride_hymap_keys {
+                        using type = GT_META_CALL(meta::rename, (hymap::keys, stride_keys_t));
+                    };
+                    using stride_hymap_keys_t = typename stride_hymap_keys::type;
+#else
+                    using stride_hymap_keys_t = GT_META_CALL(meta::rename, (hymap::keys, stride_keys_t));
+#endif
 
                     template <class... Values>
                     GT_META_DEFINE_ALIAS(

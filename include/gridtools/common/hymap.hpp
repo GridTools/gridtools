@@ -44,6 +44,7 @@ For information: http://eth-cscs.github.io/gridtools/
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
 #include "integral_constant.hpp"
+#include "tuple.hpp"
 #include "tuple_util.hpp"
 
 namespace gridtools {
@@ -82,14 +83,17 @@ namespace gridtools {
     template <class Map, class Key>
     GT_META_DEFINE_ALIAS(has_key, meta::st_contains, (hymap_impl_::get_keys<Map>, Key));
 
-    template <template <class...> class L>
-    struct hymap_ctor {
+    namespace hymap {
         template <class... Keys>
         struct keys {
             template <class... Vals>
-            struct values : L<Vals...> {
+            struct values {
                 GT_STATIC_ASSERT(sizeof...(Vals) == sizeof...(Keys), "invalid hymap");
-                using L<Vals...>::L;
+
+                tuple<Vals...> m_vals;
+
+                GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_vals);
+                GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_vals);
 
                 friend keys hymap_get_keys(values const &) { return {}; }
 
@@ -97,7 +101,7 @@ namespace gridtools {
             };
             using type = keys;
         };
-    };
+    } // namespace hymap
 } // namespace gridtools
 
 #define GT_FILENAME <gridtools/common/hymap.hpp>
