@@ -4,9 +4,10 @@
 .wy-side-nav-search > div.version, .wy-side-nav-search > a {
     color: #343131;
 }
-.wy-side-nav-search input {
+.wy-side-nav-search input[type="text"] {
     background: #e3e3e3;
     color: #343131;
+    border-color: rgb(166, 11, 22);
 }
 .wy-nav-content a {
     color: rgb(166, 11, 22);
