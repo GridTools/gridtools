@@ -668,7 +668,7 @@ namespace gridtools {
          *   double data[3][4][5];
          *
          *   for(auto& ref : make_range(get_origin(data), get_strides(data),
-         *                              make_loop<0>(3_c), make_loop<1>(4_c), make_loop<2>(5_c))) {
+         *                              make_loop<i>(3_c), make_loop<j>(4_c), make_loop<k>(5_c))) {
          *     ref = 42;
          *   }
          */

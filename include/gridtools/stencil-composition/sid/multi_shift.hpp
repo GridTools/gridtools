@@ -39,9 +39,7 @@
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
-#include "../../common/tuple_util.hpp"
 #include "../../meta/macros.hpp"
-#include "../../meta/make_indices.hpp"
 #include "concept.hpp"
 
 namespace gridtools {
@@ -62,7 +60,7 @@ namespace gridtools {
 
         /**
          *   A helper the invokes `sid::shift` in several dimensions.
-         *   `offsets` should be a tuple-like of individual offsets.
+         *   `offsets` should be a hymap of individual offsets.
          */
         template <class Ptr, class Strides, class Offsets>
         GT_FUNCTION void multi_shift(

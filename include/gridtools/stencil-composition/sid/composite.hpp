@@ -174,21 +174,24 @@ namespace gridtools {
             } // namespace impl_
 
             /**
-             *  This class models both `SID` and `tuple_like` concepts at the same time
+             *  This class models both `SID` and `hymap` concepts at the same time
              *
-             *  All derived types of the `composite` are `tuple_like`s of the correspondent types of the original ones.
+             *  All derived types of the `composite` are `hymap`'s of the correspondent types of the original ones.
              *  Example:
              *    say you have two sids: `s1` and `s2` of types `S1` and `S2`
-             *    you can compose them: `comoposite<S1, S2> c = {s1, s2};`
+             *    you can compose them: `composite::keys<a, b>::values<S1, S2> c = {s1, s2};`
              *    now `c` is a `SID` as well, you can call `get_origin(c)`, `get_strides(c)` etc.
-             *    you have an access to `s1` and `s2` via `tuple_util::get`: `tuple_util::get<0>(c)` is the same as `s1`
+             *    you have an access to `s1` and `s2` via `get_key`: `get_key<a>(c)` is the same as `s1`
              *
-             *    When composing strides together the maximum strides size is calculated and for the original strides
-             * are expanded to that maximum with `integral_constant<int_t, 0>`. Internaly `composite` utilizes the fact
-             * that the strides of the same kind are always the same. This  means that the composite stride doesn't hold
-             * duplicate strides.
+             *  The way how the composite deals with strides is easy to illustrate with example:
+             *  Say the sid `s1` has strides {dim_i:3, dim_j:15} (here I use pseudo code to experess the map)
+             *  and `s2` has strides {dim_k:4, dim_j:12}.
+             *  We create a composite `c`: `composite::keys<a, b>::values<S1, S2> c = {s1, s2}`
+             *  Now `c` has strides : {dim_i:{a:3, b:0}, dim_j:{a:15, b:12}, dim_k:{a:0, b:4}}
              *
-             *  @tparam Sids - all of them should model `SID` concept
+             * Internally `composite` utilizes the fact that the strides of the same kind are always the same.
+             * This  means that the composite stride doesn't hold duplicate strides.
+             *
              */
             template <class... Keys>
             class keys {

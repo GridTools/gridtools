@@ -34,6 +34,67 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 For information: http://eth-cscs.github.io/gridtools/
 */
 
+/**
+ *  @file
+ *
+ *  Hybrid Map (aka hymap) Concept Definition
+ *  -----------------------------------------
+ *  Hymap is a `tuple_like` (see tuple_util.hpp for definition) that additionally holds a type list of keys.
+ *  This type list should be a set. The existense of it allows to use an alternative syntax for element accessor
+ *  (in addition to `tuple_util::get`). Say you have a hymap `obj` that is a `tuple_like` of two elements and has
+ *  keys `a` and `b`. To access the elements you can use: `at_key<a>(obj)` and `at_key<b>(obj)` which are semantically
+ *  the same as `get<0>(obj)` and `get<1>(obj)`.
+ *
+ *  Regarding the Naming
+ *  --------------------
+ *  Hymaps provides a mechanism for mapping compile time keys to run time values. That is why it is hybrid map.
+ *  Keys exist only in compile time -- it is enough to have just a type list to keep them; values are kept in the
+ *  `tuple_like` -- that is why hymap also models `tuple_like` for its values.
+ *
+ *  Concept modeler API
+ *  -------------------
+ *  Hymaps provide the mentioned keys type lists by declaring the function that should be available by ADL:
+ *  `Keys hymap_get_keys(Hymap)`.
+ *
+ *  The Default Behaviour
+ *  ---------------------
+ *  If hymap doesn't provide `hymap_get_keys`, the default is taken which is:
+ *  `meta::list<integral_constant<int, 0>, ..., integral_constant<int, N> >` where N is `tuple_util::size` of hymap.
+ *  This means that any `tuple_like` automatically models Hymap. And for the plain `tuple_like`'s you can use
+ *  `at_key<integral_constant<int, N>>(obj)` instead of `tuple_util::get<N>(obj)`.
+ *
+ *  User API
+ *  --------
+ *  Run time: a single function `target_name::at_key<Key>(hymap_obj)` is provided where `target_name` is `host`,
+ * `device` or `host_device`. `at_key` without `target_name` is an alias of `host::at_key`.
+ *
+ *  Compile time:
+ *  - `get_keys` metafunction. Usage: `GT_META_CALL(get_keys, Hymap)`
+ *  - `has_key` metafunction. Usage `has_key<Hymap, Key>`
+ *
+ *  Gridtools implementation of Hymap
+ *  ---------------------------------
+ *
+ *  Usage
+ *  -----
+ *  ```
+ *    struct a;
+ *    struct b;
+ *    using my_map_t = hymap::keys<a, b>::values<int, double>;
+ *  ```
+ *
+ *  Composing with `tuple_util` library
+ *  -----------------------------------
+ *  Because `hymap` is also a `tuple_like`, all `tuple_util` stuff is at your service.
+ *  For example:
+ *  - transforming the values of the hymap:
+ *    `auto dst_hymap = tuple_util::transform(change_value_functor, src_hymap);`
+ *  - making a map:
+ *    `auto a_map = tuple_util::make<hymap::keys<a, b>::values>('a', 42)`
+ *  - converting to a map:
+ *    `auto a_map = tuple_util::convert_to<hymap::keys<a, b>::values>(a_tuple_with_values)`
+ */
+
 #ifndef GT_TARGET_ITERATING
 //// DON'T USE #pragma once HERE!!!
 #ifndef GT_COMMON_HYMAP_HPP_

@@ -72,7 +72,7 @@
  *     - `PtrDiff` is default constructible
  *     - `Ptr` has `Ptr::operator*() const` which returns non void
  *     - there is `Ptr operator+(Ptr, PtrDiff)` defined
- *     - decayed `Strides` is a tuple-like in the terms of `tuple_util` library
+ *     - decayed `Strides` is a hymap
  *
  *   Each type that participate in `Strides` tuple-like (aka `Stride`) should:
  *     - be an integral
@@ -644,7 +644,7 @@ namespace gridtools {
         /**
          *  A getter from Strides to the given stride.
          *
-         *  If `I` exceeds the actual number of strides, integral_constant<int_t, 0> is returned.
+         *  If `Stride` doesn't have `Key`, integral_constant<int_t, 0> is returned.
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <class Key, class Strides, enable_if_t<has_key<decay_t<Strides>, Key>::value, int> = 0>
