@@ -42,7 +42,7 @@
 
 #include "../../common/cuda_util.hpp"
 #include "../../common/gt_assert.hpp"
-#include "../common/storage_info_interface.hpp"
+#include "../common/storage_info.hpp"
 
 namespace gridtools {
 
@@ -61,7 +61,7 @@ namespace gridtools {
         typename Layout,
         typename Halo = zero_halo<Layout::masked_length>,
         typename Alignment = alignment<32>>
-    using cuda_storage_info = storage_info_interface<Id, Layout, Halo, Alignment>;
+    using cuda_storage_info = storage_info<Id, Layout, Halo, Alignment>;
 
     namespace impl_ {
         /*
@@ -81,8 +81,8 @@ namespace gridtools {
      * @return a storage info device pointer
      */
     template <uint_t Id, typename Layout, typename Halo, typename Alignment>
-    storage_info_interface<Id, Layout, Halo, Alignment> *get_gpu_storage_info_ptr(
-        storage_info_interface<Id, Layout, Halo, Alignment> const &src) {
+    storage_info<Id, Layout, Halo, Alignment> *get_gpu_storage_info_ptr(
+        storage_info<Id, Layout, Halo, Alignment> const &src) {
         thread_local static auto cache = impl_::make_storage_info_ptr_cache(src);
         if (cache.first != src)
             cache = impl_::make_storage_info_ptr_cache(src);

@@ -110,12 +110,12 @@ namespace gridtools {
 
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
-            storage_info_interface<Id, Layout, Halo, Alignment> const &storage_info, int val) {
+            storage_info<Id, Layout, Halo, Alignment> const &storage_info, int val) {
             return val + 1 <= storage_info.template total_length<I>();
         }
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<!exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
-            storage_info_interface<Id, Layout, Halo, Alignment> const &, int) {
+            storage_info<Id, Layout, Halo, Alignment> const &, int) {
             return true;
         }
 
@@ -124,7 +124,7 @@ namespace gridtools {
             Grid const &grid;
 
             template <uint_t Id, class Layout, class Halo, class Alignment>
-            bool operator()(storage_info_interface<Id, Layout, Halo, Alignment> const &src) const {
+            bool operator()(storage_info<Id, Layout, Halo, Alignment> const &src) const {
 
                 // TODO: This check may be not accurate since there is
                 // an ongoing change in the convention for storage and

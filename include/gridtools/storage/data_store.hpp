@@ -46,7 +46,7 @@
 
 #include "../common/gt_assert.hpp"
 #include "common/definitions.hpp"
-#include "common/storage_info_interface.hpp"
+#include "common/storage_info.hpp"
 #include "common/storage_interface.hpp"
 
 namespace gridtools {
