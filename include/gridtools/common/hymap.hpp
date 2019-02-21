@@ -67,7 +67,7 @@ namespace gridtools {
         enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_keys_fun(T const &);
 
         template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
-        enable_if_t<std::is_same<Res, not_provided>::value, default_keys<T>> get_keys_fun(T const &);
+        enable_if_t<std::is_same<Res, not_provided>::value, GT_META_CALL(default_keys, T)> get_keys_fun(T const &);
 
         template <class T>
         using get_keys = decltype(::gridtools::hymap_impl_::get_keys_fun(std::declval<T const &>()));
@@ -81,7 +81,7 @@ namespace gridtools {
 #endif
 
     template <class Map, class Key>
-    GT_META_DEFINE_ALIAS(has_key, meta::st_contains, (hymap_impl_::get_keys<Map>, Key));
+    GT_META_DEFINE_ALIAS(has_key, meta::st_contains, (GT_META_CALL(hymap_impl_::get_keys, Map), Key));
 
     namespace hymap {
         template <class... Keys>

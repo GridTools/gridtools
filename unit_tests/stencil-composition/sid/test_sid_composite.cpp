@@ -60,7 +60,7 @@ namespace gridtools {
             double const src = 42;
             double dst = 0;
 
-            auto testee = tu::make<sid::composite_ctor::keys<a, b>::values>(
+            auto testee = tu::make<sid::composite::keys<a, b>::values>(
                 sid::synthetic().set<property::origin>(&src), sid::synthetic().set<property::origin>(&dst));
             static_assert(is_sid<decltype(testee)>(), "");
 
@@ -72,7 +72,7 @@ namespace gridtools {
             at_key<b>(refs) = at_key<a>(refs);
             EXPECT_EQ(42, dst);
         }
-
+#if 0
         struct my_strides_kind;
 
         using dim_i = integral_constant<int, 0>;
@@ -87,24 +87,24 @@ namespace gridtools {
 
             auto my_strides = tu::make<array>(1, 5, 15);
 
-            auto testee = tu::make<sid::composite_ctor::keys<a, b, c, d>::values> //
-                (                                                                 //
-                    sid::synthetic()                                              //
-                        .set<property::origin>(&one[0])                           //
-                        .set<property::strides>(tuple_util::make<tuple>(1_c))     //
-                    ,                                                             //
-                    sid::synthetic()                                              //
-                        .set<property::origin>(&two)                              //
-                    ,                                                             //
-                    sid::synthetic()                                              //
-                        .set<property::origin>(&three[0][0][0])                   //
-                        .set<property::strides>(my_strides)                       //
-                        .set<property::strides_kind, my_strides_kind>()           //
-                    ,                                                             //
-                    sid::synthetic()                                              //
-                        .set<property::origin>(&four[0][0][0])                    //
-                        .set<property::strides>(my_strides)                       //
-                        .set<property::strides_kind, my_strides_kind>()           //
+            auto testee = tu::make<sid::composite::keys<a, b, c, d>::values>  //
+                (                                                             //
+                    sid::synthetic()                                          //
+                        .set<property::origin>(&one[0])                       //
+                        .set<property::strides>(tuple_util::make<tuple>(1_c)) //
+                    ,                                                         //
+                    sid::synthetic()                                          //
+                        .set<property::origin>(&two)                          //
+                    ,                                                         //
+                    sid::synthetic()                                          //
+                        .set<property::origin>(&three[0][0][0])               //
+                        .set<property::strides>(my_strides)                   //
+                        .set<property::strides_kind, my_strides_kind>()       //
+                    ,                                                         //
+                    sid::synthetic()                                          //
+                        .set<property::origin>(&four[0][0][0])                //
+                        .set<property::strides>(my_strides)                   //
+                        .set<property::strides_kind, my_strides_kind>()       //
                 );
             static_assert(is_sid<decltype(testee)>(), "");
 
@@ -178,22 +178,22 @@ namespace gridtools {
             char four[6][4][5] = {};
             auto strides_four = tu::make<hymap::keys<dim_y, dim_z, dim_x>::values>(1_c, 5_c, 20_c);
 
-            auto testee = tu::make<sid::composite_ctor::keys<a, b, c, d>::values> //
-                (                                                                 //
-                    sid::synthetic()                                              //
-                        .set<property::origin>(&one[0])                           //
-                        .set<property::strides>(strides_one)                      //
-                    ,                                                             //
-                    sid::synthetic()                                              //
-                        .set<property::origin>(&two)                              //
-                    ,                                                             //
-                    sid::synthetic()                                              //
-                        .set<property::origin>(&three[0][0][0])                   //
-                        .set<property::strides>(strides_three)                    //
-                    ,                                                             //
-                    sid::synthetic()                                              //
-                        .set<property::origin>(&four[0][0][0])                    //
-                        .set<property::strides>(strides_four)                     //
+            auto testee = tu::make<sid::composite::keys<a, b, c, d>::values> //
+                (                                                            //
+                    sid::synthetic()                                         //
+                        .set<property::origin>(&one[0])                      //
+                        .set<property::strides>(strides_one)                 //
+                    ,                                                        //
+                    sid::synthetic()                                         //
+                        .set<property::origin>(&two)                         //
+                    ,                                                        //
+                    sid::synthetic()                                         //
+                        .set<property::origin>(&three[0][0][0])              //
+                        .set<property::strides>(strides_three)               //
+                    ,                                                        //
+                    sid::synthetic()                                         //
+                        .set<property::origin>(&four[0][0][0])               //
+                        .set<property::strides>(strides_four)                //
                 );
 
             auto &&strides = sid::get_strides(testee);
@@ -212,5 +212,6 @@ namespace gridtools {
             EXPECT_EQ(&three[3][2][1], at_key<c>(ptr));
             EXPECT_EQ(&four[3][1][2], at_key<d>(ptr));
         }
+#endif
     } // namespace
 } // namespace gridtools
