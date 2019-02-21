@@ -37,7 +37,7 @@ thread.
 The index is computed as follows. If there is no :term:`Halo` the index will be 
 
 .. math::
-  i = (block\_id\_x * block\_size\_x + thread\_id\_x) * stride\_i + (block\_id\_y * block\_size\_y + thread\_id\_y) * stride\_j
+  \begin{align} i &= (block\_id\_x * block\_size\_x + thread\_id\_x) * stride\_i \\\\ &+ (block\_id\_y * block\_size\_y + thread\_id\_y) * stride\_j \end{align}
 
 In case of a :term:`Halo` the index is shifted into the right direction (like visible in :numref:`fig_block_contents`).
 
