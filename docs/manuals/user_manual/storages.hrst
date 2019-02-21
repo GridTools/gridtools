@@ -4,9 +4,11 @@ Storage Module
 ================================
 
 The storage module is one of the main modules in |GT|. Main target of this module is to provide proper means to access, view, and modify data. The detail of the hardware is hidden to the user, but the user is responsible for indicating what storage is needed, and this is indicated by the name of the storage class.
-Different backends are available for different kinds of storages (e.g., ``Cuda`` or ``Host``). Following subsections will explain the different basic elements that are used in the storage module.
+Different :term:`Backends<Backend>` are available for different kinds of storages, see :ref:`backend-selection`. Following subsections will explain the different basic elements that are used in the storage module.
 
 The storage has the notion of ``halo``. This in turns allows the user of the storage to distinguish between the ``inner_region`` and the ``outer_region``, where the latter includes the halos. The halo is symmetric in the storage class, that is, the number of halo points at the two ends of a dimension is the same. Different dimensions may have different numbers of halo points. The main reason for including halos in the storage is to enforce the alignment of the storage in the inner region to improve the performance of stencil operations.
+
+.. _storage-info:
 
 ------------------
 Storage Info
@@ -17,15 +19,22 @@ The object must be created before storage can be allocated. The meta data or sto
 
 .. code-block:: gridtools
 
- host_storage_info<Id, Layout, Halo, Alignment>(Dims...)
+storage_info_interface<Id, Layout, Halo, Alignment>(Dims...)
 
-for host storage infos.
+Some :term:`Backends<Backend>` also come with a default alignment value that should provide good
+performance on supported hardware. On CUDA GPUs for example
 
 .. code-block:: gridtools
 
- cuda_storage_info<Id, Layout, Halo, Alignment>(Dims...)
+ cuda_storage_info<Id, Layout, Halo>(Dims...)
 
-for CUDA storage infos.
+can be used, while for the `mc` :term:`Backend`,
+
+.. code-block:: gridtools
+
+ mc_storage_info<Id, Layout, Halo>(Dims...)
+
+is available.
 
 :numref:`fig_storage_info` shows a depiction of the ``storage_info`` compile-time data.
 
@@ -51,9 +60,9 @@ Passed type information:
  but with different dimensionality you must use a different ID.
 
 
-* **Layout map:** Information about the memory layout. The ``layout_map`` template takes a permutation of the value from ``0`` to ``N - 1``, where ``N`` is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides. For instance a C array ``X[i][j][k]`` layout would be equivalent to ``layout_map<0, 1, 2>``. The dimension with stride 1 has the highest index. A Fortran style array ``X[i][j][k]`` layout would be equivalent to ``layout_map<2, 1, 0>``. There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked dimensions are ignored. For instance a ``storage_info`` with ``layout_map<1, -1, 0>`` describes a 3-dimensional storage but the j dimension is masked. In this case the storage behave as a 3D array whose sizes are ``(N, 1, L)``, when accessing an element ``(i, j, k)``, the ``j`` index is ignored. There are not bound checks for masked dimensions. The reason is that this use case is designed to allow implementing planes with an orientation to be used in stencils.
+* **Layout Map:** Information about the memory layout. The ``layout_map`` template takes a permutation of the value from ``0`` to ``N - 1``, where ``N`` is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides. For instance a C array ``X[i][j][k]`` layout would be equivalent to ``layout_map<0, 1, 2>``. The dimension with stride 1 has the highest index. A Fortran style array ``X[i][j][k]`` layout would be equivalent to ``layout_map<2, 1, 0>``. There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked dimensions are ignored. For instance a ``storage_info`` with ``layout_map<1, -1, 0>`` describes a 3-dimensional storage but the j dimension is masked. In this case the storage behave as a 3D array whose sizes are ``(N, 1, L)``, when accessing an element ``(i, j, k)``, the ``j`` index is ignored. There are not bound checks for masked dimensions. The reason is that this use case is designed to allow implementing planes with an orientation to be used in stencils.
 
-* **Alignment:** Information about the alignment in terms of number of bytes. There is the possibility to provide information about how the data points should be aligned in memory. The alignment is enforced to the first elements in the inner region of the dimension with stride one. This provides a huge performance gain for some architectures (e.g., GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data points of the stride-one dimension in memory. The Host backend uses no alignment (``alignment<1>``) by default. The CUDA backend uses a default alignment of 32 data elements (``alignment<32>``).
+* **Alignment:** Information about the alignment in terms of number of bytes. There is the possibility to provide information about how the data points should be aligned in memory. The alignment is enforced to the first elements in the inner region of the dimension with stride one. This provides a huge performance gain for some architectures (e.g., GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data points of the stride-one dimension in memory. The legacy x86 :term:`Backend` uses no alignment (``alignment<1>``) by default. The CUDA :term:`Backend` uses a default alignment of 32 data elements (``alignment<32>``), the MC :term:`Backend` defaults to ``alignment<8>``.
 
 * **Halo:** The halo information has to be passed as type information to the storage info. Reason for this is that the proper alignment can only be computed with given halo information. The storage info object provides aligned data points (non-halo points) for the stride 1 dimension. The halo information is given as follows: ``halo<Sizes...>`` where sizes is the halo size at both ends of the corresponding dimension, in terms of element sizes. E.g., ``halo<2, 4, 0>`` is a halo of size 2 in direction I+ and I-, halo of size 4 in direction J+ and J-, and no halo in K.
 
@@ -69,7 +78,7 @@ Please note that the size of the halo has to be added to the arguments that are 
 
 .. code-block:: gridtools
 
-    using storage_info_t = host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>>;
+    using storage_info_t = storage_info_interface<0, layout_map<1, 0>, halo<1, 0>, alignment<8>>;
     storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
 A visual representation of the storage info is given in :numref:`fig_storage_info_example`.
@@ -111,23 +120,17 @@ Once the ``storage_info`` object is created a ``data_store`` can be created. A `
 .. figure:: figures/data_store.png
    :scale: 80 %
 
-   Data store and associated compile-time data.
-
-.. note::
-
- The template parameters taken by the data store have to be compatible.
- E.g., `data_store<cuda_storage<double>, host_storage_info<0, layout_map<1, 0>>>`
- is invalid because a `cuda_storage` is not compatible with a `host_storage_info`.
+   :term:`Data Store` and associated compile-time data.
 
 
 **Example**:
-Following codes snippets show how data stores can be created. At first the user has to identify if the memory management is
-done externally or not. If it is done externally the data store won't allocate nor deallocate the memory. The standard use-case is to
-use managed data stores. The data store can be initialized with a value or lambda and can optionally be named by passing an additional  string.
+Following codes snippets show how :term:`Data Stores<Data Store>` can be created. At first the user has to identify if the memory management is
+done externally or not. If it is done externally the :term:`Data Store` won't allocate nor deallocate the memory. The standard use-case is to
+use managed :term:`Data Stores<Data Store>`. The :term:`Data Store` can be initialized with a value or lambda and can optionally be named by passing an additional  string.
 
 .. code-block:: gridtools
 
-    using storage_info_t = host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>>;
+    using storage_info_t = storage_info_interface<0, layout_map<1, 0>, halo<1, 0>, alignment<8>>;
     using data_store_t = data_store<host_storage<double>, storage_info_t>;
     storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
@@ -171,8 +174,10 @@ The ``data_store`` object provides methods for performing following things:
 
 .. note::
 
- The data store cannot be used to modify or access the data.
+ The :term:`Data Store` cannot be used to modify or access the data.
  In order to do so we use the view concept.
+
+.. _data-view:
 
 --------------
 Data View
@@ -306,26 +311,25 @@ Storage Facility
 -------------------------
 
 Writing the types all the time is cumbersome and unneeded. To get rid of this effort the storage module provides
-a ``storage-facility`` that provides the correct types for a chosen computation backend. Currently there are storage traits available
-for the CUDA and the Host backend.
+a ``storage-facility`` that provides the correct types for a chosen computation :term:`Backend`.
 
 The only header that has to be included to use the storage infrastructure is ``storage/storage-facility.hpp``. This provides
-the ``storage-facility`` which returns the correct types for the chosen backend.
+the ``storage-facility`` which returns the correct types for the chosen :term:`Backend`.
 
 **Example**:
 
 .. code-block:: gridtools
 
-    // get the correct 3D layouted and aligned storage info suitable for the CUDA backend
+    // get the correct 3D layouted and aligned storage info suitable for the chosen backend
     using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
-    // get a data store suitable for CUDA
+    // get a data store suitable for the chosen backend
     using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t si(128, 128, 80);
     data_store_t ds(si);
     ...
 
-``backend_t`` specifies the backend that will execute the computation, see
+``backend_t`` specifies the :term:`Backend` that will execute the computation, see
 :ref:`backend-selection`.
 
 **Interface**:
@@ -335,4 +339,4 @@ Following type queries are available:
 * ``storage_info_t<Id, Dims, Halo>``: Retrieve an n-dimensional storage info with the correct layout and memory alignment.
 * ``custom_layout_storage_info_t<Id, LayoutMap, Halo>``: Retrieve an storage info with a specific memory layout.
 * ``special_storage_info_t<Id, Selector, Halo>``: Retrieve an storage info with a masked dimensions. The selector defines which dimensions are masked (e.g., ``selector<1, 0, 1>`` I and K is not masked, J dimension is masked).
-* ``data_store_t <ValueType, StorageInfo>``: Get a data store type that contains a suitable storage type.
+* ``data_store_t <ValueType, StorageInfo>``: Get a :term:`Data Store` type that contains a suitable storage type.
