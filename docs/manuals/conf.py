@@ -50,8 +50,8 @@ index_doc = 'index'
 
 # General information about the project.
 project = u'GridTools'
-copyright = u'2017, ETH Zurich and MeteoSwiss'
-author = u'ETH Zurich and MeteoSwiss'
+copyright = u'2019, ETH Zurich'
+author = u'ETH Zurich'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
