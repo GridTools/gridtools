@@ -49,3 +49,4 @@ __pycache__
 !README.md
 !Vagrant_bootstrap.sh
 !Vagrantfile
+!version.txt

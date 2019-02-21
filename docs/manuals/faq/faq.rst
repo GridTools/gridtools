@@ -10,9 +10,7 @@ How do I build the docs?
 ------------------------
 The documentation is based on sphinx. You need at least::
 
-    pip install sphinx
-    pip install cloud-sptheme
-    pip install sphinxcontrib-fulltoc
+    pip install sphinx sphinx_rtd_theme
 
 Go to ``docs/manuals`` and::
 
