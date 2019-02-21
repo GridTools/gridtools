@@ -270,6 +270,8 @@ namespace gridtools {
 
 #ifndef NDEBUG
                 GT_CUDA_CHECK(cudaDeviceSynchronize());
+#else
+                GT_CUDA_CHECK(cudaGetLastError());
 #endif
             }
 

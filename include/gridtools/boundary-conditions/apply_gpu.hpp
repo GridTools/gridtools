@@ -363,12 +363,9 @@ namespace gridtools {
                 m_halo_descriptors,
                 data_field_views...);
 #ifndef NDEBUG
-            cudaDeviceSynchronize();
-            cudaError_t error = cudaGetLastError();
-            if (error != cudaSuccess) {
-                fprintf(stderr, "CUDA ERROR: %s in %s at line %dn", cudaGetErrorString(error), __FILE__, __LINE__);
-                exit(-1);
-            }
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
+#else
+            GT_CUDA_CHECK(cudaGetLastError());
 #endif
         }
     };
@@ -452,7 +449,7 @@ namespace gridtools {
             uint_t nby = (ny == 0) ? (1) : ((ny + nty - 1) / nty);
             uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);
             dim3 blocks(nbx, nby, nbz);
-            if (nx > 0 || ny > 0 || nz > 0)
+            if (nx > 0 || ny > 0 || nz > 0) {
                 loop_kernel<<<blocks, threads>>>(boundary_function,
                     Direction(),
                     halo_descriptors[0].loop_low_bound_outside(Direction::i),
@@ -463,13 +460,11 @@ namespace gridtools {
                     nz,
                     data_field_views...);
 #ifndef NDEBUG
-            cudaDeviceSynchronize();
-            cudaError_t error = cudaGetLastError();
-            if (error != cudaSuccess) {
-                fprintf(stderr, "CUDA ERROR: %s in %s at line %dn", cudaGetErrorString(error), __FILE__, __LINE__);
-                exit(-1);
-            }
+                GT_CUDA_CHECK(cudaDeviceSynchronize());
+#else
+                GT_CUDA_CHECK(cudaGetLastError());
 #endif
+            }
         }
 
         /**
