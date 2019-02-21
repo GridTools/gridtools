@@ -9,19 +9,19 @@ implicit none
       integer(c_int), value :: arg1
       integer(c_int), value :: arg2
     end function
-    subroutine set_exported_ijfield_impl(arg0, arg1) bind(c, name="set_exported_ijfield")
+    subroutine prefix_set_exported_ijfield_impl(arg0, arg1) bind(c, name="prefix_set_exported_ijfield")
       use iso_c_binding
       use array_descriptor
       type(c_ptr), value :: arg0
       type(gt_fortran_array_descriptor) :: arg1
     end subroutine
-    subroutine set_exported_ijkfield_impl(arg0, arg1) bind(c, name="set_exported_ijkfield")
+    subroutine prefix_set_exported_ijkfield_impl(arg0, arg1) bind(c, name="prefix_set_exported_ijkfield")
       use iso_c_binding
       use array_descriptor
       type(c_ptr), value :: arg0
       type(gt_fortran_array_descriptor) :: arg1
     end subroutine
-    subroutine set_exported_jkfield_impl(arg0, arg1) bind(c, name="set_exported_jkfield")
+    subroutine prefix_set_exported_jkfield_impl(arg0, arg1) bind(c, name="prefix_set_exported_jkfield")
       use iso_c_binding
       use array_descriptor
       type(c_ptr), value :: arg0
@@ -34,7 +34,7 @@ implicit none
 
   end interface
 contains
-    subroutine set_exported_ijfield(arg0, arg1)
+    subroutine prefix_set_exported_ijfield(arg0, arg1)
       use iso_c_binding
       use array_descriptor
       type(c_ptr), value, target :: arg0
@@ -51,9 +51,9 @@ contains
       !$acc end host_data
       !$acc end data
 
-      call set_exported_ijfield_impl(arg0, descriptor1)
+      call prefix_set_exported_ijfield_impl(arg0, descriptor1)
     end subroutine
-    subroutine set_exported_ijkfield(arg0, arg1)
+    subroutine prefix_set_exported_ijkfield(arg0, arg1)
       use iso_c_binding
       use array_descriptor
       type(c_ptr), value, target :: arg0
@@ -70,9 +70,9 @@ contains
       !$acc end host_data
       !$acc end data
 
-      call set_exported_ijkfield_impl(arg0, descriptor1)
+      call prefix_set_exported_ijkfield_impl(arg0, descriptor1)
     end subroutine
-    subroutine set_exported_jkfield(arg0, arg1)
+    subroutine prefix_set_exported_jkfield(arg0, arg1)
       use iso_c_binding
       use array_descriptor
       type(c_ptr), value, target :: arg0
@@ -89,6 +89,6 @@ contains
       !$acc end host_data
       !$acc end data
 
-      call set_exported_jkfield_impl(arg0, descriptor1)
+      call prefix_set_exported_jkfield_impl(arg0, descriptor1)
     end subroutine
 end
