@@ -61,6 +61,9 @@ gridtools_namespace = ((
 gridtools_functions = ((
 	'define_caches',
 	'make_computation',
+	'make_positional_computation',
+	'make_expandable_computation',
+	'make_expandable_positional_computation',
 	'make_device_view',
 	'make_global_parameter',
 	'update_global_parameter',

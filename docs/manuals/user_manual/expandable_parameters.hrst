@@ -30,7 +30,7 @@ The implementation requires the user to specify an integer ```expand_factor``` w
 
 .. code-block:: gridtools
 
- auto comp_ = make_computation<backend_t>(
+ auto comp_ = make_expandable_computation<backend_t>(
         expand_factor<4>,
         domain_,
         grid_,
