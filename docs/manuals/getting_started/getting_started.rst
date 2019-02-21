@@ -364,9 +364,9 @@ For the |GT| implementation we will learn three things in this
 section: how to define special regions in the :math:`k`-direction; how to use
 |GT| temporaries and how to call functors from functors.
 
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 `apply`-method overload
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Our first |GT| implementation will be very close to the naive
 implementation: we will call two times the Laplacian functor from the
