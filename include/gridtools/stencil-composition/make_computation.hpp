@@ -81,14 +81,14 @@ namespace gridtools {
 #endif
 
     /// generator for intermediate
-    template <class Backend, class... GridArgs, class Arg, class... Args>
-    auto make_computation(grid<GridArgs...> const &grid, Arg &&arg, Args &&... args)
+    template <class Backend, class Grid, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
+    auto make_computation(Grid const &grid, Arg &&arg, Args &&... args)
         GT_AUTO_RETURN((_impl::make_intermediate_f<GT_POSITIONAL_WHEN_DEBUGGING, Backend>{}(
             grid, std::forward<Arg>(arg), std::forward<Args>(args)...)));
 
 #undef GT_POSITIONAL_WHEN_DEBUGGING
 
-    template <class Backend, class... GridArgs, class Arg, class... Args>
-    auto make_positional_computation(grid<GridArgs...> const &grid, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
+    template <class Backend, class Grid, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
+    auto make_positional_computation(Grid const &grid, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
         (_impl::make_intermediate_f<true, Backend>{}(grid, std::forward<Arg>(arg), std::forward<Args>(args)...)));
 } // namespace gridtools

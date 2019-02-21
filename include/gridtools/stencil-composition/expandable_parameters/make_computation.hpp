@@ -43,16 +43,15 @@ namespace gridtools {
 
     /// generator for intermediate/intermediate_expand
     ///
-    template <class Backend, size_t N, class... GridArgs, class Arg, class... Args>
-    auto make_expandable_computation(expand_factor<N>, grid<GridArgs...> const &grid, Arg &&arg, Args &&... args)
+    template <class Backend, class Grid, size_t N, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
+    auto make_expandable_computation(expand_factor<N>, Grid const &grid, Arg &&arg, Args &&... args)
         GT_AUTO_RETURN((_impl::make_intermediate_expand_f<N, GT_POSITIONAL_WHEN_DEBUGGING, Backend>{}(
             grid, std::forward<Arg>(arg), std::forward<Args>(args)...)));
 
 #undef GT_POSITIONAL_WHEN_DEBUGGING
 
-    template <class Backend, size_t N, class... GridArgs, class Arg, class... Args>
-    auto make_expandable_positional_computation(
-        expand_factor<N>, grid<GridArgs...> const &grid, Arg &&arg, Args &&... args)
+    template <class Backend, class Grid, size_t N, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
+    auto make_expandable_positional_computation(expand_factor<N>, Grid const &grid, Arg &&arg, Args &&... args)
         GT_AUTO_RETURN((_impl::make_intermediate_expand_f<N, true, Backend>{}(
             grid, std::forward<Arg>(arg), std::forward<Args>(args)...)));
 } // namespace gridtools
