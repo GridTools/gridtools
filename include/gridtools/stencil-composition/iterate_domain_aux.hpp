@@ -230,9 +230,10 @@ namespace gridtools {
             size_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
             typename Layout = typename StorageInfo::layout_t,
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
-        GT_FUNCTION void operator()(const StorageInfo *) const {
+        GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
             GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
+            if (storage_info)
+                m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
         }
     };
 
@@ -300,7 +301,9 @@ namespace gridtools {
         ArrayIndex &GT_RESTRICT m_index_array;
 
         template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
-        GT_FUNCTION void operator()(const StorageInfo *) const {
+        GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
+            if (!storage_info)
+                return;
             GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
@@ -372,7 +375,8 @@ namespace gridtools {
         GT_FUNCTION enable_if_t<StorageInfo::layout_t::unmasked_length != 0> operator()(
             StorageInfo const *storage_info) const {
             using range = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
-            host_device::for_each_type<range>(assign<StorageInfo>(storage_info, m_strides_cached));
+            if (storage_info)
+                host_device::for_each_type<range>(assign<StorageInfo>(storage_info, m_strides_cached));
         }
     };
 
@@ -396,11 +400,11 @@ namespace gridtools {
     template <size_t Index, class CachesMap>
     struct index_is_cached : boost::mpl::has_key<CachesMap, static_uint<Index>> {};
 
-    template <class Arg, enumtype::intent Intent>
+    template <class Arg, intent Intent>
     struct deref_type : std::add_lvalue_reference<typename Arg::data_store_t::data_t> {};
 
     template <class Arg>
-    struct deref_type<Arg, enumtype::in> {
+    struct deref_type<Arg, intent::in> {
         using type = typename Arg::data_store_t::data_t;
     };
 } // namespace gridtools

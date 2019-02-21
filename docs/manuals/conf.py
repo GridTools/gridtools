@@ -12,6 +12,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import re
 import sys
 import os
 import cloud_sptheme as csp
@@ -70,10 +71,11 @@ author = u'ETH Zurich and MeteoSwiss'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# The short X.Y version.
-version = u'1.05'
 # The full version, including alpha/beta/rc tags.
-release = u'1.05.02'
+with open('../../version.txt') as f:
+    release = f.read().strip()
+# The short X.Y version.
+version = re.match('[0-9]+\.[0-9]+', release).group()
 
 numref = True
 numfig = True

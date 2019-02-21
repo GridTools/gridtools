@@ -119,7 +119,7 @@ TEST_F(horizontal_diffusion, test) {
     auto comp = make_computation(p_in = make_storage(repo.in),
         p_out = out,
         p_coeff = make_storage(repo.coeff),
-        make_multistage(enumtype::execute<enumtype::parallel>(),
+        make_multistage(execute::parallel(),
             define_caches(cache<cache_type::ij, cache_io_policy::local>(p_lap, p_flx, p_fly)),
             make_stage<lap_function>(p_lap, p_in),
             make_independent(

@@ -365,7 +365,7 @@ section: how to define special regions in the :math:`k`-direction; how to use
 |GT| temporaries and how to call functors from functors.
 
 ^^^^^^^^^^^^^^^^^^^^^^^
-`Apply`-Method Overload
+`apply`-method overload
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Our first |GT| implementation will be very close to the naive

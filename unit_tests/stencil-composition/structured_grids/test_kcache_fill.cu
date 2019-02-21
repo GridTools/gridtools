@@ -39,13 +39,12 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct shift_acc_forward_fill {
 
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
-    typedef accessor<1, enumtype::inout, extent<>> out;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 1>> in;
+    typedef accessor<1, intent::inout, extent<>> out;
 
     typedef make_param_list<in, out> param_list;
 
@@ -66,8 +65,8 @@ struct shift_acc_forward_fill {
 
 struct shift_acc_backward_fill {
 
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
-    typedef accessor<1, enumtype::inout, extent<>> out;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 1>> in;
+    typedef accessor<1, intent::inout, extent<>> out;
 
     typedef make_param_list<in, out> param_list;
 
@@ -88,8 +87,8 @@ struct shift_acc_backward_fill {
 
 struct copy_fill {
 
-    typedef accessor<0, enumtype::in> in;
-    typedef accessor<1, enumtype::inout, extent<>> out;
+    typedef accessor<0, intent::in> in;
+    typedef accessor<1, intent::inout, extent<>> out;
 
     typedef make_param_list<in, out> param_list;
 
@@ -117,12 +116,9 @@ TEST_F(kcachef, fill_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
-        gridtools::make_multistage // mss_descriptor
-        (execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::fill>(p_in())),
-            gridtools::make_stage<shift_acc_forward_fill>(p_in() // esf_descriptor
-                ,
-                p_out())));
+            gridtools::make_stage<shift_acc_forward_fill>(p_in(), p_out())));
 
     kcache_stencil.run();
 
@@ -157,12 +153,9 @@ TEST_F(kcachef, fill_backward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
-        gridtools::make_multistage // mss_descriptor
-        (execute<backward>(),
+        gridtools::make_multistage(execute::backward(),
             define_caches(cache<cache_type::k, cache_io_policy::fill>(p_in())),
-            gridtools::make_stage<shift_acc_backward_fill>(p_in() // esf_descriptor
-                ,
-                p_out())));
+            gridtools::make_stage<shift_acc_backward_fill>(p_in(), p_out())));
 
     kcache_stencil.run();
 
@@ -195,12 +188,9 @@ TEST_F(kcachef, fill_copy_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
-        gridtools::make_multistage // mss_descriptor
-        (execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::fill>(p_in())),
-            gridtools::make_stage<copy_fill>(p_in() // esf_descriptor
-                ,
-                p_out())));
+            gridtools::make_stage<copy_fill>(p_in(), p_out())));
 
     kcache_stencil.run();
 

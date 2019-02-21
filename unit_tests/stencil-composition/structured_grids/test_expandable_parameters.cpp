@@ -41,7 +41,7 @@
 #include <gridtools/tools/computation_fixture.hpp>
 
 using namespace gridtools;
-using namespace gridtools::enumtype;
+using namespace gridtools::execute;
 using namespace gridtools::expressions;
 
 struct expandable_parameters : computation_fixture<> {
@@ -70,15 +70,15 @@ struct expandable_parameters_copy : expandable_parameters {
         arg<0, storages_t> p_out;
         arg<1, storages_t> p_in;
         expandable_parameters::run_computation(
-            p_in = in, p_out = out, make_multistage(execute<forward>(), make_stage<Functor>(p_out, p_in)));
+            p_in = in, p_out = out, make_multistage(execute::forward(), make_stage<Functor>(p_out, p_in)));
     }
 
     ~expandable_parameters_copy() { verify(in, out); }
 };
 
 struct copy_functor {
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in> in;
+    typedef accessor<0, intent::inout> out;
+    typedef accessor<1, intent::in> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -91,8 +91,8 @@ struct copy_functor {
 TEST_F(expandable_parameters_copy, copy) { run_computation<copy_functor>(); }
 
 struct copy_functor_with_expression {
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in> in;
+    typedef accessor<0, intent::inout> out;
+    typedef accessor<1, intent::in> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -106,8 +106,8 @@ struct copy_functor_with_expression {
 TEST_F(expandable_parameters_copy, copy_with_expression) { run_computation<copy_functor_with_expression>(); }
 
 struct call_proc_copy_functor {
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in> in;
+    typedef accessor<0, intent::inout> out;
+    typedef accessor<1, intent::in> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -120,8 +120,8 @@ struct call_proc_copy_functor {
 TEST_F(expandable_parameters_copy, call_proc_copy) { run_computation<call_proc_copy_functor>(); }
 
 struct call_copy_functor {
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in> in;
+    typedef accessor<0, intent::inout> out;
+    typedef accessor<1, intent::in> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -134,7 +134,7 @@ struct call_copy_functor {
 TEST_F(expandable_parameters_copy, call_copy) { run_computation<call_copy_functor>(); }
 
 struct shift_functor {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef make_param_list<out> param_list;
 
@@ -145,7 +145,7 @@ struct shift_functor {
 };
 
 struct call_shift_functor {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef make_param_list<out> param_list;
 
@@ -165,7 +165,7 @@ TEST_F(expandable_parameters, call_shift) {
 
     storages_t actual = {in(14), in(15), in(16), in(17), in(18)};
     arg<0, storages_t> plh;
-    run_computation(plh = actual, make_multistage(execute<forward>(), make_stage<call_shift_functor>(plh)));
+    run_computation(plh = actual, make_multistage(execute::forward(), make_stage<call_shift_functor>(plh)));
     verify({expected(14), expected(15), expected(16), expected(17), expected(18)}, actual);
 }
 
@@ -178,7 +178,7 @@ TEST_F(expandable_parameters, caches) {
     tmp_arg<1> p_tmp;
     run_computation(p_in = in,
         p_out = out,
-        make_multistage(execute<forward>(),
+        make_multistage(execute::forward(),
             define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
             make_stage<copy_functor>(p_out, p_tmp)));

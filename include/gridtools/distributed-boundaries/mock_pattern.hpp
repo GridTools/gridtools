@@ -74,8 +74,6 @@ namespace gridtools {
             }
 
             int proc(int I, int J, int K) const {
-                int _coords[3];
-
                 // periodicity is false by default in this mock
                 if (I != 0 or J != 0 or K != 0) {
                     return -1;

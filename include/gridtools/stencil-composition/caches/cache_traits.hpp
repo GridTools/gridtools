@@ -93,6 +93,12 @@ namespace gridtools {
     template <cache_type cacheType, typename Arg>
     struct is_filling_cache<detail::cache_impl<cacheType, Arg, cache_io_policy::fill_and_flush>> : std::true_type {};
 
+    template <typename T>
+    struct is_local_cache : std::false_type {};
+
+    template <cache_type cacheType, typename Arg>
+    struct is_local_cache<detail::cache_impl<cacheType, Arg, cache_io_policy::local>> : std::true_type {};
+
     /**
      * @struct cache_parameter
      *  trait returning the parameter Arg type of a user provided cache

@@ -38,18 +38,13 @@
 #include <cuda_runtime.h>
 
 #include "../../common/defs.hpp"
+#include "../../common/timer/timer_traits.hpp"
 #include "../../storage/data_store.hpp"
 
 #include "../backend_traits_fwd.hpp"
 #include "../grid_traits_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 #include "strategy_cuda.hpp"
-
-#ifdef GT_ENABLE_METERS
-#include "timer_cuda.hpp"
-#else
-#include "../timer_dummy.hpp"
-#endif
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -108,11 +103,7 @@ namespace gridtools {
             typedef strategy_from_id_cuda<typename BackendIds::strategy_id_t> type;
         };
 
-#ifdef GT_ENABLE_METERS
-        typedef timer_cuda performance_meter_t;
-#else
-        typedef timer_dummy performance_meter_t;
-#endif
+        using performance_meter_t = typename timer_traits<target::cuda>::timer_type;
     };
 
 } // namespace gridtools

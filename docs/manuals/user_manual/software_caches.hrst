@@ -36,7 +36,7 @@ computation is shown below
  auto comp = make_computation<backend_t>(
     grid,
     make_multistage(
-        execute<parallel>(),
+        execute::parallel(),
         define_caches(cache<cache_type::ij, cache_io_policy::local>(p_f1(), p_f2())),
         make_stage<lap_function>(p_f1(), p_f2(), p_in()),
         make_stage<lap_function>(p_out(), p_f1(), p_f2())

@@ -7,7 +7,6 @@
 
 using namespace gridtools;
 using namespace gridtools::expressions;
-using namespace gridtools::enumtype; // TODO we need to fix this!
 
 #ifdef __CUDACC__
 using target_t = target::cuda;

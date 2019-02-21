@@ -48,7 +48,11 @@
 struct triplet {
     int a = 0, b = 0, c = 0;
 
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9)
+    GT_FUNCTION triplet() {}
+#else
     triplet() = default;
+#endif
 
     GT_FUNCTION
     triplet(int a, int b, int c) : a(a), b(b), c(c) {}

@@ -41,7 +41,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 struct functor1 {
     typedef accessor<0> in;
@@ -66,12 +66,11 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
     typedef decltype(make_stage<functor1>(p_in(), p_buff())) esf1_t;
     typedef decltype(make_stage<functor1>(p_buff(), p_out())) esf2_t;
 
-    typedef decltype(make_multistage // mss_descriptor
-        (execute<forward>(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff(), p_out())),
-            esf1_t(), // esf_descriptor
-            esf2_t()  // esf_descriptor
-            )) mss_t;
+    typedef decltype(make_multistage(execute::forward(),
+        define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff(), p_out())),
+        esf1_t(), // esf_descriptor
+        esf2_t()  // esf_descriptor
+        )) mss_t;
     GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, make_param_list<esf1_t, esf2_t>>::value), "ERROR");
 
 #ifndef GT_DISABLE_CACHING

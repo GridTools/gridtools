@@ -34,33 +34,75 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "timer.hpp"
+
+#include "../host_device.hpp"
+#include <cmath>
+#include <sstream>
 #include <string>
+#include <utility>
 
 namespace gridtools {
 
     /**
-     * @class TimerDummy
-     * Dummy timer implementation doing nothing in order to avoid runtime overhead
+     * @class Timer
+     * Measures total elapsed time between all start and stop calls
      */
-    class timer_dummy : public timer<timer_dummy> // CRTP
-    {
-      public:
-        GT_FUNCTION_HOST timer_dummy(std::string name) : timer<timer_dummy>(name) {}
+    template <typename TimerImpl>
+    class timer {
+      protected:
+        timer(std::string name) : m_name(std::move(name)) {}
 
+      public:
         /**
          * Reset counters
          */
-        GT_FUNCTION_HOST void set_impl(double const & /*time_*/) {}
+        GT_FUNCTION_HOST void reset() {
+            m_total_time = 0;
+            m_counter = 0;
+        }
 
         /**
          * Start the stop watch
          */
-        GT_FUNCTION_HOST void start_impl() {}
+        GT_FUNCTION_HOST void start() { impl().start_impl(); }
 
         /**
          * Pause the stop watch
          */
-        GT_FUNCTION_HOST double pause_impl() { return 0.0; }
+        GT_FUNCTION_HOST void pause() {
+            m_total_time += impl().pause_impl();
+            m_counter++;
+        }
+
+        /**
+         * @return total elapsed time [s]
+         */
+        GT_FUNCTION_HOST double total_time() const { return m_total_time; }
+
+        /**
+         * @return how often the timer was paused
+         */
+        GT_FUNCTION_HOST size_t count() const { return m_counter; }
+
+        /**
+         * @return total elapsed time [s] as string
+         */
+        GT_FUNCTION_HOST std::string to_string() const {
+            std::ostringstream out;
+            if (m_total_time < 0 || std::isnan(m_total_time))
+                out << m_name << "\t[s]\t"
+                    << "NO_TIMES_AVAILABLE"
+                    << " (" << m_counter << "x called)";
+            else
+                out << m_name << "\t[s]\t" << m_total_time << " (" << m_counter << "x called)";
+            return out.str();
+        }
+
+      private:
+        TimerImpl &impl() { return *static_cast<TimerImpl *>(this); }
+
+        std::string m_name;
+        double m_total_time = 0;
+        size_t m_counter = 0;
     };
 } // namespace gridtools

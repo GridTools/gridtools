@@ -158,7 +158,7 @@ namespace gridtools {
         GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
         template <class Arg,
-            enumtype::intent Intent,
+            intent Intent,
             uint_t Color,
             class Accessor,
             class Res = typename deref_type<Arg, Intent>::type,
@@ -168,7 +168,7 @@ namespace gridtools {
         }
 
         template <class Arg,
-            enumtype::intent Intent,
+            intent Intent,
             uint_t Color,
             class Accessor,
             class Res = typename deref_type<Arg, Intent>::type,
@@ -189,7 +189,7 @@ namespace gridtools {
 
             assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 
-            conditional_t<Intent == enumtype::in, data_t const, data_t> *ptr =
+            conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
                 boost::fusion::at_key<Arg>(m_local_domain.m_local_data_ptrs) + pointer_offset;
 
             return IterateDomainImpl::template deref_impl<Arg>(ptr);

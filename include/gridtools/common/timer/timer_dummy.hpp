@@ -34,48 +34,25 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-
-#include "../../common/defs.hpp"
-#include "../timer.hpp"
+#include "timer.hpp"
+#include <limits>
+#include <string>
 
 namespace gridtools {
 
     /**
-     * @class timer_x86
-     * host implementation of the Timer interface
+     * @class timer_dummy
+     * Dummy timer implementation doing nothing in order to avoid runtime overhead
      */
-    class timer_x86 : public timer<timer_x86> // CRTP
+    class timer_dummy : public timer<timer_dummy> // CRTP
     {
       public:
-        timer_x86(std::string name) : timer<timer_x86>(name) { startTime_ = 0.0; }
-        ~timer_x86() {}
+        GT_FUNCTION_HOST timer_dummy(std::string name) : timer<timer_dummy>(name) {}
 
-        /**
-         * Reset counters
-         */
-        void set_impl(double const &time_) { startTime_ = time_; }
+        GT_FUNCTION_HOST void set_impl(double const & /*time_*/) {}
 
-        /**
-         * Start the stop watch
-         */
-        void start_impl() {
-#if defined(_OPENMP)
-            startTime_ = omp_get_wtime();
-#endif
-        }
+        GT_FUNCTION_HOST void start_impl() {}
 
-        /**
-         * Pause the stop watch
-         */
-        double pause_impl() {
-#if defined(_OPENMP)
-            return omp_get_wtime() - startTime_;
-#else
-            return -100;
-#endif
-        }
-
-      private:
-        double startTime_;
+        GT_FUNCTION_HOST double pause_impl() { return std::numeric_limits<double>::quiet_NaN(); }
     };
 } // namespace gridtools

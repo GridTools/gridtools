@@ -97,7 +97,7 @@ namespace gridtools {
             using k_caches_t = GT_META_CALL(
                 meta::transform, (cache_parameter, GT_META_CALL(meta::filter, (is_k_cache, cache_sequence_t))));
 
-            _impl::slide_caches<k_caches_t, IterationPolicy::value>(m_k_caches_tuple);
+            _impl::slide_caches<k_caches_t, typename IterationPolicy::execution_type>(m_k_caches_tuple);
         }
 
         /**
@@ -114,7 +114,7 @@ namespace gridtools {
             using filling_cache_args_t = GT_META_CALL(
                 meta::transform, (cache_parameter, GT_META_CALL(meta::filter, (is_filling_cache, cache_sequence_t))));
 
-            _impl::sync_caches<filling_cache_args_t, IterationPolicy::value, sync_type::fill>(
+            _impl::sync_caches<filling_cache_args_t, typename IterationPolicy::execution_type, sync_type::fill>(
                 it_domain, m_k_caches_tuple, first_level);
         }
 
@@ -132,7 +132,7 @@ namespace gridtools {
             using flushing_cache_args_t = GT_META_CALL(
                 meta::transform, (cache_parameter, GT_META_CALL(meta::filter, (is_flushing_cache, cache_sequence_t))));
 
-            _impl::sync_caches<flushing_cache_args_t, IterationPolicy::value, sync_type::flush>(
+            _impl::sync_caches<flushing_cache_args_t, typename IterationPolicy::execution_type, sync_type::flush>(
                 it_domain, m_k_caches_tuple, last_level);
         }
     };

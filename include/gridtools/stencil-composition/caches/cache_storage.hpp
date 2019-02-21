@@ -143,12 +143,12 @@ namespace gridtools {
                 *dst = m_values[k - Minus];
         }
 
-        template <enumtype::execution Policy, sync_type SyncType>
+        template <class Policy, sync_type SyncType>
         GT_META_DEFINE_ALIAS(sync_point,
             std::integral_constant,
             (int_t,
-                (Policy == enumtype::forward && SyncType == sync_type::fill) ||
-                        (Policy == enumtype::backward && SyncType == sync_type::flush)
+                (execute::is_forward<Policy>::value && SyncType == sync_type::fill) ||
+                        (execute::is_backward<Policy>::value && SyncType == sync_type::flush)
                     ? Plus
                     : Minus));
 
@@ -170,24 +170,21 @@ namespace gridtools {
         /**
          * @brief slides the values of the ring buffer
          */
-        template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::forward> slide() {
+        template <class Policy>
+        GT_FUNCTION enable_if_t<execute::is_forward<Policy>::value> slide() {
 #pragma unroll
             for (int_t k = 0; k < Plus - Minus; ++k)
                 m_values[k] = m_values[k + 1];
         }
 
-        template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::backward> slide() {
+        template <class Policy>
+        GT_FUNCTION enable_if_t<execute::is_backward<Policy>::value> slide() {
 #pragma unroll
             for (int_t k = Plus - Minus; k > 0; --k)
                 m_values[k] = m_values[k - 1];
         }
 
-        template <enumtype::execution Policy,
-            sync_type SyncType,
-            class Data,
-            int_t SyncPoint = sync_point<Policy, SyncType>::value>
+        template <class Policy, sync_type SyncType, class Data, int_t SyncPoint = sync_point<Policy, SyncType>::value>
         GT_FUNCTION void sync(Data const &data, bool sync_all) {
             if (sync_all)
 #pragma unroll

@@ -65,7 +65,7 @@ namespace multi_types_test {
     using gridtools::level;
 
     using namespace gridtools;
-    using namespace enumtype;
+    using namespace execute;
     using namespace expressions;
 
     using axis_t = axis<1>;
@@ -149,8 +149,8 @@ namespace multi_types_test {
     }
 
     struct function0 {
-        typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<0, intent::in> in;
+        typedef accessor<1, intent::inout> out;
 
         typedef make_param_list<in, out> param_list;
 
@@ -163,8 +163,8 @@ namespace multi_types_test {
     };
 
     struct function1 {
-        typedef accessor<0, enumtype::inout> out;
-        typedef accessor<1, enumtype::in> in;
+        typedef accessor<0, intent::inout> out;
+        typedef accessor<1, intent::in> in;
 
         typedef make_param_list<out, in> param_list;
 
@@ -183,9 +183,9 @@ namespace multi_types_test {
 
     struct function2 {
 
-        typedef accessor<0, enumtype::inout> out;
-        typedef accessor<1, enumtype::in> in;
-        typedef accessor<2, enumtype::in> temp;
+        typedef accessor<0, intent::inout> out;
+        typedef accessor<1, intent::in> in;
+        typedef accessor<2, intent::in> temp;
 
         typedef make_param_list<out, in, temp> param_list;
 
@@ -197,9 +197,9 @@ namespace multi_types_test {
 
     struct function3 {
 
-        typedef accessor<0, enumtype::inout> out;
-        typedef accessor<1, enumtype::in> temp;
-        typedef accessor<2, enumtype::in> in;
+        typedef accessor<0, intent::inout> out;
+        typedef accessor<1, intent::in> temp;
+        typedef accessor<2, intent::in> in;
 
         typedef make_param_list<out, temp, in> param_list;
 
@@ -247,11 +247,11 @@ namespace multi_types_test {
             p_field2() = field2,
             p_field3() = field3,
             gridtools::make_multistage // mss_descriptor
-            (execute<forward>(),
+            (execute::forward(),
                 gridtools::make_stage<function1>(p_temp(), p_field1()),
                 gridtools::make_stage<function2>(p_field2(), p_field1(), p_temp())),
             gridtools::make_multistage // mss_descriptor
-            (execute<backward>(),
+            (execute::backward(),
                 gridtools::make_stage<function1>(p_temp(), p_field1()),
                 gridtools::make_stage<function3>(p_field3(), p_temp(), p_field1())));
 

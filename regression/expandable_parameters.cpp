@@ -69,7 +69,7 @@ TEST_F(expandable_parameters, test) {
         make_grid(),
         p_out = out,
         p_in = in,
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(execute::forward(),
             define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
             make_stage<copy_functor>(p_out, p_tmp)))

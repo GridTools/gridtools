@@ -43,6 +43,7 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
+#include "../../backend_cuda/execute_kernel_functor_cuda_common.hpp"
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
@@ -145,13 +146,17 @@ namespace gridtools {
             } else if (threadIdx.y < iminus_limit) {
                 static constexpr auto padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <=
+                                     block_i_size(backend_ids<target::cuda, grid_type::icosahedral, strategy::block>{}),
+                    GT_INTERNAL_ERROR);
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
                 const int padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <=
+                                     block_i_size(backend_ids<target::cuda, grid_type::icosahedral, strategy::block>{}),
+                    GT_INTERNAL_ERROR);
 
                 iblock = threadIdx.x % padded_boundary_ + ntx;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
@@ -160,9 +165,7 @@ namespace gridtools {
             using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
             using from_t = GT_META_CALL(meta::first, interval_t);
 
-            const int_t kblock = execution_type_t::iteration == enumtype::parallel
-                                     ? blockIdx.z * execution_type_t::block_size - grid.k_min()
-                                     : grid.template value_at<from_t>() - grid.k_min();
+            const int_t kblock = impl_::compute_kblock<execution_type_t>::template get<from_t>(grid);
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
                 {iblock, jblock, kblock});
@@ -245,9 +248,7 @@ namespace gridtools {
                 const uint_t nbx = (nx + ntx - 1) / ntx;
                 const uint_t nby = (ny + nty - 1) / nty;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                const uint_t nbz = execution_type_t::iteration == enumtype::parallel
-                                       ? (nz + execution_type_t::block_size - 1) / execution_type_t::block_size
-                                       : 1;
+                const uint_t nbz = impl_::blocks_required_z<execution_type_t>::get(nz);
 
                 dim3 blocks(nbx, nby, nbz);
 

@@ -38,14 +38,9 @@
 #include <utility>
 
 #include "../../common/functional.hpp"
+#include "../../common/timer/timer_traits.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "strategy_x86.hpp"
-
-#ifdef GT_ENABLE_METERS
-#include "timer_x86.hpp"
-#else
-#include "../timer_dummy.hpp"
-#endif
 
 /**@file
  * @brief type definitions and structures specific for the X86 backend
@@ -105,11 +100,7 @@ namespace gridtools {
             typedef strategy_from_id_x86<typename BackendIds::strategy_id_t> type;
         };
 
-#ifdef GT_ENABLE_METERS
-        typedef timer_x86 performance_meter_t;
-#else
-        typedef timer_dummy performance_meter_t;
-#endif
+        using performance_meter_t = typename timer_traits<target::x86>::timer_type;
     };
 
 } // namespace gridtools
