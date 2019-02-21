@@ -4,7 +4,7 @@
 Stencil Functions
 -----------------
 
-Stencil functions offer the possibility to call :ref:`stencil_operators` from other :ref:`stencil_operators`.
+Stencil functions offer the possibility to call :term:`Stencil Operators<Stencil Operator>` from other :term:`Stencil Operators<Stencil Operator>`.
 To use stencil functions the header
 
 .. code-block:: gridtools
@@ -12,7 +12,7 @@ To use stencil functions the header
    #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 
 needs to be included.
-Two variants are available: functional calls which return a value and procedural calls with side-effect on the given arguments (accessors).
+Two variants are available: functional calls which return a value and procedural calls with side-effect on the given arguments (:term:`Accessors<Accessor>`).
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Function Calls: `call<>`
@@ -24,18 +24,18 @@ The basic syntax for function calls is as follows
 
    auto x = call<stencil_operator, vertical_interval, return_value_type>::with(eval, accessors...);
 
-where ``stencil_operator`` is the operator to be called, ``vertical_interval`` the :ref:`vertical interval<vertical_regions>` where the operator
+where ``stencil_operator`` is the operator to be called, ``vertical_interval`` the :term:`Vertical Interval` where the operator
 will be applied and ``return_value_type`` the type of the return value for the function call. The ``return_value_type`` will be automatically deduced
 from the first ``accessor`` if not specified explicitly. The context object ``eval`` has to be passed as the first argument to ``with``, followed by
-the accessors which are arguments of the operator.
+the :term:`Accessors<Accessor>` which are arguments of the operator.
 
-The operator needs to have exactly one ``inout``-accessor which will be the return value of the function call.
+The operator needs to have exactly one ``inout``-:term:`Accessor` which will be the return value of the function call.
 
 .. note::
 
-   The vertical interval needs to be one which appears in a ``apply``-method overload of the called operator.
+   The :term:`Vertical Interval` needs to be one which appears in a :term:`Apply-Method` overload of the called operator.
 
-The accessors which are passed in the function call can have offsets in the usual way. Additionally the whole operator can be shifted to be executed
+The :term:`Accessors<Accessor>` which are passed in the function call can have offsets in the usual way. Additionally the whole operator can be shifted to be executed
 on a different grid point, by specifying a relative location with ``at``:
 
 .. code-block:: gridtools
@@ -47,7 +47,7 @@ on a different grid point, by specifying a relative location with ``at``:
 Procedure Calls: `call_proc<>`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Procedural calls work in the same way as function calls, but all accessor, which are ``inout`` in the operator, can be modified.
+Procedural calls work in the same way as function calls, but all :term:`Accessor`, which are ``inout`` in the operator, can be modified.
 
 .. code-block:: gridtools
 

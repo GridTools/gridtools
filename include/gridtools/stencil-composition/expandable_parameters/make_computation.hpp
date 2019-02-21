@@ -54,4 +54,15 @@ namespace gridtools {
     auto make_expandable_positional_computation(expand_factor<N>, Grid const &grid, Arg &&arg, Args &&... args)
         GT_AUTO_RETURN((_impl::make_intermediate_expand_f<N, true, Backend>{}(
             grid, std::forward<Arg>(arg), std::forward<Args>(args)...)));
+
+    // user protection only, catch the case where no backend is specified
+    template <class... Args>
+    computation<> make_expandable_computation(Args &&...) {
+        GT_STATIC_ASSERT(!sizeof...(Args), "No backend was specified on a call to make_expandable_computation");
+    }
+    template <class... Args>
+    computation<> make_expandable_positional_computation(Args &&...) {
+        GT_STATIC_ASSERT(
+            !sizeof...(Args), "No backend was specified on a call to make_expandable_positional_computation");
+    }
 } // namespace gridtools

@@ -5,7 +5,7 @@
    getting_started/getting_started
    user_manual/user_manual
    upcoming/upcoming
-   concepts/concepts
+   glossary/glossary
    internal/internal
    faq/faq
 
