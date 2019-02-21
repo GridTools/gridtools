@@ -99,13 +99,13 @@ typically looks like
    :language: gridtools
    :lines: 8
 
-for the CUDA backed or
+for the CUDA :term:`Backend` or
  
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :lines: 10
 
-for the CPU backend and the backend
+for the CPU :term:`Backend` and the :term:`Backend`
  
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
@@ -118,7 +118,7 @@ Cartesian-like grid. The last argument defines that blocking should be used.
 See :ref:`backend-selection` for details.
 
 ^^^^^^^^^^^^^^^^
-The storage type
+The Storage Type
 ^^^^^^^^^^^^^^^^
 
 For efficient memory access the index ordering might depend on the target architecture, therefore the
@@ -208,7 +208,7 @@ Laplacian needs the neighboring points we cannot calculate the Laplacian
 on the boundary layer and have to exclude them from the loop.
 
 -----------------------
-First GridTools stencil
+First GridTools Stencil
 -----------------------
 
 In |GT| the loop logic and the storage order is implemented
@@ -223,7 +223,7 @@ Update-logic: GridTools 2D Laplacian
 
 The update-logic is implemented with state-less functors. A
 |GT| functor is a ``struct`` or ``class`` providing a *static* method
-called ``apply``. The update-logic is implemented in these ``apply``-methods.
+called ``apply``. The update-logic is implemented in these :term:`Apply-Methods<Apply-Method>`.
 As the functors are state-less (no member variables, static methods
 only) they can be passed by type, i.e. at compile-time, and therefore
 allow for compile-time optimizations.
@@ -238,7 +238,7 @@ two ``accessor`` s are parameters of the functor, i.e. they are mapped to
 fields passed to the functor. They contain compile-time information if
 they are only used as input parameters, e.g. the ``in`` accessor in the
 example, or if we want to write into the associated field (``inout``). Additionally,
-the ``extent`` defines which grid-points are needed by the stencil relative
+the ``extent`` defines which grid points are needed by the stencil relative
 to the current point. The format for the extent is
 
 .. code-block:: gridtools
@@ -263,10 +263,10 @@ functor. The ``param_list`` is a |GT| keyword which has to be defined for each s
 A ``apply``-method needs as first parameter a context
 object, usually called ``eval``, which is created and passed to the method by the library on
 invocation. This object contains, among other things, the index of the
-active grid point and the mapping of data-pointers to the ``accessor`` s. The
+active grid point (:term:`Iteration Point`) and the mapping of data-pointers to the ``accessor`` s. The
 second argument is optional and specifies the interval on the :math:`k`-axis where this implementation
-of the ``apply``-method should be executed. This allows to apply a different update-logic on
-intervals by overloading the ``apply``-method. We will define intervals
+of the :term:`Apply-Method` should be executed. This allows to apply a different update-logic on
+:term:`Vertical Intervals<Vertical Interval>` by overloading the :term:`Apply-Method`. We will define :term:`Vertical Intervals<Vertical Interval>`
 later. If the second parameter is not specified, a default interval is assumed.
 
 The body of the ``apply``-method looks quite similar to the one in the
@@ -276,7 +276,7 @@ This is necessary to map the compile-time parameter, the ``accessor``, to
 the run-time data in the ``data_store``.
 
 ^^^^^^^^^^^^^^^^^^^
-Calling the stencil
+Calling the Stencil
 ^^^^^^^^^^^^^^^^^^^
 
 In the naive implementation, the call to the
@@ -293,7 +293,7 @@ the loop-logic.
 The |GT| stencil, does not contain any
 information about the loop-logic, i.e. about the domain where we want to apply the stencil operation,
 since we need to specify it in a platform-independent syntax, a *domain specific embedded language*
-(DSEL), such that the backend can decide on the specific implementation.
+(DSEL), such that the :term:`Backend` can decide on the specific implementation.
 
 For our example this looks as follows
 
@@ -328,7 +328,7 @@ largest. Other execution modes are ``forward`` and ``backward``. For performance
 whenever possible.
 
 In the last line the stencil is
-executed. The data stores ``phi`` and ``lap`` are bound to its placeholders.
+executed. The :term:`Data Stores<Data Store>` ``phi`` and ``lap`` are bound to its placeholders.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Full GridTools Laplacian
@@ -344,10 +344,10 @@ There are some points which we did not discuss so far. For a first look at |GT| 
 we won't discuss them now in detail. In brief:
 
 - In order to use the :math:`(i,j,k)` syntax we need to define the symbols to point to the respective dimensions.
-- A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code. We use this to set the backend.
+- A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code. We use this to set the :term:`Backend`.
 
 -------------------------------------
-Assembling stencils: smoothing filter
+Assembling Stencils: Smoothing Filter
 -------------------------------------
 
 In the preceding section we saw how a first simple |GT| stencil
@@ -364,9 +364,9 @@ For the |GT| implementation we will learn three things in this
 section: how to define special regions in the :math:`k`-direction; how to use
 |GT| temporaries and how to call functors from functors.
 
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 `apply`-method overload
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Our first |GT| implementation will be very close to the naive
 implementation: we will call two times the Laplacian functor from the
@@ -378,17 +378,17 @@ we can specialize the computation in the :math:`k`-direction:
    :language: gridtools
 
 We use two different
-intervals, the ``lower_domain`` and the ``upper_domain``, and provide an overload of the
-``apply``-method for each interval.
+:term:`Vertical Intervals<Vertical Interval>`, the ``lower_domain`` and the ``upper_domain``, and provide an overload of the
+:term:`Apply-Method` for each interval.
 
-The intervals are defined as
+The :term:`Intervals<Interval>` are defined as
 
 .. literalinclude:: code/gt_smoothing.hpp
    :language: gridtools
    :start-after: constexpr static gridtools::dimension<3> k;
    :end-before: struct lap_function {
    
-The first line defines an axis with 2 intervals. From this axis retrieve the intervals
+The first line defines an axis with 2 :term:`Intervals<Interval>`. From this axis retrieve the :term:`Intervals<Interval>`
 and give them a name.
 
 Then we can assemble the computation
@@ -401,7 +401,7 @@ In this version we needed to explicitly allocate the temporary fields
 |GT| temporaries.
 
 ^^^^^^^^^^^^^^^^
-|GT| temporaries
+|GT| Temporaries
 ^^^^^^^^^^^^^^^^
 
 |GT| *temporary storages* are storages with the lifetime of the
@@ -427,11 +427,11 @@ storages are allocated in the call to ``make_computation`` and freed in the dest
 Besides 
 the simplifications in the code (no explicit storage needed), the
 concept of temporaries allows |GT| to apply optimization. While normal storages
-have a fixed size, temporaries can have block-private halos which are used for redundant computation.
+have a fixed size, temporaries can have block-private :term:`Halos<Halo>` which are used for redundant computation.
 
 .. note::
 
-   It might be semantically incorrect to replace a temporary with a normal storage, as normal storages don't have the halo
+   It might be semantically incorrect to replace a temporary with a normal storage, as normal storages don't have the :term:`Halo`
    region for redundant computation. In such case several threads (OpenMP or CUDA) will write the same location multiple
    times. As long as all threads write the same data (which is a requirement for correctness of |GT|), this should be
    no problem for correctness on current hardware (might change in the future) but might have side-effects on performance.
@@ -441,7 +441,7 @@ have a fixed size, temporaries can have block-private halos which are used for r
    This change from normal storages to temporaries did not require any code changes to the functor.
 
 ^^^^^^^^^^^^^
-Functor calls
+Functor Calls
 ^^^^^^^^^^^^^
 
 The next feature we want to use is the *stencil function call*. In the first example we computed the Laplacian 

@@ -37,6 +37,18 @@ namespace gridtools {
         template <class... Esfs>
         GT_META_DEFINE_ALIAS(
             tuple_from_esfs, meta::flatten, (meta::list<std::tuple<>, typename tuple_from_esf<Esfs>::type...>));
+
+        template <typename ExecutionEngine, typename... MssParameters>
+        struct check_make_multistage_args : std::true_type {
+            GT_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value),
+                "The first argument passed to make_multistage must be the execution engine (e.g. execute::forward(), "
+                "execute::backward(), execute::parallel()");
+            GT_STATIC_ASSERT(conjunction<is_mss_parameter<MssParameters>...>::value,
+                "wrong set of mss parameters passed to make_multistage construct.\n"
+                "Check that arguments passed are either :\n"
+                " * caches from define_caches(...) construct or\n"
+                " * esf descriptors from make_stage(...) or make_independent(...)");
+        };
     } // namespace _impl
 
     /*!
@@ -46,19 +58,14 @@ namespace gridtools {
 
        Use this function to create a multi-stage stencil computation
      */
-    template <typename ExecutionEngine, typename... MssParameters>
+    template <typename ExecutionEngine,
+        typename... MssParameters,
+        // Check argument types before mss_descriptor is instantiated to get nicer error messages
+        bool ArgsOk = _impl::check_make_multistage_args<ExecutionEngine, MssParameters...>::value>
     mss_descriptor<ExecutionEngine,
         GT_META_CALL(extract_mss_esfs, (MssParameters...)),
         typename extract_mss_caches<MssParameters...>::type>
     make_multistage(ExecutionEngine, MssParameters...) {
-        GT_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value),
-            "The first argument passed to make_multistage must be the execution engine (e.g. execute::forward(), "
-            "execute::backward(), execute::parallel())");
-        GT_STATIC_ASSERT(conjunction<is_mss_parameter<MssParameters>...>::value,
-            "wrong set of mss parameters passed to make_multistage construct.\n"
-            "Check that arguments passed are either :\n"
-            " * caches from define_caches(...) construct or\n"
-            " * esf descriptors from make_stage(...) or make_independent(...)");
         return {};
     }
 

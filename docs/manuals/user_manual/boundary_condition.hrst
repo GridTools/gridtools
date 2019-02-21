@@ -55,12 +55,11 @@ constructible, and whose member functions should be decorated with the
 ``GT_FUNCTION`` keyword to enable accelerators. It must not contain references to data that may be not available on the target device where the boundary conditions are applied.
 
 The boundary condition class provides overloads for the ``operator()``
-which take as first argument a ``direction`` object, a number of data
-stores that are the inputs (refer to the :ref:`storage-module`
-documentation), and three integer values that will contains the
+which take as first argument a ``direction`` object, a number of :term:`Data
+Stores<Data Store>` that are the inputs, and three integer values that will contains the
 coordinate indices of the cell that is being iterated on.
 
-All overloads must have the same number of arguments: the first argument is the direction over which the overload will be applied to, then there is the list of data views that will be accessed by the boundary class, and finally three integers that contains the indices of the element being accessed in the call.
+All overloads must have the same number of arguments: the first argument is the direction over which the overload will be applied to, then there is the list of :term:`Data Views<Data View>` that will be accessed by the boundary class, and finally three integers that contains the indices of the element being accessed in the call.
 It is standard practice to let the view types be template
 arguments. For instance, here a class that applies a copy-boundary
 condition (copy the second view into the first one) for all direction
@@ -98,15 +97,15 @@ Boundary Condition Application
 ---------------------------------
 
 To apply the above boundary conditions class to the data fields, we
-need to construct the boundary object, but also to specify the halo
-regions. The halo regions are specified using `halo-descriptors`
-which are described in :ref:`halo-descriptor`.
+need to construct the boundary object, but also to specify the :term:`Halo`
+regions. The :term:`Halo` regions are specified using
+:term:`Halo Descriptors<Halo Descriptor>`.
 
-To do this we need an array of halo descriptors initialized with the halo information of the data fields.
+To do this we need an array of :term:`Halo Descriptors<Halo Descriptor>` initialized with the :term:`Halo` information of the data fields.
 
 .. note::
- The fifth number, namely the total length, in the halo
- descriptor is not used by the boundary condition application module,
+ The fifth number, namely the total length, in the :term:`Halo
+ Descriptor` is not used by the boundary condition application module,
  but we kept the same implementation we had in other parts of |GT| to
  avoid introducing too many concepts. This will be improved
  in the future.
@@ -129,7 +128,7 @@ fields the ``operator()`` overloads of the boundary class require.
         .apply(out_s, in_s);
 
 As can be noted, the ``backend`` is also needed to select the proper
-implementation of the boundary application algorithm (:ref:`backend-selection`). ``out_s`` and
+implementation of the boundary application algorithm (see :term:`Backend`). ``out_s`` and
 ``in_s`` are the two data fields passed to the application. The fact
 that the first is the output and second is the input derives from the
 signature of the overloads of ``operator()``, and it is user defined.
@@ -154,7 +153,7 @@ as argument a ``direction`` object, so that the user can, at runtime,
 disable some ``operator()`` overloads. This can be very useful when
 the user is running on a parallel domain decomposed domain, and only
 the global boundaries need to updated with the boundary conditions
-application and the rest should have their halos updated from
+application and the rest should have their :term:`Halos<Halo>` updated from
 neighbors.
 
 
