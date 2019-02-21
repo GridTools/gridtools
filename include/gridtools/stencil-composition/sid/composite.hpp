@@ -209,6 +209,9 @@ namespace gridtools {
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
                 };
 
+#if GT_BROKEN_TEMPLATE_ALIASES
+              public:
+#endif
                 /**
                  *  Implements strides and ptr_diffs compression based on skipping the objects of the
                  *  same kind.

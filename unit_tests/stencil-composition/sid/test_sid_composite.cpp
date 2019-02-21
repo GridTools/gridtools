@@ -72,7 +72,7 @@ namespace gridtools {
             at_key<b>(refs) = at_key<a>(refs);
             EXPECT_EQ(42, dst);
         }
-#if 0
+
         struct my_strides_kind;
 
         using dim_i = integral_constant<int, 0>;
@@ -212,6 +212,5 @@ namespace gridtools {
             EXPECT_EQ(&three[3][2][1], at_key<c>(ptr));
             EXPECT_EQ(&four[3][1][2], at_key<d>(ptr));
         }
-#endif
     } // namespace
 } // namespace gridtools
