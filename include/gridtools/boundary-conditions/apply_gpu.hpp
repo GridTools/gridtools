@@ -36,6 +36,7 @@
 #pragma once
 
 #include "../common/array.hpp"
+#include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "direction.hpp"
