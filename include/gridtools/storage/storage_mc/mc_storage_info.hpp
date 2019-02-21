@@ -44,7 +44,7 @@ namespace gridtools {
      * @tparam Id unique ID that should be shared among all storage infos with the same dimensionality.
      * @tparam Layout information about the memory layout
      * @tparam Halo information about the halo sizes (by default no halo is set)
-     * @tparam Alignment information about the alignment (mc_storage_info is not aligned by default)
+     * @tparam Alignment information about the alignment
      */
     template <uint_t Id,
         typename Layout,
