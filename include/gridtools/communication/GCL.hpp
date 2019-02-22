@@ -40,6 +40,9 @@
 #include <mpi.h>
 #endif
 
+#ifdef GCL_GPU
+#include "../common/cuda_util.hpp"
+#endif
 #include "../common/host_device.hpp"
 
 #ifdef GCL_TRACE
@@ -53,13 +56,6 @@
 // workaround that uses host buffering to avoid bad sends for messages larger than 512 kB on Cray systems
 //#define GCL_HOSTWORKAROUND
 
-inline bool checkCudaStatus(cudaError_t status) {
-    if (status != cudaSuccess) {
-        std::cout << cudaGetErrorString(status) << std::endl;
-        return false;
-    } else
-        return true;
-}
 #endif
 
 #ifdef GCL_GPU

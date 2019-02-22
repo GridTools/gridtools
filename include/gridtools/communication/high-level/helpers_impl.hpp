@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../../common/cuda_util.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "descriptors_fwd.hpp"
 
@@ -53,11 +54,7 @@ namespace gridtools {
                     return nullptr;
             }
 
-            static void free(T *t) {
-                if (!t)
-                    delete[] t;
-                t = nullptr;
-            }
+            static void free(T *t) { delete[] t; }
         };
 
 #ifdef GCL_GPU
@@ -67,22 +64,14 @@ namespace gridtools {
             static T *alloc(size_t sz) {
                 if (sz) {
                     T *ptr;
-                    cudaError_t status = cudaMalloc(&ptr, sz * sizeof(T));
-                    if (!checkCudaStatus(status)) {
-                        printf("Allocation did not succed\n");
-                        exit(1);
-                    }
+                    GT_CUDA_CHECK(cudaMalloc(&ptr, sz * sizeof(T)));
                     return ptr;
                 } else {
                     return nullptr;
                 }
             }
 
-            static void free(T *t) {
-                if (!t)
-                    cudaError_t status = cudaFree(t);
-                t = nullptr;
-            }
+            static void free(T *t) { GT_CUDA_CHECK(cudaFree(t)); }
         };
 #endif
 

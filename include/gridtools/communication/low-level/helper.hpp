@@ -37,6 +37,9 @@
 #include "../GCL.hpp"
 
 #ifdef GCL_HOSTWORKAROUND
+
+#include "../../common/cuda_util.hpp"
+
 namespace gridtools {
     namespace _impl {
         enum alloc_type { host_normal, host_page_locked };
@@ -50,26 +53,17 @@ namespace gridtools {
             static T *alloc(size_t sz) {
                 if (sz) {
                     T *ptr;
-                    cudaError_t status = cudaMallocHost(&ptr, sz * sizeof(T));
-                    if (!checkCudaStatus(status)) {
-                        printf("Allocation did not succed\n");
-                        exit(1);
-                    }
+                    GT_CUDA_CHECK(cudaMallocHost(&ptr, sz * sizeof(T)));
                     return ptr;
                 } else {
                     return nullptr;
                 }
             }
 
-            static void free(T *t) {
-                if (!t)
-                    cudaError_t status = cudaFreeHost(t);
-            }
+            static void free(T *t) { GT_CUDA_CHECK(cudaFreeHost(t)); }
 
             static T *realloc(T *t, size_t sz) {
-                if (t != 0) {
-                    free(t);
-                }
+                free(t);
                 return alloc(sz);
             }
         };
@@ -87,15 +81,10 @@ namespace gridtools {
                 }
             }
 
-            static void free(T *t) {
-                if (!t)
-                    free(t);
-            }
+            static void free(T *t) { free(t); }
 
             static T *realloc(T *t, size_t sz) {
-                if (!t) {
-                    free(t);
-                }
+                free(t);
                 return alloc(sz);
             }
         };
