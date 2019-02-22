@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include <boost/mpl/equal.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -49,11 +23,11 @@ constexpr int halo_size = 1;
 namespace test_cache_stencil {
 
     using namespace gridtools;
-    using namespace enumtype;
+    using namespace execute;
 
     struct functor1 {
-        typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<0, intent::in> in;
+        typedef accessor<1, intent::inout> out;
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
@@ -63,8 +37,8 @@ namespace test_cache_stencil {
     };
 
     struct functor2 {
-        typedef accessor<0, enumtype::in, extent<-1, 1, -1, 1>> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<0, intent::in, extent<-1, 1, -1, 1>> in;
+        typedef accessor<1, intent::inout> out;
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
@@ -75,8 +49,8 @@ namespace test_cache_stencil {
     };
 
     struct functor3 {
-        typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<0, intent::in> in;
+        typedef accessor<1, intent::inout> out;
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
@@ -96,7 +70,7 @@ namespace test_cache_stencil {
 } // namespace test_cache_stencil
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 using namespace test_cache_stencil;
 
 class cache_stencil : public ::testing::Test {
@@ -135,7 +109,7 @@ TEST_F(cache_stencil, ij_cache) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage // mss_descriptor
-        (execute<parallel>(),
+        (execute::parallel(),
             define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff())),
             make_stage<functor1>(p_in(), p_buff()),
             make_stage<functor1>(p_buff(), p_out())));
@@ -172,7 +146,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage // mss_descriptor
-        (execute<parallel>(),
+        (execute::parallel(),
             // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
             make_stage<functor1>(p_in(), p_buff()), // esf_descriptor
             make_stage<functor2>(p_buff(), p_out()) // esf_descriptor
@@ -210,7 +184,7 @@ TEST_F(cache_stencil, multi_cache) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage // mss_descriptor
-        (execute<parallel>(),
+        (execute::parallel(),
             // test if define_caches works properly with multiple vectors of caches.
             // in this toy example two vectors are passed (IJ cache vector for p_buff
             // and p_buff_2, IJ cache vector for p_buff_3)

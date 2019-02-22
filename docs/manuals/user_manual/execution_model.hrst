@@ -4,7 +4,7 @@ Execution Model
 ===============
 
 Stencil operations are executed in a three dimensional index
-space. This means that the :term:`iteration space<iterationspace>`
+space. This means that the :term:`Iteration Space`
 is three dimensional. The first two dimensions of the iteration space,
 usually referred to as `I` and `J` dimensions identify the `IJ`
 plane. There is no prescription on how the stencil operators in
@@ -19,5 +19,15 @@ are three different ways of executing on the `K` dimension:
   executed after index `k+1`;
 - `parallel`: No order is specified and execution can happen concurrently.
 
-An execution strategy for a computation is indicated by ``execute<order>``,
+An execution strategy for a computation is indicated by ``execute::order()``,
 where `order` is one of the `K` dimension execution orders: ``forward``, ``backward``, ``parallel``.
+
+The parallel execution policy allows for tuning the degree of parallelism (in the CUDA backend), by selecting
+``execute::parallel_block<vertical_block_size>``, where ``vertical_block_size`` describes the dimension of CUDA block
+in the vertical (a too high value e.g. each k-level in a separate CUDA-thread might result in a too low instruction level
+parallelism and therefore in non-optimal performance).
+
+.. note::
+
+   The option to specify the vertical block size will most likely be moved to the backend in the future,
+   see :ref:`backend-selection`.  

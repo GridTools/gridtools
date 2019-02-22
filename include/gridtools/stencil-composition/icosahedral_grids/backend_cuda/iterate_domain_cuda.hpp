@@ -1,47 +1,26 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
+#include "../../../common/array.hpp"
 #include "../../../common/cuda_type_traits.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/host_device.hpp"
+#include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "../../extent.hpp"
 #include "../../iterate_domain_fwd.hpp"
-#include "../esf_metafunctions.hpp"
-#include "../grid_traits.hpp"
+#include "../../run_functor_arguments.hpp"
 #include "../iterate_domain.hpp"
 
 namespace gridtools {
@@ -52,25 +31,20 @@ namespace gridtools {
     template <typename IterateDomainArguments>
     class iterate_domain_cuda
         : public iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> {
-        GT_DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
-        GT_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
 
-        typedef iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> super;
-        typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+        using base_t = iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments>;
 
-        using super::increment_i;
-        using super::increment_j;
+        using base_t::increment_i;
+        using base_t::increment_j;
 
         using readwrite_args_t = typename compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>::type;
+        using strides_cached_t = typename base_t::strides_cached_t;
+        using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
       public:
-        typedef typename super::strides_cached_t strides_cached_t;
-        typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
-
-        typedef shared_iterate_domain<strides_cached_t,
-            typename IterateDomainArguments::max_extent_t,
-            typename iterate_domain_cache_t::ij_caches_tuple_t>
-            shared_iterate_domain_t;
+        using shared_iterate_domain_t =
+            shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>;
 
       private:
         shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
@@ -80,10 +54,12 @@ namespace gridtools {
         array<int, 2> m_thread_pos;
 
       public:
-        static constexpr bool has_ij_caches = iterate_domain_cache_t::has_ij_caches;
+        static constexpr bool has_ij_caches =
+            !meta::is_empty<GT_META_CALL(ij_caches, typename IterateDomainArguments::cache_sequence_t)>::value;
 
-        GT_FUNCTION iterate_domain_cuda(local_domain_t const &local_domain, uint_t block_size_i, uint_t block_size_j)
-            : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
+        template <class T>
+        GT_FUNCTION_DEVICE iterate_domain_cuda(T &&obj, uint_t block_size_i, uint_t block_size_j)
+            : base_t(std::forward<T>(obj)), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
         /**
          * @brief determines whether the current (i,j) position is within the block size
@@ -97,35 +73,26 @@ namespace gridtools {
                    m_thread_pos[1] < (int)m_block_size_j + Extent::jplus::value;
         }
 
-        GT_FUNCTION
-        void set_block_pos(int_t ipos, int_t jpos) {
+        GT_FUNCTION_DEVICE void set_block_pos(int_t ipos, int_t jpos) {
             m_thread_pos[0] = ipos;
             m_thread_pos[1] = jpos;
         }
 
-        GT_FUNCTION
-        void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
+        GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer(shared_iterate_domain_t *ptr) {
+            m_pshared_iterate_domain = ptr;
+        }
 
-        GT_FUNCTION
-        strides_cached_t const &GT_RESTRICT strides_impl() const {
-            //        assert((m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->strides();
-        }
-        GT_FUNCTION
-        strides_cached_t &GT_RESTRICT strides_impl() {
-            //        assert((m_pshared_iterate_domain));
-            return m_pshared_iterate_domain->strides();
-        }
+        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->m_strides; }
+        GT_FUNCTION strides_cached_t &strides_impl() { return m_pshared_iterate_domain->m_strides; }
 
         /** @brief return a value that was cached
          */
-        template <size_t Index, uint_t Color, typename ReturnType, typename Accessor>
-        GT_FUNCTION ReturnType get_cache_value_impl(Accessor const &_accessor) const {
-            GT_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
+        template <class Arg, uint_t Color, class ReturnType, class Accessor>
+        GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache<static_uint<Index>>().template at<Color>(
-                m_thread_pos, _accessor);
+            return boost::fusion::at_key<Arg>(m_pshared_iterate_domain->m_ij_caches)
+                .at<Color>(m_thread_pos[0], m_thread_pos[1], acc);
         }
 
         /** @brief return a the value in memory pointed to by an accessor
@@ -143,20 +110,6 @@ namespace gridtools {
 
         template <class Arg, class Ptr>
         static GT_FUNCTION auto deref_impl(Ptr ptr) GT_AUTO_RETURN(*ptr);
-
-        // kcaches not yet implemented
-        template <typename IterationPolicy>
-        GT_FUNCTION void slide_caches() {
-            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
-        }
-        template <typename IterationPolicy>
-        GT_FUNCTION void flush_caches(bool) {
-            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
-        }
-        template <typename IterationPolicy>
-        GT_FUNCTION void fill_caches(bool) {
-            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
-        }
     };
 
     template <typename IterateDomainArguments>

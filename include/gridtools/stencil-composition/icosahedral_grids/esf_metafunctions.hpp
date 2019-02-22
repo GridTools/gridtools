@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <boost/mpl/equal.hpp>
@@ -53,45 +27,12 @@ namespace gridtools {
             typedef typename boost::mpl::fold<EsfSequence,
                 boost::mpl::set0<>,
                 boost::mpl::insert<boost::mpl::_1, esf_get_location_type<boost::mpl::_2>>>::type location_type_set_t;
-            GT_STATIC_ASSERT((boost::mpl::size<location_type_set_t>::value == 1),
+            GT_STATIC_ASSERT(boost::mpl::size<location_type_set_t>::value == 1,
                 "Error: all ESFs in a Multi Stage stencil should have the same location type");
 
             typedef typename boost::mpl::front<location_type_set_t>::type type;
         };
-
-        /**
-         * metafunction that returns true if: "at least one esf of the sequence has a color that matches
-         * the Color parameter or the color of the esf is specified as nocolor
-         * (meaning that any color should be matched)
-         * @tparam EsfSequence sequence of esfs
-         * @tparam Color color to be matched by the ESFs
-         */
-        template <typename EsfSequence, typename Color>
-        struct esf_sequence_contains_color {
-            GT_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_color_type<Color>::value), GT_INTERNAL_ERROR);
-
-            template <typename Esf>
-            struct esf_has_color_ {
-                GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-                typedef static_bool<(boost::is_same<typename Esf::color_t::color_t, typename Color::color_t>::value ||
-                                     boost::is_same<typename Esf::color_t, nocolor>::value)>
-                    type;
-            };
-
-            typedef typename is_there_in_sequence_if<EsfSequence, esf_has_color_<boost::mpl::_>>::type type;
-        };
     } // namespace icgrid
-
-    template <typename Esf1, typename Esf2>
-    struct esf_equal {
-        GT_STATIC_ASSERT((is_esf_descriptor<Esf1>::value && is_esf_descriptor<Esf2>::value), GT_INTERNAL_ERROR);
-        typedef static_bool<boost::is_same<typename Esf1::esf_function, typename Esf2::esf_function>::value &&
-                            boost::mpl::equal<typename Esf1::args_t, typename Esf2::args_t>::value &&
-                            boost::is_same<typename Esf1::location_type, typename Esf2::location_type>::value &&
-                            boost::is_same<typename Esf1::grid_t, typename Esf2::grid_t>::value>
-            type;
-    };
 
     template <typename Esf>
     struct esf_param_list {

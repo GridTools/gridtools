@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #include <iostream>
 
@@ -44,12 +18,11 @@
 
 namespace test_intermediate {
     using namespace gridtools;
-    using namespace enumtype;
 
     struct stage1 {
-        using in1 = accessor<0, enumtype::in, extent<0, 1, -1, 0, 0, 1>>;
-        using in2 = accessor<1, enumtype::in, extent<0, 1, -1, 0, -1, 1>>;
-        using out = accessor<2, enumtype::inout, extent<>>;
+        using in1 = accessor<0, intent::in, extent<0, 1, -1, 0, 0, 1>>;
+        using in2 = accessor<1, intent::in, extent<0, 1, -1, 0, -1, 1>>;
+        using out = accessor<2, intent::inout, extent<>>;
         using param_list = make_param_list<in1, in2, out>;
 
         template <typename Evaluation>
@@ -57,9 +30,9 @@ namespace test_intermediate {
     };
 
     struct stage2 {
-        using in1 = accessor<0, enumtype::in, extent<-1, 0, 0, 1, -1, 0>>;
-        using in2 = accessor<1, enumtype::in, extent<-1, 1, -1, 0, -1, 1>>;
-        using out = accessor<2, enumtype::inout, extent<>>;
+        using in1 = accessor<0, intent::in, extent<-1, 0, 0, 1, -1, 0>>;
+        using in2 = accessor<1, intent::in, extent<-1, 1, -1, 0, -1, 1>>;
+        using out = accessor<2, intent::inout, extent<>>;
         using param_list = make_param_list<in1, in2, out>;
 
         template <typename Evaluation>
@@ -92,21 +65,20 @@ TEST(intermediate, test_get_arg_functions) {
 
     auto grid = gridtools::make_grid(di, dj, 3);
     {
-        auto mss_ =
-            make_multistage(enumtype::execute<enumtype::forward>(), make_stage<stage1>(p_in1(), p_in2(), p_out()));
+        auto mss_ = make_multistage(execute::forward(), make_stage<stage1>(p_in1(), p_in2(), p_out()));
         computation<p_in1, p_in2, p_out> comp = make_computation<backend_t>(grid, mss_);
 
         EXPECT_EQ((rt_extent{0, 1, -1, 0, 0, 1}), comp.get_arg_extent(p_in1()));
         EXPECT_EQ((rt_extent{0, 1, -1, 0, -1, 1}), comp.get_arg_extent(p_in2()));
         EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_arg_extent(p_out()));
 
-        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
-        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in2()));
-        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_out()));
+        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in1()));
+        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in2()));
+        EXPECT_EQ(intent::inout, comp.get_arg_intent(p_out()));
     }
 
     {
-        auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
+        auto mss_ = make_multistage(execute::forward(),
             make_stage<stage1>(p_in1(), p_in2(), p_tmp1()),
             make_stage<stage2>(p_in1(), p_tmp1(), p_out()));
         computation<p_in1, p_in2, p_tmp1, p_out> comp = make_computation<backend_t>(grid, mss_);
@@ -116,14 +88,14 @@ TEST(intermediate, test_get_arg_functions) {
         EXPECT_EQ((rt_extent{-1, 1, -1, 0, -1, 1}), comp.get_arg_extent(p_tmp1()));
         EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_arg_extent(p_out()));
 
-        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
-        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in2()));
-        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_tmp1()));
-        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_out()));
+        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in1()));
+        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in2()));
+        EXPECT_EQ(intent::inout, comp.get_arg_intent(p_tmp1()));
+        EXPECT_EQ(intent::inout, comp.get_arg_intent(p_out()));
     }
 
     {
-        auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
+        auto mss_ = make_multistage(execute::forward(),
             make_stage<stage1>(p_in1(), p_in2(), p_tmp1()),
             make_independent(
                 make_stage<stage1>(p_in1(), p_tmp1(), p_tmp2()), make_stage<stage2>(p_in2(), p_tmp1(), p_tmp3())),
@@ -165,24 +137,24 @@ TEST(intermediate, test_get_arg_functions) {
         EXPECT_EQ((rt_extent{-1, 1, -1, 0, -1, 1}), comp.get_arg_extent(p_tmp3()));
         EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_arg_extent(p_out()));
 
-        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
-        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in2()));
-        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_tmp1()));
-        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_tmp2()));
-        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_tmp3()));
-        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_out()));
+        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in1()));
+        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in2()));
+        EXPECT_EQ(intent::inout, comp.get_arg_intent(p_tmp1()));
+        EXPECT_EQ(intent::inout, comp.get_arg_intent(p_tmp2()));
+        EXPECT_EQ(intent::inout, comp.get_arg_intent(p_tmp3()));
+        EXPECT_EQ(intent::inout, comp.get_arg_intent(p_out()));
     }
     {
-        auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
-            make_stage_with_extent<stage1, extent<>>(p_in1(), p_in2(), p_out()));
+        auto mss_ =
+            make_multistage(execute::forward(), make_stage_with_extent<stage1, extent<>>(p_in1(), p_in2(), p_out()));
         computation<p_in1, p_in2, p_out> comp = make_computation<backend_t>(grid, mss_);
 
 #ifndef __CUDACC__
         EXPECT_ANY_THROW(comp.get_arg_extent(p_in1()));
 #endif
 
-        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
-        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in2()));
-        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_out()));
+        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in1()));
+        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in2()));
+        EXPECT_EQ(intent::inout, comp.get_arg_intent(p_out()));
     }
 }

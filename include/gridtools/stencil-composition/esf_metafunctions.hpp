@@ -1,47 +1,23 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
+
+#include <tuple>
 
 #include <boost/mpl/contains.hpp>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/accumulate_tparams_until.hpp"
 #include "../common/generic_metafunctions/binary_ops.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/generic_metafunctions/is_predicate.hpp"
+#include "../meta.hpp"
 #include "accessor_metafunctions.hpp"
 #include "esf.hpp"
 #include "independent_esf.hpp"
@@ -124,7 +100,7 @@ namespace gridtools {
 
     template <typename EsfF>
     struct esf_get_w_temps_per_functor {
-        GT_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_esf_descriptor<EsfF>::value, GT_INTERNAL_ERROR);
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> iter_range;
         typedef typename boost::mpl::fold<iter_range,
             boost::mpl::vector0<>,
@@ -204,52 +180,31 @@ namespace gridtools {
       Given an array of pairs (placeholder, extent) checks if all
       extents are the same and equal to the extent passed in
      */
-    template <typename VectorOfPairs, typename Extent, ushort_t Limit>
-    struct check_all_extents_are_same_upto {
+    template <typename VectorOfPairs>
+    struct check_all_horizotal_extents_are_zero {
         template <typename Pair>
-        struct _check {
-            using type =
-                static_bool<accumulate_tparams_until<equal, logical_and, typename Pair::second, Extent, Limit>::value>;
-        };
+        struct _check : bool_constant<Pair::second::iminus::value == 0 && Pair::second::iplus::value == 0 &&
+                                      Pair::second::jminus::value == 0 && Pair::second::jplus::value == 0> {};
 
         typedef typename is_sequence_of<VectorOfPairs, _check>::type type;
     };
 
-    /*
-      Given an array of pairs (placeholder, extent) checks if all
-      extents are the same and equal to the extent passed in
-     */
-    template <typename VectorOfPairs, typename Extent>
-    struct check_all_extents_are {
-        template <typename Pair>
-        struct _check {
-            typedef typename boost::is_same<typename Pair::second, Extent>::type type;
-        };
-
-        typedef typename is_sequence_of<VectorOfPairs, _check>::type type;
-    };
-
+    namespace esf_metafunctions_impl_ {
+        GT_META_LAZY_NAMESPACE {
+            template <class Esf>
+            struct tuple_from_esf {
+                using type = std::tuple<Esf>;
+            };
+            template <class Esfs>
+            struct tuple_from_esf<independent_esf<Esfs>> {
+                using type = Esfs;
+            };
+        }
+        GT_META_DELEGATE_TO_LAZY(tuple_from_esf, class Esf, Esf);
+    } // namespace esf_metafunctions_impl_
     // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
-    template <typename ESFList>
-    struct unwrap_independent {
-
-        GT_STATIC_ASSERT((is_sequence_of<ESFList, is_esf_descriptor>::value), "Error: ESFList must be a list of ESFs");
-
-        template <typename CurrentList, typename CurrentElement>
-        struct populate {
-            typedef typename boost::mpl::push_back<CurrentList, CurrentElement>::type type;
-        };
-
-        template <typename CurrentList, typename IndependentList>
-        struct populate<CurrentList, independent_esf<IndependentList>> {
-            typedef
-                typename boost::mpl::fold<IndependentList, CurrentList, populate<boost::mpl::_1, boost::mpl::_2>>::type
-                    type;
-        };
-
-        typedef
-            typename boost::mpl::fold<ESFList, boost::mpl::vector0<>, populate<boost::mpl::_1, boost::mpl::_2>>::type
-                type;
-    }; // struct unwrap_independent
+    template <class Esfs,
+        class EsfLists = GT_META_CALL(meta::transform, (esf_metafunctions_impl_::tuple_from_esf, Esfs))>
+    GT_META_DEFINE_ALIAS(unwrap_independent, meta::flatten, EsfLists);
 
 } // namespace gridtools

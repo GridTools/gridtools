@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <boost/fusion/include/as_map.hpp>
@@ -42,7 +16,6 @@
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../meta.hpp"
-
 #include "./arg.hpp"
 #include "./extent.hpp"
 
@@ -68,11 +41,6 @@ namespace gridtools {
      * to adapt it for a particular functor. This version does not provide grid
      * to the function operator
      *
-     * @tparam StoragePointers The mpl vector of the storage pointer types
-     * @tparam MetaData The mpl vector of the meta data pointer types sequence
-     * @tparam EsfArgs The mpl vector of the args (i.e. placeholders for the storages)
-                       for the current ESF
-     * @tparam IsStateful The flag stating if the local_domain is aware of the position in the iteration domain
      */
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain {
@@ -96,9 +64,6 @@ namespace gridtools {
         using storage_info_ptr_fusion_list = typename boost::fusion::result_of::as_vector<storage_info_ptr_list>::type;
         using size_array = array<uint_t, meta::length<storage_info_ptr_list>::value>;
 
-        template <class N>
-        struct get_arg : meta::lazy::at_c<EsfArgs, N::value> {};
-
         data_ptr_fusion_map m_local_data_ptrs;
         storage_info_ptr_fusion_list m_local_storage_info_ptrs;
         size_array m_local_padded_total_lengths;
@@ -115,9 +80,6 @@ namespace gridtools {
 
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain_is_stateful<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> : bool_constant<IsStateful> {};
-
-    template <class>
-    struct local_domain_esf_args;
 } // namespace gridtools
 
 #ifdef GT_USE_GPU

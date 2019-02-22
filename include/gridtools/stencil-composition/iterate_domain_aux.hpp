@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <type_traits>
@@ -230,9 +204,10 @@ namespace gridtools {
             size_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
             typename Layout = typename StorageInfo::layout_t,
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
-        GT_FUNCTION void operator()(const StorageInfo *) const {
+        GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
             GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
+            if (storage_info)
+                m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
         }
     };
 
@@ -300,20 +275,22 @@ namespace gridtools {
         ArrayIndex &GT_RESTRICT m_index_array;
 
         template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
-        GT_FUNCTION void operator()(const StorageInfo *) const {
+        GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
+            if (!storage_info)
+                return;
             GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            using max_extent_t = typename LocalDomain::max_extent_for_tmp_t;
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
                 meta::st_contains<typename LocalDomain::tmp_storage_info_ptr_list, StorageInfo const *>::value;
-            m_index_array[I] = get_index_offset_f<StorageInfo, max_extent_t, is_tmp>{}(backend,
-                make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, I>(m_strides),
-                    _impl::get_stride<coord_j<Backend>::value, layout_t, I>(m_strides),
-                    _impl::get_stride<coord_k<Backend>::value, layout_t, I>(m_strides)),
-                m_begin,
-                m_block_no,
-                m_pos_in_block);
+            m_index_array[I] =
+                get_index_offset_f<StorageInfo, typename LocalDomain::max_extent_for_tmp_t, is_tmp>{}(backend,
+                    make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, I>(m_strides),
+                        _impl::get_stride<coord_j<Backend>::value, layout_t, I>(m_strides),
+                        _impl::get_stride<coord_k<Backend>::value, layout_t, I>(m_strides)),
+                    m_begin,
+                    m_block_no,
+                    m_pos_in_block);
         }
     };
 
@@ -331,7 +308,7 @@ namespace gridtools {
        */
     template <typename BackendType, typename StridesCached, typename LocalDomain>
     struct assign_strides {
-        GT_STATIC_ASSERT((is_strides_cached<StridesCached>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_strides_cached<StridesCached>::value, GT_INTERNAL_ERROR);
 
         template <typename SInfo>
         struct assign {
@@ -342,22 +319,21 @@ namespace gridtools {
                 : m_storage_info(storage_info), m_strides_cached(strides_cached) {}
 
             template <typename Coordinate>
-            GT_FUNCTION typename boost::enable_if_c<(Coordinate::value >= SInfo::layout_t::unmasked_length), void>::type
-            operator()() const {}
+            GT_FUNCTION enable_if_t<(Coordinate::value >= SInfo::layout_t::unmasked_length)> operator()() const {}
 
             template <typename Coordinate>
-            GT_FUNCTION typename boost::enable_if_c<(Coordinate::value < SInfo::layout_t::unmasked_length), void>::type
-            operator()() const {
+            GT_FUNCTION enable_if_t<(Coordinate::value < SInfo::layout_t::unmasked_length)> operator()() const {
                 typedef typename SInfo::layout_t layout_map_t;
-                using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, const SInfo *>;
+                using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, SInfo const *>;
                 GT_STATIC_ASSERT(
                     (boost::mpl::contains<typename LocalDomain::storage_info_ptr_list, const SInfo *>::value),
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
                 constexpr int pos = SInfo::layout_t::template find<Coordinate::value>();
-                GT_STATIC_ASSERT((pos < SInfo::layout_t::masked_length),
+                GT_STATIC_ASSERT(pos < SInfo::layout_t::masked_length,
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
+
                 BackendType::template once_per_block<index_t::value>::assign(
                     (m_strides_cached.template get<index_t::value>())[Coordinate::value],
                     m_storage_info->template stride<pos>());
@@ -366,17 +342,15 @@ namespace gridtools {
 
         StridesCached &GT_RESTRICT m_strides_cached;
 
-        GT_FUNCTION assign_strides(StridesCached &GT_RESTRICT strides_cached) : m_strides_cached(strides_cached) {}
+        template <typename StorageInfo>
+        GT_FUNCTION enable_if_t<StorageInfo::layout_t::unmasked_length == 0> operator()(StorageInfo const *) const {}
 
         template <typename StorageInfo>
-        GT_FUNCTION typename boost::enable_if_c<StorageInfo::layout_t::unmasked_length == 0, void>::type operator()(
-            const StorageInfo *storage_info) const {}
-
-        template <typename StorageInfo>
-        GT_FUNCTION typename boost::enable_if_c<StorageInfo::layout_t::unmasked_length != 0, void>::type operator()(
-            const StorageInfo *storage_info) const {
+        GT_FUNCTION enable_if_t<StorageInfo::layout_t::unmasked_length != 0> operator()(
+            StorageInfo const *storage_info) const {
             using range = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
-            host_device::for_each_type<range>(assign<StorageInfo>(storage_info, m_strides_cached));
+            if (storage_info)
+                host_device::for_each_type<range>(assign<StorageInfo>(storage_info, m_strides_cached));
         }
     };
 
@@ -400,11 +374,11 @@ namespace gridtools {
     template <size_t Index, class CachesMap>
     struct index_is_cached : boost::mpl::has_key<CachesMap, static_uint<Index>> {};
 
-    template <class Arg, enumtype::intent Intent>
+    template <class Arg, intent Intent>
     struct deref_type : std::add_lvalue_reference<typename Arg::data_store_t::data_t> {};
 
     template <class Arg>
-    struct deref_type<Arg, enumtype::in> {
+    struct deref_type<Arg, intent::in> {
         using type = typename Arg::data_store_t::data_t;
     };
 } // namespace gridtools

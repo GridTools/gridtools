@@ -8,7 +8,7 @@
 .. _user-manual:
 
 =======================================
-|GT| User Manual
+User Manual
 =======================================
 
 .. include:: introduction.hrst

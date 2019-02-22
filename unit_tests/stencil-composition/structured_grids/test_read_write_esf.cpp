@@ -1,56 +1,30 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 namespace rw_test {
     struct test_functor {
-        typedef accessor<0, in, extent<0>> i0;
-        typedef accessor<1, inout> o0;
-        typedef accessor<2, in, extent<2>> i1;
-        typedef accessor<3, inout> o1;
-        typedef accessor<4, in, extent<3>> i2;
-        typedef accessor<5, inout> o2;
-        typedef accessor<6, in, extent<4>> i3;
-        typedef accessor<7, inout> o3;
+        typedef accessor<0, intent::in, extent<0>> i0;
+        typedef accessor<1, intent::inout> o0;
+        typedef accessor<2, intent::in, extent<2>> i1;
+        typedef accessor<3, intent::inout> o1;
+        typedef accessor<4, intent::in, extent<3>> i2;
+        typedef accessor<5, intent::inout> o2;
+        typedef accessor<6, intent::in, extent<4>> i3;
+        typedef accessor<7, intent::inout> o3;
 
         typedef make_param_list<i0, o0, i1, o1, i2, o2, i3, o3> param_list;
 
