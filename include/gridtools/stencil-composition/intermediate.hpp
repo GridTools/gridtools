@@ -262,7 +262,7 @@ namespace gridtools {
                 assert(-extent_t::iminus::value <= static_cast<int_t>(m_grid.direction_i().minus()));
                 assert(extent_t::iplus::value <= static_cast<int_t>(m_grid.direction_i().plus()));
                 assert(-extent_t::jminus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
-                assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
+                assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().plus()));
             }
         };
 
