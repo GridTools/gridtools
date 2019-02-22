@@ -198,8 +198,9 @@ namespace gridtools {
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
 
-                    constexpr GT_FUNCTION auto operator()() const GT_AUTO_RETURN(tuple_util::convert_to<composite_ptr>(
-                        tuple_util::host_device::transform(impl_::call_f{}, m_vals)));
+                    constexpr GT_FUNCTION auto operator()() const
+                        GT_AUTO_RETURN(tuple_util::host_device::convert_to<composite_ptr>(
+                            tuple_util::host_device::transform(impl_::call_f{}, m_vals)));
 
                     friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
                 };
