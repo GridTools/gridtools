@@ -35,15 +35,17 @@
  *   -----------------------------
  *
  *   A type `T` models SID concept if it has the following functions defined and available via ADL:
- *     `Ptr sid_get_origin(T&);`
+ *     `PtrHolder sid_get_origin(T&);`
  *     `Strides sid_get_strides(T const&);`
  *
  *   The following functions should be declared (definition is not needed) and available via ADL:
  *     `PtrDiff sid_get_ptr_diff(T const&)`
  *     `StridesKind sid_get_strides_kind(T const&);`
  *
- *   The deducible from `T` types `Ptr`, `PtrDiff` and `Strides` in their turn should satisfy the constraints:
- *     - `Ptr` and `Strides` are trivially copyable
+ *   The deducible from `T` types `PtrHolder`, `PtrDiff` and `Strides` in their turn should satisfy the constraints:
+ *     - `PtrHolder` and `Strides` are trivially copyable
+ *     - `PrtHolder` is callable with no args.
+ *     - `Ptr` is decayed return type of PtrHolder.
  *     - `PtrDiff` is default constructible
  *     - `Ptr` has `Ptr::operator*() const` which returns non void
  *     - there is `Ptr operator+(Ptr, PtrDiff)` defined
@@ -100,6 +102,7 @@
  *
  *   - is_sid<T> predicate that checks if T models SID syntactically
  *   - sid::ptr_type,
+ *     sid::ptr_holder_type,
  *     sid::ptr_diff_type,
  *     sid::strides_type,
  *     sid::strides_kind,
