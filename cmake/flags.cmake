@@ -11,7 +11,7 @@ option( GT_USE_MPI "Compile with MPI support" ${MPI_AVAILABLE} )
 # TODO remove when implementing smaller-grained test enablers
 option( GT_GCL_ONLY "If on only library is build but not the examples and tests" OFF )
 
-option( GT_TESTS_STRUCTURED_GRID "compile for rectangular grids" ON )
+option( GT_TESTS_ICOSAHEDRAL_GRID "compile tests for icosahedral grids" OFF )
 
 CMAKE_DEPENDENT_OPTION(
     GT_CUDA_PTX_GENERATION "Compile regression tests to intermediate representation"

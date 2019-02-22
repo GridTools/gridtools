@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "../structured_grids/backend_cuda/execute_kernel_functor_cuda.hpp"
 #else
 #include "../icosahedral_grids/backend_cuda/execute_kernel_functor_cuda.hpp"

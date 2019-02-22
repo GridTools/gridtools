@@ -13,7 +13,7 @@ using target_t = target::cuda;
 #else
 using target_t = target::mc;
 #endif
-using backend_t = backend<target_t, grid_type::structured, strategy::block>;
+using backend_t = backend<target_t>;
 
 static constexpr unsigned halo_size = 2;
 

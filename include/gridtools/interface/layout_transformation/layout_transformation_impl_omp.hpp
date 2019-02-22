@@ -37,7 +37,7 @@ namespace gridtools {
             using dummy_layout_map =
                 default_layout_map_t<GT_TRANSFORM_MAX_DIM>; // not used since we pass strides directly
 
-            using storage_info = gridtools::storage_info_interface<0, dummy_layout_map>;
+            using storage_info = gridtools::storage_info<0, dummy_layout_map>;
             auto a_dims = impl::vector_to_dims_array<GT_TRANSFORM_MAX_DIM>(dims);
             auto a_dst_strides = impl::vector_to_strides_array<GT_TRANSFORM_MAX_DIM>(dst_strides);
             auto a_src_strides = impl::vector_to_strides_array<GT_TRANSFORM_MAX_DIM>(src_strides);

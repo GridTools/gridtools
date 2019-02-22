@@ -16,7 +16,7 @@
 
 namespace gridtools {
     template <class Strategy, class Args>
-    struct kernel_functor_executor<backend_ids<target::x86, grid_type::structured, Strategy>, Args> {
+    struct kernel_functor_executor<backend_ids<target::x86, Strategy>, Args> {
         using type = strgrid::execute_kernel_functor_x86<Args>;
     };
 } // namespace gridtools
