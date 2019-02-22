@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "../../common/functional.hpp"
 #include "../../meta/macros.hpp"
 #include "../../meta/type_traits.hpp"
 #include "concept.hpp"
@@ -22,8 +23,9 @@ namespace gridtools {
         namespace as_const_impl_ {
             template <class Sid>
             class const_adapter : public delegate<Sid> {
-                friend GT_META_CALL(sid::element_type, Sid) const *sid_get_origin(const_adapter const &obj) {
-                    return sid::get_origin(const_cast<Sid &>(obj.impl()));
+                friend host_device::constant<GT_META_CALL(sid::element_type, Sid) const *> sid_get_origin(
+                    const_adapter const &obj) {
+                    return {sid::get_origin(const_cast<Sid &>(obj.impl()))()};
                 }
                 using sid::delegate<Sid>::delegate;
             };

@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
+#include <gridtools/common/functional.hpp>
 #include <gridtools/common/host_device.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
@@ -55,7 +56,7 @@ namespace gridtools {
             struct bounds_validator_kind;
 
             struct testee {
-                friend ptr sid_get_origin(testee &) { return {}; }
+                friend host_device::constant<ptr> sid_get_origin(testee &) { return {}; }
                 friend strides sid_get_strides(testee const &) { return {}; }
 
                 friend ptr_diff sid_get_ptr_diff(testee);
@@ -63,14 +64,14 @@ namespace gridtools {
                 friend bounds_validator_kind sid_get_bounds_validator_kind(testee);
             };
 
-            static_assert(is_sid<testee>(), "");
+            static_assert(sid::concept_impl_::is_sid<testee>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptr_diff>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::reference_type, testee), element &>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::element_type, testee), element>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::const_reference_type, testee), element const &>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides_kind>(), "");
 
-            static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee &>())), ptr>::value, "");
+            static_assert(std::is_same<decay_t<decltype(sid::get_origin(std::declval<testee &>())())>, ptr>::value, "");
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
 
             static_assert(std::is_same<decay_t<decltype(sid::get_stride<dim_0>(strides{}))>, stride>(), "");
@@ -86,7 +87,7 @@ namespace gridtools {
         namespace fallbacks {
 
             struct testee {
-                friend testee *sid_get_origin(testee &obj) { return &obj; }
+                friend host_device::constant<testee *> sid_get_origin(testee &obj) { return {&obj}; }
             };
 
             static_assert(is_sid<testee>(), "");
@@ -99,7 +100,7 @@ namespace gridtools {
             using strides = GT_META_CALL(sid::strides_type, testee);
             static_assert(tuple_util::size<strides>() == 0, "");
 
-            static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee &>())), testee *>(), "");
+            static_assert(std::is_same<decay_t<decltype(sid::get_origin(std::declval<testee &>())())>, testee *>(), "");
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
 
             constexpr auto stride = sid::get_stride<void>(strides{});
@@ -138,7 +139,7 @@ namespace gridtools {
 
             struct testee {};
 
-            testee *sid_get_origin(testee &obj) { return &obj; }
+            host_device::constant<testee *> sid_get_origin(testee &obj) { return {&obj}; }
             tuple<stride> sid_get_strides(testee const &) { return {}; }
             GT_FUNCTION int operator*(stride, int) { return 100; }
             integral_constant<int, 42> sid_get_strides_kind(testee const &);
@@ -159,7 +160,7 @@ namespace gridtools {
             double testee[15][43] = {};
             static_assert(sid::concept_impl_::is_sid<decltype(testee)>(), "");
 
-            EXPECT_EQ(&testee[0][0], sid::get_origin(testee));
+            EXPECT_EQ(&testee[0][0], sid::get_origin(testee)());
 
             auto strides = sid::get_strides(testee);
             EXPECT_TRUE((sid::get_stride<integral_constant<int, 0>>(strides) == 43));
@@ -177,7 +178,7 @@ namespace gridtools {
 
             testee[7][8] = 555;
 
-            auto *ptr = sid::get_origin(testee);
+            auto *ptr = sid::get_origin(testee)();
             sid::shift(ptr, sid::get_stride<integral_constant<int, 0>>(strides), 7);
             sid::shift(ptr, sid::get_stride<integral_constant<int, 1>>(strides), 8);
 
@@ -188,7 +189,7 @@ namespace gridtools {
             double testee[2][3][4][5] = {};
             static_assert(sid::concept_impl_::is_sid<decltype(testee)>(), "");
 
-            EXPECT_EQ(&testee[0][0][0][0], sid::get_origin(testee));
+            EXPECT_EQ(&testee[0][0][0][0], sid::get_origin(testee)());
 
             auto strides = sid::get_strides(testee);
             EXPECT_TRUE((sid::get_stride<integral_constant<int, 0>>(strides) == 60));
@@ -198,7 +199,7 @@ namespace gridtools {
 
             testee[1][2][3][4] = 555;
 
-            auto *ptr = sid::get_origin(testee);
+            auto *ptr = sid::get_origin(testee)();
             sid::shift(ptr, sid::get_stride<integral_constant<int, 0>>(strides), 1);
             sid::shift(ptr, sid::get_stride<integral_constant<int, 1>>(strides), 2);
             sid::shift(ptr, sid::get_stride<integral_constant<int, 2>>(strides), 3);
