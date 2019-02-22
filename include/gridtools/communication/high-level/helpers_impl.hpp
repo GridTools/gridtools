@@ -137,6 +137,10 @@ namespace gridtools {
                             if (ii != 0 || jj != 0 || kk != 0) {
                                 // std::cout << hm->total_pack_size(make_array(ii,jj,kk)) << " " <<
                                 // hm->total_unpack_size(make_array(ii,jj,kk)) << "\n";
+                                hm->send_size[translate()(ii, jj, kk)] =
+                                    hm->halo.send_buffer_size(make_array(ii, jj, kk));
+                                hm->recv_size[translate()(ii, jj, kk)] =
+                                    hm->halo.recv_buffer_size(make_array(ii, jj, kk));
                                 hm->send_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, arch>::alloc(
                                     hm->halo.send_buffer_size(make_array(ii, jj, kk)) * mf);
                                 hm->recv_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, arch>::alloc(

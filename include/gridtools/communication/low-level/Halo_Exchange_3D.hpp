@@ -656,7 +656,7 @@ namespace gridtools {
            \param[in] s Number of bytes (not number of elements) to be sent.
         */
         template <int I, int J, int K>
-        void set_send_to_size(int s) const {
+        void set_send_to_size(int s) {
             BOOST_MPL_ASSERT_RELATION(I, >=, -1);
             BOOST_MPL_ASSERT_RELATION(I, <=, 1);
             BOOST_MPL_ASSERT_RELATION(J, >=, -1);
