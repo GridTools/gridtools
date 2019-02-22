@@ -166,15 +166,13 @@
 <span id="faq"></span><h1>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="how-do-i-build-the-docs">
 <h2>How do I build the docs?<a class="headerlink" href="#how-do-i-build-the-docs" title="Permalink to this headline">¶</a></h2>
-<p>The documentation is based on sphinx. You need at least:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">sphinx_rtd_theme</span>
+<p>The documentation is based on Sphinx. Go to <code class="docutils literal notranslate"><span class="pre">docs_src/manuals</span></code> and do (in
+your console):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> pip install -r requirements.txt
+<span class="gp">$</span> make install
 </pre></div>
 </div>
-<p>Go to <code class="docutils literal notranslate"><span class="pre">docs/manuals</span></code> and:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">html</span>
-</pre></div>
-</div>
-<p>The output will be in <code class="docutils literal notranslate"><span class="pre">_build/html</span></code></p>
+<p>The output will be in the <code class="docutils literal notranslate"><span class="pre">docs</span></code> subdirectory inside the main <cite>GridTools</cite> directory.</p>
 </div>
 </div>
 
