@@ -253,6 +253,19 @@ namespace gridtools {
         //
         local_domains_t m_local_domains;
 
+        struct check_grid_against_extents_f {
+            Grid const &m_grid;
+
+            template <class Placeholder>
+            void operator()() const {
+                using extent_t = decltype(intermediate::get_arg_extent(Placeholder()));
+                assert(-extent_t::iminus::value <= static_cast<int_t>(m_grid.direction_i().minus()));
+                assert(extent_t::iplus::value <= static_cast<int_t>(m_grid.direction_i().plus()));
+                assert(-extent_t::jminus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
+                assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().plus()));
+            }
+        };
+
       public:
         intermediate(Grid const &grid,
             std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...> arg_storage_pairs,
@@ -277,6 +290,10 @@ namespace gridtools {
             update_local_domains(std::tuple_cat(
                 make_view_infos(m_tmp_arg_storage_pair_tuple), make_view_infos(m_bound_arg_storage_pair_tuple)));
             // now only local domanis missing pointers from free (not bound) storages.
+
+#ifndef NDEBUG
+            check_grid_against_extents();
+#endif
         }
 
         void sync_bound_data_stores() const { tuple_util::for_each(_impl::sync_f{}, m_bound_arg_storage_pair_tuple); }
@@ -368,6 +385,14 @@ namespace gridtools {
         template <class Seq>
         auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
             tuple_util::transform(_impl::dedup_storage_info_f<storage_info_map_t>{m_storage_info_map}, seq));
+
+        template <class ExtentMap = extent_map_t>
+        enable_if_t<!boost::mpl::is_void_<ExtentMap>::value> check_grid_against_extents() const {
+            for_each_type<non_tmp_placeholders_t>(check_grid_against_extents_f{m_grid});
+        }
+
+        template <class ExtentMap = extent_map_t>
+        enable_if_t<boost::mpl::is_void_<ExtentMap>::value> check_grid_against_extents() const {}
     }; // namespace gridtools
 
     /**
