@@ -46,6 +46,8 @@
  *  - `get_keys` metafunction. Usage: `GT_META_CALL(get_keys, Hymap)`
  *  - `has_key` metafunction. Usage `has_key<Hymap, Key>`
  *
+ *  TODO(anstaf): add usage examples here
+ *
  *  Gridtools implementation of Hymap
  *  ---------------------------------
  *

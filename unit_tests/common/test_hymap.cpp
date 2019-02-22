@@ -87,5 +87,14 @@ namespace gridtools {
             EXPECT_EQ(42, at_key<a>(testee));
             EXPECT_EQ(5.3, at_key<b>(testee));
         }
+
+        TEST(convert_hymap, smoke) {
+            hymap::keys<a, b>::values<int, double> src = {42, 5.3};
+
+            auto dst = tuple_util::convert_to<hymap::keys<b, c>::values>(src);
+
+            EXPECT_EQ(42, at_key<b>(dst));
+            EXPECT_EQ(5.3, at_key<c>(dst));
+        }
     } // namespace
 } // namespace gridtools
