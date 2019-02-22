@@ -29,6 +29,13 @@ namespace gridtools {
                     constexpr GT_FUNCTION auto operator()(T const &obj) const GT_AUTO_RETURN(*obj);
                 };
 
+                struct call_f {
+                    template <class T>
+                    constexpr GT_FUNCTION auto operator()(T const &obj) const -> decay_t<decltype(obj())> {
+                        return obj();
+                    }
+                };
+
                 GT_META_LAZY_NAMESPACE {
                     template <class State, class Kind>
                     struct make_map_helper {
@@ -183,6 +190,20 @@ namespace gridtools {
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
                 };
 
+                template <class... PtrHolders>
+                struct composite_ptr_holder {
+                    GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(PtrHolders), GT_INTERNAL_ERROR);
+
+                    typename hymap::keys<Keys...>::template values<PtrHolders...> m_vals;
+                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
+                    GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
+
+                    constexpr GT_FUNCTION auto operator()() const GT_AUTO_RETURN(tuple_util::convert_to<composite_ptr>(
+                        tuple_util::host_device::transform(impl_::call_f{}, m_vals)));
+
+                    friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
+                };
+
 #if GT_BROKEN_TEMPLATE_ALIASES
               public:
 #endif
@@ -326,6 +347,7 @@ namespace gridtools {
                             impl_::normalized_stride_type, (Key, decay_t < GT_META_CALL(strides_type, Sids)) >)...));
 
                     // all `SID` types are here
+                    using ptr_holder_t = composite_ptr_holder<GT_META_CALL(ptr_holder_type, Sids)...>;
                     using ptr_t = composite_ptr<GT_META_CALL(ptr_type, Sids)...>;
                     using strides_t = GT_META_CALL(meta::rename,
                         (stride_hymap_ctor, GT_META_CALL(meta::transform, (get_stride_type, stride_keys_t))));
@@ -342,7 +364,7 @@ namespace gridtools {
 #define GT_SID_COMPOSITE_CONSTEXPR constexpr
 #endif
 
-                    friend GT_SID_COMPOSITE_CONSTEXPR ptr_t sid_get_origin(values &obj) {
+                    friend GT_SID_COMPOSITE_CONSTEXPR ptr_holder_t sid_get_origin(values &obj) {
                         return tuple_util::transform(get_origin_f{}, obj.m_sids);
                     }
 

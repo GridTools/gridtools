@@ -25,7 +25,7 @@ namespace gridtools {
         TEST(multi_shift, smoke) {
             double data[15][42];
 
-            auto ptr = sid::get_origin(data);
+            auto ptr = sid::get_origin(data)();
             auto strides = sid::get_strides(data);
 
             sid::multi_shift(ptr, strides, tu::make<tuple>(3_c, 5_c, 2_c));

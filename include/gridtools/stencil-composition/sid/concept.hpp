@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
+#include "../../common/functional.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
@@ -218,15 +219,21 @@ namespace gridtools {
              *  C-array specialization
              */
             template <class T, class Res = gridtools::add_pointer_t<gridtools::remove_all_extents_t<T>>>
-            constexpr gridtools::enable_if_t<std::is_array<T>::value, Res> get_origin(T &obj) {
-                return (Res)obj;
+            constexpr gridtools::enable_if_t<std::is_array<T>::value, host_device::constant<Res>> get_origin(T &obj) {
+                return {(Res)obj};
             }
+
+            /**
+             *  `Ptr Holder` type is deduced from `get_origin`
+             */
+            template <class Sid>
+            using ptr_holder_type = decltype(::gridtools::sid::concept_impl_::get_origin(std::declval<Sid &>()));
 
             /**
              *  `Ptr` type is deduced from `get_origin`
              */
-            template <class Sid>
-            using ptr_type = decltype(::gridtools::sid::concept_impl_::get_origin(std::declval<Sid &>()));
+            template <class Sid, class PtrHolder = ptr_holder_type<Sid>>
+            using ptr_type = decay_t<decltype(std::declval<PtrHolder>()())>;
 
             /**
              *  `Reference` type is deduced from `Ptr` type
@@ -531,6 +538,7 @@ namespace gridtools {
              */
             template <class Sid,
                 // Extracting all the derived types from Sid
+                class PtrHolder = ptr_holder_type<Sid>,
                 class Ptr = ptr_type<Sid>,
                 class ReferenceType = reference_type<Sid>,
                 class PtrDiff = ptr_diff_type<Sid>,
@@ -541,7 +549,7 @@ namespace gridtools {
                 conjunction,
                 (
                     // `is_trivially_copyable` check is applied to the types that are will be passed from host to device
-                    std::is_trivially_copyable<Ptr>,
+                    std::is_trivially_copyable<PtrHolder>,
                     std::is_trivially_copyable<StridesType>,
 
                     // verify that `PtrDiff` is sane
@@ -567,6 +575,7 @@ namespace gridtools {
 #define GT_SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
 #endif
 
+        GT_SID_DELEGATE_FROM_IMPL(ptr_holder_type);
         GT_SID_DELEGATE_FROM_IMPL(ptr_type);
         GT_SID_DELEGATE_FROM_IMPL(ptr_diff_type);
         GT_SID_DELEGATE_FROM_IMPL(reference_type);
