@@ -156,10 +156,10 @@ namespace gridtools {
             template <class Placeholder>
             void operator()() const {
                 using extent_t = decltype(Intermediate::get_arg_extent(Placeholder()));
-                assert(static_cast<uint_t>(-extent_t::iminus::value) <= m_grid.direction_i().minus());
-                assert(static_cast<uint_t>(extent_t::iplus::value) <= m_grid.direction_i().plus());
-                assert(static_cast<uint_t>(-extent_t::jminus::value) <= m_grid.direction_j().minus());
-                assert(static_cast<uint_t>(extent_t::jplus::value) <= m_grid.direction_j().minus());
+                assert(-extent_t::iminus::value <= static_cast<int_t>(m_grid.direction_i().minus()));
+                assert(extent_t::iplus::value <= static_cast<int_t>(m_grid.direction_i().plus()));
+                assert(-extent_t::jminus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
+                assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
             }
         };
 
