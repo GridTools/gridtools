@@ -28,7 +28,7 @@ namespace gridtools {
             friend GT_META_CALL(sid::ptr_type, Sid) sid_get_origin(i_shifted &obj) {
                 auto &&impl = obj.impl();
                 auto res = sid::get_origin(impl);
-                sid::shift(res, sid::get_stride<1>(sid::get_strides(impl)), 1_c);
+                sid::shift(res, sid::get_stride<integral_constant<int, 1>>(sid::get_strides(impl)), 1_c);
                 return res;
             }
             using sid::delegate<Sid>::delegate;

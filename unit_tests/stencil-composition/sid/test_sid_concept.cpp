@@ -45,7 +45,11 @@ namespace gridtools {
                 friend GT_FUNCTION std::true_type sid_shift(ptr &, stride const &, int) { return {}; }
                 friend GT_FUNCTION std::false_type sid_shift(ptr_diff &, stride const &, int) { return {}; }
             };
-            using strides = array<stride, 2>;
+
+            struct dim_0;
+            struct dim_1;
+
+            using strides = hymap::keys<dim_0, dim_1>::values<stride, stride>;
 
             struct strides_kind;
             struct bounds_validator_kind;
@@ -69,10 +73,10 @@ namespace gridtools {
             static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee &>())), ptr>::value, "");
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
 
-            static_assert(std::is_same<decay_t<decltype(sid::get_stride<0>(strides{}))>, stride>(), "");
-            static_assert(std::is_same<decay_t<decltype(sid::get_stride<1>(strides{}))>, stride>(), "");
-            static_assert(sid::get_stride<2>(strides{}) == 0, "");
-            static_assert(sid::get_stride<42>(strides{}) == 0, "");
+            static_assert(std::is_same<decay_t<decltype(sid::get_stride<dim_0>(strides{}))>, stride>(), "");
+            static_assert(std::is_same<decay_t<decltype(sid::get_stride<dim_1>(strides{}))>, stride>(), "");
+            static_assert(sid::get_stride<void>(strides{}) == 0, "");
+            static_assert(sid::get_stride<void *>(strides{}) == 0, "");
 
             static_assert(std::is_same<decltype(sid::shift(std::declval<ptr &>(), stride{}, 0)), std::true_type>(), "");
             static_assert(
@@ -98,9 +102,8 @@ namespace gridtools {
             static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee &>())), testee *>(), "");
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
 
-            constexpr auto stride = sid::get_stride<0>(strides{});
+            constexpr auto stride = sid::get_stride<void>(strides{});
             static_assert(stride == 0, "");
-            static_assert(sid::get_stride<42>(strides{}) == 0, "");
 
             static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>(), "");
             static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>(), "");
@@ -159,8 +162,8 @@ namespace gridtools {
             EXPECT_EQ(&testee[0][0], sid::get_origin(testee));
 
             auto strides = sid::get_strides(testee);
-            EXPECT_TRUE(sid::get_stride<0>(strides) == 43);
-            EXPECT_TRUE(sid::get_stride<1>(strides) == 1);
+            EXPECT_TRUE((sid::get_stride<integral_constant<int, 0>>(strides) == 43));
+            EXPECT_TRUE((sid::get_stride<integral_constant<int, 1>>(strides) == 1));
 
             using strides_t = decltype(strides);
 
@@ -175,8 +178,8 @@ namespace gridtools {
             testee[7][8] = 555;
 
             auto *ptr = sid::get_origin(testee);
-            sid::shift(ptr, sid::get_stride<0>(strides), 7);
-            sid::shift(ptr, sid::get_stride<1>(strides), 8);
+            sid::shift(ptr, sid::get_stride<integral_constant<int, 0>>(strides), 7);
+            sid::shift(ptr, sid::get_stride<integral_constant<int, 1>>(strides), 8);
 
             EXPECT_EQ(555, *ptr);
         }
@@ -188,18 +191,18 @@ namespace gridtools {
             EXPECT_EQ(&testee[0][0][0][0], sid::get_origin(testee));
 
             auto strides = sid::get_strides(testee);
-            EXPECT_TRUE(sid::get_stride<0>(strides) == 60);
-            EXPECT_TRUE(sid::get_stride<1>(strides) == 20);
-            EXPECT_TRUE(sid::get_stride<2>(strides) == 5);
-            EXPECT_TRUE(sid::get_stride<3>(strides) == 1);
+            EXPECT_TRUE((sid::get_stride<integral_constant<int, 0>>(strides) == 60));
+            EXPECT_TRUE((sid::get_stride<integral_constant<int, 1>>(strides) == 20));
+            EXPECT_TRUE((sid::get_stride<integral_constant<int, 2>>(strides) == 5));
+            EXPECT_TRUE((sid::get_stride<integral_constant<int, 3>>(strides) == 1));
 
             testee[1][2][3][4] = 555;
 
             auto *ptr = sid::get_origin(testee);
-            sid::shift(ptr, sid::get_stride<0>(strides), 1);
-            sid::shift(ptr, sid::get_stride<1>(strides), 2);
-            sid::shift(ptr, sid::get_stride<2>(strides), 3);
-            sid::shift(ptr, sid::get_stride<3>(strides), 4);
+            sid::shift(ptr, sid::get_stride<integral_constant<int, 0>>(strides), 1);
+            sid::shift(ptr, sid::get_stride<integral_constant<int, 1>>(strides), 2);
+            sid::shift(ptr, sid::get_stride<integral_constant<int, 2>>(strides), 3);
+            sid::shift(ptr, sid::get_stride<integral_constant<int, 3>>(strides), 4);
 
             EXPECT_EQ(555, *ptr);
         }
