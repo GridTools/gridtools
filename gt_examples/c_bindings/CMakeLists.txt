@@ -33,7 +33,7 @@ endif()
 if(GT_ENABLE_TARGET_MC)
     # our bindings library is different for mc and cuda-backend. This CCMake function
     # generates two targets, once suffixed with _c and once suffixed with _fortran.
-    add_bindings_library(copy_stencil_lib_mc SOURCES copy_stencil_wrapper.cpp)
+    gt_add_bindings_library(copy_stencil_lib_mc SOURCES copy_stencil_wrapper.cpp)
     target_link_libraries(copy_stencil_lib_mc PUBLIC GridToolsExample)
 
     if (CMAKE_C_COMPILER_LOADED)
@@ -52,7 +52,7 @@ if(GT_ENABLE_TARGET_MC)
         target_link_libraries(example_driver_fortran copy_stencil_lib_mc_fortran)
         set_target_properties(example_driver_fortran PROPERTIES LINKER_LANGUAGE Fortran)
         # this helper enables the preprocessor by setting a compiler-dependent flag
-        enable_fortran_preprocessing_on_target(example_driver_fortran)
+        gt_enable_fortran_preprocessing_on_target(example_driver_fortran)
 
         if (NOT STANDALONE)
             install_example(example_driver_fortran)

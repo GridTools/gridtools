@@ -57,8 +57,8 @@ namespace {
     using data_store_t = storage_traits_t::data_store_t<float, storage_info_t>;
 
     struct copy_functor {
-        using in = gt::accessor<0, gt::enumtype::in>;
-        using out = gt::accessor<1, gt::enumtype::inout>;
+        using in = gt::in_accessor<0>;
+        using out = gt::inout_accessor<1>;
         using param_list = gt::make_param_list<in, out>;
 
         template <typename Evaluation>
@@ -82,9 +82,8 @@ namespace {
     }
 
     gt::computation<p_in, p_out> make_copy_stencil_impl(const wrapper &wrapper) {
-        return gt::make_computation<backend_t>(wrapper.grid,
-            gt::make_multistage(
-                gt::enumtype::execute<gt::enumtype::parallel>(), gt::make_stage<copy_functor>(p_in{}, p_out{})));
+        return gt::make_computation<backend_t>(
+            wrapper.grid, gt::make_multistage(gt::execute::parallel(), gt::make_stage<copy_functor>(p_in{}, p_out{})));
     }
 
     // Note that fortran_array_adapters are "fortran array wrappable".
