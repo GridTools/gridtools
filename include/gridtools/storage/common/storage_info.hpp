@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #pragma once
 
@@ -97,10 +71,10 @@ namespace gridtools {
         typename Layout,
         typename Halo = zero_halo<Layout::masked_length>,
         typename Alignment = alignment<1>>
-    struct storage_info_interface;
+    struct storage_info;
 
     template <uint_t Id, int... LayoutArgs, uint_t... Halos, typename Align>
-    struct storage_info_interface<Id, layout_map<LayoutArgs...>, halo<Halos...>, Align> {
+    struct storage_info<Id, layout_map<LayoutArgs...>, halo<Halos...>, Align> {
         using layout_t = layout_map<LayoutArgs...>;
         using halo_t = halo<Halos...>;
         using alignment_t = Align;
@@ -113,7 +87,7 @@ namespace gridtools {
         static constexpr uint_t ndims = layout_t::masked_length;
 
       private:
-        using this_t = storage_info_interface<Id, layout_map<LayoutArgs...>, halo<Halos...>, Align>;
+        using this_t = storage_info<Id, layout_map<LayoutArgs...>, halo<Halos...>, Align>;
         array<uint_t, ndims> m_total_lengths;
         array<uint_t, ndims> m_padded_lengths;
         array<uint_t, ndims> m_strides;
@@ -154,7 +128,7 @@ namespace gridtools {
       public:
         constexpr static uint_t id = Id;
 
-        constexpr storage_info_interface() = delete;
+        constexpr storage_info() = delete;
 
         /**
          * @brief storage info constructor. Additionally to initializing the members the halo
@@ -162,7 +136,7 @@ namespace gridtools {
          */
         template <typename... Dims,
             enable_if_t<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int> = 0>
-        GT_FUNCTION constexpr storage_info_interface(Dims... dims_)
+        GT_FUNCTION constexpr storage_info(Dims... dims_)
             : m_total_lengths{static_cast<uint_t>(dims_)...},
               m_padded_lengths{pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
                   handle_masked_dims<LayoutArgs>::extend(dims_))...},
@@ -170,7 +144,7 @@ namespace gridtools {
                   handle_masked_dims<LayoutArgs>::extend(dims_))...)) {}
 
         GT_FUNCTION
-        storage_info_interface(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
+        storage_info(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
             : m_total_lengths{dims}, m_strides(strides) {
 
             // We guess the padded lengths from the dimensions and the strides. Assume, that the strides are sorted,
@@ -204,7 +178,7 @@ namespace gridtools {
         /**
          * @brief storage info copy constructor.
          */
-        constexpr storage_info_interface(storage_info_interface const &other) = default;
+        constexpr storage_info(storage_info const &other) = default;
 
         /**
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
@@ -395,7 +369,7 @@ namespace gridtools {
     struct is_storage_info : std::false_type {};
 
     template <uint_t Id, typename Layout, typename Halo, typename Alignment>
-    struct is_storage_info<storage_info_interface<Id, Layout, Halo, Alignment>> : std::true_type {};
+    struct is_storage_info<storage_info<Id, Layout, Halo, Alignment>> : std::true_type {};
 
     /**
      * @}

@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #include <gtest/gtest.h>
 
@@ -62,13 +36,13 @@ struct static_type_tests<backend<target::cuda, GridBackend, Strategy>> {
     GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info_interface<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment<32>>>::type::value),
+                         storage_info<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment<32>>>::type::value),
         "storage info test failed");
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info_interface<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<32>>>::type::value),
+                         storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<32>>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
@@ -96,11 +70,11 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
 #ifdef GT_STRUCTURED_GRIDS
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info_interface<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                         storage_info<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                         storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
@@ -108,11 +82,11 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
 #ifdef GT_STRUCTURED_GRIDS
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info_interface<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                         storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info_interface<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                         storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
@@ -139,13 +113,13 @@ struct static_type_tests<backend<target::x86, GridBackend, Strategy>> {
     GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<1>>>::type::value),
+                         storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<1>>>::type::value),
         "storage info test failed");
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info_interface<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<1>>>::type::value),
+                         storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<1>>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
