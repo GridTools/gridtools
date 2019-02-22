@@ -44,7 +44,7 @@ namespace gridtools {
 
             using dummy_layout_map =
                 gridtools::default_layout_map_t<GT_TRANSFORM_MAX_DIM>; // not used since we pass strides directly
-            using storage_info = gridtools::storage_info_interface<0, dummy_layout_map>;
+            using storage_info = gridtools::storage_info<0, dummy_layout_map>;
             storage_info si_dst(dims, dst_strides);
             storage_info si_src(dims, src_strides);
 

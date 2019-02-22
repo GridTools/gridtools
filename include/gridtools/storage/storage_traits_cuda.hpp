@@ -61,14 +61,14 @@ namespace gridtools {
         struct select_storage_info_align {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a Halo type.");
             typedef typename get_layout<Dims, false>::type layout;
-            typedef storage_info_interface<Id, layout, Halo, Align> type;
+            typedef storage_info<Id, layout, Halo, Align> type;
         };
 
         template <uint_t Id, typename Layout, typename Halo, typename Align>
         struct select_custom_layout_storage_info_align {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
             GT_STATIC_ASSERT(is_layout_map<Layout>::value, "Given type is not a layout map type.");
-            typedef storage_info_interface<Id, Layout, Halo, Align> type;
+            typedef storage_info<Id, Layout, Halo, Align> type;
         };
 
         template <uint_t Id, typename Selector, typename Halo, typename Align>
@@ -76,7 +76,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a Halo type.");
             GT_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
             typedef typename get_layout<Selector::size, false>::type layout;
-            typedef storage_info_interface<Id, typename get_special_layout<layout, Selector>::type, Halo, Align> type;
+            typedef storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo, Align> type;
         };
     };
 

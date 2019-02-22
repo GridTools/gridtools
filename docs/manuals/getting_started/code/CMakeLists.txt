@@ -1,4 +1,4 @@
-if (GT_TESTS_STRUCTURED_GRID)
+if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
     function(add_getting_started_test test_source suffix)
         get_filename_component(_name ${test_source} NAME_WE)
         set(test_name getting_started_${_name}${suffix})

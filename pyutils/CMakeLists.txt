@@ -12,10 +12,10 @@ else()
     set(PERFTEST_PRECISION "double")
 endif()
 
-if(GT_TESTS_STRUCTURED_GRID)
-    set(PERFTEST_GRID "structured")
-else()
+if(GT_TESTS_ICOSAHEDRAL_GRID)
     set(PERFTEST_GRID "icosahedral")
+else()
+    set(PERFTEST_GRID "structured")
 endif()
 
 set (ENABLED_BACKENDS )

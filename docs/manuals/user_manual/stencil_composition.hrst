@@ -421,23 +421,23 @@ Selecting the Backend
 
 One of the key concepts of |GT| is portability between different target architectures.
 Stencil operators are written and composed in an architecture-independent way and then instantiated
-for a given ``backend``. The ``backend`` is a tag type which is composed from the triple
+for a given ``backend``. The ``backend`` is a tag type with a ``target`` argument with the following possible values:
 
-- ``target``, the target architecture (``cuda``, a GPU-enabled backend; ``mc``, a backend for modern CPUs with long vector-length; ``x86``, a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future)
-- ``grid_type``, the grid type, should be set to ``structured`` for Cartesian grid (or ``icgrid`` for the experimental icosahedral grid) 
-- ``strategy``, the looping strategy (``block``, optimized block strategy; ``naive`` only supported with ``x86`` for debugging)
+- ``target::cuda``: a GPU-enabled backend for NVIDIA GPUs
+- ``target::mc``: a backend for modern CPUs with long vector-length.
+- ``target::x86``: a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future.
 
 Currently we recommend one of the following two backends for optimal performance
 
 .. code-block:: gridtools
 
-   using backend_t = backend<target::cuda, grid_type::structured, strategy::block>;
+   using backend_t = backend<target::cuda>;
    
 for GPUs or 
 
 .. code-block:: gridtools
 
-   using backend_t = backend<target::mc, grid_type::structured, strategy::block>;
+   using backend_t = backend<target::mc>;
 
 for modern CPUs or Xeon Phis.
    

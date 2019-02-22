@@ -15,7 +15,6 @@ namespace gridtools {
     template <typename Axis>
     struct grid : grid_base<Axis> {
         using base_type = grid_base<Axis>;
-        using grid_type = grid_type::structured;
 
         GT_DEPRECATED("This constructor does not initialize the vertical axis, use the constructor with 3 "
                       "arguments. (deprecated after 1.05.02)")

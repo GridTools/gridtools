@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./structured_grids/grid.hpp"
 #else
 #include "./icosahedral_grids/grid.hpp"
