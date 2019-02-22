@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <memory>
@@ -110,12 +84,12 @@ namespace gridtools {
 
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
-            storage_info_interface<Id, Layout, Halo, Alignment> const &storage_info, int val) {
+            storage_info<Id, Layout, Halo, Alignment> const &storage_info, int val) {
             return val + 1 <= storage_info.template total_length<I>();
         }
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<!exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
-            storage_info_interface<Id, Layout, Halo, Alignment> const &, int) {
+            storage_info<Id, Layout, Halo, Alignment> const &, int) {
             return true;
         }
 
@@ -124,7 +98,7 @@ namespace gridtools {
             Grid const &grid;
 
             template <uint_t Id, class Layout, class Halo, class Alignment>
-            bool operator()(storage_info_interface<Id, Layout, Halo, Alignment> const &src) const {
+            bool operator()(storage_info<Id, Layout, Halo, Alignment> const &src) const {
 
                 // TODO: This check may be not accurate since there is
                 // an ongoing change in the convention for storage and
@@ -279,6 +253,19 @@ namespace gridtools {
         //
         local_domains_t m_local_domains;
 
+        struct check_grid_against_extents_f {
+            Grid const &m_grid;
+
+            template <class Placeholder>
+            void operator()() const {
+                using extent_t = decltype(intermediate::get_arg_extent(Placeholder()));
+                assert(-extent_t::iminus::value <= static_cast<int_t>(m_grid.direction_i().minus()));
+                assert(extent_t::iplus::value <= static_cast<int_t>(m_grid.direction_i().plus()));
+                assert(-extent_t::jminus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
+                assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().plus()));
+            }
+        };
+
       public:
         intermediate(Grid const &grid,
             std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...> arg_storage_pairs,
@@ -303,6 +290,10 @@ namespace gridtools {
             update_local_domains(std::tuple_cat(
                 make_view_infos(m_tmp_arg_storage_pair_tuple), make_view_infos(m_bound_arg_storage_pair_tuple)));
             // now only local domanis missing pointers from free (not bound) storages.
+
+#ifndef NDEBUG
+            check_grid_against_extents();
+#endif
         }
 
         void sync_bound_data_stores() const { tuple_util::for_each(_impl::sync_f{}, m_bound_arg_storage_pair_tuple); }
@@ -394,6 +385,14 @@ namespace gridtools {
         template <class Seq>
         auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
             tuple_util::transform(_impl::dedup_storage_info_f<storage_info_map_t>{m_storage_info_map}, seq));
+
+        template <class ExtentMap = extent_map_t>
+        enable_if_t<!boost::mpl::is_void_<ExtentMap>::value> check_grid_against_extents() const {
+            for_each_type<non_tmp_placeholders_t>(check_grid_against_extents_f{m_grid});
+        }
+
+        template <class ExtentMap = extent_map_t>
+        enable_if_t<boost::mpl::is_void_<ExtentMap>::value> check_grid_against_extents() const {}
     }; // namespace gridtools
 
     /**

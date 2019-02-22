@@ -1,4 +1,4 @@
-if( GT_TESTS_STRUCTURED_GRID )
+if( NOT GT_TESTS_ICOSAHEDRAL_GRID )
     set( EXAMPLES_SRCFILES boundary-conditions  boundary-conditions_provided )
 
     if(GT_ENABLE_TARGET_MC)

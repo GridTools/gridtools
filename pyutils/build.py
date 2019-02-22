@@ -27,7 +27,7 @@ def build_and_test(args):
     cmake_args['GT_SINGLE_PRECISION'] = args.precision == 'float'
 
     # grid type
-    cmake_args['GT_TESTS_STRUCTURED_GRID'] = args.grid == 'structured'
+    cmake_args['GT_TESTS_ICOSAHEDRAL_GRID'] = args.grid == 'icosahedral'
 
     # enable pyutils
     cmake_args['GT_ENABLE_PYUTILS'] = True

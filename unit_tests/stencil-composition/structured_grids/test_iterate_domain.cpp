@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #define GT_PEDANTIC_DISABLED // too stringent for this test
 
 #ifdef GT_BACKEND_X86
@@ -103,18 +77,17 @@ namespace gridtools {
 
             auto mss_ = gridtools::make_multistage // mss_descriptor
                 (execute::forward(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
-            auto computation_ = make_computation<gridtools::backend<target::x86, grid_type_t, strategy::naive>>(
+            auto computation_ = make_computation<gridtools::backend<target::x86, strategy::naive>>(
                 grid, p_in = in, p_buff = buff, p_out = out, mss_);
             auto local_domain1 = std::get<0>(computation_.local_domains());
 
             using esf_t = decltype(gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
 
-            using iterate_domain_arguments_t =
-                iterate_domain_arguments<backend_ids<target::x86, grid_type_t, strategy::naive>,
-                    decltype(local_domain1),
-                    std::tuple<esf_t>,
-                    std::tuple<>,
-                    gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
+            using iterate_domain_arguments_t = iterate_domain_arguments<backend_ids<target::x86, strategy::naive>,
+                decltype(local_domain1),
+                std::tuple<esf_t>,
+                std::tuple<>,
+                gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
 #ifdef GT_BACKEND_MC
             using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
