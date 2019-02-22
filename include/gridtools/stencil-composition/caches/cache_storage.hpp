@@ -20,7 +20,7 @@
 
 namespace gridtools {
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
     template <class T, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
     class ij_cache_storage {
         GT_STATIC_ASSERT(ISize > 0, GT_INTERNAL_ERROR);

@@ -46,7 +46,7 @@ namespace gridtools {
         template <uint_t Id, uint_t Dims, typename Halo>
         struct select_storage_info {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
             using layout = typename impl::layout_swap_mc<typename get_layout<Dims, false>::type>::type;
 #else
             using layout = typename get_layout<Dims, true>::type;
@@ -65,7 +65,7 @@ namespace gridtools {
         struct select_special_storage_info {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
             GT_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
             using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size, false>::type>::type;
 #else
             using layout = typename get_layout<Selector::size, true>::type;
@@ -76,7 +76,7 @@ namespace gridtools {
         template <uint_t Id, uint_t Dims, typename Halo, typename Align>
         struct select_storage_info_align {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
             using layout = typename impl::layout_swap_mc<typename get_layout<Dims, false>::type>::type;
 #else
             using layout = typename get_layout<Dims, true>::type;
@@ -95,7 +95,7 @@ namespace gridtools {
         struct select_special_storage_info_align {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
             GT_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
             using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size, false>::type>::type;
 #else
             using layout = typename get_layout<Selector::size, true>::type;

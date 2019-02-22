@@ -41,10 +41,9 @@ namespace gridtools {
        The backend is, as usual, declaring what the storage types are
      */
     template <class BackendId, class StrategyType>
-    struct backend<BackendId, grid_type::icosahedral, StrategyType>
-        : public backend_base<BackendId, grid_type::icosahedral, StrategyType> {
+    struct backend : public backend_base<BackendId, StrategyType> {
       public:
-        typedef backend_base<BackendId, grid_type::icosahedral, StrategyType> base_t;
+        typedef backend_base<BackendId, StrategyType> base_t;
 
         using typename base_t::backend_traits_t;
         using typename base_t::strategy_traits_t;

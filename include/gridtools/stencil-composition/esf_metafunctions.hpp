@@ -22,7 +22,7 @@
 #include "esf.hpp"
 #include "independent_esf.hpp"
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "structured_grids/esf_metafunctions.hpp"
 #else
 #include "icosahedral_grids/esf_metafunctions.hpp"
