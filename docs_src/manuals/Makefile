@@ -7,6 +7,11 @@ SPHINXBUILD   = sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build
 
+# GridTools-specific install target, installs html documentation to the docs
+# directory in the GridTools root director
+install: html
+	cp -r _build/html/* ../../docs
+
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
