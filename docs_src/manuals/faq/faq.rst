@@ -8,13 +8,13 @@ Frequently Asked Questions
 
 How do I build the docs?
 ------------------------
-The documentation is based on sphinx. You need at least::
 
-    pip install sphinx sphinx_rtd_theme
+The documentation is based on Sphinx. Go to ``docs_src/manuals`` and type
 
-Go to ``docs/manuals`` and::
+.. code-block:: console
 
-    make html
+    pip install -r requirements.txt
+    make install
 
-The output will be in ``_build/html``
+The output will be in the ``docs`` subdirectory inside the main |GT| directory.
 
