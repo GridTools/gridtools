@@ -36,13 +36,13 @@ struct static_type_tests<backend<target::cuda, GridBackend, Strategy>> {
     GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info_interface<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment<32>>>::type::value),
+                         storage_info<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment<32>>>::type::value),
         "storage info test failed");
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info_interface<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<32>>>::type::value),
+                         storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<32>>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
@@ -70,11 +70,11 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
 #ifdef GT_STRUCTURED_GRIDS
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info_interface<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                         storage_info<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                         storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
@@ -82,11 +82,11 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
 #ifdef GT_STRUCTURED_GRIDS
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info_interface<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                         storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info_interface<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                         storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
@@ -113,13 +113,13 @@ struct static_type_tests<backend<target::x86, GridBackend, Strategy>> {
     GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<1>>>::type::value),
+                         storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<1>>>::type::value),
         "storage info test failed");
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info_interface<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<1>>>::type::value),
+                         storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<1>>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
