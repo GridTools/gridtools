@@ -166,7 +166,11 @@ namespace gridtools {
                 else if (strides[i] == 0) {
                     m_padded_lengths[i] = 0;
                 } else {
-                    for (int j = i; j < ndims; ++j)
+                    int i_in_sorted_stride = 0;
+                    for (; i_in_sorted_stride < ndims; ++i_in_sorted_stride)
+                        if (strides[i] == sorted_strides[i_in_sorted_stride])
+                            break;
+                    for (int j = i_in_sorted_stride; j < ndims; ++j)
                         if (strides[i] != sorted_strides[j]) {
                             m_padded_lengths[i] = sorted_strides[j] / strides[i];
                             break;
