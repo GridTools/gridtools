@@ -2,7 +2,7 @@
 
 get_filename_component(GRIDTOOLS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-message(STATUS "GridTools found at ${GRIDTOOLS_CMAKE_DIR}")
+message(STATUS "GridTools version @GridTools_VERSION@ found at ${GRIDTOOLS_CMAKE_DIR}")
 
 include(CMakeFindDependencyMacro)
 find_dependency(Boost @REQUIRED_BOOST_VERSION@)
@@ -29,7 +29,8 @@ if(${CMAKE_CUDA_COMPILER_LOADED})
     endif()
 endif()
 
-target_compile_definitions(GridTools::gridtools INTERFACE GT_ICOSAHEDRAL_GRIDS)
+# Insert mechanism for grid_type selection here:
+# target_compile_definitions(GridTools::gridtools INTERFACE GT_ICOSAHEDRAL_GRIDS)
 
 if (GRIDTOOLS_ENABLE_PERFORMANCE_METERS)
     target_compile_definitions(GridTools::gridtools INTERFACE GT_ENABLE_METERS)
