@@ -1,8 +1,8 @@
 .. _global-accessor:
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 Global Parameters and Accessors
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 
 :term:`Global Accessors<Global Accessor>` are accessing read-only data which is independent of the current :term:`Iteration Point`.
 For this reason, intent, :term:`Extents<Extent>` and offsets cannot be specified for a :term:`Global Accessor`.
@@ -54,10 +54,4 @@ a small matrix as a global parameter:
 
     using matrix = global_accessor<0>;
     auto elem = eval(matrix(i, j));
-
-A useful example to understand this use case can be found in the extended4D example.
-
-.. todo::
-
- add reference
 

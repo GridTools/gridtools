@@ -104,40 +104,38 @@ where
   .. note:: 
   
    An :term:`Extent` with smaller
-   offsets that the ones the implementation is using will result in a
-   runtime error, while extents bigger that the one actually accessed
+   offsets than the ones the implementation is using is undefined behavior, i.e. it might
+   result in errors at runtime, while extents bigger that the one actually accessed
    by the implementation will result in performance loss.
 
 * ``N`` identifies the number of dimensions of the :term:`Data Store`.
   By default this value is set to 3. 
 
-^^^^^^^^^^^^^^^^
-Accessor aliases
-^^^^^^^^^^^^^^^^
+----------------
+Accessor Aliases
+----------------
 
 An :term:`Accessor` alias is a regular :term:`Accessor` which has an offset set at compile-time.
-For instance, say you have a vector field in :math:`R^3` with components h, v, w.
-This vector field is accessed via an :term:`Accessor` called ``vec``
+For instance, say you have a 4 dimensional :term:`Data Store`, where the last dimension refers to the
+3 component u, v, w of a vector field, e.g. the wind-speed.
+This vector field is accessed via an :term:`Accessor` called ``vel``
 
 .. code-block:: gridtools
 
- using vec = in_accessor<0, extent<>, 4>;
+ using vel = in_accessor<0, extent<>, 4>;
 
-However you may want to be able to refer to the third element of the vector
-with ```w``` sometimes
-in some expressions. You can do this defining an alias to the third component
-of the :term:`Accessor`:
+For convenience we can introduce an alias to the ``w`` component
 
 .. code-block:: gridtools
 
- using w = alias<vec, dimension<4>>::set<2>;
+ using w = alias<vel, dimension<4>>::set<2>;
 
-The line above sets at compile-time the fourth offset to the value 2, so that we have
+The line above sets the fourth offset at compile-time to the value 2, so that we have
 the following equivalency:
 
 .. code-block:: gridtools
 
- w() == vec(0, 0, 0, 2)
+ w() == vel(0, 0, 0, 2)
 
 which may contribute to considerably lighten the notation in complicated expressions.
 Note that you can still access the other dimensions with an offset, by using the alias. So that
@@ -176,13 +174,6 @@ type of the first one is the template type and it is usually called
 be defined in the same :term:`Stencil Operator` with different :term:`Vertical
 Intervals<Vertical Interval>`. The return type is void.
   
-.. note:: 
-
-  There must not be a gaps in the vertical regions of
-  a given stencil operator. If an operator is not defined in a given
-  region, which is in the middle of other regions used, then it must
-  be defined anyway and left empty.
-
 A ``apply`` method can be defined with a single template argument, so to
 skip the vertical region. In this case there could be *only one*
 :term:`Apply-Method` implementation in the stencil operator that will be
@@ -192,10 +183,6 @@ The implementation is specified in the body of the ``apply`` methods. The
 stencil operators can have other member functions that can be called
 from the ``apply``
 methods.
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using `eval` for Regular Grids
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let us assume the ``apply`` methods has the following signature:
 
