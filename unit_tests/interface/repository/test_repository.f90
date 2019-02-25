@@ -28,9 +28,9 @@ subroutine call_repository() bind (c, name="call_repository")
     jkfield = reshape( (/ (I, I = 0, 4*5) /), shape(jkfield), (/ 0 /) )
 
     repository_handle = make_exported_repository(3, 4, 5)
-    call set_exported_ijkfield(repository_handle, ijkfield)
-    call set_exported_ijfield(repository_handle, ijfield)
-    call set_exported_jkfield(repository_handle, jkfield)
+    call prefix_set_exported_ijkfield(repository_handle, ijkfield)
+    call prefix_set_exported_ijfield(repository_handle, ijfield)
+    call prefix_set_exported_jkfield(repository_handle, jkfield)
     call verify_exported_repository(repository_handle)
 
 end subroutine
