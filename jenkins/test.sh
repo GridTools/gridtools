@@ -25,7 +25,7 @@ source ${JENKINSPATH}/machine_env.sh
 maxsleep=7200
 
 if [[ -z ${TEST_SCRIPT} ]]; then
-    TEST_SCRIPT = "bash ${JENKINSPATH}/../build/run_tests.sh"
+    TEST_SCRIPT="bash ${JENKINSPATH}/../build/run_tests.sh"
 fi
 
 if [[ -z ${DEFAULT_QUEUE} ]]; then
@@ -82,7 +82,8 @@ if [ $? -ne 0 ] ; then
     exitError 4652 ${LINENO} "Output of test file not found"
 fi
 
-grep -i 'fail\|error\|[^a-zA-z]fault' ${testfile}
+# grep for failure patterns (exclude ctest summary line)
+grep -i 'fail\|error\|[^a-zA-z]fault' ${testfile} | grep -v '0 tests failed out of'
 
 if [ $? -eq 0 ] ; then
     # echo output to stdout

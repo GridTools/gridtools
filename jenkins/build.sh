@@ -98,12 +98,15 @@ fi
 
 echo $@
 
-if [[ -z ${GRIDTOOLS_INSTALL_PATH} ]]; then
-    GRIDTOOLS_INSTALL_PATH="${INITPATH}/install"
-fi
-
 source ${ABSOLUTEPATH_SCRIPT}/machine_env.sh
 source ${ABSOLUTEPATH_SCRIPT}/env_${myhost}.sh
+
+if [[ -z ${GRIDTOOLS_INSTALL_PATH} ]]; then
+    GRIDTOOLS_INSTALL_PATH=$INITPATH/install
+fi
+if [[ -z ${MAKE_TARGETS} ]]; then
+    MAKE_TARGETS=install
+fi
 
 echo "BOOST_ROOT=$BOOST_ROOT"
 
@@ -183,6 +186,7 @@ if [[ -z ${GT_ENABLE_BINDINGS_GENERATION} ]]; then
 fi
 
 cmake \
+-DCMAKE_INSTALL_PREFIX="${GRIDTOOLS_INSTALL_PATH}" \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
@@ -306,25 +310,28 @@ fi
 exit_if_error $?
 
 # test installation by building and executing examples
-mkdir -p build_examples && build_examples
-cmake ${GRIDTOOLS_INSTALL_PATH}/gridtools-examples \
-    -DGridTools_DIR=${GRIDTOOLS_INSTALL_PATH}/lib/cmake \
-    -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON
+if [[ "$MAKE_TARGETS" == "install" ]]; then # only if GT was installed
+    mkdir -p build_examples && cd build_examples
+    cmake ${GRIDTOOLS_INSTALL_PATH}/gridtools-examples \
+        -DGridTools_DIR=${GRIDTOOLS_INSTALL_PATH}/lib/cmake \
+        -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON
 
-if [[ "$SILENT_BUILD" == "ON" ]]; then
-    echo "Log file ${log_file}"
+    if [[ "$SILENT_BUILD" == "ON" ]]; then
+        echo "Log file ${log_file}"
 
-    ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS} >& ${log_file};
-    error_code=$?
-    if [ ${error_code} -ne 0 ]; then
-        cat ${log_file};
+        ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS} >& ${log_file};
+        error_code=$?
+        if [ ${error_code} -ne 0 ]; then
+            cat ${log_file};
+        fi
+    else
+        ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}
+        error_code=$?
     fi
-else
-    ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}
-    error_code=$?
-fi
-exit_if_error $error_code
+    exit_if_error $error_code
 
-bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -s "make test"
+    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -s "make test"
+    exit_if_error $?
+fi
 
 exit 0
