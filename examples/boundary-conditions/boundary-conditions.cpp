@@ -36,7 +36,7 @@
  */
 
 #include <gridtools/boundary-conditions/boundary.hpp>
-#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
 #include <iostream>
 
 namespace gt = gridtools;

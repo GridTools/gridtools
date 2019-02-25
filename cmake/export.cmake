@@ -90,10 +90,3 @@ if(COMPONENT_C_BINDINGS)
     file(COPY ${CMAKE_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
     file(COPY ${CBINDINGS_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src/c_bindings")
 endif()
-
-if ( GT_INSTALL_EXAMPLES )
-    install(DIRECTORY
-            gt_examples
-            DESTINATION "${GT_INSTALL_EXAMPLES_PATH}/examples/src"
-            FILES_MATCHING REGEX ".*cpp|.*hpp")
-endif()

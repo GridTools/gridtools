@@ -96,12 +96,8 @@ if(COMPONENT_C_BINDINGS)
 endif()
 
 # ===============
-# examples and tests
+# tests
 # ===============
-if( GT_COMPILE_EXAMPLES )
-  add_subdirectory(gt_examples)
-endif()
-
 if(BUILD_TESTING)
   # TODO move to the right directory
   add_library(regression_main src/tools/regression_fixture.cpp)
@@ -111,6 +107,13 @@ if(BUILD_TESTING)
   add_subdirectory(unit_tests)
   
   add_subdirectory(docs/manuals/getting_started/code)
+endif()
+
+# ===============
+# examples
+# ===============
+if(GT_INSTALL_EXAMPLES)
+    add_subdirectory(examples)
 endif()
 
 # ===============
