@@ -28,7 +28,7 @@ __pycache__
 !cmake
 !docs
 !regression
-!gt_examples
+!examples
 !include
 !jenkins
 !pyutils

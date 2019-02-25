@@ -11,13 +11,17 @@ endif()
 find_package(GridTools @GT_VERSION@ REQUIRED
     HINTS ${CMAKE_CURRENT_LIST_DIR}/../../lib/cmake)
 
+enable_testing()
+
 add_executable(copy_stencil_mc copy_stencil.cpp)
 target_link_libraries(copy_stencil_mc GridTools::gridtools)
+add_test(NAME copy_stencil_mc COMMAND $<TARGET_FILE:copy_stencil_mc> 33 44 55)
 
 if(CMAKE_CUDA_COMPILER)
     if(GRIDTOOLS_HAS_TARGET_CUDA)
         add_executable(copy_stencil_cuda copy_stencil.cu)
         target_link_libraries(copy_stencil_cuda GridTools::gridtools)
+        add_test(NAME copy_stencil_cuda COMMAND $<TARGET_FILE:copy_stencil_cuda> 33 44 55)
     else()
         message("A CUDA-capable compiler was found, but GridTools was installed without CUDA support. Skipping the CUDA example...")
     endif()
