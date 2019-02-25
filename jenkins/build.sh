@@ -38,7 +38,7 @@ VERSION_="5.3"
 GENERATE_ONLY="OFF"
 PERFORMANCE_TESTING="OFF"
 
-while getopts "hb:t:f:l:zmsidvq:x:incok:pC" opt; do
+while getopts "hb:t:f:l:zmsidvq:x:incok:pCI:" opt; do
     case "$opt" in
     h|\?)
         help
@@ -68,13 +68,15 @@ while getopts "hb:t:f:l:zmsidvq:x:incok:pC" opt; do
         ;;
     n) BUILD_ON_CN="ON"
         ;;
-    k) MAKE_TARGETS="$MAKE_TARGETS $OPTARG"
+    k) MAKE_TARGETS="$MAKE_TARGETS $OPTARG install"
         ;;
     o) COMPILE_ONLY="ON"
         ;;
     p) PERFORMANCE_TESTING="ON"
         ;;
     C) GENERATE_ONLY="ON"
+        ;;
+    I) GRIDTOOLS_INSTALL_PATH=$OPTARG
         ;;
     esac
 done
@@ -95,6 +97,10 @@ if [[ "$FLOAT_TYPE" != "float" ]] && [[ "$FLOAT_TYPE" != "double" ]]; then
 fi
 
 echo $@
+
+if [[ -z ${GRIDTOOLS_INSTALL_PATH} ]]; then
+    GRIDTOOLS_INSTALL_PATH="${INITPATH}/install"
+fi
 
 source ${ABSOLUTEPATH_SCRIPT}/machine_env.sh
 source ${ABSOLUTEPATH_SCRIPT}/env_${myhost}.sh
@@ -298,5 +304,27 @@ else
 fi
 
 exit_if_error $?
+
+# test installation by building and executing examples
+mkdir -p build_examples && build_examples
+cmake ${GRIDTOOLS_INSTALL_PATH}/gridtools-examples \
+    -DGridTools_DIR=${GRIDTOOLS_INSTALL_PATH}/lib/cmake \
+    -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON
+
+if [[ "$SILENT_BUILD" == "ON" ]]; then
+    echo "Log file ${log_file}"
+
+    ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS} >& ${log_file};
+    error_code=$?
+    if [ ${error_code} -ne 0 ]; then
+        cat ${log_file};
+    fi
+else
+    ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}
+    error_code=$?
+fi
+exit_if_error $error_code
+
+bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -s "make test"
 
 exit 0

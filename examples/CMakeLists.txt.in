@@ -13,8 +13,9 @@ if(@COMPONENT_STENCIL_COMPOSITION@)
         SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/stencil-composition
         CMAKE_ARGS -DGridTools_DIR=${CMAKE_CURRENT_LIST_DIR}/../lib/cmake
         INSTALL_COMMAND ""
-        TEST_AFTER_INSTALL ON
         )
+    ExternalProject_Get_property(stencil-composition-example BINARY_DIR)
+    add_test(NAME stencil-composition-example COMMAND ctest WORKING_DIRECTORY ${BINARY_DIR})
 endif()
 
 if(@COMPONENT_BOUNDARY_CONDITIONS@)
@@ -23,7 +24,8 @@ if(@COMPONENT_BOUNDARY_CONDITIONS@)
         SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/boundary-conditions
         CMAKE_ARGS -DGridTools_DIR=${CMAKE_CURRENT_LIST_DIR}/../lib/cmake
         INSTALL_COMMAND ""
-        TEST_AFTER_INSTALL ON
         )
+    ExternalProject_Get_property(boundary-conditions-example BINARY_DIR)
+    add_test(NAME boundary-conditions-example COMMAND ctest WORKING_DIRECTORY ${BINARY_DIR})
 endif()
     

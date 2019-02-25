@@ -3,7 +3,7 @@
 MPI_NODES=1
 MPI_TASKS=1
 DO_MPI=OFF
-while getopts "q:m:g:n:t:" opt; do
+while getopts "q:m:g:n:t:s:" opt; do
     case "$opt" in
     q) QUEUE=$OPTARG
         ;;
@@ -15,6 +15,7 @@ while getopts "q:m:g:n:t:" opt; do
         ;;
     t) MPI_TASKS=$OPTARG
         ;;
+    s) TEST_SCRIPT=$OPTARG
     esac
 done
 
@@ -22,6 +23,10 @@ JENKINSPATH=${0%/*}
 source ${JENKINSPATH}/tools.sh
 source ${JENKINSPATH}/machine_env.sh
 maxsleep=7200
+
+if [[ -z ${TEST_SCRIPT} ]]; then
+    TEST_SCRIPT = "bash ${JENKINSPATH}/../build/run_tests.sh"
+fi
 
 if [[ -z ${DEFAULT_QUEUE} ]]; then
     exitError 3485 ${LINENO} "Default queue not set"
@@ -44,15 +49,15 @@ cp ${JENKINSPATH}/submit.${myhost}.slurm ${JENKINSPATH}/submit.${myhost}.slurm.t
 slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test"
 
 if [ $myhost == "greina" ]; then
-    cmd="srun --gres=gpu:1 --ntasks=1 -u  bash ${JENKINSPATH}/../build/run_tests.sh "
+    cmd="srun --gres=gpu:1 --ntasks=1 -u  ${TEST_SCRIPT} "
 elif [ $myhost == "kesch" ]; then
-    cmd="srun --ntasks=1 -K -u bash ${JENKINSPATH}/../build/run_tests.sh"
+    cmd="srun --ntasks=1 -K -u ${TEST_SCRIPT}"
 elif [ $myhost == "dom" ]; then
-    cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
+    cmd="srun ${TEST_SCRIPT}"
 elif [ $myhost == "daint" ]; then
-    cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
+    cmd="srun ${TEST_SCRIPT}"
 elif [ $myhost == "tave" ]; then
-    cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
+    cmd="srun ${TEST_SCRIPT}"
 fi
 echo "replacing in ${slurm_script} command by ${cmd}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
