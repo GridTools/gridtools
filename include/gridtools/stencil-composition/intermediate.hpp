@@ -346,9 +346,9 @@ namespace gridtools {
         enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value, local_domains_t> local_domains(
             arg_storage_pair<Args, DataStores> const &... srcs) {
             local_domains_t res;
-            _impl::update_local_domains(std::tuple_cat(m_tmp_arg_storage_pair_tuple,
+            _impl::update_local_domains(tuple_util::flatten(std::make_tuple(m_tmp_arg_storage_pair_tuple,
                                             m_bound_arg_storage_pair_tuple,
-                                            dedup_storage_info(std::tie(srcs...))),
+                                            dedup_storage_info(std::tie(srcs...)))),
                 res);
             return res;
         }
