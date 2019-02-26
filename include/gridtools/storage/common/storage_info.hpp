@@ -150,7 +150,7 @@ namespace gridtools {
             // We guess the padded lengths from the dimensions and the strides. Assume, that the strides are sorted,
             // e.g., [256, 16, 1], and the dimensions are [5, 9, 9]. For the largest stride, we assume that padding
             // = dimension (e.g. in this example the i-padding is 5). For all others we can calculate the padding from
-            // the strides (e.g. in this example, the j-padding is 256 / 16 = 16, and the k-padding is 16 / 1 = 1).
+            // the strides (e.g. in this example, the j-padding is 256 / 16 = 16, and the k-padding is 16 / 1 = 16).
             auto sorted_strides = strides;
             for (uint_t i = 0; i < ndims; ++i)
                 for (uint_t j = i + 1; j < ndims; ++j)
