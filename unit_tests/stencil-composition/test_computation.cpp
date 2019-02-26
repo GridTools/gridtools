@@ -84,7 +84,7 @@ namespace gridtools {
         TEST(computation, move) {
             auto make = []() { return computation<>(my_computation{}); };
             auto testee = make();
-            EXPECT_EQ(testee.print_meter(), "synced:0");
+            EXPECT_EQ(testee.print_meter(), "0");
         }
 
         TEST(computation, move_assign) {
