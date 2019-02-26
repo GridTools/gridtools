@@ -148,7 +148,7 @@ namespace gridtools {
             : m_total_lengths{dims}, m_strides(strides) {
 
             // We guess the padded lengths from the dimensions and the strides. Assume, that the strides are sorted,
-            // e.g., [16, 256, 1], and the dimensions are [9, 5, 9]. For the largest stride (256), we assume that
+            // e.g., [1, 16, 256], and the dimensions are [5, 9, 9]. For the largest stride (256), we assume that
             // padding = dimension (e.g. in this example the j-padding is 5). For all others we can calculate the
             // padding from the strides (e.g. in this example, the i-padding is 256 / 16 = 16, and the k-padding is 16 /
             // 1 = 16). Note that there might be strides which are set to 0 (masked dimensions).
