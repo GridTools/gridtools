@@ -1,44 +1,24 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
+
+#ifdef GT_VERBOSE
+#include <iostream>
+#endif
+
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../../meta.hpp"
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
+#include "../../backend_cuda/execute_kernel_functor_cuda_common.hpp"
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
@@ -55,7 +35,7 @@ namespace gridtools {
         template <int VBoundary>
         struct padded_boundary
             : boost::mpl::integral_c<int, VBoundary <= 1 ? 1 : VBoundary <= 2 ? 2 : VBoundary <= 4 ? 4 : 8> {
-            GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
         template <typename RunFunctorArguments, size_t NumThreads>
@@ -69,8 +49,6 @@ namespace gridtools {
             using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
                 typename RunFunctorArguments::local_domain_t,
                 typename RunFunctorArguments::esf_sequence_t,
-                typename RunFunctorArguments::extent_sizes_t,
-                typename RunFunctorArguments::max_extent_t,
                 typename RunFunctorArguments::cache_sequence_t,
                 typename RunFunctorArguments::grid_t>;
             using iterate_domain_cuda_t = iterate_domain_cuda<iterate_domain_arguments_t>;
@@ -80,7 +58,6 @@ namespace gridtools {
                     meta::lazy::id<iterate_domain_cuda_t>>::type;
 
             typedef backend_traits_from_id<target::cuda> backend_traits_t;
-            typedef typename iterate_domain_t::strides_cached_t strides_t;
 
             // number of threads
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
@@ -100,9 +77,9 @@ namespace gridtools {
             // Doing construction of the iterate domain and assignment of pointers and strides
             iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
 
-            it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
+            it_domain.set_shared_iterate_domain_pointer(&shared_iterate_domain);
 
-            it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
+            it_domain.template assign_stride_pointers<backend_traits_t>();
 
             __syncthreads();
 
@@ -149,16 +126,18 @@ namespace gridtools {
             } else if (threadIdx.y < iminus_limit) {
                 static constexpr auto padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-                GRIDTOOLS_STATIC_ASSERT(
-                    jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(
+                    jboundary_limit * padded_boundary_ <= block_i_size(backend_ids<target::cuda, strategy::block>{}),
+                    GT_INTERNAL_ERROR);
 
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
                 static constexpr auto padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-                GRIDTOOLS_STATIC_ASSERT(
-                    jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(
+                    jboundary_limit * padded_boundary_ <= block_i_size(backend_ids<target::cuda, strategy::block>{}),
+                    GT_INTERNAL_ERROR);
                 iblock = threadIdx.x % padded_boundary_ + ntx;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
@@ -166,12 +145,8 @@ namespace gridtools {
             using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
             using from_t = GT_META_CALL(meta::first, interval_t);
 
-            // initialize the indices. Note: We subtract grid.k_min() here as it will be added again in
-            // it_domain.initialize()
-            const int_t kblock =
-                execution_type_t::iteration == enumtype::parallel
-                    ? max(blockIdx.z * execution_type_t::block_size, grid.template value_at<from_t>()) - grid.k_min()
-                    : grid.template value_at<from_t>() - grid.k_min();
+            // initialize the indices.
+            const int_t kblock = impl_::compute_kblock<execution_type_t>::template get<from_t>(grid);
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
                 {iblock, jblock, kblock});
@@ -181,6 +156,7 @@ namespace gridtools {
             // execute the k interval functors
             run_functors_on_interval<RunFunctorArguments, run_esf_functor_cuda>(it_domain, grid);
         }
+
     } // namespace _impl_strcuda
 
     namespace strgrid {
@@ -191,19 +167,19 @@ namespace gridtools {
          */
         template <typename RunFunctorArguments>
         struct execute_kernel_functor_cuda {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
-            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable<local_domain_t>::value, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable<grid_t>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(cuda_util::is_cloneable<local_domain_t>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(cuda_util::is_cloneable<grid_t>::value, GT_INTERNAL_ERROR);
 
             // ctor
             explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
                 : m_local_domain(local_domain), m_grid(grid) {}
 
             void operator()() {
-#ifdef VERBOSE
+#ifdef GT_VERBOSE
                 short_t count;
                 GT_CUDA_CHECK(cudaGetDeviceCount(&count));
 
@@ -254,16 +230,14 @@ namespace gridtools {
                 const uint_t nbx = (nx + ntx - 1) / ntx;
                 const uint_t nby = (ny + nty - 1) / nty;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                const uint_t nbz = execution_type_t::iteration == enumtype::parallel
-                                       ? (nz + execution_type_t::block_size - 1) / execution_type_t::block_size
-                                       : 1;
+                const uint_t nbz = impl_::blocks_required_z<execution_type_t>::get(nz);
 
                 dim3 blocks(nbx, nby, nbz);
 
-#ifdef VERBOSE
-                printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
-                printf("nbx = %d, nby = %d, nbz = %d\n", nbx, nby, nbz);
-                printf("nx = %d, ny = %d, nz = %d\n", nx, ny, nz);
+#ifdef GT_VERBOSE
+                std::cout << "ntx = " << ntx << ", nty = " << nty << ", ntz = " << ntz << std::endl;
+                std::cout << "nbx = " << nbx << ", nby = " << nby << ", nbz = " << nbz << std::endl;
+                std::cout << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
 #endif
                 _impl_strcuda::do_it_on_gpu<RunFunctorArguments, ntx *(nty + halo_processing_warps)>
                     <<<blocks, threads>>>(m_local_domain, m_grid);

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
@@ -5,14 +7,13 @@
 
 using namespace gridtools;
 using namespace gridtools::expressions;
-using namespace gridtools::enumtype; // TODO we need to fix this!
 
 #ifdef __CUDACC__
 using target_t = target::cuda;
 #else
 using target_t = target::mc;
 #endif
-using backend_t = backend<target_t, grid_type::structured, strategy::block>;
+using backend_t = backend<target_t>;
 
 static constexpr unsigned halo_size = 2;
 
@@ -31,10 +32,10 @@ struct lap_function {
     using in = in_accessor<0, extent<-1, 1, -1, 1>>;
     using lap = inout_accessor<1>;
 
-    using arg_list = make_arg_list<in, lap>;
+    using param_list = make_param_list<in, lap>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(lap(i, j, k)) = -4. * eval(in(i, j, k)) //
                              + eval(in(i + 1, j, k)) //
                              + eval(in(i, j + 1, k)) //

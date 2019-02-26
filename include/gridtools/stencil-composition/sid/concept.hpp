@@ -1,44 +1,20 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <type_traits>
 
 #include "../../common/defs.hpp"
+#include "../../common/functional.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
@@ -59,19 +35,21 @@
  *   -----------------------------
  *
  *   A type `T` models SID concept if it has the following functions defined and available via ADL:
- *     `Ptr sid_get_origin(T&);`
+ *     `PtrHolder sid_get_origin(T&);`
  *     `Strides sid_get_strides(T const&);`
  *
  *   The following functions should be declared (definition is not needed) and available via ADL:
  *     `PtrDiff sid_get_ptr_diff(T const&)`
  *     `StridesKind sid_get_strides_kind(T const&);`
  *
- *   The deducible from `T` types `Ptr`, `PtrDiff` and `Strides` in their turn should satisfy the constraints:
- *     - `Ptr` and `Strides` are trivially copyable
+ *   The deducible from `T` types `PtrHolder`, `PtrDiff` and `Strides` in their turn should satisfy the constraints:
+ *     - `PtrHolder` and `Strides` are trivially copyable
+ *     - `PrtHolder` is callable with no args.
+ *     - `Ptr` is decayed return type of PtrHolder.
  *     - `PtrDiff` is default constructible
  *     - `Ptr` has `Ptr::operator*() const` which returns non void
  *     - there is `Ptr operator+(Ptr, PtrDiff)` defined
- *     - decayed `Strides` is a tuple-like in the terms of `tuple_util` library
+ *     - decayed `Strides` is a hymap
  *
  *   Each type that participate in `Strides` tuple-like (aka `Stride`) should:
  *     - be an integral
@@ -124,6 +102,7 @@
  *
  *   - is_sid<T> predicate that checks if T models SID syntactically
  *   - sid::ptr_type,
+ *     sid::ptr_holder_type,
  *     sid::ptr_diff_type,
  *     sid::strides_type,
  *     sid::strides_kind,
@@ -243,15 +222,21 @@ namespace gridtools {
              *  C-array specialization
              */
             template <class T, class Res = gridtools::add_pointer_t<gridtools::remove_all_extents_t<T>>>
-            constexpr gridtools::enable_if_t<std::is_array<T>::value, Res> get_origin(T &obj) {
-                return (Res)obj;
+            constexpr gridtools::enable_if_t<std::is_array<T>::value, host_device::constant<Res>> get_origin(T &obj) {
+                return {(Res)obj};
             }
+
+            /**
+             *  `Ptr Holder` type is deduced from `get_origin`
+             */
+            template <class Sid>
+            using ptr_holder_type = decltype(::gridtools::sid::concept_impl_::get_origin(std::declval<Sid &>()));
 
             /**
              *  `Ptr` type is deduced from `get_origin`
              */
-            template <class Sid>
-            using ptr_type = decltype(::gridtools::sid::concept_impl_::get_origin(std::declval<Sid &>()));
+            template <class Sid, class PtrHolder = ptr_holder_type<Sid>>
+            using ptr_type = decay_t<decltype(std::declval<PtrHolder>()())>;
 
             /**
              *  `Reference` type is deduced from `Ptr` type
@@ -431,7 +416,8 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> = 0>
-            GT_FUNCTION auto shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &RESTRICT offset)
+            GT_FUNCTION auto shift(
+                T &GT_RESTRICT obj, Stride const &GT_RESTRICT stride, Offset const &GT_RESTRICT offset)
                 GT_AUTO_RETURN(sid_shift(obj, stride, offset));
 
             /**
@@ -479,7 +465,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
-            shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &) {
+            shift(T &GT_RESTRICT obj, Stride const &GT_RESTRICT stride, Offset const &) {
                 obj += stride;
             }
 
@@ -490,7 +476,7 @@ namespace gridtools {
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value &&
                                     is_integral_constant_of<Offset, -1>::value && has_dec_assignment<T, Stride>::value>
-            shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &) {
+            shift(T &GT_RESTRICT obj, Stride const &GT_RESTRICT stride, Offset const &) {
                 obj -= stride;
             }
 
@@ -500,7 +486,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
-            shift(T &RESTRICT obj, Stride const &RESTRICT, Offset const &offset) {
+            shift(T &GT_RESTRICT obj, Stride const &GT_RESTRICT, Offset const &offset) {
                 obj += offset;
             }
 
@@ -525,7 +511,7 @@ namespace gridtools {
                             !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
                             !(has_dec_assignment<T, Stride>::value && (is_integral_constant_of<Stride, -1>::value ||
                                                                           is_integral_constant_of<Offset, -1>::value))>
-                shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &RESTRICT offset) {
+                shift(T &GT_RESTRICT obj, Stride const &GT_RESTRICT stride, Offset const &GT_RESTRICT offset) {
                 obj += stride * offset;
             }
 
@@ -555,6 +541,7 @@ namespace gridtools {
              */
             template <class Sid,
                 // Extracting all the derived types from Sid
+                class PtrHolder = ptr_holder_type<Sid>,
                 class Ptr = ptr_type<Sid>,
                 class ReferenceType = reference_type<Sid>,
                 class PtrDiff = ptr_diff_type<Sid>,
@@ -565,7 +552,7 @@ namespace gridtools {
                 conjunction,
                 (
                     // `is_trivially_copyable` check is applied to the types that are will be passed from host to device
-                    std::is_trivially_copyable<Ptr>,
+                    std::is_trivially_copyable<PtrHolder>,
                     std::is_trivially_copyable<StridesType>,
 
                     // verify that `PtrDiff` is sane
@@ -584,22 +571,23 @@ namespace gridtools {
         // Meta functions
 
 #if GT_BROKEN_TEMPLATE_ALIASES
-#define SID_DELEGATE_FROM_IMPL(name) \
-    template <class Sid>             \
+#define GT_SID_DELEGATE_FROM_IMPL(name) \
+    template <class Sid>                \
     struct name : meta::id<concept_impl_::name<Sid>> {}
 #else
-#define SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
+#define GT_SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
 #endif
 
-        SID_DELEGATE_FROM_IMPL(ptr_type);
-        SID_DELEGATE_FROM_IMPL(ptr_diff_type);
-        SID_DELEGATE_FROM_IMPL(reference_type);
-        SID_DELEGATE_FROM_IMPL(strides_type);
-        SID_DELEGATE_FROM_IMPL(strides_kind);
+        GT_SID_DELEGATE_FROM_IMPL(ptr_holder_type);
+        GT_SID_DELEGATE_FROM_IMPL(ptr_type);
+        GT_SID_DELEGATE_FROM_IMPL(ptr_diff_type);
+        GT_SID_DELEGATE_FROM_IMPL(reference_type);
+        GT_SID_DELEGATE_FROM_IMPL(strides_type);
+        GT_SID_DELEGATE_FROM_IMPL(strides_kind);
 
-        SID_DELEGATE_FROM_IMPL(default_ptr_diff);
+        GT_SID_DELEGATE_FROM_IMPL(default_ptr_diff);
 
-#undef SID_DELEGATE_FROM_IMPL
+#undef GT_SID_DELEGATE_FROM_IMPL
 
         // Runtime functions
         using concept_impl_::get_origin;
@@ -642,13 +630,12 @@ namespace gridtools {
         /**
          *  A getter from Strides to the given stride.
          *
-         *  If `I` exceeds the actual number of strides, integral_constant<int_t, 0> is returned.
+         *  If `Stride` doesn't have `Key`, integral_constant<int_t, 0> is returned.
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
-        template <size_t I, class Strides, enable_if_t<(I < tuple_util::size<decay_t<Strides>>::value), int> = 0>
-        constexpr GT_FUNCTION auto get_stride(Strides &&strides)
-            GT_AUTO_RETURN(tuple_util::host_device::get<I>(strides));
-        template <size_t I, class Strides, enable_if_t<(I >= tuple_util::size<decay_t<Strides>>::value), int> = 0>
+        template <class Key, class Strides, enable_if_t<has_key<decay_t<Strides>, Key>::value, int> = 0>
+        constexpr GT_FUNCTION auto get_stride(Strides &&strides) GT_AUTO_RETURN(host_device::at_key<Key>(strides));
+        template <class Key, class Strides, enable_if_t<!has_key<decay_t<Strides>, Key>::value, int> = 0>
         constexpr GT_FUNCTION default_stride get_stride(Strides &&) {
             return {};
         }

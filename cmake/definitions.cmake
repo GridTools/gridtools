@@ -40,7 +40,7 @@ endif()
 
 target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
 if( GT_ENABLE_TARGET_CUDA )
-  target_compile_definitions(gridtools INTERFACE _USE_GPU_)
+  target_compile_definitions(gridtools INTERFACE GT_USE_GPU)
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 8.0 )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
   endif()
@@ -62,9 +62,9 @@ endif()
 target_compile_options(gridtools INTERFACE $<$<AND:$<CXX_COMPILER_ID:Cray>,$<COMPILE_LANGUAGE:Fortran>>:-eF>)
 
 if( GT_USE_MPI )
-    target_compile_definitions(gridtools INTERFACE _GCL_MPI_)
+    target_compile_definitions(gridtools INTERFACE GCL_MPI)
     if( GT_ENABLE_TARGET_CUDA )
-      target_compile_definitions(gridtools INTERFACE _GCL_GPU_)
+      target_compile_definitions(gridtools INTERFACE GCL_GPU)
     endif()
 endif()
 
@@ -77,8 +77,8 @@ target_link_libraries(GridToolsTest INTERFACE gridtools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
 target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
-if(GT_TESTS_STRUCTURED_GRID)
-    target_compile_definitions(GridToolsTest INTERFACE STRUCTURED_GRIDS)
+if(GT_TESTS_ICOSAHEDRAL_GRID)
+    target_compile_definitions(GridToolsTest INTERFACE GT_ICOSAHEDRAL_GRIDS)
 endif()
 
 if( GT_TREAT_WARNINGS_AS_ERROR )
@@ -92,7 +92,7 @@ find_package(ClangTools)
 # TESTS ONLY
 if(GT_ENABLE_TARGET_X86)
   add_library(GridToolsTestX86 INTERFACE)
-  target_compile_definitions(GridToolsTestX86 INTERFACE BACKEND_X86)
+  target_compile_definitions(GridToolsTestX86 INTERFACE GT_BACKEND_X86)
   target_link_libraries(GridToolsTestX86 INTERFACE GridToolsTest)
   target_compile_options(GridToolsTestX86 INTERFACE -march=native)
 endif(GT_ENABLE_TARGET_X86)
@@ -118,13 +118,13 @@ if( GT_ENABLE_TARGET_CUDA )
   endif()
 
   add_library(GridToolsTestCUDA INTERFACE)
-  target_compile_definitions(GridToolsTestCUDA INTERFACE BACKEND_CUDA)
+  target_compile_definitions(GridToolsTestCUDA INTERFACE GT_BACKEND_CUDA)
   target_link_libraries(GridToolsTestCUDA INTERFACE GridToolsTest)
 endif()
 
 if( GT_ENABLE_TARGET_MC )
   add_library(GridToolsTestMC INTERFACE)
-  target_compile_definitions(GridToolsTestMC INTERFACE BACKEND_MC)
+  target_compile_definitions(GridToolsTestMC INTERFACE GT_BACKEND_MC)
   target_link_libraries(GridToolsTestMC INTERFACE GridToolsTest)
 endif( GT_ENABLE_TARGET_MC )
 
@@ -138,22 +138,22 @@ endif()
 
 ## performance meters ##
 if(GT_ENABLE_PERFORMANCE_METERS)
-    target_compile_definitions(GridToolsTest INTERFACE ENABLE_METERS)
+    target_compile_definitions(GridToolsTest INTERFACE GT_ENABLE_METERS)
 endif(GT_ENABLE_PERFORMANCE_METERS)
 
 ## precision ##
 if(GT_SINGLE_PRECISION)
-  target_compile_definitions(GridToolsTest INTERFACE FLOAT_PRECISION=4)
+  target_compile_definitions(GridToolsTest INTERFACE GT_FLOAT_PRECISION=4)
   message(STATUS "Compile tests in single precision")
 else()
-  target_compile_definitions(GridToolsTest INTERFACE FLOAT_PRECISION=8)
+  target_compile_definitions(GridToolsTest INTERFACE GT_FLOAT_PRECISION=8)
   message(STATUS "Compile tests in double precision")
 endif()
 
 ## caching ##
 if( NOT GT_TESTS_ENABLE_CACHING )
     # TODO this should be exposed to find_package (GT_ENABLE_CACHING)
-    target_compile_definitions(GridToolsTest __DISABLE_CACHING__)
+    target_compile_definitions(GridToolsTest GT_DISABLE_CACHING)
 endif()
 
 # add a target to generate API documentation with Doxygen

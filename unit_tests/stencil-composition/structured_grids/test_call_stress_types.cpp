@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include <gtest/gtest.h>
 
 #include <gridtools/meta/type_traits.hpp>
@@ -47,7 +21,7 @@
  */
 
 using namespace gridtools;
-using namespace gridtools::enumtype;
+using namespace gridtools::execute;
 using namespace gridtools::expressions;
 
 namespace {
@@ -91,10 +65,10 @@ namespace {
     struct simple_callee_with_forced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<forced_tag>, out_type>{};
 
@@ -106,10 +80,10 @@ namespace {
     struct simple_caller_with_forced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             auto result =
                 call<simple_callee_with_forced_return_type>::return_type<special_type<forced_tag>>::with(eval, in{});
 
@@ -124,7 +98,7 @@ TEST_F(call_stress_types, simple_force_return_type) {
         p_in1{} = in1,
         p_out{} = out,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<simple_caller_with_forced_return_type>(p_in1(), p_out())));
+            execute::forward(), gridtools::make_stage<simple_caller_with_forced_return_type>(p_in1(), p_out())));
     comp.run();
 }
 
@@ -132,10 +106,10 @@ namespace {
     struct simple_callee_with_deduced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<in1_tag>, out_type>{};
 
@@ -147,10 +121,10 @@ namespace {
     struct simple_caller_with_deduced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             auto result = call<simple_callee_with_deduced_return_type>::with(eval, in{});
 
             using result_type = decltype(result);
@@ -164,7 +138,7 @@ TEST_F(call_stress_types, simple_deduced_return_type) {
         p_in1{} = in1,
         p_out{} = out,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<simple_caller_with_deduced_return_type>(p_in1(), p_out())));
+            execute::forward(), gridtools::make_stage<simple_caller_with_deduced_return_type>(p_in1(), p_out())));
     comp.run();
 }
 
@@ -176,10 +150,10 @@ namespace {
         typedef in_accessor<1> local;
         typedef inout_accessor<2> out;
         typedef in_accessor<3> in1;
-        typedef make_arg_list<in2, local, out, in1> arg_list;
+        typedef make_param_list<in2, local, out, in1> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             // the new convention is that the return type (here "out) is deduced from the first argument in the call
             (void)ASSERT_TYPE_EQ<special_type<in2_tag>, out_type>{};
@@ -199,10 +173,10 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef make_arg_list<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             // the expected type differs here in "call" vs "call_proc"
             (void)ASSERT_TYPE_EQ<special_type<in1_tag>, out_type>{};
@@ -225,10 +199,10 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef make_arg_list<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
@@ -250,7 +224,7 @@ TEST_F(call_stress_types, triple_nesting_with_type_switching) {
         p_in1{} = in1,
         p_in2{} = in2,
         p_out{} = out,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<triple_nesting_with_type_switching_first_stage>(p_in1(), p_out(), p_in2())));
     comp.run();
 }
@@ -260,10 +234,10 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef make_arg_list<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             // in contrast to the example where this is stage is called from "call" (not "call_proc")
             // the type here is different!
@@ -287,10 +261,10 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef make_arg_list<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
@@ -310,7 +284,7 @@ TEST_F(call_stress_types, triple_nesting_with_type_switching_and_call_proc) {
         p_in1{} = in1,
         p_in2{} = in2,
         p_out{} = out,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<triple_nesting_with_type_switching_and_call_proc_first_stage>(
                 p_in1(), p_out(), p_in2())));
     comp.run();

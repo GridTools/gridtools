@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
@@ -66,11 +40,11 @@ namespace gridtools {
         typename Color,
         typename ArgSequence>
     struct esf_descriptor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgSequence, is_plh>::value),
+        GT_STATIC_ASSERT((is_sequence_of<ArgSequence, is_plh>::value),
             "wrong types for the list of parameter placeholders\n"
             "check the make_stage syntax");
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology<Grid>::value), "Error: wrong grid type");
-        GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Error: wrong color type");
+        GT_STATIC_ASSERT((is_grid_topology<Grid>::value), "Error: wrong grid type");
+        GT_STATIC_ASSERT((is_color_type<Color>::value), "Error: wrong color type");
 
         template <uint_t C>
         using esf_function = Functor<C>;
@@ -79,20 +53,20 @@ namespace gridtools {
         using args_t = ArgSequence;
         using color_t = Color;
 
-        GRIDTOOLS_STATIC_ASSERT((are_location_types_compatible<args_t, typename Functor<0>::arg_list>::value),
+        GT_STATIC_ASSERT((are_location_types_compatible<args_t, typename Functor<0>::param_list>::value),
             "Location types of placeholders and accessors must match");
 
-        BOOST_MPL_HAS_XXX_TRAIT_DEF(arg_list)
-        GRIDTOOLS_STATIC_ASSERT(has_arg_list<esf_function<0>>::type::value,
-            "The type arg_list was not found in a user functor definition. All user functors must have a type alias "
-            "called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor "
+        BOOST_MPL_HAS_XXX_TRAIT_DEF(param_list)
+        GT_STATIC_ASSERT(has_param_list<esf_function<0>>::type::value,
+            "The type param_list was not found in a user functor definition. All user functors must have a type alias "
+            "called \'param_list\', which is an MPL vector containing the list of accessors defined in the functor "
             "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
             "using v2=global_accessor<1>; \n using v3=accessor<2>; \n using "
-            "arg_list=boost::mpl::vector<v1, v3>;");
+            "param_list=boost::mpl::vector<v1, v3>;");
 
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
-        typedef
-            typename impl::make_arg_with_extent_map<args_t, typename esf_function<0>::arg_list>::type args_with_extents;
+        typedef typename impl::make_arg_with_extent_map<args_t, typename esf_function<0>::param_list>::type
+            args_with_extents;
     };
 
     template <template <uint_t> class Functor,
@@ -121,7 +95,7 @@ namespace gridtools {
         typename Color,
         typename ArgSequence>
     struct esf_descriptor_with_extent : public esf_descriptor<Functor, Grid, LocationType, Color, ArgSequence> {
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "stage descriptor is expecting a extent type");
+        GT_STATIC_ASSERT((is_extent<Extent>::value), "stage descriptor is expecting a extent type");
     };
 
     template <template <uint_t> class Functor,

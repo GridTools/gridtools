@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #ifdef __SSE__
@@ -115,10 +89,10 @@ namespace gridtools {
      */
     template <typename IterateDomainArguments>
     class iterate_domain_mc {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
 
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
         using backend_traits_t = backend_traits_from_id<target::mc>;
 
@@ -135,25 +109,16 @@ namespace gridtools {
         using storage_is_tmp =
             meta::st_contains<typename local_domain_t::tmp_storage_info_ptr_list, StorageInfo const *>;
 
-        /* ij-cache types and meta functions */
-        using ij_caches_t = typename boost::mpl::copy_if<cache_sequence_t, cache_is_type<IJ>>::type;
-        using ij_cache_indices_t =
-            typename boost::mpl::transform<ij_caches_t, cache_to_index<boost::mpl::_1, local_domain_t>>::type;
-        using ij_cache_indexset_t = typename boost::mpl::
-            fold<ij_cache_indices_t, boost::mpl::set0<>, boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>>::type;
+        using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
 
       public:
-        using esf_args_t = typename local_domain_t::esf_args;
-        //*****************
-
         using storage_info_ptrs_t = typename local_domain_t::storage_info_ptr_fusion_list;
-        using data_ptrs_map_t = typename local_domain_t::data_ptr_fusion_map;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
+        static const uint_t n_meta_storages = boost::mpl::size<storage_info_ptrs_t>::value;
 
-        using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
-        using array_index_t = array<int_t, N_META_STORAGES>;
+        using strides_cached_t = strides_cached<n_meta_storages - 1, storage_info_ptrs_t>;
+        using array_index_t = array<int_t, n_meta_storages>;
         // *************** end of type definitions **************
 
       private:
@@ -188,7 +153,7 @@ namespace gridtools {
 
           private:
             iterate_domain_mc const &m_it_domain;
-            array<int_t, N_META_STORAGES> &m_index_array;
+            array<int_t, n_meta_storages> &m_index_array;
         };
 
         using data_ptr_offsets_t =
@@ -202,7 +167,7 @@ namespace gridtools {
               m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
             // assign stride pointers
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<backend_traits_t, strides_cached_t, local_domain_t>(m_strides));
+                assign_strides<backend_traits_t, strides_cached_t, local_domain_t>{m_strides});
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
         }
@@ -223,7 +188,7 @@ namespace gridtools {
         /** @brief Returns the current data index at offset (0, 0, 0) per meta storage. */
         GT_FUNCTION array_index_t index() const {
             array_index_t index_array;
-            for_each<GT_META_CALL(meta::make_indices_c, N_META_STORAGES)>(index_getter(*this, index_array));
+            for_each<GT_META_CALL(meta::make_indices_c, n_meta_storages)>(index_getter(*this, index_array));
             return index_array;
         }
 
@@ -234,19 +199,19 @@ namespace gridtools {
         GT_FUNCTION void enable_ij_caches() { m_enable_ij_caches = true; }
 
         /**
-         * @brief Method called in the Do methods of the functors.
+         * @brief Method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders.
          */
-        template <class Arg, enumtype::intent Intent, uint_t I>
+        template <class Arg, intent Intent, uint_t I>
         GT_FORCE_INLINE typename Arg::data_store_t::data_t deref(global_accessor<I> const &) const {
             return *boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs);
         }
 
         /**
-         * @brief Method called in the Do methods of the functors.
+         * @brief Method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders with arguments.
          */
-        template <class Arg, enumtype::intent Intent, class Acc, class... Args>
+        template <class Arg, intent Intent, class Acc, class... Args>
         GT_FORCE_INLINE auto deref(global_accessor_with_arguments<Acc, Args...> const &acc) const
             GT_AUTO_RETURN(boost::fusion::invoke(
                 std::cref(*boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs)), acc.get_arguments()));
@@ -256,7 +221,7 @@ namespace gridtools {
          * nor expression).
          */
         template <class Arg,
-            enumtype::intent Intent,
+            intent Intent,
             class Accessor,
             enable_if_t<is_accessor<Accessor>::value && !is_global_accessor<Accessor>::value, int> = 0>
         GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
@@ -272,7 +237,7 @@ namespace gridtools {
             auto ptr = boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + m_data_ptr_offsets[arg_index];
 
             int_t pointer_offset =
-                compute_offset<index_is_cached<arg_index, ij_cache_indexset_t>::value, storage_info_t>(accessor);
+                compute_offset<meta::st_contains<ij_cache_args_t, Arg>::value, storage_info_t>(accessor);
 
 #ifdef __SSE__
             if (m_prefetch_distance != 0) {

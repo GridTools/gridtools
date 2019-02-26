@@ -5,10 +5,9 @@
    getting_started/getting_started
    user_manual/user_manual
    upcoming/upcoming
-   concepts/concepts
+   glossary/glossary
    internal/internal
    faq/faq
-   coding_convention/coding_convention
 
 Indices and tables
 ==================

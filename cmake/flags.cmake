@@ -1,5 +1,7 @@
 include (CMakeDependentOption)
 
+set( CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON CACHE INTERNAL "" )
+
 option( GT_ENABLE_PYUTILS "If on, Python utility scripts will be configured" OFF)
 option( GT_ENABLE_TARGET_CUDA "Compile CUDA GPU backend examples and unit tests" ${CUDA_AVAILABLE})
 option( GT_ENABLE_TARGET_X86 "Compile x86 backend examples and unit tests" ${OPENMP_AVAILABLE} )
@@ -9,7 +11,7 @@ option( GT_USE_MPI "Compile with MPI support" ${MPI_AVAILABLE} )
 # TODO remove when implementing smaller-grained test enablers
 option( GT_GCL_ONLY "If on only library is build but not the examples and tests" OFF )
 
-option( GT_TESTS_STRUCTURED_GRID "compile for rectangular grids" ON )
+option( GT_TESTS_ICOSAHEDRAL_GRID "compile tests for icosahedral grids" OFF )
 
 CMAKE_DEPENDENT_OPTION(
     GT_CUDA_PTX_GENERATION "Compile regression tests to intermediate representation"

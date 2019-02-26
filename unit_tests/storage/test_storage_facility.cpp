@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #include <gtest/gtest.h>
 
@@ -47,124 +21,116 @@ using namespace gridtools;
 
 template <typename Backend>
 struct static_type_tests {
-    GRIDTOOLS_STATIC_ASSERT(sizeof(Backend) < 0, "test is not implemented for this backend");
+    GT_STATIC_ASSERT(sizeof(Backend) < 0, "test is not implemented for this backend");
 };
 
 #ifdef __CUDACC__
 // static type tests for Cuda backend
-template <class GridBackend, class Strategy>
-struct static_type_tests<backend<target::cuda, GridBackend, Strategy>> {
+template <class Strategy>
+struct static_type_tests<backend<target::cuda, Strategy>> {
     using storage_traits_t = storage_traits<target::cuda>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
     typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<storage_info_ty,
-            storage_info_interface<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment<32>>>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
+                         storage_info<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment<32>>>::type::value),
         "storage info test failed");
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<special_storage_info_ty,
-            storage_info_interface<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<32>>>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
+                         storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<32>>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
     typedef storage_traits_t::data_store_t<double, storage_info_ty> data_store_t;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_info_t, storage_info_ty>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_info_t, storage_info_ty>::type::value),
         "data store info type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename data_store_t::data_t, double>::type::value), "data store value type is wrong");
 
     // storage check
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, cuda_storage<double>>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, cuda_storage<double>>::type::value),
         "data store storage type is wrong");
 };
 #endif
 
 // static type tests for Mic backend
-template <class GridBackend, class Strategy>
-struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
+template <class Strategy>
+struct static_type_tests<backend<target::mc, Strategy>> {
     using storage_traits_t = storage_traits<target::mc>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
     typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
-#ifdef STRUCTURED_GRIDS
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<storage_info_ty,
-            storage_info_interface<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+#ifndef GT_ICOSAHEDRAL_GRIDS
+    GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
+                         storage_info<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<storage_info_ty,
-            storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
+                         storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
-#ifdef STRUCTURED_GRIDS
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<special_storage_info_ty,
-            storage_info_interface<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+#ifndef GT_ICOSAHEDRAL_GRIDS
+    GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
+                         storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<special_storage_info_ty,
-            storage_info_interface<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
+                         storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
     /*########## DATA STORE CHECKS ########## */
     typedef storage_traits_t::data_store_t<double, storage_info_ty> data_store_t;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_info_t, storage_info_ty>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_info_t, storage_info_ty>::type::value),
         "data store info type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename data_store_t::data_t, double>::type::value), "data store value type is wrong");
 
     // storage check
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, mc_storage<double>>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, mc_storage<double>>::type::value),
         "data store storage type is wrong");
 };
 
 // static type tests for Host backend
-template <class GridBackend, class Strategy>
-struct static_type_tests<backend<target::x86, GridBackend, Strategy>> {
+template <class Strategy>
+struct static_type_tests<backend<target::x86, Strategy>> {
     using storage_traits_t = storage_traits<target::x86>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
     typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<storage_info_ty,
-            storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<1>>>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
+                         storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<1>>>::type::value),
         "storage info test failed");
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<special_storage_info_ty,
-            storage_info_interface<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<1>>>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
+                         storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<1>>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
     typedef storage_traits_t::data_store_t<double, storage_info_ty> data_store_t;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_info_t, storage_info_ty>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_info_t, storage_info_ty>::type::value),
         "data store info type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename data_store_t::data_t, double>::type::value), "data store value type is wrong");
 
     // storage check
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, host_storage<double>>::type::value),
+    GT_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, host_storage<double>>::type::value),
         "data store storage type is wrong");
 };
 
@@ -214,7 +180,7 @@ TEST(StorageFacility, ViewTests) {
     ds.sync();
 
     // create a read only data view
-    auto hrv = make_host_view<access_mode::ReadOnly>(ds);
+    auto hrv = make_host_view<access_mode::read_only>(ds);
 
     // validate
     uint_t z = 0;
@@ -298,245 +264,236 @@ struct static_layout_test_cases {
 template <class BackendId>
 struct static_layout_tests_decreasing : static_layout_test_cases<BackendId> {
     using cases = static_layout_test_cases<BackendId>;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename cases::layout1_t, layout_map<0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<typename cases::layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<typename cases::layout3_t, layout_map<2, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT((boost::is_same<typename cases::layout1_t, layout_map<0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<typename cases::layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<typename cases::layout3_t, layout_map<2, 1, 0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout4_t, layout_map<3, 2, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout5_t, layout_map<4, 3, 2, 1, 0>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s5_t, layout_map<4, 3, 2, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s51_t, layout_map<-1, 3, 2, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s52_t, layout_map<3, -1, 2, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s53_t, layout_map<3, 2, -1, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s54_t, layout_map<3, 2, 1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s55_t, layout_map<3, 2, 1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s56_t, layout_map<-1, -1, 2, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s57_t, layout_map<2, -1, -1, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s58_t, layout_map<2, 1, -1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s59_t, layout_map<2, 1, 0, -1, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s510_t, layout_map<-1, 2, -1, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s511_t, layout_map<2, -1, 1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s512_t, layout_map<2, 1, -1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s513_t, layout_map<-1, 2, 1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s514_t, layout_map<2, -1, 1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s515_t, layout_map<-1, 2, 1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s516_t, layout_map<-1, -1, -1, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s517_t, layout_map<1, -1, -1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s518_t, layout_map<1, 0, -1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s519_t, layout_map<-1, 1, 0, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s520_t, layout_map<-1, -1, 1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s521_t, layout_map<0, -1, -1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s522_t, layout_map<-1, 0, -1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s523_t, layout_map<-1, -1, 0, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s524_t, layout_map<-1, -1, -1, 0, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s525_t, layout_map<-1, -1, -1, -1, 0>>::value), "layout type is wrong");
 };
 
 template <class BackendId>
 struct static_layout_tests_decreasing_swappedxy : static_layout_test_cases<BackendId> {
     using cases = static_layout_test_cases<BackendId>;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename cases::layout1_t, layout_map<0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<typename cases::layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<typename cases::layout3_t, layout_map<2, 0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT((boost::is_same<typename cases::layout1_t, layout_map<0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<typename cases::layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<typename cases::layout3_t, layout_map<2, 0, 1>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout4_t, layout_map<3, 1, 2, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout5_t, layout_map<4, 2, 3, 1, 0>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s5_t, layout_map<4, 2, 3, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s51_t, layout_map<-1, 2, 3, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s52_t, layout_map<3, -1, 2, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s53_t, layout_map<3, 2, -1, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s54_t, layout_map<3, 1, 2, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s55_t, layout_map<3, 1, 2, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s56_t, layout_map<-1, -1, 2, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s57_t, layout_map<2, -1, -1, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s58_t, layout_map<2, 1, -1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s59_t, layout_map<2, 0, 1, -1, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s510_t, layout_map<-1, 2, -1, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s511_t, layout_map<2, -1, 1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s512_t, layout_map<2, 1, -1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s513_t, layout_map<-1, 1, 2, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s514_t, layout_map<2, -1, 1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s515_t, layout_map<-1, 1, 2, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s516_t, layout_map<-1, -1, -1, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s517_t, layout_map<1, -1, -1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s518_t, layout_map<1, 0, -1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s519_t, layout_map<-1, 0, 1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s520_t, layout_map<-1, -1, 1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s521_t, layout_map<0, -1, -1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s522_t, layout_map<-1, 0, -1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s523_t, layout_map<-1, -1, 0, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s524_t, layout_map<-1, -1, -1, 0, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s525_t, layout_map<-1, -1, -1, -1, 0>>::value), "layout type is wrong");
 };
 
 template <class BackendId>
 struct static_layout_tests_increasing : static_layout_test_cases<BackendId> {
     using cases = static_layout_test_cases<BackendId>;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename cases::layout1_t, layout_map<0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<typename cases::layout2_t, layout_map<0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<typename cases::layout3_t, layout_map<0, 1, 2>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT((boost::is_same<typename cases::layout1_t, layout_map<0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<typename cases::layout2_t, layout_map<0, 1>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<typename cases::layout3_t, layout_map<0, 1, 2>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout4_t, layout_map<1, 2, 3, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout5_t, layout_map<2, 3, 4, 0, 1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s5_t, layout_map<2, 3, 4, 0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s51_t, layout_map<-1, 2, 3, 0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s52_t, layout_map<2, -1, 3, 0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s53_t, layout_map<2, 3, -1, 0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s54_t, layout_map<1, 2, 3, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s55_t, layout_map<1, 2, 3, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s56_t, layout_map<-1, -1, 2, 0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s57_t, layout_map<2, -1, -1, 0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s58_t, layout_map<1, 2, -1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s59_t, layout_map<0, 1, 2, -1, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s510_t, layout_map<-1, 2, -1, 0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s511_t, layout_map<1, -1, 2, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s512_t, layout_map<1, 2, -1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s513_t, layout_map<-1, 1, 2, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s514_t, layout_map<1, -1, 2, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s515_t, layout_map<-1, 1, 2, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s516_t, layout_map<-1, -1, -1, 0, 1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s517_t, layout_map<1, -1, -1, -1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s518_t, layout_map<0, 1, -1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s519_t, layout_map<-1, 0, 1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s520_t, layout_map<-1, -1, 1, 0, -1>>::value), "layout type is wrong");
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s521_t, layout_map<0, -1, -1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s522_t, layout_map<-1, 0, -1, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s523_t, layout_map<-1, -1, 0, -1, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s524_t, layout_map<-1, -1, -1, 0, -1>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<typename cases::layout_s525_t, layout_map<-1, -1, -1, -1, 0>>::value), "layout type is wrong");
 };
 
 template <typename Backend>
 struct static_layout_tests {
-    GRIDTOOLS_STATIC_ASSERT(sizeof(Backend) < 0, "test is not implemented for this backend");
+    GT_STATIC_ASSERT(sizeof(Backend) < 0, "test is not implemented for this backend");
 };
 
 #ifdef __CUDACC__
-template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<target::cuda, GridBackend, Strategy>>
-    : static_layout_tests_decreasing<target::cuda> {};
+template <class Strategy>
+struct static_layout_tests<backend<target::cuda, Strategy>> : static_layout_tests_decreasing<target::cuda> {};
 #endif
 
-#ifdef STRUCTURED_GRIDS
-template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<target::mc, GridBackend, Strategy>>
-    : static_layout_tests_decreasing_swappedxy<target::mc> {};
+#ifndef GT_ICOSAHEDRAL_GRIDS
+template <class Strategy>
+struct static_layout_tests<backend<target::mc, Strategy>> : static_layout_tests_decreasing_swappedxy<target::mc> {};
 #else
-template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<target::mc, GridBackend, Strategy>> : static_layout_tests_increasing<target::mc> {};
+template <class Strategy>
+struct static_layout_tests<backend<target::mc, Strategy>> : static_layout_tests_increasing<target::mc> {};
 #endif
 
-template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<target::x86, GridBackend, Strategy>> : static_layout_tests_increasing<target::x86> {
-};
+template <class Strategy>
+struct static_layout_tests<backend<target::x86, Strategy>> : static_layout_tests_increasing<target::x86> {};
 
 template class static_layout_tests<backend_t>;
 
@@ -551,8 +508,8 @@ TEST(StorageFacility, CustomLayoutTests) {
         layout1_t;
     typedef typename storage_traits<backend_t::backend_id_t>::custom_layout_storage_info_t<0,
         layout_map<2, -1, 1, 0>>::layout_t layout4_t;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<layout3_t, layout_map<2, 1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<layout1_t, layout_map<0>>::value), "layout type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<layout4_t, layout_map<2, -1, 1, 0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<layout3_t, layout_map<2, 1, 0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<layout1_t, layout_map<0>>::value), "layout type is wrong");
+    GT_STATIC_ASSERT((boost::is_same<layout4_t, layout_map<2, -1, 1, 0>>::value), "layout type is wrong");
 }

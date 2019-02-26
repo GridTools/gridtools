@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #include <gtest/gtest.h>
 
@@ -44,26 +18,25 @@
 using gridtools::accessor;
 using gridtools::arg;
 using gridtools::extent;
+using gridtools::intent;
 using gridtools::level;
 using gridtools::tmp_arg;
 using gridtools::uint_t;
-
-using namespace gridtools::enumtype;
 
 namespace {
 
     template <typename Axis>
     struct parallel_functor {
         typedef accessor<0> in;
-        typedef accessor<1, inout> out;
-        typedef gridtools::make_arg_list<in, out> arg_list;
+        typedef accessor<1, intent::inout> out;
+        typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<0>) {
+        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<0>) {
             eval(out()) = eval(in());
         }
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<1>) {
+        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
             eval(out()) = 2 * eval(in());
         }
     };
@@ -71,11 +44,11 @@ namespace {
     template <typename Axis>
     struct parallel_functor_on_upper_interval {
         typedef accessor<0> in;
-        typedef accessor<1, inout> out;
-        typedef gridtools::make_arg_list<in, out> arg_list;
+        typedef accessor<1, intent::inout> out;
+        typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<1>) {
+        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
             eval(out()) = eval(in());
         }
     };
@@ -106,7 +79,7 @@ void run_test() {
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(
-            execute<parallel>(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
+            gridtools::execute::parallel(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
 
     comp.run();
 
@@ -148,7 +121,7 @@ void run_test_with_temporary() {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        gridtools::make_multistage(execute<parallel>(),
+        gridtools::make_multistage(gridtools::execute::parallel(),
             gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_tmp()),
             gridtools::make_stage<parallel_functor<Axis>>(p_tmp(), p_out())));
 
@@ -171,9 +144,7 @@ TEST(structured_grid, kparallel) { //
     run_test<gridtools::axis<2>>();
 }
 
-TEST(structured_grid, kparallel_with_extentoffsets_around_interval) {
-    run_test<gridtools::axis<2, 3, 5>>();
-}
+TEST(structured_grid, kparallel_with_extentoffsets_around_interval) { run_test<gridtools::axis<2, 3, 5>>(); }
 
 TEST(structured_grid, kparallel_with_temporary) { //
     run_test_with_temporary<gridtools::axis<2>>();
@@ -208,8 +179,8 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        gridtools::make_multistage(
-            execute<parallel>(), gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
+        gridtools::make_multistage(gridtools::execute::parallel(),
+            gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
 
     comp.run();
 

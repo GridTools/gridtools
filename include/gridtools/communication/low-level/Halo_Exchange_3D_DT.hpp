@@ -1,40 +1,13 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
-#ifndef HALO_EXCHANGE_3D_DT_H_
-#define HALO_EXCHANGE_3D_DT_H_
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+#pragma once
 
 #include "../../common/gt_assert.hpp"
 #include "../GCL.hpp"
@@ -179,33 +152,33 @@ namespace gridtools {
             int m_size[27];              // Sizes in bytes
           public:
             explicit sr_buffers() {
-                m_buffers[0] = NULL;
-                m_buffers[1] = NULL;
-                m_buffers[2] = NULL;
-                m_buffers[3] = NULL;
-                m_buffers[4] = NULL;
-                m_buffers[5] = NULL;
-                m_buffers[6] = NULL;
-                m_buffers[7] = NULL;
-                m_buffers[8] = NULL;
-                m_buffers[9] = NULL;
-                m_buffers[10] = NULL;
-                m_buffers[11] = NULL;
-                m_buffers[12] = NULL;
-                m_buffers[13] = NULL;
-                m_buffers[14] = NULL;
-                m_buffers[15] = NULL;
-                m_buffers[16] = NULL;
-                m_buffers[17] = NULL;
-                m_buffers[18] = NULL;
-                m_buffers[19] = NULL;
-                m_buffers[20] = NULL;
-                m_buffers[21] = NULL;
-                m_buffers[22] = NULL;
-                m_buffers[23] = NULL;
-                m_buffers[24] = NULL;
-                m_buffers[25] = NULL;
-                m_buffers[26] = NULL;
+                m_buffers[0] = nullptr;
+                m_buffers[1] = nullptr;
+                m_buffers[2] = nullptr;
+                m_buffers[3] = nullptr;
+                m_buffers[4] = nullptr;
+                m_buffers[5] = nullptr;
+                m_buffers[6] = nullptr;
+                m_buffers[7] = nullptr;
+                m_buffers[8] = nullptr;
+                m_buffers[9] = nullptr;
+                m_buffers[10] = nullptr;
+                m_buffers[11] = nullptr;
+                m_buffers[12] = nullptr;
+                m_buffers[13] = nullptr;
+                m_buffers[14] = nullptr;
+                m_buffers[15] = nullptr;
+                m_buffers[16] = nullptr;
+                m_buffers[17] = nullptr;
+                m_buffers[18] = nullptr;
+                m_buffers[19] = nullptr;
+                m_buffers[20] = nullptr;
+                m_buffers[21] = nullptr;
+                m_buffers[22] = nullptr;
+                m_buffers[23] = nullptr;
+                m_buffers[24] = nullptr;
+                m_buffers[25] = nullptr;
+                m_buffers[26] = nullptr;
 
                 m_size[0] = 0;
                 m_size[1] = 0;
@@ -981,5 +954,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-
-#endif

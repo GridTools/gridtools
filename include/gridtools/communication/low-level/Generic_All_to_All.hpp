@@ -1,40 +1,13 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
-#ifndef _GENERIC_ALL_TO_ALL_H_
-#define _GENERIC_ALL_TO_ALL_H_
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+#pragma once
 
 #include "../GCL.hpp"
 #include <mpi.h>
@@ -77,7 +50,7 @@ namespace gridtools {
             the pointer value is used to determine if a message should be
             sent or not. If not null, a mpi send/receive is issued.
          */
-        packet() : mpidt(), ptr(NULL), send_r(), recv_r() {}
+        packet() : mpidt(), ptr(nullptr), send_r(), recv_r() {}
 
         /** This is the basic constructor. Given the MPI datatype and the
             pointer to data, the packet is constructed. If pointer is
@@ -94,13 +67,13 @@ namespace gridtools {
             correspondig dual operation is issued, unexpected results
             would show up.
 
-            \return true if the pointer in the packet is not NULL
+            \return true if the pointer in the packet is not nullptr
          */
-        bool full() const { return ptr != NULL; }
+        bool full() const { return ptr != nullptr; }
 
         /** The opposite of full().
 
-            \return true if the pointer in the packet is NULL
+            \return true if the pointer in the packet is nullptr
          */
         bool emtpy() const { return !full(); }
 
@@ -237,4 +210,3 @@ namespace gridtools {
         }
     };
 } // namespace gridtools
-#endif

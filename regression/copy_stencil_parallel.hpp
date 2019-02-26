@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <fstream>
@@ -57,18 +31,17 @@ using gridtools::extent;
 using gridtools::level;
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 namespace copy_stencil {
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-        typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
-        typedef make_arg_list<in, out> arg_list;
-        /* static const auto expression=in(1,0,0)-out(); */
+        typedef accessor<0, intent::in> in;
+        typedef accessor<1, intent::inout> out;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -117,8 +90,8 @@ namespace copy_stencil {
             pattern_type;
 
         pattern_type he(gridtools::boollist<3>(false, false, false), CartComm);
-#ifdef VERBOSE
-        printf("halo exchange ok\n");
+#ifdef GT_VERBOSE
+        std::cout << "halo exchange ok" << std::endl;
 #endif
 
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
@@ -140,8 +113,8 @@ namespace copy_stencil {
 
         he.setup(3);
 
-#ifdef VERBOSE
-        printf("halo set up\n");
+#ifdef GT_VERBOSE
+        std::cout << "halo set up" << std::endl;
 #endif
 
         auto c_grid = he.comm();
@@ -172,25 +145,25 @@ namespace copy_stencil {
             p_in{} = in,
             p_out{} = out,
             gridtools::make_multistage // mss_descriptor
-            (execute<forward>(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
-#ifdef VERBOSE
-        printf("computation instantiated\n");
+            (execute::forward(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
+#ifdef GT_VERBOSE
+        std::cout << "computation instantiated" << std::endl;
 #endif
 
-#ifdef VERBOSE
-        printf("computation steady\n");
+#ifdef GT_VERBOSE
+        std::cout << "computation steady" << std::endl;
 #endif
 
         copy.run();
 
-#ifdef VERBOSE
-        printf("computation run\n");
+#ifdef GT_VERBOSE
+        std::cout << "computation run" << std::endl;
 #endif
 
         copy.sync_bound_data_stores();
 
-#ifdef VERBOSE
-        printf("computation finalized\n");
+#ifdef GT_VERBOSE
+        std::cout << "computation finalized" << std::endl;
 #endif
 
         gridtools::array<gridtools::halo_descriptor, 3> halos;
@@ -217,25 +190,25 @@ namespace copy_stencil {
 
         he.pack(vec);
 
-#ifdef VERBOSE
-        printf("copy packed \n");
+#ifdef GT_VERBOSE
+        std::cout << "copy packed " << std::endl;
 #endif
 
         he.exchange();
 
-#ifdef VERBOSE
-        printf("copy exchanged\n");
+#ifdef GT_VERBOSE
+        std::cout << "copy exchanged" << std::endl;
 #endif
         he.unpack(vec);
 
-#ifdef VERBOSE
-        printf("copy unpacked\n");
+#ifdef GT_VERBOSE
+        std::cout << "copy unpacked" << std::endl;
 #endif
 
         MPI_Barrier(GCL_WORLD);
 
         out.sync();
-        auto v_out_h = make_host_view<access_mode::ReadOnly>(out);
+        auto v_out_h = make_host_view<access_mode::read_only>(out);
 
         for (uint_t i = halo[0]; i < d1 - halo[0]; ++i)
             for (uint_t j = halo[1]; j < d2 - halo[1]; ++j)

@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #pragma once
 
@@ -44,7 +18,7 @@
 #include "../../meta.hpp"
 #include "../arg.hpp"
 #include "../extent.hpp"
-#include "../hasdo.hpp"
+#include "../has_apply.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../location_type.hpp"
 #include "./icosahedral_topology.hpp"
@@ -82,19 +56,19 @@ namespace gridtools {
 
     namespace impl_ {
         template <class T>
-        GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_do<T>::value || std::is_void<T>::value);
+        GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_apply<T>::value || std::is_void<T>::value);
 
         template <class ItDomain, class Args, class LocationType, uint_t Color>
         struct evaluator {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<ItDomain>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iterate_domain<ItDomain>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
 
             ItDomain const &m_it_domain;
 
             template <class Accessor>
             GT_FUNCTION auto operator()(Accessor const &acc) const
                 GT_AUTO_RETURN((m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value)),
-                                Accessor::intent,
+                                Accessor::intent_v,
                                 Color>(acc)));
 
             template <class ValueType, class LocationTypeT, class Reduction, class... Accessors>
@@ -103,9 +77,9 @@ namespace gridtools {
                 constexpr auto offsets = connectivity<LocationType, LocationTypeT, Color>::offsets();
                 for (auto &&offset : offsets)
                     onneighbors.m_value = onneighbors.m_function(
-                        m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessors::index_t::value)),
-                            enumtype::in,
-                            0>(offset)...,
+                        m_it_domain
+                            .template deref<GT_META_CALL(meta::at_c, (Args, Accessors::index_t::value)), intent::in, 0>(
+                                offset)...,
                         onneighbors.m_value);
                 return onneighbors.m_value;
             }
@@ -121,11 +95,11 @@ namespace gridtools {
      */
     template <class Functors, class Extent, class Args, class LocationType>
     struct stage {
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<impl_::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<impl_::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
 
@@ -137,7 +111,7 @@ namespace gridtools {
             using eval_t = impl_::evaluator<ItDomain, Args, LocationType, Color>;
             using functor_t = GT_META_CALL(meta::at_c, (Functors, Color));
             eval_t eval{it_domain};
-            functor_t::Do(eval);
+            functor_t::apply(eval);
         }
 
         template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>
@@ -166,9 +140,8 @@ namespace gridtools {
     struct compound_stage {
         using extent_t = typename Stage::extent_t;
 
-        GRIDTOOLS_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
 
         template <uint_t Color>
         struct contains_color : disjunction<typename Stage::template contains_color<Color>,
@@ -185,7 +158,7 @@ namespace gridtools {
 
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             Stage::exec(it_domain);
             (void)(int[]){((void)Stages::exec(it_domain), 0)...};
         }

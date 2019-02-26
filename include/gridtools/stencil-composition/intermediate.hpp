@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <memory>
@@ -97,7 +71,7 @@ namespace gridtools {
         using has_extent = typename with_operators<is_esf_with_extent, gt_or>::template iterate_on_esfs<std::false_type,
             MssDescs>::type;
 
-        GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
+        GT_STATIC_ASSERT((has_extent::value == has_all_extents::value),
             "The computation appears to have stages with and without extents being specified at the same time. A "
             "computation should have all stages with extents or none.");
         using type = typename boost::mpl::not_<has_all_extents>::type;
@@ -110,12 +84,12 @@ namespace gridtools {
 
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
-            storage_info_interface<Id, Layout, Halo, Alignment> const &storage_info, int val) {
+            storage_info<Id, Layout, Halo, Alignment> const &storage_info, int val) {
             return val + 1 <= storage_info.template total_length<I>();
         }
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<!exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
-            storage_info_interface<Id, Layout, Halo, Alignment> const &, int) {
+            storage_info<Id, Layout, Halo, Alignment> const &, int) {
             return true;
         }
 
@@ -124,7 +98,7 @@ namespace gridtools {
             Grid const &grid;
 
             template <uint_t Id, class Layout, class Halo, class Alignment>
-            bool operator()(storage_info_interface<Id, Layout, Halo, Alignment> const &src) const {
+            bool operator()(storage_info<Id, Layout, Halo, Alignment> const &src) const {
 
                 // TODO: This check may be not accurate since there is
                 // an ongoing change in the convention for storage and
@@ -178,10 +152,10 @@ namespace gridtools {
         Grid,
         std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
         std::tuple<MssDescriptors...>> {
-        GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_backend<Backend>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
-        GRIDTOOLS_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_mss_descriptor>...>::value),
+        GT_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_mss_descriptor>...>::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
         using branch_selector_t = branch_selector<MssDescriptors...>;
@@ -189,29 +163,27 @@ namespace gridtools {
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
-        using placeholders_t = GT_META_CALL(extract_placeholders, all_mss_descriptors_t);
+        using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, all_mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
         using non_tmp_placeholders_t = GT_META_CALL(meta::filter, (meta::not_<is_tmp_arg>::apply, placeholders_t));
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-        template <class Arg>
-        struct to_arg_storage_pair {
-            using type = arg_storage_pair<Arg, typename Arg::data_store_t>;
-        };
-        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::rename,
-            (meta::defer<std::tuple>::apply, GT_META_CALL(meta::transform, (to_arg_storage_pair, tmp_placeholders_t))));
-#else
-        template <class Arg>
-        using to_arg_storage_pair = arg_storage_pair<Arg, typename Arg::data_store_t>;
+        using non_cached_tmp_placeholders_t = GT_META_CALL(
+            _impl::extract_non_cached_tmp_args_from_msses, all_mss_descriptors_t);
 
-        using tmp_arg_storage_pair_tuple_t =
-            meta::rename<std::tuple, meta::transform<to_arg_storage_pair, tmp_placeholders_t>>;
-#endif
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(to_arg_storage_pair, meta::id, (arg_storage_pair<Arg, typename Arg::data_store_t>));
 
-        GRIDTOOLS_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
+        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::transform,
+            (to_arg_storage_pair,
+                GT_META_CALL(meta::if_,
+                    (GT_META_CALL(needs_allocate_cached_tmp, Backend),
+                        tmp_placeholders_t,
+                        non_cached_tmp_placeholders_t))));
+
+        GT_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
             "some bound placeholders are not used in mss descriptors");
 
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             meta::is_set_fast<meta::list<BoundPlaceholders...>>::value, "bound placeholders should be all different");
 
         template <class Arg>
@@ -233,17 +205,14 @@ namespace gridtools {
             boost::mpl::void_>::type;
 
       private:
-        template <typename MssDescs>
-        using convert_to_mss_components_array_t =
-            copy_into_variadic<typename build_mss_components_array<typename Backend::mss_fuse_esfs_strategy,
-                                   MssDescs,
-                                   extent_map_t,
-                                   typename Grid::axis_type>::type,
-                std::tuple<>>;
+        template <class MssDescs>
+        GT_META_DEFINE_ALIAS(convert_to_mss_components_array,
+            build_mss_components_array,
+            (Backend::mss_fuse_esfs_strategy::value, MssDescs, extent_map_t, typename Grid::axis_type));
 
-        using mss_components_array_t = convert_to_mss_components_array_t<all_mss_descriptors_t>;
+        using mss_components_array_t = GT_META_CALL(convert_to_mss_components_array, all_mss_descriptors_t);
 
-        using max_extent_for_tmp_t = typename _impl::get_max_extent_for_tmp<mss_components_array_t>::type;
+        using max_extent_for_tmp_t = GT_META_CALL(_impl::get_max_extent_for_tmp, mss_components_array_t);
 
       public:
         // creates a tuple of local domains
@@ -254,7 +223,7 @@ namespace gridtools {
             template <typename MssDescs>
             void operator()(
                 MssDescs const &mss_descriptors, Grid const &grid, local_domains_t const &local_domains) const {
-                Backend::template run<convert_to_mss_components_array_t<MssDescs>>(grid, local_domains);
+                Backend::template run<GT_META_CALL(convert_to_mss_components_array, MssDescs)>(grid, local_domains);
             }
         };
 
@@ -284,6 +253,19 @@ namespace gridtools {
         //
         local_domains_t m_local_domains;
 
+        struct check_grid_against_extents_f {
+            Grid const &m_grid;
+
+            template <class Placeholder>
+            void operator()() const {
+                using extent_t = decltype(intermediate::get_arg_extent(Placeholder()));
+                assert(-extent_t::iminus::value <= static_cast<int_t>(m_grid.direction_i().minus()));
+                assert(extent_t::iplus::value <= static_cast<int_t>(m_grid.direction_i().plus()));
+                assert(-extent_t::jminus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
+                assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().plus()));
+            }
+        };
+
       public:
         intermediate(Grid const &grid,
             std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...> arg_storage_pairs,
@@ -295,7 +277,6 @@ namespace gridtools {
               // a functor with a chosen condition branch
               m_branch_selector(std::move(msses)),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
-              // that ensures, that only
               m_tmp_arg_storage_pair_tuple(dedup_storage_info(
                   _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(
                       grid))),
@@ -309,6 +290,10 @@ namespace gridtools {
             update_local_domains(std::tuple_cat(
                 make_view_infos(m_tmp_arg_storage_pair_tuple), make_view_infos(m_bound_arg_storage_pair_tuple)));
             // now only local domanis missing pointers from free (not bound) storages.
+
+#ifndef NDEBUG
+            check_grid_against_extents();
+#endif
         }
 
         void sync_bound_data_stores() const { tuple_util::for_each(_impl::sync_f{}, m_bound_arg_storage_pair_tuple); }
@@ -321,9 +306,9 @@ namespace gridtools {
             arg_storage_pair<Args, DataStores> const &... srcs) {
             if (m_meter)
                 m_meter->start();
-            GRIDTOOLS_STATIC_ASSERT((conjunction<meta::st_contains<free_placeholders_t, Args>...>::value),
+            GT_STATIC_ASSERT((conjunction<meta::st_contains<free_placeholders_t, Args>...>::value),
                 "some placeholders are not used in mss descriptors");
-            GRIDTOOLS_STATIC_ASSERT(
+            GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
 
             // make views from bound storages again (in the case old views got inconsistent)
@@ -363,9 +348,8 @@ namespace gridtools {
 
         template <class Placeholder,
             class RwArgs = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t),
-            enumtype::intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? enumtype::intent::inout
-                                                                                    : enumtype::intent::in>
-        static constexpr std::integral_constant<enumtype::intent, Intent> get_arg_intent(Placeholder) {
+            intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? intent::inout : intent::in>
+        static constexpr std::integral_constant<intent, Intent> get_arg_intent(Placeholder) {
             return {};
         }
 
@@ -375,7 +359,7 @@ namespace gridtools {
             class LazyResult = enable_if_t<!boost::mpl::is_void_<ExtentMap>::value,
                 boost::mpl::at<typename ExtentMap::type, Placeholder>>>
         static constexpr typename LazyResult::type get_arg_extent(Placeholder) {
-            GRIDTOOLS_STATIC_ASSERT(is_plh<Placeholder>::value, "");
+            GT_STATIC_ASSERT(is_plh<Placeholder>::value, "");
             return {};
         }
         template <class Placeholder, class ExtentMap = extent_map_t>
@@ -401,6 +385,14 @@ namespace gridtools {
         template <class Seq>
         auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
             tuple_util::transform(_impl::dedup_storage_info_f<storage_info_map_t>{m_storage_info_map}, seq));
+
+        template <class ExtentMap = extent_map_t>
+        enable_if_t<!boost::mpl::is_void_<ExtentMap>::value> check_grid_against_extents() const {
+            for_each_type<non_tmp_placeholders_t>(check_grid_against_extents_f{m_grid});
+        }
+
+        template <class ExtentMap = extent_map_t>
+        enable_if_t<boost::mpl::is_void_<ExtentMap>::value> check_grid_against_extents() const {}
     }; // namespace gridtools
 
     /**

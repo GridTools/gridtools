@@ -1,49 +1,23 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #include "gtest/gtest.h"
 
 #include <gridtools/common/gt_assert.hpp>
-#include <gridtools/storage/common/storage_info_interface.hpp>
+#include <gridtools/storage/common/storage_info.hpp>
 
 using namespace gridtools;
 
 TEST(StorageInfo, Strides) {
     {
-        storage_info_interface<0, layout_map<0, 1, 2>> si(3, 4, 5);
+        storage_info<0, layout_map<0, 1, 2>> si(3, 4, 5);
 
         EXPECT_EQ((si.stride<0>()), 20);
         EXPECT_EQ((si.stride<1>()), 5);
@@ -54,7 +28,7 @@ TEST(StorageInfo, Strides) {
     }
 
     {
-        storage_info_interface<0, layout_map<2, 0, 1>> si(3, 4, 5);
+        storage_info<0, layout_map<2, 0, 1>> si(3, 4, 5);
 
         EXPECT_EQ((si.stride<0>()), 1);
         EXPECT_EQ((si.stride<1>()), 15);
@@ -65,7 +39,7 @@ TEST(StorageInfo, Strides) {
         EXPECT_EQ((si.length()), 3 * 4 * 5);
     }
     {
-        storage_info_interface<0, layout_map<-1, 0, 1>> si(3, 4, 5);
+        storage_info<0, layout_map<-1, 0, 1>> si(3, 4, 5);
 
         EXPECT_EQ((si.stride<0>()), 0);
         EXPECT_EQ((si.stride<1>()), 5);
@@ -78,7 +52,7 @@ TEST(StorageInfo, Strides) {
 
 TEST(StorageInfo, StridesAlignment) {
     {
-        storage_info_interface<0, layout_map<0, 1, 2>, halo<0, 0, 0>, alignment<32>> si(3, 4, 5);
+        storage_info<0, layout_map<0, 1, 2>, halo<0, 0, 0>, alignment<32>> si(3, 4, 5);
 
         EXPECT_EQ((si.stride<0>()), 128);
         EXPECT_EQ((si.stride<1>()), 32);
@@ -89,7 +63,7 @@ TEST(StorageInfo, StridesAlignment) {
     }
 
     {
-        storage_info_interface<0, layout_map<2, 0, 1>, halo<0, 0, 0>, alignment<32>> si(3, 4, 5);
+        storage_info<0, layout_map<2, 0, 1>, halo<0, 0, 0>, alignment<32>> si(3, 4, 5);
 
         EXPECT_EQ((si.stride<0>()), 1);
         EXPECT_EQ((si.stride<1>()), 32 * 5);
@@ -99,7 +73,7 @@ TEST(StorageInfo, StridesAlignment) {
         EXPECT_EQ((si.length()), 3 * 4 * 5);
     }
     {
-        storage_info_interface<0, layout_map<-1, 0, 1>, halo<0, 0, 0>, alignment<32>> si(3, 4, 5);
+        storage_info<0, layout_map<-1, 0, 1>, halo<0, 0, 0>, alignment<32>> si(3, 4, 5);
 
         EXPECT_EQ((si.stride<0>()), 0);
         EXPECT_EQ((si.stride<1>()), 32);
@@ -112,7 +86,7 @@ TEST(StorageInfo, StridesAlignment) {
 
 TEST(StorageInfo, StridesAlignmentHalo) {
     {
-        storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<32>> si(3, 5, 7);
+        storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<32>> si(3, 5, 7);
 
         EXPECT_EQ((si.stride<0>()), 32 * 5);
         EXPECT_EQ((si.stride<1>()), 32);
@@ -123,7 +97,7 @@ TEST(StorageInfo, StridesAlignmentHalo) {
     }
 
     {
-        storage_info_interface<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<32>> si(3, 5, 7);
+        storage_info<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<32>> si(3, 5, 7);
 
         EXPECT_EQ((si.stride<0>()), 1);
         EXPECT_EQ((si.stride<1>()), 32 * 7);
@@ -133,7 +107,7 @@ TEST(StorageInfo, StridesAlignmentHalo) {
         EXPECT_EQ((si.length()), 1);
     }
     {
-        storage_info_interface<0, layout_map<-1, 0, 1>, halo<1, 2, 3>, alignment<32>> si(3, 5, 7);
+        storage_info<0, layout_map<-1, 0, 1>, halo<1, 2, 3>, alignment<32>> si(3, 5, 7);
 
         EXPECT_EQ((si.stride<0>()), 0);
         EXPECT_EQ((si.stride<1>()), 32);
@@ -146,7 +120,7 @@ TEST(StorageInfo, StridesAlignmentHalo) {
 
 TEST(StorageInfo, IndexVariadic) {
     {
-        storage_info_interface<0, layout_map<0, 1, 2>> si(3, 4, 5);
+        storage_info<0, layout_map<0, 1, 2>> si(3, 4, 5);
 
         EXPECT_EQ((si.index(0, 0, 0)), 0);
         EXPECT_EQ((si.index(0, 0, 1)), 1);
@@ -155,7 +129,7 @@ TEST(StorageInfo, IndexVariadic) {
     }
 
     {
-        storage_info_interface<0, layout_map<2, 0, 1>> si(3, 4, 5);
+        storage_info<0, layout_map<2, 0, 1>> si(3, 4, 5);
 
         EXPECT_EQ((si.index(0, 0, 0)), 0);
         EXPECT_EQ((si.index(0, 0, 1)), 3);
@@ -163,7 +137,7 @@ TEST(StorageInfo, IndexVariadic) {
         EXPECT_EQ((si.index(1, 0, 0)), 1);
     }
     {
-        storage_info_interface<0, layout_map<-1, 0, 1>> si(3, 4, 5);
+        storage_info<0, layout_map<-1, 0, 1>> si(3, 4, 5);
 
         EXPECT_EQ((si.index(0, 0, 0)), 0);
         EXPECT_EQ((si.index(0, 0, 1)), 1);
@@ -175,7 +149,7 @@ TEST(StorageInfo, IndexVariadic) {
 
 TEST(StorageInfo, Simple) {
     {
-        storage_info_interface<0, layout_map<2, 1, 0>> si(3, 3, 3);
+        storage_info<0, layout_map<2, 1, 0>> si(3, 3, 3);
         EXPECT_EQ((si.index(0, 0, 0)), 0);
         EXPECT_EQ((si.index(0, 0, 1)), 9);
         EXPECT_EQ((si.index(0, 0, 2)), 18);
@@ -193,7 +167,7 @@ TEST(StorageInfo, Simple) {
         EXPECT_EQ((si.index(1, 0, 2)), 19);
     }
     {
-        storage_info_interface<0, layout_map<0, 1, 2>> si(3, 3, 3);
+        storage_info<0, layout_map<0, 1, 2>> si(3, 3, 3);
         EXPECT_EQ((si.index(0, 0, 0)), 0);
         EXPECT_EQ((si.index(0, 0, 1)), 1);
         EXPECT_EQ((si.index(0, 0, 2)), 2);
@@ -211,7 +185,7 @@ TEST(StorageInfo, Simple) {
         EXPECT_EQ((si.index(1, 0, 2)), 11);
     }
     {
-        storage_info_interface<0, layout_map<1, 0, 2>> si(3, 3, 3);
+        storage_info<0, layout_map<1, 0, 2>> si(3, 3, 3);
         EXPECT_EQ((si.index(0, 0, 0)), 0);
         EXPECT_EQ((si.index(0, 0, 1)), 1);
         EXPECT_EQ((si.index(0, 0, 2)), 2);
@@ -232,21 +206,21 @@ TEST(StorageInfo, Simple) {
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
     // ICC 18 can not handle this
     // storage info has to be constexpr capable
-    constexpr storage_info_interface<0, layout_map<1, 0, 2>> si(3, 3, 3);
-    GRIDTOOLS_STATIC_ASSERT(si.padded_total_length() == 27, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.total_length() == 27, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.length() == 27, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.total_length<0>() == 3, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.stride<0>() == 3, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.stride<1>() == 9, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.stride<2>() == 1, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
+    constexpr storage_info<0, layout_map<1, 0, 2>> si(3, 3, 3);
+    GT_STATIC_ASSERT(si.padded_total_length() == 27, "storage info is not constexpr anymore");
+    GT_STATIC_ASSERT(si.total_length() == 27, "storage info is not constexpr anymore");
+    GT_STATIC_ASSERT(si.length() == 27, "storage info is not constexpr anymore");
+    GT_STATIC_ASSERT(si.total_length<0>() == 3, "storage info is not constexpr anymore");
+    GT_STATIC_ASSERT(si.stride<0>() == 3, "storage info is not constexpr anymore");
+    GT_STATIC_ASSERT(si.stride<1>() == 9, "storage info is not constexpr anymore");
+    GT_STATIC_ASSERT(si.stride<2>() == 1, "storage info is not constexpr anymore");
+    GT_STATIC_ASSERT(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
+    GT_STATIC_ASSERT(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
+    GT_STATIC_ASSERT(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
 #endif
 
     // test wiht different dims
-    storage_info_interface<0, layout_map<1, 2, 3, 0>> x(5, 7, 8, 2);
+    storage_info<0, layout_map<1, 2, 3, 0>> x(5, 7, 8, 2);
     EXPECT_EQ((x.total_length<0>()), 5);
     EXPECT_EQ((x.total_length<1>()), 7);
     EXPECT_EQ((x.total_length<2>()), 8);
@@ -260,7 +234,7 @@ TEST(StorageInfo, Simple) {
 
 TEST(StorageInfo, ArrayAccess) {
     {
-        storage_info_interface<0, layout_map<2, 1, 0>> si(3, 3, 3);
+        storage_info<0, layout_map<2, 1, 0>> si(3, 3, 3);
         EXPECT_EQ((si.index({0, 0, 0})), 0);
         EXPECT_EQ((si.index({0, 0, 1})), 9);
         EXPECT_EQ((si.index({0, 0, 2})), 18);
@@ -278,7 +252,7 @@ TEST(StorageInfo, ArrayAccess) {
         EXPECT_EQ((si.index({1, 0, 2})), 19);
     }
     {
-        storage_info_interface<0, layout_map<0, 1, 2>> si(3, 3, 3);
+        storage_info<0, layout_map<0, 1, 2>> si(3, 3, 3);
         EXPECT_EQ((si.index({0, 0, 0})), 0);
         EXPECT_EQ((si.index({0, 0, 1})), 1);
         EXPECT_EQ((si.index({0, 0, 2})), 2);
@@ -296,7 +270,7 @@ TEST(StorageInfo, ArrayAccess) {
         EXPECT_EQ((si.index({1, 0, 2})), 11);
     }
     {
-        storage_info_interface<0, layout_map<1, 0, 2>> si(3, 3, 3);
+        storage_info<0, layout_map<1, 0, 2>> si(3, 3, 3);
         EXPECT_EQ((si.index({0, 0, 0})), 0);
         EXPECT_EQ((si.index({0, 0, 1})), 1);
         EXPECT_EQ((si.index({0, 0, 2})), 2);
@@ -317,7 +291,7 @@ TEST(StorageInfo, ArrayAccess) {
 
 TEST(StorageInfo, Halo) {
     // test with simple halo, dims and strides are extended
-    storage_info_interface<0, layout_map<2, 1, 0>, halo<2, 2, 2>> x(7, 7, 7);
+    storage_info<0, layout_map<2, 1, 0>, halo<2, 2, 2>> x(7, 7, 7);
     EXPECT_EQ((x.total_length<0>()), 7);
     EXPECT_EQ((x.total_length<1>()), 7);
     EXPECT_EQ((x.total_length<2>()), 7);
@@ -327,7 +301,7 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((x.stride<2>()), 49);
 
     // test with simple halo, dims and strides are extended
-    storage_info_interface<0, layout_map<0, 1, 2>, halo<2, 2, 2>> y(7, 7, 7);
+    storage_info<0, layout_map<0, 1, 2>, halo<2, 2, 2>> y(7, 7, 7);
     EXPECT_EQ((y.total_length<0>()), 7);
     EXPECT_EQ((y.total_length<1>()), 7);
     EXPECT_EQ((y.total_length<2>()), 7);
@@ -337,7 +311,7 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((y.stride<2>()), 1);
 
     // test with heterogeneous halo, dims and strides are extended
-    storage_info_interface<0, layout_map<2, 1, 0>, halo<2, 4, 0>> z(7, 11, 3);
+    storage_info<0, layout_map<2, 1, 0>, halo<2, 4, 0>> z(7, 11, 3);
     EXPECT_EQ((z.total_length<0>()), 7);
     EXPECT_EQ((z.total_length<1>()), 11);
     EXPECT_EQ((z.total_length<2>()), 3);
@@ -350,7 +324,7 @@ TEST(StorageInfo, Halo) {
 TEST(StorageInfo, Alignment) {
     {
         // test with different dims and alignment
-        storage_info_interface<0, layout_map<1, 2, 3, 0>, halo<0, 0, 0, 0>, alignment<32>> x(5, 7, 32, 2);
+        storage_info<0, layout_map<1, 2, 3, 0>, halo<0, 0, 0, 0>, alignment<32>> x(5, 7, 32, 2);
         EXPECT_EQ((x.total_length<0>()), 5);
         EXPECT_EQ((x.total_length<1>()), 7);
         EXPECT_EQ((x.total_length<2>()), 32);
@@ -363,7 +337,7 @@ TEST(StorageInfo, Alignment) {
     }
     {
         // test with different dims, halo and alignment
-        storage_info_interface<0, layout_map<1, 2, 3, 0>, halo<1, 2, 3, 4>, alignment<32>> x(7, 11, 3, 10);
+        storage_info<0, layout_map<1, 2, 3, 0>, halo<1, 2, 3, 4>, alignment<32>> x(7, 11, 3, 10);
         EXPECT_EQ((x.total_length<0>()), 7);
         EXPECT_EQ((x.total_length<1>()), 11);
         EXPECT_EQ((x.total_length<2>()), 3);
@@ -383,7 +357,7 @@ TEST(StorageInfo, Alignment) {
     }
     {
         // test with different dims, halo and alignment
-        storage_info_interface<0, layout_map<3, 2, 1, 0>, halo<1, 2, 3, 4>, alignment<32>> x(3, 11, 14, 10);
+        storage_info<0, layout_map<3, 2, 1, 0>, halo<1, 2, 3, 4>, alignment<32>> x(3, 11, 14, 10);
         EXPECT_EQ((x.total_length<0>()), 3);
         EXPECT_EQ((x.total_length<1>()), 11);
         EXPECT_EQ((x.total_length<2>()), 14);
@@ -401,7 +375,7 @@ TEST(StorageInfo, Alignment) {
     }
     {
         // test with masked dimensions
-        storage_info_interface<0, layout_map<1, -1, -1, 0>, halo<1, 2, 3, 4>, alignment<32>> x(7, 7, 8, 10);
+        storage_info<0, layout_map<1, -1, -1, 0>, halo<1, 2, 3, 4>, alignment<32>> x(7, 7, 8, 10);
         EXPECT_EQ((x.total_length<0>()), 7);
         EXPECT_EQ((x.total_length<1>()), 7);
         EXPECT_EQ((x.total_length<2>()), 8);
@@ -425,7 +399,7 @@ TEST(StorageInfo, Alignment) {
 
 TEST(StorageInfo, BeginEnd) {
     // no halo, no alignment
-    storage_info_interface<0, layout_map<1, 2, 0>> x(7, 8, 9);
+    storage_info<0, layout_map<1, 2, 0>> x(7, 8, 9);
     EXPECT_EQ(x.length(), 7 * 8 * 9);
     EXPECT_EQ(x.total_length(), 7 * 8 * 9);
     EXPECT_EQ(x.padded_total_length(), 7 * 8 * 9);
@@ -450,7 +424,7 @@ TEST(StorageInfo, BeginEnd) {
     EXPECT_EQ((x.total_length<2>()), 9);
 
     // halo, no alignment
-    storage_info_interface<0, layout_map<1, 2, 0>, halo<1, 2, 3>> y(9, 11, 13);
+    storage_info<0, layout_map<1, 2, 0>, halo<1, 2, 3>> y(9, 11, 13);
     EXPECT_EQ(y.length(), 7 * 7 * 7);
     EXPECT_EQ(y.total_length(), 9 * 11 * 13);
     EXPECT_EQ(y.padded_total_length(), 9 * 11 * 13);
@@ -478,7 +452,7 @@ TEST(StorageInfo, BeginEnd) {
     EXPECT_EQ((y.total_length<2>()), 13);
 
     // halo, alignment
-    storage_info_interface<0, layout_map<1, 2, 0>, halo<1, 2, 3>, alignment<16>> z(9, 11, 13);
+    storage_info<0, layout_map<1, 2, 0>, halo<1, 2, 3>, alignment<16>> z(9, 11, 13);
     EXPECT_EQ(z.length(), 7 * 7 * 7);
     EXPECT_EQ(z.total_length(), 9 * 11 * 13);
     EXPECT_EQ(z.padded_total_length(), 9 * 16 * 13);
@@ -506,13 +480,13 @@ TEST(StorageInfo, BeginEnd) {
 }
 
 TEST(StorageInfo, Equal) {
-    storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<16>> si1(9, 11, 13);
-    storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<16>> si2(9, 11, 13);
+    storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<16>> si1(9, 11, 13);
+    storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<16>> si2(9, 11, 13);
     ASSERT_EQ(si1, si2);
 }
 
 TEST(StorageInfo, SizesNotEqual) {
-    storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<16>> si1(9, 11, 13);
-    storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<16>> si2(9, 11, 15);
+    storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<16>> si1(9, 11, 13);
+    storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<16>> si2(9, 11, 15);
     ASSERT_NE(si1, si2);
 }

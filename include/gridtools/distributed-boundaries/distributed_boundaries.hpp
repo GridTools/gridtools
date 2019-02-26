@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #pragma once
 
@@ -42,7 +16,8 @@
 #include "../boundary-conditions/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
-#ifdef _GCL_MPI_
+#include "../common/timer/timer_traits.hpp"
+#ifdef GCL_MPI
 #include "../communication/GCL.hpp"
 #include "../communication/halo_exchange.hpp"
 #include "../communication/low-level/proc_grids_3D.hpp"
@@ -55,7 +30,7 @@
 
 namespace gridtools {
 
-#ifndef _GCL_MPI_
+#ifndef GCL_MPI
     // This provides an processing grid that works on a single process
     // to be used without periodic boundary conditions, this enables
     // the grid predicate to work
@@ -136,10 +111,16 @@ namespace gridtools {
             CTraits::version>;
 
       private:
+        using performance_meter_t = typename timer_traits<typename CTraits::compute_arch>::timer_type;
+
         array<halo_descriptor, 3> m_halos;
         array<int_t, 3> m_sizes;
         uint_t m_max_stores;
         pattern_type m_he;
+
+        performance_meter_t m_meter_pack;
+        performance_meter_t m_meter_exchange;
+        performance_meter_t m_meter_bc;
 
       public:
         /**
@@ -155,7 +136,9 @@ namespace gridtools {
         */
         distributed_boundaries(
             array<halo_descriptor, 3> halos, boollist<3> period, uint_t max_stores, MPI_Comm CartComm)
-            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm) {
+            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm),
+              m_meter_pack("pack/unpack       "), m_meter_exchange("exchange          "),
+              m_meter_bc("boundary condition") {
 
             m_he.pattern().proc_grid().fill_dims(m_sizes);
 
@@ -186,7 +169,9 @@ namespace gridtools {
         template <typename... Jobs>
         void boundary_only(Jobs const &... jobs) {
             using execute_in_order = int[];
+            m_meter_bc.start();
             (void)execute_in_order{(apply_boundary(jobs), 0)...};
+            m_meter_bc.pause();
         }
 
         /**
@@ -216,16 +201,40 @@ namespace gridtools {
                 throw std::runtime_error(err);
             }
 
+            m_meter_pack.start();
             call_pack(all_stores_for_exc,
                 meta::make_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
+            m_meter_pack.pause();
+            m_meter_exchange.start();
             m_he.exchange();
+            m_meter_exchange.pause();
+            m_meter_pack.start();
             call_unpack(all_stores_for_exc,
                 meta::make_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
+            m_meter_pack.pause();
 
             boundary_only(jobs...);
         }
 
         typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
+
+        std::string print_meters() const {
+            return m_meter_pack.to_string() + "\n" + m_meter_exchange.to_string() + "\n" + m_meter_bc.to_string();
+        }
+
+        double get_time_pack() const { return m_meter_pack.get_time(); }
+        double get_time_exchange() const { return m_meter_exchange.get_time(); }
+        double get_time_boundary() const { return m_meter_bc.get_time(); }
+
+        size_t get_count_exchange() const { return m_meter_exchange.get_count(); }
+        // no get_count_pack() as it is equivalent to get_count_exchange()
+        size_t get_count_boundary() const { return m_meter_bc.get_count(); }
+
+        void reset_meters() {
+            m_meter_pack.reset_meter();
+            m_meter_exchange.reset_meter();
+            m_meter_bc.reset_meter();
+        }
 
       private:
         template <typename BoundaryApply, typename ArgsTuple, uint_t... Ids>
@@ -268,7 +277,7 @@ namespace gridtools {
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
-                access_mode::ReadWrite,
+                access_mode::read_write,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);
         }
@@ -279,7 +288,7 @@ namespace gridtools {
         template <typename Stores, uint_t... Ids>
         void call_unpack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
-                access_mode::ReadWrite,
+                access_mode::read_write,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);
         }

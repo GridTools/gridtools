@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #pragma once
 
@@ -46,14 +20,14 @@
 #include "common/definitions.hpp"
 #include "data_store.hpp"
 
-#ifndef CHECK_MEMORY_SPACE
+#ifndef GT_CHECK_MEMORY_SPACE
 
 #ifdef __CUDA_ARCH__
-#define CHECK_MEMORY_SPACE(device_view) \
-    ASSERT_OR_THROW(device_view, "can not access a host view from within a GPU kernel")
+#define GT_CHECK_MEMORY_SPACE(device_view) \
+    GT_ASSERT_OR_THROW(device_view, "can not access a host view from within a GPU kernel")
 #else
-#define CHECK_MEMORY_SPACE(device_view) \
-    ASSERT_OR_THROW(!device_view, "can not access a device view from a host function")
+#define GT_CHECK_MEMORY_SPACE(device_view) \
+    GT_ASSERT_OR_THROW(!device_view, "can not access a device view from a host function")
 #endif
 
 #endif
@@ -70,10 +44,9 @@ namespace gridtools {
      * @tparam DataStore data store type
      * @tparam AccessMode access mode (default is read-write)
      */
-    template <typename DataStore, access_mode AccessMode = access_mode::ReadWrite>
+    template <typename DataStore, access_mode AccessMode = access_mode::read_write>
     struct data_view {
-        GRIDTOOLS_STATIC_ASSERT(
-            is_data_store<DataStore>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
+        GT_STATIC_ASSERT(is_data_store<DataStore>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
         using data_store_t = DataStore;
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
@@ -92,7 +65,7 @@ namespace gridtools {
          * @brief data_view constructor
          */
         GT_FUNCTION data_view()
-            : m_raw_ptr(NULL), m_state_machine_ptr(NULL), m_storage_info(NULL), m_device_view(false) {}
+            : m_raw_ptr(nullptr), m_state_machine_ptr(nullptr), m_storage_info(nullptr), m_device_view(false) {}
 
         /**
          * @brief data_view constructor. This constructor is normally not called by the user because it is more
@@ -106,12 +79,12 @@ namespace gridtools {
             data_t *data_ptr, storage_info_t const *info_ptr, state_machine_t *state_ptr, bool device_view)
             : m_raw_ptr(data_ptr), m_state_machine_ptr(state_ptr), m_storage_info(info_ptr),
               m_device_view(device_view) {
-            ASSERT_OR_THROW(data_ptr, "Cannot create data_view with invalid data pointer");
-            ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
+            GT_ASSERT_OR_THROW(data_ptr, "Cannot create data_view with invalid data pointer");
+            GT_ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
         storage_info_t const &storage_info() const {
-            CHECK_MEMORY_SPACE(m_device_view);
+            GT_CHECK_MEMORY_SPACE(m_device_view);
             return *m_storage_info;
         }
 
@@ -147,11 +120,11 @@ namespace gridtools {
          * @return reference to the queried value
          */
         template <typename... Coords>
-        conditional_t<AccessMode == access_mode::ReadOnly, data_t const &, data_t &> GT_FUNCTION operator()(
+        conditional_t<AccessMode == access_mode::read_only, data_t const &, data_t &> GT_FUNCTION operator()(
             Coords... c) const {
-            GRIDTOOLS_STATIC_ASSERT(conjunction<is_all_integral_or_enum<Coords...>>::value,
+            GT_STATIC_ASSERT(conjunction<is_all_integral_or_enum<Coords...>>::value,
                 GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
-            CHECK_MEMORY_SPACE(m_device_view);
+            GT_CHECK_MEMORY_SPACE(m_device_view);
             return m_raw_ptr[m_storage_info->index(c...)];
         }
 
@@ -160,9 +133,9 @@ namespace gridtools {
          * @param arr array of indices
          * @return reference to the queried value
          */
-        conditional_t<AccessMode == access_mode::ReadOnly, data_t const &, data_t &> GT_FUNCTION operator()(
+        conditional_t<AccessMode == access_mode::read_only, data_t const &, data_t &> GT_FUNCTION operator()(
             gridtools::array<int, storage_info_t::ndims> const &arr) const {
-            CHECK_MEMORY_SPACE(m_device_view);
+            GT_CHECK_MEMORY_SPACE(m_device_view);
             return m_raw_ptr[m_storage_info->index(arr)];
         }
 
@@ -180,7 +153,7 @@ namespace gridtools {
             if (!m_state_machine_ptr)
                 return true;
             // read only -> simple check
-            if (AccessMode == access_mode::ReadOnly)
+            if (AccessMode == access_mode::read_only)
                 return m_device_view ? !m_state_machine_ptr->m_dnu : !m_state_machine_ptr->m_hnu;
             else
                 // check state machine ptrs
@@ -284,4 +257,4 @@ namespace gridtools {
      */
 } // namespace gridtools
 
-#undef CHECK_MEMORY_SPACE
+#undef GT_CHECK_MEMORY_SPACE

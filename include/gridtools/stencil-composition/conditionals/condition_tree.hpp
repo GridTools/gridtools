@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 /**
  * @file
@@ -179,32 +153,19 @@ namespace gridtools {
 
             template <typename Fun>
             struct apply_with_tree_f {
-                template <typename>
-                struct result;
-
-                template <typename T>
-                using res_t = typename result<apply_with_tree_f(T const &)>::type;
-
-                template <typename T>
-                struct result<apply_with_tree_f(T const &)> {
-                    using type = typename std::result_of<Fun(T const &)>::type;
-                };
-
-                template <typename Lhs, typename Rhs, typename C>
-                struct result<apply_with_tree_f(condition<Lhs, Rhs, C> const &)> {
-                    using type = typename std::common_type<res_t<Lhs>, res_t<Rhs>>::type;
-                };
-
                 Fun m_fun;
 
                 template <typename T>
-                res_t<T> operator()(T const &leaf) const {
-                    return m_fun(leaf);
+                void operator()(T const &leaf) const {
+                    m_fun(leaf);
                 }
 
                 template <typename Lhs, typename Rhs, typename C>
-                res_t<condition<Lhs, Rhs, C>> operator()(condition<Lhs, Rhs, C> const &node) const {
-                    return node.m_value() ? this->operator()(node.m_first) : this->operator()(node.m_second);
+                void operator()(condition<Lhs, Rhs, C> const &node) const {
+                    if (node.m_value())
+                        (*this)(node.m_first);
+                    else
+                        (*this)(node.m_second);
                 }
             };
 
@@ -311,8 +272,10 @@ namespace gridtools {
          *           functor invocations return values for all possible branches.
          */
         template <typename Fun, typename... Args>
-        auto apply(Fun &&fun, Args &&... args) const GT_AUTO_RETURN((_impl::condition_tree::apply_with_tree(
-            std::bind(std::forward<Fun>(fun), std::placeholders::_1, std::forward<Args>(args)...))(m_tree)));
+        void apply(Fun &&fun, Args &&... args) const {
+            _impl::condition_tree::apply_with_tree(
+                std::bind(std::forward<Fun>(fun), std::placeholders::_1, std::forward<Args>(args)...))(m_tree);
+        }
     };
 
     /// Empty case specialization.
@@ -324,8 +287,9 @@ namespace gridtools {
         branch_selector(std::tuple<> &&) {}
 
         template <typename Fun, typename... Args>
-        auto apply(Fun &&fun, Args &&... args) const
-            GT_AUTO_RETURN((std::forward<Fun>(fun)(std::tuple<>{}, std::forward<Args>(args)...)));
+        void apply(Fun &&fun, Args &&... args) const {
+            std::forward<Fun>(fun)(std::tuple<>{}, std::forward<Args>(args)...);
+        }
     };
 
     /// Generator for branch_selector

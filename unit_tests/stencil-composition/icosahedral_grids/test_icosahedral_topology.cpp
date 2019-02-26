@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
 
 #include <gtest/gtest.h>
@@ -47,23 +21,23 @@ using icosahedral_topology_t = icosahedral_topology<backend_t>;
 TEST(icosahedral_topology, layout) {
     using alayout_t = icosahedral_topology_t::layout_t<selector<1, 1, 1, 1>>;
 #ifdef __CUDACC__
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<3, 2, 1, 0>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<3, 2, 1, 0>>::value), "ERROR");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<0, 1, 2, 3>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<0, 1, 2, 3>>::value), "ERROR");
 #endif
 
     using alayout_2d_t = icosahedral_topology_t::layout_t<selector<1, 1, 1, 0>>;
 #ifdef __CUDACC__
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<2, 1, 0, -1>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<2, 1, 0, -1>>::value), "ERROR");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<0, 1, 2, -1>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<0, 1, 2, -1>>::value), "ERROR");
 #endif
 
     using alayout_6d_t = icosahedral_topology_t::layout_t<selector<1, 1, 1, 1, 1, 1>>;
 #ifdef __CUDACC__
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<5, 4, 3, 2, 1, 0>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<5, 4, 3, 2, 1, 0>>::value), "ERROR");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<2, 3, 4, 5, 0, 1>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<2, 3, 4, 5, 0, 1>>::value), "ERROR");
 #endif
 }
 
@@ -82,14 +56,14 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<1>(), 3);
         ASSERT_EQ(ameta.total_length<2>(), 6);
         ASSERT_EQ(ameta.total_length<3>(), 7);
-#ifdef BACKEND_MC
+#ifdef GT_BACKEND_MC
         // 3rd dimension is padded for MC
         ASSERT_EQ(ameta.padded_length<0>(), 4);
         ASSERT_EQ(ameta.padded_length<1>(), 3);
         ASSERT_EQ(ameta.padded_length<2>(), 6);
         ASSERT_EQ(ameta.padded_length<3>(), 8);
 #endif
-#ifdef BACKEND_CUDA
+#ifdef GT_BACKEND_CUDA
         // 3rd dimension is padded for CUDA
         ASSERT_EQ(ameta.padded_length<0>(), 4);
         ASSERT_EQ(ameta.padded_length<1>(), 3);
@@ -108,11 +82,11 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<1>(), 3);
         ASSERT_EQ(ameta.total_length<2>(), 6);
         ASSERT_EQ(ameta.total_length<3>(), 7);
-#ifdef BACKEND_MC
+#ifdef GT_BACKEND_MC
         // 3rd dimension is padded for MC
         ASSERT_EQ(ameta.padded_length<3>(), 8);
 #endif
-#ifdef BACKEND_CUDA
+#ifdef GT_BACKEND_CUDA
         ASSERT_EQ(ameta.padded_length<3>(), 32);
 #endif
         ASSERT_EQ(ameta.total_length<4>(), 8);

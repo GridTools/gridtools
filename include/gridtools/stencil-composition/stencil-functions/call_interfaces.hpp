@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <boost/fusion/include/as_vector.hpp>
@@ -82,7 +56,7 @@ namespace gridtools {
         struct function_aggregator_offsets {
             typedef typename boost::fusion::result_of::as_vector<PassedArguments>::type accessors_list_t;
             CallerAggregator &m_caller_aggregator;
-            ReturnType *RESTRICT m_result;
+            ReturnType *GT_RESTRICT m_result;
             accessors_list_t const m_accessors_list;
 
             template <typename Accessor>
@@ -165,13 +139,13 @@ namespace gridtools {
 
         template <class Functor, class Region, class Eval>
         GT_FUNCTION enable_if_t<!std::is_void<Region>::value> call_functor(Eval &eval) {
-            Functor::template Do<Eval &>(eval, Region{});
+            Functor::template apply<Eval &>(eval, Region{});
         }
 
         // overload for the default interval (Functor with one argument)
         template <class Functor, class Region, class Eval>
         GT_FUNCTION enable_if_t<std::is_void<Region>::value> call_functor(Eval &eval) {
-            Functor::template Do<Eval &>(eval);
+            Functor::template apply<Eval &>(eval);
         }
     } // namespace _impl
 
@@ -181,7 +155,7 @@ namespace gridtools {
 
         \tparam Functos The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is not
-       called and will result in compilation error. The user is responsible for calling the proper Do overload)
+       called and will result in compilation error. The user is responsible for calling the proper apply overload)
         \tparam ReturnType Can be set or will be deduced from the first input argument
         \tparam Offi Offset along the i-direction (usually modified using at<...>)
         \tparam Offj Offset along the j-direction
@@ -194,9 +168,9 @@ namespace gridtools {
         int Offj = 0,
         int Offk = 0>
     struct call {
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
-            "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
-            "called stencil function");
+        GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
+            "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
+            "the called stencil function");
 
         /** This alias is used to move the computation at a certain offset
          */
@@ -234,7 +208,7 @@ namespace gridtools {
         GT_FUNCTION static typename get_result_type<Evaluator, Args...>::type with(
             Evaluator &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
+            GT_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
             typedef typename get_result_type<Evaluator, Args...>::type result_type;
@@ -363,7 +337,7 @@ namespace gridtools {
         \tparam Functor The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is
        not
-       called and will result in compilation error. The user is responsible for calling the proper Do overload)
+       called and will result in compilation error. The user is responsible for calling the proper apply overload)
         \tparam Offi Offset along the i-direction (usually modified using at<...>)
         \tparam Offj Offset along the j-direction
         \tparam Offk Offset along the k-direction
@@ -371,9 +345,9 @@ namespace gridtools {
     template <typename Functor, typename Region = void, int Offi = 0, int Offj = 0, int Offk = 0>
     struct call_proc {
 
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
-            "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
-            "called stencil function");
+        GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
+            "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
+            "the called stencil function");
 
         /** This alias is used to move the computation at a certain offset
          */

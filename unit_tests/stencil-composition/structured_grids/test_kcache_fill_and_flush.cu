@@ -1,100 +1,73 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include "kcache_fixture.hpp"
 #include "gtest/gtest.h"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
 using namespace expressions;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct shift_acc_forward_fill_and_flush {
 
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> in;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_high) {
         eval(in()) = eval(in()) + eval(in(0, 0, -1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(in()) = eval(in());
     }
 };
 
 struct shift_acc_backward_fill_and_flush {
 
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> in;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, 0, 1>> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_low) {
         eval(in()) = eval(in()) + eval(in(0, 0, 1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(in()) = eval(in());
     }
 };
 
 struct copy_fill {
 
-    typedef accessor<0, enumtype::inout> in;
+    typedef accessor<0, intent::inout> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+    GT_FUNCTION static void apply(Evaluation &eval, kfull) {
         eval(in()) = eval(in());
     }
 };
 
 struct scale_fill {
 
-    typedef accessor<0, enumtype::inout> in;
+    typedef accessor<0, intent::inout> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+    GT_FUNCTION static void apply(Evaluation &eval, kfull) {
         eval(in()) = 2 * eval(in());
     }
 };
@@ -114,14 +87,13 @@ TEST_F(kcachef, fill_and_flush_forward) {
 
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
-        gridtools::make_multistage // mss_descriptor
-        (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+        gridtools::make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill_and_flush>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -147,13 +119,13 @@ TEST_F(kcachef, fill_and_flush_backward) {
 
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
-        gridtools::make_multistage(execute<backward>(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+        gridtools::make_multistage(execute::backward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<shift_acc_backward_fill_and_flush>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -178,13 +150,13 @@ TEST_F(kcachef, fill_copy_forward) {
 
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
-        gridtools::make_multistage(execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+        gridtools::make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<copy_fill>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -209,13 +181,13 @@ TEST_F(kcachef, fill_scale_forward) {
 
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
-        gridtools::make_multistage(execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+        gridtools::make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<scale_fill>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -228,16 +200,16 @@ TEST_F(kcachef, fill_scale_forward) {
 
 struct do_nothing {
 
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 1>> in;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 1>> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kbody) {}
 };
 
 TEST_F(kcachef, fill_copy_forward_with_extent) {
@@ -256,13 +228,13 @@ TEST_F(kcachef, fill_copy_forward_with_extent) {
 
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
-        gridtools::make_multistage(execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+        gridtools::make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<do_nothing>(p_in())));
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);

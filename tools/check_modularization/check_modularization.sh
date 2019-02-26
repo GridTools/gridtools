@@ -25,6 +25,8 @@ no_dependency "common" "communication"
 no_dependency "common" "storage"
 no_dependency "common" "tools"
 no_dependency "common" "interface"
+no_dependency "common" "c_bindings"
+no_dependency "common" "distributed-boundaries"
 
 are_independent "stencil-composition" "boundary-conditions"
 are_independent "stencil-composition" "communication"
@@ -37,6 +39,11 @@ are_independent "boundary-conditions" "interface"
 
 are_independent "communication" "interface"
 are_independent "communication" "storage"
+
+are_independent "distributed-boundaries" "c_bindings"
+are_independent "distributed-boundaries" "stencil-composition"
+are_independent "distributed-boundaries" "interface"
+are_independent "distributed-boundaries" "tools"
 
 no_dependency "storage" "stencil-composition"
 no_dependency "storage" "boundary-conditions"

@@ -1,6 +1,6 @@
 if( COMPONENT_STENCIL_COMPOSITION )
 
-    if(NOT GT_TESTS_STRUCTURED_GRID)
+    if(GT_TESTS_ICOSAHEDRAL_GRID)
         add_subdirectory(icosahedral)
     else()
 
@@ -31,7 +31,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         foreach(srcfile IN LISTS SOURCES)
           add_executable(${srcfile}_x86_naive   ${srcfile}.cpp)
           target_link_libraries(${srcfile}_x86_naive regression_main GridToolsTestX86)
-          target_compile_definitions(${srcfile}_x86_naive PRIVATE BACKEND_STRATEGY_NAIVE)
+          target_compile_definitions(${srcfile}_x86_naive PRIVATE GT_BACKEND_STRATEGY_NAIVE)
 
           add_executable(${srcfile}_x86_block   ${srcfile}.cpp)
           target_link_libraries(${srcfile}_x86_block regression_main GridToolsTestX86)
@@ -163,5 +163,5 @@ if( COMPONENT_STENCIL_COMPOSITION )
         add_subdirectory( communication )
     endif()
 
-  endif(NOT GT_TESTS_STRUCTURED_GRID)
+  endif(GT_TESTS_ICOSAHEDRAL_GRID)
 endif( COMPONENT_STENCIL_COMPOSITION )

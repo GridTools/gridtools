@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include "../common/array.hpp"
@@ -236,7 +210,7 @@ namespace gridtools {
     of the boundary portion may be transposed w.r.t. the kernel
     configuration.
  */
-#define RUN_BC_ON(x, y, z)                                                                                         \
+#define GT_RUN_BC_ON(x, y, z)                                                                                      \
     if (predicate(direction<x, y, z>())) {                                                                         \
         auto const &shape = conf.shape(static_cast<int>(x) + 1, static_cast<int>(y) + 1, static_cast<int>(z) + 1); \
         if ((th[0] < shape.max()) && (th[1] < shape.median()) && (th[2] < shape.min())) {                          \
@@ -262,42 +236,44 @@ namespace gridtools {
             blockIdx.y * blockDim.y + threadIdx.y,
             blockIdx.z * blockDim.z + threadIdx.z};
 
-        RUN_BC_ON(minus_, minus_, minus_);
-        RUN_BC_ON(minus_, minus_, zero_);
-        RUN_BC_ON(minus_, minus_, plus_);
+        GT_RUN_BC_ON(minus_, minus_, minus_);
+        GT_RUN_BC_ON(minus_, minus_, zero_);
+        GT_RUN_BC_ON(minus_, minus_, plus_);
 
-        RUN_BC_ON(minus_, zero_, minus_);
-        RUN_BC_ON(minus_, zero_, zero_);
-        RUN_BC_ON(minus_, zero_, plus_);
+        GT_RUN_BC_ON(minus_, zero_, minus_);
+        GT_RUN_BC_ON(minus_, zero_, zero_);
+        GT_RUN_BC_ON(minus_, zero_, plus_);
 
-        RUN_BC_ON(minus_, plus_, minus_);
-        RUN_BC_ON(minus_, plus_, zero_);
-        RUN_BC_ON(minus_, plus_, plus_);
+        GT_RUN_BC_ON(minus_, plus_, minus_);
+        GT_RUN_BC_ON(minus_, plus_, zero_);
+        GT_RUN_BC_ON(minus_, plus_, plus_);
 
-        RUN_BC_ON(zero_, minus_, minus_);
-        RUN_BC_ON(zero_, minus_, zero_);
-        RUN_BC_ON(zero_, minus_, plus_);
+        GT_RUN_BC_ON(zero_, minus_, minus_);
+        GT_RUN_BC_ON(zero_, minus_, zero_);
+        GT_RUN_BC_ON(zero_, minus_, plus_);
 
-        RUN_BC_ON(zero_, zero_, minus_);
+        GT_RUN_BC_ON(zero_, zero_, minus_);
 
-        RUN_BC_ON(zero_, zero_, plus_);
+        GT_RUN_BC_ON(zero_, zero_, plus_);
 
-        RUN_BC_ON(zero_, plus_, minus_);
-        RUN_BC_ON(zero_, plus_, zero_);
-        RUN_BC_ON(zero_, plus_, plus_);
+        GT_RUN_BC_ON(zero_, plus_, minus_);
+        GT_RUN_BC_ON(zero_, plus_, zero_);
+        GT_RUN_BC_ON(zero_, plus_, plus_);
 
-        RUN_BC_ON(plus_, minus_, minus_);
-        RUN_BC_ON(plus_, minus_, zero_);
-        RUN_BC_ON(plus_, minus_, plus_);
+        GT_RUN_BC_ON(plus_, minus_, minus_);
+        GT_RUN_BC_ON(plus_, minus_, zero_);
+        GT_RUN_BC_ON(plus_, minus_, plus_);
 
-        RUN_BC_ON(plus_, zero_, minus_);
-        RUN_BC_ON(plus_, zero_, zero_);
-        RUN_BC_ON(plus_, zero_, plus_);
+        GT_RUN_BC_ON(plus_, zero_, minus_);
+        GT_RUN_BC_ON(plus_, zero_, zero_);
+        GT_RUN_BC_ON(plus_, zero_, plus_);
 
-        RUN_BC_ON(plus_, plus_, minus_);
-        RUN_BC_ON(plus_, plus_, zero_);
-        RUN_BC_ON(plus_, plus_, plus_);
+        GT_RUN_BC_ON(plus_, plus_, minus_);
+        GT_RUN_BC_ON(plus_, plus_, zero_);
+        GT_RUN_BC_ON(plus_, plus_, plus_);
     }
+
+#undef GT_RUN_BC_ON
 
     /**
        @brief definition of the functions which apply the boundary conditions (arbitrary functions having as argument
@@ -440,12 +416,12 @@ namespace gridtools {
         */
         template <typename Direction, typename... DataFieldViews>
         void apply_it(DataFieldViews &... data_field_views) const {
-            uint_t nx = halo_descriptors[0].loop_high_bound_outside(Direction::I) -
-                        halo_descriptors[0].loop_low_bound_outside(Direction::I) + 1;
-            uint_t ny = halo_descriptors[1].loop_high_bound_outside(Direction::J) -
-                        halo_descriptors[1].loop_low_bound_outside(Direction::J) + 1;
-            uint_t nz = halo_descriptors[2].loop_high_bound_outside(Direction::K) -
-                        halo_descriptors[2].loop_low_bound_outside(Direction::K) + 1;
+            uint_t nx = halo_descriptors[0].loop_high_bound_outside(Direction::i) -
+                        halo_descriptors[0].loop_low_bound_outside(Direction::i) + 1;
+            uint_t ny = halo_descriptors[1].loop_high_bound_outside(Direction::j) -
+                        halo_descriptors[1].loop_low_bound_outside(Direction::j) + 1;
+            uint_t nz = halo_descriptors[2].loop_high_bound_outside(Direction::k) -
+                        halo_descriptors[2].loop_low_bound_outside(Direction::k) + 1;
             uint_t nbx = (nx == 0) ? (1) : ((nx + ntx - 1) / ntx);
             uint_t nby = (ny == 0) ? (1) : ((ny + nty - 1) / nty);
             uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);
@@ -453,9 +429,9 @@ namespace gridtools {
             if (nx > 0 || ny > 0 || nz > 0)
                 loop_kernel<<<blocks, threads>>>(boundary_function,
                     Direction(),
-                    halo_descriptors[0].loop_low_bound_outside(Direction::I),
-                    halo_descriptors[1].loop_low_bound_outside(Direction::J),
-                    halo_descriptors[2].loop_low_bound_outside(Direction::K),
+                    halo_descriptors[0].loop_low_bound_outside(Direction::i),
+                    halo_descriptors[1].loop_low_bound_outside(Direction::j),
+                    halo_descriptors[2].loop_low_bound_outside(Direction::k),
                     nx,
                     ny,
                     nz,

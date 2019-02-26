@@ -6,7 +6,7 @@ fetch_x86_tests(sid LABELS unittest_x86)
 fetch_gpu_tests(sid LABELS unittest_cuda)
 
 # collect the grid specific test cases
-if (GT_TESTS_STRUCTURED_GRID)
+if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
     fetch_mc_tests(. LABELS unittest_mc)
 
     # collect the cache redcution and conditionals tests.
@@ -35,7 +35,7 @@ if (GT_TESTS_STRUCTURED_GRID)
         add_custom_x86_test(
             TARGET multi_types_naive_${var_suffix}
             SOURCES structured_grids/multi_types_test.cpp
-            COMPILE_DEFINITIONS FUNCTIONS_${variation} BACKEND_STRATEGY_NAIVE
+            COMPILE_DEFINITIONS FUNCTIONS_${variation} GT_BACKEND_STRATEGY_NAIVE
             )
 
         add_custom_mc_test(

@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <type_traits>
@@ -77,11 +51,11 @@
 
 /** Macro to enable additional checks that may catch some errors in user code
  */
-#ifndef PEDANTIC_DISABLED
-#define PEDANTIC
+#ifndef GT_PEDANTIC_DISABLED
+#define GT_PEDANTIC
 #endif
 
-#define RESTRICT __restrict__
+#define GT_RESTRICT __restrict__
 
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1
@@ -102,9 +76,10 @@
 #endif
 
 // max limit of indices for metastorages, beyond indices are reserved for library
-#ifndef META_STORAGE_INDEX_LIMIT
-#define META_STORAGE_INDEX_LIMIT 1000
+#ifndef GT_META_STORAGE_INDEX_LIMIT
+#define GT_META_STORAGE_INDEX_LIMIT 1000
 #endif
+static const unsigned int metastorage_library_indices_limit = GT_META_STORAGE_INDEX_LIMIT;
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -118,8 +93,8 @@ namespace gridtools {
 #endif
 
 // macro defining empty copy constructors and assignment operators
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-    TypeName(const TypeName &);            \
+#define GT_DISALLOW_COPY_AND_ASSIGN(TypeName) \
+    TypeName(const TypeName &);               \
     TypeName &operator=(const TypeName &)
 
 // check boost::optional workaround for CUDA9.2
@@ -153,35 +128,7 @@ namespace gridtools {
         struct block {};
     } // namespace strategy
 
-    /** tags specifying the type of grid to use */
-    namespace grid_type {
-        struct structured {};
-        struct icosahedral {};
-    } // namespace grid_type
-
-    /** \namespace enumtype
-       @brief enumeration types*/
-    namespace enumtype {
-        /**
-           @section enumtypes Gridtools enumeration types
-           @{
-         */
-
-        /*
-         * accessor I/O policy
-         */
-        enum intent { in, inout };
-
-#ifdef __CUDACC__
-        static const unsigned int vector_width = 32;
-#else
-        static const unsigned int vector_width = 4;
-#endif
-        static const unsigned int metastorage_library_indices_limit = META_STORAGE_INDEX_LIMIT;
-
-    } // namespace enumtype
-
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
+#define GT_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 
 #define GT_INTERNAL_ERROR                                                                                       \
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \

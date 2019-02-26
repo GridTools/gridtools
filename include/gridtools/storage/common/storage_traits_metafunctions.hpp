@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #pragma once
 
@@ -99,7 +73,7 @@ namespace gridtools {
      */
     template <uint_t Dim>
     struct get_layout<Dim, true> {
-        GRIDTOOLS_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
+        GT_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
         typedef typename _impl::layout_map_ext_asc<Dim - 3, 0, layout_map<Dim - 3, Dim - 2, Dim - 1>>::type type;
     };
 
@@ -116,7 +90,7 @@ namespace gridtools {
      */
     template <uint_t Dim>
     struct get_layout<Dim, false> {
-        GRIDTOOLS_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
+        GT_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
         typedef typename _impl::layout_map_ext_dsc<Dim - 1, layout_map<Dim - 1>>::type type;
     };
 
@@ -208,7 +182,7 @@ namespace gridtools {
     struct get_special_layout<layout_map<Dims...>, selector<Bitmask...>> {
         // <1,1,0,0,1,1>
         typedef typename variadic_to_vector<boost::mpl::int_<Bitmask>...>::type bitmask_vec;
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             (boost::mpl::count_if<bitmask_vec, boost::is_same<boost::mpl::int_<-1>, boost::mpl::_1>>::value <
                 sizeof...(Dims)),
             GT_INTERNAL_ERROR_MSG("Masking out all dimensions makes no sense."));

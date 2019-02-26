@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
@@ -41,7 +15,7 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace gridtools::enumtype;
+using namespace gridtools::execute;
 using namespace gridtools::expressions;
 
 namespace call_interface_functors {
@@ -53,9 +27,9 @@ namespace call_interface_functors {
     struct copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -64,9 +38,9 @@ namespace call_interface_functors {
         typedef inout_accessor<0, extent<>, 3> out;
         typedef in_accessor<1, extent<>, 3> in1;
         typedef in_accessor<2, extent<>, 3> in2;
-        typedef make_arg_list<out, in1, in2> arg_list;
+        typedef make_param_list<out, in1, in2> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in1()) + eval(in2());
         }
     };
@@ -76,9 +50,9 @@ namespace call_interface_functors {
     struct copy_functor_with_out_first {
         typedef inout_accessor<0, extent<>, 3> out;
         typedef in_accessor<1, extent<>, 3> in;
-        typedef make_arg_list<out, in> arg_list;
+        typedef make_param_list<out, in> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -86,9 +60,9 @@ namespace call_interface_functors {
     struct call_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor, x_interval>::with(eval, in());
         }
     };
@@ -96,9 +70,9 @@ namespace call_interface_functors {
     struct call_copy_functor_with_local_variable {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             float_type local = 1.;
             eval(out()) = call<copy_functor_with_add, x_interval>::with(eval, in(), local);
         }
@@ -107,9 +81,9 @@ namespace call_interface_functors {
     struct call_copy_functor_with_local_variable2 {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef boost::mpl::vector<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             float_type local = 1.;
             eval(out()) = call<copy_functor_with_add, x_interval>::with(eval, local, in());
         }
@@ -118,9 +92,9 @@ namespace call_interface_functors {
     struct call_copy_functor_with_out_first {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor_with_out_first, x_interval>::with(eval, in());
         }
     };
@@ -128,9 +102,9 @@ namespace call_interface_functors {
     struct copy_functor_with_expression {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in() + 0.);
         }
     };
@@ -138,9 +112,9 @@ namespace call_interface_functors {
     struct call_copy_functor_with_expression {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor_with_expression, x_interval>::with(eval, in());
         }
     };
@@ -148,9 +122,9 @@ namespace call_interface_functors {
     struct call_at_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor, x_interval>::at<1, 1, 0>::with(eval, in());
         }
     };
@@ -158,9 +132,9 @@ namespace call_interface_functors {
     struct call_with_offsets_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor, x_interval>::with(eval, in(1, 1, 0));
         }
     };
@@ -168,9 +142,9 @@ namespace call_interface_functors {
     struct copy_functor_default_interval {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -178,9 +152,9 @@ namespace call_interface_functors {
     struct call_copy_functor_default_interval {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = call<copy_functor_default_interval>::with(eval, in());
         }
     };
@@ -188,9 +162,9 @@ namespace call_interface_functors {
     struct call_copy_functor_default_interval_from_smaller_interval {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, smaller_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, smaller_interval) {
             eval(out()) = call<copy_functor_default_interval>::with(eval, in());
         }
     };
@@ -198,9 +172,9 @@ namespace call_interface_functors {
     struct call_copy_functor_default_interval_with_offset_in_k {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = call<copy_functor_default_interval>::at<0, 0, -1>::with(eval, in(0, 0, 1));
         }
     };
@@ -208,9 +182,9 @@ namespace call_interface_functors {
     struct call_at_with_offsets_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor, x_interval>::at<-1, -1, 0>::with(eval, in(1, 1, 0));
         }
     };
@@ -218,9 +192,9 @@ namespace call_interface_functors {
     struct call_call_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_copy_functor, x_interval>::with(eval, in());
         }
     };
@@ -228,9 +202,9 @@ namespace call_interface_functors {
     struct call_call_at_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_at_copy_functor, x_interval>::with(eval, in());
         }
     };
@@ -238,9 +212,9 @@ namespace call_interface_functors {
     struct call_call_with_offsets_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_with_offsets_copy_functor, x_interval>::with(eval, in());
         }
     };
@@ -248,9 +222,9 @@ namespace call_interface_functors {
     struct call_at_call_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_copy_functor, x_interval>::at<1, 1, 0>::with(eval, in());
         }
     };
@@ -258,9 +232,9 @@ namespace call_interface_functors {
     struct call_at_call_at_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_at_copy_functor, x_interval>::at<-1, -1, 0>::with(eval, in());
         }
     };
@@ -268,9 +242,9 @@ namespace call_interface_functors {
     struct call_with_offsets_call_at_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_at_copy_functor, x_interval>::with(eval, in(-1, -1, 0));
         }
     };
@@ -278,9 +252,9 @@ namespace call_interface_functors {
     struct call_at_call_with_offsets_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_with_offsets_copy_functor, x_interval>::at<-1, -1, 0>::with(eval, in());
         }
     };
@@ -288,9 +262,9 @@ namespace call_interface_functors {
     struct call_with_offsets_call_with_offsets_copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_with_offsets_copy_functor, x_interval>::with(eval, in(-1, -1, 0));
         }
     };
@@ -331,7 +305,7 @@ class call_interface : public testing::Test {
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
           dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
           grid(make_grid(di, dj, call_interface_functors::axis_t(d3))),
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
           verifier_(1e-12),
@@ -360,7 +334,7 @@ class call_interface : public testing::Test {
 TEST_F(call_interface, call_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<call_interface_functors::call_copy_functor>(p_in(), p_out())));
+            execute::forward(), gridtools::make_stage<call_interface_functors::call_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
 
@@ -369,7 +343,7 @@ TEST_F(call_interface, call_to_copy_functor) {
 
 TEST_F(call_interface, call_to_copy_functor_with_local_variable) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_copy_functor_with_local_variable>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -379,7 +353,7 @@ TEST_F(call_interface, call_to_copy_functor_with_local_variable) {
 
 TEST_F(call_interface, call_to_copy_functor_with_local_variable2) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_copy_functor_with_local_variable2>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -389,7 +363,7 @@ TEST_F(call_interface, call_to_copy_functor_with_local_variable2) {
 
 TEST_F(call_interface, call_to_copy_functor_with_out_first) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_copy_functor_with_out_first>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -399,7 +373,7 @@ TEST_F(call_interface, call_to_copy_functor_with_out_first) {
 
 TEST_F(call_interface, call_to_copy_functor_with_expression) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_copy_functor_with_expression>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -410,7 +384,7 @@ TEST_F(call_interface, call_to_copy_functor_with_expression) {
 TEST_F(call_interface, call_at_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<call_interface_functors::call_at_copy_functor>(p_in(), p_out())));
+            execute::forward(), gridtools::make_stage<call_interface_functors::call_at_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
 
@@ -419,7 +393,7 @@ TEST_F(call_interface, call_at_to_copy_functor) {
 
 TEST_F(call_interface, call_with_offsets_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_with_offsets_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -429,7 +403,7 @@ TEST_F(call_interface, call_with_offsets_to_copy_functor) {
 
 TEST_F(call_interface, call_at_with_offsets_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_at_with_offsets_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -439,7 +413,7 @@ TEST_F(call_interface, call_at_with_offsets_to_copy_functor) {
 
 TEST_F(call_interface, call_to_copy_functor_default_interval) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_copy_functor_default_interval>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -449,7 +423,7 @@ TEST_F(call_interface, call_to_copy_functor_default_interval) {
 
 TEST_F(call_interface, call_to_copy_functor_default_interval_from_smaller_interval) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_copy_functor_default_interval_from_smaller_interval>(
                 p_in(), p_out())));
 
@@ -460,7 +434,7 @@ TEST_F(call_interface, call_to_copy_functor_default_interval_from_smaller_interv
 
 TEST_F(call_interface, call_to_copy_functor_default_interval_with_offset_in_k) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_copy_functor_default_interval_with_offset_in_k>(
                 p_in(), p_out())));
 
@@ -471,7 +445,7 @@ TEST_F(call_interface, call_to_copy_functor_default_interval_with_offset_in_k) {
 
 TEST_F(call_interface, call_to_call_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_call_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -481,7 +455,7 @@ TEST_F(call_interface, call_to_call_to_copy_functor) {
 
 TEST_F(call_interface, call_to_call_at_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_call_at_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -491,7 +465,7 @@ TEST_F(call_interface, call_to_call_at_to_copy_functor) {
 
 TEST_F(call_interface, call_to_call_with_offsets_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_call_with_offsets_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -501,7 +475,7 @@ TEST_F(call_interface, call_to_call_with_offsets_to_copy_functor) {
 
 TEST_F(call_interface, call_at_to_call_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_at_call_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -511,7 +485,7 @@ TEST_F(call_interface, call_at_to_call_to_copy_functor) {
 
 TEST_F(call_interface, call_at_to_call_at_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_at_call_at_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -521,7 +495,7 @@ TEST_F(call_interface, call_at_to_call_at_to_copy_functor) {
 
 TEST_F(call_interface, call_with_offsets_to_call_at_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_with_offsets_call_at_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -531,7 +505,7 @@ TEST_F(call_interface, call_with_offsets_to_call_at_to_copy_functor) {
 
 TEST_F(call_interface, call_at_to_call_with_offsets_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_at_call_with_offsets_copy_functor>(p_in(), p_out())));
 
     execute_computation(comp);
@@ -541,7 +515,7 @@ TEST_F(call_interface, call_at_to_call_with_offsets_to_copy_functor) {
 
 TEST_F(call_interface, call_with_offsets_to_call_with_offsets_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_interface_functors::call_with_offsets_call_with_offsets_copy_functor>(
                 p_in(), p_out())));
 
@@ -557,9 +531,9 @@ namespace call_proc_interface_functors {
     struct copy_functor {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -567,9 +541,9 @@ namespace call_proc_interface_functors {
     struct copy_functor_with_expression {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in() + 0.);
         }
     };
@@ -577,9 +551,9 @@ namespace call_proc_interface_functors {
     struct call_copy_functor_with_expression {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_functor_with_expression, x_interval>::with(eval, in(), out());
         }
     };
@@ -588,9 +562,9 @@ namespace call_proc_interface_functors {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out1;
         typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_arg_list<in, out1, out2> arg_list;
+        typedef make_param_list<in, out1, out2> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out1()) = eval(in());
             eval(out2()) = eval(in());
         }
@@ -600,9 +574,9 @@ namespace call_proc_interface_functors {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out1;
         typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_arg_list<in, out1, out2> arg_list;
+        typedef make_param_list<in, out1, out2> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_twice_functor, x_interval>::with(eval, in(), out1(), out2());
         }
     };
@@ -611,9 +585,9 @@ namespace call_proc_interface_functors {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out1;
         typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_arg_list<in, out1, out2> arg_list;
+        typedef make_param_list<in, out1, out2> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_twice_functor, x_interval>::with(eval, in(1, 1, 0), out1(), out2());
         }
     };
@@ -622,9 +596,9 @@ namespace call_proc_interface_functors {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out1;
         typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_arg_list<in, out1, out2> arg_list;
+        typedef make_param_list<in, out1, out2> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_twice_functor, x_interval>::at<1, 1, 0>::with(
                 eval, in(), out1(-1, -1, 0), out2(-1, -1, 0)); // outs are at the original position
         }
@@ -633,9 +607,9 @@ namespace call_proc_interface_functors {
     struct copy_functor_default_interval {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -643,9 +617,9 @@ namespace call_proc_interface_functors {
     struct call_copy_functor_default_interval {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             call_proc<copy_functor_default_interval>::with(eval, in(), out());
         }
     };
@@ -653,9 +627,9 @@ namespace call_proc_interface_functors {
     struct call_copy_functor_default_interval_with_offset_in_k {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_functor_default_interval>::at<0, 0, -1>::with(eval, in(0, 0, 1), out(0, 0, 1));
         }
     };
@@ -664,9 +638,9 @@ namespace call_proc_interface_functors {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out1;
         typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_arg_list<in, out1, out2> arg_list;
+        typedef make_param_list<in, out1, out2> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<call_copy_twice_functor, x_interval>::with(eval, in(), out1(), out2());
         }
     };
@@ -675,9 +649,9 @@ namespace call_proc_interface_functors {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out1;
         typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_arg_list<in, out1, out2> arg_list;
+        typedef make_param_list<in, out1, out2> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<call_copy_twice_functor, x_interval>::with(eval, in(1, 1, 0), out1(), out2());
         }
     };
@@ -686,9 +660,9 @@ namespace call_proc_interface_functors {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out1;
         typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_arg_list<in, out1, out2> arg_list;
+        typedef make_param_list<in, out1, out2> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<call_with_offsets_copy_twice_functor, x_interval>::with(eval, in(-1, -1, 0), out1(), out2());
         }
     };
@@ -697,9 +671,9 @@ namespace call_proc_interface_functors {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out1;
         typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_arg_list<in, out1, out2> arg_list;
+        typedef make_param_list<in, out1, out2> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             double local_in = 1;
             double local_out = -1;
 
@@ -713,9 +687,9 @@ namespace call_proc_interface_functors {
 
     struct functor_where_index_of_accessor_is_shifted_inner {
         typedef inout_accessor<0, extent<>, 3> out;
-        typedef make_arg_list<out> arg_list;
+        typedef make_param_list<out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = 1.;
         }
     };
@@ -723,18 +697,18 @@ namespace call_proc_interface_functors {
     struct functor_where_index_of_accessor_is_shifted {
         typedef inout_accessor<0, extent<>, 3> local_out;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_arg_list<local_out, out> arg_list;
+        typedef make_param_list<local_out, out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<functor_where_index_of_accessor_is_shifted_inner, x_interval>::with(eval, out());
         }
     };
 
     struct call_with_nested_calls_and_shifted_accessor_index {
         typedef inout_accessor<0, extent<>, 3> out;
-        typedef make_arg_list<out> arg_list;
+        typedef make_param_list<out> param_list;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             double local_out;
             call_proc<functor_where_index_of_accessor_is_shifted, x_interval>::with(eval, local_out, out());
         }
@@ -775,7 +749,7 @@ class call_proc_interface : public testing::Test {
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
           dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
           grid(make_grid(di, dj, call_proc_interface_functors::axis_t(d3))),
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
           verifier_(1e-12),
@@ -799,7 +773,7 @@ TEST_F(call_proc_interface, call_to_copy_functor_with_expression) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in{} = in,
         p_out1{} = out1,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_copy_functor_with_expression>(p_in(), p_out1())));
 
     execute_computation(comp);
@@ -812,7 +786,7 @@ TEST_F(call_proc_interface, call_to_copy_twice_functor) {
         p_in{} = in,
         p_out1{} = out1,
         p_out2{} = out2,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_copy_twice_functor>(p_in(), p_out1(), p_out2())));
 
     execute_computation(comp);
@@ -826,7 +800,7 @@ TEST_F(call_proc_interface, call_with_offsets_to_copy_twice_functor) {
         p_in{} = in,
         p_out1{} = out1,
         p_out2{} = out2,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_with_offsets_copy_twice_functor>(
                 p_in(), p_out1(), p_out2())));
 
@@ -841,7 +815,7 @@ TEST_F(call_proc_interface, call_at_with_offsets_to_copy_twice_functor) {
         p_in{} = in,
         p_out1{} = out1,
         p_out2{} = out2,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_at_with_offsets_copy_twice_functor>(
                 p_in(), p_out1(), p_out2())));
 
@@ -855,7 +829,7 @@ TEST_F(call_proc_interface, call_to_copy_functor_default_interval) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in{} = in,
         p_out1{} = out1,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_copy_functor_default_interval>(p_in(), p_out1())));
 
     execute_computation(comp);
@@ -867,7 +841,7 @@ TEST_F(call_proc_interface, call_to_copy_functor_default_interval_with_offset_in
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in{} = in,
         p_out1{} = out1,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_copy_functor_default_interval_with_offset_in_k>(
                 p_in(), p_out1())));
 
@@ -881,7 +855,7 @@ TEST_F(call_proc_interface, call_to_call_to_copy_twice_functor) {
         p_in{} = in,
         p_out1{} = out1,
         p_out2{} = out2,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_call_copy_twice_functor>(
                 p_in(), p_out1(), p_out2())));
 
@@ -896,7 +870,7 @@ TEST_F(call_proc_interface, call_with_offsets_to_call_to_copy_twice_functor) {
         p_in{} = in,
         p_out1{} = out1,
         p_out2{} = out2,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_with_offsets_call_copy_twice_functor>(
                 p_in(), p_out1(), p_out2())));
 
@@ -911,7 +885,7 @@ TEST_F(call_proc_interface, call_with_offsets_to_call_with_offsets_to_copy_twice
         p_in{} = in,
         p_out1{} = out1,
         p_out2{} = out2,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_with_offsets_call_with_offsets_copy_twice_functor>(
                 p_in(), p_out1(), p_out2())));
 
@@ -926,7 +900,7 @@ TEST_F(call_proc_interface, call_using_local_variables) {
         p_in{} = in,
         p_out1{} = out1,
         p_out2{} = out2,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_with_local_variable>(p_in(), p_out1(), p_out2())));
 
     execute_computation(comp);
@@ -937,7 +911,7 @@ TEST_F(call_proc_interface, call_using_local_variables) {
 TEST_F(call_proc_interface, call_using_local_variables_and_nested_call) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_out1{} = out1,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<call_proc_interface_functors::call_with_nested_calls_and_shifted_accessor_index>(
                 p_out1())));
 

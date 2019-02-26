@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 /** \addtogroup common
     @{
@@ -124,8 +98,8 @@
 
 #ifndef GT_TARGET_ITERATING
 //// DON'T USE #pragma once HERE!!!
-#ifndef GRIDTOOLS_COMMON_TUPLE_UTIL_HPP_
-#define GRIDTOOLS_COMMON_TUPLE_UTIL_HPP_
+#ifndef GT_COMMON_TUPLE_UTIL_HPP_
+#define GT_COMMON_TUPLE_UTIL_HPP_
 
 #include <array>
 #include <tuple>
@@ -142,7 +116,7 @@
 #include "pair.hpp"
 
 #define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                              \
-    template <class... Args>                                                                                        \
+    template <class... Args, enable_if_t<std::is_constructible<decltype(member_name), Args &&...>::value, int> = 0> \
     constexpr GT_FUNCTION class_name(Args &&... args) noexcept : member_name{const_expr::forward<Args>(args)...} {} \
     GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name);                                                                      \
     class_name(class_name const &) = default;                                                                       \
@@ -385,7 +359,7 @@ namespace gridtools {
 #include GT_ITERATE_ON_TARGETS()
 #undef GT_FILENAME
 
-#endif // GRIDTOOLS_COMMON_TUPLE_UTIL_HPP_
+#endif // GT_COMMON_TUPLE_UTIL_HPP_
 #else  // GT_TARGET_ITERATING
 
 namespace gridtools {
@@ -560,7 +534,7 @@ namespace gridtools {
                         class First = GT_META_CALL(meta::first, GT_META_CALL(to_types, Tup)),
                         class Res = GT_META_CALL(from_types, (First, GT_META_CALL(meta::flatten, Accessors)))>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
-                        GRIDTOOLS_STATIC_ASSERT(size<decay_t<Tup>>::value != 0, "can not flatten empty tuple");
+                        GT_STATIC_ASSERT(size<decay_t<Tup>>::value != 0, "can not flatten empty tuple");
                         using generators = GT_META_CALL(meta::flatten,
                             (GT_META_CALL(meta::transform,
                                 (get_inner_generators, GT_META_CALL(meta::make_indices_for, Accessors), Accessors))));
@@ -807,7 +781,7 @@ namespace gridtools {
                             meta::transform, (get_inner_tuple_f<Tup>::template apply, Types)),
                         class Res = GT_META_CALL(from_types, (First, InnerTuples))>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
-                        GRIDTOOLS_STATIC_ASSERT(
+                        GT_STATIC_ASSERT(
                             tuple_util::size<decay_t<Tup>>::value, "tuple_util::transpose input should not be empty");
                         using inner_indices_t = GT_META_CALL(meta::make_indices_for, GT_META_CALL(to_types, First));
                         using generators_t = GT_META_CALL(meta::transform, (get_generator, inner_indices_t));

@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <boost/mpl/count_if.hpp>
@@ -52,11 +26,11 @@ namespace gridtools {
         template <typename Functor>
         struct _get_index_of_first_non_const {
 
-            typedef typename boost::mpl::find_if<typename Functor::arg_list,
+            typedef typename boost::mpl::find_if<typename Functor::param_list,
                 is_accessor_written<typename boost::mpl::_>>::type iter;
 
             typedef typename boost::mpl::if_<
-                typename boost::is_same<iter, typename boost::mpl::end<typename Functor::arg_list>::type>::type,
+                typename boost::is_same<iter, typename boost::mpl::end<typename Functor::param_list>::type>::type,
                 boost::mpl::int_<-1>,
                 typename iter::pos>::type result;
 
@@ -72,8 +46,9 @@ namespace gridtools {
         */
         template <typename Functor>
         struct can_be_a_function {
-            typedef typename boost::mpl::count_if<typename Functor::arg_list, is_accessor_written<boost::mpl::_>>::type
-                type;
+            typedef
+                typename boost::mpl::count_if<typename Functor::param_list, is_accessor_written<boost::mpl::_>>::type
+                    type;
 
             static const bool value = type::value == 1;
         };

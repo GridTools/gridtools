@@ -1,38 +1,12 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #pragma once
 
@@ -104,12 +78,12 @@ namespace gridtools {
          * @param own ownership information (external CPU pointer, or external GPU pointer)
          */
         explicit cuda_storage(uint_t size, DataType *external_ptr, ownership own)
-            : m_gpu_ptr_holder(own != ownership::ExternalGPU ? cuda_util::cuda_malloc<DataType>(size)
-                                                             : cuda_util::unique_cuda_ptr<DataType>()),
-              m_cpu_ptr_holder(own == ownership::ExternalCPU ? nullptr : new DataType[size]),
-              m_gpu_ptr(own == ownership::ExternalGPU ? external_ptr : m_gpu_ptr_holder.get()),
-              m_cpu_ptr(own == ownership::ExternalCPU ? external_ptr : m_cpu_ptr_holder.get()),
-              m_state{own != ownership::ExternalCPU, own != ownership::ExternalGPU}, m_size{size} {
+            : m_gpu_ptr_holder(own != ownership::external_gpu ? cuda_util::cuda_malloc<DataType>(size)
+                                                              : cuda_util::unique_cuda_ptr<DataType>()),
+              m_cpu_ptr_holder(own == ownership::external_cpu ? nullptr : new DataType[size]),
+              m_gpu_ptr(own == ownership::external_gpu ? external_ptr : m_gpu_ptr_holder.get()),
+              m_cpu_ptr(own == ownership::external_cpu ? external_ptr : m_cpu_ptr_holder.get()),
+              m_state{own != ownership::external_cpu, own != ownership::external_gpu}, m_size{size} {
             assert(external_ptr);
         }
 
@@ -145,7 +119,7 @@ namespace gridtools {
          * @return device pointer
          */
         DataType *get_gpu_ptr() const {
-            ASSERT_OR_THROW(m_gpu_ptr, "This storage has never been initialized.");
+            GT_ASSERT_OR_THROW(m_gpu_ptr, "This storage has never been initialized.");
             return m_gpu_ptr;
         }
 
@@ -154,7 +128,7 @@ namespace gridtools {
          * @return host pointer
          */
         DataType *get_cpu_ptr() const {
-            ASSERT_OR_THROW(m_cpu_ptr, "This storage has never been initialized.");
+            GT_ASSERT_OR_THROW(m_cpu_ptr, "This storage has never been initialized.");
             return m_cpu_ptr;
         }
 
@@ -162,8 +136,8 @@ namespace gridtools {
          * @brief clone_to_device implementation for cuda_storage.
          */
         void clone_to_device_impl() {
-            ASSERT_OR_THROW(m_cpu_ptr, "CPU pointer seems not initialized.");
-            ASSERT_OR_THROW(m_gpu_ptr, "GPU pointer seems not initialized.");
+            GT_ASSERT_OR_THROW(m_cpu_ptr, "CPU pointer seems not initialized.");
+            GT_ASSERT_OR_THROW(m_gpu_ptr, "GPU pointer seems not initialized.");
 
             GT_CUDA_CHECK(cudaMemcpy(m_gpu_ptr, m_cpu_ptr, m_size * sizeof(DataType), cudaMemcpyHostToDevice));
             m_state = {};
@@ -185,7 +159,7 @@ namespace gridtools {
             if (!m_state.m_hnu && !m_state.m_dnu)
                 return;
             // invalid state occurs when both host and device would need an update.
-            ASSERT_OR_THROW((m_state.m_hnu ^ m_state.m_dnu), "invalid state detected.");
+            GT_ASSERT_OR_THROW((m_state.m_hnu ^ m_state.m_dnu), "invalid state detected.");
             // sync
             if (m_state.m_hnu) { // if host needs update clone the data from the device
                 this->clone_from_device();
@@ -208,7 +182,7 @@ namespace gridtools {
          * @brief reactivate_device_write_views implementation for cuda_storage.
          */
         void reactivate_device_write_views_impl() {
-            ASSERT_OR_THROW(!m_state.m_dnu, "host views are in write mode");
+            GT_ASSERT_OR_THROW(!m_state.m_dnu, "host views are in write mode");
             m_state.m_hnu = 1;
         }
 
@@ -216,7 +190,7 @@ namespace gridtools {
          * @brief reactivate_host_write_views implementation for cuda_storage.
          */
         void reactivate_host_write_views_impl() {
-            ASSERT_OR_THROW(!m_state.m_hnu, "device views are in write mode");
+            GT_ASSERT_OR_THROW(!m_state.m_hnu, "device views are in write mode");
             m_state.m_dnu = 1;
         }
 

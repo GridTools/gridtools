@@ -1,44 +1,18 @@
 /*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execute;
 
 constexpr int level_offset_limit = 1;
 
@@ -48,86 +22,86 @@ using level_t = level<Splitter, Offset, level_offset_limit>;
 typedef interval<level_t<0, -1>, level_t<1, -1>> x_interval;
 
 struct functor0 {
-    typedef accessor<0, enumtype::in, extent<0, 0, -1, 3, -2, 0>> in0;
-    typedef accessor<1, enumtype::in, extent<-1, 1, 0, 2, -1, 2>> in1;
-    typedef accessor<2, enumtype::in, extent<-3, 3, -1, 2, 0, 1>> in2;
-    typedef accessor<3, enumtype::inout> out;
+    typedef accessor<0, intent::in, extent<0, 0, -1, 3, -2, 0>> in0;
+    typedef accessor<1, intent::in, extent<-1, 1, 0, 2, -1, 2>> in1;
+    typedef accessor<2, intent::in, extent<-3, 3, -1, 2, 0, 1>> in2;
+    typedef accessor<3, intent::inout> out;
 
-    typedef make_arg_list<in0, in1, in2, out> arg_list;
+    typedef make_param_list<in0, in1, in2, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor1 {
-    typedef accessor<0, enumtype::in, extent<0, 1, -1, 2, 0, 0>> in0;
-    typedef accessor<1, enumtype::inout> out;
-    typedef accessor<2, enumtype::in, extent<-3, 0, -3, 0, 0, 2>> in2;
-    typedef accessor<3, enumtype::in, extent<0, 2, 0, 2, -2, 3>> in3;
+    typedef accessor<0, intent::in, extent<0, 1, -1, 2, 0, 0>> in0;
+    typedef accessor<1, intent::inout> out;
+    typedef accessor<2, intent::in, extent<-3, 0, -3, 0, 0, 2>> in2;
+    typedef accessor<3, intent::in, extent<0, 2, 0, 2, -2, 3>> in3;
 
-    typedef make_arg_list<in0, out, in2, in3> arg_list;
+    typedef make_param_list<in0, out, in2, in3> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor2 {
-    typedef accessor<0, enumtype::in, extent<-3, 3, -1, 0, -2, 1>> in0;
-    typedef accessor<1, enumtype::in, extent<-3, 1, -2, 1, 0, 2>> in1;
-    typedef accessor<2, enumtype::inout> out;
+    typedef accessor<0, intent::in, extent<-3, 3, -1, 0, -2, 1>> in0;
+    typedef accessor<1, intent::in, extent<-3, 1, -2, 1, 0, 2>> in1;
+    typedef accessor<2, intent::inout> out;
 
-    typedef make_arg_list<in0, in1, out> arg_list;
+    typedef make_param_list<in0, in1, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor3 {
-    typedef accessor<0, enumtype::in, extent<0, 3, 0, 1, -2, 0>> in0;
-    typedef accessor<1, enumtype::in, extent<-2, 3, 0, 2, -3, 1>> in1;
-    typedef accessor<2, enumtype::inout> out;
-    typedef accessor<3, enumtype::in, extent<-1, 3, -3, 0, -3, 2>> in3;
+    typedef accessor<0, intent::in, extent<0, 3, 0, 1, -2, 0>> in0;
+    typedef accessor<1, intent::in, extent<-2, 3, 0, 2, -3, 1>> in1;
+    typedef accessor<2, intent::inout> out;
+    typedef accessor<3, intent::in, extent<-1, 3, -3, 0, -3, 2>> in3;
 
-    typedef make_arg_list<in0, in1, out, in3> arg_list;
+    typedef make_param_list<in0, in1, out, in3> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor4 {
-    typedef accessor<0, enumtype::in, extent<0, 3, -2, 1, -3, 2>> in0;
-    typedef accessor<1, enumtype::in, extent<-2, 3, 0, 3, -3, 2>> in1;
-    typedef accessor<2, enumtype::in, extent<-1, 1, 0, 3, 0, 3>> in2;
-    typedef accessor<3, enumtype::inout> out;
+    typedef accessor<0, intent::in, extent<0, 3, -2, 1, -3, 2>> in0;
+    typedef accessor<1, intent::in, extent<-2, 3, 0, 3, -3, 2>> in1;
+    typedef accessor<2, intent::in, extent<-1, 1, 0, 3, 0, 3>> in2;
+    typedef accessor<3, intent::inout> out;
 
-    typedef make_arg_list<in0, in1, in2, out> arg_list;
+    typedef make_param_list<in0, in1, in2, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor5 {
-    typedef accessor<0, enumtype::in, extent<-3, 1, -1, 2, -1, 1>> in0;
-    typedef accessor<1, enumtype::in, extent<0, 1, -2, 2, 0, 3>> in1;
-    typedef accessor<2, enumtype::in, extent<0, 2, 0, 3, -1, 2>> in2;
-    typedef accessor<3, enumtype::inout> out;
+    typedef accessor<0, intent::in, extent<-3, 1, -1, 2, -1, 1>> in0;
+    typedef accessor<1, intent::in, extent<0, 1, -2, 2, 0, 3>> in1;
+    typedef accessor<2, intent::in, extent<0, 2, 0, 3, -1, 2>> in2;
+    typedef accessor<3, intent::inout> out;
 
-    typedef make_arg_list<in0, in1, in2, out> arg_list;
+    typedef make_param_list<in0, in1, in2, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor6 {
-    typedef accessor<0, enumtype::inout> out;
-    typedef accessor<1, enumtype::in, extent<0, 3, -3, 2, 0, 0>> in1;
-    typedef accessor<2, enumtype::in, extent<-3, 2, 0, 2, -1, 2>> in2;
-    typedef accessor<3, enumtype::in, extent<-1, 0, -1, 0, -1, 3>> in3;
+    typedef accessor<0, intent::inout> out;
+    typedef accessor<1, intent::in, extent<0, 3, -3, 2, 0, 0>> in1;
+    typedef accessor<2, intent::in, extent<-3, 2, 0, 2, -1, 2>> in2;
+    typedef accessor<3, intent::in, extent<-1, 0, -1, 0, -1, 3>> in3;
 
-    typedef make_arg_list<out, in1, in2, in3> arg_list;
+    typedef make_param_list<out, in1, in2, in3> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 std::ostream &operator<<(std::ostream &s, functor0) { return s << "functor0"; }
@@ -160,7 +134,7 @@ int main() {
     typedef decltype(make_stage<functor4>(o0(), o1(), o3(), o4())) functor4__;
     typedef decltype(make_stage<functor5>(in3(), o4(), in0(), o5())) functor5__;
     typedef decltype(make_stage<functor6>(o6(), o5(), in1(), in2())) functor6__;
-    typedef decltype(make_multistage(execute<forward>(),
+    typedef decltype(make_multistage(execute::forward(),
         functor0__(),
         functor1__(),
         functor2__(),
@@ -168,39 +142,31 @@ int main() {
         functor4__(),
         functor5__(),
         functor6__())) mss_t;
-    typedef make_arg_list<o0, o1, o2, o3, o4, o5, o6, in0, in1, in2, in3> placeholders;
+    typedef make_param_list<o0, o1, o2, o3, o4, o5, o6, in0, in1, in2, in3> placeholders;
 
     typedef compute_extents_of<init_map_of_extents<placeholders>::type>::for_mss<mss_t>::type final_map;
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o0>::type, extent<-5, 11, -10, 10, -5, 13>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, extent<-5, 11, -10, 10, -5, 13>>::type::value),
         "o0 extent<-5, 11, -10, 10, -5, 13> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o1>::type, extent<-5, 9, -10, 8, -3, 10>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o1>::type, extent<-5, 9, -10, 8, -3, 10>>::type::value),
         "o1 extent<-5, 9, -10, 8, -3, 10> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o2>::type, extent<-2, 8, -8, 7, -3, 8>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o2>::type, extent<-2, 8, -8, 7, -3, 8>>::type::value),
         "o2 extent<-2, 8, -8, 7, -3, 8> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o3>::type, extent<-1, 5, -5, 7, 0, 6>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o3>::type, extent<-1, 5, -5, 7, 0, 6>>::type::value),
         "o3 extent<-1, 5, -5, 7, 0, 6> ");
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o4>::type, extent<0, 4, -5, 4, 0, 3>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o4>::type, extent<0, 4, -5, 4, 0, 3>>::type::value),
         "o4 extent<0, 4, -5, 4, 0, 3> ");
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o5>::type, extent<0, 3, -3, 2, 0, 0>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o5>::type, extent<0, 3, -3, 2, 0, 0>>::type::value),
         "o5 extent<0, 3, -3, 2, 0, 0> ");
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o6>::type, extent<0, 0, 0, 0, 0, 0>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o6>::type, extent<0, 0, 0, 0, 0, 0>>::type::value),
         "o6 extent<0, 0, 0, 0, 0, 0> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in0>::type, extent<-8, 11, -13, 13, -7, 13>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in0>::type, extent<-8, 11, -13, 13, -7, 13>>::type::value),
         "in0 extent<-8, 11, -13, 13, -7, 13> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in1>::type, extent<-6, 12, -10, 12, -6, 15>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in1>::type, extent<-6, 12, -10, 12, -6, 15>>::type::value),
         "in1 extent<-6, 12, -10, 12, -6, 15> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in2>::type, extent<-8, 14, -11, 12, -5, 14>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in2>::type, extent<-8, 14, -11, 12, -5, 14>>::type::value),
         "in2 extent<-8, 14, -11, 12, -5, 14> ");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in3>::type, extent<-5, 10, -11, 10, -3, 10>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in3>::type, extent<-5, 10, -11, 10, -3, 10>>::type::value),
         "in3 extent<-5, 10, -11, 10, -3, 10> ");
     /* total placeholders (rounded to 10) _SIZE = 20*/
     return 0;
