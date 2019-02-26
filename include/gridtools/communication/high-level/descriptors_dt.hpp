@@ -338,12 +338,12 @@ namespace gridtools {
                 for (int i = -1; i <= 1; ++i)
                     for (int j = -1; j <= 1; ++j)
                         for (int k = -1; k <= 1; ++k) {
-                            if (!descriptor.send_buffer[translate()(i, j, k)])
+                            if (i != 0 || j != 0 || k != 0) {
                                 _impl::gcl_alloc<DataType, arch_type>::free(
                                     descriptor.send_buffer[translate()(i, j, k)]);
-                            if (!descriptor.recv_buffer[translate()(i, j, k)])
                                 _impl::gcl_alloc<DataType, arch_type>::free(
                                     descriptor.recv_buffer[translate()(i, j, k)]);
+                            }
                         }
             }
         };
@@ -618,10 +618,10 @@ namespace gridtools {
             for (int i = -1; i <= 1; ++i)
                 for (int j = -1; j <= 1; ++j)
                     for (int k = -1; k <= 1; ++k) {
-                        if (!send_buffer[translate()(i, j, k)])
+                        if (i != 0 || j != 0 || k != 0) {
                             _impl::gcl_alloc<char, arch_type>::free(send_buffer[translate()(i, j, k)]);
-                        if (!recv_buffer[translate()(i, j, k)])
                             _impl::gcl_alloc<char, arch_type>::free(recv_buffer[translate()(i, j, k)]);
+                        }
                     }
         }
 

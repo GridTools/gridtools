@@ -760,10 +760,10 @@ namespace gridtools {
                 for (int i = -1; i <= 1; ++i) {
                     for (int j = -1; j <= 1; ++j) {
                         for (int k = -1; k <= 1; ++k) {
-                            if (!hm->send_buffer[translate()(i, j, k)])
+                            if (i != 0 || j != 0 || k != 0) {
                                 _impl::gcl_alloc<DataType, arch_type>::free(hm->send_buffer[translate()(i, j, k)]);
-                            if (!hm->recv_buffer[translate()(i, j, k)])
                                 _impl::gcl_alloc<DataType, arch_type>::free(hm->recv_buffer[translate()(i, j, k)]);
+                            }
                         }
                     }
                 }
