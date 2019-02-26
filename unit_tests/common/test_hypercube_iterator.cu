@@ -9,6 +9,7 @@
  */
 
 #include "./test_hypercube_iterator.cpp"
+#include <gridtools/common/cuda_util.hpp>
 
 static const size_t Size = 2;
 
@@ -26,12 +27,12 @@ __global__ void test_kernel(int *out_ptr) {
 
 TEST(multi_iterator, iterate_on_device) {
     int *out;
-    cudaMalloc(&out, sizeof(int) * Size * Size);
+    GT_CUDA_CHECK(cudaMalloc(&out, sizeof(int) * Size * Size));
 
     test_kernel<<<1, 1>>>(out);
 
     int host_out[Size * Size];
-    cudaMemcpy(&host_out, out, sizeof(int) * Size * Size, cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(&host_out, out, sizeof(int) * Size * Size, cudaMemcpyDeviceToHost));
 
     for (size_t i = 0; i < Size * Size; ++i)
         ASSERT_EQ(i, host_out[i]) << "at i = " << i;

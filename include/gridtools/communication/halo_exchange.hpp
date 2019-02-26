@@ -442,7 +442,7 @@ namespace gridtools {
             hd.pack(fields);
 #ifdef GCL_TRACE
 #ifdef __CUDACC__
-            cudaDeviceSynchronize();
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
             double end_time = MPI_Wtime();
             stats_collector<DIMS>::instance()->add_event(
@@ -462,7 +462,7 @@ namespace gridtools {
             hd.unpack(fields);
 #ifdef GCL_TRACE
 #ifdef __CUDACC__
-            cudaDeviceSynchronize();
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
             double end_time = MPI_Wtime();
             stats_collector<DIMS>::instance()->add_event(

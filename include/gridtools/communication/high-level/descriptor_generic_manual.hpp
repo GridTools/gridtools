@@ -432,8 +432,8 @@ namespace gridtools {
             delete[] prefix_send_size;
             delete[] prefix_recv_size;
 
-            cudaFree(d_send_buffer);
-            cudaFree(d_recv_buffer);
+            GT_CUDA_CHECK(cudaFree(d_send_buffer));
+            GT_CUDA_CHECK(cudaFree(d_recv_buffer));
         }
 
         /**
@@ -524,36 +524,19 @@ namespace gridtools {
                             }
                         }
 
-            cudaError_t err;
-            err = cudaMalloc((&d_send_buffer), _impl::static_pow3<DIMS>::value * sizeof(DataType *));
-            if (err != cudaSuccess) {
-                printf("Error creating buffer table on device. Size: %lu\n",
-                    _impl::static_pow3<DIMS>::value * sizeof(DataType *));
-            }
+            GT_CUDA_CHECK(cudaMalloc((&d_send_buffer), _impl::static_pow3<DIMS>::value * sizeof(DataType *)));
 
-            err = cudaMemcpy(d_send_buffer,
+            GT_CUDA_CHECK(cudaMemcpy(d_send_buffer,
                 &(send_buffer[0]),
                 _impl::static_pow3<DIMS>::value * sizeof(DataType *),
-                cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) {
-                printf("Error transferring buffer table to device. Size: %lu\n",
-                    _impl::static_pow3<DIMS>::value * sizeof(DataType *));
-            }
+                cudaMemcpyHostToDevice));
 
-            err = cudaMalloc((&d_recv_buffer), _impl::static_pow3<DIMS>::value * sizeof(DataType *));
-            if (err != cudaSuccess) {
-                printf("Error creating buffer table (recv) on device. Size: %lu\n",
-                    _impl::static_pow3<DIMS>::value * sizeof(DataType *));
-            }
+            GT_CUDA_CHECK(cudaMalloc((&d_recv_buffer), _impl::static_pow3<DIMS>::value * sizeof(DataType *)));
 
-            err = cudaMemcpy(d_recv_buffer,
+            GT_CUDA_CHECK(cudaMemcpy(d_recv_buffer,
                 &(recv_buffer[0]),
                 _impl::static_pow3<DIMS>::value * sizeof(DataType *),
-                cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) {
-                printf("Error transferring buffer table (recv) to device. Size: %lu\n",
-                    _impl::static_pow3<DIMS>::value * sizeof(DataType *));
-            }
+                cudaMemcpyHostToDevice));
         }
 
         /**
@@ -703,14 +686,14 @@ namespace gridtools {
             }
 
 #ifdef GCL_MULTI_STREAMS
-            cudaStreamSynchronize(ZL_stream);
-            cudaStreamSynchronize(ZU_stream);
-            cudaStreamSynchronize(YL_stream);
-            cudaStreamSynchronize(YU_stream);
-            cudaStreamSynchronize(XL_stream);
-            cudaStreamSynchronize(XU_stream);
+            GT_CUDA_CHECK(cudaStreamSynchronize(ZL_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(ZU_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(YL_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(YU_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(XL_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(XU_stream));
 #else
-            cudaDeviceSynchronize();
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
         }
 

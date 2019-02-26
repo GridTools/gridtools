@@ -158,30 +158,12 @@ namespace gridtools {
                         if (!recv_buffer[translate()(i, j, k)])
                             _impl::gcl_alloc<DataType, arch_type>::free(recv_buffer[translate()(i, j, k)]);
                     }
-            int err = cudaFree(d_send_buffer);
-            if (err != cudaSuccess) {
-                printf("Error freeing d_send_buffer: %s \n", cudaGetErrorString(cudaGetLastError()));
-            }
-            err = cudaFree(d_recv_buffer);
-            if (err != cudaSuccess) {
-                printf("Error freeing d_recv_buffer: %d\n", err);
-            }
-            err = cudaFree(d_send_size);
-            if (err != cudaSuccess) {
-                printf("Error freeing d_send_size: %d\n", err);
-            }
-            err = cudaFree(d_recv_size);
-            if (err != cudaSuccess) {
-                printf("Error freeing d_recv_size: %d\n", err);
-            }
-            err = cudaFree(halo_d);
-            if (err != cudaSuccess) {
-                printf("Error freeing halo_d: %d\n", err);
-            }
-            err = cudaFree(halo_d_r);
-            if (err != cudaSuccess) {
-                printf("Error freeing halo_d_r: %d\n", err);
-            }
+            GT_CUDA_CHECK(cudaFree(d_send_buffer));
+            GT_CUDA_CHECK(cudaFree(d_recv_buffer));
+            GT_CUDA_CHECK(cudaFree(d_send_size));
+            GT_CUDA_CHECK(cudaFree(d_recv_size));
+            GT_CUDA_CHECK(cudaFree(halo_d));
+            GT_CUDA_CHECK(cudaFree(halo_d_r));
         }
 
         /**
@@ -409,76 +391,41 @@ namespace gridtools {
                             }
                         }
 
-            int err;
-            err = cudaMalloc((&d_send_buffer), _impl::static_pow3<DIMS>::value * sizeof(DataType *));
-            if (err != cudaSuccess) {
-                printf("Error creating buffer table on device\n");
-            }
+            GT_CUDA_CHECK(cudaMalloc((&d_send_buffer), _impl::static_pow3<DIMS>::value * sizeof(DataType *)));
 
-            err = cudaMemcpy(d_send_buffer,
+            GT_CUDA_CHECK(cudaMemcpy(d_send_buffer,
                 &(send_buffer[0]),
                 _impl::static_pow3<DIMS>::value * sizeof(DataType *),
-                cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) {
-                printf("Error transferring buffer table to device\n");
-            }
+                cudaMemcpyHostToDevice));
 
-            err = cudaMalloc(&d_recv_buffer, _impl::static_pow3<DIMS>::value * sizeof(DataType *));
-            if (err != cudaSuccess) {
-                printf("Error creating buffer table on device\n");
-            }
+            GT_CUDA_CHECK(cudaMalloc(&d_recv_buffer, _impl::static_pow3<DIMS>::value * sizeof(DataType *)));
 
-            err = cudaMemcpy(d_recv_buffer,
+            GT_CUDA_CHECK(cudaMemcpy(d_recv_buffer,
                 &(recv_buffer[0]),
                 _impl::static_pow3<DIMS>::value * sizeof(DataType *),
-                cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) {
-                printf("Error transferring buffer table to device\n");
-            }
+                cudaMemcpyHostToDevice));
 
-            err = cudaMalloc(&d_send_size, _impl::static_pow3<DIMS>::value * sizeof(int));
-            if (err != cudaSuccess) {
-                printf("Error creating buffer table on device\n");
-            }
+            GT_CUDA_CHECK(cudaMalloc(&d_send_size, _impl::static_pow3<DIMS>::value * sizeof(int)));
 
-            err = cudaMemcpy(
-                d_send_size, &(send_size[0]), _impl::static_pow3<DIMS>::value * sizeof(int), cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) {
-                printf("Error transferring buffer table to device\n");
-            }
+            GT_CUDA_CHECK(cudaMemcpy(
+                d_send_size, &(send_size[0]), _impl::static_pow3<DIMS>::value * sizeof(int), cudaMemcpyHostToDevice));
 
-            err = cudaMalloc(&d_recv_size, _impl::static_pow3<DIMS>::value * sizeof(int));
-            if (err != cudaSuccess) {
-                printf("Error creating buffer table on device\n");
-            }
+            GT_CUDA_CHECK(cudaMalloc(&d_recv_size, _impl::static_pow3<DIMS>::value * sizeof(int)));
 
-            err = cudaMemcpy(
-                d_recv_size, &(recv_size[0]), _impl::static_pow3<DIMS>::value * sizeof(int), cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) {
-                printf("Error transferring buffer table to device\n");
-            }
+            GT_CUDA_CHECK(cudaMemcpy(
+                d_recv_size, &(recv_size[0]), _impl::static_pow3<DIMS>::value * sizeof(int), cudaMemcpyHostToDevice));
 
-            err = cudaMalloc(&halo_d, DIMS * sizeof(halo_descriptor));
-            if (err != cudaSuccess) {
-                printf("Error creating buffer table on device\n");
-            }
+            GT_CUDA_CHECK(cudaMalloc(&halo_d, DIMS * sizeof(halo_descriptor)));
 
-            err = cudaMemcpy(
-                halo_d, dangeroushalo /*halo.raw_array()*/, DIMS * sizeof(halo_descriptor), cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) {
-                printf("Error transferring buffer table to device\n");
-            }
+            GT_CUDA_CHECK(cudaMemcpy(
+                halo_d, dangeroushalo /*halo.raw_array()*/, DIMS * sizeof(halo_descriptor), cudaMemcpyHostToDevice));
 
-            err = cudaMalloc(&halo_d_r, DIMS * sizeof(halo_descriptor));
-            if (err != cudaSuccess) {
-                printf("Error creating buffer table on device\n");
-            }
+            GT_CUDA_CHECK(cudaMalloc(&halo_d_r, DIMS * sizeof(halo_descriptor)));
 
-            err = cudaMemcpy(
-                halo_d_r, dangeroushalo_r /*halo.raw_array()*/, DIMS * sizeof(halo_descriptor), cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) {
-                printf("Error transferring buffer table to device\n");
-            }
+            GT_CUDA_CHECK(cudaMemcpy(halo_d_r,
+                dangeroushalo_r /*halo.raw_array()*/,
+                DIMS * sizeof(halo_descriptor),
+                cudaMemcpyHostToDevice));
         }
 
         /**
@@ -515,14 +462,14 @@ namespace gridtools {
             }
 
 #ifdef GCL_MULTI_STREAMS
-            cudaStreamSynchronize(ZL_stream);
-            cudaStreamSynchronize(ZU_stream);
-            cudaStreamSynchronize(YL_stream);
-            cudaStreamSynchronize(YU_stream);
-            cudaStreamSynchronize(XL_stream);
-            cudaStreamSynchronize(XU_stream);
+            GT_CUDA_CHECK(cudaStreamSynchronize(ZL_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(ZU_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(YL_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(YU_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(XL_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(XU_stream));
 #else
-            cudaDeviceSynchronize();
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
         }
 
@@ -585,14 +532,14 @@ namespace gridtools {
 // before MPI is called with the device pointers, otherwise stale
 // information can be sent
 #ifdef GCL_MULTI_STREAMS
-            cudaStreamSynchronize(ZL_stream);
-            cudaStreamSynchronize(ZU_stream);
-            cudaStreamSynchronize(YL_stream);
-            cudaStreamSynchronize(YU_stream);
-            cudaStreamSynchronize(XL_stream);
-            cudaStreamSynchronize(XU_stream);
+            GT_CUDA_CHECK(cudaStreamSynchronize(ZL_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(ZU_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(YL_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(YU_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(XL_stream));
+            GT_CUDA_CHECK(cudaStreamSynchronize(XU_stream));
 #else
-            cudaDeviceSynchronize();
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
             // CODE TO SEE THE PACKED BUFFERS
             //     double *send_buffer_l[27];

@@ -100,10 +100,10 @@ void m_packYL_generic(array_t const &fields, typename array_t::value_type::value
 #ifdef GCL_CUDAMSG
     // just some timing stuff
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    GT_CUDA_CHECK(cudaEventCreate(&start));
+    GT_CUDA_CHECK(cudaEventCreate(&stop));
 
-    cudaEventRecord(start, 0);
+    GT_CUDA_CHECK(cudaEventRecord(start, 0));
 #endif
 
     const int niter = fields.size();
@@ -150,27 +150,21 @@ void m_packYL_generic(array_t const &fields, typename array_t::value_type::value
                 nx,
                 nz,
                 0);
-#ifdef GCL_CUDAMSG
-            int err = cudaGetLastError();
-            if (err != cudaSuccess) {
-                printf("KLF in %s\n", __FILE__);
-                exit(-1);
-            }
-#endif
+            GT_CUDA_CHECK(cudaGetLastError());
         }
     }
 
 #ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
+    GT_CUDA_CHECK(cudaEventSynchronize(stop));
 
     float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
 
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
+    GT_CUDA_CHECK(cudaEventDestroy(start));
+    GT_CUDA_CHECK(cudaEventDestroy(stop));
 
     // double nnumb =  niter * (double) (nx * ny * nz);
     // double nbyte =  nnumb * sizeof(double);

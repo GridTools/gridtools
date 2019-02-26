@@ -319,10 +319,10 @@ namespace gridtools {
 #ifdef GCL_HOSTWORKAROUND
                 // using host workaround on gpu
                 // copy data from device to host
-                cudaMemcpy(static_cast<void *>(m_host_send_buffers.buffer(I, J, K)),
+                GT_CUDA_CHECK(cudaMemcpy(static_cast<void *>(m_host_send_buffers.buffer(I, J, K)),
                     static_cast<const void *>(m_send_buffers.buffer(I, J, K)),
                     m_host_send_buffers.size(I, J, K),
-                    cudaMemcpyDeviceToHost);
+                    cudaMemcpyDeviceToHost));
 
                 // perform send from host buffer
                 MPI_Isend(static_cast<char *>(m_host_send_buffers.buffer(I, J, K)),
@@ -398,10 +398,10 @@ namespace gridtools {
 #ifdef GCL_HOSTWORKAROUND
                 // copy from host buffers to device
                 // only need to do this if receiving from another PID
-                cudaMemcpy(static_cast<void *>(m_recv_buffers.buffer(I, J, K)),
+                GT_CUDA_CHECK(cudaMemcpy(static_cast<void *>(m_recv_buffers.buffer(I, J, K)),
                     static_cast<const void *>(m_host_recv_buffers.buffer(I, J, K)),
                     m_host_recv_buffers.size(I, J, K),
-                    cudaMemcpyHostToDevice);
+                    cudaMemcpyHostToDevice));
 #endif
 #ifdef GCL_TRACE
                 double end_time = MPI_Wtime();
