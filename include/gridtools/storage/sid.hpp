@@ -13,6 +13,7 @@
 #include <cassert>
 
 #include "../common/defs.hpp"
+#include "../common/functional.hpp"
 #include "../common/generic_metafunctions/utility.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
@@ -108,11 +109,11 @@ namespace gridtools {
 
             static impl_t const &impl();
 
-            friend typename Storage::data_t *sid_get_origin(host_adapter const &obj) {
+            friend host_device::constant<typename Storage::data_t *> sid_get_origin(host_adapter const &obj) {
                 impl_t const &impl = obj.m_impl;
                 if (impl.host_needs_update())
                     impl.sync();
-                return advanced_get_raw_pointer_of(make_host_view(impl));
+                return {advanced_get_raw_pointer_of(make_host_view(impl))};
             }
             friend decltype(sid_get_strides(impl())) sid_get_strides(host_adapter const &obj) {
                 return sid_get_strides(obj.m_impl);
@@ -129,10 +130,10 @@ namespace gridtools {
      *   The functions below make `data_store` model the `SID` concept
      */
     template <class Storage, class StorageInfo>
-    typename Storage::data_t *sid_get_origin(data_store<Storage, StorageInfo> const &obj) {
+    host_device::constant<typename Storage::data_t *> sid_get_origin(data_store<Storage, StorageInfo> const &obj) {
         if (obj.device_needs_update())
             obj.sync();
-        return advanced_get_raw_pointer_of(make_target_view(obj));
+        return {advanced_get_raw_pointer_of(make_target_view(obj))};
     }
 
     template <class Storage, class StorageInfo>

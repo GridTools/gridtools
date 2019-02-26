@@ -7,10 +7,5 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
 
-#ifndef GT_ICOSAHEDRAL_GRIDS
-#include "./structured_grids/make_stage.hpp"
-#else
-#include "./icosahedral_grids/make_stage.hpp"
-#endif
+#include "test_hymap.cpp"

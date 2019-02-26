@@ -178,19 +178,20 @@
 #define GT_REPO_make_variant(name, data_store_types_seq) \
     using name = boost::variant<GT_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, data_store_types_seq)>;
 #endif
-#define GT_REPO_get_binding_name(fortran_name, member_name) \
-    BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(set_, fortran_name), _), member_name)
-#define GT_REPO_make_binding_helper(repo_name, fortran_name, member_name, type)      \
-    void BOOST_PP_CAT(GT_REPO_get_binding_name(fortran_name, member_name), _impl)(   \
-        repo_name & repo, gridtools::fortran_array_adapter<type> view) {             \
-        transform(repo.BOOST_PP_CAT(GT_REPO_GETTER_PREFIX, member_name)(), view);    \
-    }                                                                                \
-    GT_EXPORT_BINDING_WRAPPED_2(GT_REPO_get_binding_name(fortran_name, member_name), \
-        BOOST_PP_CAT(GT_REPO_get_binding_name(fortran_name, member_name), _impl));
+#define GT_REPO_get_binding_name(fortran_name, prefix, member_name) \
+    BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(prefix, BOOST_PP_CAT(set_, fortran_name)), _), member_name)
+#define GT_REPO_make_binding_helper(repo_name, fortran_name, prefix, member_name, type)      \
+    void BOOST_PP_CAT(GT_REPO_get_binding_name(fortran_name, , member_name), _impl)(         \
+        repo_name & repo, gridtools::fortran_array_adapter<type> view) {                     \
+        transform(repo.BOOST_PP_CAT(GT_REPO_GETTER_PREFIX, member_name)(), view);            \
+    }                                                                                        \
+    GT_EXPORT_BINDING_WRAPPED_2(GT_REPO_get_binding_name(fortran_name, prefix, member_name), \
+        BOOST_PP_CAT(GT_REPO_get_binding_name(fortran_name, , member_name), _impl));
 
 #define GT_REPO_make_binding(r, data, tuple)                     \
-    GT_REPO_make_binding_helper(BOOST_PP_TUPLE_ELEM(2, 0, data), \
-        BOOST_PP_TUPLE_ELEM(2, 1, data),                         \
+    GT_REPO_make_binding_helper(BOOST_PP_TUPLE_ELEM(3, 0, data), \
+        BOOST_PP_TUPLE_ELEM(3, 1, data),                         \
+        BOOST_PP_TUPLE_ELEM(3, 2, data),                         \
         GT_REPO_data_stores_get_member_name(tuple),              \
         GT_REPO_data_store_types_get_typename(tuple))
 
@@ -234,8 +235,8 @@
  * @brief main macro to generate the fortran bindings for a repository
  * @see GT_MAKE_REPOSITORY
  */
-#define GT_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, data_stores_seq) \
-    BOOST_PP_SEQ_FOR_EACH(GT_REPO_make_binding, (name, fortran_name), data_stores_seq)
+#define GT_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, prefix, data_stores_seq) \
+    BOOST_PP_SEQ_FOR_EACH(GT_REPO_make_binding, (name, fortran_name, prefix), data_stores_seq)
 
 /*
  * @brief entry for the user
@@ -264,15 +265,16 @@
  * @brief Creates the fortran bindings for the repository. Must be called from a cpp file.
  * @param name class name for the repository
  * @param fortran_name name that will be used to identify the repository in the fortran binding
+ * @param prefix prefix that will be appended to bindings
  * @param data_stores_seq BOOST_PP sequence of tuples of the form (DataStoreType, VariableName)
  *
  * Main macro is GT_MAKE_REPOSITORY_BINDINGS_helper. Here we just add extra parenthesis to the input to make
  * user-code look nicer (no double parenthesis)
  *
- * Suppose you have a repository with name = "CRep", fortran_name = "FRep" and datastores named "u" and "v". This will
- * generate the following fortran bindings:
- *     set_FRep_u(repo, arr) sets CRep.u()
- *     set_FRep_v(repo, arr) sets CRep.v()
+ * Suppose you have a repository with name = "CRep", fortran_name = "FRep", datastores named "u" and "v" and prefix set
+ * to "prefix_". This will generate the following fortran bindings:
+ *      prefix_set_FRep_u(repo, arr) sets CRep.u()
+ *      prefix_set_FRep_v(repo, arr) sets CRep.v()
  */
-#define GT_MAKE_REPOSITORY_BINDINGS(name, fortran_name, data_stores_seq) \
-    GT_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))
+#define GT_MAKE_REPOSITORY_BINDINGS(name, fortran_name, prefix, data_stores_seq) \
+    GT_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, prefix, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))

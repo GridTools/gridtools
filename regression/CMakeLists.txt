@@ -1,6 +1,6 @@
 if( COMPONENT_STENCIL_COMPOSITION )
 
-    if(NOT GT_TESTS_STRUCTURED_GRID)
+    if(GT_TESTS_ICOSAHEDRAL_GRID)
         add_subdirectory(icosahedral)
     else()
 
@@ -163,5 +163,5 @@ if( COMPONENT_STENCIL_COMPOSITION )
         add_subdirectory( communication )
     endif()
 
-  endif(NOT GT_TESTS_STRUCTURED_GRID)
+  endif(GT_TESTS_ICOSAHEDRAL_GRID)
 endif( COMPONENT_STENCIL_COMPOSITION )

@@ -46,7 +46,7 @@ namespace gridtools {
             return {halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2};
         }
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
         using halo_t = halo<HaloSize, HaloSize, 0>;
         using storage_info_t = storage_tr::storage_info_t<0, 3, halo_t>;
         using j_storage_info_t = storage_tr::special_storage_info_t<1, selector<0, 1, 0>>;
@@ -195,7 +195,7 @@ namespace gridtools {
     constexpr typename computation_fixture<HaloSize, Axis>::template tmp_arg<I> \
         computation_fixture<HaloSize, Axis>::p_tmp_##I
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
     GT_DEFINE_COMPUTATION_FIXTURE_PLH(0);
     GT_DEFINE_COMPUTATION_FIXTURE_PLH(1);
     GT_DEFINE_COMPUTATION_FIXTURE_PLH(2);

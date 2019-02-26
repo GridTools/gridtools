@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
+#include <gridtools/common/functional.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/macros.hpp>
 #include <gridtools/stencil-composition/sid/concept.hpp>
@@ -24,10 +25,10 @@ namespace gridtools {
 
         TEST(sid_synthetic, smoke) {
             double a = 100;
-            auto testee = sid::synthetic().set<property::origin>(&a);
+            auto testee = sid::synthetic().set<property::origin>(host_device::constant<double *>{&a});
             static_assert(is_sid<decltype(testee)>::value, "");
 
-            EXPECT_EQ(a, *sid::get_origin(testee));
+            EXPECT_EQ(a, *sid::get_origin(testee)());
         }
 
         namespace custom {
@@ -55,7 +56,7 @@ namespace gridtools {
                 strides the_strides = {stride{3}, stride{4}};
 
                 auto the_testee = sid::synthetic()
-                                      .set<property::origin>(the_origin)
+                                      .set<property::origin>(host_device::constant<ptr>{the_origin})
                                       .set<property::strides>(the_strides)
                                       .set<property::ptr_diff, ptr_diff>()
                                       .set<property::strides_kind, strides_kind>();
@@ -70,7 +71,7 @@ namespace gridtools {
                 static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptr_diff>(), "");
                 static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides_kind>(), "");
 
-                EXPECT_EQ(&the_element, sid::get_origin(the_testee).val);
+                EXPECT_EQ(&the_element, sid::get_origin(the_testee)().val);
                 EXPECT_EQ(3, tuple_util::get<0>(sid::get_strides(the_testee)).val);
                 EXPECT_EQ(4, tuple_util::get<1>(sid::get_strides(the_testee)).val);
             }

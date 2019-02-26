@@ -31,7 +31,7 @@ using target_t = gt::target::cuda;
 using target_t = gt::target::mc;
 #endif
 
-using backend_t = gt::backend<target_t, gt::grid_type::structured, gt::strategy::block>;
+using backend_t = gt::backend<target_t>;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {

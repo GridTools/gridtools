@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./structured_grids/accessor.hpp"
 #include "./structured_grids/accessor_mixed.hpp"
 #else

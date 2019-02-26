@@ -18,7 +18,7 @@ GT_MAKE_REPOSITORY(exported_repository, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDS
 
 #define MY_FIELDS (IJKDataStore, ijkfield)(IJDataStore, ijfield)(JKDataStore, jkfield)
-GT_MAKE_REPOSITORY_BINDINGS(exported_repository, exported, MY_FIELDS)
+GT_MAKE_REPOSITORY_BINDINGS(exported_repository, exported, prefix_, MY_FIELDS)
 #undef MY_FIELDS
 
 namespace {

@@ -40,7 +40,7 @@
 #include "./backend_cuda/block.hpp"
 #include "./backend_x86/block.hpp"
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./structured_grids/block.hpp"
 #endif
 
