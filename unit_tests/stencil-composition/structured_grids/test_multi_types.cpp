@@ -47,7 +47,7 @@ namespace gridtools {
             friend std::ostream &operator<<(std::ostream &strm, type2 obj) {
                 return strm << "{ xy: " << obj.xy << " }";
             }
-            friend bool operator==(type2 lhs, type2 rhs) { return lhs.xy == rhs.xy; }
+            friend GT_FUNCTION bool operator==(type2 lhs, type2 rhs) { return lhs.xy == rhs.xy; }
         };
 
         struct type3 {
@@ -60,7 +60,7 @@ namespace gridtools {
             friend std::ostream &operator<<(std::ostream &strm, type3 obj) {
                 return strm << "{ yz: " << obj.yz << " }";
             }
-            friend bool operator==(type3 lhs, type3 rhs) { return lhs.yz == rhs.yz; }
+            friend GT_FUNCTION bool operator==(type3 lhs, type3 rhs) { return lhs.yz == rhs.yz; }
         };
 
         GT_FUNCTION type4 operator+(type4 a, type1 b) {
@@ -184,9 +184,10 @@ namespace gridtools {
                         make_stage<function3>(p_field3, p_temp, p_field1)))
                     .run();
 
-                verify(make_storage<storage_type2>([&in](int i, int j, int k) -> type2 {
+                verify(make_storage<storage_type2>([&in](int i, int j, int k) {
                     auto f1 = in(i, j, k);
-                    return {2. * (f1.i + f1.j + 1)};
+                    type2 res = {2. * (f1.i + f1.j + 1)};
+                    return res;
                 }),
                     field2);
 
