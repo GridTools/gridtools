@@ -153,7 +153,7 @@ namespace gridtools {
         };
 
         struct multitypes : computation_fixture<> {
-            multitypes() : computation_fixture<>{4, 5, 6} {}
+            multitypes() : computation_fixture<>(4, 5, 6) {}
 
             using storage_type1 = storage_tr::data_store_t<type1, storage_info_t>;
             using storage_type2 = storage_tr::data_store_t<type2, storage_info_t>;

@@ -19,7 +19,7 @@ namespace gridtools {
     namespace {
 
         struct cache_stencil : computation_fixture<1> {
-            cache_stencil() : computation_fixture<1>{128, 128, 30} {}
+            cache_stencil() : computation_fixture<1>(128, 128, 30) {}
 
             ~cache_stencil() { verify(make_storage(expected), out); }
 
