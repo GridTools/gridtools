@@ -193,8 +193,7 @@ namespace gridtools {
 
         using storage_info_map_t = _impl::storage_info_map_t<placeholders_t>;
 
-        using bound_arg_storage_pair_tuple_t =
-            std::tuple<_impl::bound_arg_storage_pair<BoundPlaceholders, BoundDataStores>...>;
+        using bound_arg_storage_pair_tuple_t = std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>;
 
       public:
         // First we need to compute the association between placeholders and extents.
@@ -249,10 +248,6 @@ namespace gridtools {
         //  Each item holds a storage and its view
         bound_arg_storage_pair_tuple_t m_bound_arg_storage_pair_tuple;
 
-        /// Here are local domains (structures with raw pointers for passing to backend.
-        //
-        local_domains_t m_local_domains;
-
         struct check_grid_against_extents_f {
             Grid const &m_grid;
 
@@ -284,25 +279,16 @@ namespace gridtools {
               m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
             if (timer_enabled)
                 m_meter.reset(new performance_meter_t{"NoName"});
-
-            // Here we make views (actually supplemental view_info structures are made) from both temporary and bound
-            // storages, concatenate them together and pass to `update_local_domains`
-            update_local_domains(std::tuple_cat(
-                make_view_infos(m_tmp_arg_storage_pair_tuple), make_view_infos(m_bound_arg_storage_pair_tuple)));
-            // now only local domanis missing pointers from free (not bound) storages.
-
 #ifndef NDEBUG
             check_grid_against_extents();
 #endif
         }
 
-        void sync_bound_data_stores() const { tuple_util::for_each(_impl::sync_f{}, m_bound_arg_storage_pair_tuple); }
-
         // TODO(anstaf): introduce overload that takes a tuple of arg_storage_pair's. it will simplify a bit
         //               implementation of the `intermediate_expanded` and `computation` by getting rid of
         //               `boost::fusion::invoke`.
         template <class... Args, class... DataStores>
-        typename std::enable_if<sizeof...(Args) == meta::length<free_placeholders_t>::value>::type run(
+        enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value> run(
             arg_storage_pair<Args, DataStores> const &... srcs) {
             if (m_meter)
                 m_meter->start();
@@ -310,16 +296,7 @@ namespace gridtools {
                 "some placeholders are not used in mss descriptors");
             GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
-
-            // make views from bound storages again (in the case old views got inconsistent)
-            // make views from free storages;
-            // concatenate them into a single tuple.
-            // push view for updating the local domains.
-            update_local_domains(std::tuple_cat(make_view_infos(m_bound_arg_storage_pair_tuple),
-                make_view_infos(dedup_storage_info(std::tie(srcs...)))));
-            // now local domains are fully set up.
-            // branch selector calls run_f functor on the right branch of mss condition tree.
-            m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_local_domains));
+            m_branch_selector.apply(run_f{}, std::cref(m_grid), local_domains(srcs...));
             if (m_meter)
                 m_meter->pause();
         }
@@ -344,8 +321,6 @@ namespace gridtools {
             m_meter->reset();
         }
 
-        local_domains_t const &local_domains() const { return m_local_domains; }
-
         template <class Placeholder,
             class RwArgs = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t),
             intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? intent::inout : intent::in>
@@ -364,24 +339,21 @@ namespace gridtools {
         }
         template <class Placeholder, class ExtentMap = extent_map_t>
         static enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
-#ifdef __CUDA_ARCH__
-            assert(false);
-            return {};
-#else
             throw std::runtime_error("not implemented");
-#endif
+        }
+
+        template <class... Args, class... DataStores>
+        enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value, local_domains_t> local_domains(
+            arg_storage_pair<Args, DataStores> const &... srcs) {
+            local_domains_t res;
+            _impl::update_local_domains(std::tuple_cat(m_tmp_arg_storage_pair_tuple,
+                                            m_bound_arg_storage_pair_tuple,
+                                            dedup_storage_info(std::tie(srcs...))),
+                res);
+            return res;
         }
 
       private:
-        template <class Src>
-        static auto make_view_infos(Src &&src)
-            GT_AUTO_RETURN(tuple_util::transform(_impl::make_view_info_f<Backend>{}, std::forward<Src>(src)));
-
-        template <class Views>
-        void update_local_domains(Views const &views) {
-            _impl::update_local_domains(views, m_local_domains);
-        }
-
         template <class Seq>
         auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
             tuple_util::transform(_impl::dedup_storage_info_f<storage_info_map_t>{m_storage_info_map}, seq));

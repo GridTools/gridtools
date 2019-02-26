@@ -10,219 +10,121 @@
 
 #pragma once
 
-#include <boost/fusion/include/make_vector.hpp>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/tools/computation_fixture.hpp>
 
-/*
-  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
-*/
+namespace gridtools {
+    namespace {
+        struct copy_functor {
+            using in = in_accessor<0>;
+            using out = inout_accessor<1>;
 
-using gridtools::accessor;
-using gridtools::arg;
-using gridtools::extent;
-using gridtools::level;
+            using param_list = make_param_list<in, out>;
 
-using namespace gridtools;
-using namespace execute;
+            template <typename Evaluation>
+            GT_FUNCTION static void apply(Evaluation &eval) {
+                eval(out()) = eval(in());
+            }
+        };
 
-namespace copy_stencils_3D_2D_1D_0D {
-    struct copy_functor {
-        static const int n_args = 2;
-        typedef accessor<0> in;
-        typedef accessor<1, intent::inout> out;
-        typedef make_param_list<in, out> param_list;
+        struct stencils : computation_fixture<> {
+            stencils() : computation_fixture<>(59, 47, 71) {}
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval) {
-            eval(out()) = eval(in());
+            template <class SrcLayout, class DstLayout = layout_map<0, 1, 2>, class Expected>
+            void do_test(Expected const &expected) {
+                using meta_dst_t = typename storage_tr::
+                    select_custom_layout_storage_info<0, DstLayout, zero_halo<DstLayout::masked_length>>::type;
+                using meta_src_t = typename storage_tr::
+                    select_custom_layout_storage_info<0, SrcLayout, zero_halo<SrcLayout::masked_length>>::type;
+
+                using dst_storage_t = storage_tr::data_store_t<float_type, meta_dst_t>;
+                using src_storage_t = storage_tr::data_store_t<float_type, meta_src_t>;
+
+                arg<0, src_storage_t> p_in;
+                arg<1, dst_storage_t> p_out;
+
+                auto in = [](int i, int j, int k) { return i + j + k; };
+                auto out = make_storage<dst_storage_t>();
+                make_computation(p_in = make_storage<src_storage_t>(in),
+                    p_out = out,
+                    make_multistage(execute::forward(), make_stage<copy_functor>(p_in, p_out)))
+                    .run();
+                verify(make_storage<dst_storage_t>(expected), out);
+            }
+        };
+
+        TEST_F(stencils, copies3D) {
+            do_test<layout_map<0, 1, 2>>([](int i, int j, int k) { return i + j + k; });
         }
-    };
 
-    /*
-     * The following operators and structs are for debugging only
-     */
-    std::ostream &operator<<(std::ostream &s, copy_functor const) { return s << "copy_functor"; }
+        TEST_F(stencils, copies3Dtranspose) {
+            do_test<layout_map<2, 1, 0>>([](int i, int j, int k) { return i + j + k; });
+        }
 
-    void handle_error(int) { std::cout << "error" << std::endl; }
+        TEST_F(stencils, copies2Dij) {
+            do_test<layout_map<0, 1, -1>>([](int i, int j, int) { return i + j + 70; });
+        }
 
-    template <typename SrcLayout, typename DstLayout, typename T>
-    bool test(int x, int y, int z) {
+        TEST_F(stencils, copies2Dik) {
+            do_test<layout_map<0, -1, 1>>([](int i, int, int k) { return i + 46 + k; });
+        }
 
-        uint_t d1 = x;
-        uint_t d2 = y;
-        uint_t d3 = z;
+        TEST_F(stencils, copies2Djk) {
+            do_test<layout_map<-1, 0, 1>>([](int, int j, int k) { return 58 + j + k; });
+        }
 
-        using meta_dst_t = typename backend_t::storage_traits_t::
-            select_custom_layout_storage_info<0, DstLayout, zero_halo<DstLayout::masked_length>>::type;
-        using meta_src_t = typename backend_t::storage_traits_t::
-            select_custom_layout_storage_info<0, SrcLayout, zero_halo<SrcLayout::masked_length>>::type;
+        TEST_F(stencils, copies1Di) {
+            do_test<layout_map<0, -1, -1>>([](int i, int, int) { return i + 46 + 70; });
+        }
 
-        typedef backend_t::storage_traits_t::data_store_t<T, meta_dst_t> storage_t;
-        typedef backend_t::storage_traits_t::data_store_t<T, meta_src_t> src_storage_t;
+        TEST_F(stencils, copies1Dj) {
+            do_test<layout_map<-1, 0, -1>>([](int, int j, int) { return 58 + j + 70; });
+        }
 
-        meta_dst_t meta_dst_(d1, d2, d3);
-        meta_src_t meta_src_(d1, d2, d3);
+        TEST_F(stencils, copies1Dk) {
+            do_test<layout_map<-1, -1, 0>>([](int, int, int k) { return 58 + 46 + k; });
+        }
 
-        std::function<T(int, int, int)> init_lambda = [](int i, int j, int k) { return (T)(i + j + k); };
-        src_storage_t in(meta_src_, init_lambda);
-        storage_t out(meta_dst_, (T)1.5);
+        TEST_F(stencils, copiesScalar) {
+            do_test<layout_map<-1, -1, -1>>([](int, int, int) { return 58 + 46 + 70; });
+        }
 
-        typedef arg<0, src_storage_t> p_in;
-        typedef arg<1, storage_t> p_out;
+        TEST_F(stencils, copies3DDst) {
+            do_test<layout_map<0, 1, 2>, layout_map<2, 0, 1>>([](int i, int j, int k) { return i + j + k; });
+        }
 
-        auto grid_ = make_grid(d1, d2, d3);
+        TEST_F(stencils, copies3DtransposeDst) {
+            do_test<layout_map<2, 1, 0>, layout_map<2, 0, 1>>([](int i, int j, int k) { return i + j + k; });
+        }
 
-        auto copy = gridtools::make_computation<backend_t>(grid_,
-            p_in() = in,
-            p_out() = out,
-            gridtools::make_multistage(execute::forward(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
+        TEST_F(stencils, copies2DijDst) {
+            do_test<layout_map<1, 0, -1>, layout_map<2, 0, 1>>([](int i, int j, int) { return i + j + 70; });
+        }
 
-        copy.run();
+        TEST_F(stencils, copies2DikDst) {
+            do_test<layout_map<1, -1, 0>, layout_map<2, 0, 1>>([](int i, int, int k) { return i + 46 + k; });
+        }
 
-        copy.sync_bound_data_stores();
+        TEST_F(stencils, copies2DjkDst) {
+            do_test<layout_map<-1, 1, 0>, layout_map<2, 0, 1>>([](int, int j, int k) { return 58 + j + k; });
+        }
 
-        bool ok = true;
-        auto outv = make_host_view(out);
-        auto inv = make_host_view(in);
-        for (int i = 0; i < d1; ++i)
-            for (int j = 0; j < d2; ++j)
-                for (int k = 0; k < d3; ++k) {
-                    if (inv(i, j, k) != outv(i, j, k)) {
-                        ok = false;
-                    }
-                }
+        TEST_F(stencils, copies2DiDst) {
+            do_test<layout_map<0, -1, -1>, layout_map<2, 0, 1>>([](int i, int, int) { return i + 46 + 70; });
+        }
 
-        return ok;
-    }
+        TEST_F(stencils, copies2DjDst) {
+            do_test<layout_map<-1, 0, -1>, layout_map<2, 0, 1>>([](int, int j, int) { return 58 + j + 70; });
+        }
 
-} // namespace copy_stencils_3D_2D_1D_0D
+        TEST_F(stencils, copies2DkDst) {
+            do_test<layout_map<-1, -1, 0>, layout_map<2, 0, 1>>([](int, int, int k) { return 58 + 46 + k; });
+        }
 
-constexpr int_t size0 = 59;
-constexpr int_t size1 = 47;
-constexpr int_t size2 = 71;
-
-TEST(TESTCLASS, copies3D) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0, 1, 2>, gridtools::layout_map<0, 1, 2>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies3Dtranspose) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<2, 1, 0>, gridtools::layout_map<0, 1, 2>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2Dij) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0, 1, -1>, gridtools::layout_map<0, 1, 2>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2Dik) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0, -1, 1>, gridtools::layout_map<0, 1, 2>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2Djk) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1, 0, 1>, gridtools::layout_map<0, 1, 2>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2Di) {
-    EXPECT_EQ(
-        (copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0, -1, -1>, gridtools::layout_map<0, 1, 2>, double>(
-            size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2Dj) {
-    EXPECT_EQ(
-        (copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1, 0, -1>, gridtools::layout_map<0, 1, 2>, double>(
-            size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2Dk) {
-    EXPECT_EQ(
-        (copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1, -1, 0>, gridtools::layout_map<0, 1, 2>, double>(
-            size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2DScalar) {
-    EXPECT_EQ(
-        (copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1, -1, -1>, gridtools::layout_map<0, 1, 2>, double>(
-            size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies3DDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0, 1, 2>, gridtools::layout_map<2, 0, 1>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies3DtransposeDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<2, 1, 0>, gridtools::layout_map<2, 0, 1>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2DijDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<1, 0, -1>, gridtools::layout_map<2, 0, 1>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2DikDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<1, -1, 0>, gridtools::layout_map<2, 0, 1>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2DjkDst) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1, 1, 0>, gridtools::layout_map<2, 0, 1>, double>(
-                  size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2DiDst) {
-    EXPECT_EQ(
-        (copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0, -1, -1>, gridtools::layout_map<2, 0, 1>, double>(
-            size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2DjDst) {
-    EXPECT_EQ(
-        (copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1, 0, -1>, gridtools::layout_map<2, 0, 1>, double>(
-            size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2DkDst) {
-    EXPECT_EQ(
-        (copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1, -1, 0>, gridtools::layout_map<2, 0, 1>, double>(
-            size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies2DScalarDst) {
-    EXPECT_EQ(
-        (copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<-1, -1, -1>, gridtools::layout_map<2, 0, 1>, double>(
-            size0, size1, size2)),
-        true);
-}
-
-TEST(TESTCLASS, copies3D_bool) {
-    EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test<gridtools::layout_map<0, 1, 2>, gridtools::layout_map<0, 1, 2>, bool>(
-                  size0, size1, size2)),
-        true);
-}
+        TEST_F(stencils, copies2DScalarDst) {
+            do_test<layout_map<-1, -1, -1>, layout_map<2, 0, 1>>([](int, int, int) { return 58 + 46 + 70; });
+        }
+    } // namespace
+} // namespace gridtools
