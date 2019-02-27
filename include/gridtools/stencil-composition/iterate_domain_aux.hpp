@@ -307,21 +307,14 @@ namespace gridtools {
     struct assign_strides {
         GT_STATIC_ASSERT(is_strides_cached<StridesCached>::value, GT_INTERNAL_ERROR);
 
-        template <typename SInfo>
-        struct assign {
-            const SInfo *m_storage_info;
-            StridesCached &GT_RESTRICT m_strides_cached;
-
-            GT_FUNCTION assign(const SInfo *storage_info, StridesCached &GT_RESTRICT strides_cached)
-                : m_storage_info(storage_info), m_strides_cached(strides_cached) {}
+        template <typename OncePerBlock, typename SInfo, typename Dst>
+        struct assign_f {
+            SInfo const *m_storage_info;
+            Dst &m_dst;
 
             template <typename Coordinate>
-            GT_FUNCTION enable_if_t<(Coordinate::value >= SInfo::layout_t::unmasked_length)> operator()() const {}
-
-            template <typename Coordinate>
-            GT_FUNCTION enable_if_t<(Coordinate::value < SInfo::layout_t::unmasked_length)> operator()() const {
+            GT_FUNCTION void operator()() const {
                 typedef typename SInfo::layout_t layout_map_t;
-                using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, SInfo const *>;
                 GT_STATIC_ASSERT(
                     (boost::mpl::contains<typename LocalDomain::storage_info_ptr_list, const SInfo *>::value),
                     GT_INTERNAL_ERROR_MSG(
@@ -331,11 +324,29 @@ namespace gridtools {
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
 
-                BackendType::template once_per_block<index_t::value>::assign(
-                    (m_strides_cached.template get<index_t::value>())[Coordinate::value],
-                    m_storage_info ? m_storage_info->template stride<pos>() : 0);
+                OncePerBlock::assign(m_dst[Coordinate::value], m_storage_info->template stride<pos>());
             }
         };
+
+        template <typename OncePerBlock, typename SInfo, typename Dst>
+        static GT_FUNCTION assign_f<OncePerBlock, SInfo, Dst> assign(SInfo const *sinfo, Dst &dst) {
+            return {sinfo, dst};
+        }
+
+        template <typename OncePerBlock, typename Dst>
+        struct zero_assign_f {
+            Dst &m_dst;
+
+            template <typename Coordinate>
+            GT_FUNCTION void operator()() const {
+                OncePerBlock::assign(m_dst[Coordinate::value], 0);
+            }
+        };
+
+        template <typename OncePerBlock, typename Dst>
+        static GT_FUNCTION zero_assign_f<OncePerBlock, Dst> assign(Dst &dst) {
+            return {dst};
+        }
 
         StridesCached &GT_RESTRICT m_strides_cached;
 
@@ -345,8 +356,14 @@ namespace gridtools {
         template <typename StorageInfo>
         GT_FUNCTION enable_if_t<StorageInfo::layout_t::unmasked_length != 0> operator()(
             StorageInfo const *storage_info) const {
-            using range = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
-            host_device::for_each_type<range>(assign<StorageInfo>(storage_info, m_strides_cached));
+            using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *>;
+            using once_per_block_t = typename BackendType::template once_per_block<index_t::value>;
+            using range_t = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
+            auto &strides = m_strides_cached.template get<index_t::value>();
+            if (storage_info)
+                host_device::for_each_type<range_t>(assign<once_per_block_t>(storage_info, strides));
+            else
+                host_device::for_each_type<range_t>(assign<once_per_block_t>(strides));
         }
     };
 
