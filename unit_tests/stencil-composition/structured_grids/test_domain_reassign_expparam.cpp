@@ -10,8 +10,6 @@
 
 #include <vector>
 
-#include <boost/mpl/vector.hpp>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
@@ -19,7 +17,7 @@
 #include <gridtools/stencil-composition/accessor.hpp>
 #include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/computation.hpp>
-#include <gridtools/stencil-composition/expandable_parameters/expand_factor.hpp>
+#include <gridtools/stencil-composition/expandable_parameters/make_computation.hpp>
 #include <gridtools/stencil-composition/grid.hpp>
 #include <gridtools/stencil-composition/make_computation.hpp>
 #include <gridtools/stencil-composition/make_stage.hpp>
@@ -57,7 +55,7 @@ namespace gridtools {
         computation<p_in, p_out> m_computation;
 
         fixture()
-            : m_computation{make_computation<backend_t>(expand_factor<2>{},
+            : m_computation{make_expandable_computation<backend_t>(expand_factor<2>{},
                   m_grid,
                   make_multistage(execute::forward(),
                       make_stage<test_functor>(p_in{}, p_tmp{}),
