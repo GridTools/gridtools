@@ -13,7 +13,7 @@ find_package(GridTools @GridTools_VERSION@ REQUIRED
 
 enable_testing()
 
-set(EXAMPLES_SRCFILES boundary-conditions boundary-conditions_provided)
+set(EXAMPLES_SRCFILES @EXAMPLES_SRCFILES@)
 foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
     add_executable(${srcfile}_mc ${srcfile}.cpp)
     target_link_libraries(${srcfile}_mc GridTools::gridtools)

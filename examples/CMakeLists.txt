@@ -1,25 +1,30 @@
 # This file is part of the GridTools source tree to drive installation of the examples.
 
+function(install_example)
+    set(options)
+    set(one_value_args DIRECTORY)
+    set(multi_value_args SOURCES) #if needed later split into mc and cuda sources (then add extension)
+    cmake_parse_arguments(ARG "${options}" "${one_value_args};" "${multi_value_args}" ${ARGN})
+    
+    set(EXAMPLES_SRCFILES ${ARG_SOURCES})
+    configure_file(CMakeLists.txt.skeleton.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${ARG_DIRECTORY}/CMakeLists.txt @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${ARG_DIRECTORY}/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/${ARG_DIRECTORY})
+    install(
+        DIRECTORY ${ARG_DIRECTORY}
+        DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
+        PATTERN "CMakeLists.txt.in" EXCLUDE
+        )
+endfunction()
+
 if(GT_INSTALL_EXAMPLES)
-    configure_file(CMakeLists.txt.in CMakeLists.txt @ONLY)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH})
+    configure_file(CMakeLists.txt.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeLists.txt @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH})
 
     if(COMPONENT_STENCIL_COMPOSITION)
-        configure_file(stencil-composition/CMakeLists.txt.in stencil-composition/CMakeLists.txt @ONLY)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stencil-composition/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/stencil-composition)
-        install(
-            DIRECTORY stencil-composition
-            DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
-            PATTERN "CMakeLists.txt.in" EXCLUDE
-            )
+        install_example(DIRECTORY stencil-composition SOURCES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
     endif()
     
     if(COMPONENT_BOUNDARY_CONDITIONS)
-        configure_file(boundary-conditions/CMakeLists.txt.in boundary-conditions/CMakeLists.txt @ONLY)
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/boundary-conditions/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/boundary-conditions)
-        install(
-            DIRECTORY boundary-conditions
-            DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
-            PATTERN "CMakeLists.txt.in" EXCLUDE)
+        install_example(DIRECTORY boundary-conditions SOURCES boundary-conditions boundary-conditions_provided)
     endif()
 endif()
