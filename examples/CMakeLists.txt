@@ -5,7 +5,8 @@ if(GT_INSTALL_EXAMPLES)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH})
 
     if(COMPONENT_STENCIL_COMPOSITION)
-        configure_file(stencil-composition/CMakeLists.txt.in ${CMAKE_CURRENT_LIST_DIR}/stencil-composition/CMakeLists.txt @ONLY)
+        configure_file(stencil-composition/CMakeLists.txt.in stencil-composition/CMakeLists.txt @ONLY)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/stencil-composition/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/stencil-composition)
         install(
             DIRECTORY stencil-composition
             DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
@@ -14,7 +15,8 @@ if(GT_INSTALL_EXAMPLES)
     endif()
     
     if(COMPONENT_BOUNDARY_CONDITIONS)
-        configure_file(boundary-conditions/CMakeLists.txt.in ${CMAKE_CURRENT_LIST_DIR}/boundary-conditions/CMakeLists.txt @ONLY)
+        configure_file(boundary-conditions/CMakeLists.txt.in boundary-conditions/CMakeLists.txt @ONLY)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/boundary-conditions/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/boundary-conditions)
         install(
             DIRECTORY boundary-conditions
             DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
