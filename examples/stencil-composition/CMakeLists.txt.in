@@ -9,7 +9,7 @@ if(CMAKE_CUDA_COMPILER)
 endif()
 
 find_package(GridTools @GridTools_VERSION@ REQUIRED
-    HINTS ${CMAKE_CURRENT_LIST_DIR}/../../lib/cmake)
+    HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake)
 
 enable_testing()
 
