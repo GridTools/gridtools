@@ -248,6 +248,10 @@ namespace gridtools {
         //  Each item holds a storage and its view
         bound_arg_storage_pair_tuple_t m_bound_arg_storage_pair_tuple;
 
+        /// Here are local domains (structures with raw pointers for passing to backend.
+        //
+        local_domains_t m_local_domains;
+
         struct check_grid_against_extents_f {
             Grid const &m_grid;
 
@@ -343,14 +347,13 @@ namespace gridtools {
         }
 
         template <class... Args, class... DataStores>
-        enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value, local_domains_t> local_domains(
+        enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value, local_domains_t const &> local_domains(
             arg_storage_pair<Args, DataStores> const &... srcs) {
-            local_domains_t res;
             _impl::update_local_domains(tuple_util::flatten(std::make_tuple(m_tmp_arg_storage_pair_tuple,
                                             m_bound_arg_storage_pair_tuple,
                                             dedup_storage_info(std::tie(srcs...)))),
-                res);
-            return res;
+                m_local_domains);
+            return m_local_domains;
         }
 
       private:
