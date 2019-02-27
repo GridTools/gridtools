@@ -206,8 +206,7 @@ namespace gridtools {
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
             GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            if (storage_info)
-                m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
+            m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
         }
     };
 
@@ -276,8 +275,6 @@ namespace gridtools {
 
         template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
         GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
-            if (!storage_info)
-                return;
             GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
@@ -336,7 +333,7 @@ namespace gridtools {
 
                 BackendType::template once_per_block<index_t::value>::assign(
                     (m_strides_cached.template get<index_t::value>())[Coordinate::value],
-                    m_storage_info->template stride<pos>());
+                    m_storage_info ? m_storage_info->template stride<pos>() : 0);
             }
         };
 
@@ -349,8 +346,7 @@ namespace gridtools {
         GT_FUNCTION enable_if_t<StorageInfo::layout_t::unmasked_length != 0> operator()(
             StorageInfo const *storage_info) const {
             using range = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
-            if (storage_info)
-                host_device::for_each_type<range>(assign<StorageInfo>(storage_info, m_strides_cached));
+            host_device::for_each_type<range>(assign<StorageInfo>(storage_info, m_strides_cached));
         }
     };
 
