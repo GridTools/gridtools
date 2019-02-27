@@ -361,7 +361,7 @@ namespace gridtools {
             using once_per_block_t = typename BackendType::template once_per_block<index_t::value>;
             using range_t = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
 // HACK!!! Hopefully this code will gone soon.
-#ifndef __CUDACC__
+#ifdef __CUDACC__
             if (storage_info)
                 host_device::for_each_type<range_t>(
                     assign<once_per_block_t>(storage_info, m_strides_cached.template get<index_t::value>()));
