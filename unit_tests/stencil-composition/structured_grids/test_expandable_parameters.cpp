@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/stencil-composition/expandable_parameters/make_computation.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <gridtools/tools/computation_fixture.hpp>
@@ -24,7 +25,8 @@ struct expandable_parameters : computation_fixture<> {
 
     template <class... Args>
     void run_computation(Args &&... args) const {
-        gridtools::make_computation<backend_t>(expand_factor<2>(), make_grid(), std::forward<Args>(args)...).run();
+        gridtools::make_expandable_computation<backend_t>(expand_factor<2>(), make_grid(), std::forward<Args>(args)...)
+            .run();
     }
 
     void verify(storages_t const &expected, storages_t const &actual) const {

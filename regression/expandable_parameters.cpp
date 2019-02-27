@@ -11,6 +11,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/stencil-composition/expandable_parameters/make_computation.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
@@ -39,7 +40,7 @@ TEST_F(expandable_parameters, test) {
     arg<1, storages_t> p_in;
     tmp_arg<2, storages_t> p_tmp;
 
-    gridtools::make_computation<backend_t>(expand_factor<2>(),
+    gridtools::make_expandable_computation<backend_t>(expand_factor<2>(),
         make_grid(),
         p_out = out,
         p_in = in,
