@@ -73,9 +73,11 @@ namespace gridtools {
     template <class... Args>
     computation<> make_computation(Args &&...) {
         GT_STATIC_ASSERT(!sizeof...(Args), "No backend was specified on a call to make_computation");
+        return {};
     }
     template <class... Args>
     computation<> make_positional_computation(Args &&...) {
         GT_STATIC_ASSERT(!sizeof...(Args), "No backend was specified on a call to make_positional_computation");
+        return {};
     }
 } // namespace gridtools
