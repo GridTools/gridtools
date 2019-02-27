@@ -34,20 +34,16 @@ public properties:
 
 See the :ref:`stencil-operator-example` for a concrete usage of the syntax of the stencil operators.
 
---------------------------
-Stencil Operator Interface
---------------------------
-
-^^^^^^^^^^^^^
+-------------
 Accessor Type
-^^^^^^^^^^^^^
+-------------
 
 There are two kinds of :term:`Accessors<Accessor>`:
 
 * :term:`Regular Accessors<Accessor>`, or simply :term:`Accessors<Accessor>`, indicate an access to a regular :Term:`Data Store` of a :term:`Grid`.
 * :term:`Global Accessors<Global Accessor>` indicate that the data to be referred does not participate in the iteration and always point to a same *read only* datum to be used in the operator.
 
-An *:term:`Accessor` type* is a `using` statement with this form
+An :term:`Accessor` type is a `using` statement with this form
 
 .. code-block:: gridtools
 
@@ -77,13 +73,15 @@ where
   stencil operators *must* be ranging from 0 to N - 1, where N is the
   number of :term:`Accessors<Accessor>` used by the stencil operator. No index can be
   replicated. If these rules are not followed the compilation
-  fails. This is the last argument provided to :term:`Global Accessors<Global Accessor>`.
+  fails. For :term:`Global Accessors<Global Accessor>` this is the only argument.
 
 * ``intent`` indicates the type of access the stencil operator makes to
   the data associated to the :term:`Accessor`. Possible values are
 
-  #. ``enumtype::in`` to specify *read-only* access
-  #. ``enumtyoe::inout`` to specify *read-write* access. The ``extent`` for ``inout`` must be made of all zeros (see next points)
+  #. ``intent::in`` to specify *read-only* access
+  #. ``intent::inout`` to specify *read-write* access. The ``extent`` for ``inout`` must be made of all zeros (see next points)
+  
+  Alternatively, the abbreviations ``in_accessor`` our ``inout_accessor`` can be used respectively.
 
 * ``extent`` defines the maximum offsets at which the implementation
   will access data around the :term:`Iteration Point`. Extents are
@@ -106,16 +104,51 @@ where
   .. note:: 
   
    An :term:`Extent` with smaller
-   offsets that the ones the implementation is using will result in a
-   runtime error, while extents bigger that the one actually accessed
+   offsets than the ones the implementation is using is undefined behavior, i.e. it might
+   result in errors at runtime, while extents bigger that the one actually accessed
    by the implementation will result in performance loss.
 
 * ``N`` identifies the number of dimensions of the :term:`Data Store`.
   By default this value is set to 3. 
 
-^^^^^^^^^^^^^^^^^^^^^
- `param_list`
-^^^^^^^^^^^^^^^^^^^^^
+----------------
+Accessor Aliases
+----------------
+
+An :term:`Accessor` alias is a regular :term:`Accessor` which has an offset set at compile-time.
+For instance, say you have a 4 dimensional :term:`Data Store`, where the last dimension refers to the
+3 component u, v, w of a vector field, e.g. the wind-speed.
+This vector field is accessed via an :term:`Accessor` called ``vel``
+
+.. code-block:: gridtools
+
+ using vel = in_accessor<0, extent<>, 4>;
+
+For convenience we can introduce an alias to the ``w`` component
+
+.. code-block:: gridtools
+
+ using w = alias<vel, dimension<4>>::set<2>;
+
+The line above sets the fourth offset at compile-time to the value 2, so that we have
+the following equivalency:
+
+.. code-block:: gridtools
+
+ w() == vel(0, 0, 0, 2)
+
+which may contribute to considerably lighten the notation in complicated expressions.
+Note that you can still access the other dimensions with an offset, by using the alias. So that
+
+.. code-block:: gridtools
+
+ dimension<1> i;
+ dimension<4> q;
+ w(i + 1) == vel(i + 1, q + 2)
+
+-------------
+`param_list`
+-------------
 The ``param_list`` is a `using` statement like the following
 
 .. code-block:: gridtools
@@ -127,79 +160,29 @@ where ``_accessors_`` is a comma separated list of all the :term:`Accessors<Acce
 specified before. 
 
 .. note::  
- this is necessary since C++ cannot infer what types have been defined as :term:`Accessors<Accessor>`.
+ This is necessary since C++ cannot infer what types have been defined as :term:`Accessors<Accessor>`.
 
 .. _stencil_operators_apply_method:
 
-^^^^^^^^^^^^^^^^
+---------------
  `Apply`-Method
-^^^^^^^^^^^^^^^^
+---------------
 
 The ``apply`` methods takes at most two(2) arguments, the
 type of the first one is the template type and it is usually called
 ``eval``. The second argument of the :term:`Apply-Method` is a :term:`Vertical Interval`. Multiple versions of the :term:`Apply-Method` can
 be defined in the same :term:`Stencil Operator` with different :term:`Vertical
-Intervals<Vertical Interval>`.
+Intervals<Vertical Interval>`. The return type is void.
   
-.. note:: 
-
-  there cannot be a gaps in the vertical regions of
-  a given stencil operator. If an operator is not defined in a given
-  region, which is in the middle of other regions used, then it must
-  be defined anyway and left empty.
-
 A ``apply`` method can be defined with a single template argument, so to
 skip the vertical region. In this case there could be *only one*
 :term:`Apply-Method` implementation in the stencil operator that will be
 called for each point of the :term:`Iteration Space`.
 
-The return statement of the ``apply`` method is usually ``void``. In case
-of reduction a ``apply`` method should return a value that can be used in
-the reduction (i.e., the value returned should be convertible to the
-arguments of the reduction operator).
-
-.. _stencil-operator-example:
-
----------------
- Example
----------------
-
-.. code-block:: gridtools
-
-    struct flx_function {
-
-        using out = accessor<0, enumtype::inout>;
-        using in  = accessor<1, enumtype::in, extent<0, 1, 0, 0>>;
-        using lap = accessor<2, enumtype::in, extent<0, 1, 0, 0>>;
-
-        using param_list = accessor_list<out, in, lap>;
-
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation const &eval, x_flx) {
-            eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
-            if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
-                eval(out()) = 0.;
-            }
-        }
-    };
-
-
---------------------
- Implementation
---------------------
-
 The implementation is specified in the body of the ``apply`` methods. The
 stencil operators can have other member functions that can be called
 from the ``apply``
-methods. The interface of the ``apply`` method has been
-already discussed in the previous section. In this Section we
-describe how data can be accessed and
-how other operators can be called from
-within the `apply`'s body to perform a computation.
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using `eval` for Regular Grids
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+methods.
 
 Let us assume the ``apply`` methods has the following signature:
 
@@ -218,13 +201,11 @@ it, is to indicate the corresponding :term:`Accessor` as argument to the
 
  eval(accessor_name())
 
-
-
 .. note:: 
 
  The parentheses after ``accessor_name`` indicate the default constructor
  of the :term:`Accessor`. This is a technicality necessary to make the
- syntax legal in C++
+ syntax legal in C++.
 
 The previous syntax is said to *evaluate the :term:`Accessor` at the
 :term:`Iteration Point`*.
@@ -236,7 +217,6 @@ of the :term:`Accessor` a sequence of integer indices, as follows:
 .. code-block:: gridtools
 
  eval(accessor_name(1, 0, -1))
-
 
 This means to access an element at an offset of 1 in the first
 dimension (plus direction) of the :term:`Iteration Point`, and an offset of 1 in the minus direction
@@ -262,3 +242,74 @@ read:
 .. code-block:: gridtools 
 
  eval(out()) = eval(in() - in(1, 0, 0));
+ 
+ 
+.. _stencil-operator-example:
+
+-------
+Example
+-------
+
+.. code-block:: gridtools
+
+    struct flx_function {
+
+        using out = accessor<0, intent::inout>;
+        using in  = accessor<1, intent::in, extent<0, 1, 0, 0>>;
+        using lap = accessor<2, intent::in, extent<0, 1, 0, 0>>;
+
+        using param_list = accessor_list<out, in, lap>;
+
+        template <typename Evaluation>
+        GT_FUNCTION static void apply(Evaluation const &eval, full_interval) {
+            eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
+            if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
+                eval(out()) = 0.;
+            }
+        }
+    };
+ 
+-----------
+Expressions
+-----------
+
+The `apply`-method example provided :ref:`above<stencil-operator-example>` showed the basic syntax to access data.
+We can notice that the ``eval`` keyword is repeated several times, which is somehow
+tedious, especially when the expression is complicated it becomes quickly very hard to read.
+It is possible to embed the expressions in a single eval, i.e.
+
+.. code-block:: gridtools
+
+ using namespace expressions;
+ template <typename Evaluation>
+ GT_FUNCTION static void apply(Evaluation const &eval) {
+     eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
+     if (eval(out() * (in(1, 0, 0) - in(0, 0, 0)) > 0) {
+         eval(out()) = 0.;
+     }
+ }
+
+This is achieved by using the expressions namespace, in which the operations ``+``, ``-``,
+``*``, ``/``, ``pow<>`` are
+overloaded, and generate an expression to be evaluated. An example of its
+usage, demonstrating its effectiveness, can be found in the
+shallow water example.
+
+.. todo::
+ add reference to shallow water
+
+It is possible also to instantiate a compile time expression to be lazily evaluated,
+useful for instance if we want to evaluate it multiple times
+
+.. code-block:: gridtools
+
+ using namespace expressions;
+ constexpr auto cond = out() * (in(1, 0, 0) - in(0, 0, 0);
+ template <typename Evaluation>
+ GT_FUNCTION static void apply(Evaluation &eval) {
+     eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
+     if (eval(cond) > 0) {
+         eval(out()) = 0.;
+     }
+ }
+ 
