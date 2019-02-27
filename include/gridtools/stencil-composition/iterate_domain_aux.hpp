@@ -324,28 +324,21 @@ namespace gridtools {
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
 
-                OncePerBlock::assign(m_dst[Coordinate::value], m_storage_info->template stride<pos>());
+// HACK!!! Hopefully this code will gone soon.
+#ifndef __CUDACC__
+                // shortcut for non cuda backends
+                assert(m_storage_info);
+                m_dst[Coordinate::value] = m_storage_info->template stride<pos>();
+#else
+                OncePerBlock::assign(
+                    m_dst[Coordinate::value], m_storage_info ? m_storage_info->template stride<pos>() : 0);
+#endif
             }
         };
 
         template <typename OncePerBlock, typename SInfo, typename Dst>
         static GT_FUNCTION assign_f<OncePerBlock, SInfo, Dst> assign(SInfo const *sinfo, Dst &dst) {
             return {sinfo, dst};
-        }
-
-        template <typename OncePerBlock, typename Dst>
-        struct zero_assign_f {
-            Dst &m_dst;
-
-            template <typename Coordinate>
-            GT_FUNCTION void operator()() const {
-                OncePerBlock::assign(m_dst[Coordinate::value], 0);
-            }
-        };
-
-        template <typename OncePerBlock, typename Dst>
-        static GT_FUNCTION zero_assign_f<OncePerBlock, Dst> assign(Dst &dst) {
-            return {dst};
         }
 
         StridesCached &GT_RESTRICT m_strides_cached;
@@ -359,11 +352,8 @@ namespace gridtools {
             using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *>;
             using once_per_block_t = typename BackendType::template once_per_block<index_t::value>;
             using range_t = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
-            auto &strides = m_strides_cached.template get<index_t::value>();
-            if (storage_info)
-                host_device::for_each_type<range_t>(assign<once_per_block_t>(storage_info, strides));
-            else
-                host_device::for_each_type<range_t>(assign<once_per_block_t>(strides));
+            host_device::for_each_type<range_t>(
+                assign<once_per_block_t>(storage_info, m_strides_cached.template get<index_t::value>()));
         }
     };
 
