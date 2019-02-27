@@ -148,9 +148,18 @@ namespace gridtools {
             : m_total_lengths{dims}, m_strides(strides) {
 
             // We guess the padded lengths from the dimensions and the strides. Assume, that the strides are sorted,
-            // e.g., [256, 16, 1], and the dimensions are [5, 9, 9]. For the largest stride, we assume that padding
-            // = dimension (e.g. in this example the i-padding is 5). For all others we can calculate the padding from
-            // the strides (e.g. in this example, the j-padding is 256 / 16 = 16, and the k-padding is 16 / 1 = 1).
+            // e.g., [1, 16, 256], and the dimensions are [5, 9, 9]. For the largest stride (256), we assume that
+            // padding = dimension (e.g. in this example the j-padding is 5). For all others we can calculate the
+            // padding from the strides (e.g. in this example, the i-padding is 256 / 16 = 16, and the k-padding is 16 /
+            // 1 = 16). Note that there might be strides which are set to 0 (masked dimensions).
+            //
+            // We first create a sorted copy of this array. We then loop over the unsorted array and set the padded
+            // length for each entry as follows:
+            // - If the stride is masked, the padded length is 0.
+            // - If the stride is the maximum stride (i.e., 256 in the example above), the padding is derived from the
+            //   dimension.
+            // - Otherwise, we find the stride s in the sorted array and we look for the next larger stride l in the
+            //   sorted array. The padded length is then set to l / s. Note that strides might appear several times.
             auto sorted_strides = strides;
             for (uint_t i = 0; i < ndims; ++i)
                 for (uint_t j = i + 1; j < ndims; ++j)
@@ -166,7 +175,11 @@ namespace gridtools {
                 else if (strides[i] == 0) {
                     m_padded_lengths[i] = 0;
                 } else {
-                    for (int j = i; j < ndims; ++j)
+                    int i_in_sorted_stride = 0;
+                    for (; i_in_sorted_stride < ndims; ++i_in_sorted_stride)
+                        if (strides[i] == sorted_strides[i_in_sorted_stride])
+                            break;
+                    for (int j = i_in_sorted_stride; j < ndims; ++j)
                         if (strides[i] != sorted_strides[j]) {
                             m_padded_lengths[i] = sorted_strides[j] / strides[i];
                             break;

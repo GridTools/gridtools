@@ -514,6 +514,30 @@ namespace gridtools {
                 m_packXU_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
             }
 
+            for (int ii = -1; ii <= 1; ++ii)
+                for (int jj = -1; jj <= 1; ++jj)
+                    for (int kk = -1; kk <= 1; ++kk)
+                        if (ii != 0 || jj != 0 || kk != 0) {
+                            using translate_P = translate_t<3, proc_layout>;
+                            using map_type = typename translate_P::map_type;
+                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+
+                            if (base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1) {
+                                base_type::m_haloexch.set_send_to_size(
+                                    send_size[translate()(ii, jj, kk)] * sizeof...(fields) * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
+                                base_type::m_haloexch.set_receive_from_size(
+                                    recv_size[translate()(ii, jj, kk)] * sizeof...(fields) * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
+                            }
+                        }
+
 #ifdef GCL_MULTI_STREAMS
             cudaStreamSynchronize(ZL_stream);
             cudaStreamSynchronize(ZU_stream);
@@ -581,6 +605,31 @@ namespace gridtools {
             if (send_size[translate()(1, 0, 0)]) {
                 m_packXU(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
             }
+
+            for (int ii = -1; ii <= 1; ++ii)
+                for (int jj = -1; jj <= 1; ++jj)
+                    for (int kk = -1; kk <= 1; ++kk)
+                        if (ii != 0 || jj != 0 || kk != 0) {
+                            using translate_P = translate_t<3, proc_layout>;
+                            using map_type = typename translate_P::map_type;
+                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+
+                            if (base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1) {
+                                base_type::m_haloexch.set_send_to_size(
+                                    send_size[translate()(ii, jj, kk)] * fields.size() * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
+                                base_type::m_haloexch.set_receive_from_size(
+                                    recv_size[translate()(ii, jj, kk)] * fields.size() * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
+                            }
+                        }
+
 // perform device syncronization to ensure that packing is finished
 // before MPI is called with the device pointers, otherwise stale
 // information can be sent
