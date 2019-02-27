@@ -7,15 +7,14 @@
 
 .. _user-manual:
 
-=======================================
+===========
 User Manual
-=======================================
+===========
 
 .. include:: introduction.hrst
 .. include:: storages.hrst
 .. include:: DSL_introduction.hrst
 .. include:: stencil_operators.hrst
-.. include:: accessor.hrst
 .. include:: execution_model.hrst
 .. include:: stencil_composition.hrst
 .. include:: advanced_functionality.hrst
