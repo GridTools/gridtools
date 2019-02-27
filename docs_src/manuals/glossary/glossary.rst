@@ -109,7 +109,7 @@ Glossary
   Halo Exchange
     Communication of :term:`Halo` data points between multiple processes. See
     section :ref:`halo-exchanges` and section
-    :term:`distributed-boundary-conditions`.
+    :ref:`distributed-boundary-conditions`.
 
   Interval
     Subset of the points along an axis of an :term:`Iteration Space`. Often
