@@ -42,7 +42,7 @@ namespace gridtools {
         template <uint_t Id>
         struct once_per_block {
             template <typename Left, typename Right>
-            GT_FUNCTION static void assign(Left &l, Right const &r) {
+            GT_FUNCTION static void assign(Left &GT_RESTRICT l, Right const &GT_RESTRICT r) {
                 assert(blockDim.z == 1);
                 if (Id % (blockDim.x * blockDim.y) == threadIdx.y * blockDim.x + threadIdx.x)
                     l = r;
