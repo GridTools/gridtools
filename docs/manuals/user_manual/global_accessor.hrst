@@ -1,0 +1,57 @@
+.. _global-accessor:
+
+-------------------------------
+Global Parameters and Accessors
+-------------------------------
+
+:term:`Global Accessors<Global Accessor>` are accessing read-only data which is independent of the current :term:`Iteration Point`.
+For this reason, intent, :term:`Extents<Extent>` and offsets cannot be specified for a :term:`Global Accessor`.
+Here the term `global` means that the data is the same for the whole :term:`Iteration Space`. An example can be
+a constant scalar parameter that you want to pass to the functor, or a user defined struct containing
+various configuration options.
+
+The API allows the user to define an arbitrary object to act as a `global parameter` as long as it is trivially copyable.
+To create a global parameter from a user-defined object, we pass the object to ``make_global_parameter()``
+
+.. code-block:: gridtools
+
+   auto my_global_parameter = backend_t::make_global_parameter(my_object);
+
+Note that the object is read-only only during the execution of a computation, but can be modified
+in between executions with
+
+.. code-block:: gridtools
+
+   backend_t::update_global_parameter(my_global_parameter, new_value);
+
+The :term:`Accessor` associated with a global parameter must be a :term:`Global Accessor`
+
+.. code-block:: gridtools
+
+    using global_acc = global_accessor<0>;
+
+Calling ``eval`` on the :term:`Global Accessor` returns the user defined data structure. Supposing that
+this data structure contains a user function called ``ordinal``, returning an integer, we can write
+in the do method
+
+.. code-block:: gridtools
+
+    auto ordinal_ = eval(global_boundary()).ordinal();
+
+.. note::
+ All the member functions defined in the user-defined
+ data structure must be labeled with GT_FUNCTION, in
+ order for them to be callable from devices.
+
+There is a special case for which we have a dedicated API: i.e. when the user defined object
+(the global parameter)
+defines the parenthesis operator ``operator()``, and we want to call that operator from the :term:`Apply-Method`.
+In that case the :term:`Accessor's<Accessor>` parenthesis operator can be used and the arguments will be
+automatically forwarded to the global parameter. An example is the case in which we want to pass
+a small matrix as a global parameter:
+
+.. code-block:: gridtools
+
+    using matrix = global_accessor<0>;
+    auto elem = eval(matrix(i, j));
+

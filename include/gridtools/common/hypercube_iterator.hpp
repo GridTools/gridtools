@@ -28,18 +28,24 @@ namespace gridtools {
                 const point_t &m_end;
 
                 GT_FUNCTION grid_iterator &operator++() {
-                    for (size_t i = 0; i < D; ++i) {
-                        size_t index = D - i - 1;
-                        if (m_pos[index] + 1 < m_end[index]) {
-                            m_pos[index]++;
-                            return *this;
-                        } else {
-                            m_pos[index] = m_begin[index];
+                    // The CUDA compiler is very sensitive in properly unrolling the following loop, please change with
+                    // care. The kernel in test_layout_transformation_cuda should use 0 stack frame (and about 14
+                    // registers) if this loop is properly unrolled.
+                    bool continue_iterating = true;
+                    for (int i = 0; i < D; ++i) {
+                        if (continue_iterating) {
+                            size_t index = D - i - 1;
+                            if (m_pos[index] + 1 < m_end[index]) {
+                                ++m_pos[index];
+                                continue_iterating = false;
+                            } else {
+                                m_pos[index] = m_begin[index];
+                            }
                         }
                     }
-                    // we reached the end
-                    for (size_t i = 0; i < D; ++i)
-                        m_pos[i] = m_end[i];
+                    if (continue_iterating) // we reached the end of the iteration space
+                        for (int i = 0; i < D; ++i)
+                            m_pos[i] = m_end[i];
                     return *this;
                 }
 

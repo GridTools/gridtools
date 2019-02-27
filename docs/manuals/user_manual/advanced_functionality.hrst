@@ -5,3 +5,4 @@ Advanced Functionality
 .. include:: software_caches.hrst
 .. include:: conditional_switches.hrst
 .. include:: expandable_parameters.hrst
+.. include:: global_accessor.hrst

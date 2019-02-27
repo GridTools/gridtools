@@ -28,7 +28,7 @@ Communication traits helps the distributed boundary condition interface to custo
     using proc_layout = ... // Lauyout of the processing grid to relate the data layout to the distribution of data
     using proc_grid_type = ... // Type of the computing grid
     using comm_arch_type = Arch; // Architecture for the communication pattern
-    static constexpr gridtools::enumtype::platform compute_arch = ... // Architecture of the stencil/boundary condition backend
+    compute_arch = ... // Architecture of the stencil/boundary condition backend
     static constexpr int version = ... // Packing/Unpacking version
     using data_layout = typename StorageType::storage_info_t::layout_t; // Layout of data
     using value_type = typename StorageType::data_t; // Value Type
@@ -36,7 +36,7 @@ Communication traits helps the distributed boundary condition interface to custo
 
 
 -------------------------------------
-Bindind Boundaries and Communication
+Binding Boundaries and Communication
 -------------------------------------
 
 |GT| provides a facility for applying boundary conditions. The distributed boundaries interfaces uses this facility underneath. The boundary application in |GT| accept specific boundary classes that specify how to deal with boundaries in different directions and predicated to deal with periodicity and domain decomposition. The latter will be dealt by the distributed boundary interfaces (refer to the boundary condition interfaces for more details).
