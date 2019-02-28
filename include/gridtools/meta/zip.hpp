@@ -19,7 +19,7 @@ namespace gridtools {
      */
     namespace meta {
 #if defined(__CUDACC_VER_MAJOR__) && \
-    ((__CUDACC_VER_MAJOR__ == 9) || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ == 0))
+    ((__CUDACC_VER_MAJOR__ == 9) || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ <= 1))
         GT_META_LAZY_NAMESPACE {
             template <class... Lists>
             struct zip : transpose<list<Lists...>> {};
