@@ -2,22 +2,23 @@
 
 .. _glossary:
 
-=========
+========
 Glossary
-=========
+========
 
 .. glossary:: :sorted:
 
   Accessor
-    An object with an interface to access one element of a data field and its
+    A class with an interface to access one element of a data field and its
     neighbors. See section :ref:`stencil_operators`.
 
-  Alignment
-    Alignment of the first elements along the contiguous data axis in a :term:`Data
-    Store`. See section :ref:`storage-info`.
+  Apply-Method
+    Main method of a :term:`Stencil Operator`. Multiple overloads can exist for
+    different :term:`Vertical Intervals<Vertical Interval>`. See section
+    :ref:`stencil_operators_apply_method`.
 
   Axis
-    An object consisting of a collection of disjoint :term:`Vertical
+    A class to generate :term:`Vertical
     Regions<Vertical Region>` of an :term:`Iteration Space`. See section
     :ref:`stencil-composition`.
 
@@ -28,42 +29,25 @@ Glossary
   Cache
     See :term:`Software-Managed Cache`.
 
-  Cache Policy
-    The synchronization policy of a :term:`Software-Managed Cache`. See section
-    :ref:`cache-policy`.
-
-  Cache Type
-    The kind of a :term:`Software-Managed Cache`. See section
-    :ref:`cache-type`.
-
   Computation
     A sequence of :term:`Multi-Stage Computations<Multi-Stage Computation>`
-    associated with a :term:`Grid`. This is an executable composition of
-    multiple stencils. See section :ref:`composition_of_stencils`.
+    which is applied on a :term:`Grid` with the :term:`run-method` as an entry-point.
+    See section :ref:`composition_of_stencils`.
 
   Data Store
-    A ``data_store`` object manages a logical multidimensional array of values.
+    An object that manages a logical multidimensional array of values.
     See section :ref:`data-store`.
 
   Data View
-    A ``data_view`` object allows to access and modify the elements of a
+    An object that allows to access and modify the elements of a
     :term:`Data Store` through a tuple of indices. See section
     :ref:`data-view`.
-
-  Apply-Method
-    Main method of a :term:`Stencil Operator`. Multiple overloads can exist for
-    different :term:`Vertical Intervals<Vertical Interval>`. See section
-    :ref:`stencil_operators_apply_method`.
-
-  Elementary Stencil
-    Application of a single :term:`Stencil Operator` on an :term:`Iteration
-    Space`.
 
   Execution Model
     Definition of the order of execution of a |GT|
     :term:`Computations<Computation>`. See section :ref:`execution-model`.
 
-  Execution Order
+  Vertical Execution Order
     A partial order of the vertical axis on an iteration space. See section
     :ref:`execution-model`.
 
@@ -75,11 +59,6 @@ Glossary
   GCL
     The |GT| Communication Module. See section :ref:`halo-exchanges`.
 
-  Global Accessor
-    An object similar to a regular :term:`Accessor`, but allowing access to the
-    same (single) read-only data value on the whole :term:`Iteration Space`.
-    See section :ref:`global-accessor`.
-
   Global Boundary
     Boundary of the :term:`Global Domain` when using distributed computing. See
     section :ref:`distributed-boundary-conditions`.
@@ -88,6 +67,10 @@ Glossary
     The compute domain that is composed from all domains of the subprocesses
     that participate in a distributed computation. See section
     :ref:`distributed-boundary-conditions`.
+
+ Global Parameter
+    A special 0-dimensional :term:`data-store` for read-only data.
+    See section :ref:`global-accessor`.
 
   Grid
     The grid is the object that defines the :term:`Iteration Space`. See
@@ -111,10 +94,6 @@ Glossary
     section :ref:`halo-exchanges` and section
     :ref:`distributed-boundary-conditions`.
 
-  Interval
-    Subset of the points along an axis of an :term:`Iteration Space`. Often
-    referring to a :term:`Vertical Interval`.
-
   Iteration Point
     A 3D tuple of indices. The horizontal indices are often denoted by `i` and
     `j`, while `k` refers to the vertical index.
@@ -129,7 +108,7 @@ Glossary
     define the process layout in an multi-process setup. For this usage, see
     section :ref:`storage-info`.
 
-  Multi-Stage Computation
+  Multi-Stage
     A partially-order collection of :term:`Stages<Stage>` with an associated
     :term:`Execution Order`. See section :ref:`composition_of_stencils`.
 
@@ -138,7 +117,8 @@ Glossary
     arguments. See section :ref:`placeholders`.
 
   Software-Managed Cache
-    User-defined caching of fields during a :term:`Multi-Stage Computation`.
+    User-defined caching of fields during a :term:`Multi-Stage Computation`, which has a
+    :ref:`cache-policy` and a :ref:`cache-type`.
     See section :ref:`caches`.
 
   Stage
