@@ -512,6 +512,8 @@ namespace gridtools {
       private:
         gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...
         gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> recv_buffer;
+        array<int, _impl::static_pow3<DIMS>::value> send_size;
+        array<int, _impl::static_pow3<DIMS>::value> recv_size;
 
       public:
         typedef gcl_cpu arch_type;
@@ -595,7 +597,7 @@ namespace gridtools {
            \param[in] _fields data fields to be packed
         */
         template <typename... FIELDS>
-        void pack(const FIELDS &... _fields) const {
+        void pack(const FIELDS &... _fields) {
             pack_dims<DIMS, 0>()(*this, _fields...);
         }
 
@@ -648,7 +650,7 @@ namespace gridtools {
         template <int dummy>
         struct pack_dims<3, dummy> {
             template <typename T, typename... FIELDS>
-            void operator()(const T &hm, const FIELDS &... _fields) const {
+            void operator()(T &hm, const FIELDS &... _fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
                 for (int ii = -1; ii <= 1; ++ii) {
                     for (int jj = -1; jj <= 1; ++jj) {
@@ -661,6 +663,17 @@ namespace gridtools {
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
                                 hm.halo.pack_all(make_array(ii, jj, kk), it, _fields...);
+
+                                hm.m_haloexch.set_send_to_size(
+                                    hm.send_size[translate()(ii, jj, kk)] * sizeof...(_fields) * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
+                                hm.m_haloexch.set_receive_from_size(
+                                    hm.recv_size[translate()(ii, jj, kk)] * sizeof...(_fields) * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
                             }
                         }
                     }
@@ -700,7 +713,7 @@ namespace gridtools {
         template <int dummy>
         struct pack_vector_dims<3, dummy> {
             template <typename T>
-            void operator()(const T &hm, std::vector<DataType *> const &fields) const {
+            void operator()(T &hm, std::vector<DataType *> const &fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
                 for (int ii = -1; ii <= 1; ++ii) {
                     for (int jj = -1; jj <= 1; ++jj) {
@@ -715,6 +728,17 @@ namespace gridtools {
                                 for (size_t i = 0; i < fields.size(); ++i) {
                                     hm.halo.pack(make_array(ii, jj, kk), fields[i], it);
                                 }
+
+                                hm.m_haloexch.set_send_to_size(
+                                    hm.send_size[translate()(ii, jj, kk)] * fields.size() * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
+                                hm.m_haloexch.set_receive_from_size(
+                                    hm.recv_size[translate()(ii, jj, kk)] * fields.size() * sizeof(DataType),
+                                    ii_P,
+                                    jj_P,
+                                    kk_P);
                             }
                         }
                     }

@@ -1,0 +1,315 @@
+.. _stencil_operators:
+
+Stencil Operators
+=================
+
+*Stencil operators* are the equivalent of `functors` in regular C++
+ code, or they may be considered to be the `GridTools functions`. They
+ are assumed to have no side-effects and no status (this is why they are marked as `static`). As functions they have an
+ `interface` and an `implementation`. The interface informs both the caller,
+ on the order and types of arguments that have to be passed to it, and
+ the implementation, on the names and types of the symbols available
+ to it.
+
+The stencil operator specifies the computation to be performed in each
+point of the :term:`Iteration Space` of the stencil
+:term:`Computation`. In the
+implementation, a point of the :term:`Iteration Space` at
+which the stencil operator is called is referred to as :term:`Iteration Point`.
+
+A stencil operator is a `class`, or a `struct`, with the following
+public properties:
+
+- A list of :term:`Accessor` types that are associated to the
+  [Data Field](data field)s the stencil operator will access in its
+  implementation.
+- A `param_list` listing all the :term:`Accessor` types defined above
+- A set of *static template member functions* named `apply`, also
+  referred to as :term:`Apply-Methods<Apply-Method>`. To run on GPUs the function should
+  also be a GT_FUNCTION 
+
+.. todo::
+    
+   Add reference to GT_FUNCTION
+
+See the :ref:`stencil-operator-example` for a concrete usage of the syntax of the stencil operators.
+
+-------------
+Accessor Type
+-------------
+
+There are two kinds of :term:`Accessors<Accessor>`:
+
+* :term:`Regular Accessors<Accessor>`, or simply :term:`Accessors<Accessor>`, indicate an access to a regular :Term:`Data Store` of a :term:`Grid`.
+* :term:`Global Accessors<Global Accessor>` indicate that the data to be referred does not participate in the iteration and always point to a same *read only* datum to be used in the operator.
+
+An :term:`Accessor` type is a `using` statement with this form
+
+.. code-block:: gridtools
+
+  using name = accessor<I, intent, [location_type,] extent, N>;
+
+or
+
+.. code-block:: gridtools
+
+ using name = global_accessor<I>;
+
+ 
+where
+
+* ``name`` is the name associated to the :term:`Accessor` and will be used in the
+  implementation of the stencil operator. 
+
+  .. note:: 
+
+   :term:`Accessor` names are
+   technically optional, since their types can be substituted in all
+   occurrences of their names. It is anyway part of the GridTools syntax,
+   since a version not using them would be largely unreadable and very
+   difficult to manage.
+
+* ``I`` is an integer index. The indices of the :term:`Accessors<Accessor>` in a given
+  stencil operators *must* be ranging from 0 to N - 1, where N is the
+  number of :term:`Accessors<Accessor>` used by the stencil operator. No index can be
+  replicated. If these rules are not followed the compilation
+  fails. For :term:`Global Accessors<Global Accessor>` this is the only argument.
+
+* ``intent`` indicates the type of access the stencil operator makes to
+  the data associated to the :term:`Accessor`. Possible values are
+
+  #. ``intent::in`` to specify *read-only* access
+  #. ``intent::inout`` to specify *read-write* access. The ``extent`` for ``inout`` must be made of all zeros (see next points)
+  
+  Alternatively, the abbreviations ``in_accessor`` our ``inout_accessor`` can be used respectively.
+
+* ``extent`` defines the maximum offsets at which the implementation
+  will access data around the :term:`Iteration Point`. Extents are
+  templates that takes a list of pairs of integer numbers. Every pair
+  identify a dimension of the iteration space. The first number (<=0)
+  indicates the offset in the direction of *decreasing* indices (also
+  called *minus direction*), while the second (>=0) indicates the
+  offset in the direction of *increasing* indices (also called *plus
+  direction*). For example ``extent<-1, 1, 0, 2, -2, 1>`` specifies an
+  access of one element in the direction of decreasing indices (-1)
+  and one in the direction of increasing indices (+1) in the first
+  dimension; two elements in the plus direction (+2) and no elements
+  in the minus direction (0) in the second dimension, and finally two
+  elements in the minus direction and one in the plus for the third
+  dimension. All the numbers are *defaulted to 0*, so that ``extent<>`` is
+  a valid extent. ``extent<>`` is also the default extent of an :term:`Accessor`
+  and can be omitted if the last template argument takes also the
+  default value (see next point). 
+  
+  .. note:: 
+  
+   An :term:`Extent` with smaller
+   offsets than the ones the implementation is using is undefined behavior, i.e. it might
+   result in errors at runtime, while extents bigger that the one actually accessed
+   by the implementation will result in performance loss.
+
+* ``N`` identifies the number of dimensions of the :term:`Data Store`.
+  By default this value is set to 3. 
+
+----------------
+Accessor Aliases
+----------------
+
+An :term:`Accessor` alias is a regular :term:`Accessor` which has an offset set at compile-time.
+For instance, say you have a 4 dimensional :term:`Data Store`, where the last dimension refers to the
+3 component u, v, w of a vector field, e.g. the wind-speed.
+This vector field is accessed via an :term:`Accessor` called ``vel``
+
+.. code-block:: gridtools
+
+ using vel = in_accessor<0, extent<>, 4>;
+
+For convenience we can introduce an alias to the ``w`` component
+
+.. code-block:: gridtools
+
+ using w = alias<vel, dimension<4>>::set<2>;
+
+The line above sets the fourth offset at compile-time to the value 2, so that we have
+the following equivalency:
+
+.. code-block:: gridtools
+
+ w() == vel(0, 0, 0, 2)
+
+which may contribute to considerably lighten the notation in complicated expressions.
+Note that you can still access the other dimensions with an offset, by using the alias. So that
+
+.. code-block:: gridtools
+
+ dimension<1> i;
+ dimension<4> q;
+ w(i + 1) == vel(i + 1, q + 2)
+
+-------------
+`param_list`
+-------------
+The ``param_list`` is a `using` statement like the following
+
+.. code-block:: gridtools
+
+ using param_list = accessor_list<_accessors_>;
+
+
+where ``_accessors_`` is a comma separated list of all the :term:`Accessors<Accessor>`
+specified before. 
+
+.. note::  
+ This is necessary since C++ cannot infer what types have been defined as :term:`Accessors<Accessor>`.
+
+.. _stencil_operators_apply_method:
+
+---------------
+ `Apply`-Method
+---------------
+
+The ``apply`` methods takes at most two(2) arguments, the
+type of the first one is the template type and it is usually called
+``eval``. The second argument of the :term:`Apply-Method` is a :term:`Vertical Interval`. Multiple versions of the :term:`Apply-Method` can
+be defined in the same :term:`Stencil Operator` with different :term:`Vertical
+Intervals<Vertical Interval>`. The return type is void.
+  
+A ``apply`` method can be defined with a single template argument, so to
+skip the vertical region. In this case there could be *only one*
+:term:`Apply-Method` implementation in the stencil operator that will be
+called for each point of the :term:`Iteration Space`.
+
+The implementation is specified in the body of the ``apply`` methods. The
+stencil operators can have other member functions that can be called
+from the ``apply``
+methods.
+
+Let us assume the ``apply`` methods has the following signature:
+
+.. code-block:: gridtools
+
+ template <typename Eval>
+ GT_FUNCTION static
+ void apply(Eval const& eval, region);
+
+
+The way to access data corresponding to a certain data field passed to
+it, is to indicate the corresponding :term:`Accessor` as argument to the
+``eval`` argument, as follow:
+
+.. code-block:: gridtools
+
+ eval(accessor_name())
+
+.. note:: 
+
+ The parentheses after ``accessor_name`` indicate the default constructor
+ of the :term:`Accessor`. This is a technicality necessary to make the
+ syntax legal in C++.
+
+The previous syntax is said to *evaluate the :term:`Accessor` at the
+:term:`Iteration Point`*.
+
+For Regular Grids values can be accessed at offsets (relative to the
+evaluation point) passing to the constructor
+of the :term:`Accessor` a sequence of integer indices, as follows:
+
+.. code-block:: gridtools
+
+ eval(accessor_name(1, 0, -1))
+
+This means to access an element at an offset of 1 in the first
+dimension (plus direction) of the :term:`Iteration Point`, and an offset of 1 in the minus direction
+in the third dimension. A way to think of it is to consider the point
+of evaluation as a triplet ``i``, ``j`` and ``k``, and those offsets are
+added to the current index coordinates to identifying the actual value
+to access.
+
+The evaluation returns a reference to the value for :term:`Accessors<Accessor>` with
+``inout`` intent, and a const reference for :term:`Accessors<Accessor>` with ``in`` intent.
+
+The next example takes the difference between two value in the first
+dimension and assign it to the output field:
+
+.. code-block:: gridtools
+
+ eval(out()) = eval(in()) - eval(in(1, 0, 0));
+
+
+When using expressions, the previous example can be simplified to
+read:
+
+.. code-block:: gridtools 
+
+ eval(out()) = eval(in() - in(1, 0, 0));
+ 
+ 
+.. _stencil-operator-example:
+
+-------
+Example
+-------
+
+.. code-block:: gridtools
+
+    struct flx_function {
+
+        using out = accessor<0, intent::inout>;
+        using in  = accessor<1, intent::in, extent<0, 1, 0, 0>>;
+        using lap = accessor<2, intent::in, extent<0, 1, 0, 0>>;
+
+        using param_list = accessor_list<out, in, lap>;
+
+        template <typename Evaluation>
+        GT_FUNCTION static void apply(Evaluation const &eval, full_interval) {
+            eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
+            if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
+                eval(out()) = 0.;
+            }
+        }
+    };
+ 
+-----------
+Expressions
+-----------
+
+The `apply`-method example provided :ref:`above<stencil-operator-example>` showed the basic syntax to access data.
+We can notice that the ``eval`` keyword is repeated several times, which is somehow
+tedious, especially when the expression is complicated it becomes quickly very hard to read.
+It is possible to embed the expressions in a single eval, i.e.
+
+.. code-block:: gridtools
+
+ using namespace expressions;
+ template <typename Evaluation>
+ GT_FUNCTION static void apply(Evaluation const &eval) {
+     eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
+     if (eval(out() * (in(1, 0, 0) - in(0, 0, 0)) > 0) {
+         eval(out()) = 0.;
+     }
+ }
+
+This is achieved by using the expressions namespace, in which the operations ``+``, ``-``,
+``*``, ``/``, ``pow<>`` are
+overloaded, and generate an expression to be evaluated. An example of its
+usage, demonstrating its effectiveness, can be found in the
+shallow water example.
+
+.. todo::
+ add reference to shallow water
+
+It is possible also to instantiate a compile time expression to be lazily evaluated,
+useful for instance if we want to evaluate it multiple times
+
+.. code-block:: gridtools
+
+ using namespace expressions;
+ constexpr auto cond = out() * (in(1, 0, 0) - in(0, 0, 0);
+ template <typename Evaluation>
+ GT_FUNCTION static void apply(Evaluation &eval) {
+     eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
+     if (eval(cond) > 0) {
+         eval(out()) = 0.;
+     }
+ }
+ 
