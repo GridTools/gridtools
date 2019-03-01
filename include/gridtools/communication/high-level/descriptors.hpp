@@ -370,7 +370,7 @@ namespace gridtools {
            \param[in] comm MPI communicator (typically MPI_Comm_world)
         */
         explicit hndlr_descriptor_ut(typename grid_type::period_type const &c, MPI_Comm comm)
-            : base_type(grid_type(c, comm)), field() {}
+            : base_type(grid_type(c, comm)), send_buffer{nullptr}, recv_buffer{nullptr} {}
 
         /**
            Constructor
@@ -784,10 +784,8 @@ namespace gridtools {
                 for (int i = -1; i <= 1; ++i) {
                     for (int j = -1; j <= 1; ++j) {
                         for (int k = -1; k <= 1; ++k) {
-                            if (i != 0 || j != 0 || k != 0) {
-                                _impl::gcl_alloc<DataType, arch_type>::free(hm->send_buffer[translate()(i, j, k)]);
-                                _impl::gcl_alloc<DataType, arch_type>::free(hm->recv_buffer[translate()(i, j, k)]);
-                            }
+                            _impl::gcl_alloc<DataType, arch_type>::free(hm->send_buffer[translate()(i, j, k)]);
+                            _impl::gcl_alloc<DataType, arch_type>::free(hm->recv_buffer[translate()(i, j, k)]);
                         }
                     }
                 }

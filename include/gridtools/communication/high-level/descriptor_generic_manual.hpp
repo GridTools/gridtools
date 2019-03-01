@@ -84,7 +84,8 @@ namespace gridtools {
          */
         typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
 
-        hndlr_generic(grid_type const &g) : base_type(g) {}
+        hndlr_generic(grid_type const &g)
+            : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_buffer_size{0}, recv_buffer_size{0} {}
 
         ~hndlr_generic() {
 #ifdef GCL_CHECK_DESTRUCTOR
@@ -94,10 +95,8 @@ namespace gridtools {
             for (int i = -1; i <= 1; ++i)
                 for (int j = -1; j <= 1; ++j)
                     for (int k = -1; k <= 1; ++k) {
-                        if (i != 0 || j != 0 || k != 0) {
-                            _impl::gcl_alloc<char, arch_type>::free(send_buffer[translate()(i, j, k)]);
-                            _impl::gcl_alloc<char, arch_type>::free(recv_buffer[translate()(i, j, k)]);
-                        }
+                        _impl::gcl_alloc<char, arch_type>::free(send_buffer[translate()(i, j, k)]);
+                        _impl::gcl_alloc<char, arch_type>::free(recv_buffer[translate()(i, j, k)]);
                     }
         }
 
@@ -418,7 +417,8 @@ namespace gridtools {
          */
         typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
 
-        hndlr_generic(grid_type const &g) : base_type(g) {}
+        hndlr_generic(grid_type const &g)
+            : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_buffer_size{0}, recv_buffer_size{0} {}
 
         ~hndlr_generic() {
 #ifdef GCL_CHECK_DESTRUCTOR
@@ -428,10 +428,8 @@ namespace gridtools {
             for (int ii = -1; ii <= 1; ++ii)
                 for (int jj = -1; jj <= 1; ++jj)
                     for (int kk = -1; kk <= 1; ++kk) {
-                        if (ii != 0 || jj != 0 || kk != 0) {
-                            _impl::gcl_alloc<char, arch_type>::free(send_buffer[translate()(ii, jj, kk)]);
-                            _impl::gcl_alloc<char, arch_type>::free(recv_buffer[translate()(ii, jj, kk)]);
-                        }
+                        _impl::gcl_alloc<char, arch_type>::free(send_buffer[translate()(ii, jj, kk)]);
+                        _impl::gcl_alloc<char, arch_type>::free(recv_buffer[translate()(ii, jj, kk)]);
                     }
             delete[] prefix_send_size;
             delete[] prefix_recv_size;

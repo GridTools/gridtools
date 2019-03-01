@@ -136,14 +136,15 @@ namespace gridtools {
            \param[in] comm MPI communicator (typically MPI_Comm_world)
         */
         explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
-            : base_type(c, comm), halo() {}
+            : base_type(c, comm), send_buffer{nullptr}, recv_buffer{nullptr}, send_size{0}, recv_size{0} {}
 
         /**
            Constructor
 
            \param[in] g A processor grid that will execute the pattern
          */
-        explicit hndlr_dynamic_ut(grid_type const &g) : base_type(g), halo() {}
+        explicit hndlr_dynamic_ut(grid_type const &g)
+            : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_size{0}, recv_size{0} {}
 
         ~hndlr_dynamic_ut() {
 #ifdef GCL_CHECK_DESTRUCTOR
@@ -153,10 +154,8 @@ namespace gridtools {
             for (int i = -1; i <= 1; ++i)
                 for (int j = -1; j <= 1; ++j)
                     for (int k = -1; k <= 1; ++k) {
-                        if (i != 0 || j != 0 || k != 0) {
-                            _impl::gcl_alloc<DataType, arch_type>::free(send_buffer[translate()(i, j, k)]);
-                            _impl::gcl_alloc<DataType, arch_type>::free(recv_buffer[translate()(i, j, k)]);
-                        }
+                        _impl::gcl_alloc<DataType, arch_type>::free(send_buffer[translate()(i, j, k)]);
+                        _impl::gcl_alloc<DataType, arch_type>::free(recv_buffer[translate()(i, j, k)]);
                     }
             GT_CUDA_CHECK(cudaFree(d_send_buffer));
             GT_CUDA_CHECK(cudaFree(d_recv_buffer));

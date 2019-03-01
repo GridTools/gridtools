@@ -8,7 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+#ifdef GCL_GPU
 #include "../../common/cuda_util.hpp"
+#endif
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "descriptors_fwd.hpp"
 
@@ -45,7 +47,10 @@ namespace gridtools {
                 }
             }
 
-            static void free(T *t) { GT_CUDA_CHECK(cudaFree(t)); }
+            static void free(T *t) {
+                /* TODO: fix memory leak and related issues (just uncommenting breaks GCL in some rare cases) */
+                // GT_CUDA_CHECK(cudaFree(t));
+            }
         };
 #endif
 
