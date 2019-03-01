@@ -5,7 +5,7 @@ Indexing Algorithm (Pointer Offset Computation)
 On the |GT| frontend side we are using ``storage_info``, ``data_store`` and ``data_view`` objects when we deal with data.
 Once this information is passed to the ``aggregator_type`` and the ``intermediate`` the information how to access the different
 fields is extracted. This means we extract the raw pointers to the data from the ``data_store`` objects and the stride 
-information is from the ``storage_info`` objects. The pointers and the strides informations are stored in the ``iterate_domain``.
+information is from the ``storage_info`` objects. The pointers and the strides information are stored in the ``iterate_domain``.
 In order to save registers and not wasting resources different ``storage_info`` instances with a matching ID parameter are 
 treated as a single instance. This can be done because the contained stride information has to be the same if the ID is equal.
 :numref:`fig_flow` shows the storage flow from the frontend to the backend. In this example three data
