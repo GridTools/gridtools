@@ -31,16 +31,16 @@ namespace gridtools {
     class iterate_domain {
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
         using backend_ids_t = typename IterateDomainArguments::backend_ids_t;
-        using storage_info_ptrs_t = typename local_domain_t::storage_info_ptr_fusion_list;
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t n_meta_storages = boost::mpl::size<storage_info_ptrs_t>::value;
+        static const uint_t n_meta_storages = meta::length<typename local_domain_t::storage_infos_t>::value;
 
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
       protected:
-        using strides_cached_t = strides_cached<n_meta_storages - 1, storage_info_ptrs_t>;
+        using strides_cached_t =
+            strides_cached<n_meta_storages - 1, typename local_domain_t::storage_info_ptr_fusion_list>;
 
       private:
         using array_index_t = array<int_t, n_meta_storages>;
@@ -64,11 +64,11 @@ namespace gridtools {
 
         template <uint_t Coordinate, int_t Step>
         GT_FUNCTION void increment() {
-            do_increment<Coordinate, Step>(m_local_domain, strides(), m_index);
+            do_increment<Coordinate, Step, local_domain_t>(strides(), m_index);
         }
         template <uint_t Coordinate>
         GT_FUNCTION void increment(int_t step) {
-            do_increment<Coordinate>(step, m_local_domain, strides(), m_index);
+            do_increment<Coordinate, local_domain_t>(step, m_local_domain, strides(), m_index);
         }
 
       protected:
@@ -100,7 +100,7 @@ namespace gridtools {
 
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
-            boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
+            host_device::for_each_type<typename local_domain_t::storage_infos_t>(
                 initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
                     strides(), begin, block_no, pos_in_block, m_index});
         }
@@ -156,7 +156,7 @@ namespace gridtools {
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
+                meta::st_position<typename local_domain_t::storage_infos_t, storage_info_t>::value;
 
             int_t pointer_offset = m_index[storage_info_index] +
                                    compute_offset<storage_info_t>(strides().template get<storage_info_index>(), acc);

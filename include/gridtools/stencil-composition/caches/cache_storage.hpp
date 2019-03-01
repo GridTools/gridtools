@@ -33,9 +33,9 @@ namespace gridtools {
 
         template <class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += accessor_offset<0>(acc) + IZero;
-            j += accessor_offset<1>(acc) + JZero;
-            assert(accessor_offset<2>(acc) == 0);
+            i += tuple_util::host_device::get<0>(acc) + IZero;
+            j += tuple_util::host_device::get<1>(acc) + JZero;
+            assert(tuple_util::host_device::get<2>(acc) == 0);
             assert(i >= 0);
             assert(i < ISize);
             assert(j >= 0);
@@ -68,10 +68,10 @@ namespace gridtools {
 
         template <int_t Color, class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += accessor_offset<0>(acc) + IZero;
-            int_t color = Color + accessor_offset<1>(acc);
-            j += accessor_offset<2>(acc) + JZero;
-            assert(accessor_offset<3>(acc) == 0);
+            i += tuple_util::host_device::get<0>(acc) + IZero;
+            int_t color = Color + tuple_util::host_device::get<1>(acc);
+            j += tuple_util::host_device::get<2>(acc) + JZero;
+            assert(tuple_util::host_device::get<3>(acc) == 0);
             assert(i >= 0);
             assert(i < ISize);
             assert(color >= 0);
@@ -133,11 +133,11 @@ namespace gridtools {
          */
         template <class Accessor>
         GT_FUNCTION T &at(Accessor const &acc) {
-            int_t offset = accessor_offset<2>(acc);
+            int_t offset = tuple_util::host_device::get<2>(acc);
             assert(offset >= Minus);
             assert(offset <= Plus);
-            assert(accessor_offset<0>(acc) == 0);
-            assert(accessor_offset<1>(acc) == 0);
+            assert(tuple_util::host_device::get<0>(acc) == 0);
+            assert(tuple_util::host_device::get<1>(acc) == 0);
             return m_values[offset - Minus];
         }
 

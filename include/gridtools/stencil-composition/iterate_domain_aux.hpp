@@ -135,7 +135,7 @@ namespace gridtools {
         struct is_dummy_coordinate : bool_constant<(Mapped < 0)> {};
 
         template <class StorageInfo, class LocalDomain>
-        struct get_index : meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *> {};
+        struct get_index : meta::st_position<typename LocalDomain::storage_infos_t, StorageInfo> {};
 
         template <uint_t Coordinate,
             class LayoutMap,
@@ -196,31 +196,28 @@ namespace gridtools {
         StridesCached const &GT_RESTRICT m_strides_cached;
 
         template <typename StorageInfo,
-            typename Layout = typename StorageInfo::layout_t,
-            enable_if_t<_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
-        GT_FUNCTION void operator()(const StorageInfo *) const {}
+            enable_if_t<_impl::is_dummy_coordinate<Coordinate, typename StorageInfo::layout_t>::value, int> = 0>
+        GT_FUNCTION void operator()() const {}
 
         template <typename StorageInfo,
-            size_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
-            typename Layout = typename StorageInfo::layout_t,
-            enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
-        GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
-            GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
+            enable_if_t<!_impl::is_dummy_coordinate<Coordinate, typename StorageInfo::layout_t>::value, int> = 0>
+        GT_FUNCTION void operator()() const {
+            static constexpr auto index = _impl::get_index<StorageInfo, LocalDomain>::value;
+            GT_STATIC_ASSERT(index < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
+            m_index_array[index] +=
+                _impl::get_stride<Coordinate, typename StorageInfo::layout_t, index>(m_strides_cached) * m_increment;
         }
     };
 
     template <uint_t Coordinate, class LocalDomain, class Strides, class ArrayIndex>
-    GT_FUNCTION void do_increment(
-        int_t step, LocalDomain const &local_domain, Strides const &GT_RESTRICT strides, ArrayIndex &index) {
-        boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
+    GT_FUNCTION void do_increment(int_t step, Strides const &GT_RESTRICT strides, ArrayIndex &index) {
+        host_device::for_each_type<typename LocalDomain::storage_infos_t>(
             increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{step, index, strides});
     }
 
     template <uint_t Coordinate, ptrdiff_t Step, class LocalDomain, class Strides, class ArrayIndex>
-    GT_FUNCTION void do_increment(
-        LocalDomain const &local_domain, Strides const &GT_RESTRICT strides, ArrayIndex &index) {
-        boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
+    GT_FUNCTION void do_increment(Strides const &GT_RESTRICT strides, ArrayIndex &index) {
+        host_device::for_each_type<typename LocalDomain::storage_infos_t>(
             increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{Step, index, strides});
     }
 
@@ -265,7 +262,7 @@ namespace gridtools {
 
     template <class Strides, class LocalDomain, class ArrayIndex, class Backend>
     struct initialize_index_f {
-        GT_STATIC_ASSERT((is_strides_cached<Strides>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_strides_cached<Strides>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
         Strides const &GT_RESTRICT m_strides;
         pos3<uint_t> m_begin;
@@ -273,18 +270,19 @@ namespace gridtools {
         pos3<int_t> m_pos_in_block;
         ArrayIndex &GT_RESTRICT m_index_array;
 
-        template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
-        GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
-            GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
+        template <typename StorageInfo>
+        GT_FUNCTION void operator()() const {
+            static constexpr auto index = _impl::get_index<StorageInfo, LocalDomain>::value;
+            GT_STATIC_ASSERT(index < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
-                meta::st_contains<typename LocalDomain::tmp_storage_info_ptr_list, StorageInfo const *>::value;
-            m_index_array[I] =
+                meta::st_contains<typename LocalDomain::tmp_storage_infos_t, StorageInfo>::value;
+            m_index_array[index] =
                 get_index_offset_f<StorageInfo, typename LocalDomain::max_extent_for_tmp_t, is_tmp>{}(backend,
-                    make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, I>(m_strides),
-                        _impl::get_stride<coord_j<Backend>::value, layout_t, I>(m_strides),
-                        _impl::get_stride<coord_k<Backend>::value, layout_t, I>(m_strides)),
+                    make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, index>(m_strides),
+                        _impl::get_stride<coord_j<Backend>::value, layout_t, index>(m_strides),
+                        _impl::get_stride<coord_k<Backend>::value, layout_t, index>(m_strides)),
                     m_begin,
                     m_block_no,
                     m_pos_in_block);
@@ -315,8 +313,7 @@ namespace gridtools {
             template <typename Coordinate>
             GT_FUNCTION void operator()() const {
                 typedef typename SInfo::layout_t layout_map_t;
-                GT_STATIC_ASSERT(
-                    (boost::mpl::contains<typename LocalDomain::storage_info_ptr_list, const SInfo *>::value),
+                GT_STATIC_ASSERT((boost::mpl::contains<typename LocalDomain::storage_infos_t, SInfo>::value),
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
                 constexpr int pos = SInfo::layout_t::template find<Coordinate::value>();
@@ -349,7 +346,7 @@ namespace gridtools {
         template <typename StorageInfo>
         GT_FUNCTION enable_if_t<StorageInfo::layout_t::unmasked_length != 0> operator()(
             StorageInfo const *storage_info) const {
-            using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *>;
+            using index_t = meta::st_position<typename LocalDomain::storage_infos_t, StorageInfo>;
             using once_per_block_t = typename BackendType::template once_per_block<index_t::value>;
             using range_t = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
             host_device::for_each_type<range_t>(
@@ -366,7 +363,7 @@ namespace gridtools {
     template <typename StorageInfo, typename LocalDomain>
     GT_FUNCTION bool pointer_oob_check(LocalDomain const &local_domain, int_t offset) {
         constexpr auto storage_info_index =
-            meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *>::value;
+            meta::st_position<typename LocalDomain::storage_infos_t, StorageInfo>::value;
         return offset < get<storage_info_index>(local_domain.m_local_padded_total_lengths) && offset >= 0;
     }
 

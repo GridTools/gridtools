@@ -95,9 +95,12 @@ namespace gridtools {
             GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
                 -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
                 return m_caller_aggregator(get_passed_argument_t<Accessor>(
-                    accessor_offset<0>(accessor) + Offi + accessor_offset<0>(get_passed_argument<Accessor>()),
-                    accessor_offset<1>(accessor) + Offj + accessor_offset<1>(get_passed_argument<Accessor>()),
-                    accessor_offset<2>(accessor) + Offk + accessor_offset<2>(get_passed_argument<Accessor>())));
+                    tuple_util::host_device::get<0>(accessor) + Offi +
+                        tuple_util::host_device::get<0>(get_passed_argument<Accessor>()),
+                    tuple_util::host_device::get<1>(accessor) + Offj +
+                        tuple_util::host_device::get<1>(get_passed_argument<Accessor>()),
+                    tuple_util::host_device::get<2>(accessor) + Offk +
+                        tuple_util::host_device::get<2>(get_passed_argument<Accessor>())));
             }
 
             /*
@@ -288,9 +291,12 @@ namespace gridtools {
             GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
                 -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
                 return m_caller_aggregator(get_passed_argument_t<Accessor>(
-                    accessor_offset<0>(accessor) + Offi + accessor_offset<0>(get_passed_argument<Accessor>()),
-                    accessor_offset<1>(accessor) + Offj + accessor_offset<1>(get_passed_argument<Accessor>()),
-                    accessor_offset<2>(accessor) + Offk + accessor_offset<2>(get_passed_argument<Accessor>())));
+                    tuple_util::host_device::get<0>(accessor) + Offi +
+                        tuple_util::host_device::get<0>(get_passed_argument<Accessor>()),
+                    tuple_util::host_device::get<1>(accessor) + Offj +
+                        tuple_util::host_device::get<1>(get_passed_argument<Accessor>()),
+                    tuple_util::host_device::get<2>(accessor) + Offk +
+                        tuple_util::host_device::get<2>(get_passed_argument<Accessor>())));
             }
 
             /**
