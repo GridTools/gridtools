@@ -323,7 +323,6 @@ namespace gridtools {
 
             template <typename Coordinate>
             GT_FUNCTION enable_if_t<(Coordinate::value < SInfo::layout_t::unmasked_length)> operator()() const {
-                typedef typename SInfo::layout_t layout_map_t;
                 using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, SInfo const *>;
                 GT_STATIC_ASSERT(
                     (boost::mpl::contains<typename LocalDomain::storage_info_ptr_list, const SInfo *>::value),

@@ -54,9 +54,9 @@ namespace gridtools {
                 uint_t size_j = a_dims[1];
                 uint_t size_k = a_dims[2];
 #pragma omp parallel for collapse(3)
-                for (int i = 0; i < size_i; ++i)
-                    for (int j = 0; j < size_j; ++j)
-                        for (int k = 0; k < size_k; ++k) {
+                for (int i = 0; i < (int)size_i; ++i)
+                    for (int j = 0; j < (int)size_j; ++j)
+                        for (int k = 0; k < (int)size_k; ++k) {
                             auto index = tuple_util::push_front(tuple_util::convert_to<array, int>(outer), i, j, k);
                             dst[si_dst.index(index)] = src[si_src.index(index)];
                         }

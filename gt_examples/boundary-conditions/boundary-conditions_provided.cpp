@@ -114,11 +114,11 @@ int main(int argc, char **argv) {
                 for (uint_t k = 0; k < d3; ++k) {
                     // check outer surfaces of the cube
                     if ((i == 0 || i == d1 - 1) || (j == 0 || j == d2 - 1) || (k == 0 || k == d3 - 1)) {
-                        error |= out(i, j, k) != i + j + k;
-                        error |= out(i, j, k) != i + j + k;
+                        error |= out(i, j, k) != (int)(i + j + k);
+                        error |= out(i, j, k) != (int)(i + j + k);
                     } else {
                         error |= out(i, j, k) != 0;
-                        error |= in(i, j, k) != i + j + k;
+                        error |= in(i, j, k) != (int)(i + j + k);
                     }
                 }
             }

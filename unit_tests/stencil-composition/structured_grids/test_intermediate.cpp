@@ -40,13 +40,6 @@ namespace test_intermediate {
     };
 } // namespace test_intermediate
 
-namespace {
-    std::ostream &operator<<(std::ostream &os, const gridtools::rt_extent &extent) {
-        return (os << extent.iminus << ":" << extent.iplus << ", " << extent.jminus << ":" << extent.jplus << ", "
-                   << extent.kminus << ":" << extent.kplus);
-    }
-} // namespace
-
 TEST(intermediate, test_get_arg_functions) {
     using namespace test_intermediate;
 

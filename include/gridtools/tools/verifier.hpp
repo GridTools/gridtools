@@ -26,7 +26,7 @@ namespace gridtools {
 
     namespace impl_ {
         template <class T>
-        class default_precision_impl;
+        struct default_precision_impl;
 
         template <>
         struct default_precision_impl<float> {

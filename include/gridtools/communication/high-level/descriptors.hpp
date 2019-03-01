@@ -639,7 +639,7 @@ namespace gridtools {
         pattern_type const &pattern() const { return base_type::pattern(); }
 
         // FRIENDING
-        friend class _impl::allocation_service<this_type>;
+        friend struct _impl::allocation_service<this_type>;
         // friend class _impl::pack_service<this_type>;
         // friend class _impl::unpack_service<this_type>;
 

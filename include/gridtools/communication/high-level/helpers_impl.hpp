@@ -54,7 +54,7 @@ namespace gridtools {
 
             static void free(T *t) {
                 if (!t)
-                    cudaError_t status = cudaFree(t);
+                    cudaFree(t);
                 t = nullptr;
             }
         };
@@ -99,7 +99,8 @@ namespace gridtools {
             typename procmap,
             typename arch,
             int V,
-            template <int Ndim> class GridType>
+            template <int Ndim>
+            class GridType>
         struct allocation_service<hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch, V>> {
             void operator()(hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch, V> *hm, int mf) const {
                 typedef translate_t<3, default_layout_map<3>::type> translate;

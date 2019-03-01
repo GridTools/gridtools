@@ -125,7 +125,7 @@ namespace copy_stencil {
         storage_info_t storage_info(d1 + 2 * halo[0], d2 + 2 * halo[1], d3);
 
         storage_t in(storage_info,
-            [&storage_info, pi, pj, pk](int i, int j, int k) {
+            [&storage_info, pi, pj](int i, int j, int k) {
                 int I = i + storage_info.total_length<0>() * pi;
                 int J = j + storage_info.total_length<1>() * pj;
                 int K = k;

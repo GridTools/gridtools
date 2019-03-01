@@ -145,9 +145,9 @@ int main() {
     // In this simple example the solution is known and we can easily
     // check it.
     bool correct = true;
-    for (int i = 0; i < d1; ++i) {
-        for (int j = 0; j < d2; ++j) {
-            for (int k = 0; k < d3; ++k) {
+    for (unsigned i = 0; i < d1; ++i) {
+        for (unsigned j = 0; j < d2; ++j) {
+            for (unsigned k = 0; k < d3; ++k) {
                 correct &= gt::make_host_view(out)(i, j, k) == 1.;
             }
         }

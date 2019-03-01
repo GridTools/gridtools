@@ -12,6 +12,6 @@
 namespace gridtools {
     namespace strgrid {
         template <typename RunFunctorArguments>
-        struct execute_kernel_functor_mc;
+        class execute_kernel_functor_mc;
     }
 } // namespace gridtools

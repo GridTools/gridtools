@@ -134,7 +134,7 @@ struct static_type_tests<backend<target::x86, Strategy>> {
         "data store storage type is wrong");
 };
 
-template class static_type_tests<backend_t>;
+template struct static_type_tests<backend_t>;
 
 #ifdef __CUDACC__
 template <typename View>
@@ -495,7 +495,7 @@ struct static_layout_tests<backend<target::mc, Strategy>> : static_layout_tests_
 template <class Strategy>
 struct static_layout_tests<backend<target::x86, Strategy>> : static_layout_tests_increasing<target::x86> {};
 
-template class static_layout_tests<backend_t>;
+template struct static_layout_tests<backend_t>;
 
 TEST(StorageFacility, CustomLayoutTests) {
     typedef

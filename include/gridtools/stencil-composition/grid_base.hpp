@@ -67,7 +67,7 @@ namespace gridtools {
         explicit grid_base(halo_descriptor const &direction_i,
             halo_descriptor const &direction_j,
             const array<uint_t, size> &value_list)
-            : m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {}
+            : value_list(value_list), m_direction_i(direction_i), m_direction_j(direction_j) {}
 
         GT_DEPRECATED("Use constructor with halo_descriptors (deprecated after 1.05.02)")
         GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/)

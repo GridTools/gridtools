@@ -72,12 +72,12 @@ TEST_F(hypercube_iteration, from_one_to_one) {
 
 TEST(hypercube_view_empty_iteration_space, zero_dimensional_range) {
     auto view = make_hypercube_view(array<pair<size_t, size_t>, 0>{});
-    for (auto it : view)
+    for ([[maybe_unused]] auto it : view)
         FAIL();
 }
 
 TEST(hypercube_view_empty_iteration_space, zero_dimensional_size) {
     auto view = make_hypercube_view(array<size_t, 0>{});
-    for (auto it : view)
+    for ([[maybe_unused]] auto it : view)
         FAIL();
 }

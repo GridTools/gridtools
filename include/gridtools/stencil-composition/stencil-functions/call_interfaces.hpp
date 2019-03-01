@@ -205,8 +205,7 @@ namespace gridtools {
             at<..> statement.
          */
         template <typename Evaluator, typename... Args>
-        GT_FUNCTION static typename get_result_type<Evaluator, Args...>::type with(
-            Evaluator &eval, Args const &... args) {
+        GT_FUNCTION static typename get_result_type<Evaluator, Args...>::type with(Evaluator &eval, Args &&... args) {
 
             GT_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
@@ -223,7 +222,8 @@ namespace gridtools {
 
             result_type result;
 
-            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
+            auto agg_p =
+                f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(std::forward<Args>(args)...));
             _impl::call_functor<Functor, Region>(agg_p);
 
             return result;
@@ -360,7 +360,7 @@ namespace gridtools {
             at<..> statement.
          */
         template <typename Evaluator, typename... Args>
-        GT_FUNCTION static void with(Evaluator &eval, Args const &... args) {
+        GT_FUNCTION static void with(Evaluator &eval, Args &&... args) {
 
             typedef _impl::function_aggregator_procedure_offsets<Evaluator,
                 Offi,
@@ -369,7 +369,7 @@ namespace gridtools {
                 typename _impl::package_args<Args...>::type>
                 f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
+            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(std::forward<Args>(args))...);
 
             auto agg_p = f_aggregator_t(eval, y);
             _impl::call_functor<Functor, Region>(agg_p);

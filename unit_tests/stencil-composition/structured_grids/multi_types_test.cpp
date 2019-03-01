@@ -241,9 +241,9 @@ namespace multi_types_test {
         assert(check_consistency(field3, f3v) && "view cannot be used safely.");
 
         bool result = true;
-        for (int i = 0; i < x; ++i) {
-            for (int j = 0; j < y; ++j) {
-                for (int k = 0; k < z; ++k) {
+        for (uint_t i = 0; i < x; ++i) {
+            for (uint_t j = 0; j < y; ++j) {
+                for (uint_t k = 0; k < z; ++k) {
                     double xy =
                         static_cast<double>(2 * f1v(i, j, k).i + 1) + static_cast<double>(2 * f1v(i, j, k).j + 1);
                     double yz = 2;

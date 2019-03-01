@@ -26,7 +26,7 @@ namespace gridtools {
     std::ostream &operator<<(std::ostream &s, array<T, D> const &a) {
         s << " {  ";
         if (D != 0) {
-            for (int i = 0; i < D - 1; ++i)
+            for (size_t i = 0; i < D - 1; ++i)
                 s << a[i] << ", ";
 
             s << a[D - 1];

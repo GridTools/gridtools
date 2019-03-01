@@ -129,7 +129,8 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
 
     storage_type a(storage_info,
         [=](int i, int j, int k) {
-            bool inner = i >= halo_size and j >= halo_size and i < d1 - halo_size and j < d2 - halo_size;
+            bool inner = i >= (int)halo_size and j >= (int)halo_size and i < (int)d1 - (int)halo_size and
+                         j < (int)d2 - (int)halo_size;
             return inner ? triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 100,
                                j + pj * ((int)d2 - 2 * (int)halo_size) + 100,
                                k + pk * ((int)d3 - 2 * (int)halo_size) + 100}
@@ -138,7 +139,8 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
         "a");
     storage_type b(storage_info,
         [=](int i, int j, int k) {
-            bool inner = i >= halo_size and j >= halo_size and i < d1 - halo_size and j < d2 - halo_size;
+            bool inner = i >= (int)halo_size and j >= (int)halo_size and i < (int)d1 - (int)halo_size and
+                         j < (int)d2 - (int)halo_size;
             return inner ? triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 1000,
                                j + pj * ((int)d2 - 2 * (int)halo_size) + 1000,
                                k + pk * ((int)d3 - 2 * (int)halo_size) + 1000}
@@ -154,7 +156,8 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
         "c");
     storage_type d(storage_info,
         [=](int i, int j, int k) {
-            bool inner = i >= halo_size and j >= halo_size and i < d1 - halo_size and j < d2 - halo_size;
+            bool inner = i >= (int)halo_size and j >= (int)halo_size and i < (int)d1 - (int)halo_size and
+                         j < (int)d2 - (int)halo_size;
             return inner ? triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 100000,
                                j + pj * ((int)d2 - 2 * (int)halo_size) + 100000,
                                k + pk * ((int)d3 - 2 * (int)halo_size) + 100000}
@@ -173,11 +176,11 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     d.sync();
 
     bool ok = true;
-    for (int i = 0; i < d1; ++i) {
-        for (int j = 0; j < d2; ++j) {
-            for (int k = 0; k < d3; ++k) {
-                if ((i + pi * d1) < halo_size or (j + pj * d2) < halo_size or (i + pi * d1) >= PI * d1 - halo_size or
-                    (j + pj * d2) >= PJ * d2 - halo_size) {
+    for (int i = 0; i < (int)d1; ++i) {
+        for (int j = 0; j < (int)d2; ++j) {
+            for (int k = 0; k < (int)d3; ++k) {
+                if ((i + pi * d1) < (int)halo_size or (j + pj * d2) < (int)halo_size or
+                    (i + pi * d1) >= PI * d1 - (int)halo_size or (j + pj * d2) >= PJ * d2 - (int)halo_size) {
                     // At the border
                     if (from_neighbor(region(i, d1, halo_size),
                             region(j, d2, halo_size),
@@ -345,7 +348,8 @@ TEST(DistributedBoundaries, Test) {
 
     storage_type a(storage_info,
         [=](int i, int j, int k) {
-            bool inner = i >= halo_size and j >= halo_size and i < d1 - halo_size and j < d2 - halo_size;
+            bool inner = i >= (int)halo_size and j >= (int)halo_size and i < (int)d1 - (int)halo_size and
+                         j < (int)d2 - (int)halo_size;
             return inner ? triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 100,
                                j + pj * ((int)d2 - 2 * (int)halo_size) + 100,
                                k + pk * ((int)d3 - 2 * (int)halo_size) + 100}
@@ -354,7 +358,8 @@ TEST(DistributedBoundaries, Test) {
         "a");
     storage_type b(storage_info,
         [=](int i, int j, int k) {
-            bool inner = i >= halo_size and j >= halo_size and i < d1 - halo_size and j < d2 - halo_size;
+            bool inner = i >= (int)halo_size and j >= (int)halo_size and i < (int)d1 - (int)halo_size and
+                         j < (int)d2 - (int)halo_size;
             return inner ? triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 1000,
                                j + pj * ((int)d2 - 2 * (int)halo_size) + 1000,
                                k + pk * ((int)d3 - 2 * (int)halo_size) + 1000}
@@ -370,7 +375,8 @@ TEST(DistributedBoundaries, Test) {
         "c");
     storage_type d(storage_info,
         [=](int i, int j, int k) {
-            bool inner = i >= halo_size and j >= halo_size and i < d1 - halo_size and j < d2 - halo_size;
+            bool inner = i >= (int)halo_size and j >= (int)halo_size and i < (int)d1 - (int)halo_size and
+                         j < (int)d2 - (int)halo_size;
             return inner ? triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 100000,
                                j + pj * ((int)d2 - 2 * (int)halo_size) + 100000,
                                k + pk * ((int)d3 - 2 * (int)halo_size) + 100000}
@@ -389,9 +395,9 @@ TEST(DistributedBoundaries, Test) {
     d.sync();
 
     bool ok = true;
-    for (int i = 0; i < d1; ++i) {
-        for (int j = 0; j < d2; ++j) {
-            for (int k = 0; k < d3; ++k) {
+    for (int i = 0; i < (int)d1; ++i) {
+        for (int j = 0; j < (int)d2; ++j) {
+            for (int k = 0; k < (int)d3; ++k) {
                 if ((i + pi * d1) < halo_size or (j + pj * d2) < halo_size or (i + pi * d1) >= PI * d1 - halo_size or
                     (j + pj * d2) >= PJ * d2 - halo_size) {
                     // At the border
