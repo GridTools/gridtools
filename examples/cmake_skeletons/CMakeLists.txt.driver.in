@@ -1,7 +1,7 @@
 # This file drives compilation of all examples and is installed together with the example sources.
 cmake_minimum_required(VERSION 3.12.4)
 
-project(GridTools-examples CXX)
+project(GridTools-examples LANGUAGES CXX)
 
 include(ExternalProject)
 

@@ -83,7 +83,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 # grep for failure patterns (exclude ctest summary line)
-grep -i 'fail\|error\|[^a-zA-z]fault' ${testfile} | grep -v '0 tests failed out of'
+grep -i 'fail\|error\|[^a-zA-z]fault' ${testfile} | grep -v '100\% tests passed'
 
 if [ $? -eq 0 ] ; then
     # echo output to stdout

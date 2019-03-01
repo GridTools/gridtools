@@ -68,7 +68,7 @@ while getopts "hb:t:f:l:zmsidvq:x:incok:pCI:" opt; do
         ;;
     n) BUILD_ON_CN="ON"
         ;;
-    k) MAKE_TARGETS="$MAKE_TARGETS $OPTARG install"
+    k) MAKE_TARGETS="$MAKE_TARGETS $OPTARG"
         ;;
     o) COMPILE_ONLY="ON"
         ;;
