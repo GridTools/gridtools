@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>User Manual &mdash; GridTools 0.20.0 documentation</title>
+  <title>User Manual &mdash; GridTools 0.21.0 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.20
+                0.21
               </div>
             
           
@@ -703,7 +703,7 @@ fails. For <a class="reference internal" href="../glossary/glossary.html#term-gl
 the data associated to the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a>. Possible values are</p>
 <ol class="arabic simple">
 <li><code class="docutils literal notranslate"><span class="pre">intent::in</span></code> to specify <em>read-only</em> access</li>
-<li><code class="docutils literal notranslate"><span class="pre">intent::inout</span></code> to specify <em>read-write</em> access. The <code class="docutils literal notranslate"><span class="pre">extent</span></code> for <code class="docutils literal notranslate"><span class="pre">inout</span></code> must be made of all zeros (see next points)</li>
+<li><code class="docutils literal notranslate"><span class="pre">intent::inout</span></code> to specify <em>read-write</em> access. The <code class="docutils literal notranslate"><span class="pre">extent</span></code> for <cite>i</cite> and <cite>j</cite> for <code class="docutils literal notranslate"><span class="pre">inout</span></code> must be made of all zeros (see next points)</li>
 </ol>
 <p>Alternatively, the abbreviations <code class="docutils literal notranslate"><span class="pre">in_accessor</span></code> our <code class="docutils literal notranslate"><span class="pre">inout_accessor</span></code> can be used respectively.</p>
 </li>
@@ -1994,7 +1994,7 @@ fields have the same type.</p>
 <p>Communication traits helps the distributed boundary condition interface to customize itself to the need of the user. A general communication traits class is available in <code class="docutils literal notranslate"><span class="pre">distributed-boundaries/comm_traits.hpp</span></code>. The traits required by the distributed boundaries interface, as provided by <cite>GridTools</cite>, are listed below here.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">StorageType</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Arch</span><span class="o">&gt;</span>
 <span class="k">struct</span> <span class="n">comm_traits</span> <span class="p">{</span>
-  <span class="k">using</span> <span class="n">proc_layout</span> <span class="o">=</span> <span class="p">...</span> <span class="c1">// Lauyout of the processing grid to relate the data layout to the distribution of data</span>
+  <span class="k">using</span> <span class="n">proc_layout</span> <span class="o">=</span> <span class="p">...</span> <span class="c1">// Layout of the processing grid to relate the data layout to the distribution of data</span>
   <span class="k">using</span> <span class="n">proc_grid_type</span> <span class="o">=</span> <span class="p">...</span> <span class="c1">// Type of the computing grid</span>
   <span class="k">using</span> <span class="n">comm_arch_type</span> <span class="o">=</span> <span class="n">Arch</span><span class="p">;</span> <span class="c1">// Architecture for the communication pattern</span>
   <span class="n">compute_arch</span> <span class="o">=</span> <span class="p">...</span> <span class="c1">// Architecture of the stencil/boundary condition backend</span>
@@ -2015,7 +2015,7 @@ fields have the same type.</p>
 </div>
 <p>The number of <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> is dictated by the <code class="docutils literal notranslate"><span class="pre">boundary_class::operator()</span></code>, that is user defined (or provided by <cite>GridTools</cite>).</p>
 <p>The <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> specified in the function call will be passed to the <code class="docutils literal notranslate"><span class="pre">boundary_class</span></code> and also used in <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operations.</p>
-<p>However, some data fields used in boundary conditions may be read-only and should not be passed to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operation, both for avoiding unnecessary operations and to limit the amount of memory used by the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update layer. For this reason the <code class="docutils literal notranslate"><span class="pre">data_store``s</span> <span class="pre">passed</span> <span class="pre">the</span> <span class="pre">the</span> <span class="pre">``bind_bc</span></code> can actually be <code class="docutils literal notranslate"><span class="pre">std::placeholders</span></code>. Only the actual <code class="docutils literal notranslate"><span class="pre">data_store``s</span> <span class="pre">specified</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">``binc_bc</span></code> call will be passed to the communication layer. To bind the <code class="docutils literal notranslate"><span class="pre">placeholders</span></code> to actual <code class="docutils literal notranslate"><span class="pre">data_store``s</span> <span class="pre">the</span> <span class="pre">user</span> <span class="pre">must</span> <span class="pre">bind</span> <span class="pre">then</span> <span class="pre">using</span> <span class="pre">``.associate(data_stores...)</span></code> with the same mechanism used in <code class="docutils literal notranslate"><span class="pre">std::bind</span></code> as in the following example, in which <code class="docutils literal notranslate"><span class="pre">data_store</span></code> <code class="docutils literal notranslate"><span class="pre">c</span></code> is associated to placeholder <code class="docutils literal notranslate"><span class="pre">_1</span></code>.</p>
+<p>However, some data fields used in boundary conditions may be read-only and should not be passed to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operation, both for avoiding unnecessary operations and to limit the amount of memory used by the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update layer. For this reason the <code class="docutils literal notranslate"><span class="pre">data_store``s</span> <span class="pre">passed</span> <span class="pre">the</span> <span class="pre">``bind_bc</span></code> can actually be <code class="docutils literal notranslate"><span class="pre">std::placeholders</span></code>. Only the actual <code class="docutils literal notranslate"><span class="pre">data_store``s</span> <span class="pre">specified</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">``bind_bc</span></code> call will be passed to the communication layer. To bind the <code class="docutils literal notranslate"><span class="pre">placeholders</span></code> to actual <code class="docutils literal notranslate"><span class="pre">data_store``s</span> <span class="pre">the</span> <span class="pre">user</span> <span class="pre">must</span> <span class="pre">bind</span> <span class="pre">then</span> <span class="pre">using</span> <span class="pre">``.associate(data_stores...)</span></code> with the same mechanism used in <code class="docutils literal notranslate"><span class="pre">std::bind</span></code> as in the following example, in which <code class="docutils literal notranslate"><span class="pre">data_store</span></code> <code class="docutils literal notranslate"><span class="pre">c</span></code> is associated to placeholder <code class="docutils literal notranslate"><span class="pre">_1</span></code>.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">bind_bc</span><span class="p">(</span><span class="n">copy_boundary</span><span class="p">{},</span> <span class="n">b</span><span class="p">,</span> <span class="n">_1</span><span class="p">).</span><span class="n">associate</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 </pre></div>
 </div>
