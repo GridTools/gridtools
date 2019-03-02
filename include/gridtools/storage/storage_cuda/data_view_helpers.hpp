@@ -91,11 +91,12 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::read_write,
         typename CudaDataStore,
-        typename Res = data_view<CudaDataStore, AccessMode>,
-        enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
-                        is_storage_info<typename CudaDataStore::storage_info_t>::value &&
-                        is_data_store<CudaDataStore>::value,
-            Res> make_target_view(CudaDataStore const &ds) {
+        typename Res = data_view<CudaDataStore, AccessMode>>
+    enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
+                    is_storage_info<typename CudaDataStore::storage_info_t>::value &&
+                    is_data_store<CudaDataStore>::value,
+        Res>
+    make_target_view(CudaDataStore const &ds) {
         return make_device_view<AccessMode>(ds);
     }
 

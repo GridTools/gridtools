@@ -12,7 +12,6 @@
 #include <boost/fusion/include/at_key.hpp>
 
 #include "../common/functional.hpp"
-#include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta/defs.hpp"
