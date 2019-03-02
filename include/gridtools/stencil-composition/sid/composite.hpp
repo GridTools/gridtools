@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <cassert>
+
 #include "../../common/binops.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
