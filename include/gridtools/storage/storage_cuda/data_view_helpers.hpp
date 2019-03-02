@@ -32,13 +32,14 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::read_write,
         typename CudaDataStore,
-        typename DecayedCDS = decay_t<CudaDataStore>>
-    enable_if_t<is_cuda_storage<typename DecayedCDS::storage_t>::value &&
-                    is_storage_info<typename DecayedCDS::storage_info_t>::value && is_data_store<DecayedCDS>::value,
-        data_view<DecayedCDS, AccessMode>>
+        typename Res = data_view<CudaDataStore, AccessMode>>
+    enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
+                    is_storage_info<typename CudaDataStore::storage_info_t>::value &&
+                    is_data_store<CudaDataStore>::value,
+        Res>
     make_host_view(CudaDataStore const &ds) {
         if (!ds.valid())
-            return data_view<DecayedCDS, AccessMode>();
+            return {};
 
         if (AccessMode != access_mode::read_only) {
             GT_ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu,
@@ -47,10 +48,10 @@ namespace gridtools {
                 "before constructing the view.");
             ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu = true;
         }
-        return data_view<DecayedCDS, AccessMode>(ds.get_storage_ptr()->get_cpu_ptr(),
+        return {ds.get_storage_ptr()->get_cpu_ptr(),
             ds.get_storage_info_ptr().get(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
-            false);
+            false};
     }
 
     /**
