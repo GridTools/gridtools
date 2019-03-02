@@ -110,9 +110,9 @@ namespace gridtools {
     struct initialize_index_f {
         GT_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
         StridesMap const &m_strides_map;
-        pos3<uint_t> m_begin;
-        pos3<uint_t> m_block_no;
-        pos3<int_t> m_pos_in_block;
+        pos3<uint_t> const &m_begin;
+        pos3<uint_t> const &m_block_no;
+        pos3<int_t> const &m_pos_in_block;
         ArrayIndex &m_index_array;
 
         template <typename StorageInfo>
@@ -138,9 +138,9 @@ namespace gridtools {
     template <class Backend, class LocalDomain, class StridesMap, class ArrayIndex>
     GT_FUNCTION initialize_index_f<StridesMap, LocalDomain, ArrayIndex, Backend> initialize_index(
         StridesMap const &strides_map,
-        pos3<uint_t> begin,
-        pos3<uint_t> block_no,
-        pos3<int_t> pos_in_block,
+        pos3<uint_t> const &begin,
+        pos3<uint_t> const &block_no,
+        pos3<int_t> const &pos_in_block,
         ArrayIndex &index_array) {
         return {strides_map, begin, block_no, pos_in_block, index_array};
     }
