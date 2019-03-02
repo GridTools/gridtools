@@ -39,12 +39,10 @@ namespace gridtools {
         using base_t::increment_j;
 
         using readwrite_args_t = typename compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>::type;
-        using strides_cached_t = typename base_t::strides_cached_t;
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
       public:
-        using shared_iterate_domain_t =
-            shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>;
+        using shared_iterate_domain_t = shared_iterate_domain<typename iterate_domain_cache_t::ij_caches_tuple_t>;
 
       private:
         shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
@@ -81,9 +79,6 @@ namespace gridtools {
         GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
-
-        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->m_strides; }
-        GT_FUNCTION strides_cached_t &strides_impl() { return m_pshared_iterate_domain->m_strides; }
 
         /** @brief return a value that was cached
          */

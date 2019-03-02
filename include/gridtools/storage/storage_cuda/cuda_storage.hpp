@@ -41,7 +41,6 @@ namespace gridtools {
     template <typename DataType>
     struct cuda_storage : storage_interface<cuda_storage<DataType>> {
         typedef DataType data_t;
-        typedef std::array<DataType *, 2> ptrs_t;
         typedef state_machine state_machine_t;
 
       private:
@@ -123,6 +122,11 @@ namespace gridtools {
             return m_gpu_ptr;
         }
 
+        DataType *get_target_ptr() const {
+            GT_ASSERT_OR_THROW(m_gpu_ptr, "This storage has never been initialized.");
+            return m_gpu_ptr;
+        }
+
         /*
          * @brief retrieve the host data pointer.
          * @return host pointer
@@ -198,11 +202,6 @@ namespace gridtools {
          * @brief get_state_machine_ptr implementation for cuda_storage.
          */
         state_machine *get_state_machine_ptr_impl() { return &m_state; }
-
-        /*
-         * @brief get_ptrs implementation for cuda_storage.
-         */
-        ptrs_t get_ptrs_impl() const { return {m_cpu_ptr, m_gpu_ptr}; }
 
         /*
          * @brief valid implementation for cuda_storage.

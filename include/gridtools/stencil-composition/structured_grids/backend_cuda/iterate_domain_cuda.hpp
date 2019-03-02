@@ -43,15 +43,12 @@ namespace gridtools {
         // array storing the (i,j) position of the current thread within the block
         array<int, 2> m_thread_pos;
 
-        using strides_cached_t = typename base_t::strides_cached_t;
-
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
 
       public:
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
-        typedef shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
-            shared_iterate_domain_t;
+        typedef shared_iterate_domain<typename iterate_domain_cache_t::ij_caches_tuple_t> shared_iterate_domain_t;
 
       private:
         using base_t::increment_i;
@@ -90,8 +87,6 @@ namespace gridtools {
         GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
-        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->m_strides; }
-        GT_FUNCTION strides_cached_t &strides_impl() { return m_pshared_iterate_domain->m_strides; }
 
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory

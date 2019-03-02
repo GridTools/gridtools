@@ -76,8 +76,6 @@ namespace gridtools {
             void operator()() const {
                 iterate_domain_t it_domain(m_local_domain);
 
-                it_domain.template assign_stride_pointers<backend_traits_t>();
-
                 it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
                     m_block_no,
                     {extent_t::iminus::value,

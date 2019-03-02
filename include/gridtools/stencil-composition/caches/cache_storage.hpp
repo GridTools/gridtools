@@ -16,7 +16,6 @@
 #include "../../common/host_device.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../execution_types.hpp"
-#include "../offset_computation.hpp"
 
 namespace gridtools {
 

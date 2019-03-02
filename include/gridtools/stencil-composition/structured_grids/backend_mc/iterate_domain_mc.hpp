@@ -17,9 +17,11 @@
 #include <functional>
 
 #include <boost/fusion/functional/invocation/invoke.hpp>
+#include <boost/fusion/include/for_each.hpp>
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/gt_assert.hpp"
+#include "../../../common/hymap.hpp"
 #include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
 #include "../../accessor_base.hpp"
@@ -27,7 +29,8 @@
 #include "../../global_accessor.hpp"
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
-#include "../../offset_computation.hpp"
+#include "../../sid/concept.hpp"
+#include "../../sid/multi_shift.hpp"
 
 namespace gridtools {
 
@@ -110,15 +113,12 @@ namespace gridtools {
         // the number of different storage metadatas used in the current functor
         static const uint_t n_meta_storages = meta::length<typename local_domain_t::storage_infos_t>::value;
 
-        using strides_cached_t =
-            strides_cached<n_meta_storages - 1, typename local_domain_t::storage_info_ptr_fusion_list>;
         using array_index_t = array<int_t, n_meta_storages>;
         // *************** end of type definitions **************
 
       private:
         // *********************** members **********************
         local_domain_t const &local_domain;
-        strides_cached_t m_strides;
         int_t m_i_block_index;     /** Local i-index inside block. */
         int_t m_j_block_index;     /** Local j-index inside block. */
         int_t m_k_block_index;     /** Local/global k-index (no blocking along k-axis). */
@@ -156,9 +156,6 @@ namespace gridtools {
         iterate_domain_mc(local_domain_t const &local_domain)
             : local_domain(local_domain), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0), m_i_block_base(0),
               m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
-            // assign stride pointers
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<backend_traits_t, strides_cached_t, local_domain_t>{m_strides});
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
         }
@@ -257,9 +254,7 @@ namespace gridtools {
          */
         template <typename StorageInfo, int_t Coordinate>
         GT_FORCE_INLINE int_t storage_stride() const {
-            static constexpr auto storage_index = local_domain_storage_index<StorageInfo>::value;
-            auto const &strides = m_strides.template get<storage_index>();
-            return stride<StorageInfo, Coordinate>(strides);
+            return sid::get_stride<integral_constant<int, Coordinate>>(at_key<StorageInfo>(local_domain.m_strides_map));
         }
 
         /**

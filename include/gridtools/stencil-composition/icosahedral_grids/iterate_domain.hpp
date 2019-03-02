@@ -16,11 +16,14 @@
 #include "../../common/array.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../common/hymap.hpp"
 #include "../../meta.hpp"
 #include "../caches/cache_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../local_domain.hpp"
 #include "../pos3.hpp"
+#include "../sid/multi_shift.hpp"
+#include "dim.hpp"
 
 namespace gridtools {
     /**
@@ -38,37 +41,14 @@ namespace gridtools {
 
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
-      protected:
-        using strides_cached_t =
-            strides_cached<n_meta_storages - 1, typename local_domain_t::storage_info_ptr_fusion_list>;
-
-      private:
         using array_index_t = array<int_t, n_meta_storages>;
 
         local_domain_t const &m_local_domain;
         array_index_t m_index;
 
-        /**
-           @brief returns the strides as const reference
-        */
-        GT_FUNCTION strides_cached_t const &strides() const {
-            return static_cast<IterateDomainImpl const *>(this)->strides_impl();
-        }
-
-        /**
-           @brief returns the strides as const reference
-        */
-        GT_FUNCTION strides_cached_t &GT_RESTRICT strides() {
-            return static_cast<IterateDomainImpl *>(this)->strides_impl();
-        }
-
-        template <uint_t Coordinate, int_t Step>
-        GT_FUNCTION void increment() {
-            do_increment<Coordinate, Step, local_domain_t>(strides(), m_index);
-        }
-        template <uint_t Coordinate>
-        GT_FUNCTION void increment(int_t step) {
-            do_increment<Coordinate, local_domain_t>(step, m_local_domain, strides(), m_index);
+        template <class Dim, class Offset>
+        GT_FUNCTION void increment(Offset offset) {
+            do_increment<Dim, local_domain_t>(offset, m_local_domain.m_strides_map, m_index);
         }
 
       protected:
@@ -85,47 +65,29 @@ namespace gridtools {
       public:
         static constexpr bool has_k_caches = false;
 
-        /**
-           @brief recursively assignes all the strides
-
-           copies them from the
-           local_domain.m_local_metadata vector, and stores them into an instance of the
-           gridtools::strides_cached class.
-         */
-        template <typename BackendType>
-        GT_FUNCTION void assign_stride_pointers() {
-            boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                assign_strides<BackendType, strides_cached_t, local_domain_t>{strides()});
-        }
-
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             host_device::for_each_type<typename local_domain_t::storage_infos_t>(
-                initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
-                    strides(), begin, block_no, pos_in_block, m_index});
+                initialize_index<backend_ids_t, local_domain_t>(
+                    m_local_domain.m_strides_map, begin, block_no, pos_in_block, m_index));
         }
 
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_i() {
-            increment<0, Step>();
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_i(Offset offset = {}) {
+            increment<dim::i>(offset);
         }
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_c() {
-            increment<1, Step>();
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_c(Offset offset = {}) {
+            increment<dim::c>(offset);
         }
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_j() {
-            increment<2, Step>();
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_j(Offset offset = {}) {
+            increment<dim::j>(offset);
         }
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_k() {
-            increment<3, Step>();
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_k(Offset offset = {}) {
+            increment<dim::k>(offset);
         }
-
-        GT_FUNCTION void increment_i(int_t step) { increment<0>(step); }
-        GT_FUNCTION void increment_c(int_t step) { increment<1>(step); }
-        GT_FUNCTION void increment_j(int_t step) { increment<2>(step); }
-        GT_FUNCTION void increment_k(int_t step) { increment<3>(step); }
 
         GT_FUNCTION array_index_t const &index() const { return m_index; }
 
@@ -158,8 +120,8 @@ namespace gridtools {
             static constexpr auto storage_info_index =
                 meta::st_position<typename local_domain_t::storage_infos_t, storage_info_t>::value;
 
-            int_t pointer_offset = m_index[storage_info_index] +
-                                   compute_offset<storage_info_t>(strides().template get<storage_info_index>(), acc);
+            int_t pointer_offset = m_index[storage_info_index];
+            sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(m_local_domain.m_strides_map), acc);
 
             assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 

@@ -61,13 +61,14 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::read_write,
         typename CudaDataStore,
-        typename DecayedCDS = decay_t<CudaDataStore>>
-    enable_if_t<is_cuda_storage<typename DecayedCDS::storage_t>::value &&
-                    is_storage_info<typename DecayedCDS::storage_info_t>::value && is_data_store<DecayedCDS>::value,
-        data_view<DecayedCDS, AccessMode>>
+        typename Res = data_view<CudaDataStore, AccessMode>>
+    enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
+                    is_storage_info<typename CudaDataStore::storage_info_t>::value &&
+                    is_data_store<CudaDataStore>::value,
+        Res>
     make_device_view(CudaDataStore const &ds) {
         if (!ds.valid())
-            return data_view<DecayedCDS, AccessMode>();
+            return {};
 
         if (AccessMode != access_mode::read_only) {
             GT_ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu,
@@ -76,10 +77,10 @@ namespace gridtools {
                 "before constructing the view.");
             ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu = true;
         }
-        return data_view<DecayedCDS, AccessMode>(ds.get_storage_ptr()->get_gpu_ptr(),
+        return {ds.get_storage_ptr()->get_gpu_ptr(),
             get_gpu_storage_info_ptr(*ds.get_storage_info_ptr()),
             ds.get_storage_ptr()->get_state_machine_ptr(),
-            true);
+            true};
     }
 
     /**
@@ -90,11 +91,11 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::read_write,
         typename CudaDataStore,
-        typename DecayedCDS = decay_t<CudaDataStore>>
-    enable_if_t<is_cuda_storage<typename DecayedCDS::storage_t>::value &&
-                    is_storage_info<typename DecayedCDS::storage_info_t>::value && is_data_store<DecayedCDS>::value,
-        data_view<DecayedCDS, AccessMode>>
-    make_target_view(CudaDataStore const &ds) {
+        typename Res = data_view<CudaDataStore, AccessMode>,
+        enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
+                        is_storage_info<typename CudaDataStore::storage_info_t>::value &&
+                        is_data_store<CudaDataStore>::value,
+            Res> make_target_view(CudaDataStore const &ds) {
         return make_device_view<AccessMode>(ds);
     }
 
@@ -104,34 +105,31 @@ namespace gridtools {
      * @param v data view
      * @return true if the given view is in a valid state and can be used safely.
      */
-    template <typename DataStore,
-        typename DataView,
-        typename DecayedDS = decay_t<DataStore>,
-        typename DecayedDV = decay_t<DataView>>
-    enable_if_t<is_cuda_storage<typename DecayedDS::storage_t>::value &&
-                    is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+    template <typename DataStore, typename DataView>
+    enable_if_t<is_cuda_storage<typename DataStore::storage_t>::value &&
+                    is_storage_info<typename DataStore::storage_info_t>::value && is_data_store<DataStore>::value,
         bool>
     check_consistency(DataStore const &d, DataView const &v) {
-        GT_STATIC_ASSERT(is_data_view<DecayedDV>::value, "Passed type is no data_view type");
+        GT_STATIC_ASSERT(is_data_view<DataView>::value, "Passed type is no data_view type");
         // if the storage is not valid return false
         if (!d.valid())
             return false;
         // if ptrs do not match anymore return false
-        if ((advanced::get_raw_pointer_of(v) != d.get_storage_ptr()->get_gpu_ptr()) &&
-            (advanced::get_raw_pointer_of(v) != d.get_storage_ptr()->get_cpu_ptr()))
+        if (advanced::get_raw_pointer_of(v) != d.get_storage_ptr()->get_gpu_ptr() &&
+            advanced::get_raw_pointer_of(v) != d.get_storage_ptr()->get_cpu_ptr())
             return false;
         // check if we have a device view
-        const bool device_view = (advanced::get_raw_pointer_of(v) == d.get_storage_ptr()->get_cpu_ptr()) ? false : true;
+        bool device_view = advanced::get_raw_pointer_of(v) != d.get_storage_ptr()->get_cpu_ptr();
         // read-only? if yes, take early exit
-        if (DecayedDV::mode == access_mode::read_only)
+        if (DataView::mode == access_mode::read_only)
             return device_view ? !d.get_storage_ptr()->get_state_machine_ptr()->m_dnu
                                : !d.get_storage_ptr()->get_state_machine_ptr()->m_hnu;
         else
             // get storage state
-            return device_view ? ((d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
-                                     !(d.get_storage_ptr()->get_state_machine_ptr()->m_dnu))
-                               : (!(d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
-                                     (d.get_storage_ptr()->get_state_machine_ptr()->m_dnu));
+            return device_view ? d.get_storage_ptr()->get_state_machine_ptr()->m_hnu &&
+                                     !d.get_storage_ptr()->get_state_machine_ptr()->m_dnu
+                               : !d.get_storage_ptr()->get_state_machine_ptr()->m_hnu &&
+                                     d.get_storage_ptr()->get_state_machine_ptr()->m_dnu;
     }
 
     /**

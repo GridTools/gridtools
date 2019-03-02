@@ -9,12 +9,8 @@
  */
 #pragma once
 
-#include <cuda_runtime.h>
-
 #include "../../common/defs.hpp"
 #include "../../common/timer/timer_traits.hpp"
-#include "../../storage/data_store.hpp"
-
 #include "../backend_traits_fwd.hpp"
 #include "../grid_traits_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
@@ -27,28 +23,6 @@ namespace gridtools {
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
     struct backend_traits_from_id<target::cuda> {
-
-        /** This is the functor used to generate view instances. According to the given storage
-           an appropriate view is returned. When using the CUDA backend we return device view instances.
-        */
-        struct make_view_f {
-            template <typename S, typename SI>
-            auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_device_view(src));
-        };
-
-        /**
-           @brief assigns the two given values using the given thread Id whithin the block
-        */
-        template <uint_t Id>
-        struct once_per_block {
-            template <typename Left, typename Right>
-            GT_FUNCTION static void assign(Left &GT_RESTRICT l, Right const &GT_RESTRICT r) {
-                assert(blockDim.z == 1);
-                if (Id % (blockDim.x * blockDim.y) == threadIdx.y * blockDim.x + threadIdx.x)
-                    l = r;
-            }
-        };
-
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments
@@ -73,7 +47,7 @@ namespace gridtools {
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>
         struct select_strategy {
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
             typedef strategy_from_id_cuda<typename BackendIds::strategy_id_t> type;
         };
 

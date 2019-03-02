@@ -19,7 +19,6 @@
 #include "../accessor.hpp"
 #include "../expressions/expr_base.hpp"
 #include "../interval.hpp" // to check if region is valid
-#include "../offset_computation.hpp"
 #include "./call_interfaces_metafunctions.hpp"
 
 namespace gridtools {

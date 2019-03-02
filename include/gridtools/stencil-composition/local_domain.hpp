@@ -10,14 +10,16 @@
 #pragma once
 
 #include <boost/fusion/include/as_map.hpp>
-#include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/pair.hpp>
 
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
+#include "../common/hymap.hpp"
 #include "../meta.hpp"
-#include "./arg.hpp"
-#include "./extent.hpp"
+#include "../storage/sid.hpp"
+#include "arg.hpp"
+#include "extent.hpp"
+#include "sid/concept.hpp"
 
 namespace gridtools {
 
@@ -28,6 +30,14 @@ namespace gridtools {
 
         template <class Arg>
         GT_META_DEFINE_ALIAS(get_storage_info, meta::id, typename Arg::data_store_t::storage_info_t);
+
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(get_storage_info_pair,
+            meta::list,
+            (typename Arg::data_store_t, typename Arg::data_store_t::storage_info_t));
+
+        template <class Item>
+        GT_META_DEFINE_ALIAS(get_strides, sid::strides_type, GT_META_CALL(meta::second, Item));
 
         template <class Args>
         GT_META_DEFINE_ALIAS(get_storage_infos, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info, Args))));
@@ -41,7 +51,7 @@ namespace gridtools {
     } // namespace local_domain_impl_
 
     /**
-     * This class extract the proper iterators/storages from the full domain to adapt it for a particular functor.
+     * This class extracts the proper iterators/storages from the full domain to adapt it for a particular functor.
      */
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain {
@@ -58,19 +68,20 @@ namespace gridtools {
             local_domain_impl_::get_storage_infos, (GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))));
 
       private:
+        using sid_strides_values_t = GT_META_CALL(meta::transform,
+            (local_domain_impl_::get_strides,
+                GT_META_CALL(meta::mp_inverse,
+                    (GT_META_CALL(meta::transform, (local_domain_impl_::get_storage_info_pair, EsfArgs))))));
+        using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, storage_infos_t));
+        using strides_map_t = GT_META_CALL(meta::rename, (strides_keys_t::template values, sid_strides_values_t));
+
         using arg_to_data_ptr_map_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_data_ptrs_elem, EsfArgs));
-        using storage_info_ptr_list = GT_META_CALL(local_domain_impl_::get_storage_info_ptrs, EsfArgs);
         using data_ptr_fusion_map = typename boost::fusion::result_of::as_map<arg_to_data_ptr_map_t>::type;
         using size_array_t = array<uint_t, meta::length<storage_infos_t>::value>;
 
       public:
-        // used in strides_cached
-        using storage_info_ptr_fusion_list = typename boost::fusion::result_of::as_vector<storage_info_ptr_list>::type;
-
-        // hymap from StorageInfo to strides
-
+        strides_map_t m_strides_map;
         data_ptr_fusion_map m_local_data_ptrs;
-        storage_info_ptr_fusion_list m_local_storage_info_ptrs;
         size_array_t m_local_padded_total_lengths;
     };
 

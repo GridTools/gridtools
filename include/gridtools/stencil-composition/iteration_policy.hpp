@@ -67,7 +67,8 @@ namespace gridtools {
         template <typename Domain>
         GT_FUNCTION static void increment(Domain &dom) {
             GT_STATIC_ASSERT(is_iterate_domain<Domain>::value, GT_INTERNAL_ERROR);
-            dom.template increment_k<-1>();
+            using namespace literals;
+            dom.template increment_k(-1_c);
         }
 
         template <typename IterateDomain>
