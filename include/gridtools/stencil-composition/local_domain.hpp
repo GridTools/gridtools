@@ -39,9 +39,6 @@ namespace gridtools {
         template <class Item>
         GT_META_DEFINE_ALIAS(get_strides, sid::strides_type, GT_META_CALL(meta::second, Item));
 
-        template <class Args>
-        GT_META_DEFINE_ALIAS(get_storage_infos, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info, Args))));
-
         template <class Arg>
         GT_META_DEFINE_ALIAS(get_storage_info_ptr, meta::id, typename Arg::data_store_t::storage_info_t const *);
 
@@ -63,15 +60,21 @@ namespace gridtools {
         using esf_args_t = EsfArgs;
         using max_extent_for_tmp_t = MaxExtentForTmp;
 
-        using storage_infos_t = GT_META_CALL(local_domain_impl_::get_storage_infos, EsfArgs);
-        using tmp_storage_infos_t = GT_META_CALL(
-            local_domain_impl_::get_storage_infos, (GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))));
+        using tmp_storage_infos_t = GT_META_CALL(meta::dedup,
+            (GT_META_CALL(meta::transform,
+                (local_domain_impl_::get_storage_info, GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))))));
 
       private:
-        using sid_strides_values_t = GT_META_CALL(meta::transform,
-            (local_domain_impl_::get_strides,
-                GT_META_CALL(meta::mp_inverse,
-                    (GT_META_CALL(meta::transform, (local_domain_impl_::get_storage_info_pair, EsfArgs))))));
+        using inversed_storage_info_map_t = GT_META_CALL(
+            meta::mp_inverse, (GT_META_CALL(meta::transform, (local_domain_impl_::get_storage_info_pair, EsfArgs))));
+
+      public:
+        using storage_infos_t = GT_META_CALL(meta::transform, (meta::first, inversed_storage_info_map_t));
+
+      private:
+        using sid_strides_values_t = GT_META_CALL(
+            meta::transform, (local_domain_impl_::get_strides, inversed_storage_info_map_t));
+
         using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, storage_infos_t));
         using strides_map_t = GT_META_CALL(meta::rename, (strides_keys_t::template values, sid_strides_values_t));
 

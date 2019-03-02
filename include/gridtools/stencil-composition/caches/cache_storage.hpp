@@ -14,7 +14,9 @@
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/hymap.hpp"
 #include "../../meta/type_traits.hpp"
+#include "../dim.hpp"
 #include "../execution_types.hpp"
 
 namespace gridtools {
@@ -32,9 +34,9 @@ namespace gridtools {
 
         template <class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += tuple_util::host_device::get<0>(acc) + IZero;
-            j += tuple_util::host_device::get<1>(acc) + JZero;
-            assert(tuple_util::host_device::get<2>(acc) == 0);
+            i += host_device::at_key<dim::i>(acc) + IZero;
+            j += host_device::at_key<dim::j>(acc) + JZero;
+            assert(host_device::at_key<dim::k>(acc) == 0);
             assert(i >= 0);
             assert(i < ISize);
             assert(j >= 0);
@@ -67,10 +69,10 @@ namespace gridtools {
 
         template <int_t Color, class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += tuple_util::host_device::get<0>(acc) + IZero;
-            int_t color = Color + tuple_util::host_device::get<1>(acc);
-            j += tuple_util::host_device::get<2>(acc) + JZero;
-            assert(tuple_util::host_device::get<3>(acc) == 0);
+            i += host_device::at_key<dim::i>(acc) + IZero;
+            int_t color = Color + host_device::at_key<dim::c>(acc);
+            j += host_device::at_key<dim::j>(acc) + JZero;
+            assert(host_device::at_key<dim::k>(acc) == 0);
             assert(i >= 0);
             assert(i < ISize);
             assert(color >= 0);
@@ -132,11 +134,11 @@ namespace gridtools {
          */
         template <class Accessor>
         GT_FUNCTION T &at(Accessor const &acc) {
-            int_t offset = tuple_util::host_device::get<2>(acc);
+            int_t offset = host_device::at_key<dim::k>(acc);
             assert(offset >= Minus);
             assert(offset <= Plus);
-            assert(tuple_util::host_device::get<0>(acc) == 0);
-            assert(tuple_util::host_device::get<1>(acc) == 0);
+            assert(host_device::at_key<dim::i>(acc) == 0);
+            assert(host_device::at_key<dim::j>(acc) == 0);
             return m_values[offset - Minus];
         }
 
