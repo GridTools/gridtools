@@ -49,10 +49,10 @@ namespace gridtools {
         using an_mss = decltype(make_multistage(execute::forward(), std::declval<Esfs>()...));
 
         template <typename StencilOp>
-        struct is_even : std::integral_constant<int, !(StencilOp::esf_function::thevalue % 2)> {};
+        struct is_even : std::integral_constant<int, !(StencilOp::esf_function_t::thevalue % 2)> {};
 
         template <typename StencilOp>
-        struct is_odd : std::integral_constant<int, !!(StencilOp::esf_function::thevalue % 2)> {};
+        struct is_odd : std::integral_constant<int, !!(StencilOp::esf_function_t::thevalue % 2)> {};
 
         template <typename A, typename B>
         struct sum : std::integral_constant<int, A::value + B::value> {};

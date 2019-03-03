@@ -20,7 +20,7 @@ namespace gridtools {
     template <typename Esf>
     struct esf_param_list {
         GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
-        typedef typename Esf::esf_function::param_list type;
+        typedef typename Esf::esf_function_t::param_list type;
     };
 
     /** Retrieve the extent in esf_descriptor_with_extents

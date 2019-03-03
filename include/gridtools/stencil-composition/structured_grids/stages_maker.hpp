@@ -47,7 +47,7 @@ namespace gridtools {
 
             template <class Esf, class Index, class ExtentMap>
             struct stages_from_esf
-                : stages_from_functor<GT_META_CALL(bind_functor_with_interval, (typename Esf::esf_function, Index)),
+                : stages_from_functor<GT_META_CALL(bind_functor_with_interval, (typename Esf::esf_function_t, Index)),
                       Esf,
                       ExtentMap> {};
 

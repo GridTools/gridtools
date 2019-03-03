@@ -12,6 +12,8 @@
 #include <tuple>
 
 #include <boost/mpl/contains.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/transform.hpp>
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/binary_ops.hpp"
@@ -58,12 +60,12 @@ namespace gridtools {
      */
     template <typename Esf, typename Pred, typename Index>
     struct esf_get_arg_at {
-        GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
-        GT_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
+        GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, "Wrong Type");
+        GT_STATIC_ASSERT(is_meta_predicate<Pred>::type::value, "Not a Predicate");
         typedef typename boost::mpl::at<typename Esf::args_t, Index>::type placeholder_type;
         typedef typename boost::mpl::if_<Pred,
             typename boost::mpl::pair<placeholder_type,
-                typename boost::mpl::at<typename Esf::args_with_extents, placeholder_type>::type>::type,
+                typename boost::mpl::at<typename Esf::args_with_extents_t, placeholder_type>::type>::type,
             placeholder_type>::type type;
     };
 

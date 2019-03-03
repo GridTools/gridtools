@@ -65,8 +65,8 @@ namespace gridtools {
             "param_list=boost::mpl::vector<v1, v3>;");
 
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
-        typedef typename impl::make_arg_with_extent_map<args_t, typename esf_function<0>::param_list>::type
-            args_with_extents;
+        using args_with_extents_t =
+            typename impl::make_arg_with_extent_map<args_t, typename esf_function<0>::param_list>::type;
     };
 
     template <template <uint_t> class Functor,
