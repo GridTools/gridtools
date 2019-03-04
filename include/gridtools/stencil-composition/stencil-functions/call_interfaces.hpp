@@ -16,7 +16,9 @@
 #include <type_traits>
 
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../common/hymap.hpp"
 #include "../accessor.hpp"
+#include "../dim.hpp"
 #include "../expressions/expr_base.hpp"
 #include "../interval.hpp" // to check if region is valid
 #include "./call_interfaces_metafunctions.hpp"
@@ -93,13 +95,13 @@ namespace gridtools {
                     int> = 0>
             GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
                 -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
-                return m_caller_aggregator(get_passed_argument_t<Accessor>(
-                    tuple_util::host_device::get<0>(accessor) + Offi +
-                        tuple_util::host_device::get<0>(get_passed_argument<Accessor>()),
-                    tuple_util::host_device::get<1>(accessor) + Offj +
-                        tuple_util::host_device::get<1>(get_passed_argument<Accessor>()),
-                    tuple_util::host_device::get<2>(accessor) + Offk +
-                        tuple_util::host_device::get<2>(get_passed_argument<Accessor>())));
+                return m_caller_aggregator(
+                    get_passed_argument_t<Accessor>(host_device::at_key<dim::i>(accessor) + Offi +
+                                                        host_device::at_key<dim::i>(get_passed_argument<Accessor>()),
+                        host_device::at_key<dim::j>(accessor) + Offj +
+                            host_device::at_key<dim::j>(get_passed_argument<Accessor>()),
+                        host_device::at_key<dim::k>(accessor) + Offk +
+                            host_device::at_key<dim::k>(get_passed_argument<Accessor>())));
             }
 
             /*
@@ -289,13 +291,13 @@ namespace gridtools {
                     int> = 0>
             GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
                 -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
-                return m_caller_aggregator(get_passed_argument_t<Accessor>(
-                    tuple_util::host_device::get<0>(accessor) + Offi +
-                        tuple_util::host_device::get<0>(get_passed_argument<Accessor>()),
-                    tuple_util::host_device::get<1>(accessor) + Offj +
-                        tuple_util::host_device::get<1>(get_passed_argument<Accessor>()),
-                    tuple_util::host_device::get<2>(accessor) + Offk +
-                        tuple_util::host_device::get<2>(get_passed_argument<Accessor>())));
+                return m_caller_aggregator(
+                    get_passed_argument_t<Accessor>(host_device::at_key<dim::i>(accessor) + Offi +
+                                                        host_device::at_key<dim::i>(get_passed_argument<Accessor>()),
+                        host_device::at_key<dim::j>(accessor) + Offj +
+                            host_device::at_key<dim::j>(get_passed_argument<Accessor>()),
+                        host_device::at_key<dim::k>(accessor) + Offk +
+                            host_device::at_key<dim::k>(get_passed_argument<Accessor>())));
             }
 
             /**
