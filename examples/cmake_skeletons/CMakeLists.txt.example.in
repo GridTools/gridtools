@@ -10,7 +10,8 @@ project(GridTools-examples LANGUAGES CXX)
 include(CheckLanguage)
 check_language(CUDA)
 if(CMAKE_CUDA_COMPILER)
-    # 2) Enable the CUDA language if you want to run your code on a CUDA-capable GPU
+    # 2) Enable the CUDA language if you want to run your code on a CUDA-capable GPU.
+    #    This needs to be done before find_package(GridTools) to properly setup the GridTools targets for CUDA.
     enable_language(CUDA)
 endif()
 
