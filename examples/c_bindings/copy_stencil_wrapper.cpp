@@ -24,8 +24,8 @@ namespace {
 #else
     using target_t = gt::target::mc;
 #endif
-    using strategy_t = gt::strategy::block;
-    using backend_t = gt::backend<target_t, gt::grid_type::structured, strategy_t>;
+    using backend_t = gt::backend<target_t>;
+
     using storage_traits_t = gt::storage_traits<backend_t::backend_id_t>;
     using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
     using data_store_t = storage_traits_t::data_store_t<float, storage_info_t>;

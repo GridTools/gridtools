@@ -17,4 +17,4 @@ foreach(ex IN ITEMS @enabled_examples@)
     ExternalProject_Get_property(${ex}-example BINARY_DIR)
     add_test(NAME ${ex}-example COMMAND ctest WORKING_DIRECTORY ${BINARY_DIR})
 endforeach()
-    
+
