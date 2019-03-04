@@ -37,7 +37,6 @@ namespace gridtools {
 
         template <class T>
         struct has_param_list<T, void_t<typename T::param_list>> : std::true_type {};
-
     } // namespace esf_impl_
 
     /**
