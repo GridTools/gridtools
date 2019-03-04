@@ -187,7 +187,7 @@ namespace gridtools {
          */
         void reactivate_device_write_views_impl() {
             GT_ASSERT_OR_THROW(!m_state.m_dnu, "host views are in write mode");
-            m_state.m_hnu = 1;
+            m_state.m_hnu = true;
         }
 
         /*
@@ -195,7 +195,7 @@ namespace gridtools {
          */
         void reactivate_host_write_views_impl() {
             GT_ASSERT_OR_THROW(!m_state.m_hnu, "device views are in write mode");
-            m_state.m_dnu = 1;
+            m_state.m_dnu = true;
         }
 
         /*

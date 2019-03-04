@@ -113,6 +113,7 @@ namespace gridtools {
                 assert(storage_ptr);
                 if (storage_ptr->host_needs_update_impl())
                     storage_ptr->sync();
+                storage_ptr->reactivate_host_write_views();
                 return {storage_ptr->get_cpu_ptr()};
             }
             friend decltype(sid_get_strides(impl())) sid_get_strides(host_adapter const &obj) {
@@ -135,6 +136,7 @@ namespace gridtools {
         assert(storage_ptr);
         if (storage_ptr->device_needs_update_impl())
             storage_ptr->sync();
+        storage_ptr->reactivate_device_write_views();
         return {storage_ptr->get_target_ptr()};
     }
 
