@@ -19,7 +19,7 @@
 #include "../meta.hpp"
 
 namespace gridtools {
-#ifdef __INTEL_COMPILER
+#if 0
     namespace _impl {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
          * class with a normal array member. Currently only the 3D case is specialized to allow for good vectorization
@@ -118,7 +118,7 @@ namespace gridtools {
     class accessor_base {
         GT_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
-#ifdef __INTEL_COMPILER
+#if 0
         /* The Intel compiler does not want to vectorize when we use a real array here. */
         using offsets_t = typename _impl::pseudo_array_type<Dim>::type;
         offsets_t m_offsets;
@@ -147,15 +147,14 @@ namespace gridtools {
         GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : m_offsets {
             offsets...
         }
-#ifdef __INTEL_COMPILER
+#if 0
         , m_workaround(Dim)
 #endif
-        {
-        }
+        {}
 
         GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
             : m_offsets(src)
-#ifdef __INTEL_COMPILER
+#if 0
               ,
               m_workaround(Dim)
 #endif
@@ -165,7 +164,7 @@ namespace gridtools {
         template <ushort_t I, ushort_t... Is>
         GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
             : m_offsets(_impl::make_offsets<Dim>(d, ds...))
-#ifdef __INTEL_COMPILER
+#if 0
               ,
               m_workaround(Dim)
 #endif
