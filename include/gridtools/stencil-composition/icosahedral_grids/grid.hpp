@@ -24,8 +24,6 @@ namespace gridtools {
         GridTopology m_grid_topology;
 
       public:
-        using grid_type_t = grid_type::icosahedral;
-
         GT_DEPRECATED("Use constructor with halo_descriptors (deprecated after 1.05.02)")
         GT_FUNCTION
         explicit grid(GridTopology const &grid_topology, const array<uint_t, 5> &i, const array<uint_t, 5> &j)

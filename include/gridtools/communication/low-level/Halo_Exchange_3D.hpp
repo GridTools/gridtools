@@ -612,11 +612,6 @@ namespace gridtools {
             assert((K >= -1 && K <= 1));
 
             m_send_buffers.size(I, J, K) = s;
-#ifdef GCL_HOSTWORKAROUND
-            // throw an assertion because the page-locked buffer allocated in the workaround
-            // has fixed size (if this is a problem we can free, then reallocate memory)
-            assert(false);
-#endif
         }
 
         /** Function to set send buffers sizes if the size must be updated
@@ -635,7 +630,7 @@ namespace gridtools {
            \param[in] s Number of bytes (not number of elements) to be sent.
         */
         template <int I, int J, int K>
-        void set_send_to_size(int s) const {
+        void set_send_to_size(int s) {
             BOOST_MPL_ASSERT_RELATION(I, >=, -1);
             BOOST_MPL_ASSERT_RELATION(I, <=, 1);
             BOOST_MPL_ASSERT_RELATION(J, >=, -1);
@@ -661,17 +656,12 @@ namespace gridtools {
             \param[in] J Relative coordinates of the receiving process along the second dimension
             \param[in] K Relative coordinates of the receiving process along the third dimension
         */
-        void set_receive_from_size(int s, int I, int J, int K) const {
+        void set_receive_from_size(int s, int I, int J, int K) {
             assert((I >= -1 && I <= 1));
             assert((J >= -1 && J <= 1));
             assert((K >= -1 && K <= 1));
 
-            m_send_buffers.size(I, J, K) = s;
-#ifdef GCL_HOSTWORKAROUND
-            // throw an assertion because the page-locked buffer allocated in the workaround
-            // has fixed size (if this is a problem we can free, then reallocate memory)
-            assert(false);
-#endif
+            m_recv_buffers.size(I, J, K) = s;
         }
 
         /** Function to set receive buffers sizes if the size must be
@@ -690,7 +680,7 @@ namespace gridtools {
             \param[in] s Number of bytes (not number of elements) to be packed.
         */
         template <int I, int J, int K>
-        void set_receive_from_size(int s) const {
+        void set_receive_from_size(int s) {
             BOOST_MPL_ASSERT_RELATION(I, >=, -1);
             BOOST_MPL_ASSERT_RELATION(I, <=, 1);
             BOOST_MPL_ASSERT_RELATION(J, >=, -1);

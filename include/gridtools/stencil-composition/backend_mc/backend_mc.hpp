@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#ifdef GT_STRUCTURED_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 
 // This file contains all header files required by the mc backend
 #ifdef _OPENMP

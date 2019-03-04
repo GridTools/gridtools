@@ -46,7 +46,7 @@ namespace gridtools {
 
             data_store_t testee = {{10, 10, 10, 10}, 0};
 
-            EXPECT_EQ(advanced_get_raw_pointer_of(make_target_view(testee)), sid::get_origin(testee));
+            EXPECT_EQ(advanced_get_raw_pointer_of(make_target_view(testee)), sid::get_origin(testee)());
 
             auto strides = sid::get_strides(testee);
             auto expected_strides = testee.strides();
@@ -85,7 +85,7 @@ namespace gridtools {
             EXPECT_EQ(get<3>(data_strides), get<3>(testee_strides));
 
             // we can dereference in the host context
-            EXPECT_EQ(42, *sid::get_origin(testee));
+            EXPECT_EQ(42, *sid::get_origin(testee)());
         }
 
         TEST(storage_sid, scalar) {
@@ -99,7 +99,7 @@ namespace gridtools {
 
             testee_t testee = {storage_info_t{10}, 0};
 
-            auto ptr = sid::get_origin(testee);
+            auto ptr = sid::get_origin(testee)();
 
             EXPECT_EQ(ptr, ptr + diff_t{});
         }

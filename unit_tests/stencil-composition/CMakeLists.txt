@@ -6,7 +6,7 @@ fetch_x86_tests(sid LABELS unittest_x86)
 fetch_gpu_tests(sid LABELS unittest_cuda)
 
 # collect the grid specific test cases
-if (GT_TESTS_STRUCTURED_GRID)
+if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
     fetch_mc_tests(. LABELS unittest_mc)
 
     # collect the cache redcution and conditionals tests.

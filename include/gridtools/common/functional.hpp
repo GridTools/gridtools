@@ -100,6 +100,12 @@ namespace gridtools {
             };
 #endif
         };
+
+        template <typename T>
+        struct constant {
+            T m_val;
+            GT_TARGET GT_FORCE_INLINE constexpr T const &operator()() const { return m_val; }
+        };
     }
 
     /** @} */

@@ -16,19 +16,17 @@ namespace gridtools {
     /**
      * @brief metadata with the information for architecture, grid and strategy backends
      * @tparam BackendId architecture backend id
-     * @tparam GridId grid backend id
      * @tparam StrategyId strategy id
      */
-    template <class BackendId, class GridId, class StrategyId>
+    template <class BackendId, class StrategyId>
     struct backend_ids {
         using strategy_id_t = StrategyId;
         using backend_id_t = BackendId;
-        using grid_id_t = GridId;
     };
 
     template <typename T>
     struct is_backend_ids : boost::mpl::false_ {};
 
-    template <class BackendId, class GridId, class StrategyId>
-    struct is_backend_ids<backend_ids<BackendId, GridId, StrategyId>> : boost::mpl::true_ {};
+    template <class BackendId, class StrategyId>
+    struct is_backend_ids<backend_ids<BackendId, StrategyId>> : boost::mpl::true_ {};
 } // namespace gridtools

@@ -60,8 +60,8 @@ TEST(intermediate, test_get_arg_functions) {
     using p_tmp3 = arg<4, data_store_t>;
     using p_out = arg<5, data_store_t>;
 
-    halo_descriptor di = {0, 0, 0, 2, 5};
-    halo_descriptor dj = {0, 0, 0, 2, 5};
+    halo_descriptor di = {3, 3, 3, 3, 7};
+    halo_descriptor dj = {3, 3, 3, 3, 7};
 
     auto grid = gridtools::make_grid(di, dj, 3);
     {

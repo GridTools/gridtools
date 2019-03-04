@@ -49,45 +49,6 @@ namespace gridtools {
             }
         };
 
-        template <uint_t Factor, bool IsStateful, class Backend>
-        struct make_intermediate_expand_f {
-            template <class Grid,
-                class... Args,
-                class ArgsPair = decltype(split_args<is_arg_storage_pair>(std::forward<Args>(std::declval<Args>())...)),
-                class ArgStoragePairs = GT_META_CALL(decay_elements, typename ArgsPair::first_type),
-                class Msses = GT_META_CALL(decay_elements, typename ArgsPair::second_type)>
-            intermediate_expand<Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses> operator()(
-                Grid const &grid, Args &&... args) const {
-                // split arg_storage_pair and mss descriptor arguments and forward it to intermediate constructor
-                auto &&args_pair = split_args<is_arg_storage_pair>(std::forward<Args>(args)...);
-                return {grid, std::move(args_pair.first), std::move(args_pair.second)};
-            }
-        };
-
-        /// Dispatch between `intermediate` and `intermediate_expand` on the first parameter type.
-        ///
-        template <bool Positional, class Backend, class Grid, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
-        auto make_computation_dispatch(Grid const &grid, Args &&... args)
-            GT_AUTO_RETURN((make_intermediate_f<Positional, Backend>{}(grid, std::forward<Args>(args)...)));
-
-        template <bool Positional,
-            class Backend,
-            class ExpandFactor,
-            class Grid,
-            class... Args,
-            enable_if_t<is_expand_factor<ExpandFactor>::value, int> = 0>
-        auto make_computation_dispatch(ExpandFactor, Grid const &grid, Args &&... args) GT_AUTO_RETURN((
-            make_intermediate_expand_f<ExpandFactor::value, Positional, Backend>{}(grid, std::forward<Args>(args)...)));
-
-        // user protections
-        template <bool,
-            class,
-            class Arg,
-            class... Args,
-            enable_if_t<!is_grid<Arg>::value && !is_expand_factor<Arg>::value, int> = 0>
-        void make_computation_dispatch(Arg const &, Args &&...) {
-            GT_STATIC_ASSERT(sizeof...(Args) < 0, "The computation is malformed");
-        }
     } // namespace _impl
 
 #ifndef NDEBUG
@@ -96,21 +57,27 @@ namespace gridtools {
 #define GT_POSITIONAL_WHEN_DEBUGGING false
 #endif
 
-    /// generator for intermediate/intermediate_expand
-    ///
-    template <class Backend, class Arg, class... Args>
-    auto make_computation(Arg const &arg, Args &&... args) GT_AUTO_RETURN(
-        (_impl::make_computation_dispatch<GT_POSITIONAL_WHEN_DEBUGGING, Backend>(arg, std::forward<Args>(args)...)));
+    /// generator for intermediate
+    template <class Backend, class Grid, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
+    auto make_computation(Grid const &grid, Arg &&arg, Args &&... args)
+        GT_AUTO_RETURN((_impl::make_intermediate_f<GT_POSITIONAL_WHEN_DEBUGGING, Backend>{}(
+            grid, std::forward<Arg>(arg), std::forward<Args>(args)...)));
 
 #undef GT_POSITIONAL_WHEN_DEBUGGING
 
-    template <class Backend, class Arg, class... Args>
-    auto make_positional_computation(Arg const &arg, Args &&... args)
-        GT_AUTO_RETURN((_impl::make_computation_dispatch<true, Backend>(arg, std::forward<Args>(args)...)));
+    template <class Backend, class Grid, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
+    auto make_positional_computation(Grid const &grid, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
+        (_impl::make_intermediate_f<true, Backend>{}(grid, std::forward<Arg>(arg), std::forward<Args>(args)...)));
 
     // user protection only, catch the case where no backend is specified
     template <class... Args>
     computation<> make_computation(Args &&...) {
         GT_STATIC_ASSERT(!sizeof...(Args), "No backend was specified on a call to make_computation");
+        return {};
+    }
+    template <class... Args>
+    computation<> make_positional_computation(Args &&...) {
+        GT_STATIC_ASSERT(!sizeof...(Args), "No backend was specified on a call to make_positional_computation");
+        return {};
     }
 } // namespace gridtools

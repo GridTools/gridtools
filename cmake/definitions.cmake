@@ -16,12 +16,7 @@ set(CMAKE_CUDA_EXTENSIONS OFF)
 
 add_library(gridtools INTERFACE)
 add_library(GridTools::gridtools ALIAS gridtools)
-# TODO This is a workaround because cmake thinks that clang supports features,
-# but it does it wrong because our clang 5.0 RC2 does not match cmakes 5.0
-# specification (but 5.0 does)
-if (CMAKE_CXX_KNOWN_FEATURES)
-    target_compile_features(gridtools INTERFACE cxx_std_11)
-endif()
+target_compile_features(gridtools INTERFACE cxx_std_11)
 target_include_directories(gridtools
     INTERFACE
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -77,8 +72,8 @@ target_link_libraries(GridToolsTest INTERFACE gridtools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
 target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
-if(GT_TESTS_STRUCTURED_GRID)
-    target_compile_definitions(GridToolsTest INTERFACE GT_STRUCTURED_GRIDS)
+if(GT_TESTS_ICOSAHEDRAL_GRID)
+    target_compile_definitions(GridToolsTest INTERFACE GT_ICOSAHEDRAL_GRIDS)
 endif()
 
 if( GT_TREAT_WARNINGS_AS_ERROR )

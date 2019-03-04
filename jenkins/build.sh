@@ -38,7 +38,7 @@ VERSION_="5.3"
 GENERATE_ONLY="OFF"
 PERFORMANCE_TESTING="OFF"
 
-while getopts "hb:t:f:l:zmsidvq:x:incok:pC" opt; do
+while getopts "hb:t:f:l:zmsidvq:x:incok:pCI:" opt; do
     case "$opt" in
     h|\?)
         help
@@ -76,6 +76,8 @@ while getopts "hb:t:f:l:zmsidvq:x:incok:pC" opt; do
         ;;
     C) GENERATE_ONLY="ON"
         ;;
+    I) GRIDTOOLS_INSTALL_PATH=$OPTARG
+        ;;
     esac
 done
 
@@ -98,6 +100,13 @@ echo $@
 
 source ${ABSOLUTEPATH_SCRIPT}/machine_env.sh
 source ${ABSOLUTEPATH_SCRIPT}/env_${myhost}.sh
+
+if [[ -z ${GRIDTOOLS_INSTALL_PATH} ]]; then
+    GRIDTOOLS_INSTALL_PATH=$INITPATH/install
+fi
+if [[ -z ${MAKE_TARGETS} ]]; then
+    MAKE_TARGETS=install
+fi
 
 echo "BOOST_ROOT=$BOOST_ROOT"
 
@@ -152,9 +161,9 @@ WHERE_=`pwd`
 export JENKINS_COMMUNICATION_TESTS=1
 
 if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
-    GT_STRUCTURED_GRIDS="ON"
+    GT_ICOSAHEDRAL_GRIDS="OFF"
 else
-    GT_STRUCTURED_GRIDS="OFF"
+    GT_ICOSAHEDRAL_GRIDS="ON"
 fi
 
 # measuring time
@@ -177,6 +186,7 @@ if [[ -z ${GT_ENABLE_BINDINGS_GENERATION} ]]; then
 fi
 
 cmake \
+-DCMAKE_INSTALL_PREFIX="${GRIDTOOLS_INSTALL_PATH}" \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
@@ -185,13 +195,12 @@ cmake \
 -DGT_ENABLE_TARGET_MC:BOOL=$ENABLE_MC \
 -DGT_GCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
--DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
 -DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}" \
 -DCMAKE_CUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
 -DGT_USE_MPI:BOOL=$USE_MPI \
 -DGT_SINGLE_PRECISION:BOOL=$GT_SINGLE_PRECISION \
 -DGT_ENABLE_PERFORMANCE_METERS:BOOL=ON \
--DGT_TESTS_STRUCTURED_GRID:BOOL=${GT_STRUCTURED_GRIDS} \
+-DGT_TESTS_ICOSAHEDRAL_GRID:BOOL=${GT_ICOSAHEDRAL_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DBOOST_ROOT=$BOOST_ROOT \
 -DGT_ENABLE_BINDINGS_GENERATION=$GT_ENABLE_BINDINGS_GENERATION \
@@ -216,7 +225,7 @@ cmake \
 -DGT_USE_MPI:BOOL=$USE_MPI \
 -DGT_SINGLE_PRECISION:BOOL=$GT_SINGLE_PRECISION \
 -DGT_ENABLE_PERFORMANCE_METERS:BOOL=ON \
--DGT_TESTS_STRUCTURED_GRID:BOOL=${GT_STRUCTURED_GRIDS} \
+-DGT_TESTS_ICOSAHEDRAL_GRID:BOOL=${GT_ICOSAHEDRAL_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DBOOST_ROOT=$BOOST_ROOT \
 -DGT_ENABLE_PYUTILS=$PERFORMANCE_TESTING \
@@ -298,5 +307,35 @@ else
 fi
 
 exit_if_error $?
+
+# test installation by building and executing examples
+if [[ "$MAKE_TARGETS" == "install" ]]; then # only if GT was installed
+    mkdir -p build_examples && cd build_examples
+    cmake ${GRIDTOOLS_INSTALL_PATH}/gridtools-examples \
+        -DCMAKE_BUILD_TYPE:STRING=\"$BUILD_TYPE\" \
+        -DGridTools_DIR=${GRIDTOOLS_INSTALL_PATH}/lib/cmake \
+        -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON \
+        -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
+        -DCMAKE_CUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
+        -DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}" \
+        -DGT_USE_MPI:BOOL=$USE_MPI
+
+    if [[ "$SILENT_BUILD" == "ON" ]]; then
+        echo "Log file ${log_file}"
+
+        ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS} >& ${log_file};
+        error_code=$?
+        if [ ${error_code} -ne 0 ]; then
+            cat ${log_file};
+        fi
+    else
+        ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}
+        error_code=$?
+    fi
+    exit_if_error $error_code
+
+    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -s "make test"
+    exit_if_error $?
+fi
 
 exit 0
