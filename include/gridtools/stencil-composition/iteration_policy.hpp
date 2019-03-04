@@ -68,8 +68,13 @@ namespace gridtools {
         template <typename Domain>
         GT_FUNCTION static void increment(Domain &dom) {
             GT_STATIC_ASSERT(is_iterate_domain<Domain>::value, GT_INTERNAL_ERROR);
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+            // CUDA8 fails to accept `using namespace literals;` within the function body;
+            dom.template increment_k(integral_constant<int, -1>{});
+#else
             using namespace literals;
             dom.template increment_k(-1_c);
+#endif
         }
 
         template <typename IterateDomain>
