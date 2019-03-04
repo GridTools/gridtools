@@ -29,29 +29,28 @@ namespace gridtools {
             using type = array<int_t, Dim>;
         };
 
+        template <>
         struct pseudo_array_type<3> {
             struct type {
-                T data0, data1, data2;
+                int_t data0, data1, data2;
 
                 constexpr type(array<int_t, 3> const &a) : data0(get<0>(a)), data1(get<1>(a)), data2(get<2>(a)) {}
 
                 constexpr type(int_t data0 = {}, int_t data1 = {}, int_t data2 = {})
                     : data0(data0), data1(data1), data2(data2) {}
 
-                GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
-
                 struct getter {
                     template <size_t I>
                     static GT_FUNCTION constexpr enable_if_t<I == 0, int_t> get(type const &acc) noexcept {
-                        return arr.data0;
+                        return acc.data0;
                     }
                     template <size_t I>
                     static GT_FUNCTION constexpr enable_if_t<I == 1, int_t> get(type const &acc) noexcept {
-                        return arr.data1;
+                        return acc.data1;
                     }
                     template <size_t I>
                     static GT_FUNCTION constexpr enable_if_t<I == 2, int_t> get(type const &acc) noexcept {
-                        return arr.data2;
+                        return acc.data2;
                     }
                 };
                 friend getter tuple_getter(type const &) { return {}; }

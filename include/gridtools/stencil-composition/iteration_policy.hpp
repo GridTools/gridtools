@@ -13,6 +13,7 @@
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
+#include "../common/integral_constant.hpp"
 #include "./execution_types.hpp"
 #include "./iterate_domain_fwd.hpp"
 #include "./level.hpp"
