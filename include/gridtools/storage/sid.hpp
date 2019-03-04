@@ -73,7 +73,6 @@ namespace gridtools {
             template <class Src>
             int_t operator()(Src const &src) {
                 assert(src[I::value] != 0);
-                assert(src[I::value] != 1);
                 return (int_t)src[I::value];
             }
         };
