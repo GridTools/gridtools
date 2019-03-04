@@ -313,7 +313,6 @@ if [[ "$MAKE_TARGETS" == "install" ]]; then # only if GT was installed
     mkdir -p build_examples && cd build_examples
     cmake ${GRIDTOOLS_INSTALL_PATH}/gridtools-examples \
         -DCMAKE_BUILD_TYPE:STRING=\"$BUILD_TYPE\" \
-        -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON \
         -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
         -DCMAKE_CUDA_HOST_COMPILER:STRING="${HOST_COMPILER}"
 

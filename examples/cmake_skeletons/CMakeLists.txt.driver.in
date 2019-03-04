@@ -21,6 +21,7 @@ foreach(ex IN ITEMS @enabled_examples@)
         SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/${ex}
         CMAKE_ARGS
             -DCMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER}
+            -CMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON
         INSTALL_COMMAND ""
         )
     ExternalProject_Get_property(${ex}-example BINARY_DIR)
