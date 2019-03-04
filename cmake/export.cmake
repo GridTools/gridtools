@@ -74,6 +74,7 @@ if(COMPONENT_C_BINDINGS)
     set(CMAKE_SOURCES
         "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"
         "${PROJECT_SOURCE_DIR}/cmake/fortran_helpers.cmake"
+        "${PROJECT_SOURCE_DIR}/cmake/workaround_mpi.cmake"
         "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake"
         )
     set(CBINDINGS_SOURCES
