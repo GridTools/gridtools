@@ -195,7 +195,6 @@ cmake \
 -DGT_ENABLE_TARGET_MC:BOOL=$ENABLE_MC \
 -DGT_GCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
--DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
 -DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}" \
 -DCMAKE_CUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
 -DGT_USE_MPI:BOOL=$USE_MPI \
@@ -314,7 +313,9 @@ if [[ "$MAKE_TARGETS" == "install" ]]; then # only if GT was installed
     mkdir -p build_examples && cd build_examples
     cmake ${GRIDTOOLS_INSTALL_PATH}/gridtools-examples \
         -DGridTools_DIR=${GRIDTOOLS_INSTALL_PATH}/lib/cmake \
-        -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON
+        -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON \
+        -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
+        -DCMAKE_CUDA_HOST_COMPILER:STRING="${HOST_COMPILER}"
 
     if [[ "$SILENT_BUILD" == "ON" ]]; then
         echo "Log file ${log_file}"
