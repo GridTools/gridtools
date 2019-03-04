@@ -24,7 +24,7 @@ namespace gridtools {
         static_assert(0100_c == 0100, "");
         static_assert(0xDEAD_c == 0xDEAD, "");
 
-        static_assert(impl_::parser<'1', '\'', '2'>::value == 12, "");
+        static_assert(literals_impl_::parser<'1', '\'', '2'>::value == 12, "");
 
         static_assert(2_c + 3_c == 5_c, "");
 
