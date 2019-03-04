@@ -19,7 +19,9 @@ foreach(ex IN ITEMS @enabled_examples@)
     ExternalProject_Add(${ex}-example
         DOWNLOAD_COMMAND ""
         SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/${ex}
-        CMAKE_ARGS -DGridTools_DIR=@CMAKE_INSTALL_PREFIX@/lib/cmake
+        CMAKE_ARGS
+            -DGridTools_DIR=@CMAKE_INSTALL_PREFIX@/lib/cmake
+            -DCMAKE_CUDA_HOST_COMPILER=$CMAKE_CUDA_HOST_COMPILER
         INSTALL_COMMAND ""
         )
     ExternalProject_Get_property(${ex}-example BINARY_DIR)
