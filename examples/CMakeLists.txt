@@ -3,12 +3,11 @@
 function(install_example)
     set(options)
     # - if needed later split into mc and cuda sources (then add extension)
-    # - SOURCES should be passed as space separated string for nicer look in the generated CMakeLists.txt
-    set(one_value_args DIRECTORY SOURCES)
-    set(multi_value_args)
+    set(one_value_args DIRECTORY)
+    set(multi_value_args SOURCES)
     cmake_parse_arguments(ARG "${options}" "${one_value_args};" "${multi_value_args}" ${ARGN})
 
-    set(EXAMPLES_SRCFILES ${ARG_SOURCES})
+    string(REPLACE ";" " " EXAMPLES_SRCFILES "${ARG_SOURCES}")
     configure_file(cmake_skeletons/CMakeLists.txt.example.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${ARG_DIRECTORY}/CMakeLists.txt @ONLY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${ARG_DIRECTORY}/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/${ARG_DIRECTORY})
     install(
@@ -24,11 +23,11 @@ endfunction()
 if(GT_INSTALL_EXAMPLES)
     set(enabled_examples) # used in CMakeLists.txt.in, filled in install_example()
     if(COMPONENT_STENCIL_COMPOSITION)
-        install_example(DIRECTORY stencil-composition SOURCES "copy_stencil horizontal_diffusion_limited tridiagonal_solver")
+        install_example(DIRECTORY stencil-composition SOURCES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
     endif()
 
     if(COMPONENT_BOUNDARY_CONDITIONS)
-        install_example(DIRECTORY boundary-conditions SOURCES "boundary-conditions boundary-conditions_provided")
+        install_example(DIRECTORY boundary-conditions SOURCES boundary-conditions boundary-conditions_provided)
     endif()
 
     configure_file(cmake_skeletons/CMakeLists.txt.driver.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeLists.txt @ONLY)
