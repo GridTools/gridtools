@@ -75,7 +75,13 @@ namespace gridtools {
         using sid_strides_values_t = GT_META_CALL(
             meta::transform, (local_domain_impl_::get_strides, inversed_storage_info_map_t));
 
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDA_VER_MINOR__ < 2
+        struct lazy_strides_keys_t : meta::lazy::rename<hymap::keys, storage_infos_t> {};
+        using strides_keys_t = typename lazy_strides_keys_t::type;
+#else
         using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, storage_infos_t));
+#endif
+
         using strides_map_t = GT_META_CALL(meta::rename, (strides_keys_t::template values, sid_strides_values_t));
 
         using arg_to_data_ptr_map_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_data_ptrs_elem, EsfArgs));
