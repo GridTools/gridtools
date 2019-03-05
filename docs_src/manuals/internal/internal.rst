@@ -7,10 +7,11 @@
 
 .. _internal:
 
-====================================
+======================
 Internal Documentation
-====================================
+======================
 
 .. include:: new_indexing.hrst
+.. include:: dependency_analysis.hrst
 
 
