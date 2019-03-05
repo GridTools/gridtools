@@ -11,9 +11,9 @@
 
 #include "gtest/gtest.h"
 
-#include <gridtools/stencil-composition/esf.hpp>
-#include <gridtools/stencil-composition/stencil-functions/call_interfaces.hpp>
-#include <gridtools/stencil-composition/stencil-functions/call_interfaces_metafunctions.hpp>
+#include <gridtools/stencil_composition/esf.hpp>
+#include <gridtools/stencil_composition/stencil_functions/call_interfaces.hpp>
+#include <gridtools/stencil_composition/stencil_functions/call_interfaces_metafunctions.hpp>
 #include <tuple>
 #include <type_traits>
 

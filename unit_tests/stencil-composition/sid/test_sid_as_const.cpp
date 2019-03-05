@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/sid/as_const.hpp>
+#include <gridtools/stencil_composition/sid/as_const.hpp>
 
 #include <type_traits>
 
@@ -16,8 +16,8 @@
 
 #include <gridtools/common/functional.hpp>
 #include <gridtools/meta/macros.hpp>
-#include <gridtools/stencil-composition/sid/concept.hpp>
-#include <gridtools/stencil-composition/sid/synthetic.hpp>
+#include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/stencil_composition/sid/synthetic.hpp>
 
 namespace gridtools {
     namespace {

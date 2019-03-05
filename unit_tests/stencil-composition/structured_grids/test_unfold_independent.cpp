@@ -8,11 +8,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/esf_metafunctions.hpp>
+#include <gridtools/stencil_composition/esf_metafunctions.hpp>
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 
 namespace gridtools {
     namespace {

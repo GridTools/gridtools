@@ -9,8 +9,8 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil-composition/conditionals/if_.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/conditionals/if_.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace test_conditionals {

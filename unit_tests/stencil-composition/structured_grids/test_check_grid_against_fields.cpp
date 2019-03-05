@@ -8,15 +8,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/intermediate.hpp>
+#include <gridtools/stencil_composition/intermediate.hpp>
 
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
-#include <gridtools/stencil-composition/backend_ids.hpp>
+#include <gridtools/stencil_composition/backend_ids.hpp>
 #include <gridtools/storage/common/halo.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 
 namespace gridtools {
 

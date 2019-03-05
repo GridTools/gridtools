@@ -10,7 +10,7 @@
 
 #include "../test_helper.hpp"
 #include "gtest/gtest.h"
-#include <gridtools/stencil-composition/interval.hpp>
+#include <gridtools/stencil_composition/interval.hpp>
 
 using namespace gridtools;
 

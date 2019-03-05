@@ -8,14 +8,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/sid/multi_shift.hpp>
+#include <gridtools/stencil_composition/sid/multi_shift.hpp>
 
 #include <gtest/gtest.h>
 
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
-#include <gridtools/stencil-composition/sid/concept.hpp>
+#include <gridtools/stencil_composition/sid/concept.hpp>
 
 namespace gridtools {
     namespace {

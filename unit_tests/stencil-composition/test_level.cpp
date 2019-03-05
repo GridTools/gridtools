@@ -11,7 +11,7 @@
 #include "../test_helper.hpp"
 #include "gtest/gtest.h"
 
-#include <gridtools/stencil-composition/level.hpp>
+#include <gridtools/stencil_composition/level.hpp>
 
 using namespace gridtools;
 

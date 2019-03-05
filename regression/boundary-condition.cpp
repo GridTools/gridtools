@@ -13,9 +13,9 @@
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 
-#include <gridtools/boundary-conditions/boundary.hpp>
+#include <gridtools/boundary_conditions/boundary.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;

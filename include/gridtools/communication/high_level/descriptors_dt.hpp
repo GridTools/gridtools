@@ -16,9 +16,9 @@
 #include "../../common/make_array.hpp"
 #include "../../common/ndloops.hpp"
 #include "../../common/numerics.hpp"
-#include "../low-level/Halo_Exchange_3D.hpp"
-#include "../low-level/data_types_mapping.hpp"
-#include "../low-level/proc_grids_3D.hpp"
+#include "../low_level/Halo_Exchange_3D.hpp"
+#include "../low_level/data_types_mapping.hpp"
+#include "../low_level/proc_grids_3D.hpp"
 #include "empty_field_base.hpp"
 #include "gcl_parameters.hpp"
 #include <vector>

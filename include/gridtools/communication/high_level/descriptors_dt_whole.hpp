@@ -18,7 +18,7 @@
 #include "../../common/halo_descriptor.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/ndloops.hpp"
-#include "../low-level/data_types_mapping.hpp"
+#include "../low_level/data_types_mapping.hpp"
 #include "gcl_parameters.hpp"
 
 #include "../../common/numerics.hpp"
@@ -55,7 +55,8 @@ namespace gridtools {
         typename GT,
         typename proc_layout,
         typename Gcl_Arch,
-        template <int Ndim> class GridType>
+        template <int Ndim>
+        class GridType>
     class hndlr_dynamic_ut<DataType, GridType<3>, Halo_Exchange_3D_DT<GT>, proc_layout, Gcl_Arch, 1>
         : public descriptor_base<Halo_Exchange_3D_DT<GT>> {
         static const int DIMS = 3;

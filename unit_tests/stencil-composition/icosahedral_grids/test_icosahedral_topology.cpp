@@ -7,12 +7,12 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
+#include <gridtools/stencil_composition/icosahedral_grids/icosahedral_topology.hpp>
 
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;

@@ -14,8 +14,8 @@
 #include <iostream>
 
 #include <gridtools/communication/halo_exchange.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 

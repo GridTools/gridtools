@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "../boundary-conditions/direction.hpp"
+#include "../boundary_conditions/direction.hpp"
 
 namespace gridtools {
     /** @brief predicate returning whether I am or not at the global boundary, based on a processor grid

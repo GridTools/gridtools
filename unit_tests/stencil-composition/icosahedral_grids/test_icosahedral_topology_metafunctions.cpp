@@ -10,8 +10,8 @@
 #include "gtest/gtest.h"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/gt_assert.hpp>
-#include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology_metafunctions.hpp>
-#include <gridtools/stencil-composition/location_type.hpp>
+#include <gridtools/stencil_composition/icosahedral_grids/icosahedral_topology_metafunctions.hpp>
+#include <gridtools/stencil_composition/location_type.hpp>
 
 using namespace gridtools;
 

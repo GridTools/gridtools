@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/iterate_on_esfs.hpp>
+#include <gridtools/stencil_composition/iterate_on_esfs.hpp>
 
 #include <type_traits>
 
@@ -16,12 +16,12 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil-composition/accessor.hpp>
-#include <gridtools/stencil-composition/arg.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/stencil-composition/make_stage.hpp>
-#include <gridtools/stencil-composition/make_stencils.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/stencil_composition/accessor.hpp>
+#include <gridtools/stencil_composition/arg.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
+#include <gridtools/stencil_composition/make_stage.hpp>
+#include <gridtools/stencil_composition/make_stencils.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace gridtools {

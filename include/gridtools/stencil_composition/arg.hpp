@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "../common/defs.hpp"
-#include "../storage/storage-facility.hpp"
+#include "../storage/storage_facility.hpp"
 #include "location_type.hpp"
 
 namespace gridtools {

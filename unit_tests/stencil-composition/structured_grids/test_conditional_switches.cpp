@@ -9,9 +9,9 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil-composition/conditionals/case_.hpp>
-#include <gridtools/stencil-composition/conditionals/switch_.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/conditionals/case_.hpp>
+#include <gridtools/stencil_composition/conditionals/switch_.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace test_conditional_switches {

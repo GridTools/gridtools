@@ -10,9 +10,9 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/accessor_metafunctions.hpp>
-#include <gridtools/stencil-composition/global_accessor.hpp>
-#include <gridtools/stencil-composition/icosahedral_grids/accessor.hpp>
+#include <gridtools/stencil_composition/accessor_metafunctions.hpp>
+#include <gridtools/stencil_composition/global_accessor.hpp>
+#include <gridtools/stencil_composition/icosahedral_grids/accessor.hpp>
 
 TEST(accessor, is_accessor) {
     using namespace gridtools;

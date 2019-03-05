@@ -8,16 +8,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/caches/cache_metafunctions.hpp>
-#include <gridtools/stencil-composition/caches/extract_extent_caches.hpp>
+#include <gridtools/stencil_composition/caches/cache_metafunctions.hpp>
+#include <gridtools/stencil_composition/caches/extract_extent_caches.hpp>
 
 #include <boost/fusion/include/pair.hpp>
 
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;

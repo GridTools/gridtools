@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/computation.hpp>
+#include <gridtools/stencil_composition/computation.hpp>
 
 #include <sstream>
 #include <string>
@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil-composition/arg.hpp>
+#include <gridtools/stencil_composition/arg.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace gridtools {

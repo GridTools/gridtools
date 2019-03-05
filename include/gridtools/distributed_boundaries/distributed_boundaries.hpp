@@ -13,14 +13,14 @@
 /** \defgroup Distributed-Boundaries Distributed Boundary Conditions
  */
 
-#include "../boundary-conditions/predicate.hpp"
+#include "../boundary_conditions/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/timer/timer_traits.hpp"
 #ifdef GCL_MPI
 #include "../communication/GCL.hpp"
 #include "../communication/halo_exchange.hpp"
-#include "../communication/low-level/proc_grids_3D.hpp"
+#include "../communication/low_level/proc_grids_3D.hpp"
 #else
 #include "./mock_pattern.hpp"
 #endif

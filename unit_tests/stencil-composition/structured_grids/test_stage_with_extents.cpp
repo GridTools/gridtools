@@ -14,9 +14,9 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/structured_grids/accessor.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace test_iterate_domain {

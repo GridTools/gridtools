@@ -10,7 +10,7 @@
 
 #include "test_grid.hpp"
 #include "gtest/gtest.h"
-#include <gridtools/stencil-composition/axis.hpp>
+#include <gridtools/stencil_composition/axis.hpp>
 
 constexpr int level_offset_limit = 3;
 

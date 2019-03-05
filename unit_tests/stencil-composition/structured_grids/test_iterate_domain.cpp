@@ -10,11 +10,11 @@
 #define GT_PEDANTIC_DISABLED // too stringent for this test
 
 #ifdef GT_BACKEND_X86
-#include <gridtools/stencil-composition/structured_grids/backend_x86/iterate_domain_x86.hpp>
+#include <gridtools/stencil_composition/structured_grids/backend_x86/iterate_domain_x86.hpp>
 #endif
 
 #ifdef GT_BACKEND_MC
-#include <gridtools/stencil-composition/structured_grids/backend_mc/iterate_domain_mc.hpp>
+#include <gridtools/stencil_composition/structured_grids/backend_mc/iterate_domain_mc.hpp>
 #endif
 
 #include <tuple>
@@ -22,9 +22,9 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/structured_grids/accessor.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace gridtools {

@@ -9,7 +9,7 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 

@@ -16,7 +16,7 @@
 #include <omp.h>
 #endif
 
-#include "../../storage/storage-facility.hpp"
+#include "../../storage/storage_facility.hpp"
 #include "../backend_fwd.hpp"
 #include "../iteration_policy.hpp"
 #include "../structured_grids/backend_mc/strategy_mc.hpp"

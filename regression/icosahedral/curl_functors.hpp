@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 
 namespace ico_operators {
 

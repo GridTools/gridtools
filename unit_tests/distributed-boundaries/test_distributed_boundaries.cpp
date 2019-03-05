@@ -16,10 +16,10 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/boundary-conditions/copy.hpp>
-#include <gridtools/boundary-conditions/value.hpp>
-#include <gridtools/distributed-boundaries/comm_traits.hpp>
-#include <gridtools/distributed-boundaries/distributed_boundaries.hpp>
+#include <gridtools/boundary_conditions/copy.hpp>
+#include <gridtools/boundary_conditions/value.hpp>
+#include <gridtools/distributed_boundaries/comm_traits.hpp>
+#include <gridtools/distributed_boundaries/distributed_boundaries.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 

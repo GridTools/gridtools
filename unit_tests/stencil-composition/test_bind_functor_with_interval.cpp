@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/bind_functor_with_interval.hpp>
+#include <gridtools/stencil_composition/bind_functor_with_interval.hpp>
 
 #include <tuple>
 #include <type_traits>
@@ -17,8 +17,8 @@
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/host_device.hpp>
-#include <gridtools/stencil-composition/interval.hpp>
-#include <gridtools/stencil-composition/level.hpp>
+#include <gridtools/stencil_composition/interval.hpp>
+#include <gridtools/stencil_composition/level.hpp>
 
 namespace gridtools {
     namespace {

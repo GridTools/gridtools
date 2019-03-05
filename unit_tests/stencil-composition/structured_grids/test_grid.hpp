@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/structured_grids/grid.hpp>
+#include <gridtools/stencil_composition/structured_grids/grid.hpp>
 
 using namespace gridtools;
 

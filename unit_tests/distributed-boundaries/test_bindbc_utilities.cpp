@@ -9,8 +9,8 @@
  */
 
 #include "gtest/gtest.h"
-#include <gridtools/boundary-conditions/zero.hpp>
-#include <gridtools/distributed-boundaries/bound_bc.hpp>
+#include <gridtools/boundary_conditions/zero.hpp>
+#include <gridtools/distributed_boundaries/bound_bc.hpp>
 #include <gridtools/storage/data_store.hpp>
 #include <gridtools/storage/storage_host/host_storage.hpp>
 

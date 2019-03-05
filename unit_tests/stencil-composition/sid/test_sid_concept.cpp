@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/sid/concept.hpp>
+#include <gridtools/stencil_composition/sid/concept.hpp>
 
 #include <type_traits>
 

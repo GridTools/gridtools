@@ -10,7 +10,7 @@
 #pragma once
 
 #include "../common/layout_map_metafunctions.hpp"
-#include "../storage/storage-facility.hpp"
+#include "../storage/storage_facility.hpp"
 
 namespace gridtools {
 

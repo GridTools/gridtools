@@ -25,7 +25,7 @@
 #include "../meta/make_indices.hpp"
 #include "../meta/transform.hpp"
 #include "data_store.hpp"
-#include "storage-facility.hpp"
+#include "storage_facility.hpp"
 
 namespace gridtools {
     namespace storage_sid_impl_ {

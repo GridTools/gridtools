@@ -13,7 +13,7 @@
 #include "../../common/halo_descriptor.hpp"
 #include "../../common/ndloops.hpp"
 #include "../../common/numerics.hpp"
-#include "../low-level/data_types_mapping.hpp"
+#include "../low_level/data_types_mapping.hpp"
 
 namespace gridtools {
     namespace _impl {

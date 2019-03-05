@@ -12,7 +12,7 @@
 
 #include <boost/fusion/include/make_vector.hpp>
 
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using gridtools::accessor;

@@ -17,8 +17,8 @@
 #include <boost/mpl/equal.hpp>
 
 #include <gridtools/common/gt_assert.hpp>
-#include <gridtools/stencil-composition/caches/define_caches.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/caches/define_caches.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;

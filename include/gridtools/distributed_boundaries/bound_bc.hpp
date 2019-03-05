@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "../boundary-conditions/boundary.hpp"
+#include "../boundary_conditions/boundary.hpp"
 #include "../common/halo_descriptor.hpp"
 #include <functional>
 #include <tuple>

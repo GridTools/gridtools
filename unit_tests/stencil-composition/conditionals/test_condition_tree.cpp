@@ -7,7 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/stencil-composition/conditionals/condition_tree.hpp>
+#include <gridtools/stencil_composition/conditionals/condition_tree.hpp>
 
 #include <array>
 #include <functional>
@@ -19,7 +19,7 @@
 #include <gridtools/common/functional.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
-#include <gridtools/stencil-composition/conditionals/condition.hpp>
+#include <gridtools/stencil_composition/conditionals/condition.hpp>
 
 namespace gridtools {
     namespace {

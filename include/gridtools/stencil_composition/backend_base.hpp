@@ -15,7 +15,7 @@
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../common/selector.hpp"
-#include "../storage/storage-facility.hpp"
+#include "../storage/storage_facility.hpp"
 #include "./backend_ids.hpp"
 #include "./grid.hpp"
 #include "./local_domain.hpp"

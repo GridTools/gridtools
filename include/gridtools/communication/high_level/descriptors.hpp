@@ -13,14 +13,14 @@
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/make_array.hpp"
-#include "../low-level/Halo_Exchange_3D.hpp"
-#include "../low-level/proc_grids_3D.hpp"
+#include "../low_level/Halo_Exchange_3D.hpp"
+#include "../low_level/proc_grids_3D.hpp"
 #include <boost/type_traits/remove_pointer.hpp>
 #include <vector>
 
 #include "../../common/boollist.hpp"
 #include "../../common/numerics.hpp"
-#include "../low-level/translate.hpp"
+#include "../low_level/translate.hpp"
 #include "access.hpp"
 #include "descriptor_base.hpp"
 #include "descriptors_fwd.hpp"

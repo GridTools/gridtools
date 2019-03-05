@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/sid/delegate.hpp>
+#include <gridtools/stencil_composition/sid/delegate.hpp>
 
 #include <gtest/gtest.h>
 
@@ -17,8 +17,8 @@
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
-#include <gridtools/stencil-composition/sid/concept.hpp>
-#include <gridtools/stencil-composition/sid/synthetic.hpp>
+#include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/stencil_composition/sid/synthetic.hpp>
 
 namespace gridtools {
     namespace {

@@ -8,14 +8,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil-composition/make_loop_intervals.hpp>
+#include <gridtools/stencil_composition/make_loop_intervals.hpp>
 
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/meta.hpp>
-#include <gridtools/stencil-composition/interval.hpp>
-#include <gridtools/stencil-composition/level.hpp>
+#include <gridtools/stencil_composition/interval.hpp>
+#include <gridtools/stencil_composition/level.hpp>
 
 namespace gridtools {
     namespace {

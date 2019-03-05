@@ -12,11 +12,11 @@
 #include <fstream>
 #include <iostream>
 
-#include <gridtools/boundary-conditions/boundary.hpp>
+#include <gridtools/boundary_conditions/boundary.hpp>
 #include <gridtools/communication/halo_exchange.hpp>
-#include <gridtools/communication/low-level/proc_grids_3D.hpp>
-#include <gridtools/distributed-boundaries/grid_predicate.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/communication/low_level/proc_grids_3D.hpp>
+#include <gridtools/distributed_boundaries/grid_predicate.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>

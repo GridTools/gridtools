@@ -10,7 +10,7 @@
 
 #include "../test_helper.hpp"
 #include "gtest/gtest.h"
-#include <gridtools/stencil-composition/axis.hpp>
+#include <gridtools/stencil_composition/axis.hpp>
 
 using namespace gridtools;
 
