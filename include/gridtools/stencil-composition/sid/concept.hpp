@@ -486,7 +486,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
-            shift(T &GT_RESTRICT obj, Stride const &, Offset const &GT_RESTRICT offset) {
+            shift(T &GT_RESTRICT obj, Stride const &GT_RESTRICT, Offset const &offset) {
                 obj += offset;
             }
 
@@ -497,7 +497,7 @@ namespace gridtools {
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     is_integral_constant_of<Stride, -1>::value &&
                                     !is_integral_constant<Offset>::value && has_dec_assignment<T, Stride>::value>
-            shift(T &GT_RESTRICT obj, Stride const &, Offset const &GT_RESTRICT offset) {
+            shift(T &obj, Stride const &, Offset const &offset) {
                 obj -= offset;
             }
 
