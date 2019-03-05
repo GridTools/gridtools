@@ -104,7 +104,6 @@ namespace gridtools {
                     return fortran_type_name<signed char>();
                 default:
                     assert(false && "Invalid element kind");
-                    return {};
                 }
             }
         } // namespace _impl
