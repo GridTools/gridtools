@@ -340,11 +340,10 @@ namespace gridtools {
         }
 
         template <class... Args, class... DataStores>
-        enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value, local_domains_t const &> local_domains(
-            arg_storage_pair<Args, DataStores> const &... srcs) {
-            _impl::update_local_domains(
-                tuple_util::flatten(
-                    std::make_tuple(m_tmp_arg_storage_pair_tuple, m_bound_arg_storage_pair_tuple, std::tie(srcs...))),
+        local_domains_t const &local_domains(arg_storage_pair<Args, DataStores> const &... srcs) {
+            _impl::update_local_domains(tuple_util::flatten(std::make_tuple(m_tmp_arg_storage_pair_tuple,
+                                            m_bound_arg_storage_pair_tuple,
+                                            dedup_storage_info(std::tie(srcs...)))),
                 m_local_domains);
             return m_local_domains;
         }

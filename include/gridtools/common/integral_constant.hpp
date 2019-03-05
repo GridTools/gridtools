@@ -117,7 +117,7 @@ namespace gridtools {
 
             template <literal_int_t Base, char... Chars>
             struct digits_parser {
-                constexpr static char digits[] = {Chars...};
+                constexpr static char digits[sizeof...(Chars)] = {Chars...};
                 constexpr static literal_int_t value = parse<Base>(digits, digits + sizeof...(Chars) - 1);
             };
 

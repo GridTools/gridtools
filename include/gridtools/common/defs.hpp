@@ -142,7 +142,7 @@ namespace gridtools {
     static_assert(1, "")
 #endif
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
 #define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name)                          \
     __forceinline__ __host__ __device__ constexpr class_name() noexcept {} \
     static_assert(1, "")
