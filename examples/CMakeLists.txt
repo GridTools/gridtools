@@ -32,4 +32,6 @@ if(GT_INSTALL_EXAMPLES)
 
     configure_file(cmake_skeletons/CMakeLists.txt.driver.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeLists.txt @ONLY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeLists.txt DESTINATION ${GT_INSTALL_EXAMPLES_PATH})
+
+    install(FILES ${CMAKE_SOURCE_DIR}/cmake/workaround_check_language.cmake DESTINATION ${GT_INSTALL_EXAMPLES_PATH})
 endif()

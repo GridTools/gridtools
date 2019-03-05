@@ -7,8 +7,8 @@ cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@)
 project(GridTools-examples LANGUAGES CXX)
 
 # enable CUDA if it is found on the system
-include(CheckLanguage)
-check_language(CUDA)
+include(../workaround_check_language.cmake)
+_workaround_check_language(CUDA)
 if(CMAKE_CUDA_COMPILER)
     # 2) Enable the CUDA language if you want to run your code on a CUDA-capable GPU.
     #    This needs to be done before find_package(GridTools) to properly setup the GridTools targets for CUDA.
