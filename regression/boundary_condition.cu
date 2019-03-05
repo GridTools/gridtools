@@ -7,4 +7,4 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "boundary-condition.cpp"
+#include "boundary_condition.cpp"
