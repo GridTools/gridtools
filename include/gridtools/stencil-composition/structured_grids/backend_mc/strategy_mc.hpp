@@ -83,7 +83,9 @@ namespace gridtools {
 #pragma omp parallel for collapse(2)
                 for (int_t bj = 0; bj < j_blocks; ++bj) {
                     for (int_t bi = 0; bi < i_blocks; ++bi) {
-                        gridtools::for_each<iter_range>(mss_functor_t(local_domain_lists, grid, exinfo.block(bi, bj)));
+                        thread_local static LocalDomainListArray local_domains;
+                        local_domains = local_domain_lists;
+                        gridtools::for_each<iter_range>(mss_functor_t(local_domains, grid, exinfo.block(bi, bj)));
                     }
                 }
             }
@@ -118,8 +120,10 @@ namespace gridtools {
                 for (int_t bj = 0; bj < j_blocks; ++bj) {
                     for (int_t k = k_first; k <= k_last; ++k) {
                         for (int_t bi = 0; bi < i_blocks; ++bi) {
+                            thread_local static LocalDomainListArray local_domains;
+                            local_domains = local_domain_lists;
                             gridtools::for_each<iter_range>(
-                                mss_functor_t(local_domain_lists, grid, exinfo.block(bi, bj, k)));
+                                mss_functor_t(local_domains, grid, exinfo.block(bi, bj, k)));
                         }
                     }
                 }
