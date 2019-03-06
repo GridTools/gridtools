@@ -14,9 +14,10 @@
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/hymap.hpp"
 #include "../../meta/type_traits.hpp"
+#include "../dim.hpp"
 #include "../execution_types.hpp"
-#include "../offset_computation.hpp"
 
 namespace gridtools {
 
@@ -33,9 +34,9 @@ namespace gridtools {
 
         template <class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += accessor_offset<0>(acc) + IZero;
-            j += accessor_offset<1>(acc) + JZero;
-            assert(accessor_offset<2>(acc) == 0);
+            i += host_device::at_key<dim::i>(acc) + IZero;
+            j += host_device::at_key<dim::j>(acc) + JZero;
+            assert(host_device::at_key<dim::k>(acc) == 0);
             assert(i >= 0);
             assert(i < ISize);
             assert(j >= 0);
@@ -68,10 +69,10 @@ namespace gridtools {
 
         template <int_t Color, class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += accessor_offset<0>(acc) + IZero;
-            int_t color = Color + accessor_offset<1>(acc);
-            j += accessor_offset<2>(acc) + JZero;
-            assert(accessor_offset<3>(acc) == 0);
+            i += host_device::at_key<dim::i>(acc) + IZero;
+            int_t color = Color + host_device::at_key<dim::c>(acc);
+            j += host_device::at_key<dim::j>(acc) + JZero;
+            assert(host_device::at_key<dim::k>(acc) == 0);
             assert(i >= 0);
             assert(i < ISize);
             assert(color >= 0);
@@ -133,11 +134,11 @@ namespace gridtools {
          */
         template <class Accessor>
         GT_FUNCTION T &at(Accessor const &acc) {
-            int_t offset = accessor_offset<2>(acc);
+            int_t offset = host_device::at_key<dim::k>(acc);
             assert(offset >= Minus);
             assert(offset <= Plus);
-            assert(accessor_offset<0>(acc) == 0);
-            assert(accessor_offset<1>(acc) == 0);
+            assert(host_device::at_key<dim::i>(acc) == 0);
+            assert(host_device::at_key<dim::j>(acc) == 0);
             return m_values[offset - Minus];
         }
 

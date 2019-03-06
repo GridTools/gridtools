@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
+#include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil-composition/accessor_metafunctions.hpp>
 #include <gridtools/stencil-composition/expressions/expressions.hpp>
 #include <gridtools/stencil-composition/global_accessor.hpp>
@@ -40,18 +41,20 @@ TEST(accessor, is_accessor_readonly) {
 TEST(accessor, trivial) {
     accessor<0, intent::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);
 
-    EXPECT_EQ(3, get<0>(first));
-    EXPECT_EQ(2, get<1>(first));
-    EXPECT_EQ(-1, get<2>(first));
+    EXPECT_EQ(3, tuple_util::get<0>(first));
+    EXPECT_EQ(2, tuple_util::get<1>(first));
+    EXPECT_EQ(-1, tuple_util::get<2>(first));
 }
 
 TEST(accessor, array) {
     constexpr accessor<0, intent::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
-    GT_STATIC_ASSERT((get<0>(first) == 3 && get<1>(first) == 2 && get<2>(first) == -1), "ERROR");
+    static_assert(tuple_util::get<0>(first) == 3, "");
+    static_assert(tuple_util::get<1>(first) == 2, "");
+    static_assert(tuple_util::get<2>(first) == -1, "");
 
-    EXPECT_EQ(3, get<0>(first));
-    EXPECT_EQ(2, get<1>(first));
-    EXPECT_EQ(-1, get<2>(first));
+    EXPECT_EQ(3, tuple_util::get<0>(first));
+    EXPECT_EQ(2, tuple_util::get<1>(first));
+    EXPECT_EQ(-1, tuple_util::get<2>(first));
 }
 
 /**
@@ -60,12 +63,12 @@ TEST(accessor, array) {
 TEST(accessor, alternative1) {
     accessor<0, intent::inout, extent<0, 0, 0, 0>, 6> first(dimension<6>(-6), dimension<4>(12));
 
-    EXPECT_EQ(0, get<0>(first));
-    EXPECT_EQ(0, get<1>(first));
-    EXPECT_EQ(0, get<2>(first));
-    EXPECT_EQ(12, get<3>(first));
-    EXPECT_EQ(0, get<4>(first));
-    EXPECT_EQ(-6, get<5>(first));
+    EXPECT_EQ(0, tuple_util::get<0>(first));
+    EXPECT_EQ(0, tuple_util::get<1>(first));
+    EXPECT_EQ(0, tuple_util::get<2>(first));
+    EXPECT_EQ(12, tuple_util::get<3>(first));
+    EXPECT_EQ(0, tuple_util::get<4>(first));
+    EXPECT_EQ(-6, tuple_util::get<5>(first));
 }
 
 /**
@@ -80,12 +83,12 @@ TEST(accessor, alternative2) {
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
     // ICC 18 shows some strange bug here
     constexpr accessor<0, intent::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
-    GT_STATIC_ASSERT(get<0>(first) == -5, "ERROR");
+    static_assert(tuple_util::get<0>(first) == -5, "");
 
-    EXPECT_EQ(-5, get<0>(first));
-    EXPECT_EQ(0, get<1>(first));
-    EXPECT_EQ(8, get<2>(first));
-    EXPECT_EQ(2, get<3>(first));
+    EXPECT_EQ(-5, tuple_util::get<0>(first));
+    EXPECT_EQ(0, tuple_util::get<1>(first));
+    EXPECT_EQ(8, tuple_util::get<2>(first));
+    EXPECT_EQ(2, tuple_util::get<3>(first));
 #endif
 }
 
@@ -102,9 +105,9 @@ TEST(accessor, static_alias) {
 
     alias_t first(dimension<8>(23), dimension<3>(-5));
 
-    EXPECT_EQ(2, get<6>(first));
-    EXPECT_EQ(4, get<0>(first));
-    EXPECT_EQ(-3, get<14>(first));
-    EXPECT_EQ(23, get<7>(first));
-    EXPECT_EQ(-5, get<2>(first));
+    EXPECT_EQ(2, tuple_util::get<6>(first));
+    EXPECT_EQ(4, tuple_util::get<0>(first));
+    EXPECT_EQ(-3, tuple_util::get<14>(first));
+    EXPECT_EQ(23, tuple_util::get<7>(first));
+    EXPECT_EQ(-5, tuple_util::get<2>(first));
 }
