@@ -128,15 +128,7 @@ namespace gridtools {
         using offsets_t = array<int_t, Dim>;
         offsets_t m_offsets;
 #endif
-        struct getter {
-            template <size_t I>
-            static GT_FUNCTION constexpr int_t get(accessor_base const &acc) noexcept {
-                GT_STATIC_ASSERT(I >= 0, "requested accessor index lower than zero");
-                GT_STATIC_ASSERT(I < Dim, "requested accessor index larger than the available dimensions");
-                return tuple_util::host_device::get<I>(acc.m_offsets);
-            }
-        };
-        friend getter tuple_getter(accessor_base const &) { return {}; }
+        GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(accessor_base, m_offsets);
         friend GT_META_CALL(meta::repeat_c, (Dim, int_t)) tuple_to_types(accessor_base const &) { return {}; }
 
       public:
