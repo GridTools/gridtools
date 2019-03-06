@@ -41,17 +41,6 @@ namespace gridtools {
     };
 
     /**
-       Given an ESF this metafunction provides the list of placeholders (if Pred derives
-       from false_type), or map between placeholders in this ESF and the extents
-       associated with it (if Pred derives from true_type)
-     */
-    template <typename Esf>
-    struct esf_args {
-        GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
-        typedef typename Esf::args_t type;
-    };
-
-    /**
        Given an ESF this metafunction provides the placeholder (if Pred derives
        from false_type) at a given index in the list of placeholders, or mpl::pair of
        placeholder and extent (if Pred derives from true_type)

@@ -13,7 +13,6 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/timer/timer_traits.hpp"
-#include "../../storage/data_store.hpp"
 
 #include "../backend_traits_fwd.hpp"
 #include "../grid_traits_fwd.hpp"
@@ -27,15 +26,6 @@ namespace gridtools {
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
     struct backend_traits_from_id<target::cuda> {
-
-        /** This is the functor used to generate view instances. According to the given storage
-           an appropriate view is returned. When using the CUDA backend we return device view instances.
-        */
-        struct make_view_f {
-            template <typename S, typename SI>
-            auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_device_view(src));
-        };
-
         /**
            @brief assigns the two given values using the given thread Id whithin the block
         */
