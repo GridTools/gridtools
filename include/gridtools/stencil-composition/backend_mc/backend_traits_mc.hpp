@@ -24,15 +24,6 @@ namespace gridtools {
     /**Traits struct, containing the types which are specific for the mc backend*/
     template <>
     struct backend_traits_from_id<target::mc> {
-
-        /** This is the functor used to generate view instances. According to the given storage an appropriate view is
-         * returned. When using the Host backend we return host view instances.
-         */
-        struct make_view_f {
-            template <typename S, typename SI>
-            auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_host_view(src));
-        };
-
         template <uint_t Id>
         struct once_per_block {
             template <typename Left, typename Right>

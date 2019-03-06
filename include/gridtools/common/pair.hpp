@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "defs.hpp"
+#include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
 
 namespace gridtools {
@@ -124,7 +125,7 @@ namespace gridtools {
         using type = T2;
     };
 
-    namespace impl_ {
+    namespace pair_impl_ {
         template <size_t I>
         struct pair_get;
 
@@ -155,19 +156,35 @@ namespace gridtools {
             }
             template <typename T1, typename T2>
             static constexpr GT_FUNCTION T2 &&move_get(pair<T1, T2> &&p) noexcept {
-                return std::move(p.second);
+                return const_expr::move(p.second);
             }
         };
-    } // namespace impl_
+
+        struct getter {
+            template <size_t I, class T1, class T2>
+            static constexpr GT_FUNCTION auto get(pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_get<I>::get(p));
+
+            template <size_t I, class T1, class T2>
+            static constexpr GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(
+                pair_get<I>::const_get(p));
+
+            template <size_t I, class T1, class T2>
+            static constexpr GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(
+                pair_get<I>::move_get(std::move(p)));
+        };
+    } // namespace pair_impl_
 
     template <size_t I, class T1, class T2>
-    constexpr GT_FUNCTION auto get(pair<T1, T2> &p) noexcept GT_AUTO_RETURN(impl_::pair_get<I>::get(p));
+    constexpr GT_FUNCTION auto get(pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_impl_::pair_get<I>::get(p));
 
     template <size_t I, class T1, class T2>
-    constexpr GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(impl_::pair_get<I>::const_get(p));
+    constexpr GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(
+        pair_impl_::pair_get<I>::const_get(p));
 
     template <size_t I, class T1, class T2>
     constexpr GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(
-        impl_::pair_get<I>::move_get(std::move(p)));
+        pair_impl_::pair_get<I>::move_get(std::move(p)));
 
+    template <class T1, class T2>
+    pair_impl_::getter tuple_getter(pair<T1, T2> const &);
 } // namespace gridtools
