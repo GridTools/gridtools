@@ -48,8 +48,8 @@ namespace gridtools {
     struct increment_index_functor {
         GT_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
 
-        Offset m_offset;
-        ArrayIndex &m_index_array;
+        Offset const &GT_RESTRICT m_offset;
+        ArrayIndex &GT_RESTRICT m_index_array;
         StridesMap const &m_strides_map;
 
         template <typename StorageInfo>
@@ -62,7 +62,8 @@ namespace gridtools {
     };
 
     template <class Dim, class LocalDomain, class StridesMap, class ArrayIndex, class Offset>
-    GT_FUNCTION void do_increment(Offset offset, StridesMap const &strides_map, ArrayIndex &index) {
+    GT_FUNCTION void do_increment(
+        Offset const &GT_RESTRICT offset, StridesMap const &strides_map, ArrayIndex &GT_RESTRICT index) {
         host_device::for_each_type<typename LocalDomain::storage_infos_t>(
             increment_index_functor<LocalDomain, Dim, StridesMap, ArrayIndex, Offset>{offset, index, strides_map});
     }

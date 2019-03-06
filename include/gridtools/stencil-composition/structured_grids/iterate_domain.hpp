@@ -68,7 +68,7 @@ namespace gridtools {
         // ******************* end of members *******************
 
         template <class Dim, class Offset>
-        GT_FUNCTION void increment(Offset offset) {
+        GT_FUNCTION void increment(Offset const &offset) {
             do_increment<Dim, local_domain_t>(offset, local_domain.m_strides_map, m_index);
         }
 
@@ -100,15 +100,15 @@ namespace gridtools {
         GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
         template <class Offset = integral_constant<int_t, 1>>
-        GT_FUNCTION void increment_i(Offset offset = {}) {
+        GT_FUNCTION void increment_i(Offset const &offset = {}) {
             increment<dim::i>(offset);
         }
         template <class Offset = integral_constant<int_t, 1>>
-        GT_FUNCTION void increment_j(Offset offset = {}) {
+        GT_FUNCTION void increment_j(Offset const &offset = {}) {
             increment<dim::j>(offset);
         }
         template <class Offset = integral_constant<int_t, 1>>
-        GT_FUNCTION void increment_k(Offset offset = {}) {
+        GT_FUNCTION void increment_k(Offset const &offset = {}) {
             increment<dim::k>(offset);
         }
 

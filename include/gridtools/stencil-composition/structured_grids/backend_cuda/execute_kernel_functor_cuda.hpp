@@ -79,8 +79,6 @@ namespace gridtools {
 
             it_domain.set_shared_iterate_domain_pointer(&shared_iterate_domain);
 
-            __syncthreads();
-
             // computing the global position in the physical domain
             /*
              *  In a typical cuda block we have the following regions

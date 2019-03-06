@@ -62,7 +62,7 @@ namespace gridtools {
             pos3<uint_t> m_block_no;
 
           public:
-            execute_kernel_functor_x86(const local_domain_t &local_domain,
+            GT_FORCE_INLINE execute_kernel_functor_x86(const local_domain_t &local_domain,
                 const grid_t &grid,
                 uint_t block_size_i,
                 uint_t block_size_j,
@@ -73,7 +73,7 @@ namespace gridtools {
                                     block_size_j + extent_t::jplus::value - extent_t::jminus::value},
                   m_block_no{block_no_i, block_no_j} {}
 
-            void operator()() const {
+            GT_FORCE_INLINE void operator()() const {
                 iterate_domain_t it_domain(m_local_domain);
 
                 it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},

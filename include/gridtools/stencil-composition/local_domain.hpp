@@ -89,9 +89,9 @@ namespace gridtools {
         using size_array_t = array<uint_t, meta::length<storage_infos_t>::value>;
 
       public:
-        strides_map_t m_strides_map;
         data_ptr_fusion_map m_local_data_ptrs;
         size_array_t m_local_padded_total_lengths;
+        strides_map_t m_strides_map;
     };
 
     template <class>
