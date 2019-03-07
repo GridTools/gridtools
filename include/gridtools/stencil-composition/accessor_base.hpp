@@ -88,7 +88,7 @@ namespace gridtools {
 
         template <class... Ints,
             enable_if_t<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value, int> = 0>
-        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : base_t{offsets...} {}
+        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : base_t{{offsets...}} {}
 
         GT_FUNCTION constexpr explicit accessor_base(base_t const &src) : base_t{src} {}
 
