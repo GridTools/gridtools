@@ -15,52 +15,10 @@
 #include "../common/defs.hpp"
 #include "../common/dimension.hpp"
 #include "../common/host_device.hpp"
-#include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 
 namespace gridtools {
-#ifdef __INTEL_COMPILER
-    namespace _impl {
-        /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
-         * class with a normal array member. Currently only the 3D case is specialized to allow for good vectorization
-         * in the most common case. */
-        template <std::size_t Dim>
-        struct pseudo_array_type {
-            using type = array<int_t, Dim>;
-        };
-
-        template <>
-        struct pseudo_array_type<3> {
-            struct type {
-                int_t data0, data1, data2;
-
-                constexpr type(array<int_t, 3> const &a) : data0(get<0>(a)), data1(get<1>(a)), data2(get<2>(a)) {}
-
-                constexpr type(int_t data0 = {}, int_t data1 = {}, int_t data2 = {})
-                    : data0(data0), data1(data1), data2(data2) {}
-
-                struct getter {
-                    template <size_t I>
-                    static GT_FUNCTION constexpr enable_if_t<I == 0, int_t> get(type const &acc) noexcept {
-                        return acc.data0;
-                    }
-                    template <size_t I>
-                    static GT_FUNCTION constexpr enable_if_t<I == 1, int_t> get(type const &acc) noexcept {
-                        return acc.data1;
-                    }
-                    template <size_t I>
-                    static GT_FUNCTION constexpr enable_if_t<I == 2, int_t> get(type const &acc) noexcept {
-                        return acc.data2;
-                    }
-                };
-                friend getter tuple_getter(type const &) { return {}; }
-                friend meta::list<int_t, int_t, int_t> tuple_to_types(type const &) { return {}; }
-            };
-        };
-    } // namespace _impl
-#endif
-
-    namespace _impl {
+    namespace accessor_base_impl_ {
         template <ushort_t I>
         struct get_dimension_value_f {
             template <ushort_t J>
@@ -89,7 +47,7 @@ namespace gridtools {
         GT_FUNCTION constexpr array<int_t, Dim> make_offsets(Ts... srcs) {
             return make_offsets_impl<Dim>(meta::make_integer_sequence<ushort_t, Dim>{}, srcs...);
         }
-    } // namespace _impl
+    } // namespace accessor_base_impl_
 
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
@@ -114,56 +72,69 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Extent Bounds over which the function access the argument
      */
-    template <ushort_t Dim>
-    class accessor_base {
+
+    template <size_t Dim>
+    struct accessor_base : array<int_t, Dim> {
         GT_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
 #ifdef __INTEL_COMPILER
-        /* The Intel compiler does not want to vectorize when we use a real array here. */
-        using offsets_t = typename _impl::pseudo_array_type<Dim>::type;
-        offsets_t m_offsets;
-        /* The Intel compiler likes to generate calls to memset if we don't have this additional member.*/
-        int_t m_workaround;
-#else
-        using offsets_t = array<int_t, Dim>;
-        offsets_t m_offsets;
+        int_t m_workaround = Dim;
 #endif
-        GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(accessor_base, m_offsets);
         friend GT_META_CALL(meta::repeat_c, (Dim, int_t)) tuple_to_types(accessor_base const &) { return {}; }
 
-      public:
+        using base_t = array<int_t, Dim>;
+
         static constexpr ushort_t n_dimensions = Dim;
 
         template <class... Ints,
             enable_if_t<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value, int> = 0>
-        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : m_offsets {
-            offsets...
-        }
-#ifdef __INTEL_COMPILER
-        , m_workaround(Dim)
-#endif
-        {
-        }
+        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : base_t{offsets...} {}
 
-        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
-            : m_offsets(src)
-#ifdef __INTEL_COMPILER
-              ,
-              m_workaround(Dim)
-#endif
-        {
-        }
+        GT_FUNCTION constexpr explicit accessor_base(base_t const &src) : base_t{src} {}
 
         template <ushort_t I, ushort_t... Is>
         GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
-            : m_offsets(_impl::make_offsets<Dim>(d, ds...))
-#ifdef __INTEL_COMPILER
-              ,
-              m_workaround(Dim)
-#endif
-        {
-            GT_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>, dimension<Is>...>>::value),
+            : base_t{accessor_base_impl_::make_offsets<Dim>(d, ds...)} {
+            GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
                 "all dimensions should be of different indicies");
         }
     };
+
+#ifdef __INTEL_COMPILER
+    /* The Intel compiler does not want to vectorize when we use a real array here. */
+    template <>
+    struct accessor_base<3> {
+        int_t data0, data1, data2;
+        int_t m_workaround = 3;
+
+        GT_FORCE_INLINE constexpr accessor_base(array<int_t, 3> const &a) : data0(a[0]), data1(a[1]), data2(a[2]) {}
+
+        GT_FORCE_INLINE constexpr accessor_base(int_t data0 = {}, int_t data1 = {}, int_t data2 = {})
+            : data0(data0), data1(data1), data2(data2) {}
+
+        template <ushort_t I, ushort_t... Is>
+        GT_FORCE_INLINE constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
+            : accessor_base{accessor_base_impl_::make_offsets<3>(d, ds...)} {
+            GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
+                "all dimensions should be of different indicies");
+        }
+
+        struct getter {
+            template <size_t I>
+            static GT_FORCE_INLINE constexpr enable_if_t<I == 0, int_t> get(accessor_base const &acc) noexcept {
+                return acc.data0;
+            }
+            template <size_t I>
+            static GT_FORCE_INLINE constexpr enable_if_t<I == 1, int_t> get(accessor_base const &acc) noexcept {
+                return acc.data1;
+            }
+            template <size_t I>
+            static GT_FORCE_INLINE constexpr enable_if_t<I == 2, int_t> get(accessor_base const &acc) noexcept {
+                return acc.data2;
+            }
+        };
+        friend getter tuple_getter(accessor_base const &) { return {}; }
+        friend meta::list<int_t, int_t, int_t> tuple_to_types(accessor_base const &) { return {}; }
+    };
+#endif
 } // namespace gridtools

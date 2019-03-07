@@ -152,9 +152,11 @@ namespace gridtools {
     GT_TARGET_NAMESPACE {
         template <class Key,
             class Map,
-            class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, decay_t<Map>), Key))>
+            class DMap = decay_t<Map>,
+            class Getter = GT_META_CALL(tuple_util::traits::getter, DMap),
+            class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, DMap), Key))>
         GT_TARGET GT_FORCE_INLINE constexpr auto at_key(Map && map) noexcept GT_AUTO_RETURN(
-            tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(const_expr::forward<Map>(map)));
+            Getter::template get<I::value>(const_expr::forward<Map>(map)));
     }
 } // namespace gridtools
 
