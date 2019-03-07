@@ -25,11 +25,11 @@ Communication traits helps the distributed boundary condition interface to custo
 
   template <typename StorageType, typename Arch>
   struct comm_traits {
-    using proc_layout = ... // Layout of the processing grid to relate the data layout to the distribution of data
-    using proc_grid_type = ... // Type of the computing grid
+    using proc_layout = gridtools::layout_map<...>; // Layout of the processing grid to relate the data layout to the distribution of data
+    using proc_grid_type = MPI_3D_process_grid_t; // Type of the computing grid
     using comm_arch_type = Arch; // Architecture for the communication pattern
-    compute_arch = ... // Architecture of the stencil/boundary condition backend
-    static constexpr int version = ... // Packing/Unpacking version
+    compute_arch = target::...; // Architecture of the stencil/boundary condition backend
+    static constexpr int version = gridtools::packing_version::...; // Packing/Unpacking version
     using data_layout = typename StorageType::storage_info_t::layout_t; // Layout of data
     using value_type = typename StorageType::data_t; // Value Type
   };
@@ -53,18 +53,20 @@ The number of :term:`Data Stores<Data Store>` is dictated by the ``boundary_clas
 
 The :term:`Data Stores<Data Store>` specified in the function call will be passed to the ``boundary_class`` and also used in :term:`Halo`-update operations.
 
-However, some data fields used in boundary conditions may be read-only and should not be passed to the :term:`Halo`-update operation, both for avoiding unnecessary operations and to limit the amount of memory used by the :term:`Halo`-update layer. For this reason the ``data_store``s passed the ``bind_bc`` can actually be ``std::placeholders``. Only the actual ``data_store``s specified in the ``bind_bc`` call will be passed to the communication layer. To bind the ``placeholders`` to actual ``data_store``s the user must bind then using ``.associate(data_stores...)`` with the same mechanism used in ``std::bind`` as in the following example, in which ``data_store`` ``c`` is associated to placeholder ``_1``.
+However, some data fields used in boundary conditions may be read-only and should not be passed to the :term:`Halo`-update operation, both for avoiding unnecessary operations and to limit the amount of memory used by the :term:`Halo`-update layer. For this reason the ``data_store`` passed the ``bind_bc`` can actually be ``std::placeholders``. Only the actual ``data_store`` specified in the ``bind_bc`` call will be passed to the communication layer. To bind the ``placeholders`` to actual ``data_store`` the user must bind then using ``.associate(data_stores...)`` with the same mechanism used in ``std::bind`` as in the following example, in which ``data_store`` ``c`` is associated to placeholder ``_1``.
 
 .. code-block:: gridtools
 
   bind_bc(copy_boundary{}, b, _1).associate(c)
+
+In this example, the boundary from ``c`` is copied into ``b``, and the halo exchanges for ``b`` (but not for ``c``) will be done.
 
 
 -----------------------
 Distributed Boundaries
 -----------------------
 
-The distributed boundaries class takes as template argument the communication traits. In the next example we use the communication traits class provided by |GT|, and ``communication_arch`` is one of the :term:`GCL` specifiers of where the data accessed by a :term:`Halo Exchange` object reside.
+The distributed boundaries class takes the communication traits as template argument. In the next example we use the communication traits class provided by |GT|, and ``communication_arch`` is one of the :term:`GCL` specifiers of where the data accessed by a :term:`Halo Exchange` object reside.
 
 .. code-block:: gridtools
 
@@ -97,11 +99,13 @@ The ``distributed_boundary`` object allows the user to query the properties of t
 .. code-block:: gridtools
 
    int pi, pj, pk;
-   cabc.proc_grid().coords(pi, pj, pk); // Coordinates of current process
+   dist_boundaries.proc_grid().coords(pi, pj, pk); // Coordinates of current process
    int PI, PJ, PK;
-   cabc.proc_grid().dims(PI, PJ, PK); // Sizes of the current grid of processes
+   dist_boundaries.proc_grid().dims(PI, PJ, PK); // Sizes of the current grid of processes
 
 When invoking the boundary application and :term:`Halo`-update operations the user calls the ``exchange`` member of ``distributed_boundaries``. The arguments of ``exchange`` are either :term:`Data Stores<Data Store>` stores or ``bind_bc`` objects which associate a boundary condition to :term:`Data Stores<Data Store>`. The :term:`Data Stores<Data Store>` passed directly to the ``exchange`` methods have their :term:`Halo` updates according to the :term:`Halo` and periodicity information specified at ``distributed_boundaries`` object construction. The ``bind_bc`` arguments are treated differently.
+
+.. todo:: merge with bind_bc description above
 
 ``bind_bc`` accepts as first argument a boundary condition object and a list of fields that will be passed to it, for instance:
 
@@ -109,7 +113,7 @@ When invoking the boundary application and :term:`Halo`-update operations the us
 
   bind_bc(copy_boundary{}, a, b);
 
-This line will tell the distributed boundary object to apply copy boundary conditions and so copy the boundary of ``b`` in the boundary of ``a``, according to the :term:`Halo` and periodicity specification. The boundaries that are not at the global boundary, though, will undergo :term:`Halo`-updates through the communication module.
+This line will tell the distributed boundary object to apply copy boundary conditions and so copy the boundary of ``b`` into the boundary of ``a``, according to the :term:`Halo` and periodicity specification. The boundaries that are not at the global boundary, though, will undergo :term:`Halo`-updates through the communication module.
 
 In the copy boundary, though, the second argument ``b`` is read-only, and most likely you would not need to update its :term:`Halo`. ``distributed_boundaries`` allows to explicitly skip some fields from being updated by using ``std::placeholders`` and the ``associate`` member function, as follow:
 
@@ -123,10 +127,10 @@ The next example, shows two boundary applications using a fixed value on :term:`
 
 .. code-block:: gridtools
 
-   cabc.exchange(bind_bc(value_boundary<double>{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);
+   dist_boundaries.exchange(bind_bc(value_boundary<double>{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);
 
 An additional facility provided is an alternative to the ``exchange`` method. This is used to skip the :term:`Halo` updates altogether, and it is called ``boundary_only``, and the code to use it is identical to the previous example, barring the function name:
 
 .. code-block:: gridtools
 
-   cabc.boundary_only(bind_bc(value_boundary<double>{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);
+   dist_boundaries.boundary_only(bind_bc(value_boundary<double>{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);

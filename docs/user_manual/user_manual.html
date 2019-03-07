@@ -321,7 +321,7 @@ make install
 <div class="section" id="using-gridtools">
 <h4>Using GridTools<a class="headerlink" href="#using-gridtools" title="Permalink to this headline">¶</a></h4>
 <p>Using <cite>GridTools</cite> follows standard CMake practices. To indicate where the <cite>GridTools</cite> root is, CMake should be provided with the variable <code class="docutils literal notranslate"><span class="pre">gridtools_DIR</span></code>, e.g. by calling CMake with <cite>-Dgridtools_DIR=&lt;/path/to/gridtools/lib/cmake&gt;</cite>. The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file should then contain the following lines:</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">GridTools</span> <span class="s">0.1.8.2</span> <span class="s">REQUIRED</span><span class="p">)</span>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">GridTools</span> <span class="s">REQUIRED</span><span class="p">)</span>
 <span class="nb">list</span><span class="p">(</span><span class="s">APPEND</span> <span class="s">CMAKE_MODULE_PATH</span> <span class="s2">&quot;${GridTools_MODULE_PATH}&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -338,6 +338,10 @@ make install
 </div>
 <div class="section" id="storage-module">
 <span id="id2"></span><h2>Storage Module<a class="headerlink" href="#storage-module" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">we need to update the interfaces (especially storage infO)…</p>
+</div>
 <p>The storage module is one of the main modules in <cite>GridTools</cite>. Main target of this module is to provide proper means to access, view, and modify data. The detail of the hardware is hidden to the user, but the user is responsible for indicating what storage is needed, and this is indicated by the name of the storage class.
 Different <a class="reference internal" href="../glossary/glossary.html#term-backend"><span class="xref std std-term">Backends</span></a> are available for different kinds of storages, see <a class="reference internal" href="#backend-selection"><span class="std std-ref">Selecting the Backend</span></a>. Following subsections will explain the different basic elements that are used in the storage module.</p>
 <p>The storage has the notion of <code class="docutils literal notranslate"><span class="pre">halo</span></code>. This in turns allows the user of the storage to distinguish between the <code class="docutils literal notranslate"><span class="pre">inner_region</span></code> and the <code class="docutils literal notranslate"><span class="pre">outer_region</span></code>, where the latter includes the halos. The halo is symmetric in the storage class, that is, the number of halo points at the two ends of a dimension is the same. Different dimensions may have different numbers of halo points. The main reason for including halos in the storage is to enforce the alignment of the storage in the inner region to improve the performance of stencil operations.</p>
@@ -345,10 +349,9 @@ Different <a class="reference internal" href="../glossary/glossary.html#term-bac
 <span id="id3"></span><h3>Storage Info<a class="headerlink" href="#storage-info" title="Permalink to this headline">¶</a></h3>
 <p>The storage info element can be seen as a meta data object that keep information about a storage. This information is alignment, data layout in memory, halo areas, dimensionality, size of the storage, etc.
 The object must be created before storage can be allocated. The meta data or storage info object can be shared among different storages. The reason is that it is usual that multiple storages used in one computation are having the same meta data. The storage info object is created in the following way:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">storage_info</span><span class="o">&lt;</span><span class="n">Id</span><span class="p">,</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">Halo</span><span class="p">,</span> <span class="n">Alignment</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Dims</span><span class="p">...)</span>
 </pre></div>
 </div>
-<p>storage_info_interface&lt;Id, Layout, Halo, Alignment&gt;(Dims…)</p>
 <p>Some <a class="reference internal" href="../glossary/glossary.html#term-backend"><span class="xref std std-term">Backends</span></a> also come with a default alignment value that should provide good
 performance on supported hardware. On CUDA GPUs for example</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">cuda_storage_info</span><span class="o">&lt;</span><span class="n">Id</span><span class="p">,</span> <span class="n">Layout</span><span class="p">,</span> <span class="n">Halo</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Dims</span><span class="p">...)</span>
@@ -366,7 +369,7 @@ performance on supported hardware. On CUDA GPUs for example</p>
 </div>
 <p>Passed type information:</p>
 <ul class="simple">
-<li><strong>Id</strong>: A unique identification for the storage info type</li>
+<li><strong>Id</strong>: A unique identifier for the storage info type</li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -393,7 +396,7 @@ halo I size of 1,
 halo J size of 0,
 and alignment 8 is created.
 Please note that the size of the halo has to be added to the arguments that are passed to the constructor.</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">storage_info_interface</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="k">layout_map</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">halo</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">alignment</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">storage_info</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="k">layout_map</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">halo</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">alignment</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 <span class="n">storage_info_t</span> <span class="nf">si</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="c1">// 4 data points + 2 halo points in I, 3 data points and 0 halo points in J</span>
 </pre></div>
 </div>
@@ -429,11 +432,16 @@ Please note that the size of the halo has to be added to the arguments that are 
 <span id="fig-data-store"></span><a class="reference internal image-reference" href="../_images/data_store.png"><img alt="../_images/data_store.png" src="../_images/data_store.png" style="width: 348.8px; height: 360.0px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text"><a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> and associated compile-time data.</span></p>
 </div>
+<p>The type of a <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> combines the backend, the underlying type, and the storage info:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">host_data_store</span> <span class="o">=</span> <span class="k">data_store</span><span class="o">&lt;</span><span class="n">host_storage</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">storage_info_t</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">using</span> <span class="n">cuda_data_store</span> <span class="o">=</span> <span class="k">data_store</span><span class="o">&lt;</span><span class="n">cuda_storage</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">storage_info_t</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
 <p><strong>Example</strong>:
 Following codes snippets show how <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> can be created. At first the user has to identify if the memory management is
 done externally or not. If it is done externally the <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> won’t allocate nor deallocate the memory. The standard use-case is to
 use managed <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a>. The <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> can be initialized with a value or lambda and can optionally be named by passing an additional  string.</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">storage_info_interface</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="k">layout_map</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">halo</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">alignment</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">storage_info</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="k">layout_map</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">halo</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">alignment</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 <span class="k">using</span> <span class="n">data_store_t</span> <span class="o">=</span> <span class="k">data_store</span><span class="o">&lt;</span><span class="n">host_storage</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">storage_info_t</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">storage_info_t</span> <span class="nf">si</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="c1">// 4 data points + 2 halo points in I, 3 data points and 0 halo points in J</span>
 
@@ -456,24 +464,24 @@ use managed <a class="reference internal" href="../glossary/glossary.html#term-d
 <p><strong>Interface</strong>:
 The <code class="docutils literal notranslate"><span class="pre">data_store</span></code> object provides methods for performing following things:</p>
 <ul class="simple">
-<li><cite>void allocate(StorageInfo const &amp;info)</cite>: allocate the needed memory. this will instantiate a storage instance.</li>
-<li><cite>void reset()</cite>: reset the data_store. maybe deallocates memory.</li>
-<li><cite>template &lt;int D&gt; int dim() const</cite>: function to retrieve the (aligned) size of a dimension.</li>
-<li><cite>template &lt;int D&gt; int unaligned_dim() const</cite>: get the unaligned size of a dimension.</li>
-<li><cite>int padded_total_length() const</cite>: retrieve the total number of data points.</li>
-<li><cite>int total_length() const</cite>: retrieve the total number of data points (excluding padding, initial offset).</li>
-<li><cite>int length() const</cite>: retrieve the total number of data points (excluding padding, halo, initial offset).</li>
-<li><cite>std::shared_ptr&lt;storage_t&gt; get_storage_ptr() const</cite>: retrieve a pointer to the underlying storage instance.</li>
-<li><cite>std::shared_ptr&lt;storage_info_t const&gt; get_storage_info_ptr() const</cite>: retrieve a pointer to the underlying storage_info instance.</li>
-<li><cite>bool valid() const</cite>: check if underlying storage info and storage is valid.</li>
-<li><cite>void clone_to_device() const</cite>: clone underlying storage to device. This function can also be called with host only storages but of course no operation is triggered.</li>
-<li><cite>void clone_from_device() const</cite>: clone underlying storage from device. This function can also be called with host only storages but of course no operation is triggered.</li>
-<li><cite>void sync() const</cite>: synchronize underlying storage.</li>
-<li><cite>void reactivate_device_write_views() const</cite>: reactivate all device read write views to storage.</li>
-<li><cite>void reactivate_host_write_views() const</cite>: reactivate all host read write views to storage.</li>
-<li><cite>std::string const &amp;name() const</cite>: retrieve the name of the storage.</li>
-<li><cite>const array&lt;uint_t, ndims&gt; &amp;dims() const</cite>: return the array of (aligned) dims.</li>
-<li><cite>const array&lt;uint_t, ndims&gt; &amp;strides() const</cite>: return the array of (aligned) strides.</li>
+<li><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">allocate(StorageInfo</span> <span class="pre">const</span> <span class="pre">&amp;info)</span></code>: allocate the needed memory. this will instantiate a storage instance.</li>
+<li><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">reset()</span></code>: reset the data_store. maybe deallocates memory.</li>
+<li><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;int</span> <span class="pre">D&gt;</span> <span class="pre">int</span> <span class="pre">dim()</span> <span class="pre">const</span></code>: function to retrieve the (aligned) size of a dimension.</li>
+<li><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;int</span> <span class="pre">D&gt;</span> <span class="pre">int</span> <span class="pre">unaligned_dim()</span> <span class="pre">const</span></code>: get the unaligned size of a dimension.</li>
+<li><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">padded_total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points.</li>
+<li><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points (excluding padding, initial offset).</li>
+<li><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">length()</span> <span class="pre">const</span></code>: retrieve the total number of data points (excluding padding, halo, initial offset).</li>
+<li><code class="docutils literal notranslate"><span class="pre">std::shared_ptr&lt;storage_t&gt;</span> <span class="pre">get_storage_ptr()</span> <span class="pre">const</span></code>: retrieve a pointer to the underlying storage instance.</li>
+<li><code class="docutils literal notranslate"><span class="pre">std::shared_ptr&lt;storage_info_t</span> <span class="pre">const&gt;</span> <span class="pre">get_storage_info_ptr()</span> <span class="pre">const</span></code>: retrieve a pointer to the underlying storage_info instance.</li>
+<li><code class="docutils literal notranslate"><span class="pre">bool</span> <span class="pre">valid()</span> <span class="pre">const</span></code>: check if underlying storage info and storage is valid.</li>
+<li><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">clone_to_device()</span> <span class="pre">const</span></code>: clone underlying storage to device. This function can also be called with host only storages but of course no operation is triggered.</li>
+<li><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">clone_from_device()</span> <span class="pre">const</span></code>: clone underlying storage from device. This function can also be called with host only storages but of course no operation is triggered.</li>
+<li><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">sync()</span> <span class="pre">const</span></code>: synchronize underlying storage.</li>
+<li><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">reactivate_device_write_views()</span> <span class="pre">const</span></code>: reactivate all device read write views to storage.</li>
+<li><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">reactivate_host_write_views()</span> <span class="pre">const</span></code>: reactivate all host read write views to storage.</li>
+<li><code class="docutils literal notranslate"><span class="pre">std::string</span> <span class="pre">const</span> <span class="pre">&amp;name()</span> <span class="pre">const</span></code>: retrieve the name of the storage.</li>
+<li><code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">array&lt;uint_t,</span> <span class="pre">ndims&gt;</span> <span class="pre">&amp;dims()</span> <span class="pre">const</span></code>: return the array of (aligned) dims.</li>
+<li><code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">array&lt;uint_t,</span> <span class="pre">ndims&gt;</span> <span class="pre">&amp;strides()</span> <span class="pre">const</span></code>: return the array of (aligned) strides.</li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -569,10 +577,14 @@ synchronization they have to be activated manually via a call to <code class="do
 </div>
 <p><strong>Interface</strong>:</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">data_view</span></code> construction is usually performed with specific <cite>makers</cite> and the use of <code class="docutils literal notranslate"><span class="pre">auto</span></code>, as</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">view1</span> <span class="o">=</span> <span class="nl">make_host_view</span><span class="o">&lt;</span><span class="n">Access</span><span class="o">&gt;</span><span class="p">(</span><span class="k">data_store</span><span class="p">);</span>
+<span class="k">auto</span> <span class="n">view2</span> <span class="o">=</span> <span class="nl">make_device_view</span><span class="o">&lt;</span><span class="n">Access</span><span class="o">&gt;</span><span class="p">(</span><span class="k">data_store</span><span class="p">);</span>
+</pre></div>
+</div>
 <p>Access is either <code class="docutils literal notranslate"><span class="pre">access_mode::read_only</span></code> or <code class="docutils literal notranslate"><span class="pre">access_mode::read_write</span></code> and the definitions are found in <code class="docutils literal notranslate"><span class="pre">storage/common/definitions.hpp</span></code>. <code class="docutils literal notranslate"><span class="pre">view1</span></code> can be used by a host thread to access data elements, since the view <cite>points</cite> to host memory. <code class="docutils literal notranslate"><span class="pre">view2</span></code> is a view that can be passed to a CUDA kernel, for instance, since it points to GPU memory, so that the kernel can use <code class="docutils literal notranslate"><span class="pre">view::operator()</span></code> to access data elements.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">data_view</span></code> object provides methods for performing following things:</p>
 <ul class="simple">
-<li><cite>bool valid() const</cite>: Check if view contains valid pointers, and simple state machine checks. Be aware that this is not a full check. In order to check if a view is in a consistent state use check_consistency function.</li>
+<li><code class="docutils literal notranslate"><span class="pre">bool</span> <span class="pre">valid()</span> <span class="pre">const</span></code>: Check if view contains valid pointers, and simple state machine checks. Be aware that this is not a full check. In order to check if a view is in a consistent state use check_consistency function.</li>
 <li><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;int</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">int</span> <span class="pre">dim()</span> <span class="pre">const</span></code>: get the aligned size of a dimension. (Deprecated.)</li>
 <li><code class="docutils literal notranslate"><span class="pre">constexpr</span> <span class="pre">const</span> <span class="pre">array&lt;uint_t,</span> <span class="pre">ndims&gt;</span> <span class="pre">&amp;dims()</span> <span class="pre">const</span></code>: return the array of (aligned) dims. (Deprecated.)</li>
 <li><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;int</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">int</span> <span class="pre">stride()</span> <span class="pre">const</span></code>: get aligned the stride of dimension.</li>
@@ -585,11 +597,11 @@ synchronization they have to be activated manually via a call to <code class="do
 <li><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">length()</span> <span class="pre">const</span></code>: retrieve the total number of data points (excluding padding, halo, initial offset) in dimension <cite>D</cite> (<cite>equivalent to end&lt;D&gt;()-begin&lt;D&gt;()+1</cite>).</li>
 <li><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points (excluding padding, initial offset) in dimension <cite>D</cite> (<cite>equivalent to total_end&lt;D&gt;()-total_begin&lt;D&gt;()+1</cite>).</li>
 <li><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">padded_total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points in dimension <cite>D</cite>, including eventual padding.</li>
-<li><cite>constexpr int padded_total_length() const</cite>: retrieve the total number of data points.</li>
-<li><cite>constexpr int total_length() const</cite>: retrieve the total number of data points (excluding padding, initial offset).</li>
-<li><cite>constexpr int length() const</cite>: retrieve the total number of data points (excluding padding, halo, initial offset).</li>
-<li><cite>template &lt;typename… Coords&gt; data_t&amp; operator()(Coords… c) const</cite>: used to access elements. E.g., view(0, 0, 2) will return the third element.</li>
-<li><cite>bool check_consistency(DataStore const&amp;, DataView const&amp;)</cite>: perform a full check if the given view can be used to modify or access the data in a proper way.</li>
+<li><code class="docutils literal notranslate"><span class="pre">constexpr</span> <span class="pre">int</span> <span class="pre">padded_total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points.</li>
+<li><code class="docutils literal notranslate"><span class="pre">constexpr</span> <span class="pre">int</span> <span class="pre">total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points (excluding padding, initial offset).</li>
+<li><code class="docutils literal notranslate"><span class="pre">constexpr</span> <span class="pre">int</span> <span class="pre">length()</span> <span class="pre">const</span></code>: retrieve the total number of data points (excluding padding, halo, initial offset).</li>
+<li><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;typename...</span> <span class="pre">Coords&gt;</span> <span class="pre">data_t&amp;</span> <span class="pre">operator()(Coords...</span> <span class="pre">c)</span> <span class="pre">const</span></code>: used to access elements. E.g., view(0, 0, 2) will return the third element.</li>
+<li><code class="docutils literal notranslate"><span class="pre">bool</span> <span class="pre">check_consistency(DataStore</span> <span class="pre">const&amp;,</span> <span class="pre">DataView</span> <span class="pre">const&amp;)</span></code>: perform a full check if the given view can be used to modify or access the data in a proper way.</li>
 </ul>
 </div>
 <div class="section" id="storage-facility">
@@ -660,7 +672,7 @@ implementation.</li>
 referred to as <a class="reference internal" href="../glossary/glossary.html#term-apply-method"><span class="xref std std-term">Apply-Methods</span></a>. To run on GPUs the function should
 also be a GT_FUNCTION</li>
 </ul>
-<div class="admonition-todo admonition" id="index-0">
+<div class="admonition-todo admonition" id="index-1">
 <p class="first admonition-title">Todo</p>
 <p class="last">Add reference to GT_FUNCTION</p>
 </div>
@@ -766,7 +778,7 @@ Note that you can still access the other dimensions with an offset, by using the
 <div class="section" id="param-list">
 <h3><cite>param_list</cite><a class="headerlink" href="#param-list" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">param_list</span></code> is a <cite>using</cite> statement like the following</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">param_list</span> <span class="o">=</span> <span class="n">accessor_list</span><span class="o">&lt;</span><span class="n">_accessors_</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">param_list</span> <span class="o">=</span> <span class="n">make_param_list</span><span class="o">&lt;</span><span class="n">_accessors_</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">_accessors_</span></code> is a comma separated list of all the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a>
@@ -809,8 +821,8 @@ it, is to indicate the corresponding <a class="reference internal" href="../glos
 of the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a>. This is a technicality necessary to make the
 syntax legal in C++.</p>
 </div>
-<p>The previous syntax is said to <em>evaluate the :term:`Accessor` at the
-:term:`Iteration Point`</em>.</p>
+<p>The previous syntax is said to “evaluate the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> at the
+<a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>”.</p>
 <p>For Regular Grids values can be accessed at offsets (relative to the
 evaluation point) passing to the constructor
 of the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> a sequence of integer indices, as follows:</p>
@@ -822,7 +834,7 @@ dimension (plus direction) of the <a class="reference internal" href="../glossar
 in the third dimension. A way to think of it is to consider the point
 of evaluation as a triplet <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code>, and those offsets are
 added to the current index coordinates to identifying the actual value
-to access.</p>
+to access. Note that writes to a field should only be with zero offsets.</p>
 <p>The evaluation returns a reference to the value for <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> with
 <code class="docutils literal notranslate"><span class="pre">inout</span></code> intent, and a const reference for <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> with <code class="docutils literal notranslate"><span class="pre">in</span></code> intent.</p>
 <p>The next example takes the difference between two value in the first
@@ -878,7 +890,7 @@ It is possible to embed the expressions in a single eval, i.e.</p>
 overloaded, and generate an expression to be evaluated. An example of its
 usage, demonstrating its effectiveness, can be found in the
 shallow water example.</p>
-<div class="admonition-todo admonition" id="index-1">
+<div class="admonition-todo admonition" id="index-2">
 <p class="first admonition-title">Todo</p>
 <p class="last">add reference to shallow water</p>
 </div>
@@ -946,6 +958,10 @@ exactly the same way:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">p_tmp</span> <span class="o">=</span> <span class="k">tmp_arg</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">,</span> <span class="n">data_store_t</span><span class="o">&gt;</span>
 </pre></div>
 </div>
+<p>The difference between temporary and non-temporary placeholders is that while
+non-temporary placeholders are bound with a user-allocated data-store, this is
+not needed for temporary placeholders. <cite>GridTools</cite> takes care to allocate a suitable
+storage for those placeholders.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you define multiple placeholders with the same ID, they can not be
@@ -986,14 +1002,14 @@ we cover how to define the <a class="reference internal" href="../glossary/gloss
 <dt id="_CPPv39make_grid15halo_descriptor15halo_descriptori">
 <span id="_CPPv29make_grid15halo_descriptor15halo_descriptori"></span><span id="make_grid__halo_descriptor.halo_descriptor.i"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>halo_descriptor <em>halo_i</em>, halo_descriptor <em>halo_j</em>, int <em>size_z</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39make_grid15halo_descriptor15halo_descriptori" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>For finer control of the iteration space a <a class="reference internal" href="../glossary/glossary.html#term-halo-descriptor"><span class="xref std std-term">Halo Descriptor</span></a> can be passed for the horizontal directions (<code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">J</span></code>).
-The 3rd and 4th argument of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> define the start and the endpoint of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>.</p>
+The 3rd and 4th argument of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> define the start and the endpoint of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. Note that
+the minus (first argument) and plus (second argument) of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> should be larger than the maximum extent of the
+whole computation.</p>
 </dd></dl>
 
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Only the 3rd and the 4th argument in the halo descriptor is used the stencil-composition,
-but we kept the same implementation we had in other parts of GridTools to avoid introducing too many concepts.
-This will be improved in the future.</p>
+<p class="last">The last argument of the halo descriptor (total length) is not used in in the grid. This will be improved in the future.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1077,7 +1093,7 @@ are used for defining which <a class="reference internal" href="../glossary/glos
 <div class="section" id="advanced-functionality-for-vertical-intervals">
 <span id="vertical-regions-advanced"></span><h4>Advanced Functionality for Vertical Intervals<a class="headerlink" href="#advanced-functionality-for-vertical-intervals" title="Permalink to this headline">¶</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">axis</span></code> type has two additional template parameters to change defaults</p>
-<div class="admonition-todo admonition" id="index-2">
+<div class="admonition-todo admonition" id="index-3">
 <p class="first admonition-title">Todo</p>
 <p class="last">the code block needs to be updated once ExtraOffsetsAroundFullInterval is removed</p>
 </div>
@@ -1085,7 +1101,8 @@ are used for defining which <a class="reference internal" href="../glossary/glos
 </pre></div>
 </div>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">LevelOffsetLimit</span></code>, defines how many levels around a vertical region can be addressed. Increasing this value could have negative implications on compile-time.</li>
+<li><code class="docutils literal notranslate"><span class="pre">LevelOffsetLimit</span></code> defines how many levels around each vertical region can be addressed by specialized
+<code class="docutils literal notranslate"><span class="pre">Apply</span></code>-methods. Increasing this value could have negative implications on compile-time.</li>
 </ul>
 </div>
 </div>
@@ -1114,8 +1131,7 @@ for you.</p>
 <p><cite>GridTools</cite> allows multi-stage computations to be composed. The final composition,
 with the addition of a <a class="reference internal" href="../glossary/glossary.html#term-grid"><span class="xref std std-term">Grid</span></a> is simply called a <cite>GridTools</cite>
 <a class="reference internal" href="../glossary/glossary.html#term-computation"><span class="xref std std-term">Computation</span></a>, or simply <a class="reference internal" href="../glossary/glossary.html#term-computation"><span class="xref std std-term">Computation</span></a>.</p>
-<p>Before entering the details of what can be composed and what not, let
-us show first an example of a stencil composition: a simple horizontal
+<p>First, let us show an example of a stencil composition: a simple horizontal
 diffusion stencil.</p>
 <p>First we need to specify the stages. A stage is specified by
 indicating a <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a> and some
@@ -1217,7 +1233,7 @@ improving substantially the performance.</p>
 <p>Again the multi-stages in the same computation will be executed logically in
 program order. Two multi-stage computations can be concatenated if the outputs
 of the stages that are used as input of the following obey the following rule:
-Let <cite>u</cite> be the output of a stage <cite>S0</cite> that is input the stage <cite>S1</cite>. The <a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extent</span></a>
+Let <cite>u</cite> be the output of a stage <cite>S0</cite> and input of a stage <cite>S1</cite>. The <a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extent</span></a>
 at which <cite>u</cite> is accessed by <cite>S1</cite> must be the point-<a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extent</span></a> in the IJ plane, that is the access
 of <cite>u</cite> is point-wise, so no offsets of <cite>u</cite> can be accessed. This is because the
 parallel execution of the stages can produce non deterministic results
@@ -1392,13 +1408,13 @@ and
 <p>The <code class="docutils literal notranslate"><span class="pre">cache_type</span></code> describes the type of access pattern present in our stencil for the field being cached. It’s
 value can be one of the following (where we indicate the basic mean of implementation on the GPUs, so that the user can understand the amount of resources involved):</p>
 <ol class="arabic simple">
-<li><code class="docutils literal notranslate"><span class="pre">IJ</span></code>: cache data fields whose access pattern lies in the ij-plane, i.e. only offsets of the type <cite>i ± X</cite> or <cite>j ± Y</cite> are allowed (the GPU backend will cache these fields in shared memory).</li>
-<li><code class="docutils literal notranslate"><span class="pre">K</span></code>: cache data field whose access pattern is restricted to the
+<li><code class="docutils literal notranslate"><span class="pre">cache_type::ij</span></code>: cache data fields whose access pattern lies in the ij-plane, i.e. only offsets of the type <cite>i ± X</cite> or <cite>j ± Y</cite> are allowed (the GPU backend will cache these fields in shared memory).</li>
+<li><code class="docutils literal notranslate"><span class="pre">cache_type::k</span></code>: cache data field whose access pattern is restricted to the
 k-direction, i.e. only offsets of the type <cite>k ± Z</cite> (the GPU backend will cache these fields in registers).</li>
 </ol>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">An error in the specification of the <code class="docutils literal notranslate"><span class="pre">cache_type</span></code>, for example using <code class="docutils literal notranslate"><span class="pre">IJ</span></code> for a field that is accessed with k offsets will lead to compile time errors.</p>
+<p class="last">An error in the specification of the <code class="docutils literal notranslate"><span class="pre">cache_type</span></code>, for example using <code class="docutils literal notranslate"><span class="pre">cache_type::ij</span></code> for a field that is accessed with k offsets will lead to compile time errors.</p>
 </div>
 </div>
 <div class="section" id="cache-policy">
@@ -1409,10 +1425,10 @@ being cached is already present in main memory fields. In this case, the <a clas
 to specify a <a class="reference internal" href="../glossary/glossary.html#term-cache-policy"><span class="xref std std-term">Cache Policy</span></a> that allows to synchronize the main memory with the cached field.
 The possible values are:</p>
 <ol class="arabic simple">
-<li><code class="docutils literal notranslate"><span class="pre">fill</span></code>: fill the scratch-pad buffer with data from main memory field before use.</li>
-<li><code class="docutils literal notranslate"><span class="pre">flush</span></code>: After the execution of the stencil operators the data in the <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> is written back into the main memory fields.</li>
-<li><code class="docutils literal notranslate"><span class="pre">fill_and_flush</span></code>: The combination of <code class="docutils literal notranslate"><span class="pre">fill</span></code> and <code class="docutils literal notranslate"><span class="pre">flush</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: The scratch-pad data is not persistent and only available within the scope of a multi-stage.</li>
+<li><code class="docutils literal notranslate"><span class="pre">cache_io_policy::fill</span></code>: fill the scratch-pad buffer with data from main memory field before use.</li>
+<li><code class="docutils literal notranslate"><span class="pre">cache_io_policy::flush</span></code>: After the execution of the stencil operators the data in the <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> is written back into the main memory fields.</li>
+<li><code class="docutils literal notranslate"><span class="pre">cache_io_policy::fill_and_flush</span></code>: The combination of <code class="docutils literal notranslate"><span class="pre">fill</span></code> and <code class="docutils literal notranslate"><span class="pre">flush</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">cache_io_policy::local</span></code>: The scratch-pad data is not persistent and only available within the scope of a multi-stage.</li>
 </ol>
 <blockquote>
 <div><a class="reference internal" href="#fig-kcache-ex"><span class="std std-numref">Fig. 6</span></a> graphically depicts an example of all the ordered operations that are executed when a <code class="docutils literal notranslate"><span class="pre">fill_and_flush</span></code>
@@ -1456,7 +1472,7 @@ This would be tedious and error-prone.</p>
 </pre></div>
 </div>
 <p>The correct way to interpret this syntax is that the call to <cite>if_</cite> returns one
-multistage o the other based on the return value of the predicate attached to
+multistage to the other based on the return value of the predicate attached to
 <cite>flag</cite>.</p>
 <p>The value of the condition is evaluated at every execution of <code class="docutils literal notranslate"><span class="pre">comp.run()</span></code>.</p>
 <p>The conditionals can also be nested:</p>
@@ -1544,19 +1560,21 @@ storage info, and we want to perform the same operation with all of them
 Normally this could be achieved by creating a loop and running multiple computations,
 but this solution would be inefficient. A more efficient solution is provided
 through the expandable parameters API.</p>
-<p>The user must collect the storage pointers in a <code class="docutils literal notranslate"><span class="pre">`std::vector`</span></code></p>
+<p>The user must collect the storage pointers in a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code></p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">storage_t</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">storage1</span><span class="p">,</span> <span class="n">storage2</span><span class="p">,</span> <span class="n">storage3</span><span class="p">,</span> <span class="n">storage4</span><span class="p">,</span> <span class="n">storage5</span><span class="p">,</span> <span class="n">storage6</span><span class="p">,</span> <span class="n">storage7</span><span class="p">,</span> <span class="n">storage8</span><span class="p">};</span>
 </pre></div>
 </div>
 <p>This <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> is then used as a storage type with no differences with respect to
 the regular storages.</p>
-<p>The implementation requires the user to specify an integer <code class="docutils literal notranslate"><span class="pre">`expand_factor`</span></code> when defining the computation:</p>
+<p>The implementation requires the user to specify an integer <code class="docutils literal notranslate"><span class="pre">expand_factor</span></code> when defining the computation.
+The optimal value for <code class="docutils literal notranslate"><span class="pre">expand_factor</span></code> might need to be tuned for different backends.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">comp_</span> <span class="o">=</span> <span class="nl">make_expandable_computation</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span>
        <span class="k">expand_factor</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span><span class="p">,</span>
        <span class="n">domain_</span><span class="p">,</span>
        <span class="n">grid_</span><span class="p">,</span>
        <span class="nl">make_multistage</span><span class="p">(</span><span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span> <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p</span><span class="p">())));</span>
+<span class="n">comp</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">p</span><span class="p">()</span> <span class="o">=</span> <span class="n">list</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>The vector of
@@ -1753,7 +1771,7 @@ neighbors.</p>
 <span id="id18"></span><h3>Provided Boundary Conditions<a class="headerlink" href="#provided-boundary-conditions" title="Permalink to this headline">¶</a></h3>
 <p><cite>GridTools</cite> provides few boundary application classes for some common cases. They are</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">copy_boundary</span></code> to copy the last field of the argument list of <cite>apply</cite> into the other ones;</li>
+<li><code class="docutils literal notranslate"><span class="pre">copy_boundary</span></code> to copy the boundary of the last field of the argument list of <cite>apply</cite> into the other ones;</li>
 <li><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;class</span> <span class="pre">T&gt;</span> <span class="pre">value_boundary</span></code> to set the boundary to a value for all the data fields provided;</li>
 <li><code class="docutils literal notranslate"><span class="pre">zero_boundary</span></code> to set the boundary to the default constructed value type of the data fields (usually a zero) for the input fields.</li>
 </ul>
@@ -1761,6 +1779,7 @@ neighbors.</p>
 </div>
 <div class="section" id="halo-exchanges">
 <span id="id19"></span><h2>Halo Exchanges<a class="headerlink" href="#halo-exchanges" title="Permalink to this headline">¶</a></h2>
+<p>..todo:: should we have a complete example as in the user manual?</p>
 <div class="section" id="id20">
 <h3>Introduction<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
 <p>The communication module in <cite>GridTools</cite> is dubbed <a class="reference internal" href="../glossary/glossary.html#term-gcl"><span class="xref std std-term">GCL</span></a>. It’s a low level
@@ -1770,7 +1789,7 @@ a scalable way.</p>
 <p>It is low-level because the requirements from which it was initially
 designed, required easy interoperability with C and Fortran, so the API
 takes pointers and sizes. The sizes are specified by
-<code class="docutils literal notranslate"><span class="pre">halo-descriptors</span></code>, which are lousily inspired by the BLAS description
+<code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code>, which are loosely inspired by the BLAS description
 of dimensions of matrices. A new, more modern set of interfaces are
 being implemented, to serve more general cases, such as higher
 dimensions and other grids.</p>
@@ -1782,7 +1801,7 @@ interfaces.</p>
 <div class="section" id="processor-grid">
 <h4>Processor Grid<a class="headerlink" href="#processor-grid" title="Permalink to this headline">¶</a></h4>
 <p>The processor grid is a concept that describe a 3D lattice of
-computing elements (you may think at those as MPI tasks). The
+computing elements (you may think of those as MPI tasks). The
 identifiers of them are tuples of indices. This naturally maps to a 3D
 decomposition of a data field.</p>
 </div>
@@ -1799,7 +1818,7 @@ indicated as first, second, and third (or i, j, k), it is the
 </pre></div>
 </div>
 <p>This <a class="reference internal" href="../glossary/glossary.html#term-layout-map"><span class="xref std std-term">Layout Map</span></a> indicates that the first dimension in the data (i) is the
-second in the increasing stride order, while the second (j) has the
+second in the decreasing stride order, while the second (j) has the
 biggest stride, and last dimension (k) is the one with stride 1. The
 largest strides are associated to smaller indices, so that
 <code class="docutils literal notranslate"><span class="pre">layout_map&lt;0,</span> <span class="pre">1,</span> <span class="pre">2&gt;</span></code> corresponds to a C-layout, while
@@ -1848,8 +1867,9 @@ application, not the increasing stride order.</p>
 <div class="section" id="halo-descriptor">
 <span id="id22"></span><h4>Halo Descriptor<a class="headerlink" href="#halo-descriptor" title="Permalink to this headline">¶</a></h4>
 <p>Given  a  dimension of  the  data  (array), the  communication  module
-requires the user to describe  it using the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> class,
-which takes five integers.</p>
+requires the user to describe it using the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> class,
+which takes five integers. This class identifies the data that needs
+to be exchanged.</p>
 <p>Consider a dimension which has <code class="docutils literal notranslate"><span class="pre">minus</span></code> halo lines on one side, and
 <code class="docutils literal notranslate"><span class="pre">plus</span></code> halo lines on the other (The minus and plus indicate the sides
 close to index 0 and the last index of the dimension,
@@ -1861,19 +1881,27 @@ is the <code class="docutils literal notranslate"><span class="pre">total_length
 “leading dimension” in BLAS. With these five numbers we can describe
 arbitrary dimensions, with paddings on the left and on the right, such
 as the example in <a class="reference internal" href="#fig-halo-descriptor"><span class="std std-numref">Fig. 9</span></a>.</p>
-<div class="figure" id="id31">
-<span id="fig-halo-descriptor"></span><a class="reference internal image-reference" href="../_images/halo_descriptor.png"><img alt="../_images/halo_descriptor.png" src="../_images/halo_descriptor.png" style="width: 480.5px; height: 284.5px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">Example halo descriptor with one halo point on the left and two on the right.</span></p>
-</div>
 <p>The interface for specifying a halo descriptor is fairly simple, where
 the name of arguments should be self-explanatory:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">halo_descriptor</span><span class="p">(</span><span class="n">uint_t</span> <span class="n">minus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">plus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">begin</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">end</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">total_length</span><span class="p">)</span>
 </pre></div>
 </div>
+<div class="admonition-todo admonition" id="index-4">
+<p class="first admonition-title">Todo</p>
+<p class="last">annotate example with minus plus begin and end</p>
+</div>
+<div class="figure" id="id31">
+<span id="fig-halo-descriptor"></span><a class="reference internal image-reference" href="../_images/halo_descriptor.png"><img alt="../_images/halo_descriptor.png" src="../_images/halo_descriptor.png" style="width: 480.5px; height: 284.5px;" /></a>
+<p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">Example halo descriptor with one halo point on the left and two on the right.</span></p>
+</div>
 </div>
 </div>
 <div class="section" id="gcl-communication-module">
 <span id="id23"></span><h3>GCL Communication Module<a class="headerlink" href="#gcl-communication-module" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-todo admonition" id="index-5">
+<p class="first admonition-title">Todo</p>
+<p class="last">we should somehow mention that GCL Communication Module does not work with storages, but with ptrs</p>
+</div>
 <p>Now we are ready to describe the <a class="reference internal" href="../glossary/glossary.html#term-halo-exchange"><span class="xref std std-term">Halo Exchange</span></a> patterns objects. The first one is <code class="docutils literal notranslate"><span class="pre">halo_exchange_dynamic_ut</span></code>. The <code class="docutils literal notranslate"><span class="pre">ut</span></code> suffix stands for <code class="docutils literal notranslate"><span class="pre">uniform</span> <span class="pre">types</span></code>, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The type of the object is defined as in this example:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">pattern_type</span> <span class="o">=</span> <span class="nl">halo_exchange_dynamic_ut</span><span class="o">&lt;</span><span class="k">layout_map</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">,</span>
                      <span class="n">ayout_map</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">gcl_cpu</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1885,14 +1913,14 @@ the name of arguments should be self-explanatory:</p>
 <li>the mapping between the data dimensions and processing <a class="reference internal" href="../glossary/glossary.html#term-grid"><span class="xref std std-term">Grid</span></a>, as described above (leave it as <code class="docutils literal notranslate"><span class="pre">layout_map&lt;0,</span> <span class="pre">1,</span> <span class="pre">2&gt;</span></code> if in doubt);</li>
 <li>the type of the values to be exchanged;</li>
 <li>the number of dimensions of the data/processing grid, and it has to be set to 3 (the GCL was designed to work with other dimensionalities, but the version in <cite>GridTools</cite> is a stripped down version waiting for the next more general interfaces);</li>
-<li>the place where the data live. The options for this arguments are <code class="docutils literal notranslate"><span class="pre">gcl_gpu</span></code>, <code class="docutils literal notranslate"><span class="pre">gcl_cpu</span></code> and <code class="docutils literal notranslate"><span class="pre">gcl_mc</span></code>.</li>
+<li>the place where the data lives and for which the code is optimized. The options for this arguments are <code class="docutils literal notranslate"><span class="pre">gcl_gpu</span></code>, <code class="docutils literal notranslate"><span class="pre">gcl_cpu</span></code> and <code class="docutils literal notranslate"><span class="pre">gcl_mc</span></code> (not supported yet).</li>
 </ol>
 <p>The <a class="reference internal" href="../glossary/glossary.html#term-halo-exchange"><span class="xref std std-term">Halo Exchange</span></a> object can be instantiated as:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">pattern_type</span> <span class="nf">he</span><span class="p">(</span><span class="n">pattern_type</span><span class="o">::</span><span class="n">grid_type</span><span class="o">::</span><span class="n">period_type</span><span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="nb">true</span><span class="p">),</span> <span class="n">CartComm</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>Where <code class="docutils literal notranslate"><span class="pre">period_type</span></code> indicate whether the corresponding dimension is
-periodic or not, and CartComm if the MPI communicator describing the
+<p>Where <code class="docutils literal notranslate"><span class="pre">period_type</span></code> indicates whether the corresponding dimensions are
+periodic or not. <code class="docutils literal notranslate"><span class="pre">CartComm</span></code> is the MPI communicator describing the
 computing grid.</p>
 <p>After the object has been instantiated, the
 user registers the halos for the corresponding dimension and the five
@@ -1907,17 +1935,19 @@ dimension).</p>
 running data exchange. The argument in the set up function is the
 maximum number of data arrays that the pattern will exchange in a
 single step. In this example we set it to 3, so that exchanging more
-than 3 fields will lead to a runtime error. The code looks like:</p>
+than 3 fields will lead to a runtime error. Be aware that setting a
+larger number of supported fields leads to larger memory allocations.
+The code looks like:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">he</span><span class="p">.</span><span class="n">setup</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Now we are ready to exchange the data, by passing (up to) three
 pointers to the data to pack, then calling exchange and then unpack
 into the destination data, as in the following example:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">he</span><span class="p">.</span><span class="n">pack</span><span class="p">(</span><span class="n">array0</span><span class="p">,</span> <span class="n">array1</span><span class="p">,</span> <span class="n">array3</span><span class="p">);</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">he</span><span class="p">.</span><span class="n">pack</span><span class="p">(</span><span class="n">array0</span><span class="p">,</span> <span class="n">array1</span><span class="p">,</span> <span class="n">array2</span><span class="p">);</span>
 <span class="n">he</span><span class="p">.</span><span class="n">start_exchange</span><span class="p">();</span>
 <span class="n">he</span><span class="p">.</span><span class="n">wait</span><span class="p">();</span>
-<span class="n">he</span><span class="p">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">array0</span><span class="p">,</span> <span class="n">array1</span><span class="p">,</span> <span class="n">array3</span><span class="p">)</span>
+<span class="n">he</span><span class="p">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">array0</span><span class="p">,</span> <span class="n">array1</span><span class="p">,</span> <span class="n">array2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Alternatively, the pointers can be put in a <code class="docutils literal notranslate"><span class="pre">std::vector&lt;value_type*&gt;</span></code> so that the code would look like:</p>
@@ -1927,13 +1957,13 @@ into the destination data, as in the following example:</p>
 <span class="n">he</span><span class="p">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">vector_of_pointers</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>An alternative pattern is:</p>
+<p>An alternative pattern supporting different element types is:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">pattern_type</span> <span class="o">=</span> <span class="nl">halo_exchange_generic</span><span class="o">&lt;</span><span class="k">layout_map</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">arch_type</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Now the <a class="reference internal" href="../glossary/glossary.html#term-layout-map"><span class="xref std std-term">Layout Map</span></a> in the type is the mapping of dimensions to the
 computing grid, 3 is the number of dimensions, and arch_type is either
-<code class="docutils literal notranslate"><span class="pre">gcl_gpu</span></code>, <code class="docutils literal notranslate"><span class="pre">gcl_cpu</span></code> or <code class="docutils literal notranslate"><span class="pre">gcl_mc</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">gcl_gpu</span></code>, <code class="docutils literal notranslate"><span class="pre">gcl_cpu</span></code> or <code class="docutils literal notranslate"><span class="pre">gcl_mc</span></code> (not supported yet).</p>
 <p>The construction of the object is identical to the previous one, but
 the set-up somewhat more complex now, since we have to indicate the
 maximum sizes and number of fields we will exchange using this object.</p>
@@ -1972,8 +2002,8 @@ descriptors. The exchange happens very similarly as before:</p>
 <span class="n">he</span><span class="p">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">field1</span><span class="p">,</span> <span class="n">field2</span><span class="p">,</span> <span class="n">field3</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The interface accepting an <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> also works in case all the
-fields have the same type.</p>
+<p>The interface accepting a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> also works for this pattern (in case all the
+fields have the same type).</p>
 </div>
 </div>
 <div class="section" id="distributed-boundary-conditions">
@@ -1994,11 +2024,11 @@ fields have the same type.</p>
 <p>Communication traits helps the distributed boundary condition interface to customize itself to the need of the user. A general communication traits class is available in <code class="docutils literal notranslate"><span class="pre">distributed-boundaries/comm_traits.hpp</span></code>. The traits required by the distributed boundaries interface, as provided by <cite>GridTools</cite>, are listed below here.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">StorageType</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Arch</span><span class="o">&gt;</span>
 <span class="k">struct</span> <span class="n">comm_traits</span> <span class="p">{</span>
-  <span class="k">using</span> <span class="n">proc_layout</span> <span class="o">=</span> <span class="p">...</span> <span class="c1">// Layout of the processing grid to relate the data layout to the distribution of data</span>
-  <span class="k">using</span> <span class="n">proc_grid_type</span> <span class="o">=</span> <span class="p">...</span> <span class="c1">// Type of the computing grid</span>
+  <span class="k">using</span> <span class="n">proc_layout</span> <span class="o">=</span> <span class="n">gridtools</span><span class="o">::</span><span class="k">layout_map</span><span class="o">&lt;</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// Layout of the processing grid to relate the data layout to the distribution of data</span>
+  <span class="k">using</span> <span class="n">proc_grid_type</span> <span class="o">=</span> <span class="n">MPI_3D_process_grid_t</span><span class="p">;</span> <span class="c1">// Type of the computing grid</span>
   <span class="k">using</span> <span class="n">comm_arch_type</span> <span class="o">=</span> <span class="n">Arch</span><span class="p">;</span> <span class="c1">// Architecture for the communication pattern</span>
-  <span class="n">compute_arch</span> <span class="o">=</span> <span class="p">...</span> <span class="c1">// Architecture of the stencil/boundary condition backend</span>
-  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">int</span> <span class="n">version</span> <span class="o">=</span> <span class="p">...</span> <span class="c1">// Packing/Unpacking version</span>
+  <span class="n">compute_arch</span> <span class="o">=</span> <span class="n">target</span><span class="o">::</span><span class="p">...;</span> <span class="c1">// Architecture of the stencil/boundary condition backend</span>
+  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">int</span> <span class="n">version</span> <span class="o">=</span> <span class="n">gridtools</span><span class="o">::</span><span class="n">packing_version</span><span class="o">::</span><span class="p">...;</span> <span class="c1">// Packing/Unpacking version</span>
   <span class="k">using</span> <span class="n">data_layout</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">StorageType</span><span class="o">::</span><span class="n">storage_info_t</span><span class="o">::</span><span class="n">layout_t</span><span class="p">;</span> <span class="c1">// Layout of data</span>
   <span class="k">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">StorageType</span><span class="o">::</span><span class="n">data_t</span><span class="p">;</span> <span class="c1">// Value Type</span>
 <span class="p">};</span>
@@ -2015,14 +2045,15 @@ fields have the same type.</p>
 </div>
 <p>The number of <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> is dictated by the <code class="docutils literal notranslate"><span class="pre">boundary_class::operator()</span></code>, that is user defined (or provided by <cite>GridTools</cite>).</p>
 <p>The <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> specified in the function call will be passed to the <code class="docutils literal notranslate"><span class="pre">boundary_class</span></code> and also used in <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operations.</p>
-<p>However, some data fields used in boundary conditions may be read-only and should not be passed to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operation, both for avoiding unnecessary operations and to limit the amount of memory used by the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update layer. For this reason the <code class="docutils literal notranslate"><span class="pre">data_store``s</span> <span class="pre">passed</span> <span class="pre">the</span> <span class="pre">``bind_bc</span></code> can actually be <code class="docutils literal notranslate"><span class="pre">std::placeholders</span></code>. Only the actual <code class="docutils literal notranslate"><span class="pre">data_store``s</span> <span class="pre">specified</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">``bind_bc</span></code> call will be passed to the communication layer. To bind the <code class="docutils literal notranslate"><span class="pre">placeholders</span></code> to actual <code class="docutils literal notranslate"><span class="pre">data_store``s</span> <span class="pre">the</span> <span class="pre">user</span> <span class="pre">must</span> <span class="pre">bind</span> <span class="pre">then</span> <span class="pre">using</span> <span class="pre">``.associate(data_stores...)</span></code> with the same mechanism used in <code class="docutils literal notranslate"><span class="pre">std::bind</span></code> as in the following example, in which <code class="docutils literal notranslate"><span class="pre">data_store</span></code> <code class="docutils literal notranslate"><span class="pre">c</span></code> is associated to placeholder <code class="docutils literal notranslate"><span class="pre">_1</span></code>.</p>
+<p>However, some data fields used in boundary conditions may be read-only and should not be passed to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operation, both for avoiding unnecessary operations and to limit the amount of memory used by the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update layer. For this reason the <code class="docutils literal notranslate"><span class="pre">data_store</span></code> passed the <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> can actually be <code class="docutils literal notranslate"><span class="pre">std::placeholders</span></code>. Only the actual <code class="docutils literal notranslate"><span class="pre">data_store</span></code> specified in the <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> call will be passed to the communication layer. To bind the <code class="docutils literal notranslate"><span class="pre">placeholders</span></code> to actual <code class="docutils literal notranslate"><span class="pre">data_store</span></code> the user must bind then using <code class="docutils literal notranslate"><span class="pre">.associate(data_stores...)</span></code> with the same mechanism used in <code class="docutils literal notranslate"><span class="pre">std::bind</span></code> as in the following example, in which <code class="docutils literal notranslate"><span class="pre">data_store</span></code> <code class="docutils literal notranslate"><span class="pre">c</span></code> is associated to placeholder <code class="docutils literal notranslate"><span class="pre">_1</span></code>.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">bind_bc</span><span class="p">(</span><span class="n">copy_boundary</span><span class="p">{},</span> <span class="n">b</span><span class="p">,</span> <span class="n">_1</span><span class="p">).</span><span class="n">associate</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>In this example, the boundary from <code class="docutils literal notranslate"><span class="pre">c</span></code> is copied into <code class="docutils literal notranslate"><span class="pre">b</span></code>, and the halo exchanges for <code class="docutils literal notranslate"><span class="pre">b</span></code> (but not for <code class="docutils literal notranslate"><span class="pre">c</span></code>) will be done.</p>
 </div>
 <div class="section" id="distributed-boundaries">
 <h3>Distributed Boundaries<a class="headerlink" href="#distributed-boundaries" title="Permalink to this headline">¶</a></h3>
-<p>The distributed boundaries class takes as template argument the communication traits. In the next example we use the communication traits class provided by <cite>GridTools</cite>, and <code class="docutils literal notranslate"><span class="pre">communication_arch</span></code> is one of the <a class="reference internal" href="../glossary/glossary.html#term-gcl"><span class="xref std std-term">GCL</span></a> specifiers of where the data accessed by a <a class="reference internal" href="../glossary/glossary.html#term-halo-exchange"><span class="xref std std-term">Halo Exchange</span></a> object reside.</p>
+<p>The distributed boundaries class takes the communication traits as template argument. In the next example we use the communication traits class provided by <cite>GridTools</cite>, and <code class="docutils literal notranslate"><span class="pre">communication_arch</span></code> is one of the <a class="reference internal" href="../glossary/glossary.html#term-gcl"><span class="xref std std-term">GCL</span></a> specifiers of where the data accessed by a <a class="reference internal" href="../glossary/glossary.html#term-halo-exchange"><span class="xref std std-term">Halo Exchange</span></a> object reside.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">dbs_t</span> <span class="o">=</span> <span class="n">distributed_boundaries</span><span class="o">&lt;</span><span class="n">comm_traits</span><span class="o">&lt;</span><span class="n">storage_type</span><span class="p">,</span> <span class="n">communication_arch</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -2043,28 +2074,32 @@ fields have the same type.</p>
 <p>Above here the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> are the local <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> sizes, which are usually the tiles of a domain decomposed <cite>global domain</cite>, which has <cite>global boundaries</cite>. The idea is to apply the boundary conditions to the global boundaries while performing <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> updates for the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> regions between sub-domains of the domain decomposed global domain.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">distributed_boundary</span></code> object allows the user to query the properties of the grid of processes, for instance the coordinates of the current process and the size of the computing grid..</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">pi</span><span class="p">,</span> <span class="n">pj</span><span class="p">,</span> <span class="n">pk</span><span class="p">;</span>
-<span class="n">cabc</span><span class="p">.</span><span class="n">proc_grid</span><span class="p">().</span><span class="n">coords</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">pj</span><span class="p">,</span> <span class="n">pk</span><span class="p">);</span> <span class="c1">// Coordinates of current process</span>
+<span class="n">dist_boundaries</span><span class="p">.</span><span class="n">proc_grid</span><span class="p">().</span><span class="n">coords</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">pj</span><span class="p">,</span> <span class="n">pk</span><span class="p">);</span> <span class="c1">// Coordinates of current process</span>
 <span class="kt">int</span> <span class="n">PI</span><span class="p">,</span> <span class="n">PJ</span><span class="p">,</span> <span class="n">PK</span><span class="p">;</span>
-<span class="n">cabc</span><span class="p">.</span><span class="n">proc_grid</span><span class="p">().</span><span class="n">dims</span><span class="p">(</span><span class="n">PI</span><span class="p">,</span> <span class="n">PJ</span><span class="p">,</span> <span class="n">PK</span><span class="p">);</span> <span class="c1">// Sizes of the current grid of processes</span>
+<span class="n">dist_boundaries</span><span class="p">.</span><span class="n">proc_grid</span><span class="p">().</span><span class="n">dims</span><span class="p">(</span><span class="n">PI</span><span class="p">,</span> <span class="n">PJ</span><span class="p">,</span> <span class="n">PK</span><span class="p">);</span> <span class="c1">// Sizes of the current grid of processes</span>
 </pre></div>
 </div>
 <p>When invoking the boundary application and <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operations the user calls the <code class="docutils literal notranslate"><span class="pre">exchange</span></code> member of <code class="docutils literal notranslate"><span class="pre">distributed_boundaries</span></code>. The arguments of <code class="docutils literal notranslate"><span class="pre">exchange</span></code> are either <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> stores or <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> objects which associate a boundary condition to <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a>. The <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> passed directly to the <code class="docutils literal notranslate"><span class="pre">exchange</span></code> methods have their <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> updates according to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> and periodicity information specified at <code class="docutils literal notranslate"><span class="pre">distributed_boundaries</span></code> object construction. The <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> arguments are treated differently.</p>
+<div class="admonition-todo admonition" id="index-6">
+<p class="first admonition-title">Todo</p>
+<p class="last">merge with bind_bc description above</p>
+</div>
 <p><code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> accepts as first argument a boundary condition object and a list of fields that will be passed to it, for instance:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">bind_bc</span><span class="p">(</span><span class="n">copy_boundary</span><span class="p">{},</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>This line will tell the distributed boundary object to apply copy boundary conditions and so copy the boundary of <code class="docutils literal notranslate"><span class="pre">b</span></code> in the boundary of <code class="docutils literal notranslate"><span class="pre">a</span></code>, according to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> and periodicity specification. The boundaries that are not at the global boundary, though, will undergo <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-updates through the communication module.</p>
+<p>This line will tell the distributed boundary object to apply copy boundary conditions and so copy the boundary of <code class="docutils literal notranslate"><span class="pre">b</span></code> into the boundary of <code class="docutils literal notranslate"><span class="pre">a</span></code>, according to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> and periodicity specification. The boundaries that are not at the global boundary, though, will undergo <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-updates through the communication module.</p>
 <p>In the copy boundary, though, the second argument <code class="docutils literal notranslate"><span class="pre">b</span></code> is read-only, and most likely you would not need to update its <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>. <code class="docutils literal notranslate"><span class="pre">distributed_boundaries</span></code> allows to explicitly skip some fields from being updated by using <code class="docutils literal notranslate"><span class="pre">std::placeholders</span></code> and the <code class="docutils literal notranslate"><span class="pre">associate</span></code> member function, as follow:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">bind_bc</span><span class="p">(</span><span class="n">copy_boundary</span><span class="p">{},</span> <span class="n">a</span><span class="p">,</span> <span class="n">_1</span><span class="p">).</span><span class="n">associate</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>In this case, the field <code class="docutils literal notranslate"><span class="pre">b</span></code> will not be passed to the communication module, but it will only be used by the <code class="docutils literal notranslate"><span class="pre">copy_boundary</span></code> object.</p>
 <p>The next example, shows two boundary applications using a fixed value on <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> <code class="docutils literal notranslate"><span class="pre">a</span></code> and a <code class="docutils literal notranslate"><span class="pre">copy_boundary</span></code> to copy the value of <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> <code class="docutils literal notranslate"><span class="pre">c</span></code> into <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> <code class="docutils literal notranslate"><span class="pre">b</span></code> (refer to <a class="reference internal" href="#gcl-communication-module"><span class="std std-ref">GCL Communication Module</span></a>). Data store <code class="docutils literal notranslate"><span class="pre">c</span></code> will not be used in <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> update operation, but only as source of data for the <code class="docutils literal notranslate"><span class="pre">copy_boundary</span></code>. Three fields will have their <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> updated by the next example, namely <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">d</span></code>:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">cabc</span><span class="p">.</span><span class="n">exchange</span><span class="p">(</span><span class="n">bind_bc</span><span class="p">(</span><span class="n">value_boundary</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">{</span><span class="mf">3.14</span><span class="p">},</span> <span class="n">a</span><span class="p">),</span> <span class="n">bind_bc</span><span class="p">(</span><span class="n">copy_boundary</span><span class="p">{},</span> <span class="n">b</span><span class="p">,</span> <span class="n">_1</span><span class="p">).</span><span class="n">associate</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">d</span><span class="p">);</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">dist_boundaries</span><span class="p">.</span><span class="n">exchange</span><span class="p">(</span><span class="n">bind_bc</span><span class="p">(</span><span class="n">value_boundary</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">{</span><span class="mf">3.14</span><span class="p">},</span> <span class="n">a</span><span class="p">),</span> <span class="n">bind_bc</span><span class="p">(</span><span class="n">copy_boundary</span><span class="p">{},</span> <span class="n">b</span><span class="p">,</span> <span class="n">_1</span><span class="p">).</span><span class="n">associate</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">d</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>An additional facility provided is an alternative to the <code class="docutils literal notranslate"><span class="pre">exchange</span></code> method. This is used to skip the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> updates altogether, and it is called <code class="docutils literal notranslate"><span class="pre">boundary_only</span></code>, and the code to use it is identical to the previous example, barring the function name:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">cabc</span><span class="p">.</span><span class="n">boundary_only</span><span class="p">(</span><span class="n">bind_bc</span><span class="p">(</span><span class="n">value_boundary</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">{</span><span class="mf">3.14</span><span class="p">},</span> <span class="n">a</span><span class="p">),</span> <span class="n">bind_bc</span><span class="p">(</span><span class="n">copy_boundary</span><span class="p">{},</span> <span class="n">b</span><span class="p">,</span> <span class="n">_1</span><span class="p">).</span><span class="n">associate</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">d</span><span class="p">);</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">dist_boundaries</span><span class="p">.</span><span class="n">boundary_only</span><span class="p">(</span><span class="n">bind_bc</span><span class="p">(</span><span class="n">value_boundary</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">{</span><span class="mf">3.14</span><span class="p">},</span> <span class="n">a</span><span class="p">),</span> <span class="n">bind_bc</span><span class="p">(</span><span class="n">copy_boundary</span><span class="p">{},</span> <span class="n">b</span><span class="p">,</span> <span class="n">_1</span><span class="p">).</span><span class="n">associate</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">d</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>

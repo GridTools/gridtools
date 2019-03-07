@@ -153,7 +153,7 @@ The ``param_list`` is a `using` statement like the following
 
 .. code-block:: gridtools
 
- using param_list = accessor_list<_accessors_>;
+ using param_list = make_param_list<_accessors_>;
 
 
 where ``_accessors_`` is a comma separated list of all the :term:`Accessors<Accessor>`
@@ -207,8 +207,8 @@ it, is to indicate the corresponding :term:`Accessor` as argument to the
  of the :term:`Accessor`. This is a technicality necessary to make the
  syntax legal in C++.
 
-The previous syntax is said to *evaluate the :term:`Accessor` at the
-:term:`Iteration Point`*.
+The previous syntax is said to "evaluate the :term:`Accessor` at the
+:term:`Iteration Point`".
 
 For Regular Grids values can be accessed at offsets (relative to the
 evaluation point) passing to the constructor
@@ -223,7 +223,7 @@ dimension (plus direction) of the :term:`Iteration Point`, and an offset of 1 in
 in the third dimension. A way to think of it is to consider the point
 of evaluation as a triplet ``i``, ``j`` and ``k``, and those offsets are
 added to the current index coordinates to identifying the actual value
-to access.
+to access. Note that writes to a field should only be with zero offsets.
 
 The evaluation returns a reference to the value for :term:`Accessors<Accessor>` with
 ``inout`` intent, and a const reference for :term:`Accessors<Accessor>` with ``in`` intent.

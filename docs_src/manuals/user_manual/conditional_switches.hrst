@@ -36,7 +36,7 @@ The syntax we expose for `if_` statements is reported in the following example:
  );
 
 The correct way to interpret this syntax is that the call to `if_` returns one
-multistage o the other based on the return value of the predicate attached to
+multistage to the other based on the return value of the predicate attached to
 `flag`.
 
 The value of the condition is evaluated at every execution of ``comp.run()``.

@@ -83,12 +83,12 @@ Using |GT| follows standard CMake practices. To indicate where the |GT| root is,
 
 .. code-block:: cmake
 
- find_package(GridTools 0.1.8.2 REQUIRED)
+ find_package(GridTools REQUIRED)
  list(APPEND CMAKE_MODULE_PATH "${GridTools_MODULE_PATH}")
 
 .. note:
 
- The version number is indicative.
+ You may want to consider passing the version number to ``find_package``.
 
 Targets that need |GT| should indicate ``GridTools::gridtools`` as target link library. If the communication module is needed ``GridTools::gcl`` should be used.
 

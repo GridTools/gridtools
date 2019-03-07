@@ -3,6 +3,8 @@
 Halo Exchanges
 ========================
 
+..todo:: should we have a complete example as in the user manual?
+
 ----------------
 Introduction
 ----------------
@@ -15,7 +17,7 @@ a scalable way.
 It is low-level because the requirements from which it was initially
 designed, required easy interoperability with C and Fortran, so the API
 takes pointers and sizes. The sizes are specified by
-``halo-descriptors``, which are lousily inspired by the BLAS description
+``halo_descriptor``, which are loosely inspired by the BLAS description
 of dimensions of matrices. A new, more modern set of interfaces are
 being implemented, to serve more general cases, such as higher
 dimensions and other grids.
@@ -33,7 +35,7 @@ Processor Grid
 ^^^^^^^^^^^^^^^^
 
 The processor grid is a concept that describe a 3D lattice of
-computing elements (you may think at those as MPI tasks). The
+computing elements (you may think of those as MPI tasks). The
 identifiers of them are tuples of indices. This naturally maps to a 3D
 decomposition of a data field.
 
@@ -55,7 +57,7 @@ For instance:
   layout_map<1, 0, 2>
 
 This :term:`Layout Map` indicates that the first dimension in the data (i) is the
-second in the increasing stride order, while the second (j) has the
+second in the decreasing stride order, while the second (j) has the
 biggest stride, and last dimension (k) is the one with stride 1. The
 largest strides are associated to smaller indices, so that
 ``layout_map<0, 1, 2>`` corresponds to a C-layout, while
@@ -124,8 +126,9 @@ Halo Descriptor
 ^^^^^^^^^^^^^^^^
 
 Given  a  dimension of  the  data  (array), the  communication  module
-requires the user to describe  it using the ``halo_descriptor`` class,
-which takes five integers.
+requires the user to describe it using the ``halo_descriptor`` class,
+which takes five integers. This class identifies the data that needs
+to be exchanged.
 
 Consider a dimension which has ``minus`` halo lines on one side, and
 ``plus`` halo lines on the other (The minus and plus indicate the sides
@@ -139,12 +142,6 @@ is the ``total_length``. This parameter is the equivalent of the
 arbitrary dimensions, with paddings on the left and on the right, such
 as the example in :numref:`fig_halo_descriptor`.
 
-.. _fig_halo_descriptor:
-.. figure:: figures/halo_descriptor.png
-   :scale: 50%
-
-   Example halo descriptor with one halo point on the left and two on the right.
-
 The interface for specifying a halo descriptor is fairly simple, where
 the name of arguments should be self-explanatory:
 
@@ -152,11 +149,23 @@ the name of arguments should be self-explanatory:
 
  halo_descriptor(uint_t minus, uint_t plus, uint_t begin, uint_t end, uint_t total_length)
 
+.. todo::
+   annotate example with minus plus begin and end
+
+.. _fig_halo_descriptor:
+.. figure:: figures/halo_descriptor.png
+   :scale: 50%
+
+   Example halo descriptor with one halo point on the left and two on the right.
+
 .. _gcl-communication-module:
 
 -------------------------
 GCL Communication Module
 -------------------------
+
+.. todo::
+   we should somehow mention that GCL Communication Module does not work with storages, but with ptrs
 
 Now we are ready to describe the :term:`Halo Exchange` patterns objects. The first one is ``halo_exchange_dynamic_ut``. The ``ut`` suffix stands for ``uniform types``, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The type of the object is defined as in this example:
 
@@ -171,7 +180,7 @@ The template arguments are:
 2. the mapping between the data dimensions and processing :term:`Grid`, as described above (leave it as ``layout_map<0, 1, 2>`` if in doubt);
 3. the type of the values to be exchanged;
 4. the number of dimensions of the data/processing grid, and it has to be set to 3 (the GCL was designed to work with other dimensionalities, but the version in |GT| is a stripped down version waiting for the next more general interfaces);
-5. the place where the data live. The options for this arguments are ``gcl_gpu``, ``gcl_cpu`` and ``gcl_mc``.
+5. the place where the data lives and for which the code is optimized. The options for this arguments are ``gcl_gpu``, ``gcl_cpu`` and ``gcl_mc`` (not supported yet).
 
 The :term:`Halo Exchange` object can be instantiated as:
 
@@ -179,8 +188,8 @@ The :term:`Halo Exchange` object can be instantiated as:
 
   pattern_type he(pattern_type::grid_type::period_type(true, false, true), CartComm);
 
-Where ``period_type`` indicate whether the corresponding dimension is
-periodic or not, and CartComm if the MPI communicator describing the
+Where ``period_type`` indicates whether the corresponding dimensions are
+periodic or not. ``CartComm`` is the MPI communicator describing the
 computing grid.
 
 After the object has been instantiated, the
@@ -198,7 +207,9 @@ When the registration is done a setup function must be called before
 running data exchange. The argument in the set up function is the
 maximum number of data arrays that the pattern will exchange in a
 single step. In this example we set it to 3, so that exchanging more
-than 3 fields will lead to a runtime error. The code looks like:
+than 3 fields will lead to a runtime error. Be aware that setting a
+larger number of supported fields leads to larger memory allocations.
+The code looks like:
 
 .. code-block:: gridtools
 
@@ -211,10 +222,10 @@ into the destination data, as in the following example:
 
 .. code-block:: gridtools
 
-  he.pack(array0, array1, array3);
+  he.pack(array0, array1, array2);
   he.start_exchange();
   he.wait();
-  he.unpack(array0, array1, array3)
+  he.unpack(array0, array1, array2)
 
 Alternatively, the pointers can be put in a ``std::vector<value_type*>`` so that the code would look like:
 
@@ -225,7 +236,7 @@ Alternatively, the pointers can be put in a ``std::vector<value_type*>`` so that
   he.wait();
   he.unpack(vector_of_pointers);
 
-An alternative pattern is:
+An alternative pattern supporting different element types is:
 
 .. code-block:: gridtools
 
@@ -233,7 +244,7 @@ An alternative pattern is:
 
 Now the :term:`Layout Map` in the type is the mapping of dimensions to the
 computing grid, 3 is the number of dimensions, and arch_type is either
-``gcl_gpu``, ``gcl_cpu`` or ``gcl_mc``.
+``gcl_gpu``, ``gcl_cpu`` or ``gcl_mc`` (not supported yet).
 
 The construction of the object is identical to the previous one, but
 the set-up somewhat more complex now, since we have to indicate the
@@ -290,5 +301,5 @@ descriptors. The exchange happens very similarly as before:
 
    he.unpack(field1, field2, field3);
 
-The interface accepting an ``std::vector`` also works in case all the
-fields have the same type.
+The interface accepting a ``std::vector`` also works for this pattern (in case all the
+fields have the same type).
