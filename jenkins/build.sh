@@ -314,7 +314,8 @@ if [[ "$MAKE_TARGETS" == "install" ]]; then # only if GT was installed
     cmake ${GRIDTOOLS_INSTALL_PATH}/gridtools_examples \
         -DCMAKE_BUILD_TYPE:STRING=\"$BUILD_TYPE\" \
         -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
-        -DCMAKE_CUDA_HOST_COMPILER:STRING="${HOST_COMPILER}"
+        -DCMAKE_CUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
+        -DGT_EXAMPLES_FORCE_CUDA:BOOL=$ENABLE_CUDA
 
     if [[ "$SILENT_BUILD" == "ON" ]]; then
         echo "Log file ${log_file}"
