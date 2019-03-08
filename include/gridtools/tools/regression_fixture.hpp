@@ -13,7 +13,7 @@
 #include <utility>
 
 #include "../common/defs.hpp"
-#include "../stencil-composition/axis.hpp"
+#include "../stencil_composition/axis.hpp"
 #include "computation_fixture.hpp"
 #include "regression_fixture_impl.hpp"
 

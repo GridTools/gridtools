@@ -29,7 +29,7 @@ namespace gridtools {
     /**
      *  @brief A class that is used to pass halo information to the storage info.
      *  E.g., Lets say we want to retrieve a storage_info instance with a halo
-     *  of 2 in I and J direction. We have to pass following type to the storage-facility
+     *  of 2 in I and J direction. We have to pass following type to the storage_facility
      *  halo<2,2,0>. The I and J dimensions of the storage will be extended by 2
      *  in + and - direction.
      *  @tparam N variadic list of halo sizes

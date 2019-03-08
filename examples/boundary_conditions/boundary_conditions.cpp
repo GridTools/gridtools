@@ -35,8 +35,7 @@
     the boundary corresponding to that direction can be accessed.
  */
 
-#include <gridtools/boundary-conditions/boundary.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
 #include <iostream>
 
 namespace gt = gridtools;

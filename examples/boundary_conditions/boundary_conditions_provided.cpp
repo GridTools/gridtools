@@ -26,13 +26,12 @@
     code to check correctness.
  */
 
-#include <iostream>
-
-#include <gridtools/boundary-conditions/boundary.hpp>
-#include <gridtools/boundary-conditions/copy.hpp>
-#include <gridtools/boundary-conditions/value.hpp>
-#include <gridtools/boundary-conditions/zero.hpp>
+#include <gridtools/boundary_conditions/boundary.hpp>
+#include <gridtools/boundary_conditions/copy.hpp>
+#include <gridtools/boundary_conditions/value.hpp>
+#include <gridtools/boundary_conditions/zero.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
+#include <iostream>
 
 namespace gt = gridtools;
 

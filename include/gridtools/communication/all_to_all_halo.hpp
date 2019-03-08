@@ -10,9 +10,9 @@
 #pragma once
 
 #include "../common/halo_descriptor.hpp"
-#include "low-level/Generic_All_to_All.hpp"
-#include "low-level/access_functions.hpp"
-#include "low-level/data_types_mapping.hpp"
+#include "low_level/Generic_All_to_All.hpp"
+#include "low_level/access_functions.hpp"
+#include "low_level/data_types_mapping.hpp"
 
 /**
 @file

@@ -16,8 +16,8 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
-#include <gridtools/stencil-composition/location_type.hpp>
+#include <gridtools/stencil_composition/icosahedral_grids/icosahedral_topology.hpp>
+#include <gridtools/stencil_composition/location_type.hpp>
 
 namespace gridtools {
     namespace _impl {
