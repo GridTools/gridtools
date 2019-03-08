@@ -311,7 +311,7 @@ exit_if_error $?
 # test installation by building and executing examples
 if [[ "$MAKE_TARGETS" == "install" ]]; then # only if GT was installed
     mkdir -p build_examples && cd build_examples
-    cmake ${GRIDTOOLS_INSTALL_PATH}/gridtools-examples \
+    cmake ${GRIDTOOLS_INSTALL_PATH}/gridtools_examples \
         -DCMAKE_BUILD_TYPE:STRING=\"$BUILD_TYPE\" \
         -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
         -DCMAKE_CUDA_HOST_COMPILER:STRING="${HOST_COMPILER}"
