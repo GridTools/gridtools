@@ -406,8 +406,6 @@ namespace shallow_water {
         //! [finalize]
         he.wait();
 
-        shallow_water_stencil.sync_bound_data_stores();
-
         bool retval = true;
         //! [finalize]
 

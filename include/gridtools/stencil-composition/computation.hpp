@@ -68,7 +68,6 @@ namespace gridtools {
         struct iface : virtual _impl::computation_detail::iface_arg<Args>... {
             virtual ~iface() = default;
             virtual void run(arg_storage_pair_crefs_t const &) = 0;
-            virtual void sync_bound_data_stores() = 0;
             virtual std::string print_meter() const = 0;
             virtual double get_time() const = 0;
             virtual size_t get_count() const = 0;
@@ -84,7 +83,6 @@ namespace gridtools {
             void run(arg_storage_pair_crefs_t const &args) override {
                 tuple_util::apply(_impl::computation_detail::run_f<Obj>{m_obj}, args);
             }
-            void sync_bound_data_stores() override { m_obj.sync_bound_data_stores(); }
             std::string print_meter() const override { return m_obj.print_meter(); }
             double get_time() const override { return m_obj.get_time(); }
             size_t get_count() const override { return m_obj.get_count(); }
@@ -110,8 +108,6 @@ namespace gridtools {
             arg_storage_pair<SomeArgs, SomeDataStores> const &... args) {
             m_impl->run(permute_to<arg_storage_pair_crefs_t>(std::make_tuple(std::cref(args)...)));
         }
-
-        void sync_bound_data_stores() { m_impl->sync_bound_data_stores(); }
 
         std::string print_meter() const { return m_impl->print_meter(); }
 

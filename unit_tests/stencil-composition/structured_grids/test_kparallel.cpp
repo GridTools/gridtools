@@ -83,7 +83,8 @@ void run_test() {
 
     comp.run();
 
-    comp.sync_bound_data_stores();
+    in.sync();
+    out.sync();
 
     auto outv = make_host_view(out);
     auto inv = make_host_view(in);
@@ -127,7 +128,8 @@ void run_test_with_temporary() {
 
     comp.run();
 
-    comp.sync_bound_data_stores();
+    in.sync();
+    out.sync();
 
     auto outv = make_host_view(out);
     auto inv = make_host_view(in);
@@ -184,7 +186,8 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
 
     comp.run();
 
-    comp.sync_bound_data_stores();
+    in.sync();
+    out.sync();
 
     auto outv = make_host_view(out);
     auto inv = make_host_view(in);

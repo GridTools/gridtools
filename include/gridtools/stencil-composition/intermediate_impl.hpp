@@ -88,89 +88,17 @@ namespace gridtools {
                 boost::mpl::set0<>>::type,
             get_storage_info_map_element<boost::mpl::_>>>::type;
 
-        template <typename Elem, access_mode AccessMode = access_mode::read_write, typename Enable = void>
-        struct get_view;
+        // set pointers from the given storage to the local domain
+        struct set_arg_store_pair_to_local_domain_f {
 
-        template <typename Elem, access_mode AccessMode>
-        struct get_view<Elem, AccessMode, typename boost::enable_if<is_data_store<Elem>>::type> {
-            // we can use make_host_view here because the type is the
-            // same for make_device_view and make_host_view.
-            typedef decltype(make_host_view<AccessMode, Elem>(std::declval<Elem &>())) type;
-        };
-
-        /// This struct is used to hold bound storages. It holds a view.
-        /// the method updated_view return creates a view only if the previously returned view was inconsistent.
-        template <class Arg, class DataStorage>
-        struct bound_arg_storage_pair {
-            using view_t = typename get_view<DataStorage>::type;
-
-            DataStorage m_data_storage;
-            boost::optional<view_t> m_view;
-
-            bound_arg_storage_pair(arg_storage_pair<Arg, DataStorage> const &src) : m_data_storage{src.m_value} {}
-            bound_arg_storage_pair(arg_storage_pair<Arg, DataStorage> &&src) noexcept
-                : m_data_storage{std::move(src.m_value)} {}
-
-            template <class Backend>
-            boost::optional<view_t> updated_view() {
-                if (m_view && check_consistency(m_data_storage, *m_view))
-                    return boost::none;
-                if (m_data_storage.device_needs_update())
-                    m_data_storage.sync();
-                m_view.emplace(typename Backend::make_view_f{}(m_data_storage));
-                return m_view;
-            }
-        };
-
-        struct sync_f {
-            template <class Arg, class DataStorage>
-            void operator()(bound_arg_storage_pair<Arg, DataStorage> const &obj) const {
-                obj.m_data_storage.sync();
-            }
-        };
-
-        template <class DataStorage>
-        struct view_info_data {
-            using view_t = typename get_view<DataStorage>::type;
-            using storage_info_t = typename DataStorage::storage_info_t;
-
-            boost::optional<view_t> m_view;
-            storage_info_t m_storage_info;
-        };
-
-        template <class Arg, class DataStorage>
-        using view_info_t = boost::fusion::pair<Arg, view_info_data<DataStorage>>;
-
-        template <class Backend>
-        struct make_view_info_f {
-            template <class Arg, class DataStorage>
-            view_info_t<Arg, DataStorage> operator()(arg_storage_pair<Arg, DataStorage> const &src) const {
+            // if the arg belongs to the local domain we set pointers
+            template <class Arg, class DataStore, class LocalDomain>
+            enable_if_t<meta::st_contains<typename LocalDomain::esf_args, Arg>::value> operator()(
+                arg_storage_pair<Arg, DataStore> const &src, LocalDomain &local_domain) const {
                 const auto &storage = src.m_value;
                 if (storage.device_needs_update())
                     storage.sync();
-
-                return view_info_data<DataStorage>{
-                    boost::make_optional(typename Backend::make_view_f{}(storage)), storage.info()};
-            }
-            template <class Arg, class DataStorage>
-            view_info_t<Arg, DataStorage> operator()(bound_arg_storage_pair<Arg, DataStorage> &src) const {
-                return view_info_data<DataStorage>{src.template updated_view<Backend>(), src.m_data_storage.info()};
-            }
-        };
-
-        template <class LocalDomain, class Arg>
-        using local_domain_has_arg = typename boost::mpl::has_key<typename LocalDomain::data_ptr_fusion_map, Arg>::type;
-
-        // set pointers from the given view info to the local domain
-        struct set_view_to_local_domain_f {
-
-            // if the arg belongs to the local domain we set pointers
-            template <class Arg, class OptView, class LocalDomain>
-            enable_if_t<local_domain_has_arg<LocalDomain, Arg>::value> operator()(
-                boost::fusion::pair<Arg, OptView> const &info, LocalDomain &local_domain) const {
-                if (!info.second.m_view)
-                    return;
-                auto const &view = *info.second.m_view;
+                auto view = make_target_view(storage);
                 namespace f = boost::fusion;
                 // here we set data pointers
                 f::at_key<Arg>(local_domain.m_local_data_ptrs) = advanced::get_raw_pointer_of(view);
@@ -179,18 +107,17 @@ namespace gridtools {
                 constexpr auto storage_info_index =
                     meta::st_position<typename LocalDomain::storage_info_ptr_list, decltype(storage_info)>::value;
                 f::at_c<storage_info_index>(local_domain.m_local_storage_info_ptrs) = storage_info;
-                local_domain.m_local_padded_total_lengths[storage_info_index] =
-                    info.second.m_storage_info.padded_total_length();
+                local_domain.m_local_padded_total_lengths[storage_info_index] = storage.info().padded_total_length();
             }
             // do nothing if arg is not in this local domain
-            template <class Arg, class OptView, class LocalDomain>
-            enable_if_t<!local_domain_has_arg<LocalDomain, Arg>::value> operator()(
-                boost::fusion::pair<Arg, OptView> const &, LocalDomain &) const {}
+            template <class Arg, class DataStore, class LocalDomain>
+            enable_if_t<!meta::st_contains<typename LocalDomain::esf_args, Arg>::value> operator()(
+                arg_storage_pair<Arg, DataStore> const &, LocalDomain &) const {}
         };
 
-        template <class ViewInfos, class LocalDomains>
-        void update_local_domains(ViewInfos const &view_infos, LocalDomains &local_domains) {
-            tuple_util::for_each_in_cartesian_product(set_view_to_local_domain_f{}, view_infos, local_domains);
+        template <class Srcs, class LocalDomains>
+        void update_local_domains(Srcs const &srcs, LocalDomains &local_domains) {
+            tuple_util::for_each_in_cartesian_product(set_arg_store_pair_to_local_domain_f{}, srcs, local_domains);
         }
 
         template <class Mss>
