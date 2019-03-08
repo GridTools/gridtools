@@ -269,14 +269,6 @@ namespace gridtools {
             void invoke_run(Intermediate &intermediate, Args &&args) {
                 tuple_util::apply(run_f<Intermediate>{intermediate}, std::forward<Args>(args));
             }
-
-            struct sync_f {
-                template <class Arg, class DataStore>
-                void operator()(arg_storage_pair<Arg, std::vector<DataStore>> const &obj) const {
-                    for (auto &&item : obj.m_value)
-                        item.sync();
-                }
-            };
         } // namespace expand_detail
     }     // namespace _impl
     /**
@@ -385,12 +377,6 @@ namespace gridtools {
                     m_intermediate_remainder, tuple_util::flatten(std::tie(plain_args, converted_args)));
             }
             m_meter.pause();
-        }
-
-        void sync_bound_data_stores() const {
-            tuple_util::for_each(_impl::expand_detail::sync_f{}, m_expandable_bound_arg_storage_pairs);
-            m_intermediate.sync_bound_data_stores();
-            m_intermediate_remainder.sync_bound_data_stores();
         }
 
         std::string print_meter() const { return m_meter.to_string(); }

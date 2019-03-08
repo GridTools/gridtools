@@ -79,7 +79,7 @@ where
   the data associated to the :term:`Accessor`. Possible values are
 
   #. ``intent::in`` to specify *read-only* access
-  #. ``intent::inout`` to specify *read-write* access. The ``extent`` for ``inout`` must be made of all zeros (see next points)
+  #. ``intent::inout`` to specify *read-write* access. The ``extent`` for `i` and `j` for ``inout`` must be made of all zeros (see next points)
   
   Alternatively, the abbreviations ``in_accessor`` our ``inout_accessor`` can be used respectively.
 

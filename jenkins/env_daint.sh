@@ -9,7 +9,7 @@ function exit_if_error {
 }
 
 module load daint-gpu
-module load cudatoolkit/9.2.148_3.19-6.0.7.1_2.1__g3d9acc8
+module load cudatoolkit/9.1.85_3.18-6.0.7.0_5.1__g2eb7c52
 module rm   PrgEnv-cray
 module rm CMake
 module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.12.4
@@ -39,14 +39,11 @@ if [[ ${COMPILER} == "gcc" ]]; then
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "clang" ]]; then
   case ${VERSION} in
-    "3.9")
-      module load /users/vogtha/modules/compilers/clang/3.9.1
-      ;;
-    "4.0RC2")
-      module load /users/vogtha/modules/compilers/clang/4.0.0rc2
-      ;;
     "5.0RC2")
       module load /users/vogtha/modules/compilers/clang/5.0.0rc2
+      ;;
+    "7.0")
+      module load /users/vogtha/modules/compilers/clang/7.0.1
       ;;
     *)
       module load /users/vogtha/modules/compilers/clang/3.8.1

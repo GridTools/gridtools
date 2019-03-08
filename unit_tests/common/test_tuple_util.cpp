@@ -20,6 +20,7 @@
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/host_device.hpp>
+#include <gridtools/common/pair.hpp>
 #include <gridtools/meta.hpp>
 
 namespace custom {

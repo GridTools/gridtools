@@ -76,7 +76,6 @@ namespace gridtools {
         - - (INTERFACE) execute_traits ?????? this was needed when backend_traits was forcely shared between x86 and
        cuda backends. Now they are separated and this may be simplified.
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
-        - - (INTERNAL) once_per_block
     */
     template <class BackendId, class StrategyId>
     struct backend_base {
@@ -124,8 +123,6 @@ namespace gridtools {
             view(0) = new_val;
             gp.sync();
         }
-
-        using make_view_f = typename backend_traits_t::make_view_f;
 
         using mss_fuse_esfs_strategy = typename backend_traits_t::mss_fuse_esfs_strategy;
 
