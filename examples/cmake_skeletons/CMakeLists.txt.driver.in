@@ -21,7 +21,6 @@ foreach(ex IN ITEMS @enabled_examples@)
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             -DCMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER}
             -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON
-            -DGT_EXAMPLES_FORCE_CUDA=${GT_EXAMPLES_FORCE_CUDA}
         INSTALL_COMMAND ""
         )
     ExternalProject_Get_property(${ex}_example BINARY_DIR)

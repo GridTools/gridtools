@@ -30,7 +30,7 @@
 #include <gridtools/boundary_conditions/copy.hpp>
 #include <gridtools/boundary_conditions/value.hpp>
 #include <gridtools/boundary_conditions/zero.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
 #include <iostream>
 
 namespace gt = gridtools;
