@@ -45,7 +45,7 @@ macro(_workaround_check_language lang)
     
     set(_testfile "cmake_minimum_required(VERSION ${CMAKE_VERSION})\n")
     if("${lang}" STREQUAL "CUDA" AND DEFINED CMAKE_CUDA_HOST_COMPILER)
-        string(APPEND _testfile "set(CMAKE_CUDA_HOST_COMPILER \"${CMAKE_CUDA_HOST_COMPILER}\"\n")
+        string(APPEND _testfile "set(CMAKE_CUDA_HOST_COMPILER \"${CMAKE_CUDA_HOST_COMPILER}\")\n")
     endif()
     string(APPEND _testfile "project(Check${lang} ${lang})
     file(WRITE \"\${CMAKE_CURRENT_BINARY_DIR}/result.cmake\"

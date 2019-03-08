@@ -41,7 +41,7 @@ else()
 endif()
 option(GT_INSTALL_EXAMPLES "Install example sources" ${_default_GT_INSTALL_EXAMPLES})
 if(GT_INSTALL_EXAMPLES)
-    set(GT_INSTALL_EXAMPLES_PATH "${CMAKE_INSTALL_PREFIX}/gridtools-examples" CACHE FILEPATH 
+    set(GT_INSTALL_EXAMPLES_PATH "${CMAKE_INSTALL_PREFIX}/gridtools_examples" CACHE FILEPATH 
         "Specifies where the source codes of examples should be installed")
     mark_as_advanced(CLEAR GT_INSTALL_EXAMPLES_PATH)
 else()
