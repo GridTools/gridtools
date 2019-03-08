@@ -42,18 +42,18 @@ macro(_workaround_check_language lang)
     set(_desc "Looking for a ${lang} compiler")
     message(STATUS ${_desc})
     file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/Check${lang})
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/Check${lang}/CMakeLists.txt"
-      "cmake_minimum_required(VERSION ${CMAKE_VERSION})
-project(Check${lang} ${lang})
-file(WRITE \"\${CMAKE_CURRENT_BINARY_DIR}/result.cmake\"
-  \"set(CMAKE_${lang}_COMPILER \\\"\${CMAKE_${lang}_COMPILER}\\\")\\n\"
-  if(${lang} EQUAL \\\"CUDA\\\")\\n
-      if(DEFINED CMAKE_CUDA_HOST_COMPILER)\\n
-          \"set(CMAKE_CUDA_HOST_COMPILER \\\"\${CMAKE_CUDA_HOST_COMPILER}\\\")\\n\"
-      endif()\\n
-  endif()\\n
-  )
-")
+    
+    set(_testfile "cmake_minimum_required(VERSION ${CMAKE_VERSION})\n")
+    if("${lang}" STREQUAL "CUDA" AND DEFINED CMAKE_CUDA_HOST_COMPILER)
+        string(APPEND _testfile "set(CMAKE_CUDA_HOST_COMPILER \"${CMAKE_CUDA_HOST_COMPILER}\"\n")
+    endif()
+    string(APPEND _testfile "project(Check${lang} ${lang})
+    file(WRITE \"\${CMAKE_CURRENT_BINARY_DIR}/result.cmake\"
+          \"set(CMAKE_${lang}_COMPILER \\\"\${CMAKE_${lang}_COMPILER}\\\")\\n\"
+            )
+        ")
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/Check${lang}/CMakeLists.txt" ${_testfile})
+
     if(CMAKE_GENERATOR_INSTANCE)
       set(_D_CMAKE_GENERATOR_INSTANCE "-DCMAKE_GENERATOR_INSTANCE:INTERNAL=${CMAKE_GENERATOR_INSTANCE}")
     else()
