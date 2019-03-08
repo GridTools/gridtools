@@ -99,15 +99,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#data-view">Data View</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#dsl-introduction">DSL Introduction</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#using-gridtools">Using GridTools</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#syntax-compile-time-protections">Syntax Compile-Time Protections</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="#stencil-operators">Stencil Operators</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#accessor-type">Accessor Type</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#accessor-aliases">Accessor Aliases</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#param-list"><cite>param_list</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-list">Parameter list</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#apply-method"><cite>Apply</cite>-Method</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#expressions">Expressions</a></li>
@@ -571,128 +566,98 @@ to access and modify the data. If it returns false, the user needs to call <code
 functions</p>
 </div>
 </div>
-<div class="section" id="dsl-introduction">
-<h2>DSL Introduction<a class="headerlink" href="#dsl-introduction" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="using-gridtools">
-<h3>Using GridTools<a class="headerlink" href="#using-gridtools" title="Permalink to this headline">¶</a></h3>
-<p>TODO: Explain the different modules and how to use
-them, i.e. reference the main headers of each components</p>
-</div>
-<div class="section" id="syntax-compile-time-protections">
-<h3>Syntax Compile-Time Protections<a class="headerlink" href="#syntax-compile-time-protections" title="Permalink to this headline">¶</a></h3>
-<p>TODO: explain the errors obtained with GT_STATIC_ASSERT</p>
-</div>
-</div>
 <div class="section" id="stencil-operators">
 <span id="id6"></span><h2>Stencil Operators<a class="headerlink" href="#stencil-operators" title="Permalink to this headline">¶</a></h2>
-<dl class="docutils">
-<dt><em>Stencil operators</em> are the equivalent of <cite>functors</cite> in regular C++</dt>
-<dd>code, or they may be considered to be the <cite>GridTools functions</cite>. They
-are assumed to have no side-effects and no status (this is why they are marked as <cite>static</cite>). As functions they have an
-<cite>interface</cite> and an <cite>implementation</cite>. The interface informs both the caller,
-on the order and types of arguments that have to be passed to it, and
-the implementation, on the names and types of the symbols available
-to it.</dd>
-</dl>
-<p>The stencil operator specifies the computation to be performed in each
-point of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> of the stencil
-<a class="reference internal" href="../glossary/glossary.html#term-computation"><span class="xref std std-term">Computation</span></a>. In the
-implementation, a point of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> at
-which the stencil operator is called is referred to as <a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>.</p>
-<p>A stencil operator is a <cite>class</cite>, or a <cite>struct</cite>, with the following
-public properties:</p>
+<p><em>Stencil operators</em> are the GridTools-equivalent of <cite>functors</cite> in regular C++ code.  They are assumed to have no
+side-effects and no status (which is why they are marked as <cite>static</cite>). As functions they have an <cite>interface</cite> and an
+<cite>implementation</cite>. The interface informs both the caller, on the order and types of arguments that have to be passed to
+it, and the implementation, on the names and types of the symbols available to it.</p>
+<p>The stencil operator specifies the computation to be performed in each grid point of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> of the
+stencil <a class="reference internal" href="../glossary/glossary.html#term-computation"><span class="xref std std-term">Computation</span></a>. In the implementation, a point of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> at which the stencil operator
+is called is referred to as <a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>.</p>
+<p>A stencil operator is a <cite>class</cite>, or a <cite>struct</cite>, with the following public properties:</p>
 <ul class="simple">
-<li>A list of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> types that are associated to the
-[Data Field](data field)s the stencil operator will access in its
-implementation.</li>
-<li>A <cite>param_list</cite> listing all the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> types defined above</li>
-<li>A set of <em>static template member functions</em> named <cite>apply</cite>, also
-referred to as <a class="reference internal" href="../glossary/glossary.html#term-apply-method"><span class="xref std std-term">Apply-Methods</span></a>. To run on GPUs the function should
-also be a GT_FUNCTION</li>
+<li>A list of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> types that are associated to the [Data Field](data field)s the stencil operator will access
+in its implementation.</li>
+<li>A <code class="docutils literal notranslate"><span class="pre">param_list</span></code> listing all the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> types defined above. They are created using <code class="docutils literal notranslate"><span class="pre">make_param_list</span></code>.</li>
+<li>A set of <em>static template member functions</em> named <code class="docutils literal notranslate"><span class="pre">apply</span></code>, also referred to as <a class="reference internal" href="../glossary/glossary.html#term-apply-method"><span class="xref std std-term">Apply-Methods</span></a>.
+These functions should be annotated with <code class="docutils literal notranslate"><span class="pre">GT_FUNCTION</span></code> which ensures that the functions can be run on GPU and that
+they are inlined.</li>
 </ul>
-<div class="admonition-todo admonition" id="index-1">
-<p class="first admonition-title">Todo</p>
-<p class="last">Add reference to GT_FUNCTION</p>
-</div>
+<p>The user may add additional static functions for internal usage within the stencil operator.</p>
 <p>See the <a class="reference internal" href="#stencil-operator-example"><span class="std std-ref">Example</span></a> for a concrete usage of the syntax of the stencil operators.</p>
 <div class="section" id="accessor-type">
 <h3>Accessor Type<a class="headerlink" href="#accessor-type" title="Permalink to this headline">¶</a></h3>
 <p>There are two kinds of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a>:</p>
 <ul class="simple">
-<li><a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Regular Accessors</span></a>, or simply <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a>, indicate an access to a regular <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> of a <a class="reference internal" href="../glossary/glossary.html#term-grid"><span class="xref std std-term">Grid</span></a>.</li>
-<li><a class="reference internal" href="../glossary/glossary.html#term-global-accessor"><span class="xref std std-term">Global Accessors</span></a> indicate that the data to be referred does not participate in the iteration and always point to a same <em>read only</em> datum to be used in the operator.</li>
+<li>Regular <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">accessors</span></a> indicate an access to a regular <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> of a <a class="reference internal" href="../glossary/glossary.html#term-grid"><span class="xref std std-term">Grid</span></a>.</li>
+<li><a class="reference internal" href="../glossary/glossary.html#term-global-accessor"><span class="xref std std-term">Global accessors</span></a> indicate that the data to be referred does not participate in the iteration
+and always point to a same <em>read only</em> datum to be used in the operator.</li>
 </ul>
-<p>An <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> type is a <cite>using</cite> statement with this form</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">name</span> <span class="o">=</span> <span class="k">accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="n">intent</span><span class="p">,</span> <span class="p">[</span><span class="n">location_type</span><span class="p">,]</span> <span class="k">extent</span><span class="p">,</span> <span class="n">N</span><span class="o">&gt;</span><span class="p">;</span>
-</pre></div>
-</div>
-<p>or</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">name</span> <span class="o">=</span> <span class="k">global_accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="o">&gt;</span><span class="p">;</span>
+<p>Accessors are defined as follows:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="c1">// regular accessors</span>
+<span class="k">using</span> <span class="n">name</span> <span class="o">=</span> <span class="k">accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="k">intent</span><span class="p">,</span> <span class="p">[</span><span class="k">extent</span> <span class="o">=</span> <span class="k">extent</span><span class="o">&lt;&gt;</span><span class="p">,</span> <span class="n">N</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="c1">// global accessor</span>
+<span class="k">using</span> <span class="n">name</span> <span class="o">=</span> <span class="k">global_accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>where</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">name</span></code> is the name associated to the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> and will be used in the
-implementation of the stencil operator.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> names are
-technically optional, since their types can be substituted in all
-occurrences of their names. It is anyway part of the GridTools syntax,
-since a version not using them would be largely unreadable and very
-difficult to manage.</p>
-</div>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">name</span></code> is the name associated to the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> and will be used in the implementation of the stencil
+operator. The name of an accessor is only used within the stencil.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">I</span></code> is an integer index. The indices of the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> in a given
-stencil operators <em>must</em> be ranging from 0 to N - 1, where N is the
-number of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> used by the stencil operator. No index can be
-replicated. If these rules are not followed the compilation
-fails. For <a class="reference internal" href="../glossary/glossary.html#term-global-accessor"><span class="xref std std-term">Global Accessors</span></a> this is the only argument.</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">I</span></code> is an integral index. The indices of the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> in a given stencil operators <em>must</em> be
+in the range from 0 to N - 1, where N is the number of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> used by the stencil operator. No
+index can appear twice. If these rules are not followed the compilation fails.</p>
+<p>For <a class="reference internal" href="../glossary/glossary.html#term-global-accessor"><span class="xref std std-term">Global Accessors</span></a>, the index is the only argument.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">intent</span></code> indicates the type of access the stencil operator makes to
-the data associated to the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a>. Possible values are</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">intent</span></code> indicates the type of access the stencil operator makes to the data associated to the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a>.
+Possible values are</p>
 <ol class="arabic simple">
 <li><code class="docutils literal notranslate"><span class="pre">intent::in</span></code> to specify <em>read-only</em> access</li>
-<li><code class="docutils literal notranslate"><span class="pre">intent::inout</span></code> to specify <em>read-write</em> access. The <code class="docutils literal notranslate"><span class="pre">extent</span></code> for <cite>i</cite> and <cite>j</cite> for <code class="docutils literal notranslate"><span class="pre">inout</span></code> must be made of all zeros (see next points)</li>
+<li><code class="docutils literal notranslate"><span class="pre">intent::inout</span></code> to specify <em>read-write</em> access. The <code class="docutils literal notranslate"><span class="pre">extent</span></code> for <cite>i</cite> and <cite>j</cite> for <code class="docutils literal notranslate"><span class="pre">inout</span></code> must be made of all
+zeros (see next points)</li>
 </ol>
 <p>Alternatively, the abbreviations <code class="docutils literal notranslate"><span class="pre">in_accessor</span></code> our <code class="docutils literal notranslate"><span class="pre">inout_accessor</span></code> can be used respectively.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">extent</span></code> defines the maximum offsets at which the implementation
-will access data around the <a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>. Extents are
-templates that takes a list of pairs of integer numbers. Every pair
-identify a dimension of the iteration space. The first number (&lt;=0)
-indicates the offset in the direction of <em>decreasing</em> indices (also
-called <em>minus direction</em>), while the second (&gt;=0) indicates the
-offset in the direction of <em>increasing</em> indices (also called <em>plus
-direction</em>). For example <code class="docutils literal notranslate"><span class="pre">extent&lt;-1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">2,</span> <span class="pre">-2,</span> <span class="pre">1&gt;</span></code> specifies an
-access of one element in the direction of decreasing indices (-1)
-and one in the direction of increasing indices (+1) in the first
-dimension; two elements in the plus direction (+2) and no elements
-in the minus direction (0) in the second dimension, and finally two
-elements in the minus direction and one in the plus for the third
-dimension. All the numbers are <em>defaulted to 0</em>, so that <code class="docutils literal notranslate"><span class="pre">extent&lt;&gt;</span></code> is
-a valid extent. <code class="docutils literal notranslate"><span class="pre">extent&lt;&gt;</span></code> is also the default extent of an <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a>
-and can be omitted if the last template argument takes also the
-default value (see next point).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">An <a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extent</span></a> with smaller
-offsets than the ones the implementation is using is undefined behavior, i.e. it might
-result in errors at runtime, while extents bigger that the one actually accessed
-by the implementation will result in performance loss.</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">read_only_accessor</span> <span class="o">=</span> <span class="k">in_accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="p">[</span><span class="k">extent</span><span class="p">,</span> <span class="n">N</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">using</span> <span class="n">read_write_accessor</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="p">[</span><span class="k">extent</span><span class="p">,</span> <span class="n">N</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
 </div>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">N</span></code> identifies the number of dimensions of the <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a>.
-By default this value is set to 3.</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">extent</span></code> defines the maximum offsets at which the implementation will access data around the <a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration
+Point</span></a>. They are defined as follows:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">extent</span><span class="o">&lt;</span><span class="n">i_minus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">i_plus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">j_minus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">j_plus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">k_minus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">k_plus</span> <span class="o">=</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>An extent takes three pairs of numbers, one pair for each dimension of the iteration space. The first number of the
+pair must be non-positive and indicates the maximum offset in the direction of <em>decreasing</em> indices (also called minus
+direction*). The the second number must be non-negative and indicates the maximum offset in the direction of
+<em>increasing</em> indices (also called plus direction*). Numbers can be ommitted and default to zero.</p>
+<p>Example:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">my_accessor</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This accessor guarantees that at most one element in negative and positive i-direction will be accessed (i.e. we will
+never access <code class="docutils literal notranslate"><span class="pre">field(i</span> <span class="pre">+</span> <span class="pre">2)</span></code>). Further, it guarantees that in j-direction, no elements in negative and at most two
+elements in positive direction will be accessed. In k-direction, the field is not accessed with any offset.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">extent&lt;&gt;</span></code> is a valid extent and indicates that the field is always accessed at the iteration point.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Behaviour is undefined if a field is accessed at extents that are outside the box defined by <code class="docutils literal notranslate"><span class="pre">extent</span></code>. Under
+certain configuration this might lead to erroneous results. Extents bigger than the ones actually accessed by the
+implementation will potentially result in performance loss.</p>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">N</span></code> identifies the number of dimensions of the <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a>. By default this value is set to 3.</p>
 </li>
 </ul>
 </div>
 <div class="section" id="accessor-aliases">
 <h3>Accessor Aliases<a class="headerlink" href="#accessor-aliases" title="Permalink to this headline">¶</a></h3>
-<p>An <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> alias is a regular <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> which has an offset set at compile-time.
-For instance, say you have a 4 dimensional <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a>, where the last dimension refers to the
-3 component u, v, w of a vector field, e.g. the wind-speed.
-This vector field is accessed via an <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> called <code class="docutils literal notranslate"><span class="pre">vel</span></code></p>
+<p>An <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> alias is a regular <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> which has an offset predefiend at compile-time.  For instance,
+we might have a 4-dimensional <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a>, where the last dimension refers to the 3 component u, v, w of a vector
+field, e.g. the wind-speed. This vector field is accessed via an <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> called <code class="docutils literal notranslate"><span class="pre">vel</span></code></p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">vel</span> <span class="o">=</span> <span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;&gt;</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -700,89 +665,76 @@ This vector field is accessed via an <a class="reference internal" href="../glos
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">w</span> <span class="o">=</span> <span class="n">alias</span><span class="o">&lt;</span><span class="n">vel</span><span class="p">,</span> <span class="k">dimension</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;&gt;::</span><span class="n">set</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>The line above sets the fourth offset at compile-time to the value 2, so that we have
-the following equivalency:</p>
+<p>The line above sets the fourth offset at compile-time to the value 2, so that we have the following equivalency:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">w</span><span class="p">()</span> <span class="o">==</span> <span class="n">vel</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>which may contribute to considerably lighten the notation in complicated expressions.
-Note that you can still access the other dimensions with an offset, by using the alias. So that</p>
+<p>This allows to considerably lighten the notation in complicated expressions.  Note that you can still access the other
+dimensions with an offset, by using the alias, for example:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">dimension</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">i</span><span class="p">;</span>
 <span class="k">dimension</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span> <span class="n">q</span><span class="p">;</span>
 <span class="n">w</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">vel</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">q</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="param-list">
-<h3><cite>param_list</cite><a class="headerlink" href="#param-list" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">param_list</span></code> is a <cite>using</cite> statement like the following</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">param_list</span> <span class="o">=</span> <span class="n">make_param_list</span><span class="o">&lt;</span><span class="n">_accessors_</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="section" id="parameter-list">
+<h3>Parameter list<a class="headerlink" href="#parameter-list" title="Permalink to this headline">¶</a></h3>
+<p>The parameter list <code class="docutils literal notranslate"><span class="pre">param_list</span></code> is defined as follows:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">param_list</span> <span class="o">=</span> <span class="n">make_param_list</span><span class="o">&lt;</span><span class="n">accessors</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">_accessors_</span></code> is a comma separated list of all the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a>
-specified before.</p>
+<p>where <code class="docutils literal notranslate"><span class="pre">_accessors_</span></code> is a comma separated list of all the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> specified before. For example:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">in_</span> <span class="o">=</span> <span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">using</span> <span class="n">out_</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="k">using</span> <span class="k">param_list</span> <span class="o">=</span> <span class="n">make_param_list</span><span class="o">&lt;</span><span class="n">in_</span><span class="p">,</span> <span class="n">out_</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This is necessary since C++ cannot infer what types have been defined as <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a>.</p>
+<p class="last">Specifying the parameter list is mandatory because C++ cannot infer what types have been defined as accessors.</p>
 </div>
 </div>
 <div class="section" id="apply-method">
 <span id="stencil-operators-apply-method"></span><h3><cite>Apply</cite>-Method<a class="headerlink" href="#apply-method" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">apply</span></code> methods takes at most two(2) arguments, the
-type of the first one is the template type and it is usually called
-<code class="docutils literal notranslate"><span class="pre">eval</span></code>. The second argument of the <a class="reference internal" href="../glossary/glossary.html#term-apply-method"><span class="xref std std-term">Apply-Method</span></a> is a <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Vertical Interval</span></a>. Multiple versions of the <a class="reference internal" href="../glossary/glossary.html#term-apply-method"><span class="xref std std-term">Apply-Method</span></a> can
-be defined in the same <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a> with different <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Vertical
-Intervals</span></a>. The return type is void.</p>
-<p>A <code class="docutils literal notranslate"><span class="pre">apply</span></code> method can be defined with a single template argument, so to
-skip the vertical region. In this case there could be <em>only one</em>
-<a class="reference internal" href="../glossary/glossary.html#term-apply-method"><span class="xref std std-term">Apply-Method</span></a> implementation in the stencil operator that will be
-called for each point of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>.</p>
-<p>The implementation is specified in the body of the <code class="docutils literal notranslate"><span class="pre">apply</span></code> methods. The
-stencil operators can have other member functions that can be called
-from the <code class="docutils literal notranslate"><span class="pre">apply</span></code>
-methods.</p>
-<p>Let us assume the <code class="docutils literal notranslate"><span class="pre">apply</span></code> methods has the following signature:</p>
+<p>A stencil operator can have several <code class="docutils literal notranslate"><span class="pre">apply</span></code>-methods, defining the functors to be applied at different <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Vertical
+Intervals</span></a>. An <code class="docutils literal notranslate"><span class="pre">apply</span></code> method takes at most two arguments:</p>
+<ol class="arabic simple">
+<li>The first argument is a templated parameter usually called <code class="docutils literal notranslate"><span class="pre">eval</span></code> that holds internal information.</li>
+<li>The second arguments optionally specifies the Vertical Interval to which functor is applied to. If this argument is
+skipped, the stencil is applied to the whole axis.</li>
+</ol>
+<p>Example:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Eval</span><span class="o">&gt;</span>
 <span class="cp">GT_FUNCTION</span> <span class="k">static</span>
 <span class="kt">void</span> <span class="n">apply</span><span class="p">(</span><span class="n">Eval</span> <span class="k">const</span><span class="o">&amp;</span> <span class="n">eval</span><span class="p">,</span> <span class="n">region</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The way to access data corresponding to a certain data field passed to
-it, is to indicate the corresponding <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> as argument to the
-<code class="docutils literal notranslate"><span class="pre">eval</span></code> argument, as follow:</p>
+<p>Within an <code class="docutils literal notranslate"><span class="pre">apply</span></code>-method, data bound to the accessors can be accessed through the <code class="docutils literal notranslate"><span class="pre">eval</span></code> argument.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">eval</span><span class="p">(</span><span class="n">accessor_name</span><span class="p">())</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The parentheses after <code class="docutils literal notranslate"><span class="pre">accessor_name</span></code> indicate the default constructor
-of the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a>. This is a technicality necessary to make the
-syntax legal in C++.</p>
+<p class="last">Make sure to add the parentheses after the accessor.</p>
 </div>
-<p>The previous syntax is said to “evaluate the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> at the
-<a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>”.</p>
-<p>For Regular Grids values can be accessed at offsets (relative to the
-evaluation point) passing to the constructor
-of the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> a sequence of integer indices, as follows:</p>
+<p>The previous syntax will evaluate the accessor at the iteration point. Values can be accessed at offsets relative to the
+evaluation point by passing a sequence of integral indices to the accessor:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">eval</span><span class="p">(</span><span class="n">accessor_name</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>This means to access an element at an offset of 1 in the first
-dimension (plus direction) of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>, and an offset of 1 in the minus direction
-in the third dimension. A way to think of it is to consider the point
-of evaluation as a triplet <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code>, and those offsets are
-added to the current index coordinates to identifying the actual value
-to access. Note that writes to a field should only be with zero offsets.</p>
-<p>The evaluation returns a reference to the value for <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> with
-<code class="docutils literal notranslate"><span class="pre">inout</span></code> intent, and a const reference for <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> with <code class="docutils literal notranslate"><span class="pre">in</span></code> intent.</p>
-<p>The next example takes the difference between two value in the first
-dimension and assign it to the output field:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">())</span> <span class="o">-</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
-</pre></div>
+<p>This accesses an element at an offset of 1 in the first dimension (plus direction) of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>, and
+an offset of 1 in the minus direction in the third dimension. A way to think of it is to consider the point of
+evaluation as a triplet <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code>, and those offsets are added to the current index coordinates to
+identifying the actual value to access. The evaluation returns a reference to the value for accessors with
+<code class="docutils literal notranslate"><span class="pre">inout</span></code>-intent, and a const reference for <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> with <code class="docutils literal notranslate"><span class="pre">in</span></code>-intent.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Writing into non-zero offsets is considered bad practice and may be forbidden in the future.</p>
 </div>
-<p>When using expressions, the previous example can be simplified to
-read:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">()</span> <span class="o">-</span> <span class="n">in</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
+<p>The next example calculates the average of two neighbored values in the first dimension and assign it to the output
+field:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="p">(</span><span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">())</span> <span class="o">+</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
 </pre></div>
 </div>
 </div>
@@ -790,11 +742,11 @@ read:</p>
 <span id="stencil-operator-example"></span><h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">flx_function</span> <span class="p">{</span>
 
-    <span class="k">using</span> <span class="n">out</span> <span class="o">=</span> <span class="k">accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="n">intent</span><span class="o">::</span><span class="n">inout</span><span class="o">&gt;</span><span class="p">;</span>
-    <span class="k">using</span> <span class="n">in</span>  <span class="o">=</span> <span class="k">accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="n">intent</span><span class="o">::</span><span class="n">in</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
-    <span class="k">using</span> <span class="n">lap</span> <span class="o">=</span> <span class="k">accessor</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">,</span> <span class="n">intent</span><span class="o">::</span><span class="n">in</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+    <span class="k">using</span> <span class="n">out</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
+    <span class="k">using</span> <span class="n">in</span>  <span class="o">=</span> <span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+    <span class="k">using</span> <span class="n">lap</span> <span class="o">=</span> <span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 
-    <span class="k">using</span> <span class="k">param_list</span> <span class="o">=</span> <span class="n">accessor_list</span><span class="o">&lt;</span><span class="n">out</span><span class="p">,</span> <span class="n">in</span><span class="p">,</span> <span class="n">lap</span><span class="o">&gt;</span><span class="p">;</span>
+    <span class="k">using</span> <span class="k">param_list</span> <span class="o">=</span> <span class="n">make_param_list</span><span class="o">&lt;</span><span class="n">out</span><span class="p">,</span> <span class="n">in</span><span class="p">,</span> <span class="n">lap</span><span class="o">&gt;</span><span class="p">;</span>
 
     <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Evaluation</span><span class="o">&gt;</span>
     <span class="cp">GT_FUNCTION</span> <span class="k">static</span> <span class="kt">void</span> <span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">eval</span><span class="p">,</span> <span class="n">full_interval</span><span class="p">)</span> <span class="p">{</span>
@@ -809,13 +761,13 @@ read:</p>
 </div>
 <div class="section" id="expressions">
 <h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
-<p>The <cite>apply</cite>-method example provided <a class="reference internal" href="#stencil-operator-example"><span class="std std-ref">above</span></a> showed the basic syntax to access data.
-We can notice that the <code class="docutils literal notranslate"><span class="pre">eval</span></code> keyword is repeated several times, which is somehow
-tedious, especially when the expression is complicated it becomes quickly very hard to read.
-It is possible to embed the expressions in a single eval, i.e.</p>
+<p>Multiple calls to eval can be merged into one when the <code class="docutils literal notranslate"><span class="pre">expressions</span></code>-namespace is imported. This is possible, because
+calculations with accessors produce expressions that can be evaluated. Readibility can be greatly improved, but it might
+have some negative impact on compilation time.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">namespace</span> <span class="n">expressions</span><span class="p">;</span>
 <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Evaluation</span><span class="o">&gt;</span>
 <span class="cp">GT_FUNCTION</span> <span class="k">static</span> <span class="kt">void</span> <span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">eval</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">using</span> <span class="k">namespace</span> <span class="n">expressions</span><span class="p">;</span>
     <span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">lap</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">lap</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">in</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">;</span>
@@ -823,17 +775,11 @@ It is possible to embed the expressions in a single eval, i.e.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>This is achieved by using the expressions namespace, in which the operations <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>,
-<code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">pow&lt;&gt;</span></code> are
-overloaded, and generate an expression to be evaluated. An example of its
-usage, demonstrating its effectiveness, can be found in the
-shallow water example.</p>
-<div class="admonition-todo admonition" id="index-2">
-<p class="first admonition-title">Todo</p>
-<p class="last">add reference to shallow water</p>
-</div>
-<p>It is possible also to instantiate a compile time expression to be lazily evaluated,
-useful for instance if we want to evaluate it multiple times</p>
+<p>This is achieved by using the expressions namespace, in which the operations <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">pow&lt;&gt;</span></code> are
+overloaded, and generate an expression to be evaluated. An example of its usage, demonstrating its effectiveness, can be
+found in the <a class="reference external" href="https://github.com/eth-cscs/gridtools/blob/master/regression/shallow_water_enhanced.hpp">shallow water implementation</a>.</p>
+<p>Note that those expressions can also be used to lazily evaluate expressions. This provides a way to reuse expressions in
+your code:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">namespace</span> <span class="n">expressions</span><span class="p">;</span>
 <span class="k">constexpr</span> <span class="k">auto</span> <span class="n">cond</span> <span class="o">=</span> <span class="n">out</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">in</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Evaluation</span><span class="o">&gt;</span>
@@ -1031,7 +977,7 @@ are used for defining which <a class="reference internal" href="../glossary/glos
 <div class="section" id="advanced-functionality-for-vertical-intervals">
 <span id="vertical-regions-advanced"></span><h4>Advanced Functionality for Vertical Intervals<a class="headerlink" href="#advanced-functionality-for-vertical-intervals" title="Permalink to this headline">¶</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">axis</span></code> type has two additional template parameters to change defaults</p>
-<div class="admonition-todo admonition" id="index-3">
+<div class="admonition-todo admonition" id="index-1">
 <p class="first admonition-title">Todo</p>
 <p class="last">the code block needs to be updated once ExtraOffsetsAroundFullInterval is removed</p>
 </div>
@@ -1824,7 +1770,7 @@ the name of arguments should be self-explanatory:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">halo_descriptor</span><span class="p">(</span><span class="n">uint_t</span> <span class="n">minus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">plus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">begin</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">end</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">total_length</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="admonition-todo admonition" id="index-4">
+<div class="admonition-todo admonition" id="index-2">
 <p class="first admonition-title">Todo</p>
 <p class="last">annotate example with minus plus begin and end</p>
 </div>
@@ -1836,7 +1782,7 @@ the name of arguments should be self-explanatory:</p>
 </div>
 <div class="section" id="gcl-communication-module">
 <span id="id21"></span><h3>GCL Communication Module<a class="headerlink" href="#gcl-communication-module" title="Permalink to this headline">¶</a></h3>
-<div class="admonition-todo admonition" id="index-5">
+<div class="admonition-todo admonition" id="index-3">
 <p class="first admonition-title">Todo</p>
 <p class="last">we should somehow mention that GCL Communication Module does not work with storages, but with ptrs</p>
 </div>
@@ -2018,7 +1964,7 @@ fields have the same type).</p>
 </pre></div>
 </div>
 <p>When invoking the boundary application and <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operations the user calls the <code class="docutils literal notranslate"><span class="pre">exchange</span></code> member of <code class="docutils literal notranslate"><span class="pre">distributed_boundaries</span></code>. The arguments of <code class="docutils literal notranslate"><span class="pre">exchange</span></code> are either <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> stores or <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> objects which associate a boundary condition to <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a>. The <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> passed directly to the <code class="docutils literal notranslate"><span class="pre">exchange</span></code> methods have their <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> updates according to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> and periodicity information specified at <code class="docutils literal notranslate"><span class="pre">distributed_boundaries</span></code> object construction. The <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> arguments are treated differently.</p>
-<div class="admonition-todo admonition" id="index-6">
+<div class="admonition-todo admonition" id="index-4">
 <p class="first admonition-title">Todo</p>
 <p class="last">merge with bind_bc description above</p>
 </div>

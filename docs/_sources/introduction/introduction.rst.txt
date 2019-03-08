@@ -86,6 +86,7 @@ Below a sample of the commands needed to enable the multicore and CUDA backends 
  cd build
  cmake -DGT_ENABLE_TARGET_MC=ON -DGT_ENABLE_TARGET_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
  make install
+ make test
 
 ^^^^^^^^^^^^^^^^^^^^^
 Using GridTools

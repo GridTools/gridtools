@@ -12,7 +12,6 @@ User Manual
 ===========
 
 .. include:: storages.hrst
-.. include:: DSL_introduction.hrst
 .. include:: stencil_operators.hrst
 .. include:: execution_model.hrst
 .. include:: stencil_composition.hrst
