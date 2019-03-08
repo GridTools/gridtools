@@ -64,10 +64,10 @@ gridtools_functions = ((
 	'make_positional_computation',
 	'make_expandable_computation',
 	'make_expandable_positional_computation',
-	'make_device_view',
 	'make_global_parameter',
 	'update_global_parameter',
 	'make_host_view',
+	'make_target_view',
 	'make_multistage',
 	'make_stage',
         'make_independent'

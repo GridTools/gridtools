@@ -1,4 +1,4 @@
-Interfacing to Other Programming Languages
+Interfacing to other programming languages
 ============================================
 
 |GT| provides an easy macro interface to generate bindings to C and Fortran.

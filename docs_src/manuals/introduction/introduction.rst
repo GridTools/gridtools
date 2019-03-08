@@ -1,3 +1,8 @@
+.. include:: ../defs.hrst
+
+.. _introduction:
+
+=====================
 Introduction
 =====================
 
@@ -13,13 +18,18 @@ For a list of supported compilers refer to the `project Wiki on github <https://
 Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-|GT| depends on Boost (version 1.60 or newer). |GT| does not use any runtime library from Boost, but instead depends on header only libraries such as ``boost::mpl`` and ``boost::fusion``.
+|GT| requires at least a header-only installation of Boost_. Besides some boost utilities, it depends on ``boost::mpl`` and ``boost::fusion``.
+
+Additionally, |GT| requires a recent version of CMake_.
+
+.. _Boost: https://www.boost.org/
+.. _CMake: https://www.cmake.org/
 
 -----------------------------
 Installation and Use
 -----------------------------
 
-|GT| uses CMake as building system. The installation can be configured using `ccmake`. The following variables control the back-ends that will be supported by the runtime components of the installation:
+|GT| uses CMake as building system. The installation can be configured using `ccmake`. The following variables control the back-ends that will be supported by the runtime components of the installation, namely :ref:`GCL <halo-exchanges>`.
 
 .. code-block:: shell
 
@@ -27,9 +37,9 @@ Installation and Use
  GT_ENABLE_TARGET_X86  # For cache based multicores and naive implementation
  GT_ENABLE_TARGET_MC   # For optimized multicores and KNL
 
-All the targets can be installed at the same time, but some runtime components may lead to incompatibilities or complex environments to make the codes run. It may be more effective to do multiple installs of the library for different targets in this case.
+All the targets can be installed and used at the same time, but some runtime components may lead to incompatibilities or complex environments to make the codes run. It may be more effective to do multiple installs of the library for different targets in this case.
 
-At the moment the only runtime component of |GT| is the GCL, the communication module. This component will be installed in the system as a single-node mockery of the full distributed memory capability. To enable the full GCL you must set to ``ON`` the following variables
+At the moment the only runtime component of |GT| is the GCL, the communication module. By default, this component will be installed in the system as a single-node mockery of the full distributed memory capability. To enable the full GCL you must set to ``ON`` the following variable
 
 .. code-block:: shell
 
@@ -58,6 +68,8 @@ When installing |GT| all the source codes of the components will be copied to th
 
 To have access to these variables ``INSTALL_ALL`` should be set to ``OFF``.
 
+.. todo:: Update to new examples ..
+
 Additionally, examples can be compiled if ``GT_COMPILE_EXAMPLES`` is ``ON``. The examples can be installed if ``GT_INSTALL_EXAMPLES`` is ``ON``. The path where to install the examples is specified by ``GT_INSTALL_EXAMPLES_PATH`` and it is set to ``CMAKE_INSTALL_PREFIX`` by default.
 
 ^^^^^^^^^^^^^^^^^^^^
@@ -74,34 +86,31 @@ Below a sample of the commands needed to enable the multicore and CUDA backends 
  cd build
  cmake -DGT_ENABLE_TARGET_MC=ON -DGT_ENABLE_TARGET_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
  make install
+ make test
 
 ^^^^^^^^^^^^^^^^^^^^^
 Using GridTools
 ^^^^^^^^^^^^^^^^^^^^^
 
-Using |GT| follows standard CMake practices. To indicate where the |GT| root is, CMake should be provided with the variable ``gridtools_DIR``, e.g. by calling CMake with `-Dgridtools_DIR=</path/to/gridtools/lib/cmake>`. The ``CMakeLists.txt`` file should then contain the following lines:
+Using |GT| follows standard CMake practices. To indicate where the |GT| can be found, CMake should be provided with the variable ``gridtools_DIR``, e.g. by calling CMake with ``-Dgridtools_DIR=</path/to/gridtools/lib/cmake>``. The ``CMakeLists.txt`` file should then contain the following lines:
 
 .. code-block:: cmake
 
- find_package(GridTools REQUIRED)
+ find_package(GridTools VERSION ... REQUIRED)
  list(APPEND CMAKE_MODULE_PATH "${GridTools_MODULE_PATH}")
 
-.. note:
+.. note::
+ If GridTools uses the CUDA backend, you must call ``enable_language(CUDA)`` before finding the package.
 
- You may want to consider passing the version number to ``find_package``.
-
-Targets that need |GT| should indicate ``GridTools::gridtools`` as target link library. If the communication module is needed ``GridTools::gcl`` should be used.
-
-.. note:
-
- If GridTools uses the CUDA backend, you must call enable_language(CUDA) before finding the package.
+Targets that need |GT| should link against ``GridTools::gridtools``. If the communication module is needed ``GridTools::gcl`` should be used instead.
 
 .. code-block:: cmake
 
- target_link_libraries(${target_name} GridTools::gridtools)
+ add_library(my_library source.cpp)
+ target_link_libraries(my_library PUBLIC GridTools::gridtools)
 
 -----------------------------
 Contributing
 -----------------------------
 
-Contributions to the |GT| set of libraries are welcome. Our policy is however, that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.
+Contributions to the |GT| set of libraries are welcome. However, our policy is that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.

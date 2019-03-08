@@ -2,6 +2,7 @@
 .. toctree::
    :maxdepth: 2
 
+   introduction/introduction
    getting_started/getting_started
    user_manual/user_manual
    upcoming/upcoming
