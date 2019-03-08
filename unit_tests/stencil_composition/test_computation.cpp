@@ -34,19 +34,16 @@ namespace gridtools {
 
         struct my_computation {
             size_t m_count = 0;
-            bool m_synced = true;
 
             template <class... Args, class... DataStores>
             void run(arg_storage_pair<Args, DataStores> const &... args) {
                 ++m_count;
-                m_synced = false;
             }
 
-            void sync_bound_data_stores() { m_synced = true; }
             void reset_meter() { m_count = 0; }
             std::string print_meter() const {
                 std::ostringstream strm;
-                strm << (m_synced ? "synced" : "not synced") << ":" << m_count;
+                strm << m_count;
                 return strm.str();
             }
             size_t get_count() const { return m_count; }
@@ -69,17 +66,16 @@ namespace gridtools {
 
         TEST(computation, without_args) {
             computation<> testee = my_computation{};
-            EXPECT_EQ(testee.print_meter(), "synced:0");
+            EXPECT_EQ(testee.print_meter(), "0");
             EXPECT_EQ(testee.get_count(), 0);
             testee.run();
             testee.run();
-            EXPECT_EQ(testee.print_meter(), "not synced:2");
+            EXPECT_EQ(testee.print_meter(), "2");
             EXPECT_EQ(testee.get_count(), 2);
-            testee.sync_bound_data_stores();
-            EXPECT_EQ(testee.print_meter(), "synced:2");
+            EXPECT_EQ(testee.print_meter(), "2");
             testee.reset_meter();
             EXPECT_EQ(testee.get_count(), 0);
-            EXPECT_EQ(testee.print_meter(), "synced:0");
+            EXPECT_EQ(testee.print_meter(), "0");
             // expect compilation failures:
             // testee.run(1);
             // testee.run(a{} = data());
@@ -88,7 +84,7 @@ namespace gridtools {
         TEST(computation, move) {
             auto make = []() { return computation<>(my_computation{}); };
             auto testee = make();
-            EXPECT_EQ(testee.print_meter(), "synced:0");
+            EXPECT_EQ(testee.print_meter(), "0");
         }
 
         TEST(computation, move_assign) {

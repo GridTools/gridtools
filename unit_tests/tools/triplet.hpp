@@ -10,9 +10,11 @@
 
 #pragma once
 
-#include <gridtools/common/host_device.hpp>
 #include <iosfwd>
 #include <ostream>
+
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/host_device.hpp>
 
 /**
    @brief Small value type to use in tests where we want to check the
@@ -22,11 +24,7 @@
 struct triplet {
     int a = 0, b = 0, c = 0;
 
-#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9)
-    GT_FUNCTION triplet() {}
-#else
-    triplet() = default;
-#endif
+    GT_DECLARE_DEFAULT_EMPTY_CTOR(triplet);
 
     GT_FUNCTION
     triplet(int a, int b, int c) : a(a), b(b), c(c) {}

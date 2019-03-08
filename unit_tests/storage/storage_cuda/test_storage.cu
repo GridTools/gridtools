@@ -69,11 +69,6 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s2.get_cpu_ptr()[1], 400);
     EXPECT_EQ(s2.get_cpu_ptr()[0], 300);
 
-    // ptr ref should be equal to the cpu ptr
-    EXPECT_EQ(s1.get_cpu_ptr(), s1.get_ptrs<gridtools::cuda_storage<int>::ptrs_t>()[0]);
-    EXPECT_EQ(s2.get_cpu_ptr(), s2.get_ptrs<gridtools::cuda_storage<int>::ptrs_t>()[0]);
-    EXPECT_EQ(s1.get_gpu_ptr(), s1.get_ptrs<gridtools::cuda_storage<int>::ptrs_t>()[1]);
-    EXPECT_EQ(s2.get_gpu_ptr(), s2.get_ptrs<gridtools::cuda_storage<int>::ptrs_t>()[1]);
     // swap the storages
     s1.swap(s2);
     // check if changes are there

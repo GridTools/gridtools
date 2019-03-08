@@ -7,199 +7,104 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <boost/mpl/equal.hpp>
-#include <boost/shared_ptr.hpp>
+
+#include <functional>
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/make_computation.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/backend_select.hpp>
-#include <gridtools/tools/verifier.hpp>
+#include <gridtools/tools/computation_fixture.hpp>
 
-constexpr int halo_size = 1;
+namespace gridtools {
+    namespace {
 
-namespace test_cache_stencil {
+        struct cache_stencil : computation_fixture<1> {
+            cache_stencil() : computation_fixture<1>(128, 128, 30) {}
 
-    using namespace gridtools;
-    using namespace execute;
+            ~cache_stencil() { verify(make_storage(expected), out); }
 
-    struct functor1 {
-        typedef accessor<0, intent::in> in;
-        typedef accessor<1, intent::inout> out;
-        typedef make_param_list<in, out> param_list;
+            using fun_t = std::function<float_type(int, int, int)>;
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval) {
-            eval(out()) = eval(in());
-        }
-    };
+            fun_t in = [](int i, int j, int k) { return i + j * 100 + k * 10000; };
 
-    struct functor2 {
-        typedef accessor<0, intent::in, extent<-1, 1, -1, 1>> in;
-        typedef accessor<1, intent::inout> out;
-        typedef make_param_list<in, out> param_list;
+            storage_type out = make_storage();
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval) {
-            eval(out()) =
-                (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
-        }
-    };
+            fun_t expected;
+        };
 
-    struct functor3 {
-        typedef accessor<0, intent::in> in;
-        typedef accessor<1, intent::inout> out;
-        typedef make_param_list<in, out> param_list;
+        struct functor1 {
+            using in = in_accessor<0>;
+            using out = inout_accessor<1>;
+            using param_list = make_param_list<in, out>;
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval) {
-            eval(out()) = eval(in()) + 1;
-        }
-    };
-
-    typedef backend_t::storage_traits_t::storage_info_t<0, 3, halo<halo_size, halo_size, 0>> storage_info_t;
-    typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
-
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
-    typedef tmp_arg<2, storage_t> p_buff;
-    typedef tmp_arg<3, storage_t> p_buff_2;
-    typedef tmp_arg<4, storage_t> p_buff_3;
-} // namespace test_cache_stencil
-
-using namespace gridtools;
-using namespace execute;
-using namespace test_cache_stencil;
-
-class cache_stencil : public ::testing::Test {
-  protected:
-    const uint_t m_d1, m_d2, m_d3;
-
-    halo_descriptor m_di, m_dj;
-
-    gridtools::grid<axis<1>::axis_interval_t> m_grid;
-    storage_info_t m_meta;
-    storage_t m_in, m_out;
-
-    cache_stencil()
-        : m_d1(128), m_d2(128), m_d3(30), m_di{halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1},
-          m_dj{halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2}, m_grid(make_grid(m_di, m_dj, m_d3)),
-          m_meta(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3), m_in(m_meta, 0.), m_out(m_meta, 0.) {}
-
-    virtual void SetUp() {
-        m_in = storage_t(m_meta, 0.);
-        m_out = storage_t(m_meta, 0.);
-        auto m_inv = make_host_view(m_in);
-        for (int i = m_di.begin(); i < m_di.end(); ++i) {
-            for (int j = m_dj.begin(); j < m_dj.end(); ++j) {
-                for (int k = 0; k < m_d3; ++k) {
-                    m_inv(i, j, k) = i + j * 100 + k * 10000;
-                }
+            template <typename Evaluation>
+            GT_FUNCTION static void apply(Evaluation &eval) {
+                eval(out()) = eval(in());
             }
+        };
+
+        TEST_F(cache_stencil, ij_cache) {
+            make_computation(p_0 = make_storage(in),
+                p_1 = out,
+                make_multistage(execute::parallel(),
+                    define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp_0)),
+                    make_stage<functor1>(p_0, p_tmp_0),
+                    make_stage<functor1>(p_tmp_0, p_1)))
+                .run();
+
+            expected = in;
         }
-    }
-};
 
-TEST_F(cache_stencil, ij_cache) {
-    SetUp();
+        struct functor2 {
+            using in = in_accessor<0, extent<-1, 1, -1, 1>>;
+            using out = inout_accessor<1>;
+            using param_list = make_param_list<in, out>;
 
-    auto stencil = make_computation<backend_t>(m_grid,
-        p_in() = m_in,
-        p_out() = m_out,
-        make_multistage // mss_descriptor
-        (execute::parallel(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff())),
-            make_stage<functor1>(p_in(), p_buff()),
-            make_stage<functor1>(p_buff(), p_out())));
-
-    stencil.run();
-
-    stencil.sync_bound_data_stores();
-
-#if GT_FLOAT_PRECISION == 4
-    verifier verif(1e-6);
-#else
-    verifier verif(1e-12);
-#endif
-    array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-    ASSERT_TRUE(verif.verify(m_grid, m_in, m_out, halos));
-}
-
-TEST_F(cache_stencil, ij_cache_offset) {
-    SetUp();
-    storage_info_t meta_(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3);
-    storage_t ref(meta_, 0.0);
-    auto m_inv = make_host_view(m_in);
-    auto refv = make_host_view(ref);
-    for (int i = halo_size; i < m_d1 - halo_size; ++i) {
-        for (int j = halo_size; j < m_d2 - halo_size; ++j) {
-            for (int k = 0; k < m_d3; ++k) {
-                refv(i, j, k) = (m_inv(i - 1, j, k) + m_inv(i + 1, j, k) + m_inv(i, j - 1, k) + m_inv(i, j + 1, k)) /
-                                (float_type)4.0;
+            template <typename Evaluation>
+            GT_FUNCTION static void apply(Evaluation &eval) {
+                eval(out()) =
+                    (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
             }
+        };
+
+        TEST_F(cache_stencil, ij_cache_offset) {
+            make_computation(p_0 = make_storage(in),
+                p_1 = out,
+                make_multistage(execute::parallel(),
+                    define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp_0)),
+                    make_stage<functor1>(p_0, p_tmp_0),
+                    make_stage<functor2>(p_tmp_0, p_1)))
+                .run();
+
+            expected = [this](int i, int j, int k) {
+                return (in(i - 1, j, k) + in(i + 1, j, k) + in(i, j - 1, k) + in(i, j + 1, k)) / (float_type)4.0;
+            };
         }
-    }
 
-    auto stencil = make_computation<backend_t>(m_grid,
-        p_in() = m_in,
-        p_out() = m_out,
-        make_multistage // mss_descriptor
-        (execute::parallel(),
-            // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
-            make_stage<functor1>(p_in(), p_buff()), // esf_descriptor
-            make_stage<functor2>(p_buff(), p_out()) // esf_descriptor
-            ));
+        struct functor3 {
+            using in = in_accessor<0>;
+            using out = inout_accessor<1>;
+            using param_list = make_param_list<in, out>;
 
-    stencil.run();
-
-    stencil.sync_bound_data_stores();
-
-#if GT_FLOAT_PRECISION == 4
-    verifier verif(1e-6);
-#else
-    verifier verif(1e-12);
-#endif
-    array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
-    ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
-}
-
-TEST_F(cache_stencil, multi_cache) {
-    SetUp();
-    storage_info_t meta_(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3);
-    storage_t ref(meta_, 0.0);
-    auto m_inv = make_host_view(m_in);
-    auto refv = make_host_view(ref);
-
-    for (int i = halo_size; i < m_d1 - halo_size; ++i) {
-        for (int j = halo_size; j < m_d2 - halo_size; ++j) {
-            for (int k = 0; k < m_d3; ++k) {
-                refv(i, j, k) = (m_inv(i, j, k) + 4);
+            template <typename Evaluation>
+            GT_FUNCTION static void apply(Evaluation &eval) {
+                eval(out()) = eval(in()) + 1;
             }
+        };
+
+        TEST_F(cache_stencil, multi_cache) {
+            make_computation(p_0 = make_storage(in),
+                p_1 = out,
+                make_multistage(execute::parallel(),
+                    define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp_0, p_tmp_1),
+                        cache<cache_type::ij, cache_io_policy::local>(p_tmp_2)),
+                    make_stage<functor3>(p_0, p_tmp_0),
+                    make_stage<functor3>(p_tmp_0, p_tmp_1),
+                    make_stage<functor3>(p_tmp_1, p_tmp_2),
+                    make_stage<functor3>(p_tmp_2, p_1)))
+                .run();
+
+            expected = [this](int i, int j, int k) { return in(i, j, k) + 4; };
         }
-    }
-
-    auto stencil = make_computation<backend_t>(m_grid,
-        p_in() = m_in,
-        p_out() = m_out,
-        make_multistage // mss_descriptor
-        (execute::parallel(),
-            // test if define_caches works properly with multiple vectors of caches.
-            // in this toy example two vectors are passed (IJ cache vector for p_buff
-            // and p_buff_2, IJ cache vector for p_buff_3)
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff(), p_buff_2()),
-                cache<cache_type::ij, cache_io_policy::local>(p_buff_3())),
-            make_stage<functor3>(p_in(), p_buff()),       // esf_descriptor
-            make_stage<functor3>(p_buff(), p_buff_2()),   // esf_descriptor
-            make_stage<functor3>(p_buff_2(), p_buff_3()), // esf_descriptor
-            make_stage<functor3>(p_buff_3(), p_out())     // esf_descriptor
-            ));
-    stencil.run();
-
-    stencil.sync_bound_data_stores();
-
-    verifier verif(1e-13);
-    array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-    ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
-}
+    } // namespace
+} // namespace gridtools

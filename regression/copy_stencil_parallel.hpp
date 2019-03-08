@@ -160,8 +160,6 @@ namespace copy_stencil {
         std::cout << "computation run" << std::endl;
 #endif
 
-        copy.sync_bound_data_stores();
-
 #ifdef GT_VERBOSE
         std::cout << "computation finalized" << std::endl;
 #endif

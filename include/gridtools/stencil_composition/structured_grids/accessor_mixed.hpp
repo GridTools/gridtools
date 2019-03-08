@@ -26,6 +26,9 @@ namespace gridtools {
        Method get() checks before among the static dimensions, and if the
        queried dimension is not found it looks up in the dynamic dimensions. Note that this
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
+
+       FIXME(anstaf): at a moment accessor_mixed doesn't do compile time access. should be reimplemented using tuple
+       with integral_constants and ints
      */
     template <class Base, class... Pairs>
     struct accessor_mixed;
@@ -34,32 +37,6 @@ namespace gridtools {
     struct accessor_mixed<Base, pair_<Inxs, Vals>...> : Base {
         template <class... Ts>
         GT_FUNCTION explicit constexpr accessor_mixed(Ts... args) : Base(dimension<Inxs>(Vals)..., args...) {}
-        template <class OtherBase>
-        GT_FUNCTION constexpr accessor_mixed(accessor_mixed<OtherBase, pair_<Inxs, Vals>...> const &src) : Base(src) {}
-
-      private:
-        template <ushort_t I>
-        using key_t = std::integral_constant<ushort_t, I>;
-
-        template <int_t Val>
-        using val_t = std::integral_constant<int_t, Val>;
-
-        using offset_map_t = meta::list<meta::list<key_t<Base::n_dimensions - Inxs>, val_t<Vals>>...>;
-
-        template <int_t I>
-        using find_t = GT_META_CALL(meta::mp_find, (offset_map_t, key_t<I>));
-
-      public:
-        // An overload for the statically linked dimensions. No lookup is done.
-        template <ushort_t I, class Found = find_t<I>>
-        GT_FUNCTION constexpr typename std::enable_if<!std::is_void<Found>::value, int_t>::type get() const {
-            return meta::lazy::second<Found>::type::value;
-        }
-        // An overload for the dynamically linked dimensions. Lookup is delegated to the Base.
-        template <ushort_t I, class Found = find_t<I>>
-        GT_FUNCTION constexpr typename std::enable_if<std::is_void<Found>::value, int_t>::type get() const {
-            return Base::template get<I>();
-        }
     };
 
     /**

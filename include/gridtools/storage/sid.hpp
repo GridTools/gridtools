@@ -25,7 +25,6 @@
 #include "../meta/make_indices.hpp"
 #include "../meta/transform.hpp"
 #include "data_store.hpp"
-#include "storage_facility.hpp"
 
 namespace gridtools {
     namespace storage_sid_impl_ {
@@ -74,7 +73,6 @@ namespace gridtools {
             template <class Src>
             int_t operator()(Src const &src) {
                 assert(src[I::value] != 0);
-                assert(src[I::value] != 1);
                 return (int_t)src[I::value];
             }
         };
@@ -110,10 +108,12 @@ namespace gridtools {
             static impl_t const &impl();
 
             friend host_device::constant<typename Storage::data_t *> sid_get_origin(host_adapter const &obj) {
-                impl_t const &impl = obj.m_impl;
-                if (impl.host_needs_update())
-                    impl.sync();
-                return {advanced_get_raw_pointer_of(make_host_view(impl))};
+                auto &&storage_ptr = obj.m_impl.get_storage_ptr();
+                assert(storage_ptr);
+                if (storage_ptr->host_needs_update_impl())
+                    storage_ptr->sync();
+                storage_ptr->reactivate_host_write_views();
+                return {storage_ptr->get_cpu_ptr()};
             }
             friend decltype(sid_get_strides(impl())) sid_get_strides(host_adapter const &obj) {
                 return sid_get_strides(obj.m_impl);
@@ -131,9 +131,12 @@ namespace gridtools {
      */
     template <class Storage, class StorageInfo>
     host_device::constant<typename Storage::data_t *> sid_get_origin(data_store<Storage, StorageInfo> const &obj) {
-        if (obj.device_needs_update())
-            obj.sync();
-        return {advanced_get_raw_pointer_of(make_target_view(obj))};
+        auto &&storage_ptr = obj.get_storage_ptr();
+        assert(storage_ptr);
+        if (storage_ptr->device_needs_update_impl())
+            storage_ptr->sync();
+        storage_ptr->reactivate_device_write_views();
+        return {storage_ptr->get_target_ptr()};
     }
 
     template <class Storage, class StorageInfo>

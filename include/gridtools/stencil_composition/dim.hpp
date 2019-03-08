@@ -7,4 +7,11 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "multi_types_test.cpp"
+
+#pragma once
+
+#ifndef GT_ICOSAHEDRAL_GRIDS
+#include "./structured_grids/dim.hpp"
+#else
+#include "./icosahedral_grids/dim.hpp"
+#endif

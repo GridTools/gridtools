@@ -283,7 +283,6 @@ namespace assembly {
             make_multistage(execute::forward(), make_stage<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp.run();
-        fe_comp.sync_bound_data_stores();
 
         return do_verification<storage_local_quad_t, storage_global_quad_t>(d1, d2, d3, result, grid);
     }

@@ -57,6 +57,18 @@ namespace gridtools {
             EXPECT_EQ(expected_strides[3], get<3>(strides));
         }
 
+        TEST(storage_sid, regression_strides_of_small_storage) {
+            data_store_t testee = {{1, 1, 1, 1}, 0};
+
+            auto strides = sid::get_strides(testee);
+            auto expected_strides = testee.strides();
+
+            EXPECT_EQ(expected_strides[0], get<0>(strides));
+            EXPECT_EQ(expected_strides[1], get<1>(strides));
+            EXPECT_EQ(expected_strides[2], get<2>(strides));
+            EXPECT_EQ(expected_strides[3], get<3>(strides));
+        }
+
         TEST(storage_sid, as_host) {
             data_store_t data = {{10, 10, 10, 10}, 42};
             auto testee = as_host(data);
