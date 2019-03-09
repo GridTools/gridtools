@@ -9,7 +9,7 @@ To use stencil functions the header
 
 .. code-block:: gridtools
 
-   #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+   #include <gridtools/stencil_composition/stencil_functions/stencil_functions.hpp>
 
 needs to be included.
 Two variants are available: functional calls which return a value and procedural calls with side-effect on the given arguments (:term:`Accessors<Accessor>`).

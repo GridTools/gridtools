@@ -311,10 +311,10 @@ Storage Facility
 -------------------------
 
 Writing the types all the time is cumbersome and unneeded. To get rid of this effort the storage module provides
-a ``storage-facility`` that provides the correct types for a chosen computation :term:`Backend`.
+a ``storage_facility`` that provides the correct types for a chosen computation :term:`Backend`.
 
-The only header that has to be included to use the storage infrastructure is ``storage/storage-facility.hpp``. This provides
-the ``storage-facility`` which returns the correct types for the chosen :term:`Backend`.
+The only header that has to be included to use the storage infrastructure is ``storage/storage_facility.hpp``. This provides
+the ``storage_facility`` which returns the correct types for the chosen :term:`Backend`.
 
 **Example**:
 

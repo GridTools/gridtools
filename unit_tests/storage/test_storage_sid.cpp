@@ -18,8 +18,8 @@
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/macros.hpp>
 #include <gridtools/meta/type_traits.hpp>
-#include <gridtools/stencil-composition/sid/concept.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace gridtools {

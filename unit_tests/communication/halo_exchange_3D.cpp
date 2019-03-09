@@ -9,8 +9,8 @@
  */
 #include "gtest/gtest.h"
 #include <gridtools/common/boollist.hpp>
-#include <gridtools/communication/low-level/Halo_Exchange_3D.hpp>
-#include <gridtools/communication/low-level/proc_grids_3D.hpp>
+#include <gridtools/communication/low_level/Halo_Exchange_3D.hpp>
+#include <gridtools/communication/low_level/proc_grids_3D.hpp>
 #include <iostream>
 #include <mpi.h>
 #include <stdio.h>
