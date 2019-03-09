@@ -75,16 +75,10 @@ namespace gridtools {
 
     template <size_t Dim>
     struct accessor_base : array<int_t, Dim> {
-        GT_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
-
 #ifdef __INTEL_COMPILER
         int_t m_workaround = Dim;
 #endif
-        friend GT_META_CALL(meta::repeat_c, (Dim, int_t)) tuple_to_types(accessor_base const &) { return {}; }
-
         using base_t = array<int_t, Dim>;
-
-        static constexpr ushort_t n_dimensions = Dim;
 
         template <class... Ints,
             enable_if_t<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value, int> = 0>

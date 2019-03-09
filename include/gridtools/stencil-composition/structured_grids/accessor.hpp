@@ -14,6 +14,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
+#include "../../meta/always.hpp"
 #include "../accessor_base.hpp"
 #include "../accessor_intent.hpp"
 #include "../is_accessor.hpp"
@@ -53,7 +54,7 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template <uint_t ID, intent Intent = intent::in, typename Extent = extent<>, ushort_t Number = 3>
+    template <uint_t ID, intent Intent = intent::in, typename Extent = extent<>, size_t Number = 3>
     struct accessor : accessor_base<Number> {
         using index_t = static_uint<ID>;
         static constexpr intent intent_v = Intent;
@@ -61,6 +62,8 @@ namespace gridtools {
 
         /**inheriting all constructors from accessor_base*/
         using accessor_base<Number>::accessor_base;
+
+        friend meta::always<accessor> tuple_from_types(accessor const &) { return {}; }
     };
 
     template <uint_t ID, typename Extent = extent<>, ushort_t Number = 3>

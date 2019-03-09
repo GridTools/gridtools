@@ -13,6 +13,8 @@
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
+#include "../meta/always.hpp"
+#include "../meta/list.hpp"
 #include "./extent.hpp"
 #include "./is_accessor.hpp"
 #include "./is_global_accessor.hpp"
@@ -37,14 +39,19 @@ namespace gridtools {
         boost::fusion::vector<Args...> m_arguments;
 
       public:
-        typedef GlobalAccessor super;
-        typedef typename super::index_t index_t;
+        typedef typename GlobalAccessor::index_t index_t;
         static const constexpr intent intent_v = intent::in;
 
         GT_FUNCTION
         global_accessor_with_arguments(Args &&... args_) : m_arguments(std::forward<Args>(args_)...) {}
         GT_FUNCTION
         boost::fusion::vector<Args...> const &get_arguments() const { return m_arguments; };
+
+        friend global_accessor_with_arguments tuple_getter(global_accessor_with_arguments const &) { return {}; }
+        friend meta::list<> tuple_to_types(global_accessor_with_arguments const &) { return {}; }
+        friend meta::always<global_accessor_with_arguments> tuple_from_types(global_accessor_with_arguments const &) {
+            return {};
+        }
     };
 
     template <typename Global, typename... Args>
@@ -72,15 +79,15 @@ namespace gridtools {
 
         GT_FUNCTION constexpr global_accessor() {}
 
-        // copy ctor from another global_accessor with different index
-        template <uint_t OtherIndex>
-        GT_FUNCTION constexpr global_accessor(const global_accessor<OtherIndex> &other) {}
-
         /** @brief generates a global_accessor_with_arguments and returns it by value */
         template <typename... Args>
         GT_FUNCTION global_accessor_with_arguments<global_accessor, Args...> operator()(Args &&... args_) {
             return global_accessor_with_arguments<global_accessor, Args...>(std::forward<Args>(args_)...);
         }
+
+        friend global_accessor tuple_getter(global_accessor const &) { return {}; }
+        friend meta::list<> tuple_to_types(global_accessor const &) { return {}; }
+        friend meta::always<global_accessor> tuple_from_types(global_accessor const &) { return {}; }
     };
 
     template <uint_t I>

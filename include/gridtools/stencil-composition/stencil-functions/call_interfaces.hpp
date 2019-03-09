@@ -9,138 +9,22 @@
  */
 #pragma once
 
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/include/at_c.hpp>
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/vector.hpp>
 #include <type_traits>
 
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../common/generic_metafunctions/copy_into_variadic.hpp"
 #include "../../common/hymap.hpp"
+#include "../../common/tuple.hpp"
+#include "../../common/tuple_util.hpp"
+#include "../../meta.hpp"
 #include "../accessor.hpp"
 #include "../dim.hpp"
 #include "../expressions/expr_base.hpp"
-#include "../interval.hpp" // to check if region is valid
-#include "./call_interfaces_metafunctions.hpp"
+#include "../interval.hpp"
 
 namespace gridtools {
     // TODO: stencil functions work only for 3D stencils.
 
-    namespace _impl {
-        /** In the context of stencil_functions, this type represents
-           the aggregator/domain/evaluator to be passed to a stencil
-           function, called within a stencil operator or another
-           stencil function. The accessors passed to
-           the function can have offsets.
-
-           function_aggregator_offsets has a single ReturnType which
-           corresponds to the type of the first argument in the call.
-           Such operator has a single output field,
-           as checked by the call template.
-
-           \tparam CallerAggregator The argument passed to the caller, also known as the Evaluator
-           \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying
-        call<...>::at<...>::... )
-           \tparam Offj Offset along the j-direction were the function is evaluated
-           \tparam Offk Offset along the k-direction were the function is evaluated
-           \tparam PassedArguments The list of accessors the caller need to pass to the function
-           \tparam OutArg The index of the output argument of the function (this is required to be unique and it is
-        check before this is instantiated.
-        */
-        template <typename CallerAggregator,
-            int Offi,
-            int Offj,
-            int Offk,
-            typename PassedArguments,
-            typename ReturnType,
-            int OutArg>
-        struct function_aggregator_offsets {
-            typedef typename boost::fusion::result_of::as_vector<PassedArguments>::type accessors_list_t;
-            CallerAggregator &m_caller_aggregator;
-            ReturnType *GT_RESTRICT m_result;
-            accessors_list_t const m_accessors_list;
-
-            template <typename Accessor>
-            using get_passed_argument_index =
-                static_uint<(Accessor::index_t::value < OutArg) ? Accessor::index_t::value
-                                                                : (Accessor::index_t::value - 1)>;
-
-            template <typename Accessor>
-            using get_passed_argument_t =
-                typename boost::mpl::at_c<PassedArguments, get_passed_argument_index<Accessor>::value>::type;
-
-            template <typename Accessor>
-            GT_FUNCTION constexpr get_passed_argument_t<Accessor> get_passed_argument() const {
-                return boost::fusion::at_c<get_passed_argument_index<Accessor>::value>(m_accessors_list);
-            }
-
-            template <typename Accessor>
-            using passed_argument_is_accessor_t = typename is_accessor<get_passed_argument_t<Accessor>>::type;
-
-            template <typename Accessor>
-            using is_out_arg = boost::mpl::bool_<Accessor::index_t::value == OutArg>;
-
-          public:
-            GT_FUNCTION
-            constexpr function_aggregator_offsets(
-                CallerAggregator &caller_aggregator, ReturnType &result, accessors_list_t const &list)
-                : m_caller_aggregator(caller_aggregator), m_result(&result), m_accessors_list(list) {}
-
-            /**
-             * @brief Accessor (of the callee) is a regular 3D in_accessor
-             */
-            template <typename Accessor,
-                enable_if_t<passed_argument_is_accessor_t<Accessor>::value && not is_out_arg<Accessor>::value &&
-                                not is_global_accessor<Accessor>::value,
-                    int> = 0>
-            GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
-                -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
-                return m_caller_aggregator(
-                    get_passed_argument_t<Accessor>(host_device::at_key<dim::i>(accessor) + Offi +
-                                                        host_device::at_key<dim::i>(get_passed_argument<Accessor>()),
-                        host_device::at_key<dim::j>(accessor) + Offj +
-                            host_device::at_key<dim::j>(get_passed_argument<Accessor>()),
-                        host_device::at_key<dim::k>(accessor) + Offk +
-                            host_device::at_key<dim::k>(get_passed_argument<Accessor>())));
-            }
-
-            /*
-             * @brief If the passed type is not an accessor we assume it is a local variable which we just return.
-             */
-            template <typename Accessor>
-            GT_FUNCTION constexpr enable_if_t<not passed_argument_is_accessor_t<Accessor>::value &&
-                                                  not is_out_arg<Accessor>::value,
-                get_passed_argument_t<Accessor>>
-            operator()(Accessor const &accessor) const {
-                return get_passed_argument<Accessor>();
-            }
-
-            /**
-             * @brief Accessor is a global_accessor
-             */
-            template <typename Accessor,
-                enable_if_t<passed_argument_is_accessor_t<Accessor>::value && not is_out_arg<Accessor>::value &&
-                                is_global_accessor<Accessor>::value,
-                    int> = 0>
-            GT_FUNCTION constexpr auto operator()(Accessor const &) const
-                -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
-                return m_caller_aggregator(get_passed_argument<Accessor>());
-            }
-
-            /**
-             * @brief Accessor is the (only!) OutArg, i.e. the return value
-             */
-            template <typename Accessor>
-            GT_FUNCTION constexpr typename std::enable_if<is_out_arg<Accessor>::value, ReturnType>::type &operator()(
-                Accessor const &) const {
-                return *m_result;
-            }
-
-            template <class Op, class... Args>
-            GT_FUNCTION constexpr auto operator()(expr<Op, Args...> const &arg) const
-                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
-        };
-
+    namespace call_interfaces_impl_ {
         template <class Functor, class Region, class Eval>
         GT_FUNCTION enable_if_t<!std::is_void<Region>::value> call_functor(Eval &eval) {
             Functor::template apply<Eval &>(eval, Region{});
@@ -151,7 +35,149 @@ namespace gridtools {
         GT_FUNCTION enable_if_t<std::is_void<Region>::value> call_functor(Eval &eval) {
             Functor::template apply<Eval &>(eval);
         }
-    } // namespace _impl
+
+        template <class Key, class Offsets, enable_if_t<has_key<decay_t<Offsets>, Key>::value, int> = 0>
+        GT_FUNCTION auto get_offset(Offsets &&offsets)
+            GT_AUTO_RETURN(host_device::at_key<Key>(std::forward<Offsets>(offsets)));
+
+        template <class Key, class Offsets>
+        GT_FUNCTION enable_if_t<!has_key<Offsets, Key>::value, integral_constant<int_t, 0>> get_offset(Offsets &&) {
+            return {};
+        }
+
+        template <class Key>
+        struct sum_offset_generator_f {
+            using type = sum_offset_generator_f;
+
+            template <class Lhs, class Rhs>
+            GT_FUNCTION auto operator()(Lhs &&lhs, Rhs &&rhs) const
+                GT_AUTO_RETURN(get_offset<Key>(std::forward<Lhs>(lhs)) + get_offset<Key>(std::forward<Rhs>(rhs)));
+        };
+
+        template <class Res, class Lhs, class Rhs>
+        GT_FUNCTION Res sum_offsets(Lhs &&lhs, Rhs &&rhs) {
+            using keys_t = GT_META_CALL(get_keys, Res);
+            using generators_t = GT_META_CALL(meta::transform, (sum_offset_generator_f, keys_t));
+            return tuple_util::host_device::generate<generators_t, Res>(std::forward<Lhs>(lhs), std::forward<Rhs>(rhs));
+        }
+
+        template <int_t I, int_t J, int_t K, class Accessor>
+        GT_FUNCTION enable_if_t<I == 0 && J == 0 && K == 0, Accessor &&> get_offsets(Accessor &&acc) {
+            return std::forward<Accessor>(acc);
+        }
+
+        template <int_t I,
+            int_t J,
+            int_t K,
+            class Accessor,
+            class Decayed = decay_t<Accessor>,
+            class Size = tuple_util::size<Decayed>,
+            class Res = array<int_t, Size::value>>
+        GT_FUNCTION enable_if_t<I != 0 || J != 0 || K != 0, Res> get_offsets(Accessor &&acc) {
+            static constexpr hymap::keys<dim::i, dim::j, dim::k>::
+                values<integral_constant<int_t, I>, integral_constant<int_t, J>, integral_constant<int_t, K>>
+                    offset = {};
+            return sum_offsets<Res>(std::forward<Accessor>(acc), offset);
+        }
+
+        template <class Res, class Offsets>
+        struct accessor_transform_f {
+            GT_STATIC_ASSERT(is_accessor<Res>::value, GT_INTERNAL_ERROR);
+
+            Offsets m_offsets;
+
+            template <class Eval, class Src>
+            GT_FUNCTION constexpr auto operator()(Eval &eval, Src &&src) const
+                GT_AUTO_RETURN(eval(sum_offsets<Res>(m_offsets, std::forward<Src>(src))));
+        };
+
+        template <class Res, class Offsets>
+        accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
+            return {std::forward<Offsets>(offsets)};
+        }
+
+        template <class T>
+        struct local_transform_f {
+            T m_val;
+
+            template <class Eval, class Src>
+            GT_FUNCTION T operator()(Eval &&, Src &&) const {
+                return m_val;
+            }
+        };
+
+        template <int_t I, int_t J, int_t K>
+        struct get_transform_f {
+            template <class Accessor,
+                class LazyParam,
+                class Decayed = decay_t<Accessor>,
+                class Param = typename LazyParam::type,
+                enable_if_t<is_accessor<Decayed>::value &&
+                                !(Param::intent_v == intent::inout && Decayed::intent_v == intent::in),
+                    int> = 0>
+            GT_FUNCTION auto operator()(Accessor &&accessor, LazyParam) const
+                GT_AUTO_RETURN((accessor_transform<Decayed>(get_offsets<I, J, K>(std::forward<Accessor>(accessor)))));
+
+            template <class Arg,
+                class Decayed = decay_t<Arg>,
+                class LazyParam,
+                class Param = typename LazyParam::type,
+                enable_if_t<!is_accessor<Decayed>::value &&
+                                !(Param::intent_v == intent::inout && std::is_const<remove_reference_t<Arg>>::value),
+                    int> = 0>
+            GT_FUNCTION constexpr local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
+                return {const_expr::forward<Arg>(arg)};
+            }
+        };
+
+        template <class Eval, class Transforms>
+        struct evaluator {
+            Eval &m_eval;
+            Transforms m_transforms;
+
+            template <class Accessor>
+            GT_FUNCTION auto operator()(Accessor &&acc) const
+                GT_AUTO_RETURN(tuple_util::host_device::get<decay_t<Accessor>::index_t::value>(m_transforms)(
+                    m_eval, std::forward<Accessor>(acc)));
+
+            template <class Op, class... Ts>
+            GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
+                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
+        };
+        template <class Eval, class Transforms>
+        GT_FUNCTION evaluator<Eval, Transforms> make_evaluator(Eval &eval, Transforms &&transforms) {
+            return {eval, std::forward<Transforms>(transforms)};
+        }
+
+        template <class Functor>
+        using get_param_list = copy_into_variadic<typename Functor::param_list, tuple<>>;
+
+        template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>
+        GT_FUNCTION void evaluate_bound_functor(Eval &eval, Args &&args) {
+            static constexpr GT_META_CALL(meta::transform, (meta::defer<meta::id>::apply, get_param_list<Functor>))
+                lazy_params = {};
+            auto new_eval = make_evaluator(eval,
+                tuple_util::host_device::transform(get_transform_f<I, J, K>{}, std::forward<Args>(args), lazy_params));
+            call_functor<Functor, Region>(new_eval);
+        }
+
+        template <class Eval, class Arg, bool = is_accessor<Arg>::value>
+        struct deduce_result_type : std::decay<decltype(std::declval<Eval &>()(std::declval<Arg &&>()))> {};
+
+        template <class Eval, class Arg>
+        struct deduce_result_type<Eval, Arg, false> : meta::lazy::id<Arg> {};
+
+        /**
+         * @brief Use forced return type (if not void) or deduce the return type.
+         */
+        template <class Eval, class ReturnType, class Arg, class...>
+        struct get_result_type : std::conditional<std::is_void<ReturnType>::value,
+                                     typename deduce_result_type<Eval, Arg>::type,
+                                     ReturnType> {};
+
+        template <class Accessor>
+        GT_META_DEFINE_ALIAS(is_out_param, bool_constant, Accessor::intent_v == intent::inout);
+    } // namespace call_interfaces_impl_
 
     /** Main interface for calling stencil operators as functions.
 
@@ -165,191 +191,72 @@ namespace gridtools {
         \tparam Offj Offset along the j-direction
         \tparam Offk Offset along the k-direction
     */
-    template <typename Functor,
-        typename Region = void,
-        typename ReturnType = void,
-        int Offi = 0,
-        int Offj = 0,
-        int Offk = 0>
-    struct call {
-        GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
+    template <class Functor,
+        class Region = void,
+        class ReturnType = void,
+        int_t OffI = 0,
+        int_t OffJ = 0,
+        int_t OffK = 0>
+    class call {
+        GT_STATIC_ASSERT(is_interval<Region>::value or std::is_void<Region>::value,
             "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
             "the called stencil function");
 
+        using params_t = call_interfaces_impl_::get_param_list<Functor>;
+        using out_params_t = GT_META_CALL(meta::filter, (call_interfaces_impl_::is_out_param, params_t));
+
+        GT_STATIC_ASSERT(meta::length<out_params_t>::value == 1,
+            "Trying to invoke stencil operator with more than one output as a function");
+
+        using out_param_t = GT_META_CALL(meta::first, out_params_t);
+        static constexpr size_t out_param_index = out_param_t::index_t::value;
+
+      public:
         /** This alias is used to move the computation at a certain offset
          */
-        template <int I, int J, int K>
+        template <int_t I, int_t J, int_t K>
         using at = call<Functor, Region, ReturnType, I, J, K>;
 
         /**
          * @brief alias to set the return type, e.g.
          */
         template <typename ForcedReturnType>
-        using return_type = call<Functor, Region, ForcedReturnType, Offi, Offj, Offk>;
-
-      private:
-        template <typename Eval, typename Arg, bool = is_accessor<Arg>::value>
-        struct decude_result_type : std::decay<decltype(std::declval<Eval &>()(std::declval<Arg const &>()))> {};
-
-        template <typename Eval, typename Arg>
-        struct decude_result_type<Eval, Arg, false> : meta::lazy::id<Arg> {};
+        using return_type = call<Functor, Region, ForcedReturnType, OffI, OffJ, OffK>;
 
         /**
-         * @brief Use forced return type (if not void) or deduce the return type.
+         * With this interface a stencil function can be invoked and the offsets specified in the passed accessors are
+         * used to access values, w.r.t the offsets specified in a optional  at<..> statement.
          */
-        template <typename Eval, typename Arg, typename...>
-        struct get_result_type : std::conditional<std::is_void<ReturnType>::value,
-                                     typename decude_result_type<Eval, Arg>::type,
-                                     ReturnType> {};
-
-      public:
-        /** With this interface a stencil function can be invoked and
-            the offsets specified in the passed accessors are used to
-            access values, w.r.t the offsets specified in a optional
-            at<..> statement.
-         */
-        template <typename Evaluator, typename... Args>
-        GT_FUNCTION static typename get_result_type<Evaluator, Args...>::type with(
-            Evaluator &eval, Args const &... args) {
-
-            GT_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
-                "Trying to invoke stencil operator with more than one output as a function\n");
-
-            typedef typename get_result_type<Evaluator, Args...>::type result_type;
-            typedef _impl::function_aggregator_offsets<Evaluator,
-                Offi,
-                Offj,
-                Offk,
-                typename gridtools::variadic_to_vector<Args...>::type,
-                result_type,
-                _impl::_get_index_of_first_non_const<Functor>::value>
-                f_aggregator_t;
-
-            result_type result;
-
-            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
-            _impl::call_functor<Functor, Region>(agg_p);
-
-            return result;
+        template <class Eval,
+            class... Args,
+            class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, decay_t<Args>...>::type,
+            enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
+        GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
+            Res res;
+            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
+                eval, tuple_util::insert<out_param_index>(res, tuple<Args &&...>{std::forward<Args>(args)...}));
+            return res;
         }
     };
 
-    namespace _impl {
-        /**
-           In the context of stencil_functions, this type represents
-           the aggregator/domain/evaluator to be passed to a stencil
-           function, called within a stencil operator or another
-           stencil function. The accessors passed to
-           the function can have offsets.
-
-           function_aggregator_procedure_offsets does not have a
-           single return value, as in
-           function_aggregator_offsets. Here there may be more than
-           one returned values that happens through side-effects. The
-           affected arguments are stored among the PassedArguments
-           template argument.
-
-           \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
-           \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by
-           specifying
-           call<...>::at<...>::... )
-           \tparam Offj Offset along the j-direction were the function is evaluated
-           \tparam Offk Offset along the k-direction were the function is evaluated
-           \tparam PassedArguments The list of accessors and other orguments the caller need to pass to the function
-        */
-        template <typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments>
-        struct function_aggregator_procedure_offsets {
-            typedef typename boost::fusion::result_of::as_vector<PassedArguments>::type accessors_list_t;
-
-            CallerAggregator &m_caller_aggregator;
-            accessors_list_t const m_accessors_list;
-
-            template <typename Accessor>
-            using get_passed_argument_t = typename boost::mpl::at_c<PassedArguments, Accessor::index_t::value>::type;
-
-          private:
-            template <typename Accessor>
-            using passed_argument_is_accessor_t = typename is_accessor<get_passed_argument_t<Accessor>>::type;
-
-            template <typename Accessor>
-            GT_FUNCTION constexpr auto get_passed_argument() const
-                -> decltype(boost::fusion::at_c<Accessor::index_t::value>(m_accessors_list)) {
-                return boost::fusion::at_c<Accessor::index_t::value>(m_accessors_list);
-            }
-
-          public:
-            GT_FUNCTION constexpr function_aggregator_procedure_offsets(
-                CallerAggregator &caller_aggregator, accessors_list_t const &list)
-                : m_caller_aggregator(caller_aggregator), m_accessors_list(list) {}
-
-            /**
-             * @brief Accessor is a normal 3D accessor (not a global_accessor) and the passed Argument is an accessor
-             * (not a local variable)
-             */
-            template <typename Accessor,
-                enable_if_t<not is_global_accessor<Accessor>::value && passed_argument_is_accessor_t<Accessor>::value,
-                    int> = 0>
-            GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
-                -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
-                return m_caller_aggregator(
-                    get_passed_argument_t<Accessor>(host_device::at_key<dim::i>(accessor) + Offi +
-                                                        host_device::at_key<dim::i>(get_passed_argument<Accessor>()),
-                        host_device::at_key<dim::j>(accessor) + Offj +
-                            host_device::at_key<dim::j>(get_passed_argument<Accessor>()),
-                        host_device::at_key<dim::k>(accessor) + Offk +
-                            host_device::at_key<dim::k>(get_passed_argument<Accessor>())));
-            }
-
-            /**
-             * @brief Accessor is a global_accessor and the passed Argument is an accessor (not a local variable)
-             */
-            template <typename Accessor,
-                enable_if_t<is_global_accessor<Accessor>::value && passed_argument_is_accessor_t<Accessor>::value,
-                    int> = 0>
-            GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
-                -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
-                return m_caller_aggregator(get_passed_argument<Accessor>());
-            }
-
-            /**
-             * @brief Passed argument is a local variable (not an accessor)
-             */
-            template <typename Accessor>
-            GT_FUNCTION constexpr typename std::enable_if<not passed_argument_is_accessor_t<Accessor>::value,
-                typename boost::remove_reference<typename boost::fusion::result_of::at_c<accessors_list_t,
-                    Accessor::index_t::value>::type>::type::type>::type &
-            operator()(Accessor const &) const {
-                return get_passed_argument<Accessor>().value();
-            }
-
-            template <class Op, class... Args>
-            GT_FUNCTION constexpr auto operator()(expr<Op, Args...> const &arg) const
-                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
-        };
-    } // namespace _impl
-
-    /** Main interface for calling stencil operators as functions with
-        side-effects. The interface accepts a list of arguments to be
-        passed to the called function and these arguments can be
-        accessors or simple values.
-
-        Usage : call_proc<functor, region>::[at<offseti, offsetj, offsetk>::]with(eval, accessors_or_values...);
-
-        Accessors_or_values referes to a list of arguments that may be
-        accessors of the caller functions or local variables of the
-        type accessed (or converted to) by the accessor in the called
-        function, where the results should be obtained from. The
-        values can also be used by the function as inputs.
-
-        \tparam Functor The stencil operator to be called
-        \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is
-       not
-       called and will result in compilation error. The user is responsible for calling the proper apply overload)
-        \tparam Offi Offset along the i-direction (usually modified using at<...>)
-        \tparam Offj Offset along the j-direction
-        \tparam Offk Offset along the k-direction
-    */
-    template <typename Functor, typename Region = void, int Offi = 0, int Offj = 0, int Offk = 0>
+    /**
+     * Main interface for calling stencil operators as functions with side-effects. The interface accepts a list of
+     * arguments to be passed to the called function and these arguments can be accessors or simple values.
+     *
+     * Usage : call_proc<functor, region>::[at<offseti, offsetj, offsetk>::]with(eval, accessors_or_values...);
+     *
+     * Accessors_or_values referes to a list of arguments that may be accessors of the caller functions or local
+     * variables of the type accessed (or converted to) by the accessor in the called function, where the results should
+     * be obtained from. The values can also be used by the function as inputs.
+     *
+     * \tparam Functor The stencil operator to be called
+     * \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is not
+     *    called and will result in compilation error. The user is responsible for calling the proper apply overload)
+     * \tparam OffI Offset along the i-direction (usually modified using at<...>)
+     * \tparam OffJ Offset along the j-direction
+     * \tparam OffK Offset along the k-direction
+     * */
+    template <class Functor, class Region = void, int_t OffI = 0, int_t OffJ = 0, int_t OffK = 0>
     struct call_proc {
 
         GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
@@ -358,28 +265,19 @@ namespace gridtools {
 
         /** This alias is used to move the computation at a certain offset
          */
-        template <int I, int J, int K>
+        template <int_t I, int_t J, int_t K>
         using at = call_proc<Functor, Region, I, J, K>;
 
-        /** With this interface a stencil function can be invoked and
-            the offsets specified in the passed accessors are used to
-            access values, w.r.t the offsets specified in a optional
-            at<..> statement.
+        /**
+         * With this interface a stencil function can be invoked and the offsets specified in the passed accessors are
+         * used to access values, w.r.t the offsets specified in a optional at<..> statement.
          */
-        template <typename Evaluator, typename... Args>
-        GT_FUNCTION static void with(Evaluator &eval, Args const &... args) {
-
-            typedef _impl::function_aggregator_procedure_offsets<Evaluator,
-                Offi,
-                Offj,
-                Offk,
-                typename _impl::package_args<Args...>::type>
-                f_aggregator_t;
-
-            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
-
-            auto agg_p = f_aggregator_t(eval, y);
-            _impl::call_functor<Functor, Region>(agg_p);
+        template <class Eval, class... Args>
+        GT_FUNCTION static enable_if_t<sizeof...(Args) ==
+                                       meta::length<call_interfaces_impl_::get_param_list<Functor>>::value>
+        with(Eval &eval, Args &&... args) {
+            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
+                eval, tuple<Args &&...>{std::forward<Args>(args)...});
         }
     };
 } // namespace gridtools
