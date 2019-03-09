@@ -92,7 +92,7 @@ namespace gridtools {
         };
 
         template <class Res, class Offsets>
-        accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
+        GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
             return {std::forward<Offsets>(offsets)};
         }
 
@@ -233,8 +233,8 @@ namespace gridtools {
             enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
         GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
             Res res;
-            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
-                eval, tuple_util::insert<out_param_index>(res, tuple<Args &&...>{std::forward<Args>(args)...}));
+            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
+                tuple_util::host_device::insert<out_param_index>(res, tuple<Args &&...>{std::forward<Args>(args)...}));
             return res;
         }
     };
