@@ -66,13 +66,13 @@ namespace gridtools {
         friend meta::always<accessor> tuple_from_types(accessor const &) { return {}; }
     };
 
-    template <uint_t ID, typename Extent = extent<>, ushort_t Number = 3>
+    template <uint_t ID, typename Extent = extent<>, size_t Number = 3>
     using in_accessor = accessor<ID, intent::in, Extent, Number>;
 
-    template <uint_t ID, typename Extent = extent<>, ushort_t Number = 3>
+    template <uint_t ID, typename Extent = extent<>, size_t Number = 3>
     using inout_accessor = accessor<ID, intent::inout, Extent, Number>;
 
-    template <uint_t ID, intent Intent, typename Extent, ushort_t Number>
+    template <uint_t ID, intent Intent, typename Extent, size_t Number>
     struct is_accessor<accessor<ID, Intent, Extent, Number>> : std::true_type {};
 
 } // namespace gridtools
