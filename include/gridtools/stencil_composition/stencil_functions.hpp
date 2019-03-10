@@ -7,19 +7,24 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
 #pragma once
+
+#ifdef GT_ICOSAHEDRAL_GRIDS
+#error Stencil functions are not suported for icosahedral grids
+#endif
 
 #include <type_traits>
 
-#include "../../common/generic_metafunctions/copy_into_variadic.hpp"
-#include "../../common/hymap.hpp"
-#include "../../common/tuple.hpp"
-#include "../../common/tuple_util.hpp"
-#include "../../meta.hpp"
-#include "../accessor.hpp"
-#include "../dim.hpp"
-#include "../expressions/expr_base.hpp"
-#include "../interval.hpp"
+#include "../common/generic_metafunctions/copy_into_variadic.hpp"
+#include "../common/hymap.hpp"
+#include "../common/tuple.hpp"
+#include "../common/tuple_util.hpp"
+#include "../meta.hpp"
+#include "accessor.hpp"
+#include "dim.hpp"
+#include "expressions/expr_base.hpp"
+#include "interval.hpp"
 
 namespace gridtools {
     // TODO: stencil functions work only for 3D stencils.
