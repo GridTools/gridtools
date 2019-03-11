@@ -130,14 +130,31 @@ namespace gridtools {
                 tuple<Vals...> m_vals;
 
                 GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_vals);
-                GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_vals);
-
-                friend keys hymap_get_keys(values const &) { return {}; }
 
                 using type = values;
             };
+
+            template <class... Vals>
+            friend keys hymap_get_keys(values<Vals...> const &);
+
+            struct values_getter {
+                template <size_t I, class... Vals>
+                static constexpr GT_FUNCTION auto get(values<Vals...> const &obj)
+                    GT_AUTO_RETURN(tuple_util::host_device::get<I>(obj.m_vals));
+                template <size_t I, class... Vals>
+                static GT_FUNCTION auto get(values<Vals...> &obj)
+                    GT_AUTO_RETURN(tuple_util::host_device::get<I>(obj.m_vals));
+                template <size_t I, class... Vals>
+                static constexpr GT_FUNCTION auto get(values<Vals...> &&obj)
+                    GT_AUTO_RETURN(tuple_util::host_device::get<I>(const_expr::move(obj).m_vals));
+            };
+
+            template <class... Vals>
+            friend values_getter tuple_getter(values<Vals...> const &);
+
             using type = keys;
         };
+
     } // namespace hymap
 } // namespace gridtools
 

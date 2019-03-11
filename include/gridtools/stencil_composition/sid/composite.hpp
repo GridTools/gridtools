@@ -184,28 +184,58 @@ namespace gridtools {
                     GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Ptrs), GT_INTERNAL_ERROR);
 
                     typename hymap::keys<Keys...>::template values<Ptrs...> m_vals;
-                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
                     constexpr GT_FUNCTION auto operator*() const
                         GT_AUTO_RETURN(tuple_util::host_device::transform(impl_::deref_f{}, m_vals));
-
-                    friend keys hymap_get_keys(composite_ptr const &) { return {}; }
                 };
+
+                struct composite_ptr_getter {
+                    template <size_t I, class... Ptrs>
+                    static constexpr GT_FUNCTION auto get(composite_ptr<Ptrs...> const &obj)
+                        GT_AUTO_RETURN(tuple_util::host_device::get<I>(obj.m_vals));
+                    template <size_t I, class... Ptrs>
+                    static GT_FUNCTION auto get(composite_ptr<Ptrs...> &obj)
+                        GT_AUTO_RETURN(tuple_util::host_device::get<I>(obj.m_vals));
+                    template <size_t I, class... Ptrs>
+                    static constexpr GT_FUNCTION auto get(composite_ptr<Ptrs...> &&obj)
+                        GT_AUTO_RETURN(tuple_util::host_device::get<I>(const_expr::move(obj).m_vals));
+                };
+
+                template <class... Ptrs>
+                friend composite_ptr_getter tuple_getter(composite_ptr<Ptrs...> const &);
+
+                template <class... Ptrs>
+                friend keys hymap_get_keys(composite_ptr<Ptrs...> const &);
 
                 template <class... PtrHolders>
                 struct composite_ptr_holder {
                     GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(PtrHolders), GT_INTERNAL_ERROR);
 
                     typename hymap::keys<Keys...>::template values<PtrHolders...> m_vals;
-                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
 
                     constexpr GT_FUNCTION auto operator()() const
                         GT_AUTO_RETURN(tuple_util::host_device::convert_to<composite_ptr>(
                             tuple_util::host_device::transform(impl_::call_f{}, m_vals)));
-
-                    friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
                 };
+
+                struct composite_ptr_holder_getter {
+                    template <size_t I, class... Ptrs>
+                    static constexpr GT_FUNCTION auto get(composite_ptr_holder<Ptrs...> const &obj)
+                        GT_AUTO_RETURN(tuple_util::host_device::get<I>(obj.m_vals));
+                    template <size_t I, class... Ptrs>
+                    static GT_FUNCTION auto get(composite_ptr_holder<Ptrs...> &obj)
+                        GT_AUTO_RETURN(tuple_util::host_device::get<I>(obj.m_vals));
+                    template <size_t I, class... Ptrs>
+                    static constexpr GT_FUNCTION auto get(composite_ptr_holder<Ptrs...> &&obj)
+                        GT_AUTO_RETURN(tuple_util::host_device::get<I>(const_expr::move(obj).m_vals));
+                };
+
+                template <class... Ptrs>
+                friend composite_ptr_getter tuple_getter(composite_ptr_holder<Ptrs...> const &);
+
+                template <class... PtrHolders>
+                friend keys hymap_get_keys(composite_ptr_holder<PtrHolders...> const &);
 
 #if GT_BROKEN_TEMPLATE_ALIASES
               public:
@@ -273,24 +303,26 @@ namespace gridtools {
                         composite_entity(composite_entity &&) noexcept = default;
                         composite_entity &operator=(composite_entity const &) = default;
                         composite_entity &operator=(composite_entity &&) noexcept = default;
-
-                        friend compressed tuple_getter(composite_entity const &) { return {}; }
-
-                        template <class... Ptrs>
-                        friend constexpr GT_FUNCTION composite_ptr<Ptrs...> operator+(
-                            composite_ptr<Ptrs...> const &lhs, composite_entity const &rhs) {
-                            return tuple_util::host_device::transform(binop::sum{}, lhs, rhs);
-                        }
-
-                        template <class... Ptrs, class Offset>
-                        friend GT_FUNCTION void sid_shift(composite_ptr<Ptrs...> &ptr,
-                            composite_entity const &stride,
-                            Offset const &GT_RESTRICT offset) {
-                            impl_::composite_shift_impl(ptr.m_vals, stride, offset);
-                        }
-
-                        friend keys hymap_get_keys(composite_entity const &) { return {}; }
                     };
+
+                    template <class... Ts>
+                    friend compressed tuple_getter(composite_entity<Ts...> const &);
+
+                    template <class... Ts>
+                    friend keys hymap_get_keys(composite_entity<Ts...> const &);
+
+                    template <class... Ptrs, class... Ts>
+                    friend constexpr GT_FUNCTION composite_ptr<Ptrs...> operator+(
+                        composite_ptr<Ptrs...> const &lhs, composite_entity<Ts...> const &rhs) {
+                        return tuple_util::host_device::transform(binop::sum{}, lhs, rhs);
+                    }
+
+                    template <class... Ptrs, class... Ts, class Offset>
+                    friend GT_FUNCTION void sid_shift(composite_ptr<Ptrs...> &ptr,
+                        composite_entity<Ts...> const &stride,
+                        Offset const &GT_RESTRICT offset) {
+                        impl_::composite_shift_impl(ptr.m_vals, stride, offset);
+                    }
 
                     template <class... PtrDiffs, class... Strides, class Offset>
                     friend GT_FUNCTION void sid_shift(composite_entity<PtrDiffs...> &GT_RESTRICT ptr_diff,
@@ -357,43 +389,60 @@ namespace gridtools {
                     using ptr_diff_t = GT_META_CALL(compress, (GT_META_CALL(ptr_diff_type, Sids)...));
 
                   public:
-                    // Here the `SID` concept is modeled
+                    GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_sids);
+
+                    friend class keys;
+                };
+
+                struct sids_getter {
+                    template <size_t I, class... Ptrs>
+                    static constexpr GT_FUNCTION auto get(values<Ptrs...> const &obj)
+                        GT_AUTO_RETURN(tuple_util::host_device::get<I>(obj.m_sids));
+                    template <size_t I, class... Ptrs>
+                    static GT_FUNCTION auto get(values<Ptrs...> &obj)
+                        GT_AUTO_RETURN(tuple_util::host_device::get<I>(obj.m_sids));
+                    template <size_t I, class... Ptrs>
+                    static constexpr GT_FUNCTION auto get(values<Ptrs...> &&obj)
+                        GT_AUTO_RETURN(tuple_util::host_device::get<I>(const_expr::move(obj).m_sids));
+                };
+
+                template <class... Sids>
+                friend sids_getter tuple_getter(values<Sids...> const &);
+
+                // Here the `SID` concept is modeled
 
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
-                    // Shame on you CUDA 8!!!
-                    // Why on the Earth a composition of `constexpr` functions could fail to be `constexpr`?
+                // Shame on you CUDA 8!!!
+                // Why on the Earth a composition of `constexpr` functions could fail to be `constexpr`?
 #define GT_SID_COMPOSITE_CONSTEXPR
 #else
 #define GT_SID_COMPOSITE_CONSTEXPR constexpr
 #endif
+                template <class... Sids>
+                friend GT_SID_COMPOSITE_CONSTEXPR typename values<Sids...>::ptr_holder_t sid_get_origin(
+                    values<Sids...> &obj) {
+                    return tuple_util::transform(get_origin_f{}, obj.m_sids);
+                }
 
-                    friend GT_SID_COMPOSITE_CONSTEXPR ptr_holder_t sid_get_origin(values &obj) {
-                        return tuple_util::transform(get_origin_f{}, obj.m_sids);
-                    }
-
-                    friend GT_SID_COMPOSITE_CONSTEXPR strides_t sid_get_strides(values const &obj) {
-                        return tuple_util::convert_to<stride_hymap_keys_t::template values>(
-                            tuple_util::transform(typename compressed_t::convert_f{},
-                                tuple_util::transpose(
-                                    tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>{}, obj.m_sids))));
-                    }
-
+                template <class... Sids>
+                friend GT_SID_COMPOSITE_CONSTEXPR typename values<Sids...>::strides_t sid_get_strides(
+                    values<Sids...> const &obj) {
+                    return tuple_util::convert_to<values<Sids...>::stride_hymap_keys_t::template values>(
+                        tuple_util::transform(typename values<Sids...>::compressed_t::convert_f{},
+                            tuple_util::transpose(tuple_util::transform(
+                                impl_::normalize_strides_f<typename values<Sids...>::stride_keys_t>{}, obj.m_sids))));
+                }
 #undef GT_SID_COMPOSITE_CONSTEXPR
 
-                    friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
+                template <class... Sids>
+                friend typename values<Sids...>::ptr_diff_t sid_get_ptr_diff(values<Sids...> const &);
 
-                    friend GT_META_CALL(meta::dedup, strides_kinds_t) sid_get_strides_kind(values const &) {
-                        return {};
-                    }
+                template <class... Sids>
+                friend GT_META_CALL(meta::dedup, typename values<Sids...>::strides_kinds_t)
+                    sid_get_strides_kind(values<Sids...> const &);
 
-                    // Here the `tuple_like` concept is modeled
-
-                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_sids);
-                    GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_sids);
-
-                    // hymap concept
-                    friend keys hymap_get_keys(values const &) { return {}; }
-                };
+                template <class... Sids>
+                friend keys hymap_get_keys(values<Sids...> const &);
             };
         } // namespace composite
     }     // namespace sid

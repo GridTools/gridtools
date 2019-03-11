@@ -122,22 +122,6 @@
     class_name &operator=(class_name const &) = default;                                                            \
     class_name &operator=(class_name &&) = default
 
-#define GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(class_name, member_name)                                       \
-    struct class_name##_tuple_util_getter {                                                                   \
-        using member_getter_t = GT_META_CALL(::gridtools::tuple_util::traits::getter, decltype(member_name)); \
-        template <size_t I>                                                                                   \
-        static constexpr GT_FUNCTION auto get(class_name const &obj)                                          \
-            GT_AUTO_RETURN(member_getter_t::template get<I>(obj.member_name));                                \
-        template <size_t I>                                                                                   \
-        static GT_FUNCTION auto get(class_name &obj)                                                          \
-            GT_AUTO_RETURN(member_getter_t::template get<I>(obj.member_name));                                \
-        template <size_t I>                                                                                   \
-        static constexpr GT_FUNCTION auto get(class_name &&obj)                                               \
-            GT_AUTO_RETURN(member_getter_t::template get<I>(const_expr::move(obj).member_name));              \
-    };                                                                                                        \
-    friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; }                     \
-    static_assert(1, "")
-
 namespace gridtools {
     namespace tuple_util {
 

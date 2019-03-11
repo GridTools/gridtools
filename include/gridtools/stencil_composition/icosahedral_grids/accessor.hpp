@@ -35,9 +35,11 @@ namespace gridtools {
 
         /**inheriting all constructors from accessor_base*/
         using accessor_base<FieldDimensions>::accessor_base;
-
-        friend meta::always<accessor> tuple_from_types(accessor const &) { return {}; }
     };
+
+    template <uint_t ID, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
+    meta::always<accessor<ID, intent::in, LocationType, Extent, FieldDimensions>> tuple_from_types(
+        accessor<ID, intent::in, LocationType, Extent, FieldDimensions> const &);
 
     template <uint_t ID, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
     using in_accessor = accessor<ID, intent::in, LocationType, Extent, FieldDimensions>;

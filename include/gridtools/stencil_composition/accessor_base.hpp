@@ -112,23 +112,25 @@ namespace gridtools {
             GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
                 "all dimensions should be of different indicies");
         }
+    };
 
-        struct getter {
+    namespace accessor_base_impl_ {
+        struct accessor_base_3_getter {
             template <size_t I>
-            static GT_FORCE_INLINE constexpr enable_if_t<I == 0, int_t> get(accessor_base const &acc) noexcept {
+            static GT_FORCE_INLINE constexpr enable_if_t<I == 0, int_t> get(accessor_base<3> const &acc) noexcept {
                 return acc.data0;
             }
             template <size_t I>
-            static GT_FORCE_INLINE constexpr enable_if_t<I == 1, int_t> get(accessor_base const &acc) noexcept {
+            static GT_FORCE_INLINE constexpr enable_if_t<I == 1, int_t> get(accessor_base<3> const &acc) noexcept {
                 return acc.data1;
             }
             template <size_t I>
-            static GT_FORCE_INLINE constexpr enable_if_t<I == 2, int_t> get(accessor_base const &acc) noexcept {
+            static GT_FORCE_INLINE constexpr enable_if_t<I == 2, int_t> get(accessor_base<3> const &acc) noexcept {
                 return acc.data2;
             }
         };
-        friend getter tuple_getter(accessor_base const &) { return {}; }
-        friend meta::list<int_t, int_t, int_t> tuple_to_types(accessor_base const &) { return {}; }
-    };
+    } // namespace accessor_base_impl_
+    accessor_base_impl_::accessor_base_3_getter tuple_getter(accessor_base<3> const &);
+    meta::list<int_t, int_t, int_t> tuple_to_types(accessor_base<3> const &);
 #endif
 } // namespace gridtools

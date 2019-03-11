@@ -62,9 +62,10 @@ namespace gridtools {
 
         /**inheriting all constructors from accessor_base*/
         using accessor_base<Number>::accessor_base;
-
-        friend meta::always<accessor> tuple_from_types(accessor const &) { return {}; }
     };
+
+    template <uint_t ID, intent Intent, typename Extent, size_t Number>
+    meta::always<accessor<ID, Intent, Extent, Number>> tuple_from_types(accessor<ID, Intent, Extent, Number> const &);
 
     template <uint_t ID, typename Extent = extent<>, size_t Number = 3>
     using in_accessor = accessor<ID, intent::in, Extent, Number>;

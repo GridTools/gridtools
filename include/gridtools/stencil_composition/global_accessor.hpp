@@ -46,16 +46,20 @@ namespace gridtools {
         global_accessor_with_arguments(Args &&... args_) : m_arguments(std::forward<Args>(args_)...) {}
         GT_FUNCTION
         boost::fusion::vector<Args...> const &get_arguments() const { return m_arguments; };
-
-        friend global_accessor_with_arguments tuple_getter(global_accessor_with_arguments const &) { return {}; }
-        friend meta::list<> tuple_to_types(global_accessor_with_arguments const &) { return {}; }
-        friend meta::always<global_accessor_with_arguments> tuple_from_types(global_accessor_with_arguments const &) {
-            return {};
-        }
     };
 
-    template <typename Global, typename... Args>
-    struct is_global_accessor<global_accessor_with_arguments<Global, Args...>> : std::true_type {};
+    template <typename Acc, typename... Args>
+    meta::list<> tuple_getter(global_accessor_with_arguments<Acc, Args...> const &);
+
+    template <typename Acc, typename... Args>
+    meta::list<> tuple_to_types(global_accessor_with_arguments<Acc, Args...> const &);
+
+    template <typename Acc, typename... Args>
+    meta::always<global_accessor_with_arguments<Acc, Args...>> tuple_from_types(
+        global_accessor_with_arguments<Acc, Args...> const &);
+
+    template <typename Acc, typename... Args>
+    struct is_global_accessor<global_accessor_with_arguments<Acc, Args...>> : std::true_type {};
 
     /**
        @brief Object to be accessed regardless of the current iteration point. A global_accessor is always read-only.
@@ -84,11 +88,16 @@ namespace gridtools {
         GT_FUNCTION global_accessor_with_arguments<global_accessor, Args...> operator()(Args &&... args_) {
             return global_accessor_with_arguments<global_accessor, Args...>(std::forward<Args>(args_)...);
         }
-
-        friend global_accessor tuple_getter(global_accessor const &) { return {}; }
-        friend meta::list<> tuple_to_types(global_accessor const &) { return {}; }
-        friend meta::always<global_accessor> tuple_from_types(global_accessor const &) { return {}; }
     };
+
+    template <uint_t I>
+    meta::list<> tuple_getter(global_accessor<I> const &);
+
+    template <uint_t I>
+    meta::list<> tuple_to_types(global_accessor<I> const &);
+
+    template <uint_t I>
+    meta::always<global_accessor<I>> tuple_from_types(global_accessor<I> const &);
 
     template <uint_t I>
     struct is_accessor<global_accessor<I>> : std::true_type {};
