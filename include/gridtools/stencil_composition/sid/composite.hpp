@@ -391,6 +391,33 @@ namespace gridtools {
                   public:
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_sids);
 
+                    // Here the `SID` concept is modeled
+
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+                    // Shame on you CUDA 8!!!
+                    // Why on the Earth a composition of `constexpr` functions could fail to be `constexpr`?
+#define GT_SID_COMPOSITE_CONSTEXPR
+#else
+#define GT_SID_COMPOSITE_CONSTEXPR constexpr
+#endif
+                    friend GT_SID_COMPOSITE_CONSTEXPR ptr_holder_t sid_get_origin(values &obj) {
+                        return tuple_util::transform(get_origin_f{}, obj.m_sids);
+                    }
+
+                    friend GT_SID_COMPOSITE_CONSTEXPR strides_t sid_get_strides(values const &obj) {
+                        return tuple_util::convert_to<stride_hymap_keys_t::template values>(
+                            tuple_util::transform(typename compressed_t::convert_f{},
+                                tuple_util::transpose(
+                                    tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>{}, obj.m_sids))));
+                    }
+#undef GT_SID_COMPOSITE_CONSTEXPR
+
+                    friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
+
+                    friend GT_META_CALL(meta::dedup, strides_kinds_t) sid_get_strides_kind(values const &) {
+                        return {};
+                    }
+
                     friend class keys;
                 };
 
@@ -408,38 +435,6 @@ namespace gridtools {
 
                 template <class... Sids>
                 friend sids_getter tuple_getter(values<Sids...> const &);
-
-                // Here the `SID` concept is modeled
-
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
-                // Shame on you CUDA 8!!!
-                // Why on the Earth a composition of `constexpr` functions could fail to be `constexpr`?
-#define GT_SID_COMPOSITE_CONSTEXPR
-#else
-#define GT_SID_COMPOSITE_CONSTEXPR constexpr
-#endif
-                template <class... Sids>
-                friend GT_SID_COMPOSITE_CONSTEXPR typename values<Sids...>::ptr_holder_t sid_get_origin(
-                    values<Sids...> &obj) {
-                    return tuple_util::transform(get_origin_f{}, obj.m_sids);
-                }
-
-                template <class... Sids>
-                friend GT_SID_COMPOSITE_CONSTEXPR typename values<Sids...>::strides_t sid_get_strides(
-                    values<Sids...> const &obj) {
-                    return tuple_util::convert_to<values<Sids...>::stride_hymap_keys_t::template values>(
-                        tuple_util::transform(typename values<Sids...>::compressed_t::convert_f{},
-                            tuple_util::transpose(tuple_util::transform(
-                                impl_::normalize_strides_f<typename values<Sids...>::stride_keys_t>{}, obj.m_sids))));
-                }
-#undef GT_SID_COMPOSITE_CONSTEXPR
-
-                template <class... Sids>
-                friend typename values<Sids...>::ptr_diff_t sid_get_ptr_diff(values<Sids...> const &);
-
-                template <class... Sids>
-                friend GT_META_CALL(meta::dedup, typename values<Sids...>::strides_kinds_t)
-                    sid_get_strides_kind(values<Sids...> const &);
 
                 template <class... Sids>
                 friend keys hymap_get_keys(values<Sids...> const &);
