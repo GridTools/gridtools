@@ -35,7 +35,7 @@
     the boundary corresponding to that direction can be accessed.
  */
 
-#include <gridtools/boundary-conditions/boundary.hpp>
+#include <gridtools/boundary_conditions/boundary.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <iostream>
 

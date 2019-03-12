@@ -1,4 +1,4 @@
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 
 using namespace gridtools;
 

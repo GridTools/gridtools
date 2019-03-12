@@ -107,13 +107,11 @@
 #include <utility>
 
 #include "../meta.hpp"
-#include "array.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
 #include "generic_metafunctions/implicit_cast.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
-#include "pair.hpp"
 
 #define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                              \
     template <class... Args, enable_if_t<std::is_constructible<decltype(member_name), Args &&...>::value, int> = 0> \
@@ -153,13 +151,12 @@ namespace gridtools {
                     using type = meta::lazy::id<void>;
                 };
 
-                /// implementation of the `from_types`  for `std::array` and its gridtools clone
+                /// implementation of the `from_types`  for `std::array`
                 //
-                template <template <class, size_t> class Arr>
                 struct array_from_types {
                     template <class... Ts>
                     GT_META_DEFINE_ALIAS(
-                        apply, meta::id, (Arr<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>));
+                        apply, meta::id, (std::array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>));
                 };
 
                 /// getter for the standard "tuple like" entities: `std::tuple`, `std::pair` and `std::array`
@@ -168,14 +165,6 @@ namespace gridtools {
                     template <size_t I, class T>
                     GT_FORCE_INLINE static constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(
                         std::get<I>(const_expr::forward<T>(obj)));
-                };
-
-                /// getter for gridtools clones of the standard "tuple like" entities
-                //
-                struct gt_getter {
-                    template <size_t I, class T>
-                    GT_FUNCTION static constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(
-                        ::gridtools::get<I>(const_expr::forward<T>(obj)));
                 };
             } // namespace _impl
 
@@ -193,11 +182,6 @@ namespace gridtools {
             GT_META_CALL(meta::repeat_c, (N, T))
             tuple_to_types(std::array<T, N>);
 
-            // the same for the gridtools clone
-            template <class T, size_t N>
-            GT_META_CALL(meta::repeat_c, (N, T))
-            tuple_to_types(::gridtools::array<T, N>);
-
             // from_types
 
             // generic `tuple_from_types` that works for `std::tuple`, `std::pair` and its clones.
@@ -207,9 +191,7 @@ namespace gridtools {
 
             // arrays specialization.
             template <class T, size_t N>
-            _impl::array_from_types<std::array> tuple_from_types(std::array<T, N>);
-            template <class T, size_t N>
-            _impl::array_from_types<::gridtools::array> tuple_from_types(::gridtools::array<T, N>);
+            _impl::array_from_types tuple_from_types(std::array<T, N>);
 
             // getter
 
@@ -220,12 +202,6 @@ namespace gridtools {
             _impl::std_getter tuple_getter(std::pair<T, U>);
             template <class T, size_t N>
             _impl::std_getter tuple_getter(std::array<T, N>);
-
-            // gridtools stuff uses gridtools clone of `std::get`
-            template <class T, class U>
-            _impl::gt_getter tuple_getter(::gridtools::pair<T, U>);
-            template <class T, size_t N>
-            _impl::gt_getter tuple_getter(::gridtools::array<T, N>);
 
             // end of builtin adaptations
 

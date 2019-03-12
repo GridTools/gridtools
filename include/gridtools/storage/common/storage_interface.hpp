@@ -85,16 +85,6 @@ namespace gridtools {
         void swap(storage_interface &other) { static_cast<Derived *>(this)->swap_impl(static_cast<Derived &>(other)); }
 
         /*
-         * @brief This method retrieves all pointers that are contained in the storage (in case of host_storage
-         * only one pointer, in case of cuda_storage two pointers).
-         * @return struct that contains the pointer(s)
-         */
-        template <typename T>
-        T get_ptrs() const {
-            return static_cast<Derived const *>(this)->get_ptrs_impl();
-        }
-
-        /*
          * @brief This method returns information about validity of the storage (e.g., no nullptrs, etc.).
          * @return true if the storage is valid, false otherwise
          */

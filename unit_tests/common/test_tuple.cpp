@@ -21,9 +21,7 @@ namespace gridtools {
     namespace {
 
         template <size_t I>
-        struct an_empty {
-            static constexpr size_t value = I;
-        };
+        using an_empty = std::integral_constant<size_t, I>;
 
         struct move_only {
             int value;
@@ -42,9 +40,6 @@ namespace gridtools {
             take_move_only() = default;
             GT_FUNCTION take_move_only(move_only src) : value(src.value) {}
         };
-
-        template <size_t I>
-        const size_t an_empty<I>::value;
 
         // empty base optimization works
         static_assert(sizeof(tuple<an_empty<0>, an_empty<1>, an_empty<3>>) == sizeof(an_empty<0>), "");

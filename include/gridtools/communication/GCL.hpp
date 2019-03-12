@@ -17,10 +17,10 @@
 #include "../common/host_device.hpp"
 
 #ifdef GCL_TRACE
-#include "high-level/stats_collector.hpp"
+#include "high_level/stats_collector.hpp"
 #endif
 
-#include "low-level/gcl_arch.hpp"
+#include "low_level/gcl_arch.hpp"
 
 #ifdef GCL_GPU
 

@@ -30,9 +30,6 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s1.get_cpu_ptr()[0], 10);
     EXPECT_EQ(s2.get_cpu_ptr()[1], 200);
     EXPECT_EQ(s2.get_cpu_ptr()[0], 100);
-    // ptr ref should be equal to the cpu ptr
-    EXPECT_EQ(s1.get_cpu_ptr(), s1.get_ptrs<typename gridtools::host_storage<int>::ptrs_t>());
-    EXPECT_EQ(s2.get_cpu_ptr(), s2.get_ptrs<typename gridtools::host_storage<int>::ptrs_t>());
     // swap storages
     s1.swap(s2);
     // check if changes are there
