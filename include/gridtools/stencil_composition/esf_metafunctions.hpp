@@ -44,17 +44,17 @@ namespace gridtools {
                             Pair::second::jminus::value == 0 && Pair::second::jplus::value == 0> {};
 
         template <class Esf>
-        GT_META_DEFINE_ALIAS(get_items, meta::zip, (GT_META_CALL(esf_param_list, Esf), typename Esf::args_t));
+        GT_META_DEFINE_ALIAS(get_items, meta::zip, (typename Esf::args_t, GT_META_CALL(esf_param_list, Esf)));
 
         template <intent Intent>
         struct has_intent {
-            template <class Item, class Param = GT_META_CALL(meta::first, Item)>
+            template <class Item, class Param = GT_META_CALL(meta::second, Item)>
             GT_META_DEFINE_ALIAS(apply, bool_constant, Param::intent_v == Intent);
         };
 
         template <class Item,
-            class Param = GT_META_CALL(meta::first, Item),
-            class Arg = GT_META_CALL(meta::second, Item)>
+            class Param = GT_META_CALL(meta::second, Item),
+            class Arg = GT_META_CALL(meta::first, Item)>
         GT_META_DEFINE_ALIAS(get_arg_extent_pair, boost::mpl::pair, (Arg, typename Param::extent_t));
     } // namespace esf_metafunctions_impl_
 
@@ -65,7 +65,7 @@ namespace gridtools {
         class AllItems = GT_META_CALL(esf_metafunctions_impl_::get_items, Esf),
         class WItems = GT_META_CALL(
             meta::filter, (esf_metafunctions_impl_::has_intent<intent::inout>::apply, AllItems))>
-    GT_META_DEFINE_ALIAS(esf_get_w_args_per_functor, meta::transform, (meta::second, WItems));
+    GT_META_DEFINE_ALIAS(esf_get_w_args_per_functor, meta::transform, (meta::first, WItems));
 
     /**
      * Provide a tuple of pairs of placeholders and extents that corresponds to fields that are written by Esf.
@@ -94,7 +94,7 @@ namespace gridtools {
         class AllItems = GT_META_CALL(meta::flatten, ItemLists),
         class AllRwItems = GT_META_CALL(
             meta::filter, (esf_metafunctions_impl_::has_intent<intent::inout>::apply, AllItems)),
-        class AllRwArgs = GT_META_CALL(meta::transform, (meta::second, AllRwItems))>
+        class AllRwArgs = GT_META_CALL(meta::transform, (meta::first, AllRwItems))>
     GT_META_DEFINE_ALIAS(compute_readwrite_args, meta::dedup, AllRwArgs);
 
     /**
@@ -109,5 +109,4 @@ namespace gridtools {
     template <class Esfs,
         class EsfLists = GT_META_CALL(meta::transform, (esf_metafunctions_impl_::tuple_from_esf, Esfs))>
     GT_META_DEFINE_ALIAS(unwrap_independent, meta::flatten, EsfLists);
-
 } // namespace gridtools

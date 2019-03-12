@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <boost/mpl/equal.hpp>
+#include <boost/mpl/vector.hpp>
 
 #include <gtest/gtest.h>
 
@@ -45,7 +46,7 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
         esf1_t(), // esf_descriptor
         esf2_t()  // esf_descriptor
         )) mss_t;
-    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, make_param_list<esf1_t, esf2_t>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, boost::mpl::vector<esf1_t, esf2_t>>::value), "ERROR");
 
 #ifndef GT_DISABLE_CACHING
     GT_STATIC_ASSERT((boost::mpl::equal<mss_t::cache_sequence_t,

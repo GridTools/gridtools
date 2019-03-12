@@ -10,7 +10,6 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/accessor_metafunctions.hpp>
 #include <gridtools/stencil_composition/global_accessor.hpp>
 #include <gridtools/stencil_composition/icosahedral_grids/accessor.hpp>
 

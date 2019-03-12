@@ -13,6 +13,7 @@
 
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../meta.hpp"
+#include "../arg.hpp"
 #include "../esf_fwd.hpp"
 #include "extent.hpp"
 

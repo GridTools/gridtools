@@ -9,16 +9,13 @@
  */
 #pragma once
 
-#include <tuple>
-
 namespace gridtools {
     /**
-       This is a syntactic token which is used to declare the public
-       interface of a stencil operator. This is used to define the
-       tuple of arguments/accessors that a stencil operator expects.
+       This is a syntactic token which is used to declare the public interface of a stencil operator.
+       This is used to define the tuple of arguments/accessors that a stencil operator expects.
      */
-    template <class... Ts>
-    using make_param_list = std::tuple<Ts...>;
+    template <class...>
+    struct make_param_list;
 } // namespace gridtools
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
