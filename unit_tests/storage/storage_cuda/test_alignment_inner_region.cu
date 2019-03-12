@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/storage_info_extender.hpp>
 #include <gridtools/storage/storage_facility.hpp>
 #include <gtest/gtest.h>
 #include <iostream>

@@ -30,4 +30,3 @@
 #include "make_computation.hpp"
 #include "make_stage.hpp"
 #include "make_stencils.hpp"
-#include "storage_info_extender.hpp"

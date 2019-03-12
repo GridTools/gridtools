@@ -13,6 +13,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
+#include "../../meta/always.hpp"
 #include "../accessor_base.hpp"
 #include "../accessor_intent.hpp"
 #include "../extent.hpp"
@@ -25,21 +26,20 @@ namespace gridtools {
      */
     template <uint_t ID, intent Intent, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
     struct accessor : accessor_base<FieldDimensions> {
-        GT_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
+        GT_STATIC_ASSERT(is_location_type<LocationType>::value, "Error: wrong type");
         using index_t = static_uint<ID>;
         static constexpr intent intent_v = Intent;
         using extent_t = Extent;
         using location_type = LocationType;
         static constexpr uint_t value = ID;
-        location_type location() const { return location_type(); }
 
         /**inheriting all constructors from accessor_base*/
         using accessor_base<FieldDimensions>::accessor_base;
-
-        template <uint_t OtherID, typename std::enable_if<ID != OtherID, int>::type = 0>
-        GT_FUNCTION accessor(accessor<OtherID, Intent, LocationType, Extent, FieldDimensions> const &src)
-            : accessor_base<FieldDimensions>(src) {}
     };
+
+    template <uint_t ID, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
+    meta::always<accessor<ID, intent::in, LocationType, Extent, FieldDimensions>> tuple_from_types(
+        accessor<ID, intent::in, LocationType, Extent, FieldDimensions> const &);
 
     template <uint_t ID, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
     using in_accessor = accessor<ID, intent::in, LocationType, Extent, FieldDimensions>;
