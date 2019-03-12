@@ -12,7 +12,6 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/copy_into_variadic.hpp"
 #include "../../meta.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../extent.hpp"
@@ -27,12 +26,12 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(
                 get_extent, meta::if_, (std::is_same<Arg, EsfArg>, typename Accessor::extent_t, extent<>));
 
-            template <class Esf, class Args = typename Esf::args_t>
+            template <class Esf>
             GT_META_DEFINE_ALIAS(apply,
                 meta::rename,
                 (enclosing_extent,
                     GT_META_CALL(meta::transform,
-                        (get_extent, Args, copy_into_variadic<typename esf_param_list<Esf>::type, meta::list<>>))));
+                        (get_extent, typename Esf::args_t, typename Esf::esf_function_t::param_list))));
         };
     } // namespace extract_extent_caches_impl_
 

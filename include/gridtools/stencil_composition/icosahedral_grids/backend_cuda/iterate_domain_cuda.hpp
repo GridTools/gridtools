@@ -38,7 +38,7 @@ namespace gridtools {
         using base_t::increment_i;
         using base_t::increment_j;
 
-        using readwrite_args_t = typename compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>::type;
+        using readwrite_args_t = GT_META_CALL(compute_readwrite_args, typename IterateDomainArguments::esf_sequence_t);
         using strides_cached_t = typename base_t::strides_cached_t;
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
@@ -101,9 +101,8 @@ namespace gridtools {
          */
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
         template <class Arg, class T>
-        static GT_FUNCTION
-            enable_if_t<!boost::mpl::has_key<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
-            deref_impl(T const *ptr) {
+        static GT_FUNCTION enable_if_t<!meta::st_contains<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
+        deref_impl(T const *ptr) {
             return __ldg(ptr);
         }
 #endif

@@ -34,25 +34,6 @@ namespace gridtools {
         };
     } // namespace icgrid
 
-    template <typename Esf>
-    struct esf_param_list {
-        template <typename Set, typename Item>
-        struct insert_arglist {
-            typedef typename boost::mpl::insert<Set, typename Esf::template esf_function<Item::value>::param_list>::type
-                type;
-        };
-
-        GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::fold<boost::mpl::range_c<uint_t, 0, Esf::location_type::n_colors::value>,
-            boost::mpl::set0<>,
-            insert_arglist<boost::mpl::_1, boost::mpl::_2>>::type checkset;
-        GT_STATIC_ASSERT((boost::mpl::size<checkset>::value == 1),
-            "Multiple Color specializations of the same ESF must contain the same arg list");
-
-        typedef typename Esf::template esf_function<0>::param_list type;
-    };
-
     /** Retrieve the extent in esf_descriptor_with_extents
 
        \tparam Esf The esf_descriptor that must be the one speficying the extent
@@ -71,6 +52,23 @@ namespace gridtools {
     };
 
     GT_META_LAZY_NAMESPACE {
+        template <class Esf>
+        struct esf_param_list {
+            GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(Esf::location_type::n_colors::value > 0, GT_INTERNAL_ERROR);
+
+            template <class I>
+            GT_META_DEFINE_ALIAS(nth_param, meta::id, typename Esf::template esf_function<I::value>::param_list);
+
+            using colors_t = GT_META_CALL(meta::make_indices_c, Esf::location_type::n_colors::value);
+            using param_lists_t = GT_META_CALL(meta::transform, (nth_param, colors_t));
+
+            GT_STATIC_ASSERT(meta::all_are_same<param_lists_t>::value,
+                "Multiple Color specializations of the same ESF must contain the same param list");
+
+            using type = GT_META_CALL(meta::first, param_lists_t);
+        };
+
         template <class Esf, class Args>
         struct esf_replace_args;
 
@@ -90,6 +88,7 @@ namespace gridtools {
             using type = esf_descriptor_with_extent<F, Grid, Location, Extent, Color, NewArgs>;
         };
     }
+    GT_META_DELEGATE_TO_LAZY(esf_param_list, class Esf, Esf);
     GT_META_DELEGATE_TO_LAZY(esf_replace_args, (class Esf, class Args), (Esf, Args));
 
 } // namespace gridtools

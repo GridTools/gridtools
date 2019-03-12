@@ -14,6 +14,7 @@
 #include <boost/fusion/include/flatten.hpp>
 #include <boost/fusion/include/move.hpp>
 #include <boost/fusion/include/mpl.hpp>
+#include <boost/mpl/set.hpp>
 #include <boost/mpl/transform_view.hpp>
 #include <boost/optional.hpp>
 
@@ -185,11 +186,8 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(get_local_domains, meta::transform, (GetLocalDomain::template apply, MssComponentsList));
 
         template <class Mss>
-        GT_META_DEFINE_ALIAS(rw_args_from_mss,
-            meta::id,
-            (copy_into_variadic<
-                typename compute_readwrite_args<GT_META_CALL(unwrap_independent, typename Mss::esf_sequence_t)>::type,
-                std::tuple<>>));
+        GT_META_DEFINE_ALIAS(
+            rw_args_from_mss, compute_readwrite_args, GT_META_CALL(unwrap_independent, typename Mss::esf_sequence_t));
 
         template <class Msses,
             class RwArgsLists = GT_META_CALL(meta::transform, (rw_args_from_mss, Msses)),

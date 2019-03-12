@@ -15,20 +15,18 @@
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../meta.hpp"
 #include "../arg.hpp"
-#include "../esf_aux.hpp"
 #include "../esf_fwd.hpp"
 #include "../extent.hpp"
 #include "color.hpp"
-#include "grid.hpp"
 #include "icosahedral_topology.hpp"
 
 namespace gridtools {
     namespace esf_impl_ {
-        template <typename Arg, typename Accessor>
+        template <class Arg, class Accessor>
         GT_META_DEFINE_ALIAS(
             is_same_location, std::is_same, (typename Arg::location_t, typename Accessor::location_type));
 
-        template <typename Args, typename Accessors>
+        template <class Args, class Accessors>
         GT_META_DEFINE_ALIAS(
             are_same_locations, meta::all, (GT_META_CALL(meta::transform, (is_same_location, Args, Accessors))));
 
@@ -39,7 +37,7 @@ namespace gridtools {
         struct has_param_list<T, void_t<typename T::param_list>> : std::true_type {};
     } // namespace esf_impl_
 
-    template <template <uint_t> class EsfFunction, typename Grid, typename LocationType, typename Color, typename Args>
+    template <template <uint_t> class EsfFunction, class Grid, class LocationType, class Color, class Args>
     struct esf_descriptor {
         GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value),
             "wrong types for the list of parameter placeholders check the make_stage syntax");
@@ -63,60 +61,48 @@ namespace gridtools {
         using location_type = LocationType;
         using args_t = Args;
         using color_t = Color;
-
-        /** Type member with the mapping between placeholder types (as key) to extents in the operator */
-        using args_with_extents_t =
-            typename impl::make_arg_with_extent_map<args_t, typename EsfFunction<0>::param_list>::type;
     };
 
-    template <template <uint_t> class Functor,
-        typename Grid,
-        typename LocationType,
-        typename Color,
-        typename ArgSequence>
-    struct is_esf_descriptor<esf_descriptor<Functor, Grid, LocationType, Color, ArgSequence>> : std::true_type {};
+    template <template <uint_t> class EsfFunction, class Grid, class LocationType, class Color, class Args>
+    struct is_esf_descriptor<esf_descriptor<EsfFunction, Grid, LocationType, Color, Args>> : std::true_type {};
 
-    template <typename T>
+    template <class T>
     struct esf_get_location_type;
 
-    template <template <uint_t> class Functor,
-        typename Grid,
-        typename LocationType,
-        typename Color,
-        typename ArgSequence>
-    struct esf_get_location_type<esf_descriptor<Functor, Grid, LocationType, Color, ArgSequence>> {
-        typedef LocationType type;
+    template <template <uint_t> class EsfFunction, class Grid, class LocationType, class Color, class Args>
+    struct esf_get_location_type<esf_descriptor<EsfFunction, Grid, LocationType, Color, Args>> {
+        using type = LocationType;
     };
 
-    template <template <uint_t> class Functor,
-        typename Grid,
-        typename LocationType,
-        typename Extent,
-        typename Color,
-        typename ArgSequence>
-    struct esf_descriptor_with_extent : esf_descriptor<Functor, Grid, LocationType, Color, ArgSequence> {
+    template <template <uint_t> class EsfFunction,
+        class Grid,
+        class LocationType,
+        class Extent,
+        class Color,
+        class Args>
+    struct esf_descriptor_with_extent : esf_descriptor<EsfFunction, Grid, LocationType, Color, Args> {
         GT_STATIC_ASSERT(is_extent<Extent>::value, "stage descriptor is expecting a extent type");
     };
 
-    template <template <uint_t> class Functor,
-        typename Grid,
-        typename LocationType,
-        typename Extent,
-        typename Color,
-        typename ArgSequence>
-    struct is_esf_descriptor<esf_descriptor_with_extent<Functor, Grid, LocationType, Extent, Color, ArgSequence>>
+    template <template <uint_t> class EsfFunction,
+        class Grid,
+        class LocationType,
+        class Extent,
+        class Color,
+        class Args>
+    struct is_esf_descriptor<esf_descriptor_with_extent<EsfFunction, Grid, LocationType, Extent, Color, Args>>
         : std::true_type {};
 
     template <typename>
     struct is_esf_with_extent : std::false_type {};
 
-    template <template <uint_t> class Functor,
-        typename Grid,
-        typename LocationType,
-        typename Extent,
-        typename Color,
-        typename ArgSequence>
-    struct is_esf_with_extent<esf_descriptor_with_extent<Functor, Grid, LocationType, Extent, Color, ArgSequence>>
+    template <template <uint_t> class EsfFunction,
+        class Grid,
+        class LocationType,
+        class Extent,
+        class Color,
+        class Args>
+    struct is_esf_with_extent<esf_descriptor_with_extent<EsfFunction, Grid, LocationType, Extent, Color, Args>>
         : std::true_type {};
 
 } // namespace gridtools

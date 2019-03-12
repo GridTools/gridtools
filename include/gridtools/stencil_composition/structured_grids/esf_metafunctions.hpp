@@ -9,19 +9,14 @@
  */
 #pragma once
 
-#include <boost/mpl/equal.hpp>
-
 #include "../../common/defs.hpp"
 #include "../../meta/macros.hpp"
 #include "./esf.hpp"
 
 namespace gridtools {
 
-    template <typename Esf>
-    struct esf_param_list {
-        GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
-        typedef typename Esf::esf_function_t::param_list type;
-    };
+    template <class Esf>
+    GT_META_DEFINE_ALIAS(esf_param_list, meta::id, typename Esf::esf_function_t::param_list);
 
     /** Retrieve the extent in esf_descriptor_with_extents
 

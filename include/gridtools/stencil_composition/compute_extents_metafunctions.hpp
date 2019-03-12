@@ -11,8 +11,10 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/mpl/map.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/reverse.hpp>
+#include <boost/mpl/transform.hpp>
 
 #include "../common/gt_assert.hpp"
 #include "esf_metafunctions.hpp"
@@ -210,7 +212,7 @@ namespace gridtools {
                 typedef typename boost::mpl::pop_front<ESFs>::type rest_of_ESFs;
 
                 // First determine which are the outputs
-                typedef typename esf_get_w_per_functor<current_ESF, boost::true_type>::type outputs_original;
+                using outputs_original = GT_META_CALL(esf_get_w_per_functor, current_ESF);
                 GT_STATIC_ASSERT(boost::mpl::size<outputs_original>::value,
                     "there seems to be a functor without output fields "
                     "check that each stage has at least one accessor "
@@ -218,7 +220,7 @@ namespace gridtools {
                 typedef typename remove_global_accessors<outputs_original>::type outputs;
 
 #ifndef __CUDACC__
-                GT_STATIC_ASSERT(check_all_horizotal_extents_are_zero<outputs>::type::value,
+                GT_STATIC_ASSERT(check_all_horizotal_extents_are_zero<outputs>::value,
                     "Horizontal extents of the outputs of ESFs are not all empty. "
                     "All outputs must have empty (horizontal) extents");
 #endif
@@ -253,7 +255,7 @@ namespace gridtools {
                 typedef typename boost::mpl::transform<outputs, substitute_extent<mee_outputs>>::type updated_outputs;
 
                 // Then determine the inputs
-                typedef typename esf_get_r_per_functor<current_ESF, boost::true_type>::type inputs;
+                using inputs = GT_META_CALL(esf_get_r_per_functor, current_ESF);
 
                 GT_STATIC_ASSERT((is_sequence_of<inputs, pair_arg_extent>::value), GT_INTERNAL_ERROR);
 
@@ -355,8 +357,8 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(_impl::is_extent_map<ExtentMap>::value, GT_INTERNAL_ERROR);
 
-        using w_plcs = typename esf_get_w_per_functor<Esf>::type;
-        using first_out = typename boost::mpl::at_c<w_plcs, 0>::type;
+        using w_plcs = GT_META_CALL(esf_get_w_args_per_functor, Esf);
+        using first_out = GT_META_CALL(meta::first, w_plcs);
         using type = typename boost::mpl::at<ExtentMap, first_out>::type;
         // TODO recover
         //                GT_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs,

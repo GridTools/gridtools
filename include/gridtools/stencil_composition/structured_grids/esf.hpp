@@ -13,7 +13,6 @@
 
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../meta.hpp"
-#include "../esf_aux.hpp"
 #include "../esf_fwd.hpp"
 #include "extent.hpp"
 
@@ -62,30 +61,19 @@ namespace gridtools {
 
         using esf_function_t = EsfFunction;
         using args_t = Args;
-
-        /** Type member with the mapping between placeholder types (as key) to extents in the operator */
-        using args_with_extents_t =
-            typename impl::make_arg_with_extent_map<args_t, typename EsfFunction::param_list>::type;
     };
 
-    template <typename ESF, typename ArgArray>
-    struct is_esf_descriptor<esf_descriptor<ESF, ArgArray>> : std::true_type {};
+    template <class EsfFunction, class Args>
+    struct is_esf_descriptor<esf_descriptor<EsfFunction, Args>> : std::true_type {};
 
-    template <typename ESF, typename Extent, typename ArgArray>
-    struct esf_descriptor_with_extent : esf_descriptor<ESF, ArgArray> {
-        GT_STATIC_ASSERT((is_extent<Extent>::value), "stage descriptor is expecting a extent type");
+    template <class EsfFunction, class Extent, class Args>
+    struct esf_descriptor_with_extent : esf_descriptor<EsfFunction, Args> {
+        GT_STATIC_ASSERT(is_extent<Extent>::value, "stage descriptor is expecting a extent type");
     };
 
-    template <typename ESF, typename Extent, typename ArgArray>
-    struct is_esf_descriptor<esf_descriptor_with_extent<ESF, Extent, ArgArray>> : std::true_type {};
+    template <class EsfFunction, class Extent, class Args>
+    struct is_esf_descriptor<esf_descriptor_with_extent<EsfFunction, Extent, Args>> : std::true_type {};
 
-    template <typename ESF>
-    struct is_esf_with_extent : std::false_type {
-        GT_STATIC_ASSERT(is_esf_descriptor<ESF>::type::value,
-            GT_INTERNAL_ERROR_MSG("is_esf_with_extents expects an esf_descripto as template argument"));
-    };
-
-    template <typename ESF, typename Extent, typename ArgArray>
-    struct is_esf_with_extent<esf_descriptor_with_extent<ESF, Extent, ArgArray>> : std::true_type {};
-
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_esf_with_extent, meta::is_instantiation_of, (esf_descriptor_with_extent, T));
 } // namespace gridtools
