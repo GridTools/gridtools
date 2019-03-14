@@ -19,13 +19,13 @@ Design Principles:
 Communication Traits
 ------------------------
 
-Communication traits helps the distributed boundary condition interface to customize itself to the need of the user. A general communication traits class is available in ``distributed-boundaries/comm_traits.hpp``. The traits required by the distributed boundaries interface, as provided by |GT|, are listed below here.
+Communication traits helps the distributed boundary condition interface to customize itself to the need of the user. A general communication traits class is available in ``distributed_boundaries/comm_traits.hpp``. The traits required by the distributed boundaries interface, as provided by |GT|, are listed below here.
 
 .. code-block:: gridtools
 
   template <typename StorageType, typename Arch>
   struct comm_traits {
-    using proc_layout = ... // Lauyout of the processing grid to relate the data layout to the distribution of data
+    using proc_layout = ... // Layout of the processing grid to relate the data layout to the distribution of data
     using proc_grid_type = ... // Type of the computing grid
     using comm_arch_type = Arch; // Architecture for the communication pattern
     compute_arch = ... // Architecture of the stencil/boundary condition backend
@@ -53,7 +53,7 @@ The number of :term:`Data Stores<Data Store>` is dictated by the ``boundary_clas
 
 The :term:`Data Stores<Data Store>` specified in the function call will be passed to the ``boundary_class`` and also used in :term:`Halo`-update operations.
 
-However, some data fields used in boundary conditions may be read-only and should not be passed to the :term:`Halo`-update operation, both for avoiding unnecessary operations and to limit the amount of memory used by the :term:`Halo`-update layer. For this reason the ``data_store``s passed the the ``bind_bc`` can actually be ``std::placeholders``. Only the actual ``data_store``s specified in the ``binc_bc`` call will be passed to the communication layer. To bind the ``placeholders`` to actual ``data_store``s the user must bind then using ``.associate(data_stores...)`` with the same mechanism used in ``std::bind`` as in the following example, in which ``data_store`` ``c`` is associated to placeholder ``_1``.
+However, some data fields used in boundary conditions may be read-only and should not be passed to the :term:`Halo`-update operation, both for avoiding unnecessary operations and to limit the amount of memory used by the :term:`Halo`-update layer. For this reason the ``data_store``s passed the ``bind_bc`` can actually be ``std::placeholders``. Only the actual ``data_store``s specified in the ``bind_bc`` call will be passed to the communication layer. To bind the ``placeholders`` to actual ``data_store``s the user must bind then using ``.associate(data_stores...)`` with the same mechanism used in ``std::bind`` as in the following example, in which ``data_store`` ``c`` is associated to placeholder ``_1``.
 
 .. code-block:: gridtools
 

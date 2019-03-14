@@ -9,7 +9,7 @@
  */
 #include <common/boollist.hpp>
 #include <communication/GCL.hpp>
-#include <communication/high-level/descriptors.hpp>
+#include <communication/high_level/descriptors.hpp>
 #include <fstream>
 #include <iostream>
 #include <mpi.h>

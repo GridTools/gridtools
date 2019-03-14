@@ -11,7 +11,7 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/common/gt_assert.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <iostream>
 #include <utility>

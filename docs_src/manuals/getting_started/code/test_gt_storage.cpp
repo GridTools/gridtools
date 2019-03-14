@@ -1,5 +1,5 @@
-#include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <iostream>
 
 using namespace gridtools;
