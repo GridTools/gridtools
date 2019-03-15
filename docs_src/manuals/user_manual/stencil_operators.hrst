@@ -80,7 +80,7 @@ where
 
   An extent takes three pairs of numbers, one pair for each dimension of the iteration space. The first number of the
   pair must be non-positive and indicates the maximum offset in the direction of *decreasing* indices (also called minus
-  direction*). The the second number must be non-negative and indicates the maximum offset in the direction of
+  direction*). The second number must be non-negative and indicates the maximum offset in the direction of
   *increasing* indices (also called plus direction*). Numbers can be ommitted and default to zero.
 
   Example:
@@ -203,7 +203,7 @@ identifying the actual value to access. The evaluation returns a reference to th
 
 .. note::
 
- Writing into non-zero offsets is considered bad practice and may be forbidden in the future.
+ Writing into non-zero offsets is considered bad practice and can lead to incorrect computations. This may be forbidden in the future.
 
 
 The next example calculates the average of two neighbored values in the first dimension and assign it to the output

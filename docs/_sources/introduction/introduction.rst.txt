@@ -35,7 +35,7 @@ Installation and Use
 
  GT_ENABLE_TARGET_CUDA # For CUDA GPUs
  GT_ENABLE_TARGET_X86  # For cache based multicores and naive implementation
- GT_ENABLE_TARGET_MC   # For optimized multicores and KNL
+ GT_ENABLE_TARGET_MC   # For wide vector instructions multicores and KNL
 
 All the targets can be installed and used at the same time, but some runtime components may lead to incompatibilities or complex environments to make the codes run. It may be more effective to do multiple installs of the library for different targets in this case.
 
@@ -113,4 +113,4 @@ Targets that need |GT| should link against ``GridTools::gridtools``. If the comm
 Contributing
 -----------------------------
 
-Contributions to the |GT| set of libraries are welcome. However, our policy is that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.
+Contributions to the |GT| set of libraries are welcome. However, our policy is that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed Contributor License Agreement (CLA) to ETH Zurich.
