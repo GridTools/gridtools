@@ -123,7 +123,8 @@ namespace gridtools {
         typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
 
       private:
-        hndlr_dynamic_ut(hndlr_dynamic_ut const &) {}
+        hndlr_dynamic_ut(hndlr_dynamic_ut const &) = delete;
+        hndlr_dynamic_ut(hndlr_dynamic_ut &&) = delete;
 
       public:
 #ifdef GCL_TRACE

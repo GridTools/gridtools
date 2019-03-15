@@ -531,7 +531,8 @@ namespace gridtools {
         typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
 
       private:
-        hndlr_dynamic_ut(hndlr_dynamic_ut const &) {}
+        hndlr_dynamic_ut(hndlr_dynamic_ut const &) = delete;
+        hndlr_dynamic_ut(hndlr_dynamic_ut &&) = delete;
 
       public:
         /**
@@ -541,9 +542,7 @@ namespace gridtools {
            \param[in] comm MPI communicator (typically MPI_Comm_world)
         */
         explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
-            : base_type(c, comm), halo() {}
-
-        hndlr_dynamic_ut(hndlr_dynamic_ut &&) {}
+            : base_type(c, comm), halo(), send_buffer{nullptr}, recv_buffer{nullptr}, send_size{0}, recv_size{0} {}
 
         ~hndlr_dynamic_ut() {
 #ifdef GCL_CHECK_DESTRUCTOR
@@ -561,15 +560,17 @@ namespace gridtools {
            \param[in] _pid Integer identifier of the process calling the constructor
          */
         explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, int _P, int _pid)
-            : halo(), base_type::m_haloexch(grid_type(c, _P, _pid)) // procgrid)
-        {}
+            : halo(), base_type::m_haloexch(grid_type(c, _P, _pid)), send_buffer{nullptr},
+              recv_buffer{nullptr}, send_size{0}, recv_size{0} {}
 
         /**
            Constructor
 
            \param[in] g A processor grid that will execute the pattern
          */
-        explicit hndlr_dynamic_ut(grid_type const &g) : halo(), base_type::m_haloexch(g) {}
+        explicit hndlr_dynamic_ut(grid_type const &g)
+            : halo(), base_type::m_haloexch(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_size{0}, recv_size{0} {
+        }
 
         /**
            Function to setup internal data structures for data exchange and preparing eventual underlying layers
