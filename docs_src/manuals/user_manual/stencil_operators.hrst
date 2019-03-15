@@ -167,8 +167,9 @@ A stencil operator can have several ``apply``-methods, defining the functors to 
 Intervals<Vertical Interval>`. An ``apply`` method takes at most two arguments:
 
 1. The first argument is a templated parameter usually called ``eval`` that holds internal information.
-2. The second arguments optionally specifies the Vertical Interval to which functor is applied to. If this argument is
-   skipped, the stencil is applied to the whole axis.
+2. The second arguments specifies the Vertical Interval to which functor is applied to. If the grid is not created with
+   an axis, but only with a vertical size, this argument can be skipped and the stencil is applied to the whole axis.
+   Whenever the grid is created using an axis, the user should specify a vertical interval for each method.
 
 Example:
 
@@ -201,10 +202,6 @@ evaluation as a triplet ``i``, ``j`` and ``k``, and those offsets are added to t
 identifying the actual value to access. The evaluation returns a reference to the value for accessors with
 ``inout``-intent, and a const reference for :term:`Accessors<Accessor>` with ``in``-intent.
 
-.. note::
-
- Writing into non-zero offsets is considered bad practice and can lead to incorrect computations. This may be forbidden in the future.
-
 
 The next example calculates the average of two neighbored values in the first dimension and assign it to the output
 field:
@@ -213,21 +210,22 @@ field:
 
  eval(out()) = (eval(in()) + eval(in(1, 0, 0))) / 2;
 
+.. note::
+
+ 1. Writing into non-zero offsets is considered bad practice and can lead to incorrect computations. This may be
+    forbidden in the future.
+
+ 2. Stencil operators must not have any horizontal dependencies within itself. That means: If a stencil operator writes
+    into a field, it must not access this field with non-zero horizontal offset.
+
+    .. code-block:: gridtools
+
+     eval(out()) = eval(in(0, 1, 0)); // ok, if this stage does not write to in
+     eval(out()) = eval(out(0, 1, 0)); // undefined!
+     eval(out()) = eval(out(0, 0, 1)); // undefined, if execution policy is parallel (see stencil composition sections)
+
+
 .. _stencil-operator-example:
-
-------------------
-Access restriction
-------------------
-
-Not all accessors can be evaluated with any offsets. The following restrictions apply
-
- 1. Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
-    a whole *multistage*
- 
- 2. A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
-    this field must not be read anymore with non-zero offsets, except with k-offsets (and no ij-offset) in case of
-    non-parallel policy.
-
 
 -------
 Example

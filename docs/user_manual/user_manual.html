@@ -104,12 +104,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#accessor-aliases">Accessor Aliases</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parameter-list">Parameter list</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#apply-method"><cite>Apply</cite>-Method</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#access-restriction">Access restriction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#expressions">Expressions</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#execution-model">Execution Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#execution-model">Execution Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#access-restrictions">Access restrictions</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#stencil-composition">Stencil Composition</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#preparing-arguments-storage-placeholders">Preparing Arguments: Storage Placeholders</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#defining-the-iteration-space-the-grid">Defining the Iteration Space: the Grid</a></li>
@@ -586,7 +588,7 @@ These functions should be annotated with <code class="docutils literal notransla
 they are inlined.</li>
 </ul>
 <p>The user may add additional static functions for internal usage within the stencil operator.</p>
-<p>See the <a class="reference internal" href="#stencil-operator-example"><span class="std std-ref">Access restriction</span></a> for a concrete usage of the syntax of the stencil operators.</p>
+<p>See the <a class="reference internal" href="#stencil-operator-example"><span class="std std-ref">Example</span></a> for a concrete usage of the syntax of the stencil operators.</p>
 <div class="section" id="accessor-type">
 <h3>Accessor Type<a class="headerlink" href="#accessor-type" title="Permalink to this headline">¶</a></h3>
 <p>There are two kinds of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a>:</p>
@@ -702,8 +704,9 @@ dimensions with an offset, by using the alias, for example:</p>
 Intervals</span></a>. An <code class="docutils literal notranslate"><span class="pre">apply</span></code> method takes at most two arguments:</p>
 <ol class="arabic simple">
 <li>The first argument is a templated parameter usually called <code class="docutils literal notranslate"><span class="pre">eval</span></code> that holds internal information.</li>
-<li>The second arguments optionally specifies the Vertical Interval to which functor is applied to. If this argument is
-skipped, the stencil is applied to the whole axis.</li>
+<li>The second arguments specifies the Vertical Interval to which functor is applied to. If the grid is not created with
+an axis, but only with a vertical size, this argument can be skipped and the stencil is applied to the whole axis.
+Whenever the grid is created using an axis, the user should specify a vertical interval for each method.</li>
 </ol>
 <p>Example:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Eval</span><span class="o">&gt;</span>
@@ -729,31 +732,30 @@ an offset of 1 in the minus direction in the third dimension. A way to think of 
 evaluation as a triplet <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code>, and those offsets are added to the current index coordinates to
 identifying the actual value to access. The evaluation returns a reference to the value for accessors with
 <code class="docutils literal notranslate"><span class="pre">inout</span></code>-intent, and a const reference for <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> with <code class="docutils literal notranslate"><span class="pre">in</span></code>-intent.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Writing into non-zero offsets is considered bad practice and can lead to incorrect computations. This may be forbidden in the future.</p>
-</div>
 <p>The next example calculates the average of two neighbored values in the first dimension and assign it to the output
 field:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="p">(</span><span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">())</span> <span class="o">+</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<ol class="last arabic">
+<li><p class="first">Writing into non-zero offsets is considered bad practice and can lead to incorrect computations. This may be
+forbidden in the future.</p>
+</li>
+<li><p class="first">Stencil operators must not have any horizontal dependencies within itself. That means: If a stencil operator writes
+into a field, it must not access this field with non-zero horizontal offset.</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span> <span class="c1">// ok, if this stage does not write to in</span>
+<span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span> <span class="c1">// undefined!</span>
+<span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">));</span> <span class="c1">// undefined, if execution policy is parallel (see stencil composition sections)</span>
+</pre></div>
 </div>
-<div class="section" id="access-restriction">
-<span id="stencil-operator-example"></span><h3>Access restriction<a class="headerlink" href="#access-restriction" title="Permalink to this headline">¶</a></h3>
-<p>Not all accessors can be evaluated with any offsets. The following restrictions apply</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li>Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
-a whole <em>multistage</em></li>
-<li>A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
-this field must not be read anymore with non-zero offsets, except with k-offsets (and no ij-offset) in case of
-non-parallel policy.</li>
+</li>
 </ol>
-</div></blockquote>
+</div>
 </div>
 <div class="section" id="example">
-<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<span id="stencil-operator-example"></span><h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">flx_function</span> <span class="p">{</span>
 
     <span class="k">using</span> <span class="n">out</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
@@ -836,6 +838,36 @@ parallelism and therefore in non-optimal performance).</p>
 <p class="last">The option to specify the vertical block size will most likely be moved to the backend in the future,
 see <a class="reference internal" href="#backend-selection"><span class="std std-ref">Selecting the Backend</span></a>.</p>
 </div>
+<p>More concretely, a multistage is a list of stages (implemented with stencil operators) to be executed with a certain
+execution policy.  A computation combines several multistages, and will execute one multistage after the other.</p>
+<ul class="simple">
+<li>For each <cite>IJ</cite> plane, the stages of a multistage will be executed strictly one after the other. This means, that a
+stage can assume, that the previous stage has been applied to the the whole <cite>IJ</cite> plane before it is executed. The user
+can explicitly create independent stages, that don’t require this restriction.</li>
+<li>In any execution policy, there is no guarantee, in what order stages are applied to indices which are neither in the
+same <code class="docutils literal notranslate"><span class="pre">IJ</span></code> plane, nor in the same <code class="docutils literal notranslate"><span class="pre">k</span></code> column.</li>
+<li>If the execution policy is <cite>parallel</cite>, a stage cannot impose any assumptions on which stages are applied before in
+another <cite>IJ</cite> plane.</li>
+<li>If the execution policy is <cite>forward</cite>, it is guaranteed, that if a stage is executed at index <code class="docutils literal notranslate"><span class="pre">k</span></code>, then all stages of
+the multistage were already applied to the same column with smaller <code class="docutils literal notranslate"><span class="pre">k</span></code>, and that no stages of the multistage are
+already applied to the indices in the same column with larger <code class="docutils literal notranslate"><span class="pre">k</span></code>.</li>
+<li>If the execution policy is <cite>forward</cite>, it is guaranteed, that if a stage is executed at index <code class="docutils literal notranslate"><span class="pre">k</span></code>, then all stages of
+the multistage were already applied to the same column with larger <code class="docutils literal notranslate"><span class="pre">k</span></code>, and that no stages of the multistage are
+already applied to the indices in the same column with smaller <code class="docutils literal notranslate"><span class="pre">k</span></code>.</li>
+</ul>
+<div class="section" id="access-restrictions">
+<h3>Access restrictions<a class="headerlink" href="#access-restrictions" title="Permalink to this headline">¶</a></h3>
+<p>The execution model imposes restrictions on how accessors can be evaluated. The following restrictions apply:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
+a whole <em>multistage</em></li>
+<li>A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
+this field must not be read anymore with any non-zero offsets, except with k-offsets (and no ij-offset) in case of
+non-parallel policy. For example, you must not access such a field with <code class="docutils literal notranslate"><span class="pre">eval(field(-1,</span> <span class="pre">-1,</span> <span class="pre">-1))</span></code>.</li>
+</ol>
+</div></blockquote>
+</div>
 </div>
 <div class="section" id="stencil-composition">
 <span id="id8"></span><h2>Stencil Composition<a class="headerlink" href="#stencil-composition" title="Permalink to this headline">¶</a></h2>
@@ -856,32 +888,29 @@ exactly the same way:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">p_tmp</span> <span class="o">=</span> <span class="k">tmp_arg</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">,</span> <span class="n">data_store_t</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>The difference between temporary and non-temporary placeholders is that while
-non-temporary placeholders are bound with a user-allocated data-store, this is
-not needed for temporary placeholders. <cite>GridTools</cite> takes care to allocate a suitable
-storage for those placeholders.</p>
+<p>The difference between temporary and non-temporary placeholders is that while non-temporary placeholders are bound with
+a user-allocated data-store, this is not needed for temporary placeholders.  <cite>GridTools</cite> takes care to allocate a suitable
+storage for those placeholders. The storage duration of a temporary starts with the first stage of the first multistage,
+and ends with the last stage of the last multistage.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you define multiple placeholders with the same ID, they can not be
-distinguished by <cite>GridTools</cite> even if they have different names or storage types!
-Further, <cite>arg</cite> and <cite>tmp_arg</cite> arguments must not share their identifiers
-either. So be careful when choosing your placeholder IDs.</p>
+<p class="last">If you define multiple placeholders with the same ID, they can not be distinguished by <cite>GridTools</cite> even if they have different
+names or storage types!  <cite>arg</cite> and <cite>tmp_arg</cite> arguments can have the same identifiers, and still represent different
+placeholders.</p>
 </div>
-<p>The placeholders can be used as arguments to certain <cite>GridTools</cite> functions. There are
-two use cases: first, they might define the argument types of a returned
-object, e.g., in</p>
+<p>The placeholders can be used as arguments to certain <cite>GridTools</cite> functions. There are two use cases: first, they define, which
+stages are called with which arguments, e.g., in</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">stage</span> <span class="o">=</span> <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">some_stage</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p_in</span><span class="p">(),</span> <span class="n">p_tmp</span><span class="p">(),</span> <span class="n">p_out</span><span class="p">());</span>
 </pre></div>
 </div>
-<p>they define the argument names and types that the returned stage accepts (see
-further below for documentation of the <cite>make_stage</cite> function). The second use
-case is binding run-time values to previously declared arguments, e.g.,</p>
+<p>they define that during execution the stage <code class="docutils literal notranslate"><span class="pre">some_stage</span></code> will be called with the fields bound to the placeholders at
+that point (see further below for documentation of the <cite>make_stage</cite> function). The second use case is binding run-time
+values to previously declared arguments, e.g.,</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">computation</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">p_in</span><span class="p">()</span> <span class="o">=</span> <span class="n">input_data</span><span class="p">,</span> <span class="n">p_out</span><span class="p">()</span> <span class="o">=</span> <span class="n">output_data</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>runs a computation on <cite>input_data</cite> and <cite>output_data</cite>. Storages must only be
-assigned to <cite>arg</cite> placeholders, all data for the <cite>tmp_arg</cite> arguments is managed
-by <cite>GridTools</cite>.</p>
+<p>runs a computation on <cite>input_data</cite> and <cite>output_data</cite>. Storages must only be assigned to <cite>arg</cite> placeholders, all data for
+the <cite>tmp_arg</cite> arguments is managed by <cite>GridTools</cite>.</p>
 </div>
 <div class="section" id="defining-the-iteration-space-the-grid">
 <span id="defining-iteration-space"></span><h3>Defining the Iteration Space: the Grid<a class="headerlink" href="#defining-the-iteration-space-the-grid" title="Permalink to this headline">¶</a></h3>
@@ -892,32 +921,47 @@ we cover how to define the <a class="reference internal" href="../glossary/gloss
 <dl class="function">
 <dt id="_CPPv39make_gridiii">
 <span id="_CPPv29make_gridiii"></span><span id="make_grid__i.i.i"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>int <em>size_i</em>, int <em>size_j</em>, int <em>size_k</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39make_gridiii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>The simplest <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> will iterate the cube defined by the <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Intervals</span></a>
-<code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_i-1]</span></code>, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_j-1]</span></code>, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_k-1]</span></code></p>
+<dd><p>The simplest <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> will iterate the cube defined by the <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Intervals</span></a> <code class="docutils literal notranslate"><span class="pre">[0,</span>
+<span class="pre">size_i-1]</span></code>, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_j-1]</span></code>, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_k-1]</span></code>. This function must only be used if all stages used within the
+computation have zero extents.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv39make_grid15halo_descriptor15halo_descriptori">
 <span id="_CPPv29make_grid15halo_descriptor15halo_descriptori"></span><span id="make_grid__halo_descriptor.halo_descriptor.i"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>halo_descriptor <em>halo_i</em>, halo_descriptor <em>halo_j</em>, int <em>size_z</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39make_grid15halo_descriptor15halo_descriptori" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>For finer control of the iteration space a <a class="reference internal" href="../glossary/glossary.html#term-halo-descriptor"><span class="xref std std-term">Halo Descriptor</span></a> can be passed for the horizontal directions (<code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">J</span></code>).
-The 3rd and 4th argument of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> define the start and the endpoint of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. Note that
-the minus (first argument) and plus (second argument) of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> should be larger than the maximum extent of the
-whole computation.</p>
+<dd><p>For finer control of the iteration space a <a class="reference internal" href="../glossary/glossary.html#term-halo-descriptor"><span class="xref std std-term">Halo Descriptor</span></a> can be passed for the horizontal directions (<code class="docutils literal notranslate"><span class="pre">I</span></code>
+and <code class="docutils literal notranslate"><span class="pre">J</span></code>).  The 3rd and 4th argument of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> define the start and the endpoint of the
+<a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. Note that the minus (first argument) and plus (second argument) of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code>
+should be larger than the maximum extent of the whole computation.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The last argument of the halo descriptor (total length) is not used in in the grid. This will be improved in the
+future.</p>
+</div>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="k">grid</span> <span class="o">=</span> <span class="n">make_grid</span><span class="p">({</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">},</span> <span class="p">{</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">},</span> <span class="mi">10</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This example will create a grid. The iteration space in <code class="docutils literal notranslate"><span class="pre">i</span></code> and <code class="docutils literal notranslate"><span class="pre">j</span></code> will be <code class="docutils literal notranslate"><span class="pre">[10,</span> <span class="pre">20]</span></code> (inclusive <code class="docutils literal notranslate"><span class="pre">20</span></code>!). The
+computation is required not to access data outside of <code class="docutils literal notranslate"><span class="pre">[7,</span> <span class="pre">23]</span></code>. The iteration space in <code class="docutils literal notranslate"><span class="pre">k</span></code> is <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">9]</span></code>.</p>
 </dd></dl>
 
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The last argument of the halo descriptor (total length) is not used in in the grid. This will be improved in the future.</p>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The vertical dimension cannot be defined with a <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code>, see <a class="reference internal" href="#vertical-regions"><span class="std std-ref">next section</span></a>.</p>
-</div>
+<dl class="function">
+<dt id="_CPPv39make_gridii4Axis">
+<span id="_CPPv29make_gridii4Axis"></span><span id="make_grid__i.i.Axis"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>int <em>size_i</em>, int <em>size_j</em>, Axis <em>axis</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39make_gridii4Axis" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>The vertical axis needs to be passed to the grid when using several vertical regions. The axis can be constructed by
+passing it the size of each of the vertical regions. Details follow in the coming sections.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv39make_grid15halo_descriptor15halo_descriptor4Axis">
+<span id="_CPPv29make_grid15halo_descriptor15halo_descriptor4Axis"></span><span id="make_grid__halo_descriptor.halo_descriptor.Axis"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>halo_descriptor <em>halo_i</em>, halo_descriptor <em>halo_j</em>, Axis <em>axis</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39make_grid15halo_descriptor15halo_descriptor4Axis" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>See explanations in other functions.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="vertical-regions-and-vertical-boundary-conditions">
 <span id="vertical-regions"></span><h3>Vertical Regions and Vertical Boundary Conditions<a class="headerlink" href="#vertical-regions-and-vertical-boundary-conditions" title="Permalink to this headline">¶</a></h3>
-<p>As mentioned earlier, the <cite>GridTools</cite> <a class="reference internal" href="../glossary/glossary.html#term-execution-model"><span class="xref std std-term">Execution Model</span></a>
-allows to be sequential in the vertical dimension (<code class="docutils literal notranslate"><span class="pre">k</span></code>). Additionally, <cite>GridTools</cite>
+<p>The <cite>GridTools</cite> <a class="reference internal" href="../glossary/glossary.html#term-execution-model"><span class="xref std std-term">Execution Model</span></a> allows to be sequential in the vertical dimension (<code class="docutils literal notranslate"><span class="pre">k</span></code>). Additionally, <cite>GridTools</cite>
 offers the possibility to split the vertical dimension into vertical regions,
 where stencils can perform different operations. Typical applications of this pattern are models which define
 terrain-following coordinates close to the earth surface and flat-coordinates in upper
@@ -925,16 +969,19 @@ levels of the atmosphere. Another use-case are vertical boundary-conditions whic
 be directly integrated into the stencil operation.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">In the following we will distinguish two concepts: first <a class="reference internal" href="../glossary/glossary.html#term-vertical-region"><span class="xref std std-term">Vertical Regions</span></a> are non-overlapping
-subsets of the vertical <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> with run-time defined sizes; second <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Vertical Intervals</span></a> (or just <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Interval</span></a>)
-are compile-time defined descriptions from one vertical level (not every vertical level can be selected, see below) to another.</p>
+<p class="last">In the following we will distinguish two concepts: first <a class="reference internal" href="../glossary/glossary.html#term-vertical-region"><span class="xref std std-term">Vertical Regions</span></a> are
+non-overlapping subsets of the vertical <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> with run-time defined sizes; second <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Vertical
+Intervals</span></a> (or just <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Interval</span></a>) are compile-time defined descriptions
+from one vertical level (not every vertical level can be selected, see below) to another.</p>
 </div>
 <div class="section" id="default-interval">
 <h4>Default Interval<a class="headerlink" href="#default-interval" title="Permalink to this headline">¶</a></h4>
-<p>In simple applications, where all vertical levels should be treated equally, <cite>GridTools</cite> allows to
-use a default <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a> which covers the full vertical region. In this case the <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a>
-should be defined without specifying an <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a> and the iteration space can be defined as explained
-in the <a class="reference internal" href="#defining-iteration-space"><span class="std std-ref">previous section</span></a>.</p>
+<p>In simple applications, where all vertical levels should be treated equally, <cite>GridTools</cite> allows to use a default
+<a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a> which covers the full vertical region. In this and only this case the apply methods of the stencil
+operators should be defined without specifying an <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a> (see Section
+<a class="reference internal" href="#stencil-operators-apply-method"><span class="std std-ref">Apply-Methods</span></a>) and the iteration space should be created using one of the simple
+constructors in the <a class="reference internal" href="#defining-iteration-space"><span class="std std-ref">previous section</span></a> (namely, either <code class="docutils literal notranslate"><span class="pre">make_grid(int,</span> <span class="pre">int,</span> <span class="pre">int)</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">make_grid(halo_descriptor,</span> <span class="pre">halo_descriptor,</span> <span class="pre">int)</span></code>.</p>
 </div>
 <div class="section" id="defining-vertical-intervals">
 <h4>Defining Vertical Intervals<a class="headerlink" href="#defining-vertical-intervals" title="Permalink to this headline">¶</a></h4>
@@ -966,10 +1013,12 @@ signatures</p>
 are used for defining which <a class="reference internal" href="../glossary/glossary.html#term-apply-method"><span class="xref std std-term">Apply-Method</span></a> version of the stencil operator should be used during the iteration.</p>
 <p><a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a> provides meta-functions which allow to define modified <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Intervals</span></a></p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">interval::first_level</span></code>, which is the <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a> (a C++ type) describing the first level of the <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a></li>
-<li><code class="docutils literal notranslate"><span class="pre">interval::last_level</span></code>, which is <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a> describing the last level of the <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a></li>
-<li><code class="docutils literal notranslate"><span class="pre">interval::modify&lt;begin,</span> <span class="pre">end&gt;</span></code>, which is an <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a> extended (<code class="docutils literal notranslate"><span class="pre">begin</span></code> &lt; 0) or shrunk (<code class="docutils literal notranslate"><span class="pre">begin</span></code> &gt; 0) at at the beginning of the <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a>, and extended (<code class="docutils literal notranslate"><span class="pre">end</span></code> &gt; 0) or shrunk (<code class="docutils literal notranslate"><span class="pre">end</span></code> &lt; 0) at the end of the <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">interval::shift&lt;value&gt;</span></code>, which is the <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Interval</span></a> shifted by <code class="docutils literal notranslate"><span class="pre">value</span></code>, i.e. it is a shortcut for <code class="docutils literal notranslate"><span class="pre">modify&lt;value,</span> <span class="pre">value&gt;</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">interval::first_level</span></code>, which is the Interval (a C++ type) describing the first level of the Interval</li>
+<li><code class="docutils literal notranslate"><span class="pre">interval::last_level</span></code>, which is Interval describing the last level of the Interval</li>
+<li><code class="docutils literal notranslate"><span class="pre">interval::modify&lt;begin,</span> <span class="pre">end&gt;</span></code>, which is an Interval extended (<code class="docutils literal notranslate"><span class="pre">begin</span></code> &lt; 0) or shrunk (<code class="docutils literal notranslate"><span class="pre">begin</span></code> &gt; 0) at at the
+beginning of the Interval and extended (<code class="docutils literal notranslate"><span class="pre">end</span></code> &gt; 0) or shrunk (<code class="docutils literal notranslate"><span class="pre">end</span></code> &lt; 0) at the end of the Interval.</li>
+<li><code class="docutils literal notranslate"><span class="pre">interval::shift&lt;value&gt;</span></code>, which is the Interval shifted by <code class="docutils literal notranslate"><span class="pre">value</span></code>, i.e. it is a shortcut for <code class="docutils literal notranslate"><span class="pre">modify&lt;value,</span>
+<span class="pre">value&gt;</span></code>.</li>
 </ul>
 <p>Examples:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">axis_t</span> <span class="o">=</span> <span class="n">axis</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// axis with 2 vertical regions</span>
@@ -979,45 +1028,54 @@ are used for defining which <a class="reference internal" href="../glossary/glos
 <span class="k">using</span> <span class="n">second_interval</span> <span class="o">=</span> <span class="n">axis_t</span><span class="o">::</span><span class="n">get_interval1</span><span class="o">&gt;</span><span class="p">;</span>         <span class="c1">// [5, 14]</span>
 <span class="k">using</span> <span class="n">full_interval</span> <span class="o">=</span> <span class="n">my_axis_t</span><span class="o">::</span><span class="n">full_interval</span><span class="p">;</span>         <span class="c1">// [0, 14]</span>
 
-<span class="k">using</span> <span class="n">first_level</span> <span class="o">=</span> <span class="n">full_interval</span><span class="o">::</span><span class="n">first_level</span><span class="p">;</span>         <span class="c1">// [0]</span>
-<span class="k">using</span> <span class="n">last_level</span> <span class="o">=</span> <span class="n">full_interval</span><span class="o">::</span><span class="n">last_level</span><span class="p">;</span>           <span class="c1">// [14]</span>
-<span class="k">using</span> <span class="n">a_middle_level</span> <span class="o">=</span> <span class="n">second_interval</span><span class="o">::</span><span class="n">first_level</span><span class="p">;</span>    <span class="c1">// [5]</span>
+<span class="k">using</span> <span class="n">first_level_only_interval</span> <span class="o">=</span> <span class="n">full_interval</span><span class="o">::</span><span class="n">first_level</span><span class="p">;</span> <span class="c1">// [0]</span>
+<span class="k">using</span> <span class="n">last_level_only_interval</span> <span class="o">=</span> <span class="n">full_interval</span><span class="o">::</span><span class="n">last_level</span><span class="p">;</span>   <span class="c1">// [14]</span>
+<span class="k">using</span> <span class="n">a_middle_level_interval</span> <span class="o">=</span> <span class="n">second_interval</span><span class="o">::</span><span class="n">first_level</span><span class="p">;</span> <span class="c1">// [5]</span>
 
-<span class="k">using</span> <span class="n">a_middle_interval</span> <span class="o">=</span> <span class="n">a_middle_level</span><span class="o">::</span><span class="n">modify</span><span class="o">&lt;-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// [4, 5]</span>
-<span class="k">using</span> <span class="n">a_middle_interval2</span> <span class="o">=</span> <span class="n">a_middle_interval</span><span class="o">::</span><span class="n">shift</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// [5, 6]</span>
+<span class="k">using</span> <span class="n">a_middle_interval</span> <span class="o">=</span> <span class="n">a_middle_level_interval</span><span class="o">::</span><span class="n">modify</span><span class="o">&lt;-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// [4, 5]</span>
+<span class="k">using</span> <span class="n">a_middle_interval2</span> <span class="o">=</span> <span class="n">a_middle_interval</span><span class="o">::</span><span class="n">shift</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>           <span class="c1">// [5, 6]</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only two of levels around a vertical region can be addressed in this way. This can be changed using the methods
+described in the see <a class="reference internal" href="#vertical-regions-advanced"><span class="std std-ref">next section</span></a>.</p>
 </div>
 </div>
 <div class="section" id="advanced-functionality-for-vertical-intervals">
 <span id="vertical-regions-advanced"></span><h4>Advanced Functionality for Vertical Intervals<a class="headerlink" href="#advanced-functionality-for-vertical-intervals" title="Permalink to this headline">¶</a></h4>
-<p>The <code class="docutils literal notranslate"><span class="pre">axis</span></code> type has two additional template parameters to change defaults</p>
-<div class="admonition-todo admonition" id="index-2">
-<p class="first admonition-title">Todo</p>
-<p class="last">the code block needs to be updated once ExtraOffsetsAroundFullInterval is removed</p>
-</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">axis</span></code> type has two additional template parameters to change some default restrictions:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="kt">size_t</span> <span class="n">NIntervals</span><span class="p">,</span> <span class="n">int_t</span> <span class="n">ExtraOffsetsAroundFullInterval</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">int_t</span> <span class="n">LevelOffsetLimit</span> <span class="o">=</span> <span class="mi">2</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">axis</span><span class="p">;</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">LevelOffsetLimit</span></code> defines how many levels around each vertical region can be addressed by specialized
-<code class="docutils literal notranslate"><span class="pre">Apply</span></code>-methods. Increasing this value could have negative implications on compile-time.</li>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">LevelOffsetLimit</span></code> defines how many levels around each vertical region can be addressed by specialized
+<code class="docutils literal notranslate"><span class="pre">Apply</span></code>-methods. Increasing this value could have negative implications on compile-time.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">ExtraOffsetsAroundFullInterval</span></code>: By default, data at absolut position <code class="docutils literal notranslate"><span class="pre">-1</span></code> cannot be accessed because the grid
+and the underlying storage start at <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">0</span></code> (and the same for the maximum position). If the user wants to access
+data above the size of all vertical regions or below <code class="docutils literal notranslate"><span class="pre">0</span></code>, he can set this property, which defines the maximum offset
+the user will access data around the full interval from <code class="docutils literal notranslate"><span class="pre">0</span></code> to size of all vertical regions.</p>
+<p>If the user does not set this properly, the size of the temporaries might be incorrect, leading to invalid memory
+accesses.</p>
+</li>
 </ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The usage of <code class="docutils literal notranslate"><span class="pre">ExtraOffsetsAroundFullInterval</span></code> is not recommended. If possible, the user should choose an
+axis that is large enough for all accesses.</p>
+</div>
 </div>
 </div>
 <div class="section" id="composition-of-stencils">
 <span id="id9"></span><h3>Composition of Stencils<a class="headerlink" href="#composition-of-stencils" title="Permalink to this headline">¶</a></h3>
-<p>The main component of <cite>GridTools</cite> provide the capability of composing different
-<a class="reference internal" href="../glossary/glossary.html#term-elementary-stencil"><span class="xref std std-term">Elementary Stencils</span></a>. An <a class="reference internal" href="../glossary/glossary.html#term-elementary-stencil"><span class="xref std std-term">Elementary Stencil</span></a> is the application of a single
-<a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a> to an <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration
-Space</span></a>. The ability to fuse multiple <a class="reference internal" href="../glossary/glossary.html#term-elementary-stencil"><span class="xref std std-term">Elementary Stencils</span></a>
-allows the <cite>GridTools</cite> library to improve the memory locality of the computation by
-taking advantage of the produce consumer relations. In <cite>GridTools</cite> terminology we use
-the term <a class="reference internal" href="../glossary/glossary.html#term-stage"><span class="xref std std-term">Stage</span></a> to refer to an <a class="reference internal" href="../glossary/glossary.html#term-elementary-stencil"><span class="xref std std-term">Elementary Stencil</span></a> when it is composed with
-other operations.</p>
-<p>The result of a composition is a <a class="reference internal" href="../glossary/glossary.html#term-multi-stage-computation"><span class="xref std std-term">Multi-Stage Computation</span></a>, also called <cite>multi-stage stencil</cite> or
-simply <cite>stencil</cite>. For reason of uniformity, a <a class="reference internal" href="../glossary/glossary.html#term-multi-stage-computation"><span class="xref std std-term">Multi-Stage Computation</span></a> with a
-singe <a class="reference internal" href="../glossary/glossary.html#term-stage"><span class="xref std std-term">Stage</span></a>, is still called a multi-stage, since the composition is generally
-assumed to take a list of stages, even if the stage is just one.</p>
+<p>The main component of <cite>GridTools</cite> provide the capability of composing different <a class="reference internal" href="../glossary/glossary.html#term-stage"><span class="xref std std-term">Stages</span></a>. A stage is the
+application of a single <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a> to an <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. The ability to fuse multiple stages
+allows the <cite>GridTools</cite> library to improve the memory locality of the computation by taking advantage of the produce consumer
+relations.</p>
+<p>The result of a composition is a <a class="reference internal" href="../glossary/glossary.html#term-multi-stage-computation"><span class="xref std std-term">Multi-Stage Computation</span></a>, also called <cite>multi-stage stencil</cite> or simply <cite>stencil</cite>.
+For reason of uniformity, a Multi-Stage Computation with a singe <a class="reference internal" href="../glossary/glossary.html#term-stage"><span class="xref std std-term">Stage</span></a>, is still called a multi-stage, since the
+composition is generally assumed to take a list of stages, even if the stage is just one.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This decision put the emphasis on the fact that composition
@@ -1026,12 +1084,9 @@ is made of a simple stencil, or stencils that cannot be
 composed (see below), then <cite>GridTools</cite> may not be the right solution
 for you.</p>
 </div>
-<p><cite>GridTools</cite> allows multi-stage computations to be composed. The final composition,
-with the addition of a <a class="reference internal" href="../glossary/glossary.html#term-grid"><span class="xref std std-term">Grid</span></a> is simply called a <cite>GridTools</cite>
-<a class="reference internal" href="../glossary/glossary.html#term-computation"><span class="xref std std-term">Computation</span></a>, or simply <a class="reference internal" href="../glossary/glossary.html#term-computation"><span class="xref std std-term">Computation</span></a>.</p>
-<p>First, let us show an example of a stencil composition: a simple horizontal
-diffusion stencil.</p>
-<p>First we need to specify the stages. A stage is specified by
+<p><cite>GridTools</cite> allows multi-stage computations to be composed. The final composition, with the addition of a <a class="reference internal" href="../glossary/glossary.html#term-grid"><span class="xref std std-term">Grid</span></a> is
+simply called a <cite>GridTools</cite> <a class="reference internal" href="../glossary/glossary.html#term-computation"><span class="xref std std-term">Computation</span></a>.</p>
+<p>Initially we need to specify the stages. A stage is specified by
 indicating a <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a> and some
 <a class="reference internal" href="../glossary/glossary.html#term-placeholder"><span class="xref std std-term">Placeholders</span></a> to its arguments. The placeholders are
 aliases to the actual arguments and are used to compute the data
@@ -1045,8 +1100,8 @@ specifying a stage uses a helper function called <cite>make_stage</cite>:</p>
 <cite>plc1</cite>, … are the placeholders. The number and the intent of the placeholders
 depend on the <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a>.</p>
 <p>A multi-stage computation is a concatenation of stages, plus the indication of
-the <a class="reference internal" href="../glossary/glossary.html#term-execution-order"><span class="xref std std-term">Execution Order</span></a> to be used for all the stages as in
-the following example for a diffusion operator.</p>
+the <a class="reference internal" href="../glossary/glossary.html#term-execution-order"><span class="xref std std-term">Execution Order</span></a> to be used for all the stages.</p>
+<p>The following example demonstrates how to create a multistage for a diffusion operator.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">multi_stage</span> <span class="o">=</span> <span class="nl">make_multistage</span><span class="p">(</span>
     <span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span>
     <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">lap_operator</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p_lap</span><span class="p">(),</span> <span class="n">p_in</span><span class="p">()),</span>
@@ -1061,12 +1116,13 @@ the following example for a diffusion operator.</p>
 <p class="last">It is not possible to make a multi-stage computation with stages of different
 <a class="reference internal" href="../glossary/glossary.html#term-execution-order"><span class="xref std std-term">Execution Orders</span></a>.</p>
 </div>
-<p>The data-dependence analysis of <cite>GridTools</cite> will determine the producer consumer
-relations and the <a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extents</span></a> at which each data field will be accessed. This
+<p>The data-dependence analysis of <cite>GridTools</cite> will determine the data flow
+and the <a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extents</span></a> at which each data field will be accessed. This
 information is then passed to the architecture specific backend for the
 execution.</p>
 <p>Before the computation can be executed, a <a class="reference internal" href="../glossary/glossary.html#term-grid"><span class="xref std std-term">Grid</span></a>, specifying
-the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>, must be provided. The final example is:</p>
+the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>, must be provided.</p>
+<p>Creating a complete stencil for horizontal diffusion looks as follows:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">horizontal_diffusion</span> <span class="o">=</span> <span class="nl">make_computation</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span>
     <span class="k">grid</span><span class="p">,</span>
     <span class="nl">make_multistage</span><span class="p">(</span>
@@ -1080,13 +1136,9 @@ the <a class="reference internal" href="../glossary/glossary.html#term-iteration
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">backend_t</span></code> specifies the <a class="reference internal" href="../glossary/glossary.html#term-backend"><span class="xref std std-term">Backend</span></a> that will execute the computation.</p>
-<p>The execution of the stages are assumed to happen one after the other in the
-program order. This is quite important, since the data dependency analysis is
-performed with this assumption. Some architectures provide different types of
-synchronization, and a user may gain a little more performance if they are more
-specific in the expression of the dependencies. For instance, we can assume
-the <cite>flx_operator</cite> and <cite>fly_operator</cite> do not have producer-consumer
-dependencies the user can specify that they are independent:</p>
+<p>The details about dependencies between stages and multistages are described in <a class="reference internal" href="#execution-model"><span class="std std-ref">Execution Model</span></a>. If two stages
+have no dependencies, they don’t need to be synchronized. Thus, the user can make them independent. In case of the
+horizontal diffusion, the fluxes in x and y have no dependency on each other, thus, <code class="docutils literal notranslate"><span class="pre">make_independent</span></code> can be used:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">horizontal_diffusion</span> <span class="o">=</span> <span class="nl">make_computation</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span>
     <span class="k">grid</span><span class="p">,</span>
     <span class="nl">make_multistage</span><span class="p">(</span>
@@ -1100,13 +1152,13 @@ dependencies the user can specify that they are independent:</p>
 <span class="p">);</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">make_independent</span></code> does not have impact on the data-dependency analysis but,
-potentially, only on the execution schedule.</p>
-<p>In general <code class="docutils literal notranslate"><span class="pre">make_computation</span></code> has the following signature:</p>
+<p><code class="docutils literal notranslate"><span class="pre">make_independent</span></code> does not have impact on the data-dependency analysis but, potentially, only on the execution
+schedule.</p>
+<p>A computation can also have several multistages. The general signature is as follows:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="nl">make_computation</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span><span class="k">grid</span><span class="p">,</span> <span class="n">multi_stage0</span><span class="p">,</span> <span class="n">other_multi_stages</span><span class="p">...);</span>
 </pre></div>
 </div>
-<p>A computation can then incorporate multiple multi-stage computations and they
+<p>A computation can incorporate multiple multi-stage computations and they
 may have different execution policies. This is very useful for implementing
 computations that require two vertical swipes, one ascending and one
 descending, but has to be used with care. Before explaining the rules for using
@@ -1128,16 +1180,6 @@ advection example:</p>
 <p>This option is particularly useful on multi-core machines with caches, since
 the backend there can actively pass information between the two stages thus
 improving substantially the performance.</p>
-<p>Again the multi-stages in the same computation will be executed logically in
-program order. Two multi-stage computations can be concatenated if the outputs
-of the stages that are used as input of the following obey the following rule:
-Let <cite>u</cite> be the output of a stage <cite>S0</cite> and input of a stage <cite>S1</cite>. The <a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extent</span></a>
-at which <cite>u</cite> is accessed by <cite>S1</cite> must be the point-<a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extent</span></a> in the IJ plane, that is the access
-of <cite>u</cite> is point-wise, so no offsets of <cite>u</cite> can be accessed. This is because the
-parallel execution of the stages can produce non deterministic results
-otherwise. Certain backends do not fuse multiple multi-stage computations, so
-this effect could be not visible, but for portability, it is important that
-this rule is understood.</p>
 <p>To execute a given <a class="reference internal" href="../glossary/glossary.html#term-multi-stage-computation"><span class="xref std std-term">Multi-Stage Computation</span></a>, the
 <cite>run</cite> method has to be called. Data has to be assigned to each non-temporary
 <a class="reference internal" href="../glossary/glossary.html#term-placeholder"><span class="xref std std-term">Placeholder</span></a>.</p>
@@ -1783,7 +1825,7 @@ the name of arguments should be self-explanatory:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">halo_descriptor</span><span class="p">(</span><span class="n">uint_t</span> <span class="n">minus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">plus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">begin</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">end</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">total_length</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="admonition-todo admonition" id="index-3">
+<div class="admonition-todo admonition" id="index-2">
 <p class="first admonition-title">Todo</p>
 <p class="last">annotate example with minus plus begin and end</p>
 </div>
@@ -1795,7 +1837,7 @@ the name of arguments should be self-explanatory:</p>
 </div>
 <div class="section" id="gcl-communication-module">
 <span id="id21"></span><h3>GCL Communication Module<a class="headerlink" href="#gcl-communication-module" title="Permalink to this headline">¶</a></h3>
-<div class="admonition-todo admonition" id="index-4">
+<div class="admonition-todo admonition" id="index-3">
 <p class="first admonition-title">Todo</p>
 <p class="last">we should somehow mention that GCL Communication Module does not work with storages, but with ptrs</p>
 </div>
@@ -1977,7 +2019,7 @@ fields have the same type).</p>
 </pre></div>
 </div>
 <p>When invoking the boundary application and <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operations the user calls the <code class="docutils literal notranslate"><span class="pre">exchange</span></code> member of <code class="docutils literal notranslate"><span class="pre">distributed_boundaries</span></code>. The arguments of <code class="docutils literal notranslate"><span class="pre">exchange</span></code> are either <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> stores or <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> objects which associate a boundary condition to <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a>. The <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> passed directly to the <code class="docutils literal notranslate"><span class="pre">exchange</span></code> methods have their <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> updates according to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> and periodicity information specified at <code class="docutils literal notranslate"><span class="pre">distributed_boundaries</span></code> object construction. The <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> arguments are treated differently.</p>
-<div class="admonition-todo admonition" id="index-5">
+<div class="admonition-todo admonition" id="index-4">
 <p class="first admonition-title">Todo</p>
 <p class="last">merge with bind_bc description above</p>
 </div>

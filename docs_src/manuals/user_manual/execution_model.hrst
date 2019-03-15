@@ -26,4 +26,36 @@ parallelism and therefore in non-optimal performance).
 .. note::
 
    The option to specify the vertical block size will most likely be moved to the backend in the future,
-   see :ref:`backend-selection`.  
+   see :ref:`backend-selection`.
+
+More concretely, a multistage is a list of stages (implemented with stencil operators) to be executed with a certain
+execution policy.  A computation combines several multistages, and will execute one multistage after the other.
+
+- For each `IJ` plane, the stages of a multistage will be executed strictly one after the other. This means, that a
+  stage can assume, that the previous stage has been applied to the the whole `IJ` plane before it is executed. The user
+  can explicitly create independent stages, that don't require this restriction.
+- In any execution policy, there is no guarantee, in what order stages are applied to indices which are neither in the
+  same ``IJ`` plane, nor in the same ``k`` column.
+- If the execution policy is `parallel`, a stage cannot impose any assumptions on which stages are applied before in
+  another `IJ` plane.
+- If the execution policy is `forward`, it is guaranteed, that if a stage is executed at index ``k``, then all stages of
+  the multistage were already applied to the same column with smaller ``k``, and that no stages of the multistage are
+  already applied to the indices in the same column with larger ``k``.
+- If the execution policy is `forward`, it is guaranteed, that if a stage is executed at index ``k``, then all stages of
+  the multistage were already applied to the same column with larger ``k``, and that no stages of the multistage are
+  already applied to the indices in the same column with smaller ``k``.
+
+
+-------------------
+Access restrictions
+-------------------
+
+The execution model imposes restrictions on how accessors can be evaluated. The following restrictions apply:
+
+ 1. Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
+    a whole *multistage*
+ 
+ 2. A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
+    this field must not be read anymore with any non-zero offsets, except with k-offsets (and no ij-offset) in case of
+    non-parallel policy. For example, you must not access such a field with ``eval(field(-1, -1, -1))``.
+
