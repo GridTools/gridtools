@@ -9,7 +9,7 @@
  */
 #include <common/boollist.hpp>
 #include <communication/GCL.hpp>
-#include <communication/low-level/proc_grids_3D.hpp>
+#include <communication/low_level/proc_grids_3D.hpp>
 #include <fstream>
 #include <iostream>
 #include <mpi.h>
