@@ -91,7 +91,7 @@ can be modified.
    call_proc<stencil_operator, vertical_interval>::with(eval, accessors...);
 
 Also offsets work the same way as for function calls. Using ``at`` with ``call_proc`` is not recommended and support
-might be drop in the future.
+might be dropped in the future.
 
 You can call the laplacian above with the following syntax:
 
