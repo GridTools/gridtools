@@ -162,9 +162,6 @@ the name of arguments should be self-explanatory:
 GCL Communication Module
 -------------------------
 
-.. todo::
-   we should somehow mention that GCL Communication Module does not work with storages, but with ptrs
-
 Now we are ready to describe the :term:`Halo Exchange` patterns objects. The first one is ``halo_exchange_dynamic_ut``. The ``ut`` suffix stands for ``uniform types``, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The type of the object is defined as in this example:
 
 .. code-block:: gridtools
