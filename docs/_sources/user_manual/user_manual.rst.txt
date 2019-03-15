@@ -19,6 +19,4 @@ User Manual
 .. include:: boundary_condition.hrst
 .. include:: halo_exchanges.hrst
 .. include:: comm_and_bc.hrst
-.. include:: data_management.hrst
 .. include:: interface.hrst
-.. include:: benchmarking.hrst
