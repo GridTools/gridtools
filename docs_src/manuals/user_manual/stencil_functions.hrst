@@ -93,4 +93,9 @@ can be modified.
 Also offsets work the same way as for function calls. Using ``at`` with ``call_proc`` is not recommended and support
 might be drop in the future.
 
-An example for using stencil functions can be found in the regression test `horizontal_diffusion_functions.cpp`.
+You can call the laplacian above with the following syntax:
+
+.. code-block:: gridtools
+
+    call_proc<lap_function>::with(eval, lap(), param());
+

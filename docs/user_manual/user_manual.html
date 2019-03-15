@@ -1315,7 +1315,10 @@ can be modified.</p>
 </div>
 <p>Also offsets work the same way as for function calls. Using <code class="docutils literal notranslate"><span class="pre">at</span></code> with <code class="docutils literal notranslate"><span class="pre">call_proc</span></code> is not recommended and support
 might be drop in the future.</p>
-<p>An example for using stencil functions can be found in the regression test <cite>horizontal_diffusion_functions.cpp</cite>.</p>
+<p>You can call the laplacian above with the following syntax:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">call_proc</span><span class="o">&lt;</span><span class="n">lap_function</span><span class="o">&gt;::</span><span class="k">with</span><span class="p">(</span><span class="n">eval</span><span class="p">,</span> <span class="n">lap</span><span class="p">(),</span> <span class="n">param</span><span class="p">());</span>
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="software-managed-caches">
