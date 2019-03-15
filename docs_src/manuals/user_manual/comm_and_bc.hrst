@@ -59,7 +59,7 @@ However, some data fields used in boundary conditions may be read-only and shoul
 
   bind_bc(copy_boundary{}, b, _1).associate(c)
 
-In this example, the boundary from ``c`` is copied into ``b``, and the halo exchanges for ``b`` (but not for ``c``) will be done.
+This example, copies the boundary of ``c`` into ``b``, and performs the halo exchanges for ``b``. The halo exchange will not be executed on ``c``, which is `read only` in this call. 
 
 
 -----------------------
