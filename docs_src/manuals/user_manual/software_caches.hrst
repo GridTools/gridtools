@@ -81,14 +81,13 @@ Cache Type
 The ``cache_type`` describes the type of access pattern present in our stencil for the field being cached. It's
 value can be one of the following (where we indicate the basic mean of implementation on the GPUs, so that the user can understand the amount of resources involved):
 
-#.  ``cache_type::ij``: cache data fields whose access pattern lies in the ij-plane, i.e. only offsets of the type `i ± X` or `j ± Y` are allowed (the GPU backend will cache these fields in shared memory).
+#.  ``cache_type::ij``: cache data fields whose access pattern lies in the ij-plane, i.e. only offsets of the type `i ±
+    X` or `j ± Y` are allowed (the GPU backend will cache these fields in shared memory). It is undefined behaviour to
+    access data with k-offsets.
 
-#.  ``cache_type::k``: cache data field whose access pattern is restricted to the
-    k-direction, i.e. only offsets of the type `k ± Z` (the GPU backend will cache these fields in registers).
-
-.. note::
-
- An error in the specification of the ``cache_type``, for example using ``cache_type::ij`` for a field that is accessed with k offsets will lead to compile time errors.
+#.  ``cache_type::k``: cache data field whose access pattern is restricted to the k-direction, i.e. only offsets of the
+    type `k ± Z` (the GPU backend will cache these fields in registers). It is undefined behaviour to access data with
+    offsets in i or j direction.
 
 
 .. _cache-policy:
@@ -109,7 +108,8 @@ The possible values are:
 
 #. ``cache_io_policy::fill_and_flush``: The combination of ``fill`` and ``flush``
 
-#. ``cache_io_policy::local``: The scratch-pad data is not persistent and only available within the scope of a multi-stage.
+#. ``cache_io_policy::local``: The scratch-pad data is not persistent and only available within the scope of a
+   multi-stage. Local caches are only meaningful in connection with temporary arguments.
 
  :numref:`fig_kcache_ex` graphically depicts an example of all the ordered operations that are executed when a ``fill_and_flush``
  :term:`Cache` is used in a forward vertical loop.

@@ -39,9 +39,8 @@ in the do method
     auto ordinal_ = eval(global_boundary()).ordinal();
 
 .. note::
- All the member functions defined in the user-defined
- data structure must be labeled with GT_FUNCTION, in
- order for them to be callable from devices.
+ All the member functions defined in the user-defined data structure must be labeled with ``GT_FUNCTION``, in order for
+ them to be callable from devices.
 
 There is a special case for which we have a dedicated API: i.e. when the user defined object
 (the global parameter)

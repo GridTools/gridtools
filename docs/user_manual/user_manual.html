@@ -1314,7 +1314,7 @@ can be modified.</p>
 </pre></div>
 </div>
 <p>Also offsets work the same way as for function calls. Using <code class="docutils literal notranslate"><span class="pre">at</span></code> with <code class="docutils literal notranslate"><span class="pre">call_proc</span></code> is not recommended and support
-might be drop in the future.</p>
+might be dropped in the future.</p>
 <p>You can call the laplacian above with the following syntax:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">call_proc</span><span class="o">&lt;</span><span class="n">lap_function</span><span class="o">&gt;::</span><span class="k">with</span><span class="p">(</span><span class="n">eval</span><span class="p">,</span> <span class="n">lap</span><span class="p">(),</span> <span class="n">param</span><span class="p">());</span>
 </pre></div>
@@ -1384,14 +1384,13 @@ and
 <p>The <code class="docutils literal notranslate"><span class="pre">cache_type</span></code> describes the type of access pattern present in our stencil for the field being cached. It’s
 value can be one of the following (where we indicate the basic mean of implementation on the GPUs, so that the user can understand the amount of resources involved):</p>
 <ol class="arabic simple">
-<li><code class="docutils literal notranslate"><span class="pre">cache_type::ij</span></code>: cache data fields whose access pattern lies in the ij-plane, i.e. only offsets of the type <cite>i ± X</cite> or <cite>j ± Y</cite> are allowed (the GPU backend will cache these fields in shared memory).</li>
-<li><code class="docutils literal notranslate"><span class="pre">cache_type::k</span></code>: cache data field whose access pattern is restricted to the
-k-direction, i.e. only offsets of the type <cite>k ± Z</cite> (the GPU backend will cache these fields in registers).</li>
+<li><code class="docutils literal notranslate"><span class="pre">cache_type::ij</span></code>: cache data fields whose access pattern lies in the ij-plane, i.e. only offsets of the type <cite>i ±
+X</cite> or <cite>j ± Y</cite> are allowed (the GPU backend will cache these fields in shared memory). It is undefined behaviour to
+access data with k-offsets.</li>
+<li><code class="docutils literal notranslate"><span class="pre">cache_type::k</span></code>: cache data field whose access pattern is restricted to the k-direction, i.e. only offsets of the
+type <cite>k ± Z</cite> (the GPU backend will cache these fields in registers). It is undefined behaviour to access data with
+offsets in i or j direction.</li>
 </ol>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">An error in the specification of the <code class="docutils literal notranslate"><span class="pre">cache_type</span></code>, for example using <code class="docutils literal notranslate"><span class="pre">cache_type::ij</span></code> for a field that is accessed with k offsets will lead to compile time errors.</p>
-</div>
 </div>
 <div class="section" id="cache-policy">
 <span id="id12"></span><h4>Cache Policy<a class="headerlink" href="#cache-policy" title="Permalink to this headline">¶</a></h4>
@@ -1404,7 +1403,8 @@ The possible values are:</p>
 <li><code class="docutils literal notranslate"><span class="pre">cache_io_policy::fill</span></code>: fill the scratch-pad buffer with data from main memory field before use.</li>
 <li><code class="docutils literal notranslate"><span class="pre">cache_io_policy::flush</span></code>: After the execution of the stencil operators the data in the <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> is written back into the main memory fields.</li>
 <li><code class="docutils literal notranslate"><span class="pre">cache_io_policy::fill_and_flush</span></code>: The combination of <code class="docutils literal notranslate"><span class="pre">fill</span></code> and <code class="docutils literal notranslate"><span class="pre">flush</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">cache_io_policy::local</span></code>: The scratch-pad data is not persistent and only available within the scope of a multi-stage.</li>
+<li><code class="docutils literal notranslate"><span class="pre">cache_io_policy::local</span></code>: The scratch-pad data is not persistent and only available within the scope of a
+multi-stage. Local caches are only meaningful in connection with temporary arguments.</li>
 </ol>
 <blockquote>
 <div><a class="reference internal" href="#fig-kcache-ex"><span class="std std-numref">Fig. 6</span></a> graphically depicts an example of all the ordered operations that are executed when a <code class="docutils literal notranslate"><span class="pre">fill_and_flush</span></code>
@@ -1420,7 +1420,7 @@ are triggered automatically by the library for a <cite>fill_and_flush</cite> <a 
 <div class="section" id="conditionals">
 <span id="id13"></span><h3>Conditionals<a class="headerlink" href="#conditionals" title="Permalink to this headline">¶</a></h3>
 <p>Conditionals introduce two new syntactic elements in the computation grammar,
-namely <cite>if_</cite> and <cite>switch_</cite>.  These implement run-time branches in the
+namely <code class="docutils literal notranslate"><span class="pre">if_</span></code> and <code class="docutils literal notranslate"><span class="pre">switch_</span></code>.  These implement run-time branches in the
 computation tree, i.e. one computation or another can be chosen based on the
 value of a runtime variable.  Note that this is just syntactic sugar, as you
 could instantiate all the possible combinations of the computation tree and
@@ -1431,7 +1431,7 @@ inside a computation with 10 stages you want to choose among 5 possible
 versions of the last stage. You would have to create 5 different computations,
 in which the only difference is in the last stage, while the rest is repeated.
 This would be tedious and error-prone.</p>
-<p>The syntax we expose for <cite>if_</cite> statements is reported in the following example:</p>
+<p>The syntax we expose for <code class="docutils literal notranslate"><span class="pre">if_</span></code> statements is reported in the following example:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">comp</span> <span class="o">=</span> <span class="nl">make_computation</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span>
     <span class="k">grid</span><span class="p">,</span>
     <span class="k">if_</span><span class="p">([</span><span class="o">&amp;</span><span class="n">flag</span><span class="p">]</span> <span class="p">{</span> <span class="k">return</span> <span class="n">flag</span><span class="p">;</span> <span class="p">},</span>
@@ -1447,7 +1447,7 @@ This would be tedious and error-prone.</p>
 <span class="p">);</span>
 </pre></div>
 </div>
-<p>The correct way to interpret this syntax is that the call to <cite>if_</cite> returns one
+<p>The correct way to interpret this syntax is that the call to <code class="docutils literal notranslate"><span class="pre">if_</span></code> returns one
 multistage to the other based on the return value of the predicate attached to
 <cite>flag</cite>.</p>
 <p>The value of the condition is evaluated at every execution of <code class="docutils literal notranslate"><span class="pre">comp.run()</span></code>.</p>
@@ -1475,7 +1475,7 @@ multistage to the other based on the return value of the predicate attached to
 <span class="p">);</span>
 </pre></div>
 </div>
-<p>The other syntactic element we introduce is a <cite>switch_</cite>, and its use is
+<p>The other syntactic element we introduce is a <code class="docutils literal notranslate"><span class="pre">switch_</span></code>, and its use is
 exemplified in the following snippet</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">cond</span> <span class="o">=</span> <span class="p">[</span><span class="o">&amp;</span><span class="n">p</span><span class="p">]()</span> <span class="p">{</span>
     <span class="n">assert</span><span class="p">(</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">);</span>
@@ -1507,13 +1507,9 @@ exemplified in the following snippet</p>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>As for the <cite>if_</cite> statement, the condition function is evaluated at every call
+<p>As for the <code class="docutils literal notranslate"><span class="pre">if_</span></code> statement, the condition function is evaluated at every call
 to <code class="docutils literal notranslate"><span class="pre">comp.run()</span></code>, and the multistage executed in calls depends on the value of
-the condition.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Also <cite>switch_</cite> can be nested, as the <cite>if_</cite>.</p>
-</div>
+the condition. <code class="docutils literal notranslate"><span class="pre">switch_</span></code> can be nested too.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The effect of having different branches is that all the possibilities get
