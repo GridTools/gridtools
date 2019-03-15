@@ -104,6 +104,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#accessor-aliases">Accessor Aliases</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parameter-list">Parameter list</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#apply-method"><cite>Apply</cite>-Method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#access-restriction">Access restriction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#expressions">Expressions</a></li>
 </ul>
@@ -585,7 +586,7 @@ These functions should be annotated with <code class="docutils literal notransla
 they are inlined.</li>
 </ul>
 <p>The user may add additional static functions for internal usage within the stencil operator.</p>
-<p>See the <a class="reference internal" href="#stencil-operator-example"><span class="std std-ref">Example</span></a> for a concrete usage of the syntax of the stencil operators.</p>
+<p>See the <a class="reference internal" href="#stencil-operator-example"><span class="std std-ref">Access restriction</span></a> for a concrete usage of the syntax of the stencil operators.</p>
 <div class="section" id="accessor-type">
 <h3>Accessor Type<a class="headerlink" href="#accessor-type" title="Permalink to this headline">¶</a></h3>
 <p>There are two kinds of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a>:</p>
@@ -632,7 +633,7 @@ Point</span></a>. They are defined as follows:</p>
 </div>
 <p>An extent takes three pairs of numbers, one pair for each dimension of the iteration space. The first number of the
 pair must be non-positive and indicates the maximum offset in the direction of <em>decreasing</em> indices (also called minus
-direction*). The the second number must be non-negative and indicates the maximum offset in the direction of
+direction*). The second number must be non-negative and indicates the maximum offset in the direction of
 <em>increasing</em> indices (also called plus direction*). Numbers can be ommitted and default to zero.</p>
 <p>Example:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">my_accessor</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">;</span>
@@ -730,7 +731,7 @@ identifying the actual value to access. The evaluation returns a reference to th
 <code class="docutils literal notranslate"><span class="pre">inout</span></code>-intent, and a const reference for <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> with <code class="docutils literal notranslate"><span class="pre">in</span></code>-intent.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Writing into non-zero offsets is considered bad practice and may be forbidden in the future.</p>
+<p class="last">Writing into non-zero offsets is considered bad practice and can lead to incorrect computations. This may be forbidden in the future.</p>
 </div>
 <p>The next example calculates the average of two neighbored values in the first dimension and assign it to the output
 field:</p>
@@ -738,8 +739,21 @@ field:</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="access-restriction">
+<span id="stencil-operator-example"></span><h3>Access restriction<a class="headerlink" href="#access-restriction" title="Permalink to this headline">¶</a></h3>
+<p>Not all accessors can be evaluated with any offsets. The following restrictions apply</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
+a whole <em>multistage</em></li>
+<li>A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
+this field must not be read anymore with non-zero offsets, except with k-offsets (and no ij-offset) in case of
+non-parallel policy.</li>
+</ol>
+</div></blockquote>
+</div>
 <div class="section" id="example">
-<span id="stencil-operator-example"></span><h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<h3>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">flx_function</span> <span class="p">{</span>
 
     <span class="k">using</span> <span class="n">out</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
@@ -761,6 +775,10 @@ field:</p>
 </div>
 <div class="section" id="expressions">
 <h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">Should we remove the expressions namespace? Why should we forbid this functionality in certain cases?</p>
+</div>
 <p>Multiple calls to eval can be merged into one when the <code class="docutils literal notranslate"><span class="pre">expressions</span></code>-namespace is imported. This is possible, because
 calculations with accessors produce expressions that can be evaluated. Readibility can be greatly improved, but it might
 have some negative impact on compilation time.</p>
@@ -775,9 +793,9 @@ have some negative impact on compilation time.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>This is achieved by using the expressions namespace, in which the operations <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">pow&lt;&gt;</span></code> are
-overloaded, and generate an expression to be evaluated. An example of its usage, demonstrating its effectiveness, can be
-found in the <a class="reference external" href="https://github.com/eth-cscs/gridtools/blob/master/regression/shallow_water_enhanced.hpp">shallow water implementation</a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">expressions</span></code>-namespace has overloads for common operations on accessors, namely <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>,
+<code class="docutils literal notranslate"><span class="pre">pow&lt;&gt;</span></code>. Using those operations with accessors creates an expression that can be evaluated using <code class="docutils literal notranslate"><span class="pre">eval</span></code>. An
+extensive example of its usage, demonstrating its effectiveness, can be found in the <a class="reference external" href="https://github.com/eth-cscs/gridtools/blob/master/regression/shallow_water_enhanced.hpp">shallow water implementation</a>.</p>
 <p>Note that those expressions can also be used to lazily evaluate expressions. This provides a way to reuse expressions in
 your code:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">namespace</span> <span class="n">expressions</span><span class="p">;</span>
@@ -795,20 +813,16 @@ your code:</p>
 </div>
 <div class="section" id="execution-model">
 <span id="id7"></span><h2>Execution Model<a class="headerlink" href="#execution-model" title="Permalink to this headline">¶</a></h2>
-<p>Stencil operations are executed in a three dimensional index
-space. This means that the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>
-is three dimensional. The first two dimensions of the iteration space,
-usually referred to as <cite>I</cite> and <cite>J</cite> dimensions identify the <cite>IJ</cite>
-plane. There is no prescription on how the stencil operators in
-different points of the <cite>IJ</cite> plane will be executed. Stencil operators
-in the third dimension of the iteration space, usually referred as <cite>K</cite>
-or vertical dimension, can have prescribed order of executions. There
-are three different ways of executing on the <cite>K</cite> dimension:</p>
+<p>Stencil operations are executed in a three dimensional <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration space</span></a>. The first two dimensions of the
+iteration space, usually referred to as <cite>I</cite> and <cite>J</cite> dimensions identify the horizontal dimension. There is no
+prescription on in what order stencil operators in different points of the same <cite>IJ</cite> plane will be executed. Stencil
+operators in the third dimension of the iteration space, usually referred as <cite>K</cite> or vertical dimension, can have
+prescribed order of executions. There are three different ways of execution policies for the <cite>K</cite> dimension:</p>
 <ul class="simple">
-<li><cite>forward</cite>: The computation at index <cite>k</cite> in the vertical dimension is executed
-after index <cite>k-1</cite>;</li>
-<li><cite>backward</cite>: The computation at index <cite>k</cite> in the vertical dimension is
-executed after index <cite>k+1</cite>;</li>
+<li><cite>forward</cite>: The computation at index <cite>k</cite> in the vertical dimension is executed after index <cite>k - 1</cite> for all points in
+the horizontal plane;</li>
+<li><cite>backward</cite>: The computation at index <cite>k</cite> in the vertical dimension is executed after index <cite>k + 1</cite> for all points in
+the horizontal plane;</li>
 <li><cite>parallel</cite>: No order is specified and execution can happen concurrently.</li>
 </ul>
 <p>An execution strategy for a computation is indicated by <code class="docutils literal notranslate"><span class="pre">execute::order()</span></code>,
@@ -977,7 +991,7 @@ are used for defining which <a class="reference internal" href="../glossary/glos
 <div class="section" id="advanced-functionality-for-vertical-intervals">
 <span id="vertical-regions-advanced"></span><h4>Advanced Functionality for Vertical Intervals<a class="headerlink" href="#advanced-functionality-for-vertical-intervals" title="Permalink to this headline">¶</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">axis</span></code> type has two additional template parameters to change defaults</p>
-<div class="admonition-todo admonition" id="index-1">
+<div class="admonition-todo admonition" id="index-2">
 <p class="first admonition-title">Todo</p>
 <p class="last">the code block needs to be updated once ExtraOffsetsAroundFullInterval is removed</p>
 </div>
@@ -1193,7 +1207,7 @@ for a given <code class="docutils literal notranslate"><span class="pre">backend
 <span id="id10"></span><h3>Stencil Functions<a class="headerlink" href="#stencil-functions" title="Permalink to this headline">¶</a></h3>
 <p>Stencil functions offer the possibility to call <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operators</span></a> from other <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operators</span></a>.
 To use stencil functions the header</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/stencil-composition/stencil-functions/stencil-functions.hpp&gt;</span><span class="cp"></span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/stencil_composition/stencil_functions/stencil_functions.hpp&gt;</span><span class="cp"></span>
 </pre></div>
 </div>
 <p>needs to be included.
@@ -1283,7 +1297,7 @@ observed due to saturation of available resources</p>
 <p>where <code class="docutils literal notranslate"><span class="pre">p_args...</span></code> is a list of placeholders for which the specified caching
 should be used.
 Full examples on <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> usages can be found in the source code in the
-<a class="reference external" href="https://github.com/eth-cscs/gridtools/blob/master/gt_examples/stencil-composition/horizontal_diffusion_limited.cpp">horizontal diffusion</a>
+<a class="reference external" href="https://github.com/eth-cscs/gridtools/blob/master/gt_examples/stencil_composition/horizontal_diffusion_limited.cpp">horizontal diffusion</a>
 and
 <a class="reference external" href="https://github.com/eth-cscs/gridtools/blob/master/regression/vertical_advection_dycore.cpp">vertical advection</a>.</p>
 <p>We now describe the details of each element of the <code class="docutils literal notranslate"><span class="pre">cache</span></code> constructs.</p>
@@ -1663,7 +1677,6 @@ neighbors.</p>
 </div>
 <div class="section" id="halo-exchanges">
 <span id="id17"></span><h2>Halo Exchanges<a class="headerlink" href="#halo-exchanges" title="Permalink to this headline">¶</a></h2>
-<p>..todo:: should we have a complete example as in the user manual?</p>
 <div class="section" id="id18">
 <h3>Introduction<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <p>The communication module in <cite>GridTools</cite> is dubbed <a class="reference internal" href="../glossary/glossary.html#term-gcl"><span class="xref std std-term">GCL</span></a>. It’s a low level
@@ -1770,7 +1783,7 @@ the name of arguments should be self-explanatory:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">halo_descriptor</span><span class="p">(</span><span class="n">uint_t</span> <span class="n">minus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">plus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">begin</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">end</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">total_length</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="admonition-todo admonition" id="index-2">
+<div class="admonition-todo admonition" id="index-3">
 <p class="first admonition-title">Todo</p>
 <p class="last">annotate example with minus plus begin and end</p>
 </div>
@@ -1782,7 +1795,7 @@ the name of arguments should be self-explanatory:</p>
 </div>
 <div class="section" id="gcl-communication-module">
 <span id="id21"></span><h3>GCL Communication Module<a class="headerlink" href="#gcl-communication-module" title="Permalink to this headline">¶</a></h3>
-<div class="admonition-todo admonition" id="index-3">
+<div class="admonition-todo admonition" id="index-4">
 <p class="first admonition-title">Todo</p>
 <p class="last">we should somehow mention that GCL Communication Module does not work with storages, but with ptrs</p>
 </div>
@@ -1905,7 +1918,7 @@ fields have the same type).</p>
 </div>
 <div class="section" id="communication-traits">
 <h3>Communication Traits<a class="headerlink" href="#communication-traits" title="Permalink to this headline">¶</a></h3>
-<p>Communication traits helps the distributed boundary condition interface to customize itself to the need of the user. A general communication traits class is available in <code class="docutils literal notranslate"><span class="pre">distributed-boundaries/comm_traits.hpp</span></code>. The traits required by the distributed boundaries interface, as provided by <cite>GridTools</cite>, are listed below here.</p>
+<p>Communication traits helps the distributed boundary condition interface to customize itself to the need of the user. A general communication traits class is available in <code class="docutils literal notranslate"><span class="pre">distributed_boundaries/comm_traits.hpp</span></code>. The traits required by the distributed boundaries interface, as provided by <cite>GridTools</cite>, are listed below here.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">StorageType</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Arch</span><span class="o">&gt;</span>
 <span class="k">struct</span> <span class="n">comm_traits</span> <span class="p">{</span>
   <span class="k">using</span> <span class="n">proc_layout</span> <span class="o">=</span> <span class="n">gridtools</span><span class="o">::</span><span class="k">layout_map</span><span class="o">&lt;</span><span class="p">...</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// Layout of the processing grid to relate the data layout to the distribution of data</span>
@@ -1933,7 +1946,7 @@ fields have the same type).</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">bind_bc</span><span class="p">(</span><span class="n">copy_boundary</span><span class="p">{},</span> <span class="n">b</span><span class="p">,</span> <span class="n">_1</span><span class="p">).</span><span class="n">associate</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In this example, the boundary from <code class="docutils literal notranslate"><span class="pre">c</span></code> is copied into <code class="docutils literal notranslate"><span class="pre">b</span></code>, and the halo exchanges for <code class="docutils literal notranslate"><span class="pre">b</span></code> (but not for <code class="docutils literal notranslate"><span class="pre">c</span></code>) will be done.</p>
+<p>This example, copies the boundary of <code class="docutils literal notranslate"><span class="pre">c</span></code> into <code class="docutils literal notranslate"><span class="pre">b</span></code>, and performs the halo exchanges for <code class="docutils literal notranslate"><span class="pre">b</span></code>. The halo exchange will not be executed on <code class="docutils literal notranslate"><span class="pre">c</span></code>, which is <cite>read only</cite> in this call.</p>
 </div>
 <div class="section" id="distributed-boundaries">
 <h3>Distributed Boundaries<a class="headerlink" href="#distributed-boundaries" title="Permalink to this headline">¶</a></h3>
@@ -1964,7 +1977,7 @@ fields have the same type).</p>
 </pre></div>
 </div>
 <p>When invoking the boundary application and <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>-update operations the user calls the <code class="docutils literal notranslate"><span class="pre">exchange</span></code> member of <code class="docutils literal notranslate"><span class="pre">distributed_boundaries</span></code>. The arguments of <code class="docutils literal notranslate"><span class="pre">exchange</span></code> are either <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> stores or <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> objects which associate a boundary condition to <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a>. The <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> passed directly to the <code class="docutils literal notranslate"><span class="pre">exchange</span></code> methods have their <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> updates according to the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> and periodicity information specified at <code class="docutils literal notranslate"><span class="pre">distributed_boundaries</span></code> object construction. The <code class="docutils literal notranslate"><span class="pre">bind_bc</span></code> arguments are treated differently.</p>
-<div class="admonition-todo admonition" id="index-4">
+<div class="admonition-todo admonition" id="index-5">
 <p class="first admonition-title">Todo</p>
 <p class="last">merge with bind_bc description above</p>
 </div>
