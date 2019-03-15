@@ -136,9 +136,9 @@ dimensions with an offset, by using the alias, for example:
  dimension<4> q;
  w(i + 1) == vel(i + 1, q + 2)
 
--------------
+--------------
 Parameter list
--------------
+--------------
 The parameter list ``param_list`` is defined as follows:
 
 .. code-block:: gridtools
@@ -215,6 +215,20 @@ field:
 
 .. _stencil-operator-example:
 
+------------------
+Access restriction
+------------------
+
+Not all accessors can be evaluated with any offsets. The following restrictions apply
+
+ 1. Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
+    a whole *multistage*
+ 
+ 2. A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
+    this field must not be read anymore with non-zero offsets, except with k-offsets (and no ij-offset) in case of
+    non-parallel policy.
+
+
 -------
 Example
 -------
@@ -242,6 +256,8 @@ Example
 Expressions
 -----------
 
+.. todo:: Should we remove the expressions namespace? Why should we forbid this functionality in certain cases?
+
 Multiple calls to eval can be merged into one when the ``expressions``-namespace is imported. This is possible, because
 calculations with accessors produce expressions that can be evaluated. Readibility can be greatly improved, but it might
 have some negative impact on compilation time.
@@ -258,9 +274,10 @@ have some negative impact on compilation time.
      }
  }
 
-This is achieved by using the expressions namespace, in which the operations ``+``, ``-``, ``*``, ``/``, ``pow<>`` are
-overloaded, and generate an expression to be evaluated. An example of its usage, demonstrating its effectiveness, can be
-found in the `shallow water implementation <https://github.com/eth-cscs/gridtools/blob/master/regression/shallow_water_enhanced.hpp>`_.
+The ``expressions``-namespace has overloads for common operations on accessors, namely ``+``, ``-``, ``*``, ``/``,
+``pow<>``. Using those operations with accessors creates an expression that can be evaluated using ``eval``. An
+extensive example of its usage, demonstrating its effectiveness, can be found in the `shallow water implementation
+<https://github.com/eth-cscs/gridtools/blob/master/regression/shallow_water_enhanced.hpp>`_.
 
 Note that those expressions can also be used to lazily evaluate expressions. This provides a way to reuse expressions in
 your code:

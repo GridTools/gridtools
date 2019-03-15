@@ -3,20 +3,16 @@
 Execution Model
 ===============
 
-Stencil operations are executed in a three dimensional index
-space. This means that the :term:`Iteration Space`
-is three dimensional. The first two dimensions of the iteration space,
-usually referred to as `I` and `J` dimensions identify the `IJ`
-plane. There is no prescription on how the stencil operators in
-different points of the `IJ` plane will be executed. Stencil operators
-in the third dimension of the iteration space, usually referred as `K`
-or vertical dimension, can have prescribed order of executions. There
-are three different ways of executing on the `K` dimension:
+Stencil operations are executed in a three dimensional :term:`Iteration space`. The first two dimensions of the
+iteration space, usually referred to as `I` and `J` dimensions identify the horizontal dimension. There is no
+prescription on in what order stencil operators in different points of the same `IJ` plane will be executed. Stencil
+operators in the third dimension of the iteration space, usually referred as `K` or vertical dimension, can have
+prescribed order of executions. There are three different ways of execution policies for the `K` dimension:
 
-- `forward`: The computation at index `k` in the vertical dimension is executed
-  after index `k-1`;
-- `backward`: The computation at index `k` in the vertical dimension is
-  executed after index `k+1`;
+- `forward`: The computation at index `k` in the vertical dimension is executed after index `k - 1` for all points in
+  the horizontal plane;
+- `backward`: The computation at index `k` in the vertical dimension is executed after index `k + 1` for all points in
+  the horizontal plane;
 - `parallel`: No order is specified and execution can happen concurrently.
 
 An execution strategy for a computation is indicated by ``execute::order()``,
