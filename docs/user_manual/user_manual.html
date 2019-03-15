@@ -1260,28 +1260,61 @@ Two variants are available: functional calls which return a value and procedural
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">x</span> <span class="o">=</span> <span class="k">call</span><span class="o">&lt;</span><span class="n">stencil_operator</span><span class="p">,</span> <span class="n">vertical_interval</span><span class="p">,</span> <span class="n">return_value_type</span><span class="o">&gt;::</span><span class="k">with</span><span class="p">(</span><span class="n">eval</span><span class="p">,</span> <span class="n">accessors</span><span class="p">...);</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">stencil_operator</span></code> is the operator to be called, <code class="docutils literal notranslate"><span class="pre">vertical_interval</span></code> the <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Vertical Interval</span></a> where the operator
-will be applied and <code class="docutils literal notranslate"><span class="pre">return_value_type</span></code> the type of the return value for the function call. The <code class="docutils literal notranslate"><span class="pre">return_value_type</span></code> will be automatically deduced
-from the first <code class="docutils literal notranslate"><span class="pre">accessor</span></code> if not specified explicitly. The context object <code class="docutils literal notranslate"><span class="pre">eval</span></code> has to be passed as the first argument to <code class="docutils literal notranslate"><span class="pre">with</span></code>, followed by
-the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> which are arguments of the operator.</p>
-<p>The operator needs to have exactly one <code class="docutils literal notranslate"><span class="pre">inout</span></code>-<a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> which will be the return value of the function call.</p>
+<p>Let us describe the template parameters first:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">stencil_operator</span></code> is the operator to be called.</li>
+<li><code class="docutils literal notranslate"><span class="pre">vertical_interval</span></code> is the <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Vertical Interval</span></a> where the operator will be applied (it can be empty, if the
+stencil operator has an apply method without a vertical region).</li>
+<li><code class="docutils literal notranslate"><span class="pre">return_value_type</span></code> is the type of the return value for the function call. The <code class="docutils literal notranslate"><span class="pre">return_value_type</span></code> will be
+automatically deduced from the first <code class="docutils literal notranslate"><span class="pre">accessor</span></code> if not specified explicitly.</li>
+</ul>
+<p>The context object <code class="docutils literal notranslate"><span class="pre">eval</span></code> has to be passed as the first argument to <code class="docutils literal notranslate"><span class="pre">with</span></code>, followed by the
+<a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> which are arguments of the operator.</p>
+<p>Note that the first accessor in the stencil operator must be an artificial accessor of type <code class="docutils literal notranslate"><span class="pre">inout_accessor</span></code>. This
+argument must not be passed to the function, but instead it is the return value of the function.</p>
+<p>Example:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">lap_function</span> <span class="p">{</span>
+    <span class="k">using</span> <span class="n">out</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// artificial first accessor</span>
+    <span class="k">using</span> <span class="n">in</span> <span class="o">=</span> <span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+
+    <span class="k">using</span> <span class="k">param_list</span> <span class="o">=</span> <span class="n">make_param_list</span><span class="o">&lt;</span><span class="n">out</span><span class="p">,</span> <span class="n">in</span><span class="o">&gt;</span><span class="p">;</span>
+
+    <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Evaluation</span><span class="o">&gt;</span>
+    <span class="cp">GT_FUNCTION</span> <span class="k">static</span> <span class="kt">void</span> <span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span> <span class="n">eval</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="mf">4.</span> <span class="o">*</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">())</span> <span class="o">-</span>
+            <span class="p">(</span><span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">+</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)));</span>
+    <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">// later:</span>
+<span class="k">auto</span> <span class="n">ret</span> <span class="o">=</span> <span class="k">call</span><span class="o">&lt;</span><span class="n">lap_function</span><span class="o">&gt;::</span><span class="k">with</span><span class="p">(</span><span class="n">eval</span><span class="p">,</span> <span class="n">param</span><span class="p">());</span> <span class="c1">// only one parameter</span>
+</pre></div>
+</div>
+<p>This function calculates the laplacian of a field. Note that the function is called only with one parameter, because the
+first accessor (<code class="docutils literal notranslate"><span class="pre">out</span></code>) is the artificial accessor representing the return value.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Vertical Interval</span></a> needs to be one which appears in a <a class="reference internal" href="../glossary/glossary.html#term-apply-method"><span class="xref std std-term">Apply-Method</span></a> overload of the called operator.</p>
+<p class="last">If you pass a vertical interval to <code class="docutils literal notranslate"><span class="pre">call</span></code>, a matching apply method needs to exist in the called operator.</p>
 </div>
 <p>The <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> which are passed in the function call can have offsets in the usual way. Additionally the whole operator can be shifted to be executed
 on a different grid point, by specifying a relative location with <code class="docutils literal notranslate"><span class="pre">at</span></code>:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">call</span><span class="o">&lt;</span><span class="p">...</span><span class="o">&gt;::</span><span class="k">at</span><span class="o">&lt;</span><span class="n">offset_i</span><span class="p">,</span> <span class="n">offset_j</span><span class="p">,</span> <span class="n">offset_k</span><span class="o">&gt;::</span><span class="k">with</span><span class="p">(...);</span>
 </pre></div>
 </div>
+<p>For example, you can evaluate the laplacian at the next k-level as follows:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">call</span><span class="o">&lt;</span><span class="n">lap_function</span><span class="o">&gt;::</span><span class="k">at</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;::</span><span class="k">with</span><span class="p">(</span><span class="n">eval</span><span class="p">,</span> <span class="n">param</span><span class="p">());</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="procedure-calls-call-proc">
 <h4>Procedure Calls: <cite>call_proc&lt;&gt;</cite><a class="headerlink" href="#procedure-calls-call-proc" title="Permalink to this headline">¶</a></h4>
-<p>Procedural calls work in the same way as function calls, but all <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a>, which are <code class="docutils literal notranslate"><span class="pre">inout</span></code> in the operator, can be modified.</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">call_proc</span><span class="o">&lt;</span><span class="n">stencil_operator</span><span class="p">,</span> <span class="n">vertical_interval</span><span class="o">&gt;::</span><span class="k">at</span><span class="o">&lt;</span><span class="p">...</span><span class="o">&gt;::</span><span class="k">with</span><span class="p">(</span><span class="n">eval</span><span class="p">,</span> <span class="n">accessors</span><span class="p">...);</span>
+<p>Procedural calls work in the same way as function calls, but all <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a>, which are <code class="docutils literal notranslate"><span class="pre">inout</span></code> in the operator,
+can be modified.</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">call_proc</span><span class="o">&lt;</span><span class="n">stencil_operator</span><span class="p">,</span> <span class="n">vertical_interval</span><span class="o">&gt;::</span><span class="k">with</span><span class="p">(</span><span class="n">eval</span><span class="p">,</span> <span class="n">accessors</span><span class="p">...);</span>
 </pre></div>
 </div>
-<p>Also offsets and <code class="docutils literal notranslate"><span class="pre">at</span></code> work in the same way as for function calls.</p>
+<p>Also offsets work the same way as for function calls. Using <code class="docutils literal notranslate"><span class="pre">at</span></code> with <code class="docutils literal notranslate"><span class="pre">call_proc</span></code> is not recommended and support
+might be drop in the future.</p>
 <p>An example for using stencil functions can be found in the regression test <cite>horizontal_diffusion_functions.cpp</cite>.</p>
 </div>
 </div>
