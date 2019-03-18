@@ -13,5 +13,5 @@ Internal Documentation
 
 .. include:: new_indexing.hrst
 .. include:: dependency_analysis.hrst
-
-
+.. include:: link_to_umesh.hrst
+.. include:: splitters.hrst
