@@ -10,9 +10,41 @@ Introduction
 What Is GridTools
 -----------------------------
 
-The |GT| (GT) framework is a set of libraries and utilities to develop performance portable applications in which stencil operations on grids are central. The focus of the project is on regular and block-structured grids as are commonly found in the weather and climate application field. In this context, GT provides a useful level of abstraction to enhance productivity and obtain excellent performance on a wide range of computer architectures. Additionally, it addresses the challenges that arise from integration into production code, such as the expression of boundary conditions, or conditional execution. The framework is structured such that it can be called from different weather models (numerical weather and climate codes) or programming interfaces, and can target various computer architectures. This is achieved by separating the GT core library in a user facing part (frontend) and architecture specific (backend) parts. The core library also abstracts various possible data layouts and applies optimizations on stages with multiple stencils. The core library is complemented by facilities to interoperate with other languages (such as C and Fortran), to aid code development and a communication layer.
+The |GT| (GT) framework is a set of libraries and utilities to develop performance portable applications in which
+stencil operations on grids are central. The focus of the project is on regular and block-structured grids as are
+commonly found in the weather and climate application field. In this context, GT provides a useful level of abstraction
+to enhance productivity and obtain excellent performance on a wide range of computer architectures. Additionally, it
+addresses the challenges that arise from integration into production code, such as the expression of boundary
+conditions, or conditional execution. The framework is structured such that it can be called from different weather
+models (numerical weather and climate codes) or programming interfaces, and can target various computer architectures.
+This is achieved by separating the GT core library in a user facing part (frontend) and architecture specific (backend)
+parts. The core library also abstracts various possible data layouts and applies optimizations on stages with multiple
+stencils. The core library is complemented by facilities to interoperate with other languages (such as C and Fortran),
+to aid code development and a communication layer.
 
-For a list of supported compilers refer to the `project Wiki on github <https://github.com/eth-cscs/gridtools/wiki/Supported-Compilers>`_.
+|GT| provides optimized backends for GPUs and manycore architectures. Stencils can be run efficiently on different
+architectures without any code change needed. Stencils can be built up by small composeable units called stages, using
+|GT| domain-specific language. Such a functor can be as simple as being just a copy stencil, copying data from one field
+to another:
+
+.. code-block:: gridtools
+
+  struct copy_functor {
+      using in = in_accessor<0>;
+      using out = inout_accessor<1>;
+
+      using param_list = make_param_list<in, out>;
+
+      template <typename Evaluation>
+      GT_FUNCTION static void apply(Evaluation eval) {
+          eval(out()) = eval(in());
+      }
+  };
+
+Several such stages can be composed into a computation and be applied on each grid-point of a grid. Requiring this
+abstract descriptions of a stencils, the DSL allows |GT| can apply architecture-specific optimizations to the stencil
+computations in order to be optimal on the target hardware.
+
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Dependencies
@@ -24,6 +56,24 @@ Additionally, |GT| requires a recent version of CMake_.
 
 .. _Boost: https://www.boost.org/
 .. _CMake: https://www.cmake.org/
+
+|GT| requires a modern compiler. A list of supported compilers can be found on `github <https://github.com/eth-cscs/gridtools/wiki/Supported-Compilers>`_.
+
+^^^^^^^^^^^^^^^^^^^^
+Simple Script
+^^^^^^^^^^^^^^^^^^^^
+
+We first provide a sample of the commands needed to enable the multicore and CUDA backends, install them in ``/usr/local``,
+and run the gridtools tests.
+
+.. code-block:: shell
+
+ git clone http://github.com/eth-cscs/gridtools.git
+ cd gridtools
+ mkdir build && cd build
+ cmake -DGT_ENABLE_TARGET_MC=ON -DGT_ENABLE_TARGET_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
+ make install -j4
+ make test
 
 -----------------------------
 Installation and Use
@@ -68,25 +118,17 @@ When installing |GT| all the source codes of the components will be copied to th
 
 To have access to these variables ``INSTALL_ALL`` should be set to ``OFF``.
 
-.. todo:: Update to new examples ..
-
-Additionally, examples can be compiled if ``GT_COMPILE_EXAMPLES`` is ``ON``. The examples can be installed if ``GT_INSTALL_EXAMPLES`` is ``ON``. The path where to install the examples is specified by ``GT_INSTALL_EXAMPLES_PATH`` and it is set to ``CMAKE_INSTALL_PREFIX`` by default.
-
-^^^^^^^^^^^^^^^^^^^^
-Simple Script
-^^^^^^^^^^^^^^^^^^^^
-
-Below a sample of the commands needed to enable the multicore and CUDA backends and install them in ``/usr/local``.
+Examples can be installed by enabling ``GT_INSTALL_EXAMPLES``. This will install the examples into the path given by
+``GT_INSTALL_EXAMPLES_PATH``. The examples come with a standalone CMake project and can be built separately, e.g. with
+the following set of instructions:
 
 .. code-block:: shell
 
- git clone http://github.com/eth-cscs/gridtools.git
- cd gridtools
- mkdir build
- cd build
- cmake -DGT_ENABLE_TARGET_MC=ON -DGT_ENABLE_TARGET_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
- make install
- make test
+  cd examples
+  mkdir build && cd build
+  cmake ..
+  make -j4
+
 
 ^^^^^^^^^^^^^^^^^^^^^
 Using GridTools

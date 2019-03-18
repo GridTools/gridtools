@@ -93,10 +93,10 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-is-gridtools">What Is GridTools</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simple-script">Simple Script</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-and-use">Installation and Use</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#simple-script">Simple Script</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#using-gridtools">Using GridTools</a></li>
 </ul>
 </li>
@@ -177,12 +177,52 @@
 <span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="what-is-gridtools">
 <h2>What Is GridTools<a class="headerlink" href="#what-is-gridtools" title="Permalink to this headline">¶</a></h2>
-<p>The <cite>GridTools</cite> (GT) framework is a set of libraries and utilities to develop performance portable applications in which stencil operations on grids are central. The focus of the project is on regular and block-structured grids as are commonly found in the weather and climate application field. In this context, GT provides a useful level of abstraction to enhance productivity and obtain excellent performance on a wide range of computer architectures. Additionally, it addresses the challenges that arise from integration into production code, such as the expression of boundary conditions, or conditional execution. The framework is structured such that it can be called from different weather models (numerical weather and climate codes) or programming interfaces, and can target various computer architectures. This is achieved by separating the GT core library in a user facing part (frontend) and architecture specific (backend) parts. The core library also abstracts various possible data layouts and applies optimizations on stages with multiple stencils. The core library is complemented by facilities to interoperate with other languages (such as C and Fortran), to aid code development and a communication layer.</p>
-<p>For a list of supported compilers refer to the <a class="reference external" href="https://github.com/eth-cscs/gridtools/wiki/Supported-Compilers">project Wiki on github</a>.</p>
+<p>The <cite>GridTools</cite> (GT) framework is a set of libraries and utilities to develop performance portable applications in which
+stencil operations on grids are central. The focus of the project is on regular and block-structured grids as are
+commonly found in the weather and climate application field. In this context, GT provides a useful level of abstraction
+to enhance productivity and obtain excellent performance on a wide range of computer architectures. Additionally, it
+addresses the challenges that arise from integration into production code, such as the expression of boundary
+conditions, or conditional execution. The framework is structured such that it can be called from different weather
+models (numerical weather and climate codes) or programming interfaces, and can target various computer architectures.
+This is achieved by separating the GT core library in a user facing part (frontend) and architecture specific (backend)
+parts. The core library also abstracts various possible data layouts and applies optimizations on stages with multiple
+stencils. The core library is complemented by facilities to interoperate with other languages (such as C and Fortran),
+to aid code development and a communication layer.</p>
+<p><cite>GridTools</cite> provides optimized backends for GPUs and manycore architectures. Stencils can be run efficiently on different
+architectures without any code change needed. Stencils can be built up by small composeable units called stages, using
+<cite>GridTools</cite> domain-specific language. Such a functor can be as simple as being just a copy stencil, copying data from one field
+to another:</p>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">copy_functor</span> <span class="p">{</span>
+    <span class="k">using</span> <span class="n">in</span> <span class="o">=</span> <span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
+    <span class="k">using</span> <span class="n">out</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+
+    <span class="k">using</span> <span class="k">param_list</span> <span class="o">=</span> <span class="n">make_param_list</span><span class="o">&lt;</span><span class="n">in</span><span class="p">,</span> <span class="n">out</span><span class="o">&gt;</span><span class="p">;</span>
+
+    <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Evaluation</span><span class="o">&gt;</span>
+    <span class="cp">GT_FUNCTION</span> <span class="k">static</span> <span class="kt">void</span> <span class="n">apply</span><span class="p">(</span><span class="n">Evaluation</span> <span class="n">eval</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">eval</span><span class="p">(</span><span class="n">out</span><span class="p">())</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">in</span><span class="p">());</span>
+    <span class="p">}</span>
+<span class="p">};</span>
+</pre></div>
+</div>
 <div class="section" id="dependencies">
 <h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
 <p><cite>GridTools</cite> requires at least a header-only installation of <a class="reference external" href="https://www.boost.org/">Boost</a>. Besides some boost utilities, it depends on <code class="docutils literal notranslate"><span class="pre">boost::mpl</span></code> and <code class="docutils literal notranslate"><span class="pre">boost::fusion</span></code>.</p>
 <p>Additionally, <cite>GridTools</cite> requires a recent version of <a class="reference external" href="https://www.cmake.org/">CMake</a>.</p>
+<p><cite>GridTools</cite> requires a modern compiler. A list of supported compilers can be found on <a class="reference external" href="https://github.com/eth-cscs/gridtools/wiki/Supported-Compilers">github</a>.</p>
+</div>
+<div class="section" id="simple-script">
+<h3>Simple Script<a class="headerlink" href="#simple-script" title="Permalink to this headline">¶</a></h3>
+<p>We first provide a sample of the commands needed to enable the multicore and CUDA backends, install them in <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code>,
+and run the gridtools tests.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone http://github.com/eth-cscs/gridtools.git
+<span class="nb">cd</span> gridtools
+mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
+cmake -DGT_ENABLE_TARGET_MC<span class="o">=</span>ON -DGT_ENABLE_TARGET_CUDA<span class="o">=</span>ON -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local ..
+make install -j4
+make <span class="nb">test</span>
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="installation-and-use">
@@ -215,23 +255,14 @@ INSTALL_TOOLS
 </pre></div>
 </div>
 <p>To have access to these variables <code class="docutils literal notranslate"><span class="pre">INSTALL_ALL</span></code> should be set to <code class="docutils literal notranslate"><span class="pre">OFF</span></code>.</p>
-<div class="admonition-todo admonition" id="index-0">
-<p class="first admonition-title">Todo</p>
-<p class="last">Update to new examples ..</p>
-</div>
-<p>Additionally, examples can be compiled if <code class="docutils literal notranslate"><span class="pre">GT_COMPILE_EXAMPLES</span></code> is <code class="docutils literal notranslate"><span class="pre">ON</span></code>. The examples can be installed if <code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES</span></code> is <code class="docutils literal notranslate"><span class="pre">ON</span></code>. The path where to install the examples is specified by <code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES_PATH</span></code> and it is set to <code class="docutils literal notranslate"><span class="pre">CMAKE_INSTALL_PREFIX</span></code> by default.</p>
-<div class="section" id="simple-script">
-<h3>Simple Script<a class="headerlink" href="#simple-script" title="Permalink to this headline">¶</a></h3>
-<p>Below a sample of the commands needed to enable the multicore and CUDA backends and install them in <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone http://github.com/eth-cscs/gridtools.git
-<span class="nb">cd</span> gridtools
-mkdir build
-<span class="nb">cd</span> build
-cmake -DGT_ENABLE_TARGET_MC<span class="o">=</span>ON -DGT_ENABLE_TARGET_CUDA<span class="o">=</span>ON -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local ..
-make install
-make <span class="nb">test</span>
+<p>Examples can be installed by enabling <code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES</span></code>. This will install the examples into the path given by
+<code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES_PATH</span></code>. The examples come with a standalone CMake project and can be built separately, e.g. with
+the following set of instructions:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> examples
+mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
+cmake ..
+make -j4
 </pre></div>
-</div>
 </div>
 <div class="section" id="using-gridtools">
 <h3>Using GridTools<a class="headerlink" href="#using-gridtools" title="Permalink to this headline">¶</a></h3>
