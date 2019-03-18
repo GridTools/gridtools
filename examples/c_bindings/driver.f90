@@ -50,7 +50,7 @@ program main
     in_handle = make_data_store(storage_info_handle)
     out_handle = make_data_store(storage_info_handle)
     computation_handle = make_copy_stencil(grid_handle)
-    ! gt_handles need to be release explicitly
+    ! gt_handles need to be released explicitly
     call gt_release(grid_handle)
     call gt_release(storage_info_handle)
 

@@ -44,6 +44,7 @@ namespace {
     using p_in = gt::arg<0, data_store_t>;
     using p_out = gt::arg<1, data_store_t>;
 
+    // The following are wrapper functions which will be exported to C/Fortran
     grid_t make_grid_impl(int nx, int ny, int nz) { return {gt::make_grid(nx, ny, nz)}; }
     storage_info_t make_storage_info_impl(int nx, int ny, int nz) { return {nx, ny, nz}; }
     data_store_t make_data_store_impl(storage_info_t storage_info) { return {storage_info}; }
@@ -74,13 +75,15 @@ namespace {
 #endif
     }
 
+    // exports `make_grid_impl` (which needs 3 arguments) under the name `make_grid`
     GT_EXPORT_BINDING_3(make_grid, make_grid_impl);
     GT_EXPORT_BINDING_3(make_storage_info, make_storage_info_impl);
     GT_EXPORT_BINDING_1(make_data_store, make_data_store_impl);
     GT_EXPORT_BINDING_1(make_copy_stencil, make_copy_stencil_impl);
     GT_EXPORT_BINDING_3(run_stencil, run_stencil_impl);
 
-    // In order to generate the additional wrapper in Fortran, the *_WRAPPED_* versions need to be used
+    // In order to generate the additional wrapper for Fortran array,
+    // the *_WRAPPED_* versions need to be used
     GT_EXPORT_BINDING_WRAPPED_2(transform_c_to_f, transform_c_to_f_impl);
     GT_EXPORT_BINDING_WRAPPED_2(transform_f_to_c, transform_f_to_c_impl);
 } // namespace
