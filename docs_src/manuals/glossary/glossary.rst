@@ -30,7 +30,7 @@ Glossary
     See :term:`Software-Managed Cache`.
 
   Computation
-    A sequence of :term:`Multi-Stage Computations<Multi-Stage Computation>`
+    A sequence of :term:`Multi-Stages<Multi-Stage>`
     which is applied on a :term:`Grid` with the :term:`run-method` as an entry-point.
     See section :ref:`composition_of_stencils`.
 
@@ -68,8 +68,8 @@ Glossary
     that participate in a distributed computation. See section
     :ref:`distributed-boundary-conditions`.
 
- Global Parameter
-    A special 0-dimensional :term:`data-store` for read-only data.
+  Global Parameter
+    A special 0-dimensional :term:`Data Store` for read-only data.
     See section :ref:`global-accessor`.
 
   Grid
@@ -80,7 +80,7 @@ Glossary
     Additional data points around the main compute data. Used for boundary
     conditions or distributed computations (see :term:`Halo Exchanges<Halo
     Exchange>`). :term:`Halo` information is also stored in the :term:`Storage
-    Info` to allow correct data :term:`Alignment`. The size of the :term:`Halo`
+    Info` to allow correct data alignment. The size of the :term:`Halo`
     regions is often described by a :term:`Halo Descriptor`. For boundary
     conditions, see sections :ref:`boundary-conditions` and
     :ref:`distributed-boundary-conditions`.
@@ -110,14 +110,17 @@ Glossary
 
   Multi-Stage
     A partially-order collection of :term:`Stages<Stage>` with an associated
-    :term:`Execution Order`. See section :ref:`composition_of_stencils`.
+    :term:`Vertical Execution Order`. See section :ref:`composition_of_stencils`.
 
   Placeholder
     Placeholders allow compile-time naming of :term:`Stencil Operator`
     arguments. See section :ref:`placeholders`.
+    
+  Run-Method
+    Method to execute a :term:`Computation`, see :ref:`stencil-composition`. 
 
   Software-Managed Cache
-    User-defined caching of fields during a :term:`Multi-Stage Computation`, which has a
+    User-defined caching of fields during a :term:`Multi-Stage`, which has a
     :ref:`cache-policy` and a :ref:`cache-type`.
     See section :ref:`caches`.
 
