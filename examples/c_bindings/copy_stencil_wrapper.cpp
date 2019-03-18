@@ -14,6 +14,10 @@
 
 namespace gt = gridtools;
 
+// In this example, we demonstrate how the c_bindings library can be used to export functions to C and Fortran. We are
+// going to export the functions required to run a simple copy stencil (see also the commented example in
+// examples/stencil_composition/copy_stencil.cpp)
+
 namespace {
 
     using axis_t = gt::axis<1>::axis_interval_t;
