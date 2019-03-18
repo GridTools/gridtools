@@ -8,7 +8,7 @@ Getting Started
 ===============
 
 This chapter describes how to use |GT| to solve a (simple) PDE.
-We will a the fourth-order horizontal smoothing filter example
+We will use a fourth-order horizontal smoothing filter 
 to explain the necessary steps to assemble a
 stencil from scratch. We will not go into details in this chapter but
 refer to later chapters for more details.
@@ -116,12 +116,12 @@ The Storage Type
 ^^^^^^^^^^^^^^^^
 
 For efficient memory accesses the index ordering might depend on the target architecture, therefore the
-memory layout will implicitly decided by target via the storage traits as follows.
+memory layout will be implicitly decided by target via the storage traits as follows.
 
 For each storage type we need to define the data type of the data we want to
 store in the field, e.g. ``double``, and a ``storage_info`` type which will hold
 information about size, alignment, strides etc. When creating the ``storage_info`` via the storage
-traits we need to provide a unique idenentifier and the number of dimensions for the storage (typically 3).
+traits we need to provide a unique identifier and the number of dimensions for the storage (typically 3).
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools

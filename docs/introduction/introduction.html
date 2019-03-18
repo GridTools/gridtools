@@ -268,7 +268,10 @@ make -j4
 </div>
 <div class="section" id="using-gridtools">
 <h3>Using GridTools<a class="headerlink" href="#using-gridtools" title="Permalink to this headline">¶</a></h3>
-<p>Using <cite>GridTools</cite> follows standard CMake practices. To indicate where the <cite>GridTools</cite> can be found, CMake should be provided with the variable <code class="docutils literal notranslate"><span class="pre">gridtools_DIR</span></code>, e.g. by calling CMake with <code class="docutils literal notranslate"><span class="pre">-Dgridtools_DIR=&lt;/path/to/gridtools/lib/cmake&gt;</span></code>. The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file should then contain the following lines:</p>
+<p>Using <cite>GridTools</cite> follows standard CMake practices. To indicate where the <cite>GridTools</cite> can be found,
+CMake should be provided with the variable <code class="docutils literal notranslate"><span class="pre">GridTools_DIR</span></code>,
+e.g. by calling CMake with <code class="docutils literal notranslate"><span class="pre">-DGridTools_DIR=&lt;/path/to/gridtools/lib/cmake&gt;</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file should then contain the following lines:</p>
 <p>__VERSION__</p>
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">GridTools</span> <span class="s">VERSION</span> <span class="s">...</span> <span class="s">REQUIRED</span><span class="p">)</span>
 <span class="nb">list</span><span class="p">(</span><span class="s">APPEND</span> <span class="s">CMAKE_MODULE_PATH</span> <span class="s2">&quot;${GridTools_MODULE_PATH}&quot;</span><span class="p">)</span>

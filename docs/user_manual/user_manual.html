@@ -248,7 +248,7 @@
 <span id="id1"></span><h1>User Manual<a class="headerlink" href="#user-manual" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="storage-module">
 <span id="id2"></span><h2>Storage Module<a class="headerlink" href="#storage-module" title="Permalink to this headline">¶</a></h2>
-<p>The storage module is one of the main modules in <cite>GridTools</cite>. Main target of this module is to provide proper means to access,
+<p>The storage module is one of the main modules in <cite>GridTools</cite>. The main target of this module is to provide proper means to access,
 view, and modify data. The detail of the hardware is hidden to the user, but the user is responsible for indicating what
 storage is needed. Different <a class="reference internal" href="../glossary/glossary.html#term-backend"><span class="xref std std-term">Backends</span></a> are available for different kinds of storages, see
 <a class="reference internal" href="#backend-selection"><span class="std std-ref">Selecting the Backend</span></a>. Following subsections will explain the different basic elements that are used in the storage
@@ -260,7 +260,7 @@ halo points. The main reason for including halos in the storage is to enforce th
 region to improve the performance of stencil operations.</p>
 <div class="section" id="storage-info">
 <span id="id3"></span><h3>Storage Info<a class="headerlink" href="#storage-info" title="Permalink to this headline">¶</a></h3>
-<p>The storage info can be seen as a meta data object that keep information about a storage. This information is alignment,
+<p>The storage info can be seen as a meta data object that keeps information about a storage. This information is alignment,
 data layout in memory, halo areas, dimensionality, size of the storage, etc.  The object must be created before storage
 can be allocated. The storage info object can be shared among different storages, if they have the same meta data. The
 right storage info type can be retrieved with <code class="docutils literal notranslate"><span class="pre">storage_traits&lt;Backend&gt;</span></code>. The supported backends are described
@@ -576,7 +576,7 @@ stencil <a class="reference internal" href="../glossary/glossary.html#term-compu
 is called is referred to as <a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>.</p>
 <p>A stencil operator is a <cite>class</cite>, or a <cite>struct</cite>, with the following public properties:</p>
 <ul class="simple">
-<li>A list of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> types that are associated to the [Data Field](data field)s the stencil operator will access
+<li>A list of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> types that are associated to the data fields the stencil operator will access
 in its implementation.</li>
 <li>A <code class="docutils literal notranslate"><span class="pre">param_list</span></code> listing all the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> types defined above. They are created using <code class="docutils literal notranslate"><span class="pre">make_param_list</span></code>.</li>
 <li>A set of <em>static template member functions</em> named <code class="docutils literal notranslate"><span class="pre">apply</span></code>, also referred to as <a class="reference internal" href="../glossary/glossary.html#term-apply-method"><span class="xref std std-term">Apply-Methods</span></a>.
@@ -840,8 +840,6 @@ execution policy.  A computation combines several multistages, and will execute 
 <li>For each <cite>IJ</cite> plane, the stages of a multistage will be executed strictly one after the other. This means, that a
 stage can assume, that the previous stage has been applied to the the whole <cite>IJ</cite> plane before it is executed. The user
 can explicitly create independent stages, that don’t require this restriction.</li>
-<li>In any execution policy, there is no guarantee, in what order stages are applied to indices which are neither in the
-same <code class="docutils literal notranslate"><span class="pre">IJ</span></code> plane, nor in the same <code class="docutils literal notranslate"><span class="pre">k</span></code> column.</li>
 <li>If the execution policy is <cite>parallel</cite>, a stage cannot impose any assumptions on which stages are applied before in
 another <cite>IJ</cite> plane.</li>
 <li>If the execution policy is <cite>forward</cite>, it is guaranteed, that if a stage is executed at index <code class="docutils literal notranslate"><span class="pre">k</span></code>, then all stages of
@@ -859,7 +857,7 @@ already applied to the indices in the same column with smaller <code class="docu
 <li>Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
 a whole <em>multistage</em></li>
 <li>A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
-this field must not be read anymore with any non-zero offsets, except with k-offsets (and no ij-offset) in case of
+this field must not be read anymore with any non-zero offsets, except with k-offsets in case of
 non-parallel policy. For example, you must not access such a field with <code class="docutils literal notranslate"><span class="pre">eval(field(-1,</span> <span class="pre">-1,</span> <span class="pre">-1))</span></code>.</li>
 </ol>
 </div></blockquote>
@@ -937,7 +935,7 @@ future.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="k">grid</span> <span class="o">=</span> <span class="n">make_grid</span><span class="p">({</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">},</span> <span class="p">{</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">},</span> <span class="mi">10</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>This example will create a grid. The iteration space in <code class="docutils literal notranslate"><span class="pre">i</span></code> and <code class="docutils literal notranslate"><span class="pre">j</span></code> will be <code class="docutils literal notranslate"><span class="pre">[10,</span> <span class="pre">20]</span></code> (inclusive <code class="docutils literal notranslate"><span class="pre">20</span></code>!). The
+<p>This example will create a grid. The iteration space in <code class="docutils literal notranslate"><span class="pre">i</span></code> and <code class="docutils literal notranslate"><span class="pre">j</span></code> will be <code class="docutils literal notranslate"><span class="pre">[10,</span> <span class="pre">20]</span></code> (including <code class="docutils literal notranslate"><span class="pre">20</span></code>!). The
 computation is required not to access data outside of <code class="docutils literal notranslate"><span class="pre">[7,</span> <span class="pre">23]</span></code>. The iteration space in <code class="docutils literal notranslate"><span class="pre">k</span></code> is <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">9]</span></code>.</p>
 </dd></dl>
 
