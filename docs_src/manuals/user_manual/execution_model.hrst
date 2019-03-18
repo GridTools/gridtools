@@ -54,6 +54,6 @@ The execution model imposes restrictions on how accessors can be evaluated. The 
     a whole *multistage*
  
  2. A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
-    this field must not be read anymore with any non-zero offsets, except with k-offsets (and no ij-offset) in case of
+    this field must not be read anymore with any non-zero offsets, except with k-offsets in case of
     non-parallel policy. For example, you must not access such a field with ``eval(field(-1, -1, -1))``.
 
