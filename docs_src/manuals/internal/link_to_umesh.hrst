@@ -1,6 +1,6 @@
-================================================
- Design of Grid Topology for Irregular Grids
-================================================
+
+Design of Grid Topology for Irregular Grids
+===========================================
 
 The `GridTopology` concept provides: 
 
