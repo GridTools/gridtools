@@ -26,6 +26,7 @@ __pycache__
 
 # except
 !cmake
+!docs
 !docs_src
 !regression
 !examples
