@@ -10,7 +10,7 @@
 
 #include <gridtools/c_bindings/export.hpp>
 #include <gridtools/interface/fortran_array_adapter.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 
 namespace gt = gridtools;
 

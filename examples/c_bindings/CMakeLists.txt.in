@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@)
 
 # 1) GridTools needs the language CXX
 project(GridTools-examples LANGUAGES CXX)
 
 # enable CUDA if it is found on the system
-include(CheckLanguage)
-check_language(CUDA)
+include(../workaround_check_language.cmake) # see https://gitlab.kitware.com/cmake/cmake/issues/19013
+_workaround_check_language(CUDA)
 if(CMAKE_CUDA_COMPILER)
     # 2) Enable the CUDA language if you want to run your code on a CUDA-capable GPU. This
     #    must be done before calling `find_package(GridTools)`
@@ -15,19 +15,21 @@ endif()
 # 3) find installed GridTools version
 find_package(GridTools @GridTools_VERSION@ REQUIRED
     HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake)
+# 4) extend the CMake module path such that bindings generator can be include within CMake
 list(APPEND CMAKE_MODULE_PATH "${GridTools_MODULE_PATH}")
 
-# 4) include c bindings module
+# 5) include c bindings module
 include(gt_bindings)
 
 enable_testing()
 
-# 5) generate a bindings library for mc-backend. This generates two targets:
+# 6) generate a bindings library for mc-backend. This generates two targets:
 #    - copy_stencil_lib_mc_c (the C library)
 #    - copy_stencil_lib_mc_fortran (the Fortran Library)
 gt_add_bindings_library(copy_stencil_lib_mc SOURCES copy_stencil_wrapper.cpp)
 target_link_libraries(copy_stencil_lib_mc PUBLIC GridTools::gridtools)
 
+include(CheckLanguage)
 check_language(C)
 if (CMAKE_C_COMPILER)
     enable_language(C)
@@ -41,7 +43,7 @@ endif()
 check_language(Fortran)
 if (CMAKE_Fortran_COMPILER)
     enable_language(Fortran)
-    # 6) If a library needs to be used from Fortran, it is necessary to call
+    # 7) If a library needs to be used from Fortran, it is necessary to call
     #    gt_enable_bindings_library_fortran with the bindings library in order to
     #    build the right modules
     gt_enable_bindings_library_fortran(copy_stencil_lib_mc)
