@@ -19,34 +19,34 @@ function are_independent() {
 modularization_result=0
 
 # list of non-dependencies
-no_dependency "common" "stencil-composition"
-no_dependency "common" "boundary-conditions"
+no_dependency "common" "stencil_composition"
+no_dependency "common" "boundary_conditions"
 no_dependency "common" "communication"
 no_dependency "common" "storage"
 no_dependency "common" "tools"
 no_dependency "common" "interface"
 no_dependency "common" "c_bindings"
-no_dependency "common" "distributed-boundaries"
+no_dependency "common" "distributed_boundaries"
 
-are_independent "stencil-composition" "boundary-conditions"
-are_independent "stencil-composition" "communication"
-are_independent "stencil-composition" "interface"
-no_dependency "stencil-composition" "tools"
+are_independent "stencil_composition" "boundary_conditions"
+are_independent "stencil_composition" "communication"
+are_independent "stencil_composition" "interface"
+no_dependency "stencil_composition" "tools"
 
-are_independent "boundary-conditions" "communication" #maybe they can have a dependency later?
-are_independent "boundary-conditions" "tools"
-are_independent "boundary-conditions" "interface"
+are_independent "boundary_conditions" "communication" #maybe they can have a dependency later?
+are_independent "boundary_conditions" "tools"
+are_independent "boundary_conditions" "interface"
 
 are_independent "communication" "interface"
 are_independent "communication" "storage"
 
-are_independent "distributed-boundaries" "c_bindings"
-are_independent "distributed-boundaries" "stencil-composition"
-are_independent "distributed-boundaries" "interface"
-are_independent "distributed-boundaries" "tools"
+are_independent "distributed_boundaries" "c_bindings"
+are_independent "distributed_boundaries" "stencil_composition"
+are_independent "distributed_boundaries" "interface"
+are_independent "distributed_boundaries" "tools"
 
-no_dependency "storage" "stencil-composition"
-no_dependency "storage" "boundary-conditions"
+no_dependency "storage" "stencil_composition"
+no_dependency "storage" "boundary_conditions"
 no_dependency "storage" "tools"
 no_dependency "storage" "interface"
 

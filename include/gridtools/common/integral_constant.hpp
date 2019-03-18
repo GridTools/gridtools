@@ -80,7 +80,7 @@ namespace gridtools {
 #undef GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE
 
     namespace literals {
-        namespace impl_ {
+        namespace literals_impl_ {
 
             using literal_int_t = int;
 
@@ -117,7 +117,7 @@ namespace gridtools {
 
             template <literal_int_t Base, char... Chars>
             struct digits_parser {
-                constexpr static char digits[] = {Chars...};
+                constexpr static char digits[sizeof...(Chars)] = {Chars...};
                 constexpr static literal_int_t value = parse<Base>(digits, digits + sizeof...(Chars) - 1);
             };
 
@@ -135,10 +135,11 @@ namespace gridtools {
 
             template <char... Chars>
             struct parser<'0', 'b', Chars...> : digits_parser<2, Chars...> {};
-        } // namespace impl_
+        } // namespace literals_impl_
 
         template <char... Chars>
-        constexpr GT_FUNCTION integral_constant<impl_::literal_int_t, impl_::parser<Chars...>::value> operator"" _c() {
+        constexpr GT_FUNCTION integral_constant<literals_impl_::literal_int_t, literals_impl_::parser<Chars...>::value>
+        operator"" _c() {
             return {};
         }
     } // namespace literals

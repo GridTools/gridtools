@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/meta/type_traits.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 using namespace gridtools;

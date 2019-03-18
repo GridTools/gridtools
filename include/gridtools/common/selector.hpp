@@ -24,7 +24,7 @@ namespace gridtools {
     /**
      *  @brief A class that is used as a selector when selecting which dimensions should be masked.
      *  E.g., Lets say we want to have a 3-dimensional storage but second dimension should be masked
-     *  we have to pass following selector selector<1,0,1> to the storage-facility.
+     *  we have to pass following selector selector<1,0,1> to the storage_facility.
      *  @tparam Bitmask bitmask defining the masked and unmasked dimensions
      */
     template <bool... Bitmask>

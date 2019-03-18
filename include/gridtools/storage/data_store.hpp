@@ -328,7 +328,7 @@ namespace gridtools {
          * @brief retrieve a pointer to the underlying storage instance.
          * @return shared pointer to the underlying storage instance
          */
-        std::shared_ptr<storage_t> get_storage_ptr() const { return m_shared_storage; }
+        std::shared_ptr<storage_t> const &get_storage_ptr() const { return m_shared_storage; }
 
         /**
          * @brief retrieve a pointer to the underlying storage_info instance.

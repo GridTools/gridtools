@@ -14,7 +14,7 @@
 
 #include <boost/mpl/vector.hpp>
 
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 
 /**
   @file

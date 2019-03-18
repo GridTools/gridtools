@@ -15,7 +15,7 @@
 #include <functional>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/location_type.hpp>
+#include <gridtools/stencil_composition/location_type.hpp>
 
 #include "neighbours_of.hpp"
 
