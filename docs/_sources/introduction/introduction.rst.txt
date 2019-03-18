@@ -41,6 +41,10 @@ to another:
       }
   };
 
+Several such stages can be composed into a computation and be applied on each grid-point of a grid. Requiring this
+abstract descriptions of a stencils, the DSL allows |GT| can apply architecture-specific optimizations to the stencil
+computations in order to be optimal on the target hardware.
+
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Dependencies

@@ -205,6 +205,9 @@ to another:</p>
 <span class="p">};</span>
 </pre></div>
 </div>
+<p>Several such stages can be composed into a computation and be applied on each grid-point of a grid. Requiring this
+abstract descriptions of a stencils, the DSL allows <cite>GridTools</cite> can apply architecture-specific optimizations to the stencil
+computations in order to be optimal on the target hardware.</p>
 <div class="section" id="dependencies">
 <h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
 <p><cite>GridTools</cite> requires at least a header-only installation of <a class="reference external" href="https://www.boost.org/">Boost</a>. Besides some boost utilities, it depends on <code class="docutils literal notranslate"><span class="pre">boost::mpl</span></code> and <code class="docutils literal notranslate"><span class="pre">boost::fusion</span></code>.</p>
