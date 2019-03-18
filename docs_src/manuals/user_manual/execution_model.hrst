@@ -34,8 +34,6 @@ execution policy.  A computation combines several multistages, and will execute 
 - For each `IJ` plane, the stages of a multistage will be executed strictly one after the other. This means, that a
   stage can assume, that the previous stage has been applied to the the whole `IJ` plane before it is executed. The user
   can explicitly create independent stages, that don't require this restriction.
-- In any execution policy, there is no guarantee, in what order stages are applied to indices which are neither in the
-  same ``IJ`` plane, nor in the same ``k`` column.
 - If the execution policy is `parallel`, a stage cannot impose any assumptions on which stages are applied before in
   another `IJ` plane.
 - If the execution policy is `forward`, it is guaranteed, that if a stage is executed at index ``k``, then all stages of
