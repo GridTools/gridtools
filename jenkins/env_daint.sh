@@ -39,14 +39,11 @@ if [[ ${COMPILER} == "gcc" ]]; then
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "clang" ]]; then
   case ${VERSION} in
-    "3.9")
-      module load /users/vogtha/modules/compilers/clang/3.9.1
-      ;;
-    "4.0RC2")
-      module load /users/vogtha/modules/compilers/clang/4.0.0rc2
-      ;;
     "5.0RC2")
       module load /users/vogtha/modules/compilers/clang/5.0.0rc2
+      ;;
+    "7.0")
+      module load /users/vogtha/modules/compilers/clang/7.0.1
       ;;
     *)
       module load /users/vogtha/modules/compilers/clang/3.8.1
