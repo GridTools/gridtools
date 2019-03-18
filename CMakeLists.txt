@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 cmake_policy(SET CMP0048 NEW)
-file(STRINGS "version.txt" GT_VERSION)
-project(GridTools VERSION ${GT_VERSION} LANGUAGES CXX)
+file(STRINGS "version.txt" __GT_VERSION)
+project(GridTools VERSION ${__GT_VERSION} LANGUAGES CXX)
+unset(__GT_VERSION)
 
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -96,12 +97,8 @@ if(COMPONENT_C_BINDINGS)
 endif()
 
 # ===============
-# examples and tests
+# tests
 # ===============
-if( GT_COMPILE_EXAMPLES )
-  add_subdirectory(gt_examples)
-endif()
-
 if(BUILD_TESTING)
   # TODO move to the right directory
   add_library(regression_main src/tools/regression_fixture.cpp)
@@ -111,6 +108,13 @@ if(BUILD_TESTING)
   add_subdirectory(unit_tests)
   
   add_subdirectory(docs_src/manuals/getting_started/code)
+endif()
+
+# ===============
+# examples
+# ===============
+if(GT_INSTALL_EXAMPLES)
+    add_subdirectory(examples)
 endif()
 
 # ===============
