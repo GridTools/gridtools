@@ -9,7 +9,7 @@
  */
 
 /** @file This file contains several examples of using boundary
-    conditions classes provided by gridtools itself.
+    conditions classes provided by GridTools itself.
 
     They are:
 
