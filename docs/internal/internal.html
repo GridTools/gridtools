@@ -106,6 +106,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="#design-of-grid-topology-for-irregular-grids">Design of Grid Topology for Irregular Grids</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq/faq.html">Frequently Asked Questions</a></li>
 </ul>
 
@@ -181,12 +182,12 @@ fields is extracted. This means we extract the raw pointers to the data from the
 information is from the <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> objects. The pointers and the strides information are stored in the <code class="docutils literal notranslate"><span class="pre">iterate_domain</span></code>.
 In order to save registers and not wasting resources different <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> instances with a matching ID parameter are
 treated as a single instance. This can be done because the contained stride information has to be the same if the ID is equal.
-<a class="reference internal" href="#fig-flow"><span class="std std-numref">Fig. 12</span></a> shows the storage flow from the frontend to the backend. In this example three data
+<a class="reference internal" href="#fig-flow"><span class="std std-numref">Fig. 10</span></a> shows the storage flow from the frontend to the backend. In this example three data
 stores are created by the user, and two temporaries are created in the <code class="docutils literal notranslate"><span class="pre">intermediate</span></code>. The <code class="docutils literal notranslate"><span class="pre">intermediate</span></code> is extracting the needed
 information from the <code class="docutils literal notranslate"><span class="pre">data_store</span></code> and <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> objects and is feeding the backend with raw data pointers and stride information.</p>
 <div class="figure" id="id1">
 <span id="fig-flow"></span><img alt="../_images/flow.png" src="../_images/flow.png" />
-<p class="caption"><span class="caption-number">Fig. 12 </span><span class="caption-text">Transformations applied to storages while passing from frontend to backend.</span></p>
+<p class="caption"><span class="caption-number">Fig. 10 </span><span class="caption-text">Transformations applied to storages while passing from frontend to backend.</span></p>
 </div>
 <div class="section" id="old-indexing-approach">
 <h3>Old Indexing Approach<a class="headerlink" href="#old-indexing-approach" title="Permalink to this headline">¶</a></h3>
@@ -194,17 +195,17 @@ information from the <code class="docutils literal notranslate"><span class="pre
 The backend additionally has to store an offset (called index). The reason for this is that the compute domain is
 split up into several blocks. Each block is passed to a GPU streaming multiprocessor that contains several cores.
 Each core has to know its position within the block in order to compute at the right point. So additionally to the
-stride and pointer information that is shared per block an index is stored per core. <a class="reference internal" href="#fig-block-contents"><span class="std std-numref">Fig. 13</span></a>
+stride and pointer information that is shared per block an index is stored per core. <a class="reference internal" href="#fig-block-contents"><span class="std std-numref">Fig. 11</span></a>
 shows the contents of two independent blocks. As visible the stride and pointer information is the same but the index is different for each
 thread.</p>
 <div class="figure" id="id2">
 <span id="fig-block-contents"></span><img alt="../_images/block_contents.png" src="../_images/block_contents.png" />
-<p class="caption"><span class="caption-number">Fig. 13 </span><span class="caption-text">Old <cite>GridTools</cite> indexing approach.</span></p>
+<p class="caption"><span class="caption-number">Fig. 11 </span><span class="caption-text">Old <cite>GridTools</cite> indexing approach.</span></p>
 </div>
 <p>The index is computed as follows. If there is no <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> the index will be</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align} i &amp;= (block\_id\_x * block\_size\_x + thread\_id\_x) * stride\_i \\\\ &amp;+ (block\_id\_y * block\_size\_y + thread\_id\_y) * stride\_j \end{align}\end{split}\]</div>
-<p>In case of a <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> the index is shifted into the right direction (like visible in <a class="reference internal" href="#fig-block-contents"><span class="std std-numref">Fig. 13</span></a>).</p>
+<p>In case of a <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> the index is shifted into the right direction (like visible in <a class="reference internal" href="#fig-block-contents"><span class="std std-numref">Fig. 11</span></a>).</p>
 </div>
 <div class="section" id="issues-regarding-temporaries">
 <h3>Issues Regarding Temporaries<a class="headerlink" href="#issues-regarding-temporaries" title="Permalink to this headline">¶</a></h3>
@@ -214,13 +215,13 @@ problem with redundant computations the temporary storages, that are allocated i
 number of elements. The size of the CUDA block is known beforehand and also the size of the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> and the number of blocks/threads
 is known. With this information an extended temporary storage can be instantiated. For performance reasons we want the first
 non-<a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> data point of each block to be in an aligned memory position. Therefore we add a certain number of padding elements between
-the blocks. <a class="reference internal" href="#fig-temporary"><span class="std std-numref">Fig. 14</span></a> compares the non-aligned versus the aligned storages. The green dots
+the blocks. <a class="reference internal" href="#fig-temporary"><span class="std std-numref">Fig. 12</span></a> compares the non-aligned versus the aligned storages. The green dots
 are marking the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> points. It can be seen that each block has its own <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> region. The blue squares are padding elements and the yellow
 squares are data points. As visible on the right part of the drawing the first data point should be in an aligned memory position.
 In order to achieve this padding elements are added between the blocks.</p>
 <div class="figure" id="id3">
 <span id="fig-temporary"></span><img alt="../_images/temporary.png" src="../_images/temporary.png" />
-<p class="caption"><span class="caption-number">Fig. 14 </span><span class="caption-text">Alignment issues on temporary storages.</span></p>
+<p class="caption"><span class="caption-number">Fig. 12 </span><span class="caption-text">Alignment issues on temporary storages.</span></p>
 </div>
 </div>
 <div class="section" id="base-pointer-change">
@@ -233,10 +234,10 @@ used one cannot just simply use a base pointer for all the cuda blocks
 and just  multiply the current  block index  with the block  size like
 shown in  the formula above. The  base pointer has to  be computed per
 block. So each block contains a pointer to its own temporary storage.
-See <a class="reference internal" href="#fig-temporary-block-contents"><span class="std std-numref">Fig. 15</span></a>.</p>
+See <a class="reference internal" href="#fig-temporary-block-contents"><span class="std std-numref">Fig. 13</span></a>.</p>
 <div class="figure" id="id4">
 <span id="fig-temporary-block-contents"></span><img alt="../_images/temporary_block_contents.png" src="../_images/temporary_block_contents.png" />
-<p class="caption"><span class="caption-number">Fig. 15 </span><span class="caption-text">Per-block private base pointers.</span></p>
+<p class="caption"><span class="caption-number">Fig. 13 </span><span class="caption-text">Per-block private base pointers.</span></p>
 </div>
 <p>There is no difference in resource consumption when using the changed base pointer approach. It was mainly introduced for
 convenience and in order to smoothly integrate the aligned temporary block improvement.</p>
@@ -261,14 +262,82 @@ a high number of fields.</p>
 <div class="section" id="updated-indexing-algorithm">
 <h3>Updated Indexing Algorithm<a class="headerlink" href="#updated-indexing-algorithm" title="Permalink to this headline">¶</a></h3>
 <p>The new indexing approach tries to avoid the strategy of setting the base pointer to the first point of the block. The new approach is to set the
-pointer to the first non-<a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> point of the block. The method that is setting the index of each cuda thread has to be modified. <a class="reference internal" href="#fig-new-temporary-block-contents"><span class="std std-numref">Fig. 16</span></a> shows the new indexing. As shown, the first non <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> point is used as base pointer. The index
+pointer to the first non-<a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> point of the block. The method that is setting the index of each cuda thread has to be modified. <a class="reference internal" href="#fig-new-temporary-block-contents"><span class="std std-numref">Fig. 14</span></a> shows the new indexing. As shown, the first non <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> point is used as base pointer. The index
 is also modified in order to point to the correct data location.</p>
 <div class="figure" id="id5">
 <span id="fig-new-temporary-block-contents"></span><img alt="../_images/new_temporary_block_contents.png" src="../_images/new_temporary_block_contents.png" />
-<p class="caption"><span class="caption-number">Fig. 16 </span><span class="caption-text">Per-block private base pointers to first non-<a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> point of the block.</span></p>
+<p class="caption"><span class="caption-number">Fig. 14 </span><span class="caption-text">Per-block private base pointers to first non-<a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> point of the block.</span></p>
 </div>
 </div>
 </div>
+</div>
+<div class="section" id="design-of-grid-topology-for-irregular-grids">
+<h1>Design of Grid Topology for Irregular Grids<a class="headerlink" href="#design-of-grid-topology-for-irregular-grids" title="Permalink to this headline">¶</a></h1>
+<p>The <cite>GridTopology</cite> concept provides:</p>
+<ol class="arabic simple">
+<li>Connectivity information to neighbours in the same and different <cite>LocationType</cite>’s.</li>
+<li>Storage maker functionality</li>
+</ol>
+<p>The icosahedral <cite>grid</cite> class requires a class, as a template parameter, that implements a <cite>GridTopology</cite></p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Axis</span><span class="p">,</span> <span class="k">typename</span> <span class="n">GridTopology</span><span class="o">&gt;</span>
+<span class="k">struct</span> <span class="n">grid</span>
+</pre></div>
+</div>
+<p>and can be constructed additionally with a runtime instance of the <cite>GridTopology</cite>, depending on whether
+the concrete implementation of that <cite>GridTopology</cite> requires runtime connectivity information.</p>
+<p>Currently there are two concrete implementations of the <cite>GridTopology</cite>:</p>
+<p>1. The <cite>icosahedral_topology</cite> provides connectivity information at compile time, for icosahedral/octahedral grid layouts where all
+the connectivity information can be derived at compiled time from the parallelogram structures based on simple stride rules.</p>
+<p>An example of such structured index layout of the icosahedral grid parallelograms is shown in <a class="reference internal" href="#fig-ico-indices"><span class="std std-numref">Fig. 15</span></a>,
+where the parallelogram can be indexed with three coordinates <cite>i</cite> and <cite>j</cite> and a color that identifies downward/upward triangles.
+This particular data layout assumes an order in the dimensions like i-c-j (being <cite>i</cite> the stride - 1 dimension).
+As an example, the cell with index 14, can be accessed with <cite>{i, c, j}</cite> coordinates <cite>{2, 0, 1}</cite>.
+A similar scheme of indexing for <cite>edges</cite>, and <cite>vertices</cite> is developed.
+All neighbour indexes of any cell/edge/vertex as well as connectivity to different <cite>LocationType</cite> can be express with simple
+offset rules.</p>
+<p>For example, the neighbor indices of any cell can be computed with the following rules:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="p">{{</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">c</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">},</span> <span class="p">{</span><span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">}}</span> <span class="k">for</span> <span class="n">downward</span> <span class="n">triangle</span> <span class="p">(</span><span class="n">color</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span>
+<span class="p">{{</span><span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">},</span> <span class="p">{</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">c</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">},</span> <span class="p">{</span><span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">}}</span> <span class="k">for</span> <span class="n">upward</span> <span class="n">triangle</span>
+</pre></div>
+</div>
+<p>Similar rules are derived for connectivities among different location types.</p>
+<div class="figure" id="ico-indices">
+<span id="fig-ico-indices"></span><a class="reference internal image-reference" href="internal/figures/ico_indices.png"><img alt="internal/figures/ico_indices.png" src="internal/figures/ico_indices.png" /></a>
+<p class="caption"><span class="caption-number">Fig. 15 </span><span class="caption-text">Structured index layout for icosahedral grid</span></p>
+</div>
+<p>Since all offset rules are based on the structured of the icosahedral parallelograms, and do not depend
+on a particular runtime instance of the grid topology, they are derived at compile time.
+These offsets rules can be extracted using the connectivity class API</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">SrcLocation</span><span class="p">,</span> <span class="k">typename</span> <span class="n">DestLocation</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">Color</span><span class="o">&gt;</span>
+<span class="k">struct</span> <span class="n">connectivity</span>
+</pre></div>
+</div>
+<p>For the icosahedral grid, the connectivity tables give access to the following 9 type of queries, depending on the <cite>from</cite> and <cite>to</cite> location types. See <a class="reference internal" href="#fig-location-type-opr"><span class="std std-numref">Fig. 16</span></a>.</p>
+<div class="figure" id="id6">
+<span id="fig-location-type-opr"></span><a class="reference internal image-reference" href="internal/figures/location_type_opr.png"><img alt="internal/figures/location_type_opr.png" src="internal/figures/location_type_opr.png" /></a>
+<p class="caption"><span class="caption-number">Fig. 16 </span><span class="caption-text">All possible connectivity queries in an icosahedral grid.</span></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Depending on the location type, there are different number of neighbour indices. For example <cite>from&lt;cell&gt;::to&lt;edge&gt;</cite> will return a tuple of three
+edge indices. The order of those neighbours, is part of the API and is defined based on physical meaning of PDE operators.</p>
+</div>
+<p>2. The <cite>unstructured_mesh</cite> implements a <cite>GridTopology</cite> for grid layouts without a clear structure, and therefore runtime lookup tables
+need to be used in order to define connectivities between the different <cite>LocationTypes</cite>.</p>
+<p>Since the connectivity information is stored as lookup tables, the <cite>unstructured_mesh</cite> needs to accept in the ctr an Atlas mesh object,
+that contains all the necessary lookup tables.
+All 9 lookup tables are then stored in two type of (atlas data structure) tables: MultiBlockConnectivity and IrregularConnectivity.
+The main difference is that the connectivity described with a MultiBlockConnectivity shows a uniform number of neighbours for each entry in the table,
+while in the IrregularConnectivity, each entry can have a different number of neighbours.</p>
+<p>The <cite>grid</cite> concept has a <cite>GridTopology</cite> type, that can be of two classes (as described above).
+Additionally for the types of <cite>GridTopology</cite> that require a runtime information with the connectivity tables,
+the <cite>grid</cite> also has an <cite>unstructured mesh</cite> instance of type</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">unstructured_mesh_t</span> <span class="o">=</span>
+  <span class="k">typename</span> <span class="n">boost</span><span class="o">::</span><span class="n">mpl</span><span class="o">::</span><span class="n">if_c</span><span class="o">&lt;</span><span class="n">is_unstructured_mesh</span><span class="o">&lt;</span><span class="n">GridTopology</span><span class="o">&gt;::</span><span class="n">value</span><span class="p">,</span> <span class="n">GridTopology</span><span class="p">,</span> <span class="n">empty</span><span class="o">&gt;::</span><span class="n">type</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>In case of having a <cite>GridTopology</cite> of <cite>icosahedral_topology</cite> the instance that gets instantiated is an empty class.</p>
+<p>Later this <cite>unstructured_mesh</cite> will be passed to the <cite>iterate_domain</cite> that requires the connectivity information.</p>
 </div>
 
 

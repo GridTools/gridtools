@@ -13,7 +13,7 @@
 
 #include "exported_repository.hpp"
 #include <gridtools/interface/repository/repository.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 
 #define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)

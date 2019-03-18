@@ -19,7 +19,7 @@ Design Principles:
 Communication Traits
 ------------------------
 
-Communication traits helps the distributed boundary condition interface to customize itself to the need of the user. A general communication traits class is available in ``distributed-boundaries/comm_traits.hpp``. The traits required by the distributed boundaries interface, as provided by |GT|, are listed below here.
+Communication traits helps the distributed boundary condition interface to customize itself to the need of the user. A general communication traits class is available in ``distributed_boundaries/comm_traits.hpp``. The traits required by the distributed boundaries interface, as provided by |GT|, are listed below here.
 
 .. code-block:: gridtools
 
