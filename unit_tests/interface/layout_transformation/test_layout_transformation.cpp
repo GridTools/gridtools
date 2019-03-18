@@ -32,11 +32,11 @@ namespace {
         }
 
         uint_t size() {
-            uint_t index = 0;
+            uint_t result = 0;
             for (uint_t i = 0; i < dims_.size(); ++i) {
-                index = std::max(index, dims_[i] * strides_[i]);
+                result = std::max(result, dims_[i] * strides_[i]);
             }
-            return index;
+            return result;
         }
 
         uint_t size(uint_t dim) const { return dims_[dim]; }
