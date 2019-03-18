@@ -8,16 +8,16 @@ Getting Started
 ===============
 
 This chapter describes how to use |GT| to solve a (simple) PDE.
-We will use the fourth-order horizontal smoothing filter example from
-with small modifications to explain the necessary steps to assemble a
+We will a the fourth-order horizontal smoothing filter example
+to explain the necessary steps to assemble a
 stencil from scratch. We will not go into details in this chapter but
-refer to latter chapters for more details.
+refer to later chapters for more details.
 
 Our example PDE is given by
 
 .. math::
    \frac{\partial \phi}{\partial t} =\begin{cases}
-   - \alpha \nabla^4 \phi & z \leq z_\text{max}\\
+   - \alpha \nabla^4 \phi & z \leq z_\text{0}\\
    0 & z > z_0
    \end{cases}
 
@@ -53,13 +53,11 @@ by all grid points in our domain of interest
 
    \Lambda = (i,j,k) \quad \text{with}\quad i \in \{ 0\dots N_i-1\}, j \in \{0\dots N_j-1\}, k\in\{0 \dots N_k-1\}
 
-|GT| supports any number of dimension, however it will treat
-one dimension, here the :math:`k`, dimension differently: the :math:`ij`-plane is
-executed in parallel while the computation in :math:`k` can be sequential. The
-consequence is that there must not be a dependency in :math:`ij` within a
-stencil while there can be a dependency in :math:`k`. For now (this chapter)
-it is sufficient to just remember that the :math:`ij`-plane and the :math:`k`
-dimension are treated differently by |GT|.
+|GT| supports any number of dimension, however the iteration is always restricted to three dimensions, and |GT| will
+treat one dimension, here the :math:`k`, dimension differently: the :math:`ij`-plane is executed in parallel while the
+computation in :math:`k` can be sequential. The consequence is that there must not be a dependency in :math:`ij` within
+a stencil while there can be a dependency in :math:`k`. For now (this chapter) it is sufficient to just remember that
+the :math:`ij`-plane and the :math:`k` dimension are treated differently by |GT|.
 
 The calculation domain is surrounded by a *boundary region* as depicted
 in :numref:`fig_getting_started_coordinates`. Computation happens
@@ -76,7 +74,7 @@ points in the boundary region.
 Storages
 --------
 
-In this section we will setup the fields for our example: we need a
+In this section we will set up the fields for our example: we need a
 storage for the :math:`\phi`-field (``phi_in``) and a storage for the output
 (``phi_out``).
 
@@ -105,7 +103,7 @@ for the CUDA :term:`Backend` or
    :language: gridtools
    :lines: 10
 
-for the CPU :term:`Backend` and the :term:`Backend`
+for the CPU :term:`Backend`. Second we define the backend as
  
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
@@ -113,21 +111,17 @@ for the CPU :term:`Backend` and the :term:`Backend`
 
 which will be used later.
 
-The second argument to ``backend`` defines the type of the grid, where ``structured`` refers to a
-Cartesian-like grid. The last argument defines that blocking should be used.
-See :ref:`backend-selection` for details.
-
 ^^^^^^^^^^^^^^^^
 The Storage Type
 ^^^^^^^^^^^^^^^^
 
-For efficient memory access the index ordering might depend on the target architecture, therefore the
+For efficient memory accesses the index ordering might depend on the target architecture, therefore the
 memory layout will implicitly decided by target via the storage traits as follows.
 
-For each storage type we need to define the type of the data we want to
+For each storage type we need to define the data type of the data we want to
 store in the field, e.g. ``double``, and a ``storage_info`` type which will hold
 information about size, alignment, strides etc. When creating the ``storage_info`` via the storage
-traits we need to provide a unique index and the number of dimensions for the storage (typically 3).
+traits we need to provide a unique idenentifier and the number of dimensions for the storage (typically 3).
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
@@ -143,8 +137,8 @@ instantiated with the ``info`` object.
    :dedent: 4
 
 The first argument, the ``info``
-object, is mandatory, while the other arguments are optional: a name for
-the field and an initial value.
+object, is mandatory, while the other arguments are optional: a name and an initial value for
+the field.
 
 
 .. note::
@@ -190,7 +184,7 @@ For the calculation of
 the Laplacian at a given grid point we need the value at the grid point
 itself and its four direct neighbors along the Cartesian axis.
 
-A naive C++ implementation of the 2D Laplacian stencil is provided in
+A naive C++ implementation of the 2D Laplacian stencil looks as follows:
 
 .. literalinclude:: code/test_naive_implementation.cpp
    :language: cpp
@@ -204,18 +198,16 @@ consists of 2 main components:
 - Update-logic: defines the update formula (here: the 2D Laplacian)
 
 Special care had to be taken at the boundary of the domain. Since the
-Laplacian needs the neighboring points we cannot calculate the Laplacian
-on the boundary layer and have to exclude them from the loop.
+Laplacian needs the neighboring points, we cannot calculate the Laplacian
+on the boundary layer and have to exclude it from the loop.
 
 -----------------------
 First GridTools Stencil
 -----------------------
 
-In |GT| the loop logic and the storage order is implemented
-(and optimized) by the library while the update function is implemented
-by the user. The loop logic (for a given architecture) is combined with
-the user-defined update function at compile-time by template
-meta-programming.
+In |GT| the loop logic and the storage order are implemented (and optimized) by the library while the update function to
+be applied to each gridpoint is implemented by the user. The loop logic (for a given architecture) is combined with the
+user-defined update function at compile-time by template meta-programming.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Update-logic: GridTools 2D Laplacian
@@ -248,9 +240,9 @@ to the current point. The format for the extent is
 where ``i_minus`` and ``i_plus`` define an interval on the :math:`i`-axis relative to
 the current position; ``i_minus`` is the negative offset, i.e. zero or a
 negative number, while ``i_plus`` is the positive offset. Analogously for
-:math:`j` and :math:`k`. In the Laplacian example, the first two number
+:math:`j` and :math:`k`. In the Laplacian example, the first two numbers
 in the extent of the ``in`` accessor define that we want to access the
-field at :math:`i-1,i,i+1`. The accessor type and the extent is needed for a
+field at :math:`i-1`, :math:`i` and  :math:`i+1`. The accessor type and the extent is needed for a
 dependency analysis in the compile-time optimizations for more complex
 stencils. (For example, the computation 
 domain needs to be extended when we calculate the Laplacian of the Laplacian later. This is done automatically by the 
@@ -258,7 +250,8 @@ library.)
 
 The first template argument is an index defining the order of the
 parameters, i.e. the order in which the fields are passed to the
-functor. The ``param_list`` is a |GT| keyword which has to be defined for each stencil.
+functor. The ``param_list`` is a |GT| keyword which has to be defined for each stencil,
+and should contain th elist of accessors.
 
 A ``apply``-method needs as first parameter a context
 object, usually called ``eval``, which is created and passed to the method by the library on
@@ -315,16 +308,15 @@ next lines the layers in :math:`k` are defined. In this case we have only one
 interval. We will discuss the details later.
 
 In lines 18-23 we create the stencil object.
-We pass the grid (the information about the loop bounds) and a so-called ``multistage``. The ``multi_stage``
-contains a single ``stage``, our Laplacian functor.
+We pass the grid (the information about the loop bounds) and a so-called multistage. The multistage
+contains a single stage, our Laplacian functor.
 
-In more complex codes we can combine multiple :math:`k`-independent ``stage`` s in
-a ``multi_stage``. If we have a :math:`k`-dependency we have to split the computation
-in multiple ``multi_stage`` s.
+In more complex codes we can combine multiple :math:`k`-independent stages in
+a multi_stage. If we have a :math:`k`-dependency we have to split the computation
+into multiple multi_stages.
 
-The statement ``execute<parallel>`` defines that we want to iterate over :math:`k` in a
-forward manner, i.e. starting from the smallest :math:`k`-value to the
-largest. Other execution modes are ``forward`` and ``backward``. For performance reason ``parallel`` should be used
+The statement ``execute<parallel>`` defines that all `ij`-layers can be calculated independently.
+Other execution modes are ``forward`` and ``backward``. For performance reason ``parallel`` should be used
 whenever possible.
 
 In the last line the stencil is
@@ -339,7 +331,7 @@ The full working example looks as follows:
 .. literalinclude:: code/test_gt_laplacian.cpp
    :language: gridtools
    :linenos:
-   
+
 There are some points which we did not discuss so far. For a first look at |GT| these can be considered fixed patterns and 
 we won't discuss them now in detail. In brief:
 
@@ -358,7 +350,6 @@ compute our example PDE. A naive implementation could look as in
    :language: gridtools
    :start-after: // smoothing-begin
    :end-before: // smoothing-end
-   
 
 For the |GT| implementation we will learn three things in this
 section: how to define special regions in the :math:`k`-direction; how to use
@@ -461,10 +452,10 @@ follows
 .. literalinclude:: code/gt_smoothing_variant3_operator.hpp
    :language: gridtools
 
-In ``call`` we specify the functor which we want to apply.
-In ``with`` the 
-``eval`` is forwarded, followed by all the input arguments for the functor. The functor in the call is required to 
-have exactly one ``inout_accessor`` which will be the return value of the call.
+In ``call`` we specify the functor which we want to apply.  In ``with`` the ``eval`` is forwarded, followed by all the
+input arguments for the functor. The functor in the call is required to have exactly one ``inout_accessor`` which will
+be the return value of the call. Note that ``smoothing_function_3`` still needs to specify the extents explicitly;
+for functor calls they cannot be inferred automatically.
 
 One of the ``make_stage<lap_function>`` was now moved inside of the functor, therefore the new call to ``make_computation`` is just
 

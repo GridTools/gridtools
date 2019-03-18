@@ -188,14 +188,14 @@
   <div class="section" id="getting-started">
 <span id="id1"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>This chapter describes how to use <cite>GridTools</cite> to solve a (simple) PDE.
-We will use the fourth-order horizontal smoothing filter example from
-with small modifications to explain the necessary steps to assemble a
+We will a the fourth-order horizontal smoothing filter example
+to explain the necessary steps to assemble a
 stencil from scratch. We will not go into details in this chapter but
-refer to latter chapters for more details.</p>
+refer to later chapters for more details.</p>
 <p>Our example PDE is given by</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\frac{\partial \phi}{\partial t} =\begin{cases}
-- \alpha \nabla^4 \phi &amp; z \leq z_\text{max}\\
+- \alpha \nabla^4 \phi &amp; z \leq z_\text{0}\\
 0 &amp; z &gt; z_0
 \end{cases}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\nabla^4\)</span> is the squared two dimensional horizontal
@@ -222,13 +222,11 @@ coordinates restricted on the grid. The <em>computation domain</em> is defined
 by all grid points in our domain of interest</p>
 <div class="math notranslate nohighlight">
 \[\Lambda = (i,j,k) \quad \text{with}\quad i \in \{ 0\dots N_i-1\}, j \in \{0\dots N_j-1\}, k\in\{0 \dots N_k-1\}\]</div>
-<p><cite>GridTools</cite> supports any number of dimension, however it will treat
-one dimension, here the <span class="math notranslate nohighlight">\(k\)</span>, dimension differently: the <span class="math notranslate nohighlight">\(ij\)</span>-plane is
-executed in parallel while the computation in <span class="math notranslate nohighlight">\(k\)</span> can be sequential. The
-consequence is that there must not be a dependency in <span class="math notranslate nohighlight">\(ij\)</span> within a
-stencil while there can be a dependency in <span class="math notranslate nohighlight">\(k\)</span>. For now (this chapter)
-it is sufficient to just remember that the <span class="math notranslate nohighlight">\(ij\)</span>-plane and the <span class="math notranslate nohighlight">\(k\)</span>
-dimension are treated differently by <cite>GridTools</cite>.</p>
+<p><cite>GridTools</cite> supports any number of dimension, however the iteration is always restricted to three dimensions, and <cite>GridTools</cite> will
+treat one dimension, here the <span class="math notranslate nohighlight">\(k\)</span>, dimension differently: the <span class="math notranslate nohighlight">\(ij\)</span>-plane is executed in parallel while the
+computation in <span class="math notranslate nohighlight">\(k\)</span> can be sequential. The consequence is that there must not be a dependency in <span class="math notranslate nohighlight">\(ij\)</span> within
+a stencil while there can be a dependency in <span class="math notranslate nohighlight">\(k\)</span>. For now (this chapter) it is sufficient to just remember that
+the <span class="math notranslate nohighlight">\(ij\)</span>-plane and the <span class="math notranslate nohighlight">\(k\)</span> dimension are treated differently by <cite>GridTools</cite>.</p>
 <p>The calculation domain is surrounded by a <em>boundary region</em> as depicted
 in <a class="reference internal" href="#fig-getting-started-coordinates"><span class="std std-numref">Fig. 1</span></a>. Computation happens
 only within the calculation domain but values may be read from grid
@@ -240,7 +238,7 @@ points in the boundary region.</p>
 </div>
 <div class="section" id="storages">
 <h2>Storages<a class="headerlink" href="#storages" title="Permalink to this headline">¶</a></h2>
-<p>In this section we will setup the fields for our example: we need a
+<p>In this section we will set up the fields for our example: we need a
 storage for the <span class="math notranslate nohighlight">\(\phi\)</span>-field (<code class="docutils literal notranslate"><span class="pre">phi_in</span></code>) and a storage for the output
 (<code class="docutils literal notranslate"><span class="pre">phi_out</span></code>).</p>
 <p>Storages in <cite>GridTools</cite> are n-dimensional array-like objects with the
@@ -261,23 +259,20 @@ typically looks like</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">target_t</span> <span class="o">=</span> <span class="n">target</span><span class="o">::</span><span class="n">mc</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>for the CPU <a class="reference internal" href="../glossary/glossary.html#term-backend"><span class="xref std std-term">Backend</span></a> and the <a class="reference internal" href="../glossary/glossary.html#term-backend"><span class="xref std std-term">Backend</span></a></p>
+<p>for the CPU <a class="reference internal" href="../glossary/glossary.html#term-backend"><span class="xref std std-term">Backend</span></a>. Second we define the backend as</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">backend_t</span> <span class="o">=</span> <span class="n">backend</span><span class="o">&lt;</span><span class="n">target_t</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>which will be used later.</p>
-<p>The second argument to <code class="docutils literal notranslate"><span class="pre">backend</span></code> defines the type of the grid, where <code class="docutils literal notranslate"><span class="pre">structured</span></code> refers to a
-Cartesian-like grid. The last argument defines that blocking should be used.
-See <a class="reference internal" href="../user_manual/user_manual.html#backend-selection"><span class="std std-ref">Selecting the Backend</span></a> for details.</p>
 </div>
 <div class="section" id="the-storage-type">
 <h3>The Storage Type<a class="headerlink" href="#the-storage-type" title="Permalink to this headline">¶</a></h3>
-<p>For efficient memory access the index ordering might depend on the target architecture, therefore the
+<p>For efficient memory accesses the index ordering might depend on the target architecture, therefore the
 memory layout will implicitly decided by target via the storage traits as follows.</p>
-<p>For each storage type we need to define the type of the data we want to
+<p>For each storage type we need to define the data type of the data we want to
 store in the field, e.g. <code class="docutils literal notranslate"><span class="pre">double</span></code>, and a <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> type which will hold
 information about size, alignment, strides etc. When creating the <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> via the storage
-traits we need to provide a unique index and the number of dimensions for the storage (typically 3).</p>
+traits we need to provide a unique idenentifier and the number of dimensions for the storage (typically 3).</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">target_t</span><span class="o">&gt;::</span><span class="n">storage_info_t</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="k">using</span> <span class="n">data_store_t</span> <span class="o">=</span> <span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">target_t</span><span class="o">&gt;::</span><span class="n">data_store_t</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span> <span class="n">storage_info_t</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
@@ -296,8 +291,8 @@ instantiated with the <code class="docutils literal notranslate"><span class="pr
 </pre></div>
 </div>
 <p>The first argument, the <code class="docutils literal notranslate"><span class="pre">info</span></code>
-object, is mandatory, while the other arguments are optional: a name for
-the field and an initial value.</p>
+object, is mandatory, while the other arguments are optional: a name and an initial value for
+the field.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For each <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> type it is recommended to use only one instantiation. The mapping between a storage and the
@@ -337,7 +332,7 @@ five-point stencil as depicted in <a class="reference internal" href="#fig-getti
 <p>For the calculation of
 the Laplacian at a given grid point we need the value at the grid point
 itself and its four direct neighbors along the Cartesian axis.</p>
-<p>A naive C++ implementation of the 2D Laplacian stencil is provided in</p>
+<p>A naive C++ implementation of the 2D Laplacian stencil looks as follows:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">laplacian</span><span class="p">(</span><span class="n">storage_view_t</span> <span class="o">&amp;</span><span class="n">lap</span><span class="p">,</span> <span class="n">storage_view_t</span> <span class="o">&amp;</span><span class="n">in</span><span class="p">,</span> <span class="kt">int</span> <span class="n">boundary_size</span><span class="p">)</span> <span class="p">{</span>
     <span class="kt">int</span> <span class="n">Ni</span> <span class="o">=</span> <span class="n">in</span><span class="p">.</span><span class="n">total_length</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">();</span>
     <span class="kt">int</span> <span class="n">Nj</span> <span class="o">=</span> <span class="n">in</span><span class="p">.</span><span class="n">total_length</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">();</span>
@@ -361,17 +356,15 @@ consists of 2 main components:</p>
 <li>Update-logic: defines the update formula (here: the 2D Laplacian)</li>
 </ul>
 <p>Special care had to be taken at the boundary of the domain. Since the
-Laplacian needs the neighboring points we cannot calculate the Laplacian
-on the boundary layer and have to exclude them from the loop.</p>
+Laplacian needs the neighboring points, we cannot calculate the Laplacian
+on the boundary layer and have to exclude it from the loop.</p>
 </div>
 </div>
 <div class="section" id="first-gridtools-stencil">
 <h2>First GridTools Stencil<a class="headerlink" href="#first-gridtools-stencil" title="Permalink to this headline">¶</a></h2>
-<p>In <cite>GridTools</cite> the loop logic and the storage order is implemented
-(and optimized) by the library while the update function is implemented
-by the user. The loop logic (for a given architecture) is combined with
-the user-defined update function at compile-time by template
-meta-programming.</p>
+<p>In <cite>GridTools</cite> the loop logic and the storage order are implemented (and optimized) by the library while the update function to
+be applied to each gridpoint is implemented by the user. The loop logic (for a given architecture) is combined with the
+user-defined update function at compile-time by template meta-programming.</p>
 <div class="section" id="update-logic-gridtools-2d-laplacian">
 <h3>Update-logic: GridTools 2D Laplacian<a class="headerlink" href="#update-logic-gridtools-2d-laplacian" title="Permalink to this headline">¶</a></h3>
 <p>The update-logic is implemented with state-less functors. A
@@ -426,16 +419,17 @@ to the current point. The format for the extent is</p>
 <p>where <code class="docutils literal notranslate"><span class="pre">i_minus</span></code> and <code class="docutils literal notranslate"><span class="pre">i_plus</span></code> define an interval on the <span class="math notranslate nohighlight">\(i\)</span>-axis relative to
 the current position; <code class="docutils literal notranslate"><span class="pre">i_minus</span></code> is the negative offset, i.e. zero or a
 negative number, while <code class="docutils literal notranslate"><span class="pre">i_plus</span></code> is the positive offset. Analogously for
-<span class="math notranslate nohighlight">\(j\)</span> and <span class="math notranslate nohighlight">\(k\)</span>. In the Laplacian example, the first two number
+<span class="math notranslate nohighlight">\(j\)</span> and <span class="math notranslate nohighlight">\(k\)</span>. In the Laplacian example, the first two numbers
 in the extent of the <code class="docutils literal notranslate"><span class="pre">in</span></code> accessor define that we want to access the
-field at <span class="math notranslate nohighlight">\(i-1,i,i+1\)</span>. The accessor type and the extent is needed for a
+field at <span class="math notranslate nohighlight">\(i-1\)</span>, <span class="math notranslate nohighlight">\(i\)</span> and  <span class="math notranslate nohighlight">\(i+1\)</span>. The accessor type and the extent is needed for a
 dependency analysis in the compile-time optimizations for more complex
 stencils. (For example, the computation
 domain needs to be extended when we calculate the Laplacian of the Laplacian later. This is done automatically by the
 library.)</p>
 <p>The first template argument is an index defining the order of the
 parameters, i.e. the order in which the fields are passed to the
-functor. The <code class="docutils literal notranslate"><span class="pre">param_list</span></code> is a <cite>GridTools</cite> keyword which has to be defined for each stencil.</p>
+functor. The <code class="docutils literal notranslate"><span class="pre">param_list</span></code> is a <cite>GridTools</cite> keyword which has to be defined for each stencil,
+and should contain th elist of accessors.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">apply</span></code>-method needs as first parameter a context
 object, usually called <code class="docutils literal notranslate"><span class="pre">eval</span></code>, which is created and passed to the method by the library on
 invocation. This object contains, among other things, the index of the
@@ -525,14 +519,13 @@ a region with a boundary of size 1 surrounding the <span class="math notranslate
 next lines the layers in <span class="math notranslate nohighlight">\(k\)</span> are defined. In this case we have only one
 interval. We will discuss the details later.</p>
 <p>In lines 18-23 we create the stencil object.
-We pass the grid (the information about the loop bounds) and a so-called <code class="docutils literal notranslate"><span class="pre">multistage</span></code>. The <code class="docutils literal notranslate"><span class="pre">multi_stage</span></code>
-contains a single <code class="docutils literal notranslate"><span class="pre">stage</span></code>, our Laplacian functor.</p>
-<p>In more complex codes we can combine multiple <span class="math notranslate nohighlight">\(k\)</span>-independent <code class="docutils literal notranslate"><span class="pre">stage</span></code> s in
-a <code class="docutils literal notranslate"><span class="pre">multi_stage</span></code>. If we have a <span class="math notranslate nohighlight">\(k\)</span>-dependency we have to split the computation
-in multiple <code class="docutils literal notranslate"><span class="pre">multi_stage</span></code> s.</p>
-<p>The statement <code class="docutils literal notranslate"><span class="pre">execute&lt;parallel&gt;</span></code> defines that we want to iterate over <span class="math notranslate nohighlight">\(k\)</span> in a
-forward manner, i.e. starting from the smallest <span class="math notranslate nohighlight">\(k\)</span>-value to the
-largest. Other execution modes are <code class="docutils literal notranslate"><span class="pre">forward</span></code> and <code class="docutils literal notranslate"><span class="pre">backward</span></code>. For performance reason <code class="docutils literal notranslate"><span class="pre">parallel</span></code> should be used
+We pass the grid (the information about the loop bounds) and a so-called multistage. The multistage
+contains a single stage, our Laplacian functor.</p>
+<p>In more complex codes we can combine multiple <span class="math notranslate nohighlight">\(k\)</span>-independent stages in
+a multi_stage. If we have a <span class="math notranslate nohighlight">\(k\)</span>-dependency we have to split the computation
+into multiple multi_stages.</p>
+<p>The statement <code class="docutils literal notranslate"><span class="pre">execute&lt;parallel&gt;</span></code> defines that all <cite>ij</cite>-layers can be calculated independently.
+Other execution modes are <code class="docutils literal notranslate"><span class="pre">forward</span></code> and <code class="docutils literal notranslate"><span class="pre">backward</span></code>. For performance reason <code class="docutils literal notranslate"><span class="pre">parallel</span></code> should be used
 whenever possible.</p>
 <p>In the last line the stencil is
 executed. The <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a> <code class="docutils literal notranslate"><span class="pre">phi</span></code> and <code class="docutils literal notranslate"><span class="pre">lap</span></code> are bound to its placeholders.</p>
@@ -893,10 +886,10 @@ follows</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>In <code class="docutils literal notranslate"><span class="pre">call</span></code> we specify the functor which we want to apply.
-In <code class="docutils literal notranslate"><span class="pre">with</span></code> the
-<code class="docutils literal notranslate"><span class="pre">eval</span></code> is forwarded, followed by all the input arguments for the functor. The functor in the call is required to
-have exactly one <code class="docutils literal notranslate"><span class="pre">inout_accessor</span></code> which will be the return value of the call.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">call</span></code> we specify the functor which we want to apply.  In <code class="docutils literal notranslate"><span class="pre">with</span></code> the <code class="docutils literal notranslate"><span class="pre">eval</span></code> is forwarded, followed by all the
+input arguments for the functor. The functor in the call is required to have exactly one <code class="docutils literal notranslate"><span class="pre">inout_accessor</span></code> which will
+be the return value of the call. Note that <code class="docutils literal notranslate"><span class="pre">smoothing_function_3</span></code> still needs to specify the extents explicitly;
+for functor calls they cannot be inferred automatically.</p>
 <p>One of the <code class="docutils literal notranslate"><span class="pre">make_stage&lt;lap_function&gt;</span></code> was now moved inside of the functor, therefore the new call to <code class="docutils literal notranslate"><span class="pre">make_computation</span></code> is just</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">data_store_t</span> <span class="nf">phi</span><span class="p">(</span><span class="n">info</span><span class="p">);</span>
 <span class="n">data_store_t</span> <span class="nf">phi_new</span><span class="p">(</span><span class="n">info</span><span class="p">);</span>
