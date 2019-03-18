@@ -92,7 +92,7 @@ we cover how to define the :term:`Iteration Space` with the ``grid`` object.
 
      auto grid = make_grid({3, 3, 10, 20, 30}, {3, 3, 10, 20, 30}, 10);
 
-   This example will create a grid. The iteration space in ``i`` and ``j`` will be ``[10, 20]`` (inclusive ``20``!). The
+   This example will create a grid. The iteration space in ``i`` and ``j`` will be ``[10, 20]`` (including ``20``!). The
    computation is required not to access data outside of ``[7, 23]``. The iteration space in ``k`` is ``[0, 9]``.
 
 .. cpp:function:: grid make_grid(int size_i, int size_j, Axis axis)

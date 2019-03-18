@@ -3,7 +3,7 @@
 Storage Module
 ================================
 
-The storage module is one of the main modules in |GT|. Main target of this module is to provide proper means to access,
+The storage module is one of the main modules in |GT|. The main target of this module is to provide proper means to access,
 view, and modify data. The detail of the hardware is hidden to the user, but the user is responsible for indicating what
 storage is needed. Different :term:`Backends<Backend>` are available for different kinds of storages, see
 :ref:`backend-selection`. Following subsections will explain the different basic elements that are used in the storage
@@ -21,7 +21,7 @@ region to improve the performance of stencil operations.
 Storage Info
 ------------------
 
-The storage info can be seen as a meta data object that keep information about a storage. This information is alignment,
+The storage info can be seen as a meta data object that keeps information about a storage. This information is alignment,
 data layout in memory, halo areas, dimensionality, size of the storage, etc.  The object must be created before storage
 can be allocated. The storage info object can be shared among different storages, if they have the same meta data. The
 right storage info type can be retrieved with ``storage_traits<Backend>``. The supported backends are described
