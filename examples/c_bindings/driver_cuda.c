@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "copy_stencil_lib_cu.h"
+#include "copy_stencil_lib_cuda.h"
 #include "cuda_runtime.h"
 
 int main() {
