@@ -2,6 +2,8 @@
 
 get_filename_component(GRIDTOOLS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
+message(STATUS "GridTools version @GridTools_VERSION@ found at ${GRIDTOOLS_CMAKE_DIR}")
+
 include(CMakeFindDependencyMacro)
 find_dependency(Boost @REQUIRED_BOOST_VERSION@)
 
@@ -16,6 +18,10 @@ if (@OPENMP_AVAILABLE@)
 endif()
 
 include("${GRIDTOOLS_CMAKE_DIR}/GridToolsTargets.cmake")
+
+set(GRIDTOOLS_HAS_TARGET_CUDA @GT_ENABLE_TARGET_CUDA@)
+set(GRIDTOOLS_HAS_TARGET_MC @GT_ENABLE_TARGET_MC@)
+set(GRIDTOOLS_HAS_TARGET_X86 @GT_ENABLE_TARGET_X86@)
 
 # CUDA workaround
 if(${CMAKE_CUDA_COMPILER_LOADED})

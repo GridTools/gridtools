@@ -29,7 +29,7 @@ __pycache__
 !docs
 !docs_src
 !regression
-!gt_examples
+!examples
 !include
 !jenkins
 !pyutils

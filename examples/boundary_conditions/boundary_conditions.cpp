@@ -20,9 +20,9 @@
     system the concept of "vector" can be defined to indicate
     distances and directions. Direction is the one thing we need
     here. Instead of using unitary vectors to indicate directions, as
-    it is usually the case for euclidean spaces, we use vectors whose
+    it is usually the case for Euclidean spaces, we use vectors whose
     components are -1, 0, and 1.  For example, (1, 1, 1) is the
-    dicretion indicated by the unit vector (1,1,1)/sqrt(3).
+    direction indicated by the unit vector (1,1,1)/sqrt(3).
 
     If we take the center of a 3D grid, then we can define 26
     different directions {(i,j,k): i,j,k \in {-1, 0, 1}} \ { (0,0,0) } that
@@ -36,7 +36,7 @@
  */
 
 #include <gridtools/boundary_conditions/boundary.hpp>
-#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
 #include <iostream>
 
 namespace gt = gridtools;
@@ -55,7 +55,7 @@ using uint_t = unsigned;
    This class specifies how to apply boundary conditions.
 
    For all directions, apart from (0,-1,0), (-1,-1,0), and (-1,-1,-1)
-   it writes the values associated with the object in the boudary of
+   it writes the values associated with the object in the boundary of
    the first field, otherwise it copies the values of the second field
    from a shifted position.
 

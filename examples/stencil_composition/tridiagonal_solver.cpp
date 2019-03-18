@@ -142,6 +142,7 @@ int main() {
     // Executing the computation
     trid_solve.run();
 
+    out.sync();
     // In this simple example the solution is known and we can easily
     // check it.
     bool correct = true;

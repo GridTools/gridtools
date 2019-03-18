@@ -9,7 +9,7 @@
  */
 
 /** @file This file contains several examples of using boundary
-    conditions classes provided by gridtools itself.
+    conditions classes provided by GridTools itself.
 
     They are:
 
@@ -26,14 +26,12 @@
     code to check correctness.
  */
 
-#include <iostream>
-
 #include <gridtools/boundary_conditions/boundary.hpp>
-#include <gridtools/tools/backend_select.hpp>
-
 #include <gridtools/boundary_conditions/copy.hpp>
 #include <gridtools/boundary_conditions/value.hpp>
 #include <gridtools/boundary_conditions/zero.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
+#include <iostream>
 
 namespace gt = gridtools;
 
