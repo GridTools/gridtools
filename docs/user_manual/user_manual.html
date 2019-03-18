@@ -197,6 +197,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../upcoming/upcoming.html">Upcoming Features</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../glossary/glossary.html">Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../internal/internal.html">Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../internal/internal.html#design-of-grid-topology-for-irregular-grids">Design of Grid Topology for Irregular Grids</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq/faq.html">Frequently Asked Questions</a></li>
 </ul>
 
@@ -976,15 +977,15 @@ The <a class="reference internal" href="../glossary/glossary.html#term-iteration
 we cover how to define the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> with the <code class="docutils literal notranslate"><span class="pre">grid</span></code> object.</p>
 <p><cite>GridTools</cite> offers a set of functions which ease the construction of the <code class="docutils literal notranslate"><span class="pre">grid</span></code>:</p>
 <dl class="function">
-<dt id="_CPPv39make_gridiii">
-<span id="_CPPv29make_gridiii"></span><span id="make_grid__i.i.i"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>int <em>size_i</em>, int <em>size_j</em>, int <em>size_k</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39make_gridiii" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv49make_gridiii">
+<span id="_CPPv39make_gridiii"></span><span id="_CPPv29make_gridiii"></span><span id="make_grid__i.i.i"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>int <em>size_i</em>, int <em>size_j</em>, int <em>size_k</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_gridiii" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The simplest <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> will iterate the cube defined by the <a class="reference internal" href="../glossary/glossary.html#term-interval"><span class="xref std std-term">Intervals</span></a>
 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_i-1]</span></code>, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_j-1]</span></code>, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_k-1]</span></code></p>
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv39make_grid15halo_descriptor15halo_descriptori">
-<span id="_CPPv29make_grid15halo_descriptor15halo_descriptori"></span><span id="make_grid__halo_descriptor.halo_descriptor.i"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>halo_descriptor <em>halo_i</em>, halo_descriptor <em>halo_j</em>, int <em>size_z</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39make_grid15halo_descriptor15halo_descriptori" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv49make_grid15halo_descriptor15halo_descriptori">
+<span id="_CPPv39make_grid15halo_descriptor15halo_descriptori"></span><span id="_CPPv29make_grid15halo_descriptor15halo_descriptori"></span><span id="make_grid__halo_descriptor.halo_descriptor.i"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>halo_descriptor <em>halo_i</em>, halo_descriptor <em>halo_j</em>, int <em>size_z</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_grid15halo_descriptor15halo_descriptori" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>For finer control of the iteration space a <a class="reference internal" href="../glossary/glossary.html#term-halo-descriptor"><span class="xref std std-term">Halo Descriptor</span></a> can be passed for the horizontal directions (<code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">J</span></code>).
 The 3rd and 4th argument of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> define the start and the endpoint of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>.</p>
 </dd></dl>
@@ -1099,6 +1100,13 @@ allows the <cite>GridTools</cite> library to improve the memory locality of the 
 taking advantage of the produce consumer relations. In <cite>GridTools</cite> terminology we use
 the term <a class="reference internal" href="../glossary/glossary.html#term-stage"><span class="xref std std-term">Stage</span></a> to refer to an <a class="reference internal" href="../glossary/glossary.html#term-elementary-stencil"><span class="xref std std-term">Elementary Stencil</span></a> when it is composed with
 other operations.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When composing stencils, each output data field must be written only
+once. Failing to do so will end up in undefined behavior. We plan to
+introduce compile time checks to catch the violation of this
+condition.</p>
+</div>
 <p>The result of a composition is a <a class="reference internal" href="../glossary/glossary.html#term-multi-stage-computation"><span class="xref std std-term">Multi-Stage Computation</span></a>, also called <cite>multi-stage stencil</cite> or
 simply <cite>stencil</cite>. For reason of uniformity, a <a class="reference internal" href="../glossary/glossary.html#term-multi-stage-computation"><span class="xref std std-term">Multi-Stage Computation</span></a> with a
 singe <a class="reference internal" href="../glossary/glossary.html#term-stage"><span class="xref std std-term">Stage</span></a>, is still called a multi-stage, since the composition is generally

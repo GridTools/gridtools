@@ -10,6 +10,4 @@
 Upcoming Features
 ====================================
 
-.. include::   user_specified_extents.hrst
-.. include::   link_to_umesh.hrst
 

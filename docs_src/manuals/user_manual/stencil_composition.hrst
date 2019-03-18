@@ -219,6 +219,13 @@ taking advantage of the produce consumer relations. In |GT| terminology we use
 the term :term:`Stage` to refer to an :term:`Elementary Stencil` when it is composed with
 other operations.
 
+.. note ::
+
+ When composing stencils, each output data field must be written only
+ once. Failing to do so will end up in undefined behavior. We plan to
+ introduce compile time checks to catch the violation of this
+ condition.
+
 The result of a composition is a :term:`Multi-Stage Computation`, also called `multi-stage stencil` or
 simply `stencil`. For reason of uniformity, a :term:`Multi-Stage Computation` with a
 singe :term:`Stage`, is still called a multi-stage, since the composition is generally
