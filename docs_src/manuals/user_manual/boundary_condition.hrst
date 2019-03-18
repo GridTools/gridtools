@@ -165,6 +165,6 @@ Provided Boundary Conditions
 
 |GT| provides few boundary application classes for some common cases. They are
 
-- ``copy_boundary`` to copy the last field of the argument list of `apply` into the other ones;
+- ``copy_boundary`` to copy the boundary of the last field of the argument list of `apply` into the other ones;
 - ``template <class T> value_boundary`` to set the boundary to a value for all the data fields provided;
 - ``zero_boundary`` to set the boundary to the default constructed value type of the data fields (usually a zero) for the input fields.

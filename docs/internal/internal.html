@@ -90,9 +90,9 @@
             
             
               <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../user_manual/user_manual.html">User Manual</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../upcoming/upcoming.html">Upcoming Features</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../glossary/glossary.html">Glossary</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Internal Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#indexing-algorithm-pointer-offset-computation">Indexing Algorithm (Pointer Offset Computation)</a><ul>
@@ -104,9 +104,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#updated-indexing-algorithm">Updated Indexing Algorithm</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#design-of-grid-topology-for-irregular-grids">Design of Grid Topology for Irregular Grids</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#unstructured-mesh">Unstructured Mesh</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="#design-of-grid-topology-for-irregular-grids">Design of Grid Topology for Irregular Grids</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../faq/faq.html">Frequently Asked Questions</a></li>
 </ul>
 
@@ -270,9 +273,8 @@ is also modified in order to point to the correct data location.</p>
 </div>
 </div>
 </div>
-</div>
 <div class="section" id="design-of-grid-topology-for-irregular-grids">
-<h1>Design of Grid Topology for Irregular Grids<a class="headerlink" href="#design-of-grid-topology-for-irregular-grids" title="Permalink to this headline">¶</a></h1>
+<h2>Design of Grid Topology for Irregular Grids<a class="headerlink" href="#design-of-grid-topology-for-irregular-grids" title="Permalink to this headline">¶</a></h2>
 <p>The <cite>GridTopology</cite> concept provides:</p>
 <ol class="arabic simple">
 <li>Connectivity information to neighbours in the same and different <cite>LocationType</cite>’s.</li>
@@ -302,7 +304,7 @@ offset rules.</p>
 </div>
 <p>Similar rules are derived for connectivities among different location types.</p>
 <div class="figure" id="ico-indices">
-<span id="fig-ico-indices"></span><a class="reference internal image-reference" href="internal/figures/ico_indices.png"><img alt="internal/figures/ico_indices.png" src="internal/figures/ico_indices.png" /></a>
+<span id="fig-ico-indices"></span><a class="reference internal image-reference" href="../_images/ico_indices.png"><img alt="../_images/ico_indices.png" src="../_images/ico_indices.png" style="width: 588.8000000000001px; height: 341.40000000000003px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 15 </span><span class="caption-text">Structured index layout for icosahedral grid</span></p>
 </div>
 <p>Since all offset rules are based on the structured of the icosahedral parallelograms, and do not depend
@@ -314,7 +316,7 @@ These offsets rules can be extracted using the connectivity class API</p>
 </div>
 <p>For the icosahedral grid, the connectivity tables give access to the following 9 type of queries, depending on the <cite>from</cite> and <cite>to</cite> location types. See <a class="reference internal" href="#fig-location-type-opr"><span class="std std-numref">Fig. 16</span></a>.</p>
 <div class="figure" id="id6">
-<span id="fig-location-type-opr"></span><a class="reference internal image-reference" href="internal/figures/location_type_opr.png"><img alt="internal/figures/location_type_opr.png" src="internal/figures/location_type_opr.png" /></a>
+<span id="fig-location-type-opr"></span><a class="reference internal image-reference" href="../_images/location_type_opr.png"><img alt="../_images/location_type_opr.png" src="../_images/location_type_opr.png" style="width: 654.6px; height: 467.4px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 16 </span><span class="caption-text">All possible connectivity queries in an icosahedral grid.</span></p>
 </div>
 <div class="admonition note">
@@ -329,6 +331,8 @@ that contains all the necessary lookup tables.
 All 9 lookup tables are then stored in two type of (atlas data structure) tables: MultiBlockConnectivity and IrregularConnectivity.
 The main difference is that the connectivity described with a MultiBlockConnectivity shows a uniform number of neighbours for each entry in the table,
 while in the IrregularConnectivity, each entry can have a different number of neighbours.</p>
+<div class="section" id="unstructured-mesh">
+<h3>Unstructured Mesh<a class="headerlink" href="#unstructured-mesh" title="Permalink to this headline">¶</a></h3>
 <p>The <cite>grid</cite> concept has a <cite>GridTopology</cite> type, that can be of two classes (as described above).
 Additionally for the types of <cite>GridTopology</cite> that require a runtime information with the connectivity tables,
 the <cite>grid</cite> also has an <cite>unstructured mesh</cite> instance of type</p>
@@ -338,6 +342,8 @@ the <cite>grid</cite> also has an <cite>unstructured mesh</cite> instance of typ
 </div>
 <p>In case of having a <cite>GridTopology</cite> of <cite>icosahedral_topology</cite> the instance that gets instantiated is an empty class.</p>
 <p>Later this <cite>unstructured_mesh</cite> will be passed to the <cite>iterate_domain</cite> that requires the connectivity information.</p>
+</div>
+</div>
 </div>
 
 

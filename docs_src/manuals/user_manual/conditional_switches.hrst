@@ -5,7 +5,7 @@ Conditionals
 ------------
 
 Conditionals introduce two new syntactic elements in the computation grammar,
-namely `if_` and `switch_`.  These implement run-time branches in the
+namely ``if_`` and ``switch_``.  These implement run-time branches in the
 computation tree, i.e. one computation or another can be chosen based on the
 value of a runtime variable.  Note that this is just syntactic sugar, as you
 could instantiate all the possible combinations of the computation tree and
@@ -17,7 +17,7 @@ versions of the last stage. You would have to create 5 different computations,
 in which the only difference is in the last stage, while the rest is repeated.
 This would be tedious and error-prone.
 
-The syntax we expose for `if_` statements is reported in the following example:
+The syntax we expose for ``if_`` statements is reported in the following example:
 
 .. code-block:: gridtools
 
@@ -35,8 +35,8 @@ The syntax we expose for `if_` statements is reported in the following example:
      )
  );
 
-The correct way to interpret this syntax is that the call to `if_` returns one
-multistage o the other based on the return value of the predicate attached to
+The correct way to interpret this syntax is that the call to ``if_`` returns one
+multistage to the other based on the return value of the predicate attached to
 `flag`.
 
 The value of the condition is evaluated at every execution of ``comp.run()``.
@@ -68,7 +68,7 @@ The conditionals can also be nested:
  );
 
 
-The other syntactic element we introduce is a `switch_`, and its use is
+The other syntactic element we introduce is a ``switch_``, and its use is
 exemplified in the following snippet
 
 .. code-block:: gridtools
@@ -102,22 +102,19 @@ exemplified in the following snippet
      )
  )
 
-As for the `if_` statement, the condition function is evaluated at every call
+As for the ``if_`` statement, the condition function is evaluated at every call
 to ``comp.run()``, and the multistage executed in calls depends on the value of
-the condition.
-
-.. note::
-
- Also `switch_` can be nested, as the `if_`.
+the condition. ``switch_`` can be nested too.
 
 .. note::
 
  The effect of having different branches is that all the possibilities get
  compiled, and only one gets chosen at each run. Therefore having lot of
  branches can increase dramatically the compilation times, you should not abuse
- of this feature.
+ this feature.
 
 .. note::
 
- Currently there is a limitation. The different branches in the computation
- must use the same placeholders.
+ Currently there is the limitation that all branches in the computation must use the same stages, and each stage in each
+ branch must use the same number of placeholders. You might need to add empty stages to workaround this issue.
+
