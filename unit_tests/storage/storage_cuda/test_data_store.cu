@@ -158,7 +158,7 @@ TEST(DataStoreTest, States) {
     EXPECT_FALSE(ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu);
 
     // device write views should be valid, this means the host needs an update
-    ds.reactivate_device_write_views();
+    ds.reactivate_target_write_views();
     EXPECT_TRUE(ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu);
     EXPECT_FALSE(ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu);
 

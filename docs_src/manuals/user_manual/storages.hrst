@@ -228,7 +228,7 @@ The ``data_store`` object provides methods for performing following things:
   direction
 * ``const array<uint_t, ndims> &strides() const``: return the array of (aligned) strides.
 * ``void sync() const``: synchronize the copies on the host and the target.
-* ``reactivate_device_write_views``: re-enables read-write device views (see `Data View`_)
+* ``reactivate_target_write_views``: re-enables read-write device views (see `Data View`_)
 * ``reactivate_host_write_views``: re-enabled read-write host views (see `Data View`_)
 * ``std::string const &name() const``: retrieve the name of the storage.
 
@@ -293,12 +293,8 @@ used until the data store is synchronized.
 In order to end a view, the data store must be synchronized explicity by calling ``data_store.sync();``. The destructor
 of a view will not end the view. Note that synchronizing a data store will re-enable read-only views, but it will not
 re-enable read-write views. Those can be reenabled by calling ``data_store.reactivate_host_write_views()`` (which will
-invalidate read-only views on target) and ``data_store.reactivate_device_write_views()`` (which will invalidate
+invalidate read-only views on target) and ``data_store.reactivate_target_write_views()`` (which will invalidate
 read-only views on host). Note that the 
-
-.. todo::
-
-    rename ``reactivate_device_write`` to ``reactivate_target_write`` for consistency
 
 **Example**:
 
@@ -349,7 +345,7 @@ The ``data_view`` construction can be created with ``make_host_view`` and ``make
 
    #include <gridtools/storages/data_store.hpp>
    auto view1 = make_host_view<Access>(data_store);
-   auto view2 = make_device_view<Access>(data_store);
+   auto view2 = make_target_view<Access>(data_store);
 
 Access is either ``access_mode::read_only`` or ``access_mode::read_write`` ``storage/common/definitions.hpp``. ``view1``
 can be used by a host thread to access data, ``view2`` is a view that can be used from the target system to access data.
