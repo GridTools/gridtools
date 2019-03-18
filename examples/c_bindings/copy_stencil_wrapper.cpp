@@ -44,46 +44,43 @@ namespace {
     using p_in = gt::arg<0, data_store_t>;
     using p_out = gt::arg<1, data_store_t>;
 
-    struct wrapper {
-        data_store_t in;
-        data_store_t out;
-        grid_t grid;
-    };
+    grid_t make_grid_impl(int nx, int ny, int nz) { return {gt::make_grid(nx, ny, nz)}; }
+    storage_info_t make_storage_info_impl(int nx, int ny, int nz) { return {nx, ny, nz}; }
+    data_store_t make_data_store_impl(storage_info_t storage_info) { return {storage_info}; }
 
-    wrapper make_wrapper_impl(int nx, int ny, int nz) {
-        auto si = storage_info_t{nx, ny, nz};
-        return {{si, "in_field"}, {si, "out_field"}, gt::make_grid(nx, ny, nz)};
-    }
-
-    gt::computation<p_in, p_out> make_copy_stencil_impl(const wrapper &wrapper) {
+    gt::computation<p_in, p_out> make_copy_stencil_impl(const grid_t &grid) {
         return gt::make_computation<backend_t>(
-            wrapper.grid, gt::make_multistage(gt::execute::parallel(), gt::make_stage<copy_functor>(p_in{}, p_out{})));
+            grid, gt::make_multistage(gt::execute::parallel(), gt::make_stage<copy_functor>(p_in{}, p_out{})));
     }
 
     // Note that fortran_array_adapters are "fortran array wrappable".
     static_assert(gt::c_bindings::is_fortran_array_wrappable<gt::fortran_array_adapter<data_store_t>>::value, "");
 
+    void transform_f_to_c_impl(data_store_t data_store, gt::fortran_array_adapter<data_store_t> descriptor) {
+        transform(data_store, descriptor);
+    }
+    void transform_c_to_f_impl(gt::fortran_array_adapter<data_store_t> descriptor, data_store_t data_store) {
+        transform(descriptor, data_store);
+    }
+
     // That means that in the generated Fortran code, a wrapper is created that takes a Fortran array, and converts
     // it into the fortran array wrappable type.
-    void run_stencil_impl(wrapper &wrapper,
-        gt::computation<p_in, p_out> &computation,
-        gt::fortran_array_adapter<data_store_t> in_f,
-        gt::fortran_array_adapter<data_store_t> out_f) {
+    void run_stencil_impl(gt::computation<p_in, p_out> &computation, data_store_t in, data_store_t out) {
 
-        transform(wrapper.in, in_f);
-
-        computation.run(p_in() = wrapper.in, p_out() = wrapper.out);
-
-        transform(out_f, wrapper.out);
+        computation.run(p_in() = in, p_out() = out);
 
 #ifdef __CUDACC__
         cudaDeviceSynchronize();
 #endif
     }
 
-    GT_EXPORT_BINDING_3(make_wrapper, make_wrapper_impl);
+    GT_EXPORT_BINDING_3(make_grid, make_grid_impl);
+    GT_EXPORT_BINDING_3(make_storage_info, make_storage_info_impl);
+    GT_EXPORT_BINDING_1(make_data_store, make_data_store_impl);
     GT_EXPORT_BINDING_1(make_copy_stencil, make_copy_stencil_impl);
+    GT_EXPORT_BINDING_3(run_stencil, run_stencil_impl);
 
     // In order to generate the additional wrapper in Fortran, the *_WRAPPED_* versions need to be used
-    GT_EXPORT_BINDING_WRAPPED_4(run_stencil, run_stencil_impl);
+    GT_EXPORT_BINDING_WRAPPED_2(transform_c_to_f, transform_c_to_f_impl);
+    GT_EXPORT_BINDING_WRAPPED_2(transform_f_to_c, transform_f_to_c_impl);
 } // namespace

@@ -9,13 +9,19 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "copy_stencil_lib_cu.h"
 #include "cuda_runtime.h"
 
 int main() {
-    gt_handle *wrapper_handle = make_wrapper(9, 10, 11);
-    gt_handle *computation_handle = make_copy_stencil(wrapper_handle);
+    gt_handle *grid_handle = make_grid(9, 10, 11);
+    gt_handle *storage_info_handle = make_storage_info(9, 10, 11);
+    gt_handle *in_handle = make_data_store(storage_info_handle);
+    gt_handle *out_handle = make_data_store(storage_info_handle);
+    gt_handle *computation_handle = make_copy_stencil(grid_handle);
+    free(storage_info_handle);
+    free(grid_handle);
 
     // Note that the order of the indices array here is k, j, i (which is the internal
     // Fortran layout). This is the layout that is expected by the bindings we have
@@ -30,8 +36,9 @@ int main() {
     for (int k = 0; k < 11; ++k)
         for (int j = 0; j < 10; ++j)
             for (int i = 0; i < 9; ++i, ++n1, --n2) {
-                in_array[k * 10 * 9 + j * 9 + i] = n1;
-                out_array[k * 10 * 9 + j * 9 + i] = n2;
+                int index = k * 10 * 9 + j * 9 + i;
+                in_array[index] = n1;
+                out_array[index] = n2;
             }
 
     // in the C bindings, the fortran array descriptors need to be filled explicitly
@@ -40,7 +47,9 @@ int main() {
     gt_fortran_array_descriptor out_descriptor = {
         .rank = 3, .type = gt_fk_Float, .dims = {9, 10, 11}, .data = (void *)out_array};
 
-    run_stencil(wrapper_handle, computation_handle, &in_descriptor, &out_descriptor);
+    transform_f_to_c(in_handle, &in_descriptor);
+    run_stencil(computation_handle, in_handle, out_handle);
+    transform_c_to_f(&out_descriptor, out_handle);
 
     // now, the output can be verified
     for (int k = 0; k < 11; ++k)
@@ -54,5 +63,13 @@ int main() {
             }
 
     printf("It works!\n");
+
+    cudaFree(in_array);
+    cudaFree(out_array);
+
+    free(in_handle);
+    free(out_handle);
+    free(computation_handle);
+
     return 0;
 }
