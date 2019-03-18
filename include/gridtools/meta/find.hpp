@@ -23,8 +23,13 @@ namespace gridtools {
 
         template <template <class...> class L, class... Ts, class Key>
         struct find_impl<L<Ts...>, Key> {
-            static constexpr bool values[] = {std::is_same<Ts, Key>::value...};
+            static constexpr bool values[sizeof...(Ts)] = {std::is_same<Ts, Key>::value...};
             static constexpr size_t value = find_impl_helper(values, values + sizeof...(Ts));
+        };
+
+        template <template <class...> class L, class Key>
+        struct find_impl<L<>, Key> {
+            static constexpr size_t value = 0;
         };
 
         template <class List, class Key>

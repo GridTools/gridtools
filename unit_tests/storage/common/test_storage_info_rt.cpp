@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/storage/common/storage_info_rt.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;

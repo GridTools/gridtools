@@ -23,11 +23,11 @@ endfunction()
 if(GT_INSTALL_EXAMPLES)
     set(enabled_examples) # used in CMakeLists.txt.in, filled in install_example()
     if(COMPONENT_STENCIL_COMPOSITION)
-        install_example(DIRECTORY stencil-composition SOURCES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
+        install_example(DIRECTORY stencil_composition SOURCES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
     endif()
 
     if(COMPONENT_BOUNDARY_CONDITIONS)
-        install_example(DIRECTORY boundary-conditions SOURCES boundary-conditions boundary-conditions_provided)
+        install_example(DIRECTORY boundary_conditions SOURCES boundary_conditions boundary_conditions_provided)
     endif()
 
     if(COMPONENT_C_BINDINGS)
