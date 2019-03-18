@@ -1,0 +1,18 @@
+
+.. toctree::
+   :maxdepth: 2
+
+   introduction/introduction
+   getting_started/getting_started
+   user_manual/user_manual
+   glossary/glossary
+   internal/internal
+   faq/faq
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
