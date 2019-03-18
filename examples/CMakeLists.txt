@@ -13,7 +13,6 @@ function(install_example)
     install(
         DIRECTORY ${ARG_DIRECTORY}
         DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
-        PATTERN "CMakeLists.txt.in" EXCLUDE
         )
 
     list(APPEND enabled_examples ${ARG_DIRECTORY})

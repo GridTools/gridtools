@@ -15,8 +15,12 @@
 #include "cuda_runtime.h"
 
 int main() {
-    gt_handle *grid_handle = make_grid(9, 10, 11);
-    gt_handle *storage_info_handle = make_storage_info(9, 10, 11);
+    const int nx = 9;
+    const int ny = 10;
+    const int nz = 11;
+
+    gt_handle *grid_handle = make_grid(nx, ny, nz);
+    gt_handle *storage_info_handle = make_storage_info(nx, ny, nz);
     gt_handle *in_handle = make_data_store(storage_info_handle);
     gt_handle *out_handle = make_data_store(storage_info_handle);
     gt_handle *computation_handle = make_copy_stencil(grid_handle);
@@ -27,35 +31,35 @@ int main() {
     // Fortran layout). This is the layout that is expected by the bindings we have
     // written.
     float *in_array, *out_array;
-    cudaMallocManaged((void **)&in_array, 9 * 10 * 11 * sizeof(float), cudaMemAttachGlobal);
-    cudaMallocManaged((void **)&out_array, 9 * 10 * 11 * sizeof(float), cudaMemAttachGlobal);
+    cudaMallocManaged((void **)&in_array, nx * ny * nz * sizeof(float), cudaMemAttachGlobal);
+    cudaMallocManaged((void **)&out_array, nx * ny * nz * sizeof(float), cudaMemAttachGlobal);
 
     // fill some inputs
     float n1 = 0;
-    float n2 = 11 * 10 * 9;
-    for (int k = 0; k < 11; ++k)
-        for (int j = 0; j < 10; ++j)
-            for (int i = 0; i < 9; ++i, ++n1, --n2) {
-                int index = k * 10 * 9 + j * 9 + i;
+    float n2 = nz * ny * nx;
+    for (int k = 0; k < nz; ++k)
+        for (int j = 0; j < ny; ++j)
+            for (int i = 0; i < nx; ++i, ++n1, --n2) {
+                int index = k * ny * nx + j * nx + i;
                 in_array[index] = n1;
                 out_array[index] = n2;
             }
 
     // in the C bindings, the fortran array descriptors need to be filled explicitly
     gt_fortran_array_descriptor in_descriptor = {
-        .rank = 3, .type = gt_fk_Float, .dims = {9, 10, 11}, .data = (void *)in_array};
+        .rank = 3, .type = gt_fk_Float, .dims = {nx, ny, nz}, .data = (void *)in_array};
     gt_fortran_array_descriptor out_descriptor = {
-        .rank = 3, .type = gt_fk_Float, .dims = {9, 10, 11}, .data = (void *)out_array};
+        .rank = 3, .type = gt_fk_Float, .dims = {nx, ny, nz}, .data = (void *)out_array};
 
     transform_f_to_c(in_handle, &in_descriptor);
     run_stencil(computation_handle, in_handle, out_handle);
     transform_c_to_f(&out_descriptor, out_handle);
 
     // now, the output can be verified
-    for (int k = 0; k < 11; ++k)
-        for (int j = 0; j < 10; ++j)
-            for (int i = 0; i < 9; ++i) {
-                int idx = k * 10 * 9 + j * 9 + i;
+    for (int k = 0; k < nz; ++k)
+        for (int j = 0; j < ny; ++j)
+            for (int i = 0; i < nx; ++i) {
+                int idx = k * ny * nx + j * nx + i;
                 if (in_array[idx] != out_array[idx]) {
                     printf("Error at position (k=%i, j=%i, i=%i)\n", k, j, i);
                     return 1;
