@@ -136,6 +136,8 @@ Using GridTools
 
 Using |GT| follows standard CMake practices. To indicate where the |GT| can be found, CMake should be provided with the variable ``gridtools_DIR``, e.g. by calling CMake with ``-Dgridtools_DIR=</path/to/gridtools/lib/cmake>``. The ``CMakeLists.txt`` file should then contain the following lines:
 
+__VERSION__
+
 .. code-block:: cmake
 
  find_package(GridTools VERSION ... REQUIRED)

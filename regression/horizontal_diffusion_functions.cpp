@@ -143,7 +143,7 @@ struct flx_function {
 template <variation Variation>
 struct fly_function {
     using out = inout_accessor<0>;
-    using in = in_accessor<1, extent<-1, 1, -1, 2, -1, 1>>;
+    using in = in_accessor<1, extent<-1, 1, -1, 2>>;
 
     using param_list = make_param_list<out, in>;
 

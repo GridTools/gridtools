@@ -41,7 +41,7 @@ execution policy.  A computation combines several multistages, and will execute 
 - If the execution policy is `forward`, it is guaranteed, that if a stage is executed at index ``k``, then all stages of
   the multistage were already applied to the same column with smaller ``k``, and that no stages of the multistage are
   already applied to the indices in the same column with larger ``k``.
-- If the execution policy is `forward`, it is guaranteed, that if a stage is executed at index ``k``, then all stages of
+- If the execution policy is `backward`, it is guaranteed, that if a stage is executed at index ``k``, then all stages of
   the multistage were already applied to the same column with larger ``k``, and that no stages of the multistage are
   already applied to the indices in the same column with smaller ``k``.
 

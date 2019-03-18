@@ -225,17 +225,6 @@ The ``axis`` type has two additional template parameters to change some default 
 - ``LevelOffsetLimit`` defines how many levels around each vertical region can be addressed by specialized
   ``Apply``-methods. Increasing this value could have negative implications on compile-time.
 
-- ``ExtraOffsetsAroundFullInterval``: By default, data at absolut position ``-1`` cannot be accessed because the grid
-  and the underlying storage start at ``k = 0`` (and the same for the maximum position). If the user wants to access
-  data above the size of all vertical regions or below ``0``, he can set this property, which defines the maximum offset
-  the user will access data around the full interval from ``0`` to size of all vertical regions.
-
-  If the user does not set this properly, the size of the temporaries might be incorrect, leading to invalid memory
-  accesses.
-
-.. note:: The usage of ``ExtraOffsetsAroundFullInterval`` is not recommended. If possible, the user should choose an
-   axis that is large enough for all accesses.
-
 
 .. _composition_of_stencils:
 
