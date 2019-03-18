@@ -1,8 +1,8 @@
-#include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/stencil_composition/backend.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 
-#include <gridtools/stencil-composition/accessor.hpp>
+#include <gridtools/stencil_composition/accessor.hpp>
 
 using namespace gridtools;
 using namespace gridtools::expressions;

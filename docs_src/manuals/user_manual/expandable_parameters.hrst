@@ -12,7 +12,7 @@ Normally this could be achieved by creating a loop and running multiple computat
 but this solution would be inefficient. A more efficient solution is provided
 through the expandable parameters API.
 
-The user must collect the storage pointers in a ```std::vector```
+The user must collect the storage pointers in a ``std::vector``
 
 .. code-block:: gridtools
 
@@ -22,7 +22,8 @@ The user must collect the storage pointers in a ```std::vector```
 This ``std::vector`` is then used as a storage type with no differences with respect to
 the regular storages.
 
-The implementation requires the user to specify an integer ```expand_factor``` when defining the computation:
+The implementation requires the user to specify an integer ``expand_factor`` when defining the computation.
+The optimal value for ``expand_factor`` might need to be tuned for different backends.
 
 .. code-block:: gridtools
 
@@ -31,6 +32,7 @@ The implementation requires the user to specify an integer ```expand_factor``` w
         domain_,
         grid_,
         make_multistage(execute::forward(), make_stage<functor>(p())));
+ comp.run(p() = list);
 
 The vector of
 storages is then partitioned into chunks of ``expand_factor`` size (with a remainder). Each

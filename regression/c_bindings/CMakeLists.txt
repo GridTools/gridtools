@@ -7,7 +7,7 @@ if (GT_ENABLE_TARGET_X86)
 
     gt_add_bindings_library(implementation_${prec} SOURCES implementation.cpp FORTRAN_MODULE_NAME implementation)
     target_link_libraries(implementation_${prec} PUBLIC GridToolsTestX86)
-    gt_add_bindings_library(implementation_wrapper_${prec} SOURCES implementation-wrapper.cpp FORTRAN_MODULE_NAME implementation_wrapper)
+    gt_add_bindings_library(implementation_wrapper_${prec} SOURCES implementation_wrapper.cpp FORTRAN_MODULE_NAME implementation_wrapper)
     target_link_libraries(implementation_wrapper_${prec} PUBLIC GridToolsTestX86)
 
     if (CMAKE_C_COMPILER_LOADED)
@@ -23,7 +23,7 @@ if (GT_ENABLE_TARGET_X86)
         set_target_properties(fdriver PROPERTIES LINKER_LANGUAGE Fortran)
         gt_enable_fortran_preprocessing_on_target(fdriver)
 
-        add_executable(fdriver_wrapper fdriver-wrapper.f90)
+        add_executable(fdriver_wrapper fdriver_wrapper.f90)
         target_link_libraries(fdriver_wrapper implementation_wrapper_${prec}_fortran)
         gt_enable_fortran_preprocessing_on_target(fdriver_wrapper)
     endif()

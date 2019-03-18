@@ -14,7 +14,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
           )
       set(SOURCES
           ${SOURCES_PERFTEST}
-          boundary-condition
+          boundary_condition
           laplacian positional_stencil
           tridiagonal
           alignment

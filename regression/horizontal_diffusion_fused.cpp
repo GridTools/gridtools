@@ -12,8 +12,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/stencil_functions/stencil_functions.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include "horizontal_diffusion_repository.hpp"

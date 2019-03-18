@@ -18,8 +18,8 @@
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/macros.hpp>
 #include <gridtools/meta/type_traits.hpp>
-#include <gridtools/stencil-composition/sid/concept.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace gridtools {
@@ -47,6 +47,18 @@ namespace gridtools {
             data_store_t testee = {{10, 10, 10, 10}, 0};
 
             EXPECT_EQ(advanced_get_raw_pointer_of(make_target_view(testee)), sid::get_origin(testee)());
+
+            auto strides = sid::get_strides(testee);
+            auto expected_strides = testee.strides();
+
+            EXPECT_EQ(expected_strides[0], get<0>(strides));
+            EXPECT_EQ(expected_strides[1], get<1>(strides));
+            EXPECT_EQ(expected_strides[2], get<2>(strides));
+            EXPECT_EQ(expected_strides[3], get<3>(strides));
+        }
+
+        TEST(storage_sid, regression_strides_of_small_storage) {
+            data_store_t testee = {{1, 1, 1, 1}, 0};
 
             auto strides = sid::get_strides(testee);
             auto expected_strides = testee.strides();

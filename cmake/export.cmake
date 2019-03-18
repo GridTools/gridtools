@@ -74,6 +74,8 @@ if(COMPONENT_C_BINDINGS)
     set(CMAKE_SOURCES
         "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"
         "${PROJECT_SOURCE_DIR}/cmake/fortran_helpers.cmake"
+        "${PROJECT_SOURCE_DIR}/cmake/workaround_mpi.cmake"
+        "${PROJECT_SOURCE_DIR}/cmake/workaround_check_language.cmake"
         "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake"
         )
     set(CBINDINGS_SOURCES
@@ -89,11 +91,4 @@ if(COMPONENT_C_BINDINGS)
 
     file(COPY ${CMAKE_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
     file(COPY ${CBINDINGS_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src/c_bindings")
-endif()
-
-if ( GT_INSTALL_EXAMPLES )
-    install(DIRECTORY
-            gt_examples
-            DESTINATION "${GT_INSTALL_EXAMPLES_PATH}/examples/src"
-            FILES_MATCHING REGEX ".*cpp|.*hpp")
 endif()

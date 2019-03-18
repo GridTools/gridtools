@@ -10,7 +10,7 @@
 #pragma once
 
 #include "../common/defs.hpp"
-#include "../stencil-composition/backend.hpp"
+#include "../stencil_composition/backend.hpp"
 
 #if GT_FLOAT_PRECISION == 4
 using float_type = float;
