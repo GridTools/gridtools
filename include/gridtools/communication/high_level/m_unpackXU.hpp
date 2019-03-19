@@ -108,10 +108,10 @@ void m_unpackXU(array_t const &d_data_array,
 
     // just some timing stuff
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    GT_CUDA_CHECK(cudaEventCreate(&start));
+    GT_CUDA_CHECK(cudaEventCreate(&stop));
 
-    cudaEventRecord(start, 0);
+    GT_CUDA_CHECK(cudaEventRecord(start, 0));
 #endif
     const int niter = d_data_array.size();
 
@@ -129,26 +129,20 @@ void m_unpackXU(array_t const &d_data_array,
             (halo[0].end() + 1) + (halo[1].begin()) * halo[0].total_length() +
                 (halo[2].begin()) * halo[0].total_length() * halo[1].total_length(),
             i);
-#ifdef GCL_CUDAMSG
-        int err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            printf("KLF in $s", __FILE__);
-            exit(-1);
-        }
-#endif
+        GT_CUDA_CHECK(cudaGetLastError());
     }
 
 #ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
+    GT_CUDA_CHECK(cudaEventSynchronize(stop));
 
     float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
 
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
+    GT_CUDA_CHECK(cudaEventDestroy(start));
+    GT_CUDA_CHECK(cudaEventDestroy(stop));
 
     double nnumb = niter * (double)(nx * ny * nz);
     double nbyte = nnumb * sizeof(double);
@@ -178,13 +172,7 @@ int call_kernel_XU_u(Blocks blocks,
     m_unpackXUKernel<<<blocks, threads, b, XU_stream>>>(
         d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, tranlation_const, i);
 
-#ifdef GCL_CUDAMSG
-    int err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("Kernel launch failure\n");
-        exit(-1);
-    }
-#endif
+    GT_CUDA_CHECK(cudaGetLastError());
 
     return 0;
 }
@@ -229,10 +217,10 @@ void m_unpackXU_variadic(value_type **d_msgbufTab_r,
 
     // just some timing stuff
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    GT_CUDA_CHECK(cudaEventCreate(&start));
+    GT_CUDA_CHECK(cudaEventCreate(&stop));
 
-    cudaEventRecord(start, 0);
+    GT_CUDA_CHECK(cudaEventRecord(start, 0));
 #endif
 
     const int niter = std::tuple_size<datas>::value;
@@ -252,14 +240,14 @@ void m_unpackXU_variadic(value_type **d_msgbufTab_r,
 #ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
+    GT_CUDA_CHECK(cudaEventSynchronize(stop));
 
     float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
 
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
+    GT_CUDA_CHECK(cudaEventDestroy(start));
+    GT_CUDA_CHECK(cudaEventDestroy(stop));
 
     double nnumb = niter * (double)(nx * ny * nz);
     double nbyte = nnumb * sizeof(double);

@@ -362,7 +362,7 @@ namespace gridtools {
         /**
          * @brief reactivate all device read write views to storage
          */
-        void reactivate_device_write_views() const { this->m_shared_storage->reactivate_device_write_views(); }
+        void reactivate_target_write_views() const { this->m_shared_storage->reactivate_target_write_views(); }
 
         /**
          * @brief reactivate all host read write views to storage

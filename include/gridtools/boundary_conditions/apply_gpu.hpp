@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../common/array.hpp"
+#include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "direction.hpp"
@@ -336,12 +337,9 @@ namespace gridtools {
                 m_halo_descriptors,
                 data_field_views...);
 #ifndef NDEBUG
-            cudaDeviceSynchronize();
-            cudaError_t error = cudaGetLastError();
-            if (error != cudaSuccess) {
-                fprintf(stderr, "CUDA ERROR: %s in %s at line %dn", cudaGetErrorString(error), __FILE__, __LINE__);
-                exit(-1);
-            }
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
+#else
+            GT_CUDA_CHECK(cudaGetLastError());
 #endif
         }
     };

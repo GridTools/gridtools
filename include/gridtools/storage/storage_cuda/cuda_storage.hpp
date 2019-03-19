@@ -183,9 +183,9 @@ namespace gridtools {
         bool host_needs_update_impl() const { return m_state.m_hnu; }
 
         /*
-         * @brief reactivate_device_write_views implementation for cuda_storage.
+         * @brief reactivate_target_write_views implementation for cuda_storage.
          */
-        void reactivate_device_write_views_impl() {
+        void reactivate_target_write_views_impl() {
             GT_ASSERT_OR_THROW(!m_state.m_dnu, "host views are in write mode");
             m_state.m_hnu = true;
         }
