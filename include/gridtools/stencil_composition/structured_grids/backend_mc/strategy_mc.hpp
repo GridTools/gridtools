@@ -11,16 +11,10 @@
 
 #include <type_traits>
 
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/transform.hpp>
-
 #include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/is_sequence_of.hpp"
-#include "../../../meta/macros.hpp"
-#include "../../../meta/make_indices.hpp"
+#include "../../../meta.hpp"
 #include "../../backend_ids.hpp"
 #include "../../mss_components.hpp"
 #include "../../mss_functor.hpp"
@@ -36,22 +30,14 @@ namespace gridtools {
         /**
          * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
          */
-        struct is_mss_kparallel {
-            template <typename Mss>
-            struct apply {
-                using type = execute::is_parallel<typename Mss::execution_engine_t>;
-            };
-        };
+        template <typename Mss>
+        GT_META_DEFINE_ALIAS(is_mss_kparallel, execute::is_parallel, typename Mss::execution_engine_t);
 
         /**
          * @brief Meta function to check if all MSS in an MssComponents array can be executed in parallel along k-axis.
          */
         template <typename MssComponents>
-        struct all_mss_kparallel
-            : boost::mpl::fold<typename boost::mpl::transform<MssComponents, is_mss_kparallel>::type,
-                  boost::mpl::true_,
-                  boost::mpl::and_<boost::mpl::placeholders::_1, boost::mpl::placeholders::_2>>::type {};
-
+        GT_META_DEFINE_ALIAS(all_mss_kparallel, meta::all_of, (is_mss_kparallel, MssComponents));
     } // namespace _impl
 
     /**
@@ -73,7 +59,7 @@ namespace gridtools {
 
             template <typename LocalDomainListArray, typename Grid>
             GT_FUNCTION static void run(LocalDomainListArray const &local_domain_lists, Grid const &grid) {
-                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
+                using iter_range = GT_META_CALL(meta::make_indices_for, MssComponents);
                 using mss_functor_t =
                     mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execinfo_mc::block_kserial_t>;
 
@@ -105,7 +91,7 @@ namespace gridtools {
 
             template <typename LocalDomainListArray, typename Grid>
             GT_FUNCTION static void run(LocalDomainListArray const &local_domain_lists, Grid const &grid) {
-                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
+                using iter_range = GT_META_CALL(meta::make_indices_for, MssComponents);
                 using mss_functor_t =
                     mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execinfo_mc::block_kparallel_t>;
 

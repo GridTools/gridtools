@@ -10,6 +10,8 @@
 #pragma once
 
 #include "../common/defs.hpp"
+#include "../meta/is_instantiation_of.hpp"
+#include "../meta/macros.hpp"
 
 namespace gridtools {
 
@@ -24,9 +26,6 @@ namespace gridtools {
         using backend_id_t = BackendId;
     };
 
-    template <typename T>
-    struct is_backend_ids : boost::mpl::false_ {};
-
-    template <class BackendId, class StrategyId>
-    struct is_backend_ids<backend_ids<BackendId, StrategyId>> : boost::mpl::true_ {};
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_backend_ids, meta::is_instantiation_of, (backend_ids, T));
 } // namespace gridtools

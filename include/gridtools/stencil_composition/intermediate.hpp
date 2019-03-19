@@ -42,7 +42,6 @@
 #include "grid.hpp"
 #include "grid_traits.hpp"
 #include "intermediate_impl.hpp"
-#include "iterate_on_esfs.hpp"
 #include "level.hpp"
 #include "local_domain.hpp"
 #include "mss_components_metafunctions.hpp"
@@ -52,31 +51,6 @@
  * \brief this file contains mainly helper metafunctions which simplify the interface for the application developer
  * */
 namespace gridtools {
-
-    template <typename MssDescs>
-    struct need_to_compute_extents {
-
-        /* helper since boost::mpl::and_ fails in this case with nvcc
-         */
-        template <typename BoolA, typename BoolB>
-        struct gt_and : std::integral_constant<bool, BoolA::value and BoolB::value> {};
-
-        /* helper since boost::mpl::or_ fails in this case with nvcc
-         */
-        template <typename BoolA, typename BoolB>
-        struct gt_or : std::integral_constant<bool, BoolA::value or BoolB::value> {};
-
-        using has_all_extents = typename with_operators<is_esf_with_extent,
-            gt_and>::template iterate_on_esfs<std::true_type, MssDescs>::type;
-        using has_extent = typename with_operators<is_esf_with_extent, gt_or>::template iterate_on_esfs<std::false_type,
-            MssDescs>::type;
-
-        GT_STATIC_ASSERT((has_extent::value == has_all_extents::value),
-            "The computation appears to have stages with and without extents being specified at the same time. A "
-            "computation should have all stages with extents or none.");
-        using type = typename boost::mpl::not_<has_all_extents>::type;
-    };
-
     namespace _impl {
 
         template <int I, class Layout>
@@ -121,6 +95,9 @@ namespace gridtools {
                        storage_info_dim_fits<coord_i<Backend>::value>(src, grid.i_high_bound());
             }
         };
+
+        template <class Mss>
+        GT_META_DEFINE_ALIAS(get_esfs, unwrap_independent, typename Mss::esf_sequence_t);
 
     } // namespace _impl
 
@@ -195,13 +172,13 @@ namespace gridtools {
 
         using bound_arg_storage_pair_tuple_t = std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>;
 
+        using esfs_t = GT_META_CALL(
+            meta::flatten, (GT_META_CALL(meta::transform, (_impl::get_esfs, all_mss_descriptors_t))));
+
       public:
         // First we need to compute the association between placeholders and extents.
-        // This information is needed to allocate temporaries, and to provide the
-        // extent information to the user.
-        using extent_map_t = typename boost::mpl::eval_if<typename need_to_compute_extents<all_mss_descriptors_t>::type,
-            placeholder_to_extent_map<all_mss_descriptors_t, placeholders_t>,
-            boost::mpl::void_>::type;
+        // This information is needed to allocate temporaries, and to provide the extent information to the user.
+        using extent_map_t = GT_META_CALL(get_extent_map, esfs_t);
 
       private:
         template <class MssDescs>
@@ -332,18 +309,10 @@ namespace gridtools {
             return {};
         }
 
-        // workaround because boost::mpl::at is not sfinae-friendly
-        template <class Placeholder,
-            class ExtentMap = extent_map_t,
-            class LazyResult = enable_if_t<!boost::mpl::is_void_<ExtentMap>::value,
-                boost::mpl::at<typename ExtentMap::type, Placeholder>>>
-        static constexpr typename LazyResult::type get_arg_extent(Placeholder) {
+        template <class Placeholder>
+        static constexpr GT_META_CALL(lookup_extent_map, (extent_map_t, Placeholder)) get_arg_extent(Placeholder) {
             GT_STATIC_ASSERT(is_plh<Placeholder>::value, "");
             return {};
-        }
-        template <class Placeholder, class ExtentMap = extent_map_t>
-        static enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
-            throw std::runtime_error("not implemented");
         }
 
         template <class... Args, class... DataStores>
@@ -360,13 +329,9 @@ namespace gridtools {
         auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
             tuple_util::transform(_impl::dedup_storage_info_f<storage_info_map_t>{m_storage_info_map}, seq));
 
-        template <class ExtentMap = extent_map_t>
-        enable_if_t<!boost::mpl::is_void_<ExtentMap>::value> check_grid_against_extents() const {
+        void check_grid_against_extents() const {
             for_each_type<non_tmp_placeholders_t>(check_grid_against_extents_f{m_grid});
         }
-
-        template <class ExtentMap = extent_map_t>
-        enable_if_t<boost::mpl::is_void_<ExtentMap>::value> check_grid_against_extents() const {}
     }; // namespace gridtools
 
     /**

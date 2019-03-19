@@ -49,10 +49,7 @@ namespace gridtools {
             "Location types of placeholders and accessors must match");
         GT_STATIC_ASSERT(esf_impl_::has_param_list<EsfFunction<0>>::type::value,
             "The type param_list was not found in a user functor definition. All user functors must have a type alias "
-            "called \'param_list\', which is an MPL vector containing the list of accessors defined in the functor "
-            "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
-            "using v2=global_accessor<1>; \n using v3=accessor<2>; \n using "
-            "param_list=make_param_list<v1, v3>;");
+            "called \'param_list\'.");
 
         template <uint_t C>
         using esf_function = EsfFunction<C>;
@@ -73,36 +70,4 @@ namespace gridtools {
     struct esf_get_location_type<esf_descriptor<EsfFunction, Grid, LocationType, Color, Args>> {
         using type = LocationType;
     };
-
-    template <template <uint_t> class EsfFunction,
-        class Grid,
-        class LocationType,
-        class Extent,
-        class Color,
-        class Args>
-    struct esf_descriptor_with_extent : esf_descriptor<EsfFunction, Grid, LocationType, Color, Args> {
-        GT_STATIC_ASSERT(is_extent<Extent>::value, "stage descriptor is expecting a extent type");
-    };
-
-    template <template <uint_t> class EsfFunction,
-        class Grid,
-        class LocationType,
-        class Extent,
-        class Color,
-        class Args>
-    struct is_esf_descriptor<esf_descriptor_with_extent<EsfFunction, Grid, LocationType, Extent, Color, Args>>
-        : std::true_type {};
-
-    template <typename>
-    struct is_esf_with_extent : std::false_type {};
-
-    template <template <uint_t> class EsfFunction,
-        class Grid,
-        class LocationType,
-        class Extent,
-        class Color,
-        class Args>
-    struct is_esf_with_extent<esf_descriptor_with_extent<EsfFunction, Grid, LocationType, Extent, Color, Args>>
-        : std::true_type {};
-
 } // namespace gridtools

@@ -66,15 +66,4 @@ namespace gridtools {
 
     template <class EsfFunction, class Args>
     struct is_esf_descriptor<esf_descriptor<EsfFunction, Args>> : std::true_type {};
-
-    template <class EsfFunction, class Extent, class Args>
-    struct esf_descriptor_with_extent : esf_descriptor<EsfFunction, Args> {
-        GT_STATIC_ASSERT(is_extent<Extent>::value, "stage descriptor is expecting a extent type");
-    };
-
-    template <class EsfFunction, class Extent, class Args>
-    struct is_esf_descriptor<esf_descriptor_with_extent<EsfFunction, Extent, Args>> : std::true_type {};
-
-    template <class T>
-    GT_META_DEFINE_ALIAS(is_esf_with_extent, meta::is_instantiation_of, (esf_descriptor_with_extent, T));
 } // namespace gridtools

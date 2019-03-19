@@ -70,7 +70,7 @@ namespace gridtools {
 
             template <class Functors, class Esf, class ExtentMap, class = void>
             struct stages_from_functors {
-                using extent_t = typename get_extent_for<Esf, ExtentMap>::type;
+                using extent_t = GT_META_CALL(get_esf_extent, (Esf, ExtentMap));
                 using type = meta::list<stage<Functors, extent_t, typename Esf::args_t, typename Esf::location_type>>;
             };
             template <class Functors, class Esf, class ExtentMap>

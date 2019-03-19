@@ -26,7 +26,7 @@ namespace gridtools {
         template <class ExtentMap>
         struct get_extent_f {
             template <class Esf>
-            GT_META_DEFINE_ALIAS(apply, meta::id, (typename get_extent_for<Esf, ExtentMap>::type));
+            GT_META_DEFINE_ALIAS(apply, get_esf_extent, (Esf, ExtentMap));
         };
 
         template <class Esfs,

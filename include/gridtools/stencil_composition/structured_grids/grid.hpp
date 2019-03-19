@@ -8,6 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+
+#include "../../meta.hpp"
 #include "../grid_base.hpp"
 
 namespace gridtools {
@@ -31,11 +33,8 @@ namespace gridtools {
         GT_FUNCTION explicit grid(uint_t *i, uint_t *j) : base_type(i, j) {}
     };
 
-    template <typename Grid>
-    struct is_grid : boost::mpl::false_ {};
-
-    template <typename Axis>
-    struct is_grid<grid<Axis>> : boost::mpl::true_ {};
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_grid, meta::is_instantiation_of, (grid, T));
 
     template <typename Axis>
     GT_FUNCTION_HOST grid<typename Axis::axis_interval_t> make_grid(

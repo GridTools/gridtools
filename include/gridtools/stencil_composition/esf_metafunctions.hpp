@@ -11,8 +11,6 @@
 
 #include <tuple>
 
-#include <boost/mpl/pair.hpp>
-
 #include "../common/defs.hpp"
 #include "../meta.hpp"
 #include "accessor_intent.hpp"
@@ -26,23 +24,6 @@
 
 namespace gridtools {
     namespace esf_metafunctions_impl_ {
-        GT_META_LAZY_NAMESPACE {
-            template <class Esf>
-            struct tuple_from_esf {
-                using type = std::tuple<Esf>;
-            };
-            template <class Esfs>
-            struct tuple_from_esf<independent_esf<Esfs>> {
-                using type = Esfs;
-            };
-        }
-        GT_META_DELEGATE_TO_LAZY(tuple_from_esf, class Esf, Esf);
-
-        template <class Pair>
-        struct horizotal_extent_is_zero
-            : bool_constant<Pair::second::iminus::value == 0 && Pair::second::iplus::value == 0 &&
-                            Pair::second::jminus::value == 0 && Pair::second::jplus::value == 0> {};
-
         template <class Esf>
         GT_META_DEFINE_ALIAS(get_items, meta::zip, (typename Esf::args_t, GT_META_CALL(esf_param_list, Esf)));
 
@@ -52,10 +33,27 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(apply, bool_constant, Param::intent_v == Intent);
         };
 
-        template <class Item,
-            class Param = GT_META_CALL(meta::second, Item),
-            class Arg = GT_META_CALL(meta::first, Item)>
-        GT_META_DEFINE_ALIAS(get_arg_extent_pair, boost::mpl::pair, (Arg, typename Param::extent_t));
+        GT_META_LAZY_NAMESPACE {
+            template <class Esf>
+            struct tuple_from_esf {
+                using type = std::tuple<Esf>;
+            };
+            template <class Esfs>
+            struct tuple_from_esf<independent_esf<Esfs>> {
+                using type = Esfs;
+            };
+
+            template <class Item>
+            struct get_out_arg : meta::lazy::first<Item> {
+                using extent_t = typename meta::lazy::second<Item>::type::extent_t;
+                GT_STATIC_ASSERT(extent_t::iminus::value == 0 && extent_t::iplus::value == 0 &&
+                                     extent_t::jminus::value == 0 && extent_t::jplus::value == 0,
+                    "Horizontal extents of the outputs of ESFs are not all empty. All outputs must have empty "
+                    "(horizontal) extents");
+            };
+        }
+        GT_META_DELEGATE_TO_LAZY(tuple_from_esf, class Esf, Esf);
+        GT_META_DELEGATE_TO_LAZY(get_out_arg, class Item, Item);
     } // namespace esf_metafunctions_impl_
 
     /**
@@ -68,25 +66,6 @@ namespace gridtools {
     GT_META_DEFINE_ALIAS(esf_get_w_args_per_functor, meta::transform, (meta::first, WItems));
 
     /**
-     * Provide a tuple of pairs of placeholders and extents that corresponds to fields that are written by Esf.
-     */
-    template <class Esf,
-        class AllItems = GT_META_CALL(esf_metafunctions_impl_::get_items, Esf),
-        class WItems = GT_META_CALL(
-            meta::filter, (esf_metafunctions_impl_::has_intent<intent::inout>::apply, AllItems))>
-    GT_META_DEFINE_ALIAS(
-        esf_get_w_per_functor, meta::transform, (esf_metafunctions_impl_::get_arg_extent_pair, WItems));
-
-    /**
-     * Provide a tuple of pairs of placeholders and extents that corresponds to fields that are read by Esf.
-     */
-    template <class Esf,
-        class AllItems = GT_META_CALL(esf_metafunctions_impl_::get_items, Esf),
-        class RItems = GT_META_CALL(meta::filter, (esf_metafunctions_impl_::has_intent<intent::in>::apply, AllItems))>
-    GT_META_DEFINE_ALIAS(
-        esf_get_r_per_functor, meta::transform, (esf_metafunctions_impl_::get_arg_extent_pair, RItems));
-
-    /**
      * Compute a list of all args specified by the user that are written into by at least one ESF
      */
     template <class Esfs,
@@ -96,14 +75,6 @@ namespace gridtools {
             meta::filter, (esf_metafunctions_impl_::has_intent<intent::inout>::apply, AllItems)),
         class AllRwArgs = GT_META_CALL(meta::transform, (meta::first, AllRwItems))>
     GT_META_DEFINE_ALIAS(compute_readwrite_args, meta::dedup, AllRwArgs);
-
-    /**
-      Given an array of pairs (placeholder, extent) checks if all extents are the same and equal to the extent
-      passed in
-     */
-    template <class Pairs>
-    struct check_all_horizotal_extents_are_zero
-        : is_sequence_of<Pairs, esf_metafunctions_impl_::horizotal_extent_is_zero> {};
 
     // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
     template <class Esfs,

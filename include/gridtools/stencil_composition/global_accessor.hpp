@@ -15,9 +15,10 @@
 #include "../common/host_device.hpp"
 #include "../meta/always.hpp"
 #include "../meta/list.hpp"
-#include "./extent.hpp"
-#include "./is_accessor.hpp"
-#include "./is_global_accessor.hpp"
+#include "accessor_intent.hpp"
+#include "extent.hpp"
+#include "is_accessor.hpp"
+#include "is_global_accessor.hpp"
 
 namespace gridtools {
 

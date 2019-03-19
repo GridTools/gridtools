@@ -34,23 +34,6 @@ namespace gridtools {
         };
     } // namespace icgrid
 
-    /** Retrieve the extent in esf_descriptor_with_extents
-
-       \tparam Esf The esf_descriptor that must be the one speficying the extent
-    */
-    template <typename Esf>
-    struct esf_extent;
-
-    template <template <uint_t> class Functor,
-        typename Grid,
-        typename LocationType,
-        typename Extent,
-        typename Color,
-        typename ArgSequence>
-    struct esf_extent<esf_descriptor_with_extent<Functor, Grid, LocationType, Extent, Color, ArgSequence>> {
-        using type = Extent;
-    };
-
     GT_META_LAZY_NAMESPACE {
         template <class Esf>
         struct esf_param_list {
@@ -75,17 +58,6 @@ namespace gridtools {
         template <template <uint_t> class F, class Grid, class Location, class Color, class OldArgs, class NewArgs>
         struct esf_replace_args<esf_descriptor<F, Grid, Location, Color, OldArgs>, NewArgs> {
             using type = esf_descriptor<F, Grid, Location, Color, NewArgs>;
-        };
-
-        template <template <uint_t> class F,
-            class Grid,
-            class Location,
-            class Extent,
-            class Color,
-            class OldArgs,
-            class NewArgs>
-        struct esf_replace_args<esf_descriptor_with_extent<F, Grid, Location, Extent, Color, OldArgs>, NewArgs> {
-            using type = esf_descriptor_with_extent<F, Grid, Location, Extent, Color, NewArgs>;
         };
     }
     GT_META_DELEGATE_TO_LAZY(esf_param_list, class Esf, Esf);
