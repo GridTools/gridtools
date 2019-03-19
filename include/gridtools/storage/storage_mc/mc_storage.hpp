@@ -146,9 +146,9 @@ namespace gridtools {
         bool host_needs_update_impl() const { return false; }
 
         /*
-         * @brief reactivate_device_write_views implementation for mc_storage.
+         * @brief reactivate_target_write_views implementation for mc_storage.
          */
-        void reactivate_device_write_views_impl() {}
+        void reactivate_target_write_views_impl() {}
 
         /*
          * @brief reactivate_host_write_views implementation for mc_storage.
