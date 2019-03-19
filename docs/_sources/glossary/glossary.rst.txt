@@ -73,7 +73,7 @@ Glossary
     See section :ref:`global-accessor`.
 
   Grid
-    The grid is the object that defines the :term:`Iteration Space`. See
+    An object that defines the :term:`Iteration Space`. See
     section :ref:`defining_iteration_space`.
 
   Halo
@@ -109,7 +109,7 @@ Glossary
     section :ref:`storage-info`.
 
   Multi-Stage
-    A partially-order collection of :term:`Stages<Stage>` with an associated
+    A partially-ordered collection of :term:`Stages<Stage>` with an associated
     :term:`Vertical Execution Order`. See section :ref:`composition_of_stencils`.
 
   Placeholder
