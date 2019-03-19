@@ -12,7 +12,13 @@ cd gridtools
 mkdir -p build && cd build
 cmake ..
 cmake --build .
+ctest .
 ```
+##### Requirements
+
+- Boost (1.58.0 or later)
+- CMake (3.12.4 or later)
+- CUDA Toolkit (8.0 or later, optional)
 
 ### Supported compilers
 
@@ -27,14 +33,13 @@ The GridTools libraries are currently nightly tested with the following compiler
 | NVCC 8.0 with GNU 5.4.0 | cuda | Piz Kesch |
 | Intel 18.0.2 | x86, mc | Grand Tave |
 
-#### Buggy compilers (no workarounds implemented)
+##### Officially unsupported (no workarounds implemented and planned)
 
 | Compiler | Target | Date | Comments
 | --- | --- | --- | --- |
 | NVCC <= 9.1 with GNU 6.x | cuda | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
 | PGI 18.5 | x86 | 2018-12-06 | no effort to fix compilation
 | Cray 8.7.3 | x86 | 2018-12-06 | no effort to fix compilation
-
 
 ### Contributing
 
