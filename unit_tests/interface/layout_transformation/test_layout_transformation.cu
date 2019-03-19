@@ -26,26 +26,26 @@ TEST(layout_transformation, 3D_reverse_layout_cuda) {
     Index src_index(dims, src_strides);
     double *src = new double[src_index.size()];
     double *d_src;
-    cudaMalloc(&d_src, sizeof(double) * src_index.size());
+    GT_CUDA_CHECK(cudaMalloc(&d_src, sizeof(double) * src_index.size()));
     init<3>(src, src_index, [](const array<size_t, 3> &a) { return a[0] * 100 + a[1] * 10 + a[2]; });
-    cudaMemcpy(d_src, src, sizeof(double) * src_index.size(), cudaMemcpyHostToDevice);
+    GT_CUDA_CHECK(cudaMemcpy(d_src, src, sizeof(double) * src_index.size(), cudaMemcpyHostToDevice));
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
     double *d_dst;
-    cudaMalloc(&d_dst, sizeof(double) * dst_index.size());
+    GT_CUDA_CHECK(cudaMalloc(&d_dst, sizeof(double) * dst_index.size()));
     init<3>(dst, dst_index, [](const array<size_t, 3> &a) { return -1; });
-    cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice);
+    GT_CUDA_CHECK(cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice));
 
     gridtools::interface::transform(d_dst, d_src, dims, dst_strides, src_strides);
 
-    cudaMemcpy(dst, d_dst, sizeof(double) * src_index.size(), cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(dst, d_dst, sizeof(double) * src_index.size(), cudaMemcpyDeviceToHost));
     verify<3>(src, src_index, dst, dst_index);
 
     delete[] src;
     delete[] dst;
-    cudaFree(d_src);
-    cudaFree(d_dst);
+    GT_CUDA_CHECK(cudaFree(d_src));
+    GT_CUDA_CHECK(cudaFree(d_dst));
 }
 
 TEST(layout_transformation, 2D_reverse_layout_cuda) {
@@ -59,26 +59,26 @@ TEST(layout_transformation, 2D_reverse_layout_cuda) {
     Index src_index(dims, src_strides);
     double *src = new double[src_index.size()];
     double *d_src;
-    cudaMalloc(&d_src, sizeof(double) * src_index.size());
+    GT_CUDA_CHECK(cudaMalloc(&d_src, sizeof(double) * src_index.size()));
     init<2>(src, src_index, [](const array<size_t, 2> &a) { return a[0] * 10 + a[1]; });
-    cudaMemcpy(d_src, src, sizeof(double) * src_index.size(), cudaMemcpyHostToDevice);
+    GT_CUDA_CHECK(cudaMemcpy(d_src, src, sizeof(double) * src_index.size(), cudaMemcpyHostToDevice));
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
     double *d_dst;
-    cudaMalloc(&d_dst, sizeof(double) * dst_index.size());
+    GT_CUDA_CHECK(cudaMalloc(&d_dst, sizeof(double) * dst_index.size()));
     init<2>(dst, dst_index, [](const array<size_t, 2> &a) { return -1; });
-    cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice);
+    GT_CUDA_CHECK(cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice));
 
     gridtools::interface::transform(d_dst, d_src, dims, dst_strides, src_strides);
 
-    cudaMemcpy(dst, d_dst, sizeof(double) * src_index.size(), cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(dst, d_dst, sizeof(double) * src_index.size(), cudaMemcpyDeviceToHost));
     verify<2>(src, src_index, dst, dst_index);
 
     delete[] src;
     delete[] dst;
-    cudaFree(d_src);
-    cudaFree(d_dst);
+    GT_CUDA_CHECK(cudaFree(d_src));
+    GT_CUDA_CHECK(cudaFree(d_dst));
 }
 
 TEST(layout_transformation, 4D_reverse_layout_cuda) {
@@ -94,31 +94,31 @@ TEST(layout_transformation, 4D_reverse_layout_cuda) {
     Index src_index(dims, src_strides);
     double *src = new double[src_index.size()];
     double *d_src;
-    cudaMalloc(&d_src, sizeof(double) * src_index.size());
+    GT_CUDA_CHECK(cudaMalloc(&d_src, sizeof(double) * src_index.size()));
     init<4>(src, src_index, [](const array<size_t, 4> &a) { return a[0] * 1000 + a[1] * 100 + a[2] * 10 + a[3]; });
-    cudaMemcpy(d_src, src, sizeof(double) * src_index.size(), cudaMemcpyHostToDevice);
+    GT_CUDA_CHECK(cudaMemcpy(d_src, src, sizeof(double) * src_index.size(), cudaMemcpyHostToDevice));
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
     double *d_dst;
-    cudaMalloc(&d_dst, sizeof(double) * dst_index.size());
+    GT_CUDA_CHECK(cudaMalloc(&d_dst, sizeof(double) * dst_index.size()));
     init<4>(dst, dst_index, [](const array<size_t, 4> &a) { return -1.; });
-    cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice);
+    GT_CUDA_CHECK(cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice));
 
     gridtools::interface::transform(d_dst, d_src, dims, dst_strides, src_strides);
 
-    cudaMemcpy(dst, d_dst, sizeof(double) * src_index.size(), cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(dst, d_dst, sizeof(double) * src_index.size(), cudaMemcpyDeviceToHost));
     verify<4>(src, src_index, dst, dst_index);
 
     delete[] src;
     delete[] dst;
-    cudaFree(d_src);
-    cudaFree(d_dst);
+    GT_CUDA_CHECK(cudaFree(d_src));
+    GT_CUDA_CHECK(cudaFree(d_dst));
 }
 
 TEST(layout_transformation, mixing_host_and_device_ptr) {
     double *d_src;
-    cudaMalloc(&d_src, sizeof(double));
+    GT_CUDA_CHECK(cudaMalloc(&d_src, sizeof(double)));
 
     double *dst = new double;
 
@@ -127,5 +127,5 @@ TEST(layout_transformation, mixing_host_and_device_ptr) {
         dst, d_src, std::vector<uint_t>(), std::vector<uint_t>(), std::vector<uint_t>()));
 
     delete dst;
-    cudaFree(d_src);
+    GT_CUDA_CHECK(cudaFree(d_src));
 }

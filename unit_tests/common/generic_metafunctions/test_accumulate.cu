@@ -9,6 +9,7 @@
  */
 #include "test_accumulate.hpp"
 #include "gtest/gtest.h"
+#include <gridtools/common/cuda_util.hpp>
 
 __global__ void accumulate_and_kernel(bool *result) { *result = test_accumulate_and(); }
 
@@ -17,25 +18,21 @@ __global__ void accumulate_or_kernel(bool *result) { *result = test_accumulate_o
 TEST(accumulate, test_and) {
     bool result;
     bool *resultDevice;
-    cudaMalloc(&resultDevice, sizeof(bool));
+    GT_CUDA_CHECK(cudaMalloc(&resultDevice, sizeof(bool)));
 
-    // clang-format off
-    accumulate_and_kernel<<<1,1>>>(resultDevice);
-    // clang-format on
+    accumulate_and_kernel<<<1, 1>>>(resultDevice);
 
-    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost));
     ASSERT_TRUE(result);
 }
 
 TEST(accumulate, test_or) {
     bool result;
     bool *resultDevice;
-    cudaMalloc(&resultDevice, sizeof(bool));
+    GT_CUDA_CHECK(cudaMalloc(&resultDevice, sizeof(bool)));
 
-    // clang-format off
-    accumulate_or_kernel<<<1,1>>>(resultDevice);
-    // clang-format on
+    accumulate_or_kernel<<<1, 1>>>(resultDevice);
 
-    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost));
     ASSERT_TRUE(result);
 }

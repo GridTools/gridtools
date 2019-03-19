@@ -43,19 +43,18 @@ namespace gridtools {
            (DataField0, Datafield1, DataField2, ...)*/
         template <typename Direction, typename... DataField>
         void loop(DataField &... data_field) const {
-            for (int_t i = halo_descriptors[0].loop_low_bound_outside(Direction::i);
-                 i <= halo_descriptors[0].loop_high_bound_outside(Direction::i);
-                 ++i) {
-                for (int_t j = halo_descriptors[1].loop_low_bound_outside(Direction::j);
-                     j <= halo_descriptors[1].loop_high_bound_outside(Direction::j);
-                     ++j) {
-                    for (int_t k = halo_descriptors[2].loop_low_bound_outside(Direction::k);
-                         k <= halo_descriptors[2].loop_high_bound_outside(Direction::k);
-                         ++k) {
+            const int_t i_low = halo_descriptors[0].loop_low_bound_outside(Direction::i);
+            const int_t i_high = halo_descriptors[0].loop_high_bound_outside(Direction::i);
+            const int_t j_low = halo_descriptors[1].loop_low_bound_outside(Direction::j);
+            const int_t j_high = halo_descriptors[1].loop_high_bound_outside(Direction::j);
+            const int_t k_low = halo_descriptors[2].loop_low_bound_outside(Direction::k);
+            const int_t k_high = halo_descriptors[2].loop_high_bound_outside(Direction::k);
+
+#pragma omp parallel for simd collapse(3)
+            for (int_t j = j_low; j <= j_high; ++j)
+                for (int_t k = k_low; k <= k_high; ++k)
+                    for (int_t i = i_low; i <= i_high; ++i)
                         boundary_function(Direction(), data_field..., i, j, k);
-                    }
-                }
-            }
         }
 
       public:

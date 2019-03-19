@@ -64,7 +64,7 @@ namespace gridtools {
          * @brief This method sets the state machine to a "host needs update" state. This means that
          * previously created device write views will appear as valid views that can be used.
          */
-        void reactivate_device_write_views() { static_cast<Derived *>(this)->reactivate_device_write_views_impl(); }
+        void reactivate_target_write_views() { static_cast<Derived *>(this)->reactivate_target_write_views_impl(); }
 
         /*
          * @brief This method sets the state machine to a "device needs update" state. This means that

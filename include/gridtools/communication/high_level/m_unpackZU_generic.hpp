@@ -103,10 +103,10 @@ void m_unpackZU_generic(
 
 #ifdef GCL_CUDAMSG
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    GT_CUDA_CHECK(cudaEventCreate(&start));
+    GT_CUDA_CHECK(cudaEventCreate(&stop));
 
-    cudaEventRecord(start, 0);
+    GT_CUDA_CHECK(cudaEventRecord(start, 0));
 #endif
 
     const int niter = fields.size();
@@ -143,38 +143,32 @@ void m_unpackZU_generic(
 #endif
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
-            // clang-format off
-        m_unpackZUKernel_generic<<<blocks, threads, 0, ZU_stream>>>
-        (fields[i].ptr,
-         reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r),
-         wrap_argument(d_msgsize_r+27*i),
-         *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor,3>*>(&fields[i])),
-         nx, ny,
-         (fields[i].halos[0].begin()-fields[i].halos[0].minus())
-         + (fields[i].halos[1].begin()-fields[i].halos[1].minus())*fields[i].halos[0].total_length()
-         + (fields[i].halos[2].end()+1)*fields[i].halos[0].total_length() *fields[i].halos[1].total_length(), 0 );
-// clang-format on
-#ifdef GCL_CUDAMSG
-            cudaError_t err = cudaGetLastError();
-            if (err != cudaSuccess) {
-                printf("KLF in %s : %s\n", __FILE__, cudaGetErrorString(err));
-                exit(-1);
-            }
-#endif
+            m_unpackZUKernel_generic<<<blocks, threads, 0, ZU_stream>>>(fields[i].ptr,
+                reinterpret_cast<typename array_t::value_type::value_type **>(d_msgbufTab_r),
+                wrap_argument(d_msgsize_r + 27 * i),
+                *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor, 3> *>(&fields[i])),
+                nx,
+                ny,
+                (fields[i].halos[0].begin() - fields[i].halos[0].minus()) +
+                    (fields[i].halos[1].begin() - fields[i].halos[1].minus()) * fields[i].halos[0].total_length() +
+                    (fields[i].halos[2].end() + 1) * fields[i].halos[0].total_length() *
+                        fields[i].halos[1].total_length(),
+                0);
+            GT_CUDA_CHECK(cudaGetLastError());
         }
     }
 
 #ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
+    GT_CUDA_CHECK(cudaEventSynchronize(stop));
 
     float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
 
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
+    GT_CUDA_CHECK(cudaEventDestroy(start));
+    GT_CUDA_CHECK(cudaEventDestroy(stop));
 
     // double nnumb =  niter * (double) (nx * ny * nz);
     // double nbyte =  nnumb * sizeof(double);
