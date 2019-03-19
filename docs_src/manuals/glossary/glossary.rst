@@ -9,7 +9,7 @@ Glossary
 .. glossary:: :sorted:
 
   Accessor
-    A class with an interface to access one element of a data field and its
+    A class with an interface to access one element of a data :term:`Field` and its
     neighbors. See section :ref:`stencil_operators`.
 
   Apply-Method
@@ -31,8 +31,8 @@ Glossary
 
   Computation
     A sequence of :term:`Multi-Stages<Multi-Stage>`
-    which is applied on a :term:`Grid` with the :term:`run-method` as an entry-point.
-    See section :ref:`composition_of_stencils`.
+    which is applied on a :term:`Grid` with the run() method as an entry-point,
+    see section :ref:`composition_of_stencils`.
 
   Data Store
     An object that manages a logical multidimensional array of values.
@@ -47,14 +47,15 @@ Glossary
     Definition of the order of execution of a |GT|
     :term:`Computations<Computation>`. See section :ref:`execution-model`.
 
-  Vertical Execution Order
-    A partial order of the vertical axis on an iteration space. See section
-    :ref:`execution-model`.
-
   Extent
     The maximum relative offsets along the coordinate axes at which data is
     accessed around the :term:`Iteration Point`. See section
     :ref:`stencil_operators`.
+    
+  Field
+    Multi-dimensional data representing a physical field, e.g. wind speed.
+    Often used as a synonym for multi-dimensional data in general or a
+    :term:`Data Store` in particular. 
 
   GCL
     The |GT| Communication Module. See section :ref:`halo-exchanges`.
@@ -95,11 +96,12 @@ Glossary
     :ref:`distributed-boundary-conditions`.
 
   Iteration Point
-    A 3D tuple of indices. The horizontal indices are often denoted by `i` and
-    `j`, while `k` refers to the vertical index.
+    A triple of indices. The horizontal indices are often denoted by `i` and
+    `j`, while `k` refers to the vertical index. :term:`Stencil Operators<Stencil Operator>`
+    are written relative to the current iteration point.
 
   Iteration Space
-    A set of :term:`Iteration Points<Iteration Point>` on which a stencil is be
+    A set of :term:`Iteration Points<Iteration Point>` on which a stencil is
     applied. See section :ref:`defining_iteration_space`.
 
   Layout Map
@@ -107,26 +109,27 @@ Glossary
     a :term:`Data Store`. See section :ref:`storage-module`. Also used to
     define the process layout in an multi-process setup. For this usage, see
     section :ref:`storage-info`.
+    
+  Masked Dimension
+    A dimension with stride 0.
 
   Multi-Stage
     A partially-order collection of :term:`Stages<Stage>` with an associated
-    :term:`Vertical Execution Order`. See section :ref:`composition_of_stencils`.
+    :term:`Vertical Execution Order`. See :term:`Execution Model` and
+    section :ref:`composition_of_stencils`.
 
   Placeholder
     Placeholders allow compile-time naming of :term:`Stencil Operator`
     arguments. See section :ref:`placeholders`.
     
-  Run-Method
-    Method to execute a :term:`Computation`, see :ref:`stencil-composition`. 
-
   Software-Managed Cache
-    User-defined caching of fields during a :term:`Multi-Stage`, which has a
+    User-defined caching of :term:`Fields<Field>` during a :term:`Multi-Stage`, which has a
     :ref:`cache-policy` and a :ref:`cache-type`.
     See section :ref:`caches`.
 
   Stage
     A :term:`Stencil Operator` with associated
-    :term:`Placeholders<Placeholder>`. See section
+    :term:`Placeholders<Placeholder>`. See :term:`Execution Model` and section
     :ref:`composition_of_stencils`.
 
   Stencil Operator
@@ -136,6 +139,10 @@ Glossary
   Storage Info
     This concept describes the dimensions, alignment and layout of a
     multidimensional array. See section :ref:`storage-info`.
+
+  Vertical Execution Order
+    Order of execution (forward, backward, parallel) along the vertical
+    axis on an :term:`Iteration Space`. See :term:`Execution Model`.
 
   Vertical Interval
     A compile-time defined subset of an :term:`Iteration Space`, possibly

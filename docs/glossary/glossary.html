@@ -169,7 +169,7 @@
 <span id="id1"></span><h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h1>
 <dl class="glossary docutils">
 <dt id="term-accessor">Accessor</dt>
-<dd>A class with an interface to access one element of a data field and its
+<dd>A class with an interface to access one element of a data <a class="reference internal" href="#term-field"><span class="xref std std-term">Field</span></a> and its
 neighbors. See section <a class="reference internal" href="../user_manual/user_manual.html#stencil-operators"><span class="std std-ref">Stencil Operators</span></a>.</dd>
 <dt id="term-apply-method">Apply-Method</dt>
 <dd>Main method of a <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a>. Multiple overloads can exist for
@@ -186,8 +186,8 @@ on different hardware architectures. See section <a class="reference internal" h
 <dd>See <a class="reference internal" href="#term-software-managed-cache"><span class="xref std std-term">Software-Managed Cache</span></a>.</dd>
 <dt id="term-computation">Computation</dt>
 <dd>A sequence of <a class="reference internal" href="#term-multi-stage"><span class="xref std std-term">Multi-Stages</span></a>
-which is applied on a <a class="reference internal" href="#term-grid"><span class="xref std std-term">Grid</span></a> with the <a class="reference internal" href="#term-run-method"><span class="xref std std-term">run-method</span></a> as an entry-point.
-See section <a class="reference internal" href="../user_manual/user_manual.html#composition-of-stencils"><span class="std std-ref">Composition of Stencils</span></a>.</dd>
+which is applied on a <a class="reference internal" href="#term-grid"><span class="xref std std-term">Grid</span></a> with the run() method as an entry-point,
+see section <a class="reference internal" href="../user_manual/user_manual.html#composition-of-stencils"><span class="std std-ref">Composition of Stencils</span></a>.</dd>
 <dt id="term-data-store">Data Store</dt>
 <dd>An object that manages a logical multidimensional array of values.
 See section <a class="reference internal" href="../user_manual/user_manual.html#data-store"><span class="std std-ref">Data Store</span></a>.</dd>
@@ -202,6 +202,10 @@ See section <a class="reference internal" href="../user_manual/user_manual.html#
 <dd>The maximum relative offsets along the coordinate axes at which data is
 accessed around the <a class="reference internal" href="#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>. See section
 <a class="reference internal" href="../user_manual/user_manual.html#stencil-operators"><span class="std std-ref">Stencil Operators</span></a>.</dd>
+<dt id="term-field">Field</dt>
+<dd>Multi-dimensional data representing a physical field, e.g. wind speed.
+Often used as a synonym for multi-dimensional data in general or a
+<a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a> in particular.</dd>
 <dt id="term-gcl">GCL</dt>
 <dd>The <cite>GridTools</cite> Communication Module. See section <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">Halo Exchanges</span></a>.</dd>
 <dt id="term-global-boundary">Global Boundary</dt>
@@ -232,31 +236,33 @@ section <a class="reference internal" href="../user_manual/user_manual.html#halo
 section <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">Halo Exchanges</span></a> and section
 <a class="reference internal" href="../user_manual/user_manual.html#distributed-boundary-conditions"><span class="std std-ref">Distributed Boundary Conditions</span></a>.</dd>
 <dt id="term-iteration-point">Iteration Point</dt>
-<dd>A 3D tuple of indices. The horizontal indices are often denoted by <cite>i</cite> and
-<cite>j</cite>, while <cite>k</cite> refers to the vertical index.</dd>
+<dd>A triple of indices. The horizontal indices are often denoted by <cite>i</cite> and
+<cite>j</cite>, while <cite>k</cite> refers to the vertical index. <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operators</span></a>
+are written relative to the current iteration point.</dd>
 <dt id="term-iteration-space">Iteration Space</dt>
-<dd>A set of <a class="reference internal" href="#term-iteration-point"><span class="xref std std-term">Iteration Points</span></a> on which a stencil is be
+<dd>A set of <a class="reference internal" href="#term-iteration-point"><span class="xref std std-term">Iteration Points</span></a> on which a stencil is
 applied. See section <a class="reference internal" href="../user_manual/user_manual.html#defining-iteration-space"><span class="std std-ref">Defining the Iteration Space: the Grid</span></a>.</dd>
 <dt id="term-layout-map">Layout Map</dt>
 <dd>A (compile time) sequence of integer values, defining the storage layout of
 a <a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a>. See section <a class="reference internal" href="../user_manual/user_manual.html#storage-module"><span class="std std-ref">Storage Module</span></a>. Also used to
 define the process layout in an multi-process setup. For this usage, see
 section <a class="reference internal" href="../user_manual/user_manual.html#storage-info"><span class="std std-ref">Storage Info</span></a>.</dd>
+<dt id="term-masked-dimension">Masked Dimension</dt>
+<dd>A dimension with stride 0.</dd>
 <dt id="term-multi-stage">Multi-Stage</dt>
 <dd>A partially-order collection of <a class="reference internal" href="#term-stage"><span class="xref std std-term">Stages</span></a> with an associated
-<a class="reference internal" href="#term-vertical-execution-order"><span class="xref std std-term">Vertical Execution Order</span></a>. See section <a class="reference internal" href="../user_manual/user_manual.html#composition-of-stencils"><span class="std std-ref">Composition of Stencils</span></a>.</dd>
+<a class="reference internal" href="#term-vertical-execution-order"><span class="xref std std-term">Vertical Execution Order</span></a>. See <a class="reference internal" href="#term-execution-model"><span class="xref std std-term">Execution Model</span></a> and
+section <a class="reference internal" href="../user_manual/user_manual.html#composition-of-stencils"><span class="std std-ref">Composition of Stencils</span></a>.</dd>
 <dt id="term-placeholder">Placeholder</dt>
 <dd>Placeholders allow compile-time naming of <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a>
 arguments. See section <a class="reference internal" href="../user_manual/user_manual.html#placeholders"><span class="std std-ref">Preparing Arguments: Storage Placeholders</span></a>.</dd>
-<dt id="term-run-method">Run-Method</dt>
-<dd>Method to execute a <a class="reference internal" href="#term-computation"><span class="xref std std-term">Computation</span></a>, see <a class="reference internal" href="../user_manual/user_manual.html#stencil-composition"><span class="std std-ref">Stencil Composition</span></a>.</dd>
 <dt id="term-software-managed-cache">Software-Managed Cache</dt>
-<dd>User-defined caching of fields during a <a class="reference internal" href="#term-multi-stage"><span class="xref std std-term">Multi-Stage</span></a>, which has a
+<dd>User-defined caching of <a class="reference internal" href="#term-field"><span class="xref std std-term">Fields</span></a> during a <a class="reference internal" href="#term-multi-stage"><span class="xref std std-term">Multi-Stage</span></a>, which has a
 <a class="reference internal" href="../user_manual/user_manual.html#cache-policy"><span class="std std-ref">Cache Policy</span></a> and a <a class="reference internal" href="../user_manual/user_manual.html#cache-type"><span class="std std-ref">Cache Type</span></a>.
 See section <a class="reference internal" href="../user_manual/user_manual.html#caches"><span class="std std-ref">Software-Managed Caches</span></a>.</dd>
 <dt id="term-stage">Stage</dt>
 <dd>A <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a> with associated
-<a class="reference internal" href="#term-placeholder"><span class="xref std std-term">Placeholders</span></a>. See section
+<a class="reference internal" href="#term-placeholder"><span class="xref std std-term">Placeholders</span></a>. See <a class="reference internal" href="#term-execution-model"><span class="xref std std-term">Execution Model</span></a> and section
 <a class="reference internal" href="../user_manual/user_manual.html#composition-of-stencils"><span class="std std-ref">Composition of Stencils</span></a>.</dd>
 <dt id="term-stencil-operator">Stencil Operator</dt>
 <dd>Struct or class that defines a stencil operation. See section
@@ -265,8 +271,8 @@ See section <a class="reference internal" href="../user_manual/user_manual.html#
 <dd>This concept describes the dimensions, alignment and layout of a
 multidimensional array. See section <a class="reference internal" href="../user_manual/user_manual.html#storage-info"><span class="std std-ref">Storage Info</span></a>.</dd>
 <dt id="term-vertical-execution-order">Vertical Execution Order</dt>
-<dd>A partial order of the vertical axis on an iteration space. See section
-<a class="reference internal" href="../user_manual/user_manual.html#execution-model"><span class="std std-ref">Execution Model</span></a>.</dd>
+<dd>Order of execution (forward, backward, parallel) along the vertical
+axis on an <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. See <a class="reference internal" href="#term-execution-model"><span class="xref std std-term">Execution Model</span></a>.</dd>
 <dt id="term-vertical-interval">Vertical Interval</dt>
 <dd>A compile-time defined subset of an <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>, possibly
 covering only parts of the vertical iteration range. See section
