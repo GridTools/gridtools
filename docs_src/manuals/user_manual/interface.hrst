@@ -1,4 +1,4 @@
-Interfacing to Other Programming Languages
+Interfacing to other programming languages
 ============================================
 
 |GT| provides an easy macro interface to generate bindings to C and Fortran.
@@ -211,8 +211,8 @@ which then can be transformed into a |GT| storage.
 
   #include <gridtools/interface/fortran_array_adapter.hpp>
 
-  using storage_info_t = storage_info<0, layout_map<0, 1, 2>>;
-  using data_store_t = data_store<host_storage<double>, storage_info_t>;
+  using storage_info_t = storage_traits<Backend>::storage_info_t<0, 3>;
+  using data_store_t = storage_traits<Backend>::data_store_t<double, storage_info_t>;
 
   void modify_array_impl(fortran_array_adapter<data_store_t> inout) {
       data_store_t data_store{storage_info_t{10, 10, 10}};

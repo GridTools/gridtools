@@ -318,7 +318,7 @@ namespace gridtools {
         */
         template <typename Array>
         explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm, Array const *dimensions)
-            : base_type(c, comm, dimensions), halo() {}
+            : base_type(c, comm, dimensions), halo(), send_buffer{nullptr}, recv_buffer{nullptr} {}
 
         ~hndlr_dynamic_ut() {
 #ifdef GCL_CHECK_DESTRUCTOR
@@ -338,12 +338,8 @@ namespace gridtools {
                 for (int i = -1; i <= 1; ++i)
                     for (int j = -1; j <= 1; ++j)
                         for (int k = -1; k <= 1; ++k) {
-                            if (!descriptor.send_buffer[translate()(i, j, k)])
-                                _impl::gcl_alloc<DataType, arch_type>::free(
-                                    descriptor.send_buffer[translate()(i, j, k)]);
-                            if (!descriptor.recv_buffer[translate()(i, j, k)])
-                                _impl::gcl_alloc<DataType, arch_type>::free(
-                                    descriptor.recv_buffer[translate()(i, j, k)]);
+                            _impl::gcl_alloc<DataType, arch_type>::free(descriptor.send_buffer[translate()(i, j, k)]);
+                            _impl::gcl_alloc<DataType, arch_type>::free(descriptor.recv_buffer[translate()(i, j, k)]);
                         }
             }
         };
@@ -618,10 +614,8 @@ namespace gridtools {
             for (int i = -1; i <= 1; ++i)
                 for (int j = -1; j <= 1; ++j)
                     for (int k = -1; k <= 1; ++k) {
-                        if (!send_buffer[translate()(i, j, k)])
-                            _impl::gcl_alloc<char, arch_type>::free(send_buffer[translate()(i, j, k)]);
-                        if (!recv_buffer[translate()(i, j, k)])
-                            _impl::gcl_alloc<char, arch_type>::free(recv_buffer[translate()(i, j, k)]);
+                        _impl::gcl_alloc<char, arch_type>::free(send_buffer[translate()(i, j, k)]);
+                        _impl::gcl_alloc<char, arch_type>::free(recv_buffer[translate()(i, j, k)]);
                     }
         }
 
