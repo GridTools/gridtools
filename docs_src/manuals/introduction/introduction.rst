@@ -57,7 +57,7 @@ Additionally, |GT| requires a recent version of CMake_.
 .. _Boost: https://www.boost.org/
 .. _CMake: https://www.cmake.org/
 
-|GT| requires a modern compiler. A list of supported compilers can be found on `github <https://github.com/eth-cscs/gridtools/wiki/Supported-Compilers>`_.
+|GT| requires a modern compiler. A list of supported compilers can be found on `github <https://github.com/GridTools/gridtools>`_.
 
 
 .. _installation:
