@@ -1,5 +1,5 @@
 if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
-    function(add_getting_started_test test_source suffix)
+    function(add_getting_started_test test_source suffix env)
         get_filename_component(_name ${test_source} NAME_WE)
         set(test_name getting_started_${_name}${suffix})
 
@@ -11,19 +11,19 @@ if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${test_name}>
             LABELS getting_started
-            ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
+            ENVIRONMENT ${env}
             )
     endfunction()
 
     file(GLOB getting_started_sources "code/test_*.cpp")
     foreach(test_source IN LISTS getting_started_sources)
-        add_getting_started_test(${test_source} "")
+        add_getting_started_test(${test_source} "" ${TEST_HOST_ENVIRONMENT})
     endforeach()
 
     if(GT_ENABLE_TARGET_CUDA)
         file(GLOB getting_started_sources "code/test_*.cu")
         foreach(test_source IN LISTS getting_started_sources)
-            add_getting_started_test(${test_source} "_cuda")
+            add_getting_started_test(${test_source} "_cuda" ${TEST_CUDA_ENVIRONMENT})
         endforeach()
     endif()
 
