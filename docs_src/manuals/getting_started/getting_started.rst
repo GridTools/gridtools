@@ -338,6 +338,10 @@ we won't discuss them now in detail. In brief:
 - In order to use the :math:`(i,j,k)` syntax we need to define the symbols to point to the respective dimensions.
 - A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code. We use this to set the :term:`Backend`.
 
+The code example can be compiled using the following simple CMake script (requires an installation of GridTools, see :ref:`installation`).
+
+.. literalinclude:: code/CMakeLists.txt
+
 -------------------------------------
 Assembling Stencils: Smoothing Filter
 -------------------------------------
