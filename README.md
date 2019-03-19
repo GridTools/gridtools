@@ -1,7 +1,6 @@
-<a target="_blank" href="https://opensource.org/licenses/BSD-3-Clause">![License: BSD][BSD.License]</a>
-<br/>
-
 <a href="https://GridTools.github.io/gridtools"><img src="docs/_static/logo.svg"/></a>
+<br/><br/>
+<a target="_blank" href="https://opensource.org/licenses/BSD-3-Clause">![License: BSD][BSD.License]</a>
 
 The GridTools framework is a set of libraries and utilities to develop performance portable applications in which stencil operations on grids are central. A detailed introduction can be found in the [documentation](https://GridTools.github.io/gridtools).
 
