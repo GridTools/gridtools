@@ -16,7 +16,7 @@
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/make_array.hpp"
 #include "../../common/tuple_util.hpp"
-#include "../../storage/storage-facility.hpp"
+#include "../../storage/storage_facility.hpp"
 #include "layout_transformation_config.hpp"
 #include "layout_transformation_helper.hpp"
 
@@ -87,6 +87,8 @@ namespace gridtools {
 
 #ifndef NDEBUG
             GT_CUDA_CHECK(cudaDeviceSynchronize());
+#else
+            GT_CUDA_CHECK(cudaGetLastError());
 #endif
         }
     } // namespace impl

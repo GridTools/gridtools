@@ -20,7 +20,7 @@
 
 namespace gridtools {
 
-    namespace impl_ {
+    namespace tuple_impl_ {
         template <size_t I, class T, bool = std::is_empty<T>::value>
         struct tuple_leaf {
             T m_value;
@@ -121,7 +121,9 @@ namespace gridtools {
                 void((int[]){(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(std::move(src)), 0)...});
             }
         };
-    } // namespace impl_
+
+        struct tuple_getter;
+    } // namespace tuple_impl_
 
     /**
      *  Simplified host/device aware implementation of std::tuple interface.
@@ -140,22 +142,9 @@ namespace gridtools {
      */
     template <class... Ts>
     class tuple {
-        impl_::tuple_impl<meta::index_sequence_for<Ts...>, Ts...> m_impl;
+        tuple_impl_::tuple_impl<meta::index_sequence_for<Ts...>, Ts...> m_impl;
 
-        struct getter {
-            template <size_t I>
-            static constexpr GT_FUNCTION auto get(tuple const &obj) noexcept GT_AUTO_RETURN(
-                impl_::tuple_leaf_getter::get<I>(obj.m_impl));
-
-            template <size_t I>
-            static GT_FUNCTION auto get(tuple &obj) noexcept GT_AUTO_RETURN(
-                impl_::tuple_leaf_getter::get<I>(obj.m_impl));
-
-            template <size_t I>
-            static constexpr GT_FUNCTION auto get(tuple &&obj) noexcept GT_AUTO_RETURN(
-                impl_::tuple_leaf_getter::get<I>(const_expr::move(obj).m_impl));
-        };
-        friend getter tuple_getter(tuple const &) { return {}; }
+        friend struct tuple_impl_::tuple_getter;
 
         template <class...>
         friend class tuple;
@@ -196,23 +185,8 @@ namespace gridtools {
     template <class T>
     class tuple<T> {
         T m_value;
-        struct getter {
-            template <size_t I, enable_if_t<I == 0, int> = 0>
-            static constexpr GT_FUNCTION T const &get(tuple const &obj) noexcept {
-                return obj.m_value;
-            }
 
-            template <size_t I, enable_if_t<I == 0, int> = 0>
-            static GT_FUNCTION T &get(tuple &obj) noexcept {
-                return obj.m_value;
-            }
-
-            template <size_t I, enable_if_t<I == 0, int> = 0>
-            static constexpr GT_FUNCTION T &&get(tuple &&obj) noexcept {
-                return static_cast<T &&>(obj.m_value);
-            }
-        };
-        friend getter tuple_getter(tuple const &) { return {}; }
+        friend struct tuple_impl_::tuple_getter;
 
         template <class...>
         friend class tuple;
@@ -263,11 +237,43 @@ namespace gridtools {
 
     template <>
     class tuple<> {
-        friend tuple tuple_getter(tuple const &) { return {}; }
-
       public:
         GT_FORCE_INLINE void swap(tuple &) noexcept {}
     };
+
+    namespace tuple_impl_ {
+        struct tuple_getter {
+            template <size_t I, class... Ts>
+            static constexpr GT_FUNCTION auto get(tuple<Ts...> const &obj) noexcept GT_AUTO_RETURN(
+                tuple_leaf_getter::get<I>(obj.m_impl));
+
+            template <size_t I, class... Ts>
+            static GT_FUNCTION auto get(tuple<Ts...> &obj) noexcept GT_AUTO_RETURN(
+                tuple_leaf_getter::get<I>(obj.m_impl));
+
+            template <size_t I, class... Ts>
+            static constexpr GT_FUNCTION auto get(tuple<Ts...> &&obj) noexcept GT_AUTO_RETURN(
+                tuple_leaf_getter::get<I>(const_expr::move(obj).m_impl));
+
+            template <size_t I, class T, enable_if_t<I == 0, int> = 0>
+            static constexpr GT_FUNCTION T const &get(tuple<T> const &obj) noexcept {
+                return obj.m_value;
+            }
+
+            template <size_t I, class T, enable_if_t<I == 0, int> = 0>
+            static GT_FUNCTION T &get(tuple<T> &obj) noexcept {
+                return obj.m_value;
+            }
+
+            template <size_t I, class T, enable_if_t<I == 0, int> = 0>
+            static constexpr GT_FUNCTION T &&get(tuple<T> &&obj) noexcept {
+                return static_cast<T &&>(obj.m_value);
+            }
+        };
+    } // namespace tuple_impl_
+
+    template <class... Ts>
+    tuple_impl_::tuple_getter tuple_getter(tuple<Ts...> const &);
 
     template <class... Ts>
     GT_FORCE_INLINE void swap(tuple<Ts...> &lhs, tuple<Ts...> &rhs) noexcept {

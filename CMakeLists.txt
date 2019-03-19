@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 cmake_policy(SET CMP0048 NEW)
-file(STRINGS "version.txt" GT_VERSION)
-project(GridTools VERSION ${GT_VERSION} LANGUAGES CXX)
+file(STRINGS "version.txt" __GT_VERSION)
+project(GridTools VERSION ${__GT_VERSION} LANGUAGES CXX)
+unset(__GT_VERSION)
 
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -56,17 +57,17 @@ if( COMPONENT_COMMON )
 endif()
 
 if( COMPONENT_BOUNDARY_CONDITIONS )
-    generate_target_for(NAME boundary-conditions)
-    target_link_libraries( boundary-conditions INTERFACE common )
+    generate_target_for(NAME boundary_conditions)
+    target_link_libraries( boundary_conditions INTERFACE common )
 endif()
 
 if( COMPONENT_STENCIL_COMPOSITION )
-    generate_target_for(NAME stencil-composition)
-    target_link_libraries( stencil-composition INTERFACE common )
+    generate_target_for(NAME stencil_composition)
+    target_link_libraries( stencil_composition INTERFACE common )
 endif()
 
 if( COMPONENT_GCL )
-    generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
+    generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high_level/stats_collector.hpp )
     target_link_libraries(gcl gridtools)
     if( GT_USE_MPI )
         target_link_libraries(gcl MPI::MPI_CXX)
@@ -74,13 +75,13 @@ if( COMPONENT_GCL )
 endif()
 
 if( COMPONENT_DISTRIBUTED_BOUNDARIES )
-    generate_target_for(NAME distributed-boundaries)
-    target_link_libraries( distributed-boundaries INTERFACE boundary-conditions gcl )
+    generate_target_for(NAME distributed_boundaries)
+    target_link_libraries( distributed_boundaries INTERFACE boundary_conditions gcl )
 endif()
 
 if( COMPONENT_STORAGE )
     generate_target_for(NAME storage)
-    target_link_libraries( distributed-boundaries INTERFACE common )
+    target_link_libraries( distributed_boundaries INTERFACE common )
 endif()
 
 if( COMPONENT_INTERFACE )
@@ -96,12 +97,8 @@ if(COMPONENT_C_BINDINGS)
 endif()
 
 # ===============
-# examples and tests
+# tests
 # ===============
-if( GT_COMPILE_EXAMPLES )
-  add_subdirectory(gt_examples)
-endif()
-
 if(BUILD_TESTING)
   # TODO move to the right directory
   add_library(regression_main src/tools/regression_fixture.cpp)
@@ -111,6 +108,13 @@ if(BUILD_TESTING)
   add_subdirectory(unit_tests)
   
   add_subdirectory(docs_src/manuals/getting_started/code)
+endif()
+
+# ===============
+# examples
+# ===============
+if(GT_INSTALL_EXAMPLES)
+    add_subdirectory(examples)
 endif()
 
 # ===============

@@ -135,7 +135,7 @@ namespace gridtools {
         assert(storage_ptr);
         if (storage_ptr->device_needs_update_impl())
             storage_ptr->sync();
-        storage_ptr->reactivate_device_write_views();
+        storage_ptr->reactivate_target_write_views();
         return {storage_ptr->get_target_ptr()};
     }
 

@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include <gridtools/common/cuda_util.hpp>
+
 template <typename F, typename... Types>
 __global__ void test_kernel(bool *result, Types... types) {
     *result = F::apply(types...);
@@ -23,9 +25,9 @@ __global__ void test_kernel(bool *result, Types... types) {
 template <typename F, typename... Types>
 bool cuda_test(Types... types) {
     bool *d_result;
-    cudaMalloc(&d_result, sizeof(bool));
+    GT_CUDA_CHECK(cudaMalloc(&d_result, sizeof(bool)));
     test_kernel<F><<<1, 1>>>(d_result, types...);
     bool h_result;
-    cudaMemcpy(&h_result, d_result, sizeof(bool), cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(&h_result, d_result, sizeof(bool), cudaMemcpyDeviceToHost));
     return h_result;
 }

@@ -26,10 +26,9 @@ __pycache__
 
 # except
 !cmake
-!docs
 !docs_src
 !regression
-!gt_examples
+!examples
 !include
 !jenkins
 !pyutils

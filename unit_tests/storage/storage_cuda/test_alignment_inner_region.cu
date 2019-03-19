@@ -8,8 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/storage_info_extender.hpp>
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gtest/gtest.h>
 #include <iostream>
 
@@ -28,7 +27,7 @@ constexpr gt::uint_t add_or_not(gt::uint_t x) {
 template <typename ValueType, gt::uint_t a, typename Layout>
 void run() {
     ValueType **pgres;
-    cudaMalloc(&pgres, sizeof(int));
+    GT_CUDA_CHECK(cudaMalloc(&pgres, sizeof(int)));
 
     constexpr gt::uint_t h1 = 7;
     constexpr gt::uint_t h2 = 4;
@@ -43,27 +42,27 @@ void run() {
 
     ValueType *res;
 
-    cudaMemcpy(pgres, &res, sizeof(int), cudaMemcpyHostToDevice);
+    GT_CUDA_CHECK(cudaMemcpy(pgres, &res, sizeof(int), cudaMemcpyHostToDevice));
     check<<<1, 1>>>(view, pgres, h1, h2, h3, a);
-    cudaMemcpy(&res, pgres, sizeof(int), cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(&res, pgres, sizeof(int), cudaMemcpyDeviceToHost));
 
     EXPECT_EQ(reinterpret_cast<std::uintptr_t>(res) % a, 0);
 
-    cudaMemcpy(pgres, &res, sizeof(int), cudaMemcpyHostToDevice);
+    GT_CUDA_CHECK(cudaMemcpy(pgres, &res, sizeof(int), cudaMemcpyHostToDevice));
     check<<<1, 1>>>(
         view, pgres, h1 + add_or_not<Layout, 0>(1), h2 + add_or_not<Layout, 1>(1), h3 + add_or_not<Layout, 2>(1), a);
-    cudaMemcpy(&res, pgres, sizeof(int), cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(&res, pgres, sizeof(int), cudaMemcpyDeviceToHost));
 
     EXPECT_EQ(reinterpret_cast<std::uintptr_t>(res) % a, 0);
 
-    cudaMemcpy(pgres, &res, sizeof(int), cudaMemcpyHostToDevice);
+    GT_CUDA_CHECK(cudaMemcpy(pgres, &res, sizeof(int), cudaMemcpyHostToDevice));
     check<<<1, 1>>>(
         view, pgres, h1 + add_or_not<Layout, 0>(2), h2 + add_or_not<Layout, 1>(2), h3 + add_or_not<Layout, 2>(2), a);
-    cudaMemcpy(&res, pgres, sizeof(int), cudaMemcpyDeviceToHost);
+    GT_CUDA_CHECK(cudaMemcpy(&res, pgres, sizeof(int), cudaMemcpyDeviceToHost));
 
     EXPECT_EQ(reinterpret_cast<std::uintptr_t>(res) % a, 0);
 
-    cudaFree(pgres);
+    GT_CUDA_CHECK(cudaFree(pgres));
 }
 
 TEST(Storage, InnerRegionAlignmentCharCuda210) { run<char, 1024, gt::layout_map<2, 1, 0>>(); }

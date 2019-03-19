@@ -10,18 +10,18 @@
 #pragma once
 
 #include "../common/boollist.hpp"
-#include "low-level/Halo_Exchange_3D.hpp"
-#include "low-level/Halo_Exchange_3D_DT.hpp"
-#include "low-level/proc_grids_3D.hpp"
+#include "low_level/Halo_Exchange_3D.hpp"
+#include "low_level/Halo_Exchange_3D_DT.hpp"
+#include "low_level/proc_grids_3D.hpp"
 
-#include "high-level/descriptor_generic_manual.hpp"
-#include "high-level/descriptors.hpp"
-#include "high-level/descriptors_dt.hpp"
-#include "high-level/descriptors_dt_whole.hpp"
-#include "high-level/descriptors_fwd.hpp"
-#include "high-level/descriptors_manual_gpu.hpp"
+#include "high_level/descriptor_generic_manual.hpp"
+#include "high_level/descriptors.hpp"
+#include "high_level/descriptors_dt.hpp"
+#include "high_level/descriptors_dt_whole.hpp"
+#include "high_level/descriptors_fwd.hpp"
+#include "high_level/descriptors_manual_gpu.hpp"
 
-#include "high-level/field_on_the_fly.hpp"
+#include "high_level/field_on_the_fly.hpp"
 
 namespace gridtools {
 
@@ -209,7 +209,7 @@ namespace gridtools {
        \tparam DataType Value type the elements int the arrays
        \tparam DIMS Number of dimensions of data arrays (equal to the dimension of the processor grid)
        \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is.
-       Possible coiches are defined in low-level/gcl_arch.h .
+       Possible coiches are defined in low_level/gcl_arch.h .
     */
     template <typename T_layout_map,
         typename layout2proc_map_abs,
@@ -442,7 +442,7 @@ namespace gridtools {
             hd.pack(fields);
 #ifdef GCL_TRACE
 #ifdef __CUDACC__
-            cudaDeviceSynchronize();
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
             double end_time = MPI_Wtime();
             stats_collector<DIMS>::instance()->add_event(
@@ -462,7 +462,7 @@ namespace gridtools {
             hd.unpack(fields);
 #ifdef GCL_TRACE
 #ifdef __CUDACC__
-            cudaDeviceSynchronize();
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
             double end_time = MPI_Wtime();
             stats_collector<DIMS>::instance()->add_event(
@@ -586,7 +586,7 @@ namespace gridtools {
        data corresponds to the which dimension in the processor grid
        \tparam DIMS Number of dimensions of data arrays (equal to the dimension of the processor grid)
        \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is.
-       Possible coiches are defined in low-level/gcl_arch.h .
+       Possible coiches are defined in low_level/gcl_arch.h .
     */
     template <typename layout2proc_map, int DIMS, typename Gcl_Arch = gcl_cpu, int version = pick_version<DIMS>::value>
     class halo_exchange_generic_base {
