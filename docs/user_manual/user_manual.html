@@ -444,7 +444,7 @@ The <code class="docutils literal"><span class="pre">data_store</span></code> ob
 direction</li>
 <li><code class="docutils literal"><span class="pre">const</span> <span class="pre">array&lt;uint_t,</span> <span class="pre">ndims&gt;</span> <span class="pre">&amp;strides()</span> <span class="pre">const</span></code>: return the array of (aligned) strides.</li>
 <li><code class="docutils literal"><span class="pre">void</span> <span class="pre">sync()</span> <span class="pre">const</span></code>: synchronize the copies on the host and the target.</li>
-<li><code class="docutils literal"><span class="pre">reactivate_device_write_views</span></code>: re-enables read-write device views (see <a class="reference internal" href="#id5">Data View</a>)</li>
+<li><code class="docutils literal"><span class="pre">reactivate_target_write_views</span></code>: re-enables read-write device views (see <a class="reference internal" href="#id5">Data View</a>)</li>
 <li><code class="docutils literal"><span class="pre">reactivate_host_write_views</span></code>: re-enabled read-write host views (see <a class="reference internal" href="#id5">Data View</a>)</li>
 <li><code class="docutils literal"><span class="pre">std::string</span> <span class="pre">const</span> <span class="pre">&amp;name()</span> <span class="pre">const</span></code>: retrieve the name of the storage.</li>
 </ul>
@@ -500,12 +500,8 @@ used until the data store is synchronized.</p>
 <p>In order to end a view, the data store must be synchronized explicity by calling <code class="docutils literal"><span class="pre">data_store.sync();</span></code>. The destructor
 of a view will not end the view. Note that synchronizing a data store will re-enable read-only views, but it will not
 re-enable read-write views. Those can be reenabled by calling <code class="docutils literal"><span class="pre">data_store.reactivate_host_write_views()</span></code> (which will
-invalidate read-only views on target) and <code class="docutils literal"><span class="pre">data_store.reactivate_device_write_views()</span></code> (which will invalidate
+invalidate read-only views on target) and <code class="docutils literal"><span class="pre">data_store.reactivate_target_write_views()</span></code> (which will invalidate
 read-only views on host). Note that the</p>
-<div class="admonition-todo admonition" id="index-0">
-<p class="first admonition-title">Todo</p>
-<p class="last">rename <code class="docutils literal"><span class="pre">reactivate_device_write</span></code> to <code class="docutils literal"><span class="pre">reactivate_target_write</span></code> for consistency</p>
-</div>
 <p><strong>Example</strong>:</p>
 <p>Following example shows the instantiation of a <code class="docutils literal"><span class="pre">data_store</span></code> and a corresponding host and target view.  The host view
 can be used when the data is modified on a host. Target views can be accessed from the target only, if it has a separate
@@ -547,7 +543,7 @@ memory space (e.g., GPU). If target and host share the memory space, host and ta
 <p>The <code class="docutils literal"><span class="pre">data_view</span></code> construction can be created with <code class="docutils literal"><span class="pre">make_host_view</span></code> and <code class="docutils literal"><span class="pre">make_target_view</span></code>:</p>
 <div class="highlight-gridtools"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/storages/data_store.hpp&gt;</span><span class="cp"></span>
 <span class="k">auto</span> <span class="n">view1</span> <span class="o">=</span> <span class="nl">make_host_view</span><span class="o">&lt;</span><span class="n">Access</span><span class="o">&gt;</span><span class="p">(</span><span class="k">data_store</span><span class="p">);</span>
-<span class="k">auto</span> <span class="n">view2</span> <span class="o">=</span> <span class="n">make_device_view</span><span class="o">&lt;</span><span class="n">Access</span><span class="o">&gt;</span><span class="p">(</span><span class="k">data_store</span><span class="p">);</span>
+<span class="k">auto</span> <span class="n">view2</span> <span class="o">=</span> <span class="nl">make_target_view</span><span class="o">&lt;</span><span class="n">Access</span><span class="o">&gt;</span><span class="p">(</span><span class="k">data_store</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Access is either <code class="docutils literal"><span class="pre">access_mode::read_only</span></code> or <code class="docutils literal"><span class="pre">access_mode::read_write</span></code> <code class="docutils literal"><span class="pre">storage/common/definitions.hpp</span></code>. <code class="docutils literal"><span class="pre">view1</span></code>
@@ -778,7 +774,7 @@ into a field, it must not access this field with non-zero horizontal offset.</p>
 </div>
 <div class="section" id="expressions">
 <h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
-<div class="admonition-todo admonition" id="index-1">
+<div class="admonition-todo admonition" id="index-0">
 <p class="first admonition-title">Todo</p>
 <p class="last">Should we remove the expressions namespace? Why should we forbid this functionality in certain cases?</p>
 </div>
@@ -1849,7 +1845,7 @@ the name of arguments should be self-explanatory:</p>
 <div class="highlight-gridtools"><div class="highlight"><pre><span></span><span class="k">halo_descriptor</span><span class="p">(</span><span class="n">uint_t</span> <span class="n">minus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">plus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">begin</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">end</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">total_length</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="admonition-todo admonition" id="index-2">
+<div class="admonition-todo admonition" id="index-1">
 <p class="first admonition-title">Todo</p>
 <p class="last">annotate example with minus plus begin and end</p>
 </div>
