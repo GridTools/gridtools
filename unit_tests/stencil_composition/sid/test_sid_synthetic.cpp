@@ -39,14 +39,12 @@ namespace gridtools {
             struct ptr {
                 element const *val;
                 GT_FUNCTION element const &operator*() const { return *val; }
-                [[maybe_unused]] friend GT_FUNCTION ptr operator+(ptr, ptr_diff) { return {}; }
+                friend GT_FUNCTION ptr operator+(ptr, ptr_diff) { return {}; }
             };
             struct stride {
                 int val;
-                [[maybe_unused]] friend GT_FUNCTION std::true_type sid_shift(ptr &, stride const &, int) { return {}; }
-                [[maybe_unused]] friend GT_FUNCTION std::false_type sid_shift(ptr_diff &, stride const &, int) {
-                    return {};
-                }
+                friend GT_FUNCTION std::true_type sid_shift(ptr &, stride const &, int) { return {}; }
+                friend GT_FUNCTION std::false_type sid_shift(ptr_diff &, stride const &, int) { return {}; }
             };
             using strides = array<stride, 2>;
 

@@ -64,7 +64,7 @@ namespace gridtools {
         verifier(double precision, size_t max_error = 20) : m_precision(precision), m_max_error(max_error) {}
 
         template <typename Grid, typename StorageType>
-        bool verify(Grid const &grid_ /*TODO: unused*/,
+        bool verify(Grid const & /*TODO: unused*/,
             StorageType const &expected_field,
             StorageType const &actual_field,
             array<array<uint_t, 2>, StorageType::storage_info_t::layout_t::masked_length> halos = {}) {

@@ -16,12 +16,12 @@
 using namespace gridtools;
 
 template <typename... Args>
-GT_FUNCTION static constexpr bool check_or(Args... args) {
+GT_FUNCTION static constexpr bool check_or(Args...) {
     return accumulate(logical_or(), is_array<Args>::type::value...);
 }
 
 template <typename... Args>
-GT_FUNCTION static constexpr bool check_and(Args... args) {
+GT_FUNCTION static constexpr bool check_and(Args...) {
     return accumulate(logical_and(), is_array<Args>::type::value...);
 }
 

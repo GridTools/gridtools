@@ -208,7 +208,7 @@ namespace gridtools {
         }
 
         template <typename iterator>
-        void pack_all(gridtools::array<int, DIMS> const &, iterator &it) const {}
+        void pack_all(gridtools::array<int, DIMS> const &, iterator &) const {}
 
         /**
            This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
@@ -230,7 +230,7 @@ namespace gridtools {
         }
 
         template <typename iterator>
-        void unpack_all(gridtools::array<int, DIMS> const &, iterator &it) const {}
+        void unpack_all(gridtools::array<int, DIMS> const &, iterator &) const {}
 
         /**
            This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink

@@ -17,7 +17,7 @@ namespace gridtools {
     namespace impl {
 
         template <typename ReturnType, uint_t Idx>
-        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint_t pos) {
+        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint_t) {
             return ReturnType();
         }
 

@@ -107,7 +107,7 @@ namespace gridtools {
             GT_FUNCTION constexpr enable_if_t<not passed_argument_is_accessor_t<Accessor>::value &&
                                                   not is_out_arg<Accessor>::value,
                 get_passed_argument_t<Accessor>>
-            operator()(Accessor const &accessor) const {
+            operator()(Accessor const &) const {
                 return get_passed_argument<Accessor>();
             }
 
@@ -205,7 +205,8 @@ namespace gridtools {
             at<..> statement.
          */
         template <typename Evaluator, typename... Args>
-        GT_FUNCTION static typename get_result_type<Evaluator, Args...>::type with(Evaluator &eval, Args &&... args) {
+        GT_FUNCTION static typename get_result_type<Evaluator, Args...>::type with(
+            Evaluator &eval, Args const &... args) {
 
             GT_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
@@ -222,8 +223,7 @@ namespace gridtools {
 
             result_type result;
 
-            auto agg_p =
-                f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(std::forward<Args>(args)...));
+            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
             _impl::call_functor<Functor, Region>(agg_p);
 
             return result;
@@ -299,7 +299,7 @@ namespace gridtools {
             template <typename Accessor,
                 enable_if_t<is_global_accessor<Accessor>::value && passed_argument_is_accessor_t<Accessor>::value,
                     int> = 0>
-            GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
+            GT_FUNCTION constexpr auto operator()(Accessor const &) const
                 -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
                 return m_caller_aggregator(get_passed_argument<Accessor>());
             }
@@ -360,7 +360,7 @@ namespace gridtools {
             at<..> statement.
          */
         template <typename Evaluator, typename... Args>
-        GT_FUNCTION static void with(Evaluator &eval, Args &&... args) {
+        GT_FUNCTION static void with(Evaluator &eval, Args const &... args) {
 
             typedef _impl::function_aggregator_procedure_offsets<Evaluator,
                 Offi,
@@ -369,7 +369,7 @@ namespace gridtools {
                 typename _impl::package_args<Args...>::type>
                 f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(std::forward<Args>(args))...);
+            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
             auto agg_p = f_aggregator_t(eval, y);
             _impl::call_functor<Functor, Region>(agg_p);

@@ -106,7 +106,7 @@ namespace gridtools {
     int PID;
     int PROCS;
 
-    void GCL_Init(int argc, char **argv) {
+    void GCL_Init(int, char **) {
         PROCS = 1;
         PID = 0;
     }

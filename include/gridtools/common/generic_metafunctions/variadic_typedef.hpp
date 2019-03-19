@@ -73,7 +73,7 @@ namespace gridtools {
         struct get_elem {};
 
         template <typename Elem>
-        static constexpr int_t find(const ushort_t pos = 0) {
+        static constexpr int_t find(const ushort_t = 0) {
             return -1;
         }
 
@@ -88,7 +88,7 @@ namespace gridtools {
     struct get_from_variadic_pack {
         template <typename First, typename... Accessors>
         GT_FUNCTION static constexpr typename variadic_typedef<First, Accessors...>::template get_elem<Idx>::type apply(
-            First first, Accessors... args) {
+            First, Accessors... args) {
             GT_STATIC_ASSERT((Idx <= sizeof...(Accessors)), "Out of bound access in variadic pack");
 
             return get_from_variadic_pack<Idx - 1>::apply(args...);
@@ -99,7 +99,7 @@ namespace gridtools {
     template <>
     struct get_from_variadic_pack<0> {
         template <typename First, typename... Accessors>
-        GT_FUNCTION static constexpr First apply(First first, Accessors... args) {
+        GT_FUNCTION static constexpr First apply(First first, Accessors...) {
             return first;
         }
     };

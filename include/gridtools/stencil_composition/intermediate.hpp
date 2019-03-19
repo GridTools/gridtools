@@ -220,8 +220,7 @@ namespace gridtools {
       private:
         struct run_f {
             template <typename MssDescs>
-            void operator()(
-                MssDescs const &mss_descriptors, Grid const &grid, local_domains_t const &local_domains) const {
+            void operator()(MssDescs const &, Grid const &grid, local_domains_t const &local_domains) const {
                 Backend::template run<GT_META_CALL(convert_to_mss_components_array, MssDescs)>(grid, local_domains);
             }
         };
