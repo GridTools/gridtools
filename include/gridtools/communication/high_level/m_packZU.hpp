@@ -145,10 +145,10 @@ void m_packZU(array_t const &d_data_array,
 
     // just some timing stuff
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    GT_CUDA_CHECK(cudaEventCreate(&start));
+    GT_CUDA_CHECK(cudaEventCreate(&stop));
 
-    cudaEventRecord(start, 0);
+    GT_CUDA_CHECK(cudaEventRecord(start, 0));
 #endif
 
     // run the compression a few times, just to get a bit
@@ -157,29 +157,21 @@ void m_packZU(array_t const &d_data_array,
     for (int i = 0; i < niter; i++) {
 
         // the actual kernel launch
-        // clang-format off
-      m_packZUKernel<<<blocks, threads, 0, ZU_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
-// clang-format on
-#ifdef GCL_CUDAMSG
-        int err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            printf("Kernel launch failure\n");
-            exit(-1);
-        }
-#endif
+        m_packZUKernel<<<blocks, threads, 0, ZU_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
+        GT_CUDA_CHECK(cudaGetLastError());
     }
 
 #ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
+    GT_CUDA_CHECK(cudaEventSynchronize(stop));
 
     float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
 
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
+    GT_CUDA_CHECK(cudaEventDestroy(start));
+    GT_CUDA_CHECK(cudaEventDestroy(stop));
 
     double nnumb = niter * (double)(nx * ny * halo[2].plus());
     double nbyte = nnumb * sizeof(double);
@@ -207,13 +199,7 @@ int call_kernel_ZU(Blocks blocks,
     unsigned int i) {
     m_packZUKernel<<<blocks, threads, b, ZU_stream>>>(d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
 
-#ifdef GCL_CUDAMSG
-    int err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("Kernel launch failure\n");
-        exit(-1);
-    }
-#endif
+    GT_CUDA_CHECK(cudaGetLastError());
 
     return 0;
 }
@@ -250,10 +236,10 @@ void m_packZU_variadic(value_type **d_msgbufTab,
 
     // just some timing stuff
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    GT_CUDA_CHECK(cudaEventCreate(&start));
+    GT_CUDA_CHECK(cudaEventCreate(&stop));
 
-    cudaEventRecord(start, 0);
+    GT_CUDA_CHECK(cudaEventRecord(start, 0));
 #endif
 
     // run the compression a few times, just to get a bit
@@ -274,14 +260,14 @@ void m_packZU_variadic(value_type **d_msgbufTab,
 #ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
+    GT_CUDA_CHECK(cudaEventSynchronize(stop));
 
     float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
 
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
+    GT_CUDA_CHECK(cudaEventDestroy(start));
+    GT_CUDA_CHECK(cudaEventDestroy(stop));
 
     double nnumb = niter * (double)(nx * ny * halo[2].plus());
     double nbyte = nnumb * sizeof(double);

@@ -129,10 +129,10 @@ void m_packZL_generic(
 #ifdef GCL_CUDAMSG
     // just some timing stuff
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    GT_CUDA_CHECK(cudaEventCreate(&start));
+    GT_CUDA_CHECK(cudaEventCreate(&stop));
 
-    cudaEventRecord(start, 0);
+    GT_CUDA_CHECK(cudaEventRecord(start, 0));
 #endif
 
     // run the compression a few times, just to get a bit
@@ -171,37 +171,28 @@ void m_packZL_generic(
 
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
-            // clang-format off
-        m_packZLKernel_generic<<<blocks, threads, 0, ZL_stream>>>
-        (fields[i].ptr,
-         (d_msgbufTab),
-         wrap_argument(d_msgsize+27*i),
-         *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor,3>*>(&fields[i])),
-         nx,
-         ny,
-         0);
-// clang-format on
-#ifdef GCL_CUDAMSG
-            cudaError_t err = cudaGetLastError();
-            if (err != cudaSuccess) {
-                printf("KLF in %s : %s\n", __FILE__, cudaGetErrorString(err));
-                exit(-1);
-            }
-#endif
+            m_packZLKernel_generic<<<blocks, threads, 0, ZL_stream>>>(fields[i].ptr,
+                (d_msgbufTab),
+                wrap_argument(d_msgsize + 27 * i),
+                *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor, 3> *>(&fields[i])),
+                nx,
+                ny,
+                0);
+            GT_CUDA_CHECK(cudaGetLastError());
         }
     }
 
 // more timing stuff and conversion into reasonable units
 // for display
 #ifdef GCL_CUDAMSG
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
+    GT_CUDA_CHECK(cudaEventSynchronize(stop));
 
     float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
 
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
+    GT_CUDA_CHECK(cudaEventDestroy(start));
+    GT_CUDA_CHECK(cudaEventDestroy(stop));
 
     // double nnumb =  niter * (double) (nx * ny * nz);
     // double nbyte =  nnumb * sizeof(double);

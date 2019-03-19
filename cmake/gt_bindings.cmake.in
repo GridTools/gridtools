@@ -53,8 +53,8 @@ macro(gt_enable_bindings_library_fortran target_name)
             target_include_directories(fortran_bindings_handle PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
         endif()
         if(NOT TARGET ${target_name}_fortran)
-            set_source_files_properties(${${target_name}_fortran_bindings_path} PROPERTIES GENERATED TRUE)
-            add_library(${target_name}_fortran EXCLUDE_FROM_ALL ${${target_name}_fortran_bindings_path})
+            set_source_files_properties(GT_${${target_name}_fortran_bindings_path} PROPERTIES GENERATED TRUE)
+            add_library(${target_name}_fortran EXCLUDE_FROM_ALL ${GT_${target_name}_fortran_bindings_path})
             target_link_libraries(${target_name}_fortran PUBLIC ${target_name})
             target_link_libraries(${target_name}_fortran PUBLIC fortran_bindings_handle)
             target_include_directories(${target_name}_fortran PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
@@ -133,9 +133,9 @@ macro(gt_add_bindings_library target_name)
     add_dependencies(${target_name}_c ${target_name}_declarations)
 
     # bindings Fortran library
-    # Export the name of the generated file in this scope and the parent scope.
+    # Export the name of the generated file. The variable needs to exist in the whole cmake!
     # Reason: see description of gt_enable_bindings_library_fortran().
-    set(${target_name}_fortran_bindings_path ${bindings_fortran_decl_filename}) # needed if the target is directly created
-    set(${target_name}_fortran_bindings_path ${bindings_fortran_decl_filename} PARENT_SCOPE) # if the target is created by the user
+    set(GT_${target_name}_fortran_bindings_path ${bindings_fortran_decl_filename}
+        CACHE INTERNAL "Path to the generated Fortran file for ${target_name}")
     gt_enable_bindings_library_fortran(${target_name} TRUE)
 endmacro()
