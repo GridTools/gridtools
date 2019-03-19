@@ -53,7 +53,7 @@ Glossary
     :ref:`stencil_operators`.
     
   Field
-    Multi-dimensional data representing a physical field, e.g. wind speed.
+    Multi-dimensional data representing a physical field, e.g. temperature.
     Often used as a synonym for multi-dimensional data in general or a
     :term:`Data Store` in particular. 
 
