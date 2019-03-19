@@ -81,7 +81,7 @@ struct direction_bc_input {
     // specialization i missing, this version will be selected.
     template <typename Direction, typename DataField0, typename DataField1>
     GT_FUNCTION void operator()(
-        Direction, DataField0 &data_field0, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
+        Direction, DataField0 &data_field0, DataField1 const &, uint_t i, uint_t j, uint_t k) const {
         data_field0(i, j, k) = value;
     }
 
