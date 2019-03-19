@@ -34,4 +34,4 @@ Contributing
 ------------
 Contributions to the GridTools framework are welcome. Please open an issue for any bugs that you encounter or provide a fix or enhancement as a PR. External contributions to GridTools require us a signed copy of a copyright release form to ETH Zurich. We will contact you on the PR.
 
-[BSD.License]: https://img.shields.io/badge/License-BSD-blue.svg
+[BSD.License]: https://img.shields.io/badge/License-BSD--3--Clause-blue.svg
