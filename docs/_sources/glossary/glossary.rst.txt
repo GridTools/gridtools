@@ -26,6 +26,10 @@ Glossary
     |GT| provides several backends, allowing to run the same code efficiently
     on different hardware architectures. See section :ref:`backend-selection`.
 
+  Boundary condition
+    An operation applied to points at the edges/corners/faces of a 3D cube
+    (usually the :term:`Global Boundary`). See section :ref:`boundary-conditions`.
+
   Cache
     See :term:`Software-Managed Cache`.
 
