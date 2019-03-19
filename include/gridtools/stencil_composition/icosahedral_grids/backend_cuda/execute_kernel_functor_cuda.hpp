@@ -236,6 +236,8 @@ namespace gridtools {
                     <<<blocks, threads>>>(m_local_domain, m_grid);
 #ifndef NDEBUG
                 GT_CUDA_CHECK(cudaDeviceSynchronize());
+#else
+                GT_CUDA_CHECK(cudaGetLastError());
 #endif
             }
 
