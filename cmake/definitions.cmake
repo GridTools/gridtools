@@ -95,8 +95,7 @@ if(GT_ENABLE_TARGET_X86)
   target_compile_definitions(GridToolsTestX86 INTERFACE GT_BACKEND_X86)
   target_link_libraries(GridToolsTestX86 INTERFACE GridToolsTest)
   target_compile_options(GridToolsTestX86 INTERFACE -march=native)
-  target_compile_options(GridToolsTestX86 INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -Wno-error=missing-field-initializers -Wno-error=unused-function -Wno-error=unused-but-set-variable -Wno-error=int-in-bool-context -Wno-error=unused-value -Wno-error=unused-variable>)
-endif()
+endif(GT_ENABLE_TARGET_X86)
 
 ## cuda support ##
 if( GT_ENABLE_TARGET_CUDA )
@@ -121,9 +120,6 @@ if( GT_ENABLE_TARGET_CUDA )
   add_library(GridToolsTestCUDA INTERFACE)
   target_compile_definitions(GridToolsTestCUDA INTERFACE GT_BACKEND_CUDA)
   target_link_libraries(GridToolsTestCUDA INTERFACE GridToolsTest)
-
-  target_compile_options(GridToolsTestCUDA INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-Werror -Xcompiler=-Wall -Xcompiler=-Wextra -Xcompiler=-Wno-unknown-pragmas -Xcompiler=-Wno-sign-compare -Xcompiler=-Wno-error=missing-field-initializers -Xcompiler=-Wno-error=unused-function -Xcompiler=-Wno-error=unused-but-set-variable -Xcompiler=-Wno-error=int-in-bool-context -Xcompiler=-Wno-error=unused-value -Xcompiler=-Wno-error=unused-variable>)
-  target_compile_options(GridToolsTestCUDA INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -Wno-error=missing-field-initializers -Wno-error=unused-function -Wno-error=unused-but-set-variable -Wno-error=int-in-bool-context -Wno-error=unused-value -Wno-error=unused-variable>)
 endif()
 
 if( GT_ENABLE_TARGET_MC )
