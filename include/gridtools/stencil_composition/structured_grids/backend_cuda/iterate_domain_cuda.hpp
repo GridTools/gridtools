@@ -21,7 +21,6 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
-#include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain.hpp"

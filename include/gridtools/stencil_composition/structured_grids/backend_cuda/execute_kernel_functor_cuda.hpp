@@ -20,7 +20,6 @@
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
 #include "../../backend_cuda/execute_kernel_functor_cuda_common.hpp"
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
-#include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
@@ -75,11 +74,8 @@ namespace gridtools {
             // Doing construction of the iterate domain and assignment of pointers and strides
             iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
 
-            //                __shared__ typename iterate_domain_cuda_t::shared_iterate_domain_t shared_iterate_domain;
-            using shared_iterate_domain_t = typename iterate_domain_cuda_t::shared_iterate_domain_t;
-            __shared__ char shared_iterate_domain[sizeof(shared_iterate_domain_t)];
-            it_domain.set_shared_iterate_domain_pointer(
-                reinterpret_cast<shared_iterate_domain_t *>(&shared_iterate_domain));
+            __shared__ typename iterate_domain_cuda_t::shared_iterate_domain_t shared_iterate_domain;
+            it_domain.set_shared_iterate_domain_pointer(&shared_iterate_domain);
 
             it_domain.assign_stride_pointers();
 
