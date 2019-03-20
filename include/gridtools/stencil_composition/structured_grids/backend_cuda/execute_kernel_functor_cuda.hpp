@@ -83,6 +83,8 @@ namespace gridtools {
 
             it_domain.assign_stride_pointers();
 
+            __syncthreads();
+
             // computing the global position in the physical domain
             /*
              *  In a typical cuda block we have the following regions
