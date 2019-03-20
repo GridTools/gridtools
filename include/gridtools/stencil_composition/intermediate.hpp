@@ -250,7 +250,6 @@ namespace gridtools {
       public:
         intermediate(Grid const &grid,
             std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...> arg_storage_pairs,
-            std::tuple<MssDescriptors...>,
             bool timer_enabled = true)
             // grid just stored to the member
             : m_grid(grid),

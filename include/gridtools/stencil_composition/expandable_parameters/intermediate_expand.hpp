@@ -311,29 +311,20 @@ namespace gridtools {
 
         template <class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs>
         intermediate_expand(Grid const &grid,
-            std::pair<ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs> &&arg_refs,
-            MssDescriptors)
+            std::pair<ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs> &&arg_refs)
             // expandable arg_storage_pairs are kept as a class member until run will be called.
             : m_expandable_bound_arg_storage_pairs(std::move(arg_refs.first)),
               // plain arg_storage_pairs are bound to both intermediates;
-              // msses descriptors got transformed and also got passed to intermediates.
-              m_intermediate(grid,
-                  arg_refs.second,
-                  GT_META_CALL(_impl::expand_detail::converted_mss_descriptors, (ExpandFactor, MssDescriptors)){},
-                  false),
-              m_intermediate_remainder(grid,
-                  arg_refs.second,
-                  GT_META_CALL(_impl::expand_detail::converted_mss_descriptors, (1, MssDescriptors)){},
-                  false),
+              m_intermediate(grid, arg_refs.second, false), m_intermediate_remainder(grid, arg_refs.second, false),
               m_meter("NoName") {}
 
       public:
         template <class BoundArgStoragePairsRefs>
-        intermediate_expand(Grid const &grid, BoundArgStoragePairsRefs &&arg_storage_pairs, MssDescriptors msses)
+        intermediate_expand(Grid const &grid, BoundArgStoragePairsRefs &&arg_storage_pairs)
             // public constructor splits given ard_storage_pairs to expandable and plain ones and delegates to the
             // private constructor.
             : intermediate_expand(
-                  grid, split_args_tuple<_impl::expand_detail::is_expandable>(std::move(arg_storage_pairs)), msses) {}
+                  grid, split_args_tuple<_impl::expand_detail::is_expandable>(std::move(arg_storage_pairs))) {}
 
         template <class... Args, class... DataStores>
         void run(arg_storage_pair<Args, DataStores> const &... args) {
