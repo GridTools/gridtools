@@ -95,37 +95,7 @@ namespace gridtools {
 
         data_ptr_fusion_map m_local_data_ptrs;
         size_array_t m_local_padded_total_lengths;
-        // disabled: strides_map_t m_strides_map;
-        storage_info_ptr_fusion_list m_local_storage_info_ptrs;
-
-        struct strides_filler_f {
-            storage_info_ptr_fusion_list const &m_storage_info_ptrs;
-            strides_map_t &m_dst;
-
-            template <class Index>
-            GT_FUNCTION void operator()() const {
-                auto *src = boost::fusion::at<Index>(m_storage_info_ptrs);
-                using storage_info_t = GT_META_CALL(meta::at, (storage_infos_t, Index));
-// HACK!!! Hopefully this code will gone soon.
-#ifndef __CUDACC__
-                // shortcut for non cuda backends
-                assert(src);
-                host_device::at_key<storage_info_t>(m_dst) =
-                    storage_sid_impl_::convert_strides_f<typename storage_info_t::layout_t>{}(src->strides());
-#else
-                if (src)
-                    host_device::at_key<storage_info_t>(m_dst) =
-                        storage_sid_impl_::convert_strides_f<typename storage_info_t::layout_t>{}(src->strides());
-                else
-                    host_device::at_key<storage_info_t>(m_dst) = {};
-#endif
-            }
-        };
-
-        GT_FUNCTION void init_strides_map(strides_map_t &dst) const {
-            host_device::for_each_type<GT_META_CALL(meta::make_indices_for, storage_infos_t)>(
-                strides_filler_f{m_local_storage_info_ptrs, dst});
-        }
+        strides_map_t m_strides_map;
     };
 
     template <class>

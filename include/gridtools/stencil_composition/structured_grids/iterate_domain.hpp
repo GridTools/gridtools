@@ -103,7 +103,7 @@ namespace gridtools {
       public:
         static constexpr bool has_k_caches = false;
 
-        GT_FUNCTION void assign_stride_pointers() { local_domain.init_strides_map(strides()); }
+        GT_FUNCTION void assign_stride_pointers() { strides() = local_domain.m_strides_map; }
 
         GT_FUNCTION array_index_t const &index() const { return m_index; }
 

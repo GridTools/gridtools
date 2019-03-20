@@ -67,15 +67,11 @@ namespace gridtools {
           private:
             template <typename Arg>
             GT_FUNCTION enable_if_t<is_tmp_arg<Arg>::value, int_t> fields_offset() const {
-                using storage_info_ptr_t = typename Arg::data_store_t::storage_info_t const *;
-                constexpr auto storage_info_index =
-                    meta::st_position<typename LocalDomain::storage_info_ptr_list, storage_info_ptr_t>::value;
-                storage_info_ptr_t storage_info =
-                    boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs);
-
-                int_t offset = std::lround(storage_info->padded_total_length() * thread_factor());
-                assert(offset ==
-                       ((long long)storage_info->padded_total_length() * omp_get_thread_num()) / omp_get_max_threads());
+                constexpr auto storage_info_index = meta::st_position<typename LocalDomain::storage_infos_t,
+                    typename Arg::data_store_t::storage_info_t>::value;
+                auto length = m_local_domain.m_local_padded_total_lengths[storage_info_index];
+                int_t offset = std::lround(length * thread_factor());
+                assert(offset == ((long long)length * omp_get_thread_num()) / omp_get_max_threads());
                 return offset;
             }
 
@@ -165,10 +161,9 @@ namespace gridtools {
       public:
         GT_FUNCTION
         iterate_domain_mc(local_domain_t const &local_domain)
-            : local_domain(local_domain), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0), m_i_block_base(0),
-              m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
-            // assign stride pointers
-            local_domain.init_strides_map(m_strides);
+            : local_domain(local_domain), m_strides(local_domain.m_strides_map), m_i_block_index(0), m_j_block_index(0),
+              m_k_block_index(0), m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0),
+              m_enable_ij_caches(false) {
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
         }
@@ -231,9 +226,6 @@ namespace gridtools {
 
             static constexpr auto storage_index = local_domain_storage_index<storage_info_t>::value;
             static constexpr auto arg_index = meta::st_position<typename local_domain_t::esf_args_t, Arg>::value;
-
-            const storage_info_t *storage_info =
-                boost::fusion::at_c<storage_index>(local_domain.m_local_storage_info_ptrs);
 
             auto ptr = boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + m_data_ptr_offsets[arg_index];
 

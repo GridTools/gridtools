@@ -96,17 +96,11 @@ namespace gridtools {
             enable_if_t<meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
                 arg_storage_pair<Arg, DataStore> const &src, LocalDomain &local_domain) const {
                 const auto &storage = src.m_value;
-                if (storage.device_needs_update())
-                    storage.sync();
-                auto view = make_target_view(storage);
-                namespace f = boost::fusion;
-                // here we set data pointers
-                f::at_key<Arg>(local_domain.m_local_data_ptrs) = advanced::get_raw_pointer_of(view);
-                // here we set meta data pointers
-                auto const *storage_info = advanced::storage_info_raw_ptr(view);
+                boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) = sid::get_origin(storage)();
+                using storage_info_t = typename DataStore::storage_info_t;
+                at_key<storage_info_t>(local_domain.m_strides_map) = sid::get_strides(storage);
                 constexpr auto storage_info_index =
-                    meta::st_position<typename LocalDomain::storage_info_ptr_list, decltype(storage_info)>::value;
-                f::at_c<storage_info_index>(local_domain.m_local_storage_info_ptrs) = storage_info;
+                    meta::st_position<typename LocalDomain::storage_infos_t, storage_info_t>::value;
                 local_domain.m_local_padded_total_lengths[storage_info_index] = storage.info().padded_total_length();
             }
             // do nothing if arg is not in this local domain

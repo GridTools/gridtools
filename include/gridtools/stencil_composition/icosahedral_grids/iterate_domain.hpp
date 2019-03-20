@@ -89,7 +89,7 @@ namespace gridtools {
            local_domain.m_local_metadata vector, and stores them into an instance of the
            gridtools::strides_cached class.
          */
-        GT_FUNCTION void assign_stride_pointers() { m_local_domain.init_strides_map(strides()); }
+        GT_FUNCTION void assign_stride_pointers() { strides() = m_local_domain.m_strides_map; }
 
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
