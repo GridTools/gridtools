@@ -93,7 +93,7 @@ namespace gridtools {
 
             // if the arg belongs to the local domain we set pointers
             template <class Arg, class DataStore, class LocalDomain>
-            enable_if_t<meta::st_contains<typename LocalDomain::esf_args, Arg>::value> operator()(
+            enable_if_t<meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
                 arg_storage_pair<Arg, DataStore> const &src, LocalDomain &local_domain) const {
                 const auto &storage = src.m_value;
                 if (storage.device_needs_update())
@@ -111,7 +111,7 @@ namespace gridtools {
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class DataStore, class LocalDomain>
-            enable_if_t<!meta::st_contains<typename LocalDomain::esf_args, Arg>::value> operator()(
+            enable_if_t<!meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
                 arg_storage_pair<Arg, DataStore> const &, LocalDomain &) const {}
         };
 

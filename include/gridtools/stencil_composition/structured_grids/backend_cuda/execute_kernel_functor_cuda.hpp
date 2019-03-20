@@ -72,12 +72,14 @@ namespace gridtools {
             const uint_t block_size_i = (blockIdx.x + 1) * ntx < nx ? ntx : nx - blockIdx.x * ntx;
             const uint_t block_size_j = (blockIdx.y + 1) * nty < ny ? nty : ny - blockIdx.y * nty;
 
-            __shared__ typename iterate_domain_cuda_t::shared_iterate_domain_t shared_iterate_domain;
-
             // Doing construction of the iterate domain and assignment of pointers and strides
             iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
 
-            it_domain.set_shared_iterate_domain_pointer(&shared_iterate_domain);
+            //                __shared__ typename iterate_domain_cuda_t::shared_iterate_domain_t shared_iterate_domain;
+            using shared_iterate_domain_t = typename iterate_domain_cuda_t::shared_iterate_domain_t;
+            __shared__ char shared_iterate_domain[sizeof(shared_iterate_domain_t)];
+            it_domain.set_shared_iterate_domain_pointer(
+                reinterpret_cast<shared_iterate_domain_t *>(&shared_iterate_domain));
 
             it_domain.template assign_stride_pointers<backend_traits_t>();
 

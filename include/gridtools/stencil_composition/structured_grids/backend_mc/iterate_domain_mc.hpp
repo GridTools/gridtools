@@ -17,6 +17,7 @@
 #include <functional>
 
 #include <boost/fusion/functional/invocation/invoke.hpp>
+#include <boost/fusion/include/for_each.hpp>
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/gt_assert.hpp"
@@ -58,7 +59,7 @@ namespace gridtools {
             template <class ArgDataPtrPair>
             GT_FUNCTION void operator()(ArgDataPtrPair const &) const {
                 using arg_t = typename ArgDataPtrPair::first_type;
-                constexpr auto arg_index = meta::st_position<typename LocalDomain::esf_args, arg_t>::value;
+                constexpr auto arg_index = meta::st_position<typename LocalDomain::esf_args_t, arg_t>::value;
 
                 get<arg_index>(m_data_ptr_offsets) = fields_offset<arg_t>(); // non-zero only for tmps.
             }
@@ -108,8 +109,7 @@ namespace gridtools {
 
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
-        using storage_is_tmp =
-            meta::st_contains<typename local_domain_t::tmp_storage_info_ptr_list, StorageInfo const *>;
+        using storage_is_tmp = meta::st_contains<typename local_domain_t::tmp_storage_infos_t, StorageInfo>;
 
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
 
@@ -119,7 +119,7 @@ namespace gridtools {
         // the number of different storage metadatas used in the current functor
         static const uint_t n_meta_storages = boost::mpl::size<storage_info_ptrs_t>::value;
 
-        using strides_cached_t = strides_cached<n_meta_storages - 1, storage_info_ptrs_t>;
+        using strides_cached_t = typename local_domain_t::strides_map_t;
         using array_index_t = array<int_t, n_meta_storages>;
         // *************** end of type definitions **************
 
@@ -168,8 +168,7 @@ namespace gridtools {
             : local_domain(local_domain), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0), m_i_block_base(0),
               m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
             // assign stride pointers
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<backend_traits_t, strides_cached_t, local_domain_t>{m_strides});
+            local_domain.init_strides_map(m_strides);
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
         }
@@ -231,7 +230,7 @@ namespace gridtools {
             using data_t = typename Arg::data_store_t::data_t;
 
             static constexpr auto storage_index = local_domain_storage_index<storage_info_t>::value;
-            static constexpr auto arg_index = meta::st_position<typename local_domain_t::esf_args, Arg>::value;
+            static constexpr auto arg_index = meta::st_position<typename local_domain_t::esf_args_t, Arg>::value;
 
             const storage_info_t *storage_info =
                 boost::fusion::at_c<storage_index>(local_domain.m_local_storage_info_ptrs);
@@ -271,9 +270,7 @@ namespace gridtools {
          */
         template <typename StorageInfo, int_t Coordinate>
         GT_FUNCTION int_t storage_stride() const {
-            static constexpr auto storage_index = local_domain_storage_index<StorageInfo>::value;
-            auto const &strides = m_strides.template get<storage_index>();
-            return stride<StorageInfo, Coordinate>(strides);
+            return sid::get_stride<integral_constant<int, Coordinate>>(at_key<StorageInfo>(m_strides));
         }
 
         /**

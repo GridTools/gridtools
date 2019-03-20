@@ -61,7 +61,7 @@ namespace gridtools {
         struct stride_generator_f<I, integral_constant<int_t, V>> {
             using type = stride_generator_f;
             template <class Src>
-            integral_constant<int_t, V> operator()(Src const &src) {
+            GT_FUNCTION integral_constant<int_t, V> operator()(Src const &src) {
                 assert(src[I::value] == V);
                 return {};
             }
@@ -71,7 +71,7 @@ namespace gridtools {
         struct stride_generator_f<I, int_t> {
             using type = stride_generator_f;
             template <class Src>
-            int_t operator()(Src const &src) {
+            GT_FUNCTION int_t operator()(Src const &src) {
                 assert(src[I::value] != 0);
                 return (int_t)src[I::value];
             }
@@ -88,8 +88,8 @@ namespace gridtools {
                 meta::transform, (stride_generator_f, GT_META_CALL(meta::make_indices_c, sizeof...(Is)), res_t));
 
             template <class Src>
-            res_t operator()(Src const &src) const {
-                return tuple_util::generate<generators_t, res_t>(src);
+            GT_FUNCTION res_t operator()(Src const &src) const {
+                return tuple_util::host_device::generate<generators_t, res_t>(src);
             }
         };
 

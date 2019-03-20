@@ -27,6 +27,7 @@
 #include "../iterate_domain_aux.hpp"
 #include "../local_domain.hpp"
 #include "../pos3.hpp"
+#include "../sid/multi_shift.hpp"
 
 namespace gridtools {
     /**@brief class managing the memory accesses, indices increment
@@ -53,7 +54,7 @@ namespace gridtools {
         static const uint_t n_meta_storages = boost::mpl::size<storage_info_ptrs_t>::value;
 
       protected:
-        using strides_cached_t = strides_cached<n_meta_storages - 1, storage_info_ptrs_t>;
+        using strides_cached_t = typename local_domain_t::strides_map_t;
         using iterate_domain_arguments_t = IterateDomainArguments;
 
         GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_) {}
@@ -79,13 +80,9 @@ namespace gridtools {
         */
         GT_FUNCTION strides_cached_t &strides() { return static_cast<IterateDomainImpl *>(this)->strides_impl(); }
 
-        template <uint_t Coordinate>
-        GT_FUNCTION void increment(int_t step) {
-            do_increment<Coordinate>(step, local_domain, strides(), m_index);
-        }
-        template <uint_t Coordinate, int_t Step>
-        GT_FUNCTION void increment() {
-            do_increment<Coordinate, Step>(local_domain, strides(), m_index);
+        template <class Dim, class Offset>
+        GT_FUNCTION void increment(Offset const &offset) {
+            do_increment<Dim, local_domain_t>(offset, strides(), m_index);
         }
 
         /**
@@ -108,8 +105,7 @@ namespace gridtools {
 
         template <typename BackendType>
         GT_FUNCTION void assign_stride_pointers() {
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<BackendType, strides_cached_t, local_domain_t>{strides()});
+            local_domain.init_strides_map(strides());
         }
 
         GT_FUNCTION array_index_t const &index() const { return m_index; }
@@ -121,29 +117,24 @@ namespace gridtools {
          */
         GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_i() {
-            increment<0, Step>();
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_i(Offset const &offset = {}) {
+            increment<dim::i>(offset);
         }
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_j() {
-            increment<1, Step>();
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_j(Offset const &offset = {}) {
+            increment<dim::j>(offset);
         }
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_k() {
-            increment<2, Step>();
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_k(Offset const &offset = {}) {
+            increment<dim::k>(offset);
         }
-
-        GT_FUNCTION void increment_i(int_t step) { increment<0>(step); }
-        GT_FUNCTION void increment_j(int_t step) { increment<1>(step); }
-        GT_FUNCTION void increment_k(int_t step) { increment<2>(step); }
 
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_ids_t = typename IterateDomainArguments::backend_ids_t;
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
-                    strides(), begin, block_no, pos_in_block, m_index});
+            host_device::for_each_type<typename local_domain_t::storage_infos_t>(
+                initialize_index<backend_ids_t, local_domain_t>(strides(), begin, block_no, pos_in_block, m_index));
         }
 
         template <class Arg, class DataStore = typename Arg::data_store_t, class Data = typename DataStore::data_t>
@@ -152,8 +143,8 @@ namespace gridtools {
             static constexpr auto storage_info_index =
                 meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
 
-            int_t offset = m_index[storage_info_index] +
-                           stride<storage_info_t, 2>(strides().template get<storage_info_index>()) * k_offset;
+            auto offset = m_index[storage_info_index];
+            sid::shift(offset, sid::get_stride<dim::k>(host_device::at_key<storage_info_t>(strides())), k_offset);
 
             return pointer_oob_check<storage_info_t>(local_domain, offset)
                        ? boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + offset
@@ -229,9 +220,8 @@ namespace gridtools {
             static constexpr auto storage_info_index =
                 meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
 
-            int_t pointer_offset =
-                m_index[storage_info_index] +
-                compute_offset<storage_info_t>(strides().template get<storage_info_index>(), accessor);
+            auto pointer_offset = m_index[storage_info_index];
+            sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(strides()), accessor);
 
             assert(pointer_oob_check<storage_info_t>(local_domain, pointer_offset));
 
