@@ -50,8 +50,7 @@ namespace gridtools {
       public:
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
-        typedef shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
-            shared_iterate_domain_t;
+        using shared_iterate_domain_t = typename iterate_domain_cache_t::ij_caches_tuple_t;
 
       private:
         using base_t::increment_i;
@@ -61,6 +60,7 @@ namespace gridtools {
         const uint_t m_block_size_j;
         shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         iterate_domain_cache_t m_iterate_domain_cache;
+        strides_cached_t m_strides;
 
       public:
         static constexpr bool has_ij_caches = !meta::is_empty<GT_META_CALL(ij_caches, cache_sequence_t)>::value;
@@ -90,8 +90,8 @@ namespace gridtools {
         GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
-        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->m_strides; }
-        GT_FUNCTION strides_cached_t &strides_impl() { return m_pshared_iterate_domain->m_strides; }
+        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_strides; }
+        GT_FUNCTION strides_cached_t &strides_impl() { return m_strides; }
 
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory
@@ -100,8 +100,7 @@ namespace gridtools {
         GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
-            return boost::fusion::at_key<Arg>(m_pshared_iterate_domain->m_ij_caches)
-                .at(m_thread_pos[0], m_thread_pos[1], acc);
+            return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain).at(m_thread_pos[0], m_thread_pos[1], acc);
         }
 
         /** @brief return a value that was cached

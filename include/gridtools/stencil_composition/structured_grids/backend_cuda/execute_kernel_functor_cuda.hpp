@@ -81,9 +81,7 @@ namespace gridtools {
             it_domain.set_shared_iterate_domain_pointer(
                 reinterpret_cast<shared_iterate_domain_t *>(&shared_iterate_domain));
 
-            it_domain.template assign_stride_pointers<backend_traits_t>();
-
-            __syncthreads();
+            it_domain.assign_stride_pointers();
 
             // computing the global position in the physical domain
             /*

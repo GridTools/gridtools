@@ -113,13 +113,11 @@ namespace gridtools {
                 host_device::at_key<storage_info_t>(m_dst) =
                     storage_sid_impl_::convert_strides_f<typename storage_info_t::layout_t>{}(src->strides());
 #else
-                assert(blockDim.z == 1);
-                if (Index::value % (blockDim.x * blockDim.y) == threadIdx.y * blockDim.x + threadIdx.x)
-                    if (src)
-                        host_device::at_key<storage_info_t>(m_dst) =
-                            storage_sid_impl_::convert_strides_f<typename storage_info_t::layout_t>{}(src->strides());
-                    else
-                        host_device::at_key<storage_info_t>(m_dst) = {};
+                if (src)
+                    host_device::at_key<storage_info_t>(m_dst) =
+                        storage_sid_impl_::convert_strides_f<typename storage_info_t::layout_t>{}(src->strides());
+                else
+                    host_device::at_key<storage_info_t>(m_dst) = {};
 #endif
             }
         };

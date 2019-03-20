@@ -101,7 +101,7 @@ namespace gridtools {
 
 #ifndef GT_BACKEND_MC
 
-            it_domain.assign_stride_pointers<backend_traits_t>();
+            it_domain.assign_stride_pointers();
 #endif
 
 // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
