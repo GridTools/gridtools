@@ -192,9 +192,5 @@ TEST(DataViewTest, CheckMemorySpace) {
     data_store_t ds(si, -1, "ds");
     auto view = make_device_view<access_mode::read_write>(ds);
 
-#ifndef NDEBUG
     EXPECT_THROW(view(0, 0, 1), std::runtime_error);
-#else
-    EXPECT_NO_THROW(view(0, 0, 1));
-#endif
 }
