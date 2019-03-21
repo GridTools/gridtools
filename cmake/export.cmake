@@ -64,31 +64,29 @@ install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsCo
 
 # TODO for a next CMake refactoring: move this to an appropriate location
 # Also consider using a separate directory for source files which are installed, e.g. src_public
-if(COMPONENT_C_BINDINGS)
-    set(BINDINGS_SOURCE_DIR "\${GridTools_SOURCES_PATH}")
-    set(BINDINGS_CMAKE_PATH "\${GridTools_MODULE_PATH}")
-    configure_file(cmake/gt_bindings.cmake.in
-        ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake
-        @ONLY)
+set(BINDINGS_SOURCE_DIR "\${GridTools_SOURCES_PATH}")
+set(BINDINGS_CMAKE_PATH "\${GridTools_MODULE_PATH}")
+configure_file(cmake/gt_bindings.cmake.in
+    ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake
+    @ONLY)
 
-    set(CMAKE_SOURCES
-        "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"
-        "${PROJECT_SOURCE_DIR}/cmake/fortran_helpers.cmake"
-        "${PROJECT_SOURCE_DIR}/cmake/workaround_mpi.cmake"
-        "${PROJECT_SOURCE_DIR}/cmake/workaround_check_language.cmake"
-        "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake"
-        )
-    set(CBINDINGS_SOURCES
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/generator.cpp"
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/generator_main.cpp"
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/array_descriptor.f90"
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.f90"
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.cpp"
-        )
+set(CMAKE_SOURCES
+    "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/fortran_helpers.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/workaround_mpi.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/workaround_check_language.cmake"
+    "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake"
+    )
+set(CBINDINGS_SOURCES
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/generator.cpp"
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/generator_main.cpp"
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/array_descriptor.f90"
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.f90"
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.cpp"
+    )
 
-    install(FILES ${CMAKE_SOURCES} DESTINATION "lib/cmake")
-    install(FILES ${CBINDINGS_SOURCES} DESTINATION "src/c_bindings")
+install(FILES ${CMAKE_SOURCES} DESTINATION "lib/cmake")
+install(FILES ${CBINDINGS_SOURCES} DESTINATION "src/c_bindings")
 
-    file(COPY ${CMAKE_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
-    file(COPY ${CBINDINGS_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src/c_bindings")
-endif()
+file(COPY ${CMAKE_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
+file(COPY ${CBINDINGS_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src/c_bindings")
