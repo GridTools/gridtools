@@ -194,5 +194,7 @@ TEST(DataViewTest, CheckMemorySpace) {
 
 #ifndef NDEBUG
     EXPECT_THROW(view(0, 0, 1), std::runtime_error);
+#else
+    EXPECT_NO_THROW(view(0, 0, 1));
 #endif
 }
