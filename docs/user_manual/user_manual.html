@@ -142,7 +142,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#cache-policy">Cache Policy</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#conditionals">Conditionals</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#expandable-parameters">Expandable Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#global-parameters-and-accessors">Global Parameters and Accessors</a></li>
 </ul>
@@ -157,8 +156,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#halo-exchanges">Halo Exchanges</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id18">Introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id19">Preliminaries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id17">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">Preliminaries</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#processor-grid">Processor Grid</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#layout-map">Layout Map</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#halo-descriptor">Halo Descriptor</a></li>
@@ -298,7 +297,7 @@ the exact layout of the storage and the alignment requirement.</li>
 dimensions and you can specify the alignment requirement.</li>
 </ul>
 <p><a class="reference internal" href="#fig-storage-info"><span class="std std-numref">Fig. 3</span></a> shows a depiction of the <code class="docutils literal"><span class="pre">storage_info</span></code> compile-time data.</p>
-<div class="figure" id="id23">
+<div class="figure" id="id22">
 <span id="fig-storage-info"></span><a class="reference internal image-reference" href="../_images/storage_info.png"><img alt="../_images/storage_info.png" src="../_images/storage_info.png" style="width: 238.79999999999998px; height: 157.79999999999998px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">Storage info and associated compile-time data.</span></p>
 </div>
@@ -373,7 +372,7 @@ be aligned.</p>
 <p>A visual representation of the storage info is given in <a class="reference internal" href="#fig-storage-info-example"><span class="std std-numref">Fig. 4</span></a>. The allocated memory starts
 at the bottom. The allocation starts with some padding (due to the alignment requirements). The compute domain (yellow)
 is surrounded by a halo region (green).</p>
-<div class="figure" id="id24">
+<div class="figure" id="id23">
 <span id="fig-storage-info-example"></span><a class="reference internal image-reference" href="../_images/storage_info_example.png"><img alt="../_images/storage_info_example.png" src="../_images/storage_info_example.png" style="width: 524.0px; height: 246.0px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Example storage info.</span></p>
 </div>
@@ -402,7 +401,7 @@ purpose of the <code class="docutils literal"><span class="pre">data_store</span
 and original and copy will point to the same data.</p>
 <p>When a data store is used on an accelerator, it has two copies of the data, one copy resides in the memory of the host
 system, and a second copy resides in the memory of the accelerator (target system).</p>
-<div class="figure" id="id25">
+<div class="figure" id="id24">
 <span id="fig-data-store"></span><a class="reference internal image-reference" href="../_images/data_store.png"><img alt="../_images/data_store.png" src="../_images/data_store.png" style="width: 348.8px; height: 360.0px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text"><a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> and associated compile-time data.</span></p>
 </div>
@@ -1398,7 +1397,7 @@ multi-stage. Local caches are only meaningful in connection with temporary argum
 <blockquote>
 <div><a class="reference internal" href="#fig-kcache-ex"><span class="std std-numref">Fig. 6</span></a> graphically depicts an example of all the ordered operations that are executed when a <code class="docutils literal"><span class="pre">fill_and_flush</span></code>
 <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> is used in a forward vertical loop.</div></blockquote>
-<div class="figure" id="id26">
+<div class="figure" id="id25">
 <span id="fig-kcache-ex"></span><a class="reference internal image-reference" href="../_images/kcache_ex.png"><img alt="../_images/kcache_ex.png" src="../_images/kcache_ex.png" style="width: 759.5px; height: 420.5px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 6 </span><span class="caption-text">Representation of an implementation for a <code class="docutils literal"><span class="pre">cache&lt;cache_type::k,</span> <span class="pre">cache_io_policy::fill_and_flush&gt;</span></code> that is used within a
 stencil with <a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extent</span></a> <code class="docutils literal"><span class="pre">&lt;-2,</span> <span class="pre">1&gt;</span></code> in the vertical dimension and implemented as a ring-buffer with 4 levels (in order to allocate all possible offsetted accesses). The three operations
@@ -1406,114 +1405,8 @@ are triggered automatically by the library for a <cite>fill_and_flush</cite> <a 
 </div>
 </div>
 </div>
-<div class="section" id="conditionals">
-<span id="id13"></span><h3>Conditionals<a class="headerlink" href="#conditionals" title="Permalink to this headline">¶</a></h3>
-<p>Conditionals introduce two new syntactic elements in the computation grammar,
-namely <code class="docutils literal"><span class="pre">if_</span></code> and <code class="docutils literal"><span class="pre">switch_</span></code>.  These implement run-time branches in the
-computation tree, i.e. one computation or another can be chosen based on the
-value of a runtime variable.  Note that this is just syntactic sugar, as you
-could instantiate all the possible combinations of the computation tree and
-then choose which one to execute by querying the value of a runtime condition.
-This would work in the same way as the solution we will describe next, but it
-would create a code of an unmanageable size most of the time: suppose that
-inside a computation with 10 stages you want to choose among 5 possible
-versions of the last stage. You would have to create 5 different computations,
-in which the only difference is in the last stage, while the rest is repeated.
-This would be tedious and error-prone.</p>
-<p>The syntax we expose for <code class="docutils literal"><span class="pre">if_</span></code> statements is reported in the following example:</p>
-<div class="highlight-gridtools"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">comp</span> <span class="o">=</span> <span class="nl">make_computation</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span>
-    <span class="k">grid</span><span class="p">,</span>
-    <span class="k">if_</span><span class="p">([</span><span class="o">&amp;</span><span class="n">flag</span><span class="p">]</span> <span class="p">{</span> <span class="k">return</span> <span class="n">flag</span><span class="p">;</span> <span class="p">},</span>
-        <span class="nl">make_multistage</span><span class="p">(</span>
-            <span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span>
-            <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p</span><span class="p">())</span>
-        <span class="p">),</span>
-        <span class="nl">make_multistage</span><span class="p">(</span>
-            <span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span>
-            <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p</span><span class="p">())</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-<span class="p">);</span>
-</pre></div>
-</div>
-<p>The correct way to interpret this syntax is that the call to <code class="docutils literal"><span class="pre">if_</span></code> returns one
-multistage to the other based on the return value of the predicate attached to
-<cite>flag</cite>.</p>
-<p>The value of the condition is evaluated at every execution of <code class="docutils literal"><span class="pre">comp.run()</span></code>.</p>
-<p>The conditionals can also be nested:</p>
-<div class="highlight-gridtools"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">cond</span> <span class="o">=</span> <span class="p">...;</span>
-<span class="k">auto</span> <span class="n">cond2</span> <span class="o">=</span> <span class="p">...;</span>
-<span class="k">auto</span> <span class="n">comp</span> <span class="o">=</span> <span class="nl">make_computation</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span>
-    <span class="k">grid</span><span class="p">,</span>
-    <span class="k">if_</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span>
-        <span class="nl">make_multistage</span><span class="p">(</span>
-            <span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span>
-            <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p</span><span class="p">())</span>
-        <span class="p">),</span>
-        <span class="k">if_</span><span class="p">(</span><span class="n">cond2</span><span class="p">,</span>
-            <span class="nl">make_multistage</span><span class="p">(</span>
-                <span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span>
-                <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p</span><span class="p">())</span>
-            <span class="p">),</span>
-            <span class="nl">make_multistage</span><span class="p">(</span>
-                <span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span>
-                <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor2</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p</span><span class="p">())</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-<span class="p">);</span>
-</pre></div>
-</div>
-<p>The other syntactic element we introduce is a <code class="docutils literal"><span class="pre">switch_</span></code>, and its use is
-exemplified in the following snippet</p>
-<div class="highlight-gridtools"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">cond</span> <span class="o">=</span> <span class="p">[</span><span class="o">&amp;</span><span class="n">p</span><span class="p">]()</span> <span class="p">{</span>
-    <span class="n">assert</span><span class="p">(</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">p</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="k">auto</span> <span class="n">comp_</span> <span class="o">=</span> <span class="nl">make_computation</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span>
-    <span class="k">grid</span><span class="p">,</span>
-    <span class="nl">make_multistage</span><span class="p">(</span>
-        <span class="k">execute</span><span class="o">::</span><span class="k">parallel</span><span class="p">(),</span>
-        <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor0</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p_tmp</span><span class="p">(),</span> <span class="n">p_in</span><span class="p">()),</span>
-    <span class="p">),</span>
-    <span class="k">switch_</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span>
-        <span class="k">case_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
-            <span class="nl">make_multistage</span><span class="p">(</span><span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span>
-                <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor1</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p_out</span><span class="p">(),</span> <span class="n">p_tmp</span><span class="p">()),</span>
-            <span class="p">)</span>
-        <span class="p">),</span>
-        <span class="k">case_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>
-            <span class="nl">make_multistage</span><span class="p">(</span><span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span>
-                <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor2</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p_out</span><span class="p">(),</span> <span class="n">p_tmp</span><span class="p">())</span>
-            <span class="p">)</span>
-        <span class="p">),</span>
-        <span class="k">case_</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span>
-            <span class="nl">make_multistage</span><span class="p">(</span><span class="k">execute</span><span class="o">::</span><span class="k">forward</span><span class="p">(),</span>
-                <span class="nl">make_stage</span><span class="o">&lt;</span><span class="n">functor3</span><span class="o">&gt;</span><span class="p">(</span><span class="n">p_out</span><span class="p">(),</span> <span class="n">p_tmp</span><span class="p">())</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<p>As for the <code class="docutils literal"><span class="pre">if_</span></code> statement, the condition function is evaluated at every call
-to <code class="docutils literal"><span class="pre">comp.run()</span></code>, and the multistage executed in calls depends on the value of
-the condition. <code class="docutils literal"><span class="pre">switch_</span></code> can be nested too.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The effect of having different branches is that all the possibilities get
-compiled, and only one gets chosen at each run. Therefore having lot of
-branches can increase dramatically the compilation times, you should not abuse
-this feature.</p>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Currently there is the limitation that all branches in the computation must use the same stages, and each stage in each
-branch must use the same number of placeholders. You might need to add empty stages to workaround this issue.</p>
-</div>
-</div>
 <div class="section" id="expandable-parameters">
-<span id="id14"></span><h3>Expandable Parameters<a class="headerlink" href="#expandable-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="id13"></span><h3>Expandable Parameters<a class="headerlink" href="#expandable-parameters" title="Permalink to this headline">¶</a></h3>
 <p>Expandable parameters implement a “single stencil multiple storages” pattern.
 They are useful when we have a vector of storages which have the same
 storage info, and we want to perform the same operation with all of them
@@ -1598,7 +1491,7 @@ a small matrix as a global parameter:</p>
 </div>
 </div>
 <div class="section" id="boundary-conditions">
-<span id="id15"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<span id="id14"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="introduction">
 <h3>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h3>
 <p>The boundary condition module in <cite>GridTools</cite> is designed following the
@@ -1728,7 +1621,7 @@ application and the rest should have their <a class="reference internal" href=".
 neighbors.</p>
 </div>
 <div class="section" id="provided-boundary-conditions">
-<span id="id16"></span><h3>Provided Boundary Conditions<a class="headerlink" href="#provided-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+<span id="id15"></span><h3>Provided Boundary Conditions<a class="headerlink" href="#provided-boundary-conditions" title="Permalink to this headline">¶</a></h3>
 <p><cite>GridTools</cite> provides few boundary application classes for some common cases. They are</p>
 <ul class="simple">
 <li><code class="docutils literal"><span class="pre">copy_boundary</span></code> to copy the boundary of the last field of the argument list of <cite>apply</cite> into the other ones;</li>
@@ -1738,9 +1631,9 @@ neighbors.</p>
 </div>
 </div>
 <div class="section" id="halo-exchanges">
-<span id="id17"></span><h2>Halo Exchanges<a class="headerlink" href="#halo-exchanges" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id18">
-<h3>Introduction<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<span id="id16"></span><h2>Halo Exchanges<a class="headerlink" href="#halo-exchanges" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id17">
+<h3>Introduction<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
 <p>The communication module in <cite>GridTools</cite> is dubbed <a class="reference internal" href="../glossary/glossary.html#term-gcl"><span class="xref std std-term">GCL</span></a>. It’s a low level
 halo-update interface for 3D fields that takes 3D arrays of some
 types, and the descriptions of the halos, and perform the exchanges in
@@ -1755,8 +1648,8 @@ dimensions and other grids.</p>
 <p>We first start with some preliminaries and then discuss the main
 interfaces.</p>
 </div>
-<div class="section" id="id19">
-<h3>Preliminaries<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id18">
+<h3>Preliminaries<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="processor-grid">
 <h4>Processor Grid<a class="headerlink" href="#processor-grid" title="Permalink to this headline">¶</a></h4>
 <p>The processor grid is a concept that describe a 3D lattice of
@@ -1801,7 +1694,7 @@ to) the first dimension in the computing grid. Let’s consider a 2x1
 process grid, and the first dimension of the data being the rows (i)
 and the second the column (j). In this case we are assuming a
 distribution like in <a class="reference internal" href="#fig-dist1"><span class="std std-numref">Fig. 7</span></a>.</p>
-<div class="figure" id="id27">
+<div class="figure" id="id26">
 <span id="fig-dist1"></span><a class="reference internal image-reference" href="../_images/dist1.png"><img alt="../_images/dist1.png" src="../_images/dist1.png" style="width: 624.4000000000001px; height: 405.20000000000005px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 7 </span><span class="caption-text">Example data distribution among two processes.</span></p>
 </div>
@@ -1814,7 +1707,7 @@ distribution like in <a class="reference internal" href="#fig-dist1"><span class
 </pre></div>
 </div>
 <p>for this map, would imply a layout/distribution like the following <a class="reference internal" href="#fig-dist2"><span class="std std-numref">Fig. 8</span></a>.</p>
-<div class="figure" id="id28">
+<div class="figure" id="id27">
 <span id="fig-dist2"></span><a class="reference internal image-reference" href="../_images/dist2.png"><img alt="../_images/dist2.png" src="../_images/dist2.png" style="width: 447.6px; height: 464.0px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 8 </span><span class="caption-text">Example data distribution among two processes.</span></p>
 </div>
@@ -1824,7 +1717,7 @@ ordering is the one the user choose to be the logical order in the
 application, not the increasing stride order.</p>
 </div>
 <div class="section" id="halo-descriptor">
-<span id="id20"></span><h4>Halo Descriptor<a class="headerlink" href="#halo-descriptor" title="Permalink to this headline">¶</a></h4>
+<span id="id19"></span><h4>Halo Descriptor<a class="headerlink" href="#halo-descriptor" title="Permalink to this headline">¶</a></h4>
 <p>Given  a  dimension of  the  data  (array), the  communication  module
 requires the user to describe it using the <code class="docutils literal"><span class="pre">halo_descriptor</span></code> class,
 which takes five integers. This class identifies the data that needs
@@ -1849,14 +1742,14 @@ the name of arguments should be self-explanatory:</p>
 <p class="first admonition-title">Todo</p>
 <p class="last">annotate example with minus plus begin and end</p>
 </div>
-<div class="figure" id="id29">
+<div class="figure" id="id28">
 <span id="fig-halo-descriptor"></span><a class="reference internal image-reference" href="../_images/halo_descriptor.png"><img alt="../_images/halo_descriptor.png" src="../_images/halo_descriptor.png" style="width: 480.5px; height: 284.5px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">Example halo descriptor with one halo point on the left and two on the right.</span></p>
 </div>
 </div>
 </div>
 <div class="section" id="gcl-communication-module">
-<span id="id21"></span><h3>GCL Communication Module<a class="headerlink" href="#gcl-communication-module" title="Permalink to this headline">¶</a></h3>
+<span id="id20"></span><h3>GCL Communication Module<a class="headerlink" href="#gcl-communication-module" title="Permalink to this headline">¶</a></h3>
 <p>Now we are ready to describe the <a class="reference internal" href="../glossary/glossary.html#term-halo-exchange"><span class="xref std std-term">Halo Exchange</span></a> patterns objects. The first one is <code class="docutils literal"><span class="pre">halo_exchange_dynamic_ut</span></code>. The <code class="docutils literal"><span class="pre">ut</span></code> suffix stands for <code class="docutils literal"><span class="pre">uniform</span> <span class="pre">types</span></code>, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The type of the object is defined as in this example:</p>
 <div class="highlight-gridtools"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">pattern_type</span> <span class="o">=</span> <span class="nl">halo_exchange_dynamic_ut</span><span class="o">&lt;</span><span class="k">layout_map</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">,</span>
                      <span class="n">ayout_map</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">gcl_cpu</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1962,7 +1855,7 @@ fields have the same type).</p>
 </div>
 </div>
 <div class="section" id="distributed-boundary-conditions">
-<span id="id22"></span><h2>Distributed Boundary Conditions<a class="headerlink" href="#distributed-boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<span id="id21"></span><h2>Distributed Boundary Conditions<a class="headerlink" href="#distributed-boundary-conditions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="design-principles">
 <h3>Design Principles:<a class="headerlink" href="#design-principles" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
