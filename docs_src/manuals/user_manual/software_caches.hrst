@@ -99,7 +99,7 @@ Cache Policy
 The ``cache_policy`` specifies a synchronization policy between the data in the :term:`Cache` and the data in main memory. A scratch-pad can be used
 in order to allocate temporary computations that do not require data persistency across multiple stencils. However often the data that is
 being cached is already present in main memory fields. In this case, the :term:`Software-Managed Caches<Software-Managed Cache>` of |GT| gives the possibility
-to specify a :term:`Cache Policy` that allows to synchronize the main memory with the cached field.
+to specify a cache policy that allows to synchronize the main memory with the cached field.
 The possible values are:
 
 #. ``cache_io_policy::fill``: fill the scratch-pad buffer with data from main memory field before use.
