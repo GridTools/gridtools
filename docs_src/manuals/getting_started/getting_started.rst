@@ -338,6 +338,10 @@ we won't discuss them now in detail. In brief:
 - In order to use the :math:`(i,j,k)` syntax we need to define the symbols to point to the respective dimensions.
 - A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code. We use this to set the :term:`Backend`.
 
+The code example can be compiled using the following simple CMake script (requires an installation of GridTools, see :ref:`installation`).
+
+.. literalinclude:: code/CMakeLists.txt
+
 -------------------------------------
 Assembling Stencils: Smoothing Filter
 -------------------------------------
@@ -372,14 +376,14 @@ We use two different
 :term:`Vertical Intervals<Vertical Interval>`, the ``lower_domain`` and the ``upper_domain``, and provide an overload of the
 :term:`Apply-Method` for each interval.
 
-The :term:`Intervals<Interval>` are defined as
+The :term:`Vertical Intervals<Vertical Interval>` are defined as
 
 .. literalinclude:: code/gt_smoothing.hpp
    :language: gridtools
    :start-after: constexpr static gridtools::dimension<3> k;
    :end-before: struct lap_function {
    
-The first line defines an axis with 2 :term:`Intervals<Interval>`. From this axis retrieve the :term:`Intervals<Interval>`
+The first line defines an axis with 2 :term:`Vertical Intervals<Vertical Interval>`. From this axis retrieve the :term:`Vertical Intervals<Vertical Interval>`
 and give them a name.
 
 Then we can assemble the computation
