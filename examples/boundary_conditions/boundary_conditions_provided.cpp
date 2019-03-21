@@ -107,16 +107,16 @@ int main(int argc, char **argv) {
         assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
         assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
 
-        for (uint_t i = 0; i < d1; ++i) {
-            for (uint_t j = 0; j < d2; ++j) {
-                for (uint_t k = 0; k < d3; ++k) {
+        for (int i = 0; i < d1; ++i) {
+            for (int j = 0; j < d2; ++j) {
+                for (int k = 0; k < d3; ++k) {
                     // check outer surfaces of the cube
                     if ((i == 0 || i == d1 - 1) || (j == 0 || j == d2 - 1) || (k == 0 || k == d3 - 1)) {
-                        error |= out(i, j, k) != (int)(i + j + k);
-                        error |= out(i, j, k) != (int)(i + j + k);
+                        error |= out(i, j, k) != i + j + k;
+                        error |= out(i, j, k) != i + j + k;
                     } else {
                         error |= out(i, j, k) != 0;
-                        error |= in(i, j, k) != (int)(i + j + k);
+                        error |= in(i, j, k) != i + j + k;
                     }
                 }
             }
@@ -141,9 +141,9 @@ int main(int argc, char **argv) {
         out_s.reactivate_host_write_views();
         assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
 
-        for (uint_t i = 0; i < d1; ++i) {
-            for (uint_t j = 0; j < d2; ++j) {
-                for (uint_t k = 0; k < d3; ++k) {
+        for (int i = 0; i < d1; ++i) {
+            for (int j = 0; j < d2; ++j) {
+                for (int k = 0; k < d3; ++k) {
                     // check outer surfaces of the cube
                     if ((i == 0 || i == d1 - 1) || (j == 0 || j == d2 - 1) || (k == 0 || k == d3 - 1)) {
                         error |= out(i, j, k) != 0;
@@ -173,9 +173,9 @@ int main(int argc, char **argv) {
         out_s.reactivate_host_write_views();
         assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
 
-        for (uint_t i = 0; i < d1; ++i) {
-            for (uint_t j = 0; j < d2; ++j) {
-                for (uint_t k = 0; k < d3; ++k) {
+        for (int i = 0; i < d1; ++i) {
+            for (int j = 0; j < d2; ++j) {
+                for (int k = 0; k < d3; ++k) {
                     // check outer surfaces of the cube
                     if ((i == 0 || i == d1 - 1) || (j == 0 || j == d2 - 1) || (k == 0 || k == d3 - 1)) {
                         error |= out(i, j, k) != 42;
