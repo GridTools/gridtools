@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@)
 
 project(GridTools-laplacian LANGUAGES CXX)
 
-find_package(GridTools 0.21.0 REQUIRED)
+find_package(GridTools @GridTools_VERSION@ REQUIRED)
 
 add_executable(gt_laplacian test_gt_laplacian.cpp)
 target_link_libraries(gt_laplacian GridTools::gridtools)
