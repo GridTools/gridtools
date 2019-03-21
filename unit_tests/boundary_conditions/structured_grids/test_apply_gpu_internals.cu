@@ -8,9 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gtest/gtest.h>
-#define GT_SINGLE_KERNEL_BC
 #include <gridtools/boundary_conditions/apply_gpu.hpp>
+#include <gtest/gtest.h>
 
 namespace gt = gridtools;
 
