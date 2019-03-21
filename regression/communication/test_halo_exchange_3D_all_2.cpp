@@ -25,6 +25,10 @@
 
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
+#ifdef __CUDACC__
+#include <gridtools/common/cuda_util.hpp>
+#endif
+
 namespace halo_exchange_3D_all_2 {
     int pid;
     int nprocs;
@@ -158,37 +162,27 @@ namespace halo_exchange_3D_all_2 {
         triple_t<USE_DOUBLE> *gpu_a = 0;
         triple_t<USE_DOUBLE> *gpu_b = 0;
         triple_t<USE_DOUBLE> *gpu_c = 0;
-        cudaError_t status;
-        status = cudaMalloc(&gpu_a, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>));
-        if (!checkCudaStatus(status))
-            return false;
-        status = cudaMalloc(&gpu_b, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>));
-        if (!checkCudaStatus(status))
-            return false;
-        status = cudaMalloc(&gpu_c, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>));
-        if (!checkCudaStatus(status))
-            return false;
+        GT_CUDA_CHECK(
+            cudaMalloc(&gpu_a, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>)));
+        GT_CUDA_CHECK(
+            cudaMalloc(&gpu_b, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>)));
+        GT_CUDA_CHECK(
+            cudaMalloc(&gpu_c, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>)));
 
-        status = cudaMemcpy(gpu_a,
+        GT_CUDA_CHECK(cudaMemcpy(gpu_a,
             a.ptr,
             (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>),
-            cudaMemcpyHostToDevice);
-        if (!checkCudaStatus(status))
-            return false;
+            cudaMemcpyHostToDevice));
 
-        status = cudaMemcpy(gpu_b,
+        GT_CUDA_CHECK(cudaMemcpy(gpu_b,
             b.ptr,
             (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>),
-            cudaMemcpyHostToDevice);
-        if (!checkCudaStatus(status))
-            return false;
+            cudaMemcpyHostToDevice));
 
-        status = cudaMemcpy(gpu_c,
+        GT_CUDA_CHECK(cudaMemcpy(gpu_c,
             c.ptr,
             (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>),
-            cudaMemcpyHostToDevice);
-        if (!checkCudaStatus(status))
-            return false;
+            cudaMemcpyHostToDevice));
 
         std::vector<triple_t<USE_DOUBLE>::data_type *> vect(3);
         vect[0] = reinterpret_cast<triple_t<USE_DOUBLE>::data_type *>(gpu_a);
@@ -264,36 +258,24 @@ namespace halo_exchange_3D_all_2 {
         file << "\n********************************************************************************\n";
 
 #ifdef __CUDACC__
-        status = cudaMemcpy(a.ptr,
+        GT_CUDA_CHECK(cudaMemcpy(a.ptr,
             gpu_a,
             (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>),
-            cudaMemcpyDeviceToHost);
-        if (!checkCudaStatus(status))
-            return false;
+            cudaMemcpyDeviceToHost));
 
-        status = cudaMemcpy(b.ptr,
+        GT_CUDA_CHECK(cudaMemcpy(b.ptr,
             gpu_b,
             (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>),
-            cudaMemcpyDeviceToHost);
-        if (!checkCudaStatus(status))
-            return false;
+            cudaMemcpyDeviceToHost));
 
-        status = cudaMemcpy(c.ptr,
+        GT_CUDA_CHECK(cudaMemcpy(c.ptr,
             gpu_c,
             (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t<USE_DOUBLE>),
-            cudaMemcpyDeviceToHost);
-        if (!checkCudaStatus(status))
-            return false;
+            cudaMemcpyDeviceToHost));
 
-        status = cudaFree(gpu_a);
-        if (!checkCudaStatus(status))
-            return false;
-        status = cudaFree(gpu_b);
-        if (!checkCudaStatus(status))
-            return false;
-        status = cudaFree(gpu_c);
-        if (!checkCudaStatus(status))
-            return false;
+        GT_CUDA_CHECK(cudaFree(gpu_a));
+        GT_CUDA_CHECK(cudaFree(gpu_b));
+        GT_CUDA_CHECK(cudaFree(gpu_c));
 #endif
         printbuff(file, a, DIM1 + 2 * H1, DIM2 + 2 * H2, DIM3 + 2 * H3);
 

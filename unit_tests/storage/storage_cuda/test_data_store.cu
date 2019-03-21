@@ -158,7 +158,7 @@ TEST(DataStoreTest, States) {
     EXPECT_FALSE(ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu);
 
     // device write views should be valid, this means the host needs an update
-    ds.reactivate_device_write_views();
+    ds.reactivate_target_write_views();
     EXPECT_TRUE(ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu);
     EXPECT_FALSE(ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu);
 
@@ -262,14 +262,12 @@ TEST(DataStoreTest, ExternalGPUPointer) {
         external_cpu_ptr[i] = 3.1415;
     }
     // create a GPU ptr
-    cudaError_t err = cudaMalloc(&external_gpu_ptr, si.padded_total_length() * sizeof(double));
-    ASSERT_TRUE((err == cudaSuccess));
+    GT_CUDA_CHECK(cudaMalloc(&external_gpu_ptr, si.padded_total_length() * sizeof(double)));
     // initialize the GPU ptr
-    err = cudaMemcpy((void *)external_gpu_ptr,
+    GT_CUDA_CHECK(cudaMemcpy((void *)external_gpu_ptr,
         (void *)external_cpu_ptr,
         si.padded_total_length() * sizeof(double),
-        cudaMemcpyHostToDevice);
-    ASSERT_TRUE((err == cudaSuccess));
+        cudaMemcpyHostToDevice));
     // create a data_store with externally managed storage
     data_store<cuda_storage<double>, storage_info_t> ds(si, external_gpu_ptr, ownership::external_gpu);
     ds.sync();
@@ -289,5 +287,5 @@ TEST(DataStoreTest, ExternalGPUPointer) {
             }
     // delete the ptr
     delete[] external_cpu_ptr;
-    cudaFree(external_gpu_ptr);
+    GT_CUDA_CHECK(cudaFree(external_gpu_ptr));
 }

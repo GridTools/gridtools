@@ -26,19 +26,17 @@ namespace {
         uint_t operator()(const Sequence &index_set) const {
             uint_t index = 0;
             for (uint_t i = 0; i < dims_.size(); ++i) {
-                if (i >= dims_[i])
-                    throw std::runtime_error("index out of bounds");
                 index += index_set[i] * strides_[i];
             }
             return index;
         }
 
         uint_t size() {
-            uint_t index = 0;
+            uint_t result = 0;
             for (uint_t i = 0; i < dims_.size(); ++i) {
-                index += dims_[i] * strides_[i];
+                result = std::max(result, dims_[i] * strides_[i]);
             }
-            return index;
+            return result;
         }
 
         uint_t size(uint_t dim) const { return dims_[dim]; }

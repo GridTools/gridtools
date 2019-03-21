@@ -187,14 +187,14 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
     }
 
 #ifdef GCL_MULTI_STREAMS
-    cudaStreamSynchronize(ZL_stream);
-    cudaStreamSynchronize(ZU_stream);
-    cudaStreamSynchronize(YL_stream);
-    cudaStreamSynchronize(YU_stream);
-    cudaStreamSynchronize(XL_stream);
-    cudaStreamSynchronize(XU_stream);
+    GT_CUDA_CHECK(cudaStreamSynchronize(ZL_stream));
+    GT_CUDA_CHECK(cudaStreamSynchronize(ZU_stream));
+    GT_CUDA_CHECK(cudaStreamSynchronize(YL_stream));
+    GT_CUDA_CHECK(cudaStreamSynchronize(YU_stream));
+    GT_CUDA_CHECK(cudaStreamSynchronize(XL_stream));
+    GT_CUDA_CHECK(cudaStreamSynchronize(XU_stream));
 #else
-    cudaDeviceSynchronize();
+    GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
 }
 

@@ -48,16 +48,16 @@ namespace gridtools {
 
 #ifdef GCL_MULTI_STREAMS
 #ifdef GCL_USE_3
-            cudaStreamCreate(&ZL_stream);
-            cudaStreamCreate(&YL_stream);
-            cudaStreamCreate(&XL_stream);
+            GT_CUDA_CHECK(cudaStreamCreate(&ZL_stream));
+            GT_CUDA_CHECK(cudaStreamCreate(&YL_stream));
+            GT_CUDA_CHECK(cudaStreamCreate(&XL_stream));
 #else
-            cudaStreamCreate(&ZL_stream);
-            cudaStreamCreate(&ZU_stream);
-            cudaStreamCreate(&YL_stream);
-            cudaStreamCreate(&YU_stream);
-            cudaStreamCreate(&XL_stream);
-            cudaStreamCreate(&XU_stream);
+            GT_CUDA_CHECK(cudaStreamCreate(&ZL_stream));
+            GT_CUDA_CHECK(cudaStreamCreate(&ZU_stream));
+            GT_CUDA_CHECK(cudaStreamCreate(&YL_stream));
+            GT_CUDA_CHECK(cudaStreamCreate(&YU_stream));
+            GT_CUDA_CHECK(cudaStreamCreate(&XL_stream));
+            GT_CUDA_CHECK(cudaStreamCreate(&XU_stream));
 #endif
 #endif
         }
@@ -73,16 +73,16 @@ namespace gridtools {
     void GCL_Finalize() {
 #ifdef GCL_MULTI_STREAMS
 #ifdef GCL_USE_3
-        cudaStreamDestroy(ZL_stream);
-        cudaStreamDestroy(YL_stream);
-        cudaStreamDestroy(XL_stream);
+        GT_CUDA_CHECK(cudaStreamDestroy(ZL_stream));
+        GT_CUDA_CHECK(cudaStreamDestroy(YL_stream));
+        GT_CUDA_CHECK(cudaStreamDestroy(XL_stream));
 #else
-        cudaStreamDestroy(ZL_stream);
-        cudaStreamDestroy(ZU_stream);
-        cudaStreamDestroy(YL_stream);
-        cudaStreamDestroy(YU_stream);
-        cudaStreamDestroy(XL_stream);
-        cudaStreamDestroy(XU_stream);
+        GT_CUDA_CHECK(cudaStreamDestroy(ZL_stream));
+        GT_CUDA_CHECK(cudaStreamDestroy(ZU_stream));
+        GT_CUDA_CHECK(cudaStreamDestroy(YL_stream));
+        GT_CUDA_CHECK(cudaStreamDestroy(YU_stream));
+        GT_CUDA_CHECK(cudaStreamDestroy(XL_stream));
+        GT_CUDA_CHECK(cudaStreamDestroy(XU_stream));
 #endif
 #endif
         MPI_Finalize();
