@@ -32,8 +32,8 @@ Accessor Type
 There are two kinds of :term:`Accessors<Accessor>`:
 
 * Regular :term:`accessors<Accessor>` indicate an access to a regular :Term:`Data Store` of a :term:`Grid`.
-* :term:`Global accessors<Global Accessor>` indicate that the data to be referred does not participate in the iteration
-  and always point to a same *read only* datum to be used in the operator.
+* Global accessors indicate that the data to be referred does not participate in the iteration
+  and always point to a same *read only* datum to be used in the operator, which is hold in a :term:`Global Parameter`.
 
 Accessors are defined as follows:
 
@@ -55,7 +55,7 @@ where
   in the range from 0 to N - 1, where N is the number of :term:`Accessors<Accessor>` used by the stencil operator. No
   index can appear twice. If these rules are not followed the compilation fails.
 
-  For :term:`Global Accessors<Global Accessor>`, the index is the only argument.
+  For global accessors, the index is the only argument.
 
 * ``intent`` indicates the type of access the stencil operator makes to the data associated to the :term:`Accessor`.
   Possible values are
