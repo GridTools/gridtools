@@ -65,7 +65,7 @@ install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsCo
 # TODO for a next CMake refactoring: move this to an appropriate location
 # Also consider using a separate directory for source files which are installed, e.g. src_public
 set(BINDINGS_SOURCE_DIR "\${GridTools_SOURCES_PATH}")
-set(BINDINGS_CMAKE_PATH "\${GridTools_MODULE_PATH}")
+set(BINDINGS_CMAKE_DIR "\${GridTools_MODULE_PATH}")
 configure_file(cmake/gt_bindings.cmake.in
     ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake
     @ONLY)
