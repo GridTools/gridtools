@@ -4,14 +4,14 @@
 Global Parameters and Accessors
 -------------------------------
 
-:term:`Global Accessors<Global Accessor>` are accessing read-only data which is independent of the current :term:`Iteration Point`.
-For this reason, intent, :term:`Extents<Extent>` and offsets cannot be specified for a :term:`Global Accessor`.
+Global accessors are accessing read-only data which is independent of the current :term:`Iteration Point`.
+For this reason, intent, :term:`Extents<Extent>` and offsets cannot be specified for a global accessor.
 Here the term `global` means that the data is the same for the whole :term:`Iteration Space`. An example can be
 a constant scalar parameter that you want to pass to the functor, or a user defined struct containing
 various configuration options.
 
-The API allows the user to define an arbitrary object to act as a `global parameter` as long as it is trivially copyable.
-To create a global parameter from a user-defined object, we pass the object to ``make_global_parameter()``
+The API allows the user to define an arbitrary object to act as a :term:`Global Parameter` as long as it is trivially copyable.
+To create a :term:`Global Parameter` from a user-defined object, we pass the object to ``make_global_parameter()``
 
 .. code-block:: gridtools
 
@@ -24,13 +24,13 @@ in between executions with
 
    backend_t::update_global_parameter(my_global_parameter, new_value);
 
-The :term:`Accessor` associated with a global parameter must be a :term:`Global Accessor`
+The :term:`Accessor` associated with a global parameter must be a global accessor
 
 .. code-block:: gridtools
 
     using global_acc = global_accessor<0>;
 
-Calling ``eval`` on the :term:`Global Accessor` returns the user defined data structure. Supposing that
+Calling ``eval`` on the global accessor returns the user defined data structure. Supposing that
 this data structure contains a user function called ``ordinal``, returning an integer, we can write
 in the do method
 
