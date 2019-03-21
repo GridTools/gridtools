@@ -31,11 +31,11 @@ The GridTools libraries are currently nightly tested with the following compiler
 | GNU 7.1.0 | x86, mc | Piz Daint |
 | Clang 7.0.1 | x86, mc | Piz Daint |
 | NVCC 8.0 with GNU 5.4.0 | cuda | Piz Kesch |
-| Intel 18.0.2 | x86, mc | Grand Tave |
 
 ##### Known issues
 
-NVCC 9.2 and later have a severe performance regression. It is recommended to use NVCC <= 9.1.
+- NVCC 9.2 and later have a severe performance regression. It is recommended to use NVCC <= 9.1.
+- Intel is able to compile GridTools code, but depending on user code, might have severe performance problems compared to GNU compiled code.
 
 ##### Officially not supported (no workarounds implemented and planned)
 
