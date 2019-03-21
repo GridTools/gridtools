@@ -11,12 +11,12 @@ git clone https://github.com/GridTools/gridtools.git
 cd gridtools
 mkdir -p build && cd build
 cmake ..
-cmake --build .
-ctest .
+make -j8
+make test
 ```
 ##### Requirements
 
-- Boost (1.58.0 or later)
+- Boost (1.65.1 or later)
 - CMake (3.12.4 or later)
 - CUDA Toolkit (8.0 or later, optional)
 
@@ -33,7 +33,11 @@ The GridTools libraries are currently nightly tested with the following compiler
 | NVCC 8.0 with GNU 5.4.0 | cuda | Piz Kesch |
 | Intel 18.0.2 | x86, mc | Grand Tave |
 
-##### Officially unsupported (no workarounds implemented and planned)
+##### Known issues
+
+NVCC 9.2 and later have a severe performance regression. It is recommended to use NVCC <= 9.1.
+
+##### Officially not supported (no workarounds implemented and planned)
 
 | Compiler | Target | Date | Comments
 | --- | --- | --- | --- |
