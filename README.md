@@ -35,7 +35,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 ##### Known issues
 
 - NVCC 9.2 and later have a severe performance regression. It is recommended to use NVCC <= 9.1.
-- Intel is able to compile GridTools code, but depending on user code, might have severe performance problems compared to GNU compiled code.
+- Intel is able to compile GridTools code, but depending on user code, might have severe performance problems compared to GNU- or Clang-compiled code.
 
 ##### Officially not supported (no workarounds implemented and planned)
 
