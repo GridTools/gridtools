@@ -22,7 +22,6 @@
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../arg.hpp"
-#include "../conditionals/condition_tree.hpp"
 #include "../esf_fwd.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../independent_esf.hpp"
@@ -197,10 +196,7 @@ namespace gridtools {
             template <size_t ExpandFactor>
             struct convert_mss_descriptor_f {
                 template <class T>
-                GT_META_CALL(convert_mss, (ExpandFactor, T))
-                operator()(T) const {
-                    return {};
-                }
+                GT_META_DEFINE_ALIAS(apply, convert_mss, (ExpandFactor, T));
             };
 
             template <typename T>
@@ -240,20 +236,10 @@ namespace gridtools {
                 GT_AUTO_RETURN(tuple_util::deep_copy(
                     tuple_util::flatten(tuple_util::transform(expand_arg_storage_pair_f<ExpandFactor>{offset}, src))));
 
-            template <uint_t ExpandFactor>
-            struct convert_mss_descriptors_tree_f {
-                template <typename T>
-                auto operator()(T const &src) const
-                    GT_AUTO_RETURN(condition_tree_transform(src, convert_mss_descriptor_f<ExpandFactor>{}));
-            };
-
-            template <uint_t ExpandFactor, class... Ts>
-            auto convert_mss_descriptors_trees(std::tuple<Ts...> const &src)
-                GT_AUTO_RETURN(tuple_util::transform(convert_mss_descriptors_tree_f<ExpandFactor>{}, src));
-
-            template <uint_t ExpandFactor, class MssDescriptorsTrees>
-            using converted_mss_descriptors_trees =
-                decltype(convert_mss_descriptors_trees<ExpandFactor>(std::declval<MssDescriptorsTrees const &>()));
+            template <uint_t ExpandFactor, class MssDescriptors>
+            GT_META_DEFINE_ALIAS(converted_mss_descriptors,
+                meta::transform,
+                (convert_mss_descriptor_f<ExpandFactor>::template apply, MssDescriptors));
 
             template <class Intermediate>
             struct run_f {
@@ -295,7 +281,7 @@ namespace gridtools {
         class Backend,
         class Grid,
         class BoundArgStoragePairs,
-        class MssDescriptorTrees>
+        class MssDescriptors>
     class intermediate_expand {
         using non_expandable_bound_arg_storage_pairs_t = GT_META_CALL(
             meta::filter, (meta::not_<_impl::expand_detail::is_expandable>::apply, BoundArgStoragePairs));
@@ -307,7 +293,7 @@ namespace gridtools {
             Backend,
             Grid,
             non_expandable_bound_arg_storage_pairs_t,
-            _impl::expand_detail::converted_mss_descriptors_trees<N, MssDescriptorTrees>>;
+            GT_META_CALL(_impl::expand_detail::converted_mss_descriptors, (N, MssDescriptors))>;
 
         /// Storages that are expandable, is bound in construction time.
         //
@@ -325,28 +311,20 @@ namespace gridtools {
 
         template <class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs>
         intermediate_expand(Grid const &grid,
-            std::pair<ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs> &&arg_refs,
-            MssDescriptorTrees const &msses)
+            std::pair<ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs> &&arg_refs)
             // expandable arg_storage_pairs are kept as a class member until run will be called.
             : m_expandable_bound_arg_storage_pairs(std::move(arg_refs.first)),
               // plain arg_storage_pairs are bound to both intermediates;
-              // msses descriptors got transformed and also got passed to intermediates.
-              m_intermediate(grid,
-                  arg_refs.second,
-                  _impl::expand_detail::convert_mss_descriptors_trees<ExpandFactor>(msses),
-                  false),
-              m_intermediate_remainder(
-                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees<1>(msses), false),
+              m_intermediate(grid, arg_refs.second, false), m_intermediate_remainder(grid, arg_refs.second, false),
               m_meter("NoName") {}
 
       public:
         template <class BoundArgStoragePairsRefs>
-        intermediate_expand(
-            Grid const &grid, BoundArgStoragePairsRefs &&arg_storage_pairs, MssDescriptorTrees const &msses)
+        intermediate_expand(Grid const &grid, BoundArgStoragePairsRefs &&arg_storage_pairs)
             // public constructor splits given ard_storage_pairs to expandable and plain ones and delegates to the
             // private constructor.
             : intermediate_expand(
-                  grid, split_args_tuple<_impl::expand_detail::is_expandable>(std::move(arg_storage_pairs)), msses) {}
+                  grid, split_args_tuple<_impl::expand_detail::is_expandable>(std::move(arg_storage_pairs))) {}
 
         template <class... Args, class... DataStores>
         void run(arg_storage_pair<Args, DataStores> const &... args) {
