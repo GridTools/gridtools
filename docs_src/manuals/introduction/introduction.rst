@@ -2,13 +2,13 @@
 
 .. _introduction:
 
-=====================
+============
 Introduction
-=====================
+============
 
------------------------------
+-----------------
 What Is GridTools
------------------------------
+-----------------
 
 The |GT| (GT) framework is a set of libraries and utilities to develop performance portable applications in which
 stencil operations on grids are central. The focus of the project is on regular and block-structured grids as are
@@ -46,9 +46,9 @@ abstract descriptions of a stencils, the DSL allows |GT| can apply architecture-
 computations in order to be optimal on the target hardware.
 
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
 Dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
 
 |GT| requires at least a header-only installation of Boost_. Besides some boost utilities, it depends on ``boost::mpl`` and ``boost::fusion``.
 
@@ -57,11 +57,18 @@ Additionally, |GT| requires a recent version of CMake_.
 .. _Boost: https://www.boost.org/
 .. _CMake: https://www.cmake.org/
 
-|GT| requires a modern compiler. A list of supported compilers can be found on `github <https://github.com/eth-cscs/gridtools/wiki/Supported-Compilers>`_.
+|GT| requires a modern compiler. A list of supported compilers can be found on `github <https://github.com/GridTools/gridtools>`_.
 
-^^^^^^^^^^^^^^^^^^^^
+
+.. _installation:
+
+--------------------
+Installation and Use
+--------------------
+
+^^^^^^^^^^^^^
 Simple Script
-^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 
 We first provide a sample of the commands needed to enable the multicore and CUDA backends, install them in ``/usr/local``,
 and run the gridtools tests.
@@ -74,10 +81,6 @@ and run the gridtools tests.
  cmake -DGT_ENABLE_TARGET_MC=ON -DGT_ENABLE_TARGET_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
  make install -j4
  make test
-
------------------------------
-Installation and Use
------------------------------
 
 |GT| uses CMake as building system. The installation can be configured using `ccmake`. The following variables control the back-ends that will be supported by the runtime components of the installation, namely :ref:`GCL <halo-exchanges>`.
 
@@ -130,9 +133,9 @@ the following set of instructions:
   make -j4
 
 
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 Using GridTools
-^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 
 Using |GT| follows standard CMake practices. To indicate where the |GT| can be found,
 CMake should be provided with the variable ``GridTools_DIR``,
@@ -156,8 +159,8 @@ Targets that need |GT| should link against ``GridTools::gridtools``. If the comm
  add_library(my_library source.cpp)
  target_link_libraries(my_library PUBLIC GridTools::gridtools)
 
------------------------------
+------------
 Contributing
------------------------------
+------------
 
 Contributions to the |GT| set of libraries are welcome. However, our policy is that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.

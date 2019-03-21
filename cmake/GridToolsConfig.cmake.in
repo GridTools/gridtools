@@ -1,15 +1,15 @@
 @PACKAGE_INIT@
 
-get_filename_component(GRIDTOOLS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(GRIDTOOLS_CONFIG_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-message(STATUS "GridTools version @GridTools_VERSION@ found at ${GRIDTOOLS_CMAKE_DIR}")
+message(STATUS "GridTools version @GridTools_VERSION@ found at ${GRIDTOOLS_CONFIG_CMAKE_DIR}")
 
 include(CMakeFindDependencyMacro)
 find_dependency(Boost @REQUIRED_BOOST_VERSION@)
 
 if (@GT_USE_MPI@)
     find_dependency(MPI COMPONENTS CXX)
-    include("${GRIDTOOLS_CMAKE_DIR}/workaround_mpi.cmake")
+    include("@PACKAGE_GRIDTOOLS_MODULE_PATH@/workaround_mpi.cmake")
     _fix_mpi_flags()
 endif()
 
@@ -17,7 +17,7 @@ if (@OPENMP_AVAILABLE@)
     find_dependency(OpenMP COMPONENTS CXX)
 endif()
 
-include("${GRIDTOOLS_CMAKE_DIR}/GridToolsTargets.cmake")
+include("${GRIDTOOLS_CONFIG_CMAKE_DIR}/GridToolsTargets.cmake")
 
 set(GRIDTOOLS_HAS_TARGET_CUDA @GT_ENABLE_TARGET_CUDA@)
 set(GRIDTOOLS_HAS_TARGET_MC @GT_ENABLE_TARGET_MC@)
