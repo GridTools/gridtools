@@ -35,7 +35,6 @@
 #include "backend_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"
 #include "compute_extents_metafunctions.hpp"
-#include "conditionals/condition_tree.hpp"
 #include "coordinate.hpp"
 #include "esf.hpp"
 #include "extract_placeholders.hpp"
@@ -155,20 +154,19 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_backend<Backend>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
-        GT_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_mss_descriptor>...>::value),
-            "make_computation args should be mss descriptors or condition trees of mss descriptors");
+        GT_STATIC_ASSERT(conjunction<is_mss_descriptor<MssDescriptors>...>::value,
+            "make_computation args should be mss descriptors");
 
-        using branch_selector_t = branch_selector<MssDescriptors...>;
-        using all_mss_descriptors_t = typename branch_selector_t::all_leaves_t;
+        using mss_descriptors_t = std::tuple<MssDescriptors...>;
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
-        using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, all_mss_descriptors_t);
+        using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
         using non_tmp_placeholders_t = GT_META_CALL(meta::filter, (meta::not_<is_tmp_arg>::apply, placeholders_t));
 
         using non_cached_tmp_placeholders_t = GT_META_CALL(
-            _impl::extract_non_cached_tmp_args_from_msses, all_mss_descriptors_t);
+            _impl::extract_non_cached_tmp_args_from_msses, mss_descriptors_t);
 
         template <class Arg>
         GT_META_DEFINE_ALIAS(to_arg_storage_pair, meta::id, (arg_storage_pair<Arg, typename Arg::data_store_t>));
@@ -197,17 +195,13 @@ namespace gridtools {
         // First we need to compute the association between placeholders and extents.
         // This information is needed to allocate temporaries, and to provide the
         // extent information to the user.
-        using extent_map_t = typename boost::mpl::eval_if<typename need_to_compute_extents<all_mss_descriptors_t>::type,
-            placeholder_to_extent_map<all_mss_descriptors_t, placeholders_t>,
+        using extent_map_t = typename boost::mpl::eval_if<typename need_to_compute_extents<mss_descriptors_t>::type,
+            placeholder_to_extent_map<mss_descriptors_t, placeholders_t>,
             boost::mpl::void_>::type;
 
       private:
-        template <class MssDescs>
-        GT_META_DEFINE_ALIAS(convert_to_mss_components_array,
-            build_mss_components_array,
-            (Backend::mss_fuse_esfs_strategy::value, MssDescs, extent_map_t, typename Grid::axis_type));
-
-        using mss_components_array_t = GT_META_CALL(convert_to_mss_components_array, all_mss_descriptors_t);
+        using mss_components_array_t = GT_META_CALL(build_mss_components_array,
+            (Backend::mss_fuse_esfs_strategy::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type));
 
         using max_extent_for_tmp_t = GT_META_CALL(_impl::get_max_extent_for_tmp, mss_components_array_t);
 
@@ -216,23 +210,11 @@ namespace gridtools {
         using local_domains_t = GT_META_CALL(_impl::get_local_domains, (mss_components_array_t, IsStateful));
 
       private:
-        struct run_f {
-            template <typename MssDescs>
-            void operator()(
-                MssDescs const &mss_descriptors, Grid const &grid, local_domains_t const &local_domains) const {
-                Backend::template run<GT_META_CALL(convert_to_mss_components_array, MssDescs)>(grid, local_domains);
-            }
-        };
-
         // member fields
 
         Grid m_grid;
 
         std::unique_ptr<performance_meter_t> m_meter;
-
-        /// branch_selector is responsible for choosing the right branch of in condition MSS tree.
-        //
-        branch_selector_t m_branch_selector;
 
         /// tuple with temporary storages
         //
@@ -262,13 +244,9 @@ namespace gridtools {
       public:
         intermediate(Grid const &grid,
             std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...> arg_storage_pairs,
-            std::tuple<MssDescriptors...> msses,
             bool timer_enabled = true)
             // grid just stored to the member
             : m_grid(grid),
-              // pass mss descriptor condition trees to branch_selector that owns them and provides the interface to
-              // a functor with a chosen condition branch
-              m_branch_selector(std::move(msses)),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
               m_tmp_arg_storage_pair_tuple(
                   _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(grid)),
@@ -293,7 +271,7 @@ namespace gridtools {
                 "some placeholders are not used in mss descriptors");
             GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
-            m_branch_selector.apply(run_f{}, std::cref(m_grid), local_domains(srcs...));
+            Backend::template run<mss_components_array_t>(m_grid, local_domains(srcs...));
             if (m_meter)
                 m_meter->pause();
         }
@@ -319,7 +297,7 @@ namespace gridtools {
         }
 
         template <class Placeholder,
-            class RwArgs = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t),
+            class RwArgs = GT_META_CALL(_impl::all_rw_args, mss_descriptors_t),
             intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? intent::inout : intent::in>
         static constexpr std::integral_constant<intent, Intent> get_arg_intent(Placeholder) {
             return {};

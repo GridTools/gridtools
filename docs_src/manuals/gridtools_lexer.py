@@ -45,10 +45,7 @@ gridtools_keywords = ((
         'call',
         'call_proc',
         'with',
-        'at',
-        'if_',
-        'switch_',
-        'case_'
+        'at'
 ))
 
 gridtools_namespace = ((
