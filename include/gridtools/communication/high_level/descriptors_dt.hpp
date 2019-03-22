@@ -364,15 +364,6 @@ namespace gridtools {
         /**
            Function to setup internal data structures for data exchange and preparing eventual underlying layers
 
-           The use of this function is deprecated
-
-           \param max_fields_n Maximum number of data fields that will be passed to the communication functions
-        */
-        void allocate_buffers(int max_fields_n) { setup(max_fields_n); }
-
-        /**
-           Function to setup internal data structures for data exchange and preparing eventual underlying layers
-
            \param max_fields_n Maximum number of data fields that will be passed to the communication functions
         */
         void setup(int max_fields_n) {

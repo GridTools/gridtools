@@ -302,60 +302,6 @@ namespace gridtools {
         explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
             : hd(c.template permute<layout2proc_map_abs>(), comm) {}
 
-        /** constructor that takes the periodicity (mathich the \link
-            boollist_concept \endlink concept, and the MPI CART
-            communicator in DIMS (specified as template argument to the
-            pattern) dimensions of the processing grid. the periodicity is
-            specified in the order chosen by the programmer for the data,
-            as in the rest of the application. It is up tp the
-            construnctor implementation to translate it into the right
-            order depending on the gridtools::layout_map passed to the class.
-
-            Examples:
-            1) hd(period_type(true, true, false), MPI_COMM_WORLD, array<int, 3>{0,0,0});
-               Supposing this this is executed in 8 processors, the communicator used by the pattern is a 2x2x2;
-
-            2) hd(period_type(true, true, false), MPI_COMM_WORLD, array<int, 3>{4,0,0});
-               Supposing this this is executed in 8 processors, the communicator used by the pattern is a 4x2x1;
-
-            2) hd(period_type(true, true, false), MPI_COMM_WORLD, array<int, 3>{4,1,0});
-               Supposing this this is executed in 8 processors, the communicator used by the pattern is a 4x1x2;
-            End of examples.
-
-            \tparam ValueType Value type of the GridTools array of dimensions (deduced)
-            \tparam Size  Size of the GridTools array of dimensions (deduced)
-            \param[in] c Periodicity specification as in \link boollist_concept \endlink
-            \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
-            \param[in] dims Array of dimensions of the ocmputing grid. Array must provide operator[] up to 3 elements.
-           The behavior is like MPI_Dims_create.
-        */
-        template <typename ValueType, size_t Size>
-        GT_DEPRECATED(
-            "halo_exchange_dynamic_ut(period, MPI_Comm, dims) is deprecated, since it creates an additional "
-            "communicator that is not freed. Use the constructor without dims and pass to it a Cartesian communicator")
-        explicit halo_exchange_dynamic_ut(
-            typename grid_type::period_type const &c, MPI_Comm const &comm, array<ValueType, Size> &&dims)
-            : hd(c.template permute<layout2proc_map_abs>(), _impl::_make_comm(comm, dims)) {}
-
-        /**
-           Same signature of halo_exchange_dynamic_ut [this] constructor but takes the dims array as reference, in case
-           the output of the MPI_Cart_create is needed.
-
-            \tparam ValueType Value type of the GridTools array of dimensions (deduced)
-            \tparam Size  Size of the GridTools array of dimensions (deduced)
-            \param[in] c Periodicity specification as in \link boollist_concept \endlink
-            \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
-            \param[in] dims Array of dimensions of the ocmputing grid. Array must provide operator[] up to 3 elements.
-           The behavior is like MPI_Dims_create.
-         */
-        template <typename ValueType, size_t Size>
-        GT_DEPRECATED("halo_exchange_dynamic_ut(period, MPI_Comm, dims) is deprecated, since it creates an "
-                      "additional communicator that is not freed. Use the constructor without dims and pass to it "
-                      "a Cartesian communicator")
-        explicit halo_exchange_dynamic_ut(
-            typename grid_type::period_type const &c, MPI_Comm const &comm, array<ValueType, Size> &dims)
-            : hd(c.template permute<layout2proc_map_abs>(), _impl::_make_comm(comm, dims)) {}
-
         /** Function to rerturn the L3 level pattern used inside the pattern itself.
 
             \return The pattern al level 3 used to exchange data

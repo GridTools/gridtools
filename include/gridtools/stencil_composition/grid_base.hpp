@@ -31,13 +31,6 @@ namespace gridtools {
         }
     } // namespace _impl
 
-    // TODO should be removed once we removed all ctor(array) calls
-    namespace enumtype_axis {
-        enum coordinate_argument { minus, plus, begin, end, length };
-    } // namespace enumtype_axis
-
-    using namespace enumtype_axis;
-
     template <typename Axis>
     struct grid_base {
         GT_STATIC_ASSERT((is_interval<Axis>::value), GT_INTERNAL_ERROR);
@@ -52,11 +45,6 @@ namespace gridtools {
         halo_descriptor m_direction_j;
 
       public:
-        GT_DEPRECATED("This constructor does not initialize the vertical axis, use the constructor with 3 "
-                      "arguments. (deprecated after 1.05.02)")
-        GT_FUNCTION explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : m_direction_i(direction_i), m_direction_j(direction_j) {}
-
         /**
          * @brief standard ctor
          * @param direction_i halo_descriptor in i direction
@@ -68,11 +56,6 @@ namespace gridtools {
             halo_descriptor const &direction_j,
             const array<uint_t, size> &value_list)
             : m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {}
-
-        GT_DEPRECATED("Use constructor with halo_descriptors (deprecated after 1.05.02)")
-        GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/)
-            : m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
-              m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {}
 
         GT_FUNCTION
         uint_t i_low_bound() const { return m_direction_i.begin(); }
