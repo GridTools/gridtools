@@ -762,7 +762,7 @@ namespace gridtools {
         template <typename DT>
         struct traits {
             static const int I = DIMS;
-            typedef empty_field_no_dt<I> base_field;
+            typedef empty_field_no_dt base_field;
         };
 
         explicit halo_exchange_generic(typename grid_type::period_type const &c, MPI_Comm comm) : base_type(c, comm) {}

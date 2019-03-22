@@ -10,7 +10,7 @@
 #pragma once
 
 namespace gridtools {
-    template <typename DataType, int DIMS, typename>
+    template <typename DataType, typename>
     class hndlr_descriptor_ut;
 
     template <typename Datatype, typename GridType, typename, typename, typename, int>

@@ -57,8 +57,8 @@ namespace gridtools {
 
     */
     template <typename DataType, int DIMS>
-    class empty_field : public empty_field_base<DataType, DIMS> {
-        typedef empty_field_base<DataType, DIMS> base_type;
+    class empty_field : public empty_field_base<DataType> {
+        typedef empty_field_base<DataType> base_type;
 
       public:
         /**
@@ -538,9 +538,9 @@ namespace gridtools {
         \tparam DIMS Number of dimensions of the grids.
         \tparam HaloExch pattern type used in communication.
     */
-    template <typename DataType, int DIMS, typename HaloExch>
+    template <typename DataType, typename HaloExch>
     class handler_manager_ut {
-        hndlr_descriptor_ut<DataType, DIMS, HaloExch> *h;
+        hndlr_descriptor_ut<DataType, HaloExch> *h;
 
       public:
         /**
@@ -551,9 +551,9 @@ namespace gridtools {
            \param arg  Value of the argument
         */
         template <typename ARG>
-        hndlr_descriptor_ut<DataType, DIMS, HaloExch> &create_handler(
+        hndlr_descriptor_ut<DataType, HaloExch> &create_handler(
             typename HaloExch::grid_type::period_type const &c, ARG const &arg) {
-            h = new hndlr_descriptor_ut<DataType, DIMS, HaloExch>(c, arg);
+            h = new hndlr_descriptor_ut<DataType, HaloExch>(c, arg);
             return *h;
         }
 
@@ -567,9 +567,9 @@ namespace gridtools {
            \param arg1  Value of the argument
         */
         template <typename ARG0, typename ARG1>
-        hndlr_descriptor_ut<DataType, DIMS, HaloExch> &create_handler(
+        hndlr_descriptor_ut<DataType, HaloExch> &create_handler(
             typename HaloExch::grid_type::period_type const &c, ARG0 const &arg0, ARG1 const &arg1) {
-            h = new hndlr_descriptor_ut<DataType, DIMS, HaloExch>(c, arg0, arg1);
+            h = new hndlr_descriptor_ut<DataType, HaloExch>(c, arg0, arg1);
             return *h;
         }
 
@@ -577,7 +577,7 @@ namespace gridtools {
            Destroy the handler created by create_handler which cannot be reused
            after this function returns.
         */
-        void destroy_handler(hndlr_descriptor_ut<DataType, DIMS, HaloExch> &h) { delete (&h); }
+        void destroy_handler(hndlr_descriptor_ut<DataType, HaloExch> &h) { delete (&h); }
     };
 
     template <typename HaloExch, typename proc_layout_abs, typename Gcl_Arch, int version>

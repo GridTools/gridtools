@@ -46,9 +46,9 @@ namespace gridtools {
         \tparam DIMS the number of dimensions of the data field
     */
     template <int DIMS>
-    class empty_field_no_dt_gpu : public empty_field_base<int, DIMS> {
+    class empty_field_no_dt_gpu : public empty_field_base<int> {
 
-        typedef empty_field_base<int, DIMS> base_type;
+        typedef empty_field_base<int> base_type;
 
       public:
         /**

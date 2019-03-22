@@ -53,10 +53,10 @@ namespace gridtools {
 
         \tparam DIMS the number of dimensions of the data field
     */
-    template <int DIMS>
-    class empty_field_no_dt : public empty_field_base<int, DIMS> {
+    class empty_field_no_dt : public empty_field_base<int> {
+        static constexpr int DIMS = 3;
 
-        typedef empty_field_base<int, DIMS> base_type;
+        typedef empty_field_base<int> base_type;
 
       public:
         /**
@@ -201,14 +201,6 @@ namespace gridtools {
         }
     };
 
-    template <int I>
-    std::ostream &operator<<(std::ostream &s, empty_field_no_dt<I> const &ef) {
-        s << "empty_field_no_dt ";
-        for (int i = 0; i < I; ++i)
-            s << ef.raw_array()[i] << ", ";
-        return s;
-    }
-
     /** \class field_descriptor_no_dt
         Class containint the information about a data field (grid).
         It contains a pointer to the first element of the data field,
@@ -227,11 +219,12 @@ namespace gridtools {
         \tparam DataType type of lements of the datafield
         \tparam DIMS the number of dimensions of the data field
     */
-    template <typename DataType, int DIMS>
-    class field_descriptor_no_dt : public empty_field_no_dt<DIMS> {
+    template <typename DataType>
+    class field_descriptor_no_dt : public empty_field_no_dt {
+        static constexpr int DIMS = 3;
         DataType *fieldptr; // Pointer to the data field
 
-        typedef empty_field_no_dt<DIMS> base_type;
+        typedef empty_field_no_dt base_type;
 
       public:
         /**
@@ -284,11 +277,12 @@ namespace gridtools {
         \tparam DIMS Number of dimensions of the grids.
         \tparam HaloExch Communication patter with halo exchange.
     */
-    template <typename DataType, int DIMS, typename HaloExch>
+    template <typename DataType, typename HaloExch>
     class hndlr_descriptor_ut : public descriptor_base<HaloExch> {
-        typedef hndlr_descriptor_ut<DataType, DIMS, HaloExch> this_type;
+        typedef hndlr_descriptor_ut<DataType, HaloExch> this_type;
+        static constexpr int DIMS = 3;
 
-        std::vector<field_descriptor_no_dt<DataType, DIMS>> field;
+        std::vector<field_descriptor_no_dt<DataType>> field;
 
         gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...
         gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> recv_buffer;
@@ -344,7 +338,7 @@ namespace gridtools {
            \return index of the field in the handler desctiptor
         */
         size_t register_field(DataType *ptr) {
-            field.push_back(field_descriptor_no_dt<DataType, DIMS>(ptr));
+            field.push_back(field_descriptor_no_dt<DataType>(ptr));
             return field.size() - 1;
         }
 
@@ -370,7 +364,7 @@ namespace gridtools {
 
         int size() const { return field.size(); }
 
-        field_descriptor_no_dt<DataType, DIMS> const &data_field(int I) const { return field[I]; }
+        field_descriptor_no_dt<DataType> const &data_field(int I) const { return field[I]; }
 
         /** Given the coordinates of a neighbor (2D), return the total number of elements
             to be sent to that neighbor associated with the handler of the manager.
@@ -454,7 +448,7 @@ namespace gridtools {
         typedef hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, gcl_cpu, 2> this_type;
 
       public:
-        empty_field_no_dt<DIMS> halo;
+        empty_field_no_dt halo;
 
       private:
         gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...
