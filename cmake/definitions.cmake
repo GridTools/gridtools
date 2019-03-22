@@ -81,9 +81,9 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.9.0")
         # attribute noalias has been added in clang 3.9.0
         target_compile_options(GridToolsTest INTERFACE 
-            $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>)
+            $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-attributes>)
         target_compile_options(GridToolsTest INTERFACE
-            $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unknown-pragmas>)
+            $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unknown-attributes>)
     endif ()
 endif()
 if(GT_TESTS_ICOSAHEDRAL_GRID)
