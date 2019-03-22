@@ -69,31 +69,6 @@ namespace gridtools {
 
         const halo_descriptor *raw_array() const { return &(base_type::halos[0]); }
 
-        /** void pack(gridtools::array<int, D> const& eta, iterator &it)
-            Pack the elements of a data field passed in input as iterator_in to be sent using the
-            iterator_out passed in that points to data buffers. At the end
-            the iterator_out points to the element next to the last inserted. In inout
-            the iterator_out points to the elements to be insered
-
-            \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
-            \param[in] field_ptr iterator pointing to data field data
-            \param[in,out] it iterator pointing to the data.
-        */
-        template <typename iterator_in, typename iterator_out>
-        void pack(gridtools::array<int, 2> const &eta, iterator_in const *field_ptr, iterator_out *&it) const {
-            for (int j = base_type::halos[1].loop_low_bound_inside(eta[1]);
-                 j <= base_type::halos[1].loop_high_bound_inside(eta[1]);
-                 ++j) {
-                for (int i = base_type::halos[0].loop_low_bound_inside(eta[0]);
-                     i <= base_type::halos[0].loop_high_bound_inside(eta[0]);
-                     ++i) {
-                    *(reinterpret_cast<iterator_in *>(it)) = field_ptr[gridtools::access(
-                        i, j, base_type::halos[0].total_length(), base_type::halos[1].total_length())];
-                    reinterpret_cast<char *&>(it) += sizeof(iterator_in);
-                }
-            }
-        }
-
         template <typename iterator_in, typename iterator_out>
         void pack(gridtools::array<int, 3> const &eta, iterator_in const *field_ptr, iterator_out *&it) const {
             // std::cout << "BASE ADDR IN PACK " << std::hex << reinterpret_cast<void*>(it) << std::dec << std::endl;
@@ -136,34 +111,6 @@ namespace gridtools {
                             base_type::halos[2].total_length())];
                         reinterpret_cast<char *&>(it) += sizeof(iterator_in);
                     }
-                }
-            }
-        }
-
-        /** void unpack(gridtools::array<int, D> const& eta, iterator &it)
-            Unpack the elements into a data field passed in input as
-            iterator_in that have being received in data obtained by the
-            iterator_out passed in that points to data buffers. At the end
-            the iterator points to the element next to the last read element. In inout
-            the iterator points to the elements to be extracted from buffers and put
-            int the halo region.
-
-            \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the sending neighbor
-            \param[in] field_ptr iterator pointing to data field data
-            \param[in,out] it iterator pointing to the data in buffers.
-        */
-        template <typename iterator_in, typename iterator_out>
-        void unpack(gridtools::array<int, 2> const &eta, iterator_in *field_ptr, iterator_out *&it) const {
-            for (int j = base_type::halos[1].loop_low_bound_outside(eta[1]);
-                 j <= base_type::halos[1].loop_high_bound_outside(eta[1]);
-                 ++j) {
-                for (int i = base_type::halos[0].loop_low_bound_outside(eta[0]);
-                     i <= base_type::halos[0].loop_high_bound_outside(eta[0]);
-                     ++i) {
-                    field_ptr[gridtools::access(
-                        i, j, base_type::halos[0].total_length(), base_type::halos[1].total_length())] =
-                        *(reinterpret_cast<iterator_in *>(it));
-                    reinterpret_cast<char *&>(it) += sizeof(iterator_in);
                 }
             }
         }
