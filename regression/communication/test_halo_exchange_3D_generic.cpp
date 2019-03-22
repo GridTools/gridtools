@@ -103,7 +103,7 @@ namespace halo_exchange_3D_generic {
            logically to processor (p+1,q,r). The other dimensions goes as
            the others.
         */
-        typedef gridtools::halo_exchange_generic<gridtools::layout_map<0, 1, 2>, 3, arch_type, PACKING_TYPE>
+        typedef gridtools::halo_exchange_generic<gridtools::layout_map<0, 1, 2>, arch_type, PACKING_TYPE>
             pattern_type;
 
         /* The pattern is now instantiated with the periodicities and the

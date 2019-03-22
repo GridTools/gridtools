@@ -46,36 +46,24 @@ namespace gridtools {
             return CartComm;
         }
 
-        template <int D, typename GT, int version>
+        template <typename GT, int version>
         struct get_pattern;
 
         template <typename GT>
-        struct get_pattern<3, GT, 0> {
+        struct get_pattern<GT, 0> {
             typedef Halo_Exchange_3D<GT> type;
         };
 
         template <typename GT>
-        struct get_pattern<3, GT, 1> {
+        struct get_pattern<GT, 1> {
             typedef Halo_Exchange_3D_DT<GT> type;
         };
 
         template <typename GT>
-        struct get_pattern<3, GT, 2> {
+        struct get_pattern<GT, 2> {
             typedef Halo_Exchange_3D<GT> type;
         };
 
-        template <int D>
-        struct get_grid;
-
-        template <>
-        struct get_grid<2> {
-            typedef MPI_3D_process_grid_t<2> type;
-        };
-
-        template <>
-        struct get_grid<3> {
-            typedef MPI_3D_process_grid_t<3> type;
-        };
     } // namespace _impl
 
     /**
@@ -229,14 +217,15 @@ namespace gridtools {
         /**
            Type of the computin grid associated to the pattern
         */
-        /*typedef typename _impl::get_grid<DIMS>::type grid_type;*/
         typedef GridType grid_type;
-        static const uint_t DIMS = GridType::ndims;
+
+        static constexpr int DIMS = 3;
+
         /**
            Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
            In the case the implementation is not using L3, the type is not available.
         */
-        typedef typename _impl::get_pattern<DIMS, grid_type, version>::type pattern_type;
+        typedef typename _impl::get_pattern<grid_type, version>::type pattern_type;
 
       private:
         template <typename Array>
@@ -289,27 +278,27 @@ namespace gridtools {
 
         /** constructor that takes the periodicity (mathich the \link
             boollist_concept \endlink concept, and the MPI CART
-            communicator in DIMS (specified as template argument to the
-            pattern) dimensions of the processing grid. the periodicity is
-            specified in the order chosen by the programmer for the data,
-            as in the rest of the application. It is up tp the
-            construnctor implementation to translate it into the right
-            order depending on the gridtools::layout_map passed to the class.
+            communicator in 3 dimensions of the processing grid. the
+            periodicity is specified in the order chosen by the
+            programmer for the data, as in the rest of the
+            application. It is up tp the construnctor implementation
+            to translate it into the right order depending on the
+            gridtools::layout_map passed to the class.
 
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
-            \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
+            \param[in] comm MPI CART communicator with dimension 3
         */
         explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
             : hd(c.template permute<layout2proc_map_abs>(), comm) {}
 
         /** constructor that takes the periodicity (mathich the \link
             boollist_concept \endlink concept, and the MPI CART
-            communicator in DIMS (specified as template argument to the
-            pattern) dimensions of the processing grid. the periodicity is
-            specified in the order chosen by the programmer for the data,
-            as in the rest of the application. It is up tp the
-            construnctor implementation to translate it into the right
-            order depending on the gridtools::layout_map passed to the class.
+            communicator in 3 dimensions of the processing grid. the
+            periodicity is specified in the order chosen by the
+            programmer for the data, as in the rest of the
+            application. It is up tp the construnctor implementation
+            to translate it into the right order depending on the
+            gridtools::layout_map passed to the class.
 
             Examples:
             1) hd(period_type(true, true, false), MPI_COMM_WORLD, array<int, 3>{0,0,0});
@@ -325,7 +314,7 @@ namespace gridtools {
             \tparam ValueType Value type of the GridTools array of dimensions (deduced)
             \tparam Size  Size of the GridTools array of dimensions (deduced)
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
-            \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
+            \param[in] comm MPI CART communicator with dimension 3
             \param[in] dims Array of dimensions of the ocmputing grid. Array must provide operator[] up to 3 elements.
            The behavior is like MPI_Dims_create.
         */
@@ -344,7 +333,7 @@ namespace gridtools {
             \tparam ValueType Value type of the GridTools array of dimensions (deduced)
             \tparam Size  Size of the GridTools array of dimensions (deduced)
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
-            \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
+            \param[in] comm MPI CART communicator with dimension 3
             \param[in] dims Array of dimensions of the ocmputing grid. Array must provide operator[] up to 3 elements.
            The behavior is like MPI_Dims_create.
          */
@@ -550,19 +539,6 @@ namespace gridtools {
         grid_type const &comm() const { return hd.comm(); }
     };
 
-    template <int I>
-    struct pick_version;
-
-    template <>
-    struct pick_version<2> {
-        static const int value = gridtools::version_mpi_pack;
-    };
-
-    template <>
-    struct pick_version<3> {
-        static const int value = gridtools::version_manual;
-    };
-
     /**
        This is the main class for the halo exchange pattern in the case
        in which the data pointers, data types, and shapes are not known
@@ -588,22 +564,24 @@ namespace gridtools {
        \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is.
        Possible coiches are defined in low_level/gcl_arch.h .
     */
-    template <typename layout2proc_map, int DIMS, typename Gcl_Arch = gcl_cpu, int version = pick_version<DIMS>::value>
+    template <typename layout2proc_map, typename Gcl_Arch, int version>
     class halo_exchange_generic_base {
 
       public:
         // typedef typename reverse_map<t_layout2proc_map>::type layout2proc_map;
 
+        static constexpr int DIMS = 3;
+
         /**
            Type of the computin grid associated to the pattern
         */
-        typedef typename _impl::get_grid<DIMS>::type grid_type;
+        typedef MPI_3D_process_grid_t<3> grid_type;
 
         /**
            Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
            In the case the implementation is not using L3, the type is not available.
         */
-        typedef typename _impl::get_pattern<DIMS, grid_type, version>::type pattern_type;
+        typedef typename _impl::get_pattern<grid_type, version>::type pattern_type;
 
       private:
         hndlr_generic<DIMS, pattern_type, layout2proc_map, Gcl_Arch, version> hd;
@@ -722,10 +700,10 @@ namespace gridtools {
         void wait() { hd.wait(); }
     };
 
-    template <typename layout2proc_map, int DIMS, typename Gcl_Arch = gcl_cpu, int version = version_manual>
-    class halo_exchange_generic : public halo_exchange_generic_base<layout2proc_map, DIMS, Gcl_Arch, version> {
+    template <typename layout2proc_map, typename Gcl_Arch = gcl_cpu, int version = version_manual>
+    class halo_exchange_generic : public halo_exchange_generic_base<layout2proc_map, Gcl_Arch, version> {
 
-        typedef halo_exchange_generic_base<layout2proc_map, DIMS, Gcl_Arch, version> base_type;
+        typedef halo_exchange_generic_base<layout2proc_map, Gcl_Arch, version> base_type;
         //    typedef typename layout_transform<layout_map, layout2proc_map_abs>::type layout2proc_map;
 
       public:
@@ -735,7 +713,7 @@ namespace gridtools {
 
         template <typename DT>
         struct traits {
-            static const int I = DIMS;
+            static const int I = 3;
             typedef empty_field<DT, I> base_field;
         };
 
@@ -745,14 +723,14 @@ namespace gridtools {
     };
 
     // different traits are needed
-    template <typename layout2proc_map, int DIMS>
-    class halo_exchange_generic<layout2proc_map, DIMS, gcl_cpu, version_manual>
-        : public halo_exchange_generic_base<layout2proc_map, DIMS, gcl_cpu, version_manual> {
+    template <typename layout2proc_map>
+    class halo_exchange_generic<layout2proc_map, gcl_cpu, version_manual>
+        : public halo_exchange_generic_base<layout2proc_map, gcl_cpu, version_manual> {
 
         static const int version = version_manual;
         typedef gcl_cpu Gcl_Arch;
 
-        typedef halo_exchange_generic_base<layout2proc_map, DIMS, gcl_cpu, version_manual> base_type;
+        typedef halo_exchange_generic_base<layout2proc_map, gcl_cpu, version_manual> base_type;
 
       public:
         typedef typename base_type::grid_type grid_type;
@@ -761,7 +739,7 @@ namespace gridtools {
 
         template <typename DT>
         struct traits {
-            static const int I = DIMS;
+            static const int I = 3;
             typedef empty_field_no_dt base_field;
         };
 
@@ -772,13 +750,13 @@ namespace gridtools {
 
     // different traits are needed
     template <typename layout2proc_map>
-    class halo_exchange_generic<layout2proc_map, 3, gcl_gpu, version_manual>
-        : public halo_exchange_generic_base<layout2proc_map, 3, gcl_gpu, version_manual> {
+    class halo_exchange_generic<layout2proc_map, gcl_gpu, version_manual>
+        : public halo_exchange_generic_base<layout2proc_map, gcl_gpu, version_manual> {
         static const int DIMS = 3;
 
         static const int version = version_manual;
         typedef gcl_gpu Gcl_Arch;
-        typedef halo_exchange_generic_base<layout2proc_map, DIMS, gcl_gpu, version_manual> base_type;
+        typedef halo_exchange_generic_base<layout2proc_map, gcl_gpu, version_manual> base_type;
 
       public:
         typedef typename base_type::grid_type grid_type;

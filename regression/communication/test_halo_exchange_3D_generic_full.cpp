@@ -115,7 +115,7 @@ namespace halo_exchange_3D_generic_full {
            the others.
         */
         typedef gridtools::
-            halo_exchange_generic<gridtools::layout_map<0, 1, 2>, 3, arch_type, gridtools::version_manual>
+            halo_exchange_generic<gridtools::layout_map<0, 1, 2>, arch_type, gridtools::version_manual>
                 pattern_type;
 
         /* The pattern is now instantiated with the periodicities and the
