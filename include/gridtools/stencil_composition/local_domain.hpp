@@ -38,13 +38,6 @@ namespace gridtools {
 
         template <class Item>
         GT_META_DEFINE_ALIAS(get_strides, sid::strides_type, GT_META_CALL(meta::second, Item));
-
-        template <class Arg>
-        GT_META_DEFINE_ALIAS(get_storage_info_ptr, meta::id, typename Arg::data_store_t::storage_info_t const *);
-
-        template <class Args>
-        GT_META_DEFINE_ALIAS(
-            get_storage_info_ptrs, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info_ptr, Args))));
     } // namespace local_domain_impl_
 
     /**
