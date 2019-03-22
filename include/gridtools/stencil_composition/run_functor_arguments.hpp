@@ -90,7 +90,6 @@ namespace gridtools {
         typedef CacheSequence cache_sequence_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
-        using strategy_type = typename backend_ids_t::strategy_id_t;
     };
 
     template <class T>

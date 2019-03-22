@@ -16,8 +16,8 @@
 
 #include "../backend_traits_fwd.hpp"
 #include "../grid_traits_fwd.hpp"
+#include "../mss_functor.hpp"
 #include "execute_kernel_functor_cuda.hpp"
-#include "strategy_cuda.hpp"
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -56,16 +56,35 @@ namespace gridtools {
         };
 
         /**
+         * @brief struct holding backend-specific runtime information about stencil execution.
+         * Empty for the CUDA backend.
+         */
+        struct execution_info_cuda {};
+
+        /**
+         * @brief loops over all blocks and execute sequentially all mss functors for each block
+         * @tparam MssComponents a meta array with the mss components of all MSS
+         * @tparam BackendIds backend ids type
+         */
+        template <typename MssComponents, typename BackendIds>
+        struct fused_mss_loop {
+            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+
+            template <typename LocalDomainListArray, typename Grid>
+            static void run(LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+                GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+
+                host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
+                    mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execution_info_cuda>(
+                        local_domain_lists, grid, {}));
+            }
+        };
+
+        /**
          * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
          */
         typedef std::true_type mss_fuse_esfs_strategy;
-
-        // metafunction that contains the strategy from id metafunction corresponding to this backend
-        template <typename BackendIds>
-        struct select_strategy {
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_cuda<typename BackendIds::strategy_id_t> type;
-        };
 
         using performance_meter_t = typename timer_traits<target::cuda>::timer_type;
     };

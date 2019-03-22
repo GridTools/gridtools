@@ -29,7 +29,7 @@ set(REQUIRED_BOOST_VERSION 1.58)
 find_package( Boost ${REQUIRED_BOOST_VERSION} REQUIRED )
 target_link_libraries( gridtools INTERFACE Boost::boost)
 
-if (GT_ENABLE_TARGET_X86 OR GT_ENABLE_TARGET_MC)
+if (GT_ENABLE_TARGET_X86 OR GT_ENABLE_TARGET_MC OR GT_ENABLE_TARGET_NAIVE)
     target_link_libraries( gridtools INTERFACE OpenMP::OpenMP_CXX)
 endif()
 
@@ -91,6 +91,14 @@ if(GT_ENABLE_TARGET_X86)
   target_link_libraries(GridToolsTestX86 INTERFACE GridToolsTest)
   target_compile_options(GridToolsTestX86 INTERFACE -march=native)
 endif(GT_ENABLE_TARGET_X86)
+
+# TESTS ONLY
+if(GT_ENABLE_TARGET_NAIVE)
+  add_library(GridToolsTestNaive INTERFACE)
+  target_compile_definitions(GridToolsTestNaive INTERFACE GT_BACKEND_NAIVE)
+  target_link_libraries(GridToolsTestNaive INTERFACE GridToolsTest)
+  target_compile_options(GridToolsTestNaive INTERFACE -march=native)
+endif(GT_ENABLE_TARGET_NAIVE)
 
 ## cuda support ##
 if( GT_ENABLE_TARGET_CUDA )

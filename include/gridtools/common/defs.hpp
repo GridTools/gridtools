@@ -115,13 +115,8 @@ namespace gridtools {
         struct cuda {};
         struct mc {};
         struct x86 {};
-    } // namespace target
-
-    /** tags specifying the strategy to use */
-    namespace strategy {
         struct naive {};
-        struct block {};
-    } // namespace strategy
+    } // namespace target
 
 #define GT_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 

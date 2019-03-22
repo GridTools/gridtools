@@ -16,7 +16,7 @@
 
 namespace gridtools {
     template <class Args>
-    struct kernel_functor_executor<backend_ids<target::cuda, strategy::block>, Args> {
+    struct kernel_functor_executor<backend_ids<target::cuda>, Args> {
         using type = icgrid::execute_kernel_functor_cuda<Args>;
     };
 } // namespace gridtools

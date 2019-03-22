@@ -22,17 +22,12 @@ using float_type = double;
 
 #ifdef GT_BACKEND_X86
 using target_t = gridtools::target::x86;
-#ifdef GT_BACKEND_STRATEGY_NAIVE
-using strategy_t = gridtools::strategy::naive;
-#else
-using strategy_t = gridtools::strategy::block;
-#endif
+#elif defined(GT_BACKEND_NAIVE)
+using target_t = gridtools::target::naive;
 #elif defined(GT_BACKEND_MC)
 using target_t = gridtools::target::mc;
-using strategy_t = gridtools::strategy::block;
 #elif defined(GT_BACKEND_CUDA)
 using target_t = gridtools::target::cuda;
-using strategy_t = gridtools::strategy::block;
 #else
 #define GT_NO_BACKEND
 #endif

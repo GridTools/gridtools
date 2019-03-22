@@ -15,24 +15,6 @@
 #include "../grid.hpp"
 
 namespace gridtools {
-    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<target::x86, strategy::block> const &) {
-        return GT_DEFAULT_TILE_I;
-    }
-    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<target::x86, strategy::block> const &) {
-        return GT_DEFAULT_TILE_J;
-    }
-
-    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<target::x86, strategy::naive> const &) { return 0; }
-    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<target::x86, strategy::naive> const &) { return 0; }
-
-    template <class Grid>
-    uint_t block_i_size(backend_ids<target::x86, strategy::naive> const &, Grid const &grid) {
-        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        return grid.i_high_bound() - grid.i_low_bound() + 1;
-    }
-    template <class Grid>
-    uint_t block_j_size(backend_ids<target::x86, strategy::naive> const &, Grid const &grid) {
-        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        return grid.j_high_bound() - grid.j_low_bound() + 1;
-    }
+    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<target::x86> const &) { return GT_DEFAULT_TILE_I; }
+    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<target::x86> const &) { return GT_DEFAULT_TILE_J; }
 } // namespace gridtools

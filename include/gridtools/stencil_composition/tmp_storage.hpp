@@ -46,6 +46,7 @@
 #include "../meta.hpp"
 #include "./arg.hpp"
 #include "./backend_cuda/tmp_storage.hpp"
+#include "./backend_naive/tmp_storage.hpp"
 #include "./backend_x86/tmp_storage.hpp"
 #include "./block.hpp"
 #include "./grid.hpp"

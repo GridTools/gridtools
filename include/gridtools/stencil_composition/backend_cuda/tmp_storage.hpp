@@ -32,19 +32,16 @@ namespace gridtools {
             template <class StorageInfo,
                 class MaxExtent,
                 int_t UsedHalo = -MaxExtent::iminus::value,
-                uint_t StorageHalo = StorageInfo::halo_t::at(
-                    coord_i<backend_ids<target::cuda, strategy::block>>::value)>
+                uint_t StorageHalo = StorageInfo::halo_t::at(coord_i<backend_ids<target::cuda>>::value)>
             GT_FUNCTION constexpr uint_t additional_i_offset() {
                 return StorageHalo > UsedHalo ? StorageHalo - UsedHalo : 0;
             }
         } // namespace _impl
 
-        constexpr std::false_type needs_allocate_cached_tmp(backend_ids<target::cuda, strategy::block> const &) {
-            return {};
-        }
+        constexpr std::false_type needs_allocate_cached_tmp(backend_ids<target::cuda> const &) { return {}; }
 
         template <class StorageInfo, class MaxExtent>
-        uint_t get_i_size(backend_ids<target::cuda, strategy::block> const &, uint_t block_size, uint_t total_size) {
+        uint_t get_i_size(backend_ids<target::cuda> const &, uint_t block_size, uint_t total_size) {
             GT_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
             static constexpr auto additional_offset = _impl::additional_i_offset<StorageInfo, MaxExtent>();
             auto full_block_size = _impl::full_block_i_size<StorageInfo, MaxExtent>(block_size);
@@ -53,8 +50,7 @@ namespace gridtools {
         }
 
         template <class StorageInfo, class MaxExtent>
-        GT_FUNCTION int_t get_i_block_offset(
-            backend_ids<target::cuda, strategy::block> const &, uint_t block_size, uint_t block_no) {
+        GT_FUNCTION int_t get_i_block_offset(backend_ids<target::cuda> const &, uint_t block_size, uint_t block_no) {
             GT_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
             static constexpr auto additional_offset = _impl::additional_i_offset<StorageInfo, MaxExtent>();
             auto full_block_size = _impl::full_block_i_size<StorageInfo, MaxExtent>(block_size);
@@ -62,19 +58,16 @@ namespace gridtools {
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_j_size(backend_ids<target::cuda, strategy::block> const &, uint_t block_size, uint_t total_size) {
-            static constexpr auto halo =
-                StorageInfo::halo_t::template at<coord_j<backend_ids<target::cuda, strategy::block>>::value>();
+        uint_t get_j_size(backend_ids<target::cuda> const &, uint_t block_size, uint_t total_size) {
+            static constexpr auto halo = StorageInfo::halo_t::template at<coord_j<backend_ids<target::cuda>>::value>();
             auto full_block_size = block_size + 2 * halo;
             auto num_blocks = (total_size + block_size - 1) / block_size;
             return full_block_size * num_blocks;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_j_block_offset(
-            backend_ids<target::cuda, strategy::block> const &, uint_t block_size, uint_t block_no) {
-            static constexpr auto halo =
-                StorageInfo::halo_t::template at<coord_j<backend_ids<target::cuda, strategy::block>>::value>();
+        GT_FUNCTION int_t get_j_block_offset(backend_ids<target::cuda> const &, uint_t block_size, uint_t block_no) {
+            static constexpr auto halo = StorageInfo::halo_t::template at<coord_j<backend_ids<target::cuda>>::value>();
             return block_no * (block_size + 2 * halo) + halo;
         }
     } // namespace tmp_storage

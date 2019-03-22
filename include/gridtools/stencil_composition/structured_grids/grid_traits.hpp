@@ -13,4 +13,5 @@
 #include "./backend_cuda/grid_traits_cuda.hpp"
 #endif
 #include "./backend_mc/grid_traits_mc.hpp"
+#include "./backend_naive/grid_traits_naive.hpp"
 #include "./backend_x86/grid_traits_x86.hpp"
