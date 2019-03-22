@@ -73,7 +73,7 @@ we cover how to define the :term:`Iteration Space` with the ``grid`` object.
 
 .. cpp:function:: grid make_grid(int size_i, int size_j, int size_k)
 
-   The simplest :term:`Iteration Space` will iterate the cube defined by the :term:`Intervals<Interval>` ``[0,
+   The simplest :term:`Iteration Space` will iterate the cube defined by the :term:`Vertical Intervals<Vertical Interval>` ``[0,
    size_i-1]``, ``[0, size_j-1]``, ``[0, size_k-1]``. This function must only be used if all stages used within the
    computation have zero extents.
 
@@ -130,8 +130,8 @@ Default Interval
 ^^^^^^^^^^^^^^^^^^^
 
 In simple applications, where all vertical levels should be treated equally, |GT| allows to use a default
-:term:`Interval` which covers the full vertical region. In this and only this case the apply methods of the stencil
-operators should be defined without specifying an :term:`Interval` (see Section
+:term:`Vertical Interval` which covers the full vertical region. In this and only this case the apply methods of the stencil
+operators should be defined without specifying an :term:`Vertical Interval` (see Section
 :ref:`Apply-Methods<stencil_operators_apply_method>`) and the iteration space should be created using one of the simple
 constructors in the :ref:`previous section<defining_iteration_space>` (namely, either ``make_grid(int, int, int)``, or
 ``make_grid(halo_descriptor, halo_descriptor, int)``.
@@ -174,10 +174,10 @@ Each region already defines a :term:`Vertical Interval` which can be queried fro
    using full_interval = my_axis_t::full_interval;
    ...
    
-Note that the :term:`Intervals<Interval>` are compile time object, i.e. C++ types. These :term:`Intervals<Interval>`
+Note that the :term:`Vertical Intervals<Vertical Interval>` are compile time object, i.e. C++ types. These :term:`Vertical Intervals<Vertical Interval>`
 are used for defining which :term:`Apply-Method` version of the stencil operator should be used during the iteration.
 
-:term:`Interval` provides meta-functions which allow to define modified :term:`Intervals<Interval>`
+:term:`Vertical Interval` provides meta-functions which allow to define modified :term:`Vertical Intervals<Vertical Interval>`
 
 - ``interval::first_level``, which is the Interval (a C++ type) describing the first level of the Interval
 - ``interval::last_level``, which is Interval describing the last level of the Interval
@@ -245,8 +245,8 @@ relations.
  introduce compile time checks to catch the violation of this
  condition.
 
-The result of a composition is a :term:`Multi-Stage Computation`, also called `multi-stage stencil` or simply `stencil`.
-For reason of uniformity, a Multi-Stage Computation with a singe :term:`Stage`, is still called a multi-stage, since the
+The result of a composition is a :term:`Multi-Stage`.
+For reason of uniformity, a Multi-Stage with a singe :term:`Stage`, is still called a multi-stage, since the
 composition is generally assumed to take a list of stages, even if the stage is just one.
 
 .. note::
@@ -276,8 +276,8 @@ Where the `operator` is the stencil operator of the stage and the `plc0`,
 `plc1`, … are the placeholders. The number and the intent of the placeholders
 depend on the :term:`Stencil Operator`.
 
-A multi-stage computation is a concatenation of stages, plus the indication of
-the :term:`Execution Order` to be used for all the stages.
+A :term:`Multi-Stage` is a concatenation of stages, plus the indication of
+the :term:`Vertical Execution Order` to be used for all the stages.
 
 The following example demonstrates how to create a multistage for a diffusion operator.
 
@@ -293,8 +293,8 @@ The following example demonstrates how to create a multistage for a diffusion op
 
 .. note::
 
- It is not possible to make a multi-stage computation with stages of different
- :term:`Execution Orders<Execution Order>`.
+ It is not possible to make a :term:`Multi-Stage` with stages of different
+ :term:`Vertical Execution Orders<Vertical Execution Order>`.
 
 The data-dependence analysis of |GT| will determine the data flow
 and the :term:`Extents<Extent>` at which each data field will be accessed. This
@@ -374,7 +374,7 @@ This option is particularly useful on multi-core machines with caches, since
 the backend there can actively pass information between the two stages thus
 improving substantially the performance.
 
-To execute a given :term:`Multi-Stage Computation`, the
+To execute a given :term:`Multi-Stage`, the
 `run` method has to be called. Data has to be assigned to each non-temporary
 :term:`Placeholder`.
 

@@ -17,38 +17,44 @@
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
+  
+  
     
 
   
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/cscs.css" type="text/css" />
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Getting Started" href="../getting_started/getting_started.html" />
-    <link rel="prev" title="Indices and tables" href="../index.html" /> 
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/cscs.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="GridTools 0.21.0 documentation" href="../index.html"/>
+        <link rel="next" title="Getting Started" href="../getting_started/getting_started.html"/>
+        <link rel="prev" title="Indices and tables" href="../index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -57,7 +63,7 @@
 
           
             
-            <img src="../_static/logo.svg" class="logo" alt="Logo"/>
+            <img src="../_static/logo.svg" class="logo" />
           
           </a>
 
@@ -93,10 +99,10 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-is-gridtools">What Is GridTools</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#simple-script">Simple Script</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-and-use">Installation and Use</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#simple-script">Simple Script</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#using-gridtools">Using GridTools</a></li>
 </ul>
 </li>
@@ -119,7 +125,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">GridTools</a>
@@ -127,10 +133,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -191,7 +196,7 @@ to aid code development and a communication layer.</p>
 architectures without any code change needed. Stencils can be built up by small composeable units called stages, using
 <cite>GridTools</cite> domain-specific language. Such a functor can be as simple as being just a copy stencil, copying data from one field
 to another:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">copy_functor</span> <span class="p">{</span>
+<div class="highlight-gridtools"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">copy_functor</span> <span class="p">{</span>
     <span class="k">using</span> <span class="n">in</span> <span class="o">=</span> <span class="k">in_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
     <span class="k">using</span> <span class="n">out</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
 
@@ -209,15 +214,18 @@ abstract descriptions of a stencils, the DSL allows <cite>GridTools</cite> can a
 computations in order to be optimal on the target hardware.</p>
 <div class="section" id="dependencies">
 <h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
-<p><cite>GridTools</cite> requires at least a header-only installation of <a class="reference external" href="https://www.boost.org/">Boost</a>. Besides some boost utilities, it depends on <code class="docutils literal notranslate"><span class="pre">boost::mpl</span></code> and <code class="docutils literal notranslate"><span class="pre">boost::fusion</span></code>.</p>
+<p><cite>GridTools</cite> requires at least a header-only installation of <a class="reference external" href="https://www.boost.org/">Boost</a>. Besides some boost utilities, it depends on <code class="docutils literal"><span class="pre">boost::mpl</span></code> and <code class="docutils literal"><span class="pre">boost::fusion</span></code>.</p>
 <p>Additionally, <cite>GridTools</cite> requires a recent version of <a class="reference external" href="https://www.cmake.org/">CMake</a>.</p>
-<p><cite>GridTools</cite> requires a modern compiler. A list of supported compilers can be found on <a class="reference external" href="https://github.com/eth-cscs/gridtools/wiki/Supported-Compilers">github</a>.</p>
+<p><cite>GridTools</cite> requires a modern compiler. A list of supported compilers can be found on <a class="reference external" href="https://github.com/GridTools/gridtools">github</a>.</p>
 </div>
+</div>
+<div class="section" id="installation-and-use">
+<span id="installation"></span><h2>Installation and Use<a class="headerlink" href="#installation-and-use" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="simple-script">
 <h3>Simple Script<a class="headerlink" href="#simple-script" title="Permalink to this headline">¶</a></h3>
-<p>We first provide a sample of the commands needed to enable the multicore and CUDA backends, install them in <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code>,
+<p>We first provide a sample of the commands needed to enable the multicore and CUDA backends, install them in <code class="docutils literal"><span class="pre">/usr/local</span></code>,
 and run the gridtools tests.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone http://github.com/eth-cscs/gridtools.git
+<div class="highlight-shell"><div class="highlight"><pre><span></span>git clone http://github.com/eth-cscs/gridtools.git
 <span class="nb">cd</span> gridtools
 mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
 cmake -DGT_ENABLE_TARGET_MC<span class="o">=</span>ON -DGT_ENABLE_TARGET_CUDA<span class="o">=</span>ON -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local ..
@@ -225,28 +233,24 @@ make install -j4
 make <span class="nb">test</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="installation-and-use">
-<h2>Installation and Use<a class="headerlink" href="#installation-and-use" title="Permalink to this headline">¶</a></h2>
 <p><cite>GridTools</cite> uses CMake as building system. The installation can be configured using <cite>ccmake</cite>. The following variables control the back-ends that will be supported by the runtime components of the installation, namely <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">GCL</span></a>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>GT_ENABLE_TARGET_CUDA <span class="c1"># For CUDA GPUs</span>
+<div class="highlight-shell"><div class="highlight"><pre><span></span>GT_ENABLE_TARGET_CUDA <span class="c1"># For CUDA GPUs</span>
 GT_ENABLE_TARGET_X86  <span class="c1"># For cache based multicores and naive implementation</span>
 GT_ENABLE_TARGET_MC   <span class="c1"># For optimized multicores and KNL</span>
 </pre></div>
 </div>
 <p>All the targets can be installed and used at the same time, but some runtime components may lead to incompatibilities or complex environments to make the codes run. It may be more effective to do multiple installs of the library for different targets in this case.</p>
-<p>At the moment the only runtime component of <cite>GridTools</cite> is the GCL, the communication module. By default, this component will be installed in the system as a single-node mockery of the full distributed memory capability. To enable the full GCL you must set to <code class="docutils literal notranslate"><span class="pre">ON</span></code> the following variable</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>GT_USE_MPI
+<p>At the moment the only runtime component of <cite>GridTools</cite> is the GCL, the communication module. By default, this component will be installed in the system as a single-node mockery of the full distributed memory capability. To enable the full GCL you must set to <code class="docutils literal"><span class="pre">ON</span></code> the following variable</p>
+<div class="highlight-shell"><div class="highlight"><pre><span></span>GT_USE_MPI
 </pre></div>
 </div>
-<p>In addition, it may be convenient to install the library without compiling and running the tests, that use multiple nodes. To do so you can set to <code class="docutils literal notranslate"><span class="pre">ON</span></code> the following variable:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>GT_GCL_ONLY
+<p>In addition, it may be convenient to install the library without compiling and running the tests, that use multiple nodes. To do so you can set to <code class="docutils literal"><span class="pre">ON</span></code> the following variable:</p>
+<div class="highlight-shell"><div class="highlight"><pre><span></span>GT_GCL_ONLY
 </pre></div>
 </div>
-<p>Other variables can be useful for your system, and you can find their descriptions using <code class="docutils literal notranslate"><span class="pre">ccmake</span></code>.</p>
+<p>Other variables can be useful for your system, and you can find their descriptions using <code class="docutils literal"><span class="pre">ccmake</span></code>.</p>
 <p>When installing <cite>GridTools</cite> all the source codes of the components will be copied to the installation path. To avoid compiling and running tests for specific components, <cite>GridTools</cite> allows to enable or disable components using the following variables, with obvious meaning:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>INSTALL_BOUNDARY_CONDITIONS
+<div class="highlight-shell"><div class="highlight"><pre><span></span>INSTALL_BOUNDARY_CONDITIONS
 INSTALL_DISTRIBUTED_BOUNDARIES
 INSTALL_COMMON
 INSTALL_STENCIL_COMPOSITION
@@ -256,33 +260,34 @@ INSTALL_INTERFACE
 INSTALL_TOOLS
 </pre></div>
 </div>
-<p>To have access to these variables <code class="docutils literal notranslate"><span class="pre">INSTALL_ALL</span></code> should be set to <code class="docutils literal notranslate"><span class="pre">OFF</span></code>.</p>
-<p>Examples can be installed by enabling <code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES</span></code>. This will install the examples into the path given by
-<code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES_PATH</span></code>. The examples come with a standalone CMake project and can be built separately, e.g. with
+<p>To have access to these variables <code class="docutils literal"><span class="pre">INSTALL_ALL</span></code> should be set to <code class="docutils literal"><span class="pre">OFF</span></code>.</p>
+<p>Examples can be installed by enabling <code class="docutils literal"><span class="pre">GT_INSTALL_EXAMPLES</span></code>. This will install the examples into the path given by
+<code class="docutils literal"><span class="pre">GT_INSTALL_EXAMPLES_PATH</span></code>. The examples come with a standalone CMake project and can be built separately, e.g. with
 the following set of instructions:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> examples
+<div class="highlight-shell"><div class="highlight"><pre><span></span><span class="nb">cd</span> examples
 mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
 cmake ..
 make -j4
 </pre></div>
 </div>
+</div>
 <div class="section" id="using-gridtools">
 <h3>Using GridTools<a class="headerlink" href="#using-gridtools" title="Permalink to this headline">¶</a></h3>
 <p>Using <cite>GridTools</cite> follows standard CMake practices. To indicate where the <cite>GridTools</cite> can be found,
-CMake should be provided with the variable <code class="docutils literal notranslate"><span class="pre">GridTools_DIR</span></code>,
-e.g. by calling CMake with <code class="docutils literal notranslate"><span class="pre">-DGridTools_DIR=&lt;/path/to/gridtools/lib/cmake&gt;</span></code>.
-The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file should then contain the following lines:</p>
+CMake should be provided with the variable <code class="docutils literal"><span class="pre">GridTools_DIR</span></code>,
+e.g. by calling CMake with <code class="docutils literal"><span class="pre">-DGridTools_DIR=&lt;/path/to/gridtools/lib/cmake&gt;</span></code>.
+The <code class="docutils literal"><span class="pre">CMakeLists.txt</span></code> file should then contain the following lines:</p>
 <p>__VERSION__</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">GridTools</span> <span class="s">VERSION</span> <span class="s">...</span> <span class="s">REQUIRED</span><span class="p">)</span>
+<div class="highlight-cmake"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">GridTools</span> <span class="s">VERSION</span> <span class="s">...</span> <span class="s">REQUIRED</span><span class="p">)</span>
 <span class="nb">list</span><span class="p">(</span><span class="s">APPEND</span> <span class="s">CMAKE_MODULE_PATH</span> <span class="s2">&quot;${GridTools_MODULE_PATH}&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If GridTools uses the CUDA backend, you must call <code class="docutils literal notranslate"><span class="pre">enable_language(CUDA)</span></code> before finding the package.</p>
+<p class="last">If GridTools uses the CUDA backend, you must call <code class="docutils literal"><span class="pre">enable_language(CUDA)</span></code> before finding the package.</p>
 </div>
-<p>Targets that need <cite>GridTools</cite> should link against <code class="docutils literal notranslate"><span class="pre">GridTools::gridtools</span></code>. If the communication module is needed <code class="docutils literal notranslate"><span class="pre">GridTools::gcl</span></code> should be used instead.</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">add_library</span><span class="p">(</span><span class="s">my_library</span> <span class="s">source.cpp</span><span class="p">)</span>
+<p>Targets that need <cite>GridTools</cite> should link against <code class="docutils literal"><span class="pre">GridTools::gridtools</span></code>. If the communication module is needed <code class="docutils literal"><span class="pre">GridTools::gcl</span></code> should be used instead.</p>
+<div class="highlight-cmake"><div class="highlight"><pre><span></span><span class="nb">add_library</span><span class="p">(</span><span class="s">my_library</span> <span class="s">source.cpp</span><span class="p">)</span>
 <span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_library</span> <span class="s">PUBLIC</span> <span class="s">GridTools::gridtools</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -296,7 +301,9 @@ The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt<
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -305,7 +312,7 @@ The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt<
         <a href="../getting_started/getting_started.html" class="btn btn-neutral float-right" title="Getting Started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../index.html" class="btn btn-neutral float-left" title="Indices and tables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../index.html" class="btn btn-neutral" title="Indices and tables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -314,11 +321,11 @@ The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt<
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, ETH Zurich
+        &copy; Copyright 2019, ETH Zurich.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -331,15 +338,37 @@ The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt<
   
 
 
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.21.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
 
   
   
-    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
    
 
 </body>
