@@ -442,10 +442,10 @@ namespace gridtools {
         \tparam HaloExch Communication pattern with halo exchange.
     */
     template <typename DataType, typename HaloExch, typename proc_layout, class GridType>
-    class hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, gcl_cpu, 2> : public descriptor_base<HaloExch> {
+    class hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, gcl_cpu> : public descriptor_base<HaloExch> {
 
         static const int DIMS = GridType::ndims;
-        typedef hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, gcl_cpu, 2> this_type;
+        typedef hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, gcl_cpu> this_type;
 
       public:
         empty_field_no_dt halo;

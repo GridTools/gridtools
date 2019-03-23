@@ -261,11 +261,10 @@ namespace shallow_water {
             float_type,
             MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
-            gridtools::gcl_gpu,
+            gridtools::gcl_gpu>
 #else
-            gridtools::gcl_cpu,
+            gridtools::gcl_cpu>
 #endif
-            gridtools::version_manual>
             pattern_type;
 
         pattern_type he(gridtools::boollist<3>(false, false, false), CartComm);

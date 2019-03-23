@@ -61,8 +61,6 @@ extern cudaStream_t XU_stream;
 
 namespace gridtools {
 
-    enum packing_version { version_mpi_pack = 0, version_datatype, version_manual };
-
 #ifdef GCL_MPI
     extern MPI_Comm GCL_WORLD;
 #else

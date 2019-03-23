@@ -107,8 +107,7 @@ namespace gridtools {
             typename CTraits::proc_layout,
             typename CTraits::value_type,
             typename CTraits::proc_grid_type,
-            typename CTraits::comm_arch_type,
-            CTraits::version>;
+            typename CTraits::comm_arch_type>;
 
       private:
         using performance_meter_t = typename timer_traits<typename CTraits::compute_arch>::timer_type;

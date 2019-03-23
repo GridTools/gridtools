@@ -45,10 +45,6 @@ namespace halo_exchange_3D_generic {
     double lapse_time3;
     double lapse_time4;
 
-#ifndef PACKING_TYPE
-#define PACKING_TYPE gridtools::version_manual
-#endif
-
 #define B_ADD 1
 #define C_ADD 2
 
@@ -103,8 +99,7 @@ namespace halo_exchange_3D_generic {
            logically to processor (p+1,q,r). The other dimensions goes as
            the others.
         */
-        typedef gridtools::halo_exchange_generic<gridtools::layout_map<0, 1, 2>, arch_type, PACKING_TYPE>
-            pattern_type;
+        typedef gridtools::halo_exchange_generic<gridtools::layout_map<0, 1, 2>, arch_type> pattern_type;
 
         /* The pattern is now instantiated with the periodicities and the
            communicator. The periodicity of the communicator is

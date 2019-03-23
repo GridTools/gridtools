@@ -98,16 +98,12 @@ namespace halo_exchange_3D_all_3 {
            logically to processor (p+1,q,r). The other dimensions goes as
            the others.
         */
-        static const int version =
-            gridtools::version_manual; // 0 is the usual version, 1 is the one that build the whole
-        // datatype (Only vector interface supported)
 
         typedef gridtools::halo_exchange_dynamic_ut<layoutmap,
             gridtools::layout_map<0, 1, 2>,
             triple_t<USE_DOUBLE>::data_type,
             gridtools::MPI_3D_process_grid_t<3>,
-            arch_type,
-            version>
+            arch_type>
             pattern_type;
 
         /* The pattern is now instantiated with the periodicities and the
