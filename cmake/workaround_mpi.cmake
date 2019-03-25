@@ -10,8 +10,10 @@ function(_fix_mpi_flags)
                 get_property(_mpi_compile_options TARGET MPI::MPI_${_LANG} PROPERTY INTERFACE_COMPILE_OPTIONS)
                 set(_new_mpi_options) 
                 foreach(_mpi_compile_option IN LISTS _mpi_compile_options)
-                    if(NOT {_mpi_compile_option} MATCHES "-Xcompiler.*")
-                        list (APPEND _new_mpi_options
+                    if((${_mpi_compile_option} MATCHES ".*-Xcompiler.*")) # already properly prefixed
+                        list(APPEND _new_mpi_options ${_mpi_compile_option})
+                    else()
+                        list(APPEND _new_mpi_options
                             $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${_mpi_compile_option}>
                             $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${_mpi_compile_option}>)
                     endif()
