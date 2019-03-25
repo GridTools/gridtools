@@ -33,7 +33,7 @@ namespace gridtools {
     template <>
     struct prod<-1> {
         template <typename ARRAY>
-        int operator()(ARRAY const &dimensions) const {
+        int operator()(ARRAY const &) const {
             return 1;
         }
     };
@@ -90,7 +90,7 @@ namespace gridtools {
     template <typename F>
     struct access_loop<0, F> {
         template <typename arraybounds, typename array>
-        void operator()(arraybounds const &ab, array const &sizes, F &f, uint_t idx = 0) {
+        void operator()(arraybounds const &, array const &, F &f, uint_t idx = 0) {
             f(idx);
         }
     };

@@ -40,9 +40,6 @@ TEST(define_caches, test_sequence_caches) {
                              detail::cache_impl<cache_type::k, arg2_t, cache_io_policy::local>>>::value),
         "Failed TEST");
 
-    static constexpr int_t level_offset_limit = 1;
-    typedef gridtools::interval<level<0, -1, level_offset_limit>, level<1, -1, level_offset_limit>> interval_;
-
     typedef decltype(
         gridtools::cache<cache_type::k, cache_io_policy::flush>(arg0_t(), arg1_t())) caches_ret_sequence_4_t;
     typedef decltype(

@@ -32,7 +32,7 @@ namespace gridtools {
                     // care. The kernel in test_layout_transformation_cuda should use 0 stack frame (and about 14
                     // registers) if this loop is properly unrolled.
                     bool continue_iterating = true;
-                    for (int i = 0; i < D; ++i) {
+                    for (size_t i = 0; i < D; ++i) {
                         if (continue_iterating) {
                             size_t index = D - i - 1;
                             if (m_pos[index] + 1 < m_end[index]) {
@@ -44,7 +44,7 @@ namespace gridtools {
                         }
                     }
                     if (continue_iterating) // we reached the end of the iteration space
-                        for (int i = 0; i < D; ++i)
+                        for (size_t i = 0; i < D; ++i)
                             m_pos[i] = m_end[i];
                     return *this;
                 }

@@ -40,6 +40,6 @@ struct storage_stub {
 
 TEST(default_interval, test) {
 
-    auto s1 = make_stage<func>(arg<0, storage_stub>(), arg<1, storage_stub>());
-    auto s2 = make_stage<func_call>(arg<0, storage_stub>(), arg<1, storage_stub>());
+    make_stage<func>(arg<0, storage_stub>(), arg<1, storage_stub>());
+    make_stage<func_call>(arg<0, storage_stub>(), arg<1, storage_stub>());
 }

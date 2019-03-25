@@ -96,7 +96,7 @@ namespace gridtools {
 
     /**@brief specialization to stop the recursion*/
     template <typename Operator, typename First>
-    GT_FUNCTION static constexpr First accumulate(Operator op, First first) {
+    GT_FUNCTION static constexpr First accumulate(Operator, First first) {
         return first;
     }
 

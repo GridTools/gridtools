@@ -73,7 +73,7 @@ namespace gridtools {
         struct get_elem {};
 
         template <typename Elem>
-        static constexpr int_t find(const ushort_t pos = 0) {
+        static constexpr int_t find(const ushort_t = 0) {
             return -1;
         }
 
