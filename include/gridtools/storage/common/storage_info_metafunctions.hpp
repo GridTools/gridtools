@@ -84,14 +84,14 @@ namespace gridtools {
         }
 
         template <int N, typename... Dims>
-        GT_FUNCTION static constexpr typename boost::enable_if_c<(N == -1), uint_t>::type get_stride(Dims... d) {
+        GT_FUNCTION static constexpr typename boost::enable_if_c<(N == -1), uint_t>::type get_stride(Dims...) {
             return 0;
         }
 
         template <int N, typename... Dims>
         GT_FUNCTION static constexpr
             typename boost::enable_if_c<(N != -1 && N == layout_map_t::unmasked_length - 1), uint_t>::type
-            get_stride(Dims... d) {
+            get_stride(Dims...) {
             return 1;
         }
     };

@@ -19,7 +19,7 @@ bool operator==(const gt_fortran_array_descriptor &d1, const gt_fortran_array_de
 bool operator!=(const gt_fortran_array_descriptor &d1, const gt_fortran_array_descriptor &d2) { return !(d1 == d2); }
 std::ostream &operator<<(std::ostream &strm, const gt_fortran_array_descriptor &d) {
     strm << "Type: " << d.type << ", Dimensions: [";
-    for (size_t i = 0; i < d.rank; ++i) {
+    for (int i = 0; i < d.rank; ++i) {
         if (i)
             strm << ", ";
         strm << d.dims[i];

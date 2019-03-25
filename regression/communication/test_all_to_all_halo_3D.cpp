@@ -215,6 +215,8 @@ int main(int argc, char **argv) {
     MPI_Barrier(gridtools::GCL_WORLD);
 
     gridtools::GCL_Finalize();
+
+    return passed;
 }
 #else
 TEST(Communication, test_all_to_all_halo_3D) {

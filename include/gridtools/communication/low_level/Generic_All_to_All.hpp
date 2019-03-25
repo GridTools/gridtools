@@ -78,7 +78,7 @@ namespace gridtools {
         bool emtpy() const { return !full(); }
 
       private:
-        friend class all_to_all<value_type>;
+        friend struct all_to_all<value_type>;
     };
 
     /** This all to all class is explicitly designed to be a light

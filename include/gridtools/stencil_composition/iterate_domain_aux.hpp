@@ -204,7 +204,7 @@ namespace gridtools {
             size_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
             typename Layout = typename StorageInfo::layout_t,
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
-        GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
+        GT_FUNCTION void operator()(const StorageInfo *) const {
             GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
         }
@@ -274,7 +274,7 @@ namespace gridtools {
         ArrayIndex &GT_RESTRICT m_index_array;
 
         template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
-        GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
+        GT_FUNCTION void operator()(const StorageInfo *) const {
             GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
@@ -314,7 +314,6 @@ namespace gridtools {
 
             template <typename Coordinate>
             GT_FUNCTION void operator()() const {
-                typedef typename SInfo::layout_t layout_map_t;
                 GT_STATIC_ASSERT(
                     (boost::mpl::contains<typename LocalDomain::storage_info_ptr_list, const SInfo *>::value),
                     GT_INTERNAL_ERROR_MSG(

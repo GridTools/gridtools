@@ -33,7 +33,7 @@ namespace gridtools {
             double *b = b_.data();
             double *c = c_.data();
 #pragma omp parallel for
-            for (int i = 0; i < n; i++)
+            for (std::size_t i = 0; i < n; i++)
                 a[i] = b[i] * c[i];
         }
 

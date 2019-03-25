@@ -101,7 +101,7 @@ class global_accessor_single_stage : public ::testing::Test {
         : sinfo(10, 10, 10), sol_(sinfo, 2.), bd(20), bd_(backend_t::make_global_parameter(bd)), di(1, 0, 1, 9, 10),
           dj(1, 0, 1, 1, 2), coords_bc(make_grid(di, dj, 2)) {}
 
-    void check(data_store_t field, float_type value) {}
+    void check(data_store_t, float_type) {}
 
   protected:
     storage_info_t sinfo;

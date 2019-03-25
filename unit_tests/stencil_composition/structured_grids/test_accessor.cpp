@@ -77,7 +77,6 @@ TEST(accessor, alternative1) {
 TEST(accessor, alternative2) {
     constexpr dimension<1> i;
     constexpr dimension<2> j;
-    constexpr dimension<3> k;
 
     constexpr dimension<4> t;
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800

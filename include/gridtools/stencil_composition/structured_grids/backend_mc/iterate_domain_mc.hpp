@@ -228,13 +228,8 @@ namespace gridtools {
             enable_if_t<is_accessor<Accessor>::value && !is_global_accessor<Accessor>::value, int> = 0>
         GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
-            using data_t = typename Arg::data_store_t::data_t;
 
-            static constexpr auto storage_index = local_domain_storage_index<storage_info_t>::value;
             static constexpr auto arg_index = meta::st_position<typename local_domain_t::esf_args, Arg>::value;
-
-            const storage_info_t *storage_info =
-                boost::fusion::at_c<storage_index>(local_domain.m_local_storage_info_ptrs);
 
             auto ptr = boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + m_data_ptr_offsets[arg_index];
 
