@@ -260,7 +260,7 @@ namespace gridtools {
             communicator in 3 dimensions of the processing grid. the
             periodicity is specified in the order chosen by the
             programmer for the data, as in the rest of the
-            application. It is up tp the construnctor implementation
+            application. It is up to the constructor implementation
             to translate it into the right order depending on the
             gridtools::layout_map passed to the class.
 
