@@ -107,7 +107,7 @@ namespace gridtools {
             GT_FUNCTION constexpr enable_if_t<not passed_argument_is_accessor_t<Accessor>::value &&
                                                   not is_out_arg<Accessor>::value,
                 get_passed_argument_t<Accessor>>
-            operator()(Accessor const &accessor) const {
+            operator()(Accessor const &) const {
                 return get_passed_argument<Accessor>();
             }
 
@@ -299,7 +299,7 @@ namespace gridtools {
             template <typename Accessor,
                 enable_if_t<is_global_accessor<Accessor>::value && passed_argument_is_accessor_t<Accessor>::value,
                     int> = 0>
-            GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
+            GT_FUNCTION constexpr auto operator()(Accessor const &) const
                 -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
                 return m_caller_aggregator(get_passed_argument<Accessor>());
             }

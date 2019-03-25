@@ -54,13 +54,13 @@ namespace gridtools {
             specialization for Plc and one for NotPlc.
         */
         template <std::size_t I, typename ROTuple, typename AllTuple>
-        auto select_element(ROTuple const &ro_tuple, AllTuple const &all, Plc) -> decltype(
+        auto select_element(ROTuple const &ro_tuple, AllTuple const &, Plc) -> decltype(
             std::get<std::is_placeholder<typename std::tuple_element<I, AllTuple>::type>::value - 1>(ro_tuple)) {
             return std::get<std::is_placeholder<typename std::tuple_element<I, AllTuple>::type>::value - 1>(ro_tuple);
         }
 
         template <std::size_t I, typename ROTuple, typename AllTuple>
-        auto select_element(ROTuple const &ro_tuple, AllTuple const &all, NotPlc) -> decltype(std::get<I>(all)) {
+        auto select_element(ROTuple const &, AllTuple const &all, NotPlc) -> decltype(std::get<I>(all)) {
             return std::get<I>(all);
         }
 

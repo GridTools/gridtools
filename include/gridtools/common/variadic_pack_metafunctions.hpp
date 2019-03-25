@@ -44,7 +44,7 @@ namespace gridtools {
     template <>
     struct get_value_from_pack_functor<0> {
         template <typename First, typename... Dims>
-        GT_FUNCTION static constexpr First apply(uint_t Index, First f, Dims... d) {
+        GT_FUNCTION static constexpr First apply(uint_t Index, First f, Dims...) {
             return (Index) ? f : f;
         }
     };
@@ -105,7 +105,7 @@ namespace gridtools {
 
     /// \private
     template <typename First>
-    GT_FUNCTION constexpr bool is_continuous(First first) {
+    GT_FUNCTION constexpr bool is_continuous(First) {
         return true;
     }
 

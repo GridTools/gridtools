@@ -64,7 +64,7 @@ struct bc_two {
         uint_t i,
         uint_t j,
         uint_t k,
-        typename boost::enable_if<is_one_of<is_minus<J>, is_minus<K>>>::type *dummy = 0) const {
+        typename boost::enable_if<is_one_of<is_minus<J>, is_minus<K>>>::type * = nullptr) const {
         data_field0(i, j, k) = (i + j + k + 1);
     }
 

@@ -96,7 +96,7 @@ class mpi_listener : public testing::EmptyTestEventListener {
     /// On startup a counter that counts the number of tests that fail in
     /// this test case is initialized to zero, and will be incremented for each
     /// test that fails.
-    virtual void OnTestCaseStart(const TestCase &test_case) override {
+    virtual void OnTestCaseStart(const TestCase &) override {
         test_case_failures_ = 0;
         test_case_tests_ = 0;
     }
@@ -147,7 +147,7 @@ class mpi_listener : public testing::EmptyTestEventListener {
     }
 
     // Called after a test ends.
-    virtual void OnTestEnd(const TestInfo &test_info) override {
+    virtual void OnTestEnd(const TestInfo &) override {
         test_case_tests_++;
 
         // count the number of ranks that had errors

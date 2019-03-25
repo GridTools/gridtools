@@ -130,13 +130,13 @@ struct call_shift_functor {
         call_proc<shift_functor>::with(eval, out());
     }
     template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation &eval, axis<1>::full_interval::first_level) {}
+    GT_FUNCTION static void apply(Evaluation &, axis<1>::full_interval::first_level) {}
 };
 
 TEST_F(expandable_parameters, call_shift) {
-    auto expected = [&](float_type value) { return make_storage([=](int_t i, int_t j, int_t k) { return value; }); };
+    auto expected = [&](float_type value) { return make_storage([=](int_t, int_t, int_t) { return value; }); };
     auto in = [&](float_type value) {
-        return make_storage([=](int_t i, int_t j, int_t k) { return k == 0 ? value : -1; });
+        return make_storage([=](int_t, int_t, int_t k) { return k == 0 ? value : -1; });
     };
 
     storages_t actual = {in(14), in(15), in(16), in(17), in(18)};

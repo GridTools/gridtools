@@ -36,7 +36,7 @@ namespace gridtools {
             size_t m_count = 0;
 
             template <class... Args, class... DataStores>
-            void run(arg_storage_pair<Args, DataStores> const &... args) {
+            void run(arg_storage_pair<Args, DataStores> const &...) {
                 ++m_count;
             }
 

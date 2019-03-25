@@ -143,8 +143,8 @@ TEST_F(extended_4d, test) {
     arg<4, storage_t> p_result;
 
     float_type phi = 10, psi = 11, f = 1.3;
-    auto jac = [](int i, int j, int k, int q) { return 1. + q; };
-    auto ref = [=](int i, int j, int k, int I, int J, int K) {
+    auto jac = [](int, int, int, int q) { return 1. + q; };
+    auto ref = [=](int i, int j, int k, int, int, int) {
         float_type res = 0;
         for (int q = 0; q < 2; ++q)
             res += (phi * psi * jac(i, j, k, q) * f + phi * psi * jac(i, j, k, q) * f +

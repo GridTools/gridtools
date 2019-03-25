@@ -40,29 +40,21 @@ struct direction_bc_input {
 
     // relative coordinates
     template <sign I, sign K, typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(direction<I, minus_, K>,
-        DataField0 &data_field0,
-        DataField1 const &data_field1,
-        uint_t i,
-        uint_t j,
-        uint_t k) const {
+    GT_FUNCTION void operator()(
+        direction<I, minus_, K>, DataField0 &, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
         data_field1(i, j, k) = 88 * value;
     }
 
     // relative coordinates
     template <sign K, typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(direction<minus_, minus_, K>,
-        DataField0 &data_field0,
-        DataField1 const &data_field1,
-        uint_t i,
-        uint_t j,
-        uint_t k) const {
+    GT_FUNCTION void operator()(
+        direction<minus_, minus_, K>, DataField0 &, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
         data_field1(i, j, k) = 77777 * value;
     }
 
     template <typename DataField0, typename DataField1>
     GT_FUNCTION void operator()(direction<minus_, minus_, minus_>,
-        DataField0 &data_field0,
+        DataField0 &,
         DataField1 const &data_field1,
         uint_t i,
         uint_t j,

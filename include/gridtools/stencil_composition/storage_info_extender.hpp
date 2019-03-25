@@ -102,7 +102,6 @@ namespace gridtools {
         typename storage_info_extender_impl<StorageInfo, 1>::type operator()(
             StorageInfoPtr other, uint_t extradim_length) const {
             GT_STATIC_ASSERT((is_storage_info<StorageInfo>::value), "Use with a StorageInfo type only");
-            typedef typename storage_info_extender_impl<StorageInfo, 1>::type type;
 
             return by<1>(*other, extradim_length);
         }
