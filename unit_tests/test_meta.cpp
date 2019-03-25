@@ -287,6 +287,18 @@ namespace gridtools {
 
         static_assert(std::is_same<make_integer_sequence<int, 3>, integer_sequence<int, 0, 1, 2>>::value, "");
         static_assert(std::is_same<make_integer_sequence<bool, 1>, integer_sequence<bool, false>>::value, "");
+
+        // take
+        static_assert(std::is_same<GT_META_CALL(take_c, (2, f<int, double, void, void>)), f<int, double>>::value, "");
+        static_assert(std::is_same<GT_META_CALL(take_c, (20, GT_META_CALL(repeat_c, (100, int)))),
+                          GT_META_CALL(repeat_c, (20, int))>::value,
+            "");
+
+        // insert
+        static_assert(std::is_same<GT_META_CALL(insert_c, (3, f<void, void, void, void, void>, int, double)),
+                          f<void, void, void, int, double, void, void>>::value,
+            "");
+
     } // namespace meta
 } // namespace gridtools
 

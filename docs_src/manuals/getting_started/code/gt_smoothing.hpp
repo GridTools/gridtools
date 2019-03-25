@@ -2,7 +2,7 @@
 
 #include <gridtools/stencil_composition/backend.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions/stencil_functions.hpp>
+#include <gridtools/stencil_composition/stencil_functions.hpp>
 #include <gridtools/storage/storage_facility.hpp>
 
 using namespace gridtools;

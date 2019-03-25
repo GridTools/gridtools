@@ -20,6 +20,7 @@
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/gt_assert.hpp"
+#include "../../../common/hymap.hpp"
 #include "../../../meta.hpp"
 #include "../../accessor_base.hpp"
 #include "../../caches/cache_metafunctions.hpp"
@@ -27,6 +28,7 @@
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../../offset_computation.hpp"
+#include "../dim.hpp"
 
 namespace gridtools {
 
@@ -291,7 +293,7 @@ namespace gridtools {
 
             // for temporaries the first element starts after the halo, for other storages we use the block base index
             const int_t block_base = is_tmp ? halo : m_i_block_base;
-            return block_base + m_i_block_index + accessor_offset<Coordinate>(accessor);
+            return block_base + m_i_block_index + host_device::at_key<dim::i>(accessor);
         }
 
         /**
@@ -316,7 +318,7 @@ namespace gridtools {
 
             // for temporaries the first element starts after the halo, for other storages we use the block base index
             const int_t block_base = is_tmp ? halo : m_j_block_base;
-            return block_base + m_j_block_index + accessor_offset<Coordinate>(accessor);
+            return block_base + m_j_block_index + host_device::at_key<dim::j>(accessor);
         }
 
         /**
@@ -338,7 +340,7 @@ namespace gridtools {
             Accessor const &accessor) const {
             // for ij-caches we simply ignore the block index and always access storage at k = 0
             const int_t block_index = IsIjCached && m_enable_ij_caches ? 0 : m_k_block_index;
-            return block_index + accessor_offset<Coordinate>(accessor);
+            return block_index + host_device::at_key<dim::k>(accessor);
         }
 
         /**
@@ -358,7 +360,7 @@ namespace gridtools {
         template <bool, typename StorageInfo, int_t Coordinate, typename Accessor>
         GT_FUNCTION constexpr typename std::enable_if<(Coordinate > 2), int_t>::type coordinate_offset(
             Accessor const &accessor) const {
-            return accessor_offset<Coordinate>(accessor);
+            return host_device::at_key<integral_constant<int, Coordinate>>(accessor);
         }
 
         template <bool IsIjCached, typename StorageInfo, typename Accessor, std::size_t... Coordinates>

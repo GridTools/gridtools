@@ -34,7 +34,6 @@ namespace gridtools {
             friend constexpr GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
                 return get_strides(obj.m_impl);
             }
-            friend GT_META_CALL(ptr_diff_type, Sid) sid_get_ptr_diff(delegate const &) { return {}; }
 
           protected:
             constexpr Sid const &impl() const { return m_impl; }
@@ -44,6 +43,10 @@ namespace gridtools {
             explicit constexpr delegate(Sid const &impl) noexcept : m_impl(impl) {}
             explicit constexpr delegate(Sid &&impl) noexcept : m_impl(std::move(impl)) {}
         };
+
+        template <class Sid>
+        GT_META_CALL(ptr_diff_type, Sid)
+        sid_get_ptr_diff(delegate<Sid> const &);
 
         template <class Sid>
         GT_META_CALL(strides_kind, Sid)

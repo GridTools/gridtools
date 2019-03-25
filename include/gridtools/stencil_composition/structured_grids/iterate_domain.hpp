@@ -20,6 +20,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../caches/cache_metafunctions.hpp"
 #include "../global_accessor.hpp"
@@ -219,7 +220,7 @@ namespace gridtools {
             using data_t = typename Arg::data_store_t::data_t;
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
-            GT_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
+            GT_STATIC_ASSERT(tuple_util::size<Accessor>::value <= storage_info_t::layout_t::masked_length,
                 "requested accessor index lower than zero. Check that when you define the accessor you specify the "
                 "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
                 "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "

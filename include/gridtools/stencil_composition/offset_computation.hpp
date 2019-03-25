@@ -13,6 +13,7 @@
 
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/gt_assert.hpp"
+#include "../common/tuple_util.hpp"
 #include "../meta/type_traits.hpp"
 #include "../meta/utility.hpp"
 
@@ -49,21 +50,6 @@ namespace gridtools {
         return is_masked_t::value ? 0 : is_max_t::value ? 1 : strides[layout_val_t::value];
     }
 
-    /**
-     * This function gets the accessor offset along the the given axis/coordinate.
-     *
-     * @tparam Coordinate The axis for which the offset should be returned.
-     * @tparam Accessor Type of the accessor.
-     *
-     * @param accessor Accessor for which the offsets should be returned.
-     *
-     * @return The offset stored in the given accessor for the given axis.
-     */
-    template <int_t Coordinate, typename Accessor>
-    GT_FUNCTION constexpr int_t accessor_offset(Accessor const &accessor) {
-        return get<Coordinate>(accessor);
-    }
-
     namespace _impl {
 
         /**
@@ -85,7 +71,7 @@ namespace gridtools {
             meta::index_sequence<Coordinates...>) {
             /* sum stride_x * offset_x + stride_y * offset_y + ... */
             return accumulate(plus_functor(),
-                (stride<StorageInfo, Coordinates>(strides) * accessor_offset<Coordinates>(accessor))...);
+                (stride<StorageInfo, Coordinates>(strides) * tuple_util::host_device::get<Coordinates>(accessor))...);
         }
     } // namespace _impl
 
