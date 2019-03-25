@@ -203,7 +203,6 @@ namespace gridtools {
 
         /**
            Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
-           In the case the implementation is not using L3, the type is not available.
         */
         typedef Halo_Exchange_3D<grid_type> pattern_type;
 
