@@ -547,7 +547,6 @@ namespace gridtools {
     class halo_exchange_generic_base {
 
       public:
-        // typedef typename reverse_map<t_layout2proc_map>::type layout2proc_map;
 
         static constexpr int DIMS = 3;
 
