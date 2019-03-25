@@ -202,7 +202,7 @@ namespace gridtools {
         static constexpr int DIMS = 3;
 
         /**
-           Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
+           Type of the Level 3 pattern used. 
         */
         typedef Halo_Exchange_3D<grid_type> pattern_type;
 
