@@ -58,7 +58,7 @@ namespace gridtools {
         pos3<uint_t> m_block_no;
 
       public:
-        execute_kernel_functor_naive(const local_domain_t &local_domain,
+        GT_FORCE_INLINE execute_kernel_functor_naive(const local_domain_t &local_domain,
             const grid_t &grid,
             uint_t block_size_i,
             uint_t block_size_j,
@@ -66,13 +66,12 @@ namespace gridtools {
             uint_t block_no_j)
             : m_local_domain(local_domain),
               m_grid(grid), m_size{block_size_i + extent_t::iplus::value - extent_t::iminus::value,
-                                block_size_j + extent_t::jplus::value - extent_t::jminus::value},
-              m_block_no{block_no_i, block_no_j} {}
+                                block_size_j + extent_t::jplus::value - extent_t::jminus::value,
+                                0},
+              m_block_no{block_no_i, block_no_j, 0} {}
 
-        void operator()() const {
+        GT_FORCE_INLINE void operator()() const {
             iterate_domain_t it_domain(m_local_domain);
-
-            it_domain.template assign_stride_pointers<backend_traits_t>();
 
             it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
                 m_block_no,
@@ -95,5 +94,4 @@ namespace gridtools {
             }
         }
     };
-
 } // namespace gridtools

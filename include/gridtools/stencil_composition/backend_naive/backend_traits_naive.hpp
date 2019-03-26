@@ -26,14 +26,6 @@ namespace gridtools {
     /**Traits struct, containing the types which are specific for the naive backend*/
     template <>
     struct backend_traits_from_id<target::naive> {
-        template <uint_t Id>
-        struct once_per_block {
-            template <typename Left, typename Right>
-            GT_FUNCTION static void assign(Left &l, Right const &r) {
-                l = r;
-            }
-        };
-
         /**
          * @brief struct holding backend-specific runtime information about stencil execution.
          */
@@ -46,6 +38,8 @@ namespace gridtools {
          */
         template <typename RunFunctorArgs>
         struct mss_loop {
+            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
+
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);

@@ -24,7 +24,6 @@ namespace gridtools {
     class iterate_domain_naive
         : public iterate_domain<iterate_domain_naive<IterateDomainArguments>, IterateDomainArguments> {
         using base_t = typename iterate_domain_naive::iterate_domain;
-        using strides_cached_t = typename base_t::strides_cached_t;
 
       public:
         iterate_domain_naive(iterate_domain_naive const &) = delete;
@@ -33,14 +32,8 @@ namespace gridtools {
         template <class... Args>
         GT_FORCE_INLINE iterate_domain_naive(Args &&... args) : base_t(std::forward<Args>(args)...) {}
 
-        GT_FORCE_INLINE strides_cached_t &strides_impl() { return m_strides; }
-        GT_FORCE_INLINE strides_cached_t const &strides_impl() const { return m_strides; }
-
         template <class Arg, class Ptr>
         static GT_FORCE_INLINE auto deref_impl(Ptr &&ptr) GT_AUTO_RETURN(*ptr);
-
-      private:
-        strides_cached_t m_strides;
     };
 
     template <typename IterateDomainArguments>

@@ -18,4 +18,3 @@
 #include "../backend_fwd.hpp"
 #include "../iteration_policy.hpp"
 #include "backend_traits_naive.hpp"
-#include "strategy_naive.hpp"
