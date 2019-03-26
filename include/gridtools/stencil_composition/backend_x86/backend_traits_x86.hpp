@@ -25,7 +25,7 @@
 namespace gridtools {
     /**Traits struct, containing the types which are specific for the x86 backend*/
     template <>
-    struct backend_traits_from_id<target::x86> {
+    struct backend_traits<target::x86> {
         /**
          * @brief struct holding backend-specific runtime information about stencil execution.
          */

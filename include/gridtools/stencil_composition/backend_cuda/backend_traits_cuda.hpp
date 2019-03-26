@@ -21,7 +21,7 @@ namespace gridtools {
 
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
-    struct backend_traits_from_id<target::cuda> {
+    struct backend_traits<target::cuda> {
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments

@@ -55,7 +55,7 @@ namespace gridtools {
                     meta::lazy::id<positional_iterate_domain<iterate_domain_cuda_t>>,
                     meta::lazy::id<iterate_domain_cuda_t>>::type;
 
-            typedef backend_traits_from_id<target::cuda> backend_traits_t;
+            typedef backend_traits<target::cuda> backend_traits_t;
 
             // number of threads
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);

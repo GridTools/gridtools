@@ -25,7 +25,7 @@
 namespace gridtools {
     /**Traits struct, containing the types which are specific for the naive backend*/
     template <>
-    struct backend_traits_from_id<target::naive> {
+    struct backend_traits<target::naive> {
         /**
          * @brief struct holding backend-specific runtime information about stencil execution.
          */

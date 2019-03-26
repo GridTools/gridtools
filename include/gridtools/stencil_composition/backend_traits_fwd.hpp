@@ -26,7 +26,7 @@ namespace gridtools {
 
     /**forward declaration*/
     template <typename T>
-    struct backend_traits_from_id;
+    struct backend_traits;
 
     /**
        @brief wasted code because of the lack of constexpr

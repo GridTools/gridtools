@@ -45,7 +45,7 @@ namespace gridtools {
             meta::lazy::id<positional_iterate_domain<iterate_domain_naive_t>>,
             meta::lazy::id<iterate_domain_naive_t>>::type;
 
-        typedef backend_traits_from_id<target::naive> backend_traits_t;
+        typedef backend_traits<target::naive> backend_traits_t;
 
         using extent_t = GT_META_CALL(get_extent_from_loop_intervals, typename RunFunctorArguments::loop_intervals_t);
 

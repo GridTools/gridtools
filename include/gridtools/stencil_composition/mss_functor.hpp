@@ -66,7 +66,7 @@ namespace gridtools {
 
             // wrapping all the template arguments in a single container
 
-            using backend_traits_t = backend_traits_from_id<BackendTarget>;
+            using backend_traits_t = backend_traits<BackendTarget>;
 
             typedef run_functor_arguments<BackendTarget,
                 typename mss_components_t::linear_esf_t,

@@ -82,7 +82,7 @@ namespace gridtools {
 
         typedef backend_base<BackendTarget> this_type;
 
-        typedef backend_traits_from_id<BackendTarget> backend_traits_t;
+        typedef backend_traits<BackendTarget> backend_traits_t;
         typedef storage_traits<BackendTarget> storage_traits_t;
 
         using backend_target_t = BackendTarget;

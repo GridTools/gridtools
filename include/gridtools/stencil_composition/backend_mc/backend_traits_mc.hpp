@@ -46,7 +46,7 @@ namespace gridtools {
 
     /**Traits struct, containing the types which are specific for the mc backend*/
     template <>
-    struct backend_traits_from_id<target::mc> {
+    struct backend_traits<target::mc> {
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss

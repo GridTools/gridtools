@@ -44,7 +44,7 @@ namespace gridtools {
         using layout_kji_t = layout_map<0, 1, 2>;
         using layout_ij_t = layout_map<0, 1>;
 
-        using backend_traits_t = backend_traits_from_id<backend_t::backend_target_t>;
+        using backend_traits_t = backend_traits<backend_t::backend_target_t>;
         using storage_traits_t = storage_traits<backend_t::backend_target_t>;
 
         using meta_ijkp_t = storage_traits_t::custom_layout_storage_info_t<0, layout_ijkp_t>;

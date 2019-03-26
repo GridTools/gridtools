@@ -104,7 +104,7 @@ namespace gridtools {
 
         using iterate_domain_t = iterate_domain_naive<iterate_domain_arguments_t>;
 
-        typedef backend_traits_from_id<target::naive> backend_traits_t;
+        typedef backend_traits<target::naive> backend_traits_t;
         using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
         using from_t = GT_META_CALL(meta::first, interval_t);
 
