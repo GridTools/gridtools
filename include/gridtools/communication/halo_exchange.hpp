@@ -11,7 +11,6 @@
 
 #include "../common/boollist.hpp"
 #include "low_level/Halo_Exchange_3D.hpp"
-#include "low_level/Halo_Exchange_3D_DT.hpp"
 #include "low_level/proc_grids_3D.hpp"
 
 #include "high_level/descriptor_generic_manual.hpp"
@@ -202,7 +201,7 @@ namespace gridtools {
         static constexpr int DIMS = 3;
 
         /**
-           Type of the Level 3 pattern used. 
+           Type of the Level 3 pattern used.
         */
         typedef Halo_Exchange_3D<grid_type> pattern_type;
 
@@ -547,7 +546,6 @@ namespace gridtools {
     class halo_exchange_generic_base {
 
       public:
-
         static constexpr int DIMS = 3;
 
         /**
