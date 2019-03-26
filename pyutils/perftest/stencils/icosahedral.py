@@ -15,7 +15,7 @@ class StencilOnEdgesMultifields(Stencil):
 
 
 class StencilOnCells(Stencil):
-    gridtools_path = path('stencil_on_cells_path')
+    gridtools_path = path('stencil_on_cells')
     halo = 1
 
 
