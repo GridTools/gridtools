@@ -22,7 +22,7 @@ namespace gridtools {
         template <ushort_t I>
         struct get_dimension_value_f {
             template <ushort_t J>
-            GT_FUNCTION constexpr int_t operator()(dimension<J> src) const {
+            GT_FUNCTION constexpr int_t operator()(dimension<J>) const {
                 return 0;
             }
             GT_FUNCTION constexpr int_t operator()(dimension<I> src) const { return src.value; }

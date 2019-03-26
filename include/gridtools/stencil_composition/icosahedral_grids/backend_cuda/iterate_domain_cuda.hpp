@@ -17,7 +17,6 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
-#include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../extent.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../../run_functor_arguments.hpp"
@@ -39,12 +38,10 @@ namespace gridtools {
         using base_t::increment_j;
 
         using readwrite_args_t = GT_META_CALL(compute_readwrite_args, typename IterateDomainArguments::esf_sequence_t);
-        using strides_cached_t = typename base_t::strides_cached_t;
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
       public:
-        using shared_iterate_domain_t =
-            shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>;
+        using shared_iterate_domain_t = typename iterate_domain_cache_t::ij_caches_tuple_t;
 
       private:
         shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
@@ -82,16 +79,13 @@ namespace gridtools {
             m_pshared_iterate_domain = ptr;
         }
 
-        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->m_strides; }
-        GT_FUNCTION strides_cached_t &strides_impl() { return m_pshared_iterate_domain->m_strides; }
-
         /** @brief return a value that was cached
          */
         template <class Arg, uint_t Color, class ReturnType, class Accessor>
         GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
-            return boost::fusion::at_key<Arg>(m_pshared_iterate_domain->m_ij_caches)
+            return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain)
                 .at<Color>(m_thread_pos[0], m_thread_pos[1], acc);
         }
 

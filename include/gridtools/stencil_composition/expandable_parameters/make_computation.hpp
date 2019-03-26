@@ -29,7 +29,7 @@ namespace gridtools {
                 Grid const &grid, Args &&... args) const {
                 // split arg_storage_pair and mss descriptor arguments and forward it to intermediate constructor
                 auto &&args_pair = split_args<is_arg_storage_pair>(std::forward<Args>(args)...);
-                return {grid, std::move(args_pair.first), std::move(args_pair.second)};
+                return {grid, std::move(args_pair.first)};
             }
         };
 
@@ -59,10 +59,12 @@ namespace gridtools {
     template <class... Args>
     computation<> make_expandable_computation(Args &&...) {
         GT_STATIC_ASSERT(!sizeof...(Args), "No backend was specified on a call to make_expandable_computation");
+        return {};
     }
     template <class... Args>
     computation<> make_expandable_positional_computation(Args &&...) {
         GT_STATIC_ASSERT(
             !sizeof...(Args), "No backend was specified on a call to make_expandable_positional_computation");
+        return {};
     }
 } // namespace gridtools

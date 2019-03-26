@@ -30,8 +30,6 @@ namespace gridtools {
         T m_values[JSize][ISize];
 
       public:
-        GT_FUNCTION ij_cache_storage() {}
-
         template <class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
             i += host_device::at_key<dim::i>(acc) + IZero;
@@ -65,8 +63,6 @@ namespace gridtools {
         T m_values[JSize][NumColors][ISize];
 
       public:
-        GT_FUNCTION ij_cache_storage() {}
-
         template <int_t Color, class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
             i += host_device::at_key<dim::i>(acc) + IZero;

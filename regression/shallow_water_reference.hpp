@@ -56,7 +56,7 @@ struct shallow_water_reference {
 
     shallow_water_reference(uint_t DimI, uint_t DimJ)
         : DimI{DimI}, DimJ{DimJ}, solution_meta(DimI, DimJ, 1u), u(solution_meta, 0.0, "u"), v(solution_meta, 0.0, "v"),
-          h(solution_meta, [](int i, int j, int k) { return droplet_(i, j, dx(), dy(), height); }, "h"),
+          h(solution_meta, [](int i, int j, int) { return droplet_(i, j, dx(), dy(), height); }, "h"),
           ux(solution_meta, 0.0, "ux"), vx(solution_meta, 0.0, "vx"), hx(solution_meta, 0.0, "hx"),
           uy(solution_meta, 0.0, "uy"), vy(solution_meta, 0.0, "vy"), hy(solution_meta, 0.0, "hy") {}
 

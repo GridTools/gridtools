@@ -139,8 +139,8 @@ TEST(DataViewTest, ZeroSize) {
     typedef data_store<cuda_storage<double>, storage_info_t> data_store_t;
     // create and allocate a data_store
     data_store_t ds;
-    data_view<data_store_t, access_mode::read_only> hv = make_host_view<access_mode::read_only>(ds);
-    data_view<data_store_t, access_mode::read_only> dv = make_device_view<access_mode::read_only>(ds);
+    make_host_view<access_mode::read_only>(ds);
+    make_device_view<access_mode::read_only>(ds);
 }
 
 TEST(DataViewTest, Looping) {
@@ -192,7 +192,5 @@ TEST(DataViewTest, CheckMemorySpace) {
     data_store_t ds(si, -1, "ds");
     auto view = make_device_view<access_mode::read_write>(ds);
 
-#ifndef NDEBUG
     EXPECT_THROW(view(0, 0, 1), std::runtime_error);
-#endif
 }

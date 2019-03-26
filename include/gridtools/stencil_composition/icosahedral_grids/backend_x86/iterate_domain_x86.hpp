@@ -23,19 +23,11 @@ namespace gridtools {
      * @brief iterate domain class for the Host backend
      */
     template <typename IterateDomainArguments>
-    class iterate_domain_x86
-        : public iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> {
-        using base_t = iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments>;
-        using strides_cached_t = typename base_t::strides_cached_t;
-
-        strides_cached_t m_strides;
-
-      public:
+    struct iterate_domain_x86 : iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> {
         template <class Arg>
-        GT_FORCE_INLINE iterate_domain_x86(Arg &&arg) : base_t(std::forward<Arg>(arg)) {}
-
-        GT_FORCE_INLINE strides_cached_t &strides_impl() { return m_strides; }
-        GT_FORCE_INLINE strides_cached_t const &strides_impl() const { return m_strides; }
+        GT_FORCE_INLINE iterate_domain_x86(Arg &&arg)
+            : iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments>(
+                  std::forward<Arg>(arg)) {}
 
         template <class Arg, class T>
         static GT_FORCE_INLINE auto deref_impl(T &&ptr) GT_AUTO_RETURN(*ptr);

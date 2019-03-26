@@ -26,7 +26,7 @@ struct pgrid<T3> {
 
     typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
-    static grid_type instantiate(MPI_Comm comm) {
+    static grid_type instantiate(MPI_Comm) {
         int pid;
         MPI_Comm_rank(gridtools::GCL_WORLD, &pid);
         int nprocs;
@@ -50,7 +50,7 @@ struct pgrid<T4> {
 
     typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
-    static grid_type instantiate(MPI_Comm comm) {
+    static grid_type instantiate(MPI_Comm) {
         int pid;
         MPI_Comm_rank(MPI_COMM_WORLD, &pid);
         int nprocs;

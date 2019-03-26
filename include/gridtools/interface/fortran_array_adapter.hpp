@@ -69,7 +69,7 @@ namespace gridtools {
                 // verify dimensions of fortran array
                 for (uint_t c_dim = 0, fortran_dim = 0; c_dim < Layout::masked_length; ++c_dim) {
                     if (Layout::at(c_dim) >= 0) {
-                        if (view.m_descriptor.dims[fortran_dim] != m_dims[c_dim])
+                        if (view.m_descriptor.dims[fortran_dim] != (int)m_dims[c_dim])
                             throw std::runtime_error("dimensions do not match (descriptor [" +
                                                      std::to_string(view.m_descriptor.dims[fortran_dim]) +
                                                      "] != data_store [" + std::to_string(m_dims[c_dim]) + "])");

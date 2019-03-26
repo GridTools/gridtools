@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; GridTools 0.21.0 documentation</title>
+  <title>Getting Started &mdash; GridTools 0.22.0 documentation</title>
   
 
   
@@ -37,7 +37,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="GridTools 0.21.0 documentation" href="../index.html"/>
+    <link rel="top" title="GridTools 0.22.0 documentation" href="../index.html"/>
         <link rel="next" title="User Manual" href="../user_manual/user_manual.html"/>
         <link rel="prev" title="Introduction" href="../introduction/introduction.html"/> 
 
@@ -71,7 +71,7 @@
             
             
               <div class="version">
-                0.21
+                0.22
               </div>
             
           
@@ -676,6 +676,17 @@ we won’t discuss them now in detail. In brief:</p>
 <li>In order to use the <span class="math">\((i,j,k)\)</span> syntax we need to define the symbols to point to the respective dimensions.</li>
 <li>A common pattern is to use the preprocessor flag <code class="docutils literal"><span class="pre">__CUDACC__</span></code> to distinguish between CPU and GPU code. We use this to set the <a class="reference internal" href="../glossary/glossary.html#term-backend"><span class="xref std std-term">Backend</span></a>.</li>
 </ul>
+<p>The code example can be compiled using the following simple CMake script (requires an installation of GridTools, see <a class="reference internal" href="../introduction/introduction.html#installation"><span class="std std-ref">Installation and Use</span></a>).</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cmake_minimum_required</span><span class="p">(</span><span class="n">VERSION</span> <span class="mf">3.12</span><span class="o">.</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="n">project</span><span class="p">(</span><span class="n">GridTools</span><span class="o">-</span><span class="n">laplacian</span> <span class="n">LANGUAGES</span> <span class="n">CXX</span><span class="p">)</span>
+
+<span class="n">find_package</span><span class="p">(</span><span class="n">GridTools</span> <span class="mf">0.22</span><span class="o">.</span><span class="mi">0</span> <span class="n">REQUIRED</span><span class="p">)</span>
+
+<span class="n">add_executable</span><span class="p">(</span><span class="n">gt_laplacian</span> <span class="n">test_gt_laplacian</span><span class="o">.</span><span class="n">cpp</span><span class="p">)</span>
+<span class="n">target_link_libraries</span><span class="p">(</span><span class="n">gt_laplacian</span> <span class="n">GridTools</span><span class="p">::</span><span class="n">gridtools</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="assembling-stencils-smoothing-filter">
@@ -974,7 +985,7 @@ the Laplacian (<span class="math">\(L = \Delta \phi\)</span>) for all levels but
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.21.0',
+            VERSION:'0.22.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

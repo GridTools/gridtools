@@ -102,7 +102,7 @@ namespace gridtools {
 
             constexpr custom::foo c_obj{2, 4};
             static_assert(get<0>(c_obj) == 2, "");
-            static_assert(get<0>(custom::foo{3}) == 3, "");
+            static_assert(get<0>(custom::foo{3, 0.0}) == 3, "");
             static_assert(size<custom::foo>::value == 2, "");
 
             auto res = transform(add_2_f{}, custom::foo{42, 5.3});

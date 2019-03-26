@@ -35,24 +35,24 @@ struct TestTransporter {
 };
 
 template <typename T>
-static __host__ __device__ void setTestTransporterValue(TestTransporter *transporter, T expected, T actual);
+static __device__ void setTestTransporterValue(TestTransporter *transporter, T expected, T actual);
 
 template <>
-__host__ __device__ void setTestTransporterValue(TestTransporter *transporter, float expected, float actual) {
+__device__ void setTestTransporterValue(TestTransporter *transporter, float expected, float actual) {
     transporter->tfloat[transporter->evaluateFloat].x = expected;
     transporter->tfloat[transporter->evaluateFloat].y = actual;
     transporter->evaluateFloat++;
 }
 
 template <>
-__host__ __device__ void setTestTransporterValue(TestTransporter *transporter, int expected, int actual) {
+__device__ void setTestTransporterValue(TestTransporter *transporter, int expected, int actual) {
     transporter->tint[transporter->evaluateInt].x = expected;
     transporter->tint[transporter->evaluateInt].y = actual;
     transporter->evaluateInt++;
 }
 
 template <>
-__host__ __device__ void setTestTransporterValue(TestTransporter *transporter, bool expected, bool actual) {
+__device__ void setTestTransporterValue(TestTransporter *transporter, bool expected, bool actual) {
     transporter->tint[transporter->evaluateInt].x = (int)expected;
     transporter->tint[transporter->evaluateInt].y = (int)actual;
     transporter->evaluateInt++;
@@ -136,8 +136,8 @@ __host__ __device__ void setTestTransporterValue(TestTransporter *transporter, b
         CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name) test, TestTransporter * testTransporter) {  \
         test(testTransporter);                                                                          \
     }                                                                                                   \
-    __host__ __device__ void CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name)::operator()(           \
-        TestTransporter *testTransporter)
+    __device__ void CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name)::operator()(                    \
+        [[maybe_unused]] TestTransporter *testTransporter)
 #else
 #define CUDA_TEST(test_case_name, test_name) TEST(test_case_name, test_name)
 #endif

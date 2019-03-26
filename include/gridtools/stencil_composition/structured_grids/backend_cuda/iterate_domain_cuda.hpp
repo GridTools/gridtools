@@ -21,7 +21,6 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
-#include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain.hpp"
@@ -43,15 +42,12 @@ namespace gridtools {
         // array storing the (i,j) position of the current thread within the block
         array<int, 2> m_thread_pos;
 
-        using strides_cached_t = typename base_t::strides_cached_t;
-
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
 
       public:
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
-        typedef shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
-            shared_iterate_domain_t;
+        typedef typename iterate_domain_cache_t::ij_caches_tuple_t shared_iterate_domain_t;
 
       private:
         using base_t::increment_i;
@@ -90,8 +86,6 @@ namespace gridtools {
         GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
-        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->m_strides; }
-        GT_FUNCTION strides_cached_t &strides_impl() { return m_pshared_iterate_domain->m_strides; }
 
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory
@@ -100,8 +94,7 @@ namespace gridtools {
         GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
-            return boost::fusion::at_key<Arg>(m_pshared_iterate_domain->m_ij_caches)
-                .at(m_thread_pos[0], m_thread_pos[1], acc);
+            return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain).at(m_thread_pos[0], m_thread_pos[1], acc);
         }
 
         /** @brief return a value that was cached

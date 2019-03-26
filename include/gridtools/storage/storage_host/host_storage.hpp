@@ -68,8 +68,7 @@ namespace gridtools {
          * @param external_ptr a pointer to the external data
          * @param own ownership information (in this case only externalCPU is valid)
          */
-        host_storage(uint_t size, DataType *external_ptr, ownership own = ownership::external_cpu)
-            : m_ptr(external_ptr) {
+        host_storage(uint_t, DataType *external_ptr, ownership own = ownership::external_cpu) : m_ptr(external_ptr) {
             assert(external_ptr);
             assert(own == ownership::external_cpu);
         }

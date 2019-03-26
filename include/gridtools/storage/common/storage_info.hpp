@@ -221,12 +221,6 @@ namespace gridtools {
          */
         GT_FUNCTION constexpr const array<uint_t, ndims> &total_lengths() const { return m_total_lengths; }
 
-        /**
-         * @brief deprecated, see total_lengths()
-         */
-        GT_DEPRECATED("dims() is deprecated, use total_lengths() (deprecated after 1.07.00)")
-        GT_FUNCTION constexpr const array<uint_t, ndims> &dims() const { return total_lengths(); }
-
         /*
          * @brief Returns the length of a dimension including the halo points (the outer region)
          *
@@ -237,15 +231,6 @@ namespace gridtools {
             GT_STATIC_ASSERT(
                 (Dim < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
             return m_total_lengths[Dim];
-        }
-
-        /**
-         * @brief deprecated: see total_length()
-         */
-        template <uint_t Dim>
-        GT_DEPRECATED("dim<Dim>() is deprecated, use total_length<Dim>() (deprecated after 1.07.00)")
-        GT_FUNCTION constexpr uint_t dim() const {
-            return total_length<Dim>();
         }
 
         /**

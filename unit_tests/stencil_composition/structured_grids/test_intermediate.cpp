@@ -26,7 +26,7 @@ namespace test_intermediate {
         using param_list = make_param_list<in1, in2, out>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &) {}
     };
 
     struct stage2 {
@@ -36,16 +36,9 @@ namespace test_intermediate {
         using param_list = make_param_list<in1, in2, out>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &) {}
     };
 } // namespace test_intermediate
-
-namespace {
-    std::ostream &operator<<(std::ostream &os, const gridtools::rt_extent &extent) {
-        return (os << extent.iminus << ":" << extent.iplus << ", " << extent.jminus << ":" << extent.jplus << ", "
-                   << extent.kminus << ":" << extent.kplus);
-    }
-} // namespace
 
 TEST(intermediate, test_get_arg_functions) {
     using namespace test_intermediate;

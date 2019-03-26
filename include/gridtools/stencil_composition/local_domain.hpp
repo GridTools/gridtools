@@ -10,37 +10,38 @@
 #pragma once
 
 #include <boost/fusion/include/as_map.hpp>
-#include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/pair.hpp>
 
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
+#include "../common/hymap.hpp"
 #include "../meta.hpp"
-#include "./arg.hpp"
-#include "./extent.hpp"
+#include "../storage/sid.hpp"
+#include "arg.hpp"
+#include "extent.hpp"
+#include "sid/concept.hpp"
 
 namespace gridtools {
 
-    namespace _impl {
-        namespace local_domain_details {
-            template <class Arg>
-            GT_META_DEFINE_ALIAS(
-                get_data_ptrs_elem, meta::id, (boost::fusion::pair<Arg, typename Arg::data_store_t::data_t *>));
+    namespace local_domain_impl_ {
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(
+            get_data_ptrs_elem, meta::id, (boost::fusion::pair<Arg, typename Arg::data_store_t::data_t *>));
 
-            template <class Arg, class StorageInfo = typename Arg::data_store_t::storage_info_t>
-            GT_META_DEFINE_ALIAS(get_storage_info_ptr, meta::id, StorageInfo const *);
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(get_storage_info, meta::id, typename Arg::data_store_t::storage_info_t);
 
-            template <class Args>
-            GT_META_DEFINE_ALIAS(
-                get_storage_info_ptrs, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info_ptr, Args))));
-        } // namespace local_domain_details
-    }     // namespace _impl
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(get_storage_info_pair,
+            meta::list,
+            (typename Arg::data_store_t, typename Arg::data_store_t::storage_info_t));
+
+        template <class Item>
+        GT_META_DEFINE_ALIAS(get_strides, sid::strides_type, GT_META_CALL(meta::second, Item));
+    } // namespace local_domain_impl_
 
     /**
-     * This class extract the proper iterators/storages from the full domain
-     * to adapt it for a particular functor. This version does not provide grid
-     * to the function operator
-     *
+     * This class extracts the proper iterators/storages from the full domain to adapt it for a particular functor.
      */
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain {
@@ -49,24 +50,41 @@ namespace gridtools {
 
         using type = local_domain;
 
-        using esf_args = EsfArgs;
+        using esf_args_t = EsfArgs;
         using max_extent_for_tmp_t = MaxExtentForTmp;
 
-        using arg_to_data_ptr_map_t = GT_META_CALL(
-            meta::transform, (_impl::local_domain_details::get_data_ptrs_elem, EsfArgs));
+        using tmp_storage_infos_t = GT_META_CALL(meta::dedup,
+            (GT_META_CALL(meta::transform,
+                (local_domain_impl_::get_storage_info, GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))))));
 
-        using storage_info_ptr_list = GT_META_CALL(_impl::local_domain_details::get_storage_info_ptrs, EsfArgs);
+      private:
+        using inversed_storage_info_map_t = GT_META_CALL(
+            meta::mp_inverse, (GT_META_CALL(meta::transform, (local_domain_impl_::get_storage_info_pair, EsfArgs))));
 
-        using tmp_storage_info_ptr_list = GT_META_CALL(
-            _impl::local_domain_details::get_storage_info_ptrs, (GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))));
+      public:
+        using storage_infos_t = GT_META_CALL(meta::transform, (meta::first, inversed_storage_info_map_t));
 
+      private:
+        using sid_strides_values_t = GT_META_CALL(
+            meta::transform, (local_domain_impl_::get_strides, inversed_storage_info_map_t));
+
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDA_VER_MINOR__ < 2
+        struct lazy_strides_keys_t : meta::lazy::rename<hymap::keys, storage_infos_t> {};
+        using strides_keys_t = typename lazy_strides_keys_t::type;
+#else
+        using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, storage_infos_t));
+#endif
+
+        using strides_map_t = GT_META_CALL(meta::rename, (strides_keys_t::template values, sid_strides_values_t));
+
+        using arg_to_data_ptr_map_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_data_ptrs_elem, EsfArgs));
         using data_ptr_fusion_map = typename boost::fusion::result_of::as_map<arg_to_data_ptr_map_t>::type;
-        using storage_info_ptr_fusion_list = typename boost::fusion::result_of::as_vector<storage_info_ptr_list>::type;
-        using size_array = array<uint_t, meta::length<storage_info_ptr_list>::value>;
+        using size_array_t = array<uint_t, meta::length<storage_infos_t>::value>;
 
+      public:
         data_ptr_fusion_map m_local_data_ptrs;
-        storage_info_ptr_fusion_list m_local_storage_info_ptrs;
-        size_array m_local_padded_total_lengths;
+        size_array_t m_local_padded_total_lengths;
+        strides_map_t m_strides_map;
     };
 
     template <class>

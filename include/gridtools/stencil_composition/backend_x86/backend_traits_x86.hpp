@@ -23,14 +23,6 @@ namespace gridtools {
     /**Traits struct, containing the types which are specific for the x86 backend*/
     template <>
     struct backend_traits_from_id<target::x86> {
-        template <uint_t Id>
-        struct once_per_block {
-            template <typename Left, typename Right>
-            GT_FUNCTION static void assign(Left &l, Right const &r) {
-                l = r;
-            }
-        };
-
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss
