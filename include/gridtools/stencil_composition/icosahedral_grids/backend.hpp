@@ -40,16 +40,16 @@ namespace gridtools {
     /**
        The backend is, as usual, declaring what the storage types are
      */
-    template <class BackendId>
-    struct backend : public backend_base<BackendId> {
+    template <class BackendTarget>
+    struct backend : public backend_base<BackendTarget> {
       public:
-        typedef backend_base<BackendId> base_t;
+        typedef backend_base<BackendTarget> base_t;
 
         using typename base_t::backend_traits_t;
 
         template <typename DimSelector>
         struct select_layout {
-            using layout_map_t = typename _impl::default_layout<BackendId>::type;
+            using layout_map_t = typename _impl::default_layout<BackendTarget>::type;
             using dim_selector_4d_t = typename shorten<bool, DimSelector, 4>::type;
             using filtered_layout = typename filter_layout<layout_map_t, dim_selector_4d_t>::type;
 

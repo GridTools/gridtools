@@ -23,7 +23,6 @@
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../meta/type_traits.hpp"
-#include "./backend_ids.hpp"
 #include "./backend_traits_fwd.hpp"
 #include "./grid.hpp"
 #include "./local_domain.hpp"
@@ -38,14 +37,13 @@ namespace gridtools {
     template <typename MssComponentsArray,
         typename Grid,
         typename LocalDomains,
-        typename BackendIds,
+        typename BackendTarget,
         typename ExecutionInfo>
     struct mss_functor {
       private:
         GT_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_sequence_of<MssComponentsArray, is_mss_components>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
 
         LocalDomains const &m_local_domains;
         const Grid &m_grid;
@@ -68,9 +66,9 @@ namespace gridtools {
 
             // wrapping all the template arguments in a single container
 
-            using backend_traits_t = backend_traits_from_id<typename BackendIds::backend_id_t>;
+            using backend_traits_t = backend_traits_from_id<BackendTarget>;
 
-            typedef run_functor_arguments<BackendIds,
+            typedef run_functor_arguments<BackendTarget,
                 typename mss_components_t::linear_esf_t,
                 typename mss_components_t::loop_intervals_t,
                 decay_t<decltype(local_domain)>,

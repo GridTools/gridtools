@@ -17,7 +17,7 @@
 using namespace gridtools;
 
 TEST(StorageInfoRT, Make3D) {
-    using storage_info_t = storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
+    using storage_info_t = storage_traits<backend_t::backend_target_t>::storage_info_t<0, 3>;
     storage_info_t si(4, 5, 6);
 
     auto storage_info_rt_ = make_storage_info_rt(si);
@@ -39,7 +39,7 @@ TEST(StorageInfoRT, Make3D) {
 }
 
 TEST(StorageInfoRT, Make3Dmasked) {
-    using storage_info_t = storage_traits<backend_t::backend_id_t>::special_storage_info_t<0, selector<1, 0, 1>>;
+    using storage_info_t = storage_traits<backend_t::backend_target_t>::special_storage_info_t<0, selector<1, 0, 1>>;
     storage_info_t si(4, 5, 6);
 
     auto storage_info_rt_ = make_storage_info_rt(si);

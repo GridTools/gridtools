@@ -15,9 +15,9 @@
 
 namespace gridtools {
 
-    template <class BackendId>
-    struct backend : public backend_base<BackendId> {
-        typedef backend_base<BackendId> base_t;
+    template <class BackendTarget>
+    struct backend : public backend_base<BackendTarget> {
+        typedef backend_base<BackendTarget> base_t;
 
         using typename base_t::backend_traits_t;
     };

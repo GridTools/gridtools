@@ -12,25 +12,14 @@
 #include <cstddef>
 
 #include "../../common/defs.hpp"
-#include "../backend_ids.hpp"
 
 namespace gridtools {
+    template <class /*Target*/>
+    struct coord_i : std::integral_constant<size_t, 0> {};
 
-    template <class>
-    struct coord_i;
+    template <class /*Target*/>
+    struct coord_j : std::integral_constant<size_t, 1> {};
 
-    template <class Platform>
-    struct coord_i<backend_ids<Platform>> : std::integral_constant<size_t, 0> {};
-
-    template <class>
-    struct coord_j;
-
-    template <class Platform>
-    struct coord_j<backend_ids<Platform>> : std::integral_constant<size_t, 1> {};
-
-    template <class>
-    struct coord_k;
-
-    template <class Platform>
-    struct coord_k<backend_ids<Platform>> : std::integral_constant<size_t, 2> {};
+    template <class /*Target*/>
+    struct coord_k : std::integral_constant<size_t, 2> {};
 } // namespace gridtools

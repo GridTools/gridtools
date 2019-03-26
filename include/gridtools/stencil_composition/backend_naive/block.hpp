@@ -11,20 +11,19 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
-#include "../backend_ids.hpp"
 #include "../grid.hpp"
 
 namespace gridtools {
-    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<target::naive> const &) { return 0; }
-    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<target::naive> const &) { return 0; }
+    GT_FUNCTION constexpr uint_t block_i_size(target::naive const &) { return 0; }
+    GT_FUNCTION constexpr uint_t block_j_size(target::naive const &) { return 0; }
 
     template <class Grid>
-    uint_t block_i_size(backend_ids<target::naive> const &, Grid const &grid) {
+    uint_t block_i_size(target::naive const &, Grid const &grid) {
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         return grid.i_high_bound() - grid.i_low_bound() + 1;
     }
     template <class Grid>
-    uint_t block_j_size(backend_ids<target::naive> const &, Grid const &grid) {
+    uint_t block_j_size(target::naive const &, Grid const &grid) {
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         return grid.j_high_bound() - grid.j_low_bound() + 1;
     }

@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
         in_s.sync();
         out_s.sync();
 
-        gt::boundary<gt::copy_boundary, backend_t::backend_id_t>(halos, gt::copy_boundary{}).apply(out_s, in_s);
+        gt::boundary<gt::copy_boundary, backend_t::backend_target_t>(halos, gt::copy_boundary{}).apply(out_s, in_s);
 
         // sync the data stores if needed
         in_s.sync();
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
         // sync the data stores if needed
         out_s.sync();
 
-        gt::boundary<gt::zero_boundary, backend_t::backend_id_t>(halos, gt::zero_boundary{}).apply(out_s);
+        gt::boundary<gt::zero_boundary, backend_t::backend_target_t>(halos, gt::zero_boundary{}).apply(out_s);
 
         // sync the data stores if needed
         out_s.sync();
@@ -159,7 +159,8 @@ int main(int argc, char **argv) {
         // sync the data stores if needed
         out_s.sync();
 
-        gt::boundary<gt::value_boundary<int>, backend_t::backend_id_t>(halos, gt::value_boundary<int>{42}).apply(out_s);
+        gt::boundary<gt::value_boundary<int>, backend_t::backend_target_t>(halos, gt::value_boundary<int>{42})
+            .apply(out_s);
 
         // sync the data stores if needed
         out_s.sync();

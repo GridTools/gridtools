@@ -42,7 +42,7 @@ namespace gridtools {
         struct mss_loop {
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
 
-            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
+            typedef typename RunFunctorArgs::backend_target_t backend_target_t;
 
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid>
@@ -60,8 +60,8 @@ namespace gridtools {
 
                 execute_kernel_functor_x86<RunFunctorArgs>{local_domain,
                     grid,
-                    block_size_f(total_i, block_i_size(backend_ids_t{}), execution_info.bi),
-                    block_size_f(total_j, block_j_size(backend_ids_t{}), execution_info.bj),
+                    block_size_f(total_i, block_i_size(backend_target_t{}), execution_info.bi),
+                    block_size_f(total_j, block_j_size(backend_target_t{}), execution_info.bj),
                     execution_info.bi,
                     execution_info.bj}();
             }
@@ -70,12 +70,11 @@ namespace gridtools {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
-         * @tparam BackendIds ids of backend
+         * @tparam BackendTarget ids of backend
          */
-        template <typename MssComponents, typename BackendIds>
+        template <typename MssComponents, typename BackendTarget>
         struct fused_mss_loop {
             GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<MssComponents>::type::value> iter_range;
 
@@ -86,17 +85,19 @@ namespace gridtools {
                 uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 uint_t m = grid.j_high_bound() - grid.j_low_bound();
 
-                uint_t NBI = n / block_i_size(BackendIds{});
-                uint_t NBJ = m / block_j_size(BackendIds{});
+                uint_t NBI = n / block_i_size(BackendTarget{});
+                uint_t NBJ = m / block_j_size(BackendTarget{});
 
 #pragma omp parallel
                 {
 #pragma omp for nowait
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                            boost::mpl::for_each<iter_range>(
-                                mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execution_info_x86>(
-                                    local_domain_lists, grid, {bi, bj}));
+                            boost::mpl::for_each<iter_range>(mss_functor<MssComponents,
+                                Grid,
+                                LocalDomainListArray,
+                                BackendTarget,
+                                execution_info_x86>(local_domain_lists, grid, {bi, bj}));
                         }
                     }
                 }

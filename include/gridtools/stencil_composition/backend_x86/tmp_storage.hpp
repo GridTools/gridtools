@@ -12,34 +12,32 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 
-#include "../backend_ids.hpp"
 #include "../coordinate.hpp"
 
 namespace gridtools {
     namespace tmp_storage {
         // Block specialisations
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_i_size(backend_ids<target::x86> const &, uint_t block_size, uint_t /*total_size*/) {
-            static constexpr auto halo = StorageInfo::halo_t::template at<coord_i<backend_ids<target::x86>>::value>();
+        uint_t get_i_size(target::x86 const &, uint_t block_size, uint_t /*total_size*/) {
+            static constexpr auto halo = StorageInfo::halo_t::template at<coord_i<target::x86>::value>();
             return (block_size + 2 * halo) * omp_get_max_threads();
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_i_block_offset(backend_ids<target::x86> const &, uint_t block_size, uint_t /*block_no*/) {
-            static constexpr auto halo = StorageInfo::halo_t::template at<coord_i<backend_ids<target::x86>>::value>();
+        GT_FUNCTION int_t get_i_block_offset(target::x86 const &, uint_t block_size, uint_t /*block_no*/) {
+            static constexpr auto halo = StorageInfo::halo_t::template at<coord_i<target::x86>::value>();
             return (block_size + 2 * halo) * omp_get_thread_num() + halo;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_j_size(backend_ids<target::x86> const &, uint_t block_size, uint_t /*total_size*/) {
-            static constexpr auto halo = StorageInfo::halo_t::template at<coord_j<backend_ids<target::x86>>::value>();
+        uint_t get_j_size(target::x86 const &, uint_t block_size, uint_t /*total_size*/) {
+            static constexpr auto halo = StorageInfo::halo_t::template at<coord_j<target::x86>::value>();
             return block_size + 2 * halo;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_j_block_offset(
-            backend_ids<target::x86> const &, uint_t /*block_size*/, uint_t /*block_no*/) {
-            static constexpr auto halo = StorageInfo::halo_t::template at<coord_j<backend_ids<target::x86>>::value>();
+        GT_FUNCTION int_t get_j_block_offset(target::x86 const &, uint_t /*block_size*/, uint_t /*block_no*/) {
+            static constexpr auto halo = StorageInfo::halo_t::template at<coord_j<target::x86>::value>();
             return halo;
         }
     } // namespace tmp_storage

@@ -40,7 +40,7 @@ namespace gridtools {
         struct mss_loop {
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
 
-            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
+            typedef typename RunFunctorArgs::backend_target_t backend_target_t;
 
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid>
@@ -60,12 +60,11 @@ namespace gridtools {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
-         * @tparam BackendIds ids of backend
+         * @tparam BackendTarget ids of backend
          */
-        template <typename MssComponents, typename BackendIds>
+        template <typename MssComponents, typename BackendTarget>
         struct fused_mss_loop {
             GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
 
             typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<MssComponents>::type::value> iter_range;
 
@@ -74,7 +73,7 @@ namespace gridtools {
                 GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
                 boost::mpl::for_each<iter_range>(
-                    mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execution_info_naive>{
+                    mss_functor<MssComponents, Grid, LocalDomainListArray, BackendTarget, execution_info_naive>{
                         local_domain_lists, grid, {}});
             }
         };

@@ -28,7 +28,7 @@ namespace gridtools {
          */
         template <typename RunFunctorArgs>
         struct mss_loop {
-            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
+            typedef typename RunFunctorArgs::backend_target_t backend_target_t;
 
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid, typename ExecutionInfo>
@@ -46,19 +46,18 @@ namespace gridtools {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
-         * @tparam BackendIds backend ids type
+         * @tparam BackendTarget backend ids type
          */
-        template <typename MssComponents, typename BackendIds>
+        template <typename MssComponents, typename BackendTarget>
         struct fused_mss_loop {
             GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
 
             template <typename LocalDomainListArray, typename Grid>
             static void run(LocalDomainListArray const &local_domain_lists, const Grid &grid) {
                 GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
                 host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
-                    mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execution_info_cuda>(
+                    mss_functor<MssComponents, Grid, LocalDomainListArray, BackendTarget, execution_info_cuda>(
                         local_domain_lists, grid, {}));
             }
         };

@@ -35,7 +35,7 @@ namespace gridtools {
         typedef typename RunFunctorArguments::local_domain_t local_domain_t;
         typedef typename RunFunctorArguments::grid_t grid_t;
 
-        using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+        using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_target_t,
             local_domain_t,
             typename RunFunctorArguments::esf_sequence_t,
             std::tuple<>,

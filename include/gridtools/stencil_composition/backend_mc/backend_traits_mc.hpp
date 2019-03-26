@@ -54,7 +54,7 @@ namespace gridtools {
          */
         template <typename RunFunctorArgs>
         struct mss_loop {
-            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
+            typedef typename RunFunctorArgs::backend_target_t backend_target_t;
 
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid, typename ExecutionInfo>
@@ -72,18 +72,17 @@ namespace gridtools {
          * Implementation for stencils with serial execution along k-axis.
          *
          * @tparam MssComponents A meta array with the MSS components of all MSS.
-         * @tparam BackendIds IDs of backend.
+         * @tparam BackendTarget IDs of backend.
          */
-        template <typename MssComponents, typename BackendIds, typename Enable = void>
+        template <typename MssComponents, typename BackendTarget, typename Enable = void>
         struct fused_mss_loop {
             GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
 
             template <typename LocalDomainListArray, typename Grid>
             GT_FUNCTION static void run(LocalDomainListArray const &local_domain_lists, Grid const &grid) {
                 using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
                 using mss_functor_t =
-                    mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execinfo_mc::block_kserial_t>;
+                    mss_functor<MssComponents, Grid, LocalDomainListArray, BackendTarget, execinfo_mc::block_kserial_t>;
 
                 execinfo_mc exinfo(grid);
                 const int_t i_blocks = exinfo.i_blocks();
@@ -102,20 +101,22 @@ namespace gridtools {
          * Implementation for stencils with parallel execution along k-axis.
          *
          * @tparam MssComponents A meta array with the MSS components of all MSS.
-         * @tparam BackendIds IDs of backend.
+         * @tparam BackendTarget ID of backend.
          */
-        template <typename MssComponents, typename BackendIds>
+        template <typename MssComponents, typename BackendTarget>
         struct fused_mss_loop<MssComponents,
-            BackendIds,
+            BackendTarget,
             typename std::enable_if<_impl::all_mss_kparallel<MssComponents>::value>::type> {
             GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
 
             template <typename LocalDomainListArray, typename Grid>
             GT_FUNCTION static void run(LocalDomainListArray const &local_domain_lists, Grid const &grid) {
                 using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
-                using mss_functor_t =
-                    mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execinfo_mc::block_kparallel_t>;
+                using mss_functor_t = mss_functor<MssComponents,
+                    Grid,
+                    LocalDomainListArray,
+                    BackendTarget,
+                    execinfo_mc::block_kparallel_t>;
 
                 execinfo_mc exinfo(grid);
                 const int_t i_blocks = exinfo.i_blocks();

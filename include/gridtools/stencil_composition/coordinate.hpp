@@ -13,7 +13,7 @@
  *  @file
  *
  *  Specialisations of coord_i<Backend>, coord_j<Backend>, coord_k<Backend> are defined here.
- *  Backend should be an instantiation of backend_ids.
+ *  Backend should be an instantiation of the backend target tag.
  *  coord_* are expected to be like std::integral_constant of size_t
  */
 

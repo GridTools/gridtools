@@ -30,7 +30,7 @@ namespace {
 #endif
     using backend_t = gt::backend<target_t>;
 
-    using storage_traits_t = gt::storage_traits<backend_t::backend_id_t>;
+    using storage_traits_t = gt::storage_traits<backend_t::backend_target_t>;
     using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
     using data_store_t = storage_traits_t::data_store_t<float, storage_info_t>;
 

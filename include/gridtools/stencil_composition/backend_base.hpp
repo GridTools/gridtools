@@ -16,7 +16,6 @@
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../common/selector.hpp"
 #include "../storage/storage_facility.hpp"
-#include "./backend_ids.hpp"
 #include "./grid.hpp"
 #include "./local_domain.hpp"
 #include "./mss_components.hpp"
@@ -71,24 +70,22 @@ namespace gridtools {
        cuda backends. Now they are separated and this may be simplified.
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
     */
-    template <class BackendId>
+    template <class BackendTarget>
     struct backend_base {
 
 #ifdef __CUDACC__
-        GT_STATIC_ASSERT((std::is_same<BackendId, target::cuda>::value),
+        GT_STATIC_ASSERT((std::is_same<BackendTarget, target::cuda>::value),
             "Beware: you are compiling with nvcc, and most probably "
             "want to use the cuda backend, but the backend you are "
             "instantiating is another one!!");
 #endif
 
-        typedef backend_base<BackendId> this_type;
+        typedef backend_base<BackendTarget> this_type;
 
-        typedef backend_ids<BackendId> backend_ids_t;
+        typedef backend_traits_from_id<BackendTarget> backend_traits_t;
+        typedef storage_traits<BackendTarget> storage_traits_t;
 
-        typedef backend_traits_from_id<BackendId> backend_traits_t;
-        typedef storage_traits<BackendId> storage_traits_t;
-
-        using backend_id_t = BackendId;
+        using backend_target_t = BackendTarget;
 
         /**
             Method to retrieve a global parameter
@@ -132,7 +129,7 @@ namespace gridtools {
             GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
-            backend_traits_t::template fused_mss_loop<MssComponents, backend_ids_t>::run(local_domains, grid);
+            backend_traits_t::template fused_mss_loop<MssComponents, backend_target_t>::run(local_domains, grid);
         }
     };
 

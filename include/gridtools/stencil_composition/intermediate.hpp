@@ -128,8 +128,8 @@ namespace gridtools {
      *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
      *   \tparam Grid The Grid
      */
-    template <class BackendIds, class Grid>
-    _impl::storage_info_fits_grid_f<BackendIds, Grid> storage_info_fits_grid(Grid const &grid) {
+    template <class BackendTarget, class Grid>
+    _impl::storage_info_fits_grid_f<BackendTarget, Grid> storage_info_fits_grid(Grid const &grid) {
         return {grid};
     }
 

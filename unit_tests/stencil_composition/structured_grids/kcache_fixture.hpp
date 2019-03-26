@@ -49,8 +49,8 @@ using fullminustwofirst = midbody::modify<0, 2>;
 
 class kcachef : public ::testing::Test {
   protected:
-    typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
-    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> storage_t;
+    typedef gridtools::storage_traits<backend_t::backend_target_t>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t::backend_target_t>::data_store_t<float_type, storage_info_t> storage_t;
 
     const gridtools::uint_t m_d1, m_d2, m_d3;
 
