@@ -66,10 +66,12 @@ namespace gridtools {
             MPI_3D_process_grid_t<3> proc_grid() const { return m_comm; }
         };
 
-        template <typename, typename, typename, typename, typename>
+        template <typename, typename, typename, typename>
         struct halo_exchange_dynamic_ut {
             boollist<3> m_period;
             MPI_3D_process_grid_t<3> m_comm;
+
+            using grid_type = MPI_3D_process_grid_t<3>;
 
             template <typename A>
             halo_exchange_dynamic_ut(boollist<3> p, A) : m_period{p}, m_comm{p, 0} {

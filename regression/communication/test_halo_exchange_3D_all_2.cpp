@@ -103,7 +103,6 @@ namespace halo_exchange_3D_all_2 {
         typedef gridtools::halo_exchange_dynamic_ut<layoutmap,
             gridtools::layout_map<0, 1, 2>,
             triple_t<USE_DOUBLE>::data_type,
-            gridtools::MPI_3D_process_grid_t<3>,
             arch_type>
             pattern_type;
 

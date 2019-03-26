@@ -106,7 +106,6 @@ namespace gridtools {
         using pattern_type = halo_exchange_dynamic_ut<typename CTraits::data_layout,
             typename CTraits::proc_layout,
             typename CTraits::value_type,
-            typename CTraits::proc_grid_type,
             typename CTraits::comm_arch_type>;
 
       private:
@@ -215,7 +214,7 @@ namespace gridtools {
             boundary_only(jobs...);
         }
 
-        typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
+        typename pattern_type::grid_type const &proc_grid() const { return m_he.comm(); }
 
         std::string print_meters() const {
             return m_meter_pack.to_string() + "\n" + m_meter_exchange.to_string() + "\n" + m_meter_bc.to_string();
@@ -247,9 +246,9 @@ namespace gridtools {
             /*Apply boundary to data*/
             call_apply(boundary<typename BCApply::boundary_class,
                            typename CTraits::compute_arch,
-                           proc_grid_predicate<typename CTraits::proc_grid_type>>(m_halos,
+                           proc_grid_predicate<typename pattern_type::grid_type>>(m_halos,
                            bcapply.boundary_to_apply(),
-                           proc_grid_predicate<typename CTraits::proc_grid_type>(m_he.comm())),
+                           proc_grid_predicate<typename pattern_type::grid_type>(m_he.comm())),
                 bcapply.stores(),
                 meta::make_integer_sequence<uint_t, std::tuple_size<typename BCApply::stores_type>::value>{});
         }

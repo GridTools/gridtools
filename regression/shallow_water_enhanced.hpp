@@ -259,7 +259,6 @@ namespace shallow_water {
         typedef gridtools::halo_exchange_dynamic_ut<storage_info_t::layout_t,
             gridtools::layout_map<0, 1, 2>,
             float_type,
-            MPI_3D_process_grid_t<3>,
 #ifdef __CUDACC__
             gridtools::gcl_gpu>
 #else

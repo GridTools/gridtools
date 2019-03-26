@@ -181,7 +181,6 @@ namespace gridtools {
     template <typename T_layout_map,
         typename layout2proc_map_abs,
         typename DataType,
-        typename GridType,
         typename Gcl_Arch = gcl_cpu,
         int version = 0>
     class halo_exchange_dynamic_ut {
@@ -196,7 +195,7 @@ namespace gridtools {
         /**
            Type of the computin grid associated to the pattern
         */
-        typedef GridType grid_type;
+        typedef MPI_3D_process_grid_t<3> grid_type;
 
         static constexpr int DIMS = 3;
 
@@ -217,7 +216,7 @@ namespace gridtools {
             return CartComm;
         }
 
-        typedef hndlr_dynamic_ut<DataType, GridType, pattern_type, layout2proc_map, Gcl_Arch> hd_t;
+        typedef hndlr_dynamic_ut<DataType, grid_type, pattern_type, layout2proc_map, Gcl_Arch> hd_t;
 
         hd_t hd;
 
