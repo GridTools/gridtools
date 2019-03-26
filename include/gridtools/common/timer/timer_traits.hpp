@@ -41,6 +41,10 @@ namespace gridtools {
         using timer_type = timer_omp;
     };
     template <>
+    struct timer_traits<target::naive> {
+        using timer_type = timer_omp;
+    };
+    template <>
     struct timer_traits<target::mc> {
         using timer_type = timer_omp;
     };
