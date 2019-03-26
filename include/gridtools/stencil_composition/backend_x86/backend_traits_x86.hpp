@@ -58,8 +58,6 @@ namespace gridtools {
                 GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-                typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
-
                 auto block_size_f = [](uint_t total, uint_t block_size, uint_t block_no) {
                     auto n = (total + block_size - 1) / block_size;
                     return block_no == n - 1 ? total - block_no * block_size : block_size;
@@ -67,7 +65,7 @@ namespace gridtools {
                 auto total_i = grid.i_high_bound() - grid.i_low_bound() + 1;
                 auto total_j = grid.j_high_bound() - grid.j_low_bound() + 1;
 
-                kernel_functor_executor_t{local_domain,
+                execute_kernel_functor_x86<RunFunctorArgs>{local_domain,
                     grid,
                     block_size_f(total_i, block_i_size(backend_ids_t{}), execution_info.bi),
                     block_size_f(total_j, block_j_size(backend_ids_t{}), execution_info.bj),

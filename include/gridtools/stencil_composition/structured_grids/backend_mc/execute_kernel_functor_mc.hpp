@@ -12,7 +12,6 @@
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../meta.hpp"
-#include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../loop_interval.hpp"
 #include "./execinfo_mc.hpp"
@@ -334,35 +333,32 @@ namespace gridtools {
 
     } // namespace _impl
 
-    namespace strgrid {
+    /**
+     * @brief Class for executing all functors on a single block.
+     */
+    template <typename RunFunctorArguments>
+    class execute_kernel_functor_mc {
+        using grid_t = typename RunFunctorArguments::grid_t;
+        using local_domain_t = typename RunFunctorArguments::local_domain_t;
 
-        /**
-         * @brief Class for executing all functors on a single block.
-         */
-        template <typename RunFunctorArguments>
-        class execute_kernel_functor_mc {
-            using grid_t = typename RunFunctorArguments::grid_t;
-            using local_domain_t = typename RunFunctorArguments::local_domain_t;
+      public:
+        GT_FUNCTION execute_kernel_functor_mc(const local_domain_t &local_domain, const grid_t &grid)
+            : m_local_domain(local_domain), m_grid(grid) {}
 
-          public:
-            GT_FUNCTION execute_kernel_functor_mc(const local_domain_t &local_domain, const grid_t &grid)
-                : m_local_domain(local_domain), m_grid(grid) {}
+        template <class ExecutionInfo>
+        GT_FUNCTION void operator()(const ExecutionInfo &execution_info) const {
+            using iterate_domain_t = GT_META_CALL(gridtools::_impl::get_iterate_domain_type, RunFunctorArguments);
 
-            template <class ExecutionInfo>
-            GT_FUNCTION void operator()(const ExecutionInfo &execution_info) const {
-                using iterate_domain_t = GT_META_CALL(gridtools::_impl::get_iterate_domain_type, RunFunctorArguments);
+            iterate_domain_t it_domain(m_local_domain);
 
-                iterate_domain_t it_domain(m_local_domain);
+            gridtools::for_each<typename RunFunctorArguments::loop_intervals_t>(
+                gridtools::_impl::interval_functor_mc<RunFunctorArguments, ExecutionInfo>(
+                    it_domain, m_grid, execution_info));
+        }
 
-                gridtools::for_each<typename RunFunctorArguments::loop_intervals_t>(
-                    gridtools::_impl::interval_functor_mc<RunFunctorArguments, ExecutionInfo>(
-                        it_domain, m_grid, execution_info));
-            }
+      private:
+        const local_domain_t &m_local_domain;
+        const grid_t &m_grid;
+    };
 
-          private:
-            const local_domain_t &m_local_domain;
-            const grid_t &m_grid;
-        };
-
-    } // namespace strgrid
 } // namespace gridtools

@@ -15,7 +15,6 @@
 #include "../../common/timer/timer_traits.hpp"
 
 #include "../backend_traits_fwd.hpp"
-#include "../grid_traits_fwd.hpp"
 #include "../mss_functor.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 
@@ -50,8 +49,7 @@ namespace gridtools {
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid, typename ExecutionInfo>
             static void run(LocalDomain &local_domain, const Grid &grid, ExecutionInfo &&) {
-                typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
-                kernel_functor_executor_t(local_domain, grid)();
+                execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, grid)();
             }
         };
 

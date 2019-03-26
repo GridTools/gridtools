@@ -71,7 +71,7 @@ namespace gridtools {
                 GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-                strgrid::execute_kernel_functor_mc<RunFunctorArgs>(local_domain, grid)(execution_info);
+                execute_kernel_functor_mc<RunFunctorArgs>(local_domain, grid)(execution_info);
             }
         };
 

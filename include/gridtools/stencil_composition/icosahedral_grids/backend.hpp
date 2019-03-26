@@ -32,6 +32,10 @@ namespace gridtools {
             using type = layout_map<0, 1, 2, 3>;
         };
         template <>
+        struct default_layout<target::naive> {
+            using type = layout_map<0, 1, 2, 3>;
+        };
+        template <>
         struct default_layout<target::mc> {
             using type = layout_map<0, 1, 2, 3>;
         };

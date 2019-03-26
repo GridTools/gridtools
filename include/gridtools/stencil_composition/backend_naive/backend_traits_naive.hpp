@@ -54,10 +54,7 @@ namespace gridtools {
                 GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-                // getting the architecture and grid dependent traits
-                typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
-
-                kernel_functor_executor_t{local_domain,
+                execute_kernel_functor_naive<RunFunctorArgs>{local_domain,
                     grid,
                     grid.i_high_bound() - grid.i_low_bound() + 1,
                     grid.j_high_bound() - grid.j_low_bound() + 1,

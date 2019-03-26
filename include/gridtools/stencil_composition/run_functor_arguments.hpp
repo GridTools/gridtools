@@ -23,7 +23,6 @@
 #include "./color.hpp"
 #include "./extent.hpp"
 #include "./grid.hpp"
-#include "./grid_traits_fwd.hpp"
 #include "./local_domain.hpp"
 #include "./loop_interval.hpp"
 
