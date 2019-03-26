@@ -12,7 +12,6 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../meta.hpp"
 #include "../arg.hpp"
 #include "../esf_fwd.hpp"
@@ -41,8 +40,6 @@ namespace gridtools {
     struct esf_descriptor {
         GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value),
             "wrong types for the list of parameter placeholders check the make_stage syntax");
-        GT_STATIC_ASSERT((is_sequence_of<Args, is_plh>::value),
-            "wrong types for the list of parameter placeholders check the make_stage syntax");
         GT_STATIC_ASSERT(is_grid_topology<Grid>::value, "Error: wrong grid type");
         GT_STATIC_ASSERT(is_color_type<Color>::value, "Error: wrong color type");
         GT_STATIC_ASSERT((esf_impl_::are_same_locations<Args, typename EsfFunction<0>::param_list>::value),
@@ -64,10 +61,5 @@ namespace gridtools {
     struct is_esf_descriptor<esf_descriptor<EsfFunction, Grid, LocationType, Color, Args>> : std::true_type {};
 
     template <class T>
-    struct esf_get_location_type;
-
-    template <template <uint_t> class EsfFunction, class Grid, class LocationType, class Color, class Args>
-    struct esf_get_location_type<esf_descriptor<EsfFunction, Grid, LocationType, Color, Args>> {
-        using type = LocationType;
-    };
+    GT_META_DEFINE_ALIAS(esf_get_location_type, meta::id, typename T::location_type);
 } // namespace gridtools

@@ -11,7 +11,6 @@
 
 #include <type_traits>
 
-#include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../meta.hpp"
 #include "../arg.hpp"
 #include "../esf_fwd.hpp"
@@ -45,8 +44,6 @@ namespace gridtools {
     template <class EsfFunction, class Args>
     struct esf_descriptor {
         GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value),
-            "wrong types for the list of parameter placeholders check the make_stage syntax");
-        GT_STATIC_ASSERT((is_sequence_of<Args, is_plh>::value),
             "wrong types for the list of parameter placeholders check the make_stage syntax");
         GT_STATIC_ASSERT(esf_impl_::has_param_list<EsfFunction>::type::value,
             "The type param_list was not found in a user functor definition. All user functors must have a type alias "

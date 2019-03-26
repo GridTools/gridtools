@@ -13,7 +13,6 @@
 
 #include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/for_each.hpp"
-#include "../../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../../meta.hpp"
 #include "../../backend_ids.hpp"
 #include "../../mss_components.hpp"
@@ -54,8 +53,8 @@ namespace gridtools {
          */
         template <typename MssComponents, typename BackendIds, typename Enable = void>
         struct fused_mss_loop {
-            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
 
             template <typename LocalDomainListArray, typename Grid>
             GT_FUNCTION static void run(LocalDomainListArray const &local_domain_lists, Grid const &grid) {
@@ -86,8 +85,8 @@ namespace gridtools {
         struct fused_mss_loop<MssComponents,
             BackendIds,
             typename std::enable_if<_impl::all_mss_kparallel<MssComponents>::value>::type> {
-            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
 
             template <typename LocalDomainListArray, typename Grid>
             GT_FUNCTION static void run(LocalDomainListArray const &local_domain_lists, Grid const &grid) {

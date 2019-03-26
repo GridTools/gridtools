@@ -13,8 +13,8 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../common/selector.hpp"
+#include "../meta.hpp"
 #include "../storage/storage_facility.hpp"
 #include "./backend_ids.hpp"
 #include "./grid.hpp"
@@ -138,9 +138,9 @@ namespace gridtools {
         template <typename MssComponents, typename Grid, typename LocalDomains>
         static void run(Grid const &grid, LocalDomains const &local_domains) {
             // TODO: I would swap the arguments coords and local_domains, for consistency
-            GT_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_local_domain, LocalDomains>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
             strategy_traits_t::template fused_mss_loop<MssComponents, backend_ids_t>::run(local_domains, grid);
         }

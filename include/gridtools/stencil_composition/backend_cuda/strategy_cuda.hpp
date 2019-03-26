@@ -11,7 +11,6 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
-#include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../meta.hpp"
 #include "../backend_ids.hpp"
 #include "../grid.hpp"

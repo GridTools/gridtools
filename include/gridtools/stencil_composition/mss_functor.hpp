@@ -21,7 +21,6 @@
 #include <boost/mpl/size.hpp>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../meta/type_traits.hpp"
 #include "./backend_ids.hpp"
 #include "./backend_traits_fwd.hpp"
@@ -42,7 +41,7 @@ namespace gridtools {
         typename ExecutionInfo>
     struct mss_functor {
       private:
-        GT_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_local_domain, LocalDomains>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponentsArray>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);

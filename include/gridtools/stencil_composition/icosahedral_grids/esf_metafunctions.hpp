@@ -9,28 +9,23 @@
  */
 #pragma once
 
-#include <boost/mpl/equal.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/set/set0.hpp>
-
-#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
-#include "../../meta/macros.hpp"
+#include "../../meta.hpp"
 #include "./esf.hpp"
 
 namespace gridtools {
     namespace icgrid {
-        template <typename EsfSequence>
+        template <typename Esfs>
         struct extract_esf_location_type {
-            GT_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value),
-                GT_INTERNAL_ERROR_MSG("Error, wrong esf types"));
-            typedef typename boost::mpl::fold<EsfSequence,
-                boost::mpl::set0<>,
-                boost::mpl::insert<boost::mpl::_1, esf_get_location_type<boost::mpl::_2>>>::type location_type_set_t;
-            GT_STATIC_ASSERT(boost::mpl::size<location_type_set_t>::value == 1,
+
+            GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
+
+            using locations_t = GT_META_CALL(meta::transform, (esf_get_location_type, Esfs));
+
+            GT_STATIC_ASSERT(meta::is_empty<locations_t>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(meta::all_are_same<locations_t>::value,
                 "Error: all ESFs in a Multi Stage stencil should have the same location type");
 
-            typedef typename boost::mpl::front<location_type_set_t>::type type;
+            using type = GT_META_CALL(meta::first, locations_t);
         };
     } // namespace icgrid
 

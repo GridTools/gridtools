@@ -14,7 +14,6 @@
 #include <boost/mpl/fold.hpp>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../meta/is_instantiation_of.hpp"
 #include "../meta/logical.hpp"
 #include "./backend_ids.hpp"
