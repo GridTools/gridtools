@@ -11,6 +11,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/timer/timer_traits.hpp"
+#include "../../meta.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
 #include "execute_kernel_functor_cuda.hpp"
@@ -50,14 +51,14 @@ namespace gridtools {
          */
         template <typename MssComponents, typename BackendIds>
         struct fused_mss_loop {
-            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
 
             template <typename LocalDomainListArray, typename Grid>
             static void run(LocalDomainListArray const &local_domain_lists, const Grid &grid) {
                 GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-                host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
+                host::for_each<GT_META_CALL(meta::make_indices_for, MssComponents)>(
                     mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execution_info_cuda>(
                         local_domain_lists, grid, {}));
             }

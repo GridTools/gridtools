@@ -30,8 +30,11 @@
 
 namespace gridtools {
     namespace _impl {
-        template <class T>
-        GT_META_DEFINE_ALIAS(is_sequence_of_caches, meta::all_of, (is_cache, T));
+        template <class T, class = void>
+        struct is_sequence_of_caches : std::false_type {};
+
+        template <template <class...> class L, class... Ts>
+        struct is_sequence_of_caches<L<Ts...>> : conjunction<is_cache<Ts>...> {};
     } // namespace _impl
 
     /**

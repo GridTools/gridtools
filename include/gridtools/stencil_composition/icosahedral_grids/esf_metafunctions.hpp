@@ -20,7 +20,7 @@ namespace gridtools {
 
         using locations_t = GT_META_CALL(meta::transform, (esf_get_location_type, Esfs));
 
-        GT_STATIC_ASSERT(meta::is_empty<locations_t>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(!meta::is_empty<locations_t>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(meta::all_are_same<locations_t>::value,
             "Error: all ESFs in a Multi Stage stencil should have the same location type");
 
