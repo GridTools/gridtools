@@ -48,7 +48,7 @@ function (fetch_tests_helper target_arch filetype test_environment subfolder )
 
     if (GT_ENABLE_TARGET_${target_arch_u})
         # get all source files in the current directory
-        file(GLOB test_sources "./${subfolder}/test_*.${filetype}" )
+        file(GLOB test_sources CONFIGURE_DEPENDS "./${subfolder}/test_*.${filetype}" )
         foreach(test_source IN LISTS test_sources )
             # create a nice name for the test case
             get_filename_component (unit_test ${test_source} NAME_WE )
