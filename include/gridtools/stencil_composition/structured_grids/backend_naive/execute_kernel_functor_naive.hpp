@@ -54,36 +54,29 @@ namespace gridtools {
 
         const local_domain_t &m_local_domain;
         const grid_t &m_grid;
-        pos3<uint_t> m_size;
-        pos3<uint_t> m_block_no;
 
       public:
-        GT_FORCE_INLINE execute_kernel_functor_naive(const local_domain_t &local_domain,
-            const grid_t &grid,
-            uint_t block_size_i,
-            uint_t block_size_j,
-            uint_t block_no_i,
-            uint_t block_no_j)
-            : m_local_domain(local_domain),
-              m_grid(grid), m_size{block_size_i + extent_t::iplus::value - extent_t::iminus::value,
-                                block_size_j + extent_t::jplus::value - extent_t::jminus::value,
-                                0},
-              m_block_no{block_no_i, block_no_j, 0} {}
+        GT_FORCE_INLINE execute_kernel_functor_naive(const local_domain_t &local_domain, const grid_t &grid)
+            : m_local_domain(local_domain), m_grid(grid) {}
 
         GT_FORCE_INLINE void operator()() const {
             iterate_domain_t it_domain(m_local_domain);
 
             it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
-                m_block_no,
+                {0, 0, 0},
                 {extent_t::iminus::value,
                     extent_t::jminus::value,
                     static_cast<int_t>(m_grid.template value_at<from_t>() - m_grid.k_min())});
 
             // run the nested ij loop
+            const uint_t size_i =
+                m_grid.i_high_bound() - m_grid.i_low_bound() + 1 + extent_t::iplus::value - extent_t::iminus::value;
+            const uint_t size_j =
+                m_grid.j_high_bound() - m_grid.j_low_bound() + 1 + extent_t::jplus::value - extent_t::jminus::value;
             typename iterate_domain_t::array_index_t irestore_index, jrestore_index;
-            for (uint_t i = 0; i != m_size.i; ++i) {
+            for (uint_t i = 0; i != size_i; ++i) {
                 irestore_index = it_domain.index();
-                for (uint_t j = 0; j != m_size.j; ++j) {
+                for (uint_t j = 0; j != size_j; ++j) {
                     jrestore_index = it_domain.index();
                     run_functors_on_interval<RunFunctorArguments, run_esf_functor_naive>(it_domain, m_grid);
                     it_domain.set_index(jrestore_index);
