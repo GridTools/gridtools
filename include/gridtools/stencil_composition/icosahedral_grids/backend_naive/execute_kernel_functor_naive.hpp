@@ -108,30 +108,26 @@ namespace gridtools {
         using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
         using from_t = GT_META_CALL(meta::first, interval_t);
 
-        execute_kernel_functor_naive(const local_domain_t &local_domain,
-            const grid_t &grid,
-            uint_t block_size_i,
-            uint_t block_size_j,
-            uint_t block_no_i,
-            uint_t block_no_j)
-            : m_local_domain(local_domain),
-              m_grid(grid), m_size{block_size_i + extent_t::iplus::value - extent_t::iminus::value,
-                                block_size_j + extent_t::jplus::value - extent_t::jminus::value},
-              m_block_no{block_no_i, block_no_j} {}
+        execute_kernel_functor_naive(const local_domain_t &local_domain, const grid_t &grid)
+            : m_local_domain(local_domain), m_grid(grid) {}
 
         void operator()() const {
             iterate_domain_t it_domain(m_local_domain);
 
             it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
-                m_block_no,
+                {0, 0, 0},
                 {extent_t::iminus::value,
                     extent_t::jminus::value,
                     static_cast<int_t>(m_grid.template value_at<from_t>() - m_grid.k_min())});
 
-            for (uint_t i = 0; i != m_size.i; ++i) {
+            const uint_t size_i =
+                m_grid.i_high_bound() - m_grid.i_low_bound() + 1 + extent_t::iplus::value - extent_t::iminus::value;
+            const uint_t size_j =
+                m_grid.j_high_bound() - m_grid.j_low_bound() + 1 + extent_t::jplus::value - extent_t::jminus::value;
+            for (uint_t i = 0; i != size_i; ++i) {
                 gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(
                     _impl_icnaive::color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t>{
-                        it_domain, m_grid, m_size.j});
+                        it_domain, m_grid, size_j});
                 it_domain.increment_c(integral_constant<int, -n_colors>{});
                 it_domain.increment_i();
             }
@@ -140,7 +136,5 @@ namespace gridtools {
       private:
         const local_domain_t &m_local_domain;
         const grid_t &m_grid;
-        pos3<uint_t> m_size;
-        pos3<uint_t> m_block_no;
     };
 } // namespace gridtools
