@@ -449,13 +449,6 @@ namespace gridtools {
 
         /**
            Function to setup internal data structures for data exchange and preparing eventual underlying layers
-
-           The use of this function is deprecated
-        */
-        void allocate_buffers() { setup(); }
-
-        /**
-           Function to setup internal data structures for data exchange and preparing eventual underlying layers
         */
         void setup() { _impl::allocation_service<this_type>()(this); }
 
@@ -571,15 +564,6 @@ namespace gridtools {
         explicit hndlr_dynamic_ut(grid_type const &g)
             : halo(), base_type::m_haloexch(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_size{0}, recv_size{0} {
         }
-
-        /**
-           Function to setup internal data structures for data exchange and preparing eventual underlying layers
-
-           The use of this function is deprecated
-
-           \param max_fields_n Maximum number of data fields that will be passed to the communication functions
-        */
-        void allocate_buffers(int max_fields_n) { setup(max_fields_n); }
 
         /**
            Function to setup internal data structures for data exchange and preparing eventual underlying layers

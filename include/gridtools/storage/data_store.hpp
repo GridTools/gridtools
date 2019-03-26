@@ -264,15 +264,6 @@ namespace gridtools {
         }
 
         /**
-         * @brief deprecated, see total_length()
-         */
-        template <int Dim>
-        GT_DEPRECATED("dim<Dim>() is deprecated, use total_lengths<Dim>() (deprecated after 1.07.00)")
-        int dim() const {
-            return total_length<Dim>();
-        }
-
-        /**
          * @brief member function to retrieve the total size (dimensions, halos, padding).
          * @return total size
          */
@@ -306,12 +297,6 @@ namespace gridtools {
             GT_ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->total_lengths();
         }
-
-        /**
-         * @brief deprecated, see total_lengths()
-         */
-        GT_DEPRECATED("dims() is deprecated, use total_lengths() (deprecated after 1.07.00)")
-        auto dims() const -> decltype(total_lengths()) { return total_lengths(); }
 
         /**
          * @brief forward strides() from storage_info
