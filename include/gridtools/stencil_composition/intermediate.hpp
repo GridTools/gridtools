@@ -13,22 +13,6 @@
 #include <tuple>
 #include <utility>
 
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/eval_if.hpp>
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/list.hpp>
-#include <boost/mpl/max_element.hpp>
-#include <boost/mpl/min_element.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/type_traits/remove_const.hpp>
-
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "backend_base.hpp"
