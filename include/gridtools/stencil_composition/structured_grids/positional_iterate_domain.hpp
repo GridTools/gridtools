@@ -31,32 +31,20 @@ namespace gridtools {
 
         using Base::Base;
 
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_i() {
-            m_pos.i += Step;
-            Base::template increment_i<Step>();
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_i(Offset offset = {}) {
+            m_pos.i += offset;
+            Base::template increment_i(offset);
         }
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_j() {
-            m_pos.j += Step;
-            Base::template increment_j<Step>();
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_j(Offset offset = {}) {
+            m_pos.j += offset;
+            Base::template increment_j(offset);
         }
-        template <int_t Step = 1>
-        GT_FUNCTION void increment_k() {
-            m_pos.k += Step;
-            Base::template increment_k<Step>();
-        }
-        GT_FUNCTION void increment_i(int_t step) {
-            m_pos.i += step;
-            Base::increment_i(step);
-        }
-        GT_FUNCTION void increment_j(int_t step) {
-            m_pos.j += step;
-            Base::increment_j(step);
-        }
-        GT_FUNCTION void increment_k(int_t step) {
-            m_pos.k += step;
-            Base::increment_k(step);
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_k(Offset offset = {}) {
+            m_pos.k += offset;
+            Base::template increment_k(offset);
         }
 
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {

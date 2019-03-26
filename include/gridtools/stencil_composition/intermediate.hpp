@@ -189,8 +189,6 @@ namespace gridtools {
 
         using free_placeholders_t = GT_META_CALL(meta::filter, (is_free, non_tmp_placeholders_t));
 
-        using storage_info_map_t = _impl::storage_info_map_t<placeholders_t>;
-
         using bound_arg_storage_pair_tuple_t = std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>;
 
       public:
@@ -217,10 +215,6 @@ namespace gridtools {
         Grid m_grid;
 
         std::unique_ptr<performance_meter_t> m_meter;
-
-        /// is needed for dedup_storage_info method.
-        //
-        storage_info_map_t m_storage_info_map;
 
         /// tuple with temporary storages
         //
@@ -254,11 +248,10 @@ namespace gridtools {
             // grid just stored to the member
             : m_grid(grid),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
-              m_tmp_arg_storage_pair_tuple(dedup_storage_info(
-                  _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(
-                      grid))),
-              // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
-              m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
+              m_tmp_arg_storage_pair_tuple(
+                  _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(grid)),
+              // stash bound storages
+              m_bound_arg_storage_pair_tuple(std::move(arg_storage_pairs)) {
             if (timer_enabled)
                 m_meter.reset(new performance_meter_t{"NoName"});
 #ifndef NDEBUG
@@ -326,18 +319,14 @@ namespace gridtools {
 
         template <class... Args, class... DataStores>
         local_domains_t const &local_domains(arg_storage_pair<Args, DataStores> const &... srcs) {
-            _impl::update_local_domains(tuple_util::flatten(std::make_tuple(m_tmp_arg_storage_pair_tuple,
-                                            m_bound_arg_storage_pair_tuple,
-                                            dedup_storage_info(std::tie(srcs...)))),
+            _impl::update_local_domains(
+                tuple_util::flatten(
+                    std::make_tuple(m_tmp_arg_storage_pair_tuple, m_bound_arg_storage_pair_tuple, std::tie(srcs...))),
                 m_local_domains);
             return m_local_domains;
         }
 
       private:
-        template <class Seq>
-        auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
-            tuple_util::transform(_impl::dedup_storage_info_f<storage_info_map_t>{m_storage_info_map}, seq));
-
         template <class ExtentMap = extent_map_t>
         enable_if_t<!boost::mpl::is_void_<ExtentMap>::value> check_grid_against_extents() const {
             for_each_type<non_tmp_placeholders_t>(check_grid_against_extents_f{m_grid});

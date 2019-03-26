@@ -66,7 +66,7 @@ namespace gridtools {
             return old;
 #else
             T old;
-#pragma omp critical(AdtomicSub)
+#pragma omp critical(AtomicSub)
             {
                 old = var;
                 var -= val;

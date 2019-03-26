@@ -16,19 +16,11 @@ namespace gridtools {
     struct grid : grid_base<Axis> {
         using base_type = grid_base<Axis>;
 
-        GT_DEPRECATED("This constructor does not initialize the vertical axis, use the constructor with 3 "
-                      "arguments. (deprecated after 1.05.02)")
-        GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : base_type(direction_i, direction_j) {}
-
         GT_FUNCTION
         explicit grid(halo_descriptor const &direction_i,
             halo_descriptor const &direction_j,
             const decltype(base_type::value_list) &value_list)
             : base_type(direction_i, direction_j, value_list) {}
-
-        GT_DEPRECATED("Use constructor with halo_descriptors (deprecated after 1.05.02)")
-        GT_FUNCTION explicit grid(uint_t *i, uint_t *j) : base_type(i, j) {}
     };
 
     template <typename Grid>

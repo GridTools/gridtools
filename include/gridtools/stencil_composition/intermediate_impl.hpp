@@ -10,108 +10,38 @@
 #pragma once
 
 #include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/include/count.hpp>
-#include <boost/fusion/include/flatten.hpp>
-#include <boost/fusion/include/move.hpp>
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/mpl/transform_view.hpp>
-#include <boost/optional.hpp>
 
 #include "../common/functional.hpp"
-#include "../common/generic_metafunctions/copy_into_set.hpp"
+#include "../common/hymap.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta/defs.hpp"
-#include "./esf_metafunctions.hpp"
-#include "./extract_placeholders.hpp"
-#include "./local_domain.hpp"
-#include "./tmp_storage.hpp"
+#include "../storage/sid.hpp"
+#include "esf_metafunctions.hpp"
+#include "extract_placeholders.hpp"
+#include "local_domain.hpp"
+#include "sid/concept.hpp"
+#include "tmp_storage.hpp"
 
 namespace gridtools {
     namespace _impl {
-
-        /// this functor takes storage infos shared pointers (or types that contain storage_infos);
-        /// stashes all infos that are passed through for the first time;
-        /// if info is about to pass through twice, the functor substitutes it with the stashed one.
-        template <class StorageInfoMap>
-        struct dedup_storage_info_f {
-            StorageInfoMap &m_storage_info_map;
-
-            template <class Strorage, class StorageInfo>
-            data_store<Strorage, StorageInfo> operator()(data_store<Strorage, StorageInfo> const &src) const {
-                assert(src.valid());
-                static_assert(boost::mpl::has_key<StorageInfoMap, StorageInfo>::value, "");
-                auto &stored = boost::fusion::at_key<StorageInfo>(m_storage_info_map);
-                if (!stored) {
-                    stored = src.get_storage_info_ptr();
-                    return src;
-                }
-                assert(*stored == *src.get_storage_info_ptr());
-                return {src, stored};
-            }
-
-            template <class Storage, class StorageInfo>
-            data_store<Storage, StorageInfo> operator()(data_store<Storage, StorageInfo> &&src) const {
-                assert(src.valid());
-                static_assert(boost::mpl::has_key<StorageInfoMap, StorageInfo>::value, "");
-                auto &stored = boost::fusion::at_key<StorageInfo>(m_storage_info_map);
-                if (!stored) {
-                    stored = src.get_storage_info_ptr();
-                    return src;
-                }
-                assert(*stored == *src.get_storage_info_ptr());
-                return {std::move(src), *stored};
-            }
-
-            template <class Arg, class DataStore>
-            arg_storage_pair<Arg, DataStore> operator()(arg_storage_pair<Arg, DataStore> const &src) const {
-                return this->operator()(src.m_value);
-            }
-            template <class Arg, class DataStore>
-            arg_storage_pair<Arg, DataStore> operator()(arg_storage_pair<Arg, DataStore> &&src) const {
-                return this->operator()(std::move(src.m_value));
-            }
-        };
-
-        template <class Arg>
-        struct get_storage_info {
-            using type = typename Arg::data_store_t::storage_info_t;
-        };
-
-        template <class StorageInfo>
-        struct get_storage_info_map_element {
-            using type = boost::fusion::pair<StorageInfo, std::shared_ptr<StorageInfo>>;
-        };
-
-        template <typename Placeholders>
-        using storage_info_map_t = typename boost::fusion::result_of::as_map<boost::mpl::transform_view<
-            typename copy_into_set<boost::mpl::transform_view<Placeholders, get_storage_info<boost::mpl::_>>,
-                boost::mpl::set0<>>::type,
-            get_storage_info_map_element<boost::mpl::_>>>::type;
-
         // set pointers from the given storage to the local domain
         struct set_arg_store_pair_to_local_domain_f {
 
             // if the arg belongs to the local domain we set pointers
             template <class Arg, class DataStore, class LocalDomain>
-            enable_if_t<meta::st_contains<typename LocalDomain::esf_args, Arg>::value> operator()(
+            enable_if_t<meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
                 arg_storage_pair<Arg, DataStore> const &src, LocalDomain &local_domain) const {
                 const auto &storage = src.m_value;
-                if (storage.device_needs_update())
-                    storage.sync();
-                auto view = make_target_view(storage);
-                namespace f = boost::fusion;
-                // here we set data pointers
-                f::at_key<Arg>(local_domain.m_local_data_ptrs) = advanced::get_raw_pointer_of(view);
-                // here we set meta data pointers
-                auto const *storage_info = advanced::storage_info_raw_ptr(view);
+                boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) = sid::get_origin(storage)();
+                using storage_info_t = typename DataStore::storage_info_t;
+                at_key<storage_info_t>(local_domain.m_strides_map) = sid::get_strides(storage);
                 constexpr auto storage_info_index =
-                    meta::st_position<typename LocalDomain::storage_info_ptr_list, decltype(storage_info)>::value;
-                f::at_c<storage_info_index>(local_domain.m_local_storage_info_ptrs) = storage_info;
+                    meta::st_position<typename LocalDomain::storage_infos_t, storage_info_t>::value;
                 local_domain.m_local_padded_total_lengths[storage_info_index] = storage.info().padded_total_length();
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class DataStore, class LocalDomain>
-            enable_if_t<!meta::st_contains<typename LocalDomain::esf_args, Arg>::value> operator()(
+            enable_if_t<!meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
                 arg_storage_pair<Arg, DataStore> const &, LocalDomain &) const {}
         };
 

@@ -88,7 +88,7 @@ TEST(layout_transformation, 3D_reverse_layout) {
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
-    init<3>(dst, dst_index, [](const array<size_t, 3> &a) { return -1; });
+    init<3>(dst, dst_index, [](const array<size_t, 3> &) { return -1; });
 
     gridtools::interface::transform(dst, src, dims, dst_strides, src_strides);
 
@@ -114,7 +114,7 @@ TEST(layout_transformation, 4D_reverse_layout) {
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
-    init<4>(dst, dst_index, [](const array<size_t, 4> &a) { return -1; });
+    init<4>(dst, dst_index, [](const array<size_t, 4> &) { return -1; });
 
     gridtools::interface::transform(dst, src, dims, dst_strides, src_strides);
 
@@ -138,7 +138,7 @@ TEST(layout_transformation, 2D_reverse_layout) {
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
-    init<2>(dst, dst_index, [](const array<size_t, 2> &a) { return -1; });
+    init<2>(dst, dst_index, [](const array<size_t, 2> &) { return -1; });
 
     gridtools::interface::transform(dst, src, dims, dst_strides, src_strides);
 

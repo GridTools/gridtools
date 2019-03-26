@@ -279,7 +279,7 @@ namespace gridtools {
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
             constexpr enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, default_strides>
-            get_strides(Sid const &obj) {
+            get_strides(Sid const &) {
                 return {};
             }
 

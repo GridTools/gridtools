@@ -12,7 +12,7 @@
 
 #include <gridtools/meta/type_traits.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions/stencil_functions.hpp>
+#include <gridtools/stencil_composition/stencil_functions.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 #include "../../test_helper.hpp"

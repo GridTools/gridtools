@@ -21,7 +21,7 @@ namespace gridtools {
 
             MPI_3D_process_grid_t() {}
             template <typename Period, typename Comm>
-            MPI_3D_process_grid_t(Period const &a, Comm const &) {}
+            MPI_3D_process_grid_t(Period const &, Comm const &) {}
             MPI_3D_process_grid_t(MPI_3D_process_grid_t const &other) = default;
             template <typename Period, typename Comm, typename Dims>
             MPI_3D_process_grid_t(Period const &c, Comm const &comm, Dims const &) {}
