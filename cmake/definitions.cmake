@@ -94,10 +94,10 @@ endif(GT_ENABLE_TARGET_X86)
 
 # TESTS ONLY
 if(GT_ENABLE_TARGET_NAIVE)
-  add_library(GridToolsTestNaive INTERFACE)
-  target_compile_definitions(GridToolsTestNaive INTERFACE GT_BACKEND_NAIVE)
-  target_link_libraries(GridToolsTestNaive INTERFACE GridToolsTest)
-  target_compile_options(GridToolsTestNaive INTERFACE -march=native)
+  add_library(GridToolsTestNAIVE INTERFACE)
+  target_compile_definitions(GridToolsTestNAIVE INTERFACE GT_BACKEND_NAIVE)
+  target_link_libraries(GridToolsTestNAIVE INTERFACE GridToolsTest)
+  target_compile_options(GridToolsTestNAIVE INTERFACE -march=native)
 endif(GT_ENABLE_TARGET_NAIVE)
 
 ## cuda support ##

@@ -50,7 +50,7 @@ endif(GT_ENABLE_TARGET_X86)
 if(GT_ENABLE_TARGET_NAIVE)
     foreach(srcfile IN LISTS SOURCES)
         add_executable(${srcfile}_naive ${srcfile}.cpp)
-        target_link_libraries(${srcfile}_naive regression_main GridToolsTestNaive)
+        target_link_libraries(${srcfile}_naive regression_main GridToolsTestNAIVE)
 
         gridtools_add_test(
             NAME tests.${srcfile}_naive_12_33_21

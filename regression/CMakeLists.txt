@@ -65,7 +65,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
       if(GT_ENABLE_TARGET_NAIVE)
         foreach(srcfile IN LISTS SOURCES)
           add_executable(${srcfile}_naive   ${srcfile}.cpp)
-          target_link_libraries(${srcfile}_naive regression_main GridToolsTestNaive)
+          target_link_libraries(${srcfile}_naive regression_main GridToolsTestNAIVE)
 
           gridtools_add_test(
               NAME tests.${srcfile}_naive_12_33_61
@@ -89,7 +89,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
             add_executable(shallow_water_enhanced_naive  shallow_water_enhanced.cpp)
-            target_link_libraries(shallow_water_enhanced_naive gtest_main gcl GridToolsTestNaive)
+            target_link_libraries(shallow_water_enhanced_naive gtest_main gcl GridToolsTestNAIVE)
         endif()
       endif(GT_ENABLE_TARGET_NAIVE)
 
