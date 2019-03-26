@@ -22,12 +22,16 @@
 
 #ifdef __CUDACC__
 #include "./backend_cuda/backend_traits_cuda.hpp"
+#include "./backend_cuda/fused_mss_loop_cuda.hpp"
 #endif
 #ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./backend_mc/backend_traits_mc.hpp"
+#include "./backend_mc/fused_mss_loop_mc.hpp"
 #endif
 #include "./backend_naive/backend_traits_naive.hpp"
+#include "./backend_naive/fused_mss_loop_naive.hpp"
 #include "./backend_x86/backend_traits_x86.hpp"
+#include "./backend_x86/fused_mss_loop_x86.hpp"
 
 /**
    @file
@@ -129,7 +133,7 @@ namespace gridtools {
             GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
-            backend_traits_t::template fused_mss_loop<MssComponents, backend_target_t>::run(local_domains, grid);
+            fused_mss_loop<MssComponents>(backend_target_t{}, local_domains, grid);
         }
     };
 

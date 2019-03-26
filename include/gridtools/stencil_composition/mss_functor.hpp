@@ -28,6 +28,7 @@
 #include "./local_domain.hpp"
 #include "./mss_components.hpp"
 #include "./mss_components_metafunctions.hpp"
+#include "./mss_loop.hpp"
 #include "./run_functor_arguments.hpp"
 
 namespace gridtools {
@@ -78,8 +79,7 @@ namespace gridtools {
                 run_functor_args_t;
 
             // now the corresponding backend has to execute all the functors of the mss
-            backend_traits_t::template mss_loop<run_functor_args_t>::template run(
-                local_domain, m_grid, m_execution_info);
+            mss_loop<run_functor_args_t>(BackendTarget{}, local_domain, m_grid, m_execution_info);
         }
     };
 } // namespace gridtools
