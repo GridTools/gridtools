@@ -76,12 +76,12 @@ static_assert(meta::length<local_domains_t>{} == 2, "");
 using local_domain1_t = GT_META_CALL(meta::first, local_domains_t);
 
 // local domain should contain the args used by all the esfs
-static_assert(std::is_same<typename local_domain1_t::esf_args, std::tuple<p_in, p_buff>>{}, "");
+static_assert(std::is_same<typename local_domain1_t::esf_args_t, std::tuple<p_in, p_buff>>{}, "");
 
 using local_domain2_t = GT_META_CALL(meta::second, local_domains_t);
 
 // local domain should contain the args used by all the esfs
-static_assert(std::is_same<typename local_domain2_t::esf_args, std::tuple<p_buff, p_out>>{}, "");
+static_assert(std::is_same<typename local_domain2_t::esf_args_t, std::tuple<p_buff, p_out>>{}, "");
 
 // icc build fails to build unit tests without a single test.
 TEST(dummy, dummy) {}

@@ -230,7 +230,6 @@ namespace gridtools {
         }
 
         friend data_t *advanced_get_raw_pointer_of(data_view const &src) { return src.m_raw_ptr; }
-        friend storage_info_t const *advanced_storage_info_raw_ptr(data_view const &src) { return src.m_storage_info; }
     };
 
     template <typename T>
@@ -247,9 +246,6 @@ namespace gridtools {
         */
         template <class T>
         auto get_raw_pointer_of(T const &src) GT_AUTO_RETURN(advanced_get_raw_pointer_of(src));
-
-        template <class T>
-        auto storage_info_raw_ptr(T const &src) GT_AUTO_RETURN(advanced_storage_info_raw_ptr(src));
     } // namespace advanced
 
     /**

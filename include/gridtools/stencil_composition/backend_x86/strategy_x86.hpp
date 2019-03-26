@@ -69,7 +69,7 @@ namespace gridtools {
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
             template <typename LocalDomain, typename Grid>
-            static void run(
+            static GT_FORCE_INLINE void run(
                 const LocalDomain &local_domain, const Grid &grid, const execution_info_x86 &execution_info) {
                 GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
@@ -141,7 +141,7 @@ namespace gridtools {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
             template <typename LocalDomain, typename Grid>
-            static void run(
+            static void GT_FORCE_INLINE run(
                 const LocalDomain &local_domain, const Grid &grid, const execution_info_x86 &execution_info) {
                 GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
