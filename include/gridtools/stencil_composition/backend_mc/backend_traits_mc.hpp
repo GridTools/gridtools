@@ -26,22 +26,14 @@ namespace gridtools {
         /**
          * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
          */
-        struct is_mss_kparallel {
-            template <typename Mss>
-            struct apply {
-                using type = execute::is_parallel<typename Mss::execution_engine_t>;
-            };
-        };
+        template <typename Mss>
+        GT_META_DEFINE_ALIAS(is_mss_kparallel, execute::is_parallel, typename Mss::execution_engine_t);
 
         /**
          * @brief Meta function to check if all MSS in an MssComponents array can be executed in parallel along k-axis.
          */
-        template <typename MssComponents>
-        struct all_mss_kparallel
-            : boost::mpl::fold<typename boost::mpl::transform<MssComponents, is_mss_kparallel>::type,
-                  boost::mpl::true_,
-                  boost::mpl::and_<boost::mpl::placeholders::_1, boost::mpl::placeholders::_2>>::type {};
-
+        template <typename Msses>
+        GT_META_DEFINE_ALIAS(all_mss_kparallel, meta::all_of, (is_mss_kparallel, Msses));
     } // namespace _impl
 
     /**Traits struct, containing the types which are specific for the mc backend*/
@@ -76,8 +68,8 @@ namespace gridtools {
          */
         template <typename MssComponents, typename BackendIds, typename Enable = void>
         struct fused_mss_loop {
-            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
 
             template <typename LocalDomainListArray, typename Grid>
             GT_FUNCTION static void run(LocalDomainListArray const &local_domain_lists, Grid const &grid) {
@@ -108,7 +100,7 @@ namespace gridtools {
         struct fused_mss_loop<MssComponents,
             BackendIds,
             typename std::enable_if<_impl::all_mss_kparallel<MssComponents>::value>::type> {
-            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
 
             template <typename LocalDomainListArray, typename Grid>
