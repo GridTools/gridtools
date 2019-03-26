@@ -24,7 +24,6 @@
 #include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
-#include "../grid_traits.hpp"
 #include "../positional_iterate_domain.hpp"
 #include "./iterate_domain_cuda.hpp"
 
@@ -124,8 +123,7 @@ namespace gridtools {
                 static constexpr auto padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
                 GT_STATIC_ASSERT(
-                    jboundary_limit * padded_boundary_ <= block_i_size(backend_ids<target::cuda, strategy::block>{}),
-                    GT_INTERNAL_ERROR);
+                    jboundary_limit * padded_boundary_ <= block_i_size(backend_ids<target::cuda>{}), GT_INTERNAL_ERROR);
 
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
@@ -133,8 +131,7 @@ namespace gridtools {
                 static constexpr auto padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
                 GT_STATIC_ASSERT(
-                    jboundary_limit * padded_boundary_ <= block_i_size(backend_ids<target::cuda, strategy::block>{}),
-                    GT_INTERNAL_ERROR);
+                    jboundary_limit * padded_boundary_ <= block_i_size(backend_ids<target::cuda>{}), GT_INTERNAL_ERROR);
                 iblock = threadIdx.x % padded_boundary_ + ntx;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
@@ -156,101 +153,97 @@ namespace gridtools {
 
     } // namespace _impl_strcuda
 
-    namespace strgrid {
+    /**
+     * @brief main functor that setups the CUDA kernel for a MSS and launchs it
+     * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
+     */
+    template <typename RunFunctorArguments>
+    struct execute_kernel_functor_cuda {
+        GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
+        typedef typename RunFunctorArguments::local_domain_t local_domain_t;
+        typedef typename RunFunctorArguments::grid_t grid_t;
 
-        /**
-         * @brief main functor that setups the CUDA kernel for a MSS and launchs it
-         * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
-         */
-        template <typename RunFunctorArguments>
-        struct execute_kernel_functor_cuda {
-            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
-            typedef typename RunFunctorArguments::local_domain_t local_domain_t;
-            typedef typename RunFunctorArguments::grid_t grid_t;
+        GT_STATIC_ASSERT(cuda_util::is_cloneable<local_domain_t>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(cuda_util::is_cloneable<grid_t>::value, GT_INTERNAL_ERROR);
 
-            GT_STATIC_ASSERT(cuda_util::is_cloneable<local_domain_t>::value, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(cuda_util::is_cloneable<grid_t>::value, GT_INTERNAL_ERROR);
+        // ctor
+        explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
+            : m_local_domain(local_domain), m_grid(grid) {}
 
-            // ctor
-            explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
-                : m_local_domain(local_domain), m_grid(grid) {}
-
-            void operator()() {
+        void operator()() {
 #ifdef GT_VERBOSE
-                short_t count;
-                GT_CUDA_CHECK(cudaGetDeviceCount(&count));
+            short_t count;
+            GT_CUDA_CHECK(cudaGetDeviceCount(&count));
 
-                if (count) {
-                    cudaDeviceProp prop;
-                    GT_CUDA_CHECK(cudaGetDeviceProperties(&prop, 0));
-                    std::cout << "total global memory " << prop.totalGlobalMem << std::endl;
-                    std::cout << "shared memory per block " << prop.sharedMemPerBlock << std::endl;
-                    std::cout << "registers per block " << prop.regsPerBlock << std::endl;
-                    std::cout << "maximum threads per block " << prop.maxThreadsPerBlock << std::endl;
-                    std::cout << "maximum threads dimension " << prop.maxThreadsDim << std::endl;
-                    std::cout << "clock rate " << prop.clockRate << std::endl;
-                    std::cout << "total const memory " << prop.totalConstMem << std::endl;
-                    std::cout << "compute capability " << prop.major << "." << prop.minor << std::endl;
-                    std::cout << "multiprocessors count " << prop.multiProcessorCount << std::endl;
-                    std::cout << "CUDA compute mode (0=default, 1=exclusive, 2=prohibited, 3=exclusive process) "
-                              << prop.computeMode << std::endl;
-                    std::cout << "concurrent kernels " << prop.concurrentKernels << std::endl;
-                    std::cout << "Number of asynchronous engines  " << prop.asyncEngineCount << std::endl;
-                    std::cout << "unified addressing " << prop.unifiedAddressing << std::endl;
-                    std::cout << "memoryClockRate " << prop.memoryClockRate << std::endl;
-                    std::cout << "memoryBusWidth " << prop.memoryBusWidth << std::endl;
-                    std::cout << "l2CacheSize " << prop.l2CacheSize << std::endl;
-                    std::cout << "maxThreadsPerMultiProcessor " << prop.maxThreadsPerMultiProcessor << std::endl;
-                }
+            if (count) {
+                cudaDeviceProp prop;
+                GT_CUDA_CHECK(cudaGetDeviceProperties(&prop, 0));
+                std::cout << "total global memory " << prop.totalGlobalMem << std::endl;
+                std::cout << "shared memory per block " << prop.sharedMemPerBlock << std::endl;
+                std::cout << "registers per block " << prop.regsPerBlock << std::endl;
+                std::cout << "maximum threads per block " << prop.maxThreadsPerBlock << std::endl;
+                std::cout << "maximum threads dimension " << prop.maxThreadsDim << std::endl;
+                std::cout << "clock rate " << prop.clockRate << std::endl;
+                std::cout << "total const memory " << prop.totalConstMem << std::endl;
+                std::cout << "compute capability " << prop.major << "." << prop.minor << std::endl;
+                std::cout << "multiprocessors count " << prop.multiProcessorCount << std::endl;
+                std::cout << "CUDA compute mode (0=default, 1=exclusive, 2=prohibited, 3=exclusive process) "
+                          << prop.computeMode << std::endl;
+                std::cout << "concurrent kernels " << prop.concurrentKernels << std::endl;
+                std::cout << "Number of asynchronous engines  " << prop.asyncEngineCount << std::endl;
+                std::cout << "unified addressing " << prop.unifiedAddressing << std::endl;
+                std::cout << "memoryClockRate " << prop.memoryClockRate << std::endl;
+                std::cout << "memoryBusWidth " << prop.memoryBusWidth << std::endl;
+                std::cout << "l2CacheSize " << prop.l2CacheSize << std::endl;
+                std::cout << "maxThreadsPerMultiProcessor " << prop.maxThreadsPerMultiProcessor << std::endl;
+            }
 #endif
 
-                // number of threads
-                const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
-                const uint_t ny = (uint_t)(m_grid.j_high_bound() - m_grid.j_low_bound() + 1);
-                const uint_t nz = m_grid.k_total_length();
+            // number of threads
+            const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
+            const uint_t ny = (uint_t)(m_grid.j_high_bound() - m_grid.j_low_bound() + 1);
+            const uint_t nz = m_grid.k_total_length();
 
-                static constexpr auto backend = typename RunFunctorArguments::backend_ids_t{};
+            static constexpr auto backend = typename RunFunctorArguments::backend_ids_t{};
 
-                // number of grid points that a cuda block covers
-                static constexpr uint_t ntx = block_i_size(backend);
-                static constexpr uint_t nty = block_j_size(backend);
-                static constexpr uint_t ntz = 1;
+            // number of grid points that a cuda block covers
+            static constexpr uint_t ntx = block_i_size(backend);
+            static constexpr uint_t nty = block_j_size(backend);
+            static constexpr uint_t ntz = 1;
 
-                using max_extent_t = typename RunFunctorArguments::max_extent_t;
-                static constexpr uint_t halo_processing_warps =
-                    max_extent_t::jplus::value - max_extent_t::jminus::value +
-                    (max_extent_t::iminus::value < 0 ? 1 : 0) + (max_extent_t::iplus::value > 0 ? 1 : 0);
+            using max_extent_t = typename RunFunctorArguments::max_extent_t;
+            static constexpr uint_t halo_processing_warps = max_extent_t::jplus::value - max_extent_t::jminus::value +
+                                                            (max_extent_t::iminus::value < 0 ? 1 : 0) +
+                                                            (max_extent_t::iplus::value > 0 ? 1 : 0);
 
-                dim3 threads(ntx, nty + halo_processing_warps, ntz);
+            dim3 threads(ntx, nty + halo_processing_warps, ntz);
 
-                // number of blocks required
-                const uint_t nbx = (nx + ntx - 1) / ntx;
-                const uint_t nby = (ny + nty - 1) / nty;
-                using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                const uint_t nbz = impl_::blocks_required_z<execution_type_t>::get(nz);
+            // number of blocks required
+            const uint_t nbx = (nx + ntx - 1) / ntx;
+            const uint_t nby = (ny + nty - 1) / nty;
+            using execution_type_t = typename RunFunctorArguments::execution_type_t;
+            const uint_t nbz = impl_::blocks_required_z<execution_type_t>::get(nz);
 
-                dim3 blocks(nbx, nby, nbz);
+            dim3 blocks(nbx, nby, nbz);
 
 #ifdef GT_VERBOSE
-                std::cout << "ntx = " << ntx << ", nty = " << nty << ", ntz = " << ntz << std::endl;
-                std::cout << "nbx = " << nbx << ", nby = " << nby << ", nbz = " << nbz << std::endl;
-                std::cout << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
+            std::cout << "ntx = " << ntx << ", nty = " << nty << ", ntz = " << ntz << std::endl;
+            std::cout << "nbx = " << nbx << ", nby = " << nby << ", nbz = " << nbz << std::endl;
+            std::cout << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
 #endif
-                _impl_strcuda::do_it_on_gpu<RunFunctorArguments, ntx *(nty + halo_processing_warps)>
-                    <<<blocks, threads>>>(m_local_domain, m_grid);
+            _impl_strcuda::do_it_on_gpu<RunFunctorArguments, ntx *(nty + halo_processing_warps)>
+                <<<blocks, threads>>>(m_local_domain, m_grid);
 
 #ifndef NDEBUG
-                GT_CUDA_CHECK(cudaDeviceSynchronize());
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
 #else
-                GT_CUDA_CHECK(cudaGetLastError());
+            GT_CUDA_CHECK(cudaGetLastError());
 #endif
-            }
+        }
 
-          private:
-            const local_domain_t &m_local_domain;
-            const grid_t &m_grid;
-        };
-
-    } // namespace strgrid
+      private:
+        const local_domain_t &m_local_domain;
+        const grid_t &m_grid;
+    };
 
 } // namespace gridtools

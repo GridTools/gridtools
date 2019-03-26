@@ -20,6 +20,7 @@ def build_and_test(args):
     # backend selection
     cmake_args['GT_ENABLE_TARGET_CUDA'] = False
     cmake_args['GT_ENABLE_TARGET_X86'] = False
+    cmake_args['GT_ENABLE_TARGET_NAIVE'] = False
     cmake_args['GT_ENABLE_TARGET_MC'] = False
     cmake_args['GT_ENABLE_TARGET_' + args.backend.upper()] = True
 

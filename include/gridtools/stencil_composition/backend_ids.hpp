@@ -16,13 +16,11 @@
 namespace gridtools {
 
     /**
-     * @brief metadata with the information for architecture, grid and strategy backends
+     * @brief metadata with the information for architecture
      * @tparam BackendId architecture backend id
-     * @tparam StrategyId strategy id
      */
-    template <class BackendId, class StrategyId>
+    template <class BackendId>
     struct backend_ids {
-        using strategy_id_t = StrategyId;
         using backend_id_t = BackendId;
     };
 

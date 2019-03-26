@@ -26,8 +26,8 @@ struct static_type_tests {
 
 #ifdef __CUDACC__
 // static type tests for Cuda backend
-template <class Strategy>
-struct static_type_tests<backend<target::cuda, Strategy>> {
+template <>
+struct static_type_tests<backend<target::cuda>> {
     using storage_traits_t = storage_traits<target::cuda>;
 
     /*########## STORAGE INFO CHECKS ########## */
@@ -58,9 +58,10 @@ struct static_type_tests<backend<target::cuda, Strategy>> {
 };
 #endif
 
+#ifndef GT_ICOSAHEDRAL_GRIDS
 // static type tests for Mic backend
-template <class Strategy>
-struct static_type_tests<backend<target::mc, Strategy>> {
+template <>
+struct static_type_tests<backend<target::mc>> {
     using storage_traits_t = storage_traits<target::mc>;
 
     /*########## STORAGE INFO CHECKS ########## */
@@ -68,27 +69,15 @@ struct static_type_tests<backend<target::mc, Strategy>> {
     typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
     GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
-#ifndef GT_ICOSAHEDRAL_GRIDS
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
                          storage_info<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
-#else
-    GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
-        "storage info test failed");
-#endif
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
-#ifndef GT_ICOSAHEDRAL_GRIDS
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
                          storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
-#else
-    GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
-        "storage info test failed");
-#endif
 
     /*########## DATA STORE CHECKS ########## */
     typedef storage_traits_t::data_store_t<double, storage_info_ty> data_store_t;
@@ -101,15 +90,16 @@ struct static_type_tests<backend<target::mc, Strategy>> {
     GT_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, mc_storage<double>>::type::value),
         "data store storage type is wrong");
 };
+#endif
 
-// static type tests for Host backend
-template <class Strategy>
-struct static_type_tests<backend<target::x86, Strategy>> {
-    using storage_traits_t = storage_traits<target::x86>;
+// static type tests for x86 and naive backend
+template <class Target>
+struct static_type_tests<backend<Target>> {
+    using storage_traits_t = storage_traits<Target>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
-    typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
+    typedef typename storage_traits_t::template storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
     GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
@@ -117,13 +107,14 @@ struct static_type_tests<backend<target::x86, Strategy>> {
         "storage info test failed");
 
     // special layout
-    typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
+    typedef typename storage_traits_t::template special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>>
+        special_storage_info_ty;
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
                          storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<1>>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
-    typedef storage_traits_t::data_store_t<double, storage_info_ty> data_store_t;
+    typedef typename storage_traits_t::template data_store_t<double, storage_info_ty> data_store_t;
     GT_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_info_t, storage_info_ty>::type::value),
         "data store info type is wrong");
     GT_STATIC_ASSERT(
@@ -480,20 +471,20 @@ struct static_layout_tests {
 };
 
 #ifdef __CUDACC__
-template <class Strategy>
-struct static_layout_tests<backend<target::cuda, Strategy>> : static_layout_tests_decreasing<target::cuda> {};
+template <>
+struct static_layout_tests<backend<target::cuda>> : static_layout_tests_decreasing<target::cuda> {};
 #endif
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
-template <class Strategy>
-struct static_layout_tests<backend<target::mc, Strategy>> : static_layout_tests_decreasing_swappedxy<target::mc> {};
-#else
-template <class Strategy>
-struct static_layout_tests<backend<target::mc, Strategy>> : static_layout_tests_increasing<target::mc> {};
+template <>
+struct static_layout_tests<backend<target::mc>> : static_layout_tests_decreasing_swappedxy<target::mc> {};
 #endif
 
-template <class Strategy>
-struct static_layout_tests<backend<target::x86, Strategy>> : static_layout_tests_increasing<target::x86> {};
+template <>
+struct static_layout_tests<backend<target::x86>> : static_layout_tests_increasing<target::x86> {};
+
+template <>
+struct static_layout_tests<backend<target::naive>> : static_layout_tests_increasing<target::naive> {};
 
 template struct static_layout_tests<backend_t>;
 

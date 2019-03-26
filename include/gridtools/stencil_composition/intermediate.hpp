@@ -23,7 +23,6 @@
 #include "esf.hpp"
 #include "extract_placeholders.hpp"
 #include "grid.hpp"
-#include "grid_traits.hpp"
 #include "intermediate_impl.hpp"
 #include "level.hpp"
 #include "local_domain.hpp"

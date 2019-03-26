@@ -51,15 +51,15 @@ namespace gridtools {
      *          | I4                  |         4 :
      *   20 ---------          20 ---------      ---
      */
-    template <class FromLevel, class ToLevel, class Strategy, uint_t BlockSize, class Grid>
+    template <class FromLevel, class ToLevel, uint_t BlockSize, class Grid>
     GT_FUNCTION pair<int, int> get_k_interval(
-        backend_ids<target::cuda, Strategy>, execute::parallel_block<BlockSize>, Grid const &grid) {
+        backend_ids<target::cuda>, execute::parallel_block<BlockSize>, Grid const &grid) {
         return make_pair(math::max(blockIdx.z * BlockSize, grid.template value_at<FromLevel>()),
             math::min((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<ToLevel>()));
     }
 
-    template <class FromLevel, class ToLevel, class Strategy, class ExecutionEngine, class Grid>
-    GT_FUNCTION pair<int, int> get_k_interval(backend_ids<target::cuda, Strategy>, ExecutionEngine, Grid const &grid) {
+    template <class FromLevel, class ToLevel, class ExecutionEngine, class Grid>
+    GT_FUNCTION pair<int, int> get_k_interval(backend_ids<target::cuda>, ExecutionEngine, Grid const &grid) {
         return make_pair(grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>());
     }
 } // namespace gridtools

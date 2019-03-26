@@ -27,6 +27,7 @@
 #ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./backend_mc/backend_traits_mc.hpp"
 #endif
+#include "./backend_naive/backend_traits_naive.hpp"
 #include "./backend_x86/backend_traits_x86.hpp"
 
 /**
@@ -41,26 +42,17 @@ namespace gridtools {
         policy determining the specific type. Each backend contains a
         traits class for the specific case.
 
-        backend<type, strategy>
-        there are traits: one for type and one for strategy.
+        backend<target>
+        there are traits for the target.
         - type refers to the architecture specific, like the
           differences between cuda and x86.
 
         The backend has a member function "run" that is called by the
         "intermediate".
-        The "run" method calls strategy_from_id<strategy>::loop
-
-        - the strategy_from_id is in the specific backend_? folder, such as
-        - in backend_?/backend_traits.h
-
-        - strategy_from_id contains the tile size information and the
-        - "struct loop" which has the "run_loop" member function.
 
         Before calling the loop::run_loop method, the backend queries
         "execute_traits" that are contained in the
-        "backend_traits_t". the latter is obtained by
-
-        backend_strategy_from_id<type>
+        "backend_traits_t".
 
         The execute_traits::backend_t (bad name) is responsible for
         the "inner loop nests". The
@@ -79,7 +71,7 @@ namespace gridtools {
        cuda backends. Now they are separated and this may be simplified.
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
     */
-    template <class BackendId, class StrategyId>
+    template <class BackendId>
     struct backend_base {
 
 #ifdef __CUDACC__
@@ -89,15 +81,13 @@ namespace gridtools {
             "instantiating is another one!!");
 #endif
 
-        typedef backend_base<BackendId, StrategyId> this_type;
+        typedef backend_base<BackendId> this_type;
 
-        typedef backend_ids<BackendId, StrategyId> backend_ids_t;
+        typedef backend_ids<BackendId> backend_ids_t;
 
         typedef backend_traits_from_id<BackendId> backend_traits_t;
         typedef storage_traits<BackendId> storage_traits_t;
-        typedef typename backend_traits_t::template select_strategy<backend_ids_t>::type strategy_traits_t;
 
-        using strategy_id_t = StrategyId;
         using backend_id_t = BackendId;
 
         /**
@@ -142,7 +132,7 @@ namespace gridtools {
             GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
-            strategy_traits_t::template fused_mss_loop<MssComponents, backend_ids_t>::run(local_domains, grid);
+            backend_traits_t::template fused_mss_loop<MssComponents, backend_ids_t>::run(local_domains, grid);
         }
     };
 

@@ -38,6 +38,7 @@
 #include "./grid.hpp"
 
 #include "./backend_cuda/block.hpp"
+#include "./backend_naive/block.hpp"
 #include "./backend_x86/block.hpp"
 
 #ifndef GT_ICOSAHEDRAL_GRIDS

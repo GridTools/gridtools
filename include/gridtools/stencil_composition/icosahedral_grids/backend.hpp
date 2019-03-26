@@ -32,7 +32,7 @@ namespace gridtools {
             using type = layout_map<0, 1, 2, 3>;
         };
         template <>
-        struct default_layout<target::mc> {
+        struct default_layout<target::naive> {
             using type = layout_map<0, 1, 2, 3>;
         };
     } // namespace _impl
@@ -40,13 +40,12 @@ namespace gridtools {
     /**
        The backend is, as usual, declaring what the storage types are
      */
-    template <class BackendId, class StrategyType>
-    struct backend : public backend_base<BackendId, StrategyType> {
+    template <class BackendId>
+    struct backend : public backend_base<BackendId> {
       public:
-        typedef backend_base<BackendId, StrategyType> base_t;
+        typedef backend_base<BackendId> base_t;
 
         using typename base_t::backend_traits_t;
-        using typename base_t::strategy_traits_t;
 
         template <typename DimSelector>
         struct select_layout {

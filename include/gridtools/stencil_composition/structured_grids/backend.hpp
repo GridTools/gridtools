@@ -15,12 +15,11 @@
 
 namespace gridtools {
 
-    template <class BackendId, class StrategyType>
-    struct backend : public backend_base<BackendId, StrategyType> {
-        typedef backend_base<BackendId, StrategyType> base_t;
+    template <class BackendId>
+    struct backend : public backend_base<BackendId> {
+        typedef backend_base<BackendId> base_t;
 
         using typename base_t::backend_traits_t;
-        using typename base_t::strategy_traits_t;
     };
 
 } // namespace gridtools

@@ -188,6 +188,10 @@ function(add_custom_mpi_x86_test)
     add_custom_mpi_test_helper(x86 ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_mpi_x86_test)
 
+function(add_custom_mpi_naive_test)
+    add_custom_mpi_test_helper(naive ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
+endfunction(add_custom_mpi_naive_test)
+
 function(add_custom_mpi_mc_test)
     add_custom_mpi_test_helper(mc ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_mpi_mc_test)

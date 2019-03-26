@@ -18,18 +18,18 @@ namespace gridtools {
     template <class>
     struct coord_i;
 
-    template <class BackendId, class StrategyId>
-    struct coord_i<backend_ids<BackendId, StrategyId>> : std::integral_constant<size_t, 0> {};
+    template <class BackendId>
+    struct coord_i<backend_ids<BackendId>> : std::integral_constant<size_t, 0> {};
 
     template <class>
     struct coord_j;
 
-    template <class BackendId, class StrategyId>
-    struct coord_j<backend_ids<BackendId, StrategyId>> : std::integral_constant<size_t, 2> {};
+    template <class BackendId>
+    struct coord_j<backend_ids<BackendId>> : std::integral_constant<size_t, 2> {};
 
     template <class>
     struct coord_k;
 
-    template <class BackendId, class StrategyId>
-    struct coord_k<backend_ids<BackendId, StrategyId>> : std::integral_constant<size_t, 3> {};
+    template <class BackendId>
+    struct coord_k<backend_ids<BackendId>> : std::integral_constant<size_t, 3> {};
 } // namespace gridtools

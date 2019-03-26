@@ -13,6 +13,6 @@
 
 namespace gridtools {
 
-    template <class BackendType, class StrategyType = strategy::block>
+    template <class BackendType>
     struct backend;
 }

@@ -23,7 +23,7 @@ class Stencil():
         return re.sub(r'(.)([A-Z]+)', r'\1 \2', clsname).lower()
 
     def gridtools_binary(self, backend):
-        return getattr(self, 'gridtools_' + backend)
+        return self.gridtools_path + '_' + backend
 
     def gridtools_target(self, backend):
         return os.path.basename(self.gridtools_binary(backend))

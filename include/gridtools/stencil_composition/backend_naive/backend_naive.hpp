@@ -9,9 +9,7 @@
  */
 #pragma once
 
-#ifndef GT_ICOSAHEDRAL_GRIDS
-
-// This file contains all header files required by the mc backend
+// This file contains all header files required by the host backend
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -19,6 +17,4 @@
 #include "../../storage/storage_facility.hpp"
 #include "../backend_fwd.hpp"
 #include "../iteration_policy.hpp"
-#include "./backend_traits_mc.hpp"
-
-#endif
+#include "backend_traits_naive.hpp"

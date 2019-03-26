@@ -10,17 +10,17 @@
 #pragma once
 
 #include "../../../meta.hpp"
-#include "../../backend_x86/basic_token_execution_x86.hpp"
+#include "../../backend_naive/basic_token_execution_naive.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../stage.hpp"
-#include "./iterate_domain_x86.hpp"
-#include "./run_esf_functor_x86.hpp"
+#include "./iterate_domain_naive.hpp"
+#include "./run_esf_functor_naive.hpp"
 
 namespace gridtools {
 
-    namespace _impl_icx86 {
+    namespace _impl_icnaive {
         template <size_t Color>
         struct loop_interval_contains_color {
             template <class T>
@@ -59,7 +59,7 @@ namespace gridtools {
             void operator()(Color) const {
                 for (uint_t j = 0; j != m_loop_size; ++j) {
                     auto memorized_index = m_it_domain.index();
-                    run_functors_on_interval<RunFunctorArguments, run_esf_functor_x86<Color::value>>(
+                    run_functors_on_interval<RunFunctorArguments, run_esf_functor_naive<Color::value>>(
                         m_it_domain, m_grid);
                     m_it_domain.set_index(memorized_index);
                     m_it_domain.increment_j();
@@ -75,14 +75,14 @@ namespace gridtools {
             }
         };
 
-    } // namespace _impl_icx86
+    } // namespace _impl_icnaive
 
     /**
      * @brief main functor that setups the CUDA kernel for a MSS and launchs it
      * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
      */
     template <typename RunFunctorArguments>
-    struct execute_kernel_functor_x86 {
+    struct execute_kernel_functor_naive {
         GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
         typedef typename RunFunctorArguments::local_domain_t local_domain_t;
         typedef typename RunFunctorArguments::grid_t grid_t;
@@ -102,13 +102,13 @@ namespace gridtools {
             typename RunFunctorArguments::cache_sequence_t,
             grid_t>;
 
-        using iterate_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
+        using iterate_domain_t = iterate_domain_naive<iterate_domain_arguments_t>;
 
-        typedef backend_traits_from_id<target::x86> backend_traits_t;
+        typedef backend_traits_from_id<target::naive> backend_traits_t;
         using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
         using from_t = GT_META_CALL(meta::first, interval_t);
 
-        execute_kernel_functor_x86(const local_domain_t &local_domain,
+        execute_kernel_functor_naive(const local_domain_t &local_domain,
             const grid_t &grid,
             uint_t block_size_i,
             uint_t block_size_j,
@@ -130,7 +130,7 @@ namespace gridtools {
 
             for (uint_t i = 0; i != m_size.i; ++i) {
                 gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(
-                    _impl_icx86::color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t>{
+                    _impl_icnaive::color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t>{
                         it_domain, m_grid, m_size.j});
                 it_domain.increment_c(integral_constant<int, -n_colors>{});
                 it_domain.increment_i();

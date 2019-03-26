@@ -20,8 +20,9 @@
 #include "storage_cuda/data_view_helpers.hpp"
 #endif
 
-#include "storage_traits_host.hpp"
 #include "storage_traits_mc.hpp"
+#include "storage_traits_naive.hpp"
+#include "storage_traits_x86.hpp"
 
 #include "storage_host/data_view_helpers.hpp"
 #include "storage_mc/data_view_helpers.hpp"
