@@ -33,7 +33,6 @@ between levels.
 #include "../meta/macros.hpp"
 #include "../meta/second.hpp"
 #include "execution_types.hpp"
-#include "grid_traits_fwd.hpp"
 #include "interval.hpp"
 #include "iteration_policy.hpp"
 #include "level.hpp"

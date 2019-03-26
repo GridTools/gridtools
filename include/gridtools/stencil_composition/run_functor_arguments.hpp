@@ -23,7 +23,6 @@
 #include "./color.hpp"
 #include "./extent.hpp"
 #include "./grid.hpp"
-#include "./grid_traits_fwd.hpp"
 #include "./local_domain.hpp"
 #include "./loop_interval.hpp"
 
@@ -90,7 +89,6 @@ namespace gridtools {
         typedef CacheSequence cache_sequence_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
-        using strategy_type = typename backend_ids_t::strategy_id_t;
     };
 
     template <class T>

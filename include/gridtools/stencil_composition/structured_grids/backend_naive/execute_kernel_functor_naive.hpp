@@ -8,19 +8,19 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 /*
- * execute_kernel_functor_x86.h
+ * execute_kernel_functor_naive.h
  *
  *  Created on: Apr 25, 2015
  *      Author: cosuna
  */
 
 #pragma once
-#include "../../backend_x86/basic_token_execution_x86.hpp"
+#include "../../backend_naive/basic_token_execution_naive.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
 #include "../positional_iterate_domain.hpp"
-#include "./iterate_domain_x86.hpp"
-#include "./run_esf_functor_x86.hpp"
+#include "./iterate_domain_naive.hpp"
+#include "./run_esf_functor_naive.hpp"
 
 namespace gridtools {
 
@@ -29,7 +29,7 @@ namespace gridtools {
      * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
      */
     template <typename RunFunctorArguments>
-    struct execute_kernel_functor_x86 {
+    struct execute_kernel_functor_naive {
       private:
         GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
         typedef typename RunFunctorArguments::local_domain_t local_domain_t;
@@ -40,12 +40,12 @@ namespace gridtools {
             typename RunFunctorArguments::esf_sequence_t,
             std::tuple<>,
             grid_t>;
-        using iterate_domain_x86_t = iterate_domain_x86<iterate_domain_arguments_t>;
+        using iterate_domain_naive_t = iterate_domain_naive<iterate_domain_arguments_t>;
         using iterate_domain_t = typename conditional_t<local_domain_is_stateful<local_domain_t>::value,
-            meta::lazy::id<positional_iterate_domain<iterate_domain_x86_t>>,
-            meta::lazy::id<iterate_domain_x86_t>>::type;
+            meta::lazy::id<positional_iterate_domain<iterate_domain_naive_t>>,
+            meta::lazy::id<iterate_domain_naive_t>>::type;
 
-        typedef backend_traits_from_id<target::x86> backend_traits_t;
+        typedef backend_traits_from_id<target::naive> backend_traits_t;
 
         using extent_t = GT_META_CALL(get_extent_from_loop_intervals, typename RunFunctorArguments::loop_intervals_t);
 
@@ -58,7 +58,7 @@ namespace gridtools {
         pos3<uint_t> m_block_no;
 
       public:
-        GT_FORCE_INLINE execute_kernel_functor_x86(const local_domain_t &local_domain,
+        GT_FORCE_INLINE execute_kernel_functor_naive(const local_domain_t &local_domain,
             const grid_t &grid,
             uint_t block_size_i,
             uint_t block_size_j,
@@ -85,7 +85,7 @@ namespace gridtools {
                 irestore_index = it_domain.index();
                 for (uint_t j = 0; j != m_size.j; ++j) {
                     jrestore_index = it_domain.index();
-                    run_functors_on_interval<RunFunctorArguments, run_esf_functor_x86>(it_domain, m_grid);
+                    run_functors_on_interval<RunFunctorArguments, run_esf_functor_naive>(it_domain, m_grid);
                     it_domain.set_index(jrestore_index);
                     it_domain.increment_j();
                 }

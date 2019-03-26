@@ -9,9 +9,8 @@
  */
 #pragma once
 
-namespace gridtools {
-    namespace strgrid {
-        template <typename RunFunctorArguments>
-        struct execute_kernel_functor_x86;
-    }
-} // namespace gridtools
+#ifndef GT_ICOSAHEDRAL_GRIDS
+#include "../structured_grids/backend_naive/execute_kernel_functor_naive.hpp"
+#else
+#include "../icosahedral_grids/backend_naive/execute_kernel_functor_naive.hpp"
+#endif

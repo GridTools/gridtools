@@ -14,10 +14,6 @@
 #include "../backend_ids.hpp"
 
 namespace gridtools {
-    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<target::cuda, strategy::block> const &) {
-        return GT_DEFAULT_TILE_I;
-    }
-    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<target::cuda, strategy::block> const &) {
-        return GT_DEFAULT_TILE_J;
-    }
+    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<target::cuda> const &) { return GT_DEFAULT_TILE_I; }
+    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<target::cuda> const &) { return GT_DEFAULT_TILE_J; }
 } // namespace gridtools

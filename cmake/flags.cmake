@@ -5,6 +5,7 @@ set( CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON CACHE INTERNAL "" )
 option( GT_ENABLE_PYUTILS "If on, Python utility scripts will be configured" OFF)
 option( GT_ENABLE_TARGET_CUDA "Compile CUDA GPU backend examples and unit tests" ${CUDA_AVAILABLE})
 option( GT_ENABLE_TARGET_X86 "Compile x86 backend examples and unit tests" ${OPENMP_AVAILABLE} )
+option( GT_ENABLE_TARGET_NAIVE "Compile naive backend examples and unit tests" ON)
 option( GT_ENABLE_TARGET_MC "Compile MC backend examples and unit tests" ${OPENMP_AVAILABLE} )
 option( GT_USE_MPI "Compile with MPI support" ${MPI_AVAILABLE} )
 

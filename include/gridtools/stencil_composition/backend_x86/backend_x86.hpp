@@ -18,4 +18,3 @@
 #include "../backend_fwd.hpp"
 #include "../iteration_policy.hpp"
 #include "backend_traits_x86.hpp"
-#include "strategy_x86.hpp"

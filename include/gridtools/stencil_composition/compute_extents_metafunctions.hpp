@@ -291,10 +291,7 @@ namespace gridtools {
 
     /** This metafunction performs the data-dependence analysis from
         the array of MSSes and a map between placeholders and extents
-        initialized, typically with empty extents.  It is taken as
-        input since the map values depends on the grid_traits. It
-        could be computed here but we would need to pass the
-        grid_traits in.
+        initialized, typically with empty extents.
 
         \tparam MssDescriptorArray The meta-array of MSSes
         \tparam Placeholders The placeholders used in the computation

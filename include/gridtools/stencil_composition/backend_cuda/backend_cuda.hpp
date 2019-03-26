@@ -13,4 +13,3 @@
 #include "../../storage/storage_facility.hpp"
 #include "../backend_fwd.hpp"
 #include "backend_traits_cuda.hpp"
-#include "strategy_cuda.hpp"
