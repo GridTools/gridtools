@@ -22,45 +22,6 @@ namespace gridtools {
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
     struct backend_traits<target::cuda> {
-        /**
-         * @brief main execution of a mss.
-         * @tparam RunFunctorArgs run functor arguments
-         */
-        template <typename RunFunctorArgs>
-        struct mss_loop {
-            typedef typename RunFunctorArgs::backend_target_t backend_target_t;
-
-            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
-            template <typename LocalDomain, typename Grid, typename ExecutionInfo>
-            static void run(LocalDomain &local_domain, const Grid &grid, ExecutionInfo &&) {
-                execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, grid)();
-            }
-        };
-
-        /**
-         * @brief struct holding backend-specific runtime information about stencil execution.
-         * Empty for the CUDA backend.
-         */
-        struct execution_info_cuda {};
-
-        /**
-         * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam MssComponents a meta array with the mss components of all MSS
-         * @tparam BackendTarget backend ids type
-         */
-        template <typename MssComponents, typename BackendTarget>
-        struct fused_mss_loop {
-            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-
-            template <typename LocalDomainListArray, typename Grid>
-            static void run(LocalDomainListArray const &local_domain_lists, const Grid &grid) {
-                GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-
-                host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
-                    mss_functor<MssComponents, Grid, LocalDomainListArray, BackendTarget, execution_info_cuda>(
-                        local_domain_lists, grid, {}));
-            }
-        };
 
         /**
          * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.

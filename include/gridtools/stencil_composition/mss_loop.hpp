@@ -12,7 +12,7 @@
 #ifdef __CUDACC__
 #include "./backend_cuda/mss_loop_cuda.hpp"
 #endif
-#ifndef GT_ICOSHEDRAL_GRIDS
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./backend_mc/mss_loop_mc.hpp"
 #endif
 #include "./backend_naive/mss_loop_naive.hpp"
