@@ -102,7 +102,7 @@ namespace gridtools {
 
             constexpr custom::foo c_obj{2, 4};
             static_assert(get<0>(c_obj) == 2, "");
-            static_assert(get<0>(custom::foo{3}) == 3, "");
+            static_assert(get<0>(custom::foo{3, 0.0}) == 3, "");
             static_assert(size<custom::foo>::value == 2, "");
 
             auto res = transform(add_2_f{}, custom::foo{42, 5.3});
@@ -312,6 +312,10 @@ namespace gridtools {
 
         TEST(reverse, functional) {
             EXPECT_TRUE(reverse(make<std::tuple>(1, 'a', 42.5)) == make<std::tuple>(42.5, 'a', 1));
+        }
+
+        TEST(insert, functional) {
+            EXPECT_TRUE(insert<2>('a', make<std::tuple>(1, 2, 3)) == make<std::tuple>(1, 2, 'a', 3));
         }
     } // namespace tuple_util
 } // namespace gridtools

@@ -24,7 +24,9 @@
 #ifdef __CUDACC__
 #include "./backend_cuda/backend_traits_cuda.hpp"
 #endif
+#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./backend_mc/backend_traits_mc.hpp"
+#endif
 #include "./backend_naive/backend_traits_naive.hpp"
 #include "./backend_x86/backend_traits_x86.hpp"
 

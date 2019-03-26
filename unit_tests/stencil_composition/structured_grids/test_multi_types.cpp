@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions/stencil_functions.hpp>
+#include <gridtools/stencil_composition/stencil_functions.hpp>
 #include <gridtools/tools/computation_fixture.hpp>
 
 namespace gridtools {
@@ -191,7 +191,7 @@ namespace gridtools {
                 }),
                     field2);
 
-                verify(make_storage<storage_type3>([](int i, int j, int k) -> type3 { return {2}; }), field3);
+                verify(make_storage<storage_type3>([](int, int, int) -> type3 { return {2}; }), field3);
             }
         };
 

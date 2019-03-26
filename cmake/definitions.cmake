@@ -72,6 +72,20 @@ target_link_libraries(GridToolsTest INTERFACE gridtools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
 target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(GridToolsTest INTERFACE 
+        $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-local-typedefs -Wno-attributes -Wno-unused-but-set-variable>)
+    target_compile_options(GridToolsTest INTERFACE
+        $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wall,-Wno-unknown-pragmas,-Wno-sign-compare,-Wno-attributes,-Wno-unused-but-set-variable>)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.9.0")
+        # attribute noalias has been added in clang 3.9.0
+        target_compile_options(GridToolsTest INTERFACE 
+            $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-attributes>)
+        target_compile_options(GridToolsTest INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unknown-attributes>)
+    endif ()
+endif()
 if(GT_TESTS_ICOSAHEDRAL_GRID)
     target_compile_definitions(GridToolsTest INTERFACE GT_ICOSAHEDRAL_GRIDS)
 endif()

@@ -26,19 +26,25 @@ namespace gridtools {
             template <class T>
             struct mixin<property::origin, T> {
                 T m_val;
-                friend constexpr T sid_get_origin(mixin const &obj) noexcept { return obj.m_val; }
             };
+            template <class T>
+            constexpr T sid_get_origin(mixin<property::origin, T> const &obj) noexcept {
+                return obj.m_val;
+            }
 
             template <class T>
             struct mixin<property::strides, T> {
                 T m_val;
-                friend constexpr T sid_get_strides(mixin const &obj) noexcept { return obj.m_val; }
             };
+            template <class T>
+            constexpr T sid_get_strides(mixin<property::strides, T> const &obj) noexcept {
+                return obj.m_val;
+            }
 
             template <class T>
-            struct mixin<property::ptr_diff, T> {
-                friend T sid_get_ptr_diff(mixin const &) { return {}; }
-            };
+            struct mixin<property::ptr_diff, T> {};
+            template <class T>
+            T sid_get_ptr_diff(mixin<property::ptr_diff, T> const &obj);
 
             template <class T>
             struct mixin<property::strides_kind, T> {};

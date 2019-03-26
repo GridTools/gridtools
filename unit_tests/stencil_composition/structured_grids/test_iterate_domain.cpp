@@ -99,11 +99,6 @@ namespace gridtools {
 
             it_domain_t it_domain(local_domain1);
 
-#ifndef GT_BACKEND_MC
-
-            it_domain.assign_stride_pointers<backend_traits_t>();
-#endif
-
 // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
 #ifndef GT_BACKEND_MC
             it_domain.initialize({}, {}, {});

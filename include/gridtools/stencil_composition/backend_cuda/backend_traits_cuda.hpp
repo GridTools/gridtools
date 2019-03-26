@@ -9,11 +9,8 @@
  */
 #pragma once
 
-#include <cuda_runtime.h>
-
 #include "../../common/defs.hpp"
 #include "../../common/timer/timer_traits.hpp"
-
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
 #include "execute_kernel_functor_cuda.hpp"
@@ -25,19 +22,6 @@ namespace gridtools {
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
     struct backend_traits_from_id<target::cuda> {
-        /**
-           @brief assigns the two given values using the given thread Id whithin the block
-        */
-        template <uint_t Id>
-        struct once_per_block {
-            template <typename Left, typename Right>
-            GT_FUNCTION static void assign(Left &GT_RESTRICT l, Right const &GT_RESTRICT r) {
-                assert(blockDim.z == 1);
-                if (Id % (blockDim.x * blockDim.y) == threadIdx.y * blockDim.x + threadIdx.x)
-                    l = r;
-            }
-        };
-
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments

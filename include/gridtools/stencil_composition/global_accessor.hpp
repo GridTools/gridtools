@@ -13,6 +13,8 @@
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
+#include "../meta/always.hpp"
+#include "../meta/list.hpp"
 #include "./extent.hpp"
 #include "./is_accessor.hpp"
 #include "./is_global_accessor.hpp"
@@ -37,8 +39,7 @@ namespace gridtools {
         boost::fusion::vector<Args...> m_arguments;
 
       public:
-        typedef GlobalAccessor super;
-        typedef typename super::index_t index_t;
+        typedef typename GlobalAccessor::index_t index_t;
         static const constexpr intent intent_v = intent::in;
 
         GT_FUNCTION
@@ -47,8 +48,18 @@ namespace gridtools {
         boost::fusion::vector<Args...> const &get_arguments() const { return m_arguments; };
     };
 
-    template <typename Global, typename... Args>
-    struct is_global_accessor<global_accessor_with_arguments<Global, Args...>> : std::true_type {};
+    template <typename Acc, typename... Args>
+    meta::list<> tuple_getter(global_accessor_with_arguments<Acc, Args...> const &);
+
+    template <typename Acc, typename... Args>
+    meta::list<> tuple_to_types(global_accessor_with_arguments<Acc, Args...> const &);
+
+    template <typename Acc, typename... Args>
+    meta::always<global_accessor_with_arguments<Acc, Args...>> tuple_from_types(
+        global_accessor_with_arguments<Acc, Args...> const &);
+
+    template <typename Acc, typename... Args>
+    struct is_global_accessor<global_accessor_with_arguments<Acc, Args...>> : std::true_type {};
 
     /**
        @brief Object to be accessed regardless of the current iteration point. A global_accessor is always read-only.
@@ -72,16 +83,21 @@ namespace gridtools {
 
         GT_FUNCTION constexpr global_accessor() {}
 
-        // copy ctor from another global_accessor with different index
-        template <uint_t OtherIndex>
-        GT_FUNCTION constexpr global_accessor(const global_accessor<OtherIndex> &other) {}
-
         /** @brief generates a global_accessor_with_arguments and returns it by value */
         template <typename... Args>
         GT_FUNCTION global_accessor_with_arguments<global_accessor, Args...> operator()(Args &&... args_) {
             return global_accessor_with_arguments<global_accessor, Args...>(std::forward<Args>(args_)...);
         }
     };
+
+    template <uint_t I>
+    meta::list<> tuple_getter(global_accessor<I> const &);
+
+    template <uint_t I>
+    meta::list<> tuple_to_types(global_accessor<I> const &);
+
+    template <uint_t I>
+    meta::always<global_accessor<I>> tuple_from_types(global_accessor<I> const &);
 
     template <uint_t I>
     struct is_accessor<global_accessor<I>> : std::true_type {};

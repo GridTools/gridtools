@@ -74,6 +74,7 @@ namespace gridtools {
                 m_it_domain.increment_c();
             }
         };
+
     } // namespace _impl_icx86
 
     /**
@@ -120,7 +121,6 @@ namespace gridtools {
 
         void operator()() const {
             iterate_domain_t it_domain(m_local_domain);
-            it_domain.template assign_stride_pointers<backend_traits_t>();
 
             it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
                 m_block_no,
@@ -132,7 +132,7 @@ namespace gridtools {
                 gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(
                     _impl_icx86::color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t>{
                         it_domain, m_grid, m_size.j});
-                it_domain.template increment_c<-n_colors>();
+                it_domain.increment_c(integral_constant<int, -n_colors>{});
                 it_domain.increment_i();
             }
         }
@@ -143,5 +143,4 @@ namespace gridtools {
         pos3<uint_t> m_size;
         pos3<uint_t> m_block_no;
     };
-
 } // namespace gridtools

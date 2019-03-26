@@ -16,6 +16,7 @@
 #include "../../common/functional.hpp"
 #include "../../common/timer/timer_traits.hpp"
 #include "../backend_traits_fwd.hpp"
+#include "../mss_functor.hpp"
 #include "./execute_kernel_functor_naive.hpp"
 
 /**@file

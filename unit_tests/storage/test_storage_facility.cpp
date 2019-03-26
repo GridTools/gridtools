@@ -58,6 +58,7 @@ struct static_type_tests<backend<target::cuda>> {
 };
 #endif
 
+#ifndef GT_ICOSAHEDRAL_GRIDS
 // static type tests for Mic backend
 template <>
 struct static_type_tests<backend<target::mc>> {
@@ -68,27 +69,15 @@ struct static_type_tests<backend<target::mc>> {
     typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
     GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
-#ifndef GT_ICOSAHEDRAL_GRIDS
     GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
                          storage_info<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
-#else
-    GT_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                         storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
-        "storage info test failed");
-#endif
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
-#ifndef GT_ICOSAHEDRAL_GRIDS
     GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
                          storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
-#else
-    GT_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                         storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
-        "storage info test failed");
-#endif
 
     /*########## DATA STORE CHECKS ########## */
     typedef storage_traits_t::data_store_t<double, storage_info_ty> data_store_t;
@@ -101,6 +90,7 @@ struct static_type_tests<backend<target::mc>> {
     GT_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, mc_storage<double>>::type::value),
         "data store storage type is wrong");
 };
+#endif
 
 // static type tests for x86 and naive backend
 template <class Target>
@@ -135,7 +125,7 @@ struct static_type_tests<backend<Target>> {
         "data store storage type is wrong");
 };
 
-template class static_type_tests<backend_t>;
+template struct static_type_tests<backend_t>;
 
 #ifdef __CUDACC__
 template <typename View>
@@ -488,9 +478,6 @@ struct static_layout_tests<backend<target::cuda>> : static_layout_tests_decreasi
 #ifndef GT_ICOSAHEDRAL_GRIDS
 template <>
 struct static_layout_tests<backend<target::mc>> : static_layout_tests_decreasing_swappedxy<target::mc> {};
-#else
-template <>
-struct static_layout_tests<backend<target::mc>> : static_layout_tests_increasing<target::mc> {};
 #endif
 
 template <>
@@ -499,7 +486,7 @@ struct static_layout_tests<backend<target::x86>> : static_layout_tests_increasin
 template <>
 struct static_layout_tests<backend<target::naive>> : static_layout_tests_increasing<target::naive> {};
 
-template class static_layout_tests<backend_t>;
+template struct static_layout_tests<backend_t>;
 
 TEST(StorageFacility, CustomLayoutTests) {
     typedef

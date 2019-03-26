@@ -208,7 +208,7 @@ namespace gridtools {
         }
 
         template <typename iterator>
-        void pack_all(gridtools::array<int, DIMS> const &, iterator &it) const {}
+        void pack_all(gridtools::array<int, DIMS> const &, iterator &) const {}
 
         /**
            This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
@@ -230,7 +230,7 @@ namespace gridtools {
         }
 
         template <typename iterator>
-        void unpack_all(gridtools::array<int, DIMS> const &, iterator &it) const {}
+        void unpack_all(gridtools::array<int, DIMS> const &, iterator &) const {}
 
         /**
            This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
@@ -449,13 +449,6 @@ namespace gridtools {
 
         /**
            Function to setup internal data structures for data exchange and preparing eventual underlying layers
-
-           The use of this function is deprecated
-        */
-        void allocate_buffers() { setup(); }
-
-        /**
-           Function to setup internal data structures for data exchange and preparing eventual underlying layers
         */
         void setup() { _impl::allocation_service<this_type>()(this); }
 
@@ -575,15 +568,6 @@ namespace gridtools {
         /**
            Function to setup internal data structures for data exchange and preparing eventual underlying layers
 
-           The use of this function is deprecated
-
-           \param max_fields_n Maximum number of data fields that will be passed to the communication functions
-        */
-        void allocate_buffers(int max_fields_n) { setup(max_fields_n); }
-
-        /**
-           Function to setup internal data structures for data exchange and preparing eventual underlying layers
-
            \param max_fields_n Maximum number of data fields that will be passed to the communication functions
         */
         void setup(int max_fields_n) { _impl::allocation_service<this_type>()(this, max_fields_n); }
@@ -640,7 +624,7 @@ namespace gridtools {
         pattern_type const &pattern() const { return base_type::pattern(); }
 
         // FRIENDING
-        friend class _impl::allocation_service<this_type>;
+        friend struct _impl::allocation_service<this_type>;
         // friend class _impl::pack_service<this_type>;
         // friend class _impl::unpack_service<this_type>;
 

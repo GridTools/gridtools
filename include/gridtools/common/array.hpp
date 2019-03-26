@@ -26,24 +26,6 @@
 
 namespace gridtools {
 
-    template <typename T, size_t D>
-    class array;
-
-    namespace array_impl_ {
-        template <class... Ts>
-        struct deduce_array_type : std::common_type<Ts...> {};
-
-        template <>
-        struct deduce_array_type<> {
-            using type = meta::lazy::id<void>;
-        };
-
-        struct from_types_f {
-            template <class... Ts>
-            GT_META_DEFINE_ALIAS(apply, meta::id, (array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>));
-        };
-    } // namespace array_impl_
-
     /** \defgroup common Common Shared Utilities
         @{
      */
@@ -59,32 +41,6 @@ namespace gridtools {
      */
     template <typename T, size_t D>
     class array {
-        using type = array;
-
-        struct getter {
-            template <size_t I>
-            static GT_FUNCTION constexpr T &get(array &arr) noexcept {
-                GT_STATIC_ASSERT(I < D, "index is out of bounds");
-                return arr.m_array[I];
-            }
-
-            template <size_t I>
-            static GT_FUNCTION constexpr const T &get(const array &arr) noexcept {
-                GT_STATIC_ASSERT(I < D, "index is out of bounds");
-                return arr.m_array[I];
-            }
-
-            template <size_t I>
-            static GT_FUNCTION constexpr T &&get(array &&arr) noexcept {
-                GT_STATIC_ASSERT(I < D, "index is out of bounds");
-                return const_expr::move(arr.m_array[I]);
-            }
-        };
-
-        friend GT_META_CALL(meta::repeat_c, (D, T)) tuple_to_types(array const &) { return {}; }
-        friend array_impl_::from_types_f tuple_from_types(array const &) { return {}; }
-        friend getter tuple_getter(array const &) { return {}; }
-
       public:
         // we make the members public to make this class an aggregate
         T m_array[D ? D : 1]; // Note: don't use a type-trait for the zero-size case, as there is a bug with defining an
@@ -138,6 +94,51 @@ namespace gridtools {
         GT_FUNCTION
         static constexpr size_t size() { return D; }
     };
+
+    namespace array_impl_ {
+        template <class... Ts>
+        struct deduce_array_type : std::common_type<Ts...> {};
+
+        template <>
+        struct deduce_array_type<> {
+            using type = meta::lazy::id<void>;
+        };
+
+        struct from_types_f {
+            template <class... Ts>
+            GT_META_DEFINE_ALIAS(apply, meta::id, (array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>));
+        };
+
+        struct getter {
+            template <size_t I, typename T, size_t D>
+            static GT_FUNCTION constexpr T &get(array<T, D> &arr) noexcept {
+                GT_STATIC_ASSERT(I < D, "index is out of bounds");
+                return arr.m_array[I];
+            }
+
+            template <size_t I, typename T, size_t D>
+            static GT_FUNCTION constexpr const T &get(const array<T, D> &arr) noexcept {
+                GT_STATIC_ASSERT(I < D, "index is out of bounds");
+                return arr.m_array[I];
+            }
+
+            template <size_t I, typename T, size_t D>
+            static GT_FUNCTION constexpr T &&get(array<T, D> &&arr) noexcept {
+                GT_STATIC_ASSERT(I < D, "index is out of bounds");
+                return const_expr::move(arr.m_array[I]);
+            }
+        };
+    } // namespace array_impl_
+
+    template <typename T, size_t D>
+    GT_META_CALL(meta::repeat_c, (D, T))
+    tuple_to_types(array<T, D> const &);
+
+    template <typename T, size_t D>
+    array_impl_::from_types_f tuple_from_types(array<T, D> const &);
+
+    template <typename T, size_t D>
+    array_impl_::getter tuple_getter(array<T, D> const &);
 
     // in case we need a constexpr version we need to implement a recursive one for c++11
     template <typename T, typename U, size_t D>
