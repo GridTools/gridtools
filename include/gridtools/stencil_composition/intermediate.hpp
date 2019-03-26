@@ -169,7 +169,7 @@ namespace gridtools {
         using bound_arg_storage_pair_tuple_t = std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>;
 
         using esfs_t = GT_META_CALL(
-            meta::flatten, (GT_META_CALL(meta::transform, (_impl::get_esfs, all_mss_descriptors_t))));
+            meta::flatten, (GT_META_CALL(meta::transform, (_impl::get_esfs, mss_descriptors_t))));
 
       public:
         // First we need to compute the association between placeholders and extents.
