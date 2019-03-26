@@ -48,11 +48,9 @@ namespace gridtools {
         class LocalDomainListArray,
         class Grid,
         enable_if_t<!_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
-    static void fused_mss_loop(target::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+    static void fused_mss_loop(
+        target::mc const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-        using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
-        using mss_functor_t =
-            mss_functor<MssComponents, Grid, LocalDomainListArray, target::mc, execinfo_mc::block_kserial_t>;
 
         execinfo_mc exinfo(grid);
         const int_t i_blocks = exinfo.i_blocks();
@@ -60,7 +58,8 @@ namespace gridtools {
 #pragma omp parallel for collapse(2)
         for (int_t bj = 0; bj < j_blocks; ++bj) {
             for (int_t bi = 0; bi < i_blocks; ++bi) {
-                gridtools::for_each<iter_range>(mss_functor_t(local_domain_lists, grid, exinfo.block(bi, bj)));
+                host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
+                    make_mss_functor<MssComponents>(backend_target, local_domain_lists, grid, exinfo.block(bi, bj)));
             }
         }
     }
@@ -73,11 +72,9 @@ namespace gridtools {
         class LocalDomainListArray,
         class Grid,
         enable_if_t<_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
-    static void fused_mss_loop(target::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+    static void fused_mss_loop(
+        target::mc const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-        using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
-        using mss_functor_t =
-            mss_functor<MssComponents, Grid, LocalDomainListArray, target::mc, execinfo_mc::block_kparallel_t>;
 
         execinfo_mc exinfo(grid);
         const int_t i_blocks = exinfo.i_blocks();
@@ -88,7 +85,9 @@ namespace gridtools {
         for (int_t bj = 0; bj < j_blocks; ++bj) {
             for (int_t k = k_first; k <= k_last; ++k) {
                 for (int_t bi = 0; bi < i_blocks; ++bi) {
-                    gridtools::for_each<iter_range>(mss_functor_t(local_domain_lists, grid, exinfo.block(bi, bj, k)));
+                    host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
+                        make_mss_functor<MssComponents>(
+                            backend_target, local_domain_lists, grid, exinfo.block(bi, bj, k)));
                 }
             }
         }

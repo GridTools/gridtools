@@ -36,9 +36,9 @@ namespace gridtools {
      * @brief functor that executes all the functors contained within the mss
      */
     template <typename MssComponentsArray,
-        typename Grid,
-        typename LocalDomains,
         typename BackendTarget,
+        typename LocalDomains,
+        typename Grid,
         typename ExecutionInfo>
     struct mss_functor {
       private:
@@ -46,13 +46,18 @@ namespace gridtools {
         GT_STATIC_ASSERT((is_sequence_of<MssComponentsArray, is_mss_components>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
+        BackendTarget const &m_backend_target;
         LocalDomains const &m_local_domains;
         const Grid &m_grid;
         const ExecutionInfo m_execution_info;
 
       public:
-        mss_functor(LocalDomains const &local_domains, const Grid &grid, const ExecutionInfo &execution_info)
-            : m_local_domains(local_domains), m_grid(grid), m_execution_info(execution_info) {}
+        mss_functor(BackendTarget const &backend_target,
+            LocalDomains const &local_domains,
+            const Grid &grid,
+            const ExecutionInfo &execution_info)
+            : m_backend_target(backend_target), m_local_domains(local_domains), m_grid(grid),
+              m_execution_info(execution_info) {}
 
         /**
          * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the
@@ -67,8 +72,6 @@ namespace gridtools {
 
             // wrapping all the template arguments in a single container
 
-            using backend_traits_t = backend_traits<BackendTarget>;
-
             typedef run_functor_arguments<BackendTarget,
                 typename mss_components_t::linear_esf_t,
                 typename mss_components_t::loop_intervals_t,
@@ -79,7 +82,16 @@ namespace gridtools {
                 run_functor_args_t;
 
             // now the corresponding backend has to execute all the functors of the mss
-            mss_loop<run_functor_args_t>(BackendTarget{}, local_domain, m_grid, m_execution_info);
+            mss_loop<run_functor_args_t>(m_backend_target, local_domain, m_grid, m_execution_info);
         }
     };
+
+    template <class MssComponentsArray, class BackendTarget, class LocalDomains, class Grid, class ExecutionInfo>
+    GT_FUNCTION_HOST mss_functor<MssComponentsArray, BackendTarget, LocalDomains, Grid, ExecutionInfo> make_mss_functor(
+        BackendTarget const &backend_target,
+        LocalDomains const &local_domains,
+        Grid const &grid,
+        ExecutionInfo const &execution_info) {
+        return {backend_target, local_domains, grid, execution_info};
+    }
 } // namespace gridtools

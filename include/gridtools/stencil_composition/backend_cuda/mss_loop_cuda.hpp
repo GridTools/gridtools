@@ -23,7 +23,7 @@ namespace gridtools {
      */
     template <class RunFunctorArgs, class LocalDomain, class Grid, class ExecutionInfo>
     static void mss_loop(
-        target::cuda const &backend_target, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &) {
+        target::cuda const &, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &) {
         GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);

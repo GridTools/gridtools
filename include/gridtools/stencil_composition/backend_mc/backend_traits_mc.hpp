@@ -9,19 +9,16 @@
  */
 #pragma once
 
-#include <utility>
+#include <type_traits>
 
-#include "../../common/functional.hpp"
+#include "../../common/defs.hpp"
 #include "../../common/timer/timer_traits.hpp"
 #include "../backend_traits_fwd.hpp"
-#include "../mss_functor.hpp"
-#include "../structured_grids/backend_mc/execute_kernel_functor_mc.hpp"
 
 /**@file
 @brief type definitions and structures specific for the Mic backend
 */
 namespace gridtools {
-
     /**Traits struct, containing the types which are specific for the mc backend*/
     template <>
     struct backend_traits<target::mc> {

@@ -47,9 +47,9 @@ namespace gridtools {
 #pragma omp for nowait
             for (uint_t bi = 0; bi <= NBI; ++bi) {
                 for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                    boost::mpl::for_each<iter_range>(
-                        mss_functor<MssComponents, Grid, LocalDomainListArray, target::x86, execution_info_x86>(
-                            local_domain_lists, grid, {bi, bj}));
+                    host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
+                        make_mss_functor<MssComponents>(
+                            backend_target, local_domain_lists, grid, execution_info_x86{bi, bj}));
                 }
             }
         }
