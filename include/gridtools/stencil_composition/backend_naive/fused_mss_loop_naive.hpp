@@ -9,8 +9,6 @@
  */
 #pragma once
 
-#include <utility>
-
 #include <boost/mpl/size.hpp>
 
 #include "../mss_functor.hpp"

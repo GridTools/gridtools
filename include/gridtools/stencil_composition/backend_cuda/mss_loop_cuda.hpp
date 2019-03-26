@@ -15,7 +15,6 @@
  * @brief mss loop implementations for the cuda backend
  */
 namespace gridtools {
-
     /**
      * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
      * and sequentially executes all the functors in the mss
@@ -30,5 +29,4 @@ namespace gridtools {
 
         execute_kernel_functor_cuda<RunFunctorArgs>(local_domain, grid)();
     }
-
 } // namespace gridtools

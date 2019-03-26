@@ -15,7 +15,6 @@
  * @brief mss loop implementations for the x86 backend
  */
 namespace gridtools {
-
     /**
      * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
      * and sequentially executes all the functors in the mss
@@ -44,5 +43,4 @@ namespace gridtools {
             execution_info.bi,
             execution_info.bj}();
     }
-
 } // namespace gridtools

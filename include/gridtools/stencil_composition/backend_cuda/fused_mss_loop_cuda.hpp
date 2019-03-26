@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/size.hpp>
 
 #include "../mss_functor.hpp"
 
@@ -17,7 +17,6 @@
  * @brief fused mss loop implementations for the cuda backend
  */
 namespace gridtools {
-
     /**
      * @brief struct holding backend-specific runtime information about stencil execution.
      * Empty for the CUDA backend.
@@ -37,5 +36,4 @@ namespace gridtools {
         host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
             make_mss_functor<MssComponents>(backend_target, local_domain_lists, grid, execution_info_cuda{}));
     }
-
 } // namespace gridtools

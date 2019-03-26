@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/size.hpp>
 
 #include "../mss_functor.hpp"
 
@@ -18,7 +18,6 @@
  */
 namespace gridtools {
     namespace _impl {
-
         /**
          * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
          */
@@ -37,7 +36,6 @@ namespace gridtools {
             : boost::mpl::fold<typename boost::mpl::transform<MssComponents, is_mss_kparallel>::type,
                   boost::mpl::true_,
                   boost::mpl::and_<boost::mpl::placeholders::_1, boost::mpl::placeholders::_2>>::type {};
-
     } // namespace _impl
 
     /**
@@ -92,5 +90,4 @@ namespace gridtools {
             }
         }
     }
-
 } // namespace gridtools

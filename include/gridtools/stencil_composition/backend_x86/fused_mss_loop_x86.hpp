@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/size.hpp>
 
 #include "../mss_functor.hpp"
 
@@ -17,7 +17,6 @@
  * @brief fused mss loop implementations for the x86 backend
  */
 namespace gridtools {
-
     /**
      * @brief struct holding backend-specific runtime information about stencil execution.
      */
@@ -54,5 +53,4 @@ namespace gridtools {
             }
         }
     }
-
 } // namespace gridtools
