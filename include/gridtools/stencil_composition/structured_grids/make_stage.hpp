@@ -11,10 +11,6 @@
 
 #include <tuple>
 
-#ifdef GT_PEDANTIC
-#include <boost/mpl/size.hpp>
-#endif
-
 #include "../../common/defs.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../arg.hpp"

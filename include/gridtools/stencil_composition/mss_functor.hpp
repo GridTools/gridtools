@@ -17,8 +17,6 @@
 #pragma once
 
 #include <boost/fusion/include/at.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/size.hpp>
 
 #include "../common/defs.hpp"
 #include "../meta/type_traits.hpp"
