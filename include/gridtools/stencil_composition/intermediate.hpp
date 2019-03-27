@@ -35,7 +35,7 @@
 #include "backend_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"
 #include "compute_extents_metafunctions.hpp"
-#include "coordinate.hpp"
+#include "dim.hpp"
 #include "esf.hpp"
 #include "extract_placeholders.hpp"
 #include "grid.hpp"
@@ -114,9 +114,9 @@ namespace gridtools {
                 // simple cases). This is why the check is left as
                 // before here, but may be updated with more accurate
                 // ones when the convention is updated
-                return storage_info_dim_fits<coord_k<Backend>::value>(src, grid.k_max()) &&
-                       storage_info_dim_fits<coord_j<Backend>::value>(src, grid.j_high_bound()) &&
-                       storage_info_dim_fits<coord_i<Backend>::value>(src, grid.i_high_bound());
+                return storage_info_dim_fits<dim::k::value>(src, grid.k_max()) &&
+                       storage_info_dim_fits<dim::j::value>(src, grid.j_high_bound()) &&
+                       storage_info_dim_fits<dim::i::value>(src, grid.i_high_bound());
             }
         };
 

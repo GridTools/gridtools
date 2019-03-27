@@ -12,7 +12,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 
-#include "../coordinate.hpp"
+#include "../dim.hpp"
 #include "../extent.hpp"
 
 namespace gridtools {
@@ -31,7 +31,7 @@ namespace gridtools {
             template <class StorageInfo,
                 class MaxExtent,
                 int_t UsedHalo = -MaxExtent::iminus::value,
-                uint_t StorageHalo = StorageInfo::halo_t::at(coord_i<target::cuda>::value)>
+                uint_t StorageHalo = StorageInfo::halo_t::at(dim::i::value)>
             GT_FUNCTION constexpr uint_t additional_i_offset() {
                 return StorageHalo > UsedHalo ? StorageHalo - UsedHalo : 0;
             }
@@ -58,7 +58,7 @@ namespace gridtools {
 
         template <class StorageInfo, class /*MaxExtent*/>
         uint_t get_j_size(target::cuda const &, uint_t block_size, uint_t total_size) {
-            static constexpr auto halo = StorageInfo::halo_t::template at<coord_j<target::cuda>::value>();
+            static constexpr auto halo = StorageInfo::halo_t::template at<dim::j::value>();
             auto full_block_size = block_size + 2 * halo;
             auto num_blocks = (total_size + block_size - 1) / block_size;
             return full_block_size * num_blocks;
@@ -66,7 +66,7 @@ namespace gridtools {
 
         template <class StorageInfo, class /*MaxExtent*/>
         GT_FUNCTION int_t get_j_block_offset(target::cuda const &, uint_t block_size, uint_t block_no) {
-            static constexpr auto halo = StorageInfo::halo_t::template at<coord_j<target::cuda>::value>();
+            static constexpr auto halo = StorageInfo::halo_t::template at<dim::j::value>();
             return block_no * (block_size + 2 * halo) + halo;
         }
     } // namespace tmp_storage
