@@ -41,13 +41,11 @@ namespace gridtools {
 
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
 
-        using backend_target_t = typename IterateDomainArguments::backend_target_t;
-
         // compute the fusion vector of pair<index_type, cache_storage> for ij caches
         typedef typename get_ij_cache_storage_tuple<cache_sequence_t,
             typename IterateDomainArguments::max_extent_for_tmp_t,
-            block_i_size(backend_target_t{}),
-            block_j_size(backend_target_t{})>::type ij_caches_vector_t;
+            block_i_size(target::cuda{}),
+            block_j_size(target::cuda{})>::type ij_caches_vector_t;
 
         using k_caches_tuple_t =
             typename boost::fusion::result_of::as_map<typename get_k_cache_storage_tuple<cache_sequence_t,
