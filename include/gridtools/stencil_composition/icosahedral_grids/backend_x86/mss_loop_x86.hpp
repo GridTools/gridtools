@@ -116,9 +116,9 @@ namespace gridtools {
         auto total_i = grid.i_high_bound() - grid.i_low_bound() + 1;
         auto total_j = grid.j_high_bound() - grid.j_low_bound() + 1;
         const uint_t size_i = block_size_f(total_i, block_i_size(backend_target), execution_info.bi) +
-                              extent_t::iminus::value - extent_t::iplus::value;
+                              extent_t::iplus::value - extent_t::iminus::value;
         const uint_t size_j = block_size_f(total_j, block_j_size(backend_target), execution_info.bj) +
-                              extent_t::jminus::value - extent_t::jplus::value;
+                              extent_t::jplus::value - extent_t::jminus::value;
         using location_type_t = typename extract_esf_location_type<typename RunFunctorArgs::esf_sequence_t>::type;
         static constexpr int_t n_colors = location_type_t::n_colors::value;
         for (uint_t i = 0; i != size_i; ++i) {
