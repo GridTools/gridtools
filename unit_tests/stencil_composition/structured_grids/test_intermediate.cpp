@@ -43,8 +43,8 @@ namespace test_intermediate {
 TEST(intermediate, test_get_arg_functions) {
     using namespace test_intermediate;
 
-    using storage_info_t = storage_traits<backend_t::target_t>::storage_info_t<0, 1>;
-    using data_store_t = storage_traits<backend_t::target_t>::data_store_t<float_type, storage_info_t>;
+    using storage_info_t = storage_traits<target_t>::storage_info_t<0, 1>;
+    using data_store_t = storage_traits<target_t>::data_store_t<float_type, storage_info_t>;
 
     using p_in1 = arg<0, data_store_t>;
     using p_in2 = arg<1, data_store_t>;

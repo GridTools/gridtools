@@ -138,8 +138,8 @@ __global__ void kernel(View v) {
 #endif
 
 TEST(StorageFacility, ViewTests) {
-    typedef storage_traits<backend_t::target_t>::storage_info_t<0, 3> storage_info_ty;
-    typedef storage_traits<backend_t::target_t>::data_store_t<double, storage_info_ty> data_store_t;
+    typedef storage_traits<target_t>::storage_info_t<0, 3> storage_info_ty;
+    typedef storage_traits<target_t>::data_store_t<double, storage_info_ty> data_store_t;
 
     // create a data_store_t
     storage_info_ty si(3, 3, 3);
@@ -489,15 +489,11 @@ struct static_layout_tests<backend<target::naive>> : static_layout_tests_increas
 template struct static_layout_tests<backend_t>;
 
 TEST(StorageFacility, CustomLayoutTests) {
-    typedef typename storage_traits<backend_t::target_t>::custom_layout_storage_info_t<0, layout_map<2, 1, 0>>::layout_t
-        layout3_t;
-    typedef typename storage_traits<backend_t::target_t>::custom_layout_storage_info_t<0, layout_map<1, 0>>::layout_t
-        layout2_t;
-    typedef typename storage_traits<backend_t::target_t>::custom_layout_storage_info_t<0, layout_map<0>>::layout_t
-        layout1_t;
+    typedef typename storage_traits<target_t>::custom_layout_storage_info_t<0, layout_map<2, 1, 0>>::layout_t layout3_t;
+    typedef typename storage_traits<target_t>::custom_layout_storage_info_t<0, layout_map<1, 0>>::layout_t layout2_t;
+    typedef typename storage_traits<target_t>::custom_layout_storage_info_t<0, layout_map<0>>::layout_t layout1_t;
     typedef
-        typename storage_traits<backend_t::target_t>::custom_layout_storage_info_t<0, layout_map<2, -1, 1, 0>>::layout_t
-            layout4_t;
+        typename storage_traits<target_t>::custom_layout_storage_info_t<0, layout_map<2, -1, 1, 0>>::layout_t layout4_t;
     GT_STATIC_ASSERT((boost::is_same<layout3_t, layout_map<2, 1, 0>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<layout1_t, layout_map<0>>::value), "layout type is wrong");

@@ -112,8 +112,8 @@ std::ostream &operator<<(std::ostream &s, functor4) { return s << "functor4"; }
 std::ostream &operator<<(std::ostream &s, functor5) { return s << "functor5"; }
 std::ostream &operator<<(std::ostream &s, functor6) { return s << "functor6"; }
 
-typedef gridtools::storage_traits<backend_t::target_t>::storage_info_t<0, 3> storage_info_t;
-typedef gridtools::storage_traits<backend_t::target_t>::data_store_t<float_type, storage_info_t> storage_t;
+typedef gridtools::storage_traits<target_t>::storage_info_t<0, 3> storage_info_t;
+typedef gridtools::storage_traits<target_t>::data_store_t<float_type, storage_info_t> storage_t;
 
 typedef arg<0, storage_t> o0;
 typedef arg<1, storage_t> o1;

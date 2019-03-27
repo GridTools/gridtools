@@ -33,8 +33,8 @@ namespace gridtools {
             using param_list = boost::mpl::vector<in_accessor<0>, inout_accessor<1>>;
         };
 
-        typedef storage_traits<backend_t::target_t>::storage_info_t<0, 3> storage_info_t;
-        typedef storage_traits<backend_t::target_t>::data_store_t<float_type, storage_info_t> data_store_t;
+        typedef storage_traits<target_t>::storage_info_t<0, 3> storage_info_t;
+        typedef storage_traits<target_t>::data_store_t<float_type, storage_info_t> data_store_t;
 
         typedef arg<0, data_store_t> p_in;
         typedef arg<1, data_store_t> p_out;
