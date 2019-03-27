@@ -9,8 +9,7 @@
  */
 #pragma once
 
-#include <boost/mpl/size.hpp>
-
+#include "../../meta.hpp"
 #include "../mss_functor.hpp"
 
 /**@file
@@ -31,10 +30,8 @@ namespace gridtools {
     template <class MssComponents, class LocalDomainListArray, class Grid>
     GT_FORCE_INLINE static void fused_mss_loop(
         target::x86 const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
-        GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-        using iter_range = boost::mpl::range_c<uint_t, 0, boost::mpl::size<MssComponents>::type::value>;
-
+        GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         uint_t n = grid.i_high_bound() - grid.i_low_bound();
         uint_t m = grid.j_high_bound() - grid.j_low_bound();
 
@@ -46,9 +43,8 @@ namespace gridtools {
 #pragma omp for nowait
             for (uint_t bi = 0; bi <= NBI; ++bi) {
                 for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                    host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
-                        make_mss_functor<MssComponents>(
-                            backend_target, local_domain_lists, grid, execution_info_x86{bi, bj}));
+                    host::for_each<GT_META_CALL(meta::make_indices_for, MssComponents)>(make_mss_functor<MssComponents>(
+                        backend_target, local_domain_lists, grid, execution_info_x86{bi, bj}));
                 }
             }
         }
