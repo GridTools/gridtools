@@ -9,11 +9,17 @@
  */
 #pragma once
 
-#ifdef __CUDACC__
-#include "./backend_cuda/mss_loop_cuda.hpp"
-#endif
 #ifndef GT_ICOSAHEDRAL_GRIDS
-#include "./backend_mc/mss_loop_mc.hpp"
+#ifdef __CUDACC__
+#include "./structured_grids/backend_cuda/mss_loop_cuda.hpp"
 #endif
-#include "./backend_naive/mss_loop_naive.hpp"
-#include "./backend_x86/mss_loop_x86.hpp"
+#include "./structured_grids/backend_mc/mss_loop_mc.hpp"
+#include "./structured_grids/backend_naive/mss_loop_naive.hpp"
+#include "./structured_grids/backend_x86/mss_loop_x86.hpp"
+#else
+#ifdef __CUDACC__
+#include "./icosahedral_grids/backend_cuda/mss_loop_cuda.hpp"
+#endif
+#include "./icosahedral_grids/backend_naive/mss_loop_naive.hpp"
+#include "./icosahedral_grids/backend_x86/mss_loop_x86.hpp"
+#endif

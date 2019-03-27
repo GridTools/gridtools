@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "../structured_grids/backend_mc/execute_kernel_functor_mc.hpp"
+#include "./execute_kernel_functor_mc.hpp"
 
 /**@file
  * @brief mss loop implementations for the mc backend
