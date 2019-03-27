@@ -14,6 +14,7 @@
 
 #include "../common/defs.hpp"
 #include "../common/selector.hpp"
+#include "../meta.hpp"
 #include "../storage/storage_facility.hpp"
 
 /**

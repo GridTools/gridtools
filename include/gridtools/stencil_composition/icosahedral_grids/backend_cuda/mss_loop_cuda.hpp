@@ -16,6 +16,7 @@
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/gt_assert.hpp"
+#include "../../../common/integral_constant.hpp"
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
 #include "../../backend_cuda/mss_loop_cuda_common.hpp"
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
@@ -31,7 +32,7 @@ namespace gridtools {
 
         template <int VBoundary>
         struct padded_boundary
-            : boost::mpl::integral_c<int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8))> {
+            : integral_constant<int, VBoundary <= 1 ? 1 : VBoundary <= 2 ? 2 : VBoundary <= 4 ? 4 : 8> {
             GT_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 

@@ -9,8 +9,6 @@
  */
 #pragma once
 #include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/mpl/size.hpp>
 #include <type_traits>
 
 #include "../../common/array.hpp"

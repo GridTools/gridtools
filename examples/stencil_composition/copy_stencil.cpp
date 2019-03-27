@@ -12,8 +12,6 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <boost/mpl/vector.hpp>
-
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 
 /**

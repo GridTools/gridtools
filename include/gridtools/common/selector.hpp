@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <boost/mpl/bool.hpp>
+#include <type_traits>
 
 #include "defs.hpp"
 
@@ -33,10 +33,10 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_selector : boost::mpl::false_ {};
+    struct is_selector : std::false_type {};
 
     template <bool... Bitmask>
-    struct is_selector<selector<Bitmask...>> : boost::mpl::true_ {};
+    struct is_selector<selector<Bitmask...>> : std::true_type {};
     /** @} */
     /** @} */
 } // namespace gridtools

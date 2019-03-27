@@ -18,11 +18,11 @@
 
 #include <tuple>
 
-#include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../meta/filter.hpp"
 #include "../meta/first.hpp"
 #include "../meta/id.hpp"
 #include "../meta/length.hpp"
+#include "../meta/logical.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/type_traits.hpp"
 #include "./caches/cache_traits.hpp"
@@ -30,8 +30,11 @@
 
 namespace gridtools {
     namespace _impl {
-        template <class T>
-        struct is_sequence_of_caches : is_sequence_of<T, is_cache> {};
+        template <class T, class = void>
+        struct is_sequence_of_caches : std::false_type {};
+
+        template <template <class...> class L, class... Ts>
+        struct is_sequence_of_caches<L<Ts...>> : conjunction<is_cache<Ts>...> {};
     } // namespace _impl
 
     /**
@@ -39,7 +42,8 @@ namespace gridtools {
      * metafunction that determines if a given type is a valid parameter for mss_descriptor
      */
     template <class T>
-    struct is_mss_parameter : bool_constant<_impl::is_sequence_of_caches<T>::value || is_esf_descriptor<T>::value> {};
+    GT_META_DEFINE_ALIAS(
+        is_mss_parameter, bool_constant, _impl::is_sequence_of_caches<T>::value || is_esf_descriptor<T>::value);
 
     /**
      * @struct extract_mss_caches

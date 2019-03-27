@@ -14,8 +14,6 @@
 
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/mpl/size.hpp>
 
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"

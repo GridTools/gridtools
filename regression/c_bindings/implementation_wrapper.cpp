@@ -21,13 +21,11 @@
 namespace {
 
     using namespace gridtools;
-    using namespace execute;
-    namespace m = boost::mpl;
 
     struct copy_functor {
         using in = accessor<0, intent::in, extent<>, 3>;
         using out = accessor<1, intent::inout, extent<>, 3>;
-        using param_list = m::vector<in, out>;
+        using param_list = make_param_list<in, out>;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {

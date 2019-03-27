@@ -9,8 +9,7 @@
  */
 #pragma once
 
-#include <boost/mpl/size.hpp>
-
+#include "../../meta.hpp"
 #include "../mss_functor.hpp"
 
 /**@file
@@ -30,10 +29,10 @@ namespace gridtools {
     template <class MssComponents, class LocalDomainListArray, class Grid>
     static void fused_mss_loop(
         target::cuda const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
-        GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
-        host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
+        host::for_each<GT_META_CALL(meta::make_indices_for, MssComponents)>(
             make_mss_functor<MssComponents>(backend_target, local_domain_lists, grid, execution_info_cuda{}));
     }
 

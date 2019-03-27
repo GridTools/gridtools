@@ -40,11 +40,3 @@ TEST_F(copy_stencil, test) {
     verify(in, out);
     benchmark(comp);
 }
-
-TEST_F(copy_stencil, with_extents) {
-    make_computation(p_0 = in,
-        p_1 = out,
-        make_multistage(execute::parallel(), make_stage_with_extent<copy_functor, extent<>>(p_0, p_1)))
-        .run();
-    verify(in, out);
-}
