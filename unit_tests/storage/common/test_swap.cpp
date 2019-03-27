@@ -19,8 +19,8 @@
 namespace gt = gridtools;
 
 TEST(Storage, Swap) {
-    using storage_info_t = gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
-    using data_store_t = gt::storage_traits<backend_t::backend_id_t>::data_store_t<double, storage_info_t>;
+    using storage_info_t = gt::storage_traits<target_t>::storage_info_t<0, 3>;
+    using data_store_t = gt::storage_traits<target_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t s1(3, 3, 3);
     data_store_t ds1(s1, "ds1");

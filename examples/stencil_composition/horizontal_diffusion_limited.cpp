@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
         d3 = atoi(argv[3]);
     }
 
-    using storage_tr = gt::storage_traits<backend_t::backend_id_t>;
+    using storage_tr = gt::storage_traits<target_t>;
     using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<halo_size, halo_size, 0>>;
     using storage_type = storage_tr::data_store_t<double, storage_info_ijk_t>;
 

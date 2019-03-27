@@ -12,6 +12,7 @@
 #include <boost/fusion/include/at_key.hpp>
 
 #include "../common/functional.hpp"
+#include "../common/generic_metafunctions/copy_into_variadic.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta/defs.hpp"
@@ -19,6 +20,7 @@
 #include "esf_metafunctions.hpp"
 #include "extract_placeholders.hpp"
 #include "local_domain.hpp"
+#include "mss_components.hpp"
 #include "sid/concept.hpp"
 #include "tmp_storage.hpp"
 
