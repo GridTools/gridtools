@@ -36,4 +36,9 @@ namespace gridtools {
         host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
             make_mss_functor<MssComponents>(backend_target, local_domain_lists, grid, execution_info_cuda{}));
     }
+
+    /**
+     * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
+     */
+    constexpr std::true_type mss_fuse_esfs(target::cuda) { return {}; }
 } // namespace gridtools

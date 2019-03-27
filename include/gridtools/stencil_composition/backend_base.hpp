@@ -13,25 +13,8 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../common/selector.hpp"
 #include "../storage/storage_facility.hpp"
-#include "./grid.hpp"
-#include "./local_domain.hpp"
-#include "./mss_components.hpp"
-
-#ifdef __CUDACC__
-#include "./backend_cuda/backend_traits_cuda.hpp"
-#include "./backend_cuda/fused_mss_loop_cuda.hpp"
-#endif
-#ifndef GT_ICOSAHEDRAL_GRIDS
-#include "./backend_mc/backend_traits_mc.hpp"
-#include "./backend_mc/fused_mss_loop_mc.hpp"
-#endif
-#include "./backend_naive/backend_traits_naive.hpp"
-#include "./backend_naive/fused_mss_loop_naive.hpp"
-#include "./backend_x86/backend_traits_x86.hpp"
-#include "./backend_x86/fused_mss_loop_x86.hpp"
 
 /**
    @file
@@ -50,13 +33,6 @@ namespace gridtools {
         - type refers to the architecture specific, like the
           differences between cuda and x86.
 
-        The backend has a member function "run" that is called by the
-        "intermediate".
-
-        Before calling the loop::run_loop method, the backend queries
-        "execute_traits" that are contained in the
-        "backend_traits_t".
-
         The execute_traits::backend_t (bad name) is responsible for
         the "inner loop nests". The
         loop<execute_traits::backend_t>::run_loop will use that to do
@@ -65,13 +41,10 @@ namespace gridtools {
         available there.
 
         - Similarly, the definition (specialization) is contained in the
-        - specific subfoled (right now in backend_?/backend_traits_?.h ).
 
         - This contains:
         - - (INTERFACE) pointer<>::type that returns the first argument to instantiate the storage class
         - - (INTERFACE) storage_traits::storage_t to get the storage type to be used with the backend
-        - - (INTERFACE) execute_traits ?????? this was needed when backend_traits was forcely shared between x86 and
-       cuda backends. Now they are separated and this may be simplified.
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
     */
     template <class BackendTarget>
@@ -84,9 +57,6 @@ namespace gridtools {
             "instantiating is another one!!");
 #endif
 
-        typedef backend_base<BackendTarget> this_type;
-
-        typedef backend_traits<BackendTarget> backend_traits_t;
         typedef storage_traits<BackendTarget> storage_traits_t;
 
         using backend_target_t = BackendTarget;
@@ -116,8 +86,6 @@ namespace gridtools {
             view(0) = new_val;
             gp.sync();
         }
-
-        using mss_fuse_esfs_strategy = typename backend_traits_t::mss_fuse_esfs_strategy;
     };
 
 } // namespace gridtools

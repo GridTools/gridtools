@@ -20,7 +20,6 @@
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
 #include "../../backend_cuda/mss_loop_cuda_common.hpp"
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
-#include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "../positional_iterate_domain.hpp"
@@ -56,8 +55,6 @@ namespace gridtools {
                 typename conditional_t<local_domain_is_stateful<typename RunFunctorArguments::local_domain_t>::value,
                     meta::lazy::id<positional_iterate_domain<iterate_domain_cuda_t>>,
                     meta::lazy::id<iterate_domain_cuda_t>>::type;
-
-            typedef backend_traits<target::cuda> backend_traits_t;
 
             // number of threads
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);

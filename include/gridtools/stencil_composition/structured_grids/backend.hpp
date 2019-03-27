@@ -18,8 +18,6 @@ namespace gridtools {
     template <class BackendTarget>
     struct backend : public backend_base<BackendTarget> {
         typedef backend_base<BackendTarget> base_t;
-
-        using typename base_t::backend_traits_t;
     };
 
 } // namespace gridtools

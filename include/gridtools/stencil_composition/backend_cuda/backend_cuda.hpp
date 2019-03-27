@@ -12,4 +12,3 @@
 // This file contains all header files required by the cuda backend
 #include "../../storage/storage_facility.hpp"
 #include "../backend_fwd.hpp"
-#include "backend_traits_cuda.hpp"

@@ -36,4 +36,8 @@ namespace gridtools {
             make_mss_functor<MssComponents>(backend_target, local_domain_lists, grid, execution_info_naive{}));
     }
 
+    /**
+     * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
+     */
+    constexpr std::false_type mss_fuse_esfs(target::naive) { return {}; }
 } // namespace gridtools

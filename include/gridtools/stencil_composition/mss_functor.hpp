@@ -23,7 +23,6 @@
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../meta/type_traits.hpp"
-#include "./backend_traits_fwd.hpp"
 #include "./grid.hpp"
 #include "./local_domain.hpp"
 #include "./mss_components.hpp"

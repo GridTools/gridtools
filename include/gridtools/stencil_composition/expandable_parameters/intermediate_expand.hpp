@@ -24,6 +24,7 @@
 #include "../arg.hpp"
 #include "../esf_fwd.hpp"
 #include "../esf_metafunctions.hpp"
+#include "../fused_mss_loop.hpp"
 #include "../independent_esf.hpp"
 #include "../intermediate.hpp"
 #include "../mss.hpp"
@@ -307,7 +308,7 @@ namespace gridtools {
         /// reminder.
         converted_intermediate<1> m_intermediate_remainder;
 
-        typename Backend::backend_traits_t::performance_meter_t m_meter;
+        typename timer_traits<typename Backend::backend_target_t>::timer_type m_meter;
 
         template <class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs>
         intermediate_expand(Grid const &grid,

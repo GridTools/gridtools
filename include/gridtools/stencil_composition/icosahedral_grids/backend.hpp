@@ -45,8 +45,6 @@ namespace gridtools {
       public:
         typedef backend_base<BackendTarget> base_t;
 
-        using typename base_t::backend_traits_t;
-
         template <typename DimSelector>
         struct select_layout {
             using layout_map_t = typename _impl::default_layout<BackendTarget>::type;

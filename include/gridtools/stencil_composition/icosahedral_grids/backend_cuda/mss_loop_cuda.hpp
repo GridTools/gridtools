@@ -19,7 +19,6 @@
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
 #include "../../backend_cuda/mss_loop_cuda_common.hpp"
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
-#include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "./iterate_domain_cuda.hpp"
@@ -51,8 +50,6 @@ namespace gridtools {
                 typename RunFunctorArgs::grid_t>;
 
             using iterate_domain_t = iterate_domain_cuda<iterate_domain_arguments_t>;
-
-            typedef backend_traits<target::cuda> backend_traits_t;
 
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
             const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);

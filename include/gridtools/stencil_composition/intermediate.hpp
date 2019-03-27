@@ -29,15 +29,16 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits/remove_const.hpp>
 
+#include "../common/timer/timer_traits.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "backend_base.hpp"
 #include "backend_metafunctions.hpp"
-#include "backend_traits_fwd.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "dim.hpp"
 #include "esf.hpp"
 #include "extract_placeholders.hpp"
+#include "fused_mss_loop.hpp"
 #include "grid.hpp"
 #include "intermediate_impl.hpp"
 #include "iterate_on_esfs.hpp"
@@ -158,7 +159,7 @@ namespace gridtools {
 
         using mss_descriptors_t = std::tuple<MssDescriptors...>;
 
-        typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
+        using performance_meter_t = typename timer_traits<typename Backend::backend_target_t>::timer_type;
 
         using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
@@ -199,8 +200,9 @@ namespace gridtools {
             boost::mpl::void_>::type;
 
       private:
+        using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<typename Backend::backend_target_t>()));
         using mss_components_array_t = GT_META_CALL(build_mss_components_array,
-            (Backend::mss_fuse_esfs_strategy::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type));
+            (fuse_esfs_t::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type));
 
         using max_extent_for_tmp_t = GT_META_CALL(_impl::get_max_extent_for_tmp, mss_components_array_t);
 

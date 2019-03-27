@@ -53,4 +53,9 @@ namespace gridtools {
             }
         }
     }
+
+    /**
+     * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
+     */
+    constexpr std::false_type mss_fuse_esfs(target::x86) { return {}; }
 } // namespace gridtools
