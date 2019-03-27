@@ -33,11 +33,4 @@ namespace gridtools {
     */
     template <class RunFunctor>
     struct backend_type;
-
-    /** @brief functor struct whose specializations are responsible of running the kernel
-        The kernel contains the computational intensive loops on the backend. The fact that it is a functor (and not a
-       templated method) allows for partial specialization
-    */
-    template <typename Backend>
-    struct execute_kernel_functor;
 } // namespace gridtools
