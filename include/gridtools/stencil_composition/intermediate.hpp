@@ -272,8 +272,7 @@ namespace gridtools {
                 "some placeholders are not used in mss descriptors");
             GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
-            static constexpr typename Backend::target_t backend_target;
-            fused_mss_loop<mss_components_array_t>(backend_target, local_domains(srcs...), m_grid);
+            fused_mss_loop<mss_components_array_t>(typename Backend::target_t{}, local_domains(srcs...), m_grid);
             if (m_meter)
                 m_meter->pause();
         }
