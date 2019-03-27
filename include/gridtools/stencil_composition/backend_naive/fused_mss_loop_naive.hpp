@@ -27,7 +27,7 @@ namespace gridtools {
      * @tparam MssComponents a meta array with the mss components of all MSS
      */
     template <class MssComponents, class LocalDomainListArray, class Grid>
-    static void fused_mss_loop(
+    GT_FORCE_INLINE static void fused_mss_loop(
         target::naive const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
