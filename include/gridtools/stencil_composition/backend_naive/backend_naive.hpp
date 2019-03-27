@@ -15,5 +15,4 @@
 #endif
 
 #include "../../storage/storage_facility.hpp"
-#include "../backend_fwd.hpp"
 #include "../iteration_policy.hpp"

@@ -11,7 +11,6 @@
 
 #include "../../common/defs.hpp"
 #include "../backend_base.hpp"
-#include "../backend_fwd.hpp"
 
 namespace gridtools {
 

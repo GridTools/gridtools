@@ -11,7 +11,7 @@
 
 #include "../meta/is_instantiation_of.hpp"
 #include "../meta/macros.hpp"
-#include "./backend_fwd.hpp"
+#include "backend.hpp"
 
 namespace gridtools {
     template <class T>
