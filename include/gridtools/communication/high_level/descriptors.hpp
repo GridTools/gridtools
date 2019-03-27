@@ -79,14 +79,10 @@ namespace gridtools {
             //           << "i=" << base_type::halos[0].loop_low_bound_inside(eta[0])
             //           << " to <= " << base_type::halos[0].loop_high_bound_inside(eta[0])
             //           << std::endl;
-            for (int k = base_type::halos[2].loop_low_bound_inside(eta[2]);
-                 k <= base_type::halos[2].loop_high_bound_inside(eta[2]);
-                 ++k) {
-                for (int j = base_type::halos[1].loop_low_bound_inside(eta[1]);
-                     j <= base_type::halos[1].loop_high_bound_inside(eta[1]);
+            for (int k = halos[2].loop_low_bound_inside(eta[2]); k <= halos[2].loop_high_bound_inside(eta[2]); ++k) {
+                for (int j = halos[1].loop_low_bound_inside(eta[1]); j <= halos[1].loop_high_bound_inside(eta[1]);
                      ++j) {
-                    for (int i = base_type::halos[0].loop_low_bound_inside(eta[0]);
-                         i <= base_type::halos[0].loop_high_bound_inside(eta[0]);
+                    for (int i = halos[0].loop_low_bound_inside(eta[0]); i <= halos[0].loop_high_bound_inside(eta[0]);
                          ++i) {
 
                         // std::cout << "      "
@@ -103,12 +99,8 @@ namespace gridtools {
                         //                         base_type::halos[2].total_length())]
                         //           << std::endl;
 
-                        *(reinterpret_cast<iterator_in *>(it)) = field_ptr[gridtools::access(i,
-                            j,
-                            k,
-                            base_type::halos[0].total_length(),
-                            base_type::halos[1].total_length(),
-                            base_type::halos[2].total_length())];
+                        *(reinterpret_cast<iterator_in *>(it)) = field_ptr[gridtools::access(
+                            i, j, k, halos[0].total_length(), halos[1].total_length(), halos[2].total_length())];
                         reinterpret_cast<char *&>(it) += sizeof(iterator_in);
                     }
                 }
@@ -124,14 +116,10 @@ namespace gridtools {
             //           << "i=" << base_type::halos[0].loop_low_bound_outside(eta[0])
             //           << " to <= " << base_type::halos[0].loop_high_bound_outside(eta[0])
             //           << std::endl;
-            for (int k = base_type::halos[2].loop_low_bound_outside(eta[2]);
-                 k <= base_type::halos[2].loop_high_bound_outside(eta[2]);
-                 ++k) {
-                for (int j = base_type::halos[1].loop_low_bound_outside(eta[1]);
-                     j <= base_type::halos[1].loop_high_bound_outside(eta[1]);
+            for (int k = halos[2].loop_low_bound_outside(eta[2]); k <= halos[2].loop_high_bound_outside(eta[2]); ++k) {
+                for (int j = halos[1].loop_low_bound_outside(eta[1]); j <= halos[1].loop_high_bound_outside(eta[1]);
                      ++j) {
-                    for (int i = base_type::halos[0].loop_low_bound_outside(eta[0]);
-                         i <= base_type::halos[0].loop_high_bound_outside(eta[0]);
+                    for (int i = halos[0].loop_low_bound_outside(eta[0]); i <= halos[0].loop_high_bound_outside(eta[0]);
                          ++i) {
                         // std::cout << "      "
                         //           << i << ", "
@@ -142,12 +130,9 @@ namespace gridtools {
                         //           << base_type::halos[2].total_length() << ", "
                         //           << *(reinterpret_cast<iterator_in*>(it))
                         //           << std::endl;
-                        field_ptr[gridtools::access(i,
-                            j,
-                            k,
-                            base_type::halos[0].total_length(),
-                            base_type::halos[1].total_length(),
-                            base_type::halos[2].total_length())] = *(reinterpret_cast<iterator_in *>(it));
+                        field_ptr[gridtools::access(
+                            i, j, k, halos[0].total_length(), halos[1].total_length(), halos[2].total_length())] =
+                            *(reinterpret_cast<iterator_in *>(it));
                         reinterpret_cast<char *&>(it) += sizeof(iterator_in);
                     }
                 }
