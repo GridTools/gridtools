@@ -11,15 +11,12 @@
 
 #include "../../common/defs.hpp"
 #include "../backend_base.hpp"
-#include "../backend_fwd.hpp"
 
 namespace gridtools {
 
-    template <class BackendId>
-    struct backend : public backend_base<BackendId> {
-        typedef backend_base<BackendId> base_t;
-
-        using typename base_t::backend_traits_t;
+    template <class Target>
+    struct backend : public backend_base<Target> {
+        typedef backend_base<Target> base_t;
     };
 
 } // namespace gridtools

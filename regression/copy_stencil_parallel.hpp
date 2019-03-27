@@ -74,8 +74,8 @@ namespace copy_stencil {
 
         MPI_Cart_create(MPI_COMM_WORLD, 3, &dimensions[0], period, false, &CartComm);
 
-        typedef storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
-        typedef storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> storage_t;
+        typedef storage_traits<target_t>::storage_info_t<0, 3> storage_info_t;
+        typedef storage_traits<target_t>::data_store_t<float_type, storage_info_t> storage_t;
 
         typedef gridtools::halo_exchange_dynamic_ut<typename storage_info_t::layout_t,
             gridtools::layout_map<0, 1, 2>,
@@ -169,11 +169,10 @@ namespace copy_stencil {
         halos[1] = gridtools::halo_descriptor(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
         halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
-        typename gridtools::boundary<boundary_conditions,
-            backend_t::backend_id_t,
-            typename gridtools::proc_grid_predicate<decltype(c_grid)>>(
-            halos, boundary_conditions(), gridtools::proc_grid_predicate<decltype(c_grid)>(c_grid))
-            .apply(in, out);
+        typename gridtools::
+            boundary<boundary_conditions, target_t, typename gridtools::proc_grid_predicate<decltype(c_grid)>>(
+                halos, boundary_conditions(), gridtools::proc_grid_predicate<decltype(c_grid)>(c_grid))
+                .apply(in, out);
 
 #ifdef __CUDACC__
         auto inv = make_device_view(in);

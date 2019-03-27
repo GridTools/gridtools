@@ -100,8 +100,8 @@ struct functor6 {
     GT_FUNCTION static void apply(Evaluation);
 };
 
-typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
-typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> storage_t;
+typedef gridtools::storage_traits<target_t>::storage_info_t<0, 3> storage_info_t;
+typedef gridtools::storage_traits<target_t>::data_store_t<float_type, storage_info_t> storage_t;
 
 typedef arg<0, storage_t> o0;
 typedef arg<1, storage_t> o1;

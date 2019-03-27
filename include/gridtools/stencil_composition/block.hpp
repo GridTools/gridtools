@@ -17,7 +17,7 @@
  * There are two forms of block_*_size :
  *   - GT_FUNCTION constexpr uint_t block_i_size(Backend)
  *   - uint_t block_i_size(Backend, Grid)
- *  where  Backend is an instantiation of backend_ids and Grid is instantiation of grid.
+ *  where  Backend is instantiation of the backend target tag and Grid is instantiation of grid.
  *
  *  Constexpr form is designed to be used as a part of template parameter or in performance critical code.
  *  The later overload is for backends where the block size depends on runtime. Because it has runtime overhead,

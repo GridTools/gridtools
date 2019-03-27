@@ -28,8 +28,8 @@ using target_t = gt::target::mc;
 
 using backend_t = gt::backend<target_t>;
 
-using storage_info_t = gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
-using data_store_t = gt::storage_traits<backend_t::backend_id_t>::data_store_t<double, storage_info_t>;
+using storage_info_t = gt::storage_traits<target_t>::storage_info_t<0, 3>;
+using data_store_t = gt::storage_traits<target_t>::data_store_t<double, storage_info_t>;
 
 // This is the stencil operator which copies the value from `in` to `out`.
 struct copy_functor {

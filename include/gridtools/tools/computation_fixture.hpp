@@ -37,7 +37,7 @@ namespace gridtools {
 
       public:
         static constexpr uint_t halo_size = HaloSize;
-        using storage_tr = storage_traits<backend_t::backend_id_t>;
+        using storage_tr = storage_traits<target_t>;
 
         halo_descriptor i_halo_descriptor() const {
             return {halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1};

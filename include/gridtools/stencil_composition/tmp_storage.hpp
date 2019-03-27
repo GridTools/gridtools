@@ -19,7 +19,7 @@
  *  where:
  *    MaxExtent - integral_constant with maximal absolute extent in I direction.
  *                TODO(anstaf): change to fully specified max extent
- *    Backend  - instantiation of backend_ids
+ *    Backend  - instantiation of backend tag
  *    Arg      - instantiation of arg
  *    Grid     - instantiation of grid
  *    Strides  - 3D struct with the strides that are taken from the DataStore, returned by make_tmp_data_store
@@ -82,7 +82,7 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         using namespace tmp_storage;
         using storage_info_t = typename DataStore::storage_info_t;
-        static constexpr auto backend = typename Backend::backend_ids_t{};
+        static constexpr auto backend = typename Backend::target_t{};
         return {make_storage_info<storage_info_t, NColors>(backend,
             get_i_size<storage_info_t, MaxExtent>(
                 backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
@@ -110,6 +110,6 @@ namespace gridtools {
     template <class Backend>
     GT_META_DEFINE_ALIAS(needs_allocate_cached_tmp,
         meta::id,
-        decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(typename Backend::backend_ids_t{})));
+        decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(typename Backend::target_t{})));
 
 } // namespace gridtools
