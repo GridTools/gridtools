@@ -118,23 +118,6 @@ namespace gridtools {
         }
 
         using mss_fuse_esfs_strategy = typename backend_traits_t::mss_fuse_esfs_strategy;
-
-        /**
-         * \brief calls the \ref gridtools::run_functor for each functor in the FunctorList.
-         * the loop over the functors list is unrolled at compile-time using the for_each construct.
-         * @tparam MssArray  meta array of mss
-         * \tparam Grid Coordinate class with domain sizes and splitter grid
-         * \tparam LocalDomains sequence of local domains
-         */
-        template <typename MssComponents, typename Grid, typename LocalDomains>
-        static void run(Grid const &grid, LocalDomains const &local_domains) {
-            // TODO: I would swap the arguments coords and local_domains, for consistency
-            GT_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-
-            fused_mss_loop<MssComponents>(backend_target_t{}, local_domains, grid);
-        }
     };
 
 } // namespace gridtools
