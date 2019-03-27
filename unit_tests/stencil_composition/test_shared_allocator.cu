@@ -14,16 +14,27 @@
 
 namespace {
     TEST(shared_allocator, test) {
-        gridtools::SharedAllocator allocator;
+        gridtools::shared_allocator allocator;
         EXPECT_EQ(0, allocator.size());
 
-        EXPECT_EQ(0, (allocator.template allocate<std::array<char, 14>>(3)));
-        EXPECT_EQ(3 * 14, allocator.size());
+        auto offset = allocator.allocate<14>(3 * 14);
+        // check that there is no overlap with the previous allocation
+        EXPECT_LE(0, offset);
+        // check that there is enough space to fit the allocation
+        EXPECT_GE(allocator.size(), offset + 3 * 14);
+        // check alignment
+        EXPECT_EQ(0, offset % 14);
 
-        EXPECT_EQ(6, (allocator.template allocate<std::array<char, 8>>(16)));
-        EXPECT_EQ(176, allocator.size());
+        auto old_size = allocator.size();
+        offset = allocator.allocate<8>(16 * 8);
+        EXPECT_LE(old_size, offset);
+        EXPECT_GE(allocator.size(), old_size + 16 * 8);
+        EXPECT_EQ(0, offset % 8);
 
-        EXPECT_EQ(22, (allocator.template allocate<std::array<char, 8>>(1)));
-        EXPECT_EQ(184, allocator.size());
+        old_size = allocator.size();
+        offset = allocator.allocate<8>(1 * 8);
+        EXPECT_LE(old_size, offset);
+        EXPECT_GE(allocator.size(), old_size + 1 * 8);
+        EXPECT_EQ(0, offset % 8);
     }
 } // namespace

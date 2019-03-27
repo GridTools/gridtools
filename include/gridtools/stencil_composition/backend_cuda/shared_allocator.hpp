@@ -13,16 +13,20 @@
 
 namespace gridtools {
 
-    class SharedAllocator {
+    class shared_allocator {
       private:
         uint_t m_offset = 0;
 
       public:
-        template <class T>
-        int_t allocate(size_t sz) {
-            auto aligned = (m_offset + sizeof(T) - 1) / sizeof(T) * sizeof(T);
-            m_offset = aligned + sz * sizeof(T);
-            return aligned / sizeof(T);
+        /**
+         * \tparam Alignment required alignment in bytes
+         * \param sz size of allocation in bytes
+         */
+        template <uint_t Alignment>
+        int_t allocate(uint_t sz) {
+            auto aligned = (m_offset + Alignment - 1) / Alignment * Alignment;
+            m_offset = aligned + sz;
+            return aligned;
         }
 
         uint_t size() const { return m_offset; }

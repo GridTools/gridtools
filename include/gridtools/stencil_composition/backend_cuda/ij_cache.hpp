@@ -14,17 +14,20 @@
 #include "../sid/concept.hpp"
 #include "shared_allocator.hpp"
 
+#include <iostream>
+
 namespace gridtools {
 
     template <class T>
-    class PtrHolder {
+    class ptr_holder {
       private:
-        int_t m_offset;
+        int_t m_offset; // in bytes
 
       public:
+        ptr_holder(int_t offset) : m_offset(offset) {}
         GT_DEVICE T *operator()() const {
-            extern __shared__ T shm[];
-            return shm + m_offset;
+            extern __shared__ char ij_cache_shm[];
+            return reinterpret_cast<T *>(ij_cache_shm + m_offset);
         }
     };
 
@@ -32,52 +35,51 @@ namespace gridtools {
     template <class T, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
     class sid_ij_cache {
       private:
-        int_t m_allocation;
+        int_t m_allocation; // in bytes
 
         static constexpr int_t i_stride = 1;
         static constexpr int_t j_stride = i_stride * ISize;
-        static constexpr int_t k_stride = j_stride * JSize;
+        static constexpr int_t size = j_stride * JSize;
 
-        using StrideMap = hymap::keys<dim::i, dim::j, dim::k>::values<integral_constant<int_t, i_stride>,
-            integral_constant<int_t, j_stride>,
-            integral_constant<int_t, k_stride>>;
+        using stride_map_t =
+            hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, i_stride>, integral_constant<int_t, j_stride>>;
 
       public:
         template <typename Allocator>
-        sid_ij_cache(Allocator &&allocator) : m_allocation(allocator.template allocate<T>(k_stride)) {}
+        explicit sid_ij_cache(Allocator &allocator)
+            : m_allocation(allocator.template allocate<sizeof(T)>(size * sizeof(T))) {}
 
-        friend PtrHolder<T> sid_get_origin(sid_ij_cache const &cache) {
-            constexpr int_t offset = JZero * i_stride + IZero;
-            return cache.m_allocation + offset;
+        friend ptr_holder<T> sid_get_origin(sid_ij_cache &cache) {
+            constexpr int_t offset = IZero * i_stride + JZero * j_stride;
+            return cache.m_allocation + offset * sizeof(T);
         }
-        friend StrideMap sid_get_strides(sid_ij_cache const &) { return {}; }
+        friend stride_map_t sid_get_strides(sid_ij_cache const &) { return {}; }
     };
 
 #else
-    template <class T, int_t NumColors, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
+    template <class T, int_t ISize, int_t NumColors, int_t JSize, int_t IZero, int_t JZero>
     class sid_ij_cache {
       private:
-        int_t m_allocation;
+        int_t m_allocation; // in bytes
 
-        static constexpr int_t i_stride = 1;
         static constexpr int_t c_stride = i_stride * NumColors;
         static constexpr int_t j_stride = c_stride * JSize;
-        static constexpr int_t k_stride = j_stride * KSize;
+        static constexpr int_t size = j_stride * JSize;
 
-        using StrideMap = hymap::keys<dim::i, dim::c, dim::j, dim::k>::values<integral_constant<int_t, i_stride>,
+        using StrideMap = hymap::keys<dim::i, dim::c, dim::j>::values<integral_constant<int_t, i_stride>,
             integral_constant<int_t, c_stride>,
-            integral_constant<int_t, j_stride>,
-            integral_constant<int_t, k_stride>>;
+            integral_constant<int_t, j_stride>>;
 
       public:
         template <typename Allocator>
-        sid_ij_cache(Allocator &&allocator) : m_allocation(allocator.allocate<T>(k_stride)) {}
+        explicit sid_ij_cache(Allocator &allocator)
+            : m_allocation(allocator.template allocate<sizeof(T)>(size * sizeof(T))) {}
 
-        friend PtrHolder<T> sid_get_origin(sid_ij_cache const &cache) {
-            constexpr int_t offset = JZero * stride_i + IZero;
-            return cache.m_allocation + offset;
+        friend ptr_holder<T> sid_get_origin(sid_ij_cache &cache) {
+            constexpr int_t offset = IZero * i_stride + JZero * j_stride;
+            return cache.m_allocation + offset * sizeof(T);
         }
-        friend StrideMap sid_get_strides(sid_ij_cache const &) { return {}; }
+        friend stride_map_t sid_get_strides(sid_ij_cache const &) { return {}; }
     };
 #endif
 
