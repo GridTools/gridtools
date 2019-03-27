@@ -45,7 +45,7 @@ namespace gridtools {
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
             typedef typename RunFunctorArguments::max_extent_t max_extent_t;
 
-            using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::target_t,
+            using iterate_domain_arguments_t = iterate_domain_arguments<target::cuda,
                 typename RunFunctorArguments::local_domain_t,
                 typename RunFunctorArguments::esf_sequence_t,
                 typename RunFunctorArguments::cache_sequence_t,
@@ -60,11 +60,9 @@ namespace gridtools {
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
             const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
 
-            static constexpr auto backend = typename RunFunctorArguments::target_t{};
-
             // number of grid points that a cuda block covers
-            static constexpr uint_t ntx = block_i_size(backend);
-            static constexpr uint_t nty = block_j_size(backend);
+            static constexpr uint_t ntx = block_i_size(target::cuda{});
+            static constexpr uint_t nty = block_j_size(target::cuda{});
 
             const uint_t block_size_i = (blockIdx.x + 1) * ntx < nx ? ntx : nx - blockIdx.x * ntx;
             const uint_t block_size_j = (blockIdx.y + 1) * nty < ny ? nty : ny - blockIdx.y * nty;
