@@ -35,7 +35,7 @@ namespace gridtools {
      * @brief functor that executes all the functors contained within the mss
      */
     template <typename MssComponentsArray,
-        typename BackendTarget,
+        typename Target,
         typename LocalDomains,
         typename Grid,
         typename ExecutionInfo>
@@ -45,13 +45,13 @@ namespace gridtools {
         GT_STATIC_ASSERT((is_sequence_of<MssComponentsArray, is_mss_components>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-        BackendTarget const &m_backend_target;
+        Target const &m_backend_target;
         LocalDomains const &m_local_domains;
         const Grid &m_grid;
         const ExecutionInfo m_execution_info;
 
       public:
-        mss_functor(BackendTarget const &backend_target,
+        mss_functor(Target const &backend_target,
             LocalDomains const &local_domains,
             const Grid &grid,
             const ExecutionInfo &execution_info)
@@ -71,7 +71,7 @@ namespace gridtools {
 
             // wrapping all the template arguments in a single container
 
-            typedef run_functor_arguments<BackendTarget,
+            typedef run_functor_arguments<Target,
                 typename mss_components_t::linear_esf_t,
                 typename mss_components_t::loop_intervals_t,
                 decay_t<decltype(local_domain)>,
@@ -85,9 +85,9 @@ namespace gridtools {
         }
     };
 
-    template <class MssComponentsArray, class BackendTarget, class LocalDomains, class Grid, class ExecutionInfo>
-    GT_FUNCTION_HOST mss_functor<MssComponentsArray, BackendTarget, LocalDomains, Grid, ExecutionInfo> make_mss_functor(
-        BackendTarget const &backend_target,
+    template <class MssComponentsArray, class Target, class LocalDomains, class Grid, class ExecutionInfo>
+    GT_FUNCTION_HOST mss_functor<MssComponentsArray, Target, LocalDomains, Grid, ExecutionInfo> make_mss_functor(
+        Target const &backend_target,
         LocalDomains const &local_domains,
         Grid const &grid,
         ExecutionInfo const &execution_info) {

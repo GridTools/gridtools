@@ -277,9 +277,8 @@ class call_interface : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::storage_traits<backend_t::backend_target_t>::storage_info_t<0, 3> storage_info_t;
-    typedef gridtools::storage_traits<backend_t::backend_target_t>::data_store_t<float_type, storage_info_t>
-        data_store_t;
+    typedef gridtools::storage_traits<backend_t::target_t>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t::target_t>::data_store_t<float_type, storage_info_t> data_store_t;
 
     storage_info_t meta_;
 
@@ -723,9 +722,8 @@ class call_proc_interface : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::storage_traits<backend_t::backend_target_t>::storage_info_t<0, 3> storage_info_t;
-    typedef gridtools::storage_traits<backend_t::backend_target_t>::data_store_t<float_type, storage_info_t>
-        data_store_t;
+    typedef gridtools::storage_traits<backend_t::target_t>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t::target_t>::data_store_t<float_type, storage_info_t> data_store_t;
 
     storage_info_t meta_;
 

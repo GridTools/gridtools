@@ -43,7 +43,7 @@ namespace gridtools {
 
             typedef typename RunFunctorArgs::max_extent_t max_extent_t;
 
-            using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArgs::backend_target_t,
+            using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArgs::target_t,
                 typename RunFunctorArgs::local_domain_t,
                 typename RunFunctorArgs::esf_sequence_t,
                 typename RunFunctorArgs::cache_sequence_t,
@@ -54,7 +54,7 @@ namespace gridtools {
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
             const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
 
-            static constexpr auto backend = typename RunFunctorArgs::backend_target_t{};
+            static constexpr auto backend = typename RunFunctorArgs::target_t{};
             static constexpr uint_t ntx = block_i_size(backend);
             static constexpr uint_t nty = block_j_size(backend);
 

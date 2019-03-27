@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
     // earlier with the class above. GridTools provides default
     // boundary classes to copy fields and to set constant values to
     // the boundaries of fields.
-    gt::boundary<direction_bc_input<uint_t>, backend_t::backend_target_t>(halos, direction_bc_input<uint_t>(42))
+    gt::boundary<direction_bc_input<uint_t>, backend_t::target_t>(halos, direction_bc_input<uint_t>(42))
         .apply(out_s, in_s);
 
     // sync the data stores if needed

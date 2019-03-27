@@ -23,7 +23,7 @@ namespace gridtools {
      * @{
      */
 
-    template <class BackendTarget>
+    template <class Target>
     struct storage_traits_from_id;
 
     /** @brief storage traits for the CUDA backend*/

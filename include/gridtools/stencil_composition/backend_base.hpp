@@ -47,19 +47,19 @@ namespace gridtools {
         - - (INTERFACE) storage_traits::storage_t to get the storage type to be used with the backend
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
     */
-    template <class BackendTarget>
+    template <class Target>
     struct backend_base {
 
 #ifdef __CUDACC__
-        GT_STATIC_ASSERT((std::is_same<BackendTarget, target::cuda>::value),
+        GT_STATIC_ASSERT((std::is_same<Target, target::cuda>::value),
             "Beware: you are compiling with nvcc, and most probably "
             "want to use the cuda backend, but the backend you are "
             "instantiating is another one!!");
 #endif
 
-        typedef storage_traits<BackendTarget> storage_traits_t;
+        typedef storage_traits<Target> storage_traits_t;
 
-        using backend_target_t = BackendTarget;
+        using target_t = Target;
 
         /**
             Method to retrieve a global parameter

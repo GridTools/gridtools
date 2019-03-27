@@ -24,7 +24,7 @@ namespace gridtools {
         template <class RunFunctorArgs>
         GT_META_DEFINE_ALIAS(get_iterate_domain_type,
             meta::id,
-            (iterate_domain_mc<iterate_domain_arguments<typename RunFunctorArgs::backend_target_t,
+            (iterate_domain_mc<iterate_domain_arguments<typename RunFunctorArgs::target_t,
                     typename RunFunctorArgs::local_domain_t,
                     typename RunFunctorArgs::esf_sequence_t,
                     typename RunFunctorArgs::cache_sequence_t,

@@ -129,8 +129,8 @@ namespace gridtools {
      *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
      *   \tparam Grid The Grid
      */
-    template <class BackendTarget, class Grid>
-    _impl::storage_info_fits_grid_f<BackendTarget, Grid> storage_info_fits_grid(Grid const &grid) {
+    template <class Target, class Grid>
+    _impl::storage_info_fits_grid_f<Target, Grid> storage_info_fits_grid(Grid const &grid) {
         return {grid};
     }
 
@@ -159,7 +159,7 @@ namespace gridtools {
 
         using mss_descriptors_t = std::tuple<MssDescriptors...>;
 
-        using performance_meter_t = typename timer_traits<typename Backend::backend_target_t>::timer_type;
+        using performance_meter_t = typename timer_traits<typename Backend::target_t>::timer_type;
 
         using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
@@ -200,7 +200,7 @@ namespace gridtools {
             boost::mpl::void_>::type;
 
       private:
-        using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<typename Backend::backend_target_t>()));
+        using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<typename Backend::target_t>()));
         using mss_components_array_t = GT_META_CALL(build_mss_components_array,
             (fuse_esfs_t::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type));
 
@@ -272,7 +272,7 @@ namespace gridtools {
                 "some placeholders are not used in mss descriptors");
             GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
-            static constexpr typename Backend::backend_target_t backend_target;
+            static constexpr typename Backend::target_t backend_target;
             fused_mss_loop<mss_components_array_t>(backend_target, local_domains(srcs...), m_grid);
             if (m_meter)
                 m_meter->pause();
