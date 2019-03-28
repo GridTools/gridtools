@@ -9,6 +9,7 @@
  */
 
 #include <gridtools/common/tuple_util.hpp>
+#include <gridtools/meta/list.hpp>
 #include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
 #include <gridtools/tools/backend_select.hpp>
@@ -24,13 +25,22 @@ namespace gridtools {
         using tuple_util::get;
 
         using data_t = float_type;
-        using extent_t = array<int_t, 2>;
-        using extents_t = array<extent_t, 2>;
+
+        using extent_i_minus = integral_constant<int_t, 1>;
+        using extent_i_plus = integral_constant<int_t, 2>;
+        using extent_i = meta::list<extent_i_minus, extent_i_plus>;
+        using extent_j_minus = integral_constant<int_t, 3>;
+        using extent_j_plus = integral_constant<int_t, 4>;
+        using extent_j = meta::list<extent_j_minus, extent_j_plus>;
+        using extents_t = meta::list<extent_i, extent_j>;
+
         using blocksize_i = integral_constant<int_t, 32>;
         using blocksize_j = integral_constant<int_t, 8>;
-        using blocksizes_t = tuple<blocksize_i, blocksize_j>;
+        using blocksizes_t = meta::list<blocksize_i, blocksize_j>;
+
         using tmp_storage_cuda_t = tmp_storage_cuda<data_t, extents_t, blocksizes_t>;
-        TEST(tmp_cuda_storage_sid, smoke) {
+
+        TEST(tmp_cuda_storage_sid, concept) {
             static_assert(is_sid<tmp_storage_cuda_t>(), "");
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, tmp_storage_cuda_t), data_t *>();
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, tmp_storage_cuda_t), int_t>();
@@ -55,19 +65,21 @@ namespace gridtools {
             EXPECT_EQ(testee.m_cuda_ptr.get(), sid::get_origin(testee)());
 
             auto strides = sid::get_strides(testee);
-            auto expected_strides = array<int, 5>{1, //
-                blocksize_i{},
-                blocksize_i{} * blocksize_j{},
-                blocksize_i{} * blocksize_j{} * n_blocks_i,
-                blocksize_i{} * blocksize_j{} * n_blocks_i * n_blocks_j};
 
-            EXPECT_EQ(get<0>(expected_strides), get<0>(strides));
-            EXPECT_EQ(get<1>(expected_strides), get<1>(strides));
-            EXPECT_EQ(get<2>(expected_strides), get<2>(strides));
-            EXPECT_EQ(get<3>(expected_strides), get<3>(strides));
-            EXPECT_EQ(get<4>(expected_strides), get<4>(strides));
+            int expected_stride0 = 1;
+            int expected_stride1 = blocksize_i{} + extent_i_minus{} + extent_i_plus{};
+            int expected_stride2 = expected_stride1 * (blocksize_j{} + extent_j_minus{} + extent_j_plus{});
+            int expected_stride3 = expected_stride2 * n_blocks_i;
+            int expected_stride4 = expected_stride3 * n_blocks_j;
+
+            EXPECT_EQ(expected_stride0, get<0>(strides));
+            EXPECT_EQ(expected_stride1, get<1>(strides));
+            EXPECT_EQ(expected_stride2, get<2>(strides));
+            EXPECT_EQ(expected_stride3, get<3>(strides));
+            EXPECT_EQ(expected_stride4, get<4>(strides));
         }
 
+        // TODO move allocator into separate file?
         __global__ void test_allocated(float_type *data) { *data = 1; }
 
         TEST(simple_cuda_allocator, test) {

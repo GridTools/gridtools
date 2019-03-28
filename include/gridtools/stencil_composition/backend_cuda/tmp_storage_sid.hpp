@@ -10,9 +10,13 @@
 #pragma once
 
 #include "../../common/array.hpp"
+#include "../../common/cuda_util.hpp"
 #include "../../common/functional.hpp"
+#include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple.hpp"
+#include "../../meta/at.hpp"
+#include "../dim.hpp"
 #include <memory>
 
 using gridtools::host::constant;
@@ -22,24 +26,33 @@ namespace gridtools {
       public:
         std::shared_ptr<void> allocate(size_t bytes) {
             char *ptr;
-            cudaMalloc(&ptr, bytes); // TODO wrap in error checker
-            return std::shared_ptr<void>(ptr, [](char *ptr) { cudaFree(ptr); });
+            GT_CUDA_CHECK(cudaMalloc(&ptr, bytes));
+            return std::shared_ptr<void>(ptr, [](char *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
         }
     };
 
     struct block_i;
     struct block_j;
 
-    // - k should be last dimension, then strides_kind doesn't need to distinguish between storages of different k-size
-    // - if max extent of all temporaries is used, we don't have to distinguish any temporaries anymore
+    // - k is the last dimension, then strides_kind doesn't need to distinguish between storages of different k-size
+    // - If max extent of all temporaries is used (instead of per temporary extent),
+    //   the strides_kind can be the same for all temporaries.
     template <class Extents>
     struct tmp_cuda_strides_kind;
 
-    template <class T, class Extents, class BlockSizes /*, uint_t NColors*/>
+    template <class T,
+        class Extents,                                // TODO how to pass extents?
+        class ComputeBlockSizes /*, uint_t NColors*/, // TODO separate storage for icosahedral or implement here?
+        class BlockSizeI = integral_constant<int_t,
+            meta::at_c<ComputeBlockSizes, 0>::value + meta::at_c<meta::at_c<Extents, 0>, 0>::value +
+                meta::at_c<meta::at_c<Extents, 0>, 1>::value>, // TODO make readable // TODO uglify
+        class BlockSizeJ = integral_constant<int_t,
+            meta::at_c<ComputeBlockSizes, 1>::value + meta::at_c<meta::at_c<Extents, 1>, 0>::value +
+                meta::at_c<meta::at_c<Extents, 1>, 1>::value>>
     struct tmp_storage_cuda {
-        using strides_t = tuple<integral_constant<int_t, 1>,
-            integral_constant<int_t, tuple_util::get<0>(BlockSizes{})>,
-            integral_constant<int_t, tuple_util::get<0>(BlockSizes{}) * tuple_util::get<1>(BlockSizes{})>,
+        using strides_t = hymap::keys<dim::i, dim::j, block_i, block_j, dim::k>::values<integral_constant<int_t, 1>,
+            BlockSizeI,
+            integral_constant<int_t, BlockSizeI{} * BlockSizeJ{}>,
             int_t,
             int_t>;
 
@@ -48,8 +61,8 @@ namespace gridtools {
             : m_strides{{},
                   {},
                   {},
-                  tuple_util::get<0>(BlockSizes{}) * tuple_util::get<1>(BlockSizes{}) * n_blocks[0],
-                  tuple_util::get<0>(BlockSizes{}) * tuple_util::get<1>(BlockSizes{}) * n_blocks[0] * n_blocks[1]},
+                  meta::at_c<strides_t, 2>::value * n_blocks[0],
+                  meta::at_c<strides_t, 2>::value * n_blocks[0] * n_blocks[1]},
               m_cuda_ptr{new T()} {}
 
         const strides_t m_strides;

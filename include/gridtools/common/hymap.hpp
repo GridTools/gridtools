@@ -129,6 +129,7 @@ namespace gridtools {
 
                 tuple<Vals...> m_vals;
 
+                constexpr GT_FUNCTION values(Vals const &... args) noexcept : m_vals(args...) {}
                 GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_vals);
                 GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_vals);
 
