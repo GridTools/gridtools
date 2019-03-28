@@ -41,10 +41,8 @@ namespace gridtools {
         };
 
         using proc_layout = gridtools::layout_map<0, 1, 2>;
-        using proc_grid_type = gridtools::MPI_3D_process_grid_t<3>;
         using comm_arch_type = Arch;
         using compute_arch = typename compute_arch_of<comm_arch_type>::type;
-        static constexpr int version = gridtools::version_manual;
         using data_layout = typename StorageType::storage_info_t::layout_t;
         using value_type = typename StorageType::data_t;
     };

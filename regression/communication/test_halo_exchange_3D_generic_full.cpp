@@ -114,9 +114,7 @@ namespace halo_exchange_3D_generic_full {
            logically to processor (p+1,q,r). The other dimensions goes as
            the others.
         */
-        typedef gridtools::
-            halo_exchange_generic<gridtools::layout_map<0, 1, 2>, 3, arch_type, gridtools::version_manual>
-                pattern_type;
+        typedef gridtools::halo_exchange_generic<gridtools::layout_map<0, 1, 2>, arch_type> pattern_type;
 
         /* The pattern is now instantiated with the periodicities and the
            communicator. The periodicity of the communicator is

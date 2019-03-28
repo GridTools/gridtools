@@ -60,7 +60,7 @@
 namespace gridtools {
 
     template <typename HaloExch, typename proc_layout_abs>
-    class hndlr_generic<3, HaloExch, proc_layout_abs, gcl_cpu, version_manual> : public descriptor_base<HaloExch> {
+    class hndlr_generic<HaloExch, proc_layout_abs, gcl_cpu> : public descriptor_base<HaloExch> {
         static const int DIMS = 3;
         gridtools::array<char *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...
         gridtools::array<char *, _impl::static_pow3<DIMS>::value> recv_buffer;
@@ -381,7 +381,7 @@ namespace gridtools {
 
 #ifdef __CUDACC__
     template <typename HaloExch, typename proc_layout_abs>
-    class hndlr_generic<3, HaloExch, proc_layout_abs, gcl_gpu, version_manual> : public descriptor_base<HaloExch> {
+    class hndlr_generic<HaloExch, proc_layout_abs, gcl_gpu> : public descriptor_base<HaloExch> {
         typedef gcl_gpu arch_type;
 
         static const int DIMS = 3;

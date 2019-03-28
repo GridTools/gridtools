@@ -109,8 +109,10 @@ namespace gridtools {
         };
     } // namespace _impl
 
-    template <typename DataType, int DIMS>
+    template <typename DataType>
     class empty_field_base {
+        static constexpr int DIMS = 3;
+
         typedef array<halo_descriptor, DIMS> HALO_t;
 
       public:
