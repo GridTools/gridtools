@@ -15,23 +15,9 @@
 
 #include <gtest/gtest.h>
 
-#define MAKE_CONSTANT(fun) integral_constant<decltype(&fun), &fun>()
-namespace gridtools {
-    template <class Res, class Fun, class... Args>
-    __global__ void kernel(Res *res, Fun fun, Args... args) {
-        *res = fun(args...);
-    }
-    template <class Fun, class... Args, class Res = decay_t<result_of_t<Fun(Args...)>>>
-    Res exec(size_t shm_size, Fun fun, Args... args) {
-        static_assert(!std::is_pointer<Fun>::value, "");
-        static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");
-        static_assert(std::is_trivially_copyable<Res>::value, "");
-        auto res = cuda_util::cuda_malloc<Res>();
-        kernel<<<1, 1, shm_size>>>(res.get(), fun, args...);
-        GT_CUDA_CHECK(cudaDeviceSynchronize());
-        return cuda_util::from_clone(res);
-    }
+#include "../cuda_test_helper.hpp"
 
+namespace gridtools {
     __device__ ptrdiff_t get_origin_offset(ptr_holder<float_type> testee) {
         extern __shared__ float_type shm[];
         return reinterpret_cast<float_type *>(testee()) - shm;
@@ -72,8 +58,8 @@ namespace gridtools {
 
             ij_cache_t<float_type> another_testee{allocator};
 
-            int_t offset = exec(allocator.size(), MAKE_CONSTANT(get_origin_offset), sid::get_origin(testee));
-            int_t offset2 = exec(allocator.size(), MAKE_CONSTANT(get_origin_offset), sid::get_origin(another_testee));
+            int_t offset = exec_with_shared_memory(allocator.size(), MAKE_CONSTANT(get_origin_offset), sid::get_origin(testee));
+            int_t offset2 = exec_with_shared_memory(allocator.size(), MAKE_CONSTANT(get_origin_offset), sid::get_origin(another_testee));
 
             // the first offset should be large enough to fit the zero offsets
             EXPECT_EQ(offset, i_size * j_zero + i_zero);
