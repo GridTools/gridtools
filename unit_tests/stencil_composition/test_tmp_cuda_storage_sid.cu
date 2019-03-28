@@ -68,11 +68,19 @@ namespace gridtools {
             EXPECT_EQ(get<4>(expected_strides), get<4>(strides));
         }
 
-        //        __global__ void test_allocated(float_type *data) { *data = 1; }
-        //
-        //        TEST(simple_cuda_allocator, test) {
-        //            simple_cuda_allocator alloc;
-        //            auto shared_cuda_ptr = alloc.allocate(sizeof(float_type));
-        //        }
+        __global__ void test_allocated(float_type *data) { *data = 1; }
+
+        TEST(simple_cuda_allocator, test) {
+            // TODO use test functionality
+            simple_cuda_allocator alloc;
+            auto shared_cuda_ptr = alloc.allocate(sizeof(float_type));
+
+            float_type *ptr = static_cast<float_type *>(shared_cuda_ptr.get());
+            float_type data;
+
+            test_allocated<<<1, 1>>>(ptr);
+            cudaMemcpy(&data, ptr, sizeof(float_type), cudaMemcpyDeviceToHost);
+            ASSERT_EQ(1, data);
+        }
     } // namespace
 } // namespace gridtools

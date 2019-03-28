@@ -18,11 +18,12 @@
 using gridtools::host::constant;
 
 namespace gridtools {
-    struct simple_cuda_allocator {
+    class simple_cuda_allocator {
+      public:
         std::shared_ptr<void> allocate(size_t bytes) {
             char *ptr;
-            cudaMalloc(&ptr, bytes);
-            return std::shared_ptr<void>(ptr); // TODO deallocate
+            cudaMalloc(&ptr, bytes); // TODO wrap in error checker
+            return std::shared_ptr<void>(ptr, [](char *ptr) { cudaFree(ptr); });
         }
     };
 
