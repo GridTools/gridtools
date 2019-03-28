@@ -58,8 +58,8 @@ namespace gridtools {
 
             ij_cache_t<float_type> another_testee{allocator};
 
-            int_t offset = exec_with_shared_memory(allocator.size(), MAKE_CONSTANT(get_origin_offset), sid::get_origin(testee));
-            int_t offset2 = exec_with_shared_memory(allocator.size(), MAKE_CONSTANT(get_origin_offset), sid::get_origin(another_testee));
+            int_t offset = on_device::exec_with_shared_memory(allocator.size(), MAKE_CONSTANT(get_origin_offset), sid::get_origin(testee));
+            int_t offset2 = on_device::exec_with_shared_memory(allocator.size(), MAKE_CONSTANT(get_origin_offset), sid::get_origin(another_testee));
 
             // the first offset should be large enough to fit the zero offsets
             EXPECT_EQ(offset, i_size * j_zero + i_zero);
