@@ -74,6 +74,12 @@ function(fetch_x86_tests)
     fetch_tests_helper(x86 cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_x86_tests)
 
+# This function will fetch all naive test cases in the given directory.
+# Only used for gcc or clang compilations
+function(fetch_naive_tests)
+    fetch_tests_helper(naive cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+endfunction(fetch_naive_tests)
+
 # This function will fetch all mc test cases in the given directory.
 # Only used for gcc or clang compilations
 function(fetch_mc_tests)
