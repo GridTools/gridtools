@@ -74,8 +74,8 @@ namespace copy_stencil {
 
         MPI_Cart_create(MPI_COMM_WORLD, 3, &dimensions[0], period, false, &CartComm);
 
-        typedef storage_traits<target_t>::storage_info_t<0, 3> storage_info_t;
-        typedef storage_traits<target_t>::data_store_t<float_type, storage_info_t> storage_t;
+        typedef storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
+        typedef storage_traits<backend_t>::data_store_t<float_type, storage_info_t> storage_t;
 
         typedef gridtools::halo_exchange_dynamic_ut<typename storage_info_t::layout_t,
             gridtools::layout_map<0, 1, 2>,
@@ -141,7 +141,7 @@ namespace copy_stencil {
             {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
             d3);
 
-        auto copy = gridtools::make_computation<target_t>(grid,
+        auto copy = gridtools::make_computation<backend_t>(grid,
             p_in{} = in,
             p_out{} = out,
             gridtools::make_multistage // mss_descriptor
@@ -170,7 +170,7 @@ namespace copy_stencil {
         halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
         typename gridtools::
-            boundary<boundary_conditions, target_t, typename gridtools::proc_grid_predicate<decltype(c_grid)>>(
+            boundary<boundary_conditions, backend_t, typename gridtools::proc_grid_predicate<decltype(c_grid)>>(
                 halos, boundary_conditions(), gridtools::proc_grid_predicate<decltype(c_grid)>(c_grid))
                 .apply(in, out);
 

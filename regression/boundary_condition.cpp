@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef storage_traits<target_t>::storage_info_t<0, 3, halo<1, 1, 1>> meta_data_t;
-    typedef storage_traits<target_t>::data_store_t<int_t, meta_data_t> storage_t;
+    typedef storage_traits<backend_t>::storage_info_t<0, 3, halo<1, 1, 1>> meta_data_t;
+    typedef storage_traits<backend_t>::data_store_t<int_t, meta_data_t> storage_t;
 
     // Definition of the actual data fields that are used for input/output
     meta_data_t meta_(d1, d2, d3);
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
     in_s.sync();
     out_s.sync();
 
-    gridtools::template boundary<direction_bc_input<uint_t>, target_t>(halos, direction_bc_input<uint_t>(2))
+    gridtools::template boundary<direction_bc_input<uint_t>, backend_t>(halos, direction_bc_input<uint_t>(2))
         .apply(in_s, out_s);
 
     // sync the data stores if needed

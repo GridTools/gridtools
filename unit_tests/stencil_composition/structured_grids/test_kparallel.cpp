@@ -64,8 +64,8 @@ void run_test() {
     constexpr uint_t d3_l = 14;
     constexpr uint_t d3_u = 16;
 
-    using storage_info_t = storage_traits<target_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
+    using storage_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t storage_info(d1, d2, d3_l + d3_u);
 
@@ -77,7 +77,7 @@ void run_test() {
 
     auto grid = gridtools::make_grid(d1, d2, Axis(d3_l, d3_u));
 
-    auto comp = gridtools::make_computation<target_t>(grid,
+    auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(
@@ -107,8 +107,8 @@ void run_test_with_temporary() {
     constexpr uint_t d3_l = 14;
     constexpr uint_t d3_u = 16;
 
-    using storage_info_t = typename storage_traits<target_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;
+    using storage_info_t = typename storage_traits<backend_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
+    using storage_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t storage_info(d1, d2, d3_l + d3_u);
 
@@ -121,7 +121,7 @@ void run_test_with_temporary() {
 
     auto grid = gridtools::make_grid(d1, d2, Axis(d3_l, d3_u));
 
-    auto comp = gridtools::make_computation<target_t>(grid,
+    auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(gridtools::execute::parallel(),
@@ -167,8 +167,8 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
     constexpr uint_t d3_2 = 16;
     constexpr uint_t d3_3 = 18;
 
-    using storage_info_t = typename storage_traits<target_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;
+    using storage_info_t = typename storage_traits<backend_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
+    using storage_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t storage_info(d1, d2, d3_1 + d3_2 + d3_3);
 
@@ -180,7 +180,7 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
 
     auto grid = gridtools::make_grid(d1, d2, Axis(d3_1, d3_2, d3_3));
 
-    auto comp = gridtools::make_computation<target_t>(grid,
+    auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(gridtools::execute::parallel(),

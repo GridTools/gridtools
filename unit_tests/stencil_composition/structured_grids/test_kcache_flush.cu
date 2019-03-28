@@ -64,7 +64,7 @@ TEST_F(kcachef, flush_forward) {
     typedef arg<0, storage_t> p_in;
     typedef arg<1, storage_t> p_out;
 
-    auto kcache_stencil = make_computation<target_t>(m_grid,
+    auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
         make_multistage(execute::forward(),
@@ -102,7 +102,7 @@ TEST_F(kcachef, flush_backward) {
     typedef arg<0, storage_t> p_in;
     typedef arg<1, storage_t> p_out;
 
-    auto kcache_stencil = make_computation<target_t>(m_grid,
+    auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
         make_multistage(execute::backward(),

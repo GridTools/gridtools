@@ -15,14 +15,14 @@ To create a :term:`Global Parameter` from a user-defined object, we pass the obj
 
 .. code-block:: gridtools
 
-   auto my_global_parameter = target_t::make_global_parameter(my_object);
+   auto my_global_parameter = make_global_parameter<backend_t>(my_object);
 
 Note that the object is read-only only during the execution of a computation, but can be modified
 in between executions with
 
 .. code-block:: gridtools
 
-   target_t::update_global_parameter(my_global_parameter, new_value);
+   update_global_parameter<backend_t>(my_global_parameter, new_value);
 
 The :term:`Accessor` associated with a global parameter must be a global accessor
 

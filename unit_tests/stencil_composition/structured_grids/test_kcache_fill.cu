@@ -87,7 +87,7 @@ TEST_F(kcachef, fill_forward) {
     typedef arg<0, storage_t> p_in;
     typedef arg<1, storage_t> p_out;
 
-    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
         gridtools::make_multistage(execute::forward(),
@@ -124,7 +124,7 @@ TEST_F(kcachef, fill_backward) {
     typedef arg<0, storage_t> p_in;
     typedef arg<1, storage_t> p_out;
 
-    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
         gridtools::make_multistage(execute::backward(),
@@ -159,7 +159,7 @@ TEST_F(kcachef, fill_copy_forward) {
     typedef arg<0, storage_t> p_in;
     typedef arg<1, storage_t> p_out;
 
-    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
         gridtools::make_multistage(execute::forward(),

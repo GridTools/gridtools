@@ -26,7 +26,7 @@ namespace gridtools {
      * @tparam RunFunctorArgs run functor arguments
      */
     template <class RunFunctorArgs, class LocalDomain, class Grid, class ExecutionInfo>
-    GT_FORCE_INLINE static void mss_loop(target::x86 const &backend_target,
+    GT_FORCE_INLINE static void mss_loop(backend::x86 const &backend_target,
         LocalDomain const &local_domain,
         Grid const &grid,
         const ExecutionInfo &execution_info) {
@@ -34,7 +34,7 @@ namespace gridtools {
         GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-        using iterate_domain_arguments_t = iterate_domain_arguments<target::x86,
+        using iterate_domain_arguments_t = iterate_domain_arguments<backend::x86,
             LocalDomain,
             typename RunFunctorArgs::esf_sequence_t,
             std::tuple<>,

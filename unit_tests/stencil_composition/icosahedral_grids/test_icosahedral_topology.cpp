@@ -17,7 +17,7 @@
 
 using namespace gridtools;
 
-using icosahedral_topology_t = icosahedral_topology<target_t>;
+using icosahedral_topology_t = icosahedral_topology<backend_t>;
 
 template <int... Select>
 using layout_t = icosahedral_topology_t::layout_t<selector<Select...>>;

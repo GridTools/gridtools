@@ -48,7 +48,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
-            static constexpr auto backend = typename Base::iterate_domain_arguments_t::target_t{};
+            static constexpr auto backend = typename Base::iterate_domain_arguments_t::backend_t{};
             static constexpr auto block_size =
                 make_pos3(block_i_size(backend), block_j_size(backend), block_k_size(backend));
             m_pos.i = begin.i + block_no.i * block_size.i + pos_in_block.i;

@@ -23,7 +23,7 @@
 namespace gridtools {
     namespace {
 
-        using storage_traits_t = storage_traits<target_t>;
+        using storage_traits_t = storage_traits<backend_t>;
 
         using data_store_t = storage_traits_t::data_store_t<float_type, storage_traits_t::storage_info_t<0, 1>>;
 

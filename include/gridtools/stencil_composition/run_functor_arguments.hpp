@@ -30,7 +30,7 @@ namespace gridtools {
         GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
-        typedef Target target_t;
+        typedef Target backend_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
@@ -60,7 +60,7 @@ namespace gridtools {
         GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((meta::all_of<is_loop_interval, LoopIntervals>::value), GT_INTERNAL_ERROR);
 
-        typedef Target target_t;
+        typedef Target backend_t;
         typedef EsfSequence esf_sequence_t;
         typedef LoopIntervals loop_intervals_t;
 

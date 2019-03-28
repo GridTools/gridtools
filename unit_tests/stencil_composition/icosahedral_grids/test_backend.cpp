@@ -19,7 +19,7 @@
 
 using namespace gridtools;
 
-using top_t = icosahedral_topology<target_t>;
+using top_t = icosahedral_topology<backend_t>;
 
 TEST(bakend, select_layout) {
 #if defined(GT_BACKEND_X86) || defined(GT_BACKEND_NAIVE)

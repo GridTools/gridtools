@@ -13,6 +13,6 @@
 #include "../../common/host_device.hpp"
 
 namespace gridtools {
-    GT_FUNCTION constexpr uint_t block_i_size(target::cuda const &) { return GT_DEFAULT_TILE_I; }
-    GT_FUNCTION constexpr uint_t block_j_size(target::cuda const &) { return GT_DEFAULT_TILE_J; }
+    GT_FUNCTION constexpr uint_t block_i_size(backend::cuda const &) { return GT_DEFAULT_TILE_I; }
+    GT_FUNCTION constexpr uint_t block_j_size(backend::cuda const &) { return GT_DEFAULT_TILE_J; }
 } // namespace gridtools

@@ -308,7 +308,7 @@ Creating a complete stencil for horizontal diffusion looks as follows:
 
 .. code-block:: gridtools
 
- auto horizontal_diffusion = make_computation<target_t>(
+ auto horizontal_diffusion = make_computation<backend_t>(
      grid,
      make_multistage(
          execute::forward(),
@@ -320,7 +320,7 @@ Creating a complete stencil for horizontal diffusion looks as follows:
  );
 
 
-where ``target_t`` specifies the :term:`Backend` that will execute the computation.
+where ``backend_t`` specifies the :term:`Backend` that will execute the computation.
 
 The details about dependencies between stages and multistages are described in :ref:`Execution-Model`. If two stages
 have no dependencies, they don't need to be synchronized. Thus, the user can make them independent. In case of the
@@ -328,7 +328,7 @@ horizontal diffusion, the fluxes in x and y have no dependency on each other, th
 
 .. code-block:: gridtools
 
- auto horizontal_diffusion = make_computation<target_t>(
+ auto horizontal_diffusion = make_computation<backend_t>(
      grid,
      make_multistage(
          execute::forward(),
@@ -347,7 +347,7 @@ A computation can also have several multistages. The general signature is as fol
 
 .. code-block:: gridtools
 
- make_computation<target_t>(grid, multi_stage0, other_multi_stages...);
+ make_computation<backend_t>(grid, multi_stage0, other_multi_stages...);
 
 A computation can incorporate multiple multi-stage computations and they
 may have different execution policies. This is very useful for implementing
@@ -358,7 +358,7 @@ advection example:
 
 .. code-block:: gridtools
 
- auto vertical_advection = make_computation<target_t>(
+ auto vertical_advection = make_computation<backend_t>(
      grid,
      make_multistage(
          execute::forward(),
@@ -394,7 +394,7 @@ assign those fields to the respective placeholders directly in the
 
 .. code-block:: gridtools
 
- auto horizontal_diffusion = make_computation<target_t>(
+ auto horizontal_diffusion = make_computation<backend_t>(
      grid,
      p_out() = out_data, // data assignment happens here
      p_in() = in_data, // and here
@@ -429,23 +429,23 @@ Selecting the Backend
 
 One of the key concepts of |GT| is portability between different target architectures.
 Stencil operators are written and composed in an architecture-independent way and then instantiated
-for a given ``backend``. The ``backend`` is a tag type with a ``target`` argument with the following possible values:
+for a given ``backend``. The ``backend`` is a tag type with with the following possible values:
 
-- ``target::cuda``: a GPU-enabled backend for NVIDIA GPUs
-- ``target::mc``: a backend for modern CPUs with long vector-length.
-- ``target::x86``: a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future.
+- ``backend::cuda``: a GPU-enabled backend for NVIDIA GPUs
+- ``backend::mc``: a backend for modern CPUs with long vector-length.
+- ``backend::x86``: a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future.
 
 Currently we recommend one of the following two backends for optimal performance
 
 .. code-block:: gridtools
 
-   using target_t = target::cuda;
+   using backend_t = backend::cuda;
    
 for GPUs or 
 
 .. code-block:: gridtools
 
-   using target_t = target::mc;
+   using backend_t = backend::mc;
 
 for modern CPUs or Xeon Phis.
    

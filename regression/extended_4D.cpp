@@ -99,11 +99,11 @@ struct integration {
 };
 
 struct extended_4d : regression_fixture<> {
-    using layout_map_t = conditional_t<std::is_same<target_t, target::x86>::value,
+    using layout_map_t = conditional_t<std::is_same<backend_t, backend::x86>::value,
         layout_map<3, 4, 5, 0, 1, 2>,
         layout_map<5, 4, 3, 2, 1, 0>>;
     using layout_map_quad_t =
-        conditional_t<std::is_same<target_t, target::x86>::value, layout_map<1, 2, 3, 0>, layout_map<3, 2, 1, 0>>;
+        conditional_t<std::is_same<backend_t, backend::x86>::value, layout_map<1, 2, 3, 0>, layout_map<3, 2, 1, 0>>;
 
     template <unsigned Id, typename Layout>
     using special_storage_info_t = storage_tr::custom_layout_storage_info_t<Id, Layout>;
@@ -134,7 +134,7 @@ struct extended_4d : regression_fixture<> {
 };
 
 TEST_F(extended_4d, test) {
-    using global_par_storage_t = decltype(make_global_parameter<target_t>(elemental{}));
+    using global_par_storage_t = decltype(make_global_parameter<backend_t>(elemental{}));
     arg<0, global_par_storage_t> p_phi;
     arg<1, global_par_storage_t> p_psi;
     arg<2, storage_global_quad_t> p_jac;
@@ -155,8 +155,8 @@ TEST_F(extended_4d, test) {
     };
     auto result = make_storage();
 
-    make_computation(p_phi = make_global_parameter<target_t>(elemental{phi}),
-        p_psi = make_global_parameter<target_t>(elemental{psi}),
+    make_computation(p_phi = make_global_parameter<backend_t>(elemental{phi}),
+        p_psi = make_global_parameter<backend_t>(elemental{psi}),
         p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
         p_f = make_storage(f),
         p_result = result,

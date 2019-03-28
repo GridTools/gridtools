@@ -480,15 +480,15 @@ namespace gridtools {
         template <class>
         struct default_layout;
         template <>
-        struct default_layout<target::cuda> {
+        struct default_layout<backend::cuda> {
             using type = layout_map<3, 2, 1, 0>;
         };
         template <>
-        struct default_layout<target::x86> {
+        struct default_layout<backend::x86> {
             using type = layout_map<0, 1, 2, 3>;
         };
         template <>
-        struct default_layout<target::naive> {
+        struct default_layout<backend::naive> {
             using type = layout_map<0, 1, 2, 3>;
         };
     } // namespace _impl

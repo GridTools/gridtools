@@ -26,7 +26,7 @@ namespace gridtools {
 
     /** @brief storage traits for the Host backend*/
     template <>
-    struct storage_traits_from_id<target::naive> {
+    struct storage_traits_from_id<backend::naive> {
 
         template <typename ValueType>
         struct select_storage {

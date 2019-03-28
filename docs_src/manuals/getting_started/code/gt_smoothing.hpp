@@ -8,15 +8,15 @@ using namespace gridtools;
 using namespace gridtools::expressions;
 
 #ifdef __CUDACC__
-using target_t = target::cuda;
+using backend_t = backend::cuda;
 #else
-using target_t = target::mc;
+using backend_t = backend::mc;
 #endif
 
 static constexpr unsigned halo_size = 2;
 
-using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3, halo<halo_size, halo_size, 0>>;
-using data_store_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;
+using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3, halo<halo_size, halo_size, 0>>;
+using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
 constexpr static gridtools::dimension<1> i;
 constexpr static gridtools::dimension<2> j;

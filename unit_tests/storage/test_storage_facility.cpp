@@ -55,8 +55,8 @@ struct static_type_tests {
 #ifdef __CUDACC__
 // static type tests for Cuda backend
 template <>
-struct static_type_tests<target::cuda> {
-    using storage_traits_t = storage_traits<target::cuda>;
+struct static_type_tests<backend::cuda> {
+    using storage_traits_t = storage_traits<backend::cuda>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
@@ -89,8 +89,8 @@ struct static_type_tests<target::cuda> {
 #ifndef GT_ICOSAHEDRAL_GRIDS
 // static type tests for Mic backend
 template <>
-struct static_type_tests<target::mc> {
-    using storage_traits_t = storage_traits<target::mc>;
+struct static_type_tests<backend::mc> {
+    using storage_traits_t = storage_traits<backend::mc>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
@@ -131,8 +131,8 @@ __global__ void kernel(View v) {
 #endif
 
 TEST(StorageFacility, ViewTests) {
-    typedef storage_traits<target_t>::storage_info_t<0, 3> storage_info_ty;
-    typedef storage_traits<target_t>::data_store_t<double, storage_info_ty> data_store_t;
+    typedef storage_traits<backend_t>::storage_info_t<0, 3> storage_info_ty;
+    typedef storage_traits<backend_t>::data_store_t<double, storage_info_ty> data_store_t;
 
     // create a data_store_t
     storage_info_ty si(3, 3, 3);
@@ -465,26 +465,27 @@ struct static_layout_tests {
 
 #ifdef __CUDACC__
 template <>
-struct static_layout_tests<target::cuda> : static_layout_tests_decreasing<target::cuda> {};
+struct static_layout_tests<backend::cuda> : static_layout_tests_decreasing<backend::cuda> {};
 #endif
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
 template <>
-struct static_layout_tests<target::mc> : static_layout_tests_decreasing_swappedxy<target::mc> {};
+struct static_layout_tests<backend::mc> : static_layout_tests_decreasing_swappedxy<backend::mc> {};
 #endif
 
 template <>
-struct static_layout_tests<target::x86> : static_layout_tests_increasing<target::x86> {};
+struct static_layout_tests<backend::x86> : static_layout_tests_increasing<backend::x86> {};
 
 template <>
-struct static_layout_tests<target::naive> : static_layout_tests_increasing<target::naive> {};
+struct static_layout_tests<backend::naive> : static_layout_tests_increasing<backend::naive> {};
 
 TEST(StorageFacility, CustomLayoutTests) {
-    typedef typename storage_traits<target_t>::custom_layout_storage_info_t<0, layout_map<2, 1, 0>>::layout_t layout3_t;
-    typedef typename storage_traits<target_t>::custom_layout_storage_info_t<0, layout_map<1, 0>>::layout_t layout2_t;
-    typedef typename storage_traits<target_t>::custom_layout_storage_info_t<0, layout_map<0>>::layout_t layout1_t;
     typedef
-        typename storage_traits<target_t>::custom_layout_storage_info_t<0, layout_map<2, -1, 1, 0>>::layout_t layout4_t;
+        typename storage_traits<backend_t>::custom_layout_storage_info_t<0, layout_map<2, 1, 0>>::layout_t layout3_t;
+    typedef typename storage_traits<backend_t>::custom_layout_storage_info_t<0, layout_map<1, 0>>::layout_t layout2_t;
+    typedef typename storage_traits<backend_t>::custom_layout_storage_info_t<0, layout_map<0>>::layout_t layout1_t;
+    typedef typename storage_traits<backend_t>::custom_layout_storage_info_t<0, layout_map<2, -1, 1, 0>>::layout_t
+        layout4_t;
     GT_STATIC_ASSERT((boost::is_same<layout3_t, layout_map<2, 1, 0>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<layout1_t, layout_map<0>>::value), "layout type is wrong");

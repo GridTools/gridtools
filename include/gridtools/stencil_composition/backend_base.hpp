@@ -19,8 +19,8 @@
 
 /**
    @file
-   @brief base class for all the backends. Current supported backend are ::gridtools::target::x86 and
-   ::gridtools::target::cuda
+   @brief base class for all the backends. Current supported backend are ::gridtools::backend::x86 and
+   ::gridtools::backend::cuda
 */
 
 namespace gridtools {
@@ -52,7 +52,7 @@ namespace gridtools {
     struct backend_base {
 
 #ifdef __CUDACC__
-        GT_STATIC_ASSERT((std::is_same<Target, target::cuda>::value),
+        GT_STATIC_ASSERT((std::is_same<Target, backend::cuda>::value),
             "Beware: you are compiling with nvcc, and most probably "
             "want to use the cuda backend, but the backend you are "
             "instantiating is another one!!");
@@ -60,7 +60,7 @@ namespace gridtools {
 
         typedef storage_traits<Target> storage_traits_t;
 
-        using target_t = Target;
+        using backend_t = Target;
 
         /**
             Method to retrieve a global parameter

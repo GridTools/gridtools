@@ -28,9 +28,9 @@
 namespace gt = gridtools;
 
 #ifdef __CUDACC__
-using target_t = gt::target::cuda;
+using backend_t = gt::backend::cuda;
 #else
-using target_t = gt::target::mc;
+using backend_t = gt::backend::mc;
 #endif
 
 // This is the definition of the special regions in the "vertical" direction
@@ -84,7 +84,7 @@ int main() {
     unsigned int d2 = 10;
     unsigned int d3 = 6;
 
-    using storage_tr = gt::storage_traits<target_t>;
+    using storage_tr = gt::storage_traits<backend_t>;
 
     // storage_info contains the information about sizes and layout of the storages to which it will be passed
     using storage_info_t = storage_tr::storage_info_t<0, 3>;
@@ -127,7 +127,7 @@ int main() {
     // (iteration space), binding of the placeholders to the fields
     // that will not be modified during the computation, and then the
     // stencil structure
-    auto trid_solve = gt::make_computation<target_t>(grid,
+    auto trid_solve = gt::make_computation<backend_t>(grid,
         p_inf = storage_type{storage_info_t{d1, d2, d3}, -1.},
         p_diag = storage_type{storage_info_t{d1, d2, d3}, 3.},
         p_sup = sup,

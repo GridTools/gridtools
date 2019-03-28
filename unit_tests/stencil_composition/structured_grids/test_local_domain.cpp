@@ -50,15 +50,15 @@ typedef layout_map<2, 1, 0> layout_ijk_t;
 typedef layout_map<0, 1, 2> layout_kji_t;
 typedef storage_info<0, layout_ijk_t> meta_ijk_t;
 typedef storage_info<0, layout_kji_t> meta_kji_t;
-typedef storage_traits<target::naive>::data_store_t<float_type, meta_ijk_t> storage_t;
-typedef storage_traits<target::naive>::data_store_t<float_type, meta_kji_t> storage_buff_t;
+typedef storage_traits<backend::naive>::data_store_t<float_type, meta_ijk_t> storage_t;
+typedef storage_traits<backend::naive>::data_store_t<float_type, meta_kji_t> storage_buff_t;
 
 typedef arg<0, storage_t> p_in;
 typedef arg<1, storage_buff_t> p_buff;
 typedef arg<2, storage_t> p_out;
 
 typedef intermediate<false,
-    target::naive,
+    backend::naive,
     grid<axis<1>::axis_interval_t>,
     std::tuple<>,
     std::tuple<decltype(make_multistage // mss_descriptor

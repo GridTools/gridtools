@@ -53,12 +53,12 @@ TEST(test_make_computation, positional_when_debug) {
     using namespace gridtools;
     using namespace gridtools::execute;
 
-    typedef storage_traits<target_t>::storage_info_t<0, 3> meta_data_t;
-    typedef storage_traits<target_t>::data_store_t<float_type, meta_data_t> storage_t;
+    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
+    typedef storage_traits<backend_t>::data_store_t<float_type, meta_data_t> storage_t;
 
     typedef arg<0, storage_t> p_in;
 
-    make_computation<target_t>(positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
+    make_computation<backend_t>(positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
         make_multistage(execute::forward(), make_stage<positional_when_debug_test::test_functor>(p_in())));
 }
 

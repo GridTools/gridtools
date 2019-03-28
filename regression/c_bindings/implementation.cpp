@@ -33,10 +33,10 @@ namespace {
         }
     };
 
-    using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3>;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
 
     template <class T>
-    using generic_data_store_t = storage_traits<target_t>::data_store_t<T, storage_info_t>;
+    using generic_data_store_t = storage_traits<backend_t>::data_store_t<T, storage_info_t>;
 
     using data_store_t = generic_data_store_t<float_type>;
 
@@ -58,7 +58,7 @@ namespace {
     }
 
     auto make_copy_stencil(data_store_t const &in, data_store_t const &out)
-        GT_AUTO_RETURN(make_computation<target_t>(make_grid(out),
+        GT_AUTO_RETURN(make_computation<backend_t>(make_grid(out),
             p_in{} = in,
             p_out{} = out,
             make_multistage(execute::forward(), make_stage<copy_functor>(p_in{}, p_out{}))));

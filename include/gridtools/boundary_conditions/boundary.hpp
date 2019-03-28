@@ -35,7 +35,7 @@ namespace gridtools {
 
 #ifdef __CUDACC__
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<target::cuda, BoundaryFunction, Predicate>
+        struct select_apply<backend::cuda, BoundaryFunction, Predicate>
 
         {
             using type = boundary_apply_gpu<BoundaryFunction, Predicate>;
@@ -51,7 +51,7 @@ namespace gridtools {
 
 #ifdef __CUDACC__
         template <access_mode AM, typename DataF>
-        struct proper_view<target::cuda, AM, DataF> {
+        struct proper_view<backend::cuda, AM, DataF> {
             using proper_view_t = decltype(make_device_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_device_view<AM>(df); }

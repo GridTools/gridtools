@@ -4,13 +4,13 @@
 using namespace gridtools;
 
 #ifdef __CUDACC__
-using target_t = target::cuda;
+using backend_t = backend::cuda;
 #else
-using target_t = target::mc;
+using backend_t = backend::mc;
 #endif
 
-using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3>;
-using data_store_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;
+using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
+using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
 int main() {
     uint_t Ni = 10;

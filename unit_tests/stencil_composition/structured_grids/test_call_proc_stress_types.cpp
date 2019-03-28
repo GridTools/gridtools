@@ -36,9 +36,9 @@ namespace {
 
 class call_proc_stress_types : public testing::Test {
   protected:
-    using storage_info_t = gridtools::storage_traits<target_t>::storage_info_t<0, 3>;
-    using data_store_in_t = gridtools::storage_traits<target_t>::data_store_t<special_type<in_tag>, storage_info_t>;
-    using data_store_out_t = gridtools::storage_traits<target_t>::data_store_t<special_type<out_tag>, storage_info_t>;
+    using storage_info_t = gridtools::storage_traits<backend_t>::storage_info_t<0, 3>;
+    using data_store_in_t = gridtools::storage_traits<backend_t>::data_store_t<special_type<in_tag>, storage_info_t>;
+    using data_store_out_t = gridtools::storage_traits<backend_t>::data_store_t<special_type<out_tag>, storage_info_t>;
 
     gridtools::grid<gridtools::axis<1>::axis_interval_t> grid;
 
@@ -107,7 +107,7 @@ namespace {
 } // namespace
 
 TEST_F(call_proc_stress_types, triple_nesting_with_type_switching) {
-    auto comp = gridtools::make_computation<target_t>(grid,
+    auto comp = gridtools::make_computation<backend_t>(grid,
         p_in{} = in,
         p_out{} = out,
         gridtools::make_multistage(execute::forward(),

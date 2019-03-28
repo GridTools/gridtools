@@ -24,9 +24,9 @@ namespace gt = gridtools;
 namespace gt = gridtools;
 
 #ifdef __CUDACC__
-using target_t = gt::target::cuda;
+using backend_t = gt::backend::cuda;
 #else
-using target_t = gt::target::mc;
+using backend_t = gt::backend::mc;
 #endif
 
 // These are the stencil operators that compose the multistage stencil in this test
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
         d3 = atoi(argv[3]);
     }
 
-    using storage_tr = gt::storage_traits<target_t>;
+    using storage_tr = gt::storage_traits<backend_t>;
     using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<halo_size, halo_size, 0>>;
     using storage_type = storage_tr::data_store_t<double, storage_info_ijk_t>;
 
@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
     // (iteration space), binding of the placeholders to the fields
     // that will not be modified during the computation, and then the
     // stencil structure
-    auto horizontal_diffusion = gt::make_computation<target_t>(grid,
+    auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
         p_coeff{} = coeff, // Binding data_stores that will not change during the application
         gt::make_multistage(gt::execute::parallel{},
             define_caches(gt::cache<gt::cache_type::ij, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),

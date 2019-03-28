@@ -45,15 +45,15 @@ namespace gridtools {
         using layout_kji_t = layout_map<0, 1, 2>;
         using layout_ij_t = layout_map<0, 1>;
 
-        using storage_traits_t = storage_traits<target_t>;
+        using storage_traits_t = storage_traits<backend_t>;
 
         using meta_ijkp_t = storage_traits_t::custom_layout_storage_info_t<0, layout_ijkp_t>;
         using meta_kji_t = storage_traits_t::custom_layout_storage_info_t<0, layout_kji_t>;
         using meta_ij_t = storage_traits_t::custom_layout_storage_info_t<0, layout_ij_t>;
 
-        using storage_t = gridtools::storage_traits<target_t>::data_store_t<float_type, meta_ijkp_t>;
-        using storage_buff_t = gridtools::storage_traits<target_t>::data_store_t<float_type, meta_kji_t>;
-        using storage_out_t = gridtools::storage_traits<target_t>::data_store_t<float_type, meta_ij_t>;
+        using storage_t = gridtools::storage_traits<backend_t>::data_store_t<float_type, meta_ijkp_t>;
+        using storage_buff_t = gridtools::storage_traits<backend_t>::data_store_t<float_type, meta_kji_t>;
+        using storage_out_t = gridtools::storage_traits<backend_t>::data_store_t<float_type, meta_ij_t>;
 
         TEST(testdomain, iterate_domain) {
 
@@ -77,12 +77,12 @@ namespace gridtools {
 
             auto mss_ = gridtools::make_multistage // mss_descriptor
                 (execute::forward(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
-            auto computation_ = make_computation<target::naive>(grid, p_in = in, p_buff = buff, p_out = out, mss_);
+            auto computation_ = make_computation<backend::naive>(grid, p_in = in, p_buff = buff, p_out = out, mss_);
             auto local_domain1 = std::get<0>(computation_.local_domains());
 
             using esf_t = decltype(gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
 
-            using iterate_domain_arguments_t = iterate_domain_arguments<target::naive,
+            using iterate_domain_arguments_t = iterate_domain_arguments<backend::naive,
                 decltype(local_domain1),
                 std::tuple<esf_t>,
                 std::tuple<>,
