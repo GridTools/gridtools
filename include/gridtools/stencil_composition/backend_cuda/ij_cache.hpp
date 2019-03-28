@@ -46,8 +46,7 @@ namespace gridtools {
 
       public:
         template <typename Allocator>
-        explicit sid_ij_cache(Allocator &allocator)
-            : m_allocation(allocator.template allocate<sizeof(T)>(size * sizeof(T))) {}
+        sid_ij_cache(Allocator &allocator) : m_allocation(allocator.template allocate<sizeof(T)>(size * sizeof(T))) {}
 
         friend ptr_holder<T> sid_get_origin(sid_ij_cache &cache) {
             constexpr int_t offset = IZero * i_stride + JZero * j_stride;
@@ -72,8 +71,7 @@ namespace gridtools {
 
       public:
         template <typename Allocator>
-        explicit sid_ij_cache(Allocator &allocator)
-            : m_allocation(allocator.template allocate<sizeof(T)>(size * sizeof(T))) {}
+        sid_ij_cache(Allocator &allocator) : m_allocation(allocator.template allocate<sizeof(T)>(size * sizeof(T))) {}
 
         friend ptr_holder<T> sid_get_origin(sid_ij_cache &cache) {
             constexpr int_t offset = IZero * i_stride + JZero * j_stride;
