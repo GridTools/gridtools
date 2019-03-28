@@ -19,9 +19,9 @@ namespace gridtools {
      */
     template <class Target, class T>
     static typename storage_traits<Target>::template data_store_t<T,
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0u>>>
+        typename storage_traits<Target>::template special_storage_info_t<0, selector<0u>, zero_halo<1>>>
     make_global_parameter(T const &value) {
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0u>> si(1);
+        typename storage_traits<Target>::template special_storage_info_t<0, selector<0u>, zero_halo<1>> si(1);
         typename storage_traits<Target>::template data_store_t<T, decltype(si)> ds(si);
         make_host_view(ds)(0) = value;
         ds.sync();
