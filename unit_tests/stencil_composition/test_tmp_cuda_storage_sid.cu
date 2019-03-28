@@ -72,11 +72,11 @@ namespace gridtools {
             int expected_stride3 = expected_stride2 * n_blocks_i;
             int expected_stride4 = expected_stride3 * n_blocks_j;
 
-            EXPECT_EQ(expected_stride0, get<0>(strides));
-            EXPECT_EQ(expected_stride1, get<1>(strides));
-            EXPECT_EQ(expected_stride2, get<2>(strides));
-            EXPECT_EQ(expected_stride3, get<3>(strides));
-            EXPECT_EQ(expected_stride4, get<4>(strides));
+            EXPECT_EQ(expected_stride0, at_key<dim::i>(strides));
+            EXPECT_EQ(expected_stride1, at_key<dim::j>(strides));
+            EXPECT_EQ(expected_stride2, at_key<block_i>(strides));
+            EXPECT_EQ(expected_stride3, at_key<block_j>(strides));
+            EXPECT_EQ(expected_stride4, at_key<dim::k>(strides));
         }
 
         // TODO move allocator into separate file?
