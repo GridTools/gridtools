@@ -21,7 +21,7 @@ namespace gridtools {
      * @{
      */
 
-    template <class Target>
+    template <class Backend>
     struct storage_traits_from_id;
 
     /** @brief storage traits for the Host backend*/

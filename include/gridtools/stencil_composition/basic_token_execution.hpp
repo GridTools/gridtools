@@ -41,8 +41,8 @@ between levels.
 
 namespace gridtools {
 
-    template <class FromLevel, class ToLevel, class Target, class ExecutionEngine, class Grid>
-    GT_FUNCTION int get_k_interval(Target, ExecutionEngine, Grid const &grid);
+    template <class FromLevel, class ToLevel, class Backend, class ExecutionEngine, class Grid>
+    GT_FUNCTION int get_k_interval(Backend, ExecutionEngine, Grid const &grid);
 
     namespace _impl {
 

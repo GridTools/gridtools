@@ -22,7 +22,7 @@
 
 namespace gridtools {
 
-    template <typename Target, typename LocalDomain, typename EsfSequence, typename CacheSequence, typename Grid>
+    template <typename Backend, typename LocalDomain, typename EsfSequence, typename CacheSequence, typename Grid>
     struct iterate_domain_arguments {
 
         GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
@@ -30,7 +30,7 @@ namespace gridtools {
         GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
-        typedef Target backend_t;
+        typedef Backend backend_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
@@ -45,7 +45,7 @@ namespace gridtools {
      * @brief type that contains main metadata required to execute a mss kernel. This type will be passed to
      * all functors involved in the execution of the mss
      */
-    template <typename Target,   // id of the different backends
+    template <typename Backend,  // id of the different backends
         typename EsfSequence,    // sequence of ESF
         typename LoopIntervals,  // loop intervals
         typename LocalDomain,    // local domain type
@@ -60,7 +60,7 @@ namespace gridtools {
         GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((meta::all_of<is_loop_interval, LoopIntervals>::value), GT_INTERNAL_ERROR);
 
-        typedef Target backend_t;
+        typedef Backend backend_t;
         typedef EsfSequence esf_sequence_t;
         typedef LoopIntervals loop_intervals_t;
 

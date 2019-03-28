@@ -20,9 +20,9 @@
 using namespace gridtools;
 
 // static type tests for x86 and naive backend
-template <class Target>
+template <class Backend>
 struct static_type_tests {
-    using storage_traits_t = storage_traits<Target>;
+    using storage_traits_t = storage_traits<Backend>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
@@ -174,80 +174,80 @@ TEST(StorageFacility, ViewTests) {
                 EXPECT_EQ(hrv(i, j, k), 2 * z++);
 }
 
-template <class Target>
+template <class Backend>
 struct static_layout_test_cases;
 
-template <class Target>
+template <class Backend>
 struct static_layout_test_cases {
-    using layout1_t = typename storage_traits<Target>::template storage_info_t<0, 1>::layout_t;
-    using layout2_t = typename storage_traits<Target>::template storage_info_t<0, 2>::layout_t;
-    using layout3_t = typename storage_traits<Target>::template storage_info_t<0, 3>::layout_t;
-    using layout4_t = typename storage_traits<Target>::template storage_info_t<0, 4>::layout_t;
-    using layout5_t = typename storage_traits<Target>::template storage_info_t<0, 5>::layout_t;
+    using layout1_t = typename storage_traits<Backend>::template storage_info_t<0, 1>::layout_t;
+    using layout2_t = typename storage_traits<Backend>::template storage_info_t<0, 2>::layout_t;
+    using layout3_t = typename storage_traits<Backend>::template storage_info_t<0, 3>::layout_t;
+    using layout4_t = typename storage_traits<Backend>::template storage_info_t<0, 4>::layout_t;
+    using layout5_t = typename storage_traits<Backend>::template storage_info_t<0, 5>::layout_t;
 
     using layout_s5_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 1, 1, 1, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 1, 1, 1, 1>>::layout_t;
     using layout_s51_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 1, 1, 1, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 1, 1, 1, 1>>::layout_t;
     using layout_s52_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 0, 1, 1, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 0, 1, 1, 1>>::layout_t;
     using layout_s53_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 1, 0, 1, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 1, 0, 1, 1>>::layout_t;
     using layout_s54_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 1, 1, 0, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 1, 1, 0, 1>>::layout_t;
     using layout_s55_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 1, 1, 1, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 1, 1, 1, 0>>::layout_t;
 
     using layout_s56_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 0, 1, 1, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 0, 1, 1, 1>>::layout_t;
     using layout_s57_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 0, 0, 1, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 0, 0, 1, 1>>::layout_t;
     using layout_s58_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 1, 0, 0, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 1, 0, 0, 1>>::layout_t;
     using layout_s59_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 1, 1, 0, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 1, 1, 0, 0>>::layout_t;
 
     using layout_s510_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 1, 0, 1, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 1, 0, 1, 1>>::layout_t;
     using layout_s511_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 0, 1, 0, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 0, 1, 0, 1>>::layout_t;
     using layout_s512_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 1, 0, 1, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 1, 0, 1, 0>>::layout_t;
 
     using layout_s513_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 1, 1, 0, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 1, 1, 0, 1>>::layout_t;
     using layout_s514_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 0, 1, 1, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 0, 1, 1, 0>>::layout_t;
 
     using layout_s515_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 1, 1, 1, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 1, 1, 1, 0>>::layout_t;
 
     using layout_s516_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 0, 0, 1, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 0, 0, 1, 1>>::layout_t;
     using layout_s517_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 0, 0, 0, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 0, 0, 0, 1>>::layout_t;
     using layout_s518_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 1, 0, 0, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 1, 0, 0, 0>>::layout_t;
     using layout_s519_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 1, 1, 0, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 1, 1, 0, 0>>::layout_t;
     using layout_s520_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 0, 1, 1, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 0, 1, 1, 0>>::layout_t;
 
     using layout_s521_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<1, 0, 0, 0, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<1, 0, 0, 0, 0>>::layout_t;
     using layout_s522_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 1, 0, 0, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 1, 0, 0, 0>>::layout_t;
     using layout_s523_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 0, 1, 0, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 0, 1, 0, 0>>::layout_t;
     using layout_s524_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 0, 0, 1, 0>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 0, 0, 1, 0>>::layout_t;
     using layout_s525_t =
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0, 0, 0, 0, 1>>::layout_t;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0, 0, 0, 0, 1>>::layout_t;
 };
 
-template <class Target>
-struct static_layout_tests_decreasing : static_layout_test_cases<Target> {
-    using cases = static_layout_test_cases<Target>;
+template <class Backend>
+struct static_layout_tests_decreasing : static_layout_test_cases<Backend> {
+    using cases = static_layout_test_cases<Backend>;
     GT_STATIC_ASSERT((boost::is_same<typename cases::layout1_t, layout_map<0>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<typename cases::layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<typename cases::layout3_t, layout_map<2, 1, 0>>::value), "layout type is wrong");
@@ -316,9 +316,9 @@ struct static_layout_tests_decreasing : static_layout_test_cases<Target> {
         (boost::is_same<typename cases::layout_s525_t, layout_map<-1, -1, -1, -1, 0>>::value), "layout type is wrong");
 };
 
-template <class Target>
-struct static_layout_tests_decreasing_swappedxy : static_layout_test_cases<Target> {
-    using cases = static_layout_test_cases<Target>;
+template <class Backend>
+struct static_layout_tests_decreasing_swappedxy : static_layout_test_cases<Backend> {
+    using cases = static_layout_test_cases<Backend>;
     GT_STATIC_ASSERT((boost::is_same<typename cases::layout1_t, layout_map<0>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<typename cases::layout2_t, layout_map<1, 0>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<typename cases::layout3_t, layout_map<2, 0, 1>>::value), "layout type is wrong");
@@ -387,9 +387,9 @@ struct static_layout_tests_decreasing_swappedxy : static_layout_test_cases<Targe
         (boost::is_same<typename cases::layout_s525_t, layout_map<-1, -1, -1, -1, 0>>::value), "layout type is wrong");
 };
 
-template <class Target>
-struct static_layout_tests_increasing : static_layout_test_cases<Target> {
-    using cases = static_layout_test_cases<Target>;
+template <class Backend>
+struct static_layout_tests_increasing : static_layout_test_cases<Backend> {
+    using cases = static_layout_test_cases<Backend>;
     GT_STATIC_ASSERT((boost::is_same<typename cases::layout1_t, layout_map<0>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<typename cases::layout2_t, layout_map<0, 1>>::value), "layout type is wrong");
     GT_STATIC_ASSERT((boost::is_same<typename cases::layout3_t, layout_map<0, 1, 2>>::value), "layout type is wrong");

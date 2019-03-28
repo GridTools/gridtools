@@ -495,12 +495,12 @@ namespace gridtools {
 
     /**
      */
-    template <typename Target>
+    template <typename Backend>
     class icosahedral_topology {
       private:
         template <typename DimSelector>
         struct select_layout {
-            using layout_map_t = typename _impl::default_layout<Target>::type;
+            using layout_map_t = typename _impl::default_layout<Backend>::type;
             using dim_selector_4d_t = typename shorten<bool, DimSelector, 4>::type;
             using filtered_layout = typename filter_layout<layout_map_t, dim_selector_4d_t>::type;
 
@@ -513,15 +513,15 @@ namespace gridtools {
         using cells = enumtype::cells;
         using edges = enumtype::edges;
         using vertices = enumtype::vertices;
-        using type = icosahedral_topology<Target>;
+        using type = icosahedral_topology<Backend>;
 
-        // returns a layout map with ordering specified by the Target but where
+        // returns a layout map with ordering specified by the Backend but where
         // the user can specify the active dimensions
         template <typename Selector>
         using layout_t = typename select_layout<Selector>::type;
 
         template <typename LocationType, typename Halo = halo<0, 0, 0, 0>, typename Selector = selector<1, 1, 1, 1>>
-        using meta_storage_t = typename storage_traits<Target>::template custom_layout_storage_info_t<
+        using meta_storage_t = typename storage_traits<Backend>::template custom_layout_storage_info_t<
             impl::compute_uuid<LocationType::value, Selector>::value,
             layout_t<Selector>,
             Halo>;
@@ -530,7 +530,7 @@ namespace gridtools {
             typename ValueType,
             typename Halo = halo<0, 0, 0, 0>,
             typename Selector = selector<1, 1, 1, 1>>
-        using data_store_t = typename storage_traits<Target>::template data_store_t<ValueType,
+        using data_store_t = typename storage_traits<Backend>::template data_store_t<ValueType,
             meta_storage_t<LocationType, Halo, Selector>>;
 
         array<uint_t, 3> m_dims; // Sizes as cells in a multi-dimensional Cell array
@@ -564,7 +564,7 @@ namespace gridtools {
     template <typename T>
     struct is_grid_topology : std::false_type {};
 
-    template <typename Target>
-    struct is_grid_topology<icosahedral_topology<Target>> : std::true_type {};
+    template <typename Backend>
+    struct is_grid_topology<icosahedral_topology<Backend>> : std::true_type {};
 
 } // namespace gridtools

@@ -19,7 +19,7 @@
 #include "./storage_mc/mc_storage_info.hpp"
 
 namespace gridtools {
-    template <class Target>
+    template <class Backend>
     struct storage_traits_from_id;
 
     namespace impl {

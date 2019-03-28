@@ -49,7 +49,7 @@ namespace gridtools {
             return true;
         }
 
-        template <class Target, class Grid>
+        template <class Backend, class Grid>
         struct storage_info_fits_grid_f {
             Grid const &grid;
 
@@ -89,25 +89,25 @@ namespace gridtools {
      *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
      *   \tparam Grid The Grid
      */
-    template <class Target, class Grid>
-    _impl::storage_info_fits_grid_f<Target, Grid> storage_info_fits_grid(Grid const &grid) {
+    template <class Backend, class Grid>
+    _impl::storage_info_fits_grid_f<Backend, Grid> storage_info_fits_grid(Grid const &grid) {
         return {grid};
     }
 
     /**
      *  @brief structure collecting helper metafunctions
      */
-    template <bool IsStateful, class Target, class Grid, class BoundArgStoragePairs, class MssDescriptors>
+    template <bool IsStateful, class Backend, class Grid, class BoundArgStoragePairs, class MssDescriptors>
     class intermediate;
 
     template <bool IsStateful,
-        class Target,
+        class Backend,
         class Grid,
         class... BoundPlaceholders,
         class... BoundDataStores,
         class... MssDescriptors>
     class intermediate<IsStateful,
-        Target,
+        Backend,
         Grid,
         std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
         std::tuple<MssDescriptors...>> {
@@ -118,7 +118,7 @@ namespace gridtools {
 
         using mss_descriptors_t = std::tuple<MssDescriptors...>;
 
-        using performance_meter_t = typename timer_traits<Target>::timer_type;
+        using performance_meter_t = typename timer_traits<Backend>::timer_type;
 
         using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
@@ -133,7 +133,7 @@ namespace gridtools {
         using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::transform,
             (to_arg_storage_pair,
                 GT_META_CALL(meta::if_,
-                    (GT_META_CALL(needs_allocate_cached_tmp, Target),
+                    (GT_META_CALL(needs_allocate_cached_tmp, Backend),
                         tmp_placeholders_t,
                         non_cached_tmp_placeholders_t))));
 
@@ -159,7 +159,7 @@ namespace gridtools {
         using extent_map_t = GT_META_CALL(get_extent_map, esfs_t);
 
       private:
-        using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<Target>()));
+        using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<Backend>()));
         using mss_components_array_t = GT_META_CALL(build_mss_components_array,
             (fuse_esfs_t::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type));
 
@@ -209,7 +209,7 @@ namespace gridtools {
             : m_grid(grid),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
               m_tmp_arg_storage_pair_tuple(
-                  _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Target, tmp_arg_storage_pair_tuple_t>(grid)),
+                  _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(grid)),
               // stash bound storages
               m_bound_arg_storage_pair_tuple(std::move(arg_storage_pairs)) {
             if (timer_enabled)
@@ -231,7 +231,7 @@ namespace gridtools {
                 "some placeholders are not used in mss descriptors");
             GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
-            static constexpr auto backend_target = Target{};
+            static constexpr auto backend_target = Backend{};
             fused_mss_loop<mss_components_array_t>(backend_target, local_domains(srcs...), m_grid);
             if (m_meter)
                 m_meter->pause();

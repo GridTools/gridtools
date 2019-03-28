@@ -14,14 +14,14 @@
 #include "../storage/storage_facility.hpp"
 
 namespace gridtools {
-    template <class Target, class T>
-    using global_parameter = typename storage_traits<Target>::template data_store_t<T,
-        typename storage_traits<Target>::template special_storage_info_t<0, selector<0>, zero_halo<1>>>;
+    template <class Backend, class T>
+    using global_parameter = typename storage_traits<Backend>::template data_store_t<T,
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0>, zero_halo<1>>>;
 
-    template <class Target, class T>
-    global_parameter<Target, T> make_global_parameter(T const &value) {
-        typename global_parameter<Target, T>::storage_info_t si(1);
-        global_parameter<Target, T> ds(si);
+    template <class Backend, class T>
+    global_parameter<Backend, T> make_global_parameter(T const &value) {
+        typename global_parameter<Backend, T>::storage_info_t si(1);
+        global_parameter<Backend, T> ds(si);
         make_host_view(ds)(0) = value;
         ds.sync();
         return ds;

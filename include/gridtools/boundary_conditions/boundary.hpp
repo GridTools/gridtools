@@ -28,7 +28,7 @@ namespace gridtools {
          * @{
          */
 
-        template <typename Target, typename BoundaryFunction, typename Predicate>
+        template <typename /*Backend*/, typename BoundaryFunction, typename Predicate>
         struct select_apply {
             using type = boundary_apply<BoundaryFunction, Predicate>;
         };
