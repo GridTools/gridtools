@@ -59,7 +59,7 @@ TEST(intermediate, test_get_arg_functions) {
     auto grid = gridtools::make_grid(di, dj, 3);
     {
         auto mss_ = make_multistage(execute::forward(), make_stage<stage1>(p_in1(), p_in2(), p_out()));
-        computation<p_in1, p_in2, p_out> comp = make_computation<backend_t>(grid, mss_);
+        computation<p_in1, p_in2, p_out> comp = make_computation<target_t>(grid, mss_);
 
         EXPECT_EQ((rt_extent{0, 1, -1, 0, 0, 1}), comp.get_arg_extent(p_in1()));
         EXPECT_EQ((rt_extent{0, 1, -1, 0, -1, 1}), comp.get_arg_extent(p_in2()));
@@ -74,7 +74,7 @@ TEST(intermediate, test_get_arg_functions) {
         auto mss_ = make_multistage(execute::forward(),
             make_stage<stage1>(p_in1(), p_in2(), p_tmp1()),
             make_stage<stage2>(p_in1(), p_tmp1(), p_out()));
-        computation<p_in1, p_in2, p_tmp1, p_out> comp = make_computation<backend_t>(grid, mss_);
+        computation<p_in1, p_in2, p_tmp1, p_out> comp = make_computation<target_t>(grid, mss_);
 
         EXPECT_EQ((rt_extent{-1, 2, -2, 1, -1, 2}), comp.get_arg_extent(p_in1()));
         EXPECT_EQ((rt_extent{-1, 2, -2, 0, -2, 2}), comp.get_arg_extent(p_in2()));
@@ -121,7 +121,7 @@ TEST(intermediate, test_get_arg_functions) {
         //   p_tmp1: {-2, 2, -2, 1, -2, 2}
         //   p_in2:  {-2, 3, -3, 1, -3, 3}
         //   p_in1:  {-2, 3, -3, 1, -2, 3}
-        computation<p_in1, p_in2, p_tmp1, p_tmp2, p_tmp3, p_out> comp = make_computation<backend_t>(grid, mss_);
+        computation<p_in1, p_in2, p_tmp1, p_tmp2, p_tmp3, p_out> comp = make_computation<target_t>(grid, mss_);
 
         EXPECT_EQ((rt_extent{-2, 3, -3, 1, -2, 3}), comp.get_arg_extent(p_in1()));
         EXPECT_EQ((rt_extent{-2, 3, -3, 1, -3, 3}), comp.get_arg_extent(p_in2()));

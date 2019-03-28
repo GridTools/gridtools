@@ -33,8 +33,6 @@ using target_t = gt::target::cuda;
 using target_t = gt::target::mc;
 #endif
 
-using backend_t = gt::backend<target_t>;
-
 // This is the definition of the special regions in the "vertical" direction
 using axis_t = gt::axis<1>;
 using full_t = axis_t::full_interval;
@@ -129,7 +127,7 @@ int main() {
     // (iteration space), binding of the placeholders to the fields
     // that will not be modified during the computation, and then the
     // stencil structure
-    auto trid_solve = gt::make_computation<backend_t>(grid,
+    auto trid_solve = gt::make_computation<target_t>(grid,
         p_inf = storage_type{storage_info_t{d1, d2, d3}, -1.},
         p_diag = storage_type{storage_info_t{d1, d2, d3}, 3.},
         p_sup = sup,

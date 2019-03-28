@@ -17,7 +17,7 @@ using namespace gridtools;
 
 namespace cs_test {
 
-    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology<target_t>;
 
     using x_interval = axis<1>::full_interval;
 
@@ -74,7 +74,7 @@ TEST(test_copy_stencil, run) {
     gridtools::grid<axis<1>::axis_interval_t, icosahedral_topology_t> grid_(
         icosahedral_grid, di, dj, {halo_k, d3 - halo_k});
 
-    auto copy = gridtools::make_computation<backend_t>(grid_,
+    auto copy = gridtools::make_computation<target_t>(grid_,
         p_in_cells() = in_cells,
         p_out_cells() = out_cells,
         gridtools::make_multistage // mss_descriptor

@@ -141,7 +141,7 @@ namespace copy_stencil {
             {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
             d3);
 
-        auto copy = gridtools::make_computation<backend_t>(grid,
+        auto copy = gridtools::make_computation<target_t>(grid,
             p_in{} = in,
             p_out{} = out,
             gridtools::make_multistage // mss_descriptor

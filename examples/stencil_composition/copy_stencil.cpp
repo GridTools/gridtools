@@ -26,8 +26,6 @@ using target_t = gt::target::cuda;
 using target_t = gt::target::mc;
 #endif
 
-using backend_t = gt::backend<target_t>;
-
 using storage_info_t = gt::storage_traits<target_t>::storage_info_t<0, 3>;
 using data_store_t = gt::storage_traits<target_t>::data_store_t<double, storage_info_t>;
 
@@ -95,7 +93,7 @@ int main(int argc, char **argv) {
     data_store_t out{meta_data_, -1.0, "out"};
 
     // Setup the computation, which consists of just one stage.
-    auto copy = gt::make_computation<backend_t>(
+    auto copy = gt::make_computation<target_t>(
         grid, gt::make_multistage(gt::execute::parallel{}, gt::make_stage<copy_functor>(p_in{}, p_out{})));
 
     // Execute the computation, binding the actual data (`in`, `out`) to the placeholders (`p_in`, `p_out`).

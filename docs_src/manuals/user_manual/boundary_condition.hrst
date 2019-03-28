@@ -124,7 +124,7 @@ fields the ``operator()`` overloads of the boundary class require.
 
 .. code-block:: gridtools
 
-  boundary<example_bc, backend_t::backend_id_t>(halos, example_bc(42))
+  boundary<example_bc, target_t::backend_id_t>(halos, example_bc(42))
         .apply(out_s, in_s);
 
 As can be noted, the ``backend`` is also needed to select the proper
@@ -145,7 +145,7 @@ the following example:
 
 .. code-block:: gridtools
 
-  boundary<direction_bc_input<uint_t>, backend_t::backend_id_t, predicate_t>
+  boundary<direction_bc_input<uint_t>, target_t::backend_id_t, predicate_t>
     (halos, direction_bc_input<uint_t>(42), predicate_t{}).apply(out_s, in_s);
 
 The predicate must obey a fixed interface, that is, it has to accept

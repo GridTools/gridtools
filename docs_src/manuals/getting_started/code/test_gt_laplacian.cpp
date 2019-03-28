@@ -1,4 +1,3 @@
-#include <gridtools/stencil_composition/backend.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/storage/storage_facility.hpp>
 
@@ -12,7 +11,6 @@ using target_t = target::cuda;
 #else
 using target_t = target::mc;
 #endif
-using backend_t = backend<target_t>;
 
 using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3, halo<1, 1, 0>>;
 using data_store_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;
@@ -55,7 +53,7 @@ int main() {
     halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);
     auto my_grid = make_grid(boundary_i, boundary_j, Nk);
 
-    auto laplacian = make_computation<backend_t>(          //
+    auto laplacian = make_computation<target_t>(           //
         my_grid,                                           //
         make_multistage(                                   //
             execute::parallel(),                           //

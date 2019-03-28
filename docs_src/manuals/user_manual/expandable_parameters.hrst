@@ -27,7 +27,7 @@ The optimal value for ``expand_factor`` might need to be tuned for different bac
 
 .. code-block:: gridtools
 
- auto comp_ = make_expandable_computation<backend_t>(
+ auto comp_ = make_expandable_computation<target_t>(
         expand_factor<4>,
         domain_,
         grid_,

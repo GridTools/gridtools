@@ -29,8 +29,6 @@ using target_t = gt::target::cuda;
 using target_t = gt::target::mc;
 #endif
 
-using backend_t = gt::backend<target_t>;
-
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
     using out = gt::accessor<0, gt::intent::inout>;
@@ -166,7 +164,7 @@ int main(int argc, char **argv) {
     // (iteration space), binding of the placeholders to the fields
     // that will not be modified during the computation, and then the
     // stencil structure
-    auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
+    auto horizontal_diffusion = gt::make_computation<target_t>(grid,
         p_coeff{} = coeff, // Binding data_stores that will not change during the application
         gt::make_multistage(gt::execute::parallel{},
             define_caches(gt::cache<gt::cache_type::ij, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),

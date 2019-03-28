@@ -58,7 +58,7 @@ namespace {
     }
 
     auto make_copy_stencil(data_store_t const &in, data_store_t const &out)
-        GT_AUTO_RETURN(make_computation<backend_t>(make_grid(out),
+        GT_AUTO_RETURN(make_computation<target_t>(make_grid(out),
             p_in{} = in,
             p_out{} = out,
             make_multistage(execute::forward(), make_stage<copy_functor>(p_in{}, p_out{}))));

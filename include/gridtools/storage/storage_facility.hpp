@@ -12,6 +12,7 @@
 
 #include "../common/layout_map.hpp"
 #include "common/definitions.hpp"
+#include "common/halo.hpp"
 #include "data_store.hpp"
 
 #ifdef GT_USE_GPU

@@ -47,7 +47,7 @@ TEST_F(advection_pdbott_prepare_tracers, test) {
         in.push_back(make_storage(1. * i));
     }
 
-    auto comp = gridtools::make_expandable_computation<backend_t>(expand_factor<2>(),
+    auto comp = gridtools::make_expandable_computation<target_t>(expand_factor<2>(),
         make_grid(),
         p_out = out,
         p_in = in,

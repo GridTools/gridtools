@@ -28,7 +28,6 @@ namespace {
 #else
     using target_t = gt::target::mc;
 #endif
-    using backend_t = gt::backend<target_t>;
 
     using storage_traits_t = gt::storage_traits<target_t>;
     using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
@@ -54,7 +53,7 @@ namespace {
     data_store_t make_data_store_impl(storage_info_t storage_info) { return {storage_info}; }
 
     gt::computation<p_in, p_out> make_copy_stencil_impl(const grid_t &grid) {
-        return gt::make_computation<backend_t>(
+        return gt::make_computation<target_t>(
             grid, gt::make_multistage(gt::execute::parallel(), gt::make_stage<copy_functor>(p_in{}, p_out{})));
     }
 

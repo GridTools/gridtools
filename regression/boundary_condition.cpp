@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef backend_t::storage_traits_t::storage_info_t<0, 3, halo<1, 1, 1>> meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t<int_t, meta_data_t> storage_t;
+    typedef storage_traits<target_t>::storage_info_t<0, 3, halo<1, 1, 1>> meta_data_t;
+    typedef storage_traits<target_t>::data_store_t<int_t, meta_data_t> storage_t;
 
     // Definition of the actual data fields that are used for input/output
     meta_data_t meta_(d1, d2, d3);

@@ -85,7 +85,7 @@ TEST_F(kcachef, fill_and_flush_forward) {
 
     typedef arg<0, storage_t> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
@@ -117,7 +117,7 @@ TEST_F(kcachef, fill_and_flush_backward) {
 
     typedef arg<0, storage_t> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute::backward(),
             define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
@@ -148,7 +148,7 @@ TEST_F(kcachef, fill_copy_forward) {
 
     typedef arg<0, storage_t> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
@@ -179,7 +179,7 @@ TEST_F(kcachef, fill_scale_forward) {
 
     typedef arg<0, storage_t> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
@@ -226,7 +226,7 @@ TEST_F(kcachef, fill_copy_forward_with_extent) {
 
     typedef arg<0, storage_t> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),

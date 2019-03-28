@@ -40,7 +40,7 @@ TEST_F(alignment_test, test) {
     using bool_storage = storage_tr::data_store_t<bool, storage_info_t>;
     arg<0, bool_storage> p_out;
     auto out = make_storage<bool_storage>();
-    make_positional_computation<backend_t>(make_grid(),
+    make_positional_computation<target_t>(make_grid(),
         p_0 = make_storage(),
         p_out = out,
         make_multistage(execute::forward(), make_stage<not_aligned>(p_0, p_out)))

@@ -91,7 +91,7 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, simple_force_return_type) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
+    auto comp = gridtools::make_computation<target_t>(grid,
         p_in1{} = in1,
         p_out{} = out,
         gridtools::make_multistage(
@@ -131,7 +131,7 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, simple_deduced_return_type) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
+    auto comp = gridtools::make_computation<target_t>(grid,
         p_in1{} = in1,
         p_out{} = out,
         gridtools::make_multistage(
@@ -217,7 +217,7 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, triple_nesting_with_type_switching) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
+    auto comp = gridtools::make_computation<target_t>(grid,
         p_in1{} = in1,
         p_in2{} = in2,
         p_out{} = out,
@@ -277,7 +277,7 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, triple_nesting_with_type_switching_and_call_proc) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
+    auto comp = gridtools::make_computation<target_t>(grid,
         p_in1{} = in1,
         p_in2{} = in2,
         p_out{} = out,

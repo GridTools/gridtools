@@ -144,7 +144,7 @@ TEST_F(kcachef, local_forward) {
     // while the vertical ones are set according the the axis property soon after
     // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         gridtools::make_multistage(execute::forward(),
@@ -181,7 +181,7 @@ TEST_F(kcachef, local_backward) {
     typedef arg<1, storage_t> p_out;
     typedef tmp_arg<2, storage_t> p_buff;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         gridtools::make_multistage(execute::backward(),
@@ -229,7 +229,7 @@ TEST_F(kcachef, biside_forward) {
     typedef arg<1, storage_t> p_out;
     typedef tmp_arg<2, storage_t> p_buff;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         gridtools::make_multistage(execute::forward(),
@@ -278,7 +278,7 @@ TEST_F(kcachef, biside_backward) {
     typedef arg<1, storage_t> p_out;
     typedef tmp_arg<2, storage_t> p_buff;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+    auto kcache_stencil = gridtools::make_computation<target_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         gridtools::make_multistage(execute::backward(),

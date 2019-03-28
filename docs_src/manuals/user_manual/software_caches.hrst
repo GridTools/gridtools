@@ -33,7 +33,7 @@ computation is shown below
 
 .. code-block:: gridtools
 
- auto comp = make_computation<backend_t>(
+ auto comp = make_computation<target_t>(
     grid,
     make_multistage(
         execute::parallel(),

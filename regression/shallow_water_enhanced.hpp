@@ -226,8 +226,8 @@ namespace shallow_water {
         //! [layout_map]
 
         //! [storage_type]
-        typedef backend_t::storage_traits_t::storage_info_t<0, 3> storage_info_t;
-        typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> sol_type;
+        typedef storage_traits<target_t>::storage_info_t<0, 3> storage_info_t;
+        typedef storage_traits<target_t>::data_store_t<float_type, storage_info_t> sol_type;
         //! [storage_type]
 
         // Definition of placeholders. The order of them reflects the order in which the user will deal with them
@@ -328,7 +328,7 @@ namespace shallow_water {
         //! [grid]
 
         //! [computation]
-        auto shallow_water_stencil = make_computation<backend_t>(grid,
+        auto shallow_water_stencil = make_computation<target_t>(grid,
             p_h = h,
             p_u = u,
             p_v = v,
@@ -443,7 +443,7 @@ namespace shallow_water {
 
         verifier check_result(1e-8);
         array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
-        shallow_water_reference<backend_t> reference(d1 + 2 * halo[0], d2 + 2 * halo[1]);
+        shallow_water_reference<target_t> reference(d1 + 2 * halo[0], d2 + 2 * halo[1]);
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE INIT ################" << std::endl;

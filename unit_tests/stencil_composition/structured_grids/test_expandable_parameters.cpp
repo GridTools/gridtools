@@ -25,7 +25,7 @@ struct expandable_parameters : computation_fixture<> {
 
     template <class... Args>
     void run_computation(Args &&... args) const {
-        gridtools::make_expandable_computation<backend_t>(expand_factor<2>(), make_grid(), std::forward<Args>(args)...)
+        gridtools::make_expandable_computation<target_t>(expand_factor<2>(), make_grid(), std::forward<Args>(args)...)
             .run();
     }
 

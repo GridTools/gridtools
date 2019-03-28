@@ -39,8 +39,8 @@ namespace gridtools {
 
     class fixture : public ::testing::Test {
       public:
-        using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3>;
-        using storage_t = backend_t::storage_traits_t::data_store_t<float_type, storage_info_t>;
+        using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3>;
+        using storage_t = storage_traits<target_t>::data_store_t<float_type, storage_info_t>;
         using p_tmp = tmp_arg<2, std::vector<storage_t>>;
 
         const uint_t m_d1 = 6, m_d2 = 6, m_d3 = 10;
@@ -55,7 +55,7 @@ namespace gridtools {
         computation<p_in, p_out> m_computation;
 
         fixture()
-            : m_computation{make_expandable_computation<backend_t>(expand_factor<2>{},
+            : m_computation{make_expandable_computation<target_t>(expand_factor<2>{},
                   m_grid,
                   make_multistage(execute::forward(),
                       make_stage<test_functor>(p_in{}, p_tmp{}),

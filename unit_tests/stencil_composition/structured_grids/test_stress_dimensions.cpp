@@ -30,8 +30,8 @@ using layout_map_local_quad_t = typename boost::conditional<std::is_same<target_
     layout_map<-1, -1, -1, 3, 2, 1, 0>>::type;
 
 template <unsigned Id, typename Layout>
-using special_storage_info_t = typename backend_t::storage_traits_t::
-    select_custom_layout_storage_info<Id, Layout, zero_halo<Layout::masked_length>>::type;
+using special_storage_info_t = typename storage_traits<
+    target_t>::select_custom_layout_storage_info<Id, Layout, zero_halo<Layout::masked_length>>::type;
 
 using storage_info_t = special_storage_info_t<0, layout_map_t>;
 using storage_info_global_quad_t = special_storage_info_t<0, layout_map_global_quad_t>;
@@ -43,9 +43,9 @@ typedef layout_map<-1, -1, -1, 3, 2, 1, 0> layoutphi_t;
 typedef layout_map<3, 2, 1, 0> layout4_t;
 typedef layout_map<2, 1, 0, 3, 4, 5> layout_t;
 
-typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_type;
-typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_global_quad_t> storage_global_quad_t;
-typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_local_quad_t> storage_local_quad_t;
+typedef storage_traits<target_t>::data_store_t<float_type, storage_info_t> storage_type;
+typedef storage_traits<target_t>::data_store_t<float_type, storage_info_global_quad_t> storage_global_quad_t;
+typedef storage_traits<target_t>::data_store_t<float_type, storage_info_local_quad_t> storage_local_quad_t;
 
 /**
   @file
@@ -273,7 +273,7 @@ namespace assembly {
         halo_descriptor dj{1, 1, 1, d2 - 3, d2};
         auto grid = make_grid(di, dj, d3 - 1);
 
-        auto fe_comp = make_computation<backend_t>(grid,
+        auto fe_comp = make_computation<target_t>(grid,
             p_phi() = phi,
             p_psi() = psi,
             p_jac() = jac,

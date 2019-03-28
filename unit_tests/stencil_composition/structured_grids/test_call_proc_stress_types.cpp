@@ -107,7 +107,7 @@ namespace {
 } // namespace
 
 TEST_F(call_proc_stress_types, triple_nesting_with_type_switching) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
+    auto comp = gridtools::make_computation<target_t>(grid,
         p_in{} = in,
         p_out{} = out,
         gridtools::make_multistage(execute::forward(),

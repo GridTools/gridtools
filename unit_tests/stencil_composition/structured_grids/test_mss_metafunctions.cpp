@@ -27,8 +27,8 @@ struct functor1 {
     GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
-typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
-typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
+typedef storage_traits<target_t>::storage_info_t<0, 3> meta_data_t;
+typedef storage_traits<target_t>::data_store_t<float_type, meta_data_t> storage_t;
 
 typedef arg<0, storage_t> p_in;
 typedef arg<1, storage_t> p_out;

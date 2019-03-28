@@ -134,7 +134,7 @@ struct extended_4d : regression_fixture<> {
 };
 
 TEST_F(extended_4d, test) {
-    using global_par_storage_t = decltype(backend_t::make_global_parameter(elemental{}));
+    using global_par_storage_t = decltype(make_global_parameter<target_t>(elemental{}));
     arg<0, global_par_storage_t> p_phi;
     arg<1, global_par_storage_t> p_psi;
     arg<2, storage_global_quad_t> p_jac;
@@ -155,8 +155,8 @@ TEST_F(extended_4d, test) {
     };
     auto result = make_storage();
 
-    make_computation(p_phi = backend_t::make_global_parameter(elemental{phi}),
-        p_psi = backend_t::make_global_parameter(elemental{psi}),
+    make_computation(p_phi = make_global_parameter<target_t>(elemental{phi}),
+        p_psi = make_global_parameter<target_t>(elemental{psi}),
         p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
         p_f = make_storage(f),
         p_result = result,

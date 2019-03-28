@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../common/defs.hpp"
-#include "../stencil_composition/backend.hpp"
 
 #if GT_FLOAT_PRECISION == 4
 using float_type = float;
@@ -28,10 +27,4 @@ using target_t = gridtools::target::naive;
 using target_t = gridtools::target::mc;
 #elif defined(GT_BACKEND_CUDA)
 using target_t = gridtools::target::cuda;
-#else
-#define GT_NO_BACKEND
-#endif
-
-#ifndef GT_NO_BACKEND
-using backend_t = gridtools::backend<target_t>;
 #endif

@@ -45,7 +45,7 @@ TEST_F(expandable_parameters_icosahedral, test) {
     arg<0, cells, storages_t> p_out;
     arg<1, cells, storages_t> p_in;
 
-    gridtools::make_expandable_computation<backend_t>(expand_factor<2>(),
+    gridtools::make_expandable_computation<target_t>(expand_factor<2>(),
         make_grid(),
         p_out = out,
         p_in = in,

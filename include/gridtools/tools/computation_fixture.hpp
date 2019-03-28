@@ -109,7 +109,7 @@ namespace gridtools {
         using edges = enumtype::edges;
         using vertices = enumtype::vertices;
 
-        using topology_t = icosahedral_topology<backend_t>;
+        using topology_t = icosahedral_topology<target_t>;
 
         using halo_t = halo<HaloSize, 0, HaloSize, 0>;
 
@@ -178,7 +178,7 @@ namespace gridtools {
 
         template <class... Args>
         auto make_computation(Args &&... args) const
-            GT_AUTO_RETURN(::gridtools::make_computation<backend_t>(make_grid(), std::forward<Args>(args)...));
+            GT_AUTO_RETURN(::gridtools::make_computation<target_t>(make_grid(), std::forward<Args>(args)...));
 
         template <class Expected, class Actual>
         void verify(

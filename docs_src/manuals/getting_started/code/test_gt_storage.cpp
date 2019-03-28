@@ -1,4 +1,3 @@
-#include <gridtools/stencil_composition/backend.hpp>
 #include <gridtools/storage/storage_facility.hpp>
 #include <iostream>
 
@@ -9,7 +8,6 @@ using target_t = target::cuda;
 #else
 using target_t = target::mc;
 #endif
-using backend_t = backend<target_t>;
 
 using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3>;
 using data_store_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;

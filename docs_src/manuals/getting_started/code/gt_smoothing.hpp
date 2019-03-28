@@ -1,6 +1,5 @@
 #pragma once
 
-#include <gridtools/stencil_composition/backend.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/stencil_composition/stencil_functions.hpp>
 #include <gridtools/storage/storage_facility.hpp>
@@ -13,7 +12,6 @@ using target_t = target::cuda;
 #else
 using target_t = target::mc;
 #endif
-using backend_t = backend<target_t>;
 
 static constexpr unsigned halo_size = 2;
 

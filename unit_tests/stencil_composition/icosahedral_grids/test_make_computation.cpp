@@ -19,7 +19,6 @@
 
 #include "gtest/gtest.h"
 
-#include <gridtools/stencil_composition/backend.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 
 using namespace gridtools;
@@ -31,8 +30,7 @@ namespace make_computation_test {
     using level_t = level<Splitter, Offset, level_offset_limit>;
 
     typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> axis;
-    using backend_t = backend<target::x86>;
-    using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
+    using icosahedral_topology_t = gridtools::icosahedral_topology<target::naive>;
 
     struct test_functor {
         using in = in_accessor<0, icosahedral_topology_t::cells, extent<1>>;

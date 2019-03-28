@@ -36,7 +36,6 @@
  */
 
 #include <gridtools/boundary_conditions/boundary.hpp>
-#include <gridtools/stencil_composition/backend.hpp>
 #include <iostream>
 
 namespace gt = gridtools;
@@ -46,8 +45,6 @@ using target_t = gt::target::cuda;
 #else
 using target_t = gt::target::mc;
 #endif
-
-using backend_t = gt::backend<target_t>;
 
 using uint_t = unsigned;
 
@@ -129,8 +126,8 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3, gt::halo<1, 1, 1>>;
-    using storage_t = backend_t::storage_traits_t::data_store_t<int, storage_info_t>;
+    using storage_info_t = storage_traits_t<target_t>::storage_info_t<0, 3, gt::halo<1, 1, 1>>;
+    using storage_t = storage_traits_t<target_t>::data_store_t<int, storage_info_t>;
 
     // Definition of the actual data fields that are used for input/output
     storage_info_t storage_info(d1, d2, d3);

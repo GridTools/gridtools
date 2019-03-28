@@ -58,8 +58,8 @@ struct SmagUpdateFunction {
 
 TEST(multiple_outputs, compute_extents) {
 
-    typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
+    typedef storage_traits<target_t>::storage_info_t<0, 3> meta_data_t;
+    typedef storage_traits<target_t>::data_store_t<float_type, meta_data_t> storage_t;
 
     using T_sqr_s = tmp_arg<0, storage_t>;
     using S_sqr_uv = tmp_arg<1, storage_t>;
@@ -78,7 +78,7 @@ TEST(multiple_outputs, compute_extents) {
     halo_descriptor dj{2, 2, 2, 7, 10};
     auto grid_ = make_grid(di, dj, 10);
 
-    make_computation<backend_t>(grid_,
+    make_computation<target_t>(grid_,
         make_multistage(execute::forward(),
             make_stage<TensionShearFunction>(T_sqr_s(), S_sqr_uv(), u_in(), v_in()),
             make_stage<SmagCoeffFunction>(smag_u(), smag_v(), T_sqr_s(), S_sqr_uv()),

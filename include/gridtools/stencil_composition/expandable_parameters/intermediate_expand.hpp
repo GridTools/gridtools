@@ -279,7 +279,7 @@ namespace gridtools {
      */
     template <size_t ExpandFactor,
         bool IsStateful,
-        class Backend,
+        class Target,
         class Grid,
         class BoundArgStoragePairs,
         class MssDescriptors>
@@ -291,7 +291,7 @@ namespace gridtools {
 
         template <size_t N>
         using converted_intermediate = intermediate<IsStateful,
-            Backend,
+            Target,
             Grid,
             non_expandable_bound_arg_storage_pairs_t,
             GT_META_CALL(_impl::expand_detail::converted_mss_descriptors, (N, MssDescriptors))>;
@@ -308,7 +308,7 @@ namespace gridtools {
         /// reminder.
         converted_intermediate<1> m_intermediate_remainder;
 
-        typename timer_traits<typename Backend::target_t>::timer_type m_meter;
+        typename timer_traits<Target>::timer_type m_meter;
 
         template <class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs>
         intermediate_expand(Grid const &grid,

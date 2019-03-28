@@ -20,6 +20,7 @@
 #include <gridtools/boundary_conditions/value.hpp>
 #include <gridtools/distributed_boundaries/comm_traits.hpp>
 #include <gridtools/distributed_boundaries/distributed_boundaries.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
