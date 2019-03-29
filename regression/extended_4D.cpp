@@ -134,7 +134,7 @@ struct extended_4d : regression_fixture<> {
 };
 
 TEST_F(extended_4d, test) {
-    using global_par_storage_t = decltype(make_global_parameter<backend_t>(elemental{}));
+    using global_par_storage_t = global_parameter<backend_t, elemental>;
     arg<0, global_par_storage_t> p_phi;
     arg<1, global_par_storage_t> p_psi;
     arg<2, storage_global_quad_t> p_jac;

@@ -107,7 +107,7 @@ class global_accessor_single_stage : public ::testing::Test {
     storage_info_t sinfo;
     data_store_t sol_;
     boundary bd;
-    decltype(make_global_parameter<backend_t>(bd)) bd_;
+    global_parameter<backend_t, boundary> bd_;
 
     using p_sol = arg<0, data_store_t>;
     using p_bd = arg<1, decltype(bd_)>;
