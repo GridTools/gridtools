@@ -7,9 +7,11 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/stencil_composition/icosahedral_grids/icosahedral_topology.hpp>
-
 #include <gtest/gtest.h>
+
+#include <type_traits>
+
+#include <gridtools/stencil_composition/icosahedral_grids/icosahedral_topology.hpp>
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
@@ -21,23 +23,23 @@ using icosahedral_topology_t = icosahedral_topology<backend_t>;
 TEST(icosahedral_topology, layout) {
     using alayout_t = icosahedral_topology_t::layout_t<selector<1, 1, 1, 1>>;
 #ifdef __CUDACC__
-    GT_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<3, 2, 1, 0>>::value), "ERROR");
+    GT_STATIC_ASSERT((std::is_same<alayout_t, layout_map<3, 2, 1, 0>>::value), "ERROR");
 #else
-    GT_STATIC_ASSERT((boost::is_same<alayout_t, layout_map<0, 1, 2, 3>>::value), "ERROR");
+    GT_STATIC_ASSERT((std::is_same<alayout_t, layout_map<0, 1, 2, 3>>::value), "ERROR");
 #endif
 
     using alayout_2d_t = icosahedral_topology_t::layout_t<selector<1, 1, 1, 0>>;
 #ifdef __CUDACC__
-    GT_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<2, 1, 0, -1>>::value), "ERROR");
+    GT_STATIC_ASSERT((std::is_same<alayout_2d_t, layout_map<2, 1, 0, -1>>::value), "ERROR");
 #else
-    GT_STATIC_ASSERT((boost::is_same<alayout_2d_t, layout_map<0, 1, 2, -1>>::value), "ERROR");
+    GT_STATIC_ASSERT((std::is_same<alayout_2d_t, layout_map<0, 1, 2, -1>>::value), "ERROR");
 #endif
 
     using alayout_6d_t = icosahedral_topology_t::layout_t<selector<1, 1, 1, 1, 1, 1>>;
 #ifdef __CUDACC__
-    GT_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<5, 4, 3, 2, 1, 0>>::value), "ERROR");
+    GT_STATIC_ASSERT((std::is_same<alayout_6d_t, layout_map<5, 4, 3, 2, 1, 0>>::value), "ERROR");
 #else
-    GT_STATIC_ASSERT((boost::is_same<alayout_6d_t, layout_map<2, 3, 4, 5, 0, 1>>::value), "ERROR");
+    GT_STATIC_ASSERT((std::is_same<alayout_6d_t, layout_map<2, 3, 4, 5, 0, 1>>::value), "ERROR");
 #endif
 }
 

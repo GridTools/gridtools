@@ -25,7 +25,7 @@ TEST(bakend, select_layout) {
     GT_STATIC_ASSERT(
         (std::is_same<backend_t::select_layout<selector<1, 0, 1, 1>>::type, layout_map<0, -1, 1, 2>>::value), "ERROR");
     GT_STATIC_ASSERT(
-        (boost::is_same<backend_t::select_layout<selector<1, 1, 0, 1, 1>>::type, layout_map<1, 2, -1, 3, 0>>::value),
+        (std::is_same<backend_t::select_layout<selector<1, 1, 0, 1, 1>>::type, layout_map<1, 2, -1, 3, 0>>::value),
         "ERROR");
 #else
     GT_STATIC_ASSERT(
