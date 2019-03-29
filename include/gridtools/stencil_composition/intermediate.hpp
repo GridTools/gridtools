@@ -16,7 +16,6 @@
 #include "../common/timer/timer_traits.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
-#include "backend_base.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "dim.hpp"
 #include "esf.hpp"
