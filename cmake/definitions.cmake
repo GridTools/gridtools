@@ -74,9 +74,15 @@ target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
 target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(GridToolsTest INTERFACE 
-        $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-local-typedefs -Wno-attributes -Wno-unused-but-set-variable>)
+        $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-local-typedefs -Wno-attributes -Wno-unused-but-set-variable -Wno-unneeded-internal-declaration -Wno-unused-function>)
     target_compile_options(GridToolsTest INTERFACE
-        $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wall,-Wno-unknown-pragmas,-Wno-sign-compare,-Wno-attributes,-Wno-unused-but-set-variable>)
+        $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wall,-Wno-unknown-pragmas,-Wno-sign-compare,-Wno-attributes,-Wno-unused-but-set-variable,-Wno-unneeded-internal-declaration,-Wno-unused-function>)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.4.0")
+        target_compile_options(GridToolsTest INTERFACE
+            $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-value>)
+        target_compile_options(GridToolsTest INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unused-value>)
+    endif()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.9.0")
         # attribute noalias has been added in clang 3.9.0
