@@ -76,7 +76,7 @@ namespace gridtools {
         }
     } // namespace tmp_storage
 
-    template <class MaxExtent, class ArgTag, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid>
+    template <class MaxExtent, class ArgTag, class DataStore, int_t I, uint_t NColors, class Backend, class Grid>
     DataStore make_tmp_data_store(
         Backend const &, plh<ArgTag, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);

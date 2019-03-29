@@ -75,10 +75,10 @@ struct integration {
         // projection of f on a (e.g.) P1 FE space:
         // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
         // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
-        for (short_t I = 0; I < 2; ++I)
-            for (short_t J = 0; J < 2; ++J)
-                for (short_t K = 0; K < 2; ++K) {
-                    for (short_t q = 0; q < 2; ++q) {
+        for (int_t I = 0; I < 2; ++I)
+            for (int_t J = 0; J < 2; ++J)
+                for (int_t K = 0; K < 2; ++K) {
+                    for (int_t q = 0; q < 2; ++q) {
                         eval(result(di + I, dj + J, dk + K)) +=
                             eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
                                  phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +

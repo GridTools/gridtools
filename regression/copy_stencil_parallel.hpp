@@ -99,7 +99,7 @@ namespace copy_stencil {
         typedef arg<0, storage_t> p_in;
         typedef arg<1, storage_t> p_out;
 
-        array<ushort_t, 2> halo{1, 1};
+        array<uint_t, 2> halo{1, 1};
 
         if (PROCS == 1) // serial execution
             halo[0] = halo[1] = 0;

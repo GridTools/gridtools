@@ -94,7 +94,7 @@ namespace gridtools {
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
         */
         GT_FUNCTION int_t loop_low_bound_outside(
-            short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+            int_t I) const { // inside is the fact that the halos are ones outside the begin-end region
             switch (I) {
             case 0:
                 return m_begin;
@@ -113,7 +113,7 @@ namespace gridtools {
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
          */
         GT_FUNCTION int_t loop_high_bound_outside(
-            short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+            int_t I) const { // inside is the fact that the halos are ones outside the begin-end region
             switch (I) {
             case 0:
                 return m_end;
@@ -132,7 +132,7 @@ namespace gridtools {
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
          */
         GT_FUNCTION int_t loop_low_bound_inside(
-            short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+            int_t I) const { // inside is the fact that the halos are ones outside the begin-end region
 
             switch (I) {
             case 0:
@@ -152,7 +152,7 @@ namespace gridtools {
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
          */
         GT_FUNCTION int_t loop_high_bound_inside(
-            short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
+            int_t I) const { // inside is the fact that the halos are ones outside the begin-end region
             switch (I) {
             case 0:
                 return m_end;
@@ -172,7 +172,7 @@ namespace gridtools {
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS
            \endlink)
         */
-        GT_FUNCTION uint_t r_length(short_t I) const {
+        GT_FUNCTION uint_t r_length(int_t I) const {
             switch (I) {
             case 0:
                 return (m_end - m_begin + 1);
@@ -192,7 +192,7 @@ namespace gridtools {
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS
            \endlink)
         */
-        GT_FUNCTION uint_t s_length(short_t I) const {
+        GT_FUNCTION uint_t s_length(int_t I) const {
             switch (I) {
             case 0:
                 return (m_end - m_begin + 1);
