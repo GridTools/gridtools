@@ -68,5 +68,36 @@ namespace gridtools {
             EXPECT_EQ(expected_stride3, at_key<tmp_cuda::block_j>(strides));
             EXPECT_EQ(expected_stride4, at_key<dim::k>(strides));
         }
+
+        TEST(tmp_cuda_storage_sid, maker) {
+            int_t n_blocks_i = 11;
+            int_t n_blocks_j = 12;
+            int_t k_size = 13;
+            auto testee = make_tmp_storage_cuda<data_t>(tmp_cuda::blocksize<blocksize_i, blocksize_j>{},
+                extent<extent_i_minus, extent_i_plus, extent_j_minus, extent_j_plus>{},
+                n_blocks_i,
+                n_blocks_j,
+                k_size,
+                cuda_allocator{});
+
+            using tmp_cuda_t = decltype(testee);
+            static_assert(is_sid<tmp_cuda_t>(), "");
+            ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, tmp_cuda_t), data_t *>();
+            ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, tmp_cuda_t), int_t>();
+
+            auto strides = sid::get_strides(testee);
+
+            int expected_stride0 = 1;
+            int expected_stride1 = blocksize_i - extent_i_minus + extent_i_plus;
+            int expected_stride2 = expected_stride1 * (blocksize_j - extent_j_minus + extent_j_plus);
+            int expected_stride3 = expected_stride2 * n_blocks_i;
+            int expected_stride4 = expected_stride3 * n_blocks_j;
+
+            EXPECT_EQ(expected_stride0, at_key<dim::i>(strides));
+            EXPECT_EQ(expected_stride1, at_key<dim::j>(strides));
+            EXPECT_EQ(expected_stride2, at_key<tmp_cuda::block_i>(strides));
+            EXPECT_EQ(expected_stride3, at_key<tmp_cuda::block_j>(strides));
+            EXPECT_EQ(expected_stride4, at_key<dim::k>(strides));
+        }
     } // namespace
 } // namespace gridtools
