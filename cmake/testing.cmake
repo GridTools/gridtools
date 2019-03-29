@@ -68,26 +68,18 @@ function (fetch_tests_helper target_arch filetype test_environment subfolder )
     endif()
 endfunction()
 
-# This function will fetch all x86 test cases in the given directory.
-# Only used for gcc or clang compilations
 function(fetch_x86_tests)
     fetch_tests_helper(x86 cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_x86_tests)
 
-# This function will fetch all naive test cases in the given directory.
-# Only used for gcc or clang compilations
 function(fetch_naive_tests)
     fetch_tests_helper(naive cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_naive_tests)
 
-# This function will fetch all mc test cases in the given directory.
-# Only used for gcc or clang compilations
 function(fetch_mc_tests)
     fetch_tests_helper(mc cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_mc_tests)
 
-# This function will fetch all gpu test cases in the given directory.
-# Only used for nvcc compilations
 function(fetch_gpu_tests)
     set(CUDA_SEPARABLE_COMPILATION OFF) # TODO required?
     fetch_tests_helper(cuda cu "${TEST_CUDA_ENVIRONMENT}" ${ARGN})
