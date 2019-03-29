@@ -19,7 +19,7 @@
  *  where:
  *    MaxExtent - integral_constant with maximal absolute extent in I direction.
  *                TODO(anstaf): change to fully specified max extent
- *    Backend  - instantiation of target
+ *    Backend  - instantiation of backend
  *    Arg      - instantiation of arg
  *    Grid     - instantiation of grid
  *    Strides  - 3D struct with the strides that are taken from the DataStore, returned by make_tmp_data_store
