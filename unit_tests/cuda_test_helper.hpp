@@ -18,7 +18,7 @@
 #include <gridtools/common/cuda_util.hpp>
 #include <gridtools/common/integral_constant.hpp>
 
-#define MAKE_CONSTANT(fun) gridtools::integral_constant<decltype(&fun), &fun>()
+#define GT_MAKE_CONSTANT(fun) gridtools::integral_constant<decltype(&fun), &fun>()
 
 namespace gridtools {
     namespace on_device {
