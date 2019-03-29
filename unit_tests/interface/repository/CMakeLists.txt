@@ -55,7 +55,7 @@ if (GT_ENABLE_BACKEND_X86)
         NAME custom_test_generated_repository
         SCRIPT ${TEST_SCRIPT}
         COMMAND $<TARGET_FILE:custom_test_generated_repository>
-        LABELS unittest_x86 target_x86
+        LABELS unittest_x86 backend_x86
         ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
         )
     add_dependencies(custom_test_generated_repository generated_repository)

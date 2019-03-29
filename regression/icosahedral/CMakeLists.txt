@@ -30,14 +30,14 @@ if(GT_ENABLE_BACKEND_X86)
             NAME tests.${srcfile}_x86_12_33_61
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_x86> 12 33 61
-            LABELS regression_x86 target_x86
+            LABELS regression_x86 backend_x86
             ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
             )
         gridtools_add_test(
             NAME tests.${srcfile}_x86_23_11_43
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_x86> 23 11 43
-            LABELS regression_x86 target_x86
+            LABELS regression_x86 backend_x86
             ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
             )
 
@@ -56,14 +56,14 @@ if(GT_ENABLE_BACKEND_NAIVE)
             NAME tests.${srcfile}_naive_12_33_21
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_naive> 12 33 21
-            LABELS regression_naive target_naive
+            LABELS regression_naive backend_naive
             ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
             )
         gridtools_add_test(
             NAME tests.${srcfile}_naive_23_11_23
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_naive> 23 11 23
-            LABELS regression_naive target_naive
+            LABELS regression_naive backend_naive
             ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
             )
 
@@ -83,14 +83,14 @@ if(GT_ENABLE_BACKEND_CUDA)
             NAME tests.${srcfile}_cuda_77_48_61
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_cuda> 77 48 61
-            LABELS regression_cuda target_cuda
+            LABELS regression_cuda backend_cuda
             ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
             )
         gridtools_add_test(
             NAME tests.${srcfile}_cuda_63_55_43
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 55 43
-            LABELS regression_cuda target_cuda
+            LABELS regression_cuda backend_cuda
             ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
             )
 
