@@ -25,7 +25,7 @@ if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
         add_getting_started_test(SOURCE ${test_source} SUFFIX "" ENVIRONMENT ${TEST_HOST_ENVIRONMENT})
     endforeach()
 
-    if(GT_ENABLE_TARGET_CUDA)
+    if(GT_ENABLE_BACKEND_CUDA)
         file(GLOB getting_started_sources "code/test_*.cu")
         foreach(test_source IN LISTS getting_started_sources)
             add_getting_started_test(SOURCE ${test_source} SUFFIX "_cuda" ENVIRONMENT ${TEST_CUDA_ENVIRONMENT})

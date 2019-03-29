@@ -18,11 +18,11 @@ def build_and_test(args):
     cmake_args['CMAKE_BUILD_TYPE'] = args.build_type
 
     # backend selection
-    cmake_args['GT_ENABLE_TARGET_CUDA'] = False
-    cmake_args['GT_ENABLE_TARGET_X86'] = False
-    cmake_args['GT_ENABLE_TARGET_NAIVE'] = False
-    cmake_args['GT_ENABLE_TARGET_MC'] = False
-    cmake_args['GT_ENABLE_TARGET_' + args.backend.upper()] = True
+    cmake_args['GT_ENABLE_BACKEND_CUDA'] = False
+    cmake_args['GT_ENABLE_BACKEND_X86'] = False
+    cmake_args['GT_ENABLE_BACKEND_NAIVE'] = False
+    cmake_args['GT_ENABLE_BACKEND_MC'] = False
+    cmake_args['GT_ENABLE_BACKEND_' + args.backend.upper()] = True
 
     # precision
     cmake_args['GT_SINGLE_PRECISION'] = args.precision == 'float'
