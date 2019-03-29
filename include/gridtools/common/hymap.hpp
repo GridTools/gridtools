@@ -129,8 +129,26 @@ namespace gridtools {
 
                 tuple<Vals...> m_vals;
 
-                constexpr GT_FUNCTION values(Vals const &... args) noexcept : m_vals(args...) {}
+                constexpr GT_FUNCTION values(Vals const &... args) noexcept : m_vals({args...}) {}
                 GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_vals);
+
+                GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_vals);
+
+                friend keys hymap_get_keys(values const &) { return {}; }
+
+                using type = values;
+            };
+            using type = keys;
+        };
+
+        template <>
+        struct keys<> {
+            template <class... Vals>
+            struct values {
+                GT_STATIC_ASSERT(sizeof...(Vals) == 0, "invalid hymap");
+
+                tuple<> m_vals;
+
                 GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_vals);
 
                 friend keys hymap_get_keys(values const &) { return {}; }

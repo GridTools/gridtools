@@ -74,25 +74,9 @@ namespace gridtools {
 
             EXPECT_EQ(expected_stride0, at_key<dim::i>(strides));
             EXPECT_EQ(expected_stride1, at_key<dim::j>(strides));
-            EXPECT_EQ(expected_stride2, at_key<block_i>(strides));
-            EXPECT_EQ(expected_stride3, at_key<block_j>(strides));
+            EXPECT_EQ(expected_stride2, at_key<tmp_cuda::block_i>(strides));
+            EXPECT_EQ(expected_stride3, at_key<tmp_cuda::block_j>(strides));
             EXPECT_EQ(expected_stride4, at_key<dim::k>(strides));
-        }
-
-        // TODO move allocator into separate file?
-        __global__ void test_allocated(float_type *data) { *data = 1; }
-
-        TEST(simple_cuda_allocator, test) {
-            // TODO use test functionality
-            simple_cuda_allocator alloc;
-            auto shared_cuda_ptr = alloc.allocate(sizeof(float_type));
-
-            float_type *ptr = static_cast<float_type *>(shared_cuda_ptr.get());
-            float_type data;
-
-            test_allocated<<<1, 1>>>(ptr);
-            cudaMemcpy(&data, ptr, sizeof(float_type), cudaMemcpyDeviceToHost);
-            ASSERT_EQ(1, data);
         }
     } // namespace
 } // namespace gridtools

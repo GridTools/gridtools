@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../../common/array.hpp"
+#include "../../common/cuda_allocator.hpp"
 #include "../../common/cuda_util.hpp"
 #include "../../common/functional.hpp"
 #include "../../common/hymap.hpp"
@@ -19,20 +20,23 @@
 #include "../dim.hpp"
 #include <memory>
 
-using gridtools::host::constant;
-
 namespace gridtools {
-    class simple_cuda_allocator {
-      public:
-        std::shared_ptr<void> allocate(size_t bytes) {
-            char *ptr;
-            GT_CUDA_CHECK(cudaMalloc(&ptr, bytes));
-            return std::shared_ptr<void>(ptr, [](char *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
-        }
-    };
+    namespace tmp_storage_sid_impl_ {
+        template <class Extents, class ComputeBlockSizes>
+        using compute_bock_size_i = integral_constant<int_t,
+            meta::at_c<ComputeBlockSizes, 0>::value + meta::at_c<meta::at_c<Extents, 0>, 0>::value +
+                meta::at_c<meta::at_c<Extents, 0>, 1>::value>; // TODO uglify
 
-    struct block_i;
-    struct block_j;
+        template <class Extents, class ComputeBlockSizes>
+        using compute_bock_size_j = integral_constant<int_t,
+            meta::at_c<ComputeBlockSizes, 1>::value + meta::at_c<meta::at_c<Extents, 1>, 0>::value +
+                meta::at_c<meta::at_c<Extents, 1>, 1>::value>; // TODO uglify
+    }                                                          // namespace tmp_storage_sid_impl_
+
+    namespace tmp_cuda {
+        struct block_i;
+        struct block_j;
+    } // namespace tmp_cuda
 
     // - k is the last dimension, then strides_kind doesn't need to distinguish between storages of different k-size
     // - If max extent of all temporaries is used (instead of per temporary extent),
@@ -41,18 +45,17 @@ namespace gridtools {
     struct tmp_cuda_strides_kind;
 
     template <class T,
-        class Extents,                                // TODO how to pass extents?
-        class ComputeBlockSizes /*, uint_t NColors*/, // TODO separate storage for icosahedral or implement here?
-        class BlockSizeI = integral_constant<int_t,
-            meta::at_c<ComputeBlockSizes, 0>::value + meta::at_c<meta::at_c<Extents, 0>, 0>::value +
-                meta::at_c<meta::at_c<Extents, 0>, 1>::value>, // TODO make readable // TODO uglify
-        class BlockSizeJ = integral_constant<int_t,
-            meta::at_c<ComputeBlockSizes, 1>::value + meta::at_c<meta::at_c<Extents, 1>, 0>::value +
-                meta::at_c<meta::at_c<Extents, 1>, 1>::value>>
+        class Extents, // TODO how to pass extents?
+        class ComputeBlockSizes
+        /*, uint_t NColors*/ // TODO separate storage for icosahedral or implement here?
+        >
     struct tmp_storage_cuda {
-        using strides_t = hymap::keys<dim::i, dim::j, block_i, block_j, dim::k>::values<integral_constant<int_t, 1>,
-            BlockSizeI,
-            integral_constant<int_t, BlockSizeI{} * BlockSizeJ{}>,
+        using strides_t = hymap::keys<dim::i, dim::j, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>::values<
+            integral_constant<int_t, 1>,
+            tmp_storage_sid_impl_::compute_bock_size_i<Extents, ComputeBlockSizes>,
+            integral_constant<int_t,
+                tmp_storage_sid_impl_::compute_bock_size_i<Extents, ComputeBlockSizes>{} *
+                    tmp_storage_sid_impl_::compute_bock_size_j<Extents, ComputeBlockSizes>{}>,
             int_t,
             int_t>;
 
@@ -72,8 +75,8 @@ namespace gridtools {
             return {static_cast<T *>(t.m_cuda_ptr.get())};
         }
         friend strides_t sid_get_strides(tmp_storage_cuda const &t) { return t.m_strides; }
-        friend int_t sid_get_ptr_diff(tmp_storage_cuda const &);
-        friend tmp_cuda_strides_kind<Extents> sid_get_strides_kind(tmp_storage_cuda const &);
+        friend int_t sid_get_ptr_diff(tmp_storage_cuda const &) { return {}; };
+        friend tmp_cuda_strides_kind<Extents> sid_get_strides_kind(tmp_storage_cuda const &) { return {}; };
     };
 
 } // namespace gridtools
