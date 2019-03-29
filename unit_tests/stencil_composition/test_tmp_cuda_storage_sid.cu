@@ -26,49 +26,39 @@ namespace gridtools {
 
         using data_t = float_type;
 
-        using extent_i_minus = integral_constant<int_t, 1>;
-        using extent_i_plus = integral_constant<int_t, 2>;
-        using extent_i = meta::list<extent_i_minus, extent_i_plus>;
-        using extent_j_minus = integral_constant<int_t, 3>;
-        using extent_j_plus = integral_constant<int_t, 4>;
-        using extent_j = meta::list<extent_j_minus, extent_j_plus>;
-        using extents_t = meta::list<extent_i, extent_j>;
+        constexpr int_t extent_i_minus = -1;
+        constexpr int_t extent_i_plus = 2;
+        constexpr int_t extent_j_minus = -3;
+        constexpr int_t extent_j_plus = 4;
 
-        using blocksize_i = integral_constant<int_t, 32>;
-        using blocksize_j = integral_constant<int_t, 8>;
-        using blocksizes_t = meta::list<blocksize_i, blocksize_j>;
+        constexpr int_t blocksize_i = 32;
+        constexpr int_t blocksize_j = 8;
 
-        using tmp_storage_cuda_t = tmp_storage_cuda<data_t, extents_t, blocksizes_t>;
+        using tmp_storage_cuda_t = tmp_storage_cuda<data_t,
+            blocksize_i,
+            blocksize_j,
+            extent_i_minus,
+            extent_i_plus,
+            extent_j_minus,
+            extent_j_plus>;
 
         TEST(tmp_cuda_storage_sid, concept) {
             static_assert(is_sid<tmp_storage_cuda_t>(), "");
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, tmp_storage_cuda_t), data_t *>();
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, tmp_storage_cuda_t), int_t>();
-            static_assert(
-                std::is_same<GT_META_CALL(sid::strides_kind, tmp_storage_cuda_t), tmp_cuda_strides_kind<extents_t>>(),
-                "");
-
-            using strides_t = GT_META_CALL(sid::strides_type, tmp_storage_cuda_t);
-
-            static_assert(tu::size<strides_t>() == 5, "");
-            ASSERT_TYPE_EQ<GT_META_CALL(tu::element, (0, strides_t)), integral_constant<int_t, 1>>();
-            ASSERT_TYPE_EQ<GT_META_CALL(tu::element, (3, strides_t)), int_t>();
-            ASSERT_TYPE_EQ<GT_META_CALL(tu::element, (4, strides_t)), int_t>();
         }
 
         TEST(tmp_cuda_storage_sid, strides) {
             int_t n_blocks_i = 11;
             int_t n_blocks_j = 12;
             int_t k_size = 13;
-            tmp_storage_cuda_t testee = {{n_blocks_i, n_blocks_j}, k_size};
-
-            EXPECT_EQ(testee.m_cuda_ptr.get(), sid::get_origin(testee)());
+            tmp_storage_cuda_t testee = {n_blocks_i, n_blocks_j, k_size, cuda_allocator{}};
 
             auto strides = sid::get_strides(testee);
 
             int expected_stride0 = 1;
-            int expected_stride1 = blocksize_i{} + extent_i_minus{} + extent_i_plus{};
-            int expected_stride2 = expected_stride1 * (blocksize_j{} + extent_j_minus{} + extent_j_plus{});
+            int expected_stride1 = blocksize_i - extent_i_minus + extent_i_plus;
+            int expected_stride2 = expected_stride1 * (blocksize_j - extent_j_minus + extent_j_plus);
             int expected_stride3 = expected_stride2 * n_blocks_i;
             int expected_stride4 = expected_stride3 * n_blocks_j;
 

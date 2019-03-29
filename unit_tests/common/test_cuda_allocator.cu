@@ -21,9 +21,9 @@ namespace gridtools {
         TEST(simple_cuda_allocator, test) {
             // TODO use test functionality
             cuda_allocator alloc;
-            auto shared_cuda_ptr = alloc.allocate(sizeof(float_type));
+            auto ptr_holder = alloc.allocate<float_type>(1);
 
-            float_type *ptr = static_cast<float_type *>(shared_cuda_ptr.get());
+            float_type *ptr = ptr_holder();
             float_type data;
 
             test_allocated<<<1, 1>>>(ptr);
