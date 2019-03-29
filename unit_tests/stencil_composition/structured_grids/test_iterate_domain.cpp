@@ -12,7 +12,9 @@
 #ifdef GT_BACKEND_X86
 #include <gridtools/stencil_composition/structured_grids/backend_x86/iterate_domain_x86.hpp>
 #endif
-
+#ifdef GT_BACKEND_NAIVE
+#include <gridtools/stencil_composition/structured_grids/backend_naive/iterate_domain_naive.hpp>
+#endif
 #ifdef GT_BACKEND_MC
 #include <gridtools/stencil_composition/structured_grids/backend_mc/iterate_domain_mc.hpp>
 #endif
@@ -88,12 +90,14 @@ namespace gridtools {
                 std::tuple<>,
                 gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
-#ifdef GT_BACKEND_MC
-            using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
-#endif
-
 #ifdef GT_BACKEND_X86
             using it_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
+#endif
+#ifdef GT_BACKEND_NAIVE
+            using it_domain_t = iterate_domain_naive<iterate_domain_arguments_t>;
+#endif
+#ifdef GT_BACKEND_MC
+            using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
 #endif
 
             it_domain_t it_domain(local_domain1);
