@@ -15,8 +15,7 @@
 #include <functional>
 #include <memory>
 #include <string>
-
-#include <boost/mpl/bool.hpp>
+#include <type_traits>
 
 #include "../common/gt_assert.hpp"
 #include "common/definitions.hpp"
@@ -375,10 +374,10 @@ namespace gridtools {
 
     /// @brief simple metafunction to check if a type is a data_store
     template <typename T>
-    struct is_data_store : boost::mpl::false_ {};
+    struct is_data_store : std::false_type {};
 
     template <typename S, typename SI>
-    struct is_data_store<data_store<S, SI>> : boost::mpl::true_ {};
+    struct is_data_store<data_store<S, SI>> : std::true_type {};
 
     /**
      * @}
