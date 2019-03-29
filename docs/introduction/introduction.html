@@ -228,15 +228,15 @@ and run the gridtools tests.</p>
 <div class="highlight-shell"><div class="highlight"><pre><span></span>git clone http://github.com/eth-cscs/gridtools.git
 <span class="nb">cd</span> gridtools
 mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
-cmake -DGT_ENABLE_BACKEND_MC<span class="o">=</span>ON -DGT_ENABLE_BACKEND_CUDA<span class="o">=</span>ON -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local ..
+cmake -DGT_ENABLE_TARGET_MC<span class="o">=</span>ON -DGT_ENABLE_TARGET_CUDA<span class="o">=</span>ON -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local ..
 make install -j4
 make <span class="nb">test</span>
 </pre></div>
 </div>
 <p><cite>GridTools</cite> uses CMake as building system. The installation can be configured using <cite>ccmake</cite>. The following variables control the back-ends that will be supported by the runtime components of the installation, namely <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">GCL</span></a>.</p>
-<div class="highlight-shell"><div class="highlight"><pre><span></span>GT_ENABLE_BACKEND_CUDA <span class="c1"># For CUDA GPUs</span>
-GT_ENABLE_BACKEND_X86  <span class="c1"># For cache based multicores and naive implementation</span>
-GT_ENABLE_BACKEND_MC   <span class="c1"># For optimized multicores and KNL</span>
+<div class="highlight-shell"><div class="highlight"><pre><span></span>GT_ENABLE_TARGET_CUDA <span class="c1"># For CUDA GPUs</span>
+GT_ENABLE_TARGET_X86  <span class="c1"># For cache based multicores and naive implementation</span>
+GT_ENABLE_TARGET_MC   <span class="c1"># For optimized multicores and KNL</span>
 </pre></div>
 </div>
 <p>All the targets can be installed and used at the same time, but some runtime components may lead to incompatibilities or complex environments to make the codes run. It may be more effective to do multiple installs of the library for different targets in this case.</p>
