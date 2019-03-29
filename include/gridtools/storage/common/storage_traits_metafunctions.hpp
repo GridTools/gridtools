@@ -10,17 +10,11 @@
 
 #pragma once
 
-#include <boost/mpl/count_if.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/remove.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/type_traits.hpp>
-
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/layout_map.hpp"
 #include "../../common/selector.hpp"
+#include "../../meta/logical.hpp"
 
 namespace gridtools {
 
@@ -125,50 +119,6 @@ namespace gridtools {
         typedef layout_map<2, 1, 0> type;
     };
 
-    /* special layout construction mechanisms */
-
-    /**
-     * @brief simple mechanism that is used when iterating through
-     * a list of integers and a given selector. If the selector is 1
-     * the current integer is returned otherwise -1 is returned.
-     * @tparam Dim integer
-     * @tparam Bit either true or false
-     */
-    template <int Dim, bool Bit>
-    struct select_dimension {
-        const static int value = (Bit) ? Dim : -1;
-    };
-
-    /**
-     * @brief negation of select_dimension
-     * @tparam Dim integer
-     * @tparam Bit either true or false
-     */
-    template <int Dim, bool Bit>
-    struct select_non_dimension {
-        const static int value = (!Bit) ? Dim : -1;
-    };
-
-    /**
-     * @brief helper metafunction. when we create a layout_map with n-dimensions we
-     * have to fix the values when dimensions are masked.
-     * E.g., layout_map<3,2,-1,0> has to be fixed to layout_map<2,1,-1,0>
-     * @tparam Vec selector
-     * @tparam T the layout_map type
-     */
-    template <typename Vec, typename T>
-    struct fix_values;
-
-    template <typename ValueVec, int... D>
-    struct fix_values<ValueVec, layout_map<D...>> {
-        typedef layout_map<boost::mpl::if_<boost::is_same<boost::mpl::int_<-1>, boost::mpl::int_<D>>,
-            boost::mpl::int_<-1>,
-            boost::mpl::int_<(int)(D - (int)boost::mpl::count_if<ValueVec,
-                                           boost::mpl::less<boost::mpl::_, boost::mpl::int_<D>>>::type::value)>>::type::
-                value...>
-            type;
-    };
-
     /**
      * @brief metafunction used to retrieve special layout_map.
      * Special layout_map are layout_maps with masked dimensions.
@@ -180,19 +130,12 @@ namespace gridtools {
 
     template <int... Dims, bool... Bitmask>
     struct get_special_layout<layout_map<Dims...>, selector<Bitmask...>> {
-        // <1,1,0,0,1,1>
-        typedef typename variadic_to_vector<boost::mpl::int_<Bitmask>...>::type bitmask_vec;
-        GT_STATIC_ASSERT(
-            (boost::mpl::count_if<bitmask_vec, boost::is_same<boost::mpl::int_<-1>, boost::mpl::_1>>::value <
-                sizeof...(Dims)),
-            GT_INTERNAL_ERROR_MSG("Masking out all dimensions makes no sense."));
-        // <1,2,3,4,5,0>
-        typedef typename variadic_to_vector<boost::mpl::int_<Dims>...>::type dims_vec;
-        // <3,4>
-        typedef typename boost::mpl::remove<
-            typename variadic_to_vector<boost::mpl::int_<select_non_dimension<Dims, Bitmask>::value>...>::type,
-            boost::mpl::int_<-1>>::type masked_vec;
-        typedef typename fix_values<masked_vec, layout_map<select_dimension<Dims, Bitmask>::value...>>::type type;
+        static constexpr int correction(int D) {
+            return accumulate(plus_functor{}, (!Bitmask && Dims >= 0 && Dims < D ? 1 : 0)...);
+        }
+
+      public:
+        using type = layout_map<(Bitmask ? Dims - correction(Dims) : -1)...>;
     };
 
     /**
