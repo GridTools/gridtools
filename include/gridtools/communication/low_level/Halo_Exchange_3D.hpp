@@ -16,7 +16,6 @@
 #include "../../common/gt_assert.hpp"
 #include "../GCL.hpp"
 #include "has_communicator.hpp"
-#include "helper.hpp"
 #include "translate.hpp"
 
 /** \file
@@ -245,10 +244,7 @@ namespace gridtools {
 
         sr_buffers m_send_buffers;
         sr_buffers m_recv_buffers;
-#if defined(GCL_HOSTWORKAROUND)
-        sr_buffers m_host_send_buffers;
-        sr_buffers m_host_recv_buffers;
-#endif
+
         request_t request;
         request_t_mark send_request;
 
@@ -269,17 +265,6 @@ namespace gridtools {
                 double begin_time = MPI_Wtime();
 #endif
 
-#ifdef GCL_HOSTWORKAROUND
-                // using host workaround on gpu
-                // post receive to the page-locked buffer on the host
-                MPI_Irecv(static_cast<char *>(m_host_recv_buffers.buffer(I, J, K)),
-                    m_recv_buffers.size(I, J, K),
-                    MPI_CHAR,
-                    m_proc_grid.template proc<I, J, K>(),
-                    TAG<-I, -J, -K>::value,
-                    get_communicator(m_proc_grid),
-                    &request(-I, -J, -K));
-#else
                 MPI_Irecv(static_cast<char *>(m_recv_buffers.buffer(I, J, K)),
                     m_recv_buffers.size(I, J, K),
                     MPI_CHAR,
@@ -287,7 +272,6 @@ namespace gridtools {
                     TAG<-I, -J, -K>::value,
                     get_communicator(m_proc_grid),
                     &request(-I, -J, -K));
-#endif
 #ifdef GCL_TRACE
                 double end_time = MPI_Wtime();
                 stats_collector_3D.add_event(CommEvent(ce_receive,
@@ -316,23 +300,6 @@ namespace gridtools {
                 double begin_time = MPI_Wtime();
 #endif
 
-#ifdef GCL_HOSTWORKAROUND
-                // using host workaround on gpu
-                // copy data from device to host
-                GT_CUDA_CHECK(cudaMemcpy(static_cast<void *>(m_host_send_buffers.buffer(I, J, K)),
-                    static_cast<const void *>(m_send_buffers.buffer(I, J, K)),
-                    m_host_send_buffers.size(I, J, K),
-                    cudaMemcpyDeviceToHost));
-
-                // perform send from host buffer
-                MPI_Isend(static_cast<char *>(m_host_send_buffers.buffer(I, J, K)),
-                    m_send_buffers.size(I, J, K),
-                    MPI_CHAR,
-                    m_proc_grid.template proc<I, J, K>(),
-                    TAG<I, J, K>::value,
-                    get_communicator(m_proc_grid),
-                    &send_request(I, J, K));
-#else
                 MPI_Isend(static_cast<char *>(m_send_buffers.buffer(I, J, K)),
                     m_send_buffers.size(I, J, K),
                     MPI_CHAR,
@@ -340,7 +307,7 @@ namespace gridtools {
                     TAG<I, J, K>::value,
                     get_communicator(m_proc_grid),
                     &send_request(I, J, K));
-#endif
+
                 send_request.set(I, J, K);
 #ifdef GCL_TRACE
                 double end_time = MPI_Wtime();
@@ -395,14 +362,6 @@ namespace gridtools {
 
                 MPI_Status status;
                 MPI_Wait(&request(-I, -J, -K), &status);
-#ifdef GCL_HOSTWORKAROUND
-                // copy from host buffers to device
-                // only need to do this if receiving from another PID
-                GT_CUDA_CHECK(cudaMemcpy(static_cast<void *>(m_recv_buffers.buffer(I, J, K)),
-                    static_cast<const void *>(m_host_recv_buffers.buffer(I, J, K)),
-                    m_host_recv_buffers.size(I, J, K),
-                    cudaMemcpyHostToDevice));
-#endif
 #ifdef GCL_TRACE
                 double end_time = MPI_Wtime();
                 stats_collector_3D.add_event(CommEvent(ce_receive_wait,
@@ -486,11 +445,6 @@ namespace gridtools {
 
             m_send_buffers.buffer(I, J, K) = reinterpret_cast<char *>(p);
             m_send_buffers.size(I, J, K) = s;
-#ifdef GCL_HOSTWORKAROUND
-            // allocate a buffer on the host with page-locked memory
-            m_host_send_buffers.buffer(I, J, K) = _impl::helper_alloc<char, _impl::host_page_locked>::alloc(s);
-            m_host_send_buffers.size(I, J, K) = s;
-#endif
         }
 
         /** Function to register send buffers with the communication patter.
@@ -554,11 +508,6 @@ namespace gridtools {
 
             m_recv_buffers.buffer(I, J, K) = reinterpret_cast<char *>(p);
             m_recv_buffers.size(I, J, K) = s;
-#ifdef GCL_HOSTWORKAROUND
-            // allocate a buffer on the host with page-locked memory
-            m_host_recv_buffers.buffer(I, J, K) = _impl::helper_alloc<char, _impl::host_page_locked>::alloc(s);
-            m_host_recv_buffers.size(I, J, K) = s;
-#endif
         }
 
         /** Function to register buffers for received data with the communication patter.
@@ -689,11 +638,6 @@ namespace gridtools {
             BOOST_MPL_ASSERT_RELATION(K, <=, 1);
 
             set_receive_from_size(s, I, J, K);
-#ifdef GCL_HOSTWORKAROUND
-            // throw an assertion because the page-locked buffer allocated in the workaround
-            // has fixed size (if this is a problem we can free, then reallocate memory)
-            assert(false);
-#endif
         }
 
         /** Retrieve the size of the buffer containing data to be sent to neighbor I, J, K.

@@ -91,7 +91,7 @@ distribution like in :numref:`fig_dist1`.
    :scale: 40%
 
    Example data distribution among two processes.
-   
+
 In this case the map between data and the processor grid is:
 
 .. code-block:: gridtools
@@ -162,20 +162,21 @@ the name of arguments should be self-explanatory:
 GCL Communication Module
 -------------------------
 
-Now we are ready to describe the :term:`Halo Exchange` patterns objects. The first one is ``halo_exchange_dynamic_ut``. The ``ut`` suffix stands for ``uniform types``, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The type of the object is defined as in this example:
+Now we are ready to describe the :term:`Halo Exchange` patterns objects. The first one is ``halo_exchange_dynamic_ut``. The ``ut`` suffix stands for ``uniform types``, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The domain decomposition goes up to three dimensions and the data to be exchanged contained in 3 dimensional arrays (lower dimensions can be handled by setting the missing dimensions to 1). Being designed for three dimensional data, the layout maps have three elements (refer to :numref:storage-info for more information).
+
+The type of the object is defined as in this example:
 
 .. code-block:: gridtools
 
   using pattern_type = halo_exchange_dynamic_ut<layout_map<0, 1, 2>,
-                       ayout_map<0, 1, 2>, value_type, 3, gcl_cpu>;
+                       layout_map<0, 1, 2>, value_type, gcl_cpu>;
 
 The template arguments are:
 
 1. the layout if the data;
 2. the mapping between the data dimensions and processing :term:`Grid`, as described above (leave it as ``layout_map<0, 1, 2>`` if in doubt);
 3. the type of the values to be exchanged;
-4. the number of dimensions of the data/processing grid, and it has to be set to 3 (the GCL was designed to work with other dimensionalities, but the version in |GT| is a stripped down version waiting for the next more general interfaces);
-5. the place where the data lives and for which the code is optimized. The options for this arguments are ``gcl_gpu``, ``gcl_cpu`` and ``gcl_mc`` (not supported yet).
+4. the place where the data lives and for which the code is optimized. The options for this arguments are ``gcl_gpu``, ``gcl_cpu`` and ``gcl_mc`` (not supported yet).
 
 The :term:`Halo Exchange` object can be instantiated as:
 
@@ -235,11 +236,12 @@ An alternative pattern supporting different element types is:
 
 .. code-block:: gridtools
 
-  using pattern_type = halo_exchange_generic<layout_map<0, 1, 2>, 3, arch_type>;
+  using pattern_type = halo_exchange_generic<layout_map<0, 1, 2>, arch_type>;
 
-Now the :term:`Layout Map` in the type is the mapping of dimensions to the
-computing grid, 3 is the number of dimensions, and arch_type is either
-``gcl_gpu``, ``gcl_cpu`` or ``gcl_mc`` (not supported yet).
+Now the :term:`Layout Map` in the type is the mapping of dimensions to
+the computing grid (the number of dimensions is 3, so the layout map
+has three elements), and arch_type is either ``gcl_gpu``, ``gcl_cpu``
+or ``gcl_mc`` (not supported yet).
 
 The construction of the object is identical to the previous one, but
 the set-up somewhat more complex now, since we have to indicate the
