@@ -25,8 +25,7 @@ namespace gridtools {
     }
 
     template <typename _grid_>
-    MPI_Comm get_communicator(
-        _grid_ const &g, typename std::enable_if<!_grid_::has_communicator::value>::type > ::type * = 0) {
+    MPI_Comm get_communicator(_grid_ const &g, typename std::enable_if<!_grid_::has_communicator::value>::type * = 0) {
         return gridtools::GCL_WORLD;
     }
 
