@@ -78,7 +78,7 @@ and run the gridtools tests.
  git clone http://github.com/eth-cscs/gridtools.git
  cd gridtools
  mkdir build && cd build
- cmake -DGT_ENABLE_TARGET_MC=ON -DGT_ENABLE_TARGET_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
+ cmake -DGT_ENABLE_BACKEND_MC=ON -DGT_ENABLE_BACKEND_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
  make install -j4
  make test
 
@@ -86,10 +86,10 @@ and run the gridtools tests.
 
 .. code-block:: shell
 
- GT_ENABLE_TARGET_CUDA # For CUDA GPUs
- GT_ENABLE_TARGET_X86  # For cache based multicores
- GT_ENABLE_TARGET_NAIVE  # For naive implementation
- GT_ENABLE_TARGET_MC   # For optimized multicores and KNL
+ GT_ENABLE_BACKEND_CUDA # For CUDA GPUs
+ GT_ENABLE_BACKEND_X86  # For cache based multicores
+ GT_ENABLE_BACKEND_NAIVE  # For naive implementation
+ GT_ENABLE_BACKEND_MC   # For optimized multicores and KNL
 
 All the targets can be installed and used at the same time, but some runtime components may lead to incompatibilities or complex environments to make the codes run. It may be more effective to do multiple installs of the library for different targets in this case.
 

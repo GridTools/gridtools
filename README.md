@@ -24,7 +24,7 @@ make test
 
 The GridTools libraries are currently nightly tested with the following compilers on [CSCS supercomputers](https://www.cscs.ch/computers/overview/).
 
-| Compiler | Target | Tested on |
+| Compiler | Backend | Tested on |
 | --- | --- | --- |
 | NVCC 9.1 with GNU 5.3 | cuda | Piz Daint |
 | NVCC 9.1 with Clang 3.8.1 | cuda | Piz Daint |
@@ -39,7 +39,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 ##### Officially not supported (no workarounds implemented and planned)
 
-| Compiler | Target | Date | Comments
+| Compiler | Backend | Date | Comments
 | --- | --- | --- | --- |
 | NVCC <= 9.1 with GNU 6.x | cuda | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
 | PGI 18.5 | x86 | 2018-12-06 | no effort to fix compilation

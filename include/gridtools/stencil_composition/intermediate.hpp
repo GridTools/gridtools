@@ -16,8 +16,6 @@
 #include "../common/timer/timer_traits.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
-#include "backend_base.hpp"
-#include "backend_metafunctions.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "dim.hpp"
 #include "esf.hpp"
@@ -90,8 +88,8 @@ namespace gridtools {
      *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
      *   \tparam Grid The Grid
      */
-    template <class Target, class Grid>
-    _impl::storage_info_fits_grid_f<Target, Grid> storage_info_fits_grid(Grid const &grid) {
+    template <class Backend, class Grid>
+    _impl::storage_info_fits_grid_f<Backend, Grid> storage_info_fits_grid(Grid const &grid) {
         return {grid};
     }
 
@@ -112,7 +110,6 @@ namespace gridtools {
         Grid,
         std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
         std::tuple<MssDescriptors...>> {
-        GT_STATIC_ASSERT(is_backend<Backend>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
         GT_STATIC_ASSERT(conjunction<is_mss_descriptor<MssDescriptors>...>::value,
@@ -120,7 +117,7 @@ namespace gridtools {
 
         using mss_descriptors_t = std::tuple<MssDescriptors...>;
 
-        using performance_meter_t = typename timer_traits<typename Backend::target_t>::timer_type;
+        using performance_meter_t = typename timer_traits<Backend>::timer_type;
 
         using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
@@ -161,7 +158,7 @@ namespace gridtools {
         using extent_map_t = GT_META_CALL(get_extent_map, esfs_t);
 
       private:
-        using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<typename Backend::target_t>()));
+        using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<Backend>()));
         using mss_components_array_t = GT_META_CALL(build_mss_components_array,
             (fuse_esfs_t::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type));
 
@@ -233,7 +230,7 @@ namespace gridtools {
                 "some placeholders are not used in mss descriptors");
             GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
-            static constexpr auto backend_target = typename Backend::target_t{};
+            static constexpr auto backend_target = Backend{};
             fused_mss_loop<mss_components_array_t>(backend_target, local_domains(srcs...), m_grid);
             if (m_meter)
                 m_meter->pause();

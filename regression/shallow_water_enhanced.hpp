@@ -226,8 +226,8 @@ namespace shallow_water {
         //! [layout_map]
 
         //! [storage_type]
-        typedef backend_t::storage_traits_t::storage_info_t<0, 3> storage_info_t;
-        typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> sol_type;
+        typedef storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
+        typedef storage_traits<backend_t>::data_store_t<float_type, storage_info_t> sol_type;
         //! [storage_type]
 
         // Definition of placeholders. The order of them reflects the order in which the user will deal with them

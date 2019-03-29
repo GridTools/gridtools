@@ -32,20 +32,20 @@ namespace gridtools {
 #else
 #ifdef GT_USE_GPU
     template <>
-    struct timer_traits<target::cuda> {
+    struct timer_traits<backend::cuda> {
         using timer_type = timer_cuda;
     };
 #endif
     template <>
-    struct timer_traits<target::x86> {
+    struct timer_traits<backend::x86> {
         using timer_type = timer_omp;
     };
     template <>
-    struct timer_traits<target::naive> {
+    struct timer_traits<backend::naive> {
         using timer_type = timer_omp;
     };
     template <>
-    struct timer_traits<target::mc> {
+    struct timer_traits<backend::mc> {
         using timer_type = timer_omp;
     };
 #endif

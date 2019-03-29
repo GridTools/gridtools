@@ -23,12 +23,12 @@ namespace gridtools {
      * @{
      */
 
-    template <class Target>
+    template <class Backend>
     struct storage_traits_from_id;
 
     /** @brief storage traits for the CUDA backend*/
     template <>
-    struct storage_traits_from_id<target::cuda> {
+    struct storage_traits_from_id<backend::cuda> {
 
         template <typename ValueType>
         struct select_storage {

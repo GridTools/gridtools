@@ -55,7 +55,7 @@ if (CMAKE_Fortran_COMPILER)
 endif()
 
 if (CMAKE_CUDA_COMPILER)
-    if(GRIDTOOLS_HAS_TARGET_CUDA)
+    if(GRIDTOOLS_HAS_BACKEND_CUDA)
         gt_add_bindings_library(copy_stencil_lib_cuda SOURCES copy_stencil_wrapper.cu)
         target_link_libraries(copy_stencil_lib_cuda PUBLIC GridTools::gridtools)
 

@@ -85,12 +85,12 @@ namespace gridtools {
      */
     template <class RunFunctorArgs, class LocalDomain, class Grid, class ExecutionInfo>
     GT_FORCE_INLINE static void mss_loop(
-        target::naive const &, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &) {
+        backend::naive const &, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &) {
         GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-        using iterate_domain_arguments_t = iterate_domain_arguments<target::naive,
+        using iterate_domain_arguments_t = iterate_domain_arguments<backend::naive,
             LocalDomain,
             typename RunFunctorArgs::esf_sequence_t,
             typename RunFunctorArgs::cache_sequence_t,

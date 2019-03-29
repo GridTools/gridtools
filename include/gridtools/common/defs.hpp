@@ -110,13 +110,13 @@ namespace gridtools {
         @{
     */
 
-    /** tags specifying the target to use */
-    namespace target {
+    /** tags specifying the backend to use */
+    namespace backend {
         struct cuda {};
         struct mc {};
         struct x86 {};
         struct naive {};
-    } // namespace target
+    } // namespace backend
 
 #define GT_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 

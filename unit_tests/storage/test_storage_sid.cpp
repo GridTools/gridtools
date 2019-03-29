@@ -24,7 +24,7 @@
 
 namespace gridtools {
     namespace {
-        using traits_t = storage_traits<target_t>;
+        using traits_t = storage_traits<backend_t>;
         using storage_info_t = traits_t::custom_layout_storage_info_t<0, layout_map<1, -1, 2, 0>>;
         using data_store_t = traits_t::data_store_t<float_type, storage_info_t>;
         namespace tu = tuple_util;
