@@ -17,7 +17,7 @@
 
 using namespace gridtools;
 
-template <ushort_t...>
+template <uint_t...>
 struct halo;
 
 static_assert(std::is_same<typename repeat_template_c<5, 3, halo>::type, halo<5, 5, 5>>{}, "");

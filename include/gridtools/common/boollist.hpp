@@ -37,9 +37,9 @@ namespace gridtools {
        \endcode
        See \link Concepts \endlink, \link proc_grid_2D_concept \endlink, \link proc_grid_3D_concept \endlink
      */
-    template <ushort_t I>
+    template <uint_t I>
     struct boollist {
-        static const ushort_t m_size = I;
+        static const uint_t m_size = I;
 
       private:
         // const
@@ -47,10 +47,10 @@ namespace gridtools {
 
       public:
         GT_FUNCTION
-        constexpr ushort_t const &size() const { return m_size; }
+        constexpr uint_t const &size() const { return m_size; }
 
         GT_FUNCTION
-        constexpr bool const &value(ushort_t const &id) const { return m_value[id]; }
+        constexpr bool const &value(uint_t const &id) const { return m_value[id]; }
         GT_FUNCTION
         constexpr array<bool, I> const &value() const { return m_value; }
 
@@ -68,7 +68,7 @@ namespace gridtools {
 
         GT_FUNCTION
         void copy_out(bool *arr) const {
-            for (ushort_t i = 0; i < I; ++i)
+            for (uint_t i = 0; i < I; ++i)
                 arr[i] = m_value[i];
         }
 

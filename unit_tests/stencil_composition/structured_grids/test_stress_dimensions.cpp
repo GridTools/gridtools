@@ -129,12 +129,12 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
     for (int_t i = 1; i < d1 - 2; ++i)
         for (int_t j = 1; j < d2 - 2; ++j)
             for (int_t k = 0; k < d3 - 1; ++k)
-                for (short_t I = 0; I < 2; ++I)
-                    for (short_t J = 0; J < 2; ++J)
-                        for (short_t K = 0; K < 2; ++K) {
+                for (int_t I = 0; I < 2; ++I)
+                    for (int_t J = 0; J < 2; ++J)
+                        for (int_t K = 0; K < 2; ++K) {
                             // check the initialization to 0
                             assert(referencev(i, j, k, I, J, K) == 0.);
-                            for (short_t q = 0; q < 2; ++q) {
+                            for (int_t q = 0; q < 2; ++q) {
                                 referencev(i, j, k, I, J, K) +=
                                     (phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 0, 0, 0, q) * jacv(i, j, k, q) *
                                             fv(i, j, k, 0, 0, 0) +
@@ -188,12 +188,12 @@ namespace assembly {
             // projection of f on a (e.g.) P1 FE space:
             // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
-            for (short_t I = 0; I < 2; ++I)
-                for (short_t J = 0; J < 2; ++J)
-                    for (short_t K = 0; K < 2; ++K) {
+            for (int_t I = 0; I < 2; ++I)
+                for (int_t J = 0; J < 2; ++J)
+                    for (int_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
                         assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
-                        for (short_t q = 0; q < 2; ++q) {
+                        for (int_t q = 0; q < 2; ++q) {
                             eval(result{di + I, dj + J, dk + K}) +=
                                 eval(phi{i + I, j + J, k + K, qp + q} * psi{i, j, k, qp + q} * jac{i, j, k, di + q} *
                                          f{i, j, k, di, dj, dk} +

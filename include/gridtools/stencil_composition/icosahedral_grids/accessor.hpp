@@ -24,7 +24,7 @@ namespace gridtools {
     /**
      * This is the type of the accessors accessed by a stencil functor.
      */
-    template <uint_t ID, intent Intent, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
+    template <uint_t ID, intent Intent, typename LocationType, typename Extent = extent<>, uint_t FieldDimensions = 4>
     struct accessor : accessor_base<FieldDimensions> {
         GT_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
         using index_t = static_uint<ID>;
@@ -37,16 +37,16 @@ namespace gridtools {
         using accessor_base<FieldDimensions>::accessor_base;
     };
 
-    template <uint_t ID, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
+    template <uint_t ID, typename LocationType, typename Extent = extent<>, uint_t FieldDimensions = 4>
     meta::always<accessor<ID, intent::in, LocationType, Extent, FieldDimensions>> tuple_from_types(
         accessor<ID, intent::in, LocationType, Extent, FieldDimensions> const &);
 
-    template <uint_t ID, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
+    template <uint_t ID, typename LocationType, typename Extent = extent<>, uint_t FieldDimensions = 4>
     using in_accessor = accessor<ID, intent::in, LocationType, Extent, FieldDimensions>;
 
-    template <uint_t ID, typename LocationType, ushort_t FieldDimensions = 4>
+    template <uint_t ID, typename LocationType, uint_t FieldDimensions = 4>
     using inout_accessor = accessor<ID, intent::inout, LocationType, extent<>, FieldDimensions>;
 
-    template <uint_t ID, intent Intent, typename LocationType, typename Extent, ushort_t FieldDimensions>
+    template <uint_t ID, intent Intent, typename LocationType, typename Extent, uint_t FieldDimensions>
     struct is_accessor<accessor<ID, Intent, LocationType, Extent, FieldDimensions>> : std::true_type {};
 } // namespace gridtools

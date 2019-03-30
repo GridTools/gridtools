@@ -277,7 +277,7 @@ namespace shallow_water {
         c_grid.dims(di, dj, dk);
         assert(dk == 1);
 
-        array<ushort_t, 3> halo{1, 1, 0};
+        array<uint_t, 3> halo{1, 1, 0};
 
         //! [storage]
         storage_info_t storage_info(d1 + 2 * halo[0], d2 + 2 * halo[1], d3);

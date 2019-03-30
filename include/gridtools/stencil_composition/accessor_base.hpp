@@ -19,33 +19,33 @@
 
 namespace gridtools {
     namespace accessor_base_impl_ {
-        template <ushort_t I>
+        template <uint_t I>
         struct get_dimension_value_f {
-            template <ushort_t J>
+            template <uint_t J>
             GT_FUNCTION constexpr int_t operator()(dimension<J>) const {
                 return 0;
             }
             GT_FUNCTION constexpr int_t operator()(dimension<I> src) const { return src.value; }
         };
 
-        template <ushort_t I>
+        template <uint_t I>
         GT_FUNCTION constexpr int_t sum_dimensions() {
             return 0;
         }
 
-        template <ushort_t I, class T, class... Ts>
+        template <uint_t I, class T, class... Ts>
         GT_FUNCTION constexpr int_t sum_dimensions(T src, Ts... srcs) {
             return get_dimension_value_f<I>{}(src) + sum_dimensions<I>(srcs...);
         }
 
-        template <ushort_t Dim, ushort_t... Is, class... Ts>
-        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(meta::integer_sequence<ushort_t, Is...>, Ts... srcs) {
+        template <uint_t Dim, uint_t... Is, class... Ts>
+        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(meta::integer_sequence<uint_t, Is...>, Ts... srcs) {
             return {sum_dimensions<Is + 1>(srcs...)...};
         }
 
-        template <ushort_t Dim, class... Ts>
+        template <uint_t Dim, class... Ts>
         GT_FUNCTION constexpr array<int_t, Dim> make_offsets(Ts... srcs) {
-            return make_offsets_impl<Dim>(meta::make_integer_sequence<ushort_t, Dim>{}, srcs...);
+            return make_offsets_impl<Dim>(meta::make_integer_sequence<uint_t, Dim>{}, srcs...);
         }
     } // namespace accessor_base_impl_
 
@@ -86,7 +86,7 @@ namespace gridtools {
 
         GT_FUNCTION constexpr explicit accessor_base(base_t const &src) : base_t{src} {}
 
-        template <ushort_t I, ushort_t... Is>
+        template <uint_t I, uint_t... Is>
         GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
             : base_t{accessor_base_impl_::make_offsets<Dim>(d, ds...)} {
             GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
@@ -106,7 +106,7 @@ namespace gridtools {
         GT_FORCE_INLINE constexpr accessor_base(int_t data0 = {}, int_t data1 = {}, int_t data2 = {})
             : data0(data0), data1(data1), data2(data2) {}
 
-        template <ushort_t I, ushort_t... Is>
+        template <uint_t I, uint_t... Is>
         GT_FORCE_INLINE constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
             : accessor_base{accessor_base_impl_::make_offsets<3>(d, ds...)} {
             GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
