@@ -17,6 +17,7 @@
 
 #include <gridtools/common/cuda_util.hpp>
 #include <gridtools/common/integral_constant.hpp>
+#include <gridtools/meta/type_traits.hpp>
 
 #define MAKE_CONSTANT(fun) gridtools::integral_constant<decltype(&fun), &fun>()
 

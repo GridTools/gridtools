@@ -15,18 +15,48 @@ namespace gridtools {
 
     class shared_allocator {
       private:
-        uint_t m_offset = 0;
+        uint_t m_offset = 0; // in bytes
 
       public:
+        template <typename T>
+        struct lazy_alloc {
+            using element_type = T;
+
+            uint_t m_offset;
+            GT_FUNCTION_DEVICE T *operator()() const {
+                extern __shared__ char ij_cache_shm[];
+                return reinterpret_cast<T *>(ij_cache_shm + m_offset);
+            }
+
+            GT_FUNCTION lazy_alloc &operator+=(uint_t r) {
+                m_offset += r * sizeof(T);
+                return *this;
+            }
+            friend GT_FUNCTION auto operator-=(lazy_alloc &l, uint_t r) GT_AUTO_RETURN(l += -r);
+            friend GT_FUNCTION auto operator+(lazy_alloc l, uint_t r) GT_AUTO_RETURN(l += r);
+            friend GT_FUNCTION auto operator-(lazy_alloc l, uint_t r) GT_AUTO_RETURN(l -= r);
+            GT_FUNCTION lazy_alloc operator++() { return *this += 1; };
+            GT_FUNCTION lazy_alloc operator--() { return *this -= 1; };
+            GT_FUNCTION lazy_alloc operator++(int) {
+                lazy_alloc tmp(*this);
+                operator++();
+                return tmp;
+            }
+            GT_FUNCTION lazy_alloc operator--(int) {
+                lazy_alloc tmp(*this);
+                operator--();
+                return tmp;
+            }
+        };
+
         /**
-         * \tparam Alignment required alignment in bytes
-         * \param sz size of allocation in bytes
+         * \param sz size of allocation in number of elements
          */
-        template <uint_t Alignment>
-        int_t allocate(uint_t sz) {
+        template <class T, uint_t Alignment = sizeof(T)>
+        lazy_alloc<T> allocate(uint_t sz) {
             auto aligned = (m_offset + Alignment - 1) / Alignment * Alignment;
-            m_offset = aligned + sz;
-            return aligned;
+            m_offset = aligned + sz * sizeof(T);
+            return {aligned};
         }
 
         uint_t size() const { return m_offset; }

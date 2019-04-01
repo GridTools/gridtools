@@ -8,33 +8,94 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "../cuda_test_helper.hpp"
 #include <gridtools/stencil_composition/backend_cuda/shared_allocator.hpp>
 
 #include <gtest/gtest.h>
 
 namespace {
-    TEST(shared_allocator, test) {
+    template <typename PtrHolder>
+    __device__ ptrdiff_t get_origin_offset(PtrHolder ptr_holder) {
+        extern __shared__ char shm[];
+        return reinterpret_cast<char *>(ptr_holder()) - shm;
+    }
+
+    TEST(shared_allocator, basic_test) {
         gridtools::shared_allocator allocator;
         EXPECT_EQ(0, allocator.size());
 
-        auto offset = allocator.allocate<14>(3 * 14);
-        // check that there is no overlap with the previous allocation
-        EXPECT_LE(0, offset);
-        // check that there is enough space to fit the allocation
-        EXPECT_GE(allocator.size(), offset + 3 * 14);
-        // check alignment
-        EXPECT_EQ(0, offset % 14);
+        using alloc1_t = char[14];
+        auto alloc1 = allocator.allocate<alloc1_t>(7);
+        EXPECT_GE(allocator.size(), 7 * sizeof(alloc1_t));
 
+        using alloc2_t = double;
         auto old_size = allocator.size();
-        offset = allocator.allocate<8>(16 * 8);
-        EXPECT_LE(old_size, offset);
-        EXPECT_GE(allocator.size(), old_size + 16 * 8);
-        EXPECT_EQ(0, offset % 8);
+        auto alloc2 = allocator.allocate<alloc2_t>(4);
+        EXPECT_GE(allocator.size(), old_size + 4 * sizeof(alloc2_t));
 
+        using alloc3_t = double;
         old_size = allocator.size();
-        offset = allocator.allocate<8>(1 * 8);
-        EXPECT_LE(old_size, offset);
-        EXPECT_GE(allocator.size(), old_size + 1 * 8);
-        EXPECT_EQ(0, offset % 8);
+        auto alloc3 = allocator.allocate<alloc3_t>(1);
+        EXPECT_GE(allocator.size(), old_size + sizeof(alloc3_t));
+
+        auto offset1 = gridtools::on_device::exec_with_shared_memory(
+            allocator.size(), MAKE_CONSTANT(get_origin_offset<decltype(alloc1)>), alloc1);
+        auto offset2 = gridtools::on_device::exec_with_shared_memory(
+            allocator.size(), MAKE_CONSTANT(get_origin_offset<decltype(alloc2)>), alloc2);
+        auto offset3 = gridtools::on_device::exec_with_shared_memory(
+            allocator.size(), MAKE_CONSTANT(get_origin_offset<decltype(alloc3)>), alloc3);
+
+        // check alignment for all allocations
+        EXPECT_EQ(offset1 % sizeof(alloc1_t), 0);
+        EXPECT_EQ(offset2 % sizeof(alloc2_t), 0);
+        EXPECT_EQ(offset3 % sizeof(alloc3_t), 0);
+
+        // check that allocations are large enough
+        EXPECT_GE(offset2 - offset1, 7 * sizeof(alloc1_t));
+        EXPECT_GE(offset3 - offset2, 4 * sizeof(alloc2_t));
+        EXPECT_GE(allocator.size() - offset3, 1 * sizeof(alloc3_t));
     }
+
+    template <class T>
+    ptrdiff_t get_offset(gridtools::shared_allocator const &allocator, T const &alloc1, T const &alloc2) {
+        auto offset1 = gridtools::on_device::exec_with_shared_memory(
+            allocator.size(), MAKE_CONSTANT(get_origin_offset<T>), alloc1);
+        auto offset2 = gridtools::on_device::exec_with_shared_memory(
+            allocator.size(), MAKE_CONSTANT(get_origin_offset<T>), alloc2);
+        return offset2 - offset1;
+    }
+
+    TEST(shared_allocator, pointer_arithmetics) {
+        gridtools::shared_allocator allocator;
+        auto some_alloc = allocator.allocate<double>(32);
+        auto another_alloc = allocator.allocate<double>(32);
+
+        EXPECT_EQ(get_offset(allocator, another_alloc, another_alloc + 3), 3 * (int)sizeof(double));
+        EXPECT_EQ(get_offset(allocator, another_alloc, another_alloc - 3), -3 * (int)sizeof(double));
+
+        auto my_alloc = another_alloc;
+        my_alloc += 2;
+        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), 2 * (int)sizeof(double));
+
+        my_alloc = another_alloc;
+        my_alloc -= 2;
+        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), -2 * (int)sizeof(double));
+
+        my_alloc = another_alloc;
+        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc++), 0);
+        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), (int)sizeof(double));
+
+        my_alloc = another_alloc;
+        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc--), 0);
+        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), -(int)sizeof(double));
+
+        my_alloc = another_alloc;
+        EXPECT_EQ(get_offset(allocator, another_alloc, ++my_alloc), (int)sizeof(double));
+        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), (int)sizeof(double));
+
+        my_alloc = another_alloc;
+        EXPECT_EQ(get_offset(allocator, another_alloc, --my_alloc), -(int)sizeof(double));
+        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), -(int)sizeof(double));
+    }
+
 } // namespace
