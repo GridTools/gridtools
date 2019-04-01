@@ -49,6 +49,8 @@
  *     - `PtrDiff` is default constructible
  *     - `Ptr` has `Ptr::operator*() const` which returns non void
  *     - there is `Ptr operator+(Ptr, PtrDiff)` defined
+ *     - there is `PtrHolder operator+(PtrHolder, PtrDiff)` defined and `(holder + diff)()` should return the same as
+ *       `holder() + diff`
  *     - decayed `Strides` is a hymap
  *
  *   Each type that participate in `Strides` tuple-like (aka `Stride`) should:

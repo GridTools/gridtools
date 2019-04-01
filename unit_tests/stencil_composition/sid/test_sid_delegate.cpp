@@ -47,7 +47,7 @@ namespace gridtools {
         TEST(delegate, smoke) {
             double data[3][5];
             auto src = sid::synthetic()
-                           .set<property::origin>(sid::host_device::simple_ptr_holder<double *>{&data[0][0]})
+                           .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0]))
                            .set<property::strides>(tu::make<tuple>(1_c, 5_c));
             auto testee = i_shift(src);
 
