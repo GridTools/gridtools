@@ -71,31 +71,6 @@ namespace {
         auto another_alloc = allocator.allocate<double>(32);
 
         EXPECT_EQ(get_offset(allocator, another_alloc, another_alloc + 3), 3 * (int)sizeof(double));
-        EXPECT_EQ(get_offset(allocator, another_alloc, another_alloc - 3), -3 * (int)sizeof(double));
-
-        auto my_alloc = another_alloc;
-        my_alloc += 2;
-        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), 2 * (int)sizeof(double));
-
-        my_alloc = another_alloc;
-        my_alloc -= 2;
-        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), -2 * (int)sizeof(double));
-
-        my_alloc = another_alloc;
-        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc++), 0);
-        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), (int)sizeof(double));
-
-        my_alloc = another_alloc;
-        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc--), 0);
-        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), -(int)sizeof(double));
-
-        my_alloc = another_alloc;
-        EXPECT_EQ(get_offset(allocator, another_alloc, ++my_alloc), (int)sizeof(double));
-        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), (int)sizeof(double));
-
-        my_alloc = another_alloc;
-        EXPECT_EQ(get_offset(allocator, another_alloc, --my_alloc), -(int)sizeof(double));
-        EXPECT_EQ(get_offset(allocator, another_alloc, my_alloc), -(int)sizeof(double));
     }
 
 } // namespace

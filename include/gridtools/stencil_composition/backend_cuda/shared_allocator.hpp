@@ -32,21 +32,7 @@ namespace gridtools {
                 m_offset += r * sizeof(T);
                 return *this;
             }
-            friend GT_FUNCTION auto operator-=(lazy_alloc &l, uint_t r) GT_AUTO_RETURN(l += -r);
             friend GT_FUNCTION auto operator+(lazy_alloc l, uint_t r) GT_AUTO_RETURN(l += r);
-            friend GT_FUNCTION auto operator-(lazy_alloc l, uint_t r) GT_AUTO_RETURN(l -= r);
-            GT_FUNCTION lazy_alloc operator++() { return *this += 1; };
-            GT_FUNCTION lazy_alloc operator--() { return *this -= 1; };
-            GT_FUNCTION lazy_alloc operator++(int) {
-                lazy_alloc tmp(*this);
-                operator++();
-                return tmp;
-            }
-            GT_FUNCTION lazy_alloc operator--(int) {
-                lazy_alloc tmp(*this);
-                operator--();
-                return tmp;
-            }
         };
 
         /**
