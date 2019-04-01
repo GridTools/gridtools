@@ -29,7 +29,7 @@ namespace gridtools {
             }
 
             friend GT_FORCE_INLINE lazy_alloc operator+(lazy_alloc l, int_t r) {
-                l.m_offset += r;
+                l.m_offset += r * sizeof(T);
                 return l;
             }
         };
