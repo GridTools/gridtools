@@ -39,7 +39,7 @@ namespace gridtools {
 
             static_assert(is_sid<ij_cache_t>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::ptr_type, ij_cache_t), float_type *>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, ij_cache_t), std::ptrdiff_t>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, ij_cache_t), int_t>(), "");
 
             using expected_kind = hymap::keys<dim::i, dim::j>::values<gridtools::integral_constant<int_t, 1>,
                 gridtools::integral_constant<int_t, i_size>>;

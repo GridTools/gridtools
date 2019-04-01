@@ -28,11 +28,10 @@ namespace gridtools {
                 return reinterpret_cast<T *>(ij_cache_shm + m_offset);
             }
 
-            GT_FUNCTION lazy_alloc &operator+=(uint_t r) {
-                m_offset += r * sizeof(T);
-                return *this;
+            friend GT_FORCE_INLINE lazy_alloc operator+(lazy_alloc l, int_t r) {
+                l.m_offset += r;
+                return l;
             }
-            friend GT_FUNCTION auto operator+(lazy_alloc l, uint_t r) GT_AUTO_RETURN(l += r);
         };
 
         /**
