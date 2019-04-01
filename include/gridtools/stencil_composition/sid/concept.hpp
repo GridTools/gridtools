@@ -12,7 +12,6 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/functional.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
@@ -24,6 +23,7 @@
 #include "../../meta/macros.hpp"
 #include "../../meta/push_front.hpp"
 #include "../../meta/type_traits.hpp"
+#include "simple_ptr_holder.hpp"
 
 /**
  *   Basic API for Stencil Iterable Data (aka SID) concept.
@@ -222,7 +222,8 @@ namespace gridtools {
              *  C-array specialization
              */
             template <class T, class Res = gridtools::add_pointer_t<gridtools::remove_all_extents_t<T>>>
-            constexpr gridtools::enable_if_t<std::is_array<T>::value, host_device::constant<Res>> get_origin(T &obj) {
+            constexpr gridtools::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>> get_origin(
+                T &obj) {
                 return {(Res)obj};
             }
 
@@ -557,6 +558,12 @@ namespace gridtools {
                     std::is_default_constructible<PtrDiff>,
                     std::is_convertible<decltype(std::declval<Ptr const &>() + std::declval<PtrDiff const &>()), Ptr>,
 
+                    // `PtrHolder` supports `+` as well
+                    // TODO(anstaf): we can do better here: verify that if we transform PtrHolder that way the result
+                    //               thing also models SID
+                    std::is_same<decay_t<decltype(std::declval<PtrHolder const &>() + std::declval<PtrDiff const &>())>,
+                        PtrHolder>,
+
                     // verify that `Reference` is sane
                     negation<std::is_void<ReferenceType>>,
 
@@ -632,7 +639,8 @@ namespace gridtools {
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <class Key, class Strides, enable_if_t<has_key<decay_t<Strides>, Key>::value, int> = 0>
-        constexpr GT_FUNCTION auto get_stride(Strides &&strides) GT_AUTO_RETURN(host_device::at_key<Key>(strides));
+        constexpr GT_FUNCTION auto get_stride(Strides &&strides)
+            GT_AUTO_RETURN(gridtools::host_device::at_key<Key>(strides));
         template <class Key, class Strides, enable_if_t<!has_key<decay_t<Strides>, Key>::value, int> = 0>
         constexpr GT_FUNCTION default_stride get_stride(Strides &&) {
             return {};

@@ -13,10 +13,10 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
-#include <gridtools/common/functional.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/macros.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 
 namespace gridtools {
     namespace {
@@ -25,7 +25,7 @@ namespace gridtools {
 
         TEST(sid_synthetic, smoke) {
             double a = 100;
-            auto testee = sid::synthetic().set<property::origin>(host_device::constant<double *>{&a});
+            auto testee = sid::synthetic().set<property::origin>(sid::host_device::simple_ptr_holder<double *>{&a});
             static_assert(is_sid<decltype(testee)>::value, "");
 
             EXPECT_EQ(a, *sid::get_origin(testee)());
@@ -56,7 +56,7 @@ namespace gridtools {
                 strides the_strides = {stride{3}, stride{4}};
 
                 auto the_testee = sid::synthetic()
-                                      .set<property::origin>(host_device::constant<ptr>{the_origin})
+                                      .set<property::origin>(sid::host_device::simple_ptr_holder<ptr>{the_origin})
                                       .set<property::strides>(the_strides)
                                       .set<property::ptr_diff, ptr_diff>()
                                       .set<property::strides_kind, strides_kind>();

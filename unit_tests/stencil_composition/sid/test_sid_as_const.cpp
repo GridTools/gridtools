@@ -14,9 +14,9 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/functional.hpp>
 #include <gridtools/meta/macros.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 #include <gridtools/stencil_composition/sid/synthetic.hpp>
 
 namespace gridtools {
@@ -25,7 +25,7 @@ namespace gridtools {
 
         TEST(as_const, smoke) {
             double data = 42;
-            auto src = sid::synthetic().set<property::origin>(host_device::constant<double *>{&data});
+            auto src = sid::synthetic().set<property::origin>(sid::host_device::simple_ptr_holder<double *>{&data});
             auto testee = sid::as_const(src);
             using testee_t = decltype(testee);
 

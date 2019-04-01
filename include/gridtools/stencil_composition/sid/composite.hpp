@@ -127,7 +127,7 @@ namespace gridtools {
                     Offset const &GT_RESTRICT offset) {
                     static constexpr size_t size = tuple_util::size<ObjTup>::value;
                     GT_STATIC_ASSERT(tuple_util::size<StrideTup>::value == size, GT_INTERNAL_ERROR);
-                    host_device::for_each_type<GT_META_CALL(meta::make_indices_c, size)>(
+                    gridtools::host_device::for_each_type<GT_META_CALL(meta::make_indices_c, size)>(
                         shift_t<ObjTup, StrideTup, Offset>{obj_tup, stride_tup, offset});
                 }
 
@@ -280,6 +280,12 @@ namespace gridtools {
                         friend constexpr GT_FUNCTION composite_ptr<Ptrs...> operator+(
                             composite_ptr<Ptrs...> const &lhs, composite_entity const &rhs) {
                             return tuple_util::host_device::transform(binop::sum{}, lhs, rhs);
+                        }
+
+                        template <class... PtrHolders>
+                        friend constexpr GT_FORCE_INLINE composite_ptr_holder<PtrHolders...> operator+(
+                            composite_ptr_holder<PtrHolders...> const &lhs, composite_entity const &rhs) {
+                            return tuple_util::host::transform(binop::sum{}, lhs, rhs);
                         }
 
                         template <class... Ptrs, class Offset>
