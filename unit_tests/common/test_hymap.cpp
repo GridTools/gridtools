@@ -40,13 +40,6 @@ namespace gridtools {
             EXPECT_EQ(nullptr, tuple_util::get<2>(testee));
         }
 
-        TEST(hymap, default_construct) {
-            using testee_t = hymap::keys<a, b>::values<integral_constant<int, 1>, int>;
-            testee_t testee{{}, 42};
-            EXPECT_EQ(1, tuple_util::get<0>(testee));
-            EXPECT_EQ(42, tuple_util::get<1>(testee));
-        }
-
         TEST(at_key, smoke) {
             using testee_t = hymap::keys<a, b>::values<int, double>;
             testee_t testee{42, 5.3};

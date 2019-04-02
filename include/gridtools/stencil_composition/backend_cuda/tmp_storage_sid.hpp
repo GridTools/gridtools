@@ -52,7 +52,7 @@ namespace gridtools {
             sid::synthetic()
                 .set<sid::property::origin>(host_device::constant<T *>{
                     alloc.template allocate<T>(BlockSizeI{} * BlockSizeJ{} * n_blocks_i * n_blocks_j * k_size)() -
-                    ExtentIMinus * meta::at_c<Strides, 0>{} // TODO access with dim::i, e.g. type_at_key<dim::i,Strides>
+                    ExtentIMinus * meta::at_c<Strides, 0>{}   // TODO access with dim::i, e.g. mp_find<Strides, dim::i>
                     - ExtentJMinus * meta::at_c<Strides, 1>{} // TODO access with dim::j
                 })
                 .template set<sid::property::strides>(
