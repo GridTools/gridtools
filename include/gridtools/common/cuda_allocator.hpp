@@ -33,5 +33,10 @@ namespace gridtools {
             m_ptrs.emplace_back(ptr, [](T *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
             return {static_cast<T *>(m_ptrs.back().get())};
         }
+
+        /**
+         * @brief Internal: use only for testing.
+         */
+        std::vector<std::shared_ptr<void>> const &ptrs() const { return m_ptrs; }
     };
 } // namespace gridtools
