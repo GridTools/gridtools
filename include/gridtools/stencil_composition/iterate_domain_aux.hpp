@@ -153,9 +153,7 @@ namespace gridtools {
      */
     template <typename StorageInfo, typename LocalDomain>
     GT_FUNCTION bool pointer_oob_check(LocalDomain const &local_domain, int_t offset) {
-        constexpr auto storage_info_index =
-            meta::st_position<typename LocalDomain::storage_infos_t, StorageInfo>::value;
-        return offset < get<storage_info_index>(local_domain.m_local_padded_total_lengths) && offset >= 0;
+        return offset < gridtools::host_device::at_key<StorageInfo>(local_domain.m_total_length_map) && offset >= 0;
     }
 
     template <class Arg, intent Intent>

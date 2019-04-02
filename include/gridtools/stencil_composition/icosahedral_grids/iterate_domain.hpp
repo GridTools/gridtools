@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
-#include <boost/fusion/include/at_key.hpp>
 #include <type_traits>
 
 #include "../../common/array.hpp"
@@ -124,7 +123,7 @@ namespace gridtools {
             assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 
             conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
-                boost::fusion::at_key<Arg>(m_local_domain.m_local_data_ptrs) + pointer_offset;
+                gridtools::host_device::at_key<Arg>(m_local_domain.m_ptr_holder_map)() + pointer_offset;
 
             return IterateDomainImpl::template deref_impl<Arg>(ptr);
         }
