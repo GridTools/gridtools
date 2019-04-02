@@ -58,7 +58,7 @@ TEST(tmp_storage_sid_mc, sid) {
         block_size.j - extent_t::jminus::value + extent_t::jplus::value,
         block_size.k - extent_t::kminus::value + extent_t::kplus::value};
 
-    static_assert(decay_t<decltype(at_key<dim::i>(strides))>::value == 1, "");
+    EXPECT_EQ(at_key<dim::i>(strides), 1);
     EXPECT_EQ(at_key<dim::j>(strides), full_block_size.i * full_block_size.k);
     EXPECT_EQ(at_key<dim::k>(strides), full_block_size.i);
     EXPECT_EQ(at_key<thread_dim_mc>(strides), full_block_size.i * full_block_size.j * full_block_size.k);
