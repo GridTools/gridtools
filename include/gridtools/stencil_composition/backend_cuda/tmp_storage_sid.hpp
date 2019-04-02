@@ -48,20 +48,21 @@ namespace gridtools {
         int_t n_blocks_j,
         int_t k_size,
         Allocator &&alloc)
-        GT_AUTO_RETURN((
-            sid::synthetic()
-                .set<sid::property::origin>(host_device::constant<T *>{
-                    alloc.template allocate<T>(BlockSizeI{} * BlockSizeJ{} * n_blocks_i * n_blocks_j * k_size)() -
-                    ExtentIMinus * meta::at_c<Strides, 0>{}   // TODO access with dim::i, e.g. mp_find<Strides, dim::i>
-                    - ExtentJMinus * meta::at_c<Strides, 1>{} // TODO access with dim::j
-                })
-                .template set<sid::property::strides>(
-                    Strides{integral_constant<int_t, 1>{}, // TODO support for default init {} in hymap
-                        BlockSizeI{},
-                        integral_constant<int_t, BlockSizeI{} * BlockSizeJ{}>{},
-                        meta::at_c<Strides, 2>::value *n_blocks_i,
-                        meta::at_c<Strides, 2>::value *n_blocks_i *n_blocks_j})
-                .template set<sid::property::ptr_diff, int_t>()
-                .template set<sid::property::strides_kind, Strides>()));
+        GT_AUTO_RETURN(
+            (sid::synthetic()
+                    .set<sid::property::origin>(host_device::constant<T *>{
+                        alloc.template allocate<T>(BlockSizeI{} * BlockSizeJ{} * n_blocks_i * n_blocks_j * k_size)() -
+                        ExtentIMinus * GT_META_CALL(meta::at_c, (Strides, 0)){}
+                        // TODO access with dim::i, e.g. mp_find<Strides, dim::i>
+                        - ExtentJMinus * GT_META_CALL(meta::at_c, (Strides, 1)){} // TODO access with dim::j
+                    })
+                    .template set<sid::property::strides>(
+                        Strides{integral_constant<int_t, 1>{}, // TODO support for default init {} in hymap
+                            BlockSizeI{},
+                            integral_constant<int_t, BlockSizeI{} * BlockSizeJ{}>{},
+                            GT_META_CALL(meta::at_c, (Strides, 2))::value *n_blocks_i,
+                            GT_META_CALL(meta::at_c, (Strides, 2))::value *n_blocks_i *n_blocks_j})
+                    .template set<sid::property::ptr_diff, int_t>()
+                    .template set<sid::property::strides_kind, Strides>()));
 
 } // namespace gridtools
