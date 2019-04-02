@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../cuda_test_helper.hpp"
+#include "../../cuda_test_helper.hpp"
 
 namespace gridtools {
     namespace {
