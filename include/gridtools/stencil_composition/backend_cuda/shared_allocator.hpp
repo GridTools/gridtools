@@ -37,7 +37,7 @@ namespace gridtools {
         /**
          * \param sz size of allocation in number of elements
          */
-        template <class T, uint_t Alignment = sizeof(T)>
+        template <class T, uint_t Alignment = alignof(T)>
         lazy_alloc<T> allocate(uint_t sz) {
             auto aligned = (m_offset + Alignment - 1) / Alignment * Alignment;
             m_offset = aligned + sz * sizeof(T);

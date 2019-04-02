@@ -27,20 +27,24 @@ namespace gridtools {
         __global__ void kernel(Res *res, Fun fun, Args... args) {
             *res = fun(args...);
         }
-        template <class Fun, class... Args, class Res = decay_t<result_of_t<Fun(Args...)>>>
+        template <uint_t GridSize = 1,
+            uint_t BlockSize = 1,
+            class Fun,
+            class... Args,
+            class Res = decay_t<result_of_t<Fun(Args...)>>>
         Res exec_with_shared_memory(size_t shm_size, Fun fun, Args... args) {
             static_assert(!std::is_pointer<Fun>::value, "");
-            static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");
+            // static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");
             static_assert(std::is_trivially_copyable<Res>::value, "");
             auto res = cuda_util::cuda_malloc<Res>();
-            kernel<<<1, 1, shm_size>>>(res.get(), fun, args...);
+            kernel<<<GridSize, BlockSize, shm_size>>>(res.get(), fun, args...);
             GT_CUDA_CHECK(cudaDeviceSynchronize());
             return cuda_util::from_clone(res);
         }
 
-        template <class Fun, class... Args>
-        auto exec(Fun &&fun, Args &&... args)
-            GT_AUTO_RETURN(exec_with_shared_memory(0, std::forward<Fun>(fun), std::forward<Args>(args)...));
+        template <uint_t GridSize = 1, uint_t BlockSize = 1, class Fun, class... Args>
+        auto exec(Fun &&fun, Args &&... args) GT_AUTO_RETURN(
+            (exec_with_shared_memory<GridSize, BlockSize>(0, std::forward<Fun>(fun), std::forward<Args>(args)...)));
     } // namespace on_device
 } // namespace gridtools
 
