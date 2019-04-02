@@ -29,6 +29,9 @@ namespace gridtools {
 
         static constexpr std::size_t byte_alignment = 64;
 
+        /**
+         * @brief Block size including extents and padding.
+         */
         template <class T, class Extent>
         pos3<std::size_t> full_block_size(pos3<std::size_t> const &block_size) {
             static constexpr std::size_t alignment = byte_alignment / sizeof(T);
@@ -39,21 +42,34 @@ namespace gridtools {
             return {size_i, size_j, size_k};
         }
 
+        /**
+         * @brief Size of the full allocation of a temporary buffer (in number of elements).
+         */
         template <class T, class Extent>
         std::size_t storage_size(pos3<std::size_t> const &block_size) {
             auto bs = full_block_size<T, Extent>(block_size);
             return bs.i * bs.j * bs.k * omp_get_max_threads() + byte_alignment / sizeof(T);
         }
 
-        using strides_t = hymap::keys<dim::i, dim::k, dim::j, thread_dim_mc>::
-            values<integral_constant<int_t, 1>, int_t, int_t, int_t>;
-
+        /**
+         * @brief Strides kind tag. Strides depend on data type (due to cache-line alignment) and extent.
+         */
         template <class T, class Extent>
-        strides_t strides(pos3<std::size_t> const &block_size) {
+        struct strides_kind;
+
+        /**
+         * @brief Strides, depending on data type due to padding to cache-line size.
+         */
+        template <class T, class Extent>
+        hymap::keys<dim::i, dim::j, dim::k, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t, int_t>
+        strides(pos3<std::size_t> const &block_size) {
             auto bs = full_block_size<T, Extent>(block_size);
-            return {integral_constant<int, 1>{}, bs.i, bs.i * bs.k, bs.i * bs.k * bs.j};
+            return {integral_constant<int, 1>{}, bs.i * bs.k, bs.i, bs.i * bs.j * bs.k};
         }
 
+        /**
+         * @brief Offset from allocation start to first element inside compute domain.
+         */
         template <class T, class Extent>
         std::size_t origin_offset(pos3<std::size_t> const &block_size) {
             auto st = strides<T, Extent>(block_size);
@@ -66,12 +82,16 @@ namespace gridtools {
 
     } // namespace _impl_tmp_mc
 
+    /**
+     * @brief Simple allocator for temporaries.
+     */
     class tmp_allocator_mc {
+        using deleter_t = std::integral_constant<decltype(&hugepage_free), &hugepage_free>;
+        std::vector<std::unique_ptr<void, deleter_t>> m_ptrs;
+
       public:
         template <class T>
-        sid::host::simple_ptr_holder<T *> allocate(std::size_t n) const {
-            static std::vector<std::unique_ptr<void, std::integral_constant<decltype(&hugepage_free), &hugepage_free>>>
-                m_ptrs;
+        sid::host::simple_ptr_holder<T *> allocate(std::size_t n) {
             m_ptrs.emplace_back(hugepage_alloc(n * sizeof(T)));
             return {static_cast<T *>(m_ptrs.back().get())};
         };
@@ -82,7 +102,7 @@ namespace gridtools {
         sid::synthetic()
             .set<sid::property::origin>(allocator.template allocate<T>(
                 _impl_tmp_mc::storage_size<T, Extent>(block_size) + _impl_tmp_mc::origin_offset<T, Extent>(block_size)))
-            .template set<sid::property::strides_kind, _impl_tmp_mc::strides_t>()
-            .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent>(block_size))));
+            .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent>(block_size))
+            .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<T, Extent>>()));
 
 } // namespace gridtools
