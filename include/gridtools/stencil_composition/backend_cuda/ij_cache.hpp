@@ -24,20 +24,13 @@ namespace gridtools {
             (hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, IStride>,
                 integral_constant<int_t, JStride>>));
 
-        template <class T,
-            int_t ISize,
-            int_t JSize,
-            int_t IZero,
-            int_t JZero,
-            int_t IStride = 1,
-            int_t JStride = IStride *ISize,
-            int_t Size = JStride *JSize,
-            int_t Offset = IStride *IZero + JStride *JZero>
-        auto make_ij_cache(shared_allocator &allocator) GT_AUTO_RETURN((
-            sid::synthetic()
-                .template set<sid::property::origin>(allocator.template allocate<T>(Size) + Offset)
-                .template set<sid::property::strides>(GT_META_CALL(ij_cache_impl_::strides_map_t, (IStride, JStride)){})
-                .template set<sid::property::ptr_diff, int_t>()));
+        template <class T, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
+        auto make_ij_cache(shared_allocator &allocator) GT_AUTO_RETURN(
+            (sid::synthetic()
+                    .template set<sid::property::origin>(
+                        allocator.template allocate<T>(ISize * JSize) + IZero + ISize * JZero)
+                    .template set<sid::property::strides>(GT_META_CALL(ij_cache_impl_::strides_map_t, (1, ISize)){})
+                    .template set<sid::property::ptr_diff, int_t>()));
 
     } // namespace ij_cache_impl_
 
@@ -52,23 +45,14 @@ namespace gridtools {
                 integral_constant<int_t, CStride>,
                 integral_constant<int_t, JStride>>));
 
-        template <class T,
-            int_t ISize,
-            int_t NumColors,
-            int_t JSize,
-            int_t IZero,
-            int_t JZero,
-            int_t IStride = 1,
-            int_t CStride = IStride *ISize,
-            int_t JStride = CStride *NumColors,
-            int_t Size = JStride *JSize,
-            int_t Offset = IStride *IZero + JStride *JZero>
-        auto make_ij_cache(shared_allocator &allocator)
-            GT_AUTO_RETURN((sid::synthetic()
-                                .template set<sid::property::origin>(allocator.template allocate<T>(Size) + Offset)
-                                .template set<sid::property::strides>(
-                                    GT_META_CALL(ij_cache_impl_::strides_map_t, (IStride, CStride, JStride)){})
-                                .template set<sid::property::ptr_diff, int_t>()));
+        template <class T, int_t ISize, int_t NumColors, int_t JSize, int_t IZero, int_t JZero>
+        auto make_ij_cache(shared_allocator &allocator) GT_AUTO_RETURN(
+            (sid::synthetic()
+                    .template set<sid::property::origin>(
+                        allocator.template allocate<T>(ISize * NumColors * JSize) + IZero + ISize * NumColors * JZero)
+                    .template set<sid::property::strides>(
+                        GT_META_CALL(ij_cache_impl_::strides_map_t, (1, ISize, ISize *NumColors)){})
+                    .template set<sid::property::ptr_diff, int_t>()));
 
     } // namespace ij_cache_impl_
 

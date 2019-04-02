@@ -19,6 +19,8 @@
 
 namespace gridtools {
     namespace {
+        using namespace literals;
+
         static constexpr int i_size = 9;
         static constexpr int j_size = 13;
         static constexpr int i_zero = 5;
@@ -50,7 +52,6 @@ namespace gridtools {
 
         template <class IJCache1, class IJCache2, class Strides1, class Strides2>
         __device__ bool ij_cache_test(IJCache1 cache1, IJCache2 cache2, Strides1 strides1, Strides2 strides2) {
-            using namespace literals;
 
             auto ptr1 = cache1();
             auto ptr2 = cache2();
