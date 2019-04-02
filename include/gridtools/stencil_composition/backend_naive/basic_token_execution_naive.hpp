@@ -17,7 +17,7 @@
 
 namespace gridtools {
     template <class FromLevel, class ToLevel, class ExecutionEngine, class Grid>
-    GT_FUNCTION pair<int, int> get_k_interval(target::naive, ExecutionEngine, Grid const &grid) {
+    GT_FUNCTION pair<int, int> get_k_interval(backend::naive, ExecutionEngine, Grid const &grid) {
         return make_pair(grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>());
     }
 } // namespace gridtools

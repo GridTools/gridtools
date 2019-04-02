@@ -17,7 +17,7 @@ if(NOT GT_GCL_ONLY)
     endforeach(srcfile)
 
 
-    if( GT_ENABLE_TARGET_CUDA )
+    if( GT_ENABLE_BACKEND_CUDA )
       if(NOT MSVC)
         foreach(srcfile
                 test_halo_exchange_3D_all

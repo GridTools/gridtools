@@ -27,7 +27,7 @@ namespace gridtools {
 
                 template <class Key>
                 GT_FUNCTION void operator()() const {
-                    shift(m_ptr, get_stride<Key>(m_strides), host_device::at_key<Key>(m_offsets));
+                    shift(m_ptr, get_stride<Key>(m_strides), gridtools::host_device::at_key<Key>(m_offsets));
                 }
             };
         } // namespace multi_shift_impl_
@@ -40,7 +40,7 @@ namespace gridtools {
         GT_FUNCTION void multi_shift(
             Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets const &GT_RESTRICT offsets) {
             using keys_t = GT_META_CALL(get_keys, Offsets);
-            host_device::for_each_type<keys_t>(
+            gridtools::host_device::for_each_type<keys_t>(
                 multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});
         }
     } // namespace sid

@@ -58,8 +58,8 @@ struct SmagUpdateFunction {
 
 TEST(multiple_outputs, compute_extents) {
 
-    typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
+    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
+    typedef storage_traits<backend_t>::data_store_t<float_type, meta_data_t> storage_t;
 
     using T_sqr_s = tmp_arg<0, storage_t>;
     using S_sqr_uv = tmp_arg<1, storage_t>;

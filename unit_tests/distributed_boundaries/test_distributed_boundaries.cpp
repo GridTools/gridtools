@@ -20,6 +20,7 @@
 #include <gridtools/boundary_conditions/value.hpp>
 #include <gridtools/distributed_boundaries/comm_traits.hpp>
 #include <gridtools/distributed_boundaries/distributed_boundaries.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
@@ -77,7 +78,7 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
 #else
     using comm_arch = gridtools::gcl_cpu;
 #endif
-    using storage_tr = gridtools::storage_traits<target_t>;
+    using storage_tr = gridtools::storage_traits<backend_t>;
 
     using namespace gridtools;
 
@@ -304,7 +305,7 @@ TEST(DistributedBoundaries, Test) {
 #else
     using comm_arch = gridtools::gcl_cpu;
 #endif
-    using storage_tr = gridtools::storage_traits<target_t>;
+    using storage_tr = gridtools::storage_traits<backend_t>;
 
     using namespace gridtools;
 

@@ -14,16 +14,16 @@
 #include "../common/defs.hpp"
 
 namespace gridtools {
-    template <int_t I, ushort_t NColors>
+    template <int_t I, uint_t NColors>
     struct location_type {
         static const int_t value = I;
-        typedef static_ushort<NColors> n_colors; //! <- is the number of locations of this type
+        typedef static_uint<NColors> n_colors; //! <- is the number of locations of this type
     };
 
     template <typename T>
     struct is_location_type : std::false_type {};
 
-    template <int I, ushort_t NColors>
+    template <int I, uint_t NColors>
     struct is_location_type<location_type<I, NColors>> : std::true_type {};
 
     namespace enumtype {

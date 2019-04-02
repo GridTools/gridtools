@@ -24,7 +24,7 @@ namespace gridtools {
         template <class RunFunctorArgs>
         GT_META_DEFINE_ALIAS(get_iterate_domain_type,
             meta::id,
-            (iterate_domain_mc<iterate_domain_arguments<target::mc,
+            (iterate_domain_mc<iterate_domain_arguments<backend::mc,
                     typename RunFunctorArgs::local_domain_t,
                     typename RunFunctorArgs::esf_sequence_t,
                     typename RunFunctorArgs::cache_sequence_t,
@@ -338,7 +338,7 @@ namespace gridtools {
      */
     template <class RunFunctorArgs, class LocalDomain, class Grid, class ExecutionInfo>
     GT_FORCE_INLINE static void mss_loop(
-        target::mc const &, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &execution_info) {
+        backend::mc const &, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &execution_info) {
         GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);

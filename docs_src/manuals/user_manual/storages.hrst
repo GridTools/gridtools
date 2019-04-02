@@ -34,8 +34,8 @@ backend, with no halos and identifier `0` as follows:
 
  #include <gridtools/storage/storage_traits_cuda.hpp>
  namespace gt = gridtools;
- using target_t = gt::target::cuda; // or gt::target::mc or gt::target::x86
- using storage_info_t = gt::storage_traits<target_t>::select_storage_info<0 /* id */, 3 /* dims */, gt::halo<0, 0, 0>>;
+ using backend_t = gt::backend::cuda; // or gt::backend::mc or gt::backend::x86
+ using storage_info_t = gt::storage_traits<backend_t>::select_storage_info<0 /* id */, 3 /* dims */, gt::halo<0, 0, 0>>;
  storage_info_t si{10, 10, 10};
 
 Be aware that the identifier used in `select_storage_info` must uniquely determine the type of the storage info and the
@@ -95,8 +95,8 @@ The traits class has several ways how a storage info type can be inferred:
 
      #include <gridtools/storage/storage_traits_cuda.hpp>
      namespace gt = gridtools;
-     using target_t = gt::target::cuda;
-     using storage_info_t = gt::storage_traits<target_t>::select_custom_layout_storage_info<0 /* id */, gt::layout<1, -1, 0>, gt::halo<0, 0, 0>>;
+     using backend_t = gt::backend::cuda;
+     using storage_info_t = gt::storage_traits<backend_t>::select_custom_layout_storage_info<0 /* id */, gt::layout<1, -1, 0>, gt::halo<0, 0, 0>>;
      storage_info_t si{10, 10, 10};
 
 * **Selector:** Selectors in the storage traits allow to mask dimensions, but automatically have the optimal layout for
@@ -107,8 +107,8 @@ The traits class has several ways how a storage info type can be inferred:
 
      #include <gridtools/storage/storage_traits_cuda.hpp>
      namespace gt = gridtools;
-     using target_t = gt::target::cuda;
-     using storage_info_t = gt::storage_traits<target_t>::select_special_storage_info<0 /* id */, gt::selector<1, 0, 1>, gt::halo<0, 0, 0>>;
+     using backend_t = gt::backend::cuda;
+     using storage_info_t = gt::storage_traits<backend_t>::select_special_storage_info<0 /* id */, gt::selector<1, 0, 1>, gt::halo<0, 0, 0>>;
      storage_info_t si{10, 10, 10};
 
 * **Alignment:** Information about the alignment in terms of number of elements. There is the possibility to provide
@@ -134,8 +134,8 @@ The traits class has several ways how a storage info type can be inferred:
 
      #include <gridtools/storage/storage_traits_cuda.hpp>
      namespace gt = gridtools;
-     using target_t = gt::target::cuda;
-     using storage_info_t = gt::storage_traits<target_t>::select_storage_info<0 /* id */, 3 /* dims */, gt::halo<1, 0, 0>>;
+     using backend_t = gt::backend::cuda;
+     using storage_info_t = gt::storage_traits<backend_t>::select_storage_info<0 /* id */, 3 /* dims */, gt::halo<1, 0, 0>>;
      storage_info_t si{10, 10, 10};
 
 A visual representation of the storage info is given in :numref:`fig_storage_info_example`. The allocated memory starts
@@ -200,8 +200,8 @@ can be initialized with a value or a lambda and can optionally be named by passi
 
 .. code-block:: gridtools
 
-    using storage_info_t = storage_traits<target::host>::select_storage_info<0 /* id */, 2 /* dims */, gt::halo<1, 0>>;
-    using data_store_t = storage_traits<target::host>::data_store_t<double, storage_info_t>;
+    using storage_info_t = storage_traits<backend::mc>::select_storage_info<0 /* id */, 2 /* dims */, gt::halo<1, 0>>;
+    using data_store_t = storage_traits<backend::mc>::data_store_t<double, storage_info_t>;
 
     storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
@@ -311,8 +311,8 @@ memory space (e.g., GPU). If target and host share the memory space, host and ta
     }
     ...
     // instantiate a data_store
-    using storage_info_t = storage_traits<target::cuda>::select_storage_info<0, 2, gt::halo<0, 0>>;
-    using data_store_t = storage_traits<target::host>::data_store_t<double, storage_info_t>;
+    using storage_info_t = storage_traits<backend::cuda>::select_storage_info<0, 2, gt::halo<0, 0>>;
+    using data_store_t = storage_traits<backend::mc>::data_store_t<double, storage_info_t>;
 
     storage_info_t si(20, 20);
     data_store_t ds(si);

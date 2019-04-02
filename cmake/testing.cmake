@@ -24,7 +24,7 @@ if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
         add_library( mpi_gtest_main include/gridtools/tools/mpi_unit_test_driver/mpi_test_driver.cpp )
         target_link_libraries(mpi_gtest_main gtest MPI::MPI_CXX GridToolsTest gcl)
-        if (GT_ENABLE_TARGET_CUDA)
+        if (GT_ENABLE_BACKEND_CUDA)
             target_include_directories( mpi_gtest_main PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
         endif()
     endif()
@@ -46,7 +46,7 @@ function (fetch_tests_helper target_arch filetype test_environment subfolder )
     set(labels ${___LABELS})
     list(APPEND labels target_${target_arch_l})
 
-    if (GT_ENABLE_TARGET_${target_arch_u})
+    if (GT_ENABLE_BACKEND_${target_arch_u})
         # get all source files in the current directory
         file(GLOB test_sources CONFIGURE_DEPENDS "./${subfolder}/test_*.${filetype}" )
         foreach(test_source IN LISTS test_sources )
@@ -68,20 +68,18 @@ function (fetch_tests_helper target_arch filetype test_environment subfolder )
     endif()
 endfunction()
 
-# This function will fetch all x86 test cases in the given directory.
-# Only used for gcc or clang compilations
 function(fetch_x86_tests)
     fetch_tests_helper(x86 cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_x86_tests)
 
-# This function will fetch all mc test cases in the given directory.
-# Only used for gcc or clang compilations
+function(fetch_naive_tests)
+    fetch_tests_helper(naive cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+endfunction(fetch_naive_tests)
+
 function(fetch_mc_tests)
     fetch_tests_helper(mc cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_mc_tests)
 
-# This function will fetch all gpu test cases in the given directory.
-# Only used for nvcc compilations
 function(fetch_gpu_tests)
     set(CUDA_SEPARABLE_COMPILATION OFF) # TODO required?
     fetch_tests_helper(cuda cu "${TEST_CUDA_ENVIRONMENT}" ${ARGN})
@@ -109,7 +107,7 @@ function(add_custom_test_helper target_arch test_environment)
     set(labels ${___LABELS})
     list(APPEND labels target_${target_arch_l})
 
-    if (GT_ENABLE_TARGET_${target_arch_u})
+    if (GT_ENABLE_BACKEND_${target_arch_u})
         set(unit_test "${___TARGET}_${target_arch_l}")
         # create the test
         add_executable (${unit_test} ${___SOURCES})
@@ -166,7 +164,7 @@ function(add_custom_mpi_test_helper target_arch test_script test_environment)
     set(labels ${___LABELS})
     list(APPEND labels target_${target_arch_l} )
 
-    if (GT_ENABLE_TARGET_${target_arch_u})
+    if (GT_ENABLE_BACKEND_${target_arch_u})
         set(unit_test "${___TARGET}_${target_arch_l}")
         # create the test
         add_executable (${unit_test} ${___SOURCES})

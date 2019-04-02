@@ -30,18 +30,16 @@
 #include <gridtools/boundary_conditions/copy.hpp>
 #include <gridtools/boundary_conditions/value.hpp>
 #include <gridtools/boundary_conditions/zero.hpp>
-#include <gridtools/stencil_composition/backend.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <iostream>
 
 namespace gt = gridtools;
 
 #ifdef __CUDACC__
-using target_t = gt::target::cuda;
+using backend_t = gt::backend::cuda;
 #else
-using target_t = gt::target::mc;
+using backend_t = gt::backend::mc;
 #endif
-
-using backend_t = gt::backend<target_t>;
 
 int main(int argc, char **argv) {
     if (argc != 4) {
@@ -58,8 +56,8 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3, gt::halo<1, 1, 1>>;
-    using storage_t = backend_t::storage_traits_t::data_store_t<int, storage_info_t>;
+    using storage_info_t = gt::storage_traits<backend_t>::storage_info_t<0, 3, gt::halo<1, 1, 1>>;
+    using storage_t = gt::storage_traits<backend_t>::data_store_t<int, storage_info_t>;
 
     // Definition of the actual data fields that are used for input/output
     storage_info_t storage_info(d1, d2, d3);
@@ -89,7 +87,7 @@ int main(int argc, char **argv) {
         in_s.sync();
         out_s.sync();
 
-        gt::boundary<gt::copy_boundary, target_t>(halos, gt::copy_boundary{}).apply(out_s, in_s);
+        gt::boundary<gt::copy_boundary, backend_t>(halos, gt::copy_boundary{}).apply(out_s, in_s);
 
         // sync the data stores if needed
         in_s.sync();
@@ -127,7 +125,7 @@ int main(int argc, char **argv) {
         // sync the data stores if needed
         out_s.sync();
 
-        gt::boundary<gt::zero_boundary, target_t>(halos, gt::zero_boundary{}).apply(out_s);
+        gt::boundary<gt::zero_boundary, backend_t>(halos, gt::zero_boundary{}).apply(out_s);
 
         // sync the data stores if needed
         out_s.sync();
@@ -159,7 +157,7 @@ int main(int argc, char **argv) {
         // sync the data stores if needed
         out_s.sync();
 
-        gt::boundary<gt::value_boundary<int>, target_t>(halos, gt::value_boundary<int>{42}).apply(out_s);
+        gt::boundary<gt::value_boundary<int>, backend_t>(halos, gt::value_boundary<int>{42}).apply(out_s);
 
         // sync the data stores if needed
         out_s.sync();

@@ -24,10 +24,10 @@
 namespace gridtools {
 
     namespace _impl {
-        template <template <ushort_t...> class Lambda, class Args>
+        template <template <uint_t...> class Lambda, class Args>
         struct apply_lambda;
 
-        template <template <ushort_t...> class Lambda, template <class...> class L, class... Ts>
+        template <template <uint_t...> class Lambda, template <class...> class L, class... Ts>
         struct apply_lambda<Lambda, L<Ts...>> {
             using type = Lambda<Ts::value...>;
         };
@@ -43,11 +43,11 @@ namespace gridtools {
        \endverbatim
        Optionally a set of initial values to start filling the template class can be passed
     */
-    template <ushort_t Constant, ushort_t Length, template <ushort_t... T> class Lambda, ushort_t... InitialValues>
+    template <uint_t Constant, uint_t Length, template <uint_t... T> class Lambda, uint_t... InitialValues>
     struct repeat_template_c {
-        using repeated_args_t = GT_META_CALL(meta::repeat_c, (Length, std::integral_constant<ushort_t, Constant>));
+        using repeated_args_t = GT_META_CALL(meta::repeat_c, (Length, std::integral_constant<uint_t, Constant>));
         using all_args_t = GT_META_CALL(
-            meta::push_front, (repeated_args_t, std::integral_constant<ushort_t, InitialValues>...));
+            meta::push_front, (repeated_args_t, std::integral_constant<uint_t, InitialValues>...));
         using type = typename _impl::apply_lambda<Lambda, all_args_t>::type;
     };
 

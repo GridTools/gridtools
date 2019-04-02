@@ -308,7 +308,7 @@ namespace gridtools {
         /// reminder.
         converted_intermediate<1> m_intermediate_remainder;
 
-        typename timer_traits<typename Backend::target_t>::timer_type m_meter;
+        typename timer_traits<Backend>::timer_type m_meter;
 
         template <class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs>
         intermediate_expand(Grid const &grid,

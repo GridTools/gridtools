@@ -32,12 +32,12 @@ namespace gridtools {
     struct comm_traits {
         template <typename GCLArch, typename = void>
         struct compute_arch_of {
-            using type = target::x86;
+            using type = backend::x86;
         };
 
         template <typename T>
         struct compute_arch_of<gcl_gpu, T> {
-            using type = target::cuda;
+            using type = backend::cuda;
         };
 
         using proc_layout = gridtools::layout_map<0, 1, 2>;

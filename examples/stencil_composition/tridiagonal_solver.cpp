@@ -28,12 +28,10 @@
 namespace gt = gridtools;
 
 #ifdef __CUDACC__
-using target_t = gt::target::cuda;
+using backend_t = gt::backend::cuda;
 #else
-using target_t = gt::target::mc;
+using backend_t = gt::backend::mc;
 #endif
-
-using backend_t = gt::backend<target_t>;
 
 // This is the definition of the special regions in the "vertical" direction
 using axis_t = gt::axis<1>;
@@ -86,7 +84,7 @@ int main() {
     unsigned int d2 = 10;
     unsigned int d3 = 6;
 
-    using storage_tr = gt::storage_traits<target_t>;
+    using storage_tr = gt::storage_traits<backend_t>;
 
     // storage_info contains the information about sizes and layout of the storages to which it will be passed
     using storage_info_t = storage_tr::storage_info_t<0, 3>;
