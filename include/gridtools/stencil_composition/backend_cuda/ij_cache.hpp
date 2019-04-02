@@ -59,8 +59,8 @@ namespace gridtools {
             int_t IZero,
             int_t JZero,
             int_t IStride = 1,
-            int_t CStride = IStride *NumColors,
-            int_t JStride = CStride *JSize,
+            int_t CStride = IStride *ISize,
+            int_t JStride = CStride *NumColors,
             int_t Size = JStride *JSize,
             int_t Offset = IStride *IZero + JStride *JZero>
         auto make_ij_cache(shared_allocator &allocator)
