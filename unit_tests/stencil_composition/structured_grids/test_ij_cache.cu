@@ -28,7 +28,7 @@ namespace gridtools {
     TEST(sid_ij_cache, smoke) {
 
         shared_allocator allocator;
-        auto testee = make_ij_cache<double, i_size, j_size, i_zero, j_zero>(allocator);
+        auto testee = make_ij_cache<float_type, i_size, j_size, i_zero, j_zero>(allocator);
 
         using ij_cache_t = decltype(testee);
 
