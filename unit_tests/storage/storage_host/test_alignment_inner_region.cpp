@@ -25,7 +25,7 @@ void run() {
     constexpr gt::uint_t h2 = 4;
     constexpr gt::uint_t h3 = 5;
     using info = gt::storage_info<0, Layout, gt::halo<h1, h2, h3>, gt::alignment<a>>;
-    using store = gt::storage_traits<gridtools::target::x86>::data_store_t<ValueType, info>;
+    using store = gt::storage_traits<gridtools::backend::x86>::data_store_t<ValueType, info>;
 
     info i(12, 34, 12);
     store s(i);
@@ -49,7 +49,7 @@ void run_multi() {
     constexpr gt::uint_t h2 = 4;
     constexpr gt::uint_t h3 = 5;
     using info = gt::storage_info<0, Layout, gt::halo<h1, h2, h3>, gt::alignment<a>>;
-    using store = gt::storage_traits<gridtools::target::x86>::data_store_t<ValueType, info>;
+    using store = gt::storage_traits<gridtools::backend::x86>::data_store_t<ValueType, info>;
 
     info i(10, 10, 12);
     store s(i, (ValueType)1, "name");

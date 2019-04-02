@@ -24,12 +24,10 @@ namespace gt = gridtools;
 namespace gt = gridtools;
 
 #ifdef __CUDACC__
-using target_t = gt::target::cuda;
+using backend_t = gt::backend::cuda;
 #else
-using target_t = gt::target::mc;
+using backend_t = gt::backend::mc;
 #endif
-
-using backend_t = gt::backend<target_t>;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
@@ -118,7 +116,7 @@ int main(int argc, char **argv) {
         d3 = atoi(argv[3]);
     }
 
-    using storage_tr = gt::storage_traits<target_t>;
+    using storage_tr = gt::storage_traits<backend_t>;
     using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<halo_size, halo_size, 0>>;
     using storage_type = storage_tr::data_store_t<double, storage_info_ijk_t>;
 

@@ -24,7 +24,7 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
     endif()
 endmacro(generate_preprocessed_file)
 
-if (GT_ENABLE_TARGET_X86)
+if (GT_ENABLE_BACKEND_X86)
     # generate a file where we can inspect the generated repository
     set( GENERATED_REPOSITORY ${CMAKE_CURRENT_BINARY_DIR}/generated_repository.cpp )
     generate_preprocessed_file( ${GENERATED_REPOSITORY} plain_repository_generator.cpp )
@@ -55,7 +55,7 @@ if (GT_ENABLE_TARGET_X86)
         NAME custom_test_generated_repository
         SCRIPT ${TEST_SCRIPT}
         COMMAND $<TARGET_FILE:custom_test_generated_repository>
-        LABELS unittest_x86 target_x86
+        LABELS unittest_x86 backend_x86
         ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
         )
     add_dependencies(custom_test_generated_repository generated_repository)
@@ -87,7 +87,7 @@ if (CMAKE_Fortran_COMPILER_LOADED)
     target_link_libraries(repository_fortran_lib repository_${prec}_fortran)
     gt_enable_fortran_preprocessing_on_target(repository_fortran_lib)
 
-    if (GT_ENABLE_TARGET_X86)
+    if (GT_ENABLE_BACKEND_X86)
         add_custom_x86_test(
             TARGET custom_test_exported_repository
             SOURCES custom_test_exported_repository.cpp
@@ -100,7 +100,7 @@ if (CMAKE_Fortran_COMPILER_LOADED)
     # TODO Fix this test. This test does not work right now because repository_${proc}_fortran
     # is not compiled with ACC. ACC cannot be activated for CUDA 8.X because it requires
     # gfortran <= 5.X
-    # if (GT_ENABLE_TARGET_CUDA)
+    # if (GT_ENABLE_BACKEND_CUDA)
         # add_custom_gpu_test(
             # TARGET custom_test_exported_repository
             # SOURCES custom_test_exported_repository.cpp
@@ -110,7 +110,7 @@ if (CMAKE_Fortran_COMPILER_LOADED)
             # repository_fortran_lib
             # )
     # endif()
-    if (GT_ENABLE_TARGET_MC AND NOT GT_ENABLE_TARGET_X86)
+    if (GT_ENABLE_BACKEND_MC AND NOT GT_ENABLE_BACKEND_X86)
         add_custom_mc_test(
             TARGET custom_test_exported_repository
             SOURCES custom_test_exported_repository.cpp

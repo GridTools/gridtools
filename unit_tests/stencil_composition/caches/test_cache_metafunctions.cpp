@@ -16,15 +16,14 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/backend.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace execute;
 
-typedef storage_traits<target::x86>::storage_info_t<0, 2> storage_info_ij_t;
-typedef storage_traits<target::x86>::data_store_t<float_type, storage_info_ij_t> storage_type;
+typedef storage_traits<backend::x86>::storage_info_t<0, 2> storage_info_ij_t;
+typedef storage_traits<backend::x86>::data_store_t<float_type, storage_info_ij_t> storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<2, storage_type> p_out;

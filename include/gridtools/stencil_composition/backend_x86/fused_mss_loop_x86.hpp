@@ -29,7 +29,7 @@ namespace gridtools {
      */
     template <class MssComponents, class LocalDomainListArray, class Grid>
     GT_FORCE_INLINE static void fused_mss_loop(
-        target::x86 const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+        backend::x86 const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         uint_t n = grid.i_high_bound() - grid.i_low_bound();
@@ -53,5 +53,5 @@ namespace gridtools {
     /**
      * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
      */
-    constexpr std::false_type mss_fuse_esfs(target::x86) { return {}; }
+    constexpr std::false_type mss_fuse_esfs(backend::x86) { return {}; }
 } // namespace gridtools

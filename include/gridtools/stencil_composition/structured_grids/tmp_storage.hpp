@@ -15,8 +15,8 @@
 
 namespace gridtools {
     namespace tmp_storage {
-        template <class StorageInfo, size_t /*NColors*/, class Target>
-        StorageInfo make_storage_info(Target const &, size_t i, size_t j, size_t k) {
+        template <class StorageInfo, size_t /*NColors*/, class Backend>
+        StorageInfo make_storage_info(Backend const &, size_t i, size_t j, size_t k) {
             return StorageInfo{i, j, k};
         }
     } // namespace tmp_storage

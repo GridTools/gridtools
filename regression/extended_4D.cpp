@@ -75,10 +75,10 @@ struct integration {
         // projection of f on a (e.g.) P1 FE space:
         // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
         // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
-        for (short_t I = 0; I < 2; ++I)
-            for (short_t J = 0; J < 2; ++J)
-                for (short_t K = 0; K < 2; ++K) {
-                    for (short_t q = 0; q < 2; ++q) {
+        for (int_t I = 0; I < 2; ++I)
+            for (int_t J = 0; J < 2; ++J)
+                for (int_t K = 0; K < 2; ++K) {
+                    for (int_t q = 0; q < 2; ++q) {
                         eval(result(di + I, dj + J, dk + K)) +=
                             eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
                                  phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +
@@ -99,11 +99,11 @@ struct integration {
 };
 
 struct extended_4d : regression_fixture<> {
-    using layout_map_t = conditional_t<std::is_same<target_t, target::x86>::value,
+    using layout_map_t = conditional_t<std::is_same<backend_t, backend::x86>::value,
         layout_map<3, 4, 5, 0, 1, 2>,
         layout_map<5, 4, 3, 2, 1, 0>>;
     using layout_map_quad_t =
-        conditional_t<std::is_same<target_t, target::x86>::value, layout_map<1, 2, 3, 0>, layout_map<3, 2, 1, 0>>;
+        conditional_t<std::is_same<backend_t, backend::x86>::value, layout_map<1, 2, 3, 0>, layout_map<3, 2, 1, 0>>;
 
     template <unsigned Id, typename Layout>
     using special_storage_info_t = storage_tr::custom_layout_storage_info_t<Id, Layout>;
@@ -134,7 +134,7 @@ struct extended_4d : regression_fixture<> {
 };
 
 TEST_F(extended_4d, test) {
-    using global_par_storage_t = decltype(backend_t::make_global_parameter(elemental{}));
+    using global_par_storage_t = global_parameter<backend_t, elemental>;
     arg<0, global_par_storage_t> p_phi;
     arg<1, global_par_storage_t> p_psi;
     arg<2, storage_global_quad_t> p_jac;
@@ -155,8 +155,8 @@ TEST_F(extended_4d, test) {
     };
     auto result = make_storage();
 
-    make_computation(p_phi = backend_t::make_global_parameter(elemental{phi}),
-        p_psi = backend_t::make_global_parameter(elemental{psi}),
+    make_computation(p_phi = make_global_parameter<backend_t>(elemental{phi}),
+        p_psi = make_global_parameter<backend_t>(elemental{psi}),
         p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
         p_f = make_storage(f),
         p_result = result,
