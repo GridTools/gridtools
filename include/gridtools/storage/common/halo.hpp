@@ -10,16 +10,11 @@
 
 #pragma once
 
-#include <array>
+#include <type_traits>
 
-#include <boost/mpl/accumulate.hpp>
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/plus.hpp>
-#include <boost/mpl/vector.hpp>
-
-#include "../../common/generic_metafunctions/repeat_template.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
+#include "../../meta/repeat.hpp"
 
 namespace gridtools {
     /** \ingroup storage
@@ -64,18 +59,28 @@ namespace gridtools {
         GT_FUNCTION static constexpr uint_t size() { return sizeof...(N); }
     };
 
+    namespace _impl {
+        template <class>
+        struct list_to_halo;
+        template <template <class...> class L, uint_t... Is>
+        struct list_to_halo<L<std::integral_constant<uint_t, Is>...>> {
+            using type = halo<Is...>;
+        };
+    } // namespace _impl
+
     /**
      *  @brief Used to generate a zero initialzed halo. Used as a default value for storage info halo.
      */
     template <uint_t Cnt>
-    using zero_halo = typename repeat_template_c<0, Cnt, halo>::type;
+    using zero_halo =
+        typename _impl::list_to_halo<GT_META_CALL(meta::repeat_c, (Cnt, std::integral_constant<uint_t, 0>))>::type;
 
     /* used to check if a given type is a halo type */
     template <typename T>
-    struct is_halo : boost::mpl::false_ {};
+    struct is_halo : std::false_type {};
 
     template <uint_t... N>
-    struct is_halo<halo<N...>> : boost::mpl::true_ {};
+    struct is_halo<halo<N...>> : std::true_type {};
 
     /**
      * @}
