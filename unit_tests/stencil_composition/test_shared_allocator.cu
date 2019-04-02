@@ -46,7 +46,7 @@ namespace {
     }
 
     template <class PtrHolderFloat, class PtrHolderInt>
-    __device__ int fill_and_check_test(
+    __global__ void fill_and_check_test(
         PtrHolderFloat holder1, PtrHolderFloat holder1_shifted, PtrHolderInt holder2, bool *result) {
         static_assert(std::is_same<decltype(holder1()), float *>::value, "");
         static_assert(std::is_same<decltype(holder1_shifted()), float *>::value, "");
@@ -70,7 +70,6 @@ namespace {
 
             result[blockIdx.x] = local_result;
         }
-        return 0;
     }
 
     TEST(shared_allocator, fill_and_check) {
@@ -79,19 +78,15 @@ namespace {
         auto int_ptr = allocator.allocate<int16_t>(32);
 
         bool *result;
-        cudaMallocManaged(&result, 2 * sizeof(bool));
+        GT_CUDA_CHECK(cudaMallocManaged(&result, 2 * sizeof(bool)));
 
-        gridtools::on_device::exec_with_shared_memory<2, 32>(allocator.size(),
-            GT_MAKE_CONSTANT((fill_and_check_test<decltype(float_ptr), decltype(int_ptr)>)),
-            float_ptr,
-            (float_ptr + 48) + (-16),
-            int_ptr,
-            result);
+        fill_and_check_test<<<2, 32, allocator.size()>>>(float_ptr, (float_ptr + 48) + (-16), int_ptr, result);
+        GT_CUDA_CHECK(cudaDeviceSynchronize());
 
         EXPECT_TRUE(result[0]);
         EXPECT_TRUE(result[1]);
 
-        cudaFree(result);
+        GT_CUDA_CHECK(cudaFree(result));
     }
 
 } // namespace
