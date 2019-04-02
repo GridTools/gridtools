@@ -2,10 +2,10 @@
 
 using namespace gridtools;
 
-using target_t = target::mc;
+using backend_t = backend::mc;
 
-using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3>;
-using data_store_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;
+using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
+using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
 using storage_view_t = decltype(make_host_view(std::declval<data_store_t>()));
 

@@ -27,46 +27,28 @@ if( COMPONENT_STENCIL_COMPOSITION )
       # special target for executables which are used from performance benchmarks
       add_custom_target(perftests)
 
-      if(GT_ENABLE_TARGET_X86)
+      if(GT_ENABLE_BACKEND_X86)
         foreach(srcfile IN LISTS SOURCES)
-          add_executable(${srcfile}_x86_naive   ${srcfile}.cpp)
-          target_link_libraries(${srcfile}_x86_naive regression_main GridToolsTestX86)
-          target_compile_definitions(${srcfile}_x86_naive PRIVATE GT_BACKEND_STRATEGY_NAIVE)
-
-          add_executable(${srcfile}_x86_block   ${srcfile}.cpp)
-          target_link_libraries(${srcfile}_x86_block regression_main GridToolsTestX86)
+          add_executable(${srcfile}_x86 ${srcfile}.cpp)
+          target_link_libraries(${srcfile}_x86 regression_main GridToolsTestX86)
 
           gridtools_add_test(
-              NAME tests.${srcfile}_x86_block_12_33_61
+              NAME tests.${srcfile}_x86_12_33_61
               SCRIPT ${TEST_SCRIPT}
-              COMMAND $<TARGET_FILE:${srcfile}_x86_block> 12 33 61
-              LABELS regression_x86 target_x86
+              COMMAND $<TARGET_FILE:${srcfile}_x86> 12 33 61
+              LABELS regression_x86 backend_x86
               ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
-              NAME tests.${srcfile}_x86_block_23_11_43
+              NAME tests.${srcfile}_x86_23_11_43
               SCRIPT ${TEST_SCRIPT}
-              COMMAND $<TARGET_FILE:${srcfile}_x86_block> 23 11 43
-              LABELS regression_x86 target_x86
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
-              )
-          gridtools_add_test(
-              NAME tests.${srcfile}_x86_naive_12_33_61
-              SCRIPT ${TEST_SCRIPT}
-              COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 12 33 21
-              LABELS regression_x86 target_x86
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
-              )
-          gridtools_add_test(
-              NAME tests.${srcfile}_x86_naive_23_11_43
-              SCRIPT ${TEST_SCRIPT}
-              COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 23 11 43
-              LABELS regression_x86 target_x86
+              COMMAND $<TARGET_FILE:${srcfile}_x86> 23 11 43
+              LABELS regression_x86 backend_x86
               ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
 
           if (srcfile IN_LIST SOURCES_PERFTEST)
-              add_dependencies(perftests ${srcfile}_x86_block)
+              add_dependencies(perftests ${srcfile}_x86)
           endif()
         endforeach(srcfile)
 
@@ -78,9 +60,40 @@ if( COMPONENT_STENCIL_COMPOSITION )
             add_executable(shallow_water_enhanced_x86  shallow_water_enhanced.cpp)
             target_link_libraries(shallow_water_enhanced_x86 gtest_main gcl GridToolsTestX86)
         endif()
-      endif(GT_ENABLE_TARGET_X86)
+      endif(GT_ENABLE_BACKEND_X86)
 
-      if(GT_ENABLE_TARGET_MC)
+      if(GT_ENABLE_BACKEND_NAIVE)
+        foreach(srcfile IN LISTS SOURCES)
+          add_executable(${srcfile}_naive   ${srcfile}.cpp)
+          target_link_libraries(${srcfile}_naive regression_main GridToolsTestNAIVE)
+
+          gridtools_add_test(
+              NAME tests.${srcfile}_naive_12_33_61
+              SCRIPT ${TEST_SCRIPT}
+              COMMAND $<TARGET_FILE:${srcfile}_naive> 12 33 21
+              LABELS regression_naive backend_naive
+              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
+              )
+          gridtools_add_test(
+              NAME tests.${srcfile}_naive_23_11_43
+              SCRIPT ${TEST_SCRIPT}
+              COMMAND $<TARGET_FILE:${srcfile}_naive> 23 11 43
+              LABELS regression_naive backend_naive
+              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
+              )
+        endforeach(srcfile)
+
+        if( GT_USE_MPI )
+            add_custom_mpi_naive_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
+
+            ## The next executable is not made into a test since it does not validate.
+            ## The numerics need to be fixed (this is a task to be undertaken in the future)
+            add_executable(shallow_water_enhanced_naive  shallow_water_enhanced.cpp)
+            target_link_libraries(shallow_water_enhanced_naive gtest_main gcl GridToolsTestNAIVE)
+        endif()
+      endif(GT_ENABLE_BACKEND_NAIVE)
+
+      if(GT_ENABLE_BACKEND_MC)
         foreach(srcfile IN LISTS SOURCES)
           add_executable(${srcfile}_mc   ${srcfile}.cpp)
           target_link_libraries(${srcfile}_mc regression_main GridToolsTestMC)
@@ -89,14 +102,14 @@ if( COMPONENT_STENCIL_COMPOSITION )
               NAME tests.${srcfile}_mc_12_33_61
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 12 33 61
-              LABELS regression_mc target_mc
+              LABELS regression_mc backend_mc
               ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_mc_23_11_43
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 23 11 43
-              LABELS regression_mc target_mc
+              LABELS regression_mc backend_mc
               ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           if (srcfile IN_LIST SOURCES_PERFTEST)
@@ -112,9 +125,9 @@ if( COMPONENT_STENCIL_COMPOSITION )
             add_executable(shallow_water_enhanced_mc  shallow_water_enhanced.cpp)
             target_link_libraries(shallow_water_enhanced_mc  gtest_main gcl GridToolsTestMC)
         endif()
-    endif(GT_ENABLE_TARGET_MC)
+    endif(GT_ENABLE_BACKEND_MC)
 
-    if(GT_ENABLE_TARGET_CUDA)
+    if(GT_ENABLE_BACKEND_CUDA)
 
        foreach(srcfile IN LISTS SOURCES)
            add_executable( ${srcfile}_cuda ${srcfile}.cu)
@@ -124,14 +137,14 @@ if( COMPONENT_STENCIL_COMPOSITION )
                NAME tests.${srcfile}_cuda_47_38_61
                SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 47 38 61
-               LABELS regression_cuda target_cuda
+               LABELS regression_cuda backend_cuda
                ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
                )
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_63_38_10
                SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 38 10
-               LABELS regression_cuda target_cuda
+               LABELS regression_cuda backend_cuda
                ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
                )
            if (srcfile IN_LIST SOURCES_PERFTEST)
@@ -153,7 +166,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
            add_executable(shallow_water_enhanced_cuda shallow_water_enhanced.cu)
            target_link_libraries(shallow_water_enhanced_cuda gtest_main gcl GridToolsTestCUDA)
         endif()
-    endif(GT_ENABLE_TARGET_CUDA)
+    endif(GT_ENABLE_BACKEND_CUDA)
 
     if ( COMPONENT_C_BINDINGS )
         add_subdirectory( c_bindings )

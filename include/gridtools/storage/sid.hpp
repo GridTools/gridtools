@@ -13,7 +13,6 @@
 #include <cassert>
 
 #include "../common/defs.hpp"
-#include "../common/functional.hpp"
 #include "../common/generic_metafunctions/utility.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
@@ -95,9 +94,21 @@ namespace gridtools {
 
         struct empty_ptr_diff {
             template <class T>
-            friend constexpr GT_FUNCTION T &&operator+(T &&lhs, empty_ptr_diff) {
-                return const_expr::forward<T>(lhs);
+            friend constexpr GT_FUNCTION T *operator+(T *lhs, empty_ptr_diff) {
+                return lhs;
             }
+        };
+
+        template <class T>
+        struct ptr_holder {
+            T *m_val;
+            GT_FUNCTION constexpr T *operator()() const { return m_val; }
+
+            friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
+                return {obj.m_val + arg};
+            }
+
+            friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, empty_ptr_diff) { return obj; }
         };
 
         template <class Storage, class StorageInfo>
@@ -107,7 +118,7 @@ namespace gridtools {
 
             static impl_t const &impl();
 
-            friend host_device::constant<typename Storage::data_t *> sid_get_origin(host_adapter const &obj) {
+            friend ptr_holder<typename Storage::data_t> sid_get_origin(host_adapter const &obj) {
                 auto &&storage_ptr = obj.m_impl.get_storage_ptr();
                 assert(storage_ptr);
                 if (storage_ptr->host_needs_update_impl())
@@ -130,7 +141,8 @@ namespace gridtools {
      *   The functions below make `data_store` model the `SID` concept
      */
     template <class Storage, class StorageInfo>
-    host_device::constant<typename Storage::data_t *> sid_get_origin(data_store<Storage, StorageInfo> const &obj) {
+    storage_sid_impl_::ptr_holder<typename Storage::data_t> sid_get_origin(
+        data_store<Storage, StorageInfo> const &obj) {
         auto &&storage_ptr = obj.get_storage_ptr();
         assert(storage_ptr);
         if (storage_ptr->device_needs_update_impl())

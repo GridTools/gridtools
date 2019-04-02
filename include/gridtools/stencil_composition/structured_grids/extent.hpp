@@ -105,17 +105,14 @@ namespace gridtools {
      * Metafunction taking two extents and yielding a extent which is the extension of one another
      */
     template <typename Extent1, typename Extent2>
-    struct sum_extent {
-        GT_STATIC_ASSERT(is_extent<Extent1>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_extent<Extent2>::value, GT_INTERNAL_ERROR);
-
-        using type = extent<Extent1::iminus::value + Extent2::iminus::value,
+    GT_META_DEFINE_ALIAS(sum_extent,
+        extent,
+        (Extent1::iminus::value + Extent2::iminus::value,
             Extent1::iplus::value + Extent2::iplus::value,
             Extent1::jminus::value + Extent2::jminus::value,
             Extent1::jplus::value + Extent2::jplus::value,
             Extent1::kminus::value + Extent2::kminus::value,
-            Extent1::kplus::value + Extent2::kplus::value>;
-    };
+            Extent1::kplus::value + Extent2::kplus::value));
 
     struct rt_extent {
         template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus, int_t... Rest>

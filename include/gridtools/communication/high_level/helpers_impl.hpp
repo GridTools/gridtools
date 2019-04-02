@@ -58,9 +58,9 @@ namespace gridtools {
         struct allocation_service;
 
         template <typename Datatype, typename T2>
-        struct allocation_service<hndlr_descriptor_ut<Datatype, 3, T2>> {
-            void operator()(hndlr_descriptor_ut<Datatype, 3, T2> *hm) const {
-                typedef typename hndlr_descriptor_ut<Datatype, 3, T2>::pattern_type::translate_type translate;
+        struct allocation_service<hndlr_descriptor_ut<Datatype, T2>> {
+            void operator()(hndlr_descriptor_ut<Datatype, T2> *hm) const {
+                typedef typename hndlr_descriptor_ut<Datatype, T2>::pattern_type::translate_type translate;
                 for (int ii = -1; ii <= 1; ++ii)
                     for (int jj = -1; jj <= 1; ++jj)
                         for (int kk = -1; kk <= 1; ++kk)
@@ -88,14 +88,9 @@ namespace gridtools {
             }
         };
 
-        template <typename Datatype,
-            typename T2,
-            typename procmap,
-            typename arch,
-            int V,
-            template <int Ndim> class GridType>
-        struct allocation_service<hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch, V>> {
-            void operator()(hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch, V> *hm, int mf) const {
+        template <typename Datatype, typename T2, typename procmap, typename arch, template <int Ndim> class GridType>
+        struct allocation_service<hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch>> {
+            void operator()(hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch> *hm, int mf) const {
                 typedef translate_t<3, default_layout_map<3>::type> translate;
                 typedef translate_t<3, procmap> translate_P;
 
@@ -139,9 +134,9 @@ namespace gridtools {
         struct pack_service;
 
         template <typename Datatype, typename T2>
-        struct pack_service<hndlr_descriptor_ut<Datatype, 3, T2>> {
-            void operator()(hndlr_descriptor_ut<Datatype, 3, T2> const *hm) const {
-                typedef typename hndlr_descriptor_ut<Datatype, 3, T2>::pattern_type::translate_type translate;
+        struct pack_service<hndlr_descriptor_ut<Datatype, T2>> {
+            void operator()(hndlr_descriptor_ut<Datatype, T2> const *hm) const {
+                typedef typename hndlr_descriptor_ut<Datatype, T2>::pattern_type::translate_type translate;
                 for (int ii = -1; ii <= 1; ++ii)
                     for (int jj = -1; jj <= 1; ++jj)
                         for (int kk = -1; kk <= 1; ++kk)
@@ -157,9 +152,9 @@ namespace gridtools {
         struct unpack_service;
 
         template <typename Datatype, typename T2>
-        struct unpack_service<hndlr_descriptor_ut<Datatype, 3, T2>> {
-            void operator()(hndlr_descriptor_ut<Datatype, 3, T2> const *hm) const {
-                typedef typename hndlr_descriptor_ut<Datatype, 3, T2>::pattern_type::translate_type translate;
+        struct unpack_service<hndlr_descriptor_ut<Datatype, T2>> {
+            void operator()(hndlr_descriptor_ut<Datatype, T2> const *hm) const {
+                typedef typename hndlr_descriptor_ut<Datatype, T2>::pattern_type::translate_type translate;
                 for (int ii = -1; ii <= 1; ++ii)
                     for (int jj = -1; jj <= 1; ++jj)
                         for (int kk = -1; kk <= 1; ++kk)

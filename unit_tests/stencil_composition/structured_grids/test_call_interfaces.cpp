@@ -81,7 +81,7 @@ namespace call_interface_functors {
     struct call_copy_functor_with_local_variable2 {
         typedef in_accessor<0, extent<>, 3> in;
         typedef inout_accessor<1, extent<>, 3> out;
-        typedef boost::mpl::vector<in, out> param_list;
+        typedef make_param_list<in, out> param_list;
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             float_type local = 1.;
@@ -277,8 +277,8 @@ class call_interface : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
-    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> data_store_t;
+    typedef gridtools::storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t>::data_store_t<float_type, storage_info_t> data_store_t;
 
     storage_info_t meta_;
 
@@ -722,8 +722,8 @@ class call_proc_interface : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
-    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> data_store_t;
+    typedef gridtools::storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t>::data_store_t<float_type, storage_info_t> data_store_t;
 
     storage_info_t meta_;
 

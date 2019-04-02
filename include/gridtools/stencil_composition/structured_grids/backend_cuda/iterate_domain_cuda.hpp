@@ -37,7 +37,7 @@ namespace gridtools {
 
         using base_t = iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments>;
 
-        using readwrite_args_t = typename compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>::type;
+        using readwrite_args_t = GT_META_CALL(compute_readwrite_args, typename IterateDomainArguments::esf_sequence_t);
 
         // array storing the (i,j) position of the current thread within the block
         array<int, 2> m_thread_pos;
@@ -107,9 +107,8 @@ namespace gridtools {
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
         template <class Arg, class T>
-        static GT_FUNCTION
-            enable_if_t<!boost::mpl::has_key<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
-            deref_impl(T const *ptr) {
+        static GT_FUNCTION enable_if_t<!meta::st_contains<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
+        deref_impl(T const *ptr) {
             return __ldg(ptr);
         }
 #endif

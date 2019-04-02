@@ -130,7 +130,7 @@ namespace gridtools {
 
         template <typename Location>
         struct tmp_storage_info_id;
-        template <int_t I, ushort_t NColors>
+        template <int_t I, uint_t NColors>
         struct tmp_storage_info_id<location_type<I, NColors>> : std::integral_constant<unsigned, -NColors> {};
 
         template <uint_t>

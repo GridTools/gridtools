@@ -117,7 +117,7 @@ namespace gridtools {
             auto ptr2 = sid::get_origin(cache2);
 
             EXPECT_TRUE(gridtools::on_device::exec_with_shared_memory(allocator.size(),
-                MAKE_CONSTANT((ij_cache_test<decltype(ptr1), decltype(ptr2), decltype(strides1), decltype(strides2)>)),
+                GT_MAKE_CONSTANT((ij_cache_test<decltype(ptr1), decltype(ptr2), decltype(strides1), decltype(strides2)>)),
                 ptr1,
                 ptr2,
                 strides1,

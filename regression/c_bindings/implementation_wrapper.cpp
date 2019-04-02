@@ -21,13 +21,11 @@
 namespace {
 
     using namespace gridtools;
-    using namespace execute;
-    namespace m = boost::mpl;
 
     struct copy_functor {
         using in = accessor<0, intent::in, extent<>, 3>;
         using out = accessor<1, intent::inout, extent<>, 3>;
-        using param_list = m::vector<in, out>;
+        using param_list = make_param_list<in, out>;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -35,10 +33,10 @@ namespace {
         }
     };
 
-    using storage_info_t = storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
 
     template <class T>
-    using generic_data_store_t = storage_traits<backend_t::backend_id_t>::data_store_t<T, storage_info_t>;
+    using generic_data_store_t = storage_traits<backend_t>::data_store_t<T, storage_info_t>;
 
     using data_store_t = generic_data_store_t<float_type>;
 } // namespace

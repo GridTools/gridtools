@@ -19,7 +19,7 @@
  *  where:
  *    MaxExtent - integral_constant with maximal absolute extent in I direction.
  *                TODO(anstaf): change to fully specified max extent
- *    Backend  - instantiation of backend_ids
+ *    Backend  - instantiation of backend
  *    Arg      - instantiation of arg
  *    Grid     - instantiation of grid
  *    Strides  - 3D struct with the strides that are taken from the DataStore, returned by make_tmp_data_store
@@ -46,6 +46,7 @@
 #include "../meta.hpp"
 #include "./arg.hpp"
 #include "./backend_cuda/tmp_storage.hpp"
+#include "./backend_naive/tmp_storage.hpp"
 #include "./backend_x86/tmp_storage.hpp"
 #include "./block.hpp"
 #include "./grid.hpp"
@@ -75,13 +76,12 @@ namespace gridtools {
         }
     } // namespace tmp_storage
 
-    template <class MaxExtent, class ArgTag, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid>
+    template <class MaxExtent, class ArgTag, class DataStore, int_t I, uint_t NColors, class Backend, class Grid>
     DataStore make_tmp_data_store(
-        Backend const &, plh<ArgTag, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
+        Backend const &backend, plh<ArgTag, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         using namespace tmp_storage;
         using storage_info_t = typename DataStore::storage_info_t;
-        static constexpr auto backend = typename Backend::backend_ids_t{};
         return {make_storage_info<storage_info_t, NColors>(backend,
             get_i_size<storage_info_t, MaxExtent>(
                 backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
@@ -107,8 +107,7 @@ namespace gridtools {
     };
 
     template <class Backend>
-    GT_META_DEFINE_ALIAS(needs_allocate_cached_tmp,
-        meta::id,
-        decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(typename Backend::backend_ids_t{})));
+    GT_META_DEFINE_ALIAS(
+        needs_allocate_cached_tmp, meta::id, decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(Backend{})));
 
 } // namespace gridtools

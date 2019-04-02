@@ -14,7 +14,6 @@
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
-#include <gridtools/stencil_composition/backend_ids.hpp>
 #include <gridtools/storage/common/halo.hpp>
 #include <gridtools/storage/storage_facility.hpp>
 
@@ -37,13 +36,13 @@ namespace gridtools {
      */
     bool do_test(uint_t x, uint_t y, uint_t z, uint_t gx, uint_t gy, uint_t gz) {
 
-        using storage_info_t = storage_traits<target::x86>::storage_info_t<0, 3, halo<2, 2, 0>>;
+        using storage_info_t = storage_traits<backend::x86>::storage_info_t<0, 3, halo<2, 2, 0>>;
 
         halo_descriptor di = {0, 0, 0, gx - 1, gx};
         halo_descriptor dj = {0, 0, 0, gy - 1, gy};
 
         auto grid = make_grid(di, dj, gz);
-        auto testee = storage_info_fits_grid<backend_ids<target::x86, strategy::block>>(grid);
+        auto testee = storage_info_fits_grid<backend::x86>(grid);
 
         return testee(storage_info_t{x + 3, y, z}) && testee(storage_info_t{x, y + 2, z}) &&
                testee(storage_info_t{x, y, z + 1});

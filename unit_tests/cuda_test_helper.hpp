@@ -19,7 +19,7 @@
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/meta/type_traits.hpp>
 
-#define MAKE_CONSTANT(fun) gridtools::integral_constant<decltype(&fun), &fun>()
+#define GT_MAKE_CONSTANT(fun) gridtools::integral_constant<decltype(&fun), &fun>()
 
 namespace gridtools {
     namespace on_device {
@@ -34,6 +34,7 @@ namespace gridtools {
             class Res = decay_t<result_of_t<Fun(Args...)>>>
         Res exec_with_shared_memory(size_t shm_size, Fun fun, Args... args) {
             static_assert(!std::is_pointer<Fun>::value, "");
+            // static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");
             static_assert(std::is_trivially_copyable<Res>::value, "");
             auto res = cuda_util::cuda_malloc<Res>();
             kernel<<<GridSize, BlockSize, shm_size>>>(res.get(), fun, args...);

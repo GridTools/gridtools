@@ -26,13 +26,6 @@
 #include "low_level/gcl_arch.hpp"
 
 #ifdef GCL_GPU
-
-// workaround that uses host buffering to avoid bad sends for messages larger than 512 kB on Cray systems
-//#define GCL_HOSTWORKAROUND
-
-#endif
-
-#ifdef GCL_GPU
 #ifdef GCL_MULTI_STREAMS
 #ifdef GCL_USE_3
 extern cudaStream_t ZL_stream;
@@ -60,8 +53,6 @@ extern cudaStream_t XU_stream;
 #endif
 
 namespace gridtools {
-
-    enum packing_version { version_mpi_pack = 0, version_datatype, version_manual };
 
 #ifdef GCL_MPI
     extern MPI_Comm GCL_WORLD;

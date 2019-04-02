@@ -463,7 +463,7 @@ namespace gridtools {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
-                constexpr GT_FUNCTION host_device::noop operator()(Fun &&) const {
+                constexpr GT_FUNCTION gridtools::host_device::noop operator()(Fun &&) const {
                     return {};
                 }
 

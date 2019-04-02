@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <boost/mpl/equal.hpp>
+#include <boost/mpl/vector.hpp>
 
 #include <gtest/gtest.h>
 
@@ -26,8 +27,8 @@ struct functor1 {
     GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
-typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
-typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
+typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
+typedef storage_traits<backend_t>::data_store_t<float_type, meta_data_t> storage_t;
 
 typedef arg<0, storage_t> p_in;
 typedef arg<1, storage_t> p_out;
@@ -45,7 +46,7 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
         esf1_t(), // esf_descriptor
         esf2_t()  // esf_descriptor
         )) mss_t;
-    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, make_param_list<esf1_t, esf2_t>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, boost::mpl::vector<esf1_t, esf2_t>>::value), "ERROR");
 
 #ifndef GT_DISABLE_CACHING
     GT_STATIC_ASSERT((boost::mpl::equal<mss_t::cache_sequence_t,

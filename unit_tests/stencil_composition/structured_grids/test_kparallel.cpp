@@ -13,6 +13,7 @@
 #include <boost/fusion/include/make_vector.hpp>
 
 #include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using gridtools::accessor;
@@ -20,6 +21,7 @@ using gridtools::arg;
 using gridtools::extent;
 using gridtools::intent;
 using gridtools::level;
+using gridtools::storage_traits;
 using gridtools::tmp_arg;
 using gridtools::uint_t;
 
@@ -62,8 +64,8 @@ void run_test() {
     constexpr uint_t d3_l = 14;
     constexpr uint_t d3_u = 16;
 
-    using storage_info_t = typename backend_t::storage_traits_t::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = backend_t::storage_traits_t::data_store_t<double, storage_info_t>;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
+    using storage_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t storage_info(d1, d2, d3_l + d3_u);
 
@@ -105,8 +107,8 @@ void run_test_with_temporary() {
     constexpr uint_t d3_l = 14;
     constexpr uint_t d3_u = 16;
 
-    using storage_info_t = typename backend_t::storage_traits_t::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = backend_t::storage_traits_t::data_store_t<double, storage_info_t>;
+    using storage_info_t = typename storage_traits<backend_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
+    using storage_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t storage_info(d1, d2, d3_l + d3_u);
 
@@ -165,8 +167,8 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
     constexpr uint_t d3_2 = 16;
     constexpr uint_t d3_3 = 18;
 
-    using storage_info_t = typename backend_t::storage_traits_t::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = backend_t::storage_traits_t::data_store_t<double, storage_info_t>;
+    using storage_info_t = typename storage_traits<backend_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
+    using storage_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
     storage_info_t storage_info(d1, d2, d3_1 + d3_2 + d3_3);
 

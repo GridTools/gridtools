@@ -37,7 +37,7 @@ namespace gridtools {
         GT_META_LAZY_NAMESPACE {
             template <class Functor, class Esf, class ExtentMap>
             struct stages_from_functor {
-                using extent_t = typename get_extent_for<Esf, ExtentMap>::type;
+                using extent_t = GT_META_CALL(get_esf_extent, (Esf, ExtentMap));
                 using type = meta::list<regular_stage<Functor, extent_t, typename Esf::args_t>>;
             };
             template <class Esf, class ExtentMap>
@@ -47,7 +47,7 @@ namespace gridtools {
 
             template <class Esf, class Index, class ExtentMap>
             struct stages_from_esf
-                : stages_from_functor<GT_META_CALL(bind_functor_with_interval, (typename Esf::esf_function, Index)),
+                : stages_from_functor<GT_META_CALL(bind_functor_with_interval, (typename Esf::esf_function_t, Index)),
                       Esf,
                       ExtentMap> {};
 

@@ -43,8 +43,8 @@ namespace test_intermediate {
 TEST(intermediate, test_get_arg_functions) {
     using namespace test_intermediate;
 
-    using storage_info_t = storage_traits<backend_t::backend_id_t>::storage_info_t<0, 1>;
-    using data_store_t = storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t>;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 1>;
+    using data_store_t = storage_traits<backend_t>::data_store_t<float_type, storage_info_t>;
 
     using p_in1 = arg<0, data_store_t>;
     using p_in2 = arg<1, data_store_t>;
@@ -135,19 +135,6 @@ TEST(intermediate, test_get_arg_functions) {
         EXPECT_EQ(intent::inout, comp.get_arg_intent(p_tmp1()));
         EXPECT_EQ(intent::inout, comp.get_arg_intent(p_tmp2()));
         EXPECT_EQ(intent::inout, comp.get_arg_intent(p_tmp3()));
-        EXPECT_EQ(intent::inout, comp.get_arg_intent(p_out()));
-    }
-    {
-        auto mss_ =
-            make_multistage(execute::forward(), make_stage_with_extent<stage1, extent<>>(p_in1(), p_in2(), p_out()));
-        computation<p_in1, p_in2, p_out> comp = make_computation<backend_t>(grid, mss_);
-
-#ifndef __CUDACC__
-        EXPECT_ANY_THROW(comp.get_arg_extent(p_in1()));
-#endif
-
-        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in1()));
-        EXPECT_EQ(intent::in, comp.get_arg_intent(p_in2()));
         EXPECT_EQ(intent::inout, comp.get_arg_intent(p_out()));
     }
 }

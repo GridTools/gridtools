@@ -19,7 +19,7 @@
 #include "./storage_mc/mc_storage_info.hpp"
 
 namespace gridtools {
-    template <class BackendId>
+    template <class Backend>
     struct storage_traits_from_id;
 
     namespace impl {
@@ -36,7 +36,7 @@ namespace gridtools {
 
     /** @brief storage traits for the Mic backend*/
     template <>
-    struct storage_traits_from_id<target::mc> {
+    struct storage_traits_from_id<backend::mc> {
 
         template <typename ValueType>
         struct select_storage {

@@ -46,9 +46,9 @@ namespace gridtools {
         \tparam DIMS the number of dimensions of the data field
     */
     template <int DIMS>
-    class empty_field_no_dt_gpu : public empty_field_base<int, DIMS> {
+    class empty_field_no_dt_gpu : public empty_field_base<int> {
 
-        typedef empty_field_base<int, DIMS> base_type;
+        typedef empty_field_base<int> base_type;
 
       public:
         /**
@@ -62,7 +62,7 @@ namespace gridtools {
         const halo_descriptor *raw_array() const { return &(base_type::halos[0]); }
 
       protected:
-        template <typename DataType, typename GridType, typename HaloExch, typename proc_layout, typename arch, int V>
+        template <typename DataType, typename GridType, typename HaloExch, typename proc_layout, typename arch>
         friend class hndlr_dynamic_ut;
 
         template <int I>
@@ -82,12 +82,11 @@ namespace gridtools {
 #ifdef __CUDACC__
     /** specialization for GPU and manual packing */
     template <typename DataType, typename HaloExch, typename proc_layout, template <int Ndim> class GridType>
-    class hndlr_dynamic_ut<DataType, GridType<3>, HaloExch, proc_layout, gcl_gpu, 2>
-        : public descriptor_base<HaloExch> {
+    class hndlr_dynamic_ut<DataType, GridType<3>, HaloExch, proc_layout, gcl_gpu> : public descriptor_base<HaloExch> {
 
         static const int DIMS = 3;
 
-        typedef hndlr_dynamic_ut<DataType, GridType<3>, HaloExch, proc_layout, gcl_gpu, 2> this_type;
+        typedef hndlr_dynamic_ut<DataType, GridType<3>, HaloExch, proc_layout, gcl_gpu> this_type;
 
       public:
         empty_field_no_dt_gpu<DIMS> halo;

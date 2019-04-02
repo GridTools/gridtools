@@ -9,33 +9,14 @@
  */
 #pragma once
 
-#include <boost/fusion/adapted/mpl.hpp>
-#include <boost/fusion/include/as_set.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/sequence/intrinsic/at.hpp>
-#include <boost/fusion/view/zip_view.hpp>
-
-#include <boost/fusion/adapted/mpl.hpp>
-#include <boost/fusion/container/generation/make_vector.hpp>
-#include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/container/vector/vector_fwd.hpp>
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/include/at.hpp>
-#include <boost/fusion/include/at_c.hpp>
-#include <boost/fusion/include/io.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/fusion/include/size.hpp>
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/include/vector_fwd.hpp>
-#include <boost/fusion/sequence/io.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/vector.hpp>
-
 #include "../../common/array.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
+#include "../../common/generic_metafunctions/shorten.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../common/layout_map_metafunctions.hpp"
 #include "../../storage/common/halo.hpp"
+#include "../../storage/storage_facility.hpp"
 #include "../location_type.hpp"
 #include "position_offset_type.hpp"
 
@@ -495,10 +476,39 @@ namespace gridtools {
             from<SrcLocation>::template to<DestLocation>::template with_color<static_uint<Color>>::offsets());
     };
 
+    namespace _impl {
+        template <class>
+        struct default_layout;
+        template <>
+        struct default_layout<backend::cuda> {
+            using type = layout_map<3, 2, 1, 0>;
+        };
+        template <>
+        struct default_layout<backend::x86> {
+            using type = layout_map<0, 1, 2, 3>;
+        };
+        template <>
+        struct default_layout<backend::naive> {
+            using type = layout_map<0, 1, 2, 3>;
+        };
+    } // namespace _impl
+
     /**
      */
     template <typename Backend>
     class icosahedral_topology {
+      private:
+        template <typename DimSelector>
+        struct select_layout {
+            using layout_map_t = typename _impl::default_layout<Backend>::type;
+            using dim_selector_4d_t = typename shorten<bool, DimSelector, 4>::type;
+            using filtered_layout = typename filter_layout<layout_map_t, dim_selector_4d_t>::type;
+
+            using type = typename conditional_t<(DimSelector::size > 4),
+                extend_layout_map<filtered_layout, DimSelector::size - 4>,
+                meta::lazy::id<filtered_layout>>::type;
+        };
+
       public:
         using cells = enumtype::cells;
         using edges = enumtype::edges;
@@ -508,18 +518,20 @@ namespace gridtools {
         // returns a layout map with ordering specified by the Backend but where
         // the user can specify the active dimensions
         template <typename Selector>
-        using layout_t = typename Backend::template select_layout<Selector>::type;
+        using layout_t = typename select_layout<Selector>::type;
 
         template <typename LocationType, typename Halo = halo<0, 0, 0, 0>, typename Selector = selector<1, 1, 1, 1>>
-        using meta_storage_t = typename Backend::
-            template storage_info_t<impl::compute_uuid<LocationType::value, Selector>::value, layout_t<Selector>, Halo>;
+        using meta_storage_t = typename storage_traits<Backend>::template custom_layout_storage_info_t<
+            impl::compute_uuid<LocationType::value, Selector>::value,
+            layout_t<Selector>,
+            Halo>;
 
         template <typename LocationType,
             typename ValueType,
             typename Halo = halo<0, 0, 0, 0>,
             typename Selector = selector<1, 1, 1, 1>>
-        using data_store_t =
-            typename Backend::template data_store_t<ValueType, meta_storage_t<LocationType, Halo, Selector>>;
+        using data_store_t = typename storage_traits<Backend>::template data_store_t<ValueType,
+            meta_storage_t<LocationType, Halo, Selector>>;
 
         array<uint_t, 3> m_dims; // Sizes as cells in a multi-dimensional Cell array
 

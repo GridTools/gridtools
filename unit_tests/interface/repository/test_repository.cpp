@@ -92,12 +92,13 @@ TEST(extended_repo, inherited_functions) {
     ASSERT_EQ(10, repo.u().total_length<0>());
 }
 
-using IJKWStorageInfo = typename gridtools::storage_traits<gridtools::target::x86>::storage_info_t<2, 3>;
+using IJKWStorageInfo = typename gridtools::storage_traits<gridtools::backend::x86>::storage_info_t<2, 3>;
 using IJKWDataStore =
-    typename gridtools::storage_traits<gridtools::target::x86>::data_store_t<float_type, IJKWStorageInfo>;
-using IKStorageInfo =
-    typename gridtools::storage_traits<gridtools::target::x86>::special_storage_info_t<2, gridtools::selector<1, 0, 1>>;
-using IKDataStore = typename gridtools::storage_traits<gridtools::target::x86>::data_store_t<float_type, IKStorageInfo>;
+    typename gridtools::storage_traits<gridtools::backend::x86>::data_store_t<float_type, IJKWStorageInfo>;
+using IKStorageInfo = typename gridtools::storage_traits<gridtools::backend::x86>::special_storage_info_t<2,
+    gridtools::selector<1, 0, 1>>;
+using IKDataStore =
+    typename gridtools::storage_traits<gridtools::backend::x86>::data_store_t<float_type, IKStorageInfo>;
 
 #define MY_FIELDTYPES \
     (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1, 2))(IJKWDataStore, (0, 1, 3))(IKDataStore, (0, 0, 2))
