@@ -45,39 +45,28 @@ namespace {
         EXPECT_EQ(ptr3 % alignof(alloc3_t), 0);
     }
 
-    template <class T>
-    ptrdiff_t get_offset(gridtools::shared_allocator const &allocator, T const &alloc1, T const &alloc2) {
-        auto offset1 = gridtools::on_device::exec_with_shared_memory(
-            allocator.size(), MAKE_CONSTANT(get_ptr<T>), alloc1);
-        auto offset2 = gridtools::on_device::exec_with_shared_memory(
-            allocator.size(), MAKE_CONSTANT(get_ptr<T>), alloc2);
-        return offset2 - offset1;
-    }
+    template <class PtrHolderFloat, class PtrHolderInt>
+    __device__ int fill_and_check_test(
+        PtrHolderFloat holder1, PtrHolderFloat holder1_shifted, PtrHolderInt holder2, bool *result) {
+        static_assert(std::is_same<decltype(holder1()), float *>::value, "");
+        static_assert(std::is_same<decltype(holder1_shifted()), float *>::value, "");
+        static_assert(std::is_same<decltype(holder2()), int16_t *>::value, "");
 
-    TEST(shared_allocator, pointer_arithmetics) {
-        gridtools::shared_allocator allocator;
-        auto some_alloc = allocator.allocate<double>(32);
-        auto another_alloc = allocator.allocate<double>(32);
-
-        EXPECT_EQ(get_offset(allocator, another_alloc, another_alloc + 3), 3 * (int)sizeof(double));
-    }
-
-    template <class PtrHolderFloat, class PtrHolderDouble>
-    __device__ int fill_and_check_test(PtrHolderFloat alloc1, PtrHolderDouble alloc2, bool *result) {
-        static_assert(std::is_same<decltype(alloc1()), float *>::value, "");
-        static_assert(std::is_same<decltype(alloc2()), double *>::value, "");
-
-        auto ptr1 = alloc1();
-        auto ptr2 = alloc2();
+        auto ptr1 = holder1();
+        auto ptr1_shifted = holder1_shifted();
+        auto ptr2 = holder2();
 
         ptr1[threadIdx.x] = 100 * blockIdx.x + threadIdx.x;
-        ptr2[threadIdx.x] = 10000 + 100 * blockIdx.x + threadIdx.x;
+        ptr1_shifted[threadIdx.x] = 10000 + 100 * blockIdx.x + threadIdx.x;
+        ptr2[threadIdx.x] = 20000 + 100 * blockIdx.x + threadIdx.x;
         __syncthreads();
 
         if (threadIdx.x == 0) {
             bool local_result = true;
-            for (int i = 0; i < 32; ++i)
-                local_result &= (ptr1[i] == 100 * blockIdx.x + i && ptr2[i] == 10000 + 100 * blockIdx.x + i);
+            for (int i = 0; i < 32; ++i) {
+                local_result &= (ptr1[i] == 100 * blockIdx.x + i && ptr1[i + 32] == 10000 + 100 * blockIdx.x + i &&
+                                 ptr2[i] == 20000 + 100 * blockIdx.x + i);
+            }
 
             result[blockIdx.x] = local_result;
         }
@@ -86,16 +75,18 @@ namespace {
 
     TEST(shared_allocator, fill_and_check) {
         gridtools::shared_allocator allocator;
-        auto float_allocation = allocator.allocate<float>(32);
-        auto double_allocation = allocator.allocate<double>(32);
+        auto float_ptr = allocator.allocate<float>(64);
+        auto shifted_float_ptr = float_ptr + 32;
+        auto int_ptr = allocator.allocate<int16_t>(32);
 
         bool *result;
         cudaMallocManaged(&result, 2 * sizeof(bool));
 
         gridtools::on_device::exec_with_shared_memory<2, 32>(allocator.size(),
-            MAKE_CONSTANT((fill_and_check_test<decltype(float_allocation), decltype(double_allocation)>)),
-            float_allocation,
-            double_allocation,
+            MAKE_CONSTANT((fill_and_check_test<decltype(float_ptr), decltype(int_ptr)>)),
+            float_ptr,
+            shifted_float_ptr,
+            int_ptr,
             result);
 
         EXPECT_TRUE(result[0]);
