@@ -52,7 +52,7 @@ namespace gridtools {
 
             MPI_Comm_dup(other.m_communicator, &m_communicator);
 
-            for (ushort_t i = 0; i < ndims; ++i) {
+            for (uint_t i = 0; i < ndims; ++i) {
                 m_dimensions[i] = other.m_dimensions[i];
                 m_coordinates[i] = other.m_coordinates[i];
             }
@@ -130,7 +130,7 @@ namespace gridtools {
         */
         uint_t size() const {
             uint_t ret = m_dimensions[0];
-            for (ushort_t i = 1; i < ndims; ++i)
+            for (uint_t i = 1; i < ndims; ++i)
                 ret *= m_dimensions[i];
             return ret;
         }
@@ -243,8 +243,8 @@ namespace gridtools {
 
         period_type const &cyclic() const { return m_cyclic; }
 
-        int const &coordinates(ushort_t const &i) const { return m_coordinates[i]; }
-        int const &dimensions(ushort_t const &i) const { return m_dimensions[i]; }
+        int const &coordinates(uint_t const &i) const { return m_coordinates[i]; }
+        int const &dimensions(uint_t const &i) const { return m_dimensions[i]; }
     };
 
 #endif

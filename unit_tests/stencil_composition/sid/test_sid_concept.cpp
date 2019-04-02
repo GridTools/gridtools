@@ -15,11 +15,11 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
-#include <gridtools/common/functional.hpp>
 #include <gridtools/common/host_device.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
+#include <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 
 namespace gridtools {
     namespace {
@@ -56,7 +56,7 @@ namespace gridtools {
             struct bounds_validator_kind;
 
             struct testee {
-                friend host_device::constant<ptr> sid_get_origin(testee &) { return {}; }
+                friend sid::host_device::simple_ptr_holder<ptr> sid_get_origin(testee &) { return {}; }
                 friend strides sid_get_strides(testee const &) { return {}; }
 
                 friend ptr_diff sid_get_ptr_diff(testee);
@@ -87,7 +87,7 @@ namespace gridtools {
         namespace fallbacks {
 
             struct testee {
-                friend host_device::constant<testee *> sid_get_origin(testee &obj) { return {&obj}; }
+                friend sid::host_device::simple_ptr_holder<testee *> sid_get_origin(testee &obj) { return {&obj}; }
             };
 
             static_assert(is_sid<testee>(), "");
@@ -139,7 +139,7 @@ namespace gridtools {
 
             struct testee {};
 
-            host_device::constant<testee *> sid_get_origin(testee &obj) { return {&obj}; }
+            sid::host_device::simple_ptr_holder<testee *> sid_get_origin(testee &obj) { return {&obj}; }
             tuple<stride> sid_get_strides(testee const &) { return {}; }
             GT_FUNCTION int operator*(stride, int) { return 100; }
             integral_constant<int, 42> sid_get_strides_kind(testee const &);

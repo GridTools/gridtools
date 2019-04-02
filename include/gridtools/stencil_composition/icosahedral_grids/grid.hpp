@@ -8,6 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+
+#include "../../meta.hpp"
 #include "../grid_base.hpp"
 #include "./icosahedral_topology.hpp"
 
@@ -35,11 +37,8 @@ namespace gridtools {
         GridTopology const &grid_topology() const { return m_grid_topology; }
     };
 
-    template <typename Grid>
-    struct is_grid : boost::mpl::false_ {};
-
-    template <typename Axis, typename GridTopology>
-    struct is_grid<grid<Axis, GridTopology>> : boost::mpl::true_ {};
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_grid, meta::is_instantiation_of, (grid, T));
 
     template <typename Axis, typename GridTopology>
     GT_FUNCTION_HOST grid<typename Axis::axis_interval_t, GridTopology> make_grid(GridTopology const &grid_topology,

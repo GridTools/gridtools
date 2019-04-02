@@ -44,7 +44,7 @@ struct test_on_edges_functor {
 
         // retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).
         constexpr auto neighbors_offsets = connectivity<enumtype::cells, enumtype::cells, Color>::offsets();
-        ushort_t e = 0;
+        uint_t e = 0;
         // loop over all neighbours. Each iterator (neighbor_offset) is a position offset, i.e. an array with length 4
         for (auto neighbor_offset : neighbors_offsets) {
             eval(weight_edges(edge + e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());

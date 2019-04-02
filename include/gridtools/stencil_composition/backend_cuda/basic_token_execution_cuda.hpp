@@ -13,7 +13,6 @@
 #include "../../common/defs.hpp"
 #include "../../common/gt_math.hpp"
 #include "../../common/pair.hpp"
-#include "../backend_ids.hpp"
 #include "../basic_token_execution.hpp"
 #include "../execution_types.hpp"
 
@@ -51,15 +50,14 @@ namespace gridtools {
      *          | I4                  |         4 :
      *   20 ---------          20 ---------      ---
      */
-    template <class FromLevel, class ToLevel, class Strategy, uint_t BlockSize, class Grid>
-    GT_FUNCTION pair<int, int> get_k_interval(
-        backend_ids<target::cuda, Strategy>, execute::parallel_block<BlockSize>, Grid const &grid) {
+    template <class FromLevel, class ToLevel, uint_t BlockSize, class Grid>
+    GT_FUNCTION pair<int, int> get_k_interval(backend::cuda, execute::parallel_block<BlockSize>, Grid const &grid) {
         return make_pair(math::max(blockIdx.z * BlockSize, grid.template value_at<FromLevel>()),
             math::min((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<ToLevel>()));
     }
 
-    template <class FromLevel, class ToLevel, class Strategy, class ExecutionEngine, class Grid>
-    GT_FUNCTION pair<int, int> get_k_interval(backend_ids<target::cuda, Strategy>, ExecutionEngine, Grid const &grid) {
+    template <class FromLevel, class ToLevel, class ExecutionEngine, class Grid>
+    GT_FUNCTION pair<int, int> get_k_interval(backend::cuda, ExecutionEngine, Grid const &grid) {
         return make_pair(grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>());
     }
 } // namespace gridtools

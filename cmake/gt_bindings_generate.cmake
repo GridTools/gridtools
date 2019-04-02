@@ -6,13 +6,15 @@ function(check_and_update target_file new_file)
 
     if(${compare_result} EQUAL 0)
         message(STATUS "${target_file} is up-to-date")
-        file(REMOVE ${new_file})
     else()
         message(WARNING "${target_file} was generated! "
             "If you ship the generated bindings with your sources, don't forget to ship this updated file (and its variants). "
             "Otherwise, this warning can be ignored.")
-        file(RENAME ${new_file} ${target_file})
+
+        get_filename_component(target_path ${target_file} PATH)
+        file(COPY ${new_file} DESTINATION ${target_path})
     endif()
+    file(REMOVE ${new_file})
 endfunction()
 
 # Generate bindings and compare against existing ones

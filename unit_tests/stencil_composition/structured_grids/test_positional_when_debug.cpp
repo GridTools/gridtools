@@ -24,7 +24,6 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/backend.hpp>
 #include <gridtools/stencil_composition/make_computation.hpp>
 #include <gridtools/stencil_composition/make_stencils.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
@@ -54,8 +53,8 @@ TEST(test_make_computation, positional_when_debug) {
     using namespace gridtools;
     using namespace gridtools::execute;
 
-    typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
+    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
+    typedef storage_traits<backend_t>::data_store_t<float_type, meta_data_t> storage_t;
 
     typedef arg<0, storage_t> p_in;
 

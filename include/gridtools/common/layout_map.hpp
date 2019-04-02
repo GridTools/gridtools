@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <boost/mpl/bool.hpp>
+#include <type_traits>
 
 #include "../meta/combine.hpp"
 #include "../meta/filter.hpp"
@@ -111,10 +111,10 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_layout_map : boost::mpl::false_ {};
+    struct is_layout_map : std::false_type {};
 
     template <int... Args>
-    struct is_layout_map<layout_map<Args...>> : boost::mpl::true_ {};
+    struct is_layout_map<layout_map<Args...>> : std::true_type {};
 
     /** @} */
     /** @} */

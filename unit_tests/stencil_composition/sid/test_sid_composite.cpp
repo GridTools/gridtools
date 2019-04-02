@@ -13,10 +13,10 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
-#include <gridtools/common/functional.hpp>
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
+#include <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 #include <gridtools/stencil_composition/sid/synthetic.hpp>
 
 namespace gridtools {
@@ -36,8 +36,8 @@ namespace gridtools {
             double dst = 0;
 
             auto testee = tu::make<sid::composite::keys<a, b>::values>(
-                sid::synthetic().set<property::origin>(host_device::constant<double const *>{&src}),
-                sid::synthetic().set<property::origin>(host_device::constant<double *>{&dst}));
+                sid::synthetic().set<property::origin>(sid::host_device::make_simple_ptr_holder(&src)),
+                sid::synthetic().set<property::origin>(sid::host_device::make_simple_ptr_holder(&dst)));
             static_assert(is_sid<decltype(testee)>(), "");
 
             auto ptrs = sid::get_origin(testee)();
@@ -63,24 +63,24 @@ namespace gridtools {
 
             auto my_strides = tu::make<array>(1, 5, 15);
 
-            auto testee = tu::make<sid::composite::keys<a, b, c, d>::values>                     //
-                (                                                                                //
-                    sid::synthetic()                                                             //
-                        .set<property::origin>(host_device::constant<double const *>{&one[0]})   //
-                        .set<property::strides>(tuple_util::make<tuple>(1_c))                    //
-                    ,                                                                            //
-                    sid::synthetic()                                                             //
-                        .set<property::origin>(host_device::constant<double *>{&two})            //
-                    ,                                                                            //
-                    sid::synthetic()                                                             //
-                        .set<property::origin>(host_device::constant<double *>{&three[0][0][0]}) //
-                        .set<property::strides>(my_strides)                                      //
-                        .set<property::strides_kind, my_strides_kind>()                          //
-                    ,                                                                            //
-                    sid::synthetic()                                                             //
-                        .set<property::origin>(host_device::constant<char *>{&four[0][0][0]})    //
-                        .set<property::strides>(my_strides)                                      //
-                        .set<property::strides_kind, my_strides_kind>()                          //
+            auto testee = tu::make<sid::composite::keys<a, b, c, d>::values>                              //
+                (                                                                                         //
+                    sid::synthetic()                                                                      //
+                        .set<property::origin>(sid::host_device::make_simple_ptr_holder(&one[0]))         //
+                        .set<property::strides>(tuple_util::make<tuple>(1_c))                             //
+                    ,                                                                                     //
+                    sid::synthetic()                                                                      //
+                        .set<property::origin>(sid::host_device::make_simple_ptr_holder(&two))            //
+                    ,                                                                                     //
+                    sid::synthetic()                                                                      //
+                        .set<property::origin>(sid::host_device::make_simple_ptr_holder(&three[0][0][0])) //
+                        .set<property::strides>(my_strides)                                               //
+                        .set<property::strides_kind, my_strides_kind>()                                   //
+                    ,                                                                                     //
+                    sid::synthetic()                                                                      //
+                        .set<property::origin>(sid::host_device::make_simple_ptr_holder(&four[0][0][0]))  //
+                        .set<property::strides>(my_strides)                                               //
+                        .set<property::strides_kind, my_strides_kind>()                                   //
                 );
             static_assert(is_sid<decltype(testee)>(), "");
 
@@ -154,22 +154,22 @@ namespace gridtools {
             char four[6][4][5] = {};
             auto strides_four = tu::make<hymap::keys<dim_y, dim_z, dim_x>::values>(1_c, 5_c, 20_c);
 
-            auto testee = tu::make<sid::composite::keys<a, b, c, d>::values>                     //
-                (                                                                                //
-                    sid::synthetic()                                                             //
-                        .set<property::origin>(host_device::constant<double const *>{&one[0]})   //
-                        .set<property::strides>(strides_one)                                     //
-                    ,                                                                            //
-                    sid::synthetic()                                                             //
-                        .set<property::origin>(host_device::constant<double *>{&two})            //
-                    ,                                                                            //
-                    sid::synthetic()                                                             //
-                        .set<property::origin>(host_device::constant<double *>{&three[0][0][0]}) //
-                        .set<property::strides>(strides_three)                                   //
-                    ,                                                                            //
-                    sid::synthetic()                                                             //
-                        .set<property::origin>(host_device::constant<char *>{&four[0][0][0]})    //
-                        .set<property::strides>(strides_four)                                    //
+            auto testee = tu::make<sid::composite::keys<a, b, c, d>::values>                              //
+                (                                                                                         //
+                    sid::synthetic()                                                                      //
+                        .set<property::origin>(sid::host_device::make_simple_ptr_holder(&one[0]))         //
+                        .set<property::strides>(strides_one)                                              //
+                    ,                                                                                     //
+                    sid::synthetic()                                                                      //
+                        .set<property::origin>(sid::host_device::make_simple_ptr_holder(&two))            //
+                    ,                                                                                     //
+                    sid::synthetic()                                                                      //
+                        .set<property::origin>(sid::host_device::make_simple_ptr_holder(&three[0][0][0])) //
+                        .set<property::strides>(strides_three)                                            //
+                    ,                                                                                     //
+                    sid::synthetic()                                                                      //
+                        .set<property::origin>(sid::host_device::make_simple_ptr_holder(&four[0][0][0]))  //
+                        .set<property::strides>(strides_four)                                             //
                 );
 
             auto &&strides = sid::get_strides(testee);

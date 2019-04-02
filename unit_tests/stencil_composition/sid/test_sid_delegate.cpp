@@ -12,12 +12,13 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/functional.hpp>
+#include <gridtools/common/defs.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 #include <gridtools/stencil_composition/sid/synthetic.hpp>
 
 namespace gridtools {
@@ -26,11 +27,11 @@ namespace gridtools {
 
         template <class Sid>
         class i_shifted : public sid::delegate<Sid> {
-            friend host_device::constant<GT_META_CALL(sid::ptr_type, Sid)> sid_get_origin(i_shifted &obj) {
+            friend GT_META_CALL(sid::ptr_holder_type, Sid) sid_get_origin(i_shifted &obj) {
                 auto &&impl = obj.impl();
-                auto res = sid::get_origin(impl)();
-                sid::shift(res, sid::get_stride<integral_constant<int, 1>>(sid::get_strides(impl)), 1_c);
-                return {res};
+                GT_META_CALL(sid::ptr_diff_type, Sid) offset{};
+                sid::shift(offset, sid::get_stride<integral_constant<int, 1>>(sid::get_strides(impl)), 1_c);
+                return sid::get_origin(impl) + offset;
             }
             using sid::delegate<Sid>::delegate;
         };
@@ -46,7 +47,7 @@ namespace gridtools {
         TEST(delegate, smoke) {
             double data[3][5];
             auto src = sid::synthetic()
-                           .set<property::origin>(host_device::constant<double *>{&data[0][0]})
+                           .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0]))
                            .set<property::strides>(tu::make<tuple>(1_c, 5_c));
             auto testee = i_shift(src);
 

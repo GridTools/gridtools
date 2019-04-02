@@ -53,10 +53,10 @@ namespace gridtools {
 
         \tparam DIMS the number of dimensions of the data field
     */
-    template <int DIMS>
-    class empty_field_no_dt : public empty_field_base<int, DIMS> {
+    class empty_field_no_dt : public empty_field_base<int> {
+        static constexpr int DIMS = 3;
 
-        typedef empty_field_base<int, DIMS> base_type;
+        typedef empty_field_base<int> base_type;
 
       public:
         /**
@@ -69,31 +69,6 @@ namespace gridtools {
 
         const halo_descriptor *raw_array() const { return &(base_type::halos[0]); }
 
-        /** void pack(gridtools::array<int, D> const& eta, iterator &it)
-            Pack the elements of a data field passed in input as iterator_in to be sent using the
-            iterator_out passed in that points to data buffers. At the end
-            the iterator_out points to the element next to the last inserted. In inout
-            the iterator_out points to the elements to be insered
-
-            \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
-            \param[in] field_ptr iterator pointing to data field data
-            \param[in,out] it iterator pointing to the data.
-        */
-        template <typename iterator_in, typename iterator_out>
-        void pack(gridtools::array<int, 2> const &eta, iterator_in const *field_ptr, iterator_out *&it) const {
-            for (int j = base_type::halos[1].loop_low_bound_inside(eta[1]);
-                 j <= base_type::halos[1].loop_high_bound_inside(eta[1]);
-                 ++j) {
-                for (int i = base_type::halos[0].loop_low_bound_inside(eta[0]);
-                     i <= base_type::halos[0].loop_high_bound_inside(eta[0]);
-                     ++i) {
-                    *(reinterpret_cast<iterator_in *>(it)) = field_ptr[gridtools::access(
-                        i, j, base_type::halos[0].total_length(), base_type::halos[1].total_length())];
-                    reinterpret_cast<char *&>(it) += sizeof(iterator_in);
-                }
-            }
-        }
-
         template <typename iterator_in, typename iterator_out>
         void pack(gridtools::array<int, 3> const &eta, iterator_in const *field_ptr, iterator_out *&it) const {
             // std::cout << "BASE ADDR IN PACK " << std::hex << reinterpret_cast<void*>(it) << std::dec << std::endl;
@@ -104,14 +79,10 @@ namespace gridtools {
             //           << "i=" << base_type::halos[0].loop_low_bound_inside(eta[0])
             //           << " to <= " << base_type::halos[0].loop_high_bound_inside(eta[0])
             //           << std::endl;
-            for (int k = base_type::halos[2].loop_low_bound_inside(eta[2]);
-                 k <= base_type::halos[2].loop_high_bound_inside(eta[2]);
-                 ++k) {
-                for (int j = base_type::halos[1].loop_low_bound_inside(eta[1]);
-                     j <= base_type::halos[1].loop_high_bound_inside(eta[1]);
+            for (int k = halos[2].loop_low_bound_inside(eta[2]); k <= halos[2].loop_high_bound_inside(eta[2]); ++k) {
+                for (int j = halos[1].loop_low_bound_inside(eta[1]); j <= halos[1].loop_high_bound_inside(eta[1]);
                      ++j) {
-                    for (int i = base_type::halos[0].loop_low_bound_inside(eta[0]);
-                         i <= base_type::halos[0].loop_high_bound_inside(eta[0]);
+                    for (int i = halos[0].loop_low_bound_inside(eta[0]); i <= halos[0].loop_high_bound_inside(eta[0]);
                          ++i) {
 
                         // std::cout << "      "
@@ -128,42 +99,10 @@ namespace gridtools {
                         //                         base_type::halos[2].total_length())]
                         //           << std::endl;
 
-                        *(reinterpret_cast<iterator_in *>(it)) = field_ptr[gridtools::access(i,
-                            j,
-                            k,
-                            base_type::halos[0].total_length(),
-                            base_type::halos[1].total_length(),
-                            base_type::halos[2].total_length())];
+                        *(reinterpret_cast<iterator_in *>(it)) = field_ptr[gridtools::access(
+                            i, j, k, halos[0].total_length(), halos[1].total_length(), halos[2].total_length())];
                         reinterpret_cast<char *&>(it) += sizeof(iterator_in);
                     }
-                }
-            }
-        }
-
-        /** void unpack(gridtools::array<int, D> const& eta, iterator &it)
-            Unpack the elements into a data field passed in input as
-            iterator_in that have being received in data obtained by the
-            iterator_out passed in that points to data buffers. At the end
-            the iterator points to the element next to the last read element. In inout
-            the iterator points to the elements to be extracted from buffers and put
-            int the halo region.
-
-            \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the sending neighbor
-            \param[in] field_ptr iterator pointing to data field data
-            \param[in,out] it iterator pointing to the data in buffers.
-        */
-        template <typename iterator_in, typename iterator_out>
-        void unpack(gridtools::array<int, 2> const &eta, iterator_in *field_ptr, iterator_out *&it) const {
-            for (int j = base_type::halos[1].loop_low_bound_outside(eta[1]);
-                 j <= base_type::halos[1].loop_high_bound_outside(eta[1]);
-                 ++j) {
-                for (int i = base_type::halos[0].loop_low_bound_outside(eta[0]);
-                     i <= base_type::halos[0].loop_high_bound_outside(eta[0]);
-                     ++i) {
-                    field_ptr[gridtools::access(
-                        i, j, base_type::halos[0].total_length(), base_type::halos[1].total_length())] =
-                        *(reinterpret_cast<iterator_in *>(it));
-                    reinterpret_cast<char *&>(it) += sizeof(iterator_in);
                 }
             }
         }
@@ -177,14 +116,10 @@ namespace gridtools {
             //           << "i=" << base_type::halos[0].loop_low_bound_outside(eta[0])
             //           << " to <= " << base_type::halos[0].loop_high_bound_outside(eta[0])
             //           << std::endl;
-            for (int k = base_type::halos[2].loop_low_bound_outside(eta[2]);
-                 k <= base_type::halos[2].loop_high_bound_outside(eta[2]);
-                 ++k) {
-                for (int j = base_type::halos[1].loop_low_bound_outside(eta[1]);
-                     j <= base_type::halos[1].loop_high_bound_outside(eta[1]);
+            for (int k = halos[2].loop_low_bound_outside(eta[2]); k <= halos[2].loop_high_bound_outside(eta[2]); ++k) {
+                for (int j = halos[1].loop_low_bound_outside(eta[1]); j <= halos[1].loop_high_bound_outside(eta[1]);
                      ++j) {
-                    for (int i = base_type::halos[0].loop_low_bound_outside(eta[0]);
-                         i <= base_type::halos[0].loop_high_bound_outside(eta[0]);
+                    for (int i = halos[0].loop_low_bound_outside(eta[0]); i <= halos[0].loop_high_bound_outside(eta[0]);
                          ++i) {
                         // std::cout << "      "
                         //           << i << ", "
@@ -195,12 +130,9 @@ namespace gridtools {
                         //           << base_type::halos[2].total_length() << ", "
                         //           << *(reinterpret_cast<iterator_in*>(it))
                         //           << std::endl;
-                        field_ptr[gridtools::access(i,
-                            j,
-                            k,
-                            base_type::halos[0].total_length(),
-                            base_type::halos[1].total_length(),
-                            base_type::halos[2].total_length())] = *(reinterpret_cast<iterator_in *>(it));
+                        field_ptr[gridtools::access(
+                            i, j, k, halos[0].total_length(), halos[1].total_length(), halos[2].total_length())] =
+                            *(reinterpret_cast<iterator_in *>(it));
                         reinterpret_cast<char *&>(it) += sizeof(iterator_in);
                     }
                 }
@@ -254,14 +186,6 @@ namespace gridtools {
         }
     };
 
-    template <int I>
-    std::ostream &operator<<(std::ostream &s, empty_field_no_dt<I> const &ef) {
-        s << "empty_field_no_dt ";
-        for (int i = 0; i < I; ++i)
-            s << ef.raw_array()[i] << ", ";
-        return s;
-    }
-
     /** \class field_descriptor_no_dt
         Class containint the information about a data field (grid).
         It contains a pointer to the first element of the data field,
@@ -280,11 +204,12 @@ namespace gridtools {
         \tparam DataType type of lements of the datafield
         \tparam DIMS the number of dimensions of the data field
     */
-    template <typename DataType, int DIMS>
-    class field_descriptor_no_dt : public empty_field_no_dt<DIMS> {
+    template <typename DataType>
+    class field_descriptor_no_dt : public empty_field_no_dt {
+        static constexpr int DIMS = 3;
         DataType *fieldptr; // Pointer to the data field
 
-        typedef empty_field_no_dt<DIMS> base_type;
+        typedef empty_field_no_dt base_type;
 
       public:
         /**
@@ -337,11 +262,12 @@ namespace gridtools {
         \tparam DIMS Number of dimensions of the grids.
         \tparam HaloExch Communication patter with halo exchange.
     */
-    template <typename DataType, int DIMS, typename HaloExch>
+    template <typename DataType, typename HaloExch>
     class hndlr_descriptor_ut : public descriptor_base<HaloExch> {
-        typedef hndlr_descriptor_ut<DataType, DIMS, HaloExch> this_type;
+        typedef hndlr_descriptor_ut<DataType, HaloExch> this_type;
+        static constexpr int DIMS = 3;
 
-        std::vector<field_descriptor_no_dt<DataType, DIMS>> field;
+        std::vector<field_descriptor_no_dt<DataType>> field;
 
         gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...
         gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> recv_buffer;
@@ -397,7 +323,7 @@ namespace gridtools {
            \return index of the field in the handler desctiptor
         */
         size_t register_field(DataType *ptr) {
-            field.push_back(field_descriptor_no_dt<DataType, DIMS>(ptr));
+            field.push_back(field_descriptor_no_dt<DataType>(ptr));
             return field.size() - 1;
         }
 
@@ -423,7 +349,7 @@ namespace gridtools {
 
         int size() const { return field.size(); }
 
-        field_descriptor_no_dt<DataType, DIMS> const &data_field(int I) const { return field[I]; }
+        field_descriptor_no_dt<DataType> const &data_field(int I) const { return field[I]; }
 
         /** Given the coordinates of a neighbor (2D), return the total number of elements
             to be sent to that neighbor associated with the handler of the manager.
@@ -494,13 +420,13 @@ namespace gridtools {
         \tparam HaloExch Communication pattern with halo exchange.
     */
     template <typename DataType, typename HaloExch, typename proc_layout, class GridType>
-    class hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, gcl_cpu, 2> : public descriptor_base<HaloExch> {
+    class hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, gcl_cpu> : public descriptor_base<HaloExch> {
 
         static const int DIMS = GridType::ndims;
-        typedef hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, gcl_cpu, 2> this_type;
+        typedef hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, gcl_cpu> this_type;
 
       public:
-        empty_field_no_dt<DIMS> halo;
+        empty_field_no_dt halo;
 
       private:
         gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...

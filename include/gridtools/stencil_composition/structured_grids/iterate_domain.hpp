@@ -14,8 +14,6 @@
 
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/mpl/size.hpp>
 
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
@@ -115,9 +113,9 @@ namespace gridtools {
 
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
-            using backend_ids_t = typename IterateDomainArguments::backend_ids_t;
+            using backend_t = typename IterateDomainArguments::backend_t;
             host_device::for_each_type<typename local_domain_t::storage_infos_t>(
-                initialize_index<backend_ids_t, local_domain_t>(
+                initialize_index<backend_t, local_domain_t>(
                     local_domain.m_strides_map, begin, block_no, pos_in_block, m_index));
         }
 

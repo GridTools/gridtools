@@ -94,8 +94,6 @@ namespace gridtools {
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
-        using backend_traits_t = backend_traits_from_id<target::mc>;
-
         using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
 

@@ -13,7 +13,6 @@
 
 #include "../common/array.hpp"
 #include "../common/generic_metafunctions/for_each.hpp"
-#include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/hymap.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/make_indices.hpp"

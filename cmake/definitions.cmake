@@ -29,12 +29,12 @@ set(REQUIRED_BOOST_VERSION 1.58)
 find_package( Boost ${REQUIRED_BOOST_VERSION} REQUIRED )
 target_link_libraries( gridtools INTERFACE Boost::boost)
 
-if (GT_ENABLE_TARGET_X86 OR GT_ENABLE_TARGET_MC)
+if (GT_ENABLE_BACKEND_X86 OR GT_ENABLE_BACKEND_MC OR GT_ENABLE_BACKEND_NAIVE)
     target_link_libraries( gridtools INTERFACE OpenMP::OpenMP_CXX)
 endif()
 
 target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
-if( GT_ENABLE_TARGET_CUDA )
+if( GT_ENABLE_BACKEND_CUDA )
   target_compile_definitions(gridtools INTERFACE GT_USE_GPU)
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 8.0 )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
@@ -58,7 +58,7 @@ target_compile_options(gridtools INTERFACE $<$<AND:$<CXX_COMPILER_ID:Cray>,$<COM
 
 if( GT_USE_MPI )
     target_compile_definitions(gridtools INTERFACE GCL_MPI)
-    if( GT_ENABLE_TARGET_CUDA )
+    if( GT_ENABLE_BACKEND_CUDA )
       target_compile_definitions(gridtools INTERFACE GCL_GPU)
     endif()
 endif()
@@ -99,15 +99,23 @@ endif()
 find_package(ClangTools)
 
 # TESTS ONLY
-if(GT_ENABLE_TARGET_X86)
+if(GT_ENABLE_BACKEND_X86)
   add_library(GridToolsTestX86 INTERFACE)
   target_compile_definitions(GridToolsTestX86 INTERFACE GT_BACKEND_X86)
   target_link_libraries(GridToolsTestX86 INTERFACE GridToolsTest)
   target_compile_options(GridToolsTestX86 INTERFACE -march=native)
-endif(GT_ENABLE_TARGET_X86)
+endif(GT_ENABLE_BACKEND_X86)
+
+# TESTS ONLY
+if(GT_ENABLE_BACKEND_NAIVE)
+  add_library(GridToolsTestNAIVE INTERFACE)
+  target_compile_definitions(GridToolsTestNAIVE INTERFACE GT_BACKEND_NAIVE)
+  target_link_libraries(GridToolsTestNAIVE INTERFACE GridToolsTest)
+  target_compile_options(GridToolsTestNAIVE INTERFACE -march=native)
+endif(GT_ENABLE_BACKEND_NAIVE)
 
 ## cuda support ##
-if( GT_ENABLE_TARGET_CUDA )
+if( GT_ENABLE_BACKEND_CUDA )
   if( GT_TREAT_WARNINGS_AS_ERROR )
      # unfortunately we cannot treat all as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
      # CUDA 9 adds deprecated-declarations (activated) and reorder (not activated)
@@ -131,11 +139,11 @@ if( GT_ENABLE_TARGET_CUDA )
   target_link_libraries(GridToolsTestCUDA INTERFACE GridToolsTest)
 endif()
 
-if( GT_ENABLE_TARGET_MC )
+if( GT_ENABLE_BACKEND_MC )
   add_library(GridToolsTestMC INTERFACE)
   target_compile_definitions(GridToolsTestMC INTERFACE GT_BACKEND_MC)
   target_link_libraries(GridToolsTestMC INTERFACE GridToolsTest)
-endif( GT_ENABLE_TARGET_MC )
+endif( GT_ENABLE_BACKEND_MC )
 
 # TODO: Move to separate file?
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")

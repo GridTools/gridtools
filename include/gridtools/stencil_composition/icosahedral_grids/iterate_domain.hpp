@@ -9,8 +9,6 @@
  */
 #pragma once
 #include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/mpl/size.hpp>
 #include <type_traits>
 
 #include "../../common/array.hpp"
@@ -33,7 +31,7 @@ namespace gridtools {
     template <typename IterateDomainImpl, typename IterateDomainArguments>
     class iterate_domain {
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
-        using backend_ids_t = typename IterateDomainArguments::backend_ids_t;
+        using backend_t = typename IterateDomainArguments::backend_t;
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
 
         // the number of different storage metadatas used in the current functor
@@ -68,7 +66,7 @@ namespace gridtools {
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             host_device::for_each_type<typename local_domain_t::storage_infos_t>(
-                initialize_index<backend_ids_t, local_domain_t>(
+                initialize_index<backend_t, local_domain_t>(
                     m_local_domain.m_strides_map, begin, block_no, pos_in_block, m_index));
         }
 

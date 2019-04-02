@@ -15,7 +15,6 @@
 #pragma once
 
 #include <boost/fusion/include/pair.hpp>
-#include <boost/mpl/at.hpp>
 
 #include "../../common/defs.hpp"
 #include "../../meta.hpp"

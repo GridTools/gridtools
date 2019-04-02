@@ -16,7 +16,6 @@
 
 #include <type_traits>
 
-#include "../common/generic_metafunctions/copy_into_variadic.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
@@ -154,12 +153,11 @@ namespace gridtools {
             return {eval, std::forward<Transforms>(transforms)};
         }
 
-        template <class Functor>
-        using get_param_list = copy_into_variadic<typename Functor::param_list, tuple<>>;
-
         template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>
         GT_FUNCTION void evaluate_bound_functor(Eval &eval, Args &&args) {
-            static constexpr GT_META_CALL(meta::transform, (meta::defer<meta::id>::apply, get_param_list<Functor>))
+            static constexpr GT_META_CALL(meta::rename,
+                (meta::ctor<tuple<>>::apply,
+                    GT_META_CALL(meta::transform, (meta::defer<meta::id>::apply, typename Functor::param_list))))
                 lazy_params = {};
             auto new_eval = make_evaluator(eval,
                 tuple_util::host_device::transform(get_transform_f<I, J, K>{}, std::forward<Args>(args), lazy_params));
@@ -207,7 +205,7 @@ namespace gridtools {
             "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
             "the called stencil function");
 
-        using params_t = call_interfaces_impl_::get_param_list<Functor>;
+        using params_t = typename Functor::param_list;
         using out_params_t = GT_META_CALL(meta::filter, (call_interfaces_impl_::is_out_param, params_t));
 
         GT_STATIC_ASSERT(meta::length<out_params_t>::value == 1,
@@ -278,9 +276,8 @@ namespace gridtools {
          * used to access values, w.r.t the offsets specified in a optional at<..> statement.
          */
         template <class Eval, class... Args>
-        GT_FUNCTION static enable_if_t<sizeof...(Args) ==
-                                       meta::length<call_interfaces_impl_::get_param_list<Functor>>::value>
-        with(Eval &eval, Args &&... args) {
+        GT_FUNCTION static enable_if_t<sizeof...(Args) == meta::length<typename Functor::param_list>::value> with(
+            Eval &eval, Args &&... args) {
             call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
                 eval, tuple<Args &&...>{std::forward<Args>(args)...});
         }

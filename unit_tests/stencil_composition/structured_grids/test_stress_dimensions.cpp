@@ -20,19 +20,18 @@ using namespace gridtools;
 using namespace execute;
 using namespace expressions;
 
-using layout_map_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, target::x86>::value,
+using layout_map_t = typename boost::conditional<std::is_same<backend_t, backend::x86>::value,
     layout_map<3, 4, 5, 0, 1, 2>,
     layout_map<5, 4, 3, 2, 1, 0>>::type;
-using layout_map_global_quad_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, target::x86>::value,
-    layout_map<1, 2, 3, 0>,
-    layout_map<3, 2, 1, 0>>::type;
-using layout_map_local_quad_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, target::x86>::value,
+using layout_map_global_quad_t = typename boost::
+    conditional<std::is_same<backend_t, backend::x86>::value, layout_map<1, 2, 3, 0>, layout_map<3, 2, 1, 0>>::type;
+using layout_map_local_quad_t = typename boost::conditional<std::is_same<backend_t, backend::x86>::value,
     layout_map<-1, -1, -1, 1, 2, 3, 0>,
     layout_map<-1, -1, -1, 3, 2, 1, 0>>::type;
 
 template <unsigned Id, typename Layout>
-using special_storage_info_t = typename backend_t::storage_traits_t::
-    select_custom_layout_storage_info<Id, Layout, zero_halo<Layout::masked_length>>::type;
+using special_storage_info_t = typename storage_traits<
+    backend_t>::select_custom_layout_storage_info<Id, Layout, zero_halo<Layout::masked_length>>::type;
 
 using storage_info_t = special_storage_info_t<0, layout_map_t>;
 using storage_info_global_quad_t = special_storage_info_t<0, layout_map_global_quad_t>;
@@ -44,9 +43,9 @@ typedef layout_map<-1, -1, -1, 3, 2, 1, 0> layoutphi_t;
 typedef layout_map<3, 2, 1, 0> layout4_t;
 typedef layout_map<2, 1, 0, 3, 4, 5> layout_t;
 
-typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_type;
-typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_global_quad_t> storage_global_quad_t;
-typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_local_quad_t> storage_local_quad_t;
+typedef storage_traits<backend_t>::data_store_t<float_type, storage_info_t> storage_type;
+typedef storage_traits<backend_t>::data_store_t<float_type, storage_info_global_quad_t> storage_global_quad_t;
+typedef storage_traits<backend_t>::data_store_t<float_type, storage_info_local_quad_t> storage_local_quad_t;
 
 /**
   @file
@@ -130,12 +129,12 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
     for (int_t i = 1; i < d1 - 2; ++i)
         for (int_t j = 1; j < d2 - 2; ++j)
             for (int_t k = 0; k < d3 - 1; ++k)
-                for (short_t I = 0; I < 2; ++I)
-                    for (short_t J = 0; J < 2; ++J)
-                        for (short_t K = 0; K < 2; ++K) {
+                for (int_t I = 0; I < 2; ++I)
+                    for (int_t J = 0; J < 2; ++J)
+                        for (int_t K = 0; K < 2; ++K) {
                             // check the initialization to 0
                             assert(referencev(i, j, k, I, J, K) == 0.);
-                            for (short_t q = 0; q < 2; ++q) {
+                            for (int_t q = 0; q < 2; ++q) {
                                 referencev(i, j, k, I, J, K) +=
                                     (phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 0, 0, 0, q) * jacv(i, j, k, q) *
                                             fv(i, j, k, 0, 0, 0) +
@@ -189,12 +188,12 @@ namespace assembly {
             // projection of f on a (e.g.) P1 FE space:
             // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
-            for (short_t I = 0; I < 2; ++I)
-                for (short_t J = 0; J < 2; ++J)
-                    for (short_t K = 0; K < 2; ++K) {
+            for (int_t I = 0; I < 2; ++I)
+                for (int_t J = 0; J < 2; ++J)
+                    for (int_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
                         assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
-                        for (short_t q = 0; q < 2; ++q) {
+                        for (int_t q = 0; q < 2; ++q) {
                             eval(result{di + I, dj + J, dk + K}) +=
                                 eval(phi{i + I, j + J, k + K, qp + q} * psi{i, j, k, qp + q} * jac{i, j, k, di + q} *
                                          f{i, j, k, di, dj, dk} +
