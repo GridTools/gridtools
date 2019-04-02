@@ -32,7 +32,7 @@ namespace gridtools {
             GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T) * num_elements));
             m_ptrs.emplace_back(ptr, [](T *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
             return {static_cast<T *>(m_ptrs.back().get())};
-        };
+        }
 
         /**
          * @brief Internal: use only for testing.
