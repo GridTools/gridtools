@@ -7,7 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "../../cuda_gtest_plugin.hpp"
 #include "gtest/gtest.h"
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 
@@ -26,12 +25,11 @@ struct accessor_mock {
 
 namespace gridtools {
     template <typename T>
-    struct is_accessor<accessor_mock<T>> : boost::mpl::true_ {};
+    struct is_accessor<accessor_mock<T>> : std::true_type {};
 } // namespace gridtools
 
 struct iterate_domain_mock {
-    template <typename... Ts>
-    GT_FUNCTION iterate_domain_mock(Ts...) {}
+    GT_FUNCTION iterate_domain_mock() {}
 
     // trivial evaluation of the accessor_mock
     template <typename Accessor, typename std::enable_if<is_accessor<Accessor>::value, int>::type = 0>
@@ -47,76 +45,54 @@ struct iterate_domain_mock {
 
 using val = accessor_mock<float>;
 
-/*
- * User API tests
- */
-CUDA_TEST(test_expressions, add_accessors) {
-    iterate_domain_mock eval(0);
+#define EXPRESSION_TEST(name, expr)                                      \
+    GT_FUNCTION float test_##name() {                                    \
+        auto result = iterate_domain_mock{}(expr);                       \
+        static_assert(std::is_same<decltype(result), float>::value, ""); \
+        return result;                                                   \
+    }
 
-    auto add = val{1} + val{2};
+EXPRESSION_TEST(add_accessors, val{1} + val{2});
+EXPRESSION_TEST(sub_accessors, val{1} - val{2});
+EXPRESSION_TEST(negate_accessors, -val{1});
+EXPRESSION_TEST(plus_sign_accessors, +val{1});
+EXPRESSION_TEST(with_parenthesis_accessors, (val{1} + val{2}) * (val{1} - val{2}));
 
-    auto result = eval(add);
-    ASSERT_FLOAT_EQ(result, (float)3.);
-}
+namespace {
+    /*
+     * User API tests
+     */
+    TEST(test_expressions, add_accessors) {
+        EXPECT_FLOAT_EQ(test_add_accessors(), 3.f);
+        EXPECT_FLOAT_EQ(test_sub_accessors(), -1.f);
+        EXPECT_FLOAT_EQ(test_negate_accessors(), -1.f);
+        EXPECT_FLOAT_EQ(test_plus_sign_accessors(), 1.f);
+        EXPECT_FLOAT_EQ(test_with_parenthesis_accessors(), -3.f);
+    }
 
-CUDA_TEST(test_expressions, sub_accessors) {
-    iterate_domain_mock eval(0);
+    /*
+     * Library tests illustrating how expressions are evaluated (implementation details!)
+     */
+    TEST(test_expressions, expr_plus_by_ctor) {
+        accessor_mock<double> a{1};
+        accessor_mock<double> b{2};
 
-    auto sub = val{1} - val{2};
+        auto add = make_expr(plus_f{}, a, b);
 
-    auto result = eval(sub);
-    ASSERT_FLOAT_EQ(result, (float)-1.);
-}
+        iterate_domain_mock eval;
 
-CUDA_TEST(test_expressions, negate_accessor) {
-    iterate_domain_mock eval(0);
+        auto result = evaluation::value(eval, add);
 
-    auto negate = -val{1};
+        ASSERT_DOUBLE_EQ(result, 3);
+    }
 
-    auto result = eval(negate);
-    ASSERT_FLOAT_EQ(result, (float)-1.);
-}
+    TEST(expression_unit_test, expr_plus_by_operator_overload) {
+        iterate_domain_mock iterate;
 
-CUDA_TEST(test_expressions, plus_sign_accessor) {
-    iterate_domain_mock eval(0);
+        auto add = val{1} + val{2};
 
-    auto negate = +val{1};
+        auto result = evaluation::value(iterate, add);
 
-    auto result = eval(negate);
-    ASSERT_FLOAT_EQ(result, (float)1.);
-}
-
-CUDA_TEST(test_expressions, with_parenthesis) {
-    iterate_domain_mock eval(0);
-
-    auto expression = (val{1} + val{2}) * (val{1} - val{2});
-
-    auto result = eval(expression);
-    ASSERT_FLOAT_EQ(result, (float)-3.);
-}
-
-/*
- * Library tests illustrating how expressions are evaluated
- */
-TEST(test_expressions, expr_plus_by_ctor) {
-    accessor_mock<double> a{1};
-    accessor_mock<double> b{2};
-
-    auto add = make_expr(plus_f{}, a, b);
-
-    iterate_domain_mock iterate;
-
-    auto result = evaluation::value(iterate, add);
-
-    ASSERT_DOUBLE_EQ(result, 3);
-}
-
-TEST(expression_unit_test, expr_plus_by_operator_overload) {
-    iterate_domain_mock iterate;
-
-    auto add = val{1} + val{2};
-
-    auto result = evaluation::value(iterate, add);
-
-    ASSERT_DOUBLE_EQ(result, 3);
-}
+        ASSERT_DOUBLE_EQ(result, 3);
+    }
+} // namespace
