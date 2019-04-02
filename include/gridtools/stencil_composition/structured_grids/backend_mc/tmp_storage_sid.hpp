@@ -35,34 +35,38 @@ namespace gridtools {
             ptr_holder operator+(std::size_t offset) const { return {m_ptr + offset}; }
         };
 
-        template <class Extent>
+        template <class T, class Extent>
         pos3<std::size_t> full_block_size(pos3<std::size_t> const &block_size) {
-            // TODO: alignment
-            return {block_size.i - Extent::iminus::value + Extent::iplus::value,
-                block_size.j - Extent::jminus::value + Extent::jplus::value,
-                block_size.k};
+            static constexpr std::size_t alignment = 64 / sizeof(T);
+            const std::size_t size_i =
+                (block_size.i - Extent::iminus::value + Extent::iplus::value + alignment - 1) / alignment * alignment;
+            const std::size_t size_j = block_size.j - Extent::jminus::value + Extent::jplus::value;
+            const std::size_t size_k = block_size.k - Extent::kminus::value + Extent::kplus::value;
+            return {size_i, size_j, size_k};
         }
 
-        template <class Extent>
-        std::size_t block_storage_size(pos3<std::size_t> const &block_size) {
-            auto bs = full_block_size<Extent>(block_size);
-            return bs.i * bs.j * bs.k;
-        }
-
-        template <class Extent>
+        template <class T, class Extent>
         std::size_t storage_size(pos3<std::size_t> const &block_size) {
-            return block_storage_size<Extent>(block_size) * omp_get_max_threads();
+            auto bs = full_block_size<T, Extent>(block_size);
+            return bs.i * bs.j * bs.k * omp_get_max_threads();
         }
 
         using strides_t =
             hymap::keys<dim::i, dim::k, dim::j, thread_dim>::values<integral_constant<int_t, 1>, int_t, int_t, int_t>;
 
-        template <class Extent>
+        template <class T, class Extent>
         strides_t strides(pos3<std::size_t> const &block_size) {
-            // auto bs = full_block_size<Extent>(block_size);
-            // return {{}, bs.i, bs.i * bs.k, bs.i * bs.k * bs.j};
-            return {};
+            auto bs = full_block_size<T, Extent>(block_size);
+            return {integral_constant<int, 1>{}, bs.i, bs.i * bs.k, bs.i * bs.k * bs.j};
         }
+
+        template <class T, class Extent>
+        std::size_t origin_offset(pos3<std::size_t> const &block_size) {
+            auto st = strides<T, Extent>(block_size);
+            return at_key<dim::i>(st) * -Extent::iminus::value + at_key<dim::j>(st) * -Extent::jminus::value +
+                   at_key<dim::k>(st) * -Extent::kminus::value;
+        }
+
     } // namespace _impl_tmp_mc
 
     class tmp_allocator_mc {
@@ -77,8 +81,11 @@ namespace gridtools {
     };
 
     template <class T, class Extent, class Allocator>
-    auto make_tmp_storage_mc(Allocator &allocator, pos3<std::size_t> const &block_size) GT_AUTO_RETURN(
-        sid::synthetic().set<sid::property::origin>(allocator.template allocate<T>(_impl_tmp_mc::storage_size<Extent>(
-            block_size))) /*.set<sid::property::strides>(_impl_tmp_mc::strides<Extent>(block_size))*/);
+    auto make_tmp_storage_mc(Allocator &allocator, pos3<std::size_t> const &block_size) GT_AUTO_RETURN((
+        sid::synthetic()
+            .set<sid::property::origin>(allocator.template allocate<T>(
+                _impl_tmp_mc::storage_size<T, Extent>(block_size) + _impl_tmp_mc::origin_offset<T, Extent>(block_size)))
+            .template set<sid::property::strides_kind, _impl_tmp_mc::strides_t>()
+            .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent>(block_size))));
 
 } // namespace gridtools
