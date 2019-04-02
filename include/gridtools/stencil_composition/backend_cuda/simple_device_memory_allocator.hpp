@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "cuda_util.hpp"
-#include "functional.hpp"
+#include "../../common/cuda_util.hpp"
+#include "../sid/simple_ptr_holder.hpp"
 #include <memory>
 #include <vector>
 
@@ -19,7 +19,7 @@ namespace gridtools {
     /**
      * @brief Allocator for CUDA device memory.
      */
-    class cuda_allocator {
+    class simple_device_memory_allocator {
         std::vector<std::shared_ptr<void>> m_ptrs;
 
       public:
@@ -27,16 +27,16 @@ namespace gridtools {
          * \param bytes Size of requested allocation in bytes.
          */
         template <class T>
-        host_device::constant<T *> allocate(size_t num_elements) {
+        sid::simple_ptr_holder<T *> allocate(size_t num_elements) {
             T *ptr;
             GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T) * num_elements));
             m_ptrs.emplace_back(ptr, [](T *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
             return {static_cast<T *>(m_ptrs.back().get())};
-        }
+        };
 
         /**
          * @brief Internal: use only for testing.
          */
         std::vector<std::shared_ptr<void>> const &ptrs() const { return m_ptrs; }
-    };
+    }; // namespace gridtools
 } // namespace gridtools

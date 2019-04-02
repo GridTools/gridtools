@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "../../common/cuda_allocator.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../dim.hpp"
@@ -18,6 +17,27 @@
 #include <memory>
 
 namespace gridtools {
+    namespace tmp_cuda_impl_ {
+        template <class Strides, class BlockSizeI, class BlockSizeJ>
+        Strides compute_strides(int_t n_blocks_i, int_t n_blocks_j) {
+            return {integral_constant<int_t, 1>{}, // TODO support for default init {} in hymap
+                BlockSizeI{},
+                integral_constant<int_t, BlockSizeI{} * BlockSizeJ{}>{},
+                GT_META_CALL(meta::at_c, (Strides, 2))::value * n_blocks_i,
+                GT_META_CALL(meta::at_c, (Strides, 2))::value * n_blocks_i * n_blocks_j};
+        }
+
+        template <class BlockSizeI, class BlockSizeJ>
+        std::size_t compute_size(int_t n_blocks_i, int_t n_blocks_j, int_t k_size) {
+            return BlockSizeI{} * BlockSizeJ{} * n_blocks_i * n_blocks_j * k_size;
+        }
+
+        template <class Strides>
+        int_t compute_origin_offset(Strides const &strides, int_t shift_i, int_t shift_j) {
+            return shift_i * at_key<dim::i>(strides) + shift_j * at_key<dim::j>(strides);
+        }
+    } // namespace tmp_cuda_impl_
+
     namespace tmp_cuda {
         struct block_i;
         struct block_j;
@@ -26,6 +46,10 @@ namespace gridtools {
         struct blocksize {};
     } // namespace tmp_cuda
 
+    /**
+     * @brief SID for CUDA temporaries.
+     * get_origin() points to first element of compute domain
+     */
     template <class T,
         int_t ComputeBlockSizeI,
         int_t ComputeBlockSizeJ,
@@ -50,18 +74,15 @@ namespace gridtools {
         Allocator &&alloc)
         GT_AUTO_RETURN(
             (sid::synthetic()
-                    .set<sid::property::origin>(host_device::constant<T *>{
-                        alloc.template allocate<T>(BlockSizeI{} * BlockSizeJ{} * n_blocks_i * n_blocks_j * k_size)() -
-                        ExtentIMinus * GT_META_CALL(meta::at_c, (Strides, 0)){}
-                        // TODO access with dim::i, e.g. mp_find<Strides, dim::i>
-                        - ExtentJMinus * GT_META_CALL(meta::at_c, (Strides, 1)){} // TODO access with dim::j
-                    })
+                    .set<sid::property::origin>(
+                        alloc.template allocate<T>(
+                            tmp_cuda_impl_::compute_size<BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j, k_size)) +
+                        tmp_cuda_impl_::compute_origin_offset(
+                            tmp_cuda_impl_::compute_strides<Strides, BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j),
+                            -ExtentIMinus,
+                            -ExtentJMinus))
                     .template set<sid::property::strides>(
-                        Strides{integral_constant<int_t, 1>{}, // TODO support for default init {} in hymap
-                            BlockSizeI{},
-                            integral_constant<int_t, BlockSizeI{} * BlockSizeJ{}>{},
-                            GT_META_CALL(meta::at_c, (Strides, 2))::value *n_blocks_i,
-                            GT_META_CALL(meta::at_c, (Strides, 2))::value *n_blocks_i *n_blocks_j})
+                        tmp_cuda_impl_::compute_strides<Strides, BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j))
                     .template set<sid::property::ptr_diff, int_t>()
                     .template set<sid::property::strides_kind, Strides>()));
 

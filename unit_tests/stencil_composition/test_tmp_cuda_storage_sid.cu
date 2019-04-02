@@ -10,6 +10,7 @@
 
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/list.hpp>
+#include <gridtools/stencil_composition/backend_cuda/simple_device_memory_allocator.hpp>
 #include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
 #include <gridtools/tools/backend_select.hpp>
@@ -39,7 +40,7 @@ namespace gridtools {
             int_t n_blocks_j = 12;
             int_t k_size = 13;
 
-            cuda_allocator alloc;
+            simple_device_memory_allocator alloc;
 
             auto testee = make_tmp_storage_cuda<data_t>(tmp_cuda::blocksize<blocksize_i, blocksize_j>{},
                 extent<extent_i_minus, extent_i_plus, extent_j_minus, extent_j_plus>{},
