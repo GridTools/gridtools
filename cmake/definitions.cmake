@@ -76,10 +76,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(GridToolsTest INTERFACE 
         $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-local-typedefs -Wno-attributes -Wno-unused-but-set-variable -Wno-unneeded-internal-declaration -Wno-unused-function>)
     target_compile_options(GridToolsTest INTERFACE
-        $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wall,-Wno-unknown-pragmas,-Wno-sign-compare,-Wno-attributes,-Wno-unused-but-set-variable,-Wno-unneeded-internal-declaration,-Wno-unused-function>)
+        "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -Wall,-Wno-unknown-pragmas,-Wno-sign-compare,-Wno-attributes,-Wno-unused-but-set-variable,-Wno-unneeded-internal-declaration,-Wno-unused-function>")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.4.0")
         target_compile_options(GridToolsTest INTERFACE
             $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-value>)
+        target_compile_options(GridToolsTest INTERFACE
+            "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -Wno-unused-value>")
     endif()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.9.0")
@@ -87,7 +89,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         target_compile_options(GridToolsTest INTERFACE 
             $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-attributes>)
         target_compile_options(GridToolsTest INTERFACE
-            $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unknown-attributes>)
+            "SHELL:$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unknown-attributes>")
     endif ()
 endif()
 if(GT_TESTS_ICOSAHEDRAL_GRID)
