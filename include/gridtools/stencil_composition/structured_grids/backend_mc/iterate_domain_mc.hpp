@@ -54,16 +54,12 @@ namespace gridtools {
             typename LocalDomain::ptr_map_t &m_dst;
 
             template <typename Arg>
-            GT_FORCE_INLINE enable_if_t<is_tmp_arg<Arg>::value> operator()() const {
-                auto &&length = at_key<typename Arg::data_store_t::storage_info_t>(m_local_domain.m_total_length_map);
+            GT_FORCE_INLINE void operator()() const {
+                auto length = at_key<typename Arg::data_store_t::storage_info_t>(m_local_domain.m_total_length_map);
                 int_t offset = std::lround(length * thread_factor());
                 assert(offset == ((long long)length * omp_get_thread_num()) / omp_get_max_threads());
-                auto &dst = at_key<Arg>(m_dst);
-                dst = dst + offset;
+                at_key<Arg>(m_dst) += offset;
             }
-
-            template <typename Arg>
-            GT_FORCE_INLINE enable_if_t<!is_tmp_arg<Arg>::value> operator()() const {}
         };
 
     } // namespace _impl
@@ -101,7 +97,6 @@ namespace gridtools {
       private:
         // *********************** members **********************
         local_domain_t const &local_domain;
-        typename local_domain_t::ptr_map_t m_ptr_map;
         int_t m_i_block_index;     /** Local i-index inside block. */
         int_t m_j_block_index;     /** Local j-index inside block. */
         int_t m_k_block_index;     /** Local/global k-index (no blocking along k-axis). */
@@ -109,6 +104,7 @@ namespace gridtools {
         int_t m_j_block_base;      /** Global block start index along j-axis. */
         int_t m_prefetch_distance; /** Prefetching distance along k-axis, zero means no software prefetching. */
         bool m_enable_ij_caches;   /** Enables ij-caching. */
+        typename local_domain_t::ptr_map_t m_ptr_map;
         // ******************* end of members *******************
 
         // helper class for index array generation, only needed for the index() function
@@ -133,9 +129,9 @@ namespace gridtools {
       public:
         GT_FORCE_INLINE
         iterate_domain_mc(local_domain_t const &local_domain)
-            : local_domain(local_domain), m_ptr_map(local_domain.make_ptr_map()), m_i_block_index(0),
-              m_j_block_index(0), m_k_block_index(0), m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0),
-              m_enable_ij_caches(false) {
+            : local_domain(local_domain), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0), m_i_block_base(0),
+              m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false),
+              m_ptr_map(local_domain.make_ptr_map()) {
             using tmp_args_t = GT_META_CALL(meta::filter, (is_tmp_arg, typename local_domain_t::esf_args_t));
             gridtools::for_each_type<tmp_args_t>(
                 _impl::set_offset_for_temporaries_f<local_domain_t>{local_domain, m_ptr_map});
@@ -195,7 +191,7 @@ namespace gridtools {
         GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
-            auto &&ptr = at_key<Arg>(m_ptr_map);
+            auto ptr = at_key<Arg>(m_ptr_map);
 
             int_t pointer_offset =
                 compute_offset<meta::st_contains<ij_cache_args_t, Arg>::value, storage_info_t>(accessor);
@@ -203,10 +199,10 @@ namespace gridtools {
 #ifdef __SSE__
             if (m_prefetch_distance != 0) {
                 int_t prefetch_offset = m_prefetch_distance * storage_stride<storage_info_t, 2>();
-                _mm_prefetch(reinterpret_cast<const char *>(ptr + pointer_offset + prefetch_offset), _MM_HINT_T1);
+                _mm_prefetch(reinterpret_cast<const char *>(&ptr[pointer_offset + prefetch_offset]), _MM_HINT_T1);
             }
 #endif
-            return *(ptr + pointer_offset);
+            return ptr[pointer_offset];
         }
 
         /** @brief Global i-index. */
