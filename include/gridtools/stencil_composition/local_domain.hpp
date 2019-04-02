@@ -75,8 +75,11 @@ namespace gridtools {
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDA_VER_MINOR__ < 2
         struct lazy_strides_keys_t : meta::lazy::rename<hymap::keys, storage_infos_t> {};
         using strides_keys_t = typename lazy_strides_keys_t::type;
+        struct lazy_arg_keys_t : meta::lazy::rename<hymap::keys, EsfArgs> {};
+        using arg_keys_t = typename lazy_arg_keys_t::type;
 #else
         using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, storage_infos_t));
+        using arg_keys_t = GT_META_CALL(meta::rename, (hymap::keys, EsfArgs));
 #endif
 
         using strides_map_t = GT_META_CALL(meta::rename, (strides_keys_t::template values, sid_strides_values_t));
@@ -87,8 +90,6 @@ namespace gridtools {
         using ptr_holders_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_ptr_holder, EsfArgs));
         using ptrs_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_ptr, EsfArgs));
 
-        using arg_keys_t = GT_META_CALL(meta::rename, (hymap::keys, EsfArgs));
-
         using ptr_holder_map_t = GT_META_CALL(meta::rename, (arg_keys_t::template values, ptr_holders_t));
 
       public:
@@ -98,7 +99,7 @@ namespace gridtools {
 
         using ptr_map_t = GT_META_CALL(meta::rename, (arg_keys_t::template values, ptrs_t));
 
-        GT_DEVICE ptr_map_t make_ptr_map() const {
+        GT_FUNCTION_DEVICE ptr_map_t make_ptr_map() const {
             return tuple_util::device::transform(local_domain_impl_::call_f{}, m_ptr_holder_map);
         }
     };

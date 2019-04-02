@@ -57,7 +57,7 @@ namespace gridtools {
            fields (one index per storage instance, so that one index
            might be shared among several data fields)
         */
-        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : m_local_domain(local_domain_) {}
+        GT_FUNCTION_DEVICE iterate_domain(local_domain_t const &local_domain_) : m_local_domain(local_domain_) {}
 
       public:
         static constexpr bool has_k_caches = false;

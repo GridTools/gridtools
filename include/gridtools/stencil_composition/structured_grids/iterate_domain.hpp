@@ -54,7 +54,7 @@ namespace gridtools {
       protected:
         using iterate_domain_arguments_t = IterateDomainArguments;
 
-        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_)
+        GT_FUNCTION_DEVICE iterate_domain(local_domain_t const &local_domain_)
             : local_domain(local_domain_), m_ptr_map(local_domain_.make_ptr_map()) {}
 
       public:

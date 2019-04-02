@@ -19,6 +19,7 @@
 #include "../../common/gt_assert.hpp"
 #include "../../common/gt_math.hpp"
 #include "../../common/layout_map.hpp"
+#include "../../meta/utility.hpp"
 #include "alignment.hpp"
 #include "halo.hpp"
 
@@ -76,22 +77,20 @@ namespace gridtools {
         typedef layout_map<LayoutArgs...> layout_map_t;
 
         template <int N, typename... Dims>
-        GT_FUNCTION static constexpr
-            typename boost::enable_if_c<(N != -1 && N != layout_map_t::unmasked_length - 1), uint_t>::type
-            get_stride(Dims... d) {
+        GT_FUNCTION static constexpr enable_if_t<N != -1 && N != layout_map_t::unmasked_length - 1, uint_t> get_stride(
+            Dims... d) {
             return (get_value_from_pack(get_index_of_element_in_pack(0, N + 1, LayoutArgs...), d...)) *
                    get_stride<N + 1>(d...);
         }
 
         template <int N, typename... Dims>
-        GT_FUNCTION static constexpr typename boost::enable_if_c<(N == -1), uint_t>::type get_stride(Dims...) {
+        GT_FUNCTION static constexpr enable_if_t<N == -1, uint_t> get_stride(Dims...) {
             return 0;
         }
 
         template <int N, typename... Dims>
-        GT_FUNCTION static constexpr
-            typename boost::enable_if_c<(N != -1 && N == layout_map_t::unmasked_length - 1), uint_t>::type
-            get_stride(Dims...) {
+        GT_FUNCTION static constexpr enable_if_t<N != -1 && N == layout_map_t::unmasked_length - 1, uint_t> get_stride(
+            Dims...) {
             return 1;
         }
     };
@@ -106,8 +105,7 @@ namespace gridtools {
     template <int... LayoutArgs>
     struct get_strides<layout_map<LayoutArgs...>> {
         template <typename... Dims,
-            typename std::enable_if<sizeof...(Dims) == sizeof...(LayoutArgs) && is_all_integral<Dims...>::value,
-                int>::type = 0>
+            enable_if_t<sizeof...(Dims) == sizeof...(LayoutArgs) && is_all_integral<Dims...>::value, int> = 0>
         GT_FUNCTION static constexpr array<uint_t, sizeof...(LayoutArgs)> get_stride_array(Dims... ds) {
             typedef layout_map<LayoutArgs...> Layout;
             return (array<uint_t, Layout::masked_length>){
