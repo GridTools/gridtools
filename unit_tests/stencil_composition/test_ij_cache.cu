@@ -55,6 +55,7 @@ namespace gridtools {
             auto ptr1 = cache1();
             auto ptr2 = cache2();
 
+            // fill some data into the caches
             sid::shift(ptr1, sid::get_stride<dim::i>(strides1), -i_zero);
             sid::shift(ptr1, sid::get_stride<dim::j>(strides1), -j_zero);
 
@@ -82,12 +83,17 @@ namespace gridtools {
             sid::shift(ptr1, sid::get_stride<dim::k>(strides1), 123);
             sid::shift(ptr2, sid::get_stride<dim::k>(strides2), 456);
 
+            // verify that the data is still in there (no overwrites from the two caches)
             for (int j = 0; j < j_size; ++j) {
                 for (int i = 0; i < i_size; ++i) {
-                    if (*ptr1 != 100 * j + i)
+                    if (*ptr1 != 100. * j + i) {
+                        printf("Float-Cache: Incorrect result at (i=%i, j=%i): %f != %f\n", i, j, *ptr1, 100. * j + i);
                         return false;
-                    if (*ptr2 != 100 * j + i)
+                    }
+                    if (*ptr2 != 100 * j + i) {
+                        printf("Int-Cache: Incorrect result at (i=%i, j=%i): %i != %i\n", i, j, *ptr2, 100 * j + i);
                         return false;
+                    }
                     sid::shift(ptr1, sid::get_stride<dim::i>(strides1), 1_c);
                     sid::shift(ptr2, sid::get_stride<dim::i>(strides2), 1_c);
                 }
