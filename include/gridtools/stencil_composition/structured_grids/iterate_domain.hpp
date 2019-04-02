@@ -113,9 +113,9 @@ namespace gridtools {
 
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
-            using target_t = typename IterateDomainArguments::target_t;
+            using backend_t = typename IterateDomainArguments::backend_t;
             host_device::for_each_type<typename local_domain_t::storage_infos_t>(
-                initialize_index<target_t, local_domain_t>(
+                initialize_index<backend_t, local_domain_t>(
                     local_domain.m_strides_map, begin, block_no, pos_in_block, m_index));
         }
 

@@ -46,7 +46,7 @@ namespace gridtools {
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
             typedef typename RunFunctorArguments::max_extent_t max_extent_t;
 
-            using iterate_domain_arguments_t = iterate_domain_arguments<target::cuda,
+            using iterate_domain_arguments_t = iterate_domain_arguments<backend::cuda,
                 typename RunFunctorArguments::local_domain_t,
                 typename RunFunctorArguments::esf_sequence_t,
                 typename RunFunctorArguments::cache_sequence_t,
@@ -62,8 +62,8 @@ namespace gridtools {
             const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
 
             // number of grid points that a cuda block covers
-            static constexpr uint_t ntx = block_i_size(target::cuda{});
-            static constexpr uint_t nty = block_j_size(target::cuda{});
+            static constexpr uint_t ntx = block_i_size(backend::cuda{});
+            static constexpr uint_t nty = block_j_size(backend::cuda{});
 
             const uint_t block_size_i = (blockIdx.x + 1) * ntx < nx ? ntx : nx - blockIdx.x * ntx;
             const uint_t block_size_j = (blockIdx.y + 1) * nty < ny ? nty : ny - blockIdx.y * nty;
@@ -119,14 +119,16 @@ namespace gridtools {
             } else if (threadIdx.y < iminus_limit) {
                 static constexpr auto padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <= block_i_size(target::cuda{}), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(
+                    jboundary_limit * padded_boundary_ <= block_i_size(backend::cuda{}), GT_INTERNAL_ERROR);
 
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
                 static constexpr auto padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-                GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <= block_i_size(target::cuda{}), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(
+                    jboundary_limit * padded_boundary_ <= block_i_size(backend::cuda{}), GT_INTERNAL_ERROR);
                 iblock = threadIdx.x % padded_boundary_ + ntx;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
@@ -154,7 +156,7 @@ namespace gridtools {
      */
     template <class RunFunctorArgs, class LocalDomain, class Grid, class ExecutionInfo>
     static void mss_loop(
-        target::cuda const &backend_target, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &) {
+        backend::cuda const &backend_target, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &) {
         GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
@@ -195,8 +197,8 @@ namespace gridtools {
         const uint_t nz = grid.k_total_length();
 
         // number of grid points that a cuda block covers
-        static constexpr uint_t ntx = block_i_size(target::cuda{});
-        static constexpr uint_t nty = block_j_size(target::cuda{});
+        static constexpr uint_t ntx = block_i_size(backend::cuda{});
+        static constexpr uint_t nty = block_j_size(backend::cuda{});
         static constexpr uint_t ntz = 1;
 
         using max_extent_t = typename RunFunctorArgs::max_extent_t;

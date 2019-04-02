@@ -38,7 +38,7 @@ namespace gridtools {
         class Grid,
         enable_if_t<!_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
     GT_FORCE_INLINE static void fused_mss_loop(
-        target::mc const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+        backend::mc const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
         execinfo_mc exinfo(grid);
@@ -62,7 +62,7 @@ namespace gridtools {
         class Grid,
         enable_if_t<_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
     GT_FORCE_INLINE static void fused_mss_loop(
-        target::mc const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+        backend::mc const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
         execinfo_mc exinfo(grid);
@@ -84,5 +84,5 @@ namespace gridtools {
     /**
      * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
      */
-    constexpr std::true_type mss_fuse_esfs(target::mc) { return {}; }
+    constexpr std::true_type mss_fuse_esfs(backend::mc) { return {}; }
 } // namespace gridtools

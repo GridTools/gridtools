@@ -30,8 +30,8 @@ namespace {
 template <typename RefBackend>
 struct shallow_water_reference {
 
-    using solution_meta_t = typename RefBackend::storage_traits_t::template storage_info_t<0, 3>;
-    using data_store_t = typename RefBackend::storage_traits_t::template data_store_t<float_type, solution_meta_t>;
+    using solution_meta_t = typename storage_traits<RefBackend>::template storage_info_t<0, 3>;
+    using data_store_t = typename storage_traits<RefBackend>::template data_store_t<float_type, solution_meta_t>;
 
     uint_t DimI;
     uint_t DimJ;

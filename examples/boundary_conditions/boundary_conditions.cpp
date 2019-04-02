@@ -36,18 +36,16 @@
  */
 
 #include <gridtools/boundary_conditions/boundary.hpp>
-#include <gridtools/stencil_composition/backend.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <iostream>
 
 namespace gt = gridtools;
 
 #ifdef __CUDACC__
-using target_t = gt::target::cuda;
+using backend_t = gt::backend::cuda;
 #else
-using target_t = gt::target::mc;
+using backend_t = gt::backend::mc;
 #endif
-
-using backend_t = gt::backend<target_t>;
 
 using uint_t = unsigned;
 
@@ -129,8 +127,8 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3, gt::halo<1, 1, 1>>;
-    using storage_t = backend_t::storage_traits_t::data_store_t<int, storage_info_t>;
+    using storage_info_t = gt::storage_traits<backend_t>::storage_info_t<0, 3, gt::halo<1, 1, 1>>;
+    using storage_t = gt::storage_traits<backend_t>::data_store_t<int, storage_info_t>;
 
     // Definition of the actual data fields that are used for input/output
     storage_info_t storage_info(d1, d2, d3);
@@ -162,7 +160,7 @@ int main(int argc, char **argv) {
     // earlier with the class above. GridTools provides default
     // boundary classes to copy fields and to set constant values to
     // the boundaries of fields.
-    gt::boundary<direction_bc_input<uint_t>, target_t>(halos, direction_bc_input<uint_t>(42)).apply(out_s, in_s);
+    gt::boundary<direction_bc_input<uint_t>, backend_t>(halos, direction_bc_input<uint_t>(42)).apply(out_s, in_s);
 
     // sync the data stores if needed
     in_s.sync();

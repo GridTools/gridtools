@@ -18,7 +18,7 @@
 
 namespace gridtools {
 
-    template <ushort_t, int_t>
+    template <uint_t, int_t>
     struct pair_;
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
@@ -33,7 +33,7 @@ namespace gridtools {
     template <class Base, class... Pairs>
     struct accessor_mixed;
 
-    template <class Base, ushort_t... Inxs, int_t... Vals>
+    template <class Base, uint_t... Inxs, int_t... Vals>
     struct accessor_mixed<Base, pair_<Inxs, Vals>...> : Base {
         template <class... Ts>
         GT_FUNCTION explicit constexpr accessor_mixed(Ts... args) : Base(dimension<Inxs>(Vals)..., args...) {}
@@ -60,7 +60,7 @@ the dimension is chosen
     template <typename AccessorType, typename... Known>
     struct alias;
 
-    template <typename AccessorType, ushort_t... Inxs>
+    template <typename AccessorType, uint_t... Inxs>
     struct alias<AccessorType, dimension<Inxs>...> {
         GT_STATIC_ASSERT(is_accessor<AccessorType>::value,
             "wrong type. If you want to generalize the alias "

@@ -48,7 +48,7 @@ namespace gridtools {
 
         template <int_t LocationTypeIndex, bool... B>
         struct compute_uuid<LocationTypeIndex, selector<B...>> {
-            static constexpr ushort_t value =
+            static constexpr uint_t value =
                 metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector<2>(0, B...);
         };
     } // namespace impl

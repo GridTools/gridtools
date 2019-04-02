@@ -32,7 +32,7 @@ foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
 endforeach()
 
 if(CMAKE_CUDA_COMPILER)
-    if(GRIDTOOLS_HAS_TARGET_CUDA)
+    if(GRIDTOOLS_HAS_BACKEND_CUDA)
         # If a CUDA compiler was found AND the GridTools installation was installed with CUDA enabled we can compile the CUDA example
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
             add_executable(${srcfile}_cuda ${srcfile}.cu)

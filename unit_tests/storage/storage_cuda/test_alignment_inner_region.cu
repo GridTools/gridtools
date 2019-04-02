@@ -33,7 +33,7 @@ void run() {
     constexpr gt::uint_t h2 = 4;
     constexpr gt::uint_t h3 = 5;
     using info = gt::storage_info<0, Layout, gt::halo<h1, h2, h3>, gt::alignment<a>>;
-    using store = gt::storage_traits<gridtools::target::cuda>::data_store_t<ValueType, info>;
+    using store = gt::storage_traits<gridtools::backend::cuda>::data_store_t<ValueType, info>;
 
     info i(23, 34, 12);
     store s(i);

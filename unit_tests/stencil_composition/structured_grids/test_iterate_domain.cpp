@@ -24,7 +24,6 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/backend.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/stencil_composition/structured_grids/accessor.hpp>
 #include <gridtools/tools/backend_select.hpp>
@@ -46,15 +45,15 @@ namespace gridtools {
         using layout_kji_t = layout_map<0, 1, 2>;
         using layout_ij_t = layout_map<0, 1>;
 
-        using storage_traits_t = storage_traits<target_t>;
+        using storage_traits_t = storage_traits<backend_t>;
 
         using meta_ijkp_t = storage_traits_t::custom_layout_storage_info_t<0, layout_ijkp_t>;
         using meta_kji_t = storage_traits_t::custom_layout_storage_info_t<0, layout_kji_t>;
         using meta_ij_t = storage_traits_t::custom_layout_storage_info_t<0, layout_ij_t>;
 
-        using storage_t = gridtools::storage_traits<target_t>::data_store_t<float_type, meta_ijkp_t>;
-        using storage_buff_t = gridtools::storage_traits<target_t>::data_store_t<float_type, meta_kji_t>;
-        using storage_out_t = gridtools::storage_traits<target_t>::data_store_t<float_type, meta_ij_t>;
+        using storage_t = gridtools::storage_traits<backend_t>::data_store_t<float_type, meta_ijkp_t>;
+        using storage_buff_t = gridtools::storage_traits<backend_t>::data_store_t<float_type, meta_kji_t>;
+        using storage_out_t = gridtools::storage_traits<backend_t>::data_store_t<float_type, meta_ij_t>;
 
         TEST(testdomain, iterate_domain) {
 
@@ -78,26 +77,25 @@ namespace gridtools {
 
             auto mss_ = gridtools::make_multistage // mss_descriptor
                 (execute::forward(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
-            auto computation_ =
-                make_computation<gridtools::backend<target::naive>>(grid, p_in = in, p_buff = buff, p_out = out, mss_);
+            auto computation_ = make_computation<backend::naive>(grid, p_in = in, p_buff = buff, p_out = out, mss_);
             auto local_domain1 = std::get<0>(computation_.local_domains());
 
             using esf_t = decltype(gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
 
-            using iterate_domain_arguments_t = iterate_domain_arguments<target::naive,
+            using iterate_domain_arguments_t = iterate_domain_arguments<backend::naive,
                 decltype(local_domain1),
                 std::tuple<esf_t>,
                 std::tuple<>,
                 gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
+#ifdef GT_BACKEND_MC
+            using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
+#endif
 #ifdef GT_BACKEND_X86
             using it_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
 #endif
 #ifdef GT_BACKEND_NAIVE
             using it_domain_t = iterate_domain_naive<iterate_domain_arguments_t>;
-#endif
-#ifdef GT_BACKEND_MC
-            using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
 #endif
 
             it_domain_t it_domain(local_domain1);

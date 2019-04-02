@@ -37,7 +37,7 @@ namespace gridtools {
     struct reverse_map;
 
     /// \private
-    template <short_t... Is>
+    template <int_t... Is>
     struct reverse_map<layout_map<Is...>> {
         static constexpr int max = layout_map<Is...>::max();
         using type = layout_map<(Is < 0 ? Is : max - Is)...>;
@@ -46,25 +46,25 @@ namespace gridtools {
     template <typename DATALO, typename PROCLO>
     struct layout_transform;
 
-    template <short_t I1, short_t I2, short_t P1, short_t P2>
+    template <int_t I1, int_t I2, int_t P1, int_t P2>
     struct layout_transform<layout_map<I1, I2>, layout_map<P1, P2>> {
         typedef layout_map<I1, I2> L1;
         typedef layout_map<P1, P2> L2;
 
-        static constexpr short_t N1 = L1::template at<P1>();
-        static constexpr short_t N2 = L1::template at<P2>();
+        static constexpr int_t N1 = L1::template at<P1>();
+        static constexpr int_t N2 = L1::template at<P2>();
 
         typedef layout_map<N1, N2> type;
     };
 
-    template <short_t I1, short_t I2, short_t I3, short_t P1, short_t P2, short_t P3>
+    template <int_t I1, int_t I2, int_t I3, int_t P1, int_t P2, int_t P3>
     struct layout_transform<layout_map<I1, I2, I3>, layout_map<P1, P2, P3>> {
         typedef layout_map<I1, I2, I3> L1;
         typedef layout_map<P1, P2, P3> L2;
 
-        static constexpr short_t N1 = L1::template at<P1>();
-        static constexpr short_t N2 = L1::template at<P2>();
-        static constexpr short_t N3 = L1::template at<P3>();
+        static constexpr int_t N1 = L1::template at<P1>();
+        static constexpr int_t N2 = L1::template at<P2>();
+        static constexpr int_t N3 = L1::template at<P3>();
 
         typedef layout_map<N1, N2, N3> type;
     };
@@ -139,7 +139,7 @@ namespace gridtools {
     };
 
     namespace impl {
-        template <int_t Val, short_t NExtraDim>
+        template <int_t Val, int_t NExtraDim>
         struct inc_ {
             static const int_t value = Val == -1 ? -1 : Val + NExtraDim;
         };
@@ -147,7 +147,7 @@ namespace gridtools {
 
     enum class InsertLocation { pre, post };
 
-    template <typename LayoutMap, ushort_t NExtraDim, InsertLocation Location = InsertLocation::post>
+    template <typename LayoutMap, uint_t NExtraDim, InsertLocation Location = InsertLocation::post>
     struct extend_layout_map;
 
     /*
@@ -156,7 +156,7 @@ namespace gridtools {
      * a) extend_layout_map< layout_map<0, 1, 3, 2>, 3> == layout_map<3, 4, 6, 5, 0, 1, 2>
      * b) extend_layout_map< layout_map<0, 1, 3, 2>, 3, InsertLocation::pre> == layout_map<0, 1, 2, 3, 4, 6, 5>
      */
-    template <ushort_t NExtraDim, int_t... Args, InsertLocation Location>
+    template <uint_t NExtraDim, int_t... Args, InsertLocation Location>
     struct extend_layout_map<layout_map<Args...>, NExtraDim, Location> {
 
         template <InsertLocation Loc, typename T, int_t... InitialInts>
@@ -177,12 +177,12 @@ namespace gridtools {
         typedef typename build_ext_layout<Location, seq, impl::inc_<Args, NExtraDim>::value...>::type type;
     };
 
-    template <short_t D>
+    template <int_t D>
     struct default_layout_map {
         using type = typename extend_layout_map<layout_map<>, D, InsertLocation::pre>::type;
     };
 
-    template <short_t D>
+    template <int_t D>
     using default_layout_map_t = typename default_layout_map<D>::type;
 
     /** @} */
