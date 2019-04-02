@@ -206,7 +206,7 @@ namespace gridtools {
             bool timer_enabled = true)
             // grid just stored to the member
             : m_grid(grid),
-              // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
+              // here we create temporary storages.
               m_tmp_arg_storage_pair_tuple(
                   _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(grid)),
               // stash bound storages
@@ -224,13 +224,13 @@ namespace gridtools {
         template <class... Args, class... DataStores>
         enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value> run(
             arg_storage_pair<Args, DataStores> const &... srcs) {
-            if (m_meter)
-                m_meter->start();
             GT_STATIC_ASSERT((conjunction<meta::st_contains<free_placeholders_t, Args>...>::value),
                 "some placeholders are not used in mss descriptors");
             GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
             static constexpr auto backend_target = Backend{};
+            if (m_meter)
+                m_meter->start();
             fused_mss_loop<mss_components_array_t>(backend_target, local_domains(srcs...), m_grid);
             if (m_meter)
                 m_meter->pause();
