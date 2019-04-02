@@ -19,14 +19,13 @@ namespace gridtools {
         __global__ void test_allocated(float_type *data) { *data = 1; }
 
         TEST(simple_device_memory_allocator, test) {
-            // TODO use test functionality
             simple_device_memory_allocator alloc;
             auto ptr_holder = alloc.allocate<float_type>(1);
 
             float_type *ptr = ptr_holder();
-            float_type data;
 
             test_allocated<<<1, 1>>>(ptr);
+            float_type data;
             cudaMemcpy(&data, ptr, sizeof(float_type), cudaMemcpyDeviceToHost);
             ASSERT_EQ(1, data);
         }

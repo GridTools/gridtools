@@ -27,7 +27,7 @@ namespace gridtools {
          * \param bytes Size of requested allocation in bytes.
          */
         template <class T>
-        sid::simple_ptr_holder<T *> allocate(size_t num_elements) {
+        sid::device::simple_ptr_holder<T *> allocate(size_t num_elements) {
             T *ptr;
             GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T) * num_elements));
             m_ptrs.emplace_back(ptr, [](T *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
