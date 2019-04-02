@@ -11,13 +11,16 @@
 #pragma once
 
 #include <atomic>
-#include <iostream>
 #include <new>
 
 #include <sys/mman.h>
 
 namespace gridtools {
 
+    /**
+     * @brief Allocates huge page memory (if GT_NO_HUGETLB is not defined) and shifts allocations by some bytes to
+     * reduce cache set conflicts.
+     */
     void *hugepage_alloc(std::size_t size) {
         static std::atomic<std::size_t> s_offset(64);
         auto offset = s_offset.load(std::memory_order_relaxed);
@@ -44,6 +47,9 @@ namespace gridtools {
         return ptr;
     }
 
+    /**
+     * @brief Frees memory allocated by hugepage_alloc.
+     */
     void hugepage_free(void *ptr) {
         if (!ptr)
             return;
