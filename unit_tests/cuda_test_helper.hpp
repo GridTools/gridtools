@@ -16,18 +16,30 @@
 #pragma once
 
 #include <gridtools/common/cuda_util.hpp>
+#include <gridtools/common/integral_constant.hpp>
 
-template <typename F, typename... Types>
-__global__ void test_kernel(bool *result, Types... types) {
-    *result = F::apply(types...);
-}
+#define GT_MAKE_CONSTANT(fun) gridtools::integral_constant<decltype(&fun), &fun>()
 
-template <typename F, typename... Types>
-bool cuda_test(Types... types) {
-    bool *d_result;
-    GT_CUDA_CHECK(cudaMalloc(&d_result, sizeof(bool)));
-    test_kernel<F><<<1, 1>>>(d_result, types...);
-    bool h_result;
-    GT_CUDA_CHECK(cudaMemcpy(&h_result, d_result, sizeof(bool), cudaMemcpyDeviceToHost));
-    return h_result;
-}
+namespace gridtools {
+    namespace on_device {
+        template <class Res, class Fun, class... Args>
+        __global__ void kernel(Res *res, Fun fun, Args... args) {
+            *res = fun(args...);
+        }
+        template <class Fun, class... Args, class Res = decay_t<result_of_t<Fun(Args...)>>>
+        Res exec_with_shared_memory(size_t shm_size, Fun fun, Args... args) {
+            static_assert(!std::is_pointer<Fun>::value, "");
+            static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");
+            static_assert(std::is_trivially_copyable<Res>::value, "");
+            auto res = cuda_util::cuda_malloc<Res>();
+            kernel<<<1, 1, shm_size>>>(res.get(), fun, args...);
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
+            return cuda_util::from_clone(res);
+        }
+
+        template <class Fun, class... Args>
+        auto exec(Fun &&fun, Args &&... args)
+            GT_AUTO_RETURN(exec_with_shared_memory(0, std::forward<Fun>(fun), std::forward<Args>(args)...));
+    } // namespace on_device
+} // namespace gridtools
+
