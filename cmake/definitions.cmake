@@ -80,8 +80,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.4.0")
         target_compile_options(GridToolsTest INTERFACE
             $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-value>)
-        target_compile_options(GridToolsTest INTERFACE
-            $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unused-value>)
     endif()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.9.0")
