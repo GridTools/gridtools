@@ -19,12 +19,6 @@
 
 namespace gridtools {
     namespace {
-        template <typename PtrHolder>
-        __device__ ptrdiff_t get_origin_offset(PtrHolder ptr_holder) {
-            extern __shared__ typename PtrHolder::element_type shm[];
-            return ptr_holder() - shm;
-        }
-
         static constexpr int i_size = 9;
         static constexpr int j_size = 13;
         static constexpr int i_zero = 5;
@@ -52,24 +46,76 @@ namespace gridtools {
             EXPECT_EQ(1, sid::get_stride<dim::i>(strides));
             EXPECT_EQ(i_size, sid::get_stride<dim::j>(strides));
             EXPECT_EQ(0, sid::get_stride<dim::k>(strides));
+        }
 
-            auto another_testee = make_ij_cache<double, i_size, j_size, i_zero, j_zero>(allocator);
+        template <class IJCache1, class IJCache2, class Strides1, class Strides2>
+        __device__ bool ij_cache_test(IJCache1 cache1, IJCache2 cache2, Strides1 strides1, Strides2 strides2) {
+            using namespace literals;
 
-            auto origin1 = sid::get_origin(testee);
-            int_t offset1 = on_device::exec_with_shared_memory(
-                allocator.size(), MAKE_CONSTANT(get_origin_offset<decltype(origin1)>), origin1);
-            auto origin2 = sid::get_origin(another_testee);
-            int_t offset2 = on_device::exec_with_shared_memory(
-                allocator.size(), MAKE_CONSTANT(get_origin_offset<decltype(origin2)>), origin2);
+            auto ptr1 = cache1();
+            auto ptr2 = cache2();
 
-            // the first offset should be large enough to fit the zero offsets
-            EXPECT_LE(offset1, i_size * j_zero + i_zero);
+            sid::shift(ptr1, sid::get_stride<dim::i>(strides1), -i_zero);
+            sid::shift(ptr1, sid::get_stride<dim::j>(strides1), -j_zero);
 
-            // between the two offsets, we should have enough space to fit one ij cache
-            EXPECT_LE(offset2, offset1 + i_size * j_size);
+            sid::shift(ptr2, sid::get_stride<dim::i>(strides2), -i_zero);
+            sid::shift(ptr2, sid::get_stride<dim::j>(strides2), -j_zero);
 
-            // between the second offset and the size of the buffer, we should have enough space to fit the buffer
-            EXPECT_LE(allocator.size() / sizeof(float_type) - offset2, i_size * j_size - i_size * j_zero - i_zero);
+            for (int j = 0; j < j_size; ++j) {
+                for (int i = 0; i < i_size; ++i) {
+                    *ptr1 = 100 * j + i;
+                    *ptr2 = 100 * j + i;
+
+                    sid::shift(ptr1, sid::get_stride<dim::i>(strides1), 1_c);
+                    sid::shift(ptr2, sid::get_stride<dim::i>(strides2), 1_c);
+                }
+                sid::shift(ptr1, sid::get_stride<dim::i>(strides1), -i_size);
+                sid::shift(ptr2, sid::get_stride<dim::i>(strides2), -i_size);
+
+                sid::shift(ptr1, sid::get_stride<dim::j>(strides1), 1_c);
+                sid::shift(ptr2, sid::get_stride<dim::j>(strides2), 1_c);
+            }
+            sid::shift(ptr1, sid::get_stride<dim::j>(strides1), -j_size);
+            sid::shift(ptr2, sid::get_stride<dim::j>(strides2), -j_size);
+
+            // shifting in k has no effect
+            sid::shift(ptr1, sid::get_stride<dim::k>(strides1), 123);
+            sid::shift(ptr2, sid::get_stride<dim::k>(strides2), 456);
+
+            for (int j = 0; j < j_size; ++j) {
+                for (int i = 0; i < i_size; ++i) {
+                    if (*ptr1 != 100 * j + i)
+                        return false;
+                    if (*ptr2 != 100 * j + i)
+                        return false;
+                    sid::shift(ptr1, sid::get_stride<dim::i>(strides1), 1_c);
+                    sid::shift(ptr2, sid::get_stride<dim::i>(strides2), 1_c);
+                }
+                sid::shift(ptr1, sid::get_stride<dim::i>(strides1), -i_size);
+                sid::shift(ptr2, sid::get_stride<dim::i>(strides2), -i_size);
+
+                sid::shift(ptr1, sid::get_stride<dim::j>(strides1), 1_c);
+                sid::shift(ptr2, sid::get_stride<dim::j>(strides2), 1_c);
+            }
+            return true;
+        }
+
+        TEST(sid_ij_cache, sid) {
+            shared_allocator allocator;
+            auto cache1 = make_ij_cache<double, i_size, j_size, i_zero, j_zero>(allocator);
+            auto strides1 = sid::get_strides(cache1);
+            auto ptr1 = sid::get_origin(cache1);
+
+            auto cache2 = make_ij_cache<int16_t, i_size, j_size, i_zero, j_zero>(allocator);
+            auto strides2 = sid::get_strides(cache2);
+            auto ptr2 = sid::get_origin(cache2);
+
+            EXPECT_TRUE(gridtools::on_device::exec_with_shared_memory(allocator.size(),
+                MAKE_CONSTANT((ij_cache_test<decltype(ptr1), decltype(ptr2), decltype(strides1), decltype(strides2)>)),
+                ptr1,
+                ptr2,
+                strides1,
+                strides2));
         }
     } // namespace
 } // namespace gridtools

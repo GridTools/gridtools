@@ -76,7 +76,6 @@ namespace {
     TEST(shared_allocator, fill_and_check) {
         gridtools::shared_allocator allocator;
         auto float_ptr = allocator.allocate<float>(64);
-        auto shifted_float_ptr = float_ptr + 32;
         auto int_ptr = allocator.allocate<int16_t>(32);
 
         bool *result;
@@ -85,7 +84,7 @@ namespace {
         gridtools::on_device::exec_with_shared_memory<2, 32>(allocator.size(),
             MAKE_CONSTANT((fill_and_check_test<decltype(float_ptr), decltype(int_ptr)>)),
             float_ptr,
-            shifted_float_ptr,
+            (float_ptr + 48) + (-16),
             int_ptr,
             result);
 
