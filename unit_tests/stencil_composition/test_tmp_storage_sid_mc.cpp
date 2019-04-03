@@ -51,7 +51,7 @@ TEST(tmp_storage_sid_mc, sid) {
     double *ptr = sid::get_origin(tmp)();
     EXPECT_EQ(reinterpret_cast<std::uintptr_t>(ptr) % byte_alignment, 0);
 
-    auto f = [](int_t i, int_t j, int_t k, int_t t) { return i + j * 200 + k * 400 + t * 800; };
+    auto f = [](int_t i, int_t j, int_t k, int_t t) { return i + j * 100 + k * 200 + t * 400; };
 
     // check write and read
 #pragma omp parallel firstprivate(ptr)
