@@ -72,11 +72,19 @@ namespace gridtools {
         /**
          * @brief Strides, depending on data type due to padding to cache-line size.
          */
-        template <class T, class Extent>
+        template <class T, class Extent, enable_if_t<Extent::kminus::value != 0 || Extent::kplus::value != 0, int> = 0>
         hymap::keys<dim::i, dim::j, dim::k, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t, int_t>
         strides(pos3<std::size_t> const &block_size) {
             auto bs = full_block_size<T, Extent>(block_size);
             return {integral_constant<int, 1>{}, bs.i * bs.k, bs.i, bs.i * bs.j * bs.k};
+        }
+
+        template <class T, class Extent, enable_if_t<Extent::kminus::value == 0 && Extent::kplus::value == 0, int> = 0>
+        hymap::keys<dim::i, dim::j, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t> strides(
+            pos3<std::size_t> const &block_size) {
+            auto bs = full_block_size<T, Extent>(block_size);
+            assert(bs.k == 1);
+            return {integral_constant<int, 1>{}, bs.i, bs.i * bs.j};
         }
 
         /**
@@ -85,9 +93,9 @@ namespace gridtools {
         template <class T, class Extent>
         std::size_t origin_offset(pos3<std::size_t> const &block_size) {
             auto st = strides<T, Extent>(block_size);
-            std::size_t offset = at_key<dim::i>(st) * -Extent::iminus::value +
-                                 at_key<dim::j>(st) * -Extent::jminus::value +
-                                 at_key<dim::k>(st) * -Extent::kminus::value;
+            std::size_t offset = sid::get_stride<dim::i>(st) * -Extent::iminus::value +
+                                 sid::get_stride<dim::j>(st) * -Extent::jminus::value +
+                                 sid::get_stride<dim::k>(st) * -Extent::kminus::value;
             return pad<T>(offset);
         }
 
