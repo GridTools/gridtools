@@ -121,7 +121,7 @@ TEST(LayoutMap, Extender) {
     typedef typename extend_layout_map<layout, 3>::type ext_layout_3;
     ASSERT_TYPE_EQ<layout_map<3, 4, 5, 0, 1, 2>, ext_layout_3>();
 
-    typedef typename extend_layout_map<layout, 1, InsertLocation::pre>::type ext_layout_post_1;
+    typedef typename extend_layout_map<layout, 1, insert_location::pre>::type ext_layout_post_1;
     ASSERT_TYPE_EQ<layout_map<0, 1, 2, 3>, ext_layout_post_1>();
 
     // try the same again with a special layout
@@ -136,10 +136,10 @@ TEST(LayoutMap, Extender) {
     typedef typename extend_layout_map<special_layout, 3>::type ext_special_layout_3;
     ASSERT_TYPE_EQ<layout_map<5, 4, -1, 3, 0, 1, 2>, ext_special_layout_3>();
 
-    typedef typename extend_layout_map<special_layout, 1, InsertLocation::pre>::type ext_special_layout_post_1;
+    typedef typename extend_layout_map<special_layout, 1, insert_location::pre>::type ext_special_layout_post_1;
     ASSERT_TYPE_EQ<layout_map<0, 3, 2, -1, 1>, ext_special_layout_post_1>();
 
-    typedef typename extend_layout_map<special_layout, 2, InsertLocation::pre>::type ext_special_layout_post_2;
+    typedef typename extend_layout_map<special_layout, 2, insert_location::pre>::type ext_special_layout_post_2;
     ASSERT_TYPE_EQ<layout_map<0, 1, 4, 3, -1, 2>, ext_special_layout_post_2>();
 }
 

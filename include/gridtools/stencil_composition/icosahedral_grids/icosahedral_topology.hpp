@@ -502,7 +502,7 @@ namespace gridtools {
         struct select_layout {
             using layout_map_t = typename _impl::default_layout<Backend>::type;
             using dim_selector_4d_t = typename shorten<bool, DimSelector, 4>::type;
-            using filtered_layout = typename filter_layout<layout_map_t, dim_selector_4d_t>::type;
+            using filtered_layout = typename get_special_layout<layout_map_t, dim_selector_4d_t>::type;
 
             using type = typename conditional_t<(DimSelector::size > 4),
                 extend_layout_map<filtered_layout, DimSelector::size - 4>,
