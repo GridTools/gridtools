@@ -21,7 +21,7 @@ namespace gridtools {
      * @brief Allocates huge page memory (if GT_NO_HUGETLB is not defined) and shifts allocations by some bytes to
      * reduce cache set conflicts.
      */
-    void *hugepage_alloc(std::size_t size) {
+    inline void *hugepage_alloc(std::size_t size) {
         static std::atomic<std::size_t> s_offset(64);
         auto offset = s_offset.load(std::memory_order_relaxed);
         auto next_offset = offset;
@@ -50,7 +50,7 @@ namespace gridtools {
     /**
      * @brief Frees memory allocated by hugepage_alloc.
      */
-    void hugepage_free(void *ptr) {
+    inline void hugepage_free(void *ptr) {
         if (!ptr)
             return;
         std::size_t offset = static_cast<std::size_t *>(ptr)[-1];
