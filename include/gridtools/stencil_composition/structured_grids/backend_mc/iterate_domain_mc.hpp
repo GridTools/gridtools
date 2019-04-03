@@ -79,17 +79,18 @@ namespace gridtools {
 
         /* meta function to get storage info index in local domain */
         template <typename StorageInfo>
-        using local_domain_storage_index = meta::st_position<typename local_domain_t::storage_infos_t, StorageInfo>;
+        using local_domain_storage_index = meta::st_position<typename local_domain_t::stride_kinds_t, StorageInfo>;
 
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
-        using storage_is_tmp = meta::st_contains<typename local_domain_t::tmp_storage_infos_t, StorageInfo>;
+        GT_META_DEFINE_ALIAS(
+            storage_is_tmp, meta::st_contains, (typename local_domain_t::tmp_strides_kinds_t, StorageInfo));
 
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
 
       public:
         // the number of different storage metadatas used in the current functor
-        static const uint_t n_meta_storages = meta::length<typename local_domain_t::storage_infos_t>::value;
+        static const uint_t n_meta_storages = meta::length<typename local_domain_t::stride_kinds_t>::value;
 
         using array_index_t = array<int_t, n_meta_storages>;
         // *************** end of type definitions **************
@@ -115,7 +116,7 @@ namespace gridtools {
             template <class StorageInfoIndex>
             void operator()(StorageInfoIndex const &) const {
                 using storage_info_t =
-                    GT_META_CALL(meta::at, (typename local_domain_t::storage_infos_t, StorageInfoIndex));
+                    GT_META_CALL(meta::at, (typename local_domain_t::stride_kinds_t, StorageInfoIndex));
                 static constexpr bool is_ij_cached = false;
                 m_index_array[StorageInfoIndex::value] =
                     m_it_domain.compute_offset<is_ij_cached, storage_info_t>(accessor_base<storage_info_t::ndims>());

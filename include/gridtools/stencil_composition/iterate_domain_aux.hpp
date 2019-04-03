@@ -39,7 +39,7 @@
 namespace gridtools {
     namespace _impl {
         template <class StorageInfo, class LocalDomain>
-        struct get_index : meta::st_position<typename LocalDomain::storage_infos_t, StorageInfo> {};
+        struct get_index : meta::st_position<typename LocalDomain::stride_kinds_t, StorageInfo> {};
 
     } // namespace _impl
 
@@ -63,7 +63,7 @@ namespace gridtools {
     template <class Dim, class LocalDomain, class StridesMap, class ArrayIndex, class Offset>
     GT_FUNCTION void do_increment(
         Offset const &GT_RESTRICT offset, StridesMap const &strides_map, ArrayIndex &GT_RESTRICT index) {
-        host_device::for_each_type<typename LocalDomain::storage_infos_t>(
+        host_device::for_each_type<typename LocalDomain::stride_kinds_t>(
             increment_index_functor<LocalDomain, Dim, StridesMap, ArrayIndex, Offset>{offset, index, strides_map});
     }
 
@@ -122,7 +122,7 @@ namespace gridtools {
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
-                meta::st_contains<typename LocalDomain::tmp_storage_infos_t, StorageInfo>::value;
+                meta::st_contains<typename LocalDomain::tmp_strides_kinds_t, StorageInfo>::value;
             auto const &strides = host_device::at_key<StorageInfo>(m_strides_map);
             m_index_array[index] =
                 get_index_offset_f<StorageInfo, typename LocalDomain::max_extent_for_tmp_t, is_tmp>{}(backend,

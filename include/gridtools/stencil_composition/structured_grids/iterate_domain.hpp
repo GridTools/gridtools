@@ -49,7 +49,7 @@ namespace gridtools {
         using k_cache_args_t = GT_META_CALL(k_cache_args, caches_t);
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t n_meta_storages = meta::length<typename local_domain_t::storage_infos_t>::value;
+        static const uint_t n_meta_storages = meta::length<typename local_domain_t::stride_kinds_t>::value;
 
       protected:
         using iterate_domain_arguments_t = IterateDomainArguments;
@@ -115,7 +115,7 @@ namespace gridtools {
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_t = typename IterateDomainArguments::backend_t;
-            host_device::for_each_type<typename local_domain_t::storage_infos_t>(
+            host_device::for_each_type<typename local_domain_t::stride_kinds_t>(
                 initialize_index<backend_t, local_domain_t>(
                     local_domain.m_strides_map, begin, block_no, pos_in_block, m_index));
         }
@@ -124,7 +124,7 @@ namespace gridtools {
         GT_FUNCTION Data *deref_for_k_cache(int_t k_offset) const {
             using storage_info_t = typename DataStore::storage_info_t;
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_infos_t, storage_info_t>::value;
+                meta::st_position<typename local_domain_t::stride_kinds_t, storage_info_t>::value;
 
             auto offset = m_index[storage_info_index];
             sid::shift(offset,
@@ -202,7 +202,7 @@ namespace gridtools {
                 "you here.");
 
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_infos_t, storage_info_t>::value;
+                meta::st_position<typename local_domain_t::stride_kinds_t, storage_info_t>::value;
 
             auto pointer_offset = m_index[storage_info_index];
             sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(local_domain.m_strides_map), accessor);
