@@ -48,17 +48,15 @@ TEST(tmp_storage_sid_mc, sid) {
     static_assert(is_sid<tmp_t>(), "");
     static_assert(std::is_same<GT_META_CALL(sid::ptr_type, tmp_t), double *>(), "");
 
-    double *ptr = sid::get_origin(tmp)();
-    EXPECT_EQ(reinterpret_cast<std::uintptr_t>(ptr) % byte_alignment, 0);
-
     auto f = [](int_t i, int_t j, int_t k, int_t t) { return i + j * 100 + k * 200 + t * 400; };
 
     // check write and read
-#pragma omp parallel firstprivate(ptr)
+#pragma omp parallel
     {
         const int_t thread = omp_get_thread_num();
         auto strides = sid::get_strides(tmp);
 
+        double *ptr = sid::get_origin(tmp)();
         // shift to origin of thread
         sid::shift(ptr, sid::get_stride<thread_dim_mc>(strides), thread);
 
