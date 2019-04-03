@@ -60,11 +60,14 @@ namespace gridtools {
             return bs.i * bs.j * bs.k * omp_get_max_threads() + (byte_alignment::value + sizeof(T) - 1) / sizeof(T);
         }
 
+        template <std::size_t, class>
+        struct strides_kind_impl;
+
         /**
          * @brief Strides kind tag. Strides depend on data type size (due to cache-line alignment) and extent.
          */
-        template <std::size_t TypeSize, class Extent>
-        struct strides_kind;
+        template <class T, class Extent>
+        using strides_kind = strides_kind_impl<sizeof(T), Extent>;
 
         /**
          * @brief Strides, depending on data type due to padding to cache-line size.
@@ -111,7 +114,7 @@ namespace gridtools {
             .set<sid::property::origin>(allocator.template allocate<T>(
                 _impl_tmp_mc::storage_size<T, Extent>(block_size) + _impl_tmp_mc::origin_offset<T, Extent>(block_size)))
             .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent>(block_size))
-            .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<sizeof(T), Extent>>()
+            .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<T, Extent>>()
             .template set<sid::property::ptr_diff, int_t>()));
 
 } // namespace gridtools
