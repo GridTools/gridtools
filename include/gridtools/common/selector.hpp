@@ -11,6 +11,8 @@
 
 #include <type_traits>
 
+#include "../meta/utility.hpp"
+
 #include "defs.hpp"
 
 namespace gridtools {
@@ -28,9 +30,7 @@ namespace gridtools {
      *  @tparam Bitmask bitmask defining the masked and unmasked dimensions
      */
     template <bool... Bitmask>
-    struct selector {
-        static constexpr uint_t size = sizeof...(Bitmask);
-    };
+    using selector = meta::integer_sequence<bool, Bitmask...>;
 
     template <typename T>
     struct is_selector : std::false_type {};

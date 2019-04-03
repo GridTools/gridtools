@@ -12,9 +12,11 @@
 #include "../../common/array.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
-#include "../../common/generic_metafunctions/shorten.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
+#include "../../meta/iseq_to_list.hpp"
+#include "../../meta/list_to_iseq.hpp"
+#include "../../meta/take.hpp"
 #include "../../storage/common/halo.hpp"
 #include "../../storage/storage_facility.hpp"
 #include "../location_type.hpp"
@@ -501,11 +503,12 @@ namespace gridtools {
         template <typename DimSelector>
         struct select_layout {
             using layout_map_t = typename _impl::default_layout<Backend>::type;
-            using dim_selector_4d_t = typename shorten<bool, DimSelector, 4>::type;
+            using dim_selector_4d_t = GT_META_CALL(
+                meta::list_to_iseq, (GT_META_CALL(meta::take_c, (4, GT_META_CALL(meta::iseq_to_list, DimSelector)))));
             using filtered_layout = typename get_special_layout<layout_map_t, dim_selector_4d_t>::type;
 
-            using type = typename conditional_t<(DimSelector::size > 4),
-                extend_layout_map<filtered_layout, DimSelector::size - 4>,
+            using type = typename conditional_t<(DimSelector::size() > 4),
+                extend_layout_map<filtered_layout, DimSelector::size() - 4>,
                 meta::lazy::id<filtered_layout>>::type;
         };
 
@@ -551,10 +554,10 @@ namespace gridtools {
             GT_STATIC_ASSERT(is_location_type<LocationType>::value, "ERROR: location type is wrong");
             GT_STATIC_ASSERT(is_selector<Selector>::value, "ERROR: dimension selector is wrong");
             GT_STATIC_ASSERT(
-                Selector::size == sizeof...(IntTypes) + 4, "ERROR: Mismatch between Selector and extra-dimensions");
+                Selector::size() == sizeof...(IntTypes) + 4, "ERROR: Mismatch between Selector and extra-dimensions");
 
             using meta_storage_type = meta_storage_t<LocationType, Halo, Selector>;
-            GT_STATIC_ASSERT(Selector::size == meta_storage_type::layout_t::masked_length,
+            GT_STATIC_ASSERT(Selector::size() == meta_storage_type::layout_t::masked_length,
                 "ERROR: Mismatch between Selector and space dimensions");
 
             return {{m_dims[0], LocationType::n_colors::value, m_dims[1], m_dims[2], extra_dims...}, name};
