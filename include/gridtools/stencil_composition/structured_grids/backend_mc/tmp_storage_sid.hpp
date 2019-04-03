@@ -103,6 +103,7 @@ namespace gridtools {
             .set<sid::property::origin>(allocator.template allocate<T>(
                 _impl_tmp_mc::storage_size<T, Extent>(block_size) + _impl_tmp_mc::origin_offset<T, Extent>(block_size)))
             .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent>(block_size))
-            .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<T, Extent>>()));
+            .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<T, Extent>>()
+            .template set<sid::property::ptr_diff, int_t>()));
 
 } // namespace gridtools
