@@ -33,11 +33,11 @@ namespace {
         auto alloc3 = allocator.allocate<alloc3_t>(1);
 
         auto ptr1 = gridtools::on_device::exec_with_shared_memory(
-            allocator.size(), GT_MAKE_CONSTANT(get_ptr<decltype(alloc1)>), alloc1);
+            allocator.size(), GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&get_ptr<decltype(alloc1)>), alloc1);
         auto ptr2 = gridtools::on_device::exec_with_shared_memory(
-            allocator.size(), GT_MAKE_CONSTANT(get_ptr<decltype(alloc2)>), alloc2);
+            allocator.size(), GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&get_ptr<decltype(alloc2)>), alloc2);
         auto ptr3 = gridtools::on_device::exec_with_shared_memory(
-            allocator.size(), GT_MAKE_CONSTANT(get_ptr<decltype(alloc3)>), alloc3);
+            allocator.size(), GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&get_ptr<decltype(alloc3)>), alloc3);
 
         // check alignment for all allocations
         EXPECT_EQ(ptr1 % alignof(alloc1_t), 0);

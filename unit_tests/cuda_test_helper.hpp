@@ -19,8 +19,6 @@
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/meta/type_traits.hpp>
 
-#define GT_MAKE_CONSTANT(fun) gridtools::integral_constant<decltype(&fun), &fun>()
-
 namespace gridtools {
     namespace on_device {
         template <class Res, class Fun, class... Args>
