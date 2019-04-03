@@ -26,8 +26,8 @@ namespace gridtools {
         auto offset = s_offset.load(std::memory_order_relaxed);
         auto next_offset = offset;
         while (!s_offset.compare_exchange_weak(
-            next_offset, 2 * next_offset <= 4096 ? 2 * next_offset : 64, std::memory_order_relaxed))
-            ;
+            next_offset, 2 * next_offset <= 4096 ? 2 * next_offset : 64, std::memory_order_relaxed)) {
+        }
 
         static constexpr auto prot = PROT_READ | PROT_WRITE;
 #ifdef GT_NO_HUGETLB
@@ -41,7 +41,7 @@ namespace gridtools {
         if (ptr == MAP_FAILED)
             throw std::bad_alloc();
 
-        ptr = static_cast<void *>(static_cast<char *>(ptr) + offset);
+        ptr = static_cast<char *>(ptr) + offset;
         static_cast<std::size_t *>(ptr)[-1] = offset;
         static_cast<std::size_t *>(ptr)[-2] = alloc_size;
         return ptr;
@@ -55,7 +55,7 @@ namespace gridtools {
             return;
         std::size_t offset = static_cast<std::size_t *>(ptr)[-1];
         std::size_t alloc_size = static_cast<std::size_t *>(ptr)[-2];
-        ptr = static_cast<void *>(static_cast<char *>(ptr) - offset);
+        ptr = static_cast<char *>(ptr) - offset;
         munmap(ptr, alloc_size);
     }
 
