@@ -16,8 +16,6 @@
 #include <boost/mpl/vector_c.hpp>
 
 #include "../meta/utility.hpp"
-#include "generic_metafunctions/replace.hpp"
-#include "generic_metafunctions/sequence_unpacker.hpp"
 #include "layout_map.hpp"
 #include "selector.hpp"
 
