@@ -17,7 +17,6 @@
 #include <functional>
 
 #include <boost/fusion/functional/invocation/invoke.hpp>
-#include <boost/fusion/include/for_each.hpp>
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/gt_assert.hpp"
@@ -48,37 +47,18 @@ namespace gridtools {
 
         /**
          * @brief compute thread offsets for temporaries
-         *
-         * Actually offsets are stored for each data_ptr, however only for temporaries they are non-zero.
-         * We keep the zeros as it simplifies design, and will be cleaned up when we re-implement the temporaries.
          */
-        template <typename LocalDomain, typename DataPtrsOffset>
-        struct assign_data_ptr_offsets {
+        template <typename LocalDomain>
+        struct set_offset_for_temporaries_f {
             LocalDomain const &m_local_domain;
-            DataPtrsOffset &m_data_ptr_offsets;
+            typename LocalDomain::ptr_map_t &m_dst;
 
-            template <class ArgDataPtrPair>
-            GT_FORCE_INLINE void operator()(ArgDataPtrPair const &) const {
-                using arg_t = typename ArgDataPtrPair::first_type;
-                constexpr auto arg_index = meta::st_position<typename LocalDomain::esf_args_t, arg_t>::value;
-
-                get<arg_index>(m_data_ptr_offsets) = fields_offset<arg_t>(); // non-zero only for tmps.
-            }
-
-          private:
             template <typename Arg>
-            GT_FORCE_INLINE enable_if_t<is_tmp_arg<Arg>::value, int_t> fields_offset() const {
-                constexpr auto storage_info_index = meta::st_position<typename LocalDomain::storage_infos_t,
-                    typename Arg::data_store_t::storage_info_t>::value;
-                auto length = m_local_domain.m_local_padded_total_lengths[storage_info_index];
+            GT_FORCE_INLINE void operator()() const {
+                auto length = at_key<typename Arg::data_store_t::storage_info_t>(m_local_domain.m_total_length_map);
                 int_t offset = std::lround(length * thread_factor());
                 assert(offset == ((long long)length * omp_get_thread_num()) / omp_get_max_threads());
-                return offset;
-            }
-
-            template <typename Arg>
-            GT_FORCE_INLINE enable_if_t<!is_tmp_arg<Arg>::value, int_t> fields_offset() const {
-                return 0;
+                at_key<Arg>(m_dst) += offset;
             }
         };
 
@@ -124,6 +104,7 @@ namespace gridtools {
         int_t m_j_block_base;      /** Global block start index along j-axis. */
         int_t m_prefetch_distance; /** Prefetching distance along k-axis, zero means no software prefetching. */
         bool m_enable_ij_caches;   /** Enables ij-caching. */
+        typename local_domain_t::ptr_map_t m_ptr_map;
         // ******************* end of members *******************
 
         // helper class for index array generation, only needed for the index() function
@@ -145,17 +126,15 @@ namespace gridtools {
             array<int_t, n_meta_storages> &m_index_array;
         };
 
-        using data_ptr_offsets_t =
-            array<int, boost::fusion::result_of::size<decltype(local_domain.m_local_data_ptrs)>::value>;
-        data_ptr_offsets_t m_data_ptr_offsets;
-
       public:
         GT_FORCE_INLINE
         iterate_domain_mc(local_domain_t const &local_domain)
             : local_domain(local_domain), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0), m_i_block_base(0),
-              m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
-            boost::fusion::for_each(local_domain.m_local_data_ptrs,
-                _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
+              m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false),
+              m_ptr_map(local_domain.make_ptr_map()) {
+            using tmp_args_t = GT_META_CALL(meta::filter, (is_tmp_arg, typename local_domain_t::esf_args_t));
+            gridtools::for_each_type<tmp_args_t>(
+                _impl::set_offset_for_temporaries_f<local_domain_t>{local_domain, m_ptr_map});
         }
 
         /** @brief Sets the block start indices. */
@@ -190,7 +169,7 @@ namespace gridtools {
          */
         template <class Arg, intent Intent, uint_t I>
         GT_FORCE_INLINE typename Arg::data_store_t::data_t deref(global_accessor<I> const &) const {
-            return *boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs);
+            return *at_key<Arg>(m_ptr_map);
         }
 
         /**
@@ -199,8 +178,7 @@ namespace gridtools {
          */
         template <class Arg, intent Intent, class Acc, class... Args>
         GT_FORCE_INLINE auto deref(global_accessor_with_arguments<Acc, Args...> const &acc) const
-            GT_AUTO_RETURN(boost::fusion::invoke(
-                std::cref(*boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs)), acc.get_arguments()));
+            GT_AUTO_RETURN(boost::fusion::invoke(std::cref(*at_key<Arg>(m_ptr_map)), acc.get_arguments()));
 
         /**
          * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
@@ -213,9 +191,7 @@ namespace gridtools {
         GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
-            static constexpr auto arg_index = meta::st_position<typename local_domain_t::esf_args_t, Arg>::value;
-
-            auto ptr = boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + m_data_ptr_offsets[arg_index];
+            auto ptr = at_key<Arg>(m_ptr_map);
 
             int_t pointer_offset =
                 compute_offset<meta::st_contains<ij_cache_args_t, Arg>::value, storage_info_t>(accessor);
