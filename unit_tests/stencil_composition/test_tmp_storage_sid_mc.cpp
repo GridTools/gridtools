@@ -10,11 +10,14 @@
 
 #include <gtest/gtest.h>
 
+#include <omp.h>
+
 #include <gridtools/stencil_composition/extent.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
 #include <gridtools/stencil_composition/structured_grids/backend_mc/tmp_storage_sid.hpp>
 
 using namespace gridtools;
+using namespace gridtools::literals;
 
 static constexpr std::size_t byte_alignment = 64;
 
@@ -34,10 +37,8 @@ TEST(tmp_storage_sid_mc, allocator) {
 }
 
 TEST(tmp_storage_sid_mc, sid) {
-    static constexpr std::size_t double_alignment = byte_alignment / sizeof(double);
-
     using extent_t = extent<-1, 2, -2, 3, -1, 2>;
-    pos3<std::size_t> block_size{120, 2, 80};
+    pos3<std::size_t> block_size{12, 2, 8};
 
     tmp_allocator_mc allocator;
     auto tmp = make_tmp_storage_mc<double, extent_t>(allocator, block_size);
@@ -50,16 +51,56 @@ TEST(tmp_storage_sid_mc, sid) {
     double *ptr = sid::get_origin(tmp)();
     EXPECT_EQ(reinterpret_cast<std::uintptr_t>(ptr) % byte_alignment, 0);
 
-    auto strides = sid::get_strides(tmp);
+    auto f = [](int_t i, int_t j, int_t k, int_t t) { return i + j * 200 + k * 400 + t * 800; };
 
-    pos3<std::size_t> full_block_size{
-        (block_size.i - extent_t::iminus::value + extent_t::iplus::value + double_alignment - 1) / double_alignment *
-            double_alignment,
-        block_size.j - extent_t::jminus::value + extent_t::jplus::value,
-        block_size.k - extent_t::kminus::value + extent_t::kplus::value};
+    // check write and read
+#pragma omp parallel firstprivate(ptr)
+    {
+        const int_t thread = omp_get_thread_num();
+        auto strides = sid::get_strides(tmp);
 
-    EXPECT_EQ(at_key<dim::i>(strides), 1);
-    EXPECT_EQ(at_key<dim::j>(strides), full_block_size.i * full_block_size.k);
-    EXPECT_EQ(at_key<dim::k>(strides), full_block_size.i);
-    EXPECT_EQ(at_key<thread_dim_mc>(strides), full_block_size.i * full_block_size.j * full_block_size.k);
+        // shift to origin of thread
+        sid::shift(ptr, sid::get_stride<thread_dim_mc>(strides), thread);
+
+        // shift to very first data point in temporary
+        sid::shift(ptr, sid::get_stride<dim::i>(strides), extent_t::iminus::value);
+        sid::shift(ptr, sid::get_stride<dim::j>(strides), extent_t::jminus::value);
+        sid::shift(ptr, sid::get_stride<dim::k>(strides), extent_t::kminus::value);
+
+        const int_t size_i = block_size.i - extent_t::iminus::value + extent_t::iplus::value;
+        const int_t size_j = block_size.j - extent_t::jminus::value + extent_t::jplus::value;
+        const int_t size_k = block_size.k - extent_t::kminus::value + extent_t::kplus::value;
+        for (int_t j = 0; j < size_j; ++j) {
+            for (int_t k = 0; k < size_k; ++k) {
+                for (int_t i = 0; i < size_i; ++i) {
+                    // check alignment of first data point inside domain
+                    if (i == -extent_t::iminus::value)
+                        EXPECT_EQ(reinterpret_cast<std::uintptr_t>(ptr) % byte_alignment, 0);
+                    *ptr = f(i, j, k, thread);
+                    sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
+                }
+                sid::shift(ptr, sid::get_stride<dim::i>(strides), -size_i);
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), 1_c);
+            }
+            sid::shift(ptr, sid::get_stride<dim::k>(strides), -size_k);
+            sid::shift(ptr, sid::get_stride<dim::j>(strides), 1_c);
+        }
+        sid::shift(ptr, sid::get_stride<dim::j>(strides), -size_j);
+
+#pragma omp barrier
+
+        for (int_t j = 0; j < size_j; ++j) {
+            for (int_t k = 0; k < size_k; ++k) {
+                for (int_t i = 0; i < size_i; ++i) {
+                    // check that previously expected value was not overwritten
+                    EXPECT_EQ(*ptr, f(i, j, k, thread));
+                    sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
+                }
+                sid::shift(ptr, sid::get_stride<dim::i>(strides), -size_i);
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), 1_c);
+            }
+            sid::shift(ptr, sid::get_stride<dim::k>(strides), -size_k);
+            sid::shift(ptr, sid::get_stride<dim::j>(strides), 1_c);
+        }
+    }
 }
