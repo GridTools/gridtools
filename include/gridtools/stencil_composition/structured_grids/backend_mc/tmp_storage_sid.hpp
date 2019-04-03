@@ -27,14 +27,14 @@ namespace gridtools {
 
     namespace _impl_tmp_mc {
 
-        static constexpr std::size_t byte_alignment = 64;
+        using byte_alignment = std::integral_constant<std::size_t, 64>;
 
         /**
          * @brief Block size including extents and padding.
          */
         template <class T, class Extent>
         pos3<std::size_t> full_block_size(pos3<std::size_t> const &block_size) {
-            static constexpr std::size_t alignment = byte_alignment / sizeof(T);
+            static constexpr std::size_t alignment = byte_alignment::value / sizeof(T);
             const std::size_t size_i =
                 (block_size.i - Extent::iminus::value + Extent::iplus::value + alignment - 1) / alignment * alignment;
             const std::size_t size_j = block_size.j - Extent::jminus::value + Extent::jplus::value;
@@ -48,7 +48,7 @@ namespace gridtools {
         template <class T, class Extent>
         std::size_t storage_size(pos3<std::size_t> const &block_size) {
             auto bs = full_block_size<T, Extent>(block_size);
-            return bs.i * bs.j * bs.k * omp_get_max_threads() + byte_alignment / sizeof(T);
+            return bs.i * bs.j * bs.k * omp_get_max_threads() + byte_alignment::value / sizeof(T);
         }
 
         /**
@@ -76,7 +76,7 @@ namespace gridtools {
             std::size_t offset = at_key<dim::i>(st) * -Extent::iminus::value +
                                  at_key<dim::j>(st) * -Extent::jminus::value +
                                  at_key<dim::k>(st) * -Extent::kminus::value;
-            static constexpr std::size_t alignment = byte_alignment / sizeof(T);
+            static constexpr std::size_t alignment = byte_alignment::value / sizeof(T);
             return (offset + alignment - 1) / alignment * alignment;
         }
 
