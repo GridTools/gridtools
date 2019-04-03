@@ -16,15 +16,12 @@
 #include <cmath>
 #include <functional>
 
-#include <boost/fusion/functional/invocation/invoke.hpp>
-
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../../common/hymap.hpp"
 #include "../../../meta.hpp"
 #include "../../accessor_base.hpp"
 #include "../../caches/cache_metafunctions.hpp"
-#include "../../global_accessor.hpp"
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../../sid/concept.hpp"
@@ -79,7 +76,7 @@ namespace gridtools {
 
         /* meta function to get storage info index in local domain */
         template <typename StorageInfo>
-        using local_domain_storage_index = meta::st_position<typename local_domain_t::stride_kinds_t, StorageInfo>;
+        using local_domain_storage_index = meta::st_position<typename local_domain_t::strides_kinds_t, StorageInfo>;
 
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
@@ -90,7 +87,7 @@ namespace gridtools {
 
       public:
         // the number of different storage metadatas used in the current functor
-        static const uint_t n_meta_storages = meta::length<typename local_domain_t::stride_kinds_t>::value;
+        static const uint_t n_meta_storages = meta::length<typename local_domain_t::strides_kinds_t>::value;
 
         using array_index_t = array<int_t, n_meta_storages>;
         // *************** end of type definitions **************
@@ -116,7 +113,7 @@ namespace gridtools {
             template <class StorageInfoIndex>
             void operator()(StorageInfoIndex const &) const {
                 using storage_info_t =
-                    GT_META_CALL(meta::at, (typename local_domain_t::stride_kinds_t, StorageInfoIndex));
+                    GT_META_CALL(meta::at, (typename local_domain_t::strides_kinds_t, StorageInfoIndex));
                 static constexpr bool is_ij_cached = false;
                 m_index_array[StorageInfoIndex::value] =
                     m_it_domain.compute_offset<is_ij_cached, storage_info_t>(accessor_base<storage_info_t::ndims>());
@@ -165,30 +162,10 @@ namespace gridtools {
         GT_FORCE_INLINE void enable_ij_caches() { m_enable_ij_caches = true; }
 
         /**
-         * @brief Method called in the apply methods of the functors.
-         * Specialization for the global accessors placeholders.
-         */
-        template <class Arg, intent Intent, uint_t I>
-        GT_FORCE_INLINE typename Arg::data_store_t::data_t deref(global_accessor<I> const &) const {
-            return *at_key<Arg>(m_ptr_map);
-        }
-
-        /**
-         * @brief Method called in the apply methods of the functors.
-         * Specialization for the global accessors placeholders with arguments.
-         */
-        template <class Arg, intent Intent, class Acc, class... Args>
-        GT_FORCE_INLINE auto deref(global_accessor_with_arguments<Acc, Args...> const &acc) const
-            GT_AUTO_RETURN(boost::fusion::invoke(std::cref(*at_key<Arg>(m_ptr_map)), acc.get_arguments()));
-
-        /**
          * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
          * nor expression).
          */
-        template <class Arg,
-            intent Intent,
-            class Accessor,
-            enable_if_t<is_accessor<Accessor>::value && !is_global_accessor<Accessor>::value, int> = 0>
+        template <class Arg, intent Intent, class Accessor>
         GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
@@ -323,6 +300,7 @@ namespace gridtools {
         GT_FORCE_INLINE int_t compute_offset_impl(
             Accessor const &accessor, meta::index_sequence<Coordinates...>) const {
             return accumulate(plus_functor(),
+                0,
                 (storage_stride<StorageInfo, Coordinates>() *
                     coordinate_offset<IsIjCached, StorageInfo, Coordinates>(accessor))...);
         }
@@ -339,7 +317,7 @@ namespace gridtools {
          */
         template <bool IsIjCached, typename StorageInfo, typename Accessor>
         GT_FORCE_INLINE int_t compute_offset(Accessor const &accessor) const {
-            using sequence_t = meta::make_index_sequence<StorageInfo::layout_t::masked_length>;
+            using sequence_t = meta::make_index_sequence<tuple_util::size<Accessor>::value>;
             return compute_offset_impl<IsIjCached, StorageInfo>(accessor, sequence_t());
         }
     };

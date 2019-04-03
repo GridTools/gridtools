@@ -39,9 +39,6 @@ namespace gridtools {
         };
     } // namespace local_domain_impl_
 
-    template <class Arg>
-    GT_META_DEFINE_ALIAS(strides_kind_from_arg, sid::strides_kind, typename Arg::data_store_t);
-
     /**
      * This class extracts the proper iterators/storages from the full domain to adapt it for a particular functor.
      */
@@ -55,6 +52,9 @@ namespace gridtools {
         using esf_args_t = EsfArgs;
         using max_extent_for_tmp_t = MaxExtentForTmp;
 
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(strides_kind_from_arg, sid::strides_kind, typename Arg::data_store_t);
+
         using tmp_strides_kinds_t = GT_META_CALL(meta::dedup,
             (GT_META_CALL(
                 meta::transform, (strides_kind_from_arg, GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))))));
@@ -64,19 +64,19 @@ namespace gridtools {
             (GT_META_CALL(meta::transform, (local_domain_impl_::get_sid_strides_kind_pair, EsfArgs))));
 
       public:
-        using stride_kinds_t = GT_META_CALL(meta::transform, (meta::first, inversed_strides_kind_map_t));
+        using strides_kinds_t = GT_META_CALL(meta::transform, (meta::first, inversed_strides_kind_map_t));
 
       private:
         using sid_strides_values_t = GT_META_CALL(
             meta::transform, (local_domain_impl_::get_strides, inversed_strides_kind_map_t));
 
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDA_VER_MINOR__ < 2
-        struct lazy_strides_keys_t : meta::lazy::rename<hymap::keys, stride_kinds_t> {};
+        struct lazy_strides_keys_t : meta::lazy::rename<hymap::keys, strides_kinds_t> {};
         using strides_keys_t = typename lazy_strides_keys_t::type;
         struct lazy_arg_keys_t : meta::lazy::rename<hymap::keys, EsfArgs> {};
         using arg_keys_t = typename lazy_arg_keys_t::type;
 #else
-        using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, stride_kinds_t));
+        using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, strides_kinds_t));
         using arg_keys_t = GT_META_CALL(meta::rename, (hymap::keys, EsfArgs));
 #endif
 
