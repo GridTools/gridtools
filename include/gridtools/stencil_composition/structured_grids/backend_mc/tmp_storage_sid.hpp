@@ -18,6 +18,7 @@
 #include "../../../common/hymap.hpp"
 #include "../../dim.hpp"
 #include "../../pos3.hpp"
+#include "../../sid/concept.hpp"
 #include "../../sid/simple_ptr_holder.hpp"
 #include "../../sid/synthetic.hpp"
 
@@ -45,6 +46,7 @@ namespace gridtools {
          */
         template <class T, class Extent>
         pos3<std::size_t> full_block_size(pos3<std::size_t> const &block_size) {
+            // add padding to the i dimension to align all first elements along the i dimension
             const std::size_t size_i = pad<T>(block_size.i - Extent::iminus::value + Extent::iplus::value);
             const std::size_t size_j = block_size.j - Extent::jminus::value + Extent::jplus::value;
             const std::size_t size_k = block_size.k - Extent::kminus::value + Extent::kplus::value;
@@ -57,7 +59,10 @@ namespace gridtools {
         template <class T, class Extent>
         std::size_t storage_size(pos3<std::size_t> const &block_size) {
             auto bs = full_block_size<T, Extent>(block_size);
-            return bs.i * bs.j * bs.k * omp_get_max_threads() + (byte_alignment::value + sizeof(T) - 1) / sizeof(T);
+            // allocate one extra cache line to allow for offsetting the initial allocation
+            // to guarantee alignment of first element inside domain
+            constexpr std::size_t extra = (byte_alignment::value + sizeof(T) - 1) / sizeof(T);
+            return bs.i * bs.j * bs.k * omp_get_max_threads() + extra;
         }
 
         template <std::size_t, class>
@@ -70,7 +75,8 @@ namespace gridtools {
         using strides_kind = strides_kind_impl<sizeof(T), Extent>;
 
         /**
-         * @brief Strides, depending on data type due to padding to cache-line size.
+         * @brief Strides, depending on data type due to padding to cache-line size. Specialization for non-zero extents
+         * along k-dimension.
          */
         template <class T, class Extent, enable_if_t<Extent::kminus::value != 0 || Extent::kplus::value != 0, int> = 0>
         hymap::keys<dim::i, dim::j, dim::k, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t, int_t>
@@ -79,6 +85,10 @@ namespace gridtools {
             return {integral_constant<int, 1>{}, bs.i * bs.k, bs.i, bs.i * bs.j * bs.k};
         }
 
+        /**
+         * @brief Strides, depending on data type due to padding to cache-line size. Specialization for zero extents
+         * along k-dimension.
+         */
         template <class T, class Extent, enable_if_t<Extent::kminus::value == 0 && Extent::kplus::value == 0, int> = 0>
         hymap::keys<dim::i, dim::j, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t> strides(
             pos3<std::size_t> const &block_size) {
@@ -96,6 +106,7 @@ namespace gridtools {
             std::size_t offset = sid::get_stride<dim::i>(st) * -Extent::iminus::value +
                                  sid::get_stride<dim::j>(st) * -Extent::jminus::value +
                                  sid::get_stride<dim::k>(st) * -Extent::kminus::value;
+            // Add padding at the start of the allocation to align the first element inside the domain
             return pad<T>(offset);
         }
 

@@ -31,6 +31,8 @@ namespace gridtools {
         }
 
         TEST(hugepage_alloc, offsets) {
+            // test shifting of the allocated data: hugepage_alloc guarantees that consecutive allocations return
+            // pointers with different last 12bits to reduce number of cache set conflict misses
             std::set<std::uintptr_t> offsets;
             std::size_t checks = 7;
             for (std::size_t i = 0; i < checks; ++i) {
