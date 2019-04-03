@@ -30,13 +30,22 @@ namespace gridtools {
         using byte_alignment = std::integral_constant<std::size_t, 64>;
 
         /**
+         * @brief Pads a size to multiple of cache line size. If this is not possible without using additional cache
+         * lines, the original size is returned.
+         */
+        template <class T>
+        std::size_t pad(std::size_t size) {
+            std::size_t padded_bytesize =
+                (size * sizeof(T) + byte_alignment::value - 1) / byte_alignment::value * byte_alignment::value;
+            return padded_bytesize % sizeof(T) == 0 ? padded_bytesize / sizeof(T) : size;
+        }
+
+        /**
          * @brief Block size including extents and padding.
          */
         template <class T, class Extent>
         pos3<std::size_t> full_block_size(pos3<std::size_t> const &block_size) {
-            static constexpr std::size_t alignment = byte_alignment::value / sizeof(T);
-            const std::size_t size_i =
-                (block_size.i - Extent::iminus::value + Extent::iplus::value + alignment - 1) / alignment * alignment;
+            const std::size_t size_i = pad<T>(block_size.i - Extent::iminus::value + Extent::iplus::value);
             const std::size_t size_j = block_size.j - Extent::jminus::value + Extent::jplus::value;
             const std::size_t size_k = block_size.k - Extent::kminus::value + Extent::kplus::value;
             return {size_i, size_j, size_k};
@@ -48,7 +57,7 @@ namespace gridtools {
         template <class T, class Extent>
         std::size_t storage_size(pos3<std::size_t> const &block_size) {
             auto bs = full_block_size<T, Extent>(block_size);
-            return bs.i * bs.j * bs.k * omp_get_max_threads() + byte_alignment::value / sizeof(T);
+            return bs.i * bs.j * bs.k * omp_get_max_threads() + (byte_alignment::value + sizeof(T) - 1) / sizeof(T);
         }
 
         /**
@@ -76,8 +85,7 @@ namespace gridtools {
             std::size_t offset = at_key<dim::i>(st) * -Extent::iminus::value +
                                  at_key<dim::j>(st) * -Extent::jminus::value +
                                  at_key<dim::k>(st) * -Extent::kminus::value;
-            static constexpr std::size_t alignment = byte_alignment::value / sizeof(T);
-            return (offset + alignment - 1) / alignment * alignment;
+            return pad<T>(offset);
         }
 
     } // namespace _impl_tmp_mc
