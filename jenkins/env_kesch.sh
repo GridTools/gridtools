@@ -17,6 +17,7 @@ export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
 export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_67_0
 export BOOST_INCLUDE=/project/c14/install/kesch/boost/boost_1_67_0/include/
+export USE_HUGEPAGES=false
 export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
 export LAUNCH_MPI_TEST="srun"

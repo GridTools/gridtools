@@ -63,6 +63,10 @@ if( GT_USE_MPI )
     endif()
 endif()
 
+if (NOT GT_USE_HUGEPAGES)
+    target_compile_definitions(gridtools INTERFACE GT_NO_HUGETLB)
+endif()
+
 add_library(GridToolsTest INTERFACE)
 # NOTE: The CUDA workaround can only be applied to the test because it cannot work
 # with generator expressions. Thus, this needs to be redone in the Config.cmake.in.
