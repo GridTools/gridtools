@@ -133,6 +133,10 @@ if( GT_ENABLE_BACKEND_CUDA )
     # suppress because of boost::fusion::vector ctor
     target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
   endif()
+  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL 9.2 )
+    # suppress because of warnings in GTest
+    target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=177>)
+  endif()
 
   add_library(GridToolsTestCUDA INTERFACE)
   target_compile_definitions(GridToolsTestCUDA INTERFACE GT_BACKEND_CUDA)
