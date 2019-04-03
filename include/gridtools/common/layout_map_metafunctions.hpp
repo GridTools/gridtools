@@ -10,11 +10,6 @@
 
 #pragma once
 
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/vector_c.hpp>
-
 #include "../meta/utility.hpp"
 #include "layout_map.hpp"
 #include "selector.hpp"
