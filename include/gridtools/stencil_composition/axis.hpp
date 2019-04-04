@@ -18,15 +18,11 @@
 namespace gridtools {
 
     namespace axis_config {
-        template <int_t v>
-        struct offset_limit {
-            static constexpr int_t value = v;
-        };
+        template <int_t V>
+        struct offset_limit : std::integral_constant<int_t, V> {};
 
-        template <int_t v>
-        struct extra_offsets {
-            static constexpr int_t value = v;
-        };
+        template <int_t V>
+        struct extra_offsets : std::integral_constant<int_t, V> {};
     } // namespace axis_config
 
     /**
