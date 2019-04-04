@@ -13,7 +13,7 @@ configure_package_config_file(cmake/GridToolsConfig.cmake.in
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake
-  COMPATIBILITY SameMinorVersion )
+  COMPATIBILITY SameMajorVersion )
 # for build tree
 set(GRIDTOOLS_MODULE_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake)
 set(GRIDTOOLS_SOURCES_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src)
