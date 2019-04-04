@@ -206,8 +206,8 @@ Examples:
 
 .. note::
 
-   Only two of levels around a vertical region can be addressed in this way. This can be changed using the methods
-   described in the see :ref:`next section<vertical_regions_advanced>`.
+   Only two levels around a vertical region can be addressed in this way. This can be changed by using the method
+   described in the :ref:`next section<vertical_regions_advanced>`.
 
 
 .. _vertical_regions_advanced:
