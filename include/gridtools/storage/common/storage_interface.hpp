@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <boost/mpl/if.hpp>
+#include <type_traits>
+
 #include <boost/noncopyable.hpp>
-#include <boost/type_traits.hpp>
 
 #include "../../common/error.hpp"
 #include "definitions.hpp"
@@ -92,7 +92,7 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_storage : boost::is_base_of<storage_interface<T>, T> {};
+    struct is_storage : std::is_base_of<storage_interface<T>, T> {};
 
     /**
      * @}

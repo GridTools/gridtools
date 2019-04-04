@@ -11,9 +11,6 @@
 
 #include <tuple>
 
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
-
 #include "../common/defs.hpp"
 #include "../meta/flatten.hpp"
 #include "../meta/list.hpp"

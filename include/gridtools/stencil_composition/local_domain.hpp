@@ -11,6 +11,7 @@
 
 #include <boost/fusion/include/as_map.hpp>
 #include <boost/fusion/include/pair.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
 
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
