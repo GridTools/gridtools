@@ -6,7 +6,7 @@ The GridTools framework is a set of libraries and utilities to develop performan
 
 GridTools is successfully used to accelerate the dynamical core of the [COSMO model](http://cosmo-model.org/) with improved performance on CUDA-GPUs compared to the current official version, demonstrating production quality and feature-completeness of the library for models on lat-lon grids.
 
-Although GridTools was developed for weather and climate applications it might be applicable for other domains with focus on stencil-like computations.
+Although GridTools was developed for weather and climate applications it might be applicable for other domains with a focus on stencil-like computations.
 
 A detailed introduction can be found in the [documentation](https://GridTools.github.io/gridtools).
 
