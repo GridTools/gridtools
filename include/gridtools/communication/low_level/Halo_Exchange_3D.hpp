@@ -464,12 +464,7 @@ namespace gridtools {
         */
         template <int I, int J, int K>
         void register_send_to_buffer(void *p, int s) {
-            BOOST_MPL_ASSERT_RELATION(I, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(I, <=, 1);
-            BOOST_MPL_ASSERT_RELATION(J, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(J, <=, 1);
-            BOOST_MPL_ASSERT_RELATION(K, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(K, <=, 1);
+            static_assert(I >= -1 && I <= 1 && J >= -1 && J <= 1 && K >= -1 && K <= 1, "invalid receiving process");
 
             register_send_to_buffer(p, s, I, J, K);
         }
@@ -528,12 +523,7 @@ namespace gridtools {
         */
         template <int I, int J, int K>
         void register_receive_from_buffer(void *p, int s) {
-            BOOST_MPL_ASSERT_RELATION(I, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(I, <=, 1);
-            BOOST_MPL_ASSERT_RELATION(J, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(J, <=, 1);
-            BOOST_MPL_ASSERT_RELATION(K, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(K, <=, 1);
+            static_assert(I >= -1 && I <= 1 && J >= -1 && J <= 1 && K >= -1 && K <= 1, "invalid receiving process");
 
             register_receive_from_buffer(p, s, I, J, K);
         }
@@ -580,12 +570,7 @@ namespace gridtools {
         */
         template <int I, int J, int K>
         void set_send_to_size(int s) {
-            BOOST_MPL_ASSERT_RELATION(I, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(I, <=, 1);
-            BOOST_MPL_ASSERT_RELATION(J, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(J, <=, 1);
-            BOOST_MPL_ASSERT_RELATION(K, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(K, <=, 1);
+            static_assert(I >= -1 && I <= 1 && J >= -1 && J <= 1 && K >= -1 && K <= 1, "invalid receiving process");
 
             set_send_to_size(s, I, J, K);
         }
@@ -630,12 +615,7 @@ namespace gridtools {
         */
         template <int I, int J, int K>
         void set_receive_from_size(int s) {
-            BOOST_MPL_ASSERT_RELATION(I, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(I, <=, 1);
-            BOOST_MPL_ASSERT_RELATION(J, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(J, <=, 1);
-            BOOST_MPL_ASSERT_RELATION(K, >=, -1);
-            BOOST_MPL_ASSERT_RELATION(K, <=, 1);
+            static_assert(I >= -1 && I <= 1 && J >= -1 && J <= 1 && K >= -1 && K <= 1, "invalid receiving process");
 
             set_receive_from_size(s, I, J, K);
         }
