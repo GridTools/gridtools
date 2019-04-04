@@ -46,7 +46,7 @@ namespace gridtools {
 
     enum class insert_location { pre, post };
 
-    template <typename LayoutMap, uint_t NExtraDim, insert_location Location = insert_location::post>
+    template <typename LayoutMap, int_t NExtraDim, insert_location Location = insert_location::post>
     struct extend_layout_map;
 
     /*
