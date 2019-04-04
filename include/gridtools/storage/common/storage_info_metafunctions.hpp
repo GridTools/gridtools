@@ -13,7 +13,7 @@
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/layout_map.hpp"
-#include "../../meta/type_traits.hpp"
+#include "../../meta/utility.hpp"
 #include "alignment.hpp"
 #include "halo.hpp"
 
@@ -72,19 +72,19 @@ namespace gridtools {
         using layout_map_t = layout_map<LayoutArgs...>;
 
         template <int N, typename... Dims>
-        GT_FUNCTION static constexpr enable_if_t<(N != -1 && N != layout_map_t::unmasked_length - 1), uint_t>
-        get_stride(Dims... d) {
+        GT_FUNCTION static constexpr enable_if_t<N != -1 && N != layout_map_t::unmasked_length - 1, uint_t> get_stride(
+            Dims... d) {
             return (get_value_from_pack(layout_map_t::template find<N + 1>(), d...)) * get_stride<N + 1>(d...);
         }
 
         template <int N, typename... Dims>
-        GT_FUNCTION static constexpr enable_if_t<(N == -1), uint_t> get_stride(Dims...) {
+        GT_FUNCTION static constexpr enable_if_t<N == -1, uint_t> get_stride(Dims...) {
             return 0;
         }
 
         template <int N, typename... Dims>
-        GT_FUNCTION static constexpr enable_if_t<(N != -1 && N == layout_map_t::unmasked_length - 1), uint_t>
-        get_stride(Dims...) {
+        GT_FUNCTION static constexpr enable_if_t<N != -1 && N == layout_map_t::unmasked_length - 1, uint_t> get_stride(
+            Dims...) {
             return 1;
         }
 

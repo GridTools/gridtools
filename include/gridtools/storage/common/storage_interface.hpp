@@ -12,8 +12,6 @@
 
 #include <type_traits>
 
-#include <boost/noncopyable.hpp>
-
 #include "../../common/error.hpp"
 #include "definitions.hpp"
 
@@ -31,7 +29,7 @@ namespace gridtools {
      * @tparam Derived The actual storage type (e.g., cuda_storage or host_storage)
      */
     template <typename Derived>
-    struct storage_interface : boost::noncopyable {
+    struct storage_interface {
         /*
          * @brief clone_to_device method. Clones data to the device.
          */

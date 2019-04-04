@@ -12,8 +12,8 @@
 
 #include <type_traits>
 
+#include <boost/fusion/adapted/std_tuple.hpp>
 #include <boost/fusion/include/at.hpp>
-#include <boost/fusion/include/at_key.hpp>
 
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
@@ -55,7 +55,8 @@ namespace gridtools {
       protected:
         using iterate_domain_arguments_t = IterateDomainArguments;
 
-        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_) {}
+        GT_FUNCTION_DEVICE iterate_domain(local_domain_t const &local_domain_)
+            : local_domain(local_domain_), m_ptr_map(local_domain_.make_ptr_map()) {}
 
       public:
         using array_index_t = array<int_t, n_meta_storages>;
@@ -63,6 +64,7 @@ namespace gridtools {
       private:
         // ******************* members *******************
         local_domain_t const &local_domain;
+        typename local_domain_t::ptr_map_t m_ptr_map;
         array_index_t m_index;
         // ******************* end of members *******************
 
@@ -131,7 +133,7 @@ namespace gridtools {
                 k_offset);
 
             return pointer_oob_check<storage_info_t>(local_domain, offset)
-                       ? boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + offset
+                       ? gridtools::host_device::at_key<Arg>(m_ptr_map) + offset
                        : nullptr;
         }
 
@@ -141,7 +143,7 @@ namespace gridtools {
          */
         template <class Arg, intent Intent, uint_t I>
         GT_FUNCTION typename Arg::data_store_t::data_t deref(global_accessor<I> const &) const {
-            return *boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs);
+            return *gridtools::host_device::at_key<Arg>(m_ptr_map);
         }
 
         /**
@@ -149,10 +151,9 @@ namespace gridtools {
          * Specialization for the global accessors placeholders with arguments.
          */
         template <class Arg, intent Intent, class Acc, class... Args>
-        GT_FUNCTION auto deref(global_accessor_with_arguments<Acc, Args...> const &acc) const
-            GT_AUTO_RETURN(tuple_to_container(*boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs),
-                acc.get_arguments(),
-                meta::index_sequence_for<Args...>()));
+        GT_FUNCTION auto
+        deref(global_accessor_with_arguments<Acc, Args...> const &acc) const GT_AUTO_RETURN(tuple_to_container(
+            *gridtools::host_device::at_key<Arg>(m_ptr_map), acc.get_arguments(), meta::index_sequence_for<Args...>()));
 
         /** @brief method called in the apply methods of the functors.
          *
@@ -210,7 +211,7 @@ namespace gridtools {
             assert(pointer_oob_check<storage_info_t>(local_domain, pointer_offset));
 
             conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
-                boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + pointer_offset;
+                gridtools::host_device::at_key<Arg>(m_ptr_map) + pointer_offset;
 
             return IterateDomainImpl::template deref_impl<Arg>(ptr);
         }
