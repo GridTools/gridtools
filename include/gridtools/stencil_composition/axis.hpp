@@ -8,12 +8,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+#include "..//common/defs.hpp"
 #include "../common/array.hpp"
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../common/variadic_pack_metafunctions.hpp"
 #include "interval.hpp"
 #include "level.hpp"
+#include <type_traits>
 
 namespace gridtools {
 
