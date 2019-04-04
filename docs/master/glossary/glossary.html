@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Glossary &mdash; GridTools 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/cscs.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="GridTools 1.0.0 documentation" href="../index.html"/>
+        <link rel="next" title="Internal Documentation" href="../internal/internal.html"/>
+        <link rel="prev" title="User Manual" href="../user_manual/user_manual.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> GridTools
+          
+
+          
+            
+            <img src="../_static/logo.svg" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_manual/user_manual.html">User Manual</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../internal/internal.html">Internal Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/faq.html">Frequently Asked Questions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GridTools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Glossary</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/glossary/glossary.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="glossary">
+<span id="id1"></span><h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h1>
+<dl class="glossary docutils">
+<dt id="term-accessor">Accessor</dt>
+<dd>A class with an interface to access one element of a data <a class="reference internal" href="#term-field"><span class="xref std std-term">Field</span></a> and its
+neighbors. See section <a class="reference internal" href="../user_manual/user_manual.html#stencil-operators"><span class="std std-ref">Stencil Operators</span></a>.</dd>
+<dt id="term-apply-method">Apply-Method</dt>
+<dd>Main method of a <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a>. Multiple overloads can exist for
+different <a class="reference internal" href="#term-vertical-interval"><span class="xref std std-term">Vertical Intervals</span></a>. See section
+<a class="reference internal" href="../user_manual/user_manual.html#stencil-operators-apply-method"><span class="std std-ref">Apply-Method</span></a>.</dd>
+<dt id="term-axis">Axis</dt>
+<dd>A class to generate <a class="reference internal" href="#term-vertical-region"><span class="xref std std-term">Vertical
+Regions</span></a> of an <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. See section
+<a class="reference internal" href="../user_manual/user_manual.html#stencil-composition"><span class="std std-ref">Stencil Composition</span></a>.</dd>
+<dt id="term-backend">Backend</dt>
+<dd><cite>GridTools</cite> provides several backends, allowing to run the same code efficiently
+on different hardware architectures. See section <a class="reference internal" href="../user_manual/user_manual.html#backend-selection"><span class="std std-ref">Selecting the Backend</span></a>.</dd>
+<dt id="term-boundary-condition">Boundary condition</dt>
+<dd>An operation applied to points at the edges/corners/faces of a 3D cube
+(usually the <a class="reference internal" href="#term-global-boundary"><span class="xref std std-term">Global Boundary</span></a>). See section <a class="reference internal" href="../user_manual/user_manual.html#boundary-conditions"><span class="std std-ref">Boundary Conditions</span></a>.</dd>
+<dt id="term-cache">Cache</dt>
+<dd>See <a class="reference internal" href="#term-software-managed-cache"><span class="xref std std-term">Software-Managed Cache</span></a>.</dd>
+<dt id="term-computation">Computation</dt>
+<dd>A sequence of <a class="reference internal" href="#term-multi-stage"><span class="xref std std-term">Multi-Stages</span></a>
+which is applied on a <a class="reference internal" href="#term-grid"><span class="xref std std-term">Grid</span></a> with the run() method as an entry-point,
+see section <a class="reference internal" href="../user_manual/user_manual.html#composition-of-stencils"><span class="std std-ref">Composition of Stencils</span></a>.</dd>
+<dt id="term-data-store">Data Store</dt>
+<dd>An object that manages a logical multidimensional array of values.
+See section <a class="reference internal" href="../user_manual/user_manual.html#data-store"><span class="std std-ref">Data Store</span></a>.</dd>
+<dt id="term-data-view">Data View</dt>
+<dd>An object that allows to access and modify the elements of a
+<a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a> through a tuple of indices. See section
+<a class="reference internal" href="../user_manual/user_manual.html#data-view"><span class="std std-ref">Data View</span></a>.</dd>
+<dt id="term-execution-model">Execution Model</dt>
+<dd>Definition of the order of execution of a <cite>GridTools</cite>
+<a class="reference internal" href="#term-computation"><span class="xref std std-term">Computations</span></a>. See section <a class="reference internal" href="../user_manual/user_manual.html#execution-model"><span class="std std-ref">Execution Model</span></a>.</dd>
+<dt id="term-extent">Extent</dt>
+<dd>The maximum relative offsets along the coordinate axes at which data is
+accessed around the <a class="reference internal" href="#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>. See section
+<a class="reference internal" href="../user_manual/user_manual.html#stencil-operators"><span class="std std-ref">Stencil Operators</span></a>.</dd>
+<dt id="term-field">Field</dt>
+<dd>Multi-dimensional data representing a physical field, e.g. temperature.
+Often used as a synonym for multi-dimensional data in general or a
+<a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a> in particular.</dd>
+<dt id="term-gcl">GCL</dt>
+<dd>The <cite>GridTools</cite> Communication Module. See section <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">Halo Exchanges</span></a>.</dd>
+<dt id="term-global-boundary">Global Boundary</dt>
+<dd>Boundary of the <a class="reference internal" href="#term-global-domain"><span class="xref std std-term">Global Domain</span></a> when using distributed computing. See
+section <a class="reference internal" href="../user_manual/user_manual.html#distributed-boundary-conditions"><span class="std std-ref">Distributed Boundary Conditions</span></a>.</dd>
+<dt id="term-global-domain">Global Domain</dt>
+<dd>The compute domain that is composed from all domains of the subprocesses
+that participate in a distributed computation. See section
+<a class="reference internal" href="../user_manual/user_manual.html#distributed-boundary-conditions"><span class="std std-ref">Distributed Boundary Conditions</span></a>.</dd>
+<dt id="term-global-parameter">Global Parameter</dt>
+<dd>A special 0-dimensional <a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a> for read-only data.
+See section <a class="reference internal" href="../user_manual/user_manual.html#global-accessor"><span class="std std-ref">Global Parameters and Accessors</span></a>.</dd>
+<dt id="term-grid">Grid</dt>
+<dd>The grid is the object that defines the <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. See
+section <a class="reference internal" href="../user_manual/user_manual.html#defining-iteration-space"><span class="std std-ref">Defining the Iteration Space: the Grid</span></a>.</dd>
+<dt id="term-halo">Halo</dt>
+<dd>Additional data points around the main compute data. Used for boundary
+conditions or distributed computations (see <a class="reference internal" href="#term-halo-exchange"><span class="xref std std-term">Halo Exchanges</span></a>). <a class="reference internal" href="#term-halo"><span class="xref std std-term">Halo</span></a> information is also stored in the <a class="reference internal" href="#term-storage-info"><span class="xref std std-term">Storage
+Info</span></a> to allow correct data alignment. The size of the <a class="reference internal" href="#term-halo"><span class="xref std std-term">Halo</span></a>
+regions is often described by a <a class="reference internal" href="#term-halo-descriptor"><span class="xref std std-term">Halo Descriptor</span></a>. For boundary
+conditions, see sections <a class="reference internal" href="../user_manual/user_manual.html#boundary-conditions"><span class="std std-ref">Boundary Conditions</span></a> and
+<a class="reference internal" href="../user_manual/user_manual.html#distributed-boundary-conditions"><span class="std std-ref">Distributed Boundary Conditions</span></a>.</dd>
+<dt id="term-halo-descriptor">Halo Descriptor</dt>
+<dd>An object defining the <a class="reference internal" href="#term-halo"><span class="xref std std-term">Halo</span></a> regions of a <a class="reference internal" href="#term-computation"><span class="xref std std-term">Computation</span></a>. See
+section <a class="reference internal" href="../user_manual/user_manual.html#halo-descriptor"><span class="std std-ref">Halo Descriptor</span></a>.</dd>
+<dt id="term-halo-exchange">Halo Exchange</dt>
+<dd>Communication of <a class="reference internal" href="#term-halo"><span class="xref std std-term">Halo</span></a> data points between multiple processes. See
+section <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">Halo Exchanges</span></a> and section
+<a class="reference internal" href="../user_manual/user_manual.html#distributed-boundary-conditions"><span class="std std-ref">Distributed Boundary Conditions</span></a>.</dd>
+<dt id="term-iteration-point">Iteration Point</dt>
+<dd>A triple of indices. The horizontal indices are often denoted by <cite>i</cite> and
+<cite>j</cite>, while <cite>k</cite> refers to the vertical index. <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operators</span></a>
+are written relative to the current iteration point.</dd>
+<dt id="term-iteration-space">Iteration Space</dt>
+<dd>A set of <a class="reference internal" href="#term-iteration-point"><span class="xref std std-term">Iteration Points</span></a> on which a stencil is
+applied. See section <a class="reference internal" href="../user_manual/user_manual.html#defining-iteration-space"><span class="std std-ref">Defining the Iteration Space: the Grid</span></a>.</dd>
+<dt id="term-layout-map">Layout Map</dt>
+<dd>A (compile time) sequence of integer values, defining the storage layout of
+a <a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a>. See section <a class="reference internal" href="../user_manual/user_manual.html#storage-module"><span class="std std-ref">Storage Module</span></a>. Also used to
+define the process layout in an multi-process setup. For this usage, see
+section <a class="reference internal" href="../user_manual/user_manual.html#storage-info"><span class="std std-ref">Storage Info</span></a>.</dd>
+<dt id="term-masked-dimension">Masked Dimension</dt>
+<dd>A dimension with stride 0.</dd>
+<dt id="term-multi-stage">Multi-Stage</dt>
+<dd>A partially-order collection of <a class="reference internal" href="#term-stage"><span class="xref std std-term">Stages</span></a> with an associated
+<a class="reference internal" href="#term-vertical-execution-order"><span class="xref std std-term">Vertical Execution Order</span></a>. See <a class="reference internal" href="#term-execution-model"><span class="xref std std-term">Execution Model</span></a> and
+section <a class="reference internal" href="../user_manual/user_manual.html#composition-of-stencils"><span class="std std-ref">Composition of Stencils</span></a>.</dd>
+<dt id="term-placeholder">Placeholder</dt>
+<dd>Placeholders allow compile-time naming of <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a>
+arguments. See section <a class="reference internal" href="../user_manual/user_manual.html#placeholders"><span class="std std-ref">Preparing Arguments: Storage Placeholders</span></a>.</dd>
+<dt id="term-software-managed-cache">Software-Managed Cache</dt>
+<dd>User-defined caching of <a class="reference internal" href="#term-field"><span class="xref std std-term">Fields</span></a> during a <a class="reference internal" href="#term-multi-stage"><span class="xref std std-term">Multi-Stage</span></a>, which has a
+<a class="reference internal" href="../user_manual/user_manual.html#cache-policy"><span class="std std-ref">Cache Policy</span></a> and a <a class="reference internal" href="../user_manual/user_manual.html#cache-type"><span class="std std-ref">Cache Type</span></a>.
+See section <a class="reference internal" href="../user_manual/user_manual.html#caches"><span class="std std-ref">Software-Managed Caches</span></a>.</dd>
+<dt id="term-stage">Stage</dt>
+<dd>A <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a> with associated
+<a class="reference internal" href="#term-placeholder"><span class="xref std std-term">Placeholders</span></a>. See <a class="reference internal" href="#term-execution-model"><span class="xref std std-term">Execution Model</span></a> and section
+<a class="reference internal" href="../user_manual/user_manual.html#composition-of-stencils"><span class="std std-ref">Composition of Stencils</span></a>.</dd>
+<dt id="term-stencil-operator">Stencil Operator</dt>
+<dd>Struct or class that defines a stencil operation. See section
+<a class="reference internal" href="../user_manual/user_manual.html#stencil-operators"><span class="std std-ref">Stencil Operators</span></a>.</dd>
+<dt id="term-storage-info">Storage Info</dt>
+<dd>This concept describes the dimensions, alignment and layout of a
+multidimensional array. See section <a class="reference internal" href="../user_manual/user_manual.html#storage-info"><span class="std std-ref">Storage Info</span></a>.</dd>
+<dt id="term-vertical-execution-order">Vertical Execution Order</dt>
+<dd>Order of execution (forward, backward, parallel) along the vertical
+axis on an <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. See <a class="reference internal" href="#term-execution-model"><span class="xref std std-term">Execution Model</span></a>.</dd>
+<dt id="term-vertical-interval">Vertical Interval</dt>
+<dd>A compile-time defined subset of an <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>, possibly
+covering only parts of the vertical iteration range. See section
+<a class="reference internal" href="../user_manual/user_manual.html#vertical-regions"><span class="std std-ref">Vertical Regions and Vertical Boundary Conditions</span></a>.</dd>
+<dt id="term-vertical-region">Vertical Region</dt>
+<dd>A <a class="reference internal" href="#term-vertical-interval"><span class="xref std std-term">Vertical Interval</span></a> with associated run-time vertical iteration
+range. See section <a class="reference internal" href="../user_manual/user_manual.html#vertical-regions"><span class="std std-ref">Vertical Regions and Vertical Boundary Conditions</span></a>.</dd>
+</dl>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../internal/internal.html" class="btn btn-neutral float-right" title="Internal Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../user_manual/user_manual.html" class="btn btn-neutral" title="User Manual" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ETH Zurich.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -10,8 +10,8 @@ BUILDDIR      = _build
 # GridTools-specific install target, installs html documentation to the docs
 # directory in the GridTools root director
 install: html
-	rm -rf ../../docs/*
-	cp -r _build/html/* ../../docs
+	rm -rf ../../docs/master/*
+	cp -r _build/html/* ../../docs/master
 
 # Put it first so that "make" without argument is like "make help".
 help:
