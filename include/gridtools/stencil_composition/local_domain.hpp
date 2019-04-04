@@ -102,6 +102,9 @@ namespace gridtools {
         }
     };
 
+    template <class LocalDomain, class Arg>
+    GT_META_DEFINE_ALIAS(strides_kind_from_arg, sid::strides_kind, typename Arg::data_store_t);
+
     template <class>
     struct is_local_domain : std::false_type {};
 
