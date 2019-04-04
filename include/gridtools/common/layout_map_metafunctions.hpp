@@ -55,7 +55,7 @@ namespace gridtools {
      * a) extend_layout_map< layout_map<0, 1, 3, 2>, 3> == layout_map<3, 4, 6, 5, 0, 1, 2>
      * b) extend_layout_map< layout_map<0, 1, 3, 2>, 3, insert_location::pre> == layout_map<0, 1, 2, 3, 4, 6, 5>
      */
-    template <uint_t NExtraDim, int_t... Args, insert_location Location>
+    template <int_t NExtraDim, int_t... Args, insert_location Location>
     struct extend_layout_map<layout_map<Args...>, NExtraDim, Location> {
 
         template <insert_location Loc, typename Seq>
