@@ -16,16 +16,34 @@
 #include "level.hpp"
 
 namespace gridtools {
+
+    namespace axis_config {
+        template <int_t v>
+        struct offset_limit {
+            static constexpr int_t value = v;
+        };
+
+        template <int_t v>
+        struct extra_offsets {
+            static constexpr int_t value = v;
+        };
+    } // namespace axis_config
+
     /**
-     * Defines an axis_interval_t which is the former user-defined axis type and a full_interval which spans the whole
-     * axis.
+     * Defines an axis_interval_t which spans the whole axis.
      * @param NIntervals Number of intervals the axis should support
-     * @param ExtraOffsetsAroundFullInterval Special case when access of k-values around the full_interval (i.e. after
-     * the last or before the first splitter value) are needed. (Note that the default interval will span the whole
-     * axis_interval_t.)
+     * @param LevelOffsetLimit Maximum offset relative to the splitter position
+     * @param (non-API) ExtraOffsetsAroundFullInterval Special case when access of k-values around the full_interval
+     * (i.e. after the last or before the first splitter value) are needed. (Note that the default interval will span
+     * the whole axis_interval_t.)
      */
-    template <size_t NIntervals, int_t ExtraOffsetsAroundFullInterval = 0, int_t LevelOffsetLimit = 2>
-    class axis {
+    template <size_t, class = axis_config::offset_limit<2>, class = axis_config::extra_offsets<0>>
+    class axis;
+
+    template <size_t NIntervals, int_t LevelOffsetLimit, int_t ExtraOffsetsAroundFullInterval>
+    class axis<NIntervals,
+        axis_config::offset_limit<LevelOffsetLimit>,
+        axis_config::extra_offsets<ExtraOffsetsAroundFullInterval>> {
       private:
         template <size_t... IntervalIDs>
         struct interval_impl {
