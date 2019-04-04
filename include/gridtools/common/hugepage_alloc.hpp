@@ -11,9 +11,8 @@
 #pragma once
 
 #include <atomic>
+#include <cstdlib>
 #include <new>
-
-#include <sys/mman.h>
 
 namespace gridtools {
 
@@ -29,21 +28,12 @@ namespace gridtools {
             next_offset, 2 * next_offset <= 4096 ? 2 * next_offset : 64, std::memory_order_relaxed)) {
         }
 
-        static constexpr auto prot = PROT_READ | PROT_WRITE;
-#ifdef GT_NO_HUGETLB
-        static constexpr auto flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE;
-#else
-        static constexpr auto flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_HUGETLB;
-#endif
-
-        std::size_t alloc_size = size + offset;
-        void *ptr = mmap(nullptr, alloc_size, prot, flags, -1, 0);
-        if (ptr == MAP_FAILED)
+        void *ptr;
+        if (posix_memalign(&ptr, 2 * 1024 * 1024, size + offset))
             throw std::bad_alloc();
 
         ptr = static_cast<char *>(ptr) + offset;
         static_cast<std::size_t *>(ptr)[-1] = offset;
-        static_cast<std::size_t *>(ptr)[-2] = alloc_size;
         return ptr;
     }
 
@@ -54,9 +44,8 @@ namespace gridtools {
         if (!ptr)
             return;
         std::size_t offset = static_cast<std::size_t *>(ptr)[-1];
-        std::size_t alloc_size = static_cast<std::size_t *>(ptr)[-2];
         ptr = static_cast<char *>(ptr) - offset;
-        munmap(ptr, alloc_size);
+        free(ptr);
     }
 
 } // namespace gridtools
