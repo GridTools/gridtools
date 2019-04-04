@@ -8,7 +8,6 @@ option( GT_ENABLE_BACKEND_X86 "Compile x86 backend examples and unit tests" ${OP
 option( GT_ENABLE_BACKEND_NAIVE "Compile naive backend examples and unit tests" ON)
 option( GT_ENABLE_BACKEND_MC "Compile MC backend examples and unit tests" ${OPENMP_AVAILABLE} )
 option( GT_USE_MPI "Compile with MPI support" ${MPI_AVAILABLE} )
-option( GT_USE_HUGEPAGES "Enable allocation of huge pages" ON )
 
 # TODO remove when implementing smaller-grained test enablers
 option( GT_GCL_ONLY "If on only library is build but not the examples and tests" OFF )
