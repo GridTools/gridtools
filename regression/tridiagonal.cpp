@@ -35,12 +35,12 @@ using full_t = axis_t::full_interval;
 
 struct forward_thomas {
     // four vectors: output, and the 3 diagonals
-    using out = inout_accessor<0>;
-    using inf = in_accessor<1>;    // a
-    using diag = in_accessor<2>;   // b
-    using sup = inout_accessor<3>; // c
-    using rhs = inout_accessor<4>; // d
-    using param_list = make_param_list<out, inf, diag, sup, rhs>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(inf),    // a
+        GT_IN_ACCESSOR(diag),   // b
+        GT_INOUT_ACCESSOR(sup), // c
+        GT_INOUT_ACCESSOR(rhs)  // d
+    );
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, 0>) {
@@ -56,12 +56,12 @@ struct forward_thomas {
 };
 
 struct backward_thomas {
-    using out = inout_accessor<0>;
-    using inf = in_accessor<1>;    // a
-    using diag = in_accessor<2>;   // b
-    using sup = inout_accessor<3>; // c
-    using rhs = inout_accessor<4>; // d
-    using param_list = make_param_list<out, inf, diag, sup, rhs>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(inf),    // a
+        GT_IN_ACCESSOR(diag),   // b
+        GT_INOUT_ACCESSOR(sup), // c
+        GT_INOUT_ACCESSOR(rhs)  // d
+    );
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<0, -1>) {

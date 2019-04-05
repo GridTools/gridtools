@@ -34,9 +34,7 @@ namespace {
     using data_store_t = storage_traits_t::data_store_t<float, storage_info_t>;
 
     struct copy_functor {
-        using in = gt::in_accessor<0>;
-        using out = gt::inout_accessor<1>;
-        using param_list = gt::make_param_list<in, out>;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {

@@ -53,13 +53,11 @@ using namespace expressions;
 */
 
 struct integration {
-    using phi_t = global_accessor<0>;
-    using psi_t = global_accessor<1>;
-    using jac = in_accessor<2, extent<>, 4>;
-    using f = in_accessor<3, extent<>, 6>;
-    using result = inout_accessor<4, extent<>, 6>;
-
-    using param_list = make_param_list<phi_t, psi_t, jac, f, result>;
+    GT_DEFINE_ACCESSORS(GT_GLOBAL_ACCESSOR(phi_t),
+        GT_GLOBAL_ACCESSOR(psi_t),
+        GT_IN_ACCESSOR(jac, extent<>, 4),
+        GT_IN_ACCESSOR(f, extent<>, 6),
+        GT_INOUT_ACCESSOR(result, extent<>, 6));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

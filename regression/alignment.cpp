@@ -23,9 +23,7 @@ using namespace gridtools;
 using alignment_test = regression_fixture<2>;
 
 struct not_aligned {
-    using acc = inout_accessor<0>;
-    using out = inout_accessor<1>;
-    using param_list = make_param_list<acc, out>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(acc), GT_INOUT_ACCESSOR(out));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {

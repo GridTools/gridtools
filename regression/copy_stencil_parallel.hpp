@@ -36,9 +36,7 @@ using namespace execute;
 namespace copy_stencil {
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
-        typedef accessor<0, intent::in> in;
-        typedef accessor<1, intent::inout> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {

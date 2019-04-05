@@ -24,28 +24,16 @@
 using namespace gridtools;
 
 struct functor_single_kernel {
-    using parameters1_out = inout_accessor<0>;
-    using parameters2_out = inout_accessor<1>;
-    using parameters3_out = inout_accessor<2>;
-    using parameters4_out = inout_accessor<3>;
-    using parameters5_out = inout_accessor<4>;
-
-    using parameters1_in = in_accessor<5>;
-    using parameters2_in = in_accessor<6>;
-    using parameters3_in = in_accessor<7>;
-    using parameters4_in = in_accessor<8>;
-    using parameters5_in = in_accessor<9>;
-
-    using param_list = make_param_list<parameters1_out,
-        parameters2_out,
-        parameters3_out,
-        parameters4_out,
-        parameters5_out,
-        parameters1_in,
-        parameters2_in,
-        parameters3_in,
-        parameters4_in,
-        parameters5_in>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(parameters1_out),
+        GT_INOUT_ACCESSOR(parameters2_out),
+        GT_INOUT_ACCESSOR(parameters3_out),
+        GT_INOUT_ACCESSOR(parameters4_out),
+        GT_INOUT_ACCESSOR(parameters5_out),
+        GT_IN_ACCESSOR(parameters1_in),
+        GT_IN_ACCESSOR(parameters2_in),
+        GT_IN_ACCESSOR(parameters3_in),
+        GT_IN_ACCESSOR(parameters4_in),
+        GT_IN_ACCESSOR(parameters5_in));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

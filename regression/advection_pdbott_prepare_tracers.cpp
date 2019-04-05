@@ -19,11 +19,7 @@
 using namespace gridtools;
 
 struct prepare_tracers {
-    using data = inout_accessor<0>;
-    using data_nnow = in_accessor<1>;
-    using rho = in_accessor<2>;
-
-    using param_list = make_param_list<data, data_nnow, rho>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(data), GT_IN_ACCESSOR(data_nnow), GT_IN_ACCESSOR(rho));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

@@ -23,12 +23,10 @@
 using namespace gridtools;
 
 struct wlap_function {
-    using out = inout_accessor<0>;
-    using in = in_accessor<1, extent<-1, 1, -1, 1>>;
-    using crlato = in_accessor<2>;
-    using crlatu = in_accessor<3>;
-
-    using param_list = make_param_list<out, in, crlato, crlatu>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(in, extent<-1, 1, -1, 1>),
+        GT_IN_ACCESSOR(crlato),
+        GT_IN_ACCESSOR(crlatu));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -38,13 +36,11 @@ struct wlap_function {
 };
 
 struct divflux_function {
-    using out = inout_accessor<0>;
-    using in = in_accessor<1>;
-    using lap = in_accessor<2, extent<-1, 1, -1, 1>>;
-    using crlato = in_accessor<3>;
-    using coeff = in_accessor<4>;
-
-    using param_list = make_param_list<out, in, lap, crlato, coeff>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(in),
+        GT_IN_ACCESSOR(lap, extent<-1, 1, -1, 1>),
+        GT_IN_ACCESSOR(crlato),
+        GT_IN_ACCESSOR(coeff));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {

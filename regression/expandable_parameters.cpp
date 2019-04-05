@@ -18,10 +18,7 @@
 using namespace gridtools;
 
 struct copy_functor {
-    using parameters_out = inout_accessor<0>;
-    using parameters_in = accessor<1>;
-
-    using param_list = make_param_list<parameters_out, parameters_in>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(parameters_out), GT_IN_ACCESSOR(parameters_in));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {

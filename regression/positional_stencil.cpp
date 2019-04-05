@@ -15,8 +15,7 @@
 using namespace gridtools;
 
 struct functor {
-    using out = inout_accessor<0>;
-    using param_list = make_param_list<out>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

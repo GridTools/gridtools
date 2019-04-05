@@ -27,18 +27,16 @@ using axis_t = axis<1, axis_config::offset_limit<3>>;
 using full_t = axis_t::full_interval;
 
 struct u_forward_function {
-    using utens_stage = in_accessor<0>;
-    using wcon = in_accessor<1, extent<0, 1, 0, 0, 0, 1>>;
-    using u_stage = in_accessor<2, extent<0, 0, 0, 0, -1, 1>>;
-    using u_pos = in_accessor<3>;
-    using utens = in_accessor<4>;
-    using dtr_stage = in_accessor<5>;
-    using acol = inout_accessor<6>;
-    using bcol = inout_accessor<7>;
-    using ccol = inout_accessor<8, extent<0, 0, 0, 0, -1, 0>>;
-    using dcol = inout_accessor<9, extent<0, 0, 0, 0, -1, 0>>;
-
-    using param_list = make_param_list<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol>;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(utens_stage),
+        GT_IN_ACCESSOR(wcon, extent<0, 1, 0, 0, 0, 1>),
+        GT_IN_ACCESSOR(u_stage, extent<0, 0, 0, 0, -1, 1>),
+        GT_IN_ACCESSOR(u_pos),
+        GT_IN_ACCESSOR(utens),
+        GT_IN_ACCESSOR(dtr_stage),
+        GT_INOUT_ACCESSOR(acol),
+        GT_INOUT_ACCESSOR(bcol),
+        GT_INOUT_ACCESSOR(ccol, extent<0, 0, 0, 0, -1, 0>),
+        GT_INOUT_ACCESSOR(dcol, extent<0, 0, 0, 0, -1, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, -1> interval) {
@@ -117,14 +115,12 @@ struct u_forward_function {
 };
 
 struct u_backward_function {
-    using utens_stage = inout_accessor<0>;
-    using u_pos = in_accessor<1>;
-    using dtr_stage = in_accessor<2>;
-    using ccol = in_accessor<3>;
-    using dcol = in_accessor<4>;
-    using data_col = inout_accessor<5, extent<0, 0, 0, 0, 0, 1>>;
-
-    using param_list = make_param_list<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(utens_stage),
+        GT_IN_ACCESSOR(u_pos),
+        GT_IN_ACCESSOR(dtr_stage),
+        GT_IN_ACCESSOR(ccol),
+        GT_IN_ACCESSOR(dcol),
+        GT_INOUT_ACCESSOR(data_col, extent<0, 0, 0, 0, 0, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, full_t::modify<0, -1> interval) {

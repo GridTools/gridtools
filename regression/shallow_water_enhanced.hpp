@@ -82,20 +82,15 @@ namespace shallow_water {
     // These are the stencil operators that compose the multistage stencil in this test
     // [flux_x]
     struct flux_x : public functor_traits {
-
-        /** (input) is the solution at the cell center, computed at the previous time level */
-        //! [accessor]
-        using h = accessor<3, intent::in, extent<0, -1, 0, 0>>;
-        //! [accessor]
-        using u = accessor<4, intent::in, extent<0, -1, 0, 0>>;
-        using v = accessor<5, intent::in, extent<0, -1, 0, 0>>;
-
-        /** (output) is the flux computed on the left edge of the cell */
-        using hx = accessor<0, intent::inout>;
-        using ux = accessor<1, intent::inout>;
-        using vx = accessor<2, intent::inout>;
-
-        using param_list = make_param_list<hx, ux, vx, h, u, v>;
+        GT_DEFINE_ACCESSORS(
+            /** (input) is the solution at the cell center, computed at the previous time level */
+            GT_IN_ACCESSOR(h, extent<0, -1>),
+            GT_IN_ACCESSOR(u, extent<0, -1>),
+            GT_IN_ACCESSOR(v, extent<0, -1>),
+            /** (output) is the flux computed on the left edge of the cell */
+            GT_INOUT_ACCESSOR(hx),
+            GT_INOUT_ACCESSOR(ux),
+            GT_INOUT_ACCESSOR(vx));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -120,18 +115,15 @@ namespace shallow_water {
 
     // [flux_y]
     struct flux_y : public functor_traits {
-
-        /** (output) is the flux at the bottom edge of the cell */
-        using hy = accessor<0, intent::inout>;
-        using uy = accessor<1, intent::inout>;
-        using vy = accessor<2, intent::inout>;
-
-        /** (input) is the solution at the cell center, computed at the previous time level */
-        using h = accessor<3, intent::in, extent<0, 0, 0, -1>>;
-        using u = accessor<4, intent::in, extent<0, 0, 0, -1>>;
-        using v = accessor<5, intent::in, extent<0, 0, 0, -1>>;
-
-        using param_list = make_param_list<hy, uy, vy, h, u, v>;
+        GT_DEFINE_ACCESSORS(
+            /** (output) is the flux at the bottom edge of the cell */
+            GT_INOUT_ACCESSOR(hy),
+            GT_INOUT_ACCESSOR(uy),
+            GT_INOUT_ACCESSOR(vy),
+            /** (input) is the solution at the cell center, computed at the previous time level */
+            GT_IN_ACCESSOR(h, extent<0, 0, 0, -1>),
+            GT_IN_ACCESSOR(u, extent<0, 0, 0, -1>),
+            GT_IN_ACCESSOR(v, extent<0, 0, 0, -1>));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -154,23 +146,20 @@ namespace shallow_water {
 
     // [final_step]
     struct final_step : public functor_traits {
+        GT_DEFINE_ACCESSORS(
+            /** (input) is the flux at the left edge of the cell */
+            GT_IN_ACCESSOR(hx, extent<0, 1, 0, 1>),
+            GT_IN_ACCESSOR(ux, extent<0, 1, 0, 1>),
+            GT_IN_ACCESSOR(vx, extent<0, 1, 0, 1>),
+            /** (input) is the flux at the bottom edge of the cell */
+            GT_IN_ACCESSOR(hy, extent<0, 1, 0, 1>),
+            GT_IN_ACCESSOR(uy, extent<0, 1, 0, 1>),
+            GT_IN_ACCESSOR(vy, extent<0, 1, 0, 1>),
+            /** (output) is the solution at the cell center, computed at the previous time level */
+            GT_INOUT_ACCESSOR(h),
+            GT_INOUT_ACCESSOR(u),
+            GT_INOUT_ACCESSOR(v));
 
-        /** (input) is the flux at the left edge of the cell */
-        using hx = accessor<0, intent::in, extent<0, 1, 0, 1>>;
-        using ux = accessor<1, intent::in, extent<0, 1, 0, 1>>;
-        using vx = accessor<2, intent::in, extent<0, 1, 0, 1>>;
-
-        /** (input) is the flux at the bottom edge of the cell */
-        using hy = accessor<3, intent::in, extent<0, 1, 0, 1>>;
-        using uy = accessor<4, intent::in, extent<0, 1, 0, 1>>;
-        using vy = accessor<5, intent::in, extent<0, 1, 0, 1>>;
-
-        /** (output) is the solution at the cell center, computed at the previous time level */
-        using h = accessor<6, intent::inout>;
-        using u = accessor<7, intent::inout>;
-        using v = accessor<8, intent::inout>;
-
-        using param_list = make_param_list<hx, ux, vx, hy, uy, vy, h, u, v>;
         static uint_t current_time;
 
         //########## FINAL STEP #############
