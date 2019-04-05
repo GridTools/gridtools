@@ -206,8 +206,8 @@ Examples:
 
 .. note::
 
-   Only two of levels around a vertical region can be addressed in this way. This can be changed using the methods
-   described in the see :ref:`next section<vertical_regions_advanced>`.
+   Only two levels around a vertical region can be addressed in this way. This can be changed by using the method
+   described in the :ref:`next section<vertical_regions_advanced>`.
 
 
 .. _vertical_regions_advanced:
@@ -216,13 +216,13 @@ Examples:
 Advanced Functionality for Vertical Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``axis`` type has two additional template parameters to change some default restrictions:
+The ``axis`` type has an additional template parameter to change a default restriction:
 
 .. code-block:: gridtools
 
-   template <size_t NIntervals, int_t ExtraOffsetsAroundFullInterval = 0, int_t LevelOffsetLimit = 2> class axis;
+   template <size_t NIntervals, axis_config::offset_limit<int = 2>> class axis;
 
-- ``LevelOffsetLimit`` defines how many levels around each vertical region can be addressed by specialized
+- ``offset_limit`` defines how many levels around each vertical region can be addressed by specialized
   ``Apply``-methods. Increasing this value could have negative implications on compile-time.
 
 
