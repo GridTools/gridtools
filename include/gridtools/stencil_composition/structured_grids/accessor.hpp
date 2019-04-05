@@ -54,26 +54,42 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template <uint_t ID, intent Intent = intent::in, typename Extent = extent<>, size_t Number = 3>
-    struct accessor : accessor_base<Number> {
+    template <uint_t ID,
+        intent Intent = intent::in,
+        typename Extent = extent<>,
+        size_t Number = 3,
+        int_t Offset = -9999>
+    struct accessor : accessor_base<Number, Offset> {
         using index_t = static_uint<ID>;
         static constexpr intent intent_v = Intent;
         using extent_t = Extent;
 
         /**inheriting all constructors from accessor_base*/
-        using accessor_base<Number>::accessor_base;
+        using accessor_base<Number, Offset>::accessor_base;
     };
 
-    template <uint_t ID, intent Intent, typename Extent, size_t Number>
-    meta::always<accessor<ID, Intent, Extent, Number>> tuple_from_types(accessor<ID, Intent, Extent, Number> const &);
+    template <uint_t ID, intent Intent, typename Extent, size_t Number, int_t Offset>
+    meta::always<accessor<ID, Intent, Extent, Number, Offset>> tuple_from_types(
+        accessor<ID, Intent, Extent, Number, Offset> const &);
 
-    template <uint_t ID, typename Extent = extent<>, size_t Number = 3>
-    using in_accessor = accessor<ID, intent::in, Extent, Number>;
+    template <uint_t ID, typename Extent = extent<>, size_t Number = 3, int_t Offset = -9999>
+    using in_accessor = accessor<ID, intent::in, Extent, Number, Offset>;
 
-    template <uint_t ID, typename Extent = extent<>, size_t Number = 3>
-    using inout_accessor = accessor<ID, intent::inout, Extent, Number>;
+    template <uint_t ID, typename Extent = extent<>, size_t Number = 3, int_t Offset = -9999>
+    using inout_accessor = accessor<ID, intent::inout, Extent, Number, Offset>;
 
-    template <uint_t ID, intent Intent, typename Extent, size_t Number>
-    struct is_accessor<accessor<ID, Intent, Extent, Number>> : std::true_type {};
+    template <uint_t ID, intent Intent, typename Extent, size_t Number, int_t Offset>
+    struct is_accessor<accessor<ID, Intent, Extent, Number, Offset>> : std::true_type {};
+
+    template <typename Accessor, int_t Offset>
+    struct make_const_accessor;
+
+    template <uint_t ID, intent Intent, typename Extent, size_t Number, int_t Offset>
+    struct make_const_accessor<accessor<ID, Intent, Extent, Number, -9999>, Offset> {
+        using type = accessor<ID, Intent, Extent, Number, Offset>;
+    };
+
+    template <typename Accessor, int_t Offset>
+    using make_const_accessor_t = typename make_const_accessor<Accessor, Offset>::type;
 
 } // namespace gridtools

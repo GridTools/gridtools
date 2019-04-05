@@ -129,12 +129,22 @@ namespace gridtools {
          * @param acc the accessor that contains the offsets being accessed
          */
         template <class Accessor>
-        GT_FUNCTION T &at(Accessor const &acc) {
+        GT_FUNCTION enable_if_t<Accessor::offset == -9999, T> &at(Accessor const &acc) {
             int_t offset = host_device::at_key<dim::k>(acc);
             assert(offset >= Minus);
             assert(offset <= Plus);
             assert(host_device::at_key<dim::i>(acc) == 0);
             assert(host_device::at_key<dim::j>(acc) == 0);
+            return m_values[offset - Minus];
+        }
+
+        template <class Accessor>
+        GT_FUNCTION enable_if_t<Accessor::offset != -9999, T> &at(Accessor const &acc) {
+            constexpr int_t offset = Accessor::offset;
+            //            assert(offset >= Minus);
+            //            assert(offset <= Plus);
+            //            assert(host_device::at_key<dim::i>(acc) == 0);
+            //            assert(host_device::at_key<dim::j>(acc) == 0);
             return m_values[offset - Minus];
         }
 

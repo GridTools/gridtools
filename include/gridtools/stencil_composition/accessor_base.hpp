@@ -73,12 +73,13 @@ namespace gridtools {
      * @tparam Extent Bounds over which the function access the argument
      */
 
-    template <size_t Dim>
+    template <size_t Dim, int_t Offset = -9999>
     struct accessor_base : array<int_t, Dim> {
 #ifdef __INTEL_COMPILER
         int_t m_workaround = Dim;
 #endif
         using base_t = array<int_t, Dim>;
+        static constexpr int_t offset = Offset;
 
         template <class... Ints,
             enable_if_t<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value, int> = 0>
