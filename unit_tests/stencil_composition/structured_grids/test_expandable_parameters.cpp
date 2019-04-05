@@ -53,10 +53,7 @@ struct expandable_parameters_copy : expandable_parameters {
 };
 
 struct copy_functor {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
-
-    typedef make_param_list<out, in> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -67,10 +64,7 @@ struct copy_functor {
 TEST_F(expandable_parameters_copy, copy) { run_computation<copy_functor>(); }
 
 struct copy_functor_with_expression {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
-
-    typedef make_param_list<out, in> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -82,10 +76,7 @@ struct copy_functor_with_expression {
 TEST_F(expandable_parameters_copy, copy_with_expression) { run_computation<copy_functor_with_expression>(); }
 
 struct call_proc_copy_functor {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
-
-    typedef make_param_list<out, in> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -96,10 +87,7 @@ struct call_proc_copy_functor {
 TEST_F(expandable_parameters_copy, call_proc_copy) { run_computation<call_proc_copy_functor>(); }
 
 struct call_copy_functor {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
-
-    typedef make_param_list<out, in> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -110,9 +98,7 @@ struct call_copy_functor {
 TEST_F(expandable_parameters_copy, call_copy) { run_computation<call_copy_functor>(); }
 
 struct shift_functor {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
-
-    typedef make_param_list<out> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out, extent<0, 0, 0, 0, -1, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -121,9 +107,7 @@ struct shift_functor {
 };
 
 struct call_shift_functor {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
-
-    typedef make_param_list<out> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out, extent<0, 0, 0, 0, -1, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, axis<1>::full_interval::modify<1, 0>) {
