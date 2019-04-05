@@ -25,7 +25,6 @@
 #include "computation.hpp"
 #include "define_accessors.hpp"
 #include "esf.hpp"
-#include "global_accessor.hpp"
 #include "global_parameter.hpp"
 #include "grid.hpp"
 #include "make_computation.hpp"
