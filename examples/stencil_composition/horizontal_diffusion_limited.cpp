@@ -21,8 +21,6 @@
 
 namespace gt = gridtools;
 
-namespace gt = gridtools;
-
 #ifdef __CUDACC__
 using backend_t = gt::backend::cuda;
 #else
@@ -31,10 +29,7 @@ using backend_t = gt::backend::mc;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-    using out = gt::accessor<0, gt::intent::inout>;
-    using in = gt::accessor<1, gt::intent::in, gt::extent<-1, 1, -1, 1>>;
-
-    using param_list = gt::make_param_list<out, in>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in, gt::extent<-1, 1, -1, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -44,16 +39,13 @@ struct lap_function {
 };
 
 struct flx_function {
-
-    using out = gt::accessor<0, gt::intent::inout>;
-    using in = gt::accessor<1, gt::intent::in, gt::extent<0, 1, 0, 0>>;
-    using lap = gt::accessor<2, gt::intent::in, gt::extent<0, 1, 0, 0>>;
-
-    using param_list = gt::make_param_list<out, in, lap>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(in, gt::extent<0, 1, 0, 0>),
+        GT_IN_ACCESSOR(lap, gt::extent<0, 1, 0, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        // Instead of using a temporary variable we writedirectly to
+        // Instead of using a temporary variable we write directly to
         // eval(out()) twice. This will eliminate a possible thread
         // divergenge on GPUs since we can avoid to put the `else`
         // branch below
@@ -65,12 +57,9 @@ struct flx_function {
 };
 
 struct fly_function {
-
-    using out = gt::accessor<0, gt::intent::inout>;
-    using in = gt::accessor<1, gt::intent::in, gt::extent<0, 0, 0, 1>>;
-    using lap = gt::accessor<2, gt::intent::in, gt::extent<0, 0, 0, 1>>;
-
-    using param_list = gt::make_param_list<out, in, lap>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(in, gt::extent<0, 0, 0, 1>),
+        GT_IN_ACCESSOR(lap, gt::extent<0, 0, 0, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -86,14 +75,11 @@ struct fly_function {
 };
 
 struct out_function {
-
-    using out = gt::accessor<0, gt::intent::inout>;
-    using in = gt::accessor<1, gt::intent::in>;
-    using flx = gt::accessor<2, gt::intent::in, gt::extent<-1, 0, 0, 0>>;
-    using fly = gt::accessor<3, gt::intent::in, gt::extent<0, 0, -1, 0>>;
-    using coeff = gt::accessor<4, gt::intent::in>;
-
-    using param_list = gt::make_param_list<out, in, flx, fly, coeff>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(in),
+        GT_IN_ACCESSOR(flx, gt::extent<-1, 0, 0, 0>),
+        GT_IN_ACCESSOR(fly, gt::extent<0, 0, -1, 0>),
+        GT_IN_ACCESSOR(coeff));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

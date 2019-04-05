@@ -31,9 +31,7 @@ using data_store_t = gt::storage_traits<backend_t>::data_store_t<double, storage
 
 // This is the stencil operator which copies the value from `in` to `out`.
 struct copy_functor {
-    using in = gt::accessor<0, gt::intent::in>;
-    using out = gt::accessor<1, gt::intent::inout>;
-    using param_list = gt::make_param_list<in, out>;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

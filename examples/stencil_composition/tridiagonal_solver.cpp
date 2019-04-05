@@ -39,12 +39,7 @@ using full_t = axis_t::full_interval;
 
 struct forward_thomas {
     // five vectors: output, the 3 diagonals, and the right hand side
-    using out = gt::inout_accessor<0>;
-    using inf = gt::in_accessor<1>;
-    using diag = gt::in_accessor<2>;
-    using sup = gt::inout_accessor<3>;
-    using rhs = gt::inout_accessor<4>;
-    using param_list = gt::make_param_list<out, inf, diag, sup, rhs>;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(inf), GT_IN_ACCESSOR(diag), GT_INOUT_ACCESSOR(sup), GT_INOUT_ACCESSOR(rhs));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, 0>) {
@@ -61,12 +56,8 @@ struct forward_thomas {
 };
 
 struct backward_thomas {
-    using out = gt::inout_accessor<0>;
-    using inf = gt::in_accessor<1>;
-    using diag = gt::in_accessor<2>;
-    using sup = gt::inout_accessor<3>;
-    using rhs = gt::inout_accessor<4>;
-    using param_list = gt::make_param_list<out, inf, diag, sup, rhs>;
+    GT_DEFINE_ACCESSORS(
+        GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(inf), GT_IN_ACCESSOR(diag), GT_IN_ACCESSOR(sup), GT_IN_ACCESSOR(rhs));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<0, -1>) {
@@ -133,7 +124,7 @@ int main() {
         p_sup = sup,
         p_rhs = rhs,
         p_out = out,
-        gt::make_multistage(gt::execute::forward(), gt::make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
+        gt::make_multistage(gt::execute::forward(), gt::make_stage<forward_thomas>(p_inf, p_diag, p_sup, p_rhs)),
         gt::make_multistage(
             gt::execute::backward(), gt::make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)));
 

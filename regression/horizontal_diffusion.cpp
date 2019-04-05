@@ -18,10 +18,7 @@
 using namespace gridtools;
 
 struct lap_function {
-    using out = inout_accessor<0>;
-    using in = in_accessor<1, extent<-1, 1, -1, 1>>;
-
-    using param_list = make_param_list<out, in>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in, extent<-1, 1, -1, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -31,11 +28,8 @@ struct lap_function {
 };
 
 struct flx_function {
-    using out = inout_accessor<0>;
-    using in = in_accessor<1, extent<0, 1, 0, 0>>;
-    using lap = in_accessor<2, extent<0, 1, 0, 0>>;
-
-    using param_list = make_param_list<out, in, lap>;
+    GT_DEFINE_ACCESSORS(
+        GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in, extent<0, 1, 0, 0>), GT_IN_ACCESSOR(lap, extent<0, 1, 0, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -47,11 +41,8 @@ struct flx_function {
 };
 
 struct fly_function {
-    using out = inout_accessor<0>;
-    using in = in_accessor<1, extent<0, 0, 0, 1>>;
-    using lap = in_accessor<2, extent<0, 0, 0, 1>>;
-
-    using param_list = make_param_list<out, in, lap>;
+    GT_DEFINE_ACCESSORS(
+        GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in, extent<0, 0, 0, 1>), GT_IN_ACCESSOR(lap, extent<0, 0, 0, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -62,13 +53,11 @@ struct fly_function {
 };
 
 struct out_function {
-    using out = inout_accessor<0>;
-    using in = in_accessor<1>;
-    using flx = in_accessor<2, extent<-1, 0, 0, 0>>;
-    using fly = in_accessor<3, extent<0, 0, -1, 0>>;
-    using coeff = in_accessor<4>;
-
-    using param_list = make_param_list<out, in, flx, fly, coeff>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(in),
+        GT_IN_ACCESSOR(flx, extent<-1, 0, 0, 0>),
+        GT_IN_ACCESSOR(fly, extent<0, 0, -1, 0>),
+        GT_IN_ACCESSOR(coeff));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
