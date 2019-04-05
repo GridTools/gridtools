@@ -61,7 +61,7 @@ namespace gridtools {
 
             template <size_t I, class T>
             static constexpr GT_FUNCTION T &&get(tuple_leaf<I, T, false> &&obj) noexcept {
-                return static_cast<T &&>(obj.m_value);
+                return static_cast<T &&>(get<I>(obj));
             }
 
             template <size_t I, class T>
