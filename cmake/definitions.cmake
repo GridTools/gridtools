@@ -29,12 +29,12 @@ set(REQUIRED_BOOST_VERSION 1.58)
 find_package( Boost ${REQUIRED_BOOST_VERSION} REQUIRED )
 target_link_libraries( gridtools INTERFACE Boost::boost)
 
-if (GT_ENABLE_BACKEND_X86 OR GT_ENABLE_BACKEND_MC OR GT_ENABLE_BACKEND_NAIVE)
+if(OPENMP_AVAILABLE)
     target_link_libraries( gridtools INTERFACE OpenMP::OpenMP_CXX)
 endif()
 
 target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
-if( GT_ENABLE_BACKEND_CUDA )
+if(CUDA_AVAILABLE)
   target_compile_definitions(gridtools INTERFACE GT_USE_GPU)
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 8.0 )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
@@ -56,7 +56,7 @@ endif()
 # TODO decide where to put this. Probably this should go into fortran bindings
 target_compile_options(gridtools INTERFACE $<$<AND:$<CXX_COMPILER_ID:Cray>,$<COMPILE_LANGUAGE:Fortran>>:-eF>)
 
-if( GT_USE_MPI )
+if(MPI_AVAILABLE)
     target_compile_definitions(gridtools INTERFACE GCL_MPI)
     if( GT_ENABLE_BACKEND_CUDA )
       target_compile_definitions(gridtools INTERFACE GCL_GPU)

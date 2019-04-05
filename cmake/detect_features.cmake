@@ -28,7 +28,7 @@ macro(detect_cuda)
 endmacro(detect_cuda)
 
 macro(detect_openmp)
-    if (NOT DEFINED GT_ENABLE_BACKEND_X86 AND NOT DEFINED GT_ENABLE_BACKEND_MC)
+    if (NOT DEFINED GT_ENABLE_BACKEND_X86 AND NOT DEFINED GT_ENABLE_BACKEND_MC AND NOT DEFINED GT_ENABLE_BACKEND_NAIVE)
         find_package( OpenMP COMPONENTS CXX)
         if (TARGET OpenMP::OpenMP_CXX)
             set (OPENMP_AVAILABLE ON)
