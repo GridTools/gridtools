@@ -70,6 +70,9 @@ namespace gridtools {
     template <uint_t ID, typename Extent = extent<>, size_t Number = 3>
     using in_accessor = accessor<ID, intent::in, Extent, Number>;
 
+    template <uint_t ID>
+    using global_accessor = accessor<ID, intent::in, extent<>, 0>;
+
     template <uint_t ID, typename Extent = extent<>, size_t Number = 3>
     using inout_accessor = accessor<ID, intent::inout, Extent, Number>;
 
