@@ -29,4 +29,4 @@ int main() {
     std::cout << "phi_view(1, 2, 3) = " << phi_view(1, 2, 3) << std::endl;
 
     phi.sync();
-}
+} // end
