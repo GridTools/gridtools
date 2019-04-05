@@ -493,6 +493,10 @@ namespace gridtools {
         struct default_layout<backend::naive> {
             using type = layout_map<0, 1, 2, 3>;
         };
+
+        template <std::size_t N, class DimSelector>
+        using shorten_selector = GT_META_CALL(
+            meta::list_to_iseq, (GT_META_CALL(meta::take_c, (N, GT_META_CALL(meta::iseq_to_list, DimSelector)))));
     } // namespace _impl
 
     /**
@@ -503,8 +507,7 @@ namespace gridtools {
         template <typename DimSelector>
         struct select_layout {
             using layout_map_t = typename _impl::default_layout<Backend>::type;
-            using dim_selector_4d_t = GT_META_CALL(
-                meta::list_to_iseq, (GT_META_CALL(meta::take_c, (4, GT_META_CALL(meta::iseq_to_list, DimSelector)))));
+            using dim_selector_4d_t = _impl::shorten_selector<4, DimSelector>;
             using filtered_layout = typename get_special_layout<layout_map_t, dim_selector_4d_t>::type;
 
             using type = typename conditional_t<(DimSelector::size() > 4),
