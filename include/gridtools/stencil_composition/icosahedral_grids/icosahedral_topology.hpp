@@ -11,7 +11,6 @@
 
 #include "../../common/array.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
-#include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../meta/iseq_to_list.hpp"
