@@ -20,9 +20,8 @@ using namespace gridtools;
 
 template <uint_t>
 struct test_on_edges_functor {
-    using in = in_accessor<0, enumtype::edges, extent<0, 1, 0, 1>>;
-    using out = inout_accessor<1, enumtype::cells>;
-    using param_list = make_param_list<in, out>;
+    GT_DEFINE_ACCESSORS(
+        GT_IN_ACCESSOR(in, enumtype::edges, extent<0, 1, 0, 1>), GT_INOUT_ACCESSOR(out, enumtype::cells));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -32,9 +31,8 @@ struct test_on_edges_functor {
 
 template <uint_t>
 struct test_on_cells_functor {
-    using in = in_accessor<0, enumtype::cells, extent<-1, 1, -1, 1>>;
-    using out = inout_accessor<1, enumtype::cells>;
-    using param_list = make_param_list<in, out>;
+    GT_DEFINE_ACCESSORS(
+        GT_IN_ACCESSOR(in, enumtype::cells, extent<-1, 1, -1, 1>), GT_INOUT_ACCESSOR(out, enumtype::cells));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

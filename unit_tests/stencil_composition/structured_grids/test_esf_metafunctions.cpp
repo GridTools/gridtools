@@ -18,83 +18,69 @@
 using namespace gridtools;
 
 struct functor0 {
-    typedef accessor<0, intent::in, extent<0, 0, -1, 3, -2, 0>> in0;
-    typedef accessor<1, intent::in, extent<-1, 1, 0, 2, -1, 2>> in1;
-    typedef accessor<2, intent::in, extent<-3, 3, -1, 2, 0, 1>> in2;
-    typedef accessor<3, intent::inout> out;
-
-    typedef make_param_list<in0, in1, in2, out> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in0, extent<0, 0, -1, 3, -2, 0>),
+        GT_IN_ACCESSOR(in1, extent<-1, 1, 0, 2, -1, 2>),
+        GT_IN_ACCESSOR(in2, extent<-3, 3, -1, 2, 0, 1>),
+        GT_INOUT_ACCESSOR(out));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation);
 };
 
 struct functor1 {
-    typedef accessor<0, intent::in, extent<0, 1, -1, 2, 0, 0>> in0;
-    typedef accessor<1, intent::inout> out;
-    typedef accessor<2, intent::in, extent<-3, 0, -3, 0, 0, 2>> in2;
-    typedef accessor<3, intent::in, extent<0, 2, 0, 2, -2, 3>> in3;
-
-    typedef make_param_list<in0, out, in2, in3> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in0, extent<0, 1, -1, 2, 0, 0>),
+        GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(in2, extent<-3, 0, -3, 0, 0, 2>),
+        GT_IN_ACCESSOR(in3, extent<0, 2, 0, 2, -2, 3>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation);
 };
 
 struct functor2 {
-    typedef accessor<0, intent::in, extent<-3, 3, -1, 0, -2, 1>> in0;
-    typedef accessor<1, intent::in, extent<-3, 1, -2, 1, 0, 2>> in1;
-    typedef accessor<2, intent::inout> out;
-
-    typedef make_param_list<in0, in1, out> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in0, extent<-3, 3, -1, 0, -2, 1>),
+        GT_IN_ACCESSOR(in1, extent<-3, 1, -2, 1, 0, 2>),
+        GT_INOUT_ACCESSOR(out));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation);
 };
 
 struct functor3 {
-    typedef accessor<0, intent::in, extent<0, 3, 0, 1, -2, 0>> in0;
-    typedef accessor<1, intent::in, extent<-2, 3, 0, 2, -3, 1>> in1;
-    typedef accessor<2, intent::inout> out;
-    typedef accessor<3, intent::in, extent<-1, 3, -3, 0, -3, 2>> in3;
-
-    typedef make_param_list<in0, in1, out, in3> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in0, extent<0, 3, 0, 1, -2, 0>),
+        GT_IN_ACCESSOR(in1, extent<-2, 3, 0, 2, -3, 1>),
+        GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(in3, extent<-1, 3, -3, 0, -3, 2>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation);
 };
 
 struct functor4 {
-    typedef accessor<0, intent::in, extent<0, 3, -2, 1, -3, 2>> in0;
-    typedef accessor<1, intent::in, extent<-2, 3, 0, 3, -3, 2>> in1;
-    typedef accessor<2, intent::in, extent<-1, 1, 0, 3, 0, 3>> in2;
-    typedef accessor<3, intent::inout> out;
-
-    typedef make_param_list<in0, in1, in2, out> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in0, extent<0, 3, -2, 1, -3, 2>),
+        GT_IN_ACCESSOR(in1, extent<-2, 3, 0, 3, -3, 2>),
+        GT_IN_ACCESSOR(in2, extent<-1, 1, 0, 3, 0, 3>),
+        GT_INOUT_ACCESSOR(out));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation);
 };
 
 struct functor5 {
-    typedef accessor<0, intent::in, extent<-3, 1, -1, 2, -1, 1>> in0;
-    typedef accessor<1, intent::in, extent<0, 1, -2, 2, 0, 3>> in1;
-    typedef accessor<2, intent::in, extent<0, 2, 0, 3, -1, 2>> in2;
-    typedef accessor<3, intent::inout> out;
-
-    typedef make_param_list<in0, in1, in2, out> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in0, extent<-3, 1, -1, 2, -1, 1>),
+        GT_IN_ACCESSOR(in1, extent<0, 1, -2, 2, 0, 3>),
+        GT_IN_ACCESSOR(in2, extent<0, 2, 0, 3, -1, 2>),
+        GT_INOUT_ACCESSOR(out));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation);
 };
 
 struct functor6 {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in, extent<0, 3, -3, 2, 0, 0>> in1;
-    typedef accessor<2, intent::in, extent<-3, 2, 0, 2, -1, 2>> in2;
-    typedef accessor<3, intent::in, extent<-1, 0, -1, 0, -1, 3>> in3;
-
-    typedef make_param_list<out, in1, in2, in3> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out),
+        GT_IN_ACCESSOR(in0, extent<0, 3, -3, 2, 0, 0>),
+        GT_IN_ACCESSOR(in1, extent<-3, 2, 0, 2, -1, 2>),
+        GT_IN_ACCESSOR(in3, extent<-1, 0, -1, 0, -1, 3>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation);

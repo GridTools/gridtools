@@ -60,13 +60,10 @@ namespace ico_operators {
 
     template <uint_t Color>
     struct curl_functor_flow_convention {
-        //        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR());
-        using in_edges = in_accessor<0, edges, extent<-1, 0, -1, 0>>;
-        using dual_area_reciprocal = in_accessor<1, vertices>;
-        using dual_edge_length = in_accessor<2, edges, extent<-1, 0, -1, 0>>;
-        using out_vertices = inout_accessor<3, vertices>;
-
-        using param_list = make_param_list<in_edges, dual_area_reciprocal, dual_edge_length, out_vertices>;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in_edges, edges, extent<-1, 0, -1, 0>),
+            GT_IN_ACCESSOR(dual_area_reciprocal, vertices),
+            GT_IN_ACCESSOR(dual_edge_length, edges, extent<-1, 0, -1, 0>),
+            GT_INOUT_ACCESSOR(out_vertices, vertices));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {

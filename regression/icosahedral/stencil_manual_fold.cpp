@@ -34,9 +34,8 @@ using namespace expressions;
 
 template <uint_t Color>
 struct test_on_edges_functor {
-    using cell_area = in_accessor<0, enumtype::cells, extent<1>>;
-    using weight_edges = inout_accessor<1, enumtype::cells, 5>;
-    using param_list = make_param_list<cell_area, weight_edges>;
+    GT_DEFINE_ACCESSORS(
+        GT_IN_ACCESSOR(cell_area, enumtype::cells, extent<1>), GT_INOUT_ACCESSOR(weight_edges, enumtype::cells, 5));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

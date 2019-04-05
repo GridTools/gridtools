@@ -60,9 +60,7 @@ namespace {
     struct forced_tag {};
 
     struct simple_callee_with_forced_return_type {
-        typedef in_accessor<0> in;
-        typedef inout_accessor<1> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -75,9 +73,7 @@ namespace {
     };
 
     struct simple_caller_with_forced_return_type {
-        typedef in_accessor<0> in;
-        typedef inout_accessor<1> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -101,9 +97,7 @@ TEST_F(call_stress_types, simple_force_return_type) {
 
 namespace {
     struct simple_callee_with_deduced_return_type {
-        typedef in_accessor<0> in;
-        typedef inout_accessor<1> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -116,9 +110,7 @@ namespace {
     };
 
     struct simple_caller_with_deduced_return_type {
-        typedef in_accessor<0> in;
-        typedef inout_accessor<1> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -143,11 +135,7 @@ namespace {
     struct local_tag {};
 
     struct triple_nesting_with_type_switching_third_stage {
-        typedef in_accessor<0> in2;
-        typedef in_accessor<1> local;
-        typedef inout_accessor<2> out;
-        typedef in_accessor<3> in1;
-        typedef make_param_list<in2, local, out, in1> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in2), GT_IN_ACCESSOR(local), GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in1));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -167,10 +155,7 @@ namespace {
     };
 
     struct triple_nesting_with_type_switching_second_stage {
-        typedef in_accessor<0> in1;
-        typedef inout_accessor<1> out;
-        typedef in_accessor<2> in2;
-        typedef make_param_list<in1, out, in2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in1), GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in2));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -193,10 +178,7 @@ namespace {
     };
 
     struct triple_nesting_with_type_switching_first_stage {
-        typedef in_accessor<0> in1;
-        typedef inout_accessor<1> out;
-        typedef in_accessor<2> in2;
-        typedef make_param_list<in1, out, in2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in1), GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in2));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -228,10 +210,7 @@ TEST_F(call_stress_types, triple_nesting_with_type_switching) {
 
 namespace {
     struct triple_nesting_with_type_switching_and_call_proc_second_stage {
-        typedef in_accessor<0> in1;
-        typedef inout_accessor<1> out;
-        typedef in_accessor<2> in2;
-        typedef make_param_list<in1, out, in2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in1), GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in2));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -255,10 +234,7 @@ namespace {
     };
 
     struct triple_nesting_with_type_switching_and_call_proc_first_stage {
-        typedef in_accessor<0> in1;
-        typedef inout_accessor<1> out;
-        typedef in_accessor<2> in2;
-        typedef make_param_list<in1, out, in2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in1), GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in2));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {

@@ -25,9 +25,7 @@ namespace call_interface_functors {
     using smaller_interval = x_interval::modify<1, -1>;
 
     struct copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
@@ -35,10 +33,7 @@ namespace call_interface_functors {
     };
 
     struct copy_functor_with_add {
-        typedef inout_accessor<0, extent<>, 3> out;
-        typedef in_accessor<1, extent<>, 3> in1;
-        typedef in_accessor<2, extent<>, 3> in2;
-        typedef make_param_list<out, in1, in2> param_list;
+        GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in1), GT_IN_ACCESSOR(in2));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in1()) + eval(in2());
@@ -48,9 +43,7 @@ namespace call_interface_functors {
     // The implementation is different depending on the position of the out accessor in the callee, as the position of
     // the input accessors in the call has to be shifted when it is not in the last position.
     struct copy_functor_with_out_first {
-        typedef inout_accessor<0, extent<>, 3> out;
-        typedef in_accessor<1, extent<>, 3> in;
-        typedef make_param_list<out, in> param_list;
+        GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
@@ -58,9 +51,7 @@ namespace call_interface_functors {
     };
 
     struct call_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor, x_interval>::with(eval, in());
@@ -68,9 +59,7 @@ namespace call_interface_functors {
     };
 
     struct call_copy_functor_with_local_variable {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             float_type local = 1.;
@@ -79,9 +68,7 @@ namespace call_interface_functors {
     };
 
     struct call_copy_functor_with_local_variable2 {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             float_type local = 1.;
@@ -90,9 +77,7 @@ namespace call_interface_functors {
     };
 
     struct call_copy_functor_with_out_first {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor_with_out_first, x_interval>::with(eval, in());
@@ -100,9 +85,7 @@ namespace call_interface_functors {
     };
 
     struct copy_functor_with_expression {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in() + 0.);
@@ -110,9 +93,7 @@ namespace call_interface_functors {
     };
 
     struct call_copy_functor_with_expression {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor_with_expression, x_interval>::with(eval, in());
@@ -120,9 +101,7 @@ namespace call_interface_functors {
     };
 
     struct call_at_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor, x_interval>::at<1, 1, 0>::with(eval, in());
@@ -130,9 +109,7 @@ namespace call_interface_functors {
     };
 
     struct call_with_offsets_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor, x_interval>::with(eval, in(1, 1, 0));
@@ -140,9 +117,7 @@ namespace call_interface_functors {
     };
 
     struct copy_functor_default_interval {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
@@ -150,9 +125,7 @@ namespace call_interface_functors {
     };
 
     struct call_copy_functor_default_interval {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = call<copy_functor_default_interval>::with(eval, in());
@@ -160,9 +133,7 @@ namespace call_interface_functors {
     };
 
     struct call_copy_functor_default_interval_from_smaller_interval {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, smaller_interval) {
             eval(out()) = call<copy_functor_default_interval>::with(eval, in());
@@ -170,9 +141,7 @@ namespace call_interface_functors {
     };
 
     struct call_copy_functor_default_interval_with_offset_in_k {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = call<copy_functor_default_interval>::at<0, 0, -1>::with(eval, in(0, 0, 1));
@@ -180,9 +149,7 @@ namespace call_interface_functors {
     };
 
     struct call_at_with_offsets_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<copy_functor, x_interval>::at<-1, -1, 0>::with(eval, in(1, 1, 0));
@@ -190,9 +157,7 @@ namespace call_interface_functors {
     };
 
     struct call_call_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_copy_functor, x_interval>::with(eval, in());
@@ -200,9 +165,7 @@ namespace call_interface_functors {
     };
 
     struct call_call_at_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_at_copy_functor, x_interval>::with(eval, in());
@@ -210,9 +173,7 @@ namespace call_interface_functors {
     };
 
     struct call_call_with_offsets_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_with_offsets_copy_functor, x_interval>::with(eval, in());
@@ -220,9 +181,7 @@ namespace call_interface_functors {
     };
 
     struct call_at_call_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_copy_functor, x_interval>::at<1, 1, 0>::with(eval, in());
@@ -230,9 +189,7 @@ namespace call_interface_functors {
     };
 
     struct call_at_call_at_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_at_copy_functor, x_interval>::at<-1, -1, 0>::with(eval, in());
@@ -240,9 +197,7 @@ namespace call_interface_functors {
     };
 
     struct call_with_offsets_call_at_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_at_copy_functor, x_interval>::with(eval, in(-1, -1, 0));
@@ -250,9 +205,7 @@ namespace call_interface_functors {
     };
 
     struct call_at_call_with_offsets_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_with_offsets_copy_functor, x_interval>::at<-1, -1, 0>::with(eval, in());
@@ -260,9 +213,7 @@ namespace call_interface_functors {
     };
 
     struct call_with_offsets_call_with_offsets_copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = call<call_with_offsets_copy_functor, x_interval>::with(eval, in(-1, -1, 0));
@@ -529,9 +480,7 @@ namespace call_proc_interface_functors {
     using x_interval = axis_t::full_interval;
 
     struct copy_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
@@ -539,9 +488,7 @@ namespace call_proc_interface_functors {
     };
 
     struct copy_functor_with_expression {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = eval(in() + 0.);
@@ -549,9 +496,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_copy_functor_with_expression {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_functor_with_expression, x_interval>::with(eval, in(), out());
@@ -559,10 +504,7 @@ namespace call_proc_interface_functors {
     };
 
     struct copy_twice_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out1;
-        typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_param_list<in, out1, out2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out1), GT_INOUT_ACCESSOR(out2));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out1()) = eval(in());
@@ -571,10 +513,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_copy_twice_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out1;
-        typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_param_list<in, out1, out2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out1), GT_INOUT_ACCESSOR(out2));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_twice_functor, x_interval>::with(eval, in(), out1(), out2());
@@ -582,10 +521,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_with_offsets_copy_twice_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out1;
-        typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_param_list<in, out1, out2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out1), GT_INOUT_ACCESSOR(out2));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_twice_functor, x_interval>::with(eval, in(1, 1, 0), out1(), out2());
@@ -593,10 +529,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_at_with_offsets_copy_twice_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out1;
-        typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_param_list<in, out1, out2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out1), GT_INOUT_ACCESSOR(out2));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_twice_functor, x_interval>::at<1, 1, 0>::with(
@@ -605,9 +538,7 @@ namespace call_proc_interface_functors {
     };
 
     struct copy_functor_default_interval {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
@@ -615,9 +546,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_copy_functor_default_interval {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
             call_proc<copy_functor_default_interval>::with(eval, in(), out());
@@ -625,9 +554,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_copy_functor_default_interval_with_offset_in_k {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<copy_functor_default_interval>::at<0, 0, -1>::with(eval, in(0, 0, 1), out(0, 0, 1));
@@ -635,10 +562,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_call_copy_twice_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out1;
-        typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_param_list<in, out1, out2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out1), GT_INOUT_ACCESSOR(out2));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<call_copy_twice_functor, x_interval>::with(eval, in(), out1(), out2());
@@ -646,10 +570,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_with_offsets_call_copy_twice_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out1;
-        typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_param_list<in, out1, out2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out1), GT_INOUT_ACCESSOR(out2));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<call_copy_twice_functor, x_interval>::with(eval, in(1, 1, 0), out1(), out2());
@@ -657,10 +578,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_with_offsets_call_with_offsets_copy_twice_functor {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out1;
-        typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_param_list<in, out1, out2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out1), GT_INOUT_ACCESSOR(out2));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<call_with_offsets_copy_twice_functor, x_interval>::with(eval, in(-1, -1, 0), out1(), out2());
@@ -668,10 +586,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_with_local_variable {
-        typedef in_accessor<0, extent<>, 3> in;
-        typedef inout_accessor<1, extent<>, 3> out1;
-        typedef inout_accessor<2, extent<>, 3> out2;
-        typedef make_param_list<in, out1, out2> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out1), GT_INOUT_ACCESSOR(out2));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             double local_in = 1;
@@ -686,8 +601,7 @@ namespace call_proc_interface_functors {
     };
 
     struct functor_where_index_of_accessor_is_shifted_inner {
-        typedef inout_accessor<0, extent<>, 3> out;
-        typedef make_param_list<out> param_list;
+        GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(out()) = 1.;
@@ -695,9 +609,7 @@ namespace call_proc_interface_functors {
     };
 
     struct functor_where_index_of_accessor_is_shifted {
-        typedef inout_accessor<0, extent<>, 3> local_out;
-        typedef inout_accessor<1, extent<>, 3> out;
-        typedef make_param_list<local_out, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(local_out), GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             call_proc<functor_where_index_of_accessor_is_shifted_inner, x_interval>::with(eval, out());
@@ -705,8 +617,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_with_nested_calls_and_shifted_accessor_index {
-        typedef inout_accessor<0, extent<>, 3> out;
-        typedef make_param_list<out> param_list;
+        GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out));
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             double local_out;

@@ -31,9 +31,8 @@ typedef arg<1, storage_type> p_buff;
 typedef arg<3, storage_type> p_notin;
 
 struct functor2 {
-    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 0>> in;
-    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
-    typedef make_param_list<in, out> param_list;
+    GT_DEFINE_ACCESSORS(
+        GT_IN_ACCESSOR(in, extent<0, 0, 0, 0, -1, 0>), GT_INOUT_ACCESSOR(out, extent<0, 0, 0, 0, 0, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval);

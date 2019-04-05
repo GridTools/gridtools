@@ -23,9 +23,7 @@ namespace cs_test {
 
     template <uint_t Color>
     struct test_functor {
-        typedef in_accessor<0, icosahedral_topology_t::cells, extent<1>> in;
-        typedef inout_accessor<1, icosahedral_topology_t::cells> out;
-        typedef make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in, enumtype::cells, extent<1>), GT_INOUT_ACCESSOR(out, enumtype::cells));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {

@@ -20,12 +20,10 @@ namespace ico_operators {
 
     template <uint_t Color>
     struct div_prep_functor {
-        using edge_length = in_accessor<0, edges, extent<0, 1, 0, 1>>;
-        using cell_area_reciprocal = in_accessor<1, cells>;
-        using orientation_of_normal = in_accessor<2, cells, extent<>, 5>;
-        using weights = inout_accessor<3, cells, 5>;
-
-        using param_list = make_param_list<edge_length, cell_area_reciprocal, orientation_of_normal, weights>;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(edge_length, edges, extent<0, 1, 0, 1>),
+            GT_IN_ACCESSOR(cell_area_reciprocal, cells),
+            GT_IN_ACCESSOR(orientation_of_normal, cells, extent<>, 5),
+            GT_INOUT_ACCESSOR(weights, cells, 5));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {
@@ -42,11 +40,9 @@ namespace ico_operators {
 
     template <uint_t Color>
     struct div_functor_reduction_into_scalar {
-        using in_edges = in_accessor<0, edges, extent<0, 1, 0, 1>>;
-        using weights = in_accessor<1, cells, extent<>, 5>;
-        using out_cells = inout_accessor<2, cells>;
-
-        using param_list = make_param_list<in_edges, weights, out_cells>;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in_edges, edges, extent<0, 1, 0, 1>),
+            GT_IN_ACCESSOR(weights, cells, extent<>, 5),
+            GT_INOUT_ACCESSOR(out_cells, cells));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {
@@ -65,12 +61,10 @@ namespace ico_operators {
 
     template <uint_t Color>
     struct div_functor_flow_convention_connectivity {
-        using in_edges = in_accessor<0, edges, extent<0, 1, 0, 1>>;
-        using edge_length = in_accessor<1, edges, extent<0, 1, 0, 1>>;
-        using cell_area_reciprocal = in_accessor<2, cells>;
-        using out_cells = inout_accessor<3, cells>;
-
-        using param_list = make_param_list<in_edges, edge_length, cell_area_reciprocal, out_cells>;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in_edges, edges, extent<0, 1, 0, 1>),
+            GT_IN_ACCESSOR(edge_length, edges, extent<0, 1, 0, 1>),
+            GT_IN_ACCESSOR(cell_area_reciprocal, cells),
+            GT_INOUT_ACCESSOR(out_cells, cells));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {

@@ -33,9 +33,7 @@ namespace gridtools {
         };
 
         struct functor1 {
-            using in = in_accessor<0>;
-            using out = inout_accessor<1>;
-            using param_list = make_param_list<in, out>;
+            GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval) {
@@ -56,9 +54,7 @@ namespace gridtools {
         }
 
         struct functor2 {
-            using in = in_accessor<0, extent<-1, 1, -1, 1>>;
-            using out = inout_accessor<1>;
-            using param_list = make_param_list<in, out>;
+            GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in, extent<-1, 1, -1, 1>), GT_INOUT_ACCESSOR(out));
 
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval) {
@@ -82,9 +78,7 @@ namespace gridtools {
         }
 
         struct functor3 {
-            using in = in_accessor<0>;
-            using out = inout_accessor<1>;
-            using param_list = make_param_list<in, out>;
+            GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval) {

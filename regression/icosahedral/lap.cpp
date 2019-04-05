@@ -22,13 +22,11 @@ using namespace ico_operators;
 
 template <uint_t Color>
 struct lap_functor {
-    typedef in_accessor<0, enumtype::cells, extent<-1, 0, -1, 0>> in_cells;
-    typedef in_accessor<1, enumtype::edges> dual_edge_length_reciprocal;
-    typedef in_accessor<2, enumtype::vertices, extent<0, 1, 0, 1>> in_vertices;
-    typedef in_accessor<3, enumtype::edges> edge_length_reciprocal;
-    typedef inout_accessor<4, enumtype::edges> out_edges;
-    using param_list =
-        make_param_list<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in_cells, enumtype::cells, extent<-1, 0, -1, 0>),
+        GT_IN_ACCESSOR(dual_edge_length_reciprocal, enumtype::edges),
+        GT_IN_ACCESSOR(in_vertices, enumtype::vertices, extent<0, 1, 0, 1>),
+        GT_IN_ACCESSOR(edge_length_reciprocal, enumtype::edges),
+        GT_INOUT_ACCESSOR(out_edges, enumtype::edges));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

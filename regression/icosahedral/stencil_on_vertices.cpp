@@ -20,9 +20,8 @@ using namespace gridtools;
 
 template <uint_t>
 struct test_on_vertices_functor {
-    using in = in_accessor<0, enumtype::vertices, extent<-1, 1, -1, 1>>;
-    using out = inout_accessor<1, enumtype::vertices>;
-    using param_list = make_param_list<in, out>;
+    GT_DEFINE_ACCESSORS(
+        GT_IN_ACCESSOR(in, enumtype::vertices, extent<-1, 1, -1, 1>), GT_INOUT_ACCESSOR(out, enumtype::vertices));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
