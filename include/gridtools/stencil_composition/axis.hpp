@@ -30,7 +30,7 @@ namespace gridtools {
     /**
      * Defines an axis_interval_t which spans the whole axis.
      * @param NIntervals Number of intervals the axis should support
-     * @param LevelOffsetLimit Maximum offset relative to the splitter position
+     * @param LevelOffsetLimit Maximum offset relative to the splitter position that is required to specify the intervals
      * @param (non-API) ExtraOffsetsAroundFullInterval Special case when access of k-values around the full_interval
      * (i.e. after the last or before the first splitter value) are needed. (Note that the default interval will span
      * the whole axis_interval_t.)
