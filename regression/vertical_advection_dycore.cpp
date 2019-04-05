@@ -23,7 +23,7 @@
 using namespace gridtools;
 
 // This is the definition of the special regions in the "vertical" direction
-using axis_t = axis<1, 0, 3>;
+using axis_t = axis<1, axis_config::offset_limit<3>>;
 using full_t = axis_t::full_interval;
 
 struct u_forward_function {
