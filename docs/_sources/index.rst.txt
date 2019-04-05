@@ -1,4 +1,7 @@
 
+GridTools
+=========
+
 Welcome to the documentation of the GridTools framework. Please visit
 our `github <https://github.com/GridTools/gridtools>`_ repository for more information.
 
