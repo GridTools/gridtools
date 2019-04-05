@@ -38,7 +38,7 @@ macro(detect_openmp)
             message (STATUS "OpenMP NOT found")
         endif ()
 
-    elseif (GT_ENABLE_BACKEND_X86 OR GT_ENABLE_BACKEND_MC)
+    elseif (GT_ENABLE_BACKEND_X86 OR GT_ENABLE_BACKEND_MC OR GT_ENABLE_BACKEND_NAIVE)
         find_package( OpenMP REQUIRED COMPONENTS CXX)
         set (OPENMP_AVAILABLE ON)
         message (STATUS "OpenMP found")
