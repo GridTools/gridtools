@@ -9,9 +9,57 @@
  */
 #pragma once
 
+#include <boost/preprocessor.hpp>
+
 #ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./structured_grids/accessor.hpp"
 #include "./structured_grids/accessor_mixed.hpp"
 #else
 #include "./icosahedral_grids/accessor.hpp"
 #endif
+
+namespace gridtools {
+    /**
+       This is a syntactic token which is used to declare the public interface of a stencil operator.
+       This is used to define the tuple of arguments/accessors that a stencil operator expects.
+     */
+    template <class...>
+    struct make_param_list;
+} // namespace gridtools
+
+#define GT_DEFINE_ACCESSORS_IMPL_NAME_FROM_DEF_OP(seq, data, accessor_def) BOOST_PP_SEQ_ELEM(1, accessor_def)
+
+#define GT_DEFINE_ACCESSORS_IMPL_TYPEDEF_OP(r, data, i, accessor_def) \
+    using BOOST_PP_SEQ_ELEM(1, accessor_def) = BOOST_PP_SEQ_ELEM(     \
+        0, accessor_def)<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_REPLACE(BOOST_PP_SEQ_TAIL(accessor_def), 0, i))>;
+
+#define GT_DEFINE_ACCESSORS_IMPL(accessor_def_sec)                                    \
+    BOOST_PP_SEQ_FOR_EACH_I(GT_DEFINE_ACCESSORS_IMPL_TYPEDEF_OP, 0, accessor_def_sec) \
+    using param_list = ::gridtools::make_param_list<BOOST_PP_SEQ_ENUM(                \
+        BOOST_PP_SEQ_TRANSFORM(GT_DEFINE_ACCESSORS_IMPL_NAME_FROM_DEF_OP, 0, accessor_def_sec))>
+
+/**
+ *  Micro EDSL for defining accessors within stencil functors
+ *
+ *   Usage example:
+ *
+ *   struct my_fun {
+ *       GT_DEFINE_ACCESSORS(
+ *         GT_INOUT_ACCESSOR(out),
+ *         GT_IN_ACCESSOR(in, extent<-1, 1>)
+ *       );
+ *
+ *       template <class Eval>
+ *       static GT_FUNCTION void apply(Eval eval) {
+ *          eval(out()) = (eval(in(-1)) + eval(in(1))) / 2;
+ *       }
+ *   };
+ *
+ */
+
+#define GT_INOUT_ACCESSOR(...) BOOST_PP_VARIADIC_TO_SEQ(::gridtools::inout_accessor, __VA_ARGS__)
+#define GT_IN_ACCESSOR(...) BOOST_PP_VARIADIC_TO_SEQ(::gridtools::in_accessor, __VA_ARGS__)
+#define GT_INOUT_ACCESSOR(...) BOOST_PP_VARIADIC_TO_SEQ(::gridtools::inout_accessor, __VA_ARGS__)
+#define GT_GLOBAL_ACCESSOR(name) (::gridtools::global_accessor)(name)
+
+#define GT_DEFINE_ACCESSORS(...) GT_DEFINE_ACCESSORS_IMPL(BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))

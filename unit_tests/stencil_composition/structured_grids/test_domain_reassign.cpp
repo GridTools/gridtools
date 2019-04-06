@@ -16,7 +16,6 @@
 #include <gridtools/stencil_composition/accessor.hpp>
 #include <gridtools/stencil_composition/arg.hpp>
 #include <gridtools/stencil_composition/computation.hpp>
-#include <gridtools/stencil_composition/define_accessors.hpp>
 #include <gridtools/stencil_composition/grid.hpp>
 #include <gridtools/stencil_composition/make_computation.hpp>
 #include <gridtools/stencil_composition/make_stage.hpp>
