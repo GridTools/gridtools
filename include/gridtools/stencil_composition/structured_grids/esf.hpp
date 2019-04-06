@@ -55,7 +55,7 @@ namespace gridtools {
             "The list of accessors in a user functor (i.e. the param_list type to be defined on each functor) does not "
             "have increasing index");
         GT_STATIC_ASSERT(meta::length<typename EsfFunction::param_list>::value == meta::length<Args>::value,
-            "The number of actual aerguments should match the number of parameters.");
+            "The number of actual arguments should match the number of parameters.");
 
         using esf_function_t = EsfFunction;
         using args_t = Args;

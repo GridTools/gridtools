@@ -20,20 +20,18 @@ namespace test_intermediate {
     using namespace gridtools;
 
     struct stage1 {
-        using in1 = accessor<0, intent::in, extent<0, 1, -1, 0, 0, 1>>;
-        using in2 = accessor<1, intent::in, extent<0, 1, -1, 0, -1, 1>>;
-        using out = accessor<2, intent::inout, extent<>>;
-        using param_list = make_param_list<in1, in2, out>;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in1, extent<0, 1, -1, 0, 0, 1>),
+            GT_IN_ACCESSOR(in2, extent<0, 1, -1, 0, -1, 1>),
+            GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &) {}
     };
 
     struct stage2 {
-        using in1 = accessor<0, intent::in, extent<-1, 0, 0, 1, -1, 0>>;
-        using in2 = accessor<1, intent::in, extent<-1, 1, -1, 0, -1, 1>>;
-        using out = accessor<2, intent::inout, extent<>>;
-        using param_list = make_param_list<in1, in2, out>;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in1, extent<-1, 0, 0, 1, -1, 0>),
+            GT_IN_ACCESSOR(in2, extent<-1, 1, -1, 0, -1, 1>),
+            GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &) {}

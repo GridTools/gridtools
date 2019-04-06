@@ -29,9 +29,7 @@ namespace {
 
     template <typename Axis>
     struct parallel_functor {
-        typedef accessor<0> in;
-        typedef accessor<1, intent::inout> out;
-        typedef gridtools::make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<0>) {
@@ -45,9 +43,7 @@ namespace {
 
     template <typename Axis>
     struct parallel_functor_on_upper_interval {
-        typedef accessor<0> in;
-        typedef accessor<1, intent::inout> out;
-        typedef gridtools::make_param_list<in, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {

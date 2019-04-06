@@ -31,12 +31,9 @@
 namespace gridtools {
     namespace {
 
-        using in_acc = in_accessor<0, extent<>, 4>;
-        using buff_acc = in_accessor<1>;
-        using out_acc = inout_accessor<2, extent<>, 2>;
-
         struct dummy_functor {
-            using param_list = make_param_list<in_acc, buff_acc, out_acc>;
+            GT_DEFINE_ACCESSORS(
+                GT_IN_ACCESSOR(in_acc, extent<>, 4), GT_IN_ACCESSOR(buff_acc), GT_INOUT_ACCESSOR(out_acc, extent<>, 2));
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval);
         };
@@ -107,19 +104,19 @@ namespace gridtools {
             auto inv = make_host_view(in);
             inv(0, 0, 0, 0) = 0.; // is accessor<0>
 
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_in), intent::in>(in_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_in), intent::in>(dummy_functor::in_acc())));
 
             // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
             auto buffv = make_host_view(buff);
             buffv(0, 0, 0) = 0.; // is accessor<1>
 
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_buff), intent::in>(buff_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_buff), intent::in>(dummy_functor::buff_acc())));
 
             auto outv = make_host_view(out);
             outv(0, 0) = 0.; // is accessor<2>
 
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), intent::inout>(out_acc())));
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), intent::inout>(out_acc(0, 0))));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), intent::inout>(dummy_functor::out_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), intent::inout>(dummy_functor::out_acc(0, 0))));
 
             // check index initialization and increment
 

@@ -17,10 +17,7 @@ using namespace expressions;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct shift_acc_forward_fill_and_flush {
-
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> in;
-
-    typedef make_param_list<in> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(in, extent<0, 0, 0, 0, -1, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kbody_high) {
@@ -33,10 +30,7 @@ struct shift_acc_forward_fill_and_flush {
 };
 
 struct shift_acc_backward_fill_and_flush {
-
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, 0, 1>> in;
-
-    typedef make_param_list<in> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(in, extent<0, 0, 0, 0, 0, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kbody_low) {
@@ -49,10 +43,7 @@ struct shift_acc_backward_fill_and_flush {
 };
 
 struct copy_fill {
-
-    typedef accessor<0, intent::inout> in;
-
-    typedef make_param_list<in> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(in));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kfull) {
@@ -61,10 +52,7 @@ struct copy_fill {
 };
 
 struct scale_fill {
-
-    typedef accessor<0, intent::inout> in;
-
-    typedef make_param_list<in> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(in));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kfull) {
@@ -199,10 +187,7 @@ TEST_F(kcachef, fill_scale_forward) {
 }
 
 struct do_nothing {
-
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 1>> in;
-
-    typedef make_param_list<in> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(in, extent<0, 0, 0, 0, -1, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kminimum) {}

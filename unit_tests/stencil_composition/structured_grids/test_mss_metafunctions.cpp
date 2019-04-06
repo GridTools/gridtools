@@ -19,9 +19,7 @@ using namespace gridtools;
 using namespace execute;
 
 struct functor1 {
-    typedef accessor<0> in;
-    typedef accessor<1> out;
-    typedef make_param_list<in, out> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {}

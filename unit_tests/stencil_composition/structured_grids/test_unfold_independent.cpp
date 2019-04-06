@@ -17,10 +17,7 @@
 namespace gridtools {
     namespace {
         struct functor {
-            using a0 = accessor<0, intent::inout>;
-            using a1 = accessor<1, intent::inout>;
-
-            using param_list = make_param_list<a0, a1>;
+            GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(a0), GT_INOUT_ACCESSOR(a1));
         };
 
         struct fake_storage_type {

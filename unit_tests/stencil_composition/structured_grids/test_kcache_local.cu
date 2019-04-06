@@ -15,12 +15,7 @@
 using namespace gridtools;
 
 struct shif_acc_forward {
-
-    typedef accessor<0, intent::in, extent<>> in;
-    typedef accessor<1, intent::inout, extent<>> out;
-    typedef accessor<2, intent::inout, extent<0, 0, 0, 0, -1, 0>> buff;
-
-    typedef make_param_list<in, out, buff> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out), GT_INOUT_ACCESSOR(buff, extent<0, 0, 0, 0, -1, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
@@ -37,12 +32,7 @@ struct shif_acc_forward {
 };
 
 struct biside_large_kcache_forward {
-
-    typedef accessor<0, intent::in, extent<>> in;
-    typedef accessor<1, intent::inout, extent<>> out;
-    typedef accessor<2, intent::inout, extent<0, 0, 0, 0, -2, 1>> buff;
-
-    typedef make_param_list<in, out, buff> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out), GT_INOUT_ACCESSOR(buff, extent<0, 0, 0, 0, -2, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
@@ -70,12 +60,7 @@ struct biside_large_kcache_forward {
 };
 
 struct biside_large_kcache_backward {
-
-    typedef accessor<0, intent::in, extent<>> in;
-    typedef accessor<1, intent::inout, extent<>> out;
-    typedef accessor<2, intent::inout, extent<0, 0, 0, 0, -1, 2>> buff;
-
-    typedef make_param_list<in, out, buff> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out), GT_INOUT_ACCESSOR(buff, extent<0, 0, 0, 0, -1, 2>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
@@ -103,12 +88,7 @@ struct biside_large_kcache_backward {
 };
 
 struct shif_acc_backward {
-
-    typedef accessor<0, intent::in, extent<>> in;
-    typedef accessor<1, intent::inout, extent<>> out;
-    typedef accessor<2, intent::inout, extent<0, 0, 0, 0, 0, 1>> buff;
-
-    typedef make_param_list<in, out, buff> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out), GT_INOUT_ACCESSOR(buff, extent<0, 0, 0, 0, 0, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {

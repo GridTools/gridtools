@@ -85,10 +85,8 @@ class test_expressions : public testing::Test {
 
 namespace {
     struct test_functor {
-        typedef in_accessor<0, extent<>, 3> val2;
-        typedef in_accessor<1, extent<>, 3> val3;
-        typedef inout_accessor<2, extent<>, 3> out;
-        typedef make_param_list<val2, val3, out> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(val2), GT_IN_ACCESSOR(val3), GT_INOUT_ACCESSOR(out));
+
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
             constexpr gridtools::dimension<1> i{};

@@ -169,12 +169,12 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
 
 namespace assembly {
     struct integration {
-        typedef in_accessor<0, extent<>, 7> phi;
-        typedef in_accessor<1, extent<>, 7> psi; // how to detect when index is wrong??
-        typedef in_accessor<2, extent<>, 4> jac;
-        typedef in_accessor<3, extent<>, 6> f;
-        typedef inout_accessor<4, extent<>, 6> result;
-        typedef make_param_list<phi, psi, jac, f, result> param_list;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(phi, extent<>, 7),
+            GT_IN_ACCESSOR(psi, extent<>, 7),
+            GT_IN_ACCESSOR(jac, extent<>, 4),
+            GT_IN_ACCESSOR(f, extent<>, 6),
+            GT_INOUT_ACCESSOR(result, extent<>, 6));
+
         using quad = dimension<7>;
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {

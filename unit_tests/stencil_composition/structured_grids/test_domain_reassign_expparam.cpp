@@ -17,6 +17,7 @@
 #include <gridtools/stencil_composition/accessor.hpp>
 #include <gridtools/stencil_composition/arg.hpp>
 #include <gridtools/stencil_composition/computation.hpp>
+#include <gridtools/stencil_composition/define_accessors.hpp>
 #include <gridtools/stencil_composition/expandable_parameters/make_computation.hpp>
 #include <gridtools/stencil_composition/grid.hpp>
 #include <gridtools/stencil_composition/make_computation.hpp>
@@ -27,9 +28,7 @@
 
 namespace gridtools {
     struct test_functor {
-        using in = accessor<0, intent::in, extent<>>;
-        using out = accessor<1, intent::inout, extent<>>;
-        using param_list = make_param_list<in, out>;
+        GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {

@@ -15,11 +15,7 @@
 using namespace gridtools;
 
 struct shift_acc_forward_flush {
-
-    typedef accessor<0, intent::in, extent<>> in;
-    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
-
-    typedef make_param_list<in, out> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out, extent<0, 0, 0, 0, -1, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
@@ -33,11 +29,7 @@ struct shift_acc_forward_flush {
 };
 
 struct shift_acc_backward_flush {
-
-    typedef accessor<0, intent::in, extent<>> in;
-    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
-
-    typedef make_param_list<in, out> param_list;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in), GT_INOUT_ACCESSOR(out, extent<0, 0, 0, 0, 0, 1>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {

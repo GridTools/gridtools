@@ -36,8 +36,7 @@ namespace positional_when_debug_test {
     using x_interval = axis_t::get_interval<0>;
 
     struct test_functor {
-        typedef gridtools::accessor<0, gridtools::intent::inout> in;
-        typedef gridtools::make_param_list<in> param_list;
+        GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out));
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {

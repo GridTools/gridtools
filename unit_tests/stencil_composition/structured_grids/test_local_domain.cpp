@@ -26,6 +26,7 @@
 #include <gridtools/stencil_composition/accessor.hpp>
 #include <gridtools/stencil_composition/arg.hpp>
 #include <gridtools/stencil_composition/axis.hpp>
+#include <gridtools/stencil_composition/define_accessors.hpp>
 #include <gridtools/stencil_composition/grid.hpp>
 #include <gridtools/stencil_composition/intermediate.hpp>
 #include <gridtools/stencil_composition/make_stage.hpp>
@@ -38,9 +39,7 @@ using namespace execute;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct dummy_functor {
-    typedef accessor<0, intent::inout> in;
-    typedef accessor<1> out;
-    typedef make_param_list<in, out> param_list;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(out), GT_IN_ACCESSOR(in));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval);

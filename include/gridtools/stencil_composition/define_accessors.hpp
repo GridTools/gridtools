@@ -12,18 +12,27 @@
 
 #include <boost/preprocessor.hpp>
 
+#include "accessor.hpp"
+
+namespace gridtools {
+    /**
+       This is a syntactic token which is used to declare the public interface of a stencil operator.
+       This is used to define the tuple of arguments/accessors that a stencil operator expects.
+     */
+    template <class...>
+    struct make_param_list;
+} // namespace gridtools
+
 #define GT_DEFINE_ACCESSORS_IMPL_NAME_FROM_DEF_OP(seq, data, accessor_def) BOOST_PP_SEQ_ELEM(1, accessor_def)
 
 #define GT_DEFINE_ACCESSORS_IMPL_TYPEDEF_OP(r, data, i, accessor_def) \
     using BOOST_PP_SEQ_ELEM(1, accessor_def) = BOOST_PP_SEQ_ELEM(     \
         0, accessor_def)<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_REPLACE(BOOST_PP_SEQ_TAIL(accessor_def), 0, i))>;
 
-#define GT_DEFINE_ACCESSORS_IMPL_DEFINE_PARAM_LIST(accessor_def_sec)                  \
+#define GT_DEFINE_ACCESSORS_IMPL(accessor_def_sec)                                    \
     BOOST_PP_SEQ_FOR_EACH_I(GT_DEFINE_ACCESSORS_IMPL_TYPEDEF_OP, 0, accessor_def_sec) \
-    using param_list = make_param_list<BOOST_PP_SEQ_ENUM(                             \
+    using param_list = ::gridtools::make_param_list<BOOST_PP_SEQ_ENUM(                \
         BOOST_PP_SEQ_TRANSFORM(GT_DEFINE_ACCESSORS_IMPL_NAME_FROM_DEF_OP, 0, accessor_def_sec))>
-
-#define GT_DEFINE_ACCESSORS_IMPL(accessor_def_sec) GT_DEFINE_ACCESSORS_IMPL_DEFINE_PARAM_LIST(accessor_def_sec)
 
 /**
  *  Micro EDSL for defining accessors within stencil functors

@@ -9,15 +9,6 @@
  */
 #pragma once
 
-namespace gridtools {
-    /**
-       This is a syntactic token which is used to declare the public interface of a stencil operator.
-       This is used to define the tuple of arguments/accessors that a stencil operator expects.
-     */
-    template <class...>
-    struct make_param_list;
-} // namespace gridtools
-
 #ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./structured_grids/esf.hpp"
 #else

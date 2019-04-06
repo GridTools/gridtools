@@ -16,41 +16,32 @@ using namespace gridtools;
 using namespace execute;
 
 struct TensionShearFunction {
-    using T_sqr_s = inout_accessor<0>;
-    using S_sqr_uv = inout_accessor<1>;
-
-    using u_in = in_accessor<2, extent<-1, 0, 0, 1>>;
-    using v_in = in_accessor<3, extent<0, 1, -1, 0>>;
-
-    using param_list = make_param_list<T_sqr_s, S_sqr_uv, u_in, v_in>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(T_sqr_s),
+        GT_INOUT_ACCESSOR(S_sqr_uv),
+        GT_IN_ACCESSOR(u_in, extent<-1, 0, 0, 1>),
+        GT_IN_ACCESSOR(v_in, extent<0, 1, -1, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 struct SmagCoeffFunction {
-    using smag_u = inout_accessor<0>;
-    using smag_v = inout_accessor<1>;
-
-    using T_sqr_s = in_accessor<2, extent<0, 1, 0, 1>>;
-    using S_sqr_uv = in_accessor<3, extent<-1, 0, -1, 0>>;
-
-    using param_list = make_param_list<smag_u, smag_v, T_sqr_s, S_sqr_uv>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(smag_u),
+        GT_INOUT_ACCESSOR(smag_v),
+        GT_IN_ACCESSOR(T_sqr_s, extent<0, 1, 0, 1>),
+        GT_IN_ACCESSOR(S_sqr_uv, extent<-1, 0, -1, 0>));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 struct SmagUpdateFunction {
-    using u_out = inout_accessor<0>;
-    using v_out = inout_accessor<1>;
-
-    using u_in = in_accessor<2, extent<-1, 1, -1, 1>>;
-    using v_in = in_accessor<3, extent<-1, 1, -1, 1>>;
-    using smag_u = in_accessor<4>;
-    using smag_v = in_accessor<5>;
-
-    using param_list = make_param_list<u_out, v_out, u_in, v_in, smag_u, smag_v>;
+    GT_DEFINE_ACCESSORS(GT_INOUT_ACCESSOR(u_out),
+        GT_INOUT_ACCESSOR(v_out),
+        GT_IN_ACCESSOR(u_in, extent<-1, 1, -1, 1>),
+        GT_IN_ACCESSOR(v_in, extent<-1, 1, -1, 1>),
+        GT_IN_ACCESSOR(smag_u),
+        GT_IN_ACCESSOR(smag_v));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {}
