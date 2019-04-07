@@ -1,9 +1,5 @@
 struct smoothing_function_1 {
-    using phi = in_accessor<0>;
-    using laplap = in_accessor<1>;
-    using out = inout_accessor<2>;
-
-    using param_list = make_param_list<phi, laplap, out>;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(phi), GT_IN_ACCESSOR(laplap), GT_INOUT_ACCESSOR(out));
 
     constexpr static double alpha = 0.5;
 

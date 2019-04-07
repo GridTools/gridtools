@@ -20,10 +20,7 @@ constexpr static gridtools::dimension<2> j;
 constexpr static gridtools::dimension<3> k;
 
 struct lap_function {
-    using in = in_accessor<0, extent<-1, 1, -1, 1>>;
-    using lap = inout_accessor<1>;
-
-    using param_list = make_param_list<in, lap>;
+    GT_DEFINE_ACCESSORS(GT_IN_ACCESSOR(in, extent<-1, 1, -1, 1>), GT_INOUT_ACCESSOR(lap));
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation const &eval) {
