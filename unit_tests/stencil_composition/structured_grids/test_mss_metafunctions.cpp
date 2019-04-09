@@ -7,9 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <boost/mpl/equal.hpp>
-#include <boost/mpl/vector.hpp>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/stencil_composition.hpp>
@@ -44,16 +41,14 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
         esf1_t(), // esf_descriptor
         esf2_t()  // esf_descriptor
         )) mss_t;
-    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, boost::mpl::vector<esf1_t, esf2_t>>::value), "ERROR");
+    static_assert(std::is_same<mss_t::esf_sequence_t, std::tuple<esf1_t, esf2_t>>::value, "ERROR");
 
 #ifndef GT_DISABLE_CACHING
-    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::cache_sequence_t,
-                         boost::mpl::vector2<detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::local>,
-                             detail::cache_impl<cache_type::ij, p_out, cache_io_policy::local>>>::value),
+    static_assert(std::is_same<mss_t::cache_sequence_t,
+                      std::tuple<detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::local>,
+                          detail::cache_impl<cache_type::ij, p_out, cache_io_policy::local>>>::value,
         "ERROR\nLists do not match");
 #else
-    GT_STATIC_ASSERT((boost::mpl::empty<mss_t::cache_sequence_t>::value), "ERROR\nList not empty");
+    static_assert(std::is_same<mss_t::cache_sequence_t>::value, "ERROR\nList not empty");
 #endif
-
-    ASSERT_TRUE(true);
 }

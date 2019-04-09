@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "../../common/gt_assert.hpp"
+#include "../../common/hugepage_alloc.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
 
@@ -37,7 +38,7 @@ namespace gridtools {
         typedef state_machine state_machine_t;
 
       private:
-        std::unique_ptr<DataType, std::integral_constant<decltype(&free), &free>> m_holder;
+        std::unique_ptr<void, std::integral_constant<decltype(&hugepage_free), &hugepage_free>> m_holder;
         DataType *m_ptr;
 
       public:
@@ -48,31 +49,13 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          */
         template <uint_t Align = 1>
-        mc_storage(uint_t size, uint_t offset_to_align = 0u, alignment<Align> = alignment<1u>{}) {
-            // New will align addresses according to the size(data_t)
-            static std::atomic<uint_t> s_data_offset(64);
-            uint_t data_offset = s_data_offset.load(std::memory_order_relaxed);
-            uint_t data_type_offset = 0;
-            uint_t next_data_offset;
-            do {
-                data_type_offset = data_offset / sizeof(DataType);
-                next_data_offset = 2 * data_offset;
-                if (next_data_offset > 8192)
-                    next_data_offset = 64;
-            } while (!s_data_offset.compare_exchange_weak(data_offset, next_data_offset, std::memory_order_relaxed));
-
-            DataType *allocated_ptr;
-            if (posix_memalign(reinterpret_cast<void **>(&allocated_ptr),
-                    2 * 1024 * 1024,
-                    (size + (data_type_offset + Align)) * sizeof(data_t)))
-                throw std::bad_alloc();
-
-            uint_t delta =
-                ((reinterpret_cast<std::uintptr_t>(allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
-                sizeof(data_t);
-            m_holder.reset(allocated_ptr);
-            m_ptr =
-                (delta == 0) ? allocated_ptr + data_type_offset : allocated_ptr + (data_type_offset + Align - delta);
+        mc_storage(uint_t size, uint_t offset_to_align = 0u, alignment<Align> = alignment<1u>{})
+            : m_holder(hugepage_alloc((size + Align) * sizeof(DataType))) {
+            constexpr auto byte_alignment = Align * sizeof(DataType);
+            auto byte_offset = offset_to_align * sizeof(DataType);
+            auto address_to_align = reinterpret_cast<std::uintptr_t>(m_holder.get()) + byte_offset;
+            m_ptr = reinterpret_cast<DataType *>(
+                (address_to_align + byte_alignment - 1) / byte_alignment * byte_alignment - byte_offset);
         }
 
         /*

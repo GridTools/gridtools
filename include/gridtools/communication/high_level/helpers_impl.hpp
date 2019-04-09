@@ -11,7 +11,7 @@
 #ifdef GCL_GPU
 #include "../../common/cuda_util.hpp"
 #endif
-#include "../../common/generic_metafunctions/pack_get_elem.hpp"
+#include "../../common/make_array.hpp"
 #include "descriptors_fwd.hpp"
 
 namespace gridtools {
@@ -110,9 +110,9 @@ namespace gridtools {
                                     hm->halo.recv_buffer_size(make_array(ii, jj, kk)) * mf);
 
                                 typedef typename translate_P::map_type map_type;
-                                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-                                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-                                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+                                const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+                                const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+                                const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
 
                                 hm->m_haloexch.register_send_to_buffer(&(hm->send_buffer[translate()(ii, jj, kk)][0]),
                                     hm->halo.send_buffer_size(make_array(ii, jj, kk)) * sizeof(Datatype) * mf,

@@ -7,8 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <boost/mpl/vector.hpp>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>

@@ -60,9 +60,9 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 1;
         int jj = 0;
         int kk = 0;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[0].reset_minus();
@@ -72,9 +72,9 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = -1;
         int jj = 0;
         int kk = 0;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[0].reset_plus();
@@ -84,9 +84,9 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 0;
         int jj = 1;
         int kk = 0;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[1].reset_minus();
@@ -96,9 +96,9 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 0;
         int jj = -1;
         int kk = 0;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[1].reset_plus();
@@ -108,9 +108,9 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 0;
         int jj = 0;
         int kk = 1;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[2].reset_minus();
@@ -120,9 +120,9 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 0;
         int jj = 0;
         int kk = -1;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[2].reset_plus();
@@ -137,9 +137,9 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
     for (int ii = -1; ii <= 1; ++ii)
         for (int jj = -1; jj <= 1; ++jj)
             for (int kk = -1; kk <= 1; ++kk) {
-                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+                const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+                const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+                const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     if (ii != 0 || jj != 0 || kk != 0) {
                         prefix_send_size[0 + translate()(ii, jj, kk)] = 0;
@@ -216,9 +216,9 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 1;
         int jj = 0;
         int kk = 0;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[0].reset_plus();
@@ -228,9 +228,9 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = -1;
         int jj = 0;
         int kk = 0;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[0].reset_minus();
@@ -240,9 +240,9 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 0;
         int jj = 1;
         int kk = 0;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[1].reset_plus();
@@ -252,9 +252,9 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 0;
         int jj = -1;
         int kk = 0;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[1].reset_minus();
@@ -264,9 +264,9 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 0;
         int jj = 0;
         int kk = 1;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[2].reset_plus();
@@ -276,9 +276,9 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
         int ii = 0;
         int jj = 0;
         int kk = -1;
-        const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-        const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-        const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+        const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+        const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+        const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
                 fields[l].halos[2].reset_minus();
@@ -288,9 +288,9 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
     for (int ii = -1; ii <= 1; ++ii)
         for (int jj = -1; jj <= 1; ++jj)
             for (int kk = -1; kk <= 1; ++kk) {
-                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+                const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+                const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+                const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     if (ii != 0 || jj != 0 || kk != 0) {
                         prefix_recv_size[0 + translate()(ii, jj, kk)] = 0;

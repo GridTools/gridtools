@@ -17,8 +17,7 @@
 
 #include <gridtools/common/cuda_util.hpp>
 #include <gridtools/common/integral_constant.hpp>
-
-#define GT_MAKE_CONSTANT(fun) gridtools::integral_constant<decltype(&fun), &fun>()
+#include <gridtools/meta/type_traits.hpp>
 
 namespace gridtools {
     namespace on_device {
@@ -42,4 +41,3 @@ namespace gridtools {
             GT_AUTO_RETURN(exec_with_shared_memory(0, std::forward<Fun>(fun), std::forward<Args>(args)...));
     } // namespace on_device
 } // namespace gridtools
-
