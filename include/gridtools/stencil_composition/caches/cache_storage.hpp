@@ -32,9 +32,10 @@ namespace gridtools {
       public:
         template <class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += host_device::at_key<dim::i>(acc) + IZero;
-            j += host_device::at_key<dim::j>(acc) + JZero;
-            assert(host_device::at_key<dim::k>(acc) == 0);
+            using zero_t = integral_constant<int_t, 0>;
+            i += host_device::at_key_with_default<dim::i, zero_t>(acc) + IZero;
+            j += host_device::at_key_with_default<dim::j, zero_t>(acc) + JZero;
+            assert((host_device::at_key_with_default<dim::k, zero_t>(acc) == 0));
             assert(i >= 0);
             assert(i < ISize);
             assert(j >= 0);
@@ -65,10 +66,11 @@ namespace gridtools {
       public:
         template <int_t Color, class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += host_device::at_key<dim::i>(acc) + IZero;
-            int_t color = Color + host_device::at_key<dim::c>(acc);
-            j += host_device::at_key<dim::j>(acc) + JZero;
-            assert(host_device::at_key<dim::k>(acc) == 0);
+            using zero_t = integral_constant<int_t, 0>;
+            i += host_device::at_key_with_default<dim::i, zero_t>(acc) + IZero;
+            int_t color = Color + host_device::at_key_with_default<dim::c, zero_t>(acc);
+            j += host_device::at_key_with_default<dim::j, zero_t>(acc) + JZero;
+            assert(host_device::at_key_with_default<dim::k, zero_t>(acc) == 0);
             assert(i >= 0);
             assert(i < ISize);
             assert(color >= 0);
@@ -130,11 +132,12 @@ namespace gridtools {
          */
         template <class Accessor>
         GT_FUNCTION T &at(Accessor const &acc) {
-            int_t offset = host_device::at_key<dim::k>(acc);
+            using zero_t = integral_constant<int_t, 0>;
+            int_t offset = host_device::at_key_with_default<dim::k, zero_t>(acc);
             assert(offset >= Minus);
             assert(offset <= Plus);
-            assert(host_device::at_key<dim::i>(acc) == 0);
-            assert(host_device::at_key<dim::j>(acc) == 0);
+            assert((host_device::at_key_with_default<dim::i, zero_t>(acc) == 0));
+            assert((host_device::at_key_with_default<dim::j, zero_t>(acc) == 0));
             return m_values[offset - Minus];
         }
 

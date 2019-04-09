@@ -75,9 +75,6 @@ namespace gridtools {
 
     template <size_t Dim>
     struct accessor_base : array<int_t, Dim> {
-#ifdef __INTEL_COMPILER
-        int_t m_workaround = Dim;
-#endif
         using base_t = array<int_t, Dim>;
 
         template <class... Ints,
@@ -93,44 +90,4 @@ namespace gridtools {
                 "all dimensions should be of different indicies");
         }
     };
-
-#ifdef __INTEL_COMPILER
-    /* The Intel compiler does not want to vectorize when we use a real array here. */
-    template <>
-    struct accessor_base<3> {
-        int_t data0, data1, data2;
-        int_t m_workaround = 3;
-
-        GT_FORCE_INLINE constexpr accessor_base(array<int_t, 3> const &a) : data0(a[0]), data1(a[1]), data2(a[2]) {}
-
-        GT_FORCE_INLINE constexpr accessor_base(int_t data0 = {}, int_t data1 = {}, int_t data2 = {})
-            : data0(data0), data1(data1), data2(data2) {}
-
-        template <uint_t I, uint_t... Is>
-        GT_FORCE_INLINE constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
-            : accessor_base{accessor_base_impl_::make_offsets<3>(d, ds...)} {
-            GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
-                "all dimensions should be of different indicies");
-        }
-    };
-
-    namespace accessor_base_impl_ {
-        struct accessor_base_3_getter {
-            template <size_t I>
-            static GT_FORCE_INLINE constexpr enable_if_t<I == 0, int_t> get(accessor_base<3> const &acc) noexcept {
-                return acc.data0;
-            }
-            template <size_t I>
-            static GT_FORCE_INLINE constexpr enable_if_t<I == 1, int_t> get(accessor_base<3> const &acc) noexcept {
-                return acc.data1;
-            }
-            template <size_t I>
-            static GT_FORCE_INLINE constexpr enable_if_t<I == 2, int_t> get(accessor_base<3> const &acc) noexcept {
-                return acc.data2;
-            }
-        };
-    } // namespace accessor_base_impl_
-    accessor_base_impl_::accessor_base_3_getter tuple_getter(accessor_base<3> const &);
-    meta::list<int_t, int_t, int_t> tuple_to_types(accessor_base<3> const &);
-#endif
 } // namespace gridtools

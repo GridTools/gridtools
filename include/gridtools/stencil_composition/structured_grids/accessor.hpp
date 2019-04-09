@@ -36,6 +36,21 @@
 
 namespace gridtools {
 
+    namespace accessor_impl_ {
+        template <class Extent>
+        struct default_dim_num : std::integral_constant<size_t, 3> {};
+
+        template <>
+        struct default_dim_num<extent<>> : std::integral_constant<size_t, 0> {};
+
+        template <int_t IMinus, int_t IPlus>
+        struct default_dim_num<extent<IMinus, IPlus>> : std::integral_constant<size_t, 1> {};
+
+        template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus>
+        struct default_dim_num<extent<IMinus, IPlus, JMinus, JPlus>> : std::integral_constant<size_t, 2> {};
+
+    } // namespace accessor_impl_
+
     /**
        @brief the definition of accessor visible to the user
 
@@ -54,7 +69,10 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template <uint_t ID, intent Intent = intent::in, typename Extent = extent<>, size_t Number = 3>
+    template <uint_t ID,
+        intent Intent = intent::in,
+        typename Extent = extent<>,
+        size_t Number = accessor_impl_::default_dim_num<Extent>::value>
     struct accessor : accessor_base<Number> {
         using index_t = static_uint<ID>;
         static constexpr intent intent_v = Intent;
@@ -67,13 +85,13 @@ namespace gridtools {
     template <uint_t ID, intent Intent, typename Extent, size_t Number>
     meta::always<accessor<ID, Intent, Extent, Number>> tuple_from_types(accessor<ID, Intent, Extent, Number> const &);
 
-    template <uint_t ID, typename Extent = extent<>, size_t Number = 3>
+    template <uint_t ID, typename Extent = extent<>, size_t Number = accessor_impl_::default_dim_num<Extent>::value>
     using in_accessor = accessor<ID, intent::in, Extent, Number>;
 
     template <uint_t ID>
     using global_accessor = accessor<ID, intent::in, extent<>, 0>;
 
-    template <uint_t ID, typename Extent = extent<>, size_t Number = 3>
+    template <uint_t ID, typename Extent = extent<>, size_t Number = accessor_impl_::default_dim_num<Extent>::value>
     using inout_accessor = accessor<ID, intent::inout, Extent, Number>;
 
     template <uint_t ID, intent Intent, typename Extent, size_t Number>

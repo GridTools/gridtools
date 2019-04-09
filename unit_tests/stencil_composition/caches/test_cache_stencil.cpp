@@ -62,8 +62,7 @@ namespace gridtools {
 
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval) {
-                eval(out()) =
-                    (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
+                eval(out()) = (eval(in(-1, 0)) + eval(in(1, 0)) + eval(in(0, -1)) + eval(in(0, 1))) / (float_type)4.0;
             }
         };
 
