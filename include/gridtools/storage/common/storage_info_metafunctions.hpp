@@ -9,15 +9,9 @@
  */
 #pragma once
 
-#include <cmath>
-
-#include <boost/mpl/and.hpp>
-#include <boost/type_traits.hpp>
-
 #include "../../common/array.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/gt_assert.hpp"
-#include "../../common/gt_math.hpp"
 #include "../../common/layout_map.hpp"
 #include "../../meta/utility.hpp"
 #include "alignment.hpp"
@@ -43,7 +37,7 @@ namespace gridtools {
         template <typename Dim>
         GT_FUNCTION static constexpr uint_t extend(Dim d) {
             GT_STATIC_ASSERT(
-                boost::is_integral<Dim>::value, GT_INTERNAL_ERROR_MSG("Dimensions has to be integral type."));
+                std::is_integral<Dim>::value, GT_INTERNAL_ERROR_MSG("Dimensions has to be integral type."));
             return error_or_return((d > 0),
                 ((LayoutArg == -1) ? 1 : d),
                 "Tried to instantiate storage info with zero or negative dimensions");
@@ -61,26 +55,26 @@ namespace gridtools {
     GT_FUNCTION constexpr uint_t pad_dimensions(Int dimension) {
         GT_STATIC_ASSERT(is_alignment<Alignment>::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));
         return ((Alignment::value > 1) && (LayoutArg == MaxLayoutV))
-                   ? gt_ceil((float)dimension / (float)Alignment::value) * Alignment::value
+                   ? (dimension + Alignment::value - 1) / Alignment::value * Alignment::value
                    : dimension;
     }
 
     /*
-     * @brief helper struct used to compute the strides in a constexpr manner
-     * @tparam T the layout map type
+     * @brief struct used to compute the strides given the dimensions (e.g., 128x128x80)
+     * @tparam Layout layout map
      */
-    template <typename T>
-    struct get_strides_aux;
+    template <typename Layout>
+    struct get_strides;
 
     template <int... LayoutArgs>
-    struct get_strides_aux<layout_map<LayoutArgs...>> {
-        typedef layout_map<LayoutArgs...> layout_map_t;
+    struct get_strides<layout_map<LayoutArgs...>> {
+      private:
+        using layout_map_t = layout_map<LayoutArgs...>;
 
         template <int N, typename... Dims>
         GT_FUNCTION static constexpr enable_if_t<N != -1 && N != layout_map_t::unmasked_length - 1, uint_t> get_stride(
             Dims... d) {
-            return (get_value_from_pack(get_index_of_element_in_pack(0, N + 1, LayoutArgs...), d...)) *
-                   get_stride<N + 1>(d...);
+            return (get_value_from_pack(layout_map_t::template find<N + 1>(), d...)) * get_stride<N + 1>(d...);
         }
 
         template <int N, typename... Dims>
@@ -93,23 +87,12 @@ namespace gridtools {
             Dims...) {
             return 1;
         }
-    };
 
-    /*
-     * @brief struct used to compute the strides given the dimensions (e.g., 128x128x80)
-     * @tparam Layout layout map
-     */
-    template <typename Layout>
-    struct get_strides;
-
-    template <int... LayoutArgs>
-    struct get_strides<layout_map<LayoutArgs...>> {
+      public:
         template <typename... Dims,
             enable_if_t<sizeof...(Dims) == sizeof...(LayoutArgs) && is_all_integral<Dims...>::value, int> = 0>
         GT_FUNCTION static constexpr array<uint_t, sizeof...(LayoutArgs)> get_stride_array(Dims... ds) {
-            typedef layout_map<LayoutArgs...> Layout;
-            return (array<uint_t, Layout::masked_length>){
-                get_strides_aux<Layout>::template get_stride<LayoutArgs>(ds...)...};
+            return {get_stride<LayoutArgs>(ds...)...};
         }
     };
 

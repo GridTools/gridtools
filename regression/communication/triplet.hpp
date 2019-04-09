@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
-#include <gridtools/common/generic_metafunctions/pack_get_elem.hpp>
+#include <gridtools/common/make_array.hpp>
 
 #define USE_DOUBLE false
 
@@ -18,21 +18,21 @@ struct array {
     int n, m, l;
 
     array(T *_p, int _n, int _m, int _l)
-        : ptr(_p), n(gridtools::pack_get_elem<lmap::template find<0>()>::apply(_n, _m, _l)),
-          m(gridtools::pack_get_elem<lmap::template find<1>()>::apply(_n, _m, _l)),
-          l(gridtools::pack_get_elem<lmap::template find<2>()>::apply(_n, _m, _l)) {}
+        : ptr(_p), n(gridtools::make_array(_n, _m, _l)[lmap::template find<0>()]),
+          m(gridtools::make_array(_n, _m, _l)[lmap::template find<1>()]),
+          l(gridtools::make_array(_n, _m, _l)[lmap::template find<2>()]) {}
 
     T &operator()(int i, int j, int k) {
         // a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj]
-        return ptr[l * m * gridtools::pack_get_elem<lmap::template find<0>()>::apply(i, j, k) +
-                   l * gridtools::pack_get_elem<lmap::template find<1>()>::apply(i, j, k) +
-                   gridtools::pack_get_elem<lmap::template find<2>()>::apply(i, j, k)];
+        return ptr[l * m * gridtools::make_array(i, j, k)[lmap::template find<0>()] +
+                   l * gridtools::make_array(i, j, k)[lmap::template find<1>()] +
+                   gridtools::make_array(i, j, k)[lmap::template find<2>()]];
     }
 
     T const &operator()(int i, int j, int k) const {
-        return ptr[l * m * gridtools::pack_get_elem<lmap::template find<0>()>::apply(i, j, k) +
-                   l * gridtools::pack_get_elem<lmap::template find<1>()>::apply(i, j, k) +
-                   gridtools::pack_get_elem<lmap::template find<2>()>::apply(i, j, k)];
+        return ptr[l * m * gridtools::make_array(i, j, k)[lmap::template find<0>()] +
+                   l * gridtools::make_array(i, j, k)[lmap::template find<1>()] +
+                   gridtools::make_array(i, j, k)[lmap::template find<2>()]];
     }
 
     operator void *() const { return reinterpret_cast<void *>(ptr); }

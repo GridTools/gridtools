@@ -16,7 +16,6 @@
 #include <tuple>
 #include <type_traits>
 
-#include <boost/mpl/vector.hpp>
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>

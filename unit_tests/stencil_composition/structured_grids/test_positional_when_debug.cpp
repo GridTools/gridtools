@@ -19,9 +19,6 @@
 #define __WAS_DEBUG
 #endif
 
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/mpl/equal.hpp>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/make_computation.hpp>

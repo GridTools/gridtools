@@ -18,9 +18,6 @@
 #include <tuple>
 #include <type_traits>
 
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
-
 #include "../../common/defs.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../arg.hpp"
