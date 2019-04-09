@@ -3,12 +3,13 @@
 import argparse
 import os
 import subprocess
+import time
 
 from pyutils import logger
 import envs
 
 
-def configure(env, source_dir, build_dir, build_type, precision, grid_type):
+def cmake(env, source_dir, build_dir, build_type, precision, grid_type):
     if build_type not in ('debug', 'release'):
         raise ValueError(f'Invalid build type "{build_type}"')
     if precision not in ('float', 'double'):
@@ -28,6 +29,7 @@ def configure(env, source_dir, build_dir, build_type, precision, grid_type):
     command = ['cmake', source_dir] + [f'-D{k}={v}' for k, v in args.items()]
 
     logger.info('Invoking CMake: ' + ' '.join(command))
+    start = time.process_time()
     try:
         output = subprocess.check_output(command,
                                          env=env,
@@ -36,8 +38,8 @@ def configure(env, source_dir, build_dir, build_type, precision, grid_type):
     except subprocess.CalledProcessError as e:
         logger.error('CMake failed with output:', e.output.decode())
         raise e
-
-    logger.info('CMake finished')
+    end = time.process_time()
+    logger.info(f'CMake finished in {end - start:.2f}s')
     logger.debug('CMake output:', output)
 
 
@@ -50,7 +52,8 @@ def make(env, build_dir, targets=None):
     if targets is not None:
         command += list(targets)
 
-    logger.info('Invoking make : ' + ' '.join(command))
+    logger.info('Invoking make: ' + ' '.join(command))
+    start = time.process_time()
     try:
         output = subprocess.check_output(command,
                                          env=env,
@@ -58,12 +61,6 @@ def make(env, build_dir, targets=None):
                                          stderr=subprocess.STDOUT).decode()
     except subprocess.CalledProcessError as e:
         logger.error('make failed with output:', e.output.decode())
-
-    logger.info('make finished')
+    end = time.process_time()
+    logger.info(f'make finished in {end - start:.2f}s')
     logger.debug('make output:', output)
-
-
-def build(env, source_dir, build_dir, build_type, precision, grid_type,
-          targets=None):
-    configure(env, source_dir, build_dir, build_type, precision, grid_type)
-    make(env, build_dir, targets)

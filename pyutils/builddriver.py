@@ -29,11 +29,14 @@ if __name__ == '__main__':
     parser.add_argument('--source-dir', default=source_dir_default)
 
     parser.add_argument('--build-dir', '-o', required=True)
+    parser.add_argument('--cmake-only', action='store_true')
 
     args = parser.parse_args()
     pyutils.set_verbose(args.verbose)
 
     with pyutils.exception_logging():
         env = envs.load(args.environment)
-        build.build(env, args.source_dir, args.build_dir, args.build_type,
-                    args.precision, args.grid, args.target)
+        build.cmake(env, args.source_dir, args.build_dir, args.build_type,
+                    args.precision, args.grid)
+        if not args.cmake_only:
+            build.make(env, args.build_dir, args.target)
