@@ -20,4 +20,4 @@ precision = '@PERFTEST_PRECISION@'
 grid = '@PERFTEST_GRID@'
 
 # Compiled backends
-backend = '@PERFTEST_BACKEND@'
+backends = '@PERFTEST_BACKEND@'.split(';')
