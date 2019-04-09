@@ -38,8 +38,8 @@
 
 namespace gridtools {
     namespace _impl {
-        template <class StorageInfo, class LocalDomain>
-        struct get_index : meta::st_position<typename LocalDomain::storage_infos_t, StorageInfo> {};
+        template <class StridesKind, class LocalDomain>
+        struct get_index : meta::st_position<typename LocalDomain::strides_kinds_t, StridesKind> {};
 
     } // namespace _impl
 
@@ -51,19 +51,19 @@ namespace gridtools {
         ArrayIndex &GT_RESTRICT m_index_array;
         StridesMap const &m_strides_map;
 
-        template <typename StorageInfo>
+        template <typename StridesKind>
         GT_FUNCTION void operator()() const {
-            static constexpr auto index = _impl::get_index<StorageInfo, LocalDomain>::value;
+            static constexpr auto index = _impl::get_index<StridesKind, LocalDomain>::value;
             GT_STATIC_ASSERT(index < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             sid::shift(
-                m_index_array[index], sid::get_stride<Dim>(host_device::at_key<StorageInfo>(m_strides_map)), m_offset);
+                m_index_array[index], sid::get_stride<Dim>(host_device::at_key<StridesKind>(m_strides_map)), m_offset);
         }
     };
 
     template <class Dim, class LocalDomain, class StridesMap, class ArrayIndex, class Offset>
     GT_FUNCTION void do_increment(
         Offset const &GT_RESTRICT offset, StridesMap const &strides_map, ArrayIndex &GT_RESTRICT index) {
-        host_device::for_each_type<typename LocalDomain::storage_infos_t>(
+        host_device::for_each_type<typename LocalDomain::strides_kinds_t>(
             increment_index_functor<LocalDomain, Dim, StridesMap, ArrayIndex, Offset>{offset, index, strides_map});
     }
 
@@ -75,11 +75,11 @@ namespace gridtools {
      * @tparam StridesCached strides cached type
      * @tparam StorageSequence sequence of storages
      */
-    template <class StorageInfo, class MaxExtent, bool IsTmp>
+    template <class StridesKind, class MaxExtent, bool IsTmp>
     struct get_index_offset_f;
 
-    template <class StorageInfo, class MaxExtent>
-    struct get_index_offset_f<StorageInfo, MaxExtent, false> {
+    template <class StridesKind, class MaxExtent>
+    struct get_index_offset_f<StridesKind, MaxExtent, false> {
         template <class Backend, class Stride, class Begin, class BlockNo, class PosInBlock>
         GT_FUNCTION int_t operator()(Backend const &,
             Stride const &GT_RESTRICT stride,
@@ -94,15 +94,15 @@ namespace gridtools {
         }
     };
 
-    template <class StorageInfo, class MaxExtent>
-    struct get_index_offset_f<StorageInfo, MaxExtent, true> {
+    template <class StridesKind, class MaxExtent>
+    struct get_index_offset_f<StridesKind, MaxExtent, true> {
         template <class Backend, class Stride, class Begin, class BlockNo, class PosInBlock>
         GT_FUNCTION int_t operator()(Backend const &backend,
             Stride const &GT_RESTRICT stride,
             Begin const &GT_RESTRICT /*begin*/,
             BlockNo const &GT_RESTRICT block_no,
             PosInBlock const &GT_RESTRICT pos_in_block) const {
-            return get_tmp_storage_offset<StorageInfo, MaxExtent>(backend, stride, block_no, pos_in_block);
+            return get_tmp_storage_offset<StridesKind, MaxExtent>(backend, stride, block_no, pos_in_block);
         }
     };
 
@@ -115,17 +115,16 @@ namespace gridtools {
         pos3<int_t> const &m_pos_in_block;
         ArrayIndex &m_index_array;
 
-        template <typename StorageInfo>
+        template <typename StridesKind>
         GT_FUNCTION void operator()() const {
-            static constexpr auto index = _impl::get_index<StorageInfo, LocalDomain>::value;
+            static constexpr auto index = _impl::get_index<StridesKind, LocalDomain>::value;
             GT_STATIC_ASSERT(index < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
-                meta::st_contains<typename LocalDomain::tmp_storage_infos_t, StorageInfo>::value;
-            auto const &strides = host_device::at_key<StorageInfo>(m_strides_map);
+                meta::st_contains<typename LocalDomain::tmp_strides_kinds_t, StridesKind>::value;
+            auto const &strides = host_device::at_key<StridesKind>(m_strides_map);
             m_index_array[index] =
-                get_index_offset_f<StorageInfo, typename LocalDomain::max_extent_for_tmp_t, is_tmp>{}(backend,
+                get_index_offset_f<StridesKind, typename LocalDomain::max_extent_for_tmp_t, is_tmp>{}(backend,
                     make_pos3<int>(sid::get_stride<dim::i>(strides),
                         sid::get_stride<dim::j>(strides),
                         sid::get_stride<dim::k>(strides)),
@@ -151,11 +150,9 @@ namespace gridtools {
      * once the base address is known it can be checked if the requested access lies within the
      * storages allocated memory.
      */
-    template <typename StorageInfo, typename LocalDomain>
+    template <typename StridesKind, typename LocalDomain>
     GT_FUNCTION bool pointer_oob_check(LocalDomain const &local_domain, int_t offset) {
-        constexpr auto storage_info_index =
-            meta::st_position<typename LocalDomain::storage_infos_t, StorageInfo>::value;
-        return offset < get<storage_info_index>(local_domain.m_local_padded_total_lengths) && offset >= 0;
+        return offset < gridtools::host_device::at_key<StridesKind>(local_domain.m_total_length_map) && offset >= 0;
     }
 
     template <class Arg, intent Intent>

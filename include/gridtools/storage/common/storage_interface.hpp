@@ -10,9 +10,7 @@
 
 #pragma once
 
-#include <boost/mpl/if.hpp>
-#include <boost/noncopyable.hpp>
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 #include "../../common/error.hpp"
 #include "definitions.hpp"
@@ -31,7 +29,7 @@ namespace gridtools {
      * @tparam Derived The actual storage type (e.g., cuda_storage or host_storage)
      */
     template <typename Derived>
-    struct storage_interface : boost::noncopyable {
+    struct storage_interface {
         /*
          * @brief clone_to_device method. Clones data to the device.
          */
@@ -92,7 +90,7 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_storage : boost::is_base_of<storage_interface<T>, T> {};
+    struct is_storage : std::is_base_of<storage_interface<T>, T> {};
 
     /**
      * @}

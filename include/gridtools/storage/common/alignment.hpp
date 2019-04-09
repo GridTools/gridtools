@@ -10,10 +10,9 @@
 
 #pragma once
 
-#include "../../common/array.hpp"
-#include "../../common/gt_assert.hpp"
-#include "definitions.hpp"
-#include "storage_info_metafunctions.hpp"
+#include <type_traits>
+
+#include "../../common/defs.hpp"
 
 namespace gridtools {
 
@@ -29,14 +28,14 @@ namespace gridtools {
     template <uint_t N>
     struct alignment {
         GT_STATIC_ASSERT(N > 0, "Alignment value must be greater than 0");
-        const static uint_t value = N;
+        static constexpr uint_t value = N;
     };
 
     template <typename T>
-    struct is_alignment : boost::mpl::false_ {};
+    struct is_alignment : std::false_type {};
 
     template <uint_t N>
-    struct is_alignment<alignment<N>> : boost::mpl::true_ {};
+    struct is_alignment<alignment<N>> : std::true_type {};
 
     /**
      * @}

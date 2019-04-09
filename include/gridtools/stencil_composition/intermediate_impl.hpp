@@ -9,10 +9,7 @@
  */
 #pragma once
 
-#include <boost/fusion/include/at_key.hpp>
-
 #include "../common/functional.hpp"
-#include "../common/generic_metafunctions/copy_into_variadic.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta/defs.hpp"
@@ -34,12 +31,11 @@ namespace gridtools {
             enable_if_t<meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
                 arg_storage_pair<Arg, DataStore> const &src, LocalDomain &local_domain) const {
                 const auto &storage = src.m_value;
-                boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) = sid::get_origin(storage)();
-                using storage_info_t = typename DataStore::storage_info_t;
-                at_key<storage_info_t>(local_domain.m_strides_map) = sid::get_strides(storage);
-                constexpr auto storage_info_index =
-                    meta::st_position<typename LocalDomain::storage_infos_t, storage_info_t>::value;
-                local_domain.m_local_padded_total_lengths[storage_info_index] = storage.info().padded_total_length();
+                using strides_kind_t = GT_META_CALL(sid::strides_kind, DataStore);
+
+                at_key<Arg>(local_domain.m_ptr_holder_map) = sid::get_origin(storage);
+                at_key<strides_kind_t>(local_domain.m_strides_map) = sid::get_strides(storage);
+                at_key<strides_kind_t>(local_domain.m_total_length_map) = storage.info().padded_total_length();
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class DataStore, class LocalDomain>

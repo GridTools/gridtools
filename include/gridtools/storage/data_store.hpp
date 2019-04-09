@@ -11,17 +11,17 @@
 #pragma once
 
 #include <array>
-#include <assert.h>
+#include <cassert>
 #include <functional>
 #include <memory>
 #include <string>
-
-#include <boost/mpl/bool.hpp>
+#include <type_traits>
 
 #include "../common/gt_assert.hpp"
-#include "common/definitions.hpp"
-#include "common/storage_info.hpp"
-#include "common/storage_interface.hpp"
+#include "../meta/type_traits.hpp"
+#include "./common/definitions.hpp"
+#include "./common/storage_info.hpp"
+#include "./common/storage_interface.hpp"
 
 namespace gridtools {
 
@@ -75,8 +75,8 @@ namespace gridtools {
          * @param args pack that contains the current index for each dimension
          */
         template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
-        typename boost::enable_if_c<(sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void>::type
-        lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
+        enable_if_t<(sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void> lambda_initializer(
+            Lambda init, StorageInfo si, DataType *ptr, Args... args) {
             for (int i = 0; i < si.template total_length<sizeof...(Args)>(); ++i) {
                 ptr[si.index(args..., i)] = init(args..., i);
             }
@@ -97,8 +97,8 @@ namespace gridtools {
          * @param args pack that contains the current index for each dimension
          */
         template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
-        typename boost::enable_if_c<(sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void>::type
-        lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
+        enable_if_t<(sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void> lambda_initializer(
+            Lambda init, StorageInfo si, DataType *ptr, Args... args) {
             for (int i = 0; i < si.template total_length<sizeof...(Args)>(); ++i) {
                 lambda_initializer(init, si, ptr, args..., i);
             }
@@ -203,8 +203,7 @@ namespace gridtools {
          * @param name Human readable name for the data_store
          */
         template <typename T = data_t *,
-            typename boost::enable_if_c<boost::is_pointer<T>::value && boost::is_same<data_t *, T>::value, int>::type =
-                0>
+            enable_if_t<std::is_pointer<T>::value && std::is_same<data_t *, T>::value, int> = 0>
         explicit constexpr data_store(StorageInfo const &info,
             T external_ptr,
             ownership own = ownership::external_cpu,
@@ -375,10 +374,10 @@ namespace gridtools {
 
     /// @brief simple metafunction to check if a type is a data_store
     template <typename T>
-    struct is_data_store : boost::mpl::false_ {};
+    struct is_data_store : std::false_type {};
 
     template <typename S, typename SI>
-    struct is_data_store<data_store<S, SI>> : boost::mpl::true_ {};
+    struct is_data_store<data_store<S, SI>> : std::true_type {};
 
     /**
      * @}

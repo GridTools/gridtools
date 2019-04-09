@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
-#include <boost/fusion/include/at_key.hpp>
 #include <type_traits>
 
 #include "../../common/array.hpp"
@@ -35,7 +34,7 @@ namespace gridtools {
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t n_meta_storages = meta::length<typename local_domain_t::storage_infos_t>::value;
+        static const uint_t n_meta_storages = meta::length<typename local_domain_t::strides_kinds_t>::value;
 
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
@@ -58,14 +57,14 @@ namespace gridtools {
            fields (one index per storage instance, so that one index
            might be shared among several data fields)
         */
-        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : m_local_domain(local_domain_) {}
+        GT_FUNCTION_DEVICE iterate_domain(local_domain_t const &local_domain_) : m_local_domain(local_domain_) {}
 
       public:
         static constexpr bool has_k_caches = false;
 
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
-            host_device::for_each_type<typename local_domain_t::storage_infos_t>(
+            host_device::for_each_type<typename local_domain_t::strides_kinds_t>(
                 initialize_index<backend_t, local_domain_t>(
                     m_local_domain.m_strides_map, begin, block_no, pos_in_block, m_index));
         }
@@ -116,7 +115,7 @@ namespace gridtools {
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_infos_t, storage_info_t>::value;
+                meta::st_position<typename local_domain_t::strides_kinds_t, storage_info_t>::value;
 
             int_t pointer_offset = m_index[storage_info_index];
             sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(m_local_domain.m_strides_map), acc);
@@ -124,7 +123,7 @@ namespace gridtools {
             assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 
             conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
-                boost::fusion::at_key<Arg>(m_local_domain.m_local_data_ptrs) + pointer_offset;
+                gridtools::host_device::at_key<Arg>(m_local_domain.m_ptr_holder_map)() + pointer_offset;
 
             return IterateDomainImpl::template deref_impl<Arg>(ptr);
         }

@@ -58,7 +58,7 @@ namespace gridtools {
         using custom_layout_storage_info_t = typename gridtools::storage_traits_from_id<
             Backend>::template select_custom_layout_storage_info<Id, LayoutMap, Halo>::type;
 
-        template <uint_t Id, typename Selector, typename Halo = zero_halo<Selector::size>>
+        template <uint_t Id, typename Selector, typename Halo = zero_halo<Selector::size()>>
         using special_storage_info_t = typename gridtools::storage_traits_from_id<
             Backend>::template select_special_storage_info<Id, Selector, Halo>::type;
 

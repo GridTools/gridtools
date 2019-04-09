@@ -9,9 +9,6 @@
  */
 #pragma once
 
-#include <boost/fusion/include/as_map.hpp>
-#include <boost/fusion/include/pair.hpp>
-
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/hymap.hpp"
@@ -24,20 +21,22 @@
 namespace gridtools {
 
     namespace local_domain_impl_ {
-        template <class Arg>
-        GT_META_DEFINE_ALIAS(
-            get_data_ptrs_elem, meta::id, (boost::fusion::pair<Arg, typename Arg::data_store_t::data_t *>));
-
-        template <class Arg>
-        GT_META_DEFINE_ALIAS(get_storage_info, meta::id, typename Arg::data_store_t::storage_info_t);
-
-        template <class Arg>
-        GT_META_DEFINE_ALIAS(get_storage_info_pair,
-            meta::list,
-            (typename Arg::data_store_t, typename Arg::data_store_t::storage_info_t));
+        template <class Arg, class Sid = typename Arg::data_store_t>
+        GT_META_DEFINE_ALIAS(get_sid_strides_kind_pair, meta::list, (Sid, GT_META_CALL(sid::strides_kind, Sid)));
 
         template <class Item>
         GT_META_DEFINE_ALIAS(get_strides, sid::strides_type, GT_META_CALL(meta::second, Item));
+
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(get_ptr_holder, sid::ptr_holder_type, typename Arg::data_store_t);
+
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(get_ptr, sid::ptr_type, typename Arg::data_store_t);
+
+        struct call_f {
+            template <class PtrHolder>
+            GT_DEVICE auto operator()(PtrHolder const &holder) const GT_AUTO_RETURN(holder());
+        };
     } // namespace local_domain_impl_
 
     /**
@@ -53,39 +52,58 @@ namespace gridtools {
         using esf_args_t = EsfArgs;
         using max_extent_for_tmp_t = MaxExtentForTmp;
 
-        using tmp_storage_infos_t = GT_META_CALL(meta::dedup,
-            (GT_META_CALL(meta::transform,
-                (local_domain_impl_::get_storage_info, GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))))));
+        template <class Arg>
+        GT_META_DEFINE_ALIAS(strides_kind_from_arg, sid::strides_kind, typename Arg::data_store_t);
+
+        using tmp_strides_kinds_t = GT_META_CALL(meta::dedup,
+            (GT_META_CALL(
+                meta::transform, (strides_kind_from_arg, GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))))));
 
       private:
-        using inversed_storage_info_map_t = GT_META_CALL(
-            meta::mp_inverse, (GT_META_CALL(meta::transform, (local_domain_impl_::get_storage_info_pair, EsfArgs))));
+        using inversed_strides_kind_map_t = GT_META_CALL(meta::mp_inverse,
+            (GT_META_CALL(meta::transform, (local_domain_impl_::get_sid_strides_kind_pair, EsfArgs))));
 
       public:
-        using storage_infos_t = GT_META_CALL(meta::transform, (meta::first, inversed_storage_info_map_t));
+        using strides_kinds_t = GT_META_CALL(meta::transform, (meta::first, inversed_strides_kind_map_t));
 
       private:
         using sid_strides_values_t = GT_META_CALL(
-            meta::transform, (local_domain_impl_::get_strides, inversed_storage_info_map_t));
+            meta::transform, (local_domain_impl_::get_strides, inversed_strides_kind_map_t));
 
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDA_VER_MINOR__ < 2
-        struct lazy_strides_keys_t : meta::lazy::rename<hymap::keys, storage_infos_t> {};
+        struct lazy_strides_keys_t : meta::lazy::rename<hymap::keys, strides_kinds_t> {};
         using strides_keys_t = typename lazy_strides_keys_t::type;
+        struct lazy_arg_keys_t : meta::lazy::rename<hymap::keys, EsfArgs> {};
+        using arg_keys_t = typename lazy_arg_keys_t::type;
 #else
-        using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, storage_infos_t));
+        using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, strides_kinds_t));
+        using arg_keys_t = GT_META_CALL(meta::rename, (hymap::keys, EsfArgs));
 #endif
 
         using strides_map_t = GT_META_CALL(meta::rename, (strides_keys_t::template values, sid_strides_values_t));
 
-        using arg_to_data_ptr_map_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_data_ptrs_elem, EsfArgs));
-        using data_ptr_fusion_map = typename boost::fusion::result_of::as_map<arg_to_data_ptr_map_t>::type;
-        using size_array_t = array<uint_t, meta::length<storage_infos_t>::value>;
+        using total_length_map_t = GT_META_CALL(meta::rename,
+            (strides_keys_t::template values, GT_META_CALL(meta::repeat, (meta::length<strides_keys_t>, uint_t))));
+
+        using ptr_holders_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_ptr_holder, EsfArgs));
+        using ptrs_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_ptr, EsfArgs));
+
+        using ptr_holder_map_t = GT_META_CALL(meta::rename, (arg_keys_t::template values, ptr_holders_t));
 
       public:
-        data_ptr_fusion_map m_local_data_ptrs;
-        size_array_t m_local_padded_total_lengths;
+        ptr_holder_map_t m_ptr_holder_map;
+        total_length_map_t m_total_length_map;
         strides_map_t m_strides_map;
+
+        using ptr_map_t = GT_META_CALL(meta::rename, (arg_keys_t::template values, ptrs_t));
+
+        GT_FUNCTION_DEVICE ptr_map_t make_ptr_map() const {
+            return tuple_util::device::transform(local_domain_impl_::call_f{}, m_ptr_holder_map);
+        }
     };
+
+    template <class LocalDomain, class Arg>
+    GT_META_DEFINE_ALIAS(strides_kind_from_arg, sid::strides_kind, typename Arg::data_store_t);
 
     template <class>
     struct is_local_domain : std::false_type {};
@@ -99,17 +117,3 @@ namespace gridtools {
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain_is_stateful<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> : bool_constant<IsStateful> {};
 } // namespace gridtools
-
-#ifdef GT_USE_GPU
-#include "../common/cuda_util.hpp"
-
-namespace gridtools {
-    // Force cloning to cuda device, even though local_domain is not trivially copyable because of boost fusion
-    // containers implementation.
-    namespace cuda_util {
-        template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
-        struct is_cloneable<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> : std::true_type {};
-    } // namespace cuda_util
-} // namespace gridtools
-
-#endif

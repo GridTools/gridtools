@@ -12,8 +12,6 @@
 #include <iostream>
 #include <typeinfo>
 
-#include <boost/mpl/vector.hpp>
-
 #include <gridtools/c_bindings/export.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>

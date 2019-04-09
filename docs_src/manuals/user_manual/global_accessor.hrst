@@ -41,16 +41,3 @@ in the do method
 .. note::
  All the member functions defined in the user-defined data structure must be labeled with ``GT_FUNCTION``, in order for
  them to be callable from devices.
-
-There is a special case for which we have a dedicated API: i.e. when the user defined object
-(the global parameter)
-defines the parenthesis operator ``operator()``, and we want to call that operator from the :term:`Apply-Method`.
-In that case the :term:`Accessor's<Accessor>` parenthesis operator can be used and the arguments will be
-automatically forwarded to the global parameter. An example is the case in which we want to pass
-a small matrix as a global parameter:
-
-.. code-block:: gridtools
-
-    using matrix = global_accessor<0>;
-    auto elem = eval(matrix(i, j));
-

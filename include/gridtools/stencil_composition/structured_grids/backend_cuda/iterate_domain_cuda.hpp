@@ -15,7 +15,7 @@
 
 #include <type_traits>
 
-#include <boost/type_traits/is_arithmetic.hpp>
+#include <boost/fusion/include/at_key.hpp>
 
 #include "../../../common/cuda_type_traits.hpp"
 #include "../../../common/defs.hpp"

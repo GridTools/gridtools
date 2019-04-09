@@ -29,12 +29,12 @@ set(REQUIRED_BOOST_VERSION 1.58)
 find_package( Boost ${REQUIRED_BOOST_VERSION} REQUIRED )
 target_link_libraries( gridtools INTERFACE Boost::boost)
 
-if (GT_ENABLE_BACKEND_X86 OR GT_ENABLE_BACKEND_MC OR GT_ENABLE_BACKEND_NAIVE)
+if(OPENMP_AVAILABLE)
     target_link_libraries( gridtools INTERFACE OpenMP::OpenMP_CXX)
 endif()
 
 target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
-if( GT_ENABLE_BACKEND_CUDA )
+if(CUDA_AVAILABLE)
   target_compile_definitions(gridtools INTERFACE GT_USE_GPU)
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 8.0 )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
@@ -56,7 +56,7 @@ endif()
 # TODO decide where to put this. Probably this should go into fortran bindings
 target_compile_options(gridtools INTERFACE $<$<AND:$<CXX_COMPILER_ID:Cray>,$<COMPILE_LANGUAGE:Fortran>>:-eF>)
 
-if( GT_USE_MPI )
+if(MPI_AVAILABLE)
     target_compile_definitions(gridtools INTERFACE GCL_MPI)
     if( GT_ENABLE_BACKEND_CUDA )
       target_compile_definitions(gridtools INTERFACE GCL_GPU)
@@ -74,16 +74,22 @@ target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
 target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(GridToolsTest INTERFACE 
-        $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-local-typedefs -Wno-attributes -Wno-unused-but-set-variable>)
+        $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-local-typedefs -Wno-attributes -Wno-unused-but-set-variable -Wno-unneeded-internal-declaration -Wno-unused-function>)
     target_compile_options(GridToolsTest INTERFACE
-        $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wall,-Wno-unknown-pragmas,-Wno-sign-compare,-Wno-attributes,-Wno-unused-but-set-variable>)
+        "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -Wall,-Wno-unknown-pragmas,-Wno-sign-compare,-Wno-attributes,-Wno-unused-but-set-variable,-Wno-unneeded-internal-declaration,-Wno-unused-function>")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.4.0")
+        target_compile_options(GridToolsTest INTERFACE
+            $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-value>)
+        target_compile_options(GridToolsTest INTERFACE
+            "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -Wno-unused-value>")
+    endif()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.9.0")
         # attribute noalias has been added in clang 3.9.0
         target_compile_options(GridToolsTest INTERFACE 
             $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-attributes>)
         target_compile_options(GridToolsTest INTERFACE
-            $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unknown-attributes>)
+            "SHELL:$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unknown-attributes>")
     endif ()
 endif()
 if(GT_TESTS_ICOSAHEDRAL_GRID)
@@ -132,6 +138,10 @@ if( GT_ENABLE_BACKEND_CUDA )
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL 9.0 )
     # suppress because of boost::fusion::vector ctor
     target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
+  endif()
+  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL 9.2 )
+    # suppress because of warnings in GTest
+    target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=177>)
   endif()
 
   add_library(GridToolsTestCUDA INTERFACE)

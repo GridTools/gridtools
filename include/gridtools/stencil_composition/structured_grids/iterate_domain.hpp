@@ -12,8 +12,8 @@
 
 #include <type_traits>
 
+#include <boost/fusion/adapted/std_tuple.hpp>
 #include <boost/fusion/include/at.hpp>
-#include <boost/fusion/include/at_key.hpp>
 
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
@@ -22,7 +22,6 @@
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../caches/cache_metafunctions.hpp"
-#include "../global_accessor.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../local_domain.hpp"
 #include "../pos3.hpp"
@@ -50,12 +49,13 @@ namespace gridtools {
         using k_cache_args_t = GT_META_CALL(k_cache_args, caches_t);
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t n_meta_storages = meta::length<typename local_domain_t::storage_infos_t>::value;
+        static const uint_t n_meta_storages = meta::length<typename local_domain_t::strides_kinds_t>::value;
 
       protected:
         using iterate_domain_arguments_t = IterateDomainArguments;
 
-        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_) {}
+        GT_FUNCTION_DEVICE iterate_domain(local_domain_t const &local_domain_)
+            : local_domain(local_domain_), m_ptr_map(local_domain_.make_ptr_map()) {}
 
       public:
         using array_index_t = array<int_t, n_meta_storages>;
@@ -63,6 +63,7 @@ namespace gridtools {
       private:
         // ******************* members *******************
         local_domain_t const &local_domain;
+        typename local_domain_t::ptr_map_t m_ptr_map;
         array_index_t m_index;
         // ******************* end of members *******************
 
@@ -70,21 +71,6 @@ namespace gridtools {
         GT_FUNCTION void increment(Offset const &offset) {
             do_increment<Dim, local_domain_t>(offset, local_domain.m_strides_map, m_index);
         }
-
-        /**
-         * @brief helper function that given an input in_ and a tuple t_ calls in_.operator() with the elements of the
-         * tuple as arguments.
-         *
-         * For example, if the tuple is an accessor containing the offsets 1,2,3, and the input is a storage st_,
-         * this function returns st_(1,2,3).
-         *
-         * \param container_ the input class
-         * \param tuple_ the tuple
-         * */
-        template <typename Container, typename Tuple, size_t... Ids>
-        GT_FUNCTION auto static tuple_to_container(
-            Container const &container_, Tuple const &tuple_, meta::index_sequence<Ids...>)
-            GT_AUTO_RETURN(container_(boost::fusion::at_c<Ids>(tuple_)...));
 
       public:
         static constexpr bool has_k_caches = false;
@@ -114,7 +100,7 @@ namespace gridtools {
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_t = typename IterateDomainArguments::backend_t;
-            host_device::for_each_type<typename local_domain_t::storage_infos_t>(
+            host_device::for_each_type<typename local_domain_t::strides_kinds_t>(
                 initialize_index<backend_t, local_domain_t>(
                     local_domain.m_strides_map, begin, block_no, pos_in_block, m_index));
         }
@@ -123,7 +109,7 @@ namespace gridtools {
         GT_FUNCTION Data *deref_for_k_cache(int_t k_offset) const {
             using storage_info_t = typename DataStore::storage_info_t;
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_infos_t, storage_info_t>::value;
+                meta::st_position<typename local_domain_t::strides_kinds_t, storage_info_t>::value;
 
             auto offset = m_index[storage_info_index];
             sid::shift(offset,
@@ -131,28 +117,9 @@ namespace gridtools {
                 k_offset);
 
             return pointer_oob_check<storage_info_t>(local_domain, offset)
-                       ? boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + offset
+                       ? gridtools::host_device::at_key<Arg>(m_ptr_map) + offset
                        : nullptr;
         }
-
-        /**
-         * @brief Method called in the apply methods of the functors.
-         * Specialization for the global accessors placeholders.
-         */
-        template <class Arg, intent Intent, uint_t I>
-        GT_FUNCTION typename Arg::data_store_t::data_t deref(global_accessor<I> const &) const {
-            return *boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs);
-        }
-
-        /**
-         * @brief method called in the apply methods of the functors.
-         * Specialization for the global accessors placeholders with arguments.
-         */
-        template <class Arg, intent Intent, class Acc, class... Args>
-        GT_FUNCTION auto deref(global_accessor_with_arguments<Acc, Args...> const &acc) const
-            GT_AUTO_RETURN(tuple_to_container(*boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs),
-                acc.get_arguments(),
-                meta::index_sequence_for<Args...>()));
 
         /** @brief method called in the apply methods of the functors.
          *
@@ -188,21 +155,14 @@ namespace gridtools {
             class Accessor,
             class Res = typename deref_type<Arg, Intent>::type,
             enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value &&
-                            !meta::st_contains<k_cache_args_t, Arg>::value && is_accessor<Accessor>::value &&
-                            !is_global_accessor<Accessor>::value,
+                            !meta::st_contains<k_cache_args_t, Arg>::value && is_accessor<Accessor>::value,
                 int> = 0>
         GT_FUNCTION Res deref(Accessor const &accessor) const {
             using data_t = typename Arg::data_store_t::data_t;
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
-            GT_STATIC_ASSERT(tuple_util::size<Accessor>::value <= storage_info_t::layout_t::masked_length,
-                "requested accessor index lower than zero. Check that when you define the accessor you specify the "
-                "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
-                "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
-                "you here.");
-
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_infos_t, storage_info_t>::value;
+                meta::st_position<typename local_domain_t::strides_kinds_t, storage_info_t>::value;
 
             auto pointer_offset = m_index[storage_info_index];
             sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(local_domain.m_strides_map), accessor);
@@ -210,7 +170,7 @@ namespace gridtools {
             assert(pointer_oob_check<storage_info_t>(local_domain, pointer_offset));
 
             conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
-                boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + pointer_offset;
+                gridtools::host_device::at_key<Arg>(m_ptr_map) + pointer_offset;
 
             return IterateDomainImpl::template deref_impl<Arg>(ptr);
         }

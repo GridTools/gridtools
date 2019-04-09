@@ -16,16 +16,12 @@
 #include <cmath>
 #include <functional>
 
-#include <boost/fusion/functional/invocation/invoke.hpp>
-#include <boost/fusion/include/for_each.hpp>
-
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../../common/hymap.hpp"
 #include "../../../meta.hpp"
 #include "../../accessor_base.hpp"
 #include "../../caches/cache_metafunctions.hpp"
-#include "../../global_accessor.hpp"
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../../sid/concept.hpp"
@@ -34,7 +30,7 @@
 
 namespace gridtools {
 
-    namespace _impl {
+    namespace iterate_domain_mc_impl_ {
         /**
          * @brief Per-thread global value of omp_get_thread_num() / omp_get_max_threads().
          */
@@ -48,41 +44,25 @@ namespace gridtools {
 
         /**
          * @brief compute thread offsets for temporaries
-         *
-         * Actually offsets are stored for each data_ptr, however only for temporaries they are non-zero.
-         * We keep the zeros as it simplifies design, and will be cleaned up when we re-implement the temporaries.
          */
-        template <typename LocalDomain, typename DataPtrsOffset>
-        struct assign_data_ptr_offsets {
+        template <class LocalDomain>
+        struct set_offset_for_temporaries_f {
             LocalDomain const &m_local_domain;
-            DataPtrsOffset &m_data_ptr_offsets;
+            typename LocalDomain::ptr_map_t &m_dst;
 
-            template <class ArgDataPtrPair>
-            GT_FORCE_INLINE void operator()(ArgDataPtrPair const &) const {
-                using arg_t = typename ArgDataPtrPair::first_type;
-                constexpr auto arg_index = meta::st_position<typename LocalDomain::esf_args_t, arg_t>::value;
+            template <class Arg>
+            GT_FORCE_INLINE void operator()() const {
 
-                get<arg_index>(m_data_ptr_offsets) = fields_offset<arg_t>(); // non-zero only for tmps.
-            }
+                using strides_kind_t = GT_META_CALL(strides_kind_from_arg, (LocalDomain, Arg));
 
-          private:
-            template <typename Arg>
-            GT_FORCE_INLINE enable_if_t<is_tmp_arg<Arg>::value, int_t> fields_offset() const {
-                constexpr auto storage_info_index = meta::st_position<typename LocalDomain::storage_infos_t,
-                    typename Arg::data_store_t::storage_info_t>::value;
-                auto length = m_local_domain.m_local_padded_total_lengths[storage_info_index];
+                auto length = at_key<strides_kind_t>(m_local_domain.m_total_length_map);
                 int_t offset = std::lround(length * thread_factor());
                 assert(offset == ((long long)length * omp_get_thread_num()) / omp_get_max_threads());
-                return offset;
-            }
-
-            template <typename Arg>
-            GT_FORCE_INLINE enable_if_t<!is_tmp_arg<Arg>::value, int_t> fields_offset() const {
-                return 0;
+                at_key<Arg>(m_dst) += offset;
             }
         };
 
-    } // namespace _impl
+    } // namespace iterate_domain_mc_impl_
 
     /**
      * @brief Iterate domain class for the MC backend.
@@ -99,17 +79,18 @@ namespace gridtools {
 
         /* meta function to get storage info index in local domain */
         template <typename StorageInfo>
-        using local_domain_storage_index = meta::st_position<typename local_domain_t::storage_infos_t, StorageInfo>;
+        using local_domain_storage_index = meta::st_position<typename local_domain_t::strides_kinds_t, StorageInfo>;
 
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
-        using storage_is_tmp = meta::st_contains<typename local_domain_t::tmp_storage_infos_t, StorageInfo>;
+        GT_META_DEFINE_ALIAS(
+            storage_is_tmp, meta::st_contains, (typename local_domain_t::tmp_strides_kinds_t, StorageInfo));
 
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
 
       public:
         // the number of different storage metadatas used in the current functor
-        static const uint_t n_meta_storages = meta::length<typename local_domain_t::storage_infos_t>::value;
+        static const uint_t n_meta_storages = meta::length<typename local_domain_t::strides_kinds_t>::value;
 
         using array_index_t = array<int_t, n_meta_storages>;
         // *************** end of type definitions **************
@@ -124,6 +105,7 @@ namespace gridtools {
         int_t m_j_block_base;      /** Global block start index along j-axis. */
         int_t m_prefetch_distance; /** Prefetching distance along k-axis, zero means no software prefetching. */
         bool m_enable_ij_caches;   /** Enables ij-caching. */
+        typename local_domain_t::ptr_map_t m_ptr_map;
         // ******************* end of members *******************
 
         // helper class for index array generation, only needed for the index() function
@@ -134,7 +116,7 @@ namespace gridtools {
             template <class StorageInfoIndex>
             void operator()(StorageInfoIndex const &) const {
                 using storage_info_t =
-                    GT_META_CALL(meta::at, (typename local_domain_t::storage_infos_t, StorageInfoIndex));
+                    GT_META_CALL(meta::at, (typename local_domain_t::strides_kinds_t, StorageInfoIndex));
                 static constexpr bool is_ij_cached = false;
                 m_index_array[StorageInfoIndex::value] =
                     m_it_domain.compute_offset<is_ij_cached, storage_info_t>(accessor_base<storage_info_t::ndims>());
@@ -145,17 +127,15 @@ namespace gridtools {
             array<int_t, n_meta_storages> &m_index_array;
         };
 
-        using data_ptr_offsets_t =
-            array<int, boost::fusion::result_of::size<decltype(local_domain.m_local_data_ptrs)>::value>;
-        data_ptr_offsets_t m_data_ptr_offsets;
-
       public:
         GT_FORCE_INLINE
         iterate_domain_mc(local_domain_t const &local_domain)
             : local_domain(local_domain), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0), m_i_block_base(0),
-              m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
-            boost::fusion::for_each(local_domain.m_local_data_ptrs,
-                _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
+              m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false),
+              m_ptr_map(local_domain.make_ptr_map()) {
+            using tmp_args_t = GT_META_CALL(meta::filter, (is_tmp_arg, typename local_domain_t::esf_args_t));
+            gridtools::for_each_type<tmp_args_t>(
+                iterate_domain_mc_impl_::set_offset_for_temporaries_f<local_domain_t>{local_domain, m_ptr_map});
         }
 
         /** @brief Sets the block start indices. */
@@ -185,48 +165,25 @@ namespace gridtools {
         GT_FORCE_INLINE void enable_ij_caches() { m_enable_ij_caches = true; }
 
         /**
-         * @brief Method called in the apply methods of the functors.
-         * Specialization for the global accessors placeholders.
+         * @brief Returns the value pointed by an accessor.
          */
-        template <class Arg, intent Intent, uint_t I>
-        GT_FORCE_INLINE typename Arg::data_store_t::data_t deref(global_accessor<I> const &) const {
-            return *boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs);
-        }
-
-        /**
-         * @brief Method called in the apply methods of the functors.
-         * Specialization for the global accessors placeholders with arguments.
-         */
-        template <class Arg, intent Intent, class Acc, class... Args>
-        GT_FORCE_INLINE auto deref(global_accessor_with_arguments<Acc, Args...> const &acc) const
-            GT_AUTO_RETURN(boost::fusion::invoke(
-                std::cref(*boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs)), acc.get_arguments()));
-
-        /**
-         * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
-         * nor expression).
-         */
-        template <class Arg,
-            intent Intent,
-            class Accessor,
-            enable_if_t<is_accessor<Accessor>::value && !is_global_accessor<Accessor>::value, int> = 0>
+        template <class Arg, intent Intent, class Accessor>
         GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
-            using storage_info_t = typename Arg::data_store_t::storage_info_t;
+            using strides_kind_t = GT_META_CALL(strides_kind_from_arg, (local_domain_t, Arg));
 
-            static constexpr auto arg_index = meta::st_position<typename local_domain_t::esf_args_t, Arg>::value;
-
-            auto ptr = boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + m_data_ptr_offsets[arg_index];
+            auto ptr = at_key<Arg>(m_ptr_map);
 
             int_t pointer_offset =
-                compute_offset<meta::st_contains<ij_cache_args_t, Arg>::value, storage_info_t>(accessor);
+                compute_offset<meta::st_contains<ij_cache_args_t, Arg>::value, strides_kind_t>(accessor);
 
 #ifdef __SSE__
             if (m_prefetch_distance != 0) {
-                int_t prefetch_offset = m_prefetch_distance * storage_stride<storage_info_t, 2>();
-                _mm_prefetch(reinterpret_cast<const char *>(&ptr[pointer_offset + prefetch_offset]), _MM_HINT_T1);
+                int_t prefetch_offset = {};
+                sid::shift(prefetch_offset, storage_stride<strides_kind_t, dim::k>(), m_prefetch_distance);
+                _mm_prefetch(reinterpret_cast<const char *>(ptr + pointer_offset + prefetch_offset), _MM_HINT_T1);
             }
 #endif
-            return ptr[pointer_offset];
+            return *(ptr + pointer_offset);
         }
 
         /** @brief Global i-index. */
@@ -248,9 +205,9 @@ namespace gridtools {
          * @tparam StorageInfo Storage info for which the strides should be returned.
          * @tparam Coordinate Axis/coordinate along which the stride is needed.
          */
-        template <typename StorageInfo, int_t Coordinate>
+        template <typename StridesKind, class DimKey>
         GT_FORCE_INLINE int_t storage_stride() const {
-            return sid::get_stride<integral_constant<int, Coordinate>>(at_key<StorageInfo>(local_domain.m_strides_map));
+            return sid::get_stride<DimKey>(at_key<StridesKind>(local_domain.m_strides_map));
         }
 
         /**
@@ -342,12 +299,13 @@ namespace gridtools {
             return host_device::at_key<integral_constant<int, Coordinate>>(accessor);
         }
 
-        template <bool IsIjCached, typename StorageInfo, typename Accessor, std::size_t... Coordinates>
+        template <bool IsIjCached, typename StridesKind, typename Accessor, std::size_t... Coordinates>
         GT_FORCE_INLINE int_t compute_offset_impl(
             Accessor const &accessor, meta::index_sequence<Coordinates...>) const {
             return accumulate(plus_functor(),
-                (storage_stride<StorageInfo, Coordinates>() *
-                    coordinate_offset<IsIjCached, StorageInfo, Coordinates>(accessor))...);
+                0,
+                (storage_stride<StridesKind, integral_constant<int_t, Coordinates>>() *
+                    coordinate_offset<IsIjCached, StridesKind, Coordinates>(accessor))...);
         }
 
         /**
@@ -362,7 +320,7 @@ namespace gridtools {
          */
         template <bool IsIjCached, typename StorageInfo, typename Accessor>
         GT_FORCE_INLINE int_t compute_offset(Accessor const &accessor) const {
-            using sequence_t = meta::make_index_sequence<StorageInfo::layout_t::masked_length>;
+            using sequence_t = meta::make_index_sequence<tuple_util::size<Accessor>::value>;
             return compute_offset_impl<IsIjCached, StorageInfo>(accessor, sequence_t());
         }
     };

@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <boost/fusion/adapted/std_tuple.hpp>
 #include <boost/fusion/include/at.hpp>
 
 #include "../common/defs.hpp"
