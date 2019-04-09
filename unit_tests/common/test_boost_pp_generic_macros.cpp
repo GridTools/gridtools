@@ -16,13 +16,13 @@ GT_PP_MAKE_VARIANT(myvariant, my_types);
 #undef my_types
 TEST(variant, automatic_conversion) {
     myvariant v = 3;
-    int i = v;
+    (int)v;
 
     v = 3.;
-    double d = v;
+    (double)v;
 
     try {
-        int j = v;
+        (int)v;
         ASSERT_TRUE(false);
     } catch (const boost::bad_get &e) {
         ASSERT_TRUE(true);
@@ -34,13 +34,13 @@ GT_PP_MAKE_VARIANT(myvariant_tuple, my_types);
 #undef my_types
 TEST(variant_with_tuple, automatic_conversion) {
     myvariant_tuple v = 3;
-    int i = v;
+    (int)v;
 
     v = 3.;
-    double d = v;
+    (double)v;
 
     try {
-        int j = v;
+        (int)v;
         ASSERT_TRUE(false);
     } catch (const boost::bad_get &e) {
         ASSERT_TRUE(true);

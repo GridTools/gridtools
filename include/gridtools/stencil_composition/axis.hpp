@@ -8,24 +8,41 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+#include "..//common/defs.hpp"
 #include "../common/array.hpp"
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../common/variadic_pack_metafunctions.hpp"
 #include "interval.hpp"
 #include "level.hpp"
+#include <type_traits>
 
 namespace gridtools {
+
+    namespace axis_config {
+        template <int_t V>
+        struct offset_limit : std::integral_constant<int_t, V> {};
+
+        template <int_t V>
+        struct extra_offsets : std::integral_constant<int_t, V> {};
+    } // namespace axis_config
+
     /**
-     * Defines an axis_interval_t which is the former user-defined axis type and a full_interval which spans the whole
-     * axis.
+     * Defines an axis_interval_t which spans the whole axis.
      * @param NIntervals Number of intervals the axis should support
-     * @param ExtraOffsetsAroundFullInterval Special case when access of k-values around the full_interval (i.e. after
-     * the last or before the first splitter value) are needed. (Note that the default interval will span the whole
-     * axis_interval_t.)
+     * @param LevelOffsetLimit Maximum offset relative to the splitter position that is required to specify the
+     * intervals
+     * @param (non-API) ExtraOffsetsAroundFullInterval Special case when access of k-values around the full_interval
+     * (i.e. after the last or before the first splitter value) are needed. (Note that the default interval will span
+     * the whole axis_interval_t.)
      */
-    template <size_t NIntervals, int_t ExtraOffsetsAroundFullInterval = 0, int_t LevelOffsetLimit = 2>
-    class axis {
+    template <size_t, class = axis_config::offset_limit<2>, class = axis_config::extra_offsets<0>>
+    class axis;
+
+    template <size_t NIntervals, int_t LevelOffsetLimit, int_t ExtraOffsetsAroundFullInterval>
+    class axis<NIntervals,
+        axis_config::offset_limit<LevelOffsetLimit>,
+        axis_config::extra_offsets<ExtraOffsetsAroundFullInterval>> {
       private:
         template <size_t... IntervalIDs>
         struct interval_impl {

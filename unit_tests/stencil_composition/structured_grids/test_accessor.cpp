@@ -15,18 +15,15 @@
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil_composition/expressions/expressions.hpp>
-#include <gridtools/stencil_composition/global_accessor.hpp>
 
 using namespace gridtools;
 using namespace expressions;
 
-TEST(accessor, is_accessor) {
-    GT_STATIC_ASSERT((is_accessor<accessor<6, intent::inout, extent<3, 4, 4, 5>>>::value) == true, "");
-    GT_STATIC_ASSERT((is_accessor<accessor<2, intent::in>>::value) == true, "");
-    GT_STATIC_ASSERT((is_accessor<int>::value) == false, "");
-    GT_STATIC_ASSERT((is_accessor<double &>::value) == false, "");
-    GT_STATIC_ASSERT((is_accessor<double const &>::value) == false, "");
-}
+static_assert(is_accessor<accessor<6, intent::inout, extent<3, 4, 4, 5>>>::value, "");
+static_assert(is_accessor<accessor<2, intent::in>>::value, "");
+static_assert(!is_accessor<int>::value, "");
+static_assert(!is_accessor<double &>::value, "");
+static_assert(!is_accessor<double const &>::value, "");
 
 TEST(accessor, trivial) {
     accessor<0, intent::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);

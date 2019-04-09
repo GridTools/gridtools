@@ -16,15 +16,11 @@
 namespace gridtools {
     template <class Backend, class T>
     using global_parameter = typename storage_traits<Backend>::template data_store_t<T,
-        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0>, zero_halo<1>>>;
+        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0>, halo<0>>>;
 
     template <class Backend, class T>
     global_parameter<Backend, T> make_global_parameter(T const &value) {
-        typename global_parameter<Backend, T>::storage_info_t si(1);
-        global_parameter<Backend, T> ds(si);
-        make_host_view(ds)(0) = value;
-        ds.sync();
-        return ds;
+        return {{1}, value};
     }
 
     template <class GlobalParameter, class T>

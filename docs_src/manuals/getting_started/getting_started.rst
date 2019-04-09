@@ -90,27 +90,23 @@ Backend
 ^^^^^^^
 
 Since the storages (and other things later) depend on the architecture
-(e.g. CPU or GPU) our first step is to define the *target* type which
+(e.g. CPU or GPU) our first step is to define the *backend* type which
 typically looks like 
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
-   :lines: 8
+   :start-after: #ifdef __CUDACC__
+   :end-before: #else
 
 for the CUDA :term:`Backend` or
  
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
-   :lines: 10
+   :start-after: #else
+   :end-before: #endif
 
-for the CPU :term:`Backend`. Second we define the backend as
+for the CPU :term:`Backend`.
  
-.. literalinclude:: code/test_gt_storage.cpp
-   :language: gridtools
-   :lines: 12
-
-which will be used later.
-
 ^^^^^^^^^^^^^^^^
 The Storage Type
 ^^^^^^^^^^^^^^^^
@@ -125,7 +121,8 @@ traits we need to provide a unique identifier and the number of dimensions for t
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
-   :lines: 14-15
+   :start-after: #endif
+   :end-before: int main() {
 
 At run-time a ``storage_info`` is
 initialized with the sizes of the field. Then a field can be
@@ -133,7 +130,8 @@ instantiated with the ``info`` object.
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
-   :lines: 18-25
+   :start-after: int main() {
+   :end-before: std::cout << phi.name() << "\n";
    :dedent: 4
 
 The first argument, the ``info``
@@ -157,7 +155,8 @@ We can now
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
-   :lines: 27-33
+   :start-after: data_store_t lap(info, -1., "lap");
+   :end-before: } // end
    :dedent: 4
 
 --------
