@@ -66,9 +66,9 @@ namespace gridtools {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
             GT_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
 #ifndef GT_ICOSAHEDRAL_GRIDS
-            using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size, false>::type>::type;
+            using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size(), false>::type>::type;
 #else
-            using layout = typename get_layout<Selector::size, true>::type;
+            using layout = typename get_layout<Selector::size(), true>::type;
 #endif
             using type = mc_storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo>;
         };
@@ -96,9 +96,9 @@ namespace gridtools {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
             GT_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
 #ifndef GT_ICOSAHEDRAL_GRIDS
-            using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size, false>::type>::type;
+            using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size(), false>::type>::type;
 #else
-            using layout = typename get_layout<Selector::size, true>::type;
+            using layout = typename get_layout<Selector::size(), true>::type;
 #endif
             using type = storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo, Align>;
         };

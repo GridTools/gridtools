@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../../common/array.hpp"
-#include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/make_array.hpp"
 #include "../low_level/Halo_Exchange_3D.hpp"
@@ -567,9 +566,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+                            const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+                            const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+                            const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
@@ -604,9 +603,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+                            const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+                            const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+                            const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
@@ -630,9 +629,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+                            const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+                            const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+                            const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
@@ -669,9 +668,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
-                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
-                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
+                            const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
+                            const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
+                            const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
