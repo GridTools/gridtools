@@ -29,7 +29,7 @@ namespace gridtools {
     __device__ tuple<int, double> element_wise_ctor(int x, double y) { return {x, y}; }
 
     TEST(tuple, element_wise_ctor) {
-        tuple<int, double> testee = on_device::exec(GT_MAKE_CONSTANT(element_wise_ctor), 42, 2.5);
+        tuple<int, double> testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&element_wise_ctor), 42, 2.5);
         EXPECT_EQ(42, tuple_util::host::get<0>(testee));
         EXPECT_EQ(2.5, tuple_util::host::get<1>(testee));
     }
@@ -37,7 +37,8 @@ namespace gridtools {
     __device__ tuple<int, double> element_wise_conversion_ctor(char x, char y) { return {x, y}; }
 
     TEST(tuple, element_wise_conversion_ctor) {
-        tuple<int, double> testee = on_device::exec(GT_MAKE_CONSTANT(element_wise_conversion_ctor), 'a', 'b');
+        tuple<int, double> testee =
+            on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&element_wise_conversion_ctor), 'a', 'b');
         EXPECT_EQ('a', tuple_util::host::get<0>(testee));
         EXPECT_EQ('b', tuple_util::host::get<1>(testee));
     }
@@ -45,7 +46,8 @@ namespace gridtools {
     __device__ tuple<int, double> tuple_conversion_ctor(tuple<char, char> const &src) { return src; }
 
     TEST(tuple, tuple_conversion_ctor) {
-        tuple<int, double> testee = on_device::exec(GT_MAKE_CONSTANT(tuple_conversion_ctor), tuple<char, char>{'a', 'b'});
+        tuple<int, double> testee =
+            on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&tuple_conversion_ctor), tuple<char, char>{'a', 'b'});
         EXPECT_EQ('a', tuple_util::host::get<0>(testee));
         EXPECT_EQ('b', tuple_util::host::get<1>(testee));
     }
