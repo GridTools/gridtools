@@ -22,7 +22,7 @@ def load(envfile):
     env = dict(line.split('=', 1) for line in output.split('\0'))
 
     logger.debug(f'Environment loaded from {envfile}:',
-                 '\n'.join(f'{k}={v}' for k, v in env.items()))
+                 '\n'.join(f'{k}={v}' for k, v in sorted(env.items())))
     return env
 
 
