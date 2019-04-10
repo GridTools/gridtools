@@ -39,6 +39,6 @@ with log.exception_logging():
     env = envs.Env()
     env.load(args.device, args.compiler)
     build.cmake(env, args.source_dir, args.build_dir, args.build_type,
-                args.precision, args.grid)
+                args.precision, args.grid, env.cmake_args())
     if not args.cmake_only:
-        build.make(env, args.build_dir, args.target)
+        build.make(env, args.build_dir, args.target, env.build_command())

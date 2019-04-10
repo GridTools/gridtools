@@ -22,17 +22,12 @@ def _stderr_file(rundir, command_id):
     return os.path.join(rundir, f'stderr_{command_id}.out')
 
 
-def _generate_sbatch(env, commands):
+def _generate_sbatch(env, commands, sbatch_options, srun):
     code = f'#!/bin/bash -l\n#SBATCH --array=0-{len(commands) - 1}\n'
 
-    settings = env.run_settings()
+    for option in sbatch_options:
+        code += f'#SBATCH {option}\n'
 
-    for k, v in settings.items():
-        if k.startswith('SBATCH_'):
-            arg = '--' + k[7:].lower().replace('_', '-') + '=' + v
-            code += f'#SBATCH {arg}\n'
-
-    srun = settings.get('SRUN_COMMAND', 'srun')
     code += 'case $SLURM_ARRAY_TASK_ID in\n'
     for i, command in enumerate(commands):
         code += f'    {i})\n        {srun} {command}\n        ;;\n'
@@ -40,8 +35,8 @@ def _generate_sbatch(env, commands):
     return code
 
 
-def _run_sbatch(env, rundir, commands):
-    sbatchstr = _generate_sbatch(env, commands)
+def _run_sbatch(env, rundir, commands, sbatch_options, srun):
+    sbatchstr = _generate_sbatch(env, commands, sbatch_options, srun)
     log.debug('Generated sbatch file', sbatchstr)
     with open(_sbatch_file(rundir), 'w') as sbatch:
         sbatch.write(sbatchstr)
@@ -99,13 +94,17 @@ def _retreive_outputs(env, rundir, commands, task_id):
     return outputs
 
 
-def run(env, commands):
+def run(env, commands, sbatch_options=None, srun=None):
+    if sbatch_options is None:
+        sbatch_options = []
+    if srun is None:
+        srun = 'srun'
     with tempfile.TemporaryDirectory(dir='.') as rundir:
-        task = _run_sbatch(env, rundir, commands)
+        task = _run_sbatch(env, rundir, commands, sbatch_options, srun)
         return _retreive_outputs(env, rundir, commands, task)
 
-def run_retry(env, commands, retries):
-    outputs = run(env, commands)
+def run_retry(env, commands, retries, sbatch_options=None, srun=None):
+    outputs = run(env, commands, sbatch_options, srun)
     for retry in range(retries):
         exitcodes = [exitcode for exitcode, *_ in outputs]
         if all(exitcode == 0 for exitcode in exitcodes):
@@ -121,7 +120,7 @@ def run_retry(env, commands, retries):
                 failed_commands.append(command)
                 failed_indices.append(i)
 
-        failed_outputs = run(env, failed_commands)
+        failed_outputs = run(env, failed_commands, sbatch_options, srun)
 
         for i, o in zip(failed_indices, failed_outputs):
             outputs[i] = o

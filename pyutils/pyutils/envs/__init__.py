@@ -45,11 +45,31 @@ class Env(dict):
         return {k[len(tag):]: v for k, v in self.items() if k.startswith(tag)}
 
     def cmake_args(self):
-        return self._items_with_tag('GTCMAKE_')
+        args = []
+        for k, v in self._items_with_tag('GTCMAKE_').items():
+            if v.strip() in ('ON', 'OFF'):
+                k += ':BOOL'
+            else:
+                k += ':STRING'
+            args.append(f'-D{k}={v}')
+        return args
 
-    def run_settings(self):
-        tag = 'GTRUN_'
-        return self._items_with_tag(tag)
+    def sbatch_options(self, mpi):
+        options = []
+        def fmt(k, v):
+            return '--' + k.lower().replace('_', '-') + '=' + v
+        for k, v in self._items_with_tag('GTRUN_SBATCH_').items():
+            options.append(fmt(k, v))
+        if mpi:
+            for k, v in self._items_with_tag('GTRUNMPI_SBATCH_').items():
+                options.append(fmt(k, v))
+        return options
+
+    def srun_command(self):
+        return self.get('GTRUN_SRUN_COMMAND', 'srun')
+
+    def build_command(self):
+        return self.get('GTRUN_BUILD_COMMAND', 'make')
 
     @staticmethod
     def hostname():

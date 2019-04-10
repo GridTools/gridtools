@@ -49,12 +49,16 @@ def _parse_time(output):
 def run(env, domain, runs):
     stencils = stencil_loader.load(buildinfo.grid)
 
+    sbatch_options = env.sbatch_options()
+    srun = env.srun_command()
+
     results = dict()
     for backend in buildinfo.backends:
         commands = [_stencil_command(backend, s, domain) for s in stencils]
         allcommands = [c for c in commands for _ in range(runs)]
         log.info('Running stencils')
-        alloutputs = runtools.run_retry(env, allcommands, 5)
+        alloutputs = runtools.run_retry(env, allcommands, 5,
+                                        sbatch_options, srun)
         log.info('Running stencils finished')
         alltimes = [_parse_time(o) for _, o, _ in alloutputs]
         times = [alltimes[i:i + runs] for i in range(0, len(alltimes), runs)]

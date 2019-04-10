@@ -16,6 +16,7 @@ parser.add_argument('--device', '-d', choices=['cpu', 'gpu'],
                     required=True)
 parser.add_argument('--compiler', '-c', choices=['gcc', 'clang', 'icc'],
                     required=True)
+parser.add_argument('--run-mpi-tests', '-m', action='store_true')
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 build_dir_default = os.path.abspath(os.path.join(script_dir, os.path.pardir))
@@ -28,4 +29,4 @@ log.set_verbosity(args.verbose)
 with log.exception_logging():
     env = envs.Env()
     env.load(args.device, args.compiler)
-    test.run(env):
+    test.run(env, args.run_mpi_tests)

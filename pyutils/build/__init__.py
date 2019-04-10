@@ -8,13 +8,16 @@ import time
 from pyutils import log
 
 
-def cmake(env, source_dir, build_dir, build_type, precision, grid_type):
+def cmake(env, source_dir, build_dir, build_type, precision, grid_type,
+          cmake_args=None):
     if build_type not in ('debug', 'release'):
         raise ValueError(f'Invalid build type "{build_type}"')
     if precision not in ('float', 'double'):
         raise ValueError(f'Invalid precision "{precision}"')
     if grid_type not in ('structured', 'icosahedral'):
         raise ValueError(f'Invalid grid type "{grid_type}"')
+    if cmake_args is None:
+        cmake_args = []
 
     source_dir = os.path.abspath(source_dir)
     build_dir = os.path.abspath(build_dir)
@@ -24,15 +27,17 @@ def cmake(env, source_dir, build_dir, build_type, precision, grid_type):
 
     os.makedirs(build_dir, exist_ok=True)
 
-    command = ['cmake', source_dir]
-    args = env.cmake_args()
-    for k, v in args.items():
-        if v.strip() in ('ON', 'OFF'):
-            k += ':BOOL'
-        else:
-            k += ':STRING'
-        command.append(f'-D{k}={v}')
+    def stringopt(name, value):
+        return f'-D{name}:STRING=' + value
 
+    def boolopt(name, value):
+        return f'-D{name}:BOOL=' + ('ON' if value else 'OFF')
+
+    command = ['cmake', source_dir,
+               stringopt('CMAKE_BUILD_TYPE', build_type.title()),
+               boolopt('GT_SINGLE_PRECISION', precision == 'float'),
+               boolopt('GT_ICOSAHEDRAL_GRID', grid_type == 'icosahedral')]
+    command += cmake_args
     log.info('Invoking CMake', ' '.join(command))
     start = time.time()
     try:
@@ -48,12 +53,11 @@ def cmake(env, source_dir, build_dir, build_type, precision, grid_type):
     log.debug('CMake output', output)
 
 
-def make(env, build_dir, targets=None):
-    run_settings = env.run_settings()
-    threads = run_settings['BUILD_THREADS']
-    command = run_settings['BUILD_COMMAND']
+def make(env, build_dir, targets=None, build_command=None):
+    if build_command is None:
+        build_command = 'make'
 
-    command = list(command.split()) + ['make', f'-j{threads}']
+    command = build_command.split()
     if targets is not None:
         command += list(targets)
 
