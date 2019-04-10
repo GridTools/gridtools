@@ -36,7 +36,8 @@ def cmake(env, source_dir, build_dir, build_type, precision, grid_type,
     command = ['cmake', source_dir,
                stringopt('CMAKE_BUILD_TYPE', build_type.title()),
                boolopt('GT_SINGLE_PRECISION', precision == 'float'),
-               boolopt('GT_ICOSAHEDRAL_GRID', grid_type == 'icosahedral')]
+               boolopt('GT_TESTS_ICOSAHEDRAL_GRID',
+                       grid_type == 'icosahedral')]
     command += cmake_args
     log.info('Invoking CMake', ' '.join(command))
     start = time.time()
@@ -71,5 +72,6 @@ def make(env, build_dir, targets=None, build_command=None):
         log.debug('make output', output)
     except subprocess.CalledProcessError as e:
         log.error('make failed with output', e.output.decode())
+        raise e
     end = time.time()
     log.info(f'make finished in {end - start:.2f}s')
