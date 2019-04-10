@@ -27,9 +27,10 @@ def plot(args):
 
 def run(args):
     import perftest.result
+    from perftest import buildinfo
 
     env = envs.Env()
-    env.load(args.device, args.compiler)
+    env.load(buildinfo.target, buildinfo.compiler_id)
 
     results = perftest.run(env, args.domain_size, args.runs)
 

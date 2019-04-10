@@ -18,11 +18,12 @@ class Env(dict):
     def copy(self):
         return Env(self)
 
-    def load(self, device, compiler):
-        envfile = self.clustername() + '_' + device + '_' + compiler + '.sh'
+    def load(self, target, compiler):
+        envfile = self.clustername() + '_' + target + '_' + compiler + '.sh'
         envfile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                envfile)
         self.update_from_file(envfile)
+        self['GTCMAKE_PYUTILS_TARGET'] = target
 
     def update_from_file(self, envfile):
         if not os.path.exists(envfile):

@@ -10,8 +10,14 @@ source_dir = '@CMAKE_SOURCE_DIR@'
 # CMake binary dir
 binary_dir = '@CMAKE_BINARY_DIR@'
 
+# Compiler ID
+compiler_id = '@PYUTILS_COMPILER_ID@'
+
 # Compiler
 compiler = '@PYUTILS_COMPILER@'
+
+# Target
+target = '@PYUTILS_TARGET@' or None
 
 # Floating point precision
 precision = '@PYUTILS_PRECISION@'
