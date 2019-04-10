@@ -43,9 +43,9 @@ def cmake(env, source_dir, build_dir, build_type, precision, grid_type):
 
 
 def make(env, build_dir, targets=None):
-    ci_settings = env.ci_settings()
-    threads = ci_settings['BUILD_THREADS']
-    command = ci_settings['BUILD_COMMAND']
+    run_settings = env.run_settings()
+    threads = run_settings['BUILD_THREADS']
+    command = run_settings['BUILD_COMMAND']
 
     command = list(command.split()) + ['make', f'-j{threads}']
     if targets is not None:
