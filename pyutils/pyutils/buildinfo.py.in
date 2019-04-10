@@ -2,7 +2,7 @@
 
 
 # CMake build type
-build_type = '@PERFTEST_BUILD_TYPE@'
+build_type = '@PYUTILS_BUILD_TYPE@'
 
 # CMake source dir
 source_dir = '@CMAKE_SOURCE_DIR@'
@@ -11,13 +11,13 @@ source_dir = '@CMAKE_SOURCE_DIR@'
 binary_dir = '@CMAKE_BINARY_DIR@'
 
 # Compiler
-compiler = '@PERFTEST_COMPILER@'
+compiler = '@PYUTILS_COMPILER@'
 
 # Floating point precision
-precision = '@PERFTEST_PRECISION@'
+precision = '@PYUTILS_PRECISION@'
 
 # Grid type
-grid = '@PERFTEST_GRID@'
+grid = '@PYUTILS_GRID@'
 
 # Compiled backends
-backends = '@PERFTEST_BACKEND@'.split(';')
+backends = '@PYUTILS_BACKEND@'.split(';')

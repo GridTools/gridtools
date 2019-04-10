@@ -5,9 +5,9 @@ import os
 import re
 import subprocess
 
-from pyutils import log, runtools
+from pyutils import buildinfo, log, runtools
 from perftest import stencils as stencil_loader
-from perftest import buildinfo, result, time
+from perftest import result, time
 
 
 def _stencil_binary(backend, stencil):
