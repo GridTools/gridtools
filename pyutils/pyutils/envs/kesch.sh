@@ -15,17 +15,23 @@ export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_67_0
 export CUDATOOLKIT_HOME=$CUDA_PATH
 export CUDA_ARCH=sm_37
 export LD_PRELOAD=/opt/mvapich2/gdr/no-mcast/2.2/cuda8.0/mpirun/gnu4.8.5/lib64/libmpi.so
-export CUDA_AUTO_BOOST=0
-export GCLOCK=875
 
 export GTRUN_BUILD_COMMAND='srun -p pp-short -c 12 --time=00:30:00 make -j 12'
 export GTRUN_SBATCH_PARTITION='debug'
 export GTRUN_SBATCH_NODES=1
-export GTRUN_SBATCH_TIME='00:15:00'
 export GTRUN_SBATCH_GRES='gpu:1'
+export GTRUN_SBATCH_CPUS_PER_TASK=12
 export GTRUNMPI_SBATCH_NTASKS=4
+export GTRUNMPI_SBATCH_NTASKS_PER_NODE=4
 export GTRUNMPI_SBATCH_GRES='gpu:4'
+
+export CUDA_AUTO_BOOST=0
+export GCLOCK=875
+export MALLOC_MMAP_MAX_=0
+export MALLOC_TRIM_THRESHOLD_=536870912
+export OMP_PROC_BIND='true'
+export OMP_NUM_THREADS=12
 
 export CXX=$(which g++)
 export CC=$(which gcc)
-export FC=$(which gfortran)
+export FC=$(which n)
