@@ -28,8 +28,9 @@ def _generate_sbatch(env, commands, sbatch_options, srun, cwd):
     for option in sbatch_options:
         code += f'#SBATCH {option}\n'
 
-    if cwd is not None:
-        code += f'cd {cwd}\n'
+    if cwd is None:
+        cwd = os.abspath(os.getcwd())
+    code += f'cd {cwd}\n'
     code += 'case $SLURM_ARRAY_TASK_ID in\n'
     for i, command in enumerate(commands):
         code += f'    {i})\n        {srun} {command}\n        ;;\n'
