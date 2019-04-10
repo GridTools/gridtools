@@ -38,8 +38,7 @@ struct lap_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out()) =
-            4. * eval(in()) - (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
+        eval(out()) = 4. * eval(in()) - (eval(in(1, 0)) + eval(in(0, 1)) + eval(in(-1)) + eval(in(0, -1)));
     }
 };
 
@@ -53,12 +52,12 @@ struct flx_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        // Instead of using a temporary variable we writedirectly to
+        // Instead of using a temporary variable we write directly to
         // eval(out()) twice. This will eliminate a possible thread
-        // divergenge on GPUs since we can avoid to put the `else`
+        // divergence on GPUs since we can avoid to put the `else`
         // branch below
-        eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
-        if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
+        eval(out()) = eval(lap(1)) - eval(lap());
+        if (eval(out()) * (eval(in(1)) - eval(in())) > 0) {
             eval(out()) = 0.;
         }
     }
@@ -74,12 +73,12 @@ struct fly_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        // Instead of using a temporary variable we writedirectly to
+        // Instead of using a temporary variable we write directly to
         // eval(out()) twice. This will eliminate a possible thread
-        // divergenge on GPUs since we can avoid to put the `else`
+        // divergence on GPUs since we can avoid to put the `else`
         // branch below
-        eval(out()) = eval(lap(0, 1, 0)) - eval(lap(0, 0, 0));
-        if (eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0) {
+        eval(out()) = eval(lap(0, 1)) - eval(lap());
+        if (eval(out()) * (eval(in(0, 1)) - eval(in())) > 0) {
             eval(out()) = 0.;
         }
     }
@@ -97,8 +96,7 @@ struct out_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out()) =
-            eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
+        eval(out()) = eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1)) + eval(fly()) - eval(fly(0, -1)));
     }
 };
 
@@ -120,7 +118,7 @@ int main(int argc, char **argv) {
     using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<halo_size, halo_size, 0>>;
     using storage_type = storage_tr::data_store_t<double, storage_info_ijk_t>;
 
-    // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
+    // storage_info contains the information about sizes and layout of the storages to which it will be passed
     storage_info_ijk_t sinfo{d1, d2, d3};
 
     // Definition of the actual data fields that are used for input/output, instantiated using the storage_info

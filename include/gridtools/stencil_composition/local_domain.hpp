@@ -79,9 +79,6 @@ namespace gridtools {
         using strides_keys_t = GT_META_CALL(meta::rename, (hymap::keys, strides_kinds_t));
         using arg_keys_t = GT_META_CALL(meta::rename, (hymap::keys, EsfArgs));
 #endif
-
-        using strides_map_t = GT_META_CALL(meta::rename, (strides_keys_t::template values, sid_strides_values_t));
-
         using total_length_map_t = GT_META_CALL(meta::rename,
             (strides_keys_t::template values, GT_META_CALL(meta::repeat, (meta::length<strides_keys_t>, uint_t))));
 
@@ -91,6 +88,8 @@ namespace gridtools {
         using ptr_holder_map_t = GT_META_CALL(meta::rename, (arg_keys_t::template values, ptr_holders_t));
 
       public:
+        using strides_map_t = GT_META_CALL(meta::rename, (strides_keys_t::template values, sid_strides_values_t));
+
         ptr_holder_map_t m_ptr_holder_map;
         total_length_map_t m_total_length_map;
         strides_map_t m_strides_map;
