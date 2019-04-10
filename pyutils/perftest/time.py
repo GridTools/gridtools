@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from perftest import ArgumentError
 from datetime import datetime, timezone
+
+from pyutils import ArgumentError
 
 
 def now():

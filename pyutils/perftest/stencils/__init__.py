@@ -4,7 +4,7 @@ import importlib
 import os
 import re
 
-from perftest import logger
+from pyutils import logger
 
 
 class Stencil():

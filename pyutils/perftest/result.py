@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*-
 
+import collections
 import json
 
 import numpy as np
 
-from perftest import ArgumentError, logger, ParseError, time
+from pyutils import ArgumentError, logger, ParseError
+from perftest import time
 
 
-version = 0.4
+version = 0.5
+
+
+RunInfo = collections.namedtuple('RunInfo',
+        ['name', 'version', 'datetime', 'precision', 'backend', 'grid',
+         'compiler', 'hostname', 'clustername'])
 
 
 class Data(dict):
@@ -49,32 +56,19 @@ class Result(Data):
         return [func(t.measurements) for t in self.times]
 
 
-def from_data(runtime, domain, times):
+def from_data(runinfo, domain, stencils, times):
     """Creates a Result object from collected data.
 
     Args:
-        runtime: A `perftest.runtime.Runtime` object.
+        runinfo: A `RunInfo` object.
         domain: The domain size as a tuple or list.
         times: List of list of run times per stencil.
     """
     times_data = [Data(stencil=s.name, measurements=t) for s, t
-                  in zip(runtime.stencils, times)]
+                  in zip(stencils, times)]
 
-    runtime_data = Data(name=runtime.name,
-                        version=runtime.version,
-                        datetime=runtime.datetime,
-                        grid=runtime.grid,
-                        precision=runtime.precision,
-                        backend=runtime.backend,
-                        compiler=runtime.compiler)
-
-    config_data = Data(configname=runtime.config.name,
-                       hostname=runtime.config.hostname,
-                       clustername=runtime.config.clustername)
-
-    return Result(runtime=runtime_data,
+    return Result(runinfo=Data(runinfo._asdict()),
                   times=times_data,
-                  config=config_data,
                   domain=domain,
                   datetime=time.now(),
                   version=version)
@@ -109,29 +103,49 @@ def load(filename):
     with open(filename, 'r') as fp:
         data = json.load(fp)
 
-    if data['version'] != version:
+    if data['version'] == version:
+        d = data['runinfo']
+        runinfo_data = Data(name=d['name'],
+                            version=d['version'],
+                            datetime=time.from_timestr(d['datetime']),
+                            precision=d['precision'],
+                            backend=d['backend'],
+                            grid=d['grid'],
+                            compiler=d['compiler'],
+                            hostname=d['hostname'],
+                            clustername=d['clustername'])
+    elif data['version'] == 0.4:
+        d = data['runtime']
+        runtime_data = Data(name=d['name'],
+                            version=d['version'],
+                            datetime=time.from_timestr(d['datetime']),
+                            grid=d['grid'],
+                            precision=d['precision'],
+                            backend=d['backend'],
+                            compiler=d['compiler'])
+
+        d = data['config']
+        config_data = Data(configname=d['configname'],
+                           hostname=d['hostname'],
+                           clustername=d['clustername'])
+
+        runinfo_data = Data(name=runtime_data.name,
+                            version=runtime_data.version,
+                            datetime=runtime_data.datetime,
+                            precision=runtime_data.precision,
+                            backend=runtime_data.backend,
+                            grid=runtime_data.grid,
+                            compiler=runtime_data.compiler,
+                            hostname=config_data.hostname,
+                            clustername=config_data.clustername)
+    elif data['version'] != version:
         raise ParseError('Unknown result file version')
 
     times_data = [Data(stencil=d['stencil'], measurements=d['measurements'])
                   for d in data['times']]
 
-    d = data['runtime']
-    runtime_data = Data(name=d['name'],
-                        version=d['version'],
-                        datetime=time.from_timestr(d['datetime']),
-                        grid=d['grid'],
-                        precision=d['precision'],
-                        backend=d['backend'],
-                        compiler=d['compiler'])
-
-    d = data['config']
-    config_data = Data(configname=d['configname'],
-                       hostname=d['hostname'],
-                       clustername=d['clustername'])
-
-    result = Result(runtime=runtime_data,
+    result = Result(runinfo=runinfo_data,
                     times=times_data,
-                    config=config_data,
                     domain=data['domain'],
                     datetime=time.from_timestr(data['datetime']),
                     version=data['version'])

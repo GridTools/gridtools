@@ -22,18 +22,26 @@ def _stderr_file(rundir, command_id):
     return os.path.join(rundir, f'stderr_{command_id}.out')
 
 
-def _generate_sbatch(commands):
+def _generate_sbatch(env, commands):
     code = f'#!/bin/bash -l\n#SBATCH --array=0-{len(commands) - 1}\n'
 
+    settings = env.run_settings()
+
+    for k, v in settings.items():
+        if k.startswith('SBATCH_'):
+            arg = '--' + k[7:].lower().replace('_', '-') + '=' + v
+            code += f'#SBATCH {arg}\n'
+
+    srun = settings.get('SRUN_COMMAND', 'srun')
     code += 'case $SLURM_ARRAY_TASK_ID in\n'
     for i, command in enumerate(commands):
-        code += f'    {i})\n        {command}\n        ;;\n'
+        code += f'    {i})\n        {srun} {command}\n        ;;\n'
     code += '    *)\nesac'
     return code
 
 
 def _run_sbatch(env, rundir, commands):
-    sbatchstr = _generate_sbatch(commands)
+    sbatchstr = _generate_sbatch(env, commands)
     logger.debug('Generated sbatch file:', sbatchstr)
     with open(_sbatch_file(rundir), 'w') as sbatch:
         sbatch.write(sbatchstr)
@@ -44,12 +52,12 @@ def _run_sbatch(env, rundir, commands):
                '--wait',
                _sbatch_file(rundir)]
     logger.info('Invoking sbatch: ' + ' '.join(command))
-    start = time.process_time()
+    start = time.time()
     result = subprocess.run(command,
                             env=env,
                             stderr=subprocess.PIPE,
                             stdout=subprocess.PIPE)
-    end = time.process_time()
+    end = time.time()
     logger.info(f'sbatch finished in {end - start:.2f}s')
     if result.returncode != 0:
         logger.warning(f'sbatch finished with exit code '

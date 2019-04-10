@@ -5,25 +5,21 @@ import os
 import re
 import subprocess
 
-from perftest import NotFoundError, ParseError
-from perftest import logger, result, runtools, stencils, time
+from pyutils import NotFoundError, ParseError
+from perftest import result, stencils, time
+from pyutils import logger, runtools
 
 
 class Runtime(metaclass=abc.ABCMeta):
-    """Base class of all runtimes.
-
-    A runtime class represents a software for running stencils, currently
-    STELLA or Gridtools.
-    """
-    def __init__(self, config):
+    def __init__(self, env):
         from perftest import buildinfo
 
-        self.config = config
+        self.env = env
 
         # Import build information
         self.grid = buildinfo.grid
         self.precision = buildinfo.precision
-        self.backend = buildinfo.backend
+        self.backends = buildinfo.backends
 
         self.stencils = stencils.load(self.grid)
 

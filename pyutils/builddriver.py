@@ -20,7 +20,7 @@ if __name__ == '__main__':
                        required=True)
     parser.add_argument('--grid', '-g', choices=['structured', 'icosahedral'],
                        required=True)
-    parser.add_argument('--environment', '-e', required=True)
+    parser.add_argument('--environment', '-e', action='append')
     parser.add_argument('--target', '-t', action='append')
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -35,7 +35,9 @@ if __name__ == '__main__':
     pyutils.set_verbose(args.verbose)
 
     with pyutils.exception_logging():
-        env = envs.load(args.environment)
+        env = envs.Env()
+        for e in args.environment:
+            env.update_from_file(e)
         build.cmake(env, args.source_dir, args.build_dir, args.build_type,
                     args.precision, args.grid)
         if not args.cmake_only:

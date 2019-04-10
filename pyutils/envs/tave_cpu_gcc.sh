@@ -8,3 +8,6 @@ module swap gcc/7.3.0
 export GTCMAKE_CMAKE_CXX_COMPILER=$(which CC)
 export GTCMAKE_CMAKE_C_COMPILER=$(which cc)
 export GTCMAKE_CMAKE_FORTRAN_COMPILER=$(which ftn)
+
+export OMP_PLACES='{0,64}:64'
+export OMP_WAIT_POLICY=active

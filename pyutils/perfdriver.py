@@ -4,7 +4,9 @@
 import argparse
 import sys
 
+import envs
 import perftest
+import pyutils
 
 
 def plot(args):
@@ -35,23 +37,21 @@ def validate(args):
 
 
 def run(args):
-    import perftest.config
     import perftest.result
-    import perftest.runtime
 
-    # load configuration for current machine
-    config = perftest.config.get(args.config)
+    env = envs.Env()
+    for e in args.environment:
+        env.update_from_file(e)
 
-    # get runtime
-    rt = config.runtime(args.runtime)
-
-    # run jobs
-    result = rt.run(args.domain, args.runs, args.max_parallel_jobs)
+    results = perftest.run(env, args.domain, args.runs)
 
     # save result
     if not args.output.lower().endswith('.json'):
         args.output += '.json'
-    perftest.result.save(args.output, result)
+
+    for tag, result in results.items():
+        perftest.result.save(f'.{tag}.'.join(args.output.rsplit('.', 1)),
+                             result)
 
 
 if __name__ == '__main__':
@@ -66,9 +66,6 @@ if __name__ == '__main__':
     # command line aguments for `run` action
     run_parser = subparsers.add_parser('run', help='run performance tests')
     run_parser.set_defaults(func=run)
-    run_parser.add_argument('--runtime', '-r', default='gridtools',
-                            choices=['stella', 'gridtools'],
-                            help='runtime system to use')
     run_parser.add_argument('--domain', '-d', required=True, type=int,
                             nargs=3, metavar=('ISIZE', 'JSIZE', 'KSIZE'),
                             help='domain size (excluding halo)')
@@ -82,6 +79,7 @@ if __name__ == '__main__':
                                  'if not given')
     run_parser.add_argument('--config', '-c',
                             help='config name, default is machine config')
+    run_parser.add_argument('--environment', '-e', action='append', default=[])
 
     # command line arguments for `validate` action
     validate_parser = subparsers.add_parser('validate',
@@ -129,7 +127,7 @@ if __name__ == '__main__':
                                           'given number of results')
 
     args = parser.parse_args()
-    perftest.set_verbose(args.verbose)
+    pyutils.set_verbose(args.verbose)
 
-    with perftest.exception_logging():
+    with pyutils.exception_logging():
         args.func(args)

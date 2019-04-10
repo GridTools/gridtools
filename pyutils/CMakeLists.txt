@@ -32,4 +32,5 @@ if(GT_ENABLE_BACKEND_MC)
 endif()
 
 file(COPY . DESTINATION . FILES_MATCHING PATTERN *.py)
+file(COPY . DESTINATION . FILES_MATCHING PATTERN *.sh)
 configure_file(perftest/buildinfo.py.in perftest/buildinfo.py)
