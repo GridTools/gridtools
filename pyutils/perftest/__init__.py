@@ -5,7 +5,7 @@ import os
 import re
 import subprocess
 
-from pyutils import log, runtools, ParseError, NotFoundError
+from pyutils import log, runtools
 from perftest import stencils as stencil_loader
 from perftest import buildinfo, result, time
 
@@ -14,7 +14,7 @@ def _stencil_binary(backend, stencil):
     binary = os.path.join(buildinfo.binary_dir,
                           stencil.gridtools_binary(backend))
     if not os.path.isfile(binary):
-        raise NotFoundError(f'Could not find GridTools binary at "{binary}"')
+        raise FileNotFoundError(f'Could not find GridTools binary "{binary}"')
     return binary
 
 
@@ -42,7 +42,7 @@ def _parse_time(output):
     p = re.compile(r'.*\[s\]\s*([0-9.]+).*', re.MULTILINE | re.DOTALL)
     m = p.match(output)
     if not m:
-        raise ParseError(f'Could not parse time in output:\n{output}')
+        raise RuntimeError(f'Could not parse time in output:\n{output}')
     return float(m.group(1))
 
 

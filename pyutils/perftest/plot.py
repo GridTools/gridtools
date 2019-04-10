@@ -10,7 +10,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 from perftest import result, time
-from pyutils import ArgumentError, log
+from pyutils import log
 
 
 plt.style.use('ggplot')
@@ -122,7 +122,7 @@ def history(results, key='job', limit=None):
         elif key == 'job':
             datetime = result.datetime
         else:
-            raise ArgumentError('"key" argument must be "build" or "job"')
+            raise ValueError('"key" argument must be "build" or "job"')
         return time.local_time(datetime)
 
     # sort results by desired reference time
@@ -131,7 +131,7 @@ def history(results, key='job', limit=None):
     #
     if limit is not None:
         if not isinstance(limit, int) or limit <= 0:
-            raise ArgumentError('"limit" must be a positive integer')
+            raise ValueError('"limit" must be a positive integer')
         results = results[-limit:]
 
     data = result.percentiles_by_stencil(results, [0, 25, 50, 75, 100])

@@ -6,12 +6,17 @@ import re
 import subprocess
 
 from pyutils import log
-from pyutils import EnvError, NotFoundError
 
 
 class Env(dict):
-    def __init__(self):
-        super().__init__(os.environ.copy())
+    def __init__(self, other=None):
+        if other is not None:
+            super().__init__(other)
+        else:
+            super().__init__(os.environ.copy())
+
+    def copy(self):
+        return Env(self)
 
     def load(self, device, compiler):
         envfile = self.clustername() + '_' + device + '_' + compiler + '.sh'
@@ -21,7 +26,7 @@ class Env(dict):
 
     def update_from_file(self, envfile):
         if not os.path.exists(envfile):
-            raise EnvError(f'Could find environment file "{envfile}"')
+            raise FileNotFoundError(f'Could find environment file "{envfile}"')
 
         envdir, envfile = os.path.split(envfile)
         output = subprocess.check_output(['bash', '-c',
@@ -70,5 +75,5 @@ class Env(dict):
                        re.MULTILINE | re.DOTALL)
         m = p.match(output.decode())
         if not m:
-            raise ConfigError('Could not get SLURM cluster name')
+            raise EnvironmentError('Could not get SLURM cluster name')
         return m.group(1)

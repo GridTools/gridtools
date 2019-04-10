@@ -5,7 +5,7 @@ import json
 
 import numpy as np
 
-from pyutils import ArgumentError, log, ParseError
+from pyutils import Error, log
 from perftest import time
 
 
@@ -94,6 +94,10 @@ def save(filename, data):
     log.info(f'Successfully saved result to {filename}')
 
 
+class ParseError(Error):
+    pass
+
+
 def load(filename):
     """Loads result data from the given json file.
 
@@ -139,7 +143,7 @@ def load(filename):
                             hostname=config_data.hostname,
                             clustername=config_data.clustername)
     elif data['version'] != version:
-        raise ParseError('Unknown result file version')
+        raise ValueError(f'Unknown result file version "{data["version"]}"')
 
     times_data = [Data(stencil=d['stencil'], measurements=d['measurements'])
                   for d in data['times']]
@@ -168,7 +172,7 @@ def times_by_stencil(results):
     """
     stencils = results[0].stencils
     if any(stencils != r.stencils for r in results):
-        raise ArgumentError('All results must include the same stencils')
+        raise ValueError('All results must include the same stencils')
 
     times = by_stencils(r.times_by_stencil() for r in results)
     return stencils, times
@@ -185,7 +189,7 @@ def statistics_by_stencil(results):
     """
     stencils = results[0].stencils
     if any(stencils != r.stencils for r in results):
-        raise ArgumentError('All results must include the same stencils')
+        raise ValueError('All results must include the same stencils')
 
     meantimes = by_stencils(r.mapped_times(np.mean) for r in results)
     stdevtimes = by_stencils(r.mapped_times(np.std) for r in results)
@@ -207,7 +211,7 @@ def percentiles_by_stencil(results, percentiles):
     """
     stencils = results[0].stencils
     if any(stencils != r.stencils for r in results):
-        raise ArgumentError('All results must include the same stencils')
+        raise ValueError('All results must include the same stencils')
 
     qtimes = []
     for q in percentiles:

@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import time
 
-from pyutils import JobError, JobSchedulingError, log
+from pyutils import log
 
 
 def _sbatch_file(rundir):
@@ -111,7 +111,7 @@ def run_retry(env, commands, retries):
         if all(exitcode == 0 for exitcode in exitcodes):
             break
         if statistics.mode(exitcodes) != 0:
-            raise JobError('Majority of jobs has failed')
+            raise RuntimeError('Majority of jobs has failed')
 
         failed_commands = []
         failed_indices = []
@@ -127,6 +127,6 @@ def run_retry(env, commands, retries):
             outputs[i] = o
     for command, (exitcode, stdout, stderr) in zip(commands, outputs):
         if exitcode != 0:
-            raise JobError(f'Command "{command}" still failed after {retries} '
-                           f'retries with output: {stderr}')
+            raise RuntimeError(f'Command "{command}" still failed after '
+                               f'{retries} retries with output: {stderr}')
     return outputs
