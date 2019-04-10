@@ -1,21 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from pyutils import Error, log, runtools
-
-
-class TestFailure(Error):
-    pass
+from pyutils import log, runtools
 
 
 def run(env):
     test_env = env.copy()
     test_env['GTRUN_SRUN_COMMAND'] = ''
 
-    output, = runtools.run(test_env,
-                           [f'ctest --output-on-failure . -L "unittest_*"'])
+    output, = runtools.run(test_env, [f'ctest --output-on-failure .'])
     exitcode, stdout, stderr = output
 
     log.info('ctest output', stdout)
 
     if exitcode != 0:
-        raise TestFailure('ctest failed')
+        raise RuntimeError('ctest failed')
