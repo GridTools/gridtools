@@ -7,7 +7,7 @@ import subprocess
 
 from pyutils import NotFoundError, ParseError
 from perftest import result, stencils, time
-from pyutils import logger, runtools
+from pyutils import log, runtools
 
 
 class Runtime(metaclass=abc.ABCMeta):
@@ -43,9 +43,9 @@ class Runtime(metaclass=abc.ABCMeta):
         allcommands = [c for c in commands for _ in range(runs)]
 
         # Run commands
-        logger.info('Running stencils')
+        log.info('Running stencils')
         alloutputs = runtools.run(allcommands, self.config, job_limit)
-        logger.info('Running stencils finished')
+        log.info('Running stencils finished')
 
         # Parse outputs
         alltimes = [self._parse_time(o) for o in alloutputs]
@@ -143,7 +143,7 @@ class GridtoolsRuntime(Runtime):
         self._compiler = buildinfo.compiler
 
         if buildinfo.build_type != 'release':
-            logger.warning('You are running perftests with non-release build')
+            log.warning('You are running perftests with non-release build')
 
     @property
     def compiler(self):

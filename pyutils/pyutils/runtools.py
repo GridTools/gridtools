@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import time
 
-from pyutils import JobError, JobSchedulingError, logger
+from pyutils import JobError, JobSchedulingError, log
 
 
 def _sbatch_file(rundir):
@@ -42,7 +42,7 @@ def _generate_sbatch(env, commands):
 
 def _run_sbatch(env, rundir, commands):
     sbatchstr = _generate_sbatch(env, commands)
-    logger.debug('Generated sbatch file:', sbatchstr)
+    log.debug('Generated sbatch file', sbatchstr)
     with open(_sbatch_file(rundir), 'w') as sbatch:
         sbatch.write(sbatchstr)
 
@@ -51,18 +51,18 @@ def _run_sbatch(env, rundir, commands):
                '--error', _stderr_file(rundir, '%a'),
                '--wait',
                _sbatch_file(rundir)]
-    logger.info('Invoking sbatch: ' + ' '.join(command))
+    log.info('Invoking sbatch', ' '.join(command))
     start = time.time()
     result = subprocess.run(command,
                             env=env,
                             stderr=subprocess.PIPE,
                             stdout=subprocess.PIPE)
     end = time.time()
-    logger.info(f'sbatch finished in {end - start:.2f}s')
+    log.info(f'sbatch finished in {end - start:.2f}s')
     if result.returncode != 0:
-        logger.warning(f'sbatch finished with exit code '
-                       f'{result.returncode} and message:',
-                       result.stderr.decode())
+        log.warning(f'sbatch finished with exit code '
+                    f'{result.returncode} and message',
+                    result.stderr.decode())
     return int(re.match(r'Submitted batch job (\d+)',
                         result.stdout.decode()).group(1))
 
@@ -74,9 +74,9 @@ def _retreive_outputs(env, rundir, commands, task_id):
                '--parsable2',
                '--noheader']
     for _ in range(10):
-        logger.info('Invoking sacct: ' + ' '.join(command))
+        log.info('Invoking sacct', ' '.join(command))
         output = subprocess.check_output(command, env=env).decode().strip()
-        logger.debug('sacct output:', output)
+        log.debug('sacct output', output)
         infos = [o.split('|') for o in output.splitlines() if '.batch' in o]
         exitcodes = [int(code.split(':')[0]) for _, code in sorted(infos)]
         if len(exitcodes) == len(commands):
@@ -86,15 +86,15 @@ def _retreive_outputs(env, rundir, commands, task_id):
     outputs = []
     for i, (command, exitcode) in enumerate(zip(commands, exitcodes)):
         if exitcode != 0:
-            logger.debug(f'Exit code of command "{command}": {exitcode}')
+            log.debug(f'Exit code of command "{command}"', exitcode)
         with open(_stdout_file(rundir, i), 'r') as outfile:
             stdout = outfile.read()
             if stdout.strip():
-                logger.debug(f'Stdout of command "{command}":', stdout)
+                log.debug(f'Stdout of command "{command}"', stdout)
         with open(_stderr_file(rundir, i), 'r') as outfile:
             stderr = outfile.read()
             if stderr.strip():
-                logger.debug(f'Stderr of command "{command}":', stderr)
+                log.debug(f'Stderr of command "{command}"', stderr)
         outputs.append((exitcode, stdout, stderr))
     return outputs
 

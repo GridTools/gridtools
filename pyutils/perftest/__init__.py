@@ -5,7 +5,7 @@ import os
 import re
 import subprocess
 
-from pyutils import logger, runtools, ParseError, NotFoundError
+from pyutils import log, runtools, ParseError, NotFoundError
 from perftest import stencils as stencil_loader
 from perftest import buildinfo, result, time
 
@@ -53,9 +53,9 @@ def run(env, domain, runs):
     for backend in buildinfo.backends:
         commands = [_stencil_command(backend, s, domain) for s in stencils]
         allcommands = [c for c in commands for _ in range(runs)]
-        logger.info('Running stencils')
+        log.info('Running stencils')
         alloutputs = runtools.run_retry(env, allcommands, 5)
-        logger.info('Running stencils finished')
+        log.info('Running stencils finished')
         alltimes = [_parse_time(o) for _, o, _ in alloutputs]
         times = [alltimes[i:i + runs] for i in range(0, len(alltimes), runs)]
 

@@ -5,7 +5,7 @@ import platform
 import re
 import subprocess
 
-from pyutils import logger
+from pyutils import log
 from pyutils import EnvError, NotFoundError
 
 
@@ -29,8 +29,8 @@ class Env(dict):
         env = dict(line.split('=', 1) for line in output.split('\0'))
         self.update(env)
 
-        logger.debug(f'Environment updated with {envfile}, new environment:',
-                     str(self))
+        log.debug(f'Environment updated with {envfile}, new environment',
+                  str(self))
 
     def __str__(self):
         return '\n'.join(f'{k}={v}' for k, v in sorted(self.items()))

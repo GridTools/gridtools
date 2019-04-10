@@ -2,7 +2,7 @@
 
 from scipy.stats import ttest_ind
 
-from perftest import logger
+from perftest import log
 
 
 def ttest(result_a, result_b):
@@ -13,7 +13,7 @@ def ttest(result_a, result_b):
         _, p_value = ttest_ind(t_a.measurements, t_b.measurements)
 
         p_values.append(p_value)
-        logger.info(f't-test p-value for stencil "{t_a.stencil}": {p_value}')
+        log.info(f't-test p-value for stencil "{t_a.stencil}": {p_value}')
 
     return list(zip(result_a.stencils, p_values))
 
@@ -21,5 +21,5 @@ def ttest(result_a, result_b):
 def ttest_validate(result_a, result_b, p_value):
     passed = all(p >= p_value for _, p in ttest(result_a, result_b))
     if not passed:
-        logger.info('Validation failed')
+        log.info('Validation failed')
     return passed

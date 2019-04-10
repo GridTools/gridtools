@@ -5,7 +5,7 @@ import json
 
 import numpy as np
 
-from pyutils import ArgumentError, logger, ParseError
+from pyutils import ArgumentError, log, ParseError
 from perftest import time
 
 
@@ -91,7 +91,7 @@ def save(filename, data):
 
     with open(filename, 'w') as fp:
         json.dump(data, fp, indent=4, sort_keys=True, default=convert)
-    logger.info(f'Successfully saved result to {filename}')
+    log.info(f'Successfully saved result to {filename}')
 
 
 def load(filename):
@@ -149,7 +149,7 @@ def load(filename):
                     domain=data['domain'],
                     datetime=time.from_timestr(data['datetime']),
                     version=data['version'])
-    logger.info(f'Successfully loaded result from {filename}')
+    log.info(f'Successfully loaded result from {filename}')
     return result
 
 

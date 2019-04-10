@@ -5,7 +5,7 @@ import os
 import subprocess
 import time
 
-from pyutils import logger
+from pyutils import log
 
 
 def cmake(env, source_dir, build_dir, build_type, precision, grid_type):
@@ -27,7 +27,7 @@ def cmake(env, source_dir, build_dir, build_type, precision, grid_type):
     args = env.cmake_args()
     command = ['cmake', source_dir] + [f'-D{k}={v}' for k, v in args.items()]
 
-    logger.info('Invoking CMake: ' + ' '.join(command))
+    log.info('Invoking CMake', ' '.join(command))
     start = time.time()
     try:
         output = subprocess.check_output(command,
@@ -35,11 +35,11 @@ def cmake(env, source_dir, build_dir, build_type, precision, grid_type):
                                          cwd=build_dir,
                                          stderr=subprocess.STDOUT).decode()
     except subprocess.CalledProcessError as e:
-        logger.error('CMake failed with output:', e.output.decode())
+        log.error('CMake failed with output', e.output.decode())
         raise e
     end = time.time()
-    logger.info(f'CMake finished in {end - start:.2f}s')
-    logger.debug('CMake output:', output)
+    log.info(f'CMake finished in {end - start:.2f}s')
+    log.debug('CMake output', output)
 
 
 def make(env, build_dir, targets=None):
@@ -51,7 +51,7 @@ def make(env, build_dir, targets=None):
     if targets is not None:
         command += list(targets)
 
-    logger.info('Invoking make: ' + ' '.join(command))
+    log.info('Invoking make', ' '.join(command))
     start = time.time()
     try:
         output = subprocess.check_output(command,
@@ -59,7 +59,7 @@ def make(env, build_dir, targets=None):
                                          cwd=build_dir,
                                          stderr=subprocess.STDOUT).decode()
     except subprocess.CalledProcessError as e:
-        logger.error('make failed with output:', e.output.decode())
+        log.error('make failed with output', e.output.decode())
     end = time.time()
-    logger.info(f'make finished in {end - start:.2f}s')
-    logger.debug('make output:', output)
+    log.info(f'make finished in {end - start:.2f}s')
+    log.debug('make output', output)

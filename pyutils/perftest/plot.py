@@ -10,7 +10,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
 from perftest import result, time
-from pyutils import ArgumentError, logger
+from pyutils import ArgumentError, log
 
 
 plt.style.use('ggplot')
@@ -139,7 +139,7 @@ def history(results, key='job', limit=None):
     dates = [matplotlib.dates.date2num(get_datetime(r)) for r in results]
 
     if len(dates) > len(set(dates)):
-        logger.warning('Non-unique datetimes in history plot')
+        log.warning('Non-unique datetimes in history plot')
 
     fig, ax = plt.subplots(figsize=figsize(2, 1))
 

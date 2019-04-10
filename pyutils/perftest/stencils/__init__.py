@@ -4,7 +4,7 @@ import importlib
 import os
 import re
 
-from pyutils import logger
+from pyutils import log
 
 
 class Stencil():
@@ -41,7 +41,7 @@ def load(grid):
         A list of all stencils provided for the given type.
     """
 
-    logger.debug(f'Trying to import stencils for grid "{grid}"')
+    log.debug(f'Trying to import stencils for grid "{grid}"')
     mod = importlib.import_module('perftest.stencils.' + grid)
 
     stencils = []
@@ -50,5 +50,5 @@ def load(grid):
             stencils.append(v())
 
     sstr = ', '.join(f'"{s.name}"' for s in stencils)
-    logger.info(f'Successfully imported stencils {sstr} for grid "{grid}"')
+    log.info(f'Successfully imported stencils {sstr} for grid "{grid}"')
     return stencils
