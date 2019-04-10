@@ -6,7 +6,7 @@ import sys
 
 import envs
 import perftest
-import pyutils
+from pyutils import log
 
 
 def plot(args):
@@ -30,10 +30,9 @@ def run(args):
     import perftest.result
 
     env = envs.Env()
-    for e in args.environment:
-        env.update_from_file(e)
+    env.load(args.device, args.compiler)
 
-    results = perftest.run(env, args.domain, args.runs)
+    results = perftest.run(env, args.domain_size, args.runs)
 
     # save result
     if not args.output.lower().endswith('.json'):
@@ -56,7 +55,7 @@ if __name__ == '__main__':
     # command line aguments for `run` action
     run_parser = subparsers.add_parser('run', help='run performance tests')
     run_parser.set_defaults(func=run)
-    run_parser.add_argument('--domain', '-d', required=True, type=int,
+    run_parser.add_argument('--domain-size', '-s', required=True, type=int,
                             nargs=3, metavar=('ISIZE', 'JSIZE', 'KSIZE'),
                             help='domain size (excluding halo)')
     run_parser.add_argument('--runs', default=10, type=int,
@@ -67,9 +66,10 @@ if __name__ == '__main__':
     run_parser.add_argument('--output', '-o', required=True,
                             help='output file path, extension .json is added '
                                  'if not given')
-    run_parser.add_argument('--config', '-c',
-                            help='config name, default is machine config')
-    run_parser.add_argument('--environment', '-e', action='append', default=[])
+    run_parser.add_argument('--device', '-d', choices=['cpu', 'gpu'],
+                            required=True)
+    run_parser.add_argument('--compiler', '-c', choices=['gcc', 'clang', 'icc'],
+                            required=True)
 
     # command line aguments for `plot` action
     plot_parser = subparsers.add_parser('plot',
@@ -109,7 +109,7 @@ if __name__ == '__main__':
                                           'given number of results')
 
     args = parser.parse_args()
-    pyutils.set_verbose(args.verbose)
+    log.set_verbosity(args.verbose)
 
-    with pyutils.exception_logging():
+    with log.exception_logging():
         args.func(args)

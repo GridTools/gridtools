@@ -6,7 +6,7 @@ import os
 
 import build
 import envs
-import pyutils
+from pyutils import log
 
 
 if __name__ == '__main__':
@@ -20,7 +20,10 @@ if __name__ == '__main__':
                        required=True)
     parser.add_argument('--grid', '-g', choices=['structured', 'icosahedral'],
                        required=True)
-    parser.add_argument('--environment', '-e', action='append')
+    parser.add_argument('--device', '-d', choices=['cpu', 'gpu'],
+                        required=True)
+    parser.add_argument('--compiler', '-c', choices=['gcc', 'clang', 'icc'],
+                        required=True)
     parser.add_argument('--target', '-t', action='append')
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -32,12 +35,11 @@ if __name__ == '__main__':
     parser.add_argument('--cmake-only', action='store_true')
 
     args = parser.parse_args()
-    pyutils.set_verbose(args.verbose)
+    log.set_verbosity(args.verbose)
 
-    with pyutils.exception_logging():
+    with log.exception_logging():
         env = envs.Env()
-        for e in args.environment:
-            env.update_from_file(e)
+        env.load(args.device, args.compiler)
         build.cmake(env, args.source_dir, args.build_dir, args.build_type,
                     args.precision, args.grid)
         if not args.cmake_only:

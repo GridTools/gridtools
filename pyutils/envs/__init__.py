@@ -13,16 +13,17 @@ class Env(dict):
     def __init__(self):
         super().__init__(os.environ.copy())
 
-    def update_from_file(self, envfile):
-        if os.path.exists(envfile):
-            envdir, envfile = os.path.split(envfile)
-        else:
-            envdir = os.path.dirname(os.path.abspath(__file__))
-            envdir, envfile = os.path.split(os.path.join(envdir, envfile))
-            if not os.path.exists(os.path.join(envdir, envfile)):
-                raise NotFoundError(f'Expected "{envfile}" at '
-                                    f'"{envdir}" not found')
+    def load(self, device, compiler):
+        envfile = self.clustername() + '_' + device + '_' + compiler + '.sh'
+        envfile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               envfile)
+        self.update_from_file(envfile)
 
+    def update_from_file(self, envfile):
+        if not os.path.exists(envfile):
+            raise EnvError(f'Could find environment file "{envfile}"')
+
+        envdir, envfile = os.path.split(envfile)
         output = subprocess.check_output(['bash', '-c',
                                           f'source {envfile} && env -0'],
                                           cwd=envdir).decode().strip('\0')
