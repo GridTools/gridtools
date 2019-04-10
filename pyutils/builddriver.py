@@ -5,8 +5,7 @@ import argparse
 import os
 
 import build
-import envs
-from pyutils import log
+from pyutils import envs, log
 
 
 if __name__ == '__main__':

@@ -4,9 +4,8 @@
 import argparse
 import sys
 
-import envs
 import perftest
-from pyutils import log
+from pyutils import envs, log
 
 
 def plot(args):
