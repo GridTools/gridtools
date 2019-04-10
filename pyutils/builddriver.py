@@ -20,7 +20,7 @@ parser.add_argument('--grid', '-g', choices=['structured', 'icosahedral'],
                    required=True)
 parser.add_argument('--device', '-d', choices=['cpu', 'gpu'],
                     required=True)
-parser.add_argument('--compiler', '-c', choices=['gnu', 'clang', 'icc'],
+parser.add_argument('--compiler', '-c', choices=['gnu', 'clang', 'intel'],
                     required=True)
 parser.add_argument('--target', '-t', action='append')
 
