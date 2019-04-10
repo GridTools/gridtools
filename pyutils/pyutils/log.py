@@ -45,14 +45,16 @@ def exception_logging():
 
 
 def _format_message(message, details):
+    message = str(message)
     if details is None:
-        return str(message)
-    elif details.count('\n') == 0:
+        return message
+    details = str(details)
+    if details.count('\n') == 0:
         if details.strip() == '':
             details = '[EMPTY]'
-        return str(message) + ': ' + str(details)
+        return message + ': ' + details
     else:
-        return str(message) + ':\n' + textwrap.indent(str(details), '    ')
+        return message + ':\n' + textwrap.indent(details, '    ')
 
 
 def debug(message, details=None):
