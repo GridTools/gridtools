@@ -16,10 +16,8 @@
 
 #pragma once
 
-#include <boost/fusion/adapted/std_tuple.hpp>
-#include <boost/fusion/include/at.hpp>
-
 #include "../common/defs.hpp"
+#include "../common/tuple_util.hpp"
 #include "../meta/type_traits.hpp"
 #include "./grid.hpp"
 #include "./local_domain.hpp"
@@ -65,7 +63,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(Index::value < meta::length<MssComponentsArray>::value, GT_INTERNAL_ERROR);
             using mss_components_t = GT_META_CALL(meta::at, (MssComponentsArray, Index));
 
-            auto const &local_domain = boost::fusion::at<Index>(m_local_domains);
+            auto const &local_domain = tuple_util::get<Index::value>(m_local_domains);
 
             // wrapping all the template arguments in a single container
 

@@ -70,7 +70,7 @@ namespace gridtools {
             i += host_device::at_key_with_default<dim::i, zero_t>(acc) + IZero;
             int_t color = Color + host_device::at_key_with_default<dim::c, zero_t>(acc);
             j += host_device::at_key_with_default<dim::j, zero_t>(acc) + JZero;
-            assert(host_device::at_key_with_default<dim::k, zero_t>(acc) == 0);
+            assert((host_device::at_key_with_default<dim::k, zero_t>(acc) == 0));
             assert(i >= 0);
             assert(i < ISize);
             assert(color >= 0);
