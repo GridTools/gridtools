@@ -42,8 +42,8 @@ struct forward_thomas {
     using out = gt::inout_accessor<0>;
     using inf = gt::in_accessor<1>;
     using diag = gt::in_accessor<2>;
-    using sup = gt::inout_accessor<3, extent<0, 0, 0, 0, -1, 0>>;
-    using rhs = gt::inout_accessor<4, extent<0, 0, 0, 0, -1, 0>>;
+    using sup = gt::inout_accessor<3, gt::extent<0, 0, 0, 0, -1, 0>>;
+    using rhs = gt::inout_accessor<4, gt::extent<0, 0, 0, 0, -1, 0>>;
     using param_list = gt::make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
@@ -61,7 +61,7 @@ struct forward_thomas {
 };
 
 struct backward_thomas {
-    using out = gt::inout_accessor<0, extent<0, 0, 0, 0, 0, 1>>;
+    using out = gt::inout_accessor<0, gt::extent<0, 0, 0, 0, 0, 1>>;
     using inf = gt::in_accessor<1>;
     using diag = gt::in_accessor<2>;
     using sup = gt::inout_accessor<3>;
