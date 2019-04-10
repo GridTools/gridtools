@@ -4,6 +4,8 @@ source tave.sh
 
 module load PrgEnv-intel
 
-export GTCMAKE_CMAKE_CXX_COMPILER=$(which CC)
-export GTCMAKE_CMAKE_C_COMPILER=$(which cc)
-export GTCMAKE_CMAKE_FORTRAN_COMPILER=$(which ftn)
+export CXX=$(which CC)
+export CC=$(which cc)
+export FC=$(which ftn)
+
+export KMP_AFFINITY='balanced'
