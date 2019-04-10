@@ -34,7 +34,7 @@ endif()
 ######################### ADDITIONAL TEST MODULE FUNCTIONS #########################
 ####################################################################################
 
-function (fetch_tests_helper target_arch filetype test_environment subfolder )
+function (fetch_tests_helper target_arch filetype subfolder )
     set(options)
     set(one_value_args)
     set(multi_value_args LABELS)
@@ -62,30 +62,29 @@ function (fetch_tests_helper target_arch filetype test_environment subfolder )
                 SCRIPT ${TEST_SCRIPT}
                 COMMAND $<TARGET_FILE:${unit_test}>
                 LABELS ${labels}
-                ENVIRONMENT ${test_environment}
                 )
         endforeach()
     endif()
 endfunction()
 
 function(fetch_x86_tests)
-    fetch_tests_helper(x86 cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+    fetch_tests_helper(x86 cpp ${ARGN})
 endfunction(fetch_x86_tests)
 
 function(fetch_naive_tests)
-    fetch_tests_helper(naive cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+    fetch_tests_helper(naive cpp ${ARGN})
 endfunction(fetch_naive_tests)
 
 function(fetch_mc_tests)
-    fetch_tests_helper(mc cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+    fetch_tests_helper(mc cpp ${ARGN})
 endfunction(fetch_mc_tests)
 
 function(fetch_gpu_tests)
     set(CUDA_SEPARABLE_COMPILATION OFF) # TODO required?
-    fetch_tests_helper(cuda cu "${TEST_CUDA_ENVIRONMENT}" ${ARGN})
+    fetch_tests_helper(cuda cu ${ARGN})
 endfunction(fetch_gpu_tests)
 
-function(add_custom_test_helper target_arch test_environment)
+function(add_custom_test_helper target_arch)
     set(options )
     set(one_value_args TARGET)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
@@ -118,7 +117,6 @@ function(add_custom_test_helper target_arch test_environment)
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${unit_test}>
             LABELS ${labels}
-            ENVIRONMENT ${test_environment}
             )
     endif ()
 
@@ -126,20 +124,20 @@ endfunction()
 
 # This function can be used to add a custom x86 test
 function(add_custom_x86_test)
-    add_custom_test_helper(x86 "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+    add_custom_test_helper(x86 ${ARGN})
 endfunction(add_custom_x86_test)
 
 # This function can be used to add a custom mc test
 function(add_custom_mc_test)
-    add_custom_test_helper(mc "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+    add_custom_test_helper(mc ${ARGN})
 endfunction(add_custom_mc_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_gpu_test)
-    add_custom_test_helper(cuda "${TEST_CUDA_ENVIRONMENT}" ${ARGN})
+    add_custom_test_helper(cuda ${ARGN})
 endfunction(add_custom_gpu_test)
 
-function(add_custom_mpi_test_helper target_arch test_script test_environment)
+function(add_custom_mpi_test_helper target_arch test_script)
     set(options)
     set(one_value_args TARGET NPROC)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
@@ -176,24 +174,23 @@ function(add_custom_mpi_test_helper target_arch test_script test_environment)
             SCRIPT ${test_script}
             COMMAND $<TARGET_FILE:${unit_test}>
             LABELS ${labels}
-            ENVIRONMENT ${test_environment}
             )
     endif ()
 
 endfunction()
 
 function(add_custom_mpi_x86_test)
-    add_custom_mpi_test_helper(x86 ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
+    add_custom_mpi_test_helper(x86 ${TEST_MPI_SCRIPT} ${ARGN})
 endfunction(add_custom_mpi_x86_test)
 
 function(add_custom_mpi_naive_test)
-    add_custom_mpi_test_helper(naive ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
+    add_custom_mpi_test_helper(naive ${TEST_MPI_SCRIPT} ${ARGN})
 endfunction(add_custom_mpi_naive_test)
 
 function(add_custom_mpi_mc_test)
-    add_custom_mpi_test_helper(mc ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
+    add_custom_mpi_test_helper(mc ${TEST_MPI_SCRIPT} ${ARGN})
 endfunction(add_custom_mpi_mc_test)
 
 function(add_custom_mpi_gpu_test)
-    add_custom_mpi_test_helper(cuda ${TEST_CUDA_MPI_SCRIPT} "${MPITEST_CUDA_ENVIRONMENT}" ${ARGN})
+    add_custom_mpi_test_helper(cuda ${TEST_CUDA_MPI_SCRIPT} ${ARGN})
 endfunction(add_custom_mpi_gpu_test)

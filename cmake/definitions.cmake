@@ -201,7 +201,7 @@ file(APPEND ${TEST_SCRIPT} "res=0\n")
 function(gridtools_add_test)
   set(options)
   set(one_value_args NAME SCRIPT )
-  set(multi_value_args COMMAND LABELS ENVIRONMENT)
+  set(multi_value_args COMMAND LABELS)
   cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
   if (NOT ___SCRIPT)
       message(FATAL_ERROR "gridtools_add_test was called without SCRIPT")
@@ -221,11 +221,8 @@ function(gridtools_add_test)
   else()
     add_test(
         NAME ${___NAME}
-        COMMAND  ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} 1 ${MPITEST_PREFLAGS} ${___COMMAND} ${MPITEST_POSTFLAGS}
+        COMMAND  ${MPITEST_EXECUTABLE} ${___COMMAND}
         )
-  endif()
-  if (${___ENVIRONMENT})
-      set_tests_properties(${___NAME} PROPERTIES ENVIRONMENT "${___ENVIRONMENT}")
   endif()
   set_tests_properties(${___NAME} PROPERTIES LABELS "${___LABELS}")
 endfunction(gridtools_add_test)
@@ -240,7 +237,6 @@ file(GENERATE OUTPUT ${TEST_CUDA_MPI_SCRIPT} INPUT ${TEST_CUDA_MPI_SCRIPT})
 function(gridtools_add_mpi_test)
   set(options)
   set(one_value_args NAME SCRIPT NPROC )
-  set(multi_value_args COMMAND LABELS ENVIRONMENT)
   cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
   if (NOT ___SCRIPT)
       message(FATAL_ERROR "gridtools_add_mpi_test was called without SCRIPT")
@@ -260,12 +256,8 @@ function(gridtools_add_mpi_test)
   # Note: We use MPITEST_ instead of MPIEXEC_ because our own MPI_TEST_-variables are slurm-aware
   add_test(
       NAME ${___NAME}
-      COMMAND  ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} ${___NPROC} ${MPITEST_PREFLAGS} ${___COMMAND} ${MPITEST_POSTFLAGS}
+      COMMAND  ${MPITEST_EXECUTABLE} ${___COMMAND}
       )
-  if (___ENVIRONMENT)
-      string(REPLACE " " ";" environment "${___ENVIRONMENT}" )
-      set_tests_properties(${___NAME} PROPERTIES ENVIRONMENT "${environment}")
-  endif()
   set_tests_properties(${___NAME} PROPERTIES LABELS "${___LABELS}")
   set_tests_properties(${___NAME} PROPERTIES PROCESSORS ${___NPROC})
 endfunction()

@@ -37,14 +37,12 @@ if( COMPONENT_STENCIL_COMPOSITION )
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86> 12 33 61
               LABELS regression_x86 backend_x86
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_x86_23_11_43
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86> 23 11 43
               LABELS regression_x86 backend_x86
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
 
           if (srcfile IN_LIST SOURCES_PERFTEST)
@@ -72,14 +70,12 @@ if( COMPONENT_STENCIL_COMPOSITION )
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_naive> 12 33 21
               LABELS regression_naive backend_naive
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_naive_23_11_43
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_naive> 23 11 43
               LABELS regression_naive backend_naive
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
         endforeach(srcfile)
 
@@ -103,14 +99,12 @@ if( COMPONENT_STENCIL_COMPOSITION )
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 12 33 61
               LABELS regression_mc backend_mc
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_mc_23_11_43
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 23 11 43
               LABELS regression_mc backend_mc
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           if (srcfile IN_LIST SOURCES_PERFTEST)
             add_dependencies(perftests ${srcfile}_mc)
@@ -138,14 +132,12 @@ if( COMPONENT_STENCIL_COMPOSITION )
                SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 47 38 61
                LABELS regression_cuda backend_cuda
-               ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
                )
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_63_38_10
                SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 38 10
                LABELS regression_cuda backend_cuda
-               ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
                )
            if (srcfile IN_LIST SOURCES_PERFTEST)
              add_dependencies(perftests ${srcfile}_cuda)
