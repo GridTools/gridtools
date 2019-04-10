@@ -24,8 +24,14 @@ def cmake(env, source_dir, build_dir, build_type, precision, grid_type):
 
     os.makedirs(build_dir, exist_ok=True)
 
+    command = ['cmake', source_dir]
     args = env.cmake_args()
-    command = ['cmake', source_dir] + [f'-D{k}={v}' for k, v in args.items()]
+    for k, v in args.items():
+        if v.strip() in ('ON', 'OFF'):
+            k += ':BOOL'
+        else:
+            k += ':STRING'
+        command.append(f'-D{k}={v}')
 
     log.info('Invoking CMake', ' '.join(command))
     start = time.time()
@@ -58,8 +64,8 @@ def make(env, build_dir, targets=None):
                                          env=env,
                                          cwd=build_dir,
                                          stderr=subprocess.STDOUT).decode()
+        log.debug('make output', output)
     except subprocess.CalledProcessError as e:
         log.error('make failed with output', e.output.decode())
     end = time.time()
     log.info(f'make finished in {end - start:.2f}s')
-    log.debug('make output', output)
