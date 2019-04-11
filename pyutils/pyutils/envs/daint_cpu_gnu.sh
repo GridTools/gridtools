@@ -8,3 +8,5 @@ module swap gcc/7.3.0
 export CXX=$(which CC)
 export CC=$(which cc)
 export FC=$(which ftn)
+
+export GTCMAKE_GT_ENABLE_BACKEND_CUDA='OFF'

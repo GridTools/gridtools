@@ -67,7 +67,8 @@ class Env(dict):
         return options
 
     def srun_command(self):
-        return self.get('GTRUN_SRUN_COMMAND', 'srun')
+        return (self.get('GTCMAKE_MPITEST_EXECUTABLE', 'srun') + ' '
+                + self.get('GTCMAKE_MPITEST_PREFLAGS', ''))
 
     def build_command(self):
         return self.get('GTRUN_BUILD_COMMAND', 'make')
