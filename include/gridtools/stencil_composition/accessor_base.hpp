@@ -14,38 +14,55 @@
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/dimension.hpp"
+#include "../common/error.hpp"
+#include "../common/functional.hpp"
 #include "../common/host_device.hpp"
+#include "../common/tuple.hpp"
+#include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 
 namespace gridtools {
     namespace accessor_base_impl_ {
         template <uint_t I>
-        struct get_dimension_value_f {
-            template <uint_t J>
-            GT_FUNCTION constexpr int_t operator()(dimension<J>) const {
-                return 0;
-            }
-            GT_FUNCTION constexpr int_t operator()(dimension<I> src) const { return src.value; }
+        GT_FUNCTION constexpr int_t pick_dimensions() {
+            return {};
+        }
+
+        template <uint_t I, class... Ts>
+        GT_FUNCTION constexpr int_t pick_dimensions(dimension<I> src, Ts &&...) {
+            return src.value;
+        }
+
+        template <uint_t I, uint_t J, class... Ts, enable_if_t<I != J, int> = 0>
+        GT_FUNCTION constexpr int_t pick_dimensions(dimension<J> src, Ts... srcs) {
+            return pick_dimensions<I>(srcs...);
+        }
+
+        template <size_t>
+        struct just_int {
+            using type = int_t;
         };
 
-        template <uint_t I>
-        GT_FUNCTION constexpr int_t sum_dimensions() {
+        class check_all_zeros {
+            bool m_dummy;
+
+          public:
+            template <class... Ts>
+            GT_FUNCTION constexpr check_all_zeros(Ts... vals)
+                : m_dummy{error_or_return(tuple_util::host_device::all_of(
+                                              host_device::identity{}, array<bool, sizeof...(Ts)>{{(vals == 0)...}}),
+                      false,
+                      "unexpected non zero accessor offset")} {}
+        };
+
+        template <size_t Dim, uint_t I, enable_if_t<(I > Dim), int> = 0>
+        GT_FUNCTION constexpr int_t out_of_range_dim(dimension<I> obj) {
+            return obj.value;
+        }
+
+        template <size_t Dim, uint_t I, enable_if_t<(I <= Dim), int> = 0>
+        GT_FUNCTION constexpr int_t out_of_range_dim(dimension<I>) {
             return 0;
-        }
-
-        template <uint_t I, class T, class... Ts>
-        GT_FUNCTION constexpr int_t sum_dimensions(T src, Ts... srcs) {
-            return get_dimension_value_f<I>{}(src) + sum_dimensions<I>(srcs...);
-        }
-
-        template <uint_t Dim, uint_t... Is, class... Ts>
-        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(meta::integer_sequence<uint_t, Is...>, Ts... srcs) {
-            return {sum_dimensions<Is + 1>(srcs...)...};
-        }
-
-        template <uint_t Dim, class... Ts>
-        GT_FUNCTION constexpr array<int_t, Dim> make_offsets(Ts... srcs) {
-            return make_offsets_impl<Dim>(meta::make_integer_sequence<uint_t, Dim>{}, srcs...);
         }
     } // namespace accessor_base_impl_
 
@@ -71,23 +88,60 @@ namespace gridtools {
      *
      * @tparam I Index of the argument in the function argument list
      * @tparam Extent Bounds over which the function access the argument
+     *
+     *  TODO(anstaf) : check offsets against extent
      */
 
-    template <size_t Dim>
-    struct accessor_base : array<int_t, Dim> {
+    template <size_t Dim, class = meta::make_index_sequence<Dim>>
+    class accessor_base;
+
+    template <size_t Dim, size_t... Is>
+    class accessor_base<Dim, meta::index_sequence<Is...>> : public array<int_t, Dim> {
         using base_t = array<int_t, Dim>;
 
-        template <class... Ints,
-            enable_if_t<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value, int> = 0>
-        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : base_t{{offsets...}} {}
+        template <class... Ts>
+        GT_FUNCTION constexpr accessor_base(accessor_base_impl_::check_all_zeros, Ts... offsets)
+            : base_t{{offsets...}} {}
 
-        GT_FUNCTION constexpr explicit accessor_base(base_t const &src) : base_t{src} {}
+      public:
+        GT_FUNCTION constexpr accessor_base() : base_t{{}} {}
 
-        template <uint_t I, uint_t... Is>
-        GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
-            : base_t{accessor_base_impl_::make_offsets<Dim>(d, ds...)} {
-            GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
+        template <class... Ts,
+            enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        GT_FUNCTION constexpr accessor_base(Ts... offsets) : base_t{{offsets...}} {}
+
+        template <class... Ts, enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        GT_FUNCTION constexpr accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts... zeros)
+            : accessor_base{accessor_base_impl_::check_all_zeros{zeros...}, offsets...} {}
+
+        GT_FUNCTION constexpr accessor_base(base_t const &src) : base_t{src} {}
+
+        template <uint_t... Js>
+        GT_FUNCTION constexpr accessor_base(dimension<Js>... srcs)
+            : accessor_base{accessor_base_impl_::check_all_zeros{accessor_base_impl_::out_of_range_dim<Dim>(srcs)...},
+                  accessor_base_impl_::pick_dimensions<Is + 1>(srcs...)...} {
+            GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<Js>...>>::value),
                 "all dimensions should be of different indicies");
         }
     };
+
+    template <>
+    class accessor_base<0, meta::index_sequence<>> : public tuple<> {
+        template <class... Ts>
+        GT_FUNCTION constexpr accessor_base(accessor_base_impl_::check_all_zeros) {}
+
+      public:
+        GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor_base);
+
+        template <class... Ts, enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        GT_FUNCTION constexpr accessor_base(Ts... zeros)
+            : accessor_base{accessor_base_impl_::check_all_zeros(zeros...)} {}
+
+        GT_FUNCTION constexpr accessor_base(array<int_t, 0> const &) {}
+
+        template <uint_t... Js>
+        GT_FUNCTION constexpr accessor_base(dimension<Js>... zero_dims)
+            : accessor_base{accessor_base_impl_::check_all_zeros(zero_dims.value...)} {}
+    };
+
 } // namespace gridtools
