@@ -221,7 +221,7 @@ function(gridtools_add_test)
   else()
     add_test(
         NAME ${___NAME}
-        COMMAND  ${MPITEST_EXECUTABLE} ${___COMMAND}
+        COMMAND  ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} 1 ${MPITEST_PREFLAGS} ${___COMMAND} ${MPITEST_POSTFLAGS}
         )
   endif()
   set_tests_properties(${___NAME} PROPERTIES LABELS "${___LABELS}")
@@ -256,7 +256,7 @@ function(gridtools_add_mpi_test)
   # Note: We use MPITEST_ instead of MPIEXEC_ because our own MPI_TEST_-variables are slurm-aware
   add_test(
       NAME ${___NAME}
-      COMMAND  ${MPITEST_EXECUTABLE} ${___COMMAND}
+      COMMAND  ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} ${___NPROC} ${MPITEST_PREFLAGS} ${___COMMAND} ${MPITEST_POSTFLAGS}
       )
   set_tests_properties(${___NAME} PROPERTIES LABELS "${___LABELS}")
   set_tests_properties(${___NAME} PROPERTIES PROCESSORS ${___NPROC})
