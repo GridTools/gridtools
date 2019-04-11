@@ -24,18 +24,18 @@
 namespace gridtools {
     namespace accessor_base_impl_ {
         template <uint_t I>
-        GT_FUNCTION constexpr int_t pick_dimensions() {
-            return {};
+        GT_FUNCTION constexpr int_t pick_dimension() {
+            return 0;
         }
 
         template <uint_t I, class... Ts>
-        GT_FUNCTION constexpr int_t pick_dimensions(dimension<I> src, Ts &&...) {
+        GT_FUNCTION constexpr int_t pick_dimension(dimension<I> src, Ts &&...) {
             return src.value;
         }
 
         template <uint_t I, uint_t J, class... Ts, enable_if_t<I != J, int> = 0>
-        GT_FUNCTION constexpr int_t pick_dimensions(dimension<J> src, Ts... srcs) {
-            return pick_dimensions<I>(srcs...);
+        GT_FUNCTION constexpr int_t pick_dimension(dimension<J> src, Ts... srcs) {
+            return pick_dimension<I>(srcs...);
         }
 
         template <size_t>
@@ -119,8 +119,8 @@ namespace gridtools {
         template <uint_t... Js>
         GT_FUNCTION constexpr accessor_base(dimension<Js>... srcs)
             : accessor_base{accessor_base_impl_::check_all_zeros{accessor_base_impl_::out_of_range_dim<Dim>(srcs)...},
-                  accessor_base_impl_::pick_dimensions<Is + 1>(srcs...)...} {
-            GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<Js>...>>::value),
+                  accessor_base_impl_::pick_dimension<Is + 1>(srcs...)...} {
+            GT_STATIC_ASSERT(meta::is_set_fast<meta::list<dimension<Js>...>>::value,
                 "all dimensions should be of different indicies");
         }
     };
