@@ -150,7 +150,7 @@ struct fly_function {
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = lap<Variation, in>::do01(eval) - lap<Variation, in>::do00(eval);
-        eval(out()) = eval(out()) * (eval(in(0, 1)) - eval(in())) > 0 ? 0.0 : eval(out());
+        eval(out()) = eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0 ? 0.0 : eval(out());
     }
 };
 
@@ -165,7 +165,7 @@ struct out_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out()) = eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1)) + eval(fly()) - eval(fly(0, -1)));
+        eval(out()) = eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0)) + eval(fly()) - eval(fly(0, -1)));
     }
 };
 
