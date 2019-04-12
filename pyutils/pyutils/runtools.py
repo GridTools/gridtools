@@ -25,7 +25,7 @@ def run(command, **kwargs):
         log.error(f'{command[0]} failed with output', e.output.decode())
         raise e
     end = time.time()
-    log.info(f'{command[0]} finishd in {end - start:.2f}s')
+    log.info(f'{command[0]} finished in {end - start:.2f}s')
     output = output.decode().strip()
     log.debug(f'{command[0]} output', output)
     return output
