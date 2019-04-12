@@ -50,7 +50,7 @@ def _generate_sbatch(commands, cwd, use_srun, use_mpi_config):
         code += f'#SBATCH {option}\n'
 
     if cwd is None:
-        cwd = os.abspath(os.getcwd())
+        cwd = os.path.abspath(os.getcwd())
     srun = env.srun_command() if use_srun else ''
 
     code += f'cd {cwd}\n'

@@ -5,7 +5,7 @@ import json
 
 import numpy as np
 
-from pyutils import Error, log
+from pyutils import log
 from perftest import time
 
 
@@ -92,10 +92,6 @@ def save(filename, data):
     with open(filename, 'w') as fp:
         json.dump(data, fp, indent=4, sort_keys=True, default=convert)
     log.info(f'Successfully saved result to {filename}')
-
-
-class ParseError(Error):
-    pass
 
 
 def load(filename):

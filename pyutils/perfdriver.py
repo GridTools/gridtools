@@ -58,16 +58,9 @@ run_parser.add_argument('--domain-size', '-s', required=True, type=int,
                         help='domain size (excluding halo)')
 run_parser.add_argument('--runs', default=10, type=int,
                         help='number of runs to do for each stencil')
-run_parser.add_argument('--max-parallel-jobs', default=50, type=int,
-                        help='max number of jobs that are submitted to '
-                             'SLURM in parallel')
 run_parser.add_argument('--output', '-o', required=True,
                         help='output file path, extension .json is added '
                              'if not given')
-run_parser.add_argument('--device', '-d', choices=['cpu', 'gpu'],
-                        required=True)
-run_parser.add_argument('--compiler', '-c', choices=['gcc', 'clang', 'icc'],
-                        required=True)
 
 # command line aguments for `plot` action
 plot_parser = subparsers.add_parser('plot',
