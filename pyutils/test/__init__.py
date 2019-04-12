@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import os
+import subprocess
+import time
+
 from pyutils import buildinfo, log, runtools
 
 
@@ -44,3 +48,18 @@ def run(env, mpi, verbose_ctest):
     _run_nompi(env, verbose_ctest)
     if mpi:
         _run_mpi(env, verbose_ctest)
+
+
+def compile_examples(env, build_dir):
+    import build
+    from pyutils import buildinfo
+
+    source_dir = os.path.join(buildinfo.install_dir, 'gridtools_examples')
+    build_dir = os.path.abspath(build_dir)
+    os.makedirs(build_dir, exist_ok=True)
+
+    env.set_cmake_arg('CMAKE_BUILD_TYPE', buildinfo.build_type.title())
+    env.set_cmake_arg('GT_EXAMPLES_FORCE_CUDA', buildinfo.target == 'gpu')
+
+    build.cmake(env, source_dir, build_dir)
+    build.make(env, build_dir, build_command=env.build_command())

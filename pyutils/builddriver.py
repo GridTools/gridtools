@@ -30,6 +30,7 @@ source_dir_default = os.path.abspath(os.path.join(script_dir,
 parser.add_argument('--source-dir', default=source_dir_default)
 
 parser.add_argument('--build-dir', '-o', required=True)
+parser.add_argument('--install-dir', '-i')
 parser.add_argument('--cmake-only', action='store_true')
 
 args = parser.parse_args()
@@ -37,8 +38,12 @@ log.set_verbosity(args.verbose)
 
 with log.exception_logging():
     env = envs.Env()
+    env.set_cmake_arg('CMAKE_BUILD_TYPE', args.build_type.title())
+    env.set_cmake_arg('GT_SINGLE_PRECISION', args.precision == 'float')
+    env.set_cmake_arg('GT_TESTS_ICOSAHEDRAL_GRID', args.grid == 'icosahedral')
+
     env.load(args.device, args.compiler)
-    build.cmake(env, args.source_dir, args.build_dir, args.build_type,
-                args.precision, args.grid, env.cmake_args())
+
+    build.cmake(env, args.source_dir, args.build_dir, args.install_dir)
     if not args.cmake_only:
         build.make(env, args.build_dir, args.target, env.build_command())

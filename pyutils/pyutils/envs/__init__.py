@@ -55,6 +55,11 @@ class Env(dict):
             args.append(f'-D{k}={v}')
         return args
 
+    def set_cmake_arg(self, arg, value):
+        if isinstance(value, bool):
+            value = 'ON' if value else 'OFF'
+        self['GTCMAKE_' + arg] = value
+
     def sbatch_options(self, mpi):
         options = self._items_with_tag('GTRUN_SBATCH_')
         if mpi:

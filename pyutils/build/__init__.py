@@ -8,37 +8,23 @@ import time
 from pyutils import log
 
 
-def cmake(env, source_dir, build_dir, build_type, precision, grid_type,
-          cmake_args=None):
-    if build_type not in ('debug', 'release'):
-        raise ValueError(f'Invalid build type "{build_type}"')
-    if precision not in ('float', 'double'):
-        raise ValueError(f'Invalid precision "{precision}"')
-    if grid_type not in ('structured', 'icosahedral'):
-        raise ValueError(f'Invalid grid type "{grid_type}"')
-    if cmake_args is None:
-        cmake_args = []
-
-    source_dir = os.path.abspath(source_dir)
-    build_dir = os.path.abspath(build_dir)
-
+def cmake(env, source_dir, build_dir, install_dir=None):
     if not os.path.exists(source_dir):
         raise FileNotFoundError(f'Source directory "{source_dir}" not found')
 
+    source_dir = os.path.abspath(source_dir)
+
+    build_dir = os.path.abspath(build_dir)
     os.makedirs(build_dir, exist_ok=True)
 
-    def stringopt(name, value):
-        return f'-D{name}:STRING=' + value
+    if install_dir is not None:
+        install_dir = os.path.abspath(install_dir)
+        os.makedirs(install_dir, exist_ok=True)
 
-    def boolopt(name, value):
-        return f'-D{name}:BOOL=' + ('ON' if value else 'OFF')
+    command = ['cmake', source_dir] + env.cmake_args()
+    if install_dir is not None:
+        command.append(f'-DCMAKE_INSTALL_PREFIX:STRING={install_dir}')
 
-    command = ['cmake', source_dir,
-               stringopt('CMAKE_BUILD_TYPE', build_type.title()),
-               boolopt('GT_SINGLE_PRECISION', precision == 'float'),
-               boolopt('GT_TESTS_ICOSAHEDRAL_GRID',
-                       grid_type == 'icosahedral')]
-    command += cmake_args
     log.info('Invoking CMake', ' '.join(command))
     start = time.time()
     try:

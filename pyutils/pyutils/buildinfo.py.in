@@ -10,6 +10,9 @@ source_dir = '@CMAKE_SOURCE_DIR@'
 # CMake binary dir
 binary_dir = '@CMAKE_BINARY_DIR@'
 
+# CMake install dir
+install_dir = '@CMAKE_INSTALL_PREFIX@'
+
 # Compiler ID
 compiler_id = '@PYUTILS_COMPILER_ID@'
 
