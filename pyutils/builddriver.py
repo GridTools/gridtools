@@ -5,7 +5,7 @@ import argparse
 import os
 
 import build
-from pyutils import envs, log
+from pyutils import env, log
 
 
 parser = argparse.ArgumentParser()
@@ -37,13 +37,12 @@ args = parser.parse_args()
 log.set_verbosity(args.verbose)
 
 with log.exception_logging():
-    env = envs.Env()
     env.set_cmake_arg('CMAKE_BUILD_TYPE', args.build_type.title())
     env.set_cmake_arg('GT_SINGLE_PRECISION', args.precision == 'float')
     env.set_cmake_arg('GT_TESTS_ICOSAHEDRAL_GRID', args.grid == 'icosahedral')
 
     env.load(args.device, args.compiler)
 
-    build.cmake(env, args.source_dir, args.build_dir, args.install_dir)
+    build.cmake(args.source_dir, args.build_dir, args.install_dir)
     if not args.cmake_only:
-        build.make(env, args.build_dir, args.target, env.build_command())
+        build.make(args.build_dir, args.target)

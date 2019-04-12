@@ -5,7 +5,7 @@ import argparse
 import sys
 
 import perftest
-from pyutils import envs, log
+from pyutils import env, log
 
 
 def plot(args):
@@ -29,10 +29,9 @@ def run(args):
     import perftest.result
     from perftest import buildinfo
 
-    env = envs.Env()
     env.load(buildinfo.target, buildinfo.compiler_id)
 
-    results = perftest.run(env, args.domain_size, args.runs)
+    results = perftest.run(args.domain_size, args.runs)
 
     # save result
     if not args.output.lower().endswith('.json'):

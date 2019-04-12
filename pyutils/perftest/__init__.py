@@ -3,9 +3,8 @@
 import collections
 import os
 import re
-import subprocess
 
-from pyutils import buildinfo, log, runtools
+from pyutils import buildinfo, env, log, runtools
 from perftest import stencils as stencil_loader
 from perftest import result, time
 
@@ -23,18 +22,17 @@ def _stencil_command(backend, stencil, domain):
     ni, nj, nk = domain
     halo = stencil.halo
     ni, nj = ni + 2 * halo, nj + 2 * halo
-    return f'{binary} {ni} {nj} {nk} 10'
+    return [binary, str(ni), str(nj), str(nk), '10']
 
 
 def _git_commit():
-    return subprocess.check_output(['git', 'rev-parse', 'HEAD'],
-                                   cwd=buildinfo.source_dir).decode().strip()
+    return runtools.run(['git', 'rev-parse', 'HEAD'], cwd=buildinfo.source_dir)
 
 
 def _git_datetime():
-    posixtime = subprocess.check_output(
+    posixtime = runtools.run(
             ['git', 'show', '-s', '--format=%ct', _git_commit()],
-            cwd=buildinfo.source_dir).decode().strip()
+            cwd=buildinfo.source_dir)
     return time.from_posix(posixtime)
 
 
@@ -46,19 +44,15 @@ def _parse_time(output):
     return float(m.group(1))
 
 
-def run(env, domain, runs):
+def run(domain, runs):
     stencils = stencil_loader.load(buildinfo.grid)
-
-    sbatch_options = env.sbatch_options()
-    srun = env.srun_command()
 
     results = dict()
     for backend in buildinfo.backends:
         commands = [_stencil_command(backend, s, domain) for s in stencils]
         allcommands = [c for c in commands for _ in range(runs)]
         log.info('Running stencils')
-        alloutputs = runtools.run_retry(env, allcommands, 5,
-                                        sbatch_options, srun)
+        alloutputs = runtools.sbatch_retry(allcommands, 5)
         log.info('Running stencils finished')
         alltimes = [_parse_time(o) for _, o, _ in alloutputs]
         times = [alltimes[i:i + runs] for i in range(0, len(alltimes), runs)]

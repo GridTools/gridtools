@@ -4,7 +4,7 @@
 import argparse
 import os
 
-from pyutils import buildinfo, envs, log
+from pyutils import buildinfo, env, log
 import test
 
 
@@ -23,7 +23,6 @@ args = parser.parse_args()
 log.set_verbosity(args.verbose)
 
 with log.exception_logging():
-    env = envs.Env()
     env.load(buildinfo.target, buildinfo.compiler_id)
-    test.run(env, args.run_mpi_tests, args.verbose_ctest)
-    test.compile_examples(env, args.examples_build_dir)
+    test.run(args.run_mpi_tests, args.verbose_ctest)
+    test.compile_examples(args.examples_build_dir)

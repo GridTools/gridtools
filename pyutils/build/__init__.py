@@ -2,13 +2,12 @@
 
 import argparse
 import os
-import subprocess
 import time
 
-from pyutils import log
+from pyutils import env, log, runtools
 
 
-def cmake(env, source_dir, build_dir, install_dir=None):
+def cmake(source_dir, build_dir, install_dir=None):
     if not os.path.exists(source_dir):
         raise FileNotFoundError(f'Source directory "{source_dir}" not found')
 
@@ -24,40 +23,12 @@ def cmake(env, source_dir, build_dir, install_dir=None):
     command = ['cmake', source_dir] + env.cmake_args()
     if install_dir is not None:
         command.append(f'-DCMAKE_INSTALL_PREFIX:STRING={install_dir}')
-
-    log.info('Invoking CMake', ' '.join(command))
-    start = time.time()
-    try:
-        output = subprocess.check_output(command,
-                                         env=env,
-                                         cwd=build_dir,
-                                         stderr=subprocess.STDOUT).decode()
-    except subprocess.CalledProcessError as e:
-        log.error('CMake failed with output', e.output.decode())
-        raise e
-    end = time.time()
-    log.info(f'CMake finished in {end - start:.2f}s')
-    log.debug('CMake output', output)
+    runtools.run(command, cwd=build_dir)
 
 
-def make(env, build_dir, targets=None, build_command=None):
-    if build_command is None:
-        build_command = 'make'
-
-    command = build_command.split()
+def make(build_dir, targets=None):
+    command = env.build_command()
     if targets is not None:
         command += list(targets)
 
-    log.info('Invoking make', ' '.join(command))
-    start = time.time()
-    try:
-        output = subprocess.check_output(command,
-                                         env=env,
-                                         cwd=build_dir,
-                                         stderr=subprocess.STDOUT).decode()
-        log.debug('make output', output)
-    except subprocess.CalledProcessError as e:
-        log.error('make failed with output', e.output.decode())
-        raise e
-    end = time.time()
-    log.info(f'make finished in {end - start:.2f}s')
+    runtools.run(command, cwd=build_dir)
