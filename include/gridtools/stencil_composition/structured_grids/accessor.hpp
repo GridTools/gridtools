@@ -85,6 +85,10 @@ namespace gridtools {
     };
 
     template <uint_t ID, intent Intent, typename Extent, size_t Number>
+    GT_META_CALL(meta::repeat_c, (Number, int_t))
+    tuple_to_types(accessor<ID, Intent, Extent, Number> const &);
+
+    template <uint_t ID, intent Intent, typename Extent, size_t Number>
     meta::always<accessor<ID, Intent, Extent, Number>> tuple_from_types(accessor<ID, Intent, Extent, Number> const &);
 
     template <uint_t ID, typename Extent = extent<>, size_t Number = accessor_impl_::minimal_dim<Extent>::value>
