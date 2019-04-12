@@ -56,19 +56,16 @@ class Env(dict):
         return args
 
     def sbatch_options(self, mpi):
-        options = []
-        def fmt(k, v):
-            return '--' + k.lower().replace('_', '-') + '=' + v
-        for k, v in self._items_with_tag('GTRUN_SBATCH_').items():
-            options.append(fmt(k, v))
+        options = self._items_with_tag('GTRUN_SBATCH_')
         if mpi:
-            for k, v in self._items_with_tag('GTRUNMPI_SBATCH_').items():
-                options.append(fmt(k, v))
-        return options
+            options.update(self._items_with_tag('GTRUNMPI_SBATCH_'))
+
+        return ['--' + k.lower().replace('_', '-') + '=' + v
+                for k, v in options.items()]
 
     def srun_command(self):
         return (self.get('GTCMAKE_MPITEST_EXECUTABLE', 'srun') + ' '
-                + self.get('GTCMAKE_MPITEST_PREFLAGS', ''))
+                + self.get('GTCMAKE_MPITEST_PREFLAGS', '').replace(';', ' '))
 
     def build_command(self):
         return self.get('GTRUN_BUILD_COMMAND', 'make')
