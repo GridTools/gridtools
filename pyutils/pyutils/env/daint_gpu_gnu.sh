@@ -3,7 +3,7 @@
 source daint.sh
 
 module load PrgEnv-gnu
-module swap gcc/7.3.0
+module swap gcc/5.3.0
 
 export CXX=$(which CC)
 export CC=$(which cc)
