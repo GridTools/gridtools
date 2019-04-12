@@ -3,7 +3,7 @@
 source tave.sh
 
 module load PrgEnv-intel
-module load gcc/7.3.0
+module load gcc
 
 export CXX=$(which icpc)
 export CC=$(which icc)
