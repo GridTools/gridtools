@@ -25,7 +25,7 @@ static_assert(!is_accessor<int>::value, "");
 static_assert(!is_accessor<double &>::value, "");
 static_assert(!is_accessor<double const &>::value, "");
 
-TEST(accessor, smokel) {
+TEST(accessor, smoke) {
     using testee_t = accessor<0, intent::inout, extent<0, 3, 0, 2, -1, 0>>;
     static_assert(tuple_util::size<testee_t>::value == 3, "");
 
@@ -40,20 +40,32 @@ TEST(accessor, zero_accessor) {
     using testee_t = accessor<0>;
     static_assert(tuple_util::size<testee_t>::value == 0, "");
     EXPECT_NO_THROW((testee_t{0, 0, 0, 0}));
-    EXPECT_THROW((testee_t{1}), std::runtime_error);
-    EXPECT_THROW((testee_t{0, 0, 1, 0, 0, 0}), std::runtime_error);
-
     EXPECT_NO_THROW(testee_t{dimension<3>{}});
+
+#ifndef NDEBUG
+    EXPECT_THROW(testee_t{1}, std::runtime_error);
+    EXPECT_THROW((testee_t{0, 0, 1, 0, 0, 0}), std::runtime_error);
     EXPECT_THROW(testee_t{dimension<3>{4}}, std::runtime_error);
+#else
+    EXPECT_NO_THROW(testee_t{1});
+    EXPECT_NO_THROW((testee_t{0, 0, 1, 0, 0, 0}));
+    EXPECT_NO_THROW(testee_t{dimension<3>{4}});
+#endif
 }
 
 TEST(accessor, extra_args) {
     using testee_t = accessor<0, intent::inout, extent<-1, 1>>;
     static_assert(tuple_util::size<testee_t>::value == 1, "");
     EXPECT_NO_THROW((testee_t{1, 0}));
-    EXPECT_THROW((testee_t{0, 1}), std::runtime_error);
     EXPECT_NO_THROW(testee_t{dimension<2>{0}});
+
+#ifndef NDEBUG
+    EXPECT_THROW((testee_t{0, 1}), std::runtime_error);
     EXPECT_THROW(testee_t{dimension<2>{1}}, std::runtime_error);
+#else
+    EXPECT_NO_THROW((testee_t{0, 1}));
+    EXPECT_NO_THROW(testee_t{dimension<2>{1}});
+#endif
 }
 
 TEST(accessor, array) {

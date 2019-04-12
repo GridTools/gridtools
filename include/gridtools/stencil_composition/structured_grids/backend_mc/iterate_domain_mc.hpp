@@ -48,11 +48,13 @@ namespace gridtools {
 
             template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
-                using strides_kind_t = GT_META_CALL(strides_kind_from_arg, (LocalDomain, Arg));
+                using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
+                using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
                 auto length = at_key<strides_kind_t>(m_local_domain.m_total_length_map);
-                int_t offset = std::lround(length * thread_factor());
+                GT_META_CALL(sid::ptr_diff_type, sid_t) offset = std::lround(length * thread_factor());
                 assert(offset == ((long long)length * omp_get_thread_num()) / omp_get_max_threads());
                 auto const &strides = at_key<strides_kind_t>(m_local_domain.m_strides_map);
+                GT_STATIC_ASSERT(is_storage_info<strides_kind_t>::value, GT_INTERNAL_ERROR);
                 sid::shift(offset, sid::get_stride<dim::i>(strides), strides_kind_t::halo_t::template at<0>());
                 sid::shift(offset, sid::get_stride<dim::j>(strides), strides_kind_t::halo_t::template at<1>());
                 at_key<Arg>(m_dst) += offset;
@@ -60,13 +62,26 @@ namespace gridtools {
 
             template <class Arg, enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
-                using strides_kind_t = GT_META_CALL(strides_kind_from_arg, (LocalDomain, Arg));
+                using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
+                using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
                 auto &ptr = at_key<Arg>(m_dst);
                 auto const &strides = at_key<strides_kind_t>(m_local_domain.m_strides_map);
                 sid::shift(ptr, sid::get_stride<dim::i>(strides), m_i_block_base);
                 sid::shift(ptr, sid::get_stride<dim::j>(strides), m_j_block_base);
             }
         };
+
+#ifdef __SSE__
+        template <class T, class PtrDiff, class Strides>
+        GT_FORCE_INLINE void do_prefetch(T *ptr, PtrDiff offset, Strides const &strides, int_t dist) {
+            if (!dist)
+                return;
+            sid::shift(offset, sid::get_stride<dim::k>(strides), dist);
+            _mm_prefetch(reinterpret_cast<const char *>(ptr + offset), _MM_HINT_T1);
+        }
+
+        GT_FORCE_INLINE void do_prefetch(...) {}
+#endif
 
     } // namespace iterate_domain_mc_impl_
 
@@ -115,21 +130,19 @@ namespace gridtools {
             class Accessor,
             enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
         GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
-            using strides_kind_t = GT_META_CALL(strides_kind_from_arg, (LocalDomain, Arg));
-            auto ptr = at_key<Arg>(m_ptr_map);
+            using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
+            using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
             auto const &strides = at_key<strides_kind_t>(m_strides_map);
-            sid::shift(ptr, sid::get_stride<dim::i>(strides), m_i_block_index);
-            sid::shift(ptr, sid::get_stride<dim::j>(strides), m_j_block_index);
-            sid::shift(ptr, sid::get_stride<dim::k>(strides), m_k_block_index);
-            sid::multi_shift(ptr, strides, accessor);
+            GT_META_CALL(sid::ptr_diff_type, sid_t) ptr_offset{};
+            sid::shift(ptr_offset, sid::get_stride<dim::i>(strides), m_i_block_index);
+            sid::shift(ptr_offset, sid::get_stride<dim::j>(strides), m_j_block_index);
+            sid::shift(ptr_offset, sid::get_stride<dim::k>(strides), m_k_block_index);
+            sid::multi_shift(ptr_offset, strides, accessor);
+            auto &&ptr = at_key<Arg>(m_ptr_map);
 #ifdef __SSE__
-            if (m_prefetch_distance) {
-                int_t prefetch_offset = {};
-                sid::shift(prefetch_offset, sid::get_stride<dim::k>(strides), m_prefetch_distance);
-                _mm_prefetch(reinterpret_cast<const char *>(ptr + prefetch_offset), _MM_HINT_T1);
-            }
+            iterate_domain_mc_impl_::do_prefetch(ptr, ptr_offset, strides, m_prefetch_distance);
 #endif
-            return *ptr;
+            return *(ptr + ptr_offset);
         }
 
         template <class Arg,
@@ -137,13 +150,14 @@ namespace gridtools {
             class Accessor,
             enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
         GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
-            using strides_kind_t = GT_META_CALL(strides_kind_from_arg, (LocalDomain, Arg));
-            auto ptr = at_key<Arg>(m_ptr_map);
+            using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
+            using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
             auto const &strides = at_key<strides_kind_t>(m_strides_map);
-            sid::shift(ptr, sid::get_stride<dim::i>(strides), m_i_block_index);
-            sid::shift(ptr, sid::get_stride<dim::j>(strides), m_j_block_index);
-            sid::multi_shift(ptr, strides, accessor);
-            return *ptr;
+            GT_META_CALL(sid::ptr_diff_type, sid_t) ptr_offset{};
+            sid::shift(ptr_offset, sid::get_stride<dim::i>(strides), m_i_block_index);
+            sid::shift(ptr_offset, sid::get_stride<dim::j>(strides), m_j_block_index);
+            sid::multi_shift(ptr_offset, strides, accessor);
+            return *(at_key<Arg>(m_ptr_map) + ptr_offset);
         }
 
         /** @brief Global i-index. */

@@ -43,6 +43,7 @@ namespace gridtools {
             using type = int_t;
         };
 
+#ifndef NDEBUG
         class check_all_zeros {
             bool m_dummy;
 
@@ -54,6 +55,12 @@ namespace gridtools {
                       false,
                       "unexpected non zero accessor offset")} {}
         };
+#else
+        struct check_all_zeros {
+            template <class... Ts>
+            GT_FUNCTION constexpr check_all_zeros(Ts...) {}
+        };
+#endif
 
         template <size_t Dim, uint_t I, enable_if_t<(I > Dim), int> = 0>
         GT_FUNCTION constexpr int_t out_of_range_dim(dimension<I> obj) {
@@ -92,6 +99,14 @@ namespace gridtools {
      *  TODO(anstaf) : check offsets against extent
      */
 
+#ifndef NDEBUG
+#define CHECK_ALL_ZEROS(x) \
+    accessor_base_impl_::check_all_zeros { x }
+#else
+#define CHECK_ALL_ZEROS(x) \
+    accessor_base_impl_::check_all_zeros {}
+#endif
+
     template <size_t Dim, class = meta::make_index_sequence<Dim>>
     class accessor_base;
 
@@ -112,13 +127,13 @@ namespace gridtools {
 
         template <class... Ts, enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
         GT_FUNCTION constexpr accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts... zeros)
-            : accessor_base{accessor_base_impl_::check_all_zeros{zeros...}, offsets...} {}
+            : accessor_base{CHECK_ALL_ZEROS(zeros...), offsets...} {}
 
         GT_FUNCTION constexpr accessor_base(base_t const &src) : base_t{src} {}
 
         template <uint_t... Js>
         GT_FUNCTION constexpr accessor_base(dimension<Js>... srcs)
-            : accessor_base{accessor_base_impl_::check_all_zeros{accessor_base_impl_::out_of_range_dim<Dim>(srcs)...},
+            : accessor_base{CHECK_ALL_ZEROS(accessor_base_impl_::out_of_range_dim<Dim>(srcs)...),
                   accessor_base_impl_::pick_dimension<Is + 1>(srcs...)...} {
             GT_STATIC_ASSERT(meta::is_set_fast<meta::list<dimension<Js>...>>::value,
                 "all dimensions should be of different indicies");
@@ -134,14 +149,15 @@ namespace gridtools {
         GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor_base);
 
         template <class... Ts, enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
-        GT_FUNCTION constexpr accessor_base(Ts... zeros)
-            : accessor_base{accessor_base_impl_::check_all_zeros(zeros...)} {}
+        GT_FUNCTION constexpr accessor_base(Ts... zeros) : accessor_base{CHECK_ALL_ZEROS(zeros...)} {}
 
         GT_FUNCTION constexpr accessor_base(array<int_t, 0> const &) {}
 
         template <uint_t... Js>
         GT_FUNCTION constexpr accessor_base(dimension<Js>... zero_dims)
-            : accessor_base{accessor_base_impl_::check_all_zeros(zero_dims.value...)} {}
+            : accessor_base{CHECK_ALL_ZEROS(zero_dims.value...)} {}
     };
+
+#undef CHECK_ALL_ZEROS
 
 } // namespace gridtools
