@@ -21,12 +21,6 @@
 
 namespace gridtools {
     namespace {
-        using data_t = float_type;
-
-        template <typename PtrHolder>
-        __device__ data_t *get_ptr(PtrHolder ptr_holder) {
-            return ptr_holder();
-        }
 
         constexpr int_t extent_i_minus = -1;
         constexpr int_t extent_i_plus = 2;
@@ -38,20 +32,46 @@ namespace gridtools {
 
         constexpr uint_t n_colors = 2;
 
-        TEST(tmp_cuda_storage_sid, maker) {
-            int_t n_blocks_i = 11;
-            int_t n_blocks_j = 12;
-            int_t k_size = 13;
+        template <typename T>
+        class tmp_cuda_storage_sid : public ::testing::Test {
+          public:
+            using data_t = T;
 
+            int_t n_blocks_i;
+            int_t n_blocks_j;
+            int_t k_size;
+
+          private:
             simple_device_memory_allocator alloc;
 
-            auto testee = make_tmp_storage_cuda<data_t>(tmp_cuda::blocksize<blocksize_i, blocksize_j>{},
-                extent<extent_i_minus, extent_i_plus, extent_j_minus, extent_j_plus>{},
-                color_type<n_colors>{},
-                n_blocks_i,
-                n_blocks_j,
-                k_size,
-                alloc);
+          public:
+            tmp_cuda_storage_sid() : n_blocks_i{11}, n_blocks_j{12}, k_size{13} {}
+
+            auto get_tmp_storage()
+                GT_AUTO_RETURN(make_tmp_storage_cuda<data_t>(tmp_cuda::blocksize<blocksize_i, blocksize_j>{},
+                    extent<extent_i_minus, extent_i_plus, extent_j_minus, extent_j_plus>{},
+                    color_type<n_colors>{},
+                    n_blocks_i,
+                    n_blocks_j,
+                    k_size,
+                    alloc));
+
+            // test helper
+            int stride0() const { return 1; }
+            int stride1() const { return blocksize_i - extent_i_minus + extent_i_plus; }
+            int stride2() const { return stride1() * (blocksize_j - extent_j_minus + extent_j_plus); }
+            int stride3() const { return stride2() * n_colors; }
+            int stride4() const { return stride3() * n_blocks_i; }
+            int stride5() const { return stride4() * n_blocks_j; }
+            data_t *ptr_to_allocation() const { return static_cast<data_t *>(alloc.ptrs()[0].get()); }
+            data_t *ptr_to_origin() const {
+                return ptr_to_allocation() - stride0() * extent_i_minus - stride1() * extent_j_minus;
+            }
+        };
+
+        using tmp_cuda_storage_sid_float = tmp_cuda_storage_sid<float_type>;
+        TEST_F(tmp_cuda_storage_sid_float, maker) {
+            auto testee = get_tmp_storage();
 
             using tmp_cuda_t = decltype(testee);
             static_assert(is_sid<tmp_cuda_t>(), "");
@@ -60,28 +80,15 @@ namespace gridtools {
 
             auto strides = sid::get_strides(testee);
 
-            int expected_stride0 = 1;
-            int expected_stride1 = blocksize_i - extent_i_minus + extent_i_plus;
-            int expected_stride2 = expected_stride1 * (blocksize_j - extent_j_minus + extent_j_plus);
-            int expected_stride3 = expected_stride2 * n_colors;
-            int expected_stride4 = expected_stride3 * n_blocks_i;
-            int expected_stride5 = expected_stride4 * n_blocks_j;
+            EXPECT_EQ(stride0(), at_key<dim::i>(strides));
+            EXPECT_EQ(stride1(), at_key<dim::j>(strides));
+            EXPECT_EQ(stride2(), at_key<dim::c>(strides));
+            EXPECT_EQ(stride3(), at_key<tmp_cuda::block_i>(strides));
+            EXPECT_EQ(stride4(), at_key<tmp_cuda::block_j>(strides));
+            EXPECT_EQ(stride5(), at_key<dim::k>(strides));
 
-            EXPECT_EQ(expected_stride0, at_key<dim::i>(strides));
-            EXPECT_EQ(expected_stride1, at_key<dim::j>(strides));
-            EXPECT_EQ(expected_stride2, at_key<dim::c>(strides));
-            EXPECT_EQ(expected_stride3, at_key<tmp_cuda::block_i>(strides));
-            EXPECT_EQ(expected_stride4, at_key<tmp_cuda::block_j>(strides));
-            EXPECT_EQ(expected_stride5, at_key<dim::k>(strides));
-
-            auto ptr_to_allocation = static_cast<data_t *>(alloc.ptrs()[0].get());
-            auto ptr_to_origin =
-                ptr_to_allocation - expected_stride0 * extent_i_minus - expected_stride1 * extent_j_minus;
-
-            auto sid_origin = gridtools::on_device::exec(
-                GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&get_ptr<decltype(sid::get_origin(testee))>),
-                sid::get_origin(testee));
-            EXPECT_EQ(ptr_to_origin, sid_origin);
+            EXPECT_EQ(ptr_to_origin(), sid::get_origin(testee)());
         }
+
     } // namespace
 } // namespace gridtools
