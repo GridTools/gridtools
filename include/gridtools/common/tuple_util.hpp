@@ -262,8 +262,8 @@ namespace gridtools {
 
             enum class ref_kind { rvalue, lvalue, const_lvalue };
 
-            template <class>
-            struct get_ref_kind;
+            template <class T>
+            struct get_ref_kind : std::integral_constant<ref_kind, ref_kind::rvalue> {};
 
             template <class T>
             struct get_ref_kind<T &&> : std::integral_constant<ref_kind, ref_kind::rvalue> {};
