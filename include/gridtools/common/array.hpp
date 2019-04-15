@@ -76,7 +76,7 @@ namespace gridtools {
         T *data() noexcept { return m_array; }
 
         GT_FUNCTION
-        constexpr T const &operator[](size_t i) const { return m_array[i]; }
+        constexpr T operator[](size_t i) const { return m_array[i]; }
 
         GT_FUNCTION
         T &operator[](size_t i) {
@@ -117,7 +117,7 @@ namespace gridtools {
             }
 
             template <size_t I, typename T, size_t D>
-            static GT_FUNCTION constexpr const T &get(const array<T, D> &arr) noexcept {
+            static GT_FUNCTION constexpr T get(const array<T, D> &arr) noexcept {
                 GT_STATIC_ASSERT(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
