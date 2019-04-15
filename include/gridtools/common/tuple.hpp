@@ -15,6 +15,7 @@
 #include "../meta/type_traits.hpp"
 #include "../meta/utility.hpp"
 #include "defs.hpp"
+#include "generic_metafunctions/const_ref.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
 
@@ -50,7 +51,7 @@ namespace gridtools {
 
         struct tuple_leaf_getter {
             template <size_t I, class T>
-            static constexpr GT_FUNCTION T const &get(tuple_leaf<I, T, false> const &obj) noexcept {
+            static constexpr GT_FUNCTION GT_META_CALL(const_ref, T) get(tuple_leaf<I, T, false> const &obj) noexcept {
                 return obj.m_value;
             }
 
@@ -65,7 +66,7 @@ namespace gridtools {
             }
 
             template <size_t I, class T>
-            static constexpr GT_FUNCTION T const &get(tuple_leaf<I, T, true> const &obj) noexcept {
+            static constexpr GT_FUNCTION GT_META_CALL(const_ref, T) get(tuple_leaf<I, T, true> const &obj) noexcept {
                 return obj;
             }
 
@@ -168,7 +169,7 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-        constexpr GT_FUNCTION tuple(Ts const &... args) noexcept : m_impl(args...) {}
+        constexpr GT_FUNCTION tuple(GT_META_CALL(const_ref, Ts)... args) noexcept : m_impl(args...) {}
 
         template <class... Args,
             enable_if_t<sizeof...(Ts) == sizeof...(Args) && conjunction<std::is_constructible<Ts, Args &&>...>::value,
@@ -198,7 +199,7 @@ namespace gridtools {
         T m_value;
         struct getter {
             template <size_t I, enable_if_t<I == 0, int> = 0>
-            static constexpr GT_FUNCTION T const &get(tuple const &obj) noexcept {
+            static constexpr GT_FUNCTION GT_META_CALL(const_ref, T) get(tuple const &obj) noexcept {
                 return obj.m_value;
             }
 
@@ -225,7 +226,7 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-        constexpr GT_FUNCTION tuple(T const &arg) noexcept : m_value(arg) {}
+        constexpr GT_FUNCTION tuple(GT_META_CALL(const_ref, T) arg) noexcept : m_value(arg) {}
 
         template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
         constexpr GT_FUNCTION tuple(Arg &&arg) noexcept : m_value(const_expr::forward<Arg>(arg)) {}
