@@ -109,6 +109,7 @@
 #include "../meta.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
+#include "generic_metafunctions/const_ref.hpp"
 #include "generic_metafunctions/implicit_cast.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
