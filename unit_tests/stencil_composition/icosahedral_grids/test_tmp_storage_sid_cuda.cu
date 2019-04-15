@@ -8,11 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/common/tuple_util.hpp>
-#include <gridtools/meta/list.hpp>
 #include <gridtools/stencil_composition/backend_cuda/simple_device_memory_allocator.hpp>
 #include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
-#include <gridtools/stencil_composition/color.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
@@ -24,15 +21,12 @@
 
 namespace gridtools {
     namespace {
+        using data_t = float_type;
+
         template <typename PtrHolder>
-        __device__ float_type *get_ptr(PtrHolder ptr_holder) {
+        __device__ data_t *get_ptr(PtrHolder ptr_holder) {
             return ptr_holder();
         }
-
-        namespace tu = tuple_util;
-        using tuple_util::get;
-
-        using data_t = float_type;
 
         constexpr int_t extent_i_minus = -1;
         constexpr int_t extent_i_plus = 2;
@@ -60,7 +54,7 @@ namespace gridtools {
                 alloc);
 
             using tmp_cuda_t = decltype(testee);
-            static_assert(is_sid<tmp_cuda_t>(), ""); // TODO error here
+            static_assert(is_sid<tmp_cuda_t>(), "");
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, tmp_cuda_t), data_t *>();
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, tmp_cuda_t), int_t>();
 
@@ -80,12 +74,13 @@ namespace gridtools {
             EXPECT_EQ(expected_stride4, at_key<tmp_cuda::block_j>(strides));
             EXPECT_EQ(expected_stride5, at_key<dim::k>(strides));
 
-            auto ptr_to_allocation = static_cast<float_type *>(alloc.ptrs()[0].get());
+            auto ptr_to_allocation = static_cast<data_t *>(alloc.ptrs()[0].get());
             auto ptr_to_origin =
                 ptr_to_allocation - expected_stride0 * extent_i_minus - expected_stride1 * extent_j_minus;
 
             auto sid_origin = gridtools::on_device::exec(
-                GT_MAKE_CONSTANT(get_ptr<decltype(sid::get_origin(testee))>), sid::get_origin(testee));
+                GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&get_ptr<decltype(sid::get_origin(testee))>),
+                sid::get_origin(testee));
             EXPECT_EQ(ptr_to_origin, sid_origin);
         }
     } // namespace

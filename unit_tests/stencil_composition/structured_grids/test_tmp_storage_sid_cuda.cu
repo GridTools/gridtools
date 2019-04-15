@@ -8,8 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/common/tuple_util.hpp>
-#include <gridtools/meta/list.hpp>
 #include <gridtools/stencil_composition/backend_cuda/simple_device_memory_allocator.hpp>
 #include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
@@ -17,15 +15,18 @@
 
 #include <type_traits>
 
+#include "../../cuda_test_helper.hpp"
 #include "../../test_helper.hpp"
 #include <gtest/gtest.h>
 
 namespace gridtools {
     namespace {
-        namespace tu = tuple_util;
-        using tuple_util::get;
-
         using data_t = float_type;
+
+        template <typename PtrHolder>
+        __device__ data_t *get_ptr(PtrHolder ptr_holder) {
+            return ptr_holder();
+        }
 
         constexpr int_t extent_i_minus = -1;
         constexpr int_t extent_i_plus = 2;
@@ -68,10 +69,14 @@ namespace gridtools {
             EXPECT_EQ(expected_stride3, at_key<tmp_cuda::block_j>(strides));
             EXPECT_EQ(expected_stride4, at_key<dim::k>(strides));
 
-            auto ptr_to_allocation = static_cast<float_type *>(alloc.ptrs()[0].get());
+            auto ptr_to_allocation = static_cast<data_t *>(alloc.ptrs()[0].get());
             auto ptr_to_origin =
                 ptr_to_allocation - expected_stride0 * extent_i_minus - expected_stride1 * extent_j_minus;
-            EXPECT_EQ(ptr_to_origin, sid::get_origin(testee)());
+
+            auto sid_origin = gridtools::on_device::exec(
+                GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&get_ptr<decltype(sid::get_origin(testee))>),
+                sid::get_origin(testee));
+            EXPECT_EQ(ptr_to_origin, sid_origin);
         }
     } // namespace
 } // namespace gridtools
