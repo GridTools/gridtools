@@ -18,15 +18,12 @@
 namespace gridtools {
     GT_META_LAZY_NAMESPACE {
         template <class T, class = void>
-        struct const_ref {
-            using type = T const &;
-        };
+        struct const_ref : std::add_lvalue_reference<add_const_t<T>> {};
+
         template <class T>
         struct const_ref<T,
-            enable_if_t<std::is_trivially_copy_constructible<decay_t<T>>::value &&
-                        sizeof(decay_t<T>) <= sizeof(add_pointer_t<T>)>> {
-            using type = decay_t<T>;
-        };
+            enable_if_t<!std::is_reference<T>::value && std::is_trivially_copy_constructible<T>::value &&
+                        sizeof(T) <= sizeof(add_pointer_t<T>)>> : std::remove_const<T> {};
     }
     GT_META_DELEGATE_TO_LAZY(const_ref, class T, T);
 } // namespace gridtools

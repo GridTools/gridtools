@@ -280,7 +280,7 @@ namespace gridtools {
                 struct add_ref;
 
                 template <class T>
-                struct add_ref<ref_kind::rvalue, T> : meta::lazy::id<T> {};
+                struct add_ref<ref_kind::rvalue, T> : std::add_rvalue_reference<T> {};
 
                 template <class T>
                 struct add_ref<ref_kind::lvalue, T> : std::add_lvalue_reference<T> {};
