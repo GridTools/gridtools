@@ -17,7 +17,7 @@
 
 #include <type_traits>
 
-#include "../test_helper.hpp"
+#include "../../test_helper.hpp"
 #include <gtest/gtest.h>
 
 namespace gridtools {

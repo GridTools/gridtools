@@ -18,11 +18,17 @@
 
 #include <type_traits>
 
+#include "../../cuda_test_helper.hpp"
 #include "../../test_helper.hpp"
 #include <gtest/gtest.h>
 
 namespace gridtools {
     namespace {
+        template <typename PtrHolder>
+        __device__ float_type *get_ptr(PtrHolder ptr_holder) {
+            return ptr_holder();
+        }
+
         namespace tu = tuple_util;
         using tuple_util::get;
 
@@ -54,7 +60,7 @@ namespace gridtools {
                 alloc);
 
             using tmp_cuda_t = decltype(testee);
-            static_assert(is_sid<tmp_cuda_t>(), "");
+            static_assert(is_sid<tmp_cuda_t>(), ""); // TODO error here
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, tmp_cuda_t), data_t *>();
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, tmp_cuda_t), int_t>();
 
@@ -77,7 +83,10 @@ namespace gridtools {
             auto ptr_to_allocation = static_cast<float_type *>(alloc.ptrs()[0].get());
             auto ptr_to_origin =
                 ptr_to_allocation - expected_stride0 * extent_i_minus - expected_stride1 * extent_j_minus;
-            EXPECT_EQ(ptr_to_origin, sid::get_origin(testee)());
+
+            auto sid_origin = gridtools::on_device::exec(
+                GT_MAKE_CONSTANT(get_ptr<decltype(sid::get_origin(testee))>), sid::get_origin(testee));
+            EXPECT_EQ(ptr_to_origin, sid_origin);
         }
     } // namespace
 } // namespace gridtools

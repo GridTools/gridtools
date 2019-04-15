@@ -93,16 +93,15 @@ namespace gridtools {
                     .template set<sid::property::strides_kind, Strides>()));
 
 #else
-#warning "correct branch"
     namespace tmp_cuda_impl_ {
-        template <class Strides, class BlockSizeI, class BlockSizeJ>
+        template <class Strides, class BlockSizeI, class BlockSizeJ, uint_t NColors>
         Strides compute_strides(int_t n_blocks_i, int_t n_blocks_j) {
-            return {integral_constant<int_t, 1>{}, // TODO support for default init {} in hymap
+            return Strides{integral_constant<int_t, 1>{}, // TODO support for default init {} in hymap
                 BlockSizeI{},
                 integral_constant<int_t, BlockSizeI{} * BlockSizeJ{}>{},
-                integral_constant<int_t, BlockSizeI{} * BlockSizeJ{} * 1>{}, // TODO 1 -> NColors
-                GT_META_CALL(meta::at_c, (Strides, 2))::value * n_blocks_i,
-                GT_META_CALL(meta::at_c, (Strides, 2))::value * n_blocks_i * n_blocks_j};
+                integral_constant<int_t, BlockSizeI{} * BlockSizeJ{} * NColors>{},
+                GT_META_CALL(meta::at_c, (Strides, 3))::value * n_blocks_i,
+                GT_META_CALL(meta::at_c, (Strides, 3))::value * n_blocks_i * n_blocks_j};
         }
 
         template <class BlockSizeI, class BlockSizeJ>
@@ -147,7 +146,7 @@ namespace gridtools {
             integral_constant<int_t, 1>,
             BlockSizeI,
             integral_constant<int_t, BlockSizeI{} * BlockSizeJ{}>,
-            integral_constant<int_t, BlockSizeI{} * BlockSizeJ{} * NColors>,
+            integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value * NColors>,
             int_t,
             int_t>>
     auto make_tmp_storage_cuda(tmp_cuda::blocksize<ComputeBlockSizeI, ComputeBlockSizeJ>,
@@ -156,20 +155,21 @@ namespace gridtools {
         int_t n_blocks_i,
         int_t n_blocks_j,
         int_t k_size,
-        Allocator &&alloc) {
-        return sid::synthetic()
-            .set<sid::property::origin>(
-                alloc.template allocate<T>(
-                    tmp_cuda_impl_::compute_size<BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j, k_size)) +
-                tmp_cuda_impl_::compute_origin_offset(
-                    tmp_cuda_impl_::compute_strides<Strides, BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j),
-                    -ExtentIMinus,
-                    -ExtentJMinus))
-            .template set<sid::property::strides>(
-                tmp_cuda_impl_::compute_strides<Strides, BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j))
-            .template set<sid::property::ptr_diff, int_t>()
-            .template set<sid::property::strides_kind, Strides>();
-    }
+        Allocator &&alloc)
+        GT_AUTO_RETURN((
+            sid::synthetic()
+                .set<sid::property::origin>(
+                    alloc.template allocate<T>(
+                        tmp_cuda_impl_::compute_size<BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j, k_size)) +
+                    tmp_cuda_impl_::compute_origin_offset(
+                        tmp_cuda_impl_::compute_strides<Strides, BlockSizeI, BlockSizeJ, NColors>(
+                            n_blocks_i, n_blocks_j),
+                        -ExtentIMinus,
+                        -ExtentJMinus))
+                .template set<sid::property::strides>(
+                    tmp_cuda_impl_::compute_strides<Strides, BlockSizeI, BlockSizeJ, NColors>(n_blocks_i, n_blocks_j))
+                .template set<sid::property::ptr_diff, int_t>()
+                .template set<sid::property::strides_kind, Strides>()));
 #endif
 
 } // namespace gridtools
