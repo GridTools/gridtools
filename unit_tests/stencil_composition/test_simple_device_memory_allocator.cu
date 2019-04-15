@@ -16,17 +16,18 @@
 
 namespace gridtools {
     namespace {
-        __global__ void test_allocated(float_type *data) { *data = 1; }
+        template <typename PtrHolder>
+        __global__ void test_allocated(PtrHolder data) {
+            *(data()) = 1;
+        }
 
         TEST(simple_device_memory_allocator, test) {
             simple_device_memory_allocator alloc;
             auto ptr_holder = alloc.allocate<float_type>(1);
 
-            float_type *ptr = ptr_holder();
-
-            test_allocated<<<1, 1>>>(ptr);
+            test_allocated<<<1, 1>>>(ptr_holder);
             float_type data;
-            cudaMemcpy(&data, ptr, sizeof(float_type), cudaMemcpyDeviceToHost);
+            cudaMemcpy(&data, alloc.ptrs()[0].get(), sizeof(float_type), cudaMemcpyDeviceToHost);
             ASSERT_EQ(1, data);
         }
     } // namespace

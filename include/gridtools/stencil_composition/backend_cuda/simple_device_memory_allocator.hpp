@@ -23,11 +23,8 @@ namespace gridtools {
         std::vector<std::shared_ptr<void>> m_ptrs;
 
       public:
-        /**
-         * \param bytes Size of requested allocation in bytes.
-         */
         template <class T>
-        sid::device::simple_ptr_holder<T *> allocate(size_t num_elements) {
+        sid::host_device::simple_ptr_holder<T *> allocate(size_t num_elements) {
             T *ptr;
             GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T) * num_elements));
             m_ptrs.emplace_back(ptr, [](T *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
