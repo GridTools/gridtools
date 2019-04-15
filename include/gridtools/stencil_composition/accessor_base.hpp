@@ -100,10 +100,10 @@ namespace gridtools {
      */
 
 #ifndef NDEBUG
-#define CHECK_ALL_ZEROS(x) \
-    accessor_base_impl_::check_all_zeros { x }
+#define CHECK_ALL_ZEROS(...) \
+    accessor_base_impl_::check_all_zeros { __VA_ARGS__ }
 #else
-#define CHECK_ALL_ZEROS(x) \
+#define CHECK_ALL_ZEROS(...) \
     accessor_base_impl_::check_all_zeros {}
 #endif
 
@@ -131,11 +131,12 @@ namespace gridtools {
 
         GT_FUNCTION constexpr accessor_base(base_t const &src) : base_t{src} {}
 
-        template <uint_t... Js>
-        GT_FUNCTION constexpr accessor_base(dimension<Js>... srcs)
-            : accessor_base{CHECK_ALL_ZEROS(accessor_base_impl_::out_of_range_dim<Dim>(srcs)...),
-                  accessor_base_impl_::pick_dimension<Is + 1>(srcs...)...} {
-            GT_STATIC_ASSERT(meta::is_set_fast<meta::list<dimension<Js>...>>::value,
+        template <uint_t J, uint_t... Js>
+        GT_FUNCTION constexpr accessor_base(dimension<J> src, dimension<Js>... srcs)
+            : accessor_base{CHECK_ALL_ZEROS(accessor_base_impl_::out_of_range_dim<Dim>(src),
+                                accessor_base_impl_::out_of_range_dim<Dim>(srcs)...),
+                  accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...} {
+            GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value),
                 "all dimensions should be of different indicies");
         }
     };
@@ -153,9 +154,9 @@ namespace gridtools {
 
         GT_FUNCTION constexpr accessor_base(array<int_t, 0> const &) {}
 
-        template <uint_t... Js>
-        GT_FUNCTION constexpr accessor_base(dimension<Js>... zero_dims)
-            : accessor_base{CHECK_ALL_ZEROS(zero_dims.value...)} {}
+        template <uint_t J, uint_t... Js>
+        GT_FUNCTION constexpr accessor_base(dimension<J> zero, dimension<Js>... zeros)
+            : accessor_base{CHECK_ALL_ZEROS(zero.value, zeros.value...)} {}
     };
 
 #undef CHECK_ALL_ZEROS
