@@ -82,11 +82,11 @@ namespace gridtools {
         /** @brief return a value that was cached
          */
         template <class Arg, uint_t Color, class ReturnType, class Accessor>
-        GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
+        GT_FUNCTION ReturnType get_ij_cache_value(Accessor acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
             return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain)
-                .at<Color>(m_thread_pos[0], m_thread_pos[1], acc);
+                .at<Color>(m_thread_pos[0], m_thread_pos[1], std::move(acc));
         }
 
         /** @brief return a the value in memory pointed to by an accessor

@@ -91,18 +91,19 @@ namespace gridtools {
          * specialization where cache goes via shared memory
          */
         template <class Arg, class ReturnType, class Accessor>
-        GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
+        GT_FUNCTION ReturnType get_ij_cache_value(Accessor acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
-            return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain).at(m_thread_pos[0], m_thread_pos[1], acc);
+            return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain)
+                .at(m_thread_pos[0], m_thread_pos[1], std::move(acc));
         }
 
         /** @brief return a value that was cached
          * specialization where cache goes via kcache register set
          */
         template <class Arg, class ReturnType, class Accessor>
-        GT_FUNCTION ReturnType get_k_cache_value(Accessor const &acc) const {
-            return m_iterate_domain_cache.template get_k_cache<Arg>(acc);
+        GT_FUNCTION ReturnType get_k_cache_value(Accessor acc) const {
+            return m_iterate_domain_cache.template get_k_cache<Arg>(std::move(acc));
         }
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350

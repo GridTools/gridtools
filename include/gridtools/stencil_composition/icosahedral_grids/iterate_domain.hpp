@@ -96,8 +96,9 @@ namespace gridtools {
             class Accessor,
             class Res = typename deref_type<Arg, Intent>::type,
             enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
-        GT_FUNCTION Res deref(Accessor const &acc) const {
-            return static_cast<IterateDomainImpl const *>(this)->template get_ij_cache_value<Arg, Color, Res>(acc);
+        GT_FUNCTION Res deref(Accessor acc) const {
+            return static_cast<IterateDomainImpl const *>(this)->template get_ij_cache_value<Arg, Color, Res>(
+                std::move(acc));
         }
 
         template <class Arg,
@@ -106,7 +107,7 @@ namespace gridtools {
             class Accessor,
             class Res = typename deref_type<Arg, Intent>::type,
             enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
-        GT_FUNCTION Res deref(Accessor const &acc) const {
+        GT_FUNCTION Res deref(Accessor acc) const {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
             typedef typename Arg::data_store_t::storage_info_t storage_info_t;

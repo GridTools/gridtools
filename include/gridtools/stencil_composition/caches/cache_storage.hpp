@@ -31,7 +31,7 @@ namespace gridtools {
 
       public:
         template <class Accessor>
-        GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
+        GT_FUNCTION T &at(int_t i, int_t j, Accessor acc) {
             i += host_device::at_key<dim::i>(acc) + IZero;
             j += host_device::at_key<dim::j>(acc) + JZero;
             assert(host_device::at_key<dim::k>(acc) == 0);
@@ -64,7 +64,7 @@ namespace gridtools {
 
       public:
         template <int_t Color, class Accessor>
-        GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
+        GT_FUNCTION T &at(int_t i, int_t j, Accessor acc) {
             i += host_device::at_key<dim::i>(acc) + IZero;
             int_t color = Color + host_device::at_key<dim::c>(acc);
             j += host_device::at_key<dim::j>(acc) + JZero;
@@ -129,7 +129,7 @@ namespace gridtools {
          * @param acc the accessor that contains the offsets being accessed
          */
         template <class Accessor>
-        GT_FUNCTION T &at(Accessor const &acc) {
+        GT_FUNCTION T &at(Accessor acc) {
             int_t offset = host_device::at_key<dim::k>(acc);
             assert(offset >= Minus);
             assert(offset <= Plus);

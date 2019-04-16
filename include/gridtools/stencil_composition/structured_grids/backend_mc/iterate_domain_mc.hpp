@@ -168,13 +168,13 @@ namespace gridtools {
          * @brief Returns the value pointed by an accessor.
          */
         template <class Arg, intent Intent, class Accessor>
-        GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
+        GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor accessor) const {
             using strides_kind_t = GT_META_CALL(strides_kind_from_arg, (local_domain_t, Arg));
 
             auto ptr = at_key<Arg>(m_ptr_map);
 
             int_t pointer_offset =
-                compute_offset<meta::st_contains<ij_cache_args_t, Arg>::value, strides_kind_t>(accessor);
+                compute_offset<meta::st_contains<ij_cache_args_t, Arg>::value, strides_kind_t>(std::move(accessor));
 
 #ifdef __SSE__
             if (m_prefetch_distance != 0) {
@@ -300,8 +300,7 @@ namespace gridtools {
         }
 
         template <bool IsIjCached, typename StridesKind, typename Accessor, std::size_t... Coordinates>
-        GT_FORCE_INLINE int_t compute_offset_impl(
-            Accessor const &accessor, meta::index_sequence<Coordinates...>) const {
+        GT_FORCE_INLINE int_t compute_offset_impl(Accessor accessor, meta::index_sequence<Coordinates...>) const {
             return accumulate(plus_functor(),
                 0,
                 (storage_stride<StridesKind, integral_constant<int_t, Coordinates>>() *
@@ -319,9 +318,9 @@ namespace gridtools {
          * @return A linear data pointer offset to access the data of a compatible storage.
          */
         template <bool IsIjCached, typename StorageInfo, typename Accessor>
-        GT_FORCE_INLINE int_t compute_offset(Accessor const &accessor) const {
+        GT_FORCE_INLINE int_t compute_offset(Accessor accessor) const {
             using sequence_t = meta::make_index_sequence<tuple_util::size<Accessor>::value>;
-            return compute_offset_impl<IsIjCached, StorageInfo>(accessor, sequence_t());
+            return compute_offset_impl<IsIjCached, StorageInfo>(std::move(accessor), sequence_t());
         }
     };
 

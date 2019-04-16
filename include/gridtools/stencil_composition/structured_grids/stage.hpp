@@ -53,9 +53,9 @@ namespace gridtools {
             ItDomain const &m_it_domain;
 
             template <class Accessor>
-            GT_FUNCTION auto operator()(Accessor const &arg) const
+            GT_FUNCTION auto operator()(Accessor arg) const
                 GT_AUTO_RETURN((m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value)),
-                                Accessor::intent_v>(arg)));
+                                Accessor::intent_v>(std::move(arg))));
 
             template <class Op, class... Ts>
             GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
