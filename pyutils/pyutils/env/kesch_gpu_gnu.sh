@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-source kesch.sh
+source $(dirname "$BASH_SOURCE")/kesch.sh
 
 export G2G=2
 export MV2_USE_GPUDIRECT=0

@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-source daint.sh
+source $(dirname "$BASH_SOURCE")/daint.sh
 
 module load /users/vogtha/modules/compilers/clang/7.0.1
 

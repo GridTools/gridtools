@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-source daint.sh
+source $(dirname "$BASH_SOURCE")/daint.sh
 
 module load PrgEnv-gnu
 module swap gcc/5.3.0

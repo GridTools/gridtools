@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-source tave.sh
+source $(dirname "$BASH_SOURCE")/tave.sh
 
 module load PrgEnv-intel
 module load gcc

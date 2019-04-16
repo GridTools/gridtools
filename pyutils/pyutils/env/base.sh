@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export GTCMAKE_Boost_NO_BOOST_CMAKE=ON
 export GTCMAKE_Boost_NO_SYSTEM_PATHS=ON

@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-source base.sh
+source $(dirname "$BASH_SOURCE")/base.sh
 
 module load daint-gpu
 module load cudatoolkit/9.1.85_3.18-6.0.7.0_5.1__g2eb7c52

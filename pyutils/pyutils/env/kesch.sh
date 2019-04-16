@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-source base.sh
+source $(dirname "$BASH_SOURCE")/base.sh
 
 module load craype-network-infiniband
 module load craype-haswell
