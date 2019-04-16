@@ -40,12 +40,12 @@ namespace gridtools {
             Functor::template apply<Eval &>(eval);
         }
 
-        template <class Key, class Offsets, enable_if_t<has_key<decay_t<Offsets>, Key>::value, int> = 0>
-        GT_FUNCTION auto get_offset(Offsets &&offsets)
-            GT_AUTO_RETURN(host_device::at_key<Key>(std::forward<Offsets>(offsets)));
+        template <class Key, class Offsets, enable_if_t<has_key<Offsets, Key>::value, int> = 0>
+        GT_FUNCTION auto get_offset(Offsets const &offsets) GT_AUTO_RETURN(host_device::at_key<Key>(offsets));
 
         template <class Key, class Offsets>
-        GT_FUNCTION enable_if_t<!has_key<Offsets, Key>::value, integral_constant<int_t, 0>> get_offset(Offsets &&) {
+        GT_FUNCTION enable_if_t<!has_key<Offsets, Key>::value, integral_constant<int_t, 0>> get_offset(
+            Offsets const &) {
             return {};
         }
 
@@ -54,34 +54,32 @@ namespace gridtools {
             using type = sum_offset_generator_f;
 
             template <class Lhs, class Rhs>
-            GT_FUNCTION auto operator()(Lhs &&lhs, Rhs &&rhs) const
-                GT_AUTO_RETURN(get_offset<Key>(std::forward<Lhs>(lhs)) + get_offset<Key>(std::forward<Rhs>(rhs)));
+            GT_FUNCTION auto operator()(Lhs const &lhs, Rhs const &rhs) const
+                GT_AUTO_RETURN(get_offset<Key>(lhs) + get_offset<Key>(rhs));
         };
 
         template <class Res, class Lhs, class Rhs>
-        GT_FUNCTION Res sum_offsets(Lhs &&lhs, Rhs &&rhs) {
+        GT_FUNCTION Res sum_offsets(Lhs const &lhs, Rhs const &rhs) {
             using keys_t = GT_META_CALL(get_keys, Res);
             using generators_t = GT_META_CALL(meta::transform, (sum_offset_generator_f, keys_t));
-            return tuple_util::host_device::generate<generators_t, Res>(std::forward<Lhs>(lhs), std::forward<Rhs>(rhs));
+            return tuple_util::host_device::generate<generators_t, Res>(lhs, rhs);
         }
 
         template <int_t I, int_t J, int_t K, class Accessor>
-        GT_FUNCTION enable_if_t<I == 0 && J == 0 && K == 0, Accessor &&> get_offsets(Accessor &&acc) {
-            return std::forward<Accessor>(acc);
+        GT_FUNCTION enable_if_t<I == 0 && J == 0 && K == 0, Accessor> get_offsets(Accessor acc) {
+            return acc;
         }
 
         template <int_t I,
             int_t J,
             int_t K,
             class Accessor,
-            class Decayed = decay_t<Accessor>,
-            class Size = tuple_util::size<Decayed>,
+            class Size = tuple_util::size<Accessor>,
             class Res = array<int_t, Size::value>>
-        GT_FUNCTION enable_if_t<I != 0 || J != 0 || K != 0, Res> get_offsets(Accessor &&acc) {
-            static constexpr hymap::keys<dim::i, dim::j, dim::k>::
-                values<integral_constant<int_t, I>, integral_constant<int_t, J>, integral_constant<int_t, K>>
-                    offset = {};
-            return sum_offsets<Res>(std::forward<Accessor>(acc), offset);
+        GT_FUNCTION enable_if_t<I != 0 || J != 0 || K != 0, Res> get_offsets(Accessor acc) {
+            return sum_offsets<Res>(acc,
+                hymap::keys<dim::i, dim::j, dim::k>::
+                    values<integral_constant<int_t, I>, integral_constant<int_t, J>, integral_constant<int_t, K>>{});
         }
 
         template <class Res, class Offsets>
@@ -91,13 +89,13 @@ namespace gridtools {
             Offsets m_offsets;
 
             template <class Eval, class Src>
-            GT_FUNCTION constexpr auto operator()(Eval &eval, Src &&src) const
-                GT_AUTO_RETURN(eval(sum_offsets<Res>(m_offsets, std::forward<Src>(src))));
+            GT_FUNCTION constexpr auto operator()(Eval &eval, Src src) const
+                GT_AUTO_RETURN(eval(sum_offsets<Res>(m_offsets, src)));
         };
 
         template <class Res, class Offsets>
-        GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
-            return {std::forward<Offsets>(offsets)};
+        GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets offsets) {
+            return {std::move(offsets)};
         }
 
         template <class T>
@@ -114,13 +112,12 @@ namespace gridtools {
         struct get_transform_f {
             template <class Accessor,
                 class LazyParam,
-                class Decayed = decay_t<Accessor>,
                 class Param = typename LazyParam::type,
-                enable_if_t<is_accessor<Decayed>::value &&
-                                !(Param::intent_v == intent::inout && Decayed::intent_v == intent::in),
+                enable_if_t<is_accessor<Accessor>::value &&
+                                !(Param::intent_v == intent::inout && Accessor::intent_v == intent::in),
                     int> = 0>
-            GT_FUNCTION auto operator()(Accessor &&accessor, LazyParam) const
-                GT_AUTO_RETURN((accessor_transform<Decayed>(get_offsets<I, J, K>(std::forward<Accessor>(accessor)))));
+            GT_FUNCTION auto operator()(Accessor accessor, LazyParam) const
+                GT_AUTO_RETURN(accessor_transform<Accessor>(get_offsets<I, J, K>(std::move(accessor))));
 
             template <class Arg,
                 class Decayed = decay_t<Arg>,
@@ -141,15 +138,15 @@ namespace gridtools {
 
             template <class Accessor>
             GT_FUNCTION auto operator()(Accessor acc) const GT_AUTO_RETURN(
-                tuple_util::host_device::get<decay_t<Accessor>::index_t::value>(m_transforms)(m_eval, std::move(acc)));
+                tuple_util::host_device::get<Accessor::index_t::value>(m_transforms)(m_eval, std::move(acc)));
 
             template <class Op, class... Ts>
             GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
                 GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
         };
         template <class Eval, class Transforms>
-        GT_FUNCTION evaluator<Eval, Transforms> make_evaluator(Eval &eval, Transforms &&transforms) {
-            return {eval, std::forward<Transforms>(transforms)};
+        GT_FUNCTION evaluator<Eval, Transforms> make_evaluator(Eval &eval, Transforms transforms) {
+            return {eval, std::move(transforms)};
         }
 
         template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>

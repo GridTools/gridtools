@@ -126,7 +126,7 @@ namespace gridtools {
             template <size_t I, typename T, size_t D>
             static GT_FUNCTION constexpr T &&get(array<T, D> &&arr) noexcept {
                 GT_STATIC_ASSERT(I < D, "index is out of bounds");
-                return const_expr::move(arr.m_array[I]);
+                return const_expr::move(get<I>(arr));
             }
         };
     } // namespace array_impl_
