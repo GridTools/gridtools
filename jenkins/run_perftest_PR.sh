@@ -1,24 +1,6 @@
-# remove -cn from label (for daint)
-label=${label%%-*}
+#!/bin/bash
 
-# use the machines python virtualenv with required modules (matplotlib) installed
-source /project/c14/jenkins/python-venvs/$label/bin/activate
-
-if [[ $label != "kesch" ]]; then
-    export SLURM_ACCOUNT=c14
-    export SBATCH_ACCOUNT=c14
-fi
-
-# create directory for temporaries
-if [[ $label == "tave" ]]; then
-    # use /dev/shm on Tave due to small /tmp size
-    tmpdir=$(mktemp -d /dev/shm/gridtools-tmp-XXXXXXXXXX)
-else
-    # use a subdirectory of /tmp on other systems to avoid memory problems
-    tmpdir=$(mktemp -d /tmp/gridtools-tmp-XXXXXXXXXX)
-fi
-mkdir -p $tmpdir
-export TMPDIR=$tmpdir
+source $(dirname "$0")/setup.sh
 
 grid=structured
 
@@ -53,6 +35,3 @@ for domain in 128 256; do
     fi
   done
 done
-
-# clean possible temporary leftovers
-rm -rf $tmpdir
