@@ -141,7 +141,7 @@ namespace gridtools {
 
             template <class Accessor>
             GT_FUNCTION auto operator()(Accessor acc) const GT_AUTO_RETURN(
-                tuple_util::host_device::get<decay_t<Accessor>::index_t::value>(m_transforms)(m_eval, std::move(acc)));
+                tuple_util::host_device::get<Accessor::index_t::value>(m_transforms)(m_eval, std::move(acc)));
 
             template <class Op, class... Ts>
             GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
@@ -236,7 +236,7 @@ namespace gridtools {
         GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
             Res res;
             call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
-                tuple_util::host_device::insert<out_param_index>(res, tuple<Args...>{std::forward<Args>(args)...}));
+                tuple_util::host_device::insert<out_param_index>(res, tuple<Args &&...>{std::forward<Args>(args)...}));
             return res;
         }
     };
@@ -278,7 +278,7 @@ namespace gridtools {
         GT_FUNCTION static enable_if_t<sizeof...(Args) == meta::length<typename Functor::param_list>::value> with(
             Eval &eval, Args &&... args) {
             call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
-                eval, tuple<Args...>{std::forward<Args>(args)...});
+                eval, tuple<Args &&...>{std::forward<Args>(args)...});
         }
     };
 } // namespace gridtools
