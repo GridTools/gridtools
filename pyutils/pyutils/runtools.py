@@ -103,6 +103,8 @@ def _retreive_outputs(rundir, commands, task_id):
             break
         time.sleep(1)
 
+    time.sleep(5)
+
     outputs = []
     for i, (command, exitcode) in enumerate(zip(commands, exitcodes)):
         if exitcode != 0:
