@@ -33,7 +33,7 @@ for domain in 128 256; do
   mkdir -p $resultdir
 
   # run performance tests
-  ./build/pyutils/perfdriver.py -vvv run --runs 2 -s $domain $domain 80 -o $resultdir/result.json || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
+  ./build/pyutils/perfdriver.py -vvv run -s $domain $domain 80 -o $resultdir/result.json || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
 
   for backend in cuda x86 mc; do
     result=$resultdir/result.$backend.json
