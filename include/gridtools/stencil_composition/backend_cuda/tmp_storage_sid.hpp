@@ -64,10 +64,7 @@ namespace gridtools {
     //    };
 
     namespace tmp_cuda_impl_ {
-        template <class BlockSizeI,
-            class BlockSizeJ,
-            class StrideI = integral_constant<int_t, 1>,
-            class StrideJ = BlockSizeI>
+        template <class BlockSizeI, class BlockSizeJ, class StrideI = integral_constant<int_t, 1>>
         hymap::keys<dim::i, dim::j, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>::
             values<StrideI, BlockSizeI, integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value>, int_t, int_t>
             compute_strides(int_t n_blocks_i, int_t n_blocks_j) {
