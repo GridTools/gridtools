@@ -141,8 +141,8 @@ namespace gridtools {
                 tuple_util::host_device::get<Accessor::index_t::value>(m_transforms)(m_eval, std::move(acc)));
 
             template <class Op, class... Ts>
-            GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
-                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
+            GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const
+                GT_AUTO_RETURN(expressions::evaluation::value(*this, std::move(arg)));
         };
         template <class Eval, class Transforms>
         GT_FUNCTION evaluator<Eval, Transforms> make_evaluator(Eval &eval, Transforms transforms) {
@@ -161,7 +161,7 @@ namespace gridtools {
         }
 
         template <class Eval, class Arg, bool = is_accessor<Arg>::value>
-        struct deduce_result_type : std::decay<decltype(std::declval<Eval &>()(std::declval<Arg &&>()))> {};
+        struct deduce_result_type : std::decay<decltype(std::declval<Eval &>()(std::declval<Arg>()))> {};
 
         template <class Eval, class Arg>
         struct deduce_result_type<Eval, Arg, false> : meta::lazy::id<Arg> {};
@@ -176,6 +176,7 @@ namespace gridtools {
 
         template <class Accessor>
         GT_META_DEFINE_ALIAS(is_out_param, bool_constant, Accessor::intent_v == intent::inout);
+
     } // namespace call_interfaces_impl_
 
     /** Main interface for calling stencil operators as functions.
@@ -228,12 +229,12 @@ namespace gridtools {
          */
         template <class Eval,
             class... Args,
-            class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, decay_t<Args>...>::type,
+            class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, Args...>::type,
             enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
-        GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
+        GT_FUNCTION static Res with(Eval &eval, Args... args) {
             Res res;
-            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
-                tuple_util::host_device::insert<out_param_index>(res, tuple<Args...>{std::forward<Args>(args)...}));
+            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
+                eval, tuple_util::host_device::insert<out_param_index>(res, tuple<Args...>{std::move(args)...}));
             return res;
         }
     };

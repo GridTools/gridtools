@@ -37,8 +37,7 @@ namespace gridtools {
          *   `offsets` should be a hymap of individual offsets.
          */
         template <class Ptr, class Strides, class Offsets>
-        GT_FUNCTION void multi_shift(
-            Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets const &GT_RESTRICT offsets) {
+        GT_FUNCTION void multi_shift(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets offsets) {
             using keys_t = GT_META_CALL(get_keys, Offsets);
             gridtools::host_device::for_each_type<keys_t>(
                 multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});

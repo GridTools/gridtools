@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/utility.hpp"
 #include "expr_base.hpp"
 
 namespace gridtools {
@@ -24,11 +25,12 @@ namespace gridtools {
 
         struct times_f {
             template <class Lhs, class Rhs>
-            GT_FUNCTION constexpr auto operator()(Lhs const &lhs, Rhs const &rhs) const GT_AUTO_RETURN(lhs *rhs);
+            GT_FUNCTION constexpr auto operator()(Lhs lhs, Rhs rhs) const GT_AUTO_RETURN(lhs *rhs);
         };
 
         template <class Lhs, class Rhs>
-        GT_FUNCTION constexpr auto operator*(Lhs lhs, Rhs rhs)GT_AUTO_RETURN(make_expr(times_f{}, lhs, rhs));
+        GT_FUNCTION constexpr auto operator*(Lhs lhs, Rhs rhs)GT_AUTO_RETURN(
+            make_expr(times_f{}, const_expr::move(lhs), const_expr::move(rhs)));
         /** @} */
         /** @} */
     } // namespace expressions

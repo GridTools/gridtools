@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../is_accessor.hpp"
@@ -54,7 +55,7 @@ namespace gridtools {
 
         template <class Op, class... Args, enable_if_t<disjunction<expr_or_accessor<Args>...>::value, int> = 0>
         GT_FUNCTION constexpr expr<Op, Args...> make_expr(Op, Args... args) {
-            return {args...};
+            return {const_expr::move(args)...};
         }
 
         namespace evaluation {
@@ -64,15 +65,15 @@ namespace gridtools {
             }
 
             template <class Eval, class Arg, enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION constexpr auto apply_eval(Eval &eval, Arg arg) GT_AUTO_RETURN(eval(std::move(arg)));
+            GT_FUNCTION constexpr auto apply_eval(Eval &eval, Arg arg) GT_AUTO_RETURN(eval(const_expr::move(arg)));
 
             template <class Eval, class Op, class Arg>
-            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Arg> const &arg)
-                GT_AUTO_RETURN(Op{}(eval(arg.m_arg)));
+            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Arg> arg)
+                GT_AUTO_RETURN(Op{}(eval(const_expr::move(arg.m_arg))));
 
             template <class Eval, class Op, class Lhs, class Rhs>
-            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg)
-                GT_AUTO_RETURN(Op{}(apply_eval(eval, arg.m_lhs), apply_eval(eval, arg.m_rhs)));
+            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Lhs, Rhs> arg) GT_AUTO_RETURN(
+                Op{}(apply_eval(eval, const_expr::move(arg.m_lhs)), apply_eval(eval, const_expr::move(arg.m_rhs))));
         } // namespace evaluation
     }     // namespace expressions
     /** @} */

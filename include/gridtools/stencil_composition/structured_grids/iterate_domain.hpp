@@ -165,7 +165,8 @@ namespace gridtools {
                 meta::st_position<typename local_domain_t::strides_kinds_t, storage_info_t>::value;
 
             auto pointer_offset = m_index[storage_info_index];
-            sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(local_domain.m_strides_map), accessor);
+            sid::multi_shift(
+                pointer_offset, host_device::at_key<storage_info_t>(local_domain.m_strides_map), std::move(accessor));
 
             assert(pointer_oob_check<storage_info_t>(local_domain, pointer_offset));
 

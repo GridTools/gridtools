@@ -25,7 +25,7 @@ namespace gridtools {
     template <uint_t Number>
     struct gt_pow {
         template <typename Value>
-        GT_FUNCTION static Value constexpr apply(Value const &v) {
+        GT_FUNCTION static Value constexpr apply(Value v) {
             return v * gt_pow<Number - 1>::apply(v);
         }
     };
@@ -34,7 +34,7 @@ namespace gridtools {
     template <>
     struct gt_pow<0> {
         template <typename Value>
-        GT_FUNCTION static Value constexpr apply(Value const &) {
+        GT_FUNCTION static Value constexpr apply(Value) {
             return 1.;
         }
     };

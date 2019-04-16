@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/gt_math.hpp"
 #include "expr_base.hpp"
 
@@ -24,11 +25,11 @@ namespace gridtools {
         template <int I>
         struct pow_f {
             template <class Arg>
-            GT_FUNCTION constexpr auto operator()(Arg const &arg) const GT_AUTO_RETURN(gt_pow<I>::template apply(arg));
+            GT_FUNCTION constexpr auto operator()(Arg arg) const GT_AUTO_RETURN(gt_pow<I>::template apply(arg));
         };
 
         template <int I, class Arg>
-        GT_FUNCTION constexpr auto pow(Arg arg) GT_AUTO_RETURN(make_expr(pow_f<I>{}, arg));
+        GT_FUNCTION constexpr auto pow(Arg arg) GT_AUTO_RETURN(make_expr(pow_f<I>{}, const_expr::move(arg)));
         /** @} */
         /** @} */
     } // namespace expressions

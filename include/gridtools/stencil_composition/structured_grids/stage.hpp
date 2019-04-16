@@ -58,8 +58,8 @@ namespace gridtools {
                                 Accessor::intent_v>(std::move(arg))));
 
             template <class Op, class... Ts>
-            GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
-                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
+            GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const
+                GT_AUTO_RETURN(expressions::evaluation::value(*this, std::move(arg)));
 
             GT_FUNCTION int_t i() const { return m_it_domain.i(); }
             GT_FUNCTION int_t j() const { return m_it_domain.j(); }
