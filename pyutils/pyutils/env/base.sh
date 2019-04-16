@@ -16,3 +16,4 @@ export GTRUN_SBATCH_EXCLUSIVE=''
 export CTEST_PARALLEL_LEVEL=10
 
 export OMP_PROC_BIND='true'
+export OMP_WAIT_POLICY='active'
