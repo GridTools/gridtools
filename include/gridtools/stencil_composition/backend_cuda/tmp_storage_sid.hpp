@@ -58,11 +58,6 @@ namespace gridtools {
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
 
-    //    template <class BlockSizeI, class BlockSizeJ>
-    //    struct compute_stride_block_i {
-    //        using type = integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value>;
-    //    };
-
     namespace tmp_cuda_impl_ {
         template <class BlockSizeI, class BlockSizeJ, class StrideI = integral_constant<int_t, 1>>
         hymap::keys<dim::i, dim::j, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>::
@@ -78,6 +73,13 @@ namespace gridtools {
 
     /**
      * @brief SID for CUDA temporaries.
+     * @param blocksize of the 2D CUDA block (same for all temporaries within a computation)
+     * @param extent max extent of all temporaries in a computation (same for all temporaries within a computation)
+     * @param n_blocks_i (same for all temporaries within a computation)
+     * @param n_blocks_j (same for all temporaries within a computation)
+     * @param k_size (can be different)
+     * @param allocator
+     *
      * get_origin() points to first element of compute domain
      * TODO(havogt): during integration we need to evaluate different types of alignment:
      *  - no alignment (current implementation)
@@ -93,13 +95,7 @@ namespace gridtools {
         int_t ExtentJPlus,
         class Allocator,
         class BlockSizeI = integral_constant<int_t, ComputeBlockSizeI - ExtentIMinus + ExtentIPlus>,
-        class BlockSizeJ = integral_constant<int_t, ComputeBlockSizeJ - ExtentJMinus + ExtentJPlus>
-        /*,class Strides = hymap::keys<dim::i, dim::j, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>::values<
-            integral_constant<int_t, 1>,
-            BlockSizeI,
-            integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value>,
-            int_t,
-            int_t>*/>
+        class BlockSizeJ = integral_constant<int_t, ComputeBlockSizeJ - ExtentJMinus + ExtentJPlus>>
     auto make_tmp_storage_cuda(tmp_cuda::blocksize<ComputeBlockSizeI, ComputeBlockSizeJ>,
         extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, 0, 0>,
         int_t n_blocks_i,
