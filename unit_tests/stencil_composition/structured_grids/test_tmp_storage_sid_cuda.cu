@@ -74,17 +74,10 @@ namespace gridtools {
             }
         };
 
-        struct my_type {
-            template <typename T>
-            int allocate(int size) const {
-                return size;
-            }
-        };
-
         using tmp_cuda_storage_sid_float = tmp_cuda_storage_sid<float_type>;
         TEST_F(tmp_cuda_storage_sid_float, maker) {
-            my_type t;
-            auto ptr_holder = tmp_cuda_impl_::make_ptr_holder<float_type>(t);
+            tmp_cuda_impl_::my_type t;
+            auto ptr_holder = tmp_cuda_impl_::make_ptr_holder<float_type>(t, 0);
             //            auto testee = tmp_cuda_impl_::make_synthetic(
             //                tmp_cuda_impl_::make_strides(tmp_cuda::blocksize<blocksize_i, blocksize_j>{},
             //                    extent<extent_i_minus, extent_i_plus, extent_j_minus, extent_j_plus>{},

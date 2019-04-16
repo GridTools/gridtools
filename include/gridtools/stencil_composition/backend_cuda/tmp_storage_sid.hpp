@@ -48,12 +48,28 @@ namespace gridtools {
             return 0; // shift_i * at_key<dim::i>(strides) + shift_j * at_key<dim::j>(strides);
         }
 
-        template <class Allocator, class Method>
-        auto make_ptr_holder_impl(Allocator alloc, Method method) GT_AUTO_RETURN((alloc.*method)(123));
+        //        template <class Allocator, class Method>
+        //        auto make_ptr_holder_impl(Allocator alloc, Method method) GT_AUTO_RETURN((alloc.*method)(123));
+        //
+        //        template <class T, class Allocator>
+        //        auto make_ptr_holder(Allocator alloc)
+        //            GT_AUTO_RETURN((make_ptr_holder_impl(alloc, &Allocator::template allocate<T>)));
+
+        struct my_type {
+            template <typename T>
+            int allocate(int size) const {
+                return size;
+            }
+        };
+
+        template <typename T>
+        int allocate(my_type &t, int s) {
+            return s;
+            //            return t.allocate<T>(s);
+        }
 
         template <class T, class Allocator>
-        auto make_ptr_holder(Allocator alloc)
-            GT_AUTO_RETURN((make_ptr_holder_impl(alloc, &Allocator::template allocate<T>)));
+        auto make_ptr_holder(Allocator alloc, int s) GT_AUTO_RETURN((allocate<T>(alloc, s)));
 
         template <int_t ComputeBlockSizeI,
             int_t ComputeBlockSizeJ,
