@@ -36,4 +36,4 @@ export OMP_NUM_THREADS=12
 
 export CXX=$(which g++)
 export CC=$(which gcc)
-export FC=$(which n)
+export FC=$(which gfortran)
