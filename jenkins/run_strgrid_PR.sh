@@ -1,5 +1,8 @@
+# remove -cn from label (for daint)
+label=${label%%-*}
+
 # use the machines python virtualenv with required modules installed
-source /project/c14/jenkins/python-venvs/${label%%-*}/bin/activate
+source /project/c14/jenkins/python-venvs/$label/bin/activate
 
 if [[ $label != "kesch" ]]; then
     export SLURM_ACCOUNT=c14
