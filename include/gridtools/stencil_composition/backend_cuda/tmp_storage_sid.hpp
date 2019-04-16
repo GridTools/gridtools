@@ -111,6 +111,7 @@ namespace gridtools {
                 -ExtentJMinus))));
 
 #else
+    // TODO fix icosahedral
     namespace tmp_cuda_impl_ {
         template <class Strides, class BlockSizeI, class BlockSizeJ, uint_t NColors>
         Strides compute_strides(int_t n_blocks_i, int_t n_blocks_j) {
