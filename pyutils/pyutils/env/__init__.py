@@ -57,7 +57,7 @@ def sbatch_options(mpi):
     if mpi:
         options.update(_items_with_tag('GTRUNMPI_SBATCH_'))
 
-    return ['--' + k.lower().replace('_', '-') + '=' + v
+    return ['--' + k.lower().replace('_', '-') + ('=' + v if v else '')
             for k, v in options.items()]
 
 
