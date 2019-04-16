@@ -24,11 +24,12 @@ namespace gridtools {
 
       public:
         template <class T>
-        sid::host_device::simple_ptr_holder<T *> allocate(size_t num_elements) {
-            T *ptr;
-            GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T) * num_elements));
-            m_ptrs.emplace_back(ptr, [](T *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
-            return {static_cast<T *>(m_ptrs.back().get())};
+        sid::host_device::simple_ptr_holder<T *> allocate(size_t num_elements) const {
+            return {};
+            //            T *ptr;
+            //            GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T) * num_elements));
+            //            m_ptrs.emplace_back(ptr, [](T *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
+            //            return {static_cast<T *>(m_ptrs.back().get())};
         }
 
         /**

@@ -39,19 +39,20 @@ namespace gridtools {
             int_t n_blocks_j;
             int_t k_size;
 
-          private:
+            //          private:
             simple_device_memory_allocator alloc;
 
           public:
             tmp_cuda_storage_sid() : n_blocks_i{11}, n_blocks_j{12}, k_size{13} {}
 
-            auto get_tmp_storage()
-                GT_AUTO_RETURN(make_tmp_storage_cuda<data_t>(tmp_cuda::blocksize<blocksize_i, blocksize_j>{},
-                    extent<extent_i_minus, extent_i_plus, extent_j_minus, extent_j_plus>{},
-                    n_blocks_i,
-                    n_blocks_j,
-                    k_size,
-                    alloc));
+            //            auto get_tmp_storage()
+            //                GT_AUTO_RETURN(make_tmp_storage_cuda<data_t>(tmp_cuda::blocksize<blocksize_i,
+            //                blocksize_j>{},
+            //                    extent<extent_i_minus, extent_i_plus, extent_j_minus, extent_j_plus>{},
+            //                    n_blocks_i,
+            //                    n_blocks_j,
+            //                    k_size,
+            //                    simple_device_memory_allocator{}));
 
             // test helper
             int stride0() const { return 1; }
@@ -73,90 +74,108 @@ namespace gridtools {
             }
         };
 
-        using tmp_cuda_storage_sid_float = tmp_cuda_storage_sid<float_type>;
-        TEST_F(tmp_cuda_storage_sid_float, maker) {
-            auto testee = get_tmp_storage();
-
-            using tmp_cuda_t = decltype(testee);
-            static_assert(is_sid<tmp_cuda_t>(), "");
-            ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, tmp_cuda_t), data_t *>();
-            ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, tmp_cuda_t), int_t>();
-
-            auto strides = sid::get_strides(testee);
-
-            EXPECT_EQ(stride0(), at_key<dim::i>(strides));
-            EXPECT_EQ(stride1(), at_key<dim::j>(strides));
-            EXPECT_EQ(stride2(), at_key<tmp_cuda::block_i>(strides));
-            EXPECT_EQ(stride3(), at_key<tmp_cuda::block_j>(strides));
-            EXPECT_EQ(stride4(), at_key<dim::k>(strides));
-
-            EXPECT_EQ(ptr_to_origin(), sid::get_origin(testee)());
-        }
-
-        struct block_info {
-            int i;
-            int j;
+        struct my_type {
+            template <typename T>
+            int allocate(int size) const {
+                return size;
+            }
         };
 
-        template <class PtrHolder, class Strides>
-        __global__ void write_block_index(PtrHolder ptr_holder, Strides strides) {
-            int block_id_x = blockIdx.x;
-            int block_id_y = blockIdx.y;
-            int block_id_z = blockIdx.z;
-            int thread_id_x = (int)threadIdx.x + extent_i_minus;
-            int thread_id_y = (int)threadIdx.y + extent_j_minus;
+        using tmp_cuda_storage_sid_float = tmp_cuda_storage_sid<float_type>;
+        TEST_F(tmp_cuda_storage_sid_float, maker) {
+            my_type t;
+            auto ptr_holder = tmp_cuda_impl_::make_ptr_holder<float_type>(t);
+            //            auto testee = tmp_cuda_impl_::make_synthetic(
+            //                tmp_cuda_impl_::make_strides(tmp_cuda::blocksize<blocksize_i, blocksize_j>{},
+            //                    extent<extent_i_minus, extent_i_plus, extent_j_minus, extent_j_plus>{},
+            //                    n_blocks_i,
+            //                    n_blocks_j,
+            //                    k_size),
+            //                tmp_cuda_impl_::make_ptr_holder<float_type>(alloc));
+            //
+            //            using tmp_cuda_t = decltype(testee);
+            //            static_assert(is_sid<tmp_cuda_t>(), "");
 
-            auto ptr = ptr_holder();
-            sid::shift(ptr, device::at_key<dim::i>(strides), thread_id_x);
-            sid::shift(ptr, device::at_key<dim::j>(strides), thread_id_y);
-            sid::shift(ptr, device::at_key<tmp_cuda::block_i>(strides), block_id_x);
-            sid::shift(ptr, device::at_key<tmp_cuda::block_j>(strides), block_id_y);
-            sid::shift(ptr, device::at_key<dim::k>(strides), block_id_z);
-            if (threadIdx.x >= -extent_i_minus && threadIdx.x < blockDim.x - extent_i_plus && //
-                threadIdx.y >= -extent_j_minus && threadIdx.y < blockDim.y - extent_j_plus) {
-                // in domain
-                ptr->i = block_id_x;
-                ptr->j = block_id_y;
-            } else {
-                // in redundant computation area
-                ptr->i = -1;
-                ptr->j = -1;
-            }
+            //            ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, tmp_cuda_t), data_t *>();
+            //            ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, tmp_cuda_t), int_t>();
+            //
+            //            auto strides = sid::get_strides(testee);
+            //
+            //            EXPECT_EQ(stride0(), at_key<dim::i>(strides));
+            //            EXPECT_EQ(stride1(), at_key<dim::j>(strides));
+            //            EXPECT_EQ(stride2(), at_key<tmp_cuda::block_i>(strides));
+            //            EXPECT_EQ(stride3(), at_key<tmp_cuda::block_j>(strides));
+            //            EXPECT_EQ(stride4(), at_key<dim::k>(strides));
+            //
+            //            EXPECT_EQ(ptr_to_origin(), sid::get_origin(testee)());
         }
 
-        using tmp_cuda_storage_sid_block = tmp_cuda_storage_sid<block_info>;
-        TEST_F(tmp_cuda_storage_sid_block, write_in_blocks) {
-            auto testee = get_tmp_storage();
-
-            auto strides = sid::get_strides(testee);
-            auto origin = sid::get_origin(testee);
-
-            dim3 blocks(n_blocks_i, n_blocks_j, k_size);
-            dim3 threads(extended_blocksize_i(), extended_blocksize_j(), 1);
-            // fill domain area with blockid, redundant computation area is not touched
-            write_block_index<<<blocks, threads>>>(origin, strides);
-            GT_CUDA_CHECK(cudaDeviceSynchronize());
-
-            data_t *result = new data_t[n_elements()];
-            GT_CUDA_CHECK(
-                cudaMemcpy(result, ptr_to_allocation(), n_elements() * sizeof(data_t), cudaMemcpyDeviceToHost));
-
-            for (int i = extent_i_minus; i < blocksize_i + extent_i_plus; ++i)
-                for (int j = extent_j_minus; j < blocksize_j + extent_j_plus; ++j)
-                    for (size_t bi = 0; bi < n_blocks_i; ++bi)
-                        for (size_t bj = 0; bj < n_blocks_j; ++bj)
-                            for (size_t k = 0; k < k_size; ++k) {
-                                auto ptr_to_origin = result - stride0() * extent_i_minus - stride1() * extent_j_minus;
-                                auto stride =
-                                    i * stride0() + j * stride1() + bi * stride2() + bj * stride3() + k * stride4();
-                                if (i >= 0 && i < blocksize_i && j >= 0 && j < blocksize_j) {
-                                    EXPECT_EQ(bi, ptr_to_origin[stride].i) << i << "/" << j;
-                                    EXPECT_EQ(bj, ptr_to_origin[stride].j) << i << "/" << j;
-                                } else {
-                                    EXPECT_EQ(-1, ptr_to_origin[stride].i) << i << "/" << j;
-                                    EXPECT_EQ(-1, ptr_to_origin[stride].i) << i << "/" << j;
-                                }
-                            }
-        }
+        //        struct block_info {
+        //            int i;
+        //            int j;
+        //        };
+        //
+        //        template <class PtrHolder, class Strides>
+        //        __global__ void write_block_index(PtrHolder ptr_holder, Strides strides) {
+        //            int block_id_x = blockIdx.x;
+        //            int block_id_y = blockIdx.y;
+        //            int block_id_z = blockIdx.z;
+        //            int thread_id_x = (int)threadIdx.x + extent_i_minus;
+        //            int thread_id_y = (int)threadIdx.y + extent_j_minus;
+        //
+        //            auto ptr = ptr_holder();
+        //            sid::shift(ptr, device::at_key<dim::i>(strides), thread_id_x);
+        //            sid::shift(ptr, device::at_key<dim::j>(strides), thread_id_y);
+        //            sid::shift(ptr, device::at_key<tmp_cuda::block_i>(strides), block_id_x);
+        //            sid::shift(ptr, device::at_key<tmp_cuda::block_j>(strides), block_id_y);
+        //            sid::shift(ptr, device::at_key<dim::k>(strides), block_id_z);
+        //            if (threadIdx.x >= -extent_i_minus && threadIdx.x < blockDim.x - extent_i_plus && //
+        //                threadIdx.y >= -extent_j_minus && threadIdx.y < blockDim.y - extent_j_plus) {
+        //                // in domain
+        //                ptr->i = block_id_x;
+        //                ptr->j = block_id_y;
+        //            } else {
+        //                // in redundant computation area
+        //                ptr->i = -1;
+        //                ptr->j = -1;
+        //            }
+        //        }
+        //
+        //        using tmp_cuda_storage_sid_block = tmp_cuda_storage_sid<block_info>;
+        //        TEST_F(tmp_cuda_storage_sid_block, write_in_blocks) {
+        //            auto testee = get_tmp_storage();
+        //
+        //            auto strides = sid::get_strides(testee);
+        //            auto origin = sid::get_origin(testee);
+        //
+        //            dim3 blocks(n_blocks_i, n_blocks_j, k_size);
+        //            dim3 threads(extended_blocksize_i(), extended_blocksize_j(), 1);
+        //            // fill domain area with blockid, redundant computation area is not touched
+        //            write_block_index<<<blocks, threads>>>(origin, strides);
+        //            GT_CUDA_CHECK(cudaDeviceSynchronize());
+        //
+        //            data_t *result = new data_t[n_elements()];
+        //            GT_CUDA_CHECK(
+        //                cudaMemcpy(result, ptr_to_allocation(), n_elements() * sizeof(data_t),
+        //                cudaMemcpyDeviceToHost));
+        //
+        //            for (int i = extent_i_minus; i < blocksize_i + extent_i_plus; ++i)
+        //                for (int j = extent_j_minus; j < blocksize_j + extent_j_plus; ++j)
+        //                    for (size_t bi = 0; bi < n_blocks_i; ++bi)
+        //                        for (size_t bj = 0; bj < n_blocks_j; ++bj)
+        //                            for (size_t k = 0; k < k_size; ++k) {
+        //                                auto ptr_to_origin = result - stride0() * extent_i_minus - stride1() *
+        //                                extent_j_minus; auto stride =
+        //                                    i * stride0() + j * stride1() + bi * stride2() + bj * stride3() + k *
+        //                                    stride4();
+        //                                if (i >= 0 && i < blocksize_i && j >= 0 && j < blocksize_j) {
+        //                                    EXPECT_EQ(bi, ptr_to_origin[stride].i) << i << "/" << j;
+        //                                    EXPECT_EQ(bj, ptr_to_origin[stride].j) << i << "/" << j;
+        //                                } else {
+        //                                    EXPECT_EQ(-1, ptr_to_origin[stride].i) << i << "/" << j;
+        //                                    EXPECT_EQ(-1, ptr_to_origin[stride].i) << i << "/" << j;
+        //                                }
+        //                            }
+        //        }
     } // namespace
 } // namespace gridtools
