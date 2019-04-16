@@ -64,7 +64,7 @@ namespace gridtools {
             }
 
             template <class Eval, class Arg, enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION constexpr auto apply_eval(Eval &eval, Arg const &arg) GT_AUTO_RETURN(eval(arg));
+            GT_FUNCTION constexpr auto apply_eval(Eval &eval, Arg arg) GT_AUTO_RETURN(eval(std::move(arg)));
 
             template <class Eval, class Op, class Arg>
             GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Arg> const &arg)

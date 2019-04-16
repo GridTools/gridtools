@@ -140,9 +140,8 @@ namespace gridtools {
             Transforms m_transforms;
 
             template <class Accessor>
-            GT_FUNCTION auto operator()(Accessor &&acc) const
-                GT_AUTO_RETURN(tuple_util::host_device::get<decay_t<Accessor>::index_t::value>(m_transforms)(
-                    m_eval, std::forward<Accessor>(acc)));
+            GT_FUNCTION auto operator()(Accessor acc) const GT_AUTO_RETURN(
+                tuple_util::host_device::get<decay_t<Accessor>::index_t::value>(m_transforms)(m_eval, std::move(acc)));
 
             template <class Op, class... Ts>
             GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
