@@ -109,7 +109,6 @@
 #include "../meta.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
-#include "generic_metafunctions/const_ref.hpp"
 #include "generic_metafunctions/implicit_cast.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
@@ -263,8 +262,8 @@ namespace gridtools {
 
             enum class ref_kind { rvalue, lvalue, const_lvalue };
 
-            template <class T>
-            struct get_ref_kind : std::integral_constant<ref_kind, ref_kind::rvalue> {};
+            template <class>
+            struct get_ref_kind;
 
             template <class T>
             struct get_ref_kind<T &&> : std::integral_constant<ref_kind, ref_kind::rvalue> {};
@@ -286,7 +285,7 @@ namespace gridtools {
                 struct add_ref<ref_kind::lvalue, T> : std::add_lvalue_reference<T> {};
 
                 template <class T>
-                struct add_ref<ref_kind::const_lvalue, T> : ::gridtools::lazy::const_ref<T> {};
+                struct add_ref<ref_kind::const_lvalue, T> : std::add_lvalue_reference<add_const_t<T>> {};
             }
             GT_META_DELEGATE_TO_LAZY(add_ref, (ref_kind Kind, class Dst), (Kind, Dst));
 
