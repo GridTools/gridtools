@@ -132,7 +132,7 @@ namespace gridtools {
 
         template <uint_t J, uint_t... Js>
         GT_FUNCTION constexpr accessor_base(dimension<J> src, dimension<Js>... srcs)
-            : base_t{accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...} {
+            : base_t{{accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...}} {
             GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value),
                 "all dimensions should be of different indicies");
         }
