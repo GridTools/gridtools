@@ -35,12 +35,12 @@ for domain in 128 256; do
       fi
 
       # plot comparison of current result with references
-      ./build/pyutils/perfdriver.py -v -l $logfile plot compare -i $references $resultdir/result.$backend.json -o plot-$backend-$domain.png || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
+      ./build/pyutils/perfdriver.py -v -l $logfile plot compare -i $references $result -o plot-$backend-$domain.png || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
     fi
   done
 
   if [[ -n "$allresults" ]]; then
     # plot comparison of backends
-    ./build/pyutils/perfdriver.py -v -l $logfile plot compare -i $allresults -o plot-backend-compare.png || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
+    ./build/pyutils/perfdriver.py -v -l $logfile plot compare -i $allresults -o plot-backend-compare-$domain.png || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
   fi
 done
