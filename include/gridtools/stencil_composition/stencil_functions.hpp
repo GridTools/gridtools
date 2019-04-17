@@ -231,12 +231,12 @@ namespace gridtools {
          */
         template <class Eval,
             class... Args,
-            class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, decay_t<Args>...>::type,
+            class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, Args...>::type,
             enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
-        GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
+        GT_FUNCTION static Res with(Eval &eval, Args... args) {
             Res res;
-            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
-                tuple_util::host_device::insert<out_param_index>(res, tuple<Args &&...>{std::forward<Args>(args)...}));
+            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
+                eval, tuple_util::host_device::insert<out_param_index>(res, tuple<Args...>{std::move(args)...}));
             return res;
         }
     };
