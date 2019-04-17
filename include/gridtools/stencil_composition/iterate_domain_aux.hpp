@@ -19,6 +19,7 @@
 #include "../meta/st_contains.hpp"
 #include "../meta/st_position.hpp"
 #include "../meta/type_traits.hpp"
+#include "accessor_intent.hpp"
 #include "arg.hpp"
 #include "block.hpp"
 #include "dim.hpp"
