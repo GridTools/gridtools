@@ -3,7 +3,7 @@
 # remove -cn from label (for daint)
 label=${label%%-*}
 
-envfile=./pyutils/pyutils/env/${label}_$env.sh
+envfile=./jenkins/envs/${label}_$env.sh
 
 # use the machines python virtualenv with required modules installed
 source /project/c14/jenkins/python-venvs/$label/bin/activate
