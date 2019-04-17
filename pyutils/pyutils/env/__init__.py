@@ -10,25 +10,26 @@ from pyutils import log, runtools
 env = os.environ.copy()
 
 
-def load(target, compiler):
-    envfile = clustername() + '_' + target + '_' + compiler + '.sh'
-    envfile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           envfile)
-    update_from_file(envfile)
-    env['GTCMAKE_PYUTILS_TARGET'] = target
-
-
-def update_from_file(envfile):
+def load(envfile):
     if not os.path.exists(envfile):
         raise FileNotFoundError(f'Could find environment file "{envfile}"')
+    env['GTCMAKE_PYUTILS_ENVFILE'] = os.path.abspath(envfile)
 
     envdir, envfile = os.path.split(envfile)
     output = runtools.run(['bash', '-c', f'source {envfile} && env -0'],
                           cwd=envdir).strip('\0')
     env.update(line.split('=', 1) for line in output.split('\0'))
 
-    log.debug(f'Environment updated with {envfile}, new environment',
+    log.info(f'Loaded environment from {os.path.join(envdir, envfile)}')
+    log.debug(f'New environment',
               '\n'.join(f'{k}={v}' for k, v in sorted(env.items())))
+
+
+try:
+    from pyutils import buildinfo
+    load(buildinfo.envfile)
+except ImportError:
+    pass
 
 
 def _items_with_tag(tag):

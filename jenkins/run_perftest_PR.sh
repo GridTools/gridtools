@@ -7,11 +7,11 @@ grid=structured
 export GTCMAKE_GT_ENABLE_BACKEND_NAIVE=OFF
 
 # build binaries for performance tests
-./pyutils/builddriver.py -vvv -b release -p $real_type -g $grid -o build -d $target -c $compiler -t perftests || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
+./pyutils/builddriver.py -vvv -b release -p $real_type -g $grid -o build -e $envfile -t perftests || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
 
 for domain in 128 256; do
   # result directory, create if it does not exist yet
-  resultdir=./build/pyutils/perftest/results/$grid/$real_type/$domain/${label}_${target}_$compiler
+  resultdir=./build/pyutils/perftest/results/$grid/$real_type/$domain/${label}_$env
   mkdir -p $resultdir
 
   # run performance tests
@@ -25,7 +25,7 @@ for domain in 128 256; do
       allresults="$allresults $result"
 
       # find references for same configuration
-      reference_path=./pyutils/perftest/references/$grid/$real_type/$domain/${label}_${target}_$compiler
+      reference_path=./pyutils/perftest/references/$grid/$real_type/$domain/${label}_$env
       if [[ -d $reference_path ]]; then
         stella_reference=$(find $reference_path -name stella.json)
         gridtools_reference=$(find $reference_path -name "result.$backend.json")

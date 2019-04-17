@@ -7,11 +7,11 @@ grid=structured
 export GTCMAKE_GT_ENABLE_BACKEND_NAIVE=OFF
 
 # build binaries for performance tests
-./pyutils/builddriver.py -vvv -b release -p $real_type -g $grid -o build -d $target -c $compiler -t perftests || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
+./pyutils/builddriver.py -vvv -b release -p $real_type -g $grid -o build -e $envfile -t perftests || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
 
 for domain in 128 256; do
   # result directory, create if it does not exist yet
-  resultdir=/project/c14/jenkins/gridtools-performance-history-new/$grid/$real_type/$domain/${label}_${target}_$compiler
+  resultdir=/project/c14/jenkins/gridtools-performance-history-new/$grid/$real_type/$domain/${label}_$env
   mkdir -p $resultdir
 
   # name result file by date/time

@@ -13,14 +13,11 @@ binary_dir = '@CMAKE_BINARY_DIR@'
 # CMake install dir
 install_dir = '@CMAKE_INSTALL_PREFIX@'
 
-# Compiler ID
-compiler_id = '@PYUTILS_COMPILER_ID@'
-
 # Compiler
 compiler = '@PYUTILS_COMPILER@'
 
 # Target
-target = '@PYUTILS_TARGET@' or None
+envfile = '@PYUTILS_ENVFILE@' or None
 
 # Floating point precision
 precision = '@PYUTILS_PRECISION@'

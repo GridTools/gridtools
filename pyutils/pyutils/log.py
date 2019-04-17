@@ -13,17 +13,20 @@ _logger.setLevel(logging.DEBUG)
 _formatter = logging.Formatter('%(levelname)s %(asctime)s: %(message)s',
                                '%Y-%m-%d %H:%M:%S')
 
-logfile = os.path.abspath('pyutils.log')
-
-_filehandler = logging.FileHandler(logfile)
-_filehandler.setFormatter(_formatter)
-_filehandler.setLevel(logging.DEBUG)
-_logger.addHandler(_filehandler)
 
 _streamhandler = logging.StreamHandler()
 _streamhandler.setFormatter(_formatter)
 _streamhandler.setLevel(logging.WARNING)
 _logger.addHandler(_streamhandler)
+
+
+def log_to_file(logfile):
+    filehandler = logging.FileHandler(logfile)
+    filehandler.setFormatter(_formatter)
+    filehandler.setLevel(logging.DEBUG)
+    _logger.addHandler(filehandler)
+    info('Logging to file', logfile)
+
 
 def set_verbosity(level):
     if level <= 0:
@@ -71,6 +74,3 @@ def warning(message, details=None):
 
 def error(message, details=None):
     _logger.error(_format_message(message, details))
-
-
-info(f'Logging to "{logfile}" started')

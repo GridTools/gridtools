@@ -5,7 +5,7 @@ import argparse
 import sys
 
 import perftest
-from pyutils import env, log
+from pyutils import log
 
 
 def plot(args):
@@ -23,13 +23,11 @@ def plot(args):
 
     # save result
     fig.savefig(args.output)
+    log.info(f'Successfully saved plot to {args.output}')
 
 
 def run(args):
     import perftest.result
-    from perftest import buildinfo
-
-    env.load(buildinfo.target, buildinfo.compiler_id)
 
     results = perftest.run(args.domain_size, args.runs)
 
@@ -45,6 +43,7 @@ def run(args):
 parser = argparse.ArgumentParser()
 parser.add_argument('--verbose', '-v', action='count', default=0,
                     help='increase verbosity (use -vvv for debug mesages)')
+parser.add_argument('--logfile', '-l', help='path to logfile')
 
 subparsers = parser.add_subparsers(dest='action',
                                    description='action to perform')
@@ -101,6 +100,8 @@ plot_history_parser.add_argument('--limit', '-l', type=int,
 
 args = parser.parse_args()
 log.set_verbosity(args.verbose)
+if args.logfile:
+    log.log_to_file(args.logfile)
 
 with log.exception_logging():
     args.func(args)

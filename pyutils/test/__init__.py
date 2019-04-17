@@ -14,6 +14,7 @@ def _ctest(label, verbose):
 
 
 def _run_nompi(verbose_ctest):
+    log.info('Running non-MPI tests')
     outputs = runtools.sbatch([_ctest('unittest_*', verbose_ctest),
                                _ctest('regression_*', verbose_ctest)],
                               cwd=buildinfo.binary_dir)
@@ -27,6 +28,7 @@ def _run_nompi(verbose_ctest):
 
 
 def _run_mpi(verbose_ctest):
+    log.info('Running MPI tests')
     output, = runtools.sbatch([_ctest('mpitest_*', verbose_ctest)],
                               cwd=buildinfo.binary_dir, use_srun=False,
                               use_mpi_config=True)
@@ -52,7 +54,9 @@ def compile_examples(build_dir):
     os.makedirs(build_dir, exist_ok=True)
 
     env.set_cmake_arg('CMAKE_BUILD_TYPE', buildinfo.build_type.title())
-    env.set_cmake_arg('GT_EXAMPLES_FORCE_CUDA', buildinfo.target == 'gpu')
 
+    log.info('Configuring examples')
     build.cmake(source_dir, build_dir)
+    log.info('Building examples')
     build.make(build_dir)
+    log.info('Successfully built examples')
