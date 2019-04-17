@@ -42,8 +42,7 @@ def exception_logging():
     try:
         yield
     except Exception:
-        _logger.exception(f'Fatal error: exception was raised, '
-                          f'logfile saved at "{logfile}"')
+        _logger.exception(f'Fatal error: exception was raised')
         sys.exit(1)
 
 
