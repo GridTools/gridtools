@@ -9,10 +9,6 @@
  */
 #pragma once
 
-#ifdef __SSE__
-#include <xmmintrin.h>
-#endif
-
 #include <cmath>
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
@@ -70,19 +66,6 @@ namespace gridtools {
                 sid::shift(ptr, sid::get_stride<dim::j>(strides), m_j_block_base);
             }
         };
-
-#ifdef __SSE__
-        template <class T, class PtrDiff, class Strides>
-        GT_FORCE_INLINE void do_prefetch(T *ptr, PtrDiff offset, Strides const &strides, int_t dist) {
-            if (!dist)
-                return;
-            sid::shift(offset, sid::get_stride<dim::k>(strides), dist);
-            _mm_prefetch(reinterpret_cast<const char *>(ptr + offset), _MM_HINT_T1);
-        }
-
-        GT_FORCE_INLINE void do_prefetch(...) {}
-#endif
-
     } // namespace iterate_domain_mc_impl_
 
     /**
@@ -94,19 +77,17 @@ namespace gridtools {
 
         typename LocalDomain::strides_map_t const &m_strides_map;
         typename LocalDomain::ptr_map_t m_ptr_map;
-        int_t m_i_block_index;     /** Local i-index inside block. */
-        int_t m_j_block_index;     /** Local j-index inside block. */
-        int_t m_k_block_index;     /** Local/global k-index (no blocking along k-axis). */
-        int_t m_i_block_base;      /** Global block start index along i-axis. */
-        int_t m_j_block_base;      /** Global block start index along j-axis. */
-        int_t m_prefetch_distance; /** Prefetching distance along k-axis, zero means no software prefetching. */
+        int_t m_i_block_index; /** Local i-index inside block. */
+        int_t m_j_block_index; /** Local j-index inside block. */
+        int_t m_k_block_index; /** Local/global k-index (no blocking along k-axis). */
+        int_t m_i_block_base;  /** Global block start index along i-axis. */
+        int_t m_j_block_base;  /** Global block start index along j-axis. */
 
       public:
         GT_FORCE_INLINE
         iterate_domain_mc(LocalDomain const &local_domain, int_t i_block_base = 0, int_t j_block_base = 0)
             : m_strides_map(local_domain.m_strides_map), m_ptr_map(local_domain.make_ptr_map()), m_i_block_index(0),
-              m_j_block_index(0), m_k_block_index(0), m_i_block_base(i_block_base), m_j_block_base(j_block_base),
-              m_prefetch_distance(0) {
+              m_j_block_index(0), m_k_block_index(0), m_i_block_base(i_block_base), m_j_block_base(j_block_base) {
             gridtools::for_each_type<typename LocalDomain::esf_args_t>(
                 iterate_domain_mc_impl_::set_base_offset_f<LocalDomain>{
                     local_domain, i_block_base, j_block_base, m_ptr_map});
@@ -118,9 +99,6 @@ namespace gridtools {
         GT_FORCE_INLINE void set_j_block_index(int_t j) { m_j_block_index = j; }
         /** @brief Sets the local block index along the k-axis. */
         GT_FORCE_INLINE void set_k_block_index(int_t k) { m_k_block_index = k; }
-
-        /** @brief Sets the software prefetching distance along k-axis. Zero means no software prefetching. */
-        GT_FORCE_INLINE void set_prefetch_distance(int_t prefetch_distance) { m_prefetch_distance = prefetch_distance; }
 
         /**
          * @brief Returns the value pointed by an accessor.
@@ -138,11 +116,7 @@ namespace gridtools {
             sid::shift(ptr_offset, sid::get_stride<dim::j>(strides), m_j_block_index);
             sid::shift(ptr_offset, sid::get_stride<dim::k>(strides), m_k_block_index);
             sid::multi_shift(ptr_offset, strides, accessor);
-            auto &&ptr = at_key<Arg>(m_ptr_map);
-#ifdef __SSE__
-            iterate_domain_mc_impl_::do_prefetch(ptr, ptr_offset, strides, m_prefetch_distance);
-#endif
-            return *(ptr + ptr_offset);
+            return *(at_key<Arg>(m_ptr_map) + ptr_offset);
         }
 
         template <class Arg,
