@@ -5,12 +5,12 @@ import math
 import os
 import statistics
 
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot as plt
-
 from perftest import result, time
 from pyutils import log
+
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt  # noqa: E402
 
 
 plt.style.use('ggplot')

@@ -13,8 +13,9 @@ version = 0.5
 
 
 RunInfo = collections.namedtuple('RunInfo',
-        ['name', 'version', 'datetime', 'precision', 'backend', 'grid',
-         'compiler', 'hostname', 'clustername'])
+                                 ['name', 'version', 'datetime', 'precision',
+                                  'backend', 'grid', 'compiler', 'hostname',
+                                  'clustername'])
 
 
 class Data(dict):

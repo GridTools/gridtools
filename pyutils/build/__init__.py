@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import argparse
 import os
-import time
 
-from pyutils import env, log, runtools
+from pyutils import env, runtools
 
 
 def cmake(source_dir, build_dir, install_dir=None):
