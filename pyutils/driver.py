@@ -122,9 +122,9 @@ def compare(output, input):
           help='output file, can have any extension supported by matplotlib')
 @args.arg('--input', '-i', required=True, nargs='+',
           help='any number of input files')
-@args.arg('--date', '-d', default='job', choices=['runtime', 'job'],
-          help='date to use, either the build/commit date of the runtime '
-          'or the date when the job was run')
+@args.arg('--date', '-d', default='job', choices=['build', 'job'],
+          help='date to use, either the build/commit date or the date when '
+               'the job was run')
 @args.arg('--limit', '-l', type=int,
           help='limit the history size to the given number of results')
 def history(output, input, date, limit):
