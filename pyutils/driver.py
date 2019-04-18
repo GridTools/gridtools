@@ -10,7 +10,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 @args.command(description='main script for GridTools pyutils')
 @args.arg('--verbose', '-v', action='count', default=0,
-          help='increase verbosity (use -vv for all debug messages')
+          help='increase verbosity (use -vv for all debug messages)')
 @args.arg('--logfile', '-l', help='path to logfile')
 def driver(verbose, logfile):
     log.set_verbosity(verbose)
