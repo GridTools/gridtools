@@ -21,7 +21,8 @@ def driver(verbose, logfile):
 @driver.command(description='build GridTools')
 @args.arg('--build-type', '-b', choices=['release', 'debug'], required=True)
 @args.arg('--precision', '-p', choices=['float', 'double'], required=True)
-@args.arg('--grid', '-g', choices=['structured', 'icosahedral'], required=True)
+@args.arg('--grid', '-g', choices=['structured', 'icosahedral'],
+          default='structured')
 @args.arg('--environment', '-e', help='path to environment file')
 @args.arg('--target', '-t', nargs='+', help='make targets to build')
 @args.arg('--source-dir', help='GridTools source directory')
