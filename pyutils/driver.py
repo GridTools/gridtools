@@ -22,12 +22,13 @@ def driver(verbose, logfile):
 @args.arg('--build-type', '-b', choices=['release', 'debug'], required=True)
 @args.arg('--precision', '-p', choices=['float', 'double'], required=True)
 @args.arg('--grid', '-g', choices=['structured', 'icosahedral'], required=True)
-@args.arg('--environment', '-e', required=True)
-@args.arg('--target', '-t', action='append')
-@args.arg('--source-dir')
-@args.arg('--build-dir', '-o', required=True)
-@args.arg('--install-dir', '-i')
-@args.arg('--cmake-only', action='store_true')
+@args.arg('--environment', '-e', help='path to environment file')
+@args.arg('--target', '-t', nargs='+', help='make targets to build')
+@args.arg('--source-dir', help='GridTools source directory')
+@args.arg('--build-dir', '-o', required=True, help='build directory')
+@args.arg('--install-dir', '-i', help='install directory')
+@args.arg('--cmake-only', action='store_true',
+          help='only execute CMake but do not build')
 def build(build_type, precision, grid, environment, target, source_dir,
           build_dir, install_dir, cmake_only):
     import build
@@ -39,7 +40,8 @@ def build(build_type, precision, grid, environment, target, source_dir,
     env.set_cmake_arg('GT_SINGLE_PRECISION', precision == 'float')
     env.set_cmake_arg('GT_TESTS_ICOSAHEDRAL_GRID', grid == 'icosahedral')
 
-    env.load(environment)
+    if environment:
+        env.load(environment)
 
     build.cmake(source_dir, build_dir, install_dir)
     if not cmake_only:
@@ -54,10 +56,13 @@ except ImportError:
 
 if buildinfo:
     @driver.command(description='run GridTools tests')
-    @args.arg('--run-mpi-tests', '-m', action='store_true')
-    @args.arg('--verbose-ctest', action='store_true')
-    @args.arg('--examples-build-dir')
-    @args.arg('--build-examples', '-b', action='store_true')
+    @args.arg('--run-mpi-tests', '-m', action='store_true',
+              help='enable execution of MPI tests')
+    @args.arg('--verbose-ctest', action='store_true',
+              help='run ctest in verbose mode')
+    @args.arg('--examples-build-dir', help='build directory for examples')
+    @args.arg('--build-examples', '-b', action='store_true',
+              help='enable building of GridTools examples')
     def test(run_mpi_tests, verbose_ctest, examples_build_dir, build_examples):
         import test
 
