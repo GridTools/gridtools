@@ -59,7 +59,6 @@ function (fetch_tests_helper target_arch filetype subfolder )
 
             gridtools_add_test(
                 NAME ${unit_test}
-                SCRIPT ${TEST_SCRIPT}
                 COMMAND $<TARGET_FILE:${unit_test}>
                 LABELS ${labels}
                 )
@@ -114,7 +113,6 @@ function(add_custom_test_helper target_arch)
         target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
         gridtools_add_test(
             NAME ${unit_test}
-            SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${unit_test}>
             LABELS ${labels}
             )
@@ -137,7 +135,7 @@ function(add_custom_gpu_test)
     add_custom_test_helper(cuda ${ARGN})
 endfunction(add_custom_gpu_test)
 
-function(add_custom_mpi_test_helper target_arch test_script)
+function(add_custom_mpi_test_helper target_arch)
     set(options)
     set(one_value_args TARGET NPROC)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
@@ -171,7 +169,6 @@ function(add_custom_mpi_test_helper target_arch test_script)
         gridtools_add_mpi_test(
             NAME ${unit_test}
             NPROC ${___NPROC}
-            SCRIPT ${test_script}
             COMMAND $<TARGET_FILE:${unit_test}>
             LABELS ${labels}
             )
@@ -180,17 +177,17 @@ function(add_custom_mpi_test_helper target_arch test_script)
 endfunction()
 
 function(add_custom_mpi_x86_test)
-    add_custom_mpi_test_helper(x86 ${TEST_MPI_SCRIPT} ${ARGN})
+    add_custom_mpi_test_helper(x86 ${ARGN})
 endfunction(add_custom_mpi_x86_test)
 
 function(add_custom_mpi_naive_test)
-    add_custom_mpi_test_helper(naive ${TEST_MPI_SCRIPT} ${ARGN})
+    add_custom_mpi_test_helper(naive ${ARGN})
 endfunction(add_custom_mpi_naive_test)
 
 function(add_custom_mpi_mc_test)
-    add_custom_mpi_test_helper(mc ${TEST_MPI_SCRIPT} ${ARGN})
+    add_custom_mpi_test_helper(mc ${ARGN})
 endfunction(add_custom_mpi_mc_test)
 
 function(add_custom_mpi_gpu_test)
-    add_custom_mpi_test_helper(cuda ${TEST_CUDA_MPI_SCRIPT} ${ARGN})
+    add_custom_mpi_test_helper(cuda ${ARGN})
 endfunction(add_custom_mpi_gpu_test)

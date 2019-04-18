@@ -53,7 +53,6 @@ if (GT_ENABLE_BACKEND_X86)
     target_link_libraries(custom_test_generated_repository gtest_main GridToolsTestX86 )
     gridtools_add_test(
         NAME custom_test_generated_repository
-        SCRIPT ${TEST_SCRIPT}
         COMMAND $<TARGET_FILE:custom_test_generated_repository>
         LABELS unittest_x86 backend_x86
         )

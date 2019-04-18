@@ -12,7 +12,6 @@ if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
 
         gridtools_add_test(
             NAME ${test_name}
-            SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${test_name}>
             LABELS getting_started
             )

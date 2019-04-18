@@ -34,13 +34,11 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
           gridtools_add_test(
               NAME tests.${srcfile}_x86_12_33_61
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86> 12 33 61
               LABELS regression_x86 backend_x86
               )
           gridtools_add_test(
               NAME tests.${srcfile}_x86_23_11_43
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86> 23 11 43
               LABELS regression_x86 backend_x86
               )
@@ -67,13 +65,11 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
           gridtools_add_test(
               NAME tests.${srcfile}_naive_12_33_61
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_naive> 12 33 21
               LABELS regression_naive backend_naive
               )
           gridtools_add_test(
               NAME tests.${srcfile}_naive_23_11_43
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_naive> 23 11 43
               LABELS regression_naive backend_naive
               )
@@ -96,13 +92,11 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
           gridtools_add_test(
               NAME tests.${srcfile}_mc_12_33_61
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 12 33 61
               LABELS regression_mc backend_mc
               )
           gridtools_add_test(
               NAME tests.${srcfile}_mc_23_11_43
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 23 11 43
               LABELS regression_mc backend_mc
               )
@@ -129,13 +123,11 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_47_38_61
-               SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 47 38 61
                LABELS regression_cuda backend_cuda
                )
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_63_38_10
-               SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 38 10
                LABELS regression_cuda backend_cuda
                )

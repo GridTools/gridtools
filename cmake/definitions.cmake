@@ -191,34 +191,16 @@ if(DOXYGEN_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif()
 
-file(WRITE ${TEST_MANIFEST} "# Executed tests with arguments\n")
-
-function(add_to_test_manifest)
-    file(APPEND ${TEST_MANIFEST} "${ARGN}\n")
-endfunction(add_to_test_manifest)
-
 ## test script generator ##
-file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
-file(GENERATE OUTPUT ${TEST_SCRIPT} INPUT ${TEST_SCRIPT})
-file(APPEND ${TEST_SCRIPT} "hostname\n")
-file(APPEND ${TEST_SCRIPT} "res=0\n")
 function(gridtools_add_test)
   set(options)
-  set(one_value_args NAME SCRIPT )
+  set(one_value_args NAME)
   set(multi_value_args COMMAND LABELS)
   cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
-  if (NOT ___SCRIPT)
-      message(FATAL_ERROR "gridtools_add_test was called without SCRIPT")
-  endif()
   if (NOT ___LABELS)
       message(FATAL_ERROR "gridtools_add_test was called without LABELS")
   endif()
   string(REPLACE ";" " " command "${___COMMAND}" )
-
-  file(APPEND ${___SCRIPT} "echo ${command}\n")
-  file(APPEND ${___SCRIPT} "${command}\n")
-  file(APPEND ${___SCRIPT} "res=$((res || $? ))\n")
-  add_to_test_manifest("${___NAME} ${command}")
 
   if (NOT ${TEST_USE_WRAPPERS_FOR_ALL_TESTS})
     add_test(NAME ${___NAME} COMMAND ${___COMMAND})
@@ -231,21 +213,12 @@ function(gridtools_add_test)
   set_tests_properties(${___NAME} PROPERTIES LABELS "${___LABELS}")
 endfunction(gridtools_add_test)
 
-file(WRITE ${TEST_MPI_SCRIPT} "res=0\n")
-file(GENERATE OUTPUT ${TEST_MPI_SCRIPT} INPUT ${TEST_MPI_SCRIPT})
-
-file(WRITE ${TEST_CUDA_MPI_SCRIPT} "res=0\n")
-file(GENERATE OUTPUT ${TEST_CUDA_MPI_SCRIPT} INPUT ${TEST_CUDA_MPI_SCRIPT})
-
 ## test script generator for MPI tests ##
 function(gridtools_add_mpi_test)
   set(options)
-  set(one_value_args NAME SCRIPT NPROC )
+  set(one_value_args NAME NPROC )
   set(multi_value_args COMMAND LABELS)
   cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
-  if (NOT ___SCRIPT)
-      message(FATAL_ERROR "gridtools_add_mpi_test was called without SCRIPT")
-  endif()
   if (NOT ___NPROC)
       message(FATAL_ERROR "gridtools_add_mpi_test was called without NPROC")
   endif()
@@ -254,10 +227,6 @@ function(gridtools_add_mpi_test)
   endif()
   string(REPLACE ";" " " command "${___COMMAND}" )
 
-  file(APPEND ${___SCRIPT} "echo \$LAUNCH_MPI_TEST ${command}\n")
-  file(APPEND ${___SCRIPT} "\$LAUNCH_MPI_TEST ${command}\n")
-  file(APPEND ${___SCRIPT} "res=$((res || $? ))\n")
-  add_to_test_manifest("${___NAME} ${command}")
   # Note: We use MPITEST_ instead of MPIEXEC_ because our own MPI_TEST_-variables are slurm-aware
   add_test(
       NAME ${___NAME}
