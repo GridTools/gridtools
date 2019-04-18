@@ -143,8 +143,6 @@ CMake should be provided with the variable ``GridTools_DIR``,
 e.g. by calling CMake with ``-DGridTools_DIR=</path/to/gridtools/lib/cmake>``.
 The ``CMakeLists.txt`` file should then contain the following lines:
 
-__VERSION__
-
 .. code-block:: cmake
 
  find_package(GridTools VERSION ... REQUIRED)

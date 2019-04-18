@@ -24,3 +24,6 @@
 .rst-content .note, .rst-content .admonition-todo {
     background: rgb(250, 220, 220);
 }
+div[class="linenodiv"] pre {
+    line-height: normal;
+}

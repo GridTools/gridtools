@@ -10,10 +10,12 @@
 
 #pragma once
 
-#include "../boundary_conditions/boundary.hpp"
-#include "../common/halo_descriptor.hpp"
 #include <functional>
 #include <tuple>
+#include <type_traits>
+
+#include "../boundary_conditions/boundary.hpp"
+#include "../common/halo_descriptor.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -163,10 +165,10 @@ namespace gridtools {
         }
 
         template <typename T, typename VOID = void>
-        struct contains_placeholders : boost::false_type {};
+        struct contains_placeholders : std::false_type {};
 
         template <>
-        struct contains_placeholders<std::tuple<>> : boost::false_type {};
+        struct contains_placeholders<std::tuple<>> : std::false_type {};
 
         template <typename T, typename... Ts>
         struct contains_placeholders<std::tuple<T, Ts...>,
@@ -175,7 +177,7 @@ namespace gridtools {
 
         template <typename T, typename... Ts>
         struct contains_placeholders<std::tuple<T, Ts...>,
-            typename std::enable_if<(std::is_placeholder<T>::value > 0), void>::type> : boost::true_type {};
+            typename std::enable_if<(std::is_placeholder<T>::value > 0), void>::type> : std::true_type {};
 
         /** @} */
 

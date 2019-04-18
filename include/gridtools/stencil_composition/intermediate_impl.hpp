@@ -31,11 +31,11 @@ namespace gridtools {
             enable_if_t<meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
                 arg_storage_pair<Arg, DataStore> const &src, LocalDomain &local_domain) const {
                 const auto &storage = src.m_value;
-                using storage_info_t = typename DataStore::storage_info_t;
+                using strides_kind_t = GT_META_CALL(sid::strides_kind, DataStore);
 
                 at_key<Arg>(local_domain.m_ptr_holder_map) = sid::get_origin(storage);
-                at_key<storage_info_t>(local_domain.m_strides_map) = sid::get_strides(storage);
-                at_key<storage_info_t>(local_domain.m_total_length_map) = storage.info().padded_total_length();
+                at_key<strides_kind_t>(local_domain.m_strides_map) = sid::get_strides(storage);
+                at_key<strides_kind_t>(local_domain.m_total_length_map) = storage.info().padded_total_length();
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class DataStore, class LocalDomain>

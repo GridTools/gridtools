@@ -13,12 +13,13 @@
 #include "../common/defs.hpp"
 #include "../meta/is_instantiation_of.hpp"
 #include "../meta/logical.hpp"
-#include "./caches/cache_traits.hpp"
-#include "./color.hpp"
-#include "./extent.hpp"
-#include "./grid.hpp"
-#include "./local_domain.hpp"
-#include "./loop_interval.hpp"
+#include "caches/cache_traits.hpp"
+#include "color.hpp"
+#include "esf_fwd.hpp"
+#include "extent.hpp"
+#include "grid.hpp"
+#include "local_domain.hpp"
+#include "loop_interval.hpp"
 
 namespace gridtools {
 

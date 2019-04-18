@@ -2,7 +2,13 @@
 <br/><br/>
 <a target="_blank" href="https://opensource.org/licenses/BSD-3-Clause">![License: BSD][BSD.License]</a>
 
-The GridTools framework is a set of libraries and utilities to develop performance portable applications in which stencil operations on grids are central. A detailed introduction can be found in the [documentation](https://GridTools.github.io/gridtools).
+The GridTools framework is a set of libraries and utilities to develop performance portable applications in the area of weather and climate. To achieve the goal of performance portability, the user-code is written in a generic form which is then optimized for a given architecture at compile-time. The core of GridTools is the stencil composition module which implements a DSL embedded in C++ for stencils and stencil-like patterns. Further, GridTools provides modules for halo exchanges, boundary conditions, data management and bindings to C and Fortran.
+
+GridTools is successfully used to accelerate the dynamical core of the [COSMO model](http://cosmo-model.org/) with improved performance on CUDA-GPUs compared to the current official version, demonstrating production quality and feature-completeness of the library for models on lat-lon grids.
+
+Although GridTools was developed for weather and climate applications it might be applicable for other domains with a focus on stencil-like computations.
+
+A detailed introduction can be found in the [documentation](https://GridTools.github.io/gridtools).
 
 ### Installation instructions
 

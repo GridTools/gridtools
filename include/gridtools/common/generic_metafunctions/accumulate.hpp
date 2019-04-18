@@ -11,7 +11,6 @@
 #include "../defs.hpp"
 #include "binary_ops.hpp"
 #include <algorithm>
-#include <boost/mpl/at.hpp>
 
 /**@file
    @brief Implementation of a compile-time accumulator and constexpr max and min functions

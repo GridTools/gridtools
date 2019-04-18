@@ -15,5 +15,3 @@
 #else
 #include "./icosahedral_grids/accessor.hpp"
 #endif
-
-#include "./global_accessor.hpp"

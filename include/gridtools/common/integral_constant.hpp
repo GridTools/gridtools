@@ -144,3 +144,5 @@ namespace gridtools {
         }
     } // namespace literals
 } // namespace gridtools
+
+#define GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(v) gridtools::integral_constant<decltype(v), v>()
