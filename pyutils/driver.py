@@ -105,9 +105,9 @@ def plot():
 @args.arg('--input', '-i', required=True, nargs='+',
           help='any number of input files')
 def compare(output, input):
-    import perftest
-    results = [perftest.result.load(f) for f in input]
-    perftest.plot.compare(results).savefig(output)
+    from perftest import plot, result
+    results = [result.load(f) for f in input]
+    plot.compare(results).savefig(output)
     log.info(f'Successfully saved plot to {output}')
 
 
@@ -122,9 +122,9 @@ def compare(output, input):
 @args.arg('--limit', '-l', type=int,
           help='limit the history size to the given number of results')
 def history(output, input, date, limit):
-    import perftest
-    results = [perftest.result.load(f) for f in input]
-    perftest.plot.history(results, date, limit).savefig(output)
+    from perftest import plot, result
+    results = [result.load(f) for f in input]
+    plot.history(results, date, limit).savefig(output)
     log.info(f'Successfully saved plot to {output}')
 
 
