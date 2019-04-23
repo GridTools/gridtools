@@ -18,6 +18,7 @@
 
 #include <boost/fusion/include/as_map.hpp>
 #include <boost/fusion/include/at_key.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
 
 #include "../../common/defs.hpp"
 #include "../../meta.hpp"
