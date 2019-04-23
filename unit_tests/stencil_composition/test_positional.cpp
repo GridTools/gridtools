@@ -18,7 +18,7 @@
 namespace gridtools {
     namespace {
         TEST(positional, smoke) {
-            auto testee = make_positional_sid({1, 2, 3});
+            positional testee{1, 2, 3};
 
             auto ptr = sid::get_origin(testee)();
 
@@ -36,7 +36,7 @@ namespace gridtools {
             EXPECT_EQ((*ptr).j, 10);
             EXPECT_EQ((*ptr).k, 14);
 
-            using diff_t = GT_META_CALL(sid::ptr_diff_type, positional_sid_t);
+            using diff_t = GT_META_CALL(sid::ptr_diff_type, positional);
 
             diff_t diff{};
 
