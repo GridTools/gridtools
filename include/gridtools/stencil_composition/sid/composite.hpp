@@ -28,12 +28,12 @@ namespace gridtools {
             namespace impl_ {
                 struct deref_f {
                     template <class T>
-                    constexpr GT_FUNCTION auto operator()(T const &obj) const GT_AUTO_RETURN(*obj);
+                    GT_HOST_CONSTEXPR GT_FUNCTION auto operator()(T const &obj) const GT_AUTO_RETURN(*obj);
                 };
 
                 struct call_f {
                     template <class T>
-                    constexpr GT_FUNCTION auto operator()(T const &obj) const -> decay_t<decltype(obj())> {
+                    GT_HOST_CONSTEXPR GT_FUNCTION auto operator()(T const &obj) const -> decay_t<decltype(obj())> {
                         return obj();
                     }
                 };
@@ -186,7 +186,7 @@ namespace gridtools {
                     typename hymap::keys<Keys...>::template values<Ptrs...> m_vals;
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
-                    constexpr GT_FUNCTION auto operator*() const
+                    GT_HOST_CONSTEXPR GT_FUNCTION auto operator*() const
                         GT_AUTO_RETURN(tuple_util::host_device::transform(impl_::deref_f{}, m_vals));
 
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
@@ -200,7 +200,7 @@ namespace gridtools {
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
 
-                    constexpr GT_FUNCTION auto operator()() const
+                    GT_HOST_CONSTEXPR GT_FUNCTION auto operator()() const
                         GT_AUTO_RETURN(tuple_util::host_device::convert_to<composite_ptr>(
                             tuple_util::host_device::transform(impl_::call_f{}, m_vals)));
 
@@ -244,7 +244,7 @@ namespace gridtools {
                         class T,
                         class Item = GT_META_CALL(meta::mp_find, (Map, std::integral_constant<size_t, I>)),
                         class Pos = GT_META_CALL(meta::second, Item)>
-                    static constexpr GT_FUNCTION auto get(T &&obj)
+                    static GT_HOST_CONSTEXPR GT_FUNCTION auto get(T &&obj)
                         GT_AUTO_RETURN(tuple_util::host_device::get<Pos::value>(const_expr::forward<T>(obj).m_vals));
 
                     template <class... Ts>
@@ -277,7 +277,7 @@ namespace gridtools {
                         friend compressed tuple_getter(composite_entity const &) { return {}; }
 
                         template <class... Ptrs>
-                        friend constexpr GT_FUNCTION composite_ptr<Ptrs...> operator+(
+                        friend GT_HOST_CONSTEXPR GT_FUNCTION composite_ptr<Ptrs...> operator+(
                             composite_ptr<Ptrs...> const &lhs, composite_entity const &rhs) {
                             return tuple_util::host_device::transform(binop::sum{}, lhs, rhs);
                         }

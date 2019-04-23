@@ -14,8 +14,8 @@
 #include "../grid.hpp"
 
 namespace gridtools {
-    GT_FUNCTION constexpr uint_t block_i_size(backend::naive const &) { return 0; }
-    GT_FUNCTION constexpr uint_t block_j_size(backend::naive const &) { return 0; }
+    GT_FUNCTION GT_HOST_CONSTEXPR uint_t block_i_size(backend::naive const &) { return 0; }
+    GT_FUNCTION GT_HOST_CONSTEXPR uint_t block_j_size(backend::naive const &) { return 0; }
 
     template <class Grid>
     uint_t block_i_size(backend::naive const &, Grid const &grid) {

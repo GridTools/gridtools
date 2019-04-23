@@ -25,7 +25,7 @@ namespace gridtools {
     template <uint_t Number>
     struct gt_pow {
         template <typename Value>
-        GT_FUNCTION static Value constexpr apply(Value const &v) {
+        GT_FUNCTION static Value GT_HOST_CONSTEXPR apply(Value const &v) {
             return v * gt_pow<Number - 1>::apply(v);
         }
     };
@@ -34,7 +34,7 @@ namespace gridtools {
     template <>
     struct gt_pow<0> {
         template <typename Value>
-        GT_FUNCTION static Value constexpr apply(Value const &) {
+        GT_FUNCTION static Value GT_HOST_CONSTEXPR apply(Value const &) {
             return 1.;
         }
     };
@@ -44,7 +44,7 @@ namespace gridtools {
      * @param num value to ceil
      * @return ceiled value
      */
-    GT_FUNCTION constexpr static int gt_ceil(float num) {
+    GT_FUNCTION GT_HOST_CONSTEXPR static int gt_ceil(float num) {
         return (static_cast<float>(static_cast<int>(num)) == num) ? static_cast<int>(num)
                                                                   : static_cast<int>(num) + ((num > 0) ? 1 : 0);
     }
@@ -62,54 +62,54 @@ namespace gridtools {
         }
 
         template <typename Value>
-        GT_FUNCTION constexpr impl_::minmax_return_type<Value> max(Value const &val0) {
+        GT_FUNCTION GT_HOST_CONSTEXPR impl_::minmax_return_type<Value> max(Value const &val0) {
             return val0;
         }
 
         template <typename Value, typename... OtherValues>
-        GT_FUNCTION constexpr impl_::minmax_return_type<Value> max(
+        GT_FUNCTION GT_HOST_CONSTEXPR impl_::minmax_return_type<Value> max(
             Value const &val0, Value const &val1, OtherValues const &... vals) {
             return val0 > max(val1, vals...) ? val0 : max(val1, vals...);
         }
 
         template <typename Value>
-        GT_FUNCTION constexpr impl_::minmax_return_type<Value> min(Value const &val0) {
+        GT_FUNCTION GT_HOST_CONSTEXPR impl_::minmax_return_type<Value> min(Value const &val0) {
             return val0;
         }
 
         template <typename Value, typename... OtherValues>
-        GT_FUNCTION constexpr impl_::minmax_return_type<Value> min(
+        GT_FUNCTION GT_HOST_CONSTEXPR impl_::minmax_return_type<Value> min(
             Value const &val0, Value const &val1, OtherValues const &... vals) {
             return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
         }
 #else
         template <typename Value>
-        GT_FUNCTION constexpr Value const &max(Value const &val0) {
+        GT_FUNCTION GT_HOST_CONSTEXPR Value const &max(Value const &val0) {
             return val0;
         }
 
         template <typename Value>
-        GT_FUNCTION constexpr Value const &max(Value const &val0, Value const &val1) {
+        GT_FUNCTION GT_HOST_CONSTEXPR Value const &max(Value const &val0, Value const &val1) {
             return val0 > val1 ? val0 : val1;
         }
 
         template <typename Value, typename... OtherValues>
-        GT_FUNCTION constexpr Value const &max(Value const &val0, Value const &val1, OtherValues const &... vals) {
+        GT_FUNCTION GT_HOST_CONSTEXPR Value const &max(Value const &val0, Value const &val1, OtherValues const &... vals) {
             return val0 > max(val1, vals...) ? val0 : max(val1, vals...);
         }
 
         template <typename Value>
-        GT_FUNCTION constexpr Value const &min(Value const &val0) {
+        GT_FUNCTION GT_HOST_CONSTEXPR Value const &min(Value const &val0) {
             return val0;
         }
 
         template <typename Value>
-        GT_FUNCTION constexpr Value const &min(Value const &val0, Value const &val1) {
+        GT_FUNCTION GT_HOST_CONSTEXPR Value const &min(Value const &val0, Value const &val1) {
             return val0 > val1 ? val1 : val0;
         }
 
         template <typename Value, typename... OtherValues>
-        GT_FUNCTION constexpr Value const &min(Value const &val0, Value const &val1, OtherValues const &... vals) {
+        GT_FUNCTION GT_HOST_CONSTEXPR Value const &min(Value const &val0, Value const &val1, OtherValues const &... vals) {
             return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
         }
 #endif

@@ -53,25 +53,25 @@ namespace gridtools {
         using expr_or_accessor = bool_constant<is_expr<Arg>::value || is_accessor<Arg>::value>;
 
         template <class Op, class... Args, enable_if_t<disjunction<expr_or_accessor<Args>...>::value, int> = 0>
-        GT_FUNCTION constexpr expr<Op, Args...> make_expr(Op, Args... args) {
+        GT_FUNCTION GT_HOST_CONSTEXPR expr<Op, Args...> make_expr(Op, Args... args) {
             return {args...};
         }
 
         namespace evaluation {
             template <class Eval, class Arg, enable_if_t<std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION constexpr Arg apply_eval(Eval &, Arg arg) {
+            GT_FUNCTION GT_HOST_CONSTEXPR Arg apply_eval(Eval &, Arg arg) {
                 return arg;
             }
 
             template <class Eval, class Arg, enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION constexpr auto apply_eval(Eval &eval, Arg const &arg) GT_AUTO_RETURN(eval(arg));
+            GT_FUNCTION GT_HOST_CONSTEXPR auto apply_eval(Eval &eval, Arg const &arg) GT_AUTO_RETURN(eval(arg));
 
             template <class Eval, class Op, class Arg>
-            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Arg> const &arg)
+            GT_FUNCTION GT_HOST_CONSTEXPR auto value(Eval &eval, expr<Op, Arg> const &arg)
                 GT_AUTO_RETURN(Op{}(eval(arg.m_arg)));
 
             template <class Eval, class Op, class Lhs, class Rhs>
-            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg)
+            GT_FUNCTION GT_HOST_CONSTEXPR auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg)
                 GT_AUTO_RETURN(Op{}(apply_eval(eval, arg.m_lhs), apply_eval(eval, arg.m_rhs)));
         } // namespace evaluation
     }     // namespace expressions

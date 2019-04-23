@@ -165,7 +165,7 @@ namespace gridtools {
          * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
          * @return total size
          */
-        GT_FUNCTION constexpr int padded_total_length() const { return m_storage_info->padded_total_length(); }
+        GT_FUNCTION GT_HOST_CONSTEXPR int padded_total_length() const { return m_storage_info->padded_total_length(); }
 
         /*
          * @brief Returns the length of a dimension excluding the halo points (only the inner region
@@ -173,7 +173,7 @@ namespace gridtools {
          * \tparam Dim The index of the dimension
          */
         template <uint_t Dim>
-        GT_FUNCTION constexpr int length() const {
+        GT_FUNCTION GT_HOST_CONSTEXPR int length() const {
             return m_storage_info->template length<Dim>();
         }
 
@@ -183,7 +183,7 @@ namespace gridtools {
          * \tparam Dim The index of the dimension
          */
         template <uint_t Dim>
-        GT_FUNCTION constexpr int total_length() const {
+        GT_FUNCTION GT_HOST_CONSTEXPR int total_length() const {
             return m_storage_info->template total_length<Dim>();
         }
 
@@ -194,7 +194,7 @@ namespace gridtools {
          * \tparam Dim The index of the dimension
          */
         template <uint_t Dim>
-        GT_FUNCTION constexpr int total_begin() const {
+        GT_FUNCTION GT_HOST_CONSTEXPR int total_begin() const {
             return m_storage_info->template total_begin<Dim>();
         }
 
@@ -204,7 +204,7 @@ namespace gridtools {
          * \tparam Dim The index of the dimension
          */
         template <uint_t Dim>
-        GT_FUNCTION constexpr int begin() const {
+        GT_FUNCTION GT_HOST_CONSTEXPR int begin() const {
             return m_storage_info->template begin<Dim>();
         }
 
@@ -215,7 +215,7 @@ namespace gridtools {
          * \tparam Dim The index of the dimension
          */
         template <uint_t Dim>
-        GT_FUNCTION constexpr int total_end() const {
+        GT_FUNCTION GT_HOST_CONSTEXPR int total_end() const {
             return m_storage_info->template total_end<Dim>();
         }
 
@@ -225,7 +225,7 @@ namespace gridtools {
          * \tparam Dim The index of the dimension
          */
         template <uint_t Dim>
-        GT_FUNCTION constexpr int end() const {
+        GT_FUNCTION GT_HOST_CONSTEXPR int end() const {
             return m_storage_info->template end<Dim>();
         }
 

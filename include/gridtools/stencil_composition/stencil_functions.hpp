@@ -91,7 +91,7 @@ namespace gridtools {
             Offsets m_offsets;
 
             template <class Eval, class Src>
-            GT_FUNCTION constexpr auto operator()(Eval &eval, Src &&src) const
+            GT_FUNCTION GT_HOST_CONSTEXPR auto operator()(Eval &eval, Src &&src) const
                 GT_AUTO_RETURN(eval(sum_offsets<Res>(m_offsets, std::forward<Src>(src))));
         };
 
@@ -129,7 +129,7 @@ namespace gridtools {
                 enable_if_t<!is_accessor<Decayed>::value &&
                                 !(Param::intent_v == intent::inout && std::is_const<remove_reference_t<Arg>>::value),
                     int> = 0>
-            GT_FUNCTION constexpr local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
+            GT_FUNCTION GT_HOST_CONSTEXPR local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
                 return {const_expr::forward<Arg>(arg)};
             }
         };
