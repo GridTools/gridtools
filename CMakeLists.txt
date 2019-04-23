@@ -105,9 +105,9 @@ if(BUILD_TESTING)
   target_link_libraries(regression_main gtest gridtools)
 
   add_subdirectory(regression)
-  add_subdirectory(unit_tests)
+  # add_subdirectory(unit_tests)
   
-  add_subdirectory(docs_src/manuals/getting_started)
+  # add_subdirectory(docs_src/manuals/getting_started)
 endif()
 
 # ===============
