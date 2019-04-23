@@ -16,7 +16,6 @@
 #include "../storage/sid.hpp"
 #include "arg.hpp"
 #include "extent.hpp"
-#include "positional.cpp"
 #include "sid/concept.hpp"
 
 namespace gridtools {
