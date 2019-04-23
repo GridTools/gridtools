@@ -39,6 +39,6 @@ namespace gridtools {
 
     template <class Allocator, class Tag, class T = typename Tag::type>
     sid::host_device::simple_ptr_holder<T *> allocate(Allocator &alloc, Tag, size_t num_elements) {
-        return alloc.allocate<T>(num_elements);
+        return alloc.template allocate<T>(num_elements);
     }
 } // namespace gridtools

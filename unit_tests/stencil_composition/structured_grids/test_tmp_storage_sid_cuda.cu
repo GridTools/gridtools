@@ -39,7 +39,7 @@ namespace gridtools {
             int_t n_blocks_j;
             int_t k_size;
 
-            //          private:
+          private:
             simple_device_memory_allocator alloc;
 
           public:
