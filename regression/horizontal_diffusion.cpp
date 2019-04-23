@@ -39,10 +39,8 @@ struct flx_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out()) = eval(lap(1, 0)) - eval(lap(0, 0));
-        if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0))) > 0) {
-            eval(out()) = 0.;
-        }
+        auto res = eval(lap(1, 0)) - eval(lap(0, 0));
+        eval(out()) = res * (eval(in(1, 0)) - eval(in(0, 0))) > 0 ? 0 : res;
     }
 };
 
@@ -55,9 +53,8 @@ struct fly_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out()) = eval(lap(0, 1)) - eval(lap(0, 0));
-        if (eval(out()) * (eval(in(0, 1)) - eval(in(0, 0))) > 0)
-            eval(out()) = 0.;
+        auto res = eval(lap(0, 1)) - eval(lap(0, 0));
+        eval(out()) = res * (eval(in(0, 1)) - eval(in(0, 0))) > 0 ? 0 : res;
     }
 };
 
