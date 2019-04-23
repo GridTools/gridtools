@@ -83,7 +83,7 @@ function(fetch_gpu_tests)
     fetch_tests_helper(cuda cu ${ARGN})
 endfunction(fetch_gpu_tests)
 
-function(add_custom_test_helper target_arch)
+function(add_custom_test target_arch)
     set(options )
     set(one_value_args TARGET)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
@@ -120,22 +120,7 @@ function(add_custom_test_helper target_arch)
 
 endfunction()
 
-# This function can be used to add a custom x86 test
-function(add_custom_x86_test)
-    add_custom_test_helper(x86 ${ARGN})
-endfunction(add_custom_x86_test)
-
-# This function can be used to add a custom mc test
-function(add_custom_mc_test)
-    add_custom_test_helper(mc ${ARGN})
-endfunction(add_custom_mc_test)
-
-# This function can be used to add a custom gpu test
-function(add_custom_gpu_test)
-    add_custom_test_helper(cuda ${ARGN})
-endfunction(add_custom_gpu_test)
-
-function(add_custom_mpi_test_helper target_arch)
+function(add_custom_mpi_test target_arch)
     set(options)
     set(one_value_args TARGET NPROC)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
@@ -175,19 +160,3 @@ function(add_custom_mpi_test_helper target_arch)
     endif ()
 
 endfunction()
-
-function(add_custom_mpi_x86_test)
-    add_custom_mpi_test_helper(x86 ${ARGN})
-endfunction(add_custom_mpi_x86_test)
-
-function(add_custom_mpi_naive_test)
-    add_custom_mpi_test_helper(naive ${ARGN})
-endfunction(add_custom_mpi_naive_test)
-
-function(add_custom_mpi_mc_test)
-    add_custom_mpi_test_helper(mc ${ARGN})
-endfunction(add_custom_mpi_mc_test)
-
-function(add_custom_mpi_gpu_test)
-    add_custom_mpi_test_helper(cuda ${ARGN})
-endfunction(add_custom_mpi_gpu_test)

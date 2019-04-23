@@ -86,7 +86,8 @@ if (CMAKE_Fortran_COMPILER_LOADED)
     gt_enable_fortran_preprocessing_on_target(repository_fortran_lib)
 
     if (GT_ENABLE_BACKEND_X86)
-        add_custom_x86_test(
+        add_custom_test(
+            x86
             TARGET custom_test_exported_repository
             SOURCES custom_test_exported_repository.cpp
             LABELS unittest_x86
@@ -99,7 +100,8 @@ if (CMAKE_Fortran_COMPILER_LOADED)
     # is not compiled with ACC. ACC cannot be activated for CUDA 8.X because it requires
     # gfortran <= 5.X
     # if (GT_ENABLE_BACKEND_CUDA)
-        # add_custom_gpu_test(
+        # add_custom_test(
+            # cuda
             # TARGET custom_test_exported_repository
             # SOURCES custom_test_exported_repository.cpp
             # LABELS unittest_cuda
@@ -109,7 +111,8 @@ if (CMAKE_Fortran_COMPILER_LOADED)
             # )
     # endif()
     if (GT_ENABLE_BACKEND_MC AND NOT GT_ENABLE_BACKEND_X86)
-        add_custom_mc_test(
+        add_custom_test(
+            mc
             TARGET custom_test_exported_repository
             SOURCES custom_test_exported_repository.cpp
             LABELS unittest_mc

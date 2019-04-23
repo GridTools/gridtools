@@ -49,7 +49,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         endforeach(srcfile)
 
         if( GT_USE_MPI )
-            add_custom_mpi_x86_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
+            add_custom_mpi_test(x86 TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -76,7 +76,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         endforeach(srcfile)
 
         if( GT_USE_MPI )
-            add_custom_mpi_naive_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
+            add_custom_mpi_test(naive TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -106,7 +106,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         endforeach(srcfile)
 
         if( GT_USE_MPI )
-            add_custom_mpi_mc_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
+            add_custom_mpi_test(mc TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -143,7 +143,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
        endforeach(srcfile)
 
        if( GT_USE_MPI )
-           add_custom_mpi_gpu_test(TARGET copy_stencil_parallel NPROC 4 SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )
+           add_custom_mpi_test(cuda TARGET copy_stencil_parallel NPROC 4 SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )
 
            ## The next executable is not made into a test since it does not validate.
            ## The numerics need to be fixed (this is a task to be undertaken in the future)
