@@ -24,7 +24,7 @@ namespace gridtools {
             int_t j;
             int_t k;
 
-            point const &operator*() const { return *this; }
+            GT_FUNCTION point const &operator*() const { return *this; }
 
             friend GT_FUNCTION point operator+(point lhs, point rhs) {
                 return {lhs.i + rhs.i, lhs.j + rhs.j, lhs.k + rhs.k};
