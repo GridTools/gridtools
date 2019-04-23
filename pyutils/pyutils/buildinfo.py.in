@@ -26,4 +26,4 @@ precision = '@PYUTILS_PRECISION@'
 grid = '@PYUTILS_GRID@'
 
 # Compiled backends
-backends = '@PYUTILS_BACKEND@'.split(';')
+backends = '@PYUTILS_BACKEND@'.replace(';', ' ').split()
