@@ -48,6 +48,9 @@ def run(domain, runs):
 
     results = dict()
     for backend in buildinfo.backends:
+        if backend == 'naive':
+            continue
+
         commands = [_stencil_command(backend, s, domain) for s in stencils]
         allcommands = [c for c in commands for _ in range(runs)]
         log.info('Running stencils')

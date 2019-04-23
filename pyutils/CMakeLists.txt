@@ -22,6 +22,10 @@ if(GT_ENABLE_BACKEND_X86)
     list(APPEND PYUTILS_BACKEND "x86")
 endif()
 
+if(GT_ENABLE_BACKEND_NAIVE)
+    list(APPEND PYUTILS_BACKEND "naive")
+endif()
+
 if(GT_ENABLE_BACKEND_CUDA)
     list(APPEND PYUTILS_BACKEND "cuda")
 endif()
