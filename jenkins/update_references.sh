@@ -5,28 +5,30 @@ if [[ -z $1 ]]; then
     exit 1
 fi
 
-refpath=$(dirname "$BASH_SOURCE")/../pyutils/perftest/references/
+refpath=$(dirname "$BASH_SOURCE")/../pyutils/perftest/references
 
-for f in $(find $refpath -name 'result.*.json' -print); do
-    f=${f#$refpath}
-    echo $f
-    read grid real_type domain label env file <<< $(echo $f | sed 's#/# #g' | sed 's#_# #')
+grid=structured
+for real_type in float double; do
+    for domain in 128 256; do
+        for label in tave kesch daint-cn; do
+            for env in gcc clang icc nvcc_gcc nvcc_clang; do
+                for backend in x86 mc cuda; do
+                    current="$grid/$real_type/$domain/${label%-*}_$env/result.$backend.json"
+                    src="http://jenkins-mch.cscs.ch/view/GridTools/job/GridTools_perftest_PR_dev2/7/env=$env,label=$label,real_type=$real_type/artifact/build/pyutils/perftest/results/$current"
 
-    if [[ $label == "daint" ]]; then
-        label="daint-cn"
-    fi
+                    tmp=$(mktemp)
+                    wget -q -O "$tmp" "$src"
 
-    src="http://jenkins-mch.cscs.ch/view/GridTools/job/GridTools_perftest_PR_dev2/7/env=$env,label=$label,real_type=$real_type/artifact/build/pyutils/perftest/results/$f"
-
-    echo "Dowloading $src"
-    tmp=$(mktemp)
-    wget "$src" -O "$tmp"
-
-    if [[ $err == 0 ]]; then
-        mv "$tmp" "$refpath$f"
-        echo "Updated $f"
-    else
-        echo "Skipped $f"
-    fi
+                    if [[ $? == 0 ]]; then
+                        dst="$refpath/$current"
+                        mkdir -p "$(dirname "$dst")"
+                        mv "$tmp" "$dst"
+                        echo "Updated $current"
+                    else
+                        rm "$tmp"
+                    fi
+                done
+            done
+        done
+    done
 done
-
