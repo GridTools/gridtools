@@ -62,11 +62,11 @@
 namespace gridtools {
     namespace tmp_storage {
         template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
-        uint_t get_k_size(Backend const &, uint_t /*block_size*/, uint_t total_size) {
+        uint_t get_k_size(Backend, uint_t /*block_size*/, uint_t total_size) {
             return total_size;
         }
         template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
-        GT_FUNCTION int_t get_k_block_offset(Backend const &, uint_t /*block_size*/, uint_t /*block_no*/) {
+        GT_FUNCTION int_t get_k_block_offset(Backend, uint_t /*block_size*/, uint_t /*block_no*/) {
             return 0;
         }
 
@@ -74,11 +74,24 @@ namespace gridtools {
         constexpr std::true_type needs_allocate_cached_tmp(Backend const &) {
             return {};
         }
+
+        template <class MaxExtent, class ArgTag, class DataStore, int_t I, uint_t NColors, class Backend, class Grid>
+        DataStore make_tmp_data_store(
+            Backend backend, plh<ArgTag, DataStore, location_type<I, NColors>, true>, Grid const &grid) {
+            GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+            using storage_info_t = typename DataStore::storage_info_t;
+            return {make_storage_info<storage_info_t, NColors>(backend,
+                get_i_size<storage_info_t, MaxExtent>(
+                    backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
+                get_j_size<storage_info_t, MaxExtent>(
+                    backend, block_j_size(backend, grid), grid.j_high_bound() - grid.j_low_bound() + 1),
+                get_k_size<storage_info_t, MaxExtent>(backend, block_k_size(backend, grid), grid.k_total_length()))};
+        }
     } // namespace tmp_storage
 
     template <class MaxExtent, class ArgTag, class DataStore, int_t I, uint_t NColors, class Backend, class Grid>
     DataStore make_tmp_data_store(
-        Backend const &backend, plh<ArgTag, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
+        Backend backend, plh<ArgTag, DataStore, location_type<I, NColors>, true>, Grid const &grid) {
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         using namespace tmp_storage;
         using storage_info_t = typename DataStore::storage_info_t;

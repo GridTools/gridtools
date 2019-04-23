@@ -44,7 +44,7 @@ namespace gridtools {
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
-        using caches_t = typename IterateDomainArguments::cache_sequence_t;
+        using caches_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, caches_t);
         using k_cache_args_t = GT_META_CALL(k_cache_args, caches_t);
 
@@ -116,7 +116,8 @@ namespace gridtools {
                 sid::get_stride<dim::k>(host_device::at_key<storage_info_t>(local_domain.m_strides_map)),
                 k_offset);
 
-            return pointer_oob_check<storage_info_t>(local_domain, offset)
+            return offset < gridtools::host_device::at_key<storage_info_t>(local_domain.m_total_length_map) &&
+                           offset >= 0
                        ? gridtools::host_device::at_key<Arg>(m_ptr_map) + offset
                        : nullptr;
         }
@@ -166,8 +167,6 @@ namespace gridtools {
 
             auto pointer_offset = m_index[storage_info_index];
             sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(local_domain.m_strides_map), accessor);
-
-            assert(pointer_oob_check<storage_info_t>(local_domain, pointer_offset));
 
             conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
                 gridtools::host_device::at_key<Arg>(m_ptr_map) + pointer_offset;

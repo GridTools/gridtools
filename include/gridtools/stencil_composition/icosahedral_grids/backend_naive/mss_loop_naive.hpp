@@ -9,14 +9,15 @@
  */
 #pragma once
 
+#include "../../../common/defs.hpp"
 #include "../../../meta.hpp"
 #include "../../backend_naive/basic_token_execution_naive.hpp"
 #include "../../iteration_policy.hpp"
+#include "../../loop_interval.hpp"
 #include "../../pos3.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../stage.hpp"
-#include "./iterate_domain_naive.hpp"
-#include "./run_esf_functor_naive.hpp"
+#include "iterate_domain_naive.hpp"
 
 /**@file
  * @brief mss loop implementations for the naive backend
@@ -30,6 +31,28 @@ namespace gridtools {
                 meta::any_of,
                 (stage_group_contains_color<Color>::template apply, GT_META_CALL(meta::at_c, (T, 2))));
         };
+
+        template <uint_t Color>
+        struct run_esf_functor_naive {
+            template <class StageGroups, class ItDomain>
+            static void exec(ItDomain &it_domain) {
+                using stages_t = GT_META_CALL(meta::flatten, StageGroups);
+                GT_STATIC_ASSERT(meta::length<stages_t>::value == 1, GT_INTERNAL_ERROR);
+                using stage_t = GT_META_CALL(meta::first, stages_t);
+                stage_t::template exec<Color>(it_domain);
+            }
+        };
+
+        template <class LoopIntervals>
+        struct get_ncolors;
+
+        template <template <class...> class L0,
+            template <class...> class L1,
+            template <class...> class L2,
+            class From,
+            class To,
+            class Stage>
+        struct get_ncolors<L0<loop_interval<From, To, L1<L2<Stage>>>>> : Stage::n_colors {};
 
         /**
          * @tparam RunFunctorArgs run functor argument type with the main configuration of the MSS
@@ -90,11 +113,8 @@ namespace gridtools {
         GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-        using iterate_domain_arguments_t = iterate_domain_arguments<backend::naive,
-            LocalDomain,
-            typename RunFunctorArgs::esf_sequence_t,
-            typename RunFunctorArgs::cache_sequence_t,
-            Grid>;
+        using iterate_domain_arguments_t =
+            iterate_domain_arguments<backend::naive, LocalDomain, typename RunFunctorArgs::esf_sequence_t>;
         using iterate_domain_t = iterate_domain_naive<iterate_domain_arguments_t>;
 
         iterate_domain_t it_domain(local_domain);
@@ -112,8 +132,8 @@ namespace gridtools {
             grid.i_high_bound() - grid.i_low_bound() + 1 + extent_t::iplus::value - extent_t::iminus::value;
         const uint_t size_j =
             grid.j_high_bound() - grid.j_low_bound() + 1 + extent_t::jplus::value - extent_t::jminus::value;
-        using location_type_t = typename extract_esf_location_type<typename RunFunctorArgs::esf_sequence_t>::type;
-        static constexpr int_t n_colors = location_type_t::n_colors::value;
+        static constexpr int_t n_colors =
+            _impl_mss_loop_naive::get_ncolors<typename RunFunctorArgs::loop_intervals_t>::value;
         for (uint_t i = 0; i != size_i; ++i) {
             gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(
                 _impl_mss_loop_naive::color_execution_functor<RunFunctorArgs, iterate_domain_t, Grid>{

@@ -37,8 +37,7 @@ namespace gridtools {
         class LocalDomainListArray,
         class Grid,
         enable_if_t<!_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
-    static void fused_mss_loop(
-        backend::mc const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+    void fused_mss_loop(backend::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
         execinfo_mc exinfo(grid);
@@ -47,8 +46,7 @@ namespace gridtools {
 #pragma omp parallel for collapse(2)
         for (int_t bj = 0; bj < j_blocks; ++bj) {
             for (int_t bi = 0; bi < i_blocks; ++bi) {
-                host::for_each<GT_META_CALL(meta::make_indices_for, MssComponents)>(
-                    make_mss_functor<MssComponents>(backend_target, local_domain_lists, grid, exinfo.block(bi, bj)));
+                run_mss_functors<MssComponents>(backend::mc{}, local_domain_lists, grid, exinfo.block(bi, bj));
             }
         }
     }
@@ -61,8 +59,7 @@ namespace gridtools {
         class LocalDomainListArray,
         class Grid,
         enable_if_t<_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
-    static void fused_mss_loop(
-        backend::mc const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+    void fused_mss_loop(backend::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
         execinfo_mc exinfo(grid);
@@ -74,8 +71,7 @@ namespace gridtools {
         for (int_t bj = 0; bj < j_blocks; ++bj) {
             for (int_t k = k_first; k <= k_last; ++k) {
                 for (int_t bi = 0; bi < i_blocks; ++bi) {
-                    host::for_each<GT_META_CALL(meta::make_indices_for, MssComponents)>(make_mss_functor<MssComponents>(
-                        backend_target, local_domain_lists, grid, exinfo.block(bi, bj, k)));
+                    run_mss_functors<MssComponents>(backend::mc{}, local_domain_lists, grid, exinfo.block(bi, bj, k));
                 }
             }
         }

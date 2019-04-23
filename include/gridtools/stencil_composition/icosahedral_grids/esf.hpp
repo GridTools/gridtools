@@ -59,7 +59,4 @@ namespace gridtools {
 
     template <template <uint_t> class EsfFunction, class Grid, class LocationType, class Color, class Args>
     struct is_esf_descriptor<esf_descriptor<EsfFunction, Grid, LocationType, Color, Args>> : std::true_type {};
-
-    template <class T>
-    GT_META_DEFINE_ALIAS(esf_get_location_type, meta::id, typename T::location_type);
 } // namespace gridtools

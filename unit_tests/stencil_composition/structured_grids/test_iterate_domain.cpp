@@ -82,11 +82,8 @@ namespace gridtools {
 
             using esf_t = decltype(gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
 
-            using iterate_domain_arguments_t = iterate_domain_arguments<backend::naive,
-                decltype(local_domain1),
-                std::tuple<esf_t>,
-                std::tuple<>,
-                gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
+            using iterate_domain_arguments_t =
+                iterate_domain_arguments<backend::naive, decltype(local_domain1), std::tuple<esf_t>, std::tuple<>>;
 
 #ifdef GT_BACKEND_MC
             using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t::local_domain_t, meta::list<>>;

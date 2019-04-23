@@ -27,13 +27,8 @@ namespace gridtools {
      * @tparam MssComponents a meta array with the mss components of all MSS
      */
     template <class MssComponents, class LocalDomainListArray, class Grid>
-    static void fused_mss_loop(
-        backend::cuda const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
-        GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-
-        host::for_each<GT_META_CALL(meta::make_indices_for, MssComponents)>(
-            make_mss_functor<MssComponents>(backend_target, local_domain_lists, grid, execution_info_cuda{}));
+    void fused_mss_loop(backend::cuda, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+        run_mss_functors<MssComponents>(backend::cuda{}, local_domain_lists, grid, execution_info_cuda{});
     }
 
     /**

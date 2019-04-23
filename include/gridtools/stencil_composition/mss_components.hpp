@@ -41,7 +41,6 @@ namespace gridtools {
      * All derived metadata is computed in this class
      * @tparam MssDescriptor the mss descriptor
      * @tparam ExtentSizes the extent sizes of all the ESFs in this mss
-     * @tparam RepeatFunctor the length of the chunks for expandable parameters
      */
     template <typename MssDescriptor, typename ExtentMap, typename Axis>
     struct mss_components {
@@ -55,8 +54,6 @@ namespace gridtools {
         using linear_esf_t = GT_META_CALL(unwrap_independent, typename MssDescriptor::esf_sequence_t);
 
         using extent_map_t = ExtentMap;
-
-        typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
 
         // For historical reasons the user provided axis interval is stripped by one level from the right to produce
         // the interval that will be used for actual computation.

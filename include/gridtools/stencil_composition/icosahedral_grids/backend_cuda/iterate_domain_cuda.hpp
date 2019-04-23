@@ -51,8 +51,8 @@ namespace gridtools {
         array<int, 2> m_thread_pos;
 
       public:
-        static constexpr bool has_ij_caches =
-            !meta::is_empty<GT_META_CALL(ij_caches, typename IterateDomainArguments::cache_sequence_t)>::value;
+        static constexpr bool has_ij_caches = !meta::is_empty<GT_META_CALL(
+            ij_caches, typename IterateDomainArguments::local_domain_t::cache_sequence_t)>::value;
 
         template <class T>
         GT_FUNCTION_DEVICE iterate_domain_cuda(T &&obj, uint_t block_size_i, uint_t block_size_j)

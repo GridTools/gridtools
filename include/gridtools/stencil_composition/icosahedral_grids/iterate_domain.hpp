@@ -31,7 +31,8 @@ namespace gridtools {
     class iterate_domain {
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
         using backend_t = typename IterateDomainArguments::backend_t;
-        using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
+        using ij_cache_args_t = GT_META_CALL(
+            ij_cache_args, typename IterateDomainArguments::local_domain_t::cache_sequence_t);
 
         // the number of different storage metadatas used in the current functor
         static const uint_t n_meta_storages = meta::length<typename local_domain_t::strides_kinds_t>::value;
@@ -119,8 +120,6 @@ namespace gridtools {
 
             int_t pointer_offset = m_index[storage_info_index];
             sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(m_local_domain.m_strides_map), acc);
-
-            assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 
             conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
                 gridtools::host_device::at_key<Arg>(m_local_domain.m_ptr_holder_map)() + pointer_offset;

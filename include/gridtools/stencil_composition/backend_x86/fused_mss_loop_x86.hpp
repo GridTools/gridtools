@@ -28,23 +28,22 @@ namespace gridtools {
      * @tparam MssComponents a meta array with the mss components of all MSS
      */
     template <class MssComponents, class LocalDomainListArray, class Grid>
-    GT_FORCE_INLINE static void fused_mss_loop(
-        backend::x86 const &backend_target, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
+    void fused_mss_loop(backend::x86, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         uint_t n = grid.i_high_bound() - grid.i_low_bound();
         uint_t m = grid.j_high_bound() - grid.j_low_bound();
 
-        uint_t NBI = n / block_i_size(backend_target);
-        uint_t NBJ = m / block_j_size(backend_target);
+        uint_t NBI = n / block_i_size(backend::x86{});
+        uint_t NBJ = m / block_j_size(backend::x86{});
 
 #pragma omp parallel
         {
 #pragma omp for nowait
             for (uint_t bi = 0; bi <= NBI; ++bi) {
                 for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                    host::for_each<GT_META_CALL(meta::make_indices_for, MssComponents)>(make_mss_functor<MssComponents>(
-                        backend_target, local_domain_lists, grid, execution_info_x86{bi, bj}));
+                    run_mss_functors<MssComponents>(
+                        backend::x86{}, local_domain_lists, grid, execution_info_x86{bi, bj});
                 }
             }
         }

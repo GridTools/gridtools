@@ -102,6 +102,7 @@ namespace gridtools {
         GT_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
+        using n_colors = typename LocationType::n_colors;
 
         template <uint_t Color, class Functor = GT_META_CALL(meta::at_c, (Functors, Color))>
         struct contains_color : bool_constant<!std::is_void<Functor>::value> {};
@@ -139,9 +140,11 @@ namespace gridtools {
     template <class Stage, class... Stages>
     struct compound_stage {
         using extent_t = typename Stage::extent_t;
+        using n_colors = typename Stage::n_colors;
 
         GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::n_colors, n_colors>...>::value), GT_INTERNAL_ERROR);
 
         template <uint_t Color>
         struct contains_color : disjunction<typename Stage::template contains_color<Color>,
@@ -175,5 +178,4 @@ namespace gridtools {
         template <class Stages>
         GT_META_DEFINE_ALIAS(apply, meta::any_of, (stage_contains_color<Color>::template apply, Stages));
     };
-
 } // namespace gridtools

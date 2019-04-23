@@ -34,43 +34,23 @@
 namespace gridtools {
     namespace _impl {
 
-        template <int I, class Layout>
-        using exists_in_layout = bool_constant < I<Layout::masked_length>;
-
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        enable_if_t<exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
+        enable_if_t<(I < Layout::masked_length), bool> storage_info_dim_fits(
             storage_info<Id, Layout, Halo, Alignment> const &storage_info, int val) {
-            return val + 1 <= storage_info.template total_length<I>();
+            return val < storage_info.template total_length<I>();
         }
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        enable_if_t<!exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
+        enable_if_t<(I >= Layout::masked_length), bool> storage_info_dim_fits(
             storage_info<Id, Layout, Halo, Alignment> const &, int) {
             return true;
         }
 
-        template <class Backend, class Grid>
+        template <class Grid>
         struct storage_info_fits_grid_f {
             Grid const &grid;
 
             template <uint_t Id, class Layout, class Halo, class Alignment>
             bool operator()(storage_info<Id, Layout, Halo, Alignment> const &src) const {
-
-                // TODO: This check may be not accurate since there is
-                // an ongoing change in the convention for storage and
-                // grid. Before the storage had the conventions that
-                // there was not distinction between halo and core
-                // region in the storage. The distinction was made
-                // solely in the grid. Now the storage makes that
-                // distinction, ad when allocating the data the halo
-                // is also allocated. So for instance a storage of
-                // 3x3x3 with halo of <1,1,1> will allocate a 5x5x5
-                // storage. The grid is the same as before. The first
-                // step will be to update the storage to point as
-                // first element the (1,1,1) element and then to get
-                // the grid to not specifying halos (at least in the
-                // simple cases). This is why the check is left as
-                // before here, but may be updated with more accurate
-                // ones when the convention is updated
                 return storage_info_dim_fits<dim::k::value>(src, grid.k_max()) &&
                        storage_info_dim_fits<dim::j::value>(src, grid.j_high_bound()) &&
                        storage_info_dim_fits<dim::i::value>(src, grid.i_high_bound());
@@ -88,8 +68,8 @@ namespace gridtools {
      *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
      *   \tparam Grid The Grid
      */
-    template <class Backend, class Grid>
-    _impl::storage_info_fits_grid_f<Backend, Grid> storage_info_fits_grid(Grid const &grid) {
+    template <class Grid>
+    _impl::storage_info_fits_grid_f<Grid> storage_info_fits_grid(Grid const &grid) {
         return {grid};
     }
 
@@ -164,9 +144,17 @@ namespace gridtools {
 
         using max_extent_for_tmp_t = GT_META_CALL(_impl::get_max_extent_for_tmp, mss_components_array_t);
 
+        template <class MssComponents>
+        GT_META_DEFINE_ALIAS(get_local_domain,
+            local_domain,
+            (GT_META_CALL(extract_placeholders_from_mss, typename MssComponents::mss_descriptor_t),
+                max_extent_for_tmp_t,
+                typename MssComponents::mss_descriptor_t::cache_sequence_t,
+                IsStateful));
+
       public:
         // creates a tuple of local domains
-        using local_domains_t = GT_META_CALL(_impl::get_local_domains, (mss_components_array_t, IsStateful));
+        using local_domains_t = GT_META_CALL(meta::transform, (get_local_domain, mss_components_array_t));
 
       private:
         // member fields
@@ -228,10 +216,9 @@ namespace gridtools {
                 "some placeholders are not used in mss descriptors");
             GT_STATIC_ASSERT(
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
-            static constexpr auto backend_target = Backend{};
             if (m_meter)
                 m_meter->start();
-            fused_mss_loop<mss_components_array_t>(backend_target, local_domains(srcs...), m_grid);
+            fused_mss_loop<mss_components_array_t>(Backend{}, local_domains(srcs...), m_grid);
             if (m_meter)
                 m_meter->pause();
         }

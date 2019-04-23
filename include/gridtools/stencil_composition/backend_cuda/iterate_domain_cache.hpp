@@ -18,6 +18,7 @@
 
 #include <boost/fusion/include/as_map.hpp>
 #include <boost/fusion/include/at_key.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
 
 #include "../../common/defs.hpp"
 #include "../../meta.hpp"
@@ -39,11 +40,11 @@ namespace gridtools {
     class iterate_domain_cache {
         GT_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
 
-        using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
+        using cache_sequence_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
 
         // compute the fusion vector of pair<index_type, cache_storage> for ij caches
         typedef typename get_ij_cache_storage_tuple<cache_sequence_t,
-            typename IterateDomainArguments::max_extent_for_tmp_t,
+            typename IterateDomainArguments::local_domain_t::max_extent_for_tmp_t,
             block_i_size(backend::cuda{}),
             block_j_size(backend::cuda{})>::type ij_caches_vector_t;
 

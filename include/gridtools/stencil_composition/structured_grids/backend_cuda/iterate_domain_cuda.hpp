@@ -42,7 +42,7 @@ namespace gridtools {
         // array storing the (i,j) position of the current thread within the block
         array<int, 2> m_thread_pos;
 
-        using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
+        using cache_sequence_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
 
       public:
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
