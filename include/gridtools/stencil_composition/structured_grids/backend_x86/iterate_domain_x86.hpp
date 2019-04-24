@@ -21,19 +21,11 @@ namespace gridtools {
      * @brief iterate domain class for the X86 backend
      */
     template <typename IterateDomainArguments>
-    class iterate_domain_x86
-        : public iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> {
-        using base_t = typename iterate_domain_x86::iterate_domain;
+    struct iterate_domain_x86 : iterate_domain<IterateDomainArguments> {
+        using iterate_domain<IterateDomainArguments>::iterate_domain;
 
-      public:
-        iterate_domain_x86(iterate_domain_x86 const &) = delete;
-        iterate_domain_x86 &operator=(iterate_domain_x86 const &) = delete;
-
-        template <class... Args>
-        GT_FORCE_INLINE iterate_domain_x86(Args &&... args) : base_t(std::forward<Args>(args)...) {}
-
-        template <class Arg, class Ptr>
-        static GT_FORCE_INLINE auto deref_impl(Ptr &&ptr) GT_AUTO_RETURN(*ptr);
+        template <class Arg, class Accessor>
+        GT_FORCE_INLINE auto deref(Accessor const &acc) const GT_AUTO_RETURN(*this->template get_ptr<Arg>(acc));
     };
 
     template <typename IterateDomainArguments>
