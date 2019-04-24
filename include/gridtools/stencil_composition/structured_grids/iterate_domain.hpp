@@ -127,51 +127,39 @@ namespace gridtools {
          * Specialization for the offset_tuple placeholder (i.e. for extended storages, containing multiple snapshots of
          * data fields with the same dimension and memory layout)
          */
-        template <class Arg,
-            intent Intent,
-            class Accessor,
-            class Res = typename deref_type<Arg, Intent>::type,
-            enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
-        GT_FUNCTION Res deref(Accessor const &acc) const {
-            return static_cast<IterateDomainImpl const *>(this)->template get_ij_cache_value<Arg, Res>(acc);
-        }
+        template <class Arg, class Accessor, enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
+        GT_FUNCTION auto deref(Accessor const &acc) const
+            GT_AUTO_RETURN((static_cast<IterateDomainImpl const *>(this)->template get_ij_cache_value<Arg>(acc)));
 
         template <class Arg,
-            intent Intent,
             class Accessor,
-            class Res = typename deref_type<Arg, Intent>::type,
             enable_if_t<meta::st_contains<k_cache_args_t, Arg>::value &&
                             !meta::st_contains<ij_cache_args_t, Arg>::value,
                 int> = 0>
-        GT_FUNCTION Res deref(Accessor const &acc) const {
-            return static_cast<IterateDomainImpl const *>(this)->template get_k_cache_value<Arg, Res>(acc);
-        }
+        GT_FUNCTION auto deref(Accessor const &acc) const
+            GT_AUTO_RETURN(static_cast<IterateDomainImpl const *>(this)->template get_k_cache_value<Arg>(acc));
 
         /**
          * @brief returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
          * nor expression) and is not cached (i.e. is accessing main memory)
          */
         template <class Arg,
-            intent Intent,
             class Accessor,
-            class Res = typename deref_type<Arg, Intent>::type,
             enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value &&
                             !meta::st_contains<k_cache_args_t, Arg>::value && is_accessor<Accessor>::value,
                 int> = 0>
-        GT_FUNCTION Res deref(Accessor const &accessor) const {
+        GT_FUNCTION auto deref(Accessor const &acc) const
+            -> decltype(IterateDomainImpl::template deref_impl<Arg>(host_device::at_key<Arg>(m_ptr_map))) {
             using data_t = typename Arg::data_store_t::data_t;
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
             static constexpr auto storage_info_index =
                 meta::st_position<typename local_domain_t::strides_kinds_t, storage_info_t>::value;
 
-            auto pointer_offset = m_index[storage_info_index];
-            sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(local_domain.m_strides_map), accessor);
+            auto offset = m_index[storage_info_index];
+            sid::multi_shift(offset, host_device::at_key<storage_info_t>(local_domain.m_strides_map), acc);
 
-            conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
-                gridtools::host_device::at_key<Arg>(m_ptr_map) + pointer_offset;
-
-            return IterateDomainImpl::template deref_impl<Arg>(ptr);
+            return IterateDomainImpl::template deref_impl<Arg>(host_device::at_key<Arg>(m_ptr_map) + offset);
         }
     };
 } // namespace gridtools

@@ -17,25 +17,25 @@
 namespace gridtools {
     namespace tmp_storage {
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_i_size(backend::naive const &, uint_t /*block_size*/, uint_t total_size) {
+        uint_t get_i_size(backend::naive, uint_t /*block_size*/, uint_t total_size) {
             static constexpr auto halo = StorageInfo::halo_t::template at<dim::i::value>();
             return total_size + 2 * halo;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_i_block_offset(backend::naive const &, uint_t /*block_size*/, uint_t /*block_no*/) {
+        GT_FUNCTION int_t get_i_block_offset(backend::naive, uint_t /*block_size*/, uint_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<dim::i::value>();
             return halo;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_j_size(backend::naive const &, uint_t /*block_size*/, uint_t total_size) {
+        uint_t get_j_size(backend::naive, uint_t /*block_size*/, uint_t total_size) {
             static constexpr auto halo = StorageInfo::halo_t::template at<dim::j::value>();
             return total_size + 2 * halo;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_j_block_offset(backend::naive const &, uint_t /*block_size*/, uint_t /*block_no*/) {
+        GT_FUNCTION int_t get_j_block_offset(backend::naive, uint_t /*block_size*/, uint_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<dim::j::value>();
             return halo;
         }

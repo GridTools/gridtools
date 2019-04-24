@@ -43,6 +43,7 @@ namespace gridtools {
 
         local_domain_t const &m_local_domain;
         array_index_t m_index;
+        int_t m_color = 0;
 
         template <class Dim, class Offset>
         GT_FUNCTION void increment(Offset offset) {
@@ -76,6 +77,7 @@ namespace gridtools {
         }
         template <class Offset = integral_constant<int_t, 1>>
         GT_FUNCTION void increment_c(Offset offset = {}) {
+            m_color += offset;
             increment<dim::c>(offset);
         }
         template <class Offset = integral_constant<int_t, 1>>
@@ -91,23 +93,13 @@ namespace gridtools {
 
         GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
-        template <class Arg,
-            intent Intent,
-            uint_t Color,
-            class Accessor,
-            class Res = typename deref_type<Arg, Intent>::type,
-            enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
-        GT_FUNCTION Res deref(Accessor const &acc) const {
-            return static_cast<IterateDomainImpl const *>(this)->template get_ij_cache_value<Arg, Color, Res>(acc);
-        }
+        template <class Arg, class Accessor, enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
+        GT_FUNCTION auto deref(Accessor const &acc) const GT_AUTO_RETURN(
+            static_cast<IterateDomainImpl const *>(this)->template get_ij_cache_value<Arg>(m_color, acc));
 
-        template <class Arg,
-            intent Intent,
-            uint_t Color,
-            class Accessor,
-            class Res = typename deref_type<Arg, Intent>::type,
-            enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
-        GT_FUNCTION Res deref(Accessor const &acc) const {
+        template <class Arg, class Accessor, enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
+        GT_FUNCTION auto deref(Accessor const &acc) const -> decltype(
+            IterateDomainImpl::template deref_impl<Arg>(host_device::at_key<Arg>(m_local_domain.m_ptr_holder_map)())) {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
             typedef typename Arg::data_store_t::storage_info_t storage_info_t;
@@ -121,10 +113,8 @@ namespace gridtools {
             int_t pointer_offset = m_index[storage_info_index];
             sid::multi_shift(pointer_offset, host_device::at_key<storage_info_t>(m_local_domain.m_strides_map), acc);
 
-            conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
-                gridtools::host_device::at_key<Arg>(m_local_domain.m_ptr_holder_map)() + pointer_offset;
-
-            return IterateDomainImpl::template deref_impl<Arg>(ptr);
+            return IterateDomainImpl::template deref_impl<Arg>(
+                host_device::at_key<Arg>(m_local_domain.m_ptr_holder_map)() + pointer_offset);
         }
     };
 } // namespace gridtools

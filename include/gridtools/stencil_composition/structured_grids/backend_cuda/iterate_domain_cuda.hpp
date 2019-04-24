@@ -90,20 +90,16 @@ namespace gridtools {
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory
          */
-        template <class Arg, class ReturnType, class Accessor>
-        GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
-            // retrieve the ij cache from the fusion tuple and access the element required give the current thread
-            // position within the block and the offsets of the accessor
-            return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain).at(m_thread_pos[0], m_thread_pos[1], acc);
-        }
+        template <class Arg, class Accessor>
+        GT_FUNCTION auto get_ij_cache_value(Accessor const &acc) const GT_AUTO_RETURN(
+            boost::fusion::at_key<Arg>(*m_pshared_iterate_domain).at(m_thread_pos[0], m_thread_pos[1], acc));
 
         /** @brief return a value that was cached
          * specialization where cache goes via kcache register set
          */
-        template <class Arg, class ReturnType, class Accessor>
-        GT_FUNCTION ReturnType get_k_cache_value(Accessor const &acc) const {
-            return m_iterate_domain_cache.template get_k_cache<Arg>(acc);
-        }
+        template <class Arg, class Accessor>
+        GT_FUNCTION auto get_k_cache_value(Accessor const &acc) const
+            GT_AUTO_RETURN(m_iterate_domain_cache.template get_k_cache<Arg>(acc));
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
         template <class Arg, class T>
