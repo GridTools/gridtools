@@ -67,7 +67,7 @@ namespace gridtools {
 
         /** @brief Get the position of the element with value `I` in the layout map. */
         template <int I>
-        GT_FUNCTION static GT_HOST_CONSTEXPR std::size_t find() {
+        GT_FUNCTION static constexpr std::size_t find() {
             GT_STATIC_ASSERT((I >= 0) && (I < unmasked_length), GT_INTERNAL_ERROR_MSG("This index does not exist"));
             // force compile-time evaluation
             return std::integral_constant<std::size_t, find(I)>::value;
@@ -78,7 +78,7 @@ namespace gridtools {
 
         /** @brief Get the value of the element at position `I` in the layout map. */
         template <std::size_t I>
-        GT_FUNCTION static GT_HOST_CONSTEXPR int at() {
+        GT_FUNCTION static constexpr int at() {
             GT_STATIC_ASSERT(I < masked_length, GT_INTERNAL_ERROR_MSG("Out of bounds access"));
             // force compile-time evaluation
             return std::integral_constant<int, at(I)>::value;

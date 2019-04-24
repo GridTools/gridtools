@@ -17,7 +17,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr logical_and() {}
         template <typename T>
-        GT_FUNCTION GT_HOST_CONSTEXPR T operator()(const T &x, const T &y) const {
+        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
             return x && y;
         }
     };
@@ -27,7 +27,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr logical_or() {}
         template <typename T>
-        GT_FUNCTION GT_HOST_CONSTEXPR T operator()(const T &x, const T &y) const {
+        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
             return x || y;
         }
     };
@@ -38,7 +38,7 @@ namespace gridtools {
         constexpr equal() {}
 
         template <typename T>
-        GT_FUNCTION GT_HOST_CONSTEXPR bool operator()(const T &x, const T &y) const {
+        GT_FUNCTION constexpr bool operator()(const T &x, const T &y) const {
             return x == y;
         }
     };

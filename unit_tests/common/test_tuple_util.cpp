@@ -30,7 +30,7 @@ namespace custom {
 
         struct getter {
             template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
-            static constexpr int get(foo const &obj) {
+            static int get(foo const &obj) {
                 return obj.a;
             }
             template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
@@ -38,11 +38,11 @@ namespace custom {
                 return obj.a;
             }
             template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
-            static constexpr int get(foo &&obj) {
+            static int get(foo &&obj) {
                 return obj.a;
             }
             template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
-            static constexpr double get(foo const &obj) {
+            static double get(foo const &obj) {
                 return obj.b;
             }
             template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
@@ -50,7 +50,7 @@ namespace custom {
                 return obj.b;
             }
             template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
-            static constexpr double get(foo &&obj) {
+            static double get(foo &&obj) {
                 return obj.b;
             }
         };
@@ -88,7 +88,7 @@ namespace gridtools {
 
         struct add_2_f {
             template <class T>
-            GT_FUNCTION constexpr T operator()(T val) const {
+            GT_FUNCTION T operator()(T val) const {
                 return val + 2;
             }
         };
@@ -100,19 +100,12 @@ namespace gridtools {
             get<0>(obj) = 42;
             EXPECT_EQ(get<0>(obj), 42);
 
-            constexpr custom::foo c_obj{2, 4};
-            static_assert(get<0>(c_obj) == 2, "");
-            static_assert(get<0>(custom::foo{3, 0.0}) == 3, "");
-            static_assert(size<custom::foo>::value == 2, "");
+            EXPECT_EQ(size<custom::foo>::value, 2);
 
             auto res = transform(add_2_f{}, custom::foo{42, 5.3});
             static_assert(std::is_same<decltype(res), custom::foo>{}, "");
             EXPECT_EQ(res.a, 44);
             EXPECT_EQ(res.b, 7.3);
-
-            constexpr auto c_res = transform(add_2_f{}, custom::foo{42, 5.3});
-            static_assert(c_res.a == 44, "");
-            static_assert(c_res.b == 7.3, "");
         }
 
         TEST(transform, functional) {

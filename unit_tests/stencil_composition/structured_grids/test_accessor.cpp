@@ -34,10 +34,7 @@ TEST(accessor, trivial) {
 }
 
 TEST(accessor, array) {
-    constexpr accessor<0, intent::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
-    static_assert(tuple_util::get<0>(first) == 3, "");
-    static_assert(tuple_util::get<1>(first) == 2, "");
-    static_assert(tuple_util::get<2>(first) == -1, "");
+    accessor<0, intent::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
 
     EXPECT_EQ(3, tuple_util::get<0>(first));
     EXPECT_EQ(2, tuple_util::get<1>(first));
@@ -66,16 +63,12 @@ TEST(accessor, alternative2) {
     constexpr dimension<2> j;
 
     constexpr dimension<4> t;
-#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
-    // ICC 18 shows some strange bug here
-    constexpr accessor<0, intent::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
-    static_assert(tuple_util::get<0>(first) == -5, "");
+    accessor<0, intent::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
 
     EXPECT_EQ(-5, tuple_util::get<0>(first));
     EXPECT_EQ(0, tuple_util::get<1>(first));
     EXPECT_EQ(8, tuple_util::get<2>(first));
     EXPECT_EQ(2, tuple_util::get<3>(first));
-#endif
 }
 
 /**

@@ -25,7 +25,7 @@ namespace gridtools {
         constexpr GT_FORCE_INLINE integral_constant() noexcept {}
 #endif
 
-        GT_HOST_CONSTEXPR GT_FUNCTION operator T() const noexcept { return V; }
+        constexpr GT_FUNCTION operator T() const noexcept { return V; }
     };
 
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
@@ -36,7 +36,7 @@ namespace gridtools {
 
 #define GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(op, type)                                               \
     template <class T, T V>                                                                                \
-    GT_HOST_CONSTEXPR GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, op V), (op V)> \
+    constexpr GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, op V), (op V)> \
     operator op(integral_constant<T, V> &&) noexcept {                                                     \
         return {};                                                                                         \
     }                                                                                                      \
@@ -51,7 +51,7 @@ namespace gridtools {
 
 #define GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(op, type)                                                      \
     template <class T, T TV, class U, U UV>                                                                        \
-    GT_HOST_CONSTEXPR GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, TV op UV), (TV op UV)> \
+    constexpr GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, TV op UV), (TV op UV)> \
     operator op(integral_constant<T, TV>, integral_constant<U, UV>) noexcept {                                     \
         return {};                                                                                                 \
     }                                                                                                              \
@@ -138,7 +138,7 @@ namespace gridtools {
         } // namespace literals_impl_
 
         template <char... Chars>
-        GT_HOST_CONSTEXPR GT_FUNCTION integral_constant<literals_impl_::literal_int_t, literals_impl_::parser<Chars...>::value>
+        constexpr GT_FUNCTION integral_constant<literals_impl_::literal_int_t, literals_impl_::parser<Chars...>::value>
         operator"" _c() {
             return {};
         }

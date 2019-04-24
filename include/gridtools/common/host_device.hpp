@@ -145,7 +145,8 @@
 #ifdef __CUDA_ARCH__
 #define GT_HOST_CONSTEXPR
 #else
-#define GT_HOST_CONSTEXPR constexpr
+#define GT_HOST_CONSTEXPR
+// #define GT_HOST_CONSTEXPR constexpr
 #endif
 
 /** @} */

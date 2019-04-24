@@ -365,26 +365,16 @@ namespace gridtools {
                   public:
                     // Here the `SID` concept is modeled
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
-                    // Shame on you CUDA 8!!!
-                    // Why on the Earth a composition of `constexpr` functions could fail to be `constexpr`?
-#define GT_SID_COMPOSITE_CONSTEXPR
-#else
-#define GT_SID_COMPOSITE_CONSTEXPR constexpr
-#endif
-
-                    friend GT_SID_COMPOSITE_CONSTEXPR ptr_holder_t sid_get_origin(values &obj) {
+                    friend ptr_holder_t sid_get_origin(values &obj) {
                         return tuple_util::transform(get_origin_f{}, obj.m_sids);
                     }
 
-                    friend GT_SID_COMPOSITE_CONSTEXPR strides_t sid_get_strides(values const &obj) {
+                    friend strides_t sid_get_strides(values const &obj) {
                         return tuple_util::convert_to<stride_hymap_keys_t::template values>(
                             tuple_util::transform(typename compressed_t::convert_f{},
                                 tuple_util::transpose(
                                     tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>{}, obj.m_sids))));
                     }
-
-#undef GT_SID_COMPOSITE_CONSTEXPR
 
                     friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
 

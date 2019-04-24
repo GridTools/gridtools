@@ -98,7 +98,7 @@ namespace gridtools {
 
     /// \private
     template <typename First>
-    GT_FUNCTION GT_HOST_CONSTEXPR bool is_continuous(First) {
+    GT_FUNCTION constexpr bool is_continuous(First) {
         return true;
     }
 
@@ -111,7 +111,7 @@ namespace gridtools {
      * \param rest Rest of values
      */
     template <typename First, typename Second, typename... Rest>
-    GT_FUNCTION GT_HOST_CONSTEXPR bool is_continuous(First first, Second second, Rest... rest) {
+    GT_FUNCTION constexpr bool is_continuous(First first, Second second, Rest... rest) {
         return (first + 1 == second) ? (true && is_continuous(second, rest...)) : false;
     }
     /** @} */

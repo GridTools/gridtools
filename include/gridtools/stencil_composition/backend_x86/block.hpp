@@ -14,6 +14,6 @@
 #include "../grid.hpp"
 
 namespace gridtools {
-    GT_FUNCTION GT_HOST_CONSTEXPR uint_t block_i_size(backend::x86 const &) { return GT_DEFAULT_TILE_I; }
-    GT_FUNCTION GT_HOST_CONSTEXPR uint_t block_j_size(backend::x86 const &) { return GT_DEFAULT_TILE_J; }
+    GT_FUNCTION constexpr uint_t block_i_size(backend::x86 const &) { return GT_DEFAULT_TILE_I; }
+    GT_FUNCTION constexpr uint_t block_j_size(backend::x86 const &) { return GT_DEFAULT_TILE_J; }
 } // namespace gridtools

@@ -41,7 +41,7 @@ namespace gridtools {
         }
 
         template <typename T = uint_t>
-        GT_FUNCTION static GT_HOST_CONSTEXPR T trigger(char const *msg = "Error triggered") {
+        GT_FUNCTION static constexpr T trigger(char const *msg = "Error triggered") {
             return get<T>(msg);
         }
     };
@@ -55,7 +55,7 @@ namespace gridtools {
      * @param msg error message if condition is not met
      */
     template <typename T>
-    GT_FUNCTION GT_HOST_CONSTEXPR T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
+    GT_FUNCTION constexpr T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
         return cond ? res : error::trigger<T>(msg);
     }
 
