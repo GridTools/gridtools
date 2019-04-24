@@ -89,7 +89,7 @@ namespace gridtools {
                 gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
 #ifdef GT_BACKEND_MC
-            using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
+            using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t::local_domain_t, meta::list<>>;
 #endif
 #ifdef GT_BACKEND_X86
             using it_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
@@ -123,11 +123,12 @@ namespace gridtools {
 
             // check index initialization and increment
 
+#ifndef GT_BACKEND_MC
             auto index = it_domain.index();
             ASSERT_EQ(0, index[0]);
             ASSERT_EQ(0, index[1]);
             ASSERT_EQ(0, index[2]);
-#ifndef GT_BACKEND_MC
+
             index[0] += 3;
             index[1] += 2;
             index[2] += 1;
@@ -137,21 +138,15 @@ namespace gridtools {
             EXPECT_EQ(3, index[0]);
             EXPECT_EQ(2, index[1]);
             EXPECT_EQ(1, index[2]);
-#endif
 
             auto mdo = out.get_storage_info_ptr();
             auto mdb = buff.get_storage_info_ptr();
             auto mdi = in.get_storage_info_ptr();
 
-#ifdef GT_BACKEND_MC
-            it_domain.set_i_block_index(1);
-            it_domain.set_j_block_index(1);
-            it_domain.set_k_block_index(1);
-#else
             it_domain.increment_i();
             it_domain.increment_j();
             it_domain.increment_k();
-#endif
+
             auto new_index = it_domain.index();
 
             // even thought the first case is 4D, we incremented only i,j,k, thus in the check below we don't need the
@@ -159,6 +154,7 @@ namespace gridtools {
             EXPECT_EQ(index[0] + mdi->stride<0>() + mdi->stride<1>() + mdi->stride<2>(), new_index[0]);
             EXPECT_EQ(index[1] + mdb->stride<0>() + mdb->stride<1>() + mdb->stride<2>(), new_index[1]);
             EXPECT_EQ(index[2] + mdo->stride<0>() + mdo->stride<1>(), new_index[2]);
+#endif
         }
     } // namespace
 } // namespace gridtools

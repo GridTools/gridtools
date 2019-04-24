@@ -640,12 +640,9 @@ namespace gridtools {
          *  If `Stride` doesn't have `Key`, integral_constant<int_t, 0> is returned.
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
-        template <class Key, class Strides, enable_if_t<has_key<decay_t<Strides>, Key>::value, int> = 0>
-        GT_FUNCTION auto get_stride(Strides &&strides) GT_AUTO_RETURN(gridtools::host_device::at_key<Key>(strides));
-        template <class Key, class Strides, enable_if_t<!has_key<decay_t<Strides>, Key>::value, int> = 0>
-        GT_FUNCTION default_stride get_stride(Strides &&) {
-            return {};
-        }
+        template <class Key, class Strides>
+        GT_FUNCTION auto get_stride(Strides &&strides)
+            GT_AUTO_RETURN((gridtools::host_device::at_key_with_default<Key, default_stride>(strides)));
 
         struct get_origin_f {
             template <class T>

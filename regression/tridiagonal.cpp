@@ -36,10 +36,10 @@ using full_t = axis_t::full_interval;
 struct forward_thomas {
     // four vectors: output, and the 3 diagonals
     using out = inout_accessor<0>;
-    using inf = in_accessor<1>;    // a
-    using diag = in_accessor<2>;   // b
-    using sup = inout_accessor<3>; // c
-    using rhs = inout_accessor<4>; // d
+    using inf = in_accessor<1>;                               // a
+    using diag = in_accessor<2>;                              // b
+    using sup = inout_accessor<3, extent<0, 0, 0, 0, -1, 0>>; // c
+    using rhs = inout_accessor<4, extent<0, 0, 0, 0, -1, 0>>; // d
     using param_list = make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
@@ -56,7 +56,7 @@ struct forward_thomas {
 };
 
 struct backward_thomas {
-    using out = inout_accessor<0>;
+    using out = inout_accessor<0, extent<0, 0, 0, 0, 0, 1>>;
     using inf = in_accessor<1>;    // a
     using diag = in_accessor<2>;   // b
     using sup = inout_accessor<3>; // c
