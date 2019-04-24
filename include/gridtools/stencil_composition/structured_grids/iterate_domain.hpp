@@ -71,7 +71,7 @@ namespace gridtools {
       public:
         static constexpr bool has_k_caches = false;
 
-        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_)
+        GT_FUNCTION_DEVICE iterate_domain(local_domain_t const &local_domain_)
             : m_local_domain(local_domain_), m_ptr_map(local_domain_.make_ptr_map()) {}
 
         GT_FUNCTION array_index_t const &index() const { return m_index; }
