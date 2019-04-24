@@ -20,7 +20,7 @@ namespace gridtools {
      * The use of identity creates a non-deduced form, so that the explicit template argument must be supplied
      */
     template <class T>
-    GT_FUNCTION GT_HOST_CONSTEXPR T implicit_cast(typename meta::lazy::id<T>::type x) {
+    GT_FUNCTION T implicit_cast(typename meta::lazy::id<T>::type x) {
         return x;
     }
 } // namespace gridtools

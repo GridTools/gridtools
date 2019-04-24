@@ -94,7 +94,7 @@ namespace gridtools {
 
         struct empty_ptr_diff {
             template <class T>
-            friend GT_HOST_CONSTEXPR GT_FUNCTION T *operator+(T *lhs, empty_ptr_diff) {
+            friend GT_FUNCTION T *operator+(T *lhs, empty_ptr_diff) {
                 return lhs;
             }
         };
@@ -102,7 +102,7 @@ namespace gridtools {
         template <class T>
         struct ptr_holder {
             T *m_val;
-            GT_FUNCTION GT_HOST_CONSTEXPR T *operator()() const { return m_val; }
+            GT_FUNCTION T *operator()() const { return m_val; }
 
             friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
                 return {obj.m_val + arg};

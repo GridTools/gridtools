@@ -55,7 +55,8 @@ namespace gridtools {
             };
             template <template <class...> class F,
                 class S,
-                template <class...> class L,
+                template <class...>
+                class L,
                 class T1,
                 class T2,
                 class T3,
@@ -89,7 +90,8 @@ namespace gridtools {
             };
             template <template <class...> class F,
                 class S,
-                template <class...> class L,
+                template <class...>
+                class L,
                 class T1,
                 class T2,
                 class T3,

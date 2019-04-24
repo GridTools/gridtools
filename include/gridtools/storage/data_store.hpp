@@ -152,7 +152,8 @@ namespace gridtools {
          * @param name Human readable name for the data_store
          */
         constexpr data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length(),
+            : m_shared_storage(new storage_t(
+                  info.padded_total_length(),
                   [initializer](int) { return initializer; },
                   info.first_index_of_inner_region(),
                   typename StorageInfo::alignment_t{})),

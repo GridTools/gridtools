@@ -473,7 +473,7 @@ namespace gridtools {
         GT_STATIC_ASSERT((is_location_type<DestLocation>::value), "Error: unknown dst location type");
         GT_STATIC_ASSERT(Color < SrcLocation::n_colors::value, "Error: Color index beyond color length");
 
-        GT_FUNCTION GT_HOST_CONSTEXPR static auto offsets() GT_AUTO_RETURN(
+        GT_FUNCTION static auto offsets() GT_AUTO_RETURN(
             from<SrcLocation>::template to<DestLocation>::template with_color<static_uint<Color>>::offsets());
     };
 

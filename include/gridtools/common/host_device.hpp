@@ -142,12 +142,5 @@
  */
 #define GT_ITERATE_ON_TARGETS() <gridtools/common/iterate_on_host_device.hpp>
 
-#ifdef __CUDA_ARCH__
-#define GT_HOST_CONSTEXPR
-#else
-#define GT_HOST_CONSTEXPR
-// #define GT_HOST_CONSTEXPR constexpr
-#endif
-
 /** @} */
 /** @} */

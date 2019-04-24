@@ -46,7 +46,7 @@ namespace gridtools {
         template <typename T>
         struct ctor {
             template <typename... Args>
-            GT_TARGET GT_FORCE_INLINE GT_HOST_CONSTEXPR T operator()(Args &&... args) const {
+            GT_TARGET GT_FORCE_INLINE T operator()(Args &&... args) const {
                 return T{std::forward<Args>(args)...};
             }
 
@@ -70,7 +70,7 @@ namespace gridtools {
         //
         struct identity {
             template <typename Arg>
-            GT_TARGET GT_FORCE_INLINE GT_HOST_CONSTEXPR Arg operator()(Arg &&arg) const {
+            GT_TARGET GT_FORCE_INLINE Arg operator()(Arg &&arg) const {
                 return arg;
             }
 
@@ -88,7 +88,7 @@ namespace gridtools {
         //
         struct clone {
             template <typename Arg>
-            GT_TARGET GT_FORCE_INLINE GT_HOST_CONSTEXPR Arg operator()(Arg const &arg) const {
+            GT_TARGET GT_FORCE_INLINE Arg operator()(Arg const &arg) const {
                 return arg;
             }
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE

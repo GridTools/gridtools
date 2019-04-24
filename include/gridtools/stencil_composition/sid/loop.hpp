@@ -54,7 +54,7 @@ namespace gridtools {
                 };
 
                 template <class Fun>
-                GT_HOST_CONSTEXPR GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
+                GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
                     return {const_expr::forward<Fun>(fun), m_num_steps, m_step};
                 }
 
@@ -83,7 +83,7 @@ namespace gridtools {
                 };
 
                 template <class Outer>
-                GT_HOST_CONSTEXPR GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
+                GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
                     return {const_expr::forward<Outer>(outer), m_num_steps, m_step, 0};
                 }
 
@@ -100,7 +100,7 @@ namespace gridtools {
                     GT_FUNCTION bool done() const { return m_pos > 0; }
                 };
 
-                GT_HOST_CONSTEXPR GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_step, m_num_steps}; }
+                GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_step, m_num_steps}; }
             };
 
             template <class Key, class T, ptrdiff_t Step>
@@ -130,7 +130,7 @@ namespace gridtools {
                 };
 
                 template <class Fun>
-                GT_HOST_CONSTEXPR GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
+                GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
                     return {const_expr::forward<Fun>(fun), m_num_steps};
                 }
 
@@ -158,7 +158,7 @@ namespace gridtools {
                 };
 
                 template <class Outer>
-                GT_HOST_CONSTEXPR GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
+                GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
                     return {const_expr::forward<Outer>(outer), m_num_steps, 0};
                 }
 
@@ -174,7 +174,7 @@ namespace gridtools {
                     GT_FUNCTION bool done() const { return m_pos > 0; }
                 };
 
-                GT_HOST_CONSTEXPR GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_num_steps}; }
+                GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_num_steps}; }
             };
 
             template <class Key, class T>
@@ -197,7 +197,7 @@ namespace gridtools {
                 };
 
                 template <class Fun>
-                GT_HOST_CONSTEXPR GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
+                GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
                     return {const_expr::forward<Fun>(fun), m_num_steps};
                 }
 
@@ -222,7 +222,7 @@ namespace gridtools {
                 };
 
                 template <class Outer>
-                GT_HOST_CONSTEXPR GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
+                GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
                     return {const_expr::forward<Outer>(outer), m_num_steps, 0};
                 }
 
@@ -237,7 +237,7 @@ namespace gridtools {
                     GT_FUNCTION bool done() const { return m_pos > 0; }
                 };
 
-                GT_HOST_CONSTEXPR GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_num_steps}; }
+                GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_num_steps}; }
             };
 
             template <class Key, class T, T NumSteps>
@@ -265,7 +265,7 @@ namespace gridtools {
                 };
 
                 template <class Fun>
-                GT_HOST_CONSTEXPR GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
+                GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
                     return {const_expr::forward<Fun>(fun), m_step};
                 }
 
@@ -291,7 +291,7 @@ namespace gridtools {
                 };
 
                 template <class Outer>
-                GT_HOST_CONSTEXPR GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
+                GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
                     return {const_expr::forward<Outer>(outer), m_step, 0};
                 }
 
@@ -308,7 +308,7 @@ namespace gridtools {
                     GT_FUNCTION bool done() const { return m_pos > 0; }
                 };
 
-                GT_HOST_CONSTEXPR GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_step, NumSteps}; }
+                GT_FUNCTION outer_most_cursor_f make_cursor() const { return {m_step, NumSteps}; }
             };
 
             template <class Key, class T, ptrdiff_t NumSteps, ptrdiff_t Step>
@@ -331,7 +331,7 @@ namespace gridtools {
                 };
 
                 template <class Fun>
-                GT_HOST_CONSTEXPR GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
+                GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
                     return {const_expr::forward<Fun>(fun)};
                 }
 
@@ -356,7 +356,7 @@ namespace gridtools {
                 };
 
                 template <class Outer>
-                GT_HOST_CONSTEXPR GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
+                GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
                     return {const_expr::forward<Outer>(outer), 0};
                 }
 
@@ -372,7 +372,7 @@ namespace gridtools {
                     GT_FUNCTION bool done() const { return m_pos > 0; }
                 };
 
-                GT_HOST_CONSTEXPR GT_FUNCTION outer_most_cursor_f make_cursor() const { return {NumSteps}; }
+                GT_FUNCTION outer_most_cursor_f make_cursor() const { return {NumSteps}; }
             };
 
             template <class Key, class T, ptrdiff_t NumSteps>
@@ -391,7 +391,7 @@ namespace gridtools {
                 };
 
                 template <class Fun>
-                GT_HOST_CONSTEXPR GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
+                GT_FUNCTION loop_f<Fun> operator()(Fun &&fun) const {
                     return {const_expr::forward<Fun>(fun)};
                 }
 
@@ -412,7 +412,7 @@ namespace gridtools {
                 };
 
                 template <class Outer>
-                GT_HOST_CONSTEXPR GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
+                GT_FUNCTION cursor_f<Outer> make_cursor(Outer &&outer) const {
                     return {const_expr::forward<Outer>(outer), 0};
                 }
 
@@ -427,7 +427,7 @@ namespace gridtools {
                     GT_FUNCTION bool done() const { return m_pos > 0; }
                 };
 
-                GT_HOST_CONSTEXPR GT_FUNCTION outer_most_cursor_f make_cursor() const { return {NumSteps}; }
+                GT_FUNCTION outer_most_cursor_f make_cursor() const { return {NumSteps}; }
             };
 
             template <class Key, class T>
@@ -435,12 +435,12 @@ namespace gridtools {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
-                GT_HOST_CONSTEXPR GT_FUNCTION Fun operator()(Fun &&fun) const {
+                GT_FUNCTION Fun operator()(Fun &&fun) const {
                     return fun;
                 }
 
                 template <class Outer>
-                GT_HOST_CONSTEXPR GT_FUNCTION Outer make_cursor(Outer &&outer) const {
+                GT_FUNCTION Outer make_cursor(Outer &&outer) const {
                     return outer;
                 }
 
@@ -455,7 +455,7 @@ namespace gridtools {
                     GT_FUNCTION bool done() const { return m_done; }
                 };
 
-                GT_HOST_CONSTEXPR GT_FUNCTION outer_most_cursor_f make_cursor() const { return {false}; }
+                GT_FUNCTION outer_most_cursor_f make_cursor() const { return {false}; }
             };
 
             template <class Key, class T>
@@ -463,7 +463,7 @@ namespace gridtools {
                 GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
-                GT_HOST_CONSTEXPR GT_FUNCTION gridtools::host_device::noop operator()(Fun &&) const {
+                GT_FUNCTION gridtools::host_device::noop operator()(Fun &&) const {
                     return {};
                 }
 
@@ -475,25 +475,24 @@ namespace gridtools {
                 };
 
                 template <class... Ts>
-                GT_HOST_CONSTEXPR GT_FUNCTION cursor_f make_cursor(Ts &&...) const {
+                GT_FUNCTION cursor_f make_cursor(Ts &&...) const {
                     return {};
                 }
             };
 
             struct make_cursor_f {
                 template <class Cursor, class Loop>
-                GT_HOST_CONSTEXPR GT_FUNCTION auto operator()(Cursor &&cursor, Loop const &loop) const
+                GT_FUNCTION auto operator()(Cursor &&cursor, Loop const &loop) const
                     GT_AUTO_RETURN(loop.make_cursor(const_expr::forward<Cursor>(cursor)));
             };
 
             template <class Loops>
-            GT_HOST_CONSTEXPR GT_FUNCTION auto make_cursor_r(Loops &&loops)
-                GT_AUTO_RETURN(tuple_util::host_device::fold(make_cursor_f{},
-                    tuple_util::host_device::get<0>(const_expr::forward<Loops>(loops)).make_cursor(),
-                    tuple_util::host_device::drop_front<1>(const_expr::forward<Loops>(loops))));
+            GT_FUNCTION auto make_cursor_r(Loops &&loops) GT_AUTO_RETURN(tuple_util::host_device::fold(make_cursor_f{},
+                tuple_util::host_device::get<0>(const_expr::forward<Loops>(loops)).make_cursor(),
+                tuple_util::host_device::drop_front<1>(const_expr::forward<Loops>(loops))));
 
             template <class Loops>
-            GT_HOST_CONSTEXPR GT_FUNCTION auto make_cursor(Loops &&loops)
+            GT_FUNCTION auto make_cursor(Loops &&loops)
                 GT_AUTO_RETURN(make_cursor_r(tuple_util::host_device::reverse(const_expr::forward<Loops>(loops))));
 
             template <class Ptr, class Strides, class Cursor>
@@ -514,7 +513,7 @@ namespace gridtools {
             };
 
             template <class Ptr, class Strides, class Cursor>
-            GT_HOST_CONSTEXPR GT_FUNCTION range<Ptr, Strides const &, Cursor> make_range(
+            GT_FUNCTION range<Ptr, Strides const &, Cursor> make_range(
                 Ptr ptr, Strides const &strides, Cursor &&cursor) {
                 return {const_expr::move(ptr), strides, const_expr::forward<Cursor>(cursor)};
             }
@@ -585,7 +584,7 @@ namespace gridtools {
             class T2,
             class T = common_type_t<T1, T2>,
             enable_if_t<std::is_integral<T1>::value && std::is_integral<T2>::value, int> = 0>
-        GT_HOST_CONSTEXPR GT_FUNCTION loop_impl_::generic_loop<Key, make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
+        GT_FUNCTION loop_impl_::generic_loop<Key, make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
             return {num_steps, step};
         }
 
@@ -595,7 +594,7 @@ namespace gridtools {
             T2 Step = 1,
             class T = common_type_t<T1, T2>,
             enable_if_t<std::is_integral<T1>::value, int> = 0>
-        GT_HOST_CONSTEXPR GT_FUNCTION loop_impl_::known_step_loop<Key, make_signed_t<T>, Step> make_loop(
+        GT_FUNCTION loop_impl_::known_step_loop<Key, make_signed_t<T>, Step> make_loop(
             T1 num_steps, std::integral_constant<T2, Step> = {}) {
             return {num_steps};
         }
@@ -606,7 +605,7 @@ namespace gridtools {
             class T2,
             class T = common_type_t<T1, T2>,
             enable_if_t<std::is_integral<T1>::value && (NumStepsV > 1), int> = 0>
-        GT_HOST_CONSTEXPR GT_FUNCTION loop_impl_::known_num_steps_loop<Key, make_signed_t<T>, NumStepsV> make_loop(
+        GT_FUNCTION loop_impl_::known_num_steps_loop<Key, make_signed_t<T>, NumStepsV> make_loop(
             std::integral_constant<T1, NumStepsV>, T2 step) {
             return {step};
         }
@@ -617,7 +616,7 @@ namespace gridtools {
             class T2,
             class T = common_type_t<T1, T2>,
             enable_if_t<std::is_integral<T1>::value && (NumStepsV == 0 || NumStepsV == 1), int> = 0>
-        GT_HOST_CONSTEXPR GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, 0> make_loop(
+        GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, 0> make_loop(
             std::integral_constant<T1, NumStepsV>, T2) {
             return {};
         }
@@ -629,8 +628,8 @@ namespace gridtools {
             T2 StepV = 1,
             class T = common_type_t<T1, T2>,
             enable_if_t<(NumStepsV >= 0), int> = 0>
-        GT_HOST_CONSTEXPR GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
-        make_loop(std::integral_constant<T1, NumStepsV>, std::integral_constant<T2, StepV> = {}) {
+        GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0> make_loop(
+            std::integral_constant<T1, NumStepsV>, std::integral_constant<T2, StepV> = {}) {
             return {};
         }
 
@@ -649,8 +648,7 @@ namespace gridtools {
          *   }
          */
         template <class Ptr, class Strides, class OuterMostLoop, class... Loops>
-        GT_HOST_CONSTEXPR GT_FUNCTION auto make_range(
-            Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops)
+        GT_FUNCTION auto make_range(Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops)
             GT_AUTO_RETURN(loop_impl_::make_range(const_expr::move(ptr),
                 strides,
                 loop_impl_::make_cursor(tuple<OuterMostLoop, Loops...>{

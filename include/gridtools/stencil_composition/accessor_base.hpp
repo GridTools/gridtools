@@ -22,29 +22,29 @@ namespace gridtools {
         template <uint_t I>
         struct get_dimension_value_f {
             template <uint_t J>
-            GT_FUNCTION GT_HOST_CONSTEXPR int_t operator()(dimension<J>) const {
+            GT_FUNCTION int_t operator()(dimension<J>) const {
                 return 0;
             }
-            GT_FUNCTION GT_HOST_CONSTEXPR int_t operator()(dimension<I> src) const { return src.value; }
+            GT_FUNCTION int_t operator()(dimension<I> src) const { return src.value; }
         };
 
         template <uint_t I>
-        GT_FUNCTION GT_HOST_CONSTEXPR int_t sum_dimensions() {
+        GT_FUNCTION int_t sum_dimensions() {
             return 0;
         }
 
         template <uint_t I, class T, class... Ts>
-        GT_FUNCTION GT_HOST_CONSTEXPR int_t sum_dimensions(T src, Ts... srcs) {
+        GT_FUNCTION int_t sum_dimensions(T src, Ts... srcs) {
             return get_dimension_value_f<I>{}(src) + sum_dimensions<I>(srcs...);
         }
 
         template <uint_t Dim, uint_t... Is, class... Ts>
-        GT_FUNCTION GT_HOST_CONSTEXPR array<int_t, Dim> make_offsets_impl(meta::integer_sequence<uint_t, Is...>, Ts... srcs) {
+        GT_FUNCTION array<int_t, Dim> make_offsets_impl(meta::integer_sequence<uint_t, Is...>, Ts... srcs) {
             return {sum_dimensions<Is + 1>(srcs...)...};
         }
 
         template <uint_t Dim, class... Ts>
-        GT_FUNCTION GT_HOST_CONSTEXPR array<int_t, Dim> make_offsets(Ts... srcs) {
+        GT_FUNCTION array<int_t, Dim> make_offsets(Ts... srcs) {
             return make_offsets_impl<Dim>(meta::make_integer_sequence<uint_t, Dim>{}, srcs...);
         }
     } // namespace accessor_base_impl_
@@ -82,12 +82,12 @@ namespace gridtools {
 
         template <class... Ints,
             enable_if_t<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value, int> = 0>
-        GT_FUNCTION GT_HOST_CONSTEXPR explicit accessor_base(Ints... offsets) : base_t{{offsets...}} {}
+        GT_FUNCTION explicit accessor_base(Ints... offsets) : base_t{{offsets...}} {}
 
-        GT_FUNCTION GT_HOST_CONSTEXPR explicit accessor_base(base_t const &src) : base_t{src} {}
+        GT_FUNCTION explicit accessor_base(base_t const &src) : base_t{src} {}
 
         template <uint_t I, uint_t... Is>
-        GT_FUNCTION GT_HOST_CONSTEXPR explicit accessor_base(dimension<I> d, dimension<Is>... ds)
+        GT_FUNCTION explicit accessor_base(dimension<I> d, dimension<Is>... ds)
             : base_t{accessor_base_impl_::make_offsets<Dim>(d, ds...)} {
             GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
                 "all dimensions should be of different indicies");
