@@ -42,9 +42,7 @@ namespace gridtools {
 
             template <class Arg>
             void operator()() const {
-                using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
-                using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
-                auto const &stride = sid::get_stride<Dim>(at_key<strides_kind_t>(m_self->m_strides_map));
+                auto const &stride = sid::get_stride<Dim>(m_self->template strides<Arg>());
                 auto &ptr = at_key<Arg>(m_self->m_ptr_map);
                 sid::shift(ptr, stride, m_offset);
             }
@@ -57,7 +55,7 @@ namespace gridtools {
 
             template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             void operator()() const {
-                auto const &strides = m_self->strides<Arg>();
+                auto const &strides = m_self->template strides<Arg>();
                 auto &ptr = at_key<Arg>(m_self->m_ptr_map);
                 using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
                 using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
@@ -70,7 +68,7 @@ namespace gridtools {
             template <class Arg, enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
             void operator()() const {
                 auto &ptr = at_key<Arg>(m_self->m_ptr_map);
-                auto const &strides = m_self->strides<Arg>();
+                auto const &strides = m_self->template strides<Arg>();
                 sid::shift(ptr, sid::get_stride<dim::i>(strides), m_grid.i_low_bound());
                 sid::shift(ptr, sid::get_stride<dim::j>(strides), m_grid.j_low_bound());
             }
