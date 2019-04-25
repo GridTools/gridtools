@@ -1,0 +1,112 @@
+{
+    "datetime": "2019-04-23T09:37:59.141509+0000",
+    "domain": [
+        256,
+        256,
+        80
+    ],
+    "runinfo": {
+        "backend": "x86",
+        "clustername": "kesch",
+        "compiler": "/apps/escha/UES/jenkins/RH7.3-gnu_PE17.02/easybuild/software/gcccore/5.4.0/bin/g++ 5.4.0",
+        "datetime": "2019-04-23T08:01:18.000000+0000",
+        "grid": "structured",
+        "hostname": "keschln-0002",
+        "name": "gridtools",
+        "precision": "double",
+        "version": "db2888bd06f5831ccec3993e40636c2971e5db0b"
+    },
+    "times": [
+        {
+            "measurements": [
+                0.0236269,
+                0.0240042,
+                0.0234755,
+                0.0236705,
+                0.0236539,
+                0.0235027,
+                0.0235352,
+                0.0242699,
+                0.0236632,
+                0.0235374
+            ],
+            "stencil": "copy"
+        },
+        {
+            "measurements": [
+                0.0440661,
+                0.0444337,
+                0.0449754,
+                0.0449817,
+                0.0447539,
+                0.0444365,
+                0.045267,
+                0.0440724,
+                0.0443315,
+                0.0436941
+            ],
+            "stencil": "horizontal diffusion"
+        },
+        {
+            "measurements": [
+                1.04927,
+                1.05064,
+                1.0495,
+                1.05164,
+                1.04964,
+                1.04939,
+                1.05039,
+                1.05133,
+                1.04834,
+                1.05026
+            ],
+            "stencil": "horizontal diffusion fused"
+        },
+        {
+            "measurements": [
+                0.0375115,
+                0.0383276,
+                0.0379912,
+                0.038022,
+                0.0376422,
+                0.0383716,
+                0.0376713,
+                0.0376556,
+                0.0378357,
+                0.0378039
+            ],
+            "stencil": "simple horizontal diffusion"
+        },
+        {
+            "measurements": [
+                0.0808931,
+                0.0814877,
+                0.0806955,
+                0.0808713,
+                0.0815117,
+                0.0815115,
+                0.0808585,
+                0.0818486,
+                0.081035,
+                0.0809461
+            ],
+            "stencil": "vertical advection"
+        },
+        {
+            "measurements": [
+                0.318043,
+                0.318011,
+                0.317326,
+                0.318483,
+                0.317757,
+                0.318328,
+                0.317854,
+                0.317646,
+                0.327048,
+                0.317465
+            ],
+            "stencil": "advection pd bott"
+        }
+    ],
+    "version": 0.5
+}

@@ -58,11 +58,6 @@ else()
 endif()
 set(GT_CUDA_ARCH "${GT_CUDA_ARCH_INIT}" CACHE STRING "Compute capability for CUDA used for tests")
 
-set( TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh )
-set( TEST_MANIFEST ${CMAKE_BINARY_DIR}/tests_manifest.txt )
-set( TEST_MPI_SCRIPT ${CMAKE_BINARY_DIR}/run_mpi_tests.sh )
-set( TEST_CUDA_MPI_SCRIPT ${CMAKE_BINARY_DIR}/run_cuda_mpi_tests.sh )
-
 mark_as_advanced(
     GT_CXX_STANDARD
     GT_TREAT_WARNINGS_AS_ERROR

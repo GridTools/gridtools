@@ -1,0 +1,112 @@
+{
+    "datetime": "2019-04-23T09:40:18.482410+0000",
+    "domain": [
+        256,
+        256,
+        80
+    ],
+    "runinfo": {
+        "backend": "x86",
+        "clustername": "tave",
+        "compiler": "/opt/intel/compilers_and_libraries_2018.2.199/linux/bin/intel64/icpc 18.0.2.20180210",
+        "datetime": "2019-04-23T08:01:18.000000+0000",
+        "grid": "structured",
+        "hostname": "tave101",
+        "name": "gridtools",
+        "precision": "float",
+        "version": "db2888bd06f5831ccec3993e40636c2971e5db0b"
+    },
+    "times": [
+        {
+            "measurements": [
+                0.0261531,
+                0.0262268,
+                0.0263665,
+                0.0263119,
+                0.0261121,
+                0.0260782,
+                0.0261588,
+                0.0261807,
+                0.0259519,
+                0.0268171
+            ],
+            "stencil": "copy"
+        },
+        {
+            "measurements": [
+                0.776564,
+                0.782361,
+                0.783465,
+                0.783649,
+                0.780299,
+                0.772904,
+                0.780719,
+                0.78311,
+                0.781835,
+                0.781315
+            ],
+            "stencil": "horizontal diffusion"
+        },
+        {
+            "measurements": [
+                1.53053,
+                1.53126,
+                1.52559,
+                1.53088,
+                1.52865,
+                1.53078,
+                1.53339,
+                1.52998,
+                1.52396,
+                1.531
+            ],
+            "stencil": "horizontal diffusion fused"
+        },
+        {
+            "measurements": [
+                0.588891,
+                0.586156,
+                0.584778,
+                0.584862,
+                0.586033,
+                0.584421,
+                0.587521,
+                0.589858,
+                0.586904,
+                0.583116
+            ],
+            "stencil": "simple horizontal diffusion"
+        },
+        {
+            "measurements": [
+                0.691175,
+                0.692368,
+                0.688979,
+                0.691765,
+                0.689278,
+                0.690771,
+                0.685919,
+                0.688025,
+                0.690362,
+                0.690433
+            ],
+            "stencil": "vertical advection"
+        },
+        {
+            "measurements": [
+                0.324854,
+                0.325716,
+                0.324807,
+                0.325162,
+                0.326796,
+                0.324567,
+                0.326187,
+                0.325493,
+                0.325282,
+                0.327268
+            ],
+            "stencil": "advection pd bott"
+        }
+    ],
+    "version": 0.5
+}
