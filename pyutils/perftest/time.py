@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from perftest import ArgumentError
 from datetime import datetime, timezone
 
 
@@ -49,10 +48,7 @@ def from_timestr(timestr):
     Returns:
         A `datetime.datetime` object, representing the same time as `timestr`.
     """
-    try:
-        return datetime.strptime(timestr, '%Y-%m-%dT%H:%M:%S.%f%z')
-    except ValueError:
-        raise ArgumentError(f'"{timestr}" is an invalid time string') from None
+    return datetime.strptime(timestr, '%Y-%m-%dT%H:%M:%S.%f%z')
 
 
 def short_timestr(time):

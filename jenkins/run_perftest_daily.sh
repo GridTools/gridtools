@@ -1,44 +1,32 @@
-# use the machines python virtualenv with required modules (matplotlib) installed
-source /project/c14/jenkins/python-venvs/${label%%-*}/bin/activate
+#!/bin/bash
 
-# print full PATH for debugging purposes
-echo "$PATH"
+source $(dirname "$0")/setup.sh
 
-# get config name, consisting of label without postfix (like the -cn from daint-cn) and compiler name
-config=${label%%-*}_$compiler
+grid=structured
 
-# create directory for temporaries
-if [[ $label == "tave" ]]; then
-    # use /dev/shm on Tave due to small /tmp size
-    tmpdir=$(mktemp -d /dev/shm/gridtools-tmp-XXXXXXXXXX)
-else
-    # use a subdirectory of /tmp on other systems to avoid memory problems
-    tmpdir=$(mktemp -d /tmp/gridtools-tmp-XXXXXXXXXX)
-fi
-mkdir -p $tmpdir
-export TMPDIR=$tmpdir
+export GTCMAKE_GT_ENABLE_BACKEND_NAIVE=OFF
 
 # build binaries for performance tests
-./pyutils/build.py -vvv --build-type release --backend $backend --precision $precision --grid $grid --build-dir build --config $config --perftest-targets || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
+./pyutils/driver.py -v -l $logfile build -b release -p $real_type -g $grid -o build -e $envfile -t perftests || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
 
 for domain in 128 256; do
   # result directory, create if it does not exist yet
-  resultdir=/project/c14/jenkins/gridtools-performance-history/$config/$grid/$precision/$backend/$domain
+  resultdir=/project/c14/jenkins/gridtools-performance-history-new/$grid/$real_type/$domain/${label}_$env
   mkdir -p $resultdir
-  
+
   # name result file by date/time
   resultname=$(date +%F-%H-%M-%S).json
-  
-  # run performance tests
-  ./build/pyutils/perfdriver.py -vvv run -d $domain $domain 80 --config $config -o $resultdir/$resultname || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
-  
-  # find previous results for history plot
-  results=$(find $resultdir -regex '.*\.json')
-  
-  # plot history
-  ./build/pyutils/perfdriver.py -vvv plot history -i $results -o history-$domain-full.png || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
-  ./build/pyutils/perfdriver.py -vvv plot history -i $results -o history-$domain-last.png --limit=10 || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
-done
 
-# clean possible temporary leftovers
-rm -rf $tmpdir
+  # run performance tests
+  ./build/pyutils/driver.py -v -l $logfile perftest run -s $domain $domain 80 -o $resultdir/$resultname || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
+
+  for backend in cuda x86 mc; do
+    # find previous results for history plot
+    results=$(find $resultdir -regex ".*\.$backend\.json")
+    if [[ -n "$results" ]]; then
+      # plot history
+      ./build/pyutils/driver.py -v -l $logfile perftest plot history -i $results -o history-$backend-$domain-full.png || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
+      ./build/pyutils/driver.py -v -l $logfile perftest plot history -i $results -o history-$backend-$domain-last.png --limit=10 || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
+    fi
+  done
+done

@@ -1,44 +1,46 @@
-# use the machines python virtualenv with required modules (matplotlib) installed
-source /project/c14/jenkins/python-venvs/${label%%-*}/bin/activate
+#!/bin/bash
 
-# get config name, consisting of label without postfix (like the -cn from daint-cn) and compiler name
-config=${label%%-*}_$compiler
+source $(dirname "$0")/setup.sh
 
-# create directory for temporaries
-if [[ $label == "tave" ]]; then
-    # use /dev/shm on Tave due to small /tmp size
-    tmpdir=$(mktemp -d /dev/shm/gridtools-tmp-XXXXXXXXXX)
-else
-    # use a subdirectory of /tmp on other systems to avoid memory problems
-    tmpdir=$(mktemp -d /tmp/gridtools-tmp-XXXXXXXXXX)
-fi
-mkdir -p $tmpdir
-export TMPDIR=$tmpdir
+grid=structured
+
+export GTCMAKE_GT_ENABLE_BACKEND_NAIVE=OFF
 
 # build binaries for performance tests
-./pyutils/build.py -vvv --build-type release --backend $backend --precision $precision --grid $grid --build-dir build --config $config --perftest-targets || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
+./pyutils/driver.py -v -l $logfile build -b release -p $real_type -g $grid -o build -e $envfile -t perftests || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
 
 for domain in 128 256; do
   # result directory, create if it does not exist yet
-  resultdir=./build/pyutils/results/$config/$grid/$precision/$backend/$domain
+  resultdir=./build/pyutils/perftest/results/$grid/$real_type/$domain/${label}_$env
   mkdir -p $resultdir
-  
-  # run performance tests
-  ./build/pyutils/perfdriver.py -vvv run -d $domain $domain 80 --config $config -o $resultdir/result.json || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
-  
-  # find references for same config-grid-precision-backend combination
-  reference_path=./pyutils/references/$config/$grid/$precision/$backend/$domain
-  if [ -d $reference_path ]; then
-  	stella_reference=$(find $reference_path -name stella.json)
-  	gridtools_reference=$(find $reference_path -name result.json)
-  	references="$stella_reference $gridtools_reference"
-  else
-  	references=""
-  fi
-  
-  # plot comparison of current result with references
-  ./build/pyutils/perfdriver.py -vvv plot compare -i $references $resultdir/result.json -o plot-$domain.png || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
-done
 
-# clean possible temporary leftovers
-rm -rf $tmpdir
+  # run performance tests
+  ./build/pyutils/driver.py -v -l $logfile perftest run -s $domain $domain 80 -o $resultdir/result.json || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
+
+  allresults=''
+  for backend in cuda x86 mc; do
+    result=$resultdir/result.$backend.json
+    if [[ -f $result ]]; then
+      # append result
+      allresults="$allresults $result"
+
+      # find references for same configuration
+      reference_path=./pyutils/perftest/references/$grid/$real_type/$domain/${label}_$env
+      if [[ -d $reference_path ]]; then
+        stella_reference=$(find $reference_path -name stella.json)
+        gridtools_reference=$(find $reference_path -name "result.$backend.json")
+        references="$stella_reference $gridtools_reference"
+      else
+        references=""
+      fi
+
+      # plot comparison of current result with references
+      ./build/pyutils/driver.py -v -l $logfile perftest plot compare -i $references $result -o plot-$backend-$domain.png || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
+    fi
+  done
+
+  if [[ -n "$allresults" ]]; then
+    # plot comparison of backends
+    ./build/pyutils/driver.py -v -l $logfile perftest plot compare -i $allresults -o plot-backend-compare-$domain.png || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
+  fi
+done

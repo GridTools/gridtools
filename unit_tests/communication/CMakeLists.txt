@@ -3,22 +3,26 @@ fetch_x86_tests(. LABELS unittest_x86 )
 fetch_mc_tests(. LABELS unittest_mc )
 fetch_gpu_tests(. LABELS unittest_gpu )
 
-add_custom_x86_test(
+add_custom_test(
+    x86
     TARGET boolist
     SOURCES boolist.cpp
     LABELS unittest_x86
     )
-add_custom_x86_test(
+add_custom_test(
+    x86
     TARGET ndloops
     SOURCES ndloops.cpp
     LABELS unittest_x86
     )
-add_custom_mc_test(
+add_custom_test(
+    mc
     TARGET boolist
     SOURCES boolist.cpp
     LABELS unittest_mc
     )
-add_custom_mc_test(
+add_custom_test(
+    mc
     TARGET ndloops
     SOURCES ndloops.cpp
     LABELS unittest_mc
@@ -43,13 +47,15 @@ if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
         foreach (source IN LISTS SOURCES ADDITIONAL_SOURCES)
             get_filename_component(target ${source} NAME_WE )
-            add_custom_mpi_x86_test(
+            add_custom_mpi_test(
+                x86
                 TARGET ${target}
                 NPROC 4
                 SOURCES ${source}
                 LABELS mpitest_x86
                 )
-            add_custom_mpi_mc_test(
+            add_custom_mpi_test(
+                mc
                 TARGET ${target}
                 NPROC 4
                 SOURCES ${source}
@@ -59,14 +65,16 @@ if( NOT GT_GCL_ONLY )
         foreach (source IN LISTS SOURCES)
             get_filename_component(target ${source} NAME_WE )
 
-            add_custom_mpi_x86_test(
+            add_custom_mpi_test(
+                x86
                 TARGET ${target}_vector
                 NPROC 4
                 SOURCES ${source}
                 COMPILE_DEFINITIONS VECTOR_INTERFACE
                 LABELS mpitest_x86
                 )
-            add_custom_mpi_mc_test(
+            add_custom_mpi_test(
+                mc
                 TARGET ${target}_vector
                 NPROC 4
                 SOURCES ${source}
@@ -82,13 +90,15 @@ if( NOT GT_GCL_ONLY )
             set (source_ ${path}/${source_name}.cu)
             set(target ${source_name})
 
-            add_custom_mpi_gpu_test(
+            add_custom_mpi_test(
+                cuda
                 TARGET ${target}
                 NPROC 4
                 SOURCES ${source_}
                 LABELS mpitest_cuda
                 )
-            add_custom_mpi_gpu_test(
+            add_custom_mpi_test(
+                cuda
                 TARGET ${target}_vector
                 NPROC 4
                 SOURCES ${source_}
