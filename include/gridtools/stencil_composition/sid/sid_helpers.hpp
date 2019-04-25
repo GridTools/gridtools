@@ -9,12 +9,12 @@
  */
 #pragma once
 
+#include "../../common/generic_metafunctions/for_each.hpp"
 #include "delegate.hpp"
 
 namespace gridtools {
     namespace sid {
         namespace sid_helpers_impl_ {
-
             template <class Strides, class Offsets, class PtrDiff>
             struct offset_f {
                 Strides const &strides;
@@ -23,16 +23,9 @@ namespace gridtools {
 
                 template <class Key>
                 void operator()(Key) const {
-                    sid::shift(ptr_diff, sid::get_stride<Key>(strides), integral_constant<int, 1>{});
-                    //                    ptr_diff += at_key<T>(strides) * at_key<T>(offsets);
+                    sid::shift(ptr_diff, sid::get_stride<Key>(strides), at_key<Key>(offsets));
                 }
             };
-
-            //            TEST(for_each, functional) {
-            //                double acc = 0;
-            //                for_each(accumulate_f{acc}, std::make_tuple(42, 5.3));
-            //                EXPECT_EQ(47.3, acc);
-            //            }
 
             template <class Sid, class Offset>
             class shifted_sid : public delegate<Sid> {
@@ -41,12 +34,9 @@ namespace gridtools {
                 friend GT_META_CALL(sid::ptr_holder_type, Sid) sid_get_origin(shifted_sid &obj) {
                     auto &&impl = obj.impl();
                     GT_META_CALL(sid::ptr_diff_type, Sid) offset{};
-                    sid::shift(offset,
-                        sid::get_stride<integral_constant<int, 1>>(sid::get_strides(impl)),
-                        integral_constant<int, 1>{});
-                    sid::shift(offset,
-                        sid::get_stride<integral_constant<int, 2>>(sid::get_strides(impl)),
-                        integral_constant<int, 2>{});
+                    auto strides = sid::get_strides(impl);
+                    for_each<decltype(hymap_get_keys(obj.m_offset))>(
+                        offset_f<decltype(strides), Offset, decltype(offset)>{strides, obj.m_offset, offset});
                     return sid::get_origin(impl) + offset;
                 }
 

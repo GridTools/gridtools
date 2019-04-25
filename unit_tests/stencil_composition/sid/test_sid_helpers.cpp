@@ -20,22 +20,21 @@
 namespace gridtools {
     namespace {
         using sid::property;
-        namespace tu = tuple_util;
         using namespace literals;
 
-        TEST(sid_helpers, shifted_sid) {
+        TEST(sid_helpers, shifted) {
             double data[3][5][7];
+
             using strides_t = hymap::keys<dim::i, dim::j, dim::k>::
-                values<integral_constant<int_t, 1>, integral_constant<int_t, 5>, integral_constant<int_t, 5 * 7>>;
+                values<integral_constant<int_t, 5 * 7>, integral_constant<int_t, 7>, integral_constant<int_t, 1>>;
 
             auto src = sid::synthetic()
                            .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0][0]))
                            .set<property::strides>(strides_t{});
 
-            using offset_t =
-                hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, 1>, integral_constant<int_t, 2>>;
-
-            auto testee = shifted_sid(src, offset_t{});
+            using offset_t = hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, 1>, int_t>;
+            offset_t offset = {integral_constant<int_t, 1>{}, 2};
+            auto testee = sid::shifted_sid(src, offset);
 
             static_assert(is_sid<decltype(testee)>(), "");
 
