@@ -156,7 +156,7 @@ namespace gridtools {
             }
             template <typename T1, typename T2>
             static GT_FUNCTION T2 &&move_get(pair<T1, T2> &&p) noexcept {
-                return const_expr::move(p.second);
+                return std::move(p.second);
             }
         };
 

@@ -37,13 +37,13 @@ namespace gridtools {
 
                 template <class... Args>
                 GT_TARGET GT_FORCE_INLINE auto operator()(Args &&... args) const
-                    GT_AUTO_RETURN(m_f(m_g(const_expr::forward<Args>(args)...)));
+                    GT_AUTO_RETURN(m_f(m_g(std::forward<Args>(args)...)));
             };
 
             template <class F, class... Fs>
             struct composed_f<F, Fs...> : composed_f<F, composed_f<Fs...>> {
                 GT_TARGET GT_FORCE_INLINE composed_f(F f, Fs... fs)
-                    : composed_f<F, composed_f<Fs...>>{const_expr::move(f), {const_expr::move(fs)...}} {}
+                    : composed_f<F, composed_f<Fs...>>{std::move(f), {std::move(fs)...}} {}
             };
         } // namespace compose_impl_
 
@@ -53,7 +53,7 @@ namespace gridtools {
         ///
         template <class... Funs>
         GT_TARGET GT_FORCE_INLINE compose_impl_::composed_f<Funs...> compose(Funs && ... funs) {
-            return {const_expr::forward<Funs>(funs)...};
+            return {std::forward<Funs>(funs)...};
         }
 
         template <class Fun>

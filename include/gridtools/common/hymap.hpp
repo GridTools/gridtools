@@ -154,7 +154,7 @@ namespace gridtools {
             class Map,
             class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, decay_t<Map>), Key))>
         GT_TARGET GT_FORCE_INLINE auto at_key(Map && map) noexcept GT_AUTO_RETURN(
-            tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(const_expr::forward<Map>(map)));
+            tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(std::forward<Map>(map)));
 
         template <class Key,
             class Default,
@@ -163,7 +163,7 @@ namespace gridtools {
             class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, Decayed), Key)),
             enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
         GT_TARGET GT_FORCE_INLINE constexpr auto at_key_with_default(Map && map) noexcept GT_AUTO_RETURN(
-            tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(const_expr::forward<Map>(map)));
+            tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(std::forward<Map>(map)));
 
         template <class Key,
             class Default,

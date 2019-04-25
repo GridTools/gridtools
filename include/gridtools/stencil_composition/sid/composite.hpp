@@ -245,7 +245,7 @@ namespace gridtools {
                         class Item = GT_META_CALL(meta::mp_find, (Map, std::integral_constant<size_t, I>)),
                         class Pos = GT_META_CALL(meta::second, Item)>
                     static GT_FUNCTION auto get(T &&obj)
-                        GT_AUTO_RETURN(tuple_util::host_device::get<Pos::value>(const_expr::forward<T>(obj).m_vals));
+                        GT_AUTO_RETURN(tuple_util::host_device::get<Pos::value>(std::forward<T>(obj).m_vals));
 
                     template <class... Ts>
                     struct composite_entity {

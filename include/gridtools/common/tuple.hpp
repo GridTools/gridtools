@@ -33,7 +33,7 @@ namespace gridtools {
             GT_FUNCTION tuple_leaf() noexcept : m_value() {}
 
             template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
-            GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : m_value(const_expr::forward<Arg>(arg)) {}
+            GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : m_value(std::forward<Arg>(arg)) {}
         };
 
         template <size_t I, class T>
@@ -45,7 +45,7 @@ namespace gridtools {
             tuple_leaf &operator=(tuple_leaf &&) = default;
 
             template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
-            GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : T(const_expr::forward<Arg>(arg)) {}
+            GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : T(std::forward<Arg>(arg)) {}
         };
 
         struct tuple_leaf_getter {
@@ -93,11 +93,11 @@ namespace gridtools {
             tuple_impl &operator=(tuple_impl &&) = default;
 
             template <class... Args>
-            GT_FUNCTION tuple_impl(Args &&... args) noexcept : tuple_leaf<Is, Ts>(const_expr::forward<Args>(args))... {}
+            GT_FUNCTION tuple_impl(Args &&... args) noexcept : tuple_leaf<Is, Ts>(std::forward<Args>(args))... {}
 
             template <class Src>
             GT_FUNCTION tuple_impl(Src &&src) noexcept
-                : tuple_leaf<Is, Ts>(tuple_leaf_getter::get<Is>(const_expr::forward<Src>(src)))... {}
+                : tuple_leaf<Is, Ts>(tuple_leaf_getter::get<Is>(std::forward<Src>(src)))... {}
 
             GT_FORCE_INLINE void swap(tuple_impl &other) noexcept {
                 using std::swap;
@@ -152,7 +152,7 @@ namespace gridtools {
 
             template <size_t I>
             static GT_FUNCTION auto get(tuple &&obj) noexcept GT_AUTO_RETURN(
-                impl_::tuple_leaf_getter::get<I>(const_expr::move(obj).m_impl));
+                impl_::tuple_leaf_getter::get<I>(std::move(obj).m_impl));
         };
         friend getter tuple_getter(tuple const &) { return {}; }
 
