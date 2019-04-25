@@ -96,7 +96,11 @@ def _retreive_outputs(rundir, commands, task_id):
                '--parsable2',
                '--noheader']
     for _ in range(10):
-        output = run(command)
+        try:
+            output = run(command)
+        except subprocess.CalledProcessError:
+            time.sleep(1)
+            continue
         infos = [o.split('|') for o in output.splitlines() if '.batch' in o]
         exitcodes = [int(code.split(':')[0]) for _, code in sorted(infos)]
         if len(exitcodes) == len(commands):
