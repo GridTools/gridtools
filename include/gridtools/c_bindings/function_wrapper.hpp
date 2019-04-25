@@ -160,13 +160,13 @@ namespace gridtools {
 
         /// Wrap the functor of type `Impl` to another functor that can be invoked with the 'wrapped_t<T>' signature.
         template <class T, class Impl>
-        constexpr _impl::wrapped_f<T, typename std::decay<Impl>::type> wrap(Impl &&obj) {
+        _impl::wrapped_f<T, typename std::decay<Impl>::type> wrap(Impl &&obj) {
             return {std::forward<Impl>(obj)};
         }
 
         /// Specialization for function pointers.
         template <class T>
-        constexpr _impl::wrapped_f<T, T *> wrap(T *obj) {
+        _impl::wrapped_f<T, T *> wrap(T *obj) {
             return {obj};
         }
     } // namespace c_bindings

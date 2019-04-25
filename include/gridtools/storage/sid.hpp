@@ -104,11 +104,9 @@ namespace gridtools {
             T *m_val;
             GT_FUNCTION T *operator()() const { return m_val; }
 
-            friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
-                return {obj.m_val + arg};
-            }
+            friend GT_FORCE_INLINE ptr_holder operator+(ptr_holder obj, int_t arg) { return {obj.m_val + arg}; }
 
-            friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, empty_ptr_diff) { return obj; }
+            friend GT_FORCE_INLINE ptr_holder operator+(ptr_holder obj, empty_ptr_diff) { return obj; }
         };
 
         template <class Storage, class StorageInfo>

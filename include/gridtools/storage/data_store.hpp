@@ -131,7 +131,7 @@ namespace gridtools {
         /**
          * @brief data_store constructor. This constructor does not trigger an allocation of the required space.
          */
-        constexpr data_store(std::string const &name = "")
+        data_store(std::string const &name = "")
             : m_shared_storage(nullptr), m_shared_storage_info(nullptr), m_name(name) {}
 
         /**
@@ -151,7 +151,7 @@ namespace gridtools {
          * @param initializer initialization value
          * @param name Human readable name for the data_store
          */
-        constexpr data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
+        data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
             : m_shared_storage(new storage_t(
                   info.padded_total_length(),
                   [initializer](int) { return initializer; },
@@ -205,7 +205,7 @@ namespace gridtools {
          */
         template <typename T = data_t *,
             enable_if_t<std::is_pointer<T>::value && std::is_same<data_t *, T>::value, int> = 0>
-        explicit constexpr data_store(StorageInfo const &info,
+        explicit data_store(StorageInfo const &info,
             T external_ptr,
             ownership own = ownership::external_cpu,
             std::string const &name = "")

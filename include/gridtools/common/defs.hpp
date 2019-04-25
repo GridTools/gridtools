@@ -40,15 +40,6 @@
 #endif
 #endif
 
-/**
- * Macro to allow make functions constexpr in c++14 (in case they are not only a return statement)
- */
-#if __cplusplus >= 201402L
-#define GT_CXX14CONSTEXPR constexpr
-#else
-#define GT_CXX14CONSTEXPR
-#endif
-
 /** Macro to enable additional checks that may catch some errors in user code
  */
 #ifndef GT_PEDANTIC_DISABLED

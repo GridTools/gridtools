@@ -100,12 +100,12 @@ namespace gridtools {
 
     struct rt_extent {
         template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus>
-        constexpr rt_extent(extent<IMinus, IPlus, JMinus, JPlus, KMinus, KPlus>)
+        rt_extent(extent<IMinus, IPlus, JMinus, JPlus, KMinus, KPlus>)
             : iminus(IMinus), iplus(IPlus), jminus(JMinus), jplus(JPlus), kminus(KMinus), kplus(KPlus) {}
-        constexpr rt_extent(int_t iminus, int_t iplus, int_t jminus, int_t jplus, int_t kminus, int_t kplus)
+        rt_extent(int_t iminus, int_t iplus, int_t jminus, int_t jplus, int_t kminus, int_t kplus)
             : iminus(iminus), iplus(iplus), jminus(jminus), jplus(jplus), kminus(kminus), kplus(kplus) {}
         rt_extent() = default;
-        constexpr bool operator==(const rt_extent &rhs) const {
+        bool operator==(const rt_extent &rhs) const {
             return iminus == rhs.iminus && iplus == rhs.iplus && jminus == rhs.jminus && jplus == rhs.jplus &&
                    kminus == rhs.kminus && kplus == rhs.kplus;
         }

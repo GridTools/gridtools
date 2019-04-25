@@ -128,7 +128,7 @@ namespace gridtools {
       public:
         constexpr static uint_t id = Id;
 
-        constexpr storage_info() = delete;
+        storage_info() = delete;
 
         /**
          * @brief storage info constructor. Additionally to initializing the members the halo
@@ -188,7 +188,7 @@ namespace gridtools {
         /**
          * @brief storage info copy constructor.
          */
-        constexpr storage_info(storage_info const &other) = default;
+        storage_info(storage_info const &other) = default;
 
         /**
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
