@@ -37,16 +37,8 @@ function(_fix_mpi_exec)
         set(use_mpi_wrappers OFF)
     endif()
 
-    set( MPITEST_HOST_ENVIRONMENT "$ENV{MPI_HOST_JOB_ENV}" CACHE STRING "Environment used for MPI Host tests in CTest" )
-    set( MPITEST_CUDA_ENVIRONMENT "$ENV{MPI_CUDA_JOB_ENV}" CACHE STRING "Environment used for MPI CUDA tests in CTest" )
-    set( TEST_HOST_ENVIRONMENT "$ENV{HOST_JOB_ENV}" CACHE STRING "Environment used for non-MPI Host tests in CTest" )
-    set( TEST_CUDA_ENVIRONMENT "$ENV{CUDA_JOB_ENV}" CACHE STRING "Environment used for non-MPI CUDA tests in CTest" )
     option( TEST_USE_WRAPPERS_FOR_ALL_TESTS "Use mpi wrappers for all tests" ${use_mpi_wrappers})
     mark_as_advanced(
-        MPITEST_HOST_ENVIRONMENT
-        MPITEST_CUDA_ENVIRONMENT
-        TEST_HOST_ENVIRONMENT
-        TEST_CUDA_ENVIRONMENT
         TEST_USE_WRAPPERS_FOR_ALL_TESTS)
 
 endfunction()
