@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include <type_traits>
 #include <utility>
 
 #include "../../../common/defs.hpp"
@@ -18,19 +17,15 @@
 #include "../iterate_domain.hpp"
 
 namespace gridtools {
-
     /**
-     * @brief iterate domain class for the Host backend
+     * @brief iterate domain class for the X86 backend
      */
     template <typename IterateDomainArguments>
-    struct iterate_domain_x86 : iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> {
-        template <class Arg>
-        GT_FORCE_INLINE iterate_domain_x86(Arg &&arg)
-            : iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments>(
-                  std::forward<Arg>(arg)) {}
+    struct iterate_domain_x86 : iterate_domain<IterateDomainArguments> {
+        using iterate_domain<IterateDomainArguments>::iterate_domain;
 
-        template <class Arg, class T>
-        static GT_FORCE_INLINE auto deref_impl(T &&ptr) GT_AUTO_RETURN(*ptr);
+        template <class Arg, class Accessor>
+        GT_FORCE_INLINE auto deref(Accessor const &acc) const GT_AUTO_RETURN(*this->template get_ptr<Arg>(acc));
     };
 
     template <typename IterateDomainArguments>
