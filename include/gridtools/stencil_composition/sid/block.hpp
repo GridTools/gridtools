@@ -34,11 +34,6 @@ namespace gridtools {
                 BlockSize m_block_size;
             };
 
-            template <class Stride, class BlockSize>
-            blocked_stride<Stride, BlockSize> make_blocked_stride(Stride const &stride, BlockSize const &block_size) {
-                return {stride, block_size};
-            }
-
             template <class Ptr, class Stride, class BlockSize, class Offset>
             GT_FUNCTION auto sid_shift(Ptr &ptr, blocked_stride<Stride, BlockSize> const &stride, Offset const &offset)
                 GT_AUTO_RETURN(shift(ptr, stride.m_stride, stride.m_block_size *offset));
@@ -48,12 +43,18 @@ namespace gridtools {
                 Strides m_strides;
                 BlockMap m_map;
 
-                template <class Dim>
-                auto operator()(blocked_dim<Dim>) const
-                    GT_AUTO_RETURN(make_blocked_stride(get_stride<Dim>(m_strides), at_key<Dim>(m_map)));
+                template <class Map, class Dim>
+                using decay_at = decay_t<decltype(at_key<Dim>(std::declval<Map>()))>;
 
                 template <class Dim>
-                auto operator()(Dim) const GT_AUTO_RETURN(get_stride<Dim>(m_strides));
+                blocked_stride<decay_at<Strides, Dim>, decay_at<BlockMap, Dim>> operator()(blocked_dim<Dim>) const {
+                    return {at_key<Dim>(m_strides), at_key<Dim>(m_map)};
+                }
+
+                template <class Dim>
+                decay_at<Strides, Dim> operator()(Dim) const {
+                    return at_key<Dim>(m_strides);
+                }
             };
 
             template <class Strides, class BlockMap>
