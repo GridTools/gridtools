@@ -24,6 +24,7 @@
 
 #include <utility>
 
+#include "./generic_metafunctions/utility.hpp"
 #include "./host_device.hpp"
 
 #define GT_FILENAME <gridtools/common/functional.hpp>
@@ -47,7 +48,7 @@ namespace gridtools {
         struct ctor {
             template <typename... Args>
             GT_TARGET GT_FORCE_INLINE T operator()(Args &&... args) const {
-                return T{std::forward<Args>(args)...};
+                return T{const_expr::forward<Args>(args)...};
             }
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE

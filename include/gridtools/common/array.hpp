@@ -195,7 +195,7 @@ namespace gridtools {
     template <size_t I, typename T, size_t D>
     GT_FUNCTION T &&get(array<T, D> &&arr) noexcept {
         GT_STATIC_ASSERT(I < D, "index is out of bounds");
-        return std::move(get<I>(arr));
+        return const_expr::move(get<I>(arr));
     }
 
     /** @} */

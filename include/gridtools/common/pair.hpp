@@ -36,16 +36,17 @@ namespace gridtools {
         GT_FUNCTION pair(const std::pair<U1, U2> &p) : pair(p.first, p.second) {}
 
         template <class U1, class U2>
-        GT_FUNCTION pair(std::pair<U1, U2> &&p) : pair(std::move(p.first), std::move(p.second)) {}
+        GT_FUNCTION pair(std::pair<U1, U2> &&p) : pair(const_expr::move(p.first), const_expr::move(p.second)) {}
 
         template <class U1, class U2>
-        GT_FUNCTION pair(U1 &&t1_, U2 &&t2_) : first(std::forward<U1>(t1_)), second(std::forward<U2>(t2_)) {}
+        GT_FUNCTION pair(U1 &&t1_, U2 &&t2_)
+            : first(const_expr::forward<U1>(t1_)), second(const_expr::forward<U2>(t2_)) {}
 
         template <class U1, class U2, typename std::enable_if<!std::is_same<pair<U1, U2>, pair>::value, int>::type = 0>
         GT_FUNCTION pair(const pair<U1, U2> &p) : first(p.first), second(p.second) {}
 
         template <class U1, class U2, typename std::enable_if<!std::is_same<pair<U1, U2>, pair>::value, int>::type = 0>
-        GT_FUNCTION pair(pair<U1, U2> &&p) : first(std::move(p.first)), second(std::move(p.second)) {}
+        GT_FUNCTION pair(pair<U1, U2> &&p) : first(const_expr::move(p.first)), second(const_expr::move(p.second)) {}
 
         template <typename U1,
             typename U2,
@@ -60,8 +61,8 @@ namespace gridtools {
             typename U2,
             typename std::enable_if<!std::is_same<pair<U1, U2>, pair>::value, int>::type = 0>
         GT_FUNCTION pair &operator=(pair<U1, U2> &&other) noexcept {
-            first = std::move(other.first);
-            second = std::move(other.second);
+            first = const_expr::move(other.first);
+            second = const_expr::move(other.second);
             return *this;
         }
 
@@ -141,7 +142,7 @@ namespace gridtools {
             }
             template <typename T1, typename T2>
             static GT_FUNCTION T1 &&move_get(pair<T1, T2> &&p) noexcept {
-                return std::move(p.first);
+                return const_expr::move(p.first);
             }
         };
         template <>
@@ -168,7 +169,8 @@ namespace gridtools {
             static GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_get<I>::const_get(p));
 
             template <size_t I, class T1, class T2>
-            static GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(pair_get<I>::move_get(std::move(p)));
+            static GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(
+                pair_get<I>::move_get(const_expr::move(p)));
         };
     } // namespace pair_impl_
 
@@ -179,7 +181,8 @@ namespace gridtools {
     GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_impl_::pair_get<I>::const_get(p));
 
     template <size_t I, class T1, class T2>
-    GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(pair_impl_::pair_get<I>::move_get(std::move(p)));
+    GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(
+        pair_impl_::pair_get<I>::move_get(const_expr::move(p)));
 
     template <class T1, class T2>
     pair_impl_::getter tuple_getter(pair<T1, T2> const &);

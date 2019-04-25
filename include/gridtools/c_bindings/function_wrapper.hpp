@@ -80,7 +80,7 @@ namespace gridtools {
             template <class T,
                 typename std::enable_if<std::is_class<typename std::remove_reference<T>::type>::value, int>::type = 0>
             gt_handle *convert_to_c(T &&obj) {
-                return new gt_handle{std::forward<T>(obj)};
+                return new gt_handle{const_expr::forward<T>(obj)};
             }
 
             template <class T>
@@ -161,7 +161,7 @@ namespace gridtools {
         /// Wrap the functor of type `Impl` to another functor that can be invoked with the 'wrapped_t<T>' signature.
         template <class T, class Impl>
         _impl::wrapped_f<T, typename std::decay<Impl>::type> wrap(Impl &&obj) {
-            return {std::forward<Impl>(obj)};
+            return {const_expr::forward<Impl>(obj)};
         }
 
         /// Specialization for function pointers.

@@ -260,13 +260,13 @@ namespace gridtools {
 
                         template <class... Args, enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
                         composite_entity(Args &&... args) noexcept
-                            : composite_entity(tuple<Args &&...>{std::forward<Args &&>(args)...}) {}
+                            : composite_entity(tuple<Args &&...>{const_expr::forward<Args &&>(args)...}) {}
 
                         template <template <class...> class L,
                             class... Args,
                             enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
                         composite_entity(L<Args...> &&tup) noexcept
-                            : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {}
+                            : m_vals{tuple_util::generate<generators_t, vals_t>(const_expr::move(tup))} {}
 
                         GT_DECLARE_DEFAULT_EMPTY_CTOR(composite_entity);
                         composite_entity(composite_entity const &) = default;
@@ -308,7 +308,7 @@ namespace gridtools {
                     struct convert_f {
                         template <template <class...> class L, class... Ts>
                         composite_entity<remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
-                            return {std::move(tup)};
+                            return {const_expr::move(tup)};
                         }
                     };
                 };

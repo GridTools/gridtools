@@ -52,7 +52,7 @@ namespace gridtools {
             class Src = decay_t<SrcRef>,
             enable_if_t<std::is_pointer<GT_META_CALL(sid::ptr_type, Src)>::value, int> = 0>
         as_const_impl_::const_adapter<Src> as_const(SrcRef &&src) {
-            return as_const_impl_::const_adapter<Src>{std::forward<SrcRef>(src)};
+            return as_const_impl_::const_adapter<Src>{const_expr::forward<SrcRef>(src)};
         }
     } // namespace sid
 } // namespace gridtools

@@ -117,7 +117,8 @@ namespace gridtools {
                                 conjunction<std::is_assignable<Ts &, Args &&>...>::value,
                     int> = 0>
             GT_FUNCTION void assign(tuple_impl<meta::index_sequence<Is...>, Args...> &&src) noexcept {
-                void((int[]){(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(std::move(src)), 0)...});
+                void((int[]){
+                    (tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(const_expr::move(src)), 0)...});
             }
         };
     } // namespace impl_
@@ -189,7 +190,7 @@ namespace gridtools {
 
         template <class Other>
         GT_FUNCTION auto operator=(Other &&other)
-            GT_AUTO_RETURN((m_impl.assign(std::forward<Other>(other).m_impl), *this));
+            GT_AUTO_RETURN((m_impl.assign(const_expr::forward<Other>(other).m_impl), *this));
     };
 
     template <class T>
@@ -255,7 +256,7 @@ namespace gridtools {
 
         template <class Arg, enable_if_t<std::is_assignable<T &, Arg &&>::value, int> = 0>
         GT_FUNCTION tuple &operator=(tuple<Arg> &&src) noexcept {
-            m_value = std::move(src).m_value;
+            m_value = const_expr::move(src).m_value;
             return *this;
         }
     };

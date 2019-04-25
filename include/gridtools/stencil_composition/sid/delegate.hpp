@@ -39,7 +39,7 @@ namespace gridtools {
 
           public:
             explicit delegate(Sid const &impl) noexcept : m_impl(impl) {}
-            explicit delegate(Sid &&impl) noexcept : m_impl(std::move(impl)) {}
+            explicit delegate(Sid &&impl) noexcept : m_impl(const_expr::move(impl)) {}
         };
 
         template <class Sid>

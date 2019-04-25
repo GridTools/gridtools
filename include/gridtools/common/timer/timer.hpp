@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "../generic_metafunctions/utility.hpp"
 #include "../host_device.hpp"
 #include <cmath>
 #include <sstream>
@@ -24,7 +25,7 @@ namespace gridtools {
     template <typename TimerImpl>
     class timer {
       protected:
-        timer(std::string name) : m_name(std::move(name)) {}
+        timer(std::string name) : m_name(const_expr::move(name)) {}
 
       public:
         /**

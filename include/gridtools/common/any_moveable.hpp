@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "defs.hpp"
+#include "generic_metafunctions/utility.hpp"
 
 namespace gridtools {
 
@@ -36,7 +37,7 @@ namespace gridtools {
         struct impl : iface {
             T m_obj;
             impl(T const &obj) : m_obj(obj) {}
-            impl(T &&obj) : m_obj(std::move(obj)) {}
+            impl(T &&obj) : m_obj(const_expr::move(obj)) {}
             std::type_info const &type() const noexcept override { return typeid(T); }
         };
         std::unique_ptr<iface> m_impl;
@@ -45,12 +46,12 @@ namespace gridtools {
         any_moveable() = default;
 
         template <class Arg, class Decayed = typename std::decay<Arg>::type>
-        any_moveable(Arg &&arg) : m_impl(new impl<Decayed>(std::forward<Arg>(arg))) {}
+        any_moveable(Arg &&arg) : m_impl(new impl<Decayed>(const_expr::forward<Arg>(arg))) {}
         any_moveable(any_moveable &&) = default;
 
         template <class Arg, class Decayed = typename std::decay<Arg>::type>
         any_moveable &operator=(Arg &&obj) {
-            m_impl.reset(new impl<Decayed>(std::forward<Arg>(obj)));
+            m_impl.reset(new impl<Decayed>(const_expr::forward<Arg>(obj)));
             return *this;
         }
         any_moveable &operator=(any_moveable &&) = default;

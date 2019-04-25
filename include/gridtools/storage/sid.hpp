@@ -131,7 +131,7 @@ namespace gridtools {
             friend decltype(sid_get_ptr_diff(impl())) sid_get_ptr_diff(host_adapter const &) { return {}; }
 
           public:
-            host_adapter(data_store<Storage, StorageInfo> obj) : m_impl(std::move(obj)) {}
+            host_adapter(data_store<Storage, StorageInfo> obj) : m_impl(const_expr::move(obj)) {}
         };
     } // namespace storage_sid_impl_
 
@@ -166,6 +166,6 @@ namespace gridtools {
      */
     template <class Storage, class StorageInfo>
     storage_sid_impl_::host_adapter<Storage, StorageInfo> as_host(data_store<Storage, StorageInfo> obj) {
-        return {std::move(obj)};
+        return {const_expr::move(obj)};
     }
 } // namespace gridtools

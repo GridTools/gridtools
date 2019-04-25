@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../meta/type_traits.hpp"
 
 namespace gridtools {
@@ -63,7 +64,7 @@ namespace gridtools {
                 unique_mixin &operator=(unique_mixin &&) = default;
 
                 template <class U>
-                unique_mixin(U &&obj) noexcept : mixin<Property, T>{std::forward<U>(obj)} {}
+                unique_mixin(U &&obj) noexcept : mixin<Property, T>{const_expr::forward<U>(obj)} {}
             };
 
             template <class...>
@@ -78,7 +79,7 @@ namespace gridtools {
 
                 template <property Property, class T>
                 synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
-                    return {std::forward<T>(val), synthetic{}};
+                    return {const_expr::forward<T>(val), synthetic{}};
                 }
             };
 
@@ -87,20 +88,20 @@ namespace gridtools {
 
                 GT_DECLARE_DEFAULT_EMPTY_CTOR(synthetic);
 
-                synthetic(synthetic<Mixins...> const &&src) noexcept : Mixins(std::move(src))... {}
+                synthetic(synthetic<Mixins...> const &&src) noexcept : Mixins(const_expr::move(src))... {}
 
                 template <class T>
                 synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
-                    : Mixin{std::forward<T>(val)}, Mixins(std::move(src))... {}
+                    : Mixin{const_expr::forward<T>(val)}, Mixins(const_expr::move(src))... {}
 
                 template <property Property, class U>
                 synthetic<unique_mixin<Property, U>, Mixin, Mixins...> set() const &&noexcept {
-                    return {std::move(*this)};
+                    return {const_expr::move(*this)};
                 }
 
                 template <property Property, class T>
                 synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(T &&val) const &&noexcept {
-                    return {std::forward<T>(val), std::move(*this)};
+                    return {const_expr::forward<T>(val), const_expr::move(*this)};
                 }
             };
         } // namespace synthetic_impl_
