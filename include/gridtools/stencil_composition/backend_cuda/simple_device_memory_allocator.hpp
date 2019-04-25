@@ -24,21 +24,16 @@ namespace gridtools {
 
       public:
         template <class T>
-        sid::host_device::simple_ptr_holder<T *> allocate(size_t num_elements) {
+        sid::device::simple_ptr_holder<T *> allocate(size_t num_elements) {
             T *ptr;
             GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T) * num_elements));
-            m_ptrs.emplace_back(ptr, [](T *ptr) { GT_CUDA_CHECK(cudaFree(ptr)); });
+            m_ptrs.emplace_back(ptr, [](T *ptr) { assert(cudaFree(ptr) == cudaSuccess); });
             return {static_cast<T *>(m_ptrs.back().get())};
         }
-
-        /**
-         * @brief Internal: use only for testing.
-         */
-        std::vector<std::shared_ptr<void>> const &ptrs() const { return m_ptrs; }
     };
 
-    template <class Allocator, class Tag, class T = typename Tag::type>
-    sid::host_device::simple_ptr_holder<T *> allocate(Allocator &alloc, Tag, size_t num_elements) {
+    template <class Tag, class T = typename Tag::type>
+    sid::device::simple_ptr_holder<T *> allocate(simple_device_memory_allocator &alloc, Tag, size_t num_elements) {
         return alloc.template allocate<T>(num_elements);
     }
 } // namespace gridtools

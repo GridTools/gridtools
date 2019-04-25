@@ -15,6 +15,10 @@
 
 #pragma once
 
+#ifndef __CUDACC__
+#error This is CUDA only header
+#endif
+
 #include <gridtools/common/cuda_util.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/meta/type_traits.hpp>
@@ -41,4 +45,3 @@ namespace gridtools {
             GT_AUTO_RETURN(exec_with_shared_memory(0, std::forward<Fun>(fun), std::forward<Args>(args)...));
     } // namespace on_device
 } // namespace gridtools
-

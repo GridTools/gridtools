@@ -96,11 +96,13 @@ namespace gridtools {
         int_t ExtentIPlus,
         int_t ExtentJMinus, // negative by convention
         int_t ExtentJPlus,
+        int_t ExtentKMinus, // negative by convention
+        int_t ExtentKPlus,
         class Allocator,
         class BlockSizeI = integral_constant<int_t, ComputeBlockSizeI - ExtentIMinus + ExtentIPlus>,
         class BlockSizeJ = integral_constant<int_t, ComputeBlockSizeJ - ExtentJMinus + ExtentJPlus>>
     auto make_tmp_storage_cuda(tmp_cuda::blocksize<ComputeBlockSizeI, ComputeBlockSizeJ>,
-        extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, 0, 0>,
+        extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, ExtentKMinus, ExtentKPlus>,
         int_t n_blocks_i,
         int_t n_blocks_j,
         int_t k_size,
@@ -149,12 +151,14 @@ namespace gridtools {
         int_t ExtentIPlus,
         int_t ExtentJMinus, // negative by convention
         int_t ExtentJPlus,
+        int_t ExtentKMinus, // negative by convention
+        int_t ExtentKPlus,
         uint_t NColors,
         class Allocator,
         class BlockSizeI = integral_constant<int_t, ComputeBlockSizeI - ExtentIMinus + ExtentIPlus>,
         class BlockSizeJ = integral_constant<int_t, ComputeBlockSizeJ - ExtentJMinus + ExtentJPlus>>
     auto make_tmp_storage_cuda(tmp_cuda::blocksize<ComputeBlockSizeI, ComputeBlockSizeJ>,
-        extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, 0, 0>,
+        extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, ExtentKMinus, ExtentKPlus>,
         color_type<NColors>,
         int_t n_blocks_i,
         int_t n_blocks_j,

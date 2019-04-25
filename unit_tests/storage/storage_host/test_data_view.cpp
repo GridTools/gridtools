@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../../tools/triplet.hpp"
+#include "../../tools/multiplet.hpp"
 #include "gtest/gtest.h"
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/storage/common/storage_info.hpp>
