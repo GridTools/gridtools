@@ -25,16 +25,51 @@ static_assert(!is_accessor<int>::value, "");
 static_assert(!is_accessor<double &>::value, "");
 static_assert(!is_accessor<double const &>::value, "");
 
-TEST(accessor, trivial) {
-    accessor<0, intent::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);
+TEST(accessor, smoke) {
+    using testee_t = accessor<0, intent::inout, extent<0, 3, 0, 2, -1, 0>>;
+    static_assert(tuple_util::size<testee_t>::value == 3, "");
 
-    EXPECT_EQ(3, tuple_util::get<0>(first));
-    EXPECT_EQ(2, tuple_util::get<1>(first));
-    EXPECT_EQ(-1, tuple_util::get<2>(first));
+    testee_t testee{3, 2, -1};
+
+    EXPECT_EQ(3, tuple_util::get<0>(testee));
+    EXPECT_EQ(2, tuple_util::get<1>(testee));
+    EXPECT_EQ(-1, tuple_util::get<2>(testee));
+}
+
+TEST(accessor, zero_accessor) {
+    using testee_t = accessor<0>;
+    static_assert(tuple_util::size<testee_t>::value == 0, "");
+    EXPECT_NO_THROW((testee_t{0, 0, 0, 0}));
+    EXPECT_NO_THROW(testee_t{dimension<3>{}});
+
+#ifndef NDEBUG
+    EXPECT_THROW(testee_t{1}, std::runtime_error);
+    EXPECT_THROW((testee_t{0, 0, 1, 0, 0, 0}), std::runtime_error);
+    EXPECT_THROW(testee_t{dimension<3>{4}}, std::runtime_error);
+#else
+    EXPECT_NO_THROW(testee_t{1});
+    EXPECT_NO_THROW((testee_t{0, 0, 1, 0, 0, 0}));
+    EXPECT_NO_THROW(testee_t{dimension<3>{4}});
+#endif
+}
+
+TEST(accessor, extra_args) {
+    using testee_t = accessor<0, intent::inout, extent<-1, 1>>;
+    static_assert(tuple_util::size<testee_t>::value == 1, "");
+    EXPECT_NO_THROW((testee_t{1, 0}));
+    EXPECT_NO_THROW(testee_t{dimension<2>{0}});
+
+#ifndef NDEBUG
+    EXPECT_THROW((testee_t{0, 1}), std::runtime_error);
+    EXPECT_THROW(testee_t{dimension<2>{1}}, std::runtime_error);
+#else
+    EXPECT_NO_THROW((testee_t{0, 1}));
+    EXPECT_NO_THROW(testee_t{dimension<2>{1}});
+#endif
 }
 
 TEST(accessor, array) {
-    constexpr accessor<0, intent::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
+    constexpr accessor<0, intent::inout, extent<0, 3, 0, 2, -1, 0>> first(array<int_t, 3>{3, 2, -1});
     static_assert(tuple_util::get<0>(first) == 3, "");
     static_assert(tuple_util::get<1>(first) == 2, "");
     static_assert(tuple_util::get<2>(first) == -1, "");
@@ -68,7 +103,7 @@ TEST(accessor, alternative2) {
     constexpr dimension<4> t;
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
     // ICC 18 shows some strange bug here
-    constexpr accessor<0, intent::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
+    constexpr accessor<0, intent::inout, extent<-5, 0, 0, 0, 0, 8>, 4> first(i - 5, j, dimension<3>(8), t + 2);
     static_assert(tuple_util::get<0>(first) == -5, "");
 
     EXPECT_EQ(-5, tuple_util::get<0>(first));
@@ -86,14 +121,14 @@ TEST(accessor, alternative2) {
 TEST(accessor, static_alias) {
     // mixing compile time and runtime values
     using t = dimension<15>;
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>, 15> arg_t;
+    using arg_t = accessor<0, intent::inout, extent<0, 4, 0, 0, -5>, 15>;
     using alias_t = alias<arg_t, t, dimension<1>, dimension<7>>::set<-3, 4, 2>;
 
     alias_t first(dimension<8>(23), dimension<3>(-5));
 
-    EXPECT_EQ(2, tuple_util::get<6>(first));
     EXPECT_EQ(4, tuple_util::get<0>(first));
-    EXPECT_EQ(-3, tuple_util::get<14>(first));
-    EXPECT_EQ(23, tuple_util::get<7>(first));
     EXPECT_EQ(-5, tuple_util::get<2>(first));
+    EXPECT_EQ(2, tuple_util::get<6>(first));
+    EXPECT_EQ(23, tuple_util::get<7>(first));
+    EXPECT_EQ(-3, tuple_util::get<14>(first));
 }

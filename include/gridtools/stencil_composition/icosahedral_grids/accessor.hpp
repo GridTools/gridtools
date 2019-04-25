@@ -37,9 +37,13 @@ namespace gridtools {
         using accessor_base<FieldDimensions>::accessor_base;
     };
 
-    template <uint_t ID, typename LocationType, typename Extent = extent<>, uint_t FieldDimensions = 4>
-    meta::always<accessor<ID, intent::in, LocationType, Extent, FieldDimensions>> tuple_from_types(
-        accessor<ID, intent::in, LocationType, Extent, FieldDimensions> const &);
+    template <uint_t ID, intent Intent, typename LocationType, typename Extent, uint_t FieldDimensions>
+    GT_META_CALL(meta::repeat_c, (FieldDimensions, int_t))
+    tuple_to_types(accessor<ID, Intent, LocationType, Extent, FieldDimensions> const &);
+
+    template <uint_t ID, intent Intent, typename LocationType, typename Extent, uint_t FieldDimensions>
+    meta::always<accessor<ID, Intent, LocationType, Extent, FieldDimensions>> tuple_from_types(
+        accessor<ID, Intent, LocationType, Extent, FieldDimensions> const &);
 
     template <uint_t ID, typename LocationType, typename Extent = extent<>, uint_t FieldDimensions = 4>
     using in_accessor = accessor<ID, intent::in, LocationType, Extent, FieldDimensions>;
