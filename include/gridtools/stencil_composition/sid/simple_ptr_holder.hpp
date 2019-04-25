@@ -36,16 +36,16 @@ namespace gridtools {
             };
 
             template <class T>
-            GT_FORCE_INLINE constexpr simple_ptr_holder<T> make_simple_ptr_holder(T const &ptr) {
+            GT_FORCE_INLINE simple_ptr_holder<T> make_simple_ptr_holder(T const &ptr) {
                 return {ptr};
             }
 
             template <class T, class Arg>
-            GT_FORCE_INLINE constexpr auto operator+(simple_ptr_holder<T> const &obj, Arg &&arg)
+            GT_FORCE_INLINE auto operator+(simple_ptr_holder<T> const &obj, Arg &&arg)
                 GT_AUTO_RETURN(make_simple_ptr_holder(obj.m_val + const_expr::forward<Arg>(arg)));
 
             template <class T, class Arg>
-            GT_FORCE_INLINE constexpr auto operator+(simple_ptr_holder<T> &&obj, Arg &&arg)
+            GT_FORCE_INLINE auto operator+(simple_ptr_holder<T> &&obj, Arg &&arg)
                 GT_AUTO_RETURN(make_simple_ptr_holder(const_expr::move(obj).m_val + const_expr::forward<Arg>(arg)));
         }
     } // namespace sid

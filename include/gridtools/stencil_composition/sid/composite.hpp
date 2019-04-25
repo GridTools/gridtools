@@ -149,7 +149,7 @@ namespace gridtools {
                 template <template <class...> class L, class... Keys>
                 struct normalize_strides_f<L<Keys...>> {
                     template <class Sid, class Strides = GT_META_CALL(strides_type, Sid)>
-                    constexpr tuple<GT_META_CALL(normalized_stride_type, (Keys, decay_t<Strides>))...> operator()(
+                    tuple<GT_META_CALL(normalized_stride_type, (Keys, decay_t<Strides>))...> operator()(
                         Sid const &sid) const {
                         return {get_stride<Keys>(get_strides(sid))...};
                     }
@@ -259,13 +259,13 @@ namespace gridtools {
                         vals_t m_vals;
 
                         template <class... Args, enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
-                        constexpr composite_entity(Args &&... args) noexcept
+                        composite_entity(Args &&... args) noexcept
                             : composite_entity(tuple<Args &&...>{std::forward<Args &&>(args)...}) {}
 
                         template <template <class...> class L,
                             class... Args,
                             enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
-                        constexpr composite_entity(L<Args...> &&tup) noexcept
+                        composite_entity(L<Args...> &&tup) noexcept
                             : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {}
 
                         GT_DECLARE_DEFAULT_EMPTY_CTOR(composite_entity);
@@ -283,7 +283,7 @@ namespace gridtools {
                         }
 
                         template <class... PtrHolders>
-                        friend constexpr GT_FORCE_INLINE composite_ptr_holder<PtrHolders...> operator+(
+                        friend GT_FORCE_INLINE composite_ptr_holder<PtrHolders...> operator+(
                             composite_ptr_holder<PtrHolders...> const &lhs, composite_entity const &rhs) {
                             return tuple_util::host::transform(binop::sum{}, lhs, rhs);
                         }
@@ -307,7 +307,7 @@ namespace gridtools {
 
                     struct convert_f {
                         template <template <class...> class L, class... Ts>
-                        constexpr composite_entity<remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
+                        composite_entity<remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
                             return {std::move(tup)};
                         }
                     };

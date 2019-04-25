@@ -29,7 +29,7 @@ namespace gridtools {
 
                     GT_FUNCTION GT_META_CALL(sid::element_type, Sid) const *operator()() const { return m_impl(); }
 
-                    friend constexpr const_ptr_holder operator+(const_ptr_holder const &obj, ptrdiff_t offset) {
+                    friend const_ptr_holder operator+(const_ptr_holder const &obj, ptrdiff_t offset) {
                         return {obj.m_impl + offset};
                     }
                 };

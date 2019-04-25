@@ -28,7 +28,7 @@ namespace gridtools {
                 T m_val;
             };
             template <class T>
-            constexpr T sid_get_origin(mixin<property::origin, T> const &obj) noexcept {
+            T sid_get_origin(mixin<property::origin, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
@@ -37,7 +37,7 @@ namespace gridtools {
                 T m_val;
             };
             template <class T>
-            constexpr T sid_get_strides(mixin<property::strides, T> const &obj) noexcept {
+            T sid_get_strides(mixin<property::strides, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
@@ -63,7 +63,7 @@ namespace gridtools {
                 unique_mixin &operator=(unique_mixin &&) = default;
 
                 template <class U>
-                constexpr unique_mixin(U &&obj) noexcept : mixin<Property, T>{std::forward<U>(obj)} {}
+                unique_mixin(U &&obj) noexcept : mixin<Property, T>{std::forward<U>(obj)} {}
             };
 
             template <class...>
@@ -72,12 +72,12 @@ namespace gridtools {
             template <>
             struct synthetic<> {
                 template <property Property, class T>
-                constexpr synthetic<unique_mixin<Property, T>> set() const &&noexcept {
+                synthetic<unique_mixin<Property, T>> set() const &&noexcept {
                     return synthetic{};
                 }
 
                 template <property Property, class T>
-                constexpr synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
+                synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
                     return {std::forward<T>(val), synthetic{}};
                 }
             };
@@ -87,20 +87,19 @@ namespace gridtools {
 
                 GT_DECLARE_DEFAULT_EMPTY_CTOR(synthetic);
 
-                constexpr synthetic(synthetic<Mixins...> const &&src) noexcept : Mixins(std::move(src))... {}
+                synthetic(synthetic<Mixins...> const &&src) noexcept : Mixins(std::move(src))... {}
 
                 template <class T>
-                constexpr synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
+                synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
                     : Mixin{std::forward<T>(val)}, Mixins(std::move(src))... {}
 
                 template <property Property, class U>
-                constexpr synthetic<unique_mixin<Property, U>, Mixin, Mixins...> set() const &&noexcept {
+                synthetic<unique_mixin<Property, U>, Mixin, Mixins...> set() const &&noexcept {
                     return {std::move(*this)};
                 }
 
                 template <property Property, class T>
-                constexpr synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(
-                    T &&val) const &&noexcept {
+                synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(T &&val) const &&noexcept {
                     return {std::forward<T>(val), std::move(*this)};
                 }
             };
@@ -124,6 +123,6 @@ namespace gridtools {
          *  Duplicated property `set`'s cause compiler error.
          *  Works both in run time and in compile time.
          */
-        constexpr synthetic_impl_::synthetic<> synthetic() { return {}; }
+        synthetic_impl_::synthetic<> synthetic() { return {}; }
     } // namespace sid
 } // namespace gridtools
