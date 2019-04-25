@@ -124,7 +124,7 @@ namespace gridtools {
                                 !(Param::intent_v == intent::inout && std::is_const<remove_reference_t<Arg>>::value),
                     int> = 0>
             GT_FUNCTION local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
-                return {std::forward<Arg>(arg)};
+                return {const_expr::forward<Arg>(arg)};
             }
         };
 
