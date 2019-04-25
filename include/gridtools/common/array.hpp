@@ -76,7 +76,7 @@ namespace gridtools {
         T *data() noexcept { return m_array; }
 
         GT_FUNCTION
-        constexpr T const &operator[](size_t i) const { return m_array[i]; }
+        T const &operator[](size_t i) const { return m_array[i]; }
 
         GT_FUNCTION
         T &operator[](size_t i) {
