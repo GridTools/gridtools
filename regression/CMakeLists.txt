@@ -34,17 +34,13 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
           gridtools_add_test(
               NAME tests.${srcfile}_x86_12_33_61
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86> 12 33 61
               LABELS regression_x86 backend_x86
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_x86_23_11_43
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86> 23 11 43
               LABELS regression_x86 backend_x86
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
 
           if (srcfile IN_LIST SOURCES_PERFTEST)
@@ -53,7 +49,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         endforeach(srcfile)
 
         if( GT_USE_MPI )
-            add_custom_mpi_x86_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
+            add_custom_mpi_test(x86 TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -69,22 +65,18 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
           gridtools_add_test(
               NAME tests.${srcfile}_naive_12_33_61
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_naive> 12 33 21
               LABELS regression_naive backend_naive
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_naive_23_11_43
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_naive> 23 11 43
               LABELS regression_naive backend_naive
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
         endforeach(srcfile)
 
         if( GT_USE_MPI )
-            add_custom_mpi_naive_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
+            add_custom_mpi_test(naive TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -100,17 +92,13 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
           gridtools_add_test(
               NAME tests.${srcfile}_mc_12_33_61
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 12 33 61
               LABELS regression_mc backend_mc
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_mc_23_11_43
-              SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 23 11 43
               LABELS regression_mc backend_mc
-              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           if (srcfile IN_LIST SOURCES_PERFTEST)
             add_dependencies(perftests ${srcfile}_mc)
@@ -118,7 +106,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         endforeach(srcfile)
 
         if( GT_USE_MPI )
-            add_custom_mpi_mc_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
+            add_custom_mpi_test(mc TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -135,17 +123,13 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_47_38_61
-               SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 47 38 61
                LABELS regression_cuda backend_cuda
-               ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
                )
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_63_38_10
-               SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 38 10
                LABELS regression_cuda backend_cuda
-               ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
                )
            if (srcfile IN_LIST SOURCES_PERFTEST)
              add_dependencies(perftests ${srcfile}_cuda)
@@ -159,7 +143,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
        endforeach(srcfile)
 
        if( GT_USE_MPI )
-           add_custom_mpi_gpu_test(TARGET copy_stencil_parallel NPROC 4 SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )
+           add_custom_mpi_test(cuda TARGET copy_stencil_parallel NPROC 4 SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )
 
            ## The next executable is not made into a test since it does not validate.
            ## The numerics need to be fixed (this is a task to be undertaken in the future)
