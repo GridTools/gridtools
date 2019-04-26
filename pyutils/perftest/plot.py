@@ -3,6 +3,7 @@
 import itertools
 import math
 import os
+import re
 import statistics
 
 from perftest import result, time
@@ -49,7 +50,17 @@ def get_titles(results):
         if k == 'datetime':
             return 'Date/Time: ' + time.short_timestr(time.local_time(v))
         elif k == 'compiler':
-            return 'Compiler: ' + os.path.basename(v).upper()
+            m = re.match('(?P<compiler>[^ ]+) (?P<version>[^ ]+)'
+                         '( \\((?P<compiler2>[^ ]+) (?P<version2>[^ ]+)\\))?',
+                         v)
+            if m:
+                d = m.groupdict()
+                d['compiler'] = os.path.basename(d['compiler'])
+                v = '{compiler} {version}'.format(**d)
+                if d['compiler2']:
+                    d['compiler2'] = os.path.basename(d['compiler2'])
+                    v += ' ({compiler2} {version2})'.format(**d)
+            return 'Compiler: ' + v
         else:
             s = str(v).title()
             if len(s) > 20:
