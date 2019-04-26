@@ -2,7 +2,6 @@ if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
     function(add_getting_started_test)
         set(options)
         set(one_value_args SOURCE SUFFIX)
-        set(multi_value_args ENVIRONMENT)
         cmake_parse_arguments(ARG "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
         get_filename_component(_name ${ARG_SOURCE} NAME_WE)
@@ -13,22 +12,20 @@ if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
 
         gridtools_add_test(
             NAME ${test_name}
-            SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${test_name}>
             LABELS getting_started
-            ENVIRONMENT ${ARG_ENVIRONMENT}
             )
     endfunction()
 
     file(GLOB getting_started_sources "code/test_*.cpp")
     foreach(test_source IN LISTS getting_started_sources)
-        add_getting_started_test(SOURCE ${test_source} SUFFIX "" ENVIRONMENT ${TEST_HOST_ENVIRONMENT})
+        add_getting_started_test(SOURCE ${test_source} SUFFIX "")
     endforeach()
 
     if(GT_ENABLE_BACKEND_CUDA)
         file(GLOB getting_started_sources "code/test_*.cu")
         foreach(test_source IN LISTS getting_started_sources)
-            add_getting_started_test(SOURCE ${test_source} SUFFIX "_cuda" ENVIRONMENT ${TEST_CUDA_ENVIRONMENT})
+            add_getting_started_test(SOURCE ${test_source} SUFFIX "_cuda")
         endforeach()
     endif()
 

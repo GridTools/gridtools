@@ -40,22 +40,16 @@ namespace gridtools {
             Functor::template apply<Eval &>(eval);
         }
 
-        template <class Key, class Offsets, enable_if_t<has_key<decay_t<Offsets>, Key>::value, int> = 0>
-        GT_FUNCTION auto get_offset(Offsets &&offsets)
-            GT_AUTO_RETURN(host_device::at_key<Key>(std::forward<Offsets>(offsets)));
-
-        template <class Key, class Offsets>
-        GT_FUNCTION enable_if_t<!has_key<Offsets, Key>::value, integral_constant<int_t, 0>> get_offset(Offsets &&) {
-            return {};
-        }
-
         template <class Key>
         struct sum_offset_generator_f {
             using type = sum_offset_generator_f;
 
+            using default_t = integral_constant<int_t, 0>;
+
             template <class Lhs, class Rhs>
             GT_FUNCTION auto operator()(Lhs &&lhs, Rhs &&rhs) const
-                GT_AUTO_RETURN(get_offset<Key>(std::forward<Lhs>(lhs)) + get_offset<Key>(std::forward<Rhs>(rhs)));
+                GT_AUTO_RETURN((host_device::at_key_with_default<Key, default_t>(std::forward<Lhs>(lhs)) +
+                                host_device::at_key_with_default<Key, default_t>(std::forward<Rhs>(rhs))));
         };
 
         template <class Res, class Lhs, class Rhs>

@@ -175,9 +175,6 @@ TEST(DataStoreTest, ExternalPointer) {
     data_store<host_storage<double>, storage_info_t> ds_cpy_2 = ds_cpy_1;
     EXPECT_EQ(ds_cpy_1.get_storage_ptr()->get_cpu_ptr(), ds_cpy_2.get_storage_ptr()->get_cpu_ptr());
     EXPECT_EQ(ds_cpy_2.get_storage_ptr()->get_cpu_ptr(), ds.get_storage_ptr()->get_cpu_ptr());
-    // check that external gpu pointer is not possible when using host_storage
-    EXPECT_THROW((data_store<host_storage<double>, storage_info_t>(si, external_ptr, ownership::external_gpu)),
-        std::runtime_error);
     // create a copy (double free checks)
     data_store<host_storage<double>, storage_info_t> ds_cpy = ds;
     // check values

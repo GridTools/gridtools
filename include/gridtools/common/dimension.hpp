@@ -30,12 +30,7 @@ namespace gridtools {
     struct dimension {
         GT_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
 
-        GT_FUNCTION constexpr dimension() : value(0) {}
-
-        template <typename IntType>
-        GT_FUNCTION constexpr dimension(IntType val) : value{(int_t)val} {}
-
-        dimension(dimension const &) = default;
+        GT_FUNCTION constexpr dimension(int_t value = 0) : value(value) {}
 
         static constexpr uint_t index = Coordinate;
         int_t value;

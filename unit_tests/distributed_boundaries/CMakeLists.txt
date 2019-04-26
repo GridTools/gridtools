@@ -1,9 +1,10 @@
-add_custom_x86_test(TARGET test_bindbc_utilities SOURCES test_bindbc_utilities.cpp  )
+add_custom_test(x86 TARGET test_bindbc_utilities SOURCES test_bindbc_utilities.cpp  )
 
 if( GT_USE_MPI )
 
     if( GT_ENABLE_BACKEND_X86 )
-        add_custom_mpi_x86_test(
+        add_custom_mpi_test(
+            x86
             TARGET test_distributed_boundaries
             NPROC 4
             SOURCES test_distributed_boundaries.cpp
@@ -12,7 +13,8 @@ if( GT_USE_MPI )
     endif()
 
     if( GT_ENABLE_BACKEND_CUDA )
-        add_custom_mpi_gpu_test(
+        add_custom_mpi_test(
+            cuda
             TARGET test_distributed_boundaries
             NPROC 4
             SOURCES test_distributed_boundaries.cu
@@ -23,7 +25,8 @@ if( GT_USE_MPI )
 else()
 
     if( GT_ENABLE_BACKEND_X86 )
-        add_custom_x86_test(
+        add_custom_test(
+            x86
             TARGET test_distributed_boundaries
             SOURCES test_distributed_boundaries.cpp
             LABELS mpitest_x86
@@ -32,7 +35,8 @@ else()
     endif()
 
     if( GT_ENABLE_BACKEND_CUDA )
-        add_custom_gpu_test(
+        add_custom_test(
+            cuda
             TARGET test_distributed_boundaries
             SOURCES test_distributed_boundaries.cu
             LABELS mpitest_cuda
