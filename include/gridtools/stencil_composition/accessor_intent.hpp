@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "../common/host_device.hpp"
+
 namespace gridtools {
     /**
      * @brief accessor I/O policy
