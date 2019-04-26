@@ -168,23 +168,23 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-        constexpr GT_FUNCTION tuple(Ts const &... args) noexcept : m_impl(args...) {}
+        GT_FUNCTION tuple(Ts const &... args) noexcept : m_impl(args...) {}
 
         template <class... Args,
             enable_if_t<sizeof...(Ts) == sizeof...(Args) && conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(Args &&... args) noexcept : m_impl(const_expr::forward<Args>(args)...) {}
+        GT_FUNCTION tuple(Args &&... args) noexcept : m_impl(const_expr::forward<Args>(args)...) {}
 
         template <class... Args,
             enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                             conjunction<std::is_constructible<Ts, Args const &>...>::value,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(tuple<Args...> const &src) noexcept : m_impl(src.m_impl) {}
+        GT_FUNCTION tuple(tuple<Args...> const &src) noexcept : m_impl(src.m_impl) {}
 
         template <class... Args,
             enable_if_t<sizeof...(Ts) == sizeof...(Args) && conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(tuple<Args...> &&src) noexcept : m_impl(const_expr::move(src).m_impl) {}
+        GT_FUNCTION tuple(tuple<Args...> &&src) noexcept : m_impl(const_expr::move(src).m_impl) {}
 
         GT_FORCE_INLINE void swap(tuple &other) noexcept { m_impl.swap(other.m_impl); }
 
@@ -225,23 +225,23 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-        constexpr GT_FUNCTION tuple(T const &arg) noexcept : m_value(arg) {}
+        GT_FUNCTION tuple(T const &arg) noexcept : m_value(arg) {}
 
         template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
-        constexpr GT_FUNCTION tuple(Arg &&arg) noexcept : m_value(const_expr::forward<Arg>(arg)) {}
+        GT_FUNCTION tuple(Arg &&arg) noexcept : m_value(const_expr::forward<Arg>(arg)) {}
 
         template <class Arg,
             enable_if_t<std::is_constructible<T, Arg const &>::value &&
                             !std::is_convertible<tuple<Arg> const &, T>::value &&
                             !std::is_constructible<T, tuple<Arg> const &>::value && !std::is_same<T, Arg>::value,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(tuple<Arg> const &src) noexcept : m_value(src.m_value) {}
+        GT_FUNCTION tuple(tuple<Arg> const &src) noexcept : m_value(src.m_value) {}
 
         template <class Arg,
             enable_if_t<std::is_constructible<T, Arg &&>::value && !std::is_convertible<tuple<Arg>, T>::value &&
                             !std::is_constructible<T, tuple<Arg>>::value && !std::is_same<T, Arg>::value,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(tuple<Arg> &&src) noexcept : m_value(const_expr::move(src).m_value) {}
+        GT_FUNCTION tuple(tuple<Arg> &&src) noexcept : m_value(const_expr::move(src).m_value) {}
 
         GT_FORCE_INLINE void swap(tuple &other) noexcept {
             using std::swap;
