@@ -19,7 +19,7 @@ namespace gridtools {
         namespace sid_helpers_impl_ {
             template <class Sid>
             class shifted_sid : public delegate<Sid> {
-                sid::ptr_holder_type<Sid> m_origin;
+                GT_META_CALL(sid::ptr_holder_type, Sid) m_origin;
 
                 friend GT_META_CALL(sid::ptr_holder_type, Sid) sid_get_origin(shifted_sid &obj) { return obj.m_origin; }
 
