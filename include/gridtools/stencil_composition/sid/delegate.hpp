@@ -40,7 +40,8 @@ namespace gridtools {
             Sid &impl() { return m_impl; }
 
           public:
-            explicit constexpr delegate(Sid &&impl) noexcept : m_impl(std::forward<Sid>(impl)) {}
+            explicit constexpr delegate(Sid const &impl) noexcept : m_impl(impl) {}
+            explicit constexpr delegate(Sid &&impl) noexcept : m_impl(std::move(impl)) {}
         };
 
         template <class Sid>
