@@ -9,7 +9,7 @@ from perftest import result, time
 
 
 def _stencil_binary(backend, stencil):
-    import buildinfo
+    from pyutils import buildinfo
     binary = os.path.join(buildinfo.binary_dir,
                           stencil.gridtools_binary(backend))
     if not os.path.isfile(binary):
@@ -26,12 +26,12 @@ def _stencil_command(backend, stencil, domain):
 
 
 def _git_commit():
-    import buildinfo
+    from pyutils import buildinfo
     return runtools.run(['git', 'rev-parse', 'HEAD'], cwd=buildinfo.source_dir)
 
 
 def _git_datetime():
-    import buildinfo
+    from pyutils import buildinfo
     posixtime = runtools.run(
             ['git', 'show', '-s', '--format=%ct', _git_commit()],
             cwd=buildinfo.source_dir)
@@ -47,7 +47,7 @@ def _parse_time(output):
 
 
 def run(domain, runs):
-    import buildinfo
+    from pyutils import buildinfo
     stencils = stencil_loader.load(buildinfo.grid)
 
     results = dict()
