@@ -138,6 +138,25 @@ namespace gridtools {
             };
             using type = keys;
         };
+
+        template <class HyMap>
+        GT_META_DEFINE_ALIAS(to_meta_map,
+            meta::zip,
+            (GT_META_CALL(meta::rename, (meta::list, GT_META_CALL(get_keys, HyMap))),
+                GT_META_CALL(meta::rename, (meta::list, GT_META_CALL(tuple_util::traits::to_types, HyMap)))));
+
+        template <class MetaMap>
+        GT_META_DEFINE_ALIAS(from_meta_map,
+            meta::rename,
+            (GT_META_CALL(
+                 meta::rename, (hymap::keys, GT_META_CALL(meta::transform, (meta::first, MetaMap))))::template values,
+                GT_META_CALL(meta::transform, (meta::second, MetaMap))));
+
+        template <class HyMap,
+            class Key,
+            class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, HyMap), Key))>
+        GT_META_DEFINE_ALIAS(value_type_at_key, meta::at, (GT_META_CALL(tuple_util::traits::to_types, HyMap), I));
+
     } // namespace hymap
 } // namespace gridtools
 

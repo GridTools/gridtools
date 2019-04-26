@@ -13,10 +13,7 @@
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/tuple_util.hpp"
-#include "../../meta/concat.hpp"
-#include "../../meta/push_back.hpp"
-#include "../../meta/rename.hpp"
-#include "../../meta/st_contains.hpp"
+#include "../../meta.hpp"
 #include "./concept.hpp"
 #include "./delegate.hpp"
 
@@ -24,7 +21,7 @@ namespace gridtools {
     namespace sid {
         template <class Dim>
         struct blocked_dim {
-            using type = blocked_dim<Dim>;
+            using type = blocked_dim;
         };
 
         namespace block_impl_ {
@@ -38,91 +35,87 @@ namespace gridtools {
             GT_FUNCTION auto sid_shift(Ptr &ptr, blocked_stride<Stride, BlockSize> const &stride, Offset const &offset)
                 GT_AUTO_RETURN(shift(ptr, stride.m_stride, stride.m_block_size *offset));
 
-            template <class Strides, class BlockMap>
-            struct block_strides_f {
-                Strides m_strides;
-                BlockMap m_map;
+            template <class Stride>
+            using just_multiply =
+                bool_constant<std::is_integral<Stride>::value || concept_impl_::is_integral_constant<Stride>::value>;
 
-                template <class Map, class Dim>
-                using decay_at = decay_t<decltype(at_key<Dim>(std::declval<Map>()))>;
+            template <class Stride, class BlockSize, enable_if_t<!just_multiply<Stride>::value, int> = 0>
+            blocked_stride<Stride, BlockSize> block_stride(Stride const &stride, BlockSize const &block_size) {
+                return {stride, block_size};
+            }
 
-                template <class Dim>
-                blocked_stride<decay_at<Strides, Dim>, decay_at<BlockMap, Dim>> operator()(blocked_dim<Dim>) const {
-                    return {at_key<Dim>(m_strides), at_key<Dim>(m_map)};
-                }
+            template <class Stride, class BlockSize, enable_if_t<just_multiply<Stride>::value, int> = 0>
+            Stride block_stride(Stride const &stride, BlockSize const &block_size) {
+                return stride * block_size;
+            }
 
-                template <class Dim>
-                decay_at<Strides, Dim> operator()(Dim) const {
-                    return at_key<Dim>(m_strides);
-                }
+            template <class Stride, class BlockSize>
+            using blocked_stride_type = decltype(block_stride(std::declval<Stride>(), std::declval<BlockSize>()));
+
+            template <class Dim, class BlockedDim>
+            struct generate_strides_f;
+
+            template <class Dim>
+            struct generate_strides_f<Dim, Dim> {
+                using type = generate_strides_f;
+
+                template <class Strides, class BlockMap>
+                auto operator()(Strides const &strides, BlockMap const &) GT_AUTO_RETURN(at_key<Dim>(strides));
             };
 
-            template <class Strides, class BlockMap>
-            using blocked_strides_keys = GT_META_CALL(meta::concat,
-                (GT_META_CALL(get_keys, Strides),
-                    GT_META_CALL(meta::transform, (blocked_dim, GT_META_CALL(get_keys, BlockMap)))));
+            template <class Dim>
+            struct generate_strides_f<Dim, blocked_dim<Dim>> {
+                using type = generate_strides_f;
 
-            template <class Strides,
-                class BlockMap,
-                class Keys = blocked_strides_keys<Strides, BlockMap>,
-                class KeysToKeys = GT_META_CALL(meta::rename, (Keys::template values, Keys))>
-            auto block_strides(Strides const &strides, BlockMap const &block_map)
-                GT_AUTO_RETURN(tuple_util::host_device::transform(
-                    block_strides_f<Strides, BlockMap>{strides, block_map}, KeysToKeys{}));
+                template <class Strides, class BlockMap>
+                auto operator()(Strides const &strides, BlockMap const &block_map) const
+                    GT_AUTO_RETURN(block_stride(at_key<Dim>(strides), at_key<Dim>(block_map)));
+            };
 
             template <class Sid, class BlockMap>
             class blocked_sid : public delegate<Sid> {
                 BlockMap m_block_map;
-                using sid_strides_t = GT_META_CALL(strides_type, Sid);
-                using sid_keys_t = GT_META_CALL(get_keys, sid_strides_t);
-                using sid_vals_t = GT_META_CALL(
-                    meta::rename, (meta::list, GT_META_CALL(tuple_util::traits::to_types, sid_strides_t)));
-                using all_blocked_keys_t = GT_META_CALL(get_keys, BlockMap);
 
-                template <class Dim>
-                GT_META_DEFINE_ALIAS(original_dim, meta::st_contains, (sid_keys_t, Dim));
-                using blocked_keys_t = GT_META_CALL(meta::filter, (original_dim, all_blocked_keys_t));
+                using strides_map_t = GT_META_CALL(hymap::to_meta_map, GT_META_CALL(strides_type, Sid));
+                using strides_dims_t = GT_META_CALL(meta::transform, (meta::first, strides_map_t));
 
-                template <class Map, class Dim>
-                using decay_at = decay_t<decltype(at_key<Dim>(std::declval<Map>()))>;
+                template <class MapEntry, class Dim = GT_META_CALL(meta::first, MapEntry)>
+                GT_META_DEFINE_ALIAS(is_strides_dim, meta::st_contains, (strides_dims_t, Dim));
 
-                template <class Stride, class BlockSize>
-                using blocked_stride_type =
-                    conditional_t<std::is_integral<Stride>::value || concept_impl_::is_integral_constant<Stride>::value,
-                        Stride,
-                        blocked_stride<Stride, BlockSize>>;
+                using block_map_t = GT_META_CALL(
+                    meta::filter, (is_strides_dim, GT_META_CALL(hymap::to_meta_map, BlockMap)));
+                using block_dims_t = GT_META_CALL(meta::transform, (meta::first, block_map_t));
 
-                template <class Dim>
-                using blocked_stride_at = blocked_stride_type<decay_at<sid_strides_t, Dim>, decay_at<BlockMap, Dim>>;
+                template <class MapEntry,
+                    class Dim = GT_META_CALL(meta::first, MapEntry),
+                    class BlockSize = GT_META_CALL(meta::second, MapEntry),
+                    class Stride = GT_META_CALL(meta::second, (GT_META_CALL(meta::mp_find, (strides_map_t, Dim))))>
+                GT_META_DEFINE_ALIAS(block, meta::list, (blocked_dim<Dim>, blocked_stride_type<Stride, BlockSize>));
 
-                using blocked_vals_t = GT_META_CALL(
-                    meta::rename, (meta::list, GT_META_CALL(meta::transform, (blocked_stride_at, blocked_keys_t))));
+                using blocked_strides_map_t = GT_META_CALL(meta::transform, (block, block_map_t));
 
-                using new_keys_t = GT_META_CALL(
-                    meta::concat, (sid_keys_t, GT_META_CALL(meta::transform, (blocked_dim, blocked_keys_t))));
-                using new_vals_t = GT_META_CALL(meta::concat, (sid_vals_t, blocked_vals_t));
+                using strides_t = GT_META_CALL(hymap::from_meta_map,
+                    (GT_META_CALL(meta::concat, (strides_map_t, GT_META_CALL(meta::transform, (block, block_map_t))))));
 
-                using new_hymap_keys_t = typename GT_META_CALL(meta::rename, (hymap::keys, new_keys_t));
+                using original_dims_t = GT_META_CALL(meta::concat, (strides_dims_t, block_dims_t));
+                using blocked_dims_t = GT_META_CALL(get_keys, strides_t);
 
-                using new_strides_t = GT_META_CALL(meta::rename, (new_hymap_keys_t::template values, new_vals_t));
-
-                using foo = typename new_strides_t::foo;
+                template <class L>
+                GT_META_DEFINE_ALIAS(make_generator, meta::rename, (generate_strides_f, L));
+                using generators_t = GT_META_CALL(
+                    meta::transform, (make_generator, GT_META_CALL(meta::zip, (original_dims_t, blocked_dims_t))));
 
               public:
                 blocked_sid(Sid const &impl, BlockMap const &block_map) noexcept
                     : delegate<Sid>(impl), m_block_map(block_map) {}
 
-                friend void sid_get_strides(blocked_sid &obj) { auto &&impl = obj.impl(); }
+                friend strides_t sid_get_strides(blocked_sid const &obj) {
+                    return tuple_util::host_device::generate<generators_t, strides_t>(
+                        get_strides(obj.impl()), obj.m_block_map);
+                }
             };
-        } // namespace block_impl_
 
-        // template <class Sid, class BlockMap>
-        // auto block(Sid const &s, BlockMap const &block_map)
-        // GT_AUTO_RETURN((synthetic()
-        //.set<property::origin>(get_origin(s))
-        //.template set<property::strides>(block_impl_::block_strides(get_strides(s), block_map))
-        //.template set<property::ptr_diff, ptr_diff_type<Sid>>()
-        //.template set<property::strides_kind, strides_kind<Sid>>()));
+        } // namespace block_impl_
 
         template <class Sid, class BlockMap>
         block_impl_::blocked_sid<Sid, BlockMap> block(Sid const &sid, BlockMap const &block_map) {
