@@ -16,7 +16,7 @@
 
 namespace gridtools {
     namespace sid {
-        namespace sid_helpers_impl_ {
+        namespace shift_sid_origin_impl_ {
             template <class Sid>
             class shifted_sid : public delegate<Sid> {
                 GT_META_CALL(sid::ptr_holder_type, Sid) m_origin;
@@ -33,10 +33,10 @@ namespace gridtools {
                           return sid::get_origin(this->impl()) + ptr_offset;
                       }()} {}
             };
-        } // namespace sid_helpers_impl_
+        } // namespace shift_sid_origin_impl_
 
         template <class Sid, class Offset>
-        sid_helpers_impl_::shifted_sid<decay_t<Sid>> shifted_sid(Sid &&sid, Offset &&offset) {
+        shift_sid_origin_impl_::shifted_sid<decay_t<Sid>> shift_sid_origin(Sid &&sid, Offset &&offset) {
             return {std::forward<Sid>(sid), std::forward<Offset>(offset)};
         }
     } // namespace sid

@@ -8,14 +8,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/sid/sid_helpers.hpp>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil_composition/dim.hpp>
+#include <gridtools/stencil_composition/sid/shifted_sid.hpp>
 #include <gridtools/stencil_composition/sid/synthetic.hpp>
 
 namespace gridtools {
@@ -32,7 +31,7 @@ namespace gridtools {
                            .set<property::strides>(tuple_util::make<tuple>(5_c * 7_c, 7_c, 1_c));
 
             auto offset = tuple_util::make<tuple>(1_c, 2);
-            auto testee = sid::shifted_sid(src, offset);
+            auto testee = sid::shift_sid_origin(src, offset);
 
             static_assert(is_sid<decltype(testee)>(), "");
 
