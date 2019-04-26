@@ -3,6 +3,7 @@
 source $(dirname "$BASH_SOURCE")/tave.sh
 
 module load PrgEnv-gnu
+module switch gcc/7.3.0
 
 export CXX=$(which g++)
 export CC=$(which gcc)
