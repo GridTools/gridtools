@@ -612,8 +612,6 @@ namespace gridtools {
         template <class T, class = void>
         struct is_sid : std::false_type {};
         template <class T>
-        struct is_sid<T, enable_if_t<std::is_array<T>::value>> : std::true_type {};
-        template <class T>
         struct is_sid<T, enable_if_t<concept_impl_::is_sid<T>::value>> : std::true_type {};
 
         // Auxiliary API
