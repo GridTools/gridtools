@@ -50,7 +50,7 @@ namespace gridtools {
 
             template <class Args, template <class...> class L, class... Is>
             auto get_part_helper(Args &&args, L<Is...> *)
-                GT_AUTO_RETURN(std::forward_as_tuple(std::get<Is::value>(const_expr::forward<Args>(args))...));
+                GT_AUTO_RETURN(const_expr::forward_as_tuple(std::get<Is::value>(const_expr::forward<Args>(args))...));
 
             template <template <class...> class Pred, class Args>
             auto get_part(Args &&args) GT_AUTO_RETURN(get_part_helper(
@@ -79,10 +79,10 @@ namespace gridtools {
      */
     template <template <class...> class Pred, class... Args>
     auto raw_split_args(Args &&... args)
-        GT_AUTO_RETURN(raw_split_args_tuple<Pred>(std::forward_as_tuple(const_expr::forward<Args>(args)...)));
+        GT_AUTO_RETURN(raw_split_args_tuple<Pred>(const_expr::forward_as_tuple(const_expr::forward<Args>(args)...)));
 
     /// A handy variation of raw_split_args that applies predicate on decayed argument types.
     template <template <class...> class Pred, class... Args>
     auto split_args(Args &&... args)
-        GT_AUTO_RETURN(split_args_tuple<Pred>(std::forward_as_tuple(const_expr::forward<Args>(args)...)));
+        GT_AUTO_RETURN(split_args_tuple<Pred>(const_expr::forward_as_tuple(const_expr::forward<Args>(args)...)));
 } // namespace gridtools

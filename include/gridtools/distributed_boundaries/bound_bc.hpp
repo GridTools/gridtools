@@ -263,7 +263,7 @@ namespace gridtools {
                 m_stores,
                 meta::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{})),
             typename _impl::comm_indices<stores_type>::type> {
-            auto ro_store_tuple = std::forward_as_tuple(ro_stores...);
+            auto ro_store_tuple = const_expr::forward_as_tuple(ro_stores...);
             // we need to substitute the placeholders with the
             auto full_list = _impl::substitute_placeholders(
                 ro_store_tuple, m_stores, meta::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{});
@@ -296,7 +296,7 @@ namespace gridtools {
         // Check that the stores... are either data stores or placeholders
         GT_STATIC_ASSERT(_impl::data_stores_or_placeholders<typename std::decay<DataStores>::type...>(),
             "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
-        return {bc_apply, std::forward_as_tuple(stores...)};
+        return {bc_apply, const_expr::forward_as_tuple(stores...)};
     }
 
     /** @brief Metafunctions to query if a type is a bound_bc
