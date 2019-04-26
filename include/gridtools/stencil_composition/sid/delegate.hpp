@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <initializer_list>
+
 #include "../../common/defs.hpp"
 #include "../../meta/macros.hpp"
 #include "concept.hpp"
@@ -28,7 +30,9 @@ namespace gridtools {
 
             GT_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
 
-            friend GT_CONSTEXPR GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) { return get_origin(obj.m_impl); }
+            friend GT_CONSTEXPR GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) {
+                return get_origin(obj.m_impl);
+            }
             friend GT_CONSTEXPR GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
                 return get_strides(obj.m_impl);
             }
@@ -38,8 +42,11 @@ namespace gridtools {
             Sid &impl() { return m_impl; }
 
           public:
-            explicit GT_CONSTEXPR delegate(Sid const &impl) noexcept : m_impl(impl) {}
-            explicit GT_CONSTEXPR delegate(Sid &&impl) noexcept : m_impl(const_expr::move(impl)) {}
+            template <class Arg>
+            explicit GT_CONSTEXPR delegate(std::initializer_list<Arg> lst) : m_impl(*lst.begin()) {}
+
+            template <class Arg>
+            explicit GT_CONSTEXPR delegate(Arg &&arg) noexcept : m_impl{const_expr::forward<Arg>(arg)} {}
         };
 
         template <class Sid>
