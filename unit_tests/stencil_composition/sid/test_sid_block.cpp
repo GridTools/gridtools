@@ -18,14 +18,16 @@
 
 namespace gridtools {
     namespace {
+        struct unused_dim;
+
         TEST(sid_block, smoke) {
             const int domain_size_i = 12;
             const int domain_size_j = 14;
             constexpr int block_size_i = 3;
             const int block_size_j = 7;
 
-            auto blocks = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
-                integral_constant<int_t, block_size_i>{}, block_size_j);
+            auto blocks = tuple_util::make<hymap::keys<dim::i, dim::j, unused_dim>::values>(
+                integral_constant<int_t, block_size_i>{}, block_size_j, 5);
 
             positional s{0, 0, 0};
             auto blocked_s = sid::block(s, blocks);
