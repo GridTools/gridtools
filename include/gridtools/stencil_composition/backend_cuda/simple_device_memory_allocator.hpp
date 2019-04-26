@@ -9,10 +9,12 @@
  */
 #pragma once
 
-#include "../../common/cuda_util.hpp"
-#include "../sid/simple_ptr_holder.hpp"
+#include <cuda_runtime.h>
 #include <memory>
 #include <vector>
+
+#include "../../common/cuda_util.hpp"
+#include "../sid/simple_ptr_holder.hpp"
 
 namespace gridtools {
 
@@ -28,7 +30,7 @@ namespace gridtools {
             T *ptr;
             GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T) * num_elements));
             m_ptrs.emplace_back(ptr, [](T *ptr) { assert(cudaFree(ptr) == cudaSuccess); });
-            return {static_cast<T *>(m_ptrs.back().get())};
+            return {ptr};
         }
     };
 

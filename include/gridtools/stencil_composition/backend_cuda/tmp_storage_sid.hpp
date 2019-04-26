@@ -59,19 +59,16 @@ namespace gridtools {
 #ifndef GT_ICOSAHEDRAL_GRIDS
 
     namespace tmp_cuda_impl_ {
+        using namespace literals;
+        using stride_keys_t = hymap::keys<dim::i, dim::j, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>;
+
         template <class BlockSizeI, class BlockSizeJ>
-        hymap::keys<dim::i, dim::j, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>::values<integral_constant<int_t, 1>,
-            BlockSizeI,
-            integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value>,
-            int_t,
-            int_t>
-        compute_strides(int_t n_blocks_i, int_t n_blocks_j) {
-            return {integral_constant<int_t, 1>{}, // TODO support for default init {} in hymap
+        auto compute_strides(int_t n_blocks_i, int_t n_blocks_j)
+            GT_AUTO_RETURN((tuple_util::make<stride_keys_t::values>(1_c,
                 BlockSizeI{},
-                integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value>{},
-                BlockSizeI::value * BlockSizeJ::value * n_blocks_i,
-                BlockSizeI::value * BlockSizeJ::value * n_blocks_i * n_blocks_j};
-        }
+                BlockSizeI{} * BlockSizeJ{},
+                BlockSizeI{} * BlockSizeJ{} * n_blocks_i,
+                BlockSizeI{} * BlockSizeJ{} * n_blocks_i * n_blocks_j)));
     } // namespace tmp_cuda_impl_
 
     /**
@@ -118,22 +115,17 @@ namespace gridtools {
 #else
 
     namespace tmp_cuda_impl_ {
+        using namespace literals;
+        using stride_keys_t = hymap::keys<dim::i, dim::j, dim::c, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>;
+
         template <class BlockSizeI, class BlockSizeJ, uint_t NColors>
-        hymap::keys<dim::i, dim::j, dim::c, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>::values<
-            integral_constant<int_t, 1>,
-            BlockSizeI,
-            integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value>,
-            integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value * NColors>,
-            int_t,
-            int_t>
-        compute_strides(int_t n_blocks_i, int_t n_blocks_j) {
-            return {integral_constant<int_t, 1>{}, // TODO support for default init {} in hymap
+        auto compute_strides(int_t n_blocks_i, int_t n_blocks_j)
+            GT_AUTO_RETURN((tuple_util::make<stride_keys_t::values>(1_c,
                 BlockSizeI{},
-                integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value>{},
-                integral_constant<int_t, BlockSizeI::value * BlockSizeJ::value * NColors>{},
-                BlockSizeI::value * BlockSizeJ::value * NColors * n_blocks_i,
-                BlockSizeI::value * BlockSizeJ::value * NColors * n_blocks_i * n_blocks_j};
-        }
+                BlockSizeI{} * BlockSizeJ{},
+                BlockSizeI{} * BlockSizeJ{} * NColors,
+                BlockSizeI{} * BlockSizeJ{} * NColors * n_blocks_i,
+                BlockSizeI{} * BlockSizeJ{} * NColors * n_blocks_i * n_blocks_j)));
     } // namespace tmp_cuda_impl_
 
     /**
