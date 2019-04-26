@@ -48,20 +48,21 @@ namespace gridtools {
 
             template <class Lhs, class Rhs>
             GT_FUNCTION auto operator()(Lhs &&lhs, Rhs &&rhs) const
-                GT_AUTO_RETURN((host_device::at_key_with_default<Key, default_t>(std::forward<Lhs>(lhs)) +
-                                host_device::at_key_with_default<Key, default_t>(std::forward<Rhs>(rhs))));
+                GT_AUTO_RETURN((host_device::at_key_with_default<Key, default_t>(const_expr::forward<Lhs>(lhs)) +
+                                host_device::at_key_with_default<Key, default_t>(const_expr::forward<Rhs>(rhs))));
         };
 
         template <class Res, class Lhs, class Rhs>
         GT_FUNCTION Res sum_offsets(Lhs &&lhs, Rhs &&rhs) {
             using keys_t = GT_META_CALL(get_keys, Res);
             using generators_t = GT_META_CALL(meta::transform, (sum_offset_generator_f, keys_t));
-            return tuple_util::host_device::generate<generators_t, Res>(std::forward<Lhs>(lhs), std::forward<Rhs>(rhs));
+            return tuple_util::host_device::generate<generators_t, Res>(
+                const_expr::forward<Lhs>(lhs), const_expr::forward<Rhs>(rhs));
         }
 
         template <int_t I, int_t J, int_t K, class Accessor>
         GT_FUNCTION enable_if_t<I == 0 && J == 0 && K == 0, Accessor &&> get_offsets(Accessor &&acc) {
-            return std::forward<Accessor>(acc);
+            return const_expr::forward<Accessor>(acc);
         }
 
         template <int_t I,
@@ -75,7 +76,7 @@ namespace gridtools {
             static constexpr hymap::keys<dim::i, dim::j, dim::k>::
                 values<integral_constant<int_t, I>, integral_constant<int_t, J>, integral_constant<int_t, K>>
                     offset = {};
-            return sum_offsets<Res>(std::forward<Accessor>(acc), offset);
+            return sum_offsets<Res>(const_expr::forward<Accessor>(acc), offset);
         }
 
         template <class Res, class Offsets>
@@ -85,13 +86,13 @@ namespace gridtools {
             Offsets m_offsets;
 
             template <class Eval, class Src>
-            GT_FUNCTION constexpr auto operator()(Eval &eval, Src &&src) const
-                GT_AUTO_RETURN(eval(sum_offsets<Res>(m_offsets, std::forward<Src>(src))));
+            GT_FUNCTION GT_CONSTEXPR auto operator()(Eval &eval, Src &&src) const
+                GT_AUTO_RETURN(eval(sum_offsets<Res>(m_offsets, const_expr::forward<Src>(src))));
         };
 
         template <class Res, class Offsets>
         GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
-            return {std::forward<Offsets>(offsets)};
+            return {const_expr::forward<Offsets>(offsets)};
         }
 
         template <class T>
@@ -113,8 +114,8 @@ namespace gridtools {
                 enable_if_t<is_accessor<Decayed>::value &&
                                 !(Param::intent_v == intent::inout && Decayed::intent_v == intent::in),
                     int> = 0>
-            GT_FUNCTION auto operator()(Accessor &&accessor, LazyParam) const
-                GT_AUTO_RETURN((accessor_transform<Decayed>(get_offsets<I, J, K>(std::forward<Accessor>(accessor)))));
+            GT_FUNCTION auto operator()(Accessor &&accessor, LazyParam) const GT_AUTO_RETURN(
+                (accessor_transform<Decayed>(get_offsets<I, J, K>(const_expr::forward<Accessor>(accessor)))));
 
             template <class Arg,
                 class Decayed = decay_t<Arg>,
@@ -123,7 +124,7 @@ namespace gridtools {
                 enable_if_t<!is_accessor<Decayed>::value &&
                                 !(Param::intent_v == intent::inout && std::is_const<remove_reference_t<Arg>>::value),
                     int> = 0>
-            GT_FUNCTION constexpr local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
+            GT_FUNCTION GT_CONSTEXPR local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
                 return {const_expr::forward<Arg>(arg)};
             }
         };
@@ -136,7 +137,7 @@ namespace gridtools {
             template <class Accessor>
             GT_FUNCTION auto operator()(Accessor &&acc) const
                 GT_AUTO_RETURN(tuple_util::host_device::get<decay_t<Accessor>::index_t::value>(m_transforms)(
-                    m_eval, std::forward<Accessor>(acc)));
+                    m_eval, const_expr::forward<Accessor>(acc)));
 
             template <class Op, class... Ts>
             GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
@@ -144,7 +145,7 @@ namespace gridtools {
         };
         template <class Eval, class Transforms>
         GT_FUNCTION evaluator<Eval, Transforms> make_evaluator(Eval &eval, Transforms &&transforms) {
-            return {eval, std::forward<Transforms>(transforms)};
+            return {eval, const_expr::forward<Transforms>(transforms)};
         }
 
         template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>
@@ -154,7 +155,8 @@ namespace gridtools {
                     GT_META_CALL(meta::transform, (meta::defer<meta::id>::apply, typename Functor::param_list))))
                 lazy_params = {};
             auto new_eval = make_evaluator(eval,
-                tuple_util::host_device::transform(get_transform_f<I, J, K>{}, std::forward<Args>(args), lazy_params));
+                tuple_util::host_device::transform(
+                    get_transform_f<I, J, K>{}, const_expr::forward<Args>(args), lazy_params));
             call_functor<Functor, Region>(new_eval);
         }
 
@@ -231,7 +233,8 @@ namespace gridtools {
         GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
             Res res;
             call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
-                tuple_util::host_device::insert<out_param_index>(res, tuple<Args &&...>{std::forward<Args>(args)...}));
+                tuple_util::host_device::insert<out_param_index>(
+                    res, tuple<Args &&...>{const_expr::forward<Args>(args)...}));
             return res;
         }
     };
@@ -273,7 +276,7 @@ namespace gridtools {
         GT_FUNCTION static enable_if_t<sizeof...(Args) == meta::length<typename Functor::param_list>::value> with(
             Eval &eval, Args &&... args) {
             call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
-                eval, tuple<Args &&...>{std::forward<Args>(args)...});
+                eval, tuple<Args &&...>{const_expr::forward<Args>(args)...});
         }
     };
 } // namespace gridtools

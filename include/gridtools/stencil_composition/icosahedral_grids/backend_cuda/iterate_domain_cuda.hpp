@@ -56,7 +56,7 @@ namespace gridtools {
 
         template <class T>
         GT_FUNCTION_DEVICE iterate_domain_cuda(T &&obj, uint_t block_size_i, uint_t block_size_j)
-            : base_t(std::forward<T>(obj)), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
+            : base_t(const_expr::forward<T>(obj)), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
         /**
          * @brief determines whether the current (i,j) position is within the block size

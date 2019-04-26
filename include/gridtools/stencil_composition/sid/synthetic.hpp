@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../meta/type_traits.hpp"
 
 namespace gridtools {
@@ -28,7 +29,7 @@ namespace gridtools {
                 T m_val;
             };
             template <class T>
-            constexpr T sid_get_origin(mixin<property::origin, T> const &obj) noexcept {
+            GT_CONSTEXPR T sid_get_origin(mixin<property::origin, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
@@ -37,7 +38,7 @@ namespace gridtools {
                 T m_val;
             };
             template <class T>
-            constexpr T sid_get_strides(mixin<property::strides, T> const &obj) noexcept {
+            GT_CONSTEXPR T sid_get_strides(mixin<property::strides, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
@@ -63,7 +64,7 @@ namespace gridtools {
                 unique_mixin &operator=(unique_mixin &&) = default;
 
                 template <class U>
-                constexpr unique_mixin(U &&obj) noexcept : mixin<Property, T>{std::forward<U>(obj)} {}
+                GT_CONSTEXPR unique_mixin(U &&obj) noexcept : mixin<Property, T>{const_expr::forward<U>(obj)} {}
             };
 
             template <class...>
@@ -72,12 +73,12 @@ namespace gridtools {
             template <>
             struct synthetic<> {
                 template <property Property, class T>
-                constexpr synthetic<unique_mixin<Property, T>> set() const &&noexcept {
+                GT_CONSTEXPR synthetic<unique_mixin<Property, T>> set() const &&noexcept {
                     return synthetic{};
                 }
 
                 template <property Property, class T>
-                constexpr synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
+                GT_CONSTEXPR synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
                     return {std::forward<T>(val), synthetic{}};
                 }
             };
@@ -87,21 +88,21 @@ namespace gridtools {
 
                 GT_DECLARE_DEFAULT_EMPTY_CTOR(synthetic);
 
-                constexpr synthetic(synthetic<Mixins...> const &&src) noexcept : Mixins(std::move(src))... {}
+                GT_CONSTEXPR synthetic(synthetic<Mixins...> const &&src) noexcept : Mixins(const_expr::move(src))... {}
 
                 template <class T>
-                constexpr synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
-                    : Mixin{std::forward<T>(val)}, Mixins(std::move(src))... {}
+                GT_CONSTEXPR synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
+                    : Mixin{const_expr::forward<T>(val)}, Mixins(const_expr::move(src))... {}
 
                 template <property Property, class U>
-                constexpr synthetic<unique_mixin<Property, U>, Mixin, Mixins...> set() const &&noexcept {
-                    return {std::move(*this)};
+                GT_CONSTEXPR synthetic<unique_mixin<Property, U>, Mixin, Mixins...> set() const &&noexcept {
+                    return {const_expr::move(*this)};
                 }
 
                 template <property Property, class T>
-                constexpr synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(
+                GT_CONSTEXPR synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(
                     T &&val) const &&noexcept {
-                    return {std::forward<T>(val), std::move(*this)};
+                    return {const_expr::forward<T>(val), const_expr::move(*this)};
                 }
             };
         } // namespace synthetic_impl_
@@ -124,6 +125,6 @@ namespace gridtools {
          *  Duplicated property `set`'s cause compiler error.
          *  Works both in run time and in compile time.
          */
-        constexpr synthetic_impl_::synthetic<> synthetic() { return {}; }
+        GT_CONSTEXPR synthetic_impl_::synthetic<> synthetic() { return {}; }
     } // namespace sid
 } // namespace gridtools

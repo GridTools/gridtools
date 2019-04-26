@@ -28,20 +28,18 @@ namespace gridtools {
 
             GT_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
 
-            friend constexpr GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) {
-                return get_origin(obj.m_impl);
-            }
-            friend constexpr GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
+            friend GT_CONSTEXPR GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) { return get_origin(obj.m_impl); }
+            friend GT_CONSTEXPR GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
                 return get_strides(obj.m_impl);
             }
 
           protected:
-            constexpr Sid const &impl() const { return m_impl; }
+            GT_CONSTEXPR Sid const &impl() const { return m_impl; }
             Sid &impl() { return m_impl; }
 
           public:
-            explicit constexpr delegate(Sid const &impl) noexcept : m_impl(impl) {}
-            explicit constexpr delegate(Sid &&impl) noexcept : m_impl(std::move(impl)) {}
+            explicit GT_CONSTEXPR delegate(Sid const &impl) noexcept : m_impl(impl) {}
+            explicit GT_CONSTEXPR delegate(Sid &&impl) noexcept : m_impl(const_expr::move(impl)) {}
         };
 
         template <class Sid>
