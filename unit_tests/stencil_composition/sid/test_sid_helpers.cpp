@@ -32,8 +32,7 @@ namespace gridtools {
                            .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0][0]))
                            .set<property::strides>(strides_t{});
 
-            using offset_t = hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, 1>, int_t>;
-            offset_t offset = {integral_constant<int_t, 1>{}, 2};
+            auto offset = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(1_c, 2);
             auto testee = sid::shifted_sid(src, offset);
 
             static_assert(is_sid<decltype(testee)>(), "");

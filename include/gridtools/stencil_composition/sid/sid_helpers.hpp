@@ -9,34 +9,35 @@
  */
 #pragma once
 
-#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../meta.hpp"
+#include "concept.hpp"
 #include "delegate.hpp"
 #include "multi_shift.hpp"
 
 namespace gridtools {
     namespace sid {
         namespace sid_helpers_impl_ {
-            template <class Sid, class Offset>
+            template <class Sid>
             class shifted_sid : public delegate<Sid> {
-                Offset m_offset;
+                sid::ptr_holder_type<Sid> m_origin;
 
-                friend GT_META_CALL(sid::ptr_holder_type, Sid) sid_get_origin(shifted_sid &obj) {
-                    auto &&impl = obj.impl();
-                    auto strides = sid::get_strides(impl);
-                    GT_META_CALL(sid::ptr_diff_type, Sid) offset{};
-                    multi_shift(offset, strides, obj.m_offset);
-                    return sid::get_origin(impl) + offset;
-                }
+                friend GT_META_CALL(sid::ptr_holder_type, Sid) sid_get_origin(shifted_sid &obj) { return obj.m_origin; }
 
               public:
-                explicit constexpr shifted_sid(Sid const &impl, Offset const &offset) noexcept
-                    : delegate<Sid>(impl), m_offset(offset) {}
+                template <class Offsets>
+                constexpr shifted_sid(Sid &&original_sid, Offsets &&offsets) noexcept
+                    : delegate<Sid>(std::forward<Sid>(original_sid)), m_origin{[this, &offsets]() {
+                          auto &&strides = sid::get_strides(this->impl());
+                          GT_META_CALL(sid::ptr_diff_type, Sid) ptr_offset{};
+                          multi_shift(ptr_offset, strides, offsets);
+                          return sid::get_origin(this->impl()) + ptr_offset;
+                      }()} {}
             };
         } // namespace sid_helpers_impl_
 
         template <class Sid, class Offset>
-        sid_helpers_impl_::shifted_sid<Sid, Offset> shifted_sid(Sid const &sid, Offset const &offset) {
-            return sid_helpers_impl_::shifted_sid<Sid, Offset>{sid, offset};
+        sid_helpers_impl_::shifted_sid<Sid> shifted_sid(Sid &&sid, Offset &&offset) {
+            return sid_helpers_impl_::shifted_sid<Sid>{std::forward<Sid>(sid), std::forward<Offset>(offset)};
         }
     } // namespace sid
 } // namespace gridtools
