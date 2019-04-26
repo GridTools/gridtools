@@ -82,8 +82,8 @@ def compare(results):
 
     stencils, stenciltimes = result.times_by_stencil(results)
 
-    rows = math.floor(math.sqrt(len(stencils)))
-    cols = math.ceil(len(stencils) / rows)
+    cols = math.ceil(math.sqrt(len(stencils)) / (0.5 * len(results)))
+    rows = math.ceil(len(stencils) / cols)
 
     fig, axarr = plt.subplots(rows, cols, squeeze=False,
                               figsize=figsize(cols * len(results) / 2, rows))
@@ -92,7 +92,8 @@ def compare(results):
     colors = discrete_colors(len(results))
 
     suptitle, titles = get_titles(results)
-    fig.suptitle(suptitle, wrap=True)
+    fig.suptitle(suptitle, wrap=True, y=1 - 0.1 / rows,
+                 verticalalignment='center')
 
     xticks = list(range(1, len(results) + 1))
     for ax, stencil, times in itertools.zip_longest(axes, stencils,
@@ -108,8 +109,7 @@ def compare(results):
         else:
             ax.set_visible(False)
 
-    fig.tight_layout()
-    fig.subplots_adjust(top=0.9)
+    fig.tight_layout(rect=[0, 0, 1, 1 - 0.2 / rows])
     return fig
 
 
