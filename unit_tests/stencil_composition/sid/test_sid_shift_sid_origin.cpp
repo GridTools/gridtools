@@ -10,11 +10,10 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/defs.hpp>
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil_composition/dim.hpp>
-#include <gridtools/stencil_composition/sid/shifted_sid.hpp>
+#include <gridtools/stencil_composition/sid/sid_shift_origin.hpp>
 #include <gridtools/stencil_composition/sid/synthetic.hpp>
 
 namespace gridtools {

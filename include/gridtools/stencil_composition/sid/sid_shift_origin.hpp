@@ -24,11 +24,11 @@ namespace gridtools {
                 friend GT_META_CALL(sid::ptr_holder_type, Sid) sid_get_origin(shifted_sid &obj) { return obj.m_origin; }
 
               public:
-                template <class Offsets>
-                shifted_sid(Sid const &original_sid, Offsets &&offsets) noexcept
-                    : delegate<Sid>(original_sid), m_origin{[this, &offsets]() {
+                template <class Arg, class Offsets>
+                shifted_sid(Arg &&original_sid, Offsets &&offsets) noexcept
+                    : delegate<Sid>(std::forward<Arg>(original_sid)), m_origin{[this, &offsets]() {
                           auto &&strides = sid::get_strides(this->impl());
-                          GT_META_CALL(sid::ptr_diff_type, Sid) ptr_offset{};
+                          GT_META_CALL(sid::ptr_diff_type, Arg) ptr_offset{};
                           multi_shift(ptr_offset, strides, offsets);
                           return sid::get_origin(this->impl()) + ptr_offset;
                       }()} {}
