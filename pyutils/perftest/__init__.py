@@ -1,94 +1,77 @@
 # -*- coding: utf-8 -*-
 
-import contextlib
-import logging
-import sys
-import textwrap
+import os
+import re
+
+from pyutils import env, log, runtools
+from perftest import stencils as stencil_loader
+from perftest import result, time
 
 
-if sys.version_info < (3, 6):
-    raise Exception('Python 3.6 or newer is required')
+def _stencil_binary(backend, stencil):
+    from pyutils import buildinfo
+    binary = os.path.join(buildinfo.binary_dir,
+                          stencil.gridtools_binary(backend))
+    if not os.path.isfile(binary):
+        raise FileNotFoundError(f'Could not find GridTools binary "{binary}"')
+    return binary
 
 
-class Error(Exception):
-    """Base class of all errors inside perftest."""
-    pass
+def _stencil_command(backend, stencil, domain):
+    binary = _stencil_binary(backend, stencil)
+    ni, nj, nk = domain
+    halo = stencil.halo
+    ni, nj = ni + 2 * halo, nj + 2 * halo
+    return [binary, str(ni), str(nj), str(nk), '10']
 
 
-class ConfigError(Error):
-    pass
+def _git_commit():
+    from pyutils import buildinfo
+    return runtools.run(['git', 'rev-parse', 'HEAD'], cwd=buildinfo.source_dir)
 
 
-class NotFoundError(Error):
-    pass
+def _git_datetime():
+    from pyutils import buildinfo
+    posixtime = runtools.run(
+            ['git', 'show', '-s', '--format=%ct', _git_commit()],
+            cwd=buildinfo.source_dir)
+    return time.from_posix(posixtime)
 
 
-class ArgumentError(Error):
-    pass
+def _parse_time(output):
+    p = re.compile(r'.*\[s\]\s*([0-9.]+).*', re.MULTILINE | re.DOTALL)
+    m = p.match(output)
+    if not m:
+        raise RuntimeError(f'Could not parse time in output:\n{output}')
+    return float(m.group(1))
 
 
-class ParseError(Error):
-    pass
+def run(domain, runs):
+    from pyutils import buildinfo
+    stencils = stencil_loader.load(buildinfo.grid)
 
+    results = dict()
+    for backend in buildinfo.backends:
+        if backend == 'naive':
+            continue
 
-class JobError(Error):
-    pass
+        commands = [_stencil_command(backend, s, domain) for s in stencils]
+        allcommands = [c for c in commands for _ in range(runs)]
+        log.info('Running stencils')
+        alloutputs = runtools.sbatch_retry(allcommands, 5)
+        log.info('Running stencils finished')
+        alltimes = [_parse_time(o) for _, o, _ in alloutputs]
+        times = [alltimes[i:i + runs] for i in range(0, len(alltimes), runs)]
 
+        info = result.RunInfo(name='gridtools',
+                              version=_git_commit(),
+                              datetime=_git_datetime(),
+                              precision=buildinfo.precision,
+                              backend=backend,
+                              grid=buildinfo.grid,
+                              compiler=buildinfo.compiler,
+                              hostname=env.hostname(),
+                              clustername=env.clustername())
 
-class JobSchedulingError(JobError):
-    pass
-
-
-logger = logging.getLogger(__name__)
-
-loghandler = logging.StreamHandler()
-loghandler.setFormatter(
-        logging.Formatter('%(levelname)s %(asctime)s: %(message)s',
-                          '%Y-%m-%d %H:%M:%S'))
-
-logger.addHandler(loghandler)
-
-
-def set_verbose(verbosity):
-    """Sets the global verbosity of the logger.
-
-    If `verbosity` is 0, only errors and warnings are logged, if `verbosity`
-    is 1 additional info messages are logged. If `verbosity` is 2 or higher,
-    all debug messages are logged.
-
-    Args:
-        verbosity: Integer, higher means more verbose.
-    """
-    if verbosity == 0:
-        logger.setLevel(logging.WARNING)
-    elif verbosity == 1:
-        logger.setLevel(logging.INFO)
-    else:
-        logger.setLevel(logging.DEBUG)
-
-
-set_verbose(0)
-
-
-@contextlib.contextmanager
-def exception_logging():
-    try:
-        yield
-    except Exception:
-        logger.exception('Fatal error: exception was raised')
-        sys.exit(1)
-
-
-def _multiline_redirect(func):
-    def multiline_func(message, details=None, **kwargs):
-        if details is None:
-            func(message, **kwargs)
-        else:
-            func(message + '\n' + textwrap.indent(details, '    '), **kwargs)
-    return multiline_func
-
-
-logger.debug = _multiline_redirect(logger.debug)
-logger.info = _multiline_redirect(logger.info)
-logger.warning = _multiline_redirect(logger.warning)
-logger.error = _multiline_redirect(logger.error)
+        results[backend] = result.from_data(info, domain, stencils, times)
+    return results

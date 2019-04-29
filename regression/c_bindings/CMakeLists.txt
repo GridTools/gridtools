@@ -25,6 +25,7 @@ if (GT_ENABLE_BACKEND_X86)
 
         add_executable(fdriver_wrapper fdriver_wrapper.f90)
         target_link_libraries(fdriver_wrapper implementation_wrapper_${prec}_fortran)
+        set_target_properties(fdriver_wrapper PROPERTIES LINKER_LANGUAGE Fortran)
         gt_enable_fortran_preprocessing_on_target(fdriver_wrapper)
     endif()
 endif(GT_ENABLE_BACKEND_X86)

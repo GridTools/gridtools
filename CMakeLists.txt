@@ -132,8 +132,3 @@ if(GT_ENABLE_PYUTILS)
 endif()
 
 include(export)
-
-# ===========
-# Apply final actions
-# ===========
-include (post_config_actions)
