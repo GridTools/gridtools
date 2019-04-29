@@ -82,7 +82,7 @@ namespace gridtools {
         size_t InnerD = tuple_size<typename tuple_element<0, Decayed>::type>::value,
         typename std::enable_if<OuterD != 0 && InnerD == 2, int>::type = 0>
     GT_FUNCTION impl_::hypercube_view<OuterD> make_hypercube_view(Container &&cube) {
-        auto &&transposed = tuple_util::host_device::transpose(const_expr::forward<Container>(cube));
+        auto &&transposed = tuple_util::host_device::transpose(wstd::forward<Container>(cube));
         return {tuple_util::host_device::convert_to<array, size_t>(tuple_util::host_device::get<0>(transposed)),
             tuple_util::host_device::convert_to<array, size_t>(tuple_util::host_device::get<1>(transposed))};
     }
@@ -107,6 +107,6 @@ namespace gridtools {
         typename std::enable_if<D != 0 && std::is_convertible<size_t, typename tuple_element<0, Decayed>::type>::value,
             int>::type = 0>
     GT_FUNCTION impl_::hypercube_view<D> make_hypercube_view(Container &&sizes) {
-        return {tuple_util::host_device::convert_to<array, size_t>(const_expr::forward<Container>(sizes))};
+        return {tuple_util::host_device::convert_to<array, size_t>(wstd::forward<Container>(sizes))};
     }
 } // namespace gridtools

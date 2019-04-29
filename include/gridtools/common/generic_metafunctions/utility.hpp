@@ -21,7 +21,7 @@ namespace gridtools {
     /**
      *  `std::forward`/`std::move` versions that are guaranteed to be not constexpr
      */
-    namespace const_expr {
+    namespace wstd {
         template <class T>
         GT_CONSTEXPR GT_HOST_DEVICE typename std::remove_reference<T>::type &&move(T &&obj) noexcept {
             return static_cast<typename std::remove_reference<T>::type &&>(obj);
@@ -37,5 +37,5 @@ namespace gridtools {
             return static_cast<T &&>(obj);
         }
 
-    } // namespace const_expr
+    } // namespace wstd
 } // namespace gridtools

@@ -18,13 +18,13 @@ namespace gridtools {
         struct sum {
             template <class Lhs, class Rhs>
             GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs &&lhs, Rhs &&rhs) const
-                GT_AUTO_RETURN(const_expr::forward<Lhs>(lhs) + const_expr::forward<Rhs>(rhs));
+                GT_AUTO_RETURN(wstd::forward<Lhs>(lhs) + wstd::forward<Rhs>(rhs));
         };
 
         struct prod {
             template <class Lhs, class Rhs>
             GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs &&lhs, Rhs &&rhs) const
-                GT_AUTO_RETURN(const_expr::forward<Lhs>(lhs) * const_expr::forward<Rhs>(rhs));
+                GT_AUTO_RETURN(wstd::forward<Lhs>(lhs) * wstd::forward<Rhs>(rhs));
         };
     } // namespace binop
 } // namespace gridtools

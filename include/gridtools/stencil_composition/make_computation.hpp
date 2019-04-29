@@ -39,14 +39,14 @@ namespace gridtools {
             template <class Grid,
                 class... Args,
                 class ArgsPair = decltype(
-                    split_args<is_arg_storage_pair>(const_expr::forward<Args>(std::declval<Args>())...)),
+                    split_args<is_arg_storage_pair>(wstd::forward<Args>(std::declval<Args>())...)),
                 class ArgStoragePairs = GT_META_CALL(decay_elements, typename ArgsPair::first_type),
                 class Msses = GT_META_CALL(decay_elements, typename ArgsPair::second_type)>
             intermediate<IsStateful, Backend, Grid, ArgStoragePairs, Msses> operator()(
                 Grid const &grid, Args &&... args) const {
                 // split arg_storage_pair and mss descriptor arguments and forward it to intermediate constructor
-                auto &&args_pair = split_args<is_arg_storage_pair>(const_expr::forward<Args>(args)...);
-                return {grid, const_expr::move(args_pair.first)};
+                auto &&args_pair = split_args<is_arg_storage_pair>(wstd::forward<Args>(args)...);
+                return {grid, wstd::move(args_pair.first)};
             }
         };
 
@@ -62,14 +62,14 @@ namespace gridtools {
     template <class Backend, class Grid, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
     auto make_computation(Grid const &grid, Arg &&arg, Args &&... args)
         GT_AUTO_RETURN((_impl::make_intermediate_f<GT_POSITIONAL_WHEN_DEBUGGING, Backend>{}(
-            grid, const_expr::forward<Arg>(arg), const_expr::forward<Args>(args)...)));
+            grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...)));
 
 #undef GT_POSITIONAL_WHEN_DEBUGGING
 
     template <class Backend, class Grid, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
     auto make_positional_computation(Grid const &grid, Arg &&arg, Args &&... args)
         GT_AUTO_RETURN((_impl::make_intermediate_f<true, Backend>{}(
-            grid, const_expr::forward<Arg>(arg), const_expr::forward<Args>(args)...)));
+            grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...)));
 
     // user protection only, catch the case where no backend is specified
     template <class... Args>

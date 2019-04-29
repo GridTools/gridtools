@@ -27,7 +27,7 @@ namespace gridtools {
         template <class Arg>
         GT_FORCE_INLINE iterate_domain_naive(Arg &&arg)
             : iterate_domain<iterate_domain_naive<IterateDomainArguments>, IterateDomainArguments>(
-                  const_expr::forward<Arg>(arg)) {}
+                  wstd::forward<Arg>(arg)) {}
 
         template <class Arg, class T>
         static GT_FORCE_INLINE auto deref_impl(T &&ptr) GT_AUTO_RETURN(*ptr);

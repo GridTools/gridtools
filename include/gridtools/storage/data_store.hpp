@@ -187,7 +187,7 @@ namespace gridtools {
         }
 
         data_store(data_store &&src, std::shared_ptr<StorageInfo> const &storage_info) noexcept
-            : data_store(const_expr::move(src)) {
+            : data_store(wstd::move(src)) {
             assert(valid());
             assert(*storage_info);
             assert(*m_shared_storage_info == *storage_info);

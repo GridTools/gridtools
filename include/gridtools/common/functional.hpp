@@ -48,7 +48,7 @@ namespace gridtools {
         struct ctor {
             template <typename... Args>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR T operator()(Args &&... args) const {
-                return T{const_expr::forward<Args>(args)...};
+                return T{wstd::forward<Args>(args)...};
             }
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE

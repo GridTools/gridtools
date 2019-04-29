@@ -30,7 +30,7 @@ namespace gridtools {
         iterate_domain_x86 &operator=(iterate_domain_x86 const &) = delete;
 
         template <class... Args>
-        GT_FORCE_INLINE iterate_domain_x86(Args &&... args) : base_t(const_expr::forward<Args>(args)...) {}
+        GT_FORCE_INLINE iterate_domain_x86(Args &&... args) : base_t(wstd::forward<Args>(args)...) {}
 
         template <class Arg, class Ptr>
         static GT_FORCE_INLINE auto deref_impl(Ptr &&ptr) GT_AUTO_RETURN(*ptr);

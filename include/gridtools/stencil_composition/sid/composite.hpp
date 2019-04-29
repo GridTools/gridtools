@@ -245,7 +245,7 @@ namespace gridtools {
                         class Item = GT_META_CALL(meta::mp_find, (Map, std::integral_constant<size_t, I>)),
                         class Pos = GT_META_CALL(meta::second, Item)>
                     static GT_CONSTEXPR GT_FUNCTION auto get(T &&obj)
-                        GT_AUTO_RETURN(tuple_util::host_device::get<Pos::value>(const_expr::forward<T>(obj).m_vals));
+                        GT_AUTO_RETURN(tuple_util::host_device::get<Pos::value>(wstd::forward<T>(obj).m_vals));
 
                     template <class... Ts>
                     struct composite_entity {
@@ -260,13 +260,13 @@ namespace gridtools {
 
                         template <class... Args, enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
                         GT_CONSTEXPR composite_entity(Args &&... args) noexcept
-                            : composite_entity(tuple<Args &&...>{const_expr::forward<Args &&>(args)...}) {}
+                            : composite_entity(tuple<Args &&...>{wstd::forward<Args &&>(args)...}) {}
 
                         template <template <class...> class L,
                             class... Args,
                             enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
                         GT_CONSTEXPR composite_entity(L<Args...> &&tup) noexcept
-                            : m_vals{tuple_util::generate<generators_t, vals_t>(const_expr::move(tup))} {}
+                            : m_vals{tuple_util::generate<generators_t, vals_t>(wstd::move(tup))} {}
 
                         GT_DECLARE_DEFAULT_EMPTY_CTOR(composite_entity);
                         composite_entity(composite_entity const &) = default;
@@ -308,7 +308,7 @@ namespace gridtools {
                     struct convert_f {
                         template <template <class...> class L, class... Ts>
                         GT_CONSTEXPR composite_entity<remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
-                            return {const_expr::move(tup)};
+                            return {wstd::move(tup)};
                         }
                     };
                 };

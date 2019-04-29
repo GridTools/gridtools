@@ -210,7 +210,7 @@ namespace gridtools {
               m_tmp_arg_storage_pair_tuple(
                   _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(grid)),
               // stash bound storages
-              m_bound_arg_storage_pair_tuple(const_expr::move(arg_storage_pairs)) {
+              m_bound_arg_storage_pair_tuple(wstd::move(arg_storage_pairs)) {
             if (timer_enabled)
                 m_meter.reset(new performance_meter_t{"NoName"});
 #ifndef NDEBUG
