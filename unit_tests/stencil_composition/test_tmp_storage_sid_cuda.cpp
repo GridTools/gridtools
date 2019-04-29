@@ -9,14 +9,15 @@
  */
 
 #include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
-#include <gridtools/stencil_composition/color.hpp>
+
 #include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 #include <type_traits>
+#include <vector>
 
 #include "../tools/multiplet.hpp"
-
 #include <gtest/gtest.h>
 
 namespace gridtools {

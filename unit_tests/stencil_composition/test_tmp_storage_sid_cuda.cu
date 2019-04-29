@@ -8,14 +8,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../test_helper.hpp"
-#include <gridtools/meta.hpp>
-#include <gridtools/stencil_composition/backend_cuda/simple_device_memory_allocator.hpp>
 #include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
-#include <gridtools/stencil_composition/color.hpp>
+
+#include <gridtools/stencil_composition/backend_cuda/simple_device_memory_allocator.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
+#include "../test_helper.hpp"
 #include <gtest/gtest.h>
 
 namespace gridtools {
