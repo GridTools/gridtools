@@ -68,12 +68,6 @@ TEST(DataViewTest, Simple) {
 
     ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
 
-    // check if the user protections are working
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 9
-    // CUDA10 does not like to evaluate storage_info functions constexpr as a member (m_gpu_ptr) is mutable
-    static_assert(si.index(1, 0, 0) == 1, "constexpr index method call failed");
-#endif
-
     ASSERT_TRUE(si.index(1, 0, 1) == c_y * 32 + 1);
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
