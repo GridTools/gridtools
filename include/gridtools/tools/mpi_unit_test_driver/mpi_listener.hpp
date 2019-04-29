@@ -15,6 +15,7 @@
 #include <stdexcept>
 
 //#include <communication/GCL.hpp>
+#include "../../common/generic_metafunctions/utility.hpp"
 
 #include "gtest/gtest.h"
 
