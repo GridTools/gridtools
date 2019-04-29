@@ -93,7 +93,8 @@ namespace gridtools {
             tuple_impl &operator=(tuple_impl &&) = default;
 
             template <class... Args>
-            GT_CONSTEXPR GT_FUNCTION tuple_impl(Args &&... args) noexcept : tuple_leaf<Is, Ts>(wstd::forward<Args>(args))... {}
+            GT_CONSTEXPR GT_FUNCTION tuple_impl(Args &&... args) noexcept
+                : tuple_leaf<Is, Ts>(wstd::forward<Args>(args))... {}
 
             template <class Src>
             GT_CONSTEXPR GT_FUNCTION tuple_impl(Src &&src) noexcept
@@ -117,8 +118,7 @@ namespace gridtools {
                                 conjunction<std::is_assignable<Ts &, Args &&>...>::value,
                     int> = 0>
             GT_FUNCTION void assign(tuple_impl<meta::index_sequence<Is...>, Args...> &&src) noexcept {
-                void((int[]){
-                    (tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(wstd::move(src)), 0)...});
+                void((int[]){(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(wstd::move(src)), 0)...});
             }
         };
     } // namespace impl_

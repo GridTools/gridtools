@@ -62,8 +62,8 @@ namespace gridtools {
                     get_part<meta::not_<Pred>::template apply>(wstd::forward<Args>(args))));
 
             template <template <class...> class Pred, class Args>
-            auto split_args_tuple(Args &&args) GT_AUTO_RETURN(
-                raw_split_args_tuple<apply_to_decayed<Pred>::template apply>(wstd::forward<Args>(args)));
+            auto split_args_tuple(Args &&args)
+                GT_AUTO_RETURN(raw_split_args_tuple<apply_to_decayed<Pred>::template apply>(wstd::forward<Args>(args)));
         } // namespace _split_args
     }     // namespace _impl
 

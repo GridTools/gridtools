@@ -487,9 +487,10 @@ namespace gridtools {
             };
 
             template <class Loops>
-            GT_CONSTEXPR GT_FUNCTION auto make_cursor_r(Loops &&loops) GT_AUTO_RETURN(tuple_util::host_device::fold(make_cursor_f{},
-                tuple_util::host_device::get<0>(wstd::forward<Loops>(loops)).make_cursor(),
-                tuple_util::host_device::drop_front<1>(wstd::forward<Loops>(loops))));
+            GT_CONSTEXPR GT_FUNCTION auto make_cursor_r(Loops &&loops)
+                GT_AUTO_RETURN(tuple_util::host_device::fold(make_cursor_f{},
+                    tuple_util::host_device::get<0>(wstd::forward<Loops>(loops)).make_cursor(),
+                    tuple_util::host_device::drop_front<1>(wstd::forward<Loops>(loops))));
 
             template <class Loops>
             GT_CONSTEXPR GT_FUNCTION auto make_cursor(Loops &&loops)

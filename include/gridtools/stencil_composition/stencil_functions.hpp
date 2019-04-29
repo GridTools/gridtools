@@ -114,8 +114,8 @@ namespace gridtools {
                 enable_if_t<is_accessor<Decayed>::value &&
                                 !(Param::intent_v == intent::inout && Decayed::intent_v == intent::in),
                     int> = 0>
-            GT_FUNCTION auto operator()(Accessor &&accessor, LazyParam) const GT_AUTO_RETURN(
-                (accessor_transform<Decayed>(get_offsets<I, J, K>(wstd::forward<Accessor>(accessor)))));
+            GT_FUNCTION auto operator()(Accessor &&accessor, LazyParam) const
+                GT_AUTO_RETURN((accessor_transform<Decayed>(get_offsets<I, J, K>(wstd::forward<Accessor>(accessor)))));
 
             template <class Arg,
                 class Decayed = decay_t<Arg>,
@@ -155,8 +155,7 @@ namespace gridtools {
                     GT_META_CALL(meta::transform, (meta::defer<meta::id>::apply, typename Functor::param_list))))
                 lazy_params = {};
             auto new_eval = make_evaluator(eval,
-                tuple_util::host_device::transform(
-                    get_transform_f<I, J, K>{}, wstd::forward<Args>(args), lazy_params));
+                tuple_util::host_device::transform(get_transform_f<I, J, K>{}, wstd::forward<Args>(args), lazy_params));
             call_functor<Functor, Region>(new_eval);
         }
 
@@ -233,8 +232,7 @@ namespace gridtools {
         GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
             Res res;
             call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
-                tuple_util::host_device::insert<out_param_index>(
-                    res, tuple<Args &&...>{wstd::forward<Args>(args)...}));
+                tuple_util::host_device::insert<out_param_index>(res, tuple<Args &&...>{wstd::forward<Args>(args)...}));
             return res;
         }
     };

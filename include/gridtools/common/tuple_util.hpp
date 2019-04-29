@@ -113,13 +113,13 @@
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
 
-#define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                                 \
-    template <class... Args, enable_if_t<std::is_constructible<decltype(member_name), Args &&...>::value, int> = 0>    \
-    GT_CONSTEXPR GT_FUNCTION class_name(Args &&... args) noexcept : member_name{wstd::forward<Args>(args)...} {} \
-    GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name);                                                                         \
-    class_name(class_name const &) = default;                                                                          \
-    class_name(class_name &&) = default;                                                                               \
-    class_name &operator=(class_name const &) = default;                                                               \
+#define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                              \
+    template <class... Args, enable_if_t<std::is_constructible<decltype(member_name), Args &&...>::value, int> = 0> \
+    GT_CONSTEXPR GT_FUNCTION class_name(Args &&... args) noexcept : member_name{wstd::forward<Args>(args)...} {}    \
+    GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name);                                                                      \
+    class_name(class_name const &) = default;                                                                       \
+    class_name(class_name &&) = default;                                                                            \
+    class_name &operator=(class_name const &) = default;                                                            \
     class_name &operator=(class_name &&) = default
 
 #define GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(class_name, member_name)                                                \
@@ -131,7 +131,7 @@
         static GT_FUNCTION auto get(class_name &obj) GT_AUTO_RETURN(tuple_util::host_device::get<I>(obj.member_name)); \
         template <size_t I>                                                                                            \
         static GT_CONSTEXPR GT_FUNCTION auto get(class_name &&obj)                                                     \
-            GT_AUTO_RETURN(tuple_util::host_device::get<I>(wstd::move(obj).member_name));                        \
+            GT_AUTO_RETURN(tuple_util::host_device::get<I>(wstd::move(obj).member_name));                              \
     };                                                                                                                 \
     friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; }                              \
     static_assert(1, "")
@@ -380,8 +380,7 @@ namespace gridtools {
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR
                         typename std::result_of<Fun && (result_of_t<get_nth_f<I>(Tups &&)>...)>::type
                         operator()(Fun &&fun, Tups &&... tups) const {
-                        return wstd::forward<Fun>(fun)(
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...);
+                        return wstd::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...);
                     }
 #elif (defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800) || \
     (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 10)
@@ -393,16 +392,17 @@ namespace gridtools {
                         wstd::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup1>(tup1)),
                             GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup2>(tup2))));
                     template <class Fun, class Tup1, class Tup2, class Tup3>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto
-                    operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const GT_AUTO_RETURN(
-                        wstd::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup1>(tup1)),
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup2>(tup2)),
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup3>(tup3))));
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(
+                        Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const
+                        GT_AUTO_RETURN(
+                            wstd::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup1>(tup1)),
+                                GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup2>(tup2)),
+                                GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup3>(tup3))));
 #else
                     template <class Fun, class... Tups>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(Fun &&fun, Tups &&... tups) const
-                        GT_AUTO_RETURN(wstd::forward<Fun>(fun)(
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...));
+                        GT_AUTO_RETURN(
+                            wstd::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...));
 #endif
                 };
 
@@ -469,9 +469,9 @@ namespace gridtools {
                 struct for_each_in_cartesian_product_impl_f<Outer<Inners...>> {
                     template <class Fun, class... Tups>
                     GT_TARGET GT_FORCE_INLINE void operator()(Fun &&fun, Tups &&... tups) const {
-                        void((int[]){(apply_to_elements_f<Inners>{}(
-                                          wstd::forward<Fun>(fun), wstd::forward<Tups>(tups)...),
-                            0)...});
+                        void((int[]){
+                            (apply_to_elements_f<Inners>{}(wstd::forward<Fun>(fun), wstd::forward<Tups>(tups)...),
+                                0)...});
                     }
                 };
 
@@ -598,9 +598,8 @@ namespace gridtools {
                     }
 
                     template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 1 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto impl(State &&state, Tup &&tup) const
-                        GT_AUTO_RETURN(m_fun(wstd::forward<State>(state),
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))));
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto impl(State &&state, Tup &&tup) const GT_AUTO_RETURN(
+                        m_fun(wstd::forward<State>(state), GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))));
 
                     template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 2 == N, int> = 0>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto impl(State &&state, Tup &&tup) const
@@ -616,11 +615,11 @@ namespace gridtools {
                             GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tup>(tup))));
 
                     template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 4 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto impl(State &&state, Tup &&tup) const GT_AUTO_RETURN(
-                        m_fun(m_fun(m_fun(m_fun(wstd::forward<State>(state),
-                                              GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))),
-                                        GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tup>(tup))),
-                                  GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tup>(tup))),
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto impl(State &&state, Tup &&tup) const
+                        GT_AUTO_RETURN(m_fun(m_fun(m_fun(m_fun(wstd::forward<State>(state),
+                                                             GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))),
+                                                       GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tup>(tup))),
+                                                 GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tup>(tup))),
                             GT_TARGET_NAMESPACE_NAME::get<I + 3>(wstd::forward<Tup>(tup))));
 
                     template <size_t I,
@@ -633,12 +632,11 @@ namespace gridtools {
                         enable_if_t<(I + 4 < N), int> = 0>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res impl(State &&state, Tup &&tup) const {
                         return impl<I + 5, N>(
-                            m_fun(
-                                m_fun(m_fun(m_fun(m_fun(wstd::forward<State>(state),
-                                                      GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))),
-                                                GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tup>(tup))),
-                                          GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tup>(tup))),
-                                    GT_TARGET_NAMESPACE_NAME::get<I + 3>(wstd::forward<Tup>(tup))),
+                            m_fun(m_fun(m_fun(m_fun(m_fun(wstd::forward<State>(state),
+                                                        GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup))),
+                                                  GT_TARGET_NAMESPACE_NAME::get<I + 1>(wstd::forward<Tup>(tup))),
+                                            GT_TARGET_NAMESPACE_NAME::get<I + 2>(wstd::forward<Tup>(tup))),
+                                      GT_TARGET_NAMESPACE_NAME::get<I + 3>(wstd::forward<Tup>(tup))),
                                 GT_TARGET_NAMESPACE_NAME::get<I + 4>(wstd::forward<Tup>(tup))),
                             wstd::forward<Tup>(tup));
                     }
@@ -648,8 +646,7 @@ namespace gridtools {
                         class Accessors = GT_META_CALL(get_accessors, Tup &&),
                         class Res = GT_META_CALL(meta::lfold, (meta_fun, State &&, Accessors))>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(State &&state, Tup &&tup) const {
-                        return impl<0, size<decay_t<Tup>>::value>(
-                            wstd::forward<State>(state), wstd::forward<Tup>(tup));
+                        return impl<0, size<decay_t<Tup>>::value>(wstd::forward<State>(state), wstd::forward<Tup>(tup));
                     }
 
                     template <class Tup,
@@ -659,8 +656,7 @@ namespace gridtools {
                         class Res = GT_META_CALL(meta::lfold, (meta_fun, StateAccessor, Accessors))>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
                         return impl<1, size<decay_t<Tup>>::value>(
-                            GT_TARGET_NAMESPACE_NAME::get<0>(wstd::forward<Tup>(tup)),
-                            wstd::forward<Tup>(tup));
+                            GT_TARGET_NAMESPACE_NAME::get<0>(wstd::forward<Tup>(tup)), wstd::forward<Tup>(tup));
                     }
                 };
 
@@ -1217,9 +1213,8 @@ namespace gridtools {
              * @endcode
              */
             template <class Fun, class Arg, class... Args>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto fold(Fun && fun, Arg && arg, Args && ... args)
-                GT_AUTO_RETURN(detail::fold_f<Fun>{wstd::forward<Fun>(fun)}(
-                    wstd::forward<Arg>(arg), wstd::forward<Args>(args)...));
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto fold(Fun && fun, Arg && arg, Args && ... args) GT_AUTO_RETURN(
+                detail::fold_f<Fun>{wstd::forward<Fun>(fun)}(wstd::forward<Arg>(arg), wstd::forward<Args>(args)...));
 
             /**
              * @brief Returns a functor that performs a left fold on tuple-like objects.
@@ -1251,8 +1246,8 @@ namespace gridtools {
             }
 
             template <class Pred, class... Tups>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto all_of(Pred && pred, Tups && ... tups) GT_AUTO_RETURN(
-                detail::all_of_f<Pred>{wstd::forward<Pred>(pred)}(wstd::forward<Tups>(tups)...));
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto all_of(Pred && pred, Tups && ... tups)
+                GT_AUTO_RETURN(detail::all_of_f<Pred>{wstd::forward<Pred>(pred)}(wstd::forward<Tups>(tups)...));
 
             template <class Pred>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto all_of(Pred && pred)

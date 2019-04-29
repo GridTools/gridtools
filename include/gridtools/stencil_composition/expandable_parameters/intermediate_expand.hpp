@@ -334,8 +334,7 @@ namespace gridtools {
             auto arg_groups = split_args<_impl::expand_detail::is_expandable>(args...);
             auto bound_expandable_arg_refs = tuple_util::transform(identity{}, m_expandable_bound_arg_storage_pairs);
             // concatenate expandable portion of arguments with the refs to bound expandable ard_storage_pairs
-            auto expandable_args =
-                std::tuple_cat(wstd::move(bound_expandable_arg_refs), wstd::move(arg_groups.first));
+            auto expandable_args = std::tuple_cat(wstd::move(bound_expandable_arg_refs), wstd::move(arg_groups.first));
             const auto &plain_args = arg_groups.second;
             // extract size from the vectors within expandable args.
             // if vectors are not of the same length assert within `get_expandable_size` fails.

@@ -67,9 +67,8 @@ namespace gridtools {
 #undef GT_POSITIONAL_WHEN_DEBUGGING
 
     template <class Backend, class Grid, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
-    auto make_positional_computation(Grid const &grid, Arg &&arg, Args &&... args)
-        GT_AUTO_RETURN((_impl::make_intermediate_f<true, Backend>{}(
-            grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...)));
+    auto make_positional_computation(Grid const &grid, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
+        (_impl::make_intermediate_f<true, Backend>{}(grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...)));
 
     // user protection only, catch the case where no backend is specified
     template <class... Args>
