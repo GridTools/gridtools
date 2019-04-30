@@ -14,7 +14,7 @@ for real_type in float double; do
             for env in gcc clang icc nvcc_gcc nvcc_clang; do
                 for backend in x86 mc cuda; do
                     current="$grid/$real_type/$domain/${label%-*}_$env/result.$backend.json"
-                    src="http://jenkins-mch.cscs.ch/view/GridTools/job/GridTools_perftest_PR_dev2/7/env=$env,label=$label,real_type=$real_type/artifact/build/pyutils/perftest/results/$current"
+                    src="http://jenkins-mch.cscs.ch/view/GridTools/job/GridTools_perftest_PR/$1/env=$env,label=$label,real_type=$real_type/artifact/build/pyutils/perftest/results/$current"
 
                     tmp=$(mktemp)
                     wget -q -O "$tmp" "$src"

@@ -3,6 +3,7 @@
 import itertools
 import math
 import os
+import re
 import statistics
 
 from perftest import result, time
@@ -49,7 +50,17 @@ def get_titles(results):
         if k == 'datetime':
             return 'Date/Time: ' + time.short_timestr(time.local_time(v))
         elif k == 'compiler':
-            return 'Compiler: ' + os.path.basename(v).upper()
+            m = re.match('(?P<compiler>[^ ]+) (?P<version>[^ ]+)'
+                         '( \\((?P<compiler2>[^ ]+) (?P<version2>[^ ]+)\\))?',
+                         v)
+            if m:
+                d = m.groupdict()
+                d['compiler'] = os.path.basename(d['compiler'])
+                v = '{compiler} {version}'.format(**d)
+                if d['compiler2']:
+                    d['compiler2'] = os.path.basename(d['compiler2'])
+                    v += ' ({compiler2} {version2})'.format(**d)
+            return 'Compiler: ' + v
         else:
             s = str(v).title()
             if len(s) > 20:
@@ -71,8 +82,8 @@ def compare(results):
 
     stencils, stenciltimes = result.times_by_stencil(results)
 
-    rows = math.floor(math.sqrt(len(stencils)))
-    cols = math.ceil(len(stencils) / rows)
+    cols = math.ceil(math.sqrt(len(stencils)) / (0.5 * len(results)))
+    rows = math.ceil(len(stencils) / cols)
 
     fig, axarr = plt.subplots(rows, cols, squeeze=False,
                               figsize=figsize(cols * len(results) / 2, rows))
@@ -81,7 +92,8 @@ def compare(results):
     colors = discrete_colors(len(results))
 
     suptitle, titles = get_titles(results)
-    fig.suptitle(suptitle, wrap=True)
+    fig.suptitle(suptitle, wrap=True, y=1 - 0.1 / rows,
+                 verticalalignment='center')
 
     xticks = list(range(1, len(results) + 1))
     for ax, stencil, times in itertools.zip_longest(axes, stencils,
@@ -97,8 +109,7 @@ def compare(results):
         else:
             ax.set_visible(False)
 
-    fig.tight_layout()
-    fig.subplots_adjust(top=0.9)
+    fig.tight_layout(rect=[0, 0, 1, 1 - 0.2 / rows])
     return fig
 
 
