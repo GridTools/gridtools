@@ -19,22 +19,18 @@
 
 namespace gridtools {
     namespace {
-
-#ifndef GT_ICOSAHEDRAL_GRIDS
-        using testee_t = decltype(make_tmp_storage_cuda<float_type>(
-            tmp_cuda::blocksize<1, 1>{}, extent<>{}, 0, 0, 0, std::declval<simple_device_memory_allocator &>()));
-#else
-        using testee_t = decltype(make_tmp_storage_cuda<float_type>(tmp_cuda::blocksize<1, 1>{},
-            extent<>{},
-            color_type<1>{},
-            0,
-            0,
-            0,
-            std::declval<simple_device_memory_allocator &>()));
-#endif
-
-        static_assert(sid::is_sid<testee_t>::value, "is_sid()");
         TEST(tmp_cuda_storage, maker_with_device_allocator) {
+            simple_device_memory_allocator alloc;
+
+            // For CUDA 8.0 we need to instantiate the type, otherwise is_sid will fail.
+#ifndef GT_ICOSAHEDRAL_GRIDS
+            auto testee = make_tmp_storage_cuda<float_type>(tmp_cuda::blocksize<1, 1>{}, extent<>{}, 0, 0, 0, alloc);
+#else
+            auto testee = make_tmp_storage_cuda<float_type>(
+                tmp_cuda::blocksize<1, 1>{}, extent<>{}, color_type<1>{}, 0, 0, 0, alloc);
+#endif
+            using testee_t = decltype(testee);
+            static_assert(sid::is_sid<testee_t>::value, "is_sid()");
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, testee_t), float_type *>();
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, testee_t), int_t>();
         }
