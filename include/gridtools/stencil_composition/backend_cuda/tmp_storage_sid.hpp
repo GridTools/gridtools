@@ -15,6 +15,7 @@
 #include "../color.hpp"
 #include "../dim.hpp"
 #include "../extent.hpp"
+#include "../sid/sid_shift_origin.hpp"
 #include "../sid/synthetic.hpp"
 #include <memory>
 
@@ -29,18 +30,12 @@ namespace gridtools {
     } // namespace tmp_cuda
 
     namespace tmp_cuda_impl_ {
-        template <class Strides>
-        int_t origin_offset(Strides const &strides, int_t shift_i, int_t shift_j) {
-            return shift_i * at_key<dim::i>(strides) + shift_j * at_key<dim::j>(strides);
-        }
+        inline auto origin_offset(int_t shift_i, int_t shift_j)
+            GT_AUTO_RETURN((hymap::keys<dim::i, dim::j>::values<int_t, int_t>(shift_i, shift_j)));
 
         template <class T, class Allocator>
         auto make_ptr_holder(Allocator &alloc, size_t num_elements)
             GT_AUTO_RETURN((allocate(alloc, meta::lazy::id<T>{}, num_elements)));
-
-        template <class T, class Allocator, class Strides>
-        auto make_origin(Allocator &alloc, size_t num_elements, Strides const &strides, int_t shift_i, int_t shift_j)
-            GT_AUTO_RETURN((make_ptr_holder<T>(alloc, num_elements) + origin_offset(strides, shift_i, shift_j)));
 
         template <class Strides, class PtrHolder>
         auto make_synthetic(Strides const &strides, PtrHolder const &ptr)
@@ -105,13 +100,12 @@ namespace gridtools {
         int_t n_blocks_j,
         int_t k_size,
         Allocator &alloc)
-        GT_AUTO_RETURN((tmp_cuda_impl_::make_synthetic(
-            tmp_cuda_impl_::compute_strides<BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j),
-            tmp_cuda_impl_::make_origin<T>(alloc,
-                tmp_cuda_impl_::compute_size<BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j, k_size),
+        GT_AUTO_RETURN((sid::shift_sid_origin(
+            tmp_cuda_impl_::make_synthetic(
                 tmp_cuda_impl_::compute_strides<BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j),
-                -ExtentIMinus,
-                -ExtentJMinus))));
+                tmp_cuda_impl_::make_ptr_holder<T>(
+                    alloc, tmp_cuda_impl_::compute_size<BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j, k_size))),
+            tmp_cuda_impl_::origin_offset(-ExtentIMinus, -ExtentJMinus))));
 
 #else
 
@@ -157,13 +151,12 @@ namespace gridtools {
         int_t n_blocks_j,
         int_t k_size,
         Allocator &alloc)
-        GT_AUTO_RETURN((tmp_cuda_impl_::make_synthetic(
-            tmp_cuda_impl_::compute_strides<BlockSizeI, BlockSizeJ, NColors>(n_blocks_i, n_blocks_j),
-            tmp_cuda_impl_::make_origin<T>(alloc,
-                tmp_cuda_impl_::compute_size<BlockSizeI, BlockSizeJ, NColors>(n_blocks_i, n_blocks_j, k_size),
+        GT_AUTO_RETURN((sid::shift_sid_origin(
+            tmp_cuda_impl_::make_synthetic(
                 tmp_cuda_impl_::compute_strides<BlockSizeI, BlockSizeJ, NColors>(n_blocks_i, n_blocks_j),
-                -ExtentIMinus,
-                -ExtentJMinus))));
+                tmp_cuda_impl_::make_ptr_holder<T>(alloc,
+                    tmp_cuda_impl_::compute_size<BlockSizeI, BlockSizeJ, NColors>(n_blocks_i, n_blocks_j, k_size))),
+            tmp_cuda_impl_::origin_offset(-ExtentIMinus, -ExtentJMinus))));
 #endif
 
 } // namespace gridtools
