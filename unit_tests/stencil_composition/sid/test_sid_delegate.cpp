@@ -38,7 +38,7 @@ namespace gridtools {
 
           public:
             template <class Arg>
-            i_shifted(Arg &&arg) : sid::delegate<Sid>{std::forward<Arg>(arg)} {}
+            i_shifted(Arg &&arg) : sid::delegate<Sid>(std::forward<Arg>(arg)) {}
         };
 
         template <class Sid>
@@ -48,7 +48,7 @@ namespace gridtools {
 
         template <class Sid>
         i_shifted<Sid &> i_shift(std::reference_wrapper<Sid> sid) {
-            return {sid};
+            return {sid.get()};
         }
 
         using sid::property;

@@ -46,7 +46,7 @@ namespace gridtools {
             explicit constexpr delegate(std::initializer_list<Arg> lst) : m_impl(*lst.begin()) {}
 
             template <class Arg>
-            explicit constexpr delegate(Arg &&arg) noexcept : m_impl{std::forward<Arg>(arg)} {}
+            explicit constexpr delegate(Arg &&arg) noexcept : m_impl(std::forward<Arg>(arg)) {}
         };
 
         template <class Sid>
