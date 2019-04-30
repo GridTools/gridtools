@@ -16,11 +16,11 @@
 #include "../../meta.hpp"
 #include "../grid.hpp"
 #include "../local_domain.hpp"
-#include "../pos3.hpp"
 #include "iterate_domain_naive.hpp"
 
 namespace gridtools {
     namespace naive_impl_ {
+        // execute a stage with the given local domain on the given computation area defined by grid
         template <class LocalDomain, class Grid>
         struct stage_executor_f {
             LocalDomain const &m_local_domain;
@@ -33,19 +33,23 @@ namespace gridtools {
                 int_t iplus = extent_t::iplus::value;
                 int_t jminus = extent_t::jminus::value;
                 int_t jplus = extent_t::jplus::value;
-                int_t k_from = m_grid.template value_at<From>();
-                int_t k_to = m_grid.template value_at<To>();
+
                 int_t i_count = m_grid.i_high_bound() - m_grid.i_low_bound() + 1 + iplus - iminus;
                 int_t j_count = m_grid.j_high_bound() - m_grid.j_low_bound() + 1 + jplus - jminus;
+
+                int_t k_from = m_grid.template value_at<From>();
+                int_t k_to = m_grid.template value_at<To>();
                 int_t k_count = 1 + std::abs(k_to - k_from);
                 int_t k_step = k_to >= k_from ? 1 : -1;
 
                 iterate_domain_naive<LocalDomain> it_domain(m_local_domain, m_grid);
 
+                // move to the start point of iteration
                 it_domain.increment_i(iminus);
                 it_domain.increment_j(jminus);
                 it_domain.increment_k(k_from);
 
+                // iterate over computation area
                 for (int_t i = 0; i != i_count; ++i) {
                     for (int_t j = 0; j != j_count; ++j) {
                         for (int_t k = 0; k != k_count; ++k) {
@@ -61,6 +65,7 @@ namespace gridtools {
             }
         };
 
+        // split the loop interval into the list of triples meta::list<From, To, Stage>
         template <class LoopInterval,
             class From = GT_META_CALL(meta::first, LoopInterval),
             class To = GT_META_CALL(meta::second, LoopInterval),
@@ -69,10 +74,12 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(
             split_loop_interval, meta::transform, (meta::curry<meta::list, From, To>::template apply, Stages));
 
+        // split the list of loop intervals into the list of triples meta::list<From, To, Stage>
         template <class LoopIntervals>
         GT_META_DEFINE_ALIAS(
             split_loop_intervals, meta::flatten, (GT_META_CALL(meta::transform, (split_loop_interval, LoopIntervals))));
 
+        // execute stages in mss
         template <class Grid>
         struct mss_executor_f {
             Grid const &m_grid;

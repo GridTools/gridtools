@@ -50,9 +50,6 @@ namespace gridtools {
 
         using readwrite_args_t = GT_META_CALL(compute_readwrite_args, typename IterateDomainArguments::esf_sequence_t);
 
-        // array storing the (i,j) position of the current thread within the block
-        array<int, 2> m_thread_pos;
-
         using cache_sequence_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
 
       public:
@@ -64,6 +61,8 @@ namespace gridtools {
         using base_t::increment_i;
         using base_t::increment_j;
 
+        // array storing the (i,j) position of the current thread within the block
+        array<int, 2> m_thread_pos;
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
         shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;

@@ -47,6 +47,7 @@ namespace gridtools {
         template <class LoopIntervals>
         struct get_ncolors;
 
+        // In the x86 case loop intervals contains a single stage.
         template <template <class...> class L0,
             template <class...> class L1,
             template <class...> class L2,

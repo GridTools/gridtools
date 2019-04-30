@@ -21,13 +21,7 @@
 #include "../sid/multi_shift.hpp"
 
 namespace gridtools {
-    /**@brief class managing the memory accesses, indices increment
-
-       This class gets instantiated in the backend-specific code, and has a different implementation for
-       each backend (see CRTP pattern). It is instantiated within the kernel (e.g. in the device code),
-       and drives all the operations which are performed at the innermost level. In particular
-       the computation/increment of the useful addresses in memory, given the iteration point,
-       the storage placeholders/metadatas and their offsets.
+    /** class managing the memory accesses, indices increment
      */
     template <class IterateDomainArguments>
     class iterate_domain {
