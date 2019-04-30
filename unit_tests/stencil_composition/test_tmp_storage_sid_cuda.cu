@@ -30,9 +30,13 @@ namespace gridtools {
                 tmp_cuda::blocksize<1, 1>{}, extent<>{}, color_type<1>{}, 0, 0, 0, alloc);
 #endif
             using testee_t = decltype(testee);
+
             static_assert(sid::is_sid<testee_t>::value, "is_sid()");
+#if !(defined(__CUDACC__) && defined(__clang__) && __CUDACC_VER_MAJOR__ < 10)
+            // fails with internal error in cudafe++ for CUDA < 10 and clang as host compiler
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, testee_t), float_type *>();
             ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, testee_t), int_t>();
+#endif
         }
 
     } // namespace
