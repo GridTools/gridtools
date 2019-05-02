@@ -79,7 +79,7 @@ namespace gridtools {
 
                 template <property Property, class T>
                 GT_CONSTEXPR synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
-                    return {std::forward<T>(val), synthetic{}};
+                    return {wstd::forward<T>(val), synthetic{}};
                 }
             };
 

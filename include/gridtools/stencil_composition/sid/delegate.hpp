@@ -46,7 +46,7 @@ namespace gridtools {
             explicit GT_CONSTEXPR delegate(std::initializer_list<Arg> lst) : m_impl(*lst.begin()) {}
 
             template <class Arg>
-            explicit GT_CONSTEXPR delegate(Arg &&arg) noexcept : m_impl{wstd::forward<Arg>(arg)} {}
+            explicit GT_CONSTEXPR delegate(Arg &&arg) noexcept : m_impl(wstd::forward<Arg>(arg)) {}
         };
 
         template <class Sid>
