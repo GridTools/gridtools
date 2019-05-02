@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
@@ -26,6 +27,10 @@ namespace gridtools {
         };
 
         namespace block_impl_ {
+            template <class T>
+            using is_integral_or_integral_constant =
+                bool_constant<std::is_integral<T>::value || concept_impl_::is_integral_constant<T>::value>;
+
             template <class Stride, class BlockSize>
             struct blocked_stride : tuple<Stride, BlockSize> {
                 using tuple<Stride, BlockSize>::tuple;
@@ -36,16 +41,16 @@ namespace gridtools {
                 GT_AUTO_RETURN(shift(
                     ptr, tuple_util::host_device::get<0>(stride), tuple_util::host_device::get<1>(stride) * offset));
 
-            template <class Stride>
-            using just_multiply =
-                bool_constant<std::is_integral<Stride>::value || concept_impl_::is_integral_constant<Stride>::value>;
-
-            template <class Stride, class BlockSize, enable_if_t<!just_multiply<Stride>::value, int> = 0>
+            template <class Stride,
+                class BlockSize,
+                enable_if_t<!is_integral_or_integral_constant<Stride>::value, int> = 0>
             blocked_stride<Stride, BlockSize> block_stride(Stride const &stride, BlockSize const &block_size) {
                 return {stride, block_size};
             }
 
-            template <class Stride, class BlockSize, enable_if_t<just_multiply<Stride>::value, int> = 0>
+            template <class Stride,
+                class BlockSize,
+                enable_if_t<is_integral_or_integral_constant<Stride>::value, int> = 0>
             auto block_stride(Stride const &stride, BlockSize const &block_size) GT_AUTO_RETURN(stride *block_size);
 
             template <class Stride, class BlockSize>
@@ -90,6 +95,12 @@ namespace gridtools {
 
                 using blocked_strides_map_t = GT_META_CALL(meta::transform, (block, block_map_t));
 
+                using blocked_dims_t = GT_META_CALL(meta::transform, (meta::first, blocked_strides_map_t));
+                GT_STATIC_ASSERT(
+                    meta::is_empty<GT_META_CALL(meta::filter,
+                        (meta::curry<meta::st_contains, strides_dims_t>::template apply, blocked_dims_t))>::value,
+                    GT_INTERNAL_ERROR_MSG("tried to block already blocked dimension"));
+
                 using strides_t = GT_META_CALL(hymap::from_meta_map,
                     (GT_META_CALL(meta::concat, (strides_map_t, GT_META_CALL(meta::transform, (block, block_map_t))))));
 
@@ -99,9 +110,9 @@ namespace gridtools {
                 using generators_t = GT_META_CALL(meta::concat, (original_generators_t, blocked_generators_t));
 
               public:
-                template <class S, class B>
-                blocked_sid(S &&impl, B &&block_map) noexcept
-                    : delegate<Sid>(std::forward<S>(impl)), m_block_map(std::forward<B>(block_map)) {}
+                template <class SidT, class BlockMapT>
+                blocked_sid(SidT &&impl, BlockMapT &&block_map) noexcept
+                    : delegate<Sid>(std::forward<SidT>(impl)), m_block_map(std::forward<BlockMapT>(block_map)) {}
 
                 friend strides_t sid_get_strides(blocked_sid const &obj) {
                     return tuple_util::host_device::generate<generators_t, strides_t>(
@@ -109,10 +120,23 @@ namespace gridtools {
                 }
             };
 
+            template <class Sid,
+                class BlockMap,
+                class SidDims = GT_META_CALL(get_keys, GT_META_CALL(strides_type, decay_t<Sid>)),
+                class BlockMapDims = GT_META_CALL(get_keys, decay_t<BlockMap>)>
+            using no_common_dims = meta::is_empty<GT_META_CALL(
+                meta::filter, (meta::curry<meta::st_contains, SidDims>::template apply, BlockMapDims))>;
+
         } // namespace block_impl_
 
-        template <class Sid, class BlockMap>
+        template <class Sid, class BlockMap, enable_if_t<block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
+        auto block(Sid &&sid, BlockMap &&) GT_AUTO_RETURN(std::forward<Sid>(sid));
+
+        template <class Sid, class BlockMap, enable_if_t<!block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
         block_impl_::blocked_sid<decay_t<Sid>, decay_t<BlockMap>> block(Sid &&sid, BlockMap &&block_map) {
+            GT_STATIC_ASSERT((meta::all_of<block_impl_::is_integral_or_integral_constant,
+                                 GT_META_CALL(tuple_util::traits::to_types, decay_t<BlockMap>)>::value),
+                GT_INTERNAL_ERROR_MSG("invalid block size type in block map"));
             return {std::forward<Sid>(sid), std::forward<BlockMap>(block_map)};
         }
     } // namespace sid
