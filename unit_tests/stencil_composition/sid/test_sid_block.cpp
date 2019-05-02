@@ -23,6 +23,7 @@ namespace gridtools {
         TEST(sid_block, smoke) {
             const int domain_size_i = 12;
             const int domain_size_j = 14;
+            const int domain_size_k = 4;
             constexpr int block_size_i = 3;
             const int block_size_j = 7;
 
