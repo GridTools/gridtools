@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <initializer_list>
+
 #include "../../common/defs.hpp"
 #include "../../meta/macros.hpp"
 #include "concept.hpp"
@@ -40,8 +42,11 @@ namespace gridtools {
             Sid &impl() { return m_impl; }
 
           public:
-            explicit constexpr delegate(Sid const &impl) noexcept : m_impl(impl) {}
-            explicit constexpr delegate(Sid &&impl) noexcept : m_impl(std::move(impl)) {}
+            template <class Arg>
+            explicit constexpr delegate(std::initializer_list<Arg> lst) : m_impl(*lst.begin()) {}
+
+            template <class Arg>
+            explicit constexpr delegate(Arg &&arg) noexcept : m_impl(std::forward<Arg>(arg)) {}
         };
 
         template <class Sid>
