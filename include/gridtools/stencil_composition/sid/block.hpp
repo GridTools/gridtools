@@ -99,8 +99,9 @@ namespace gridtools {
                 using generators_t = GT_META_CALL(meta::concat, (original_generators_t, blocked_generators_t));
 
               public:
-                blocked_sid(Sid const &impl, BlockMap const &block_map) noexcept
-                    : delegate<Sid>(impl), m_block_map(block_map) {}
+                template <class S, class B>
+                blocked_sid(S &&impl, B &&block_map) noexcept
+                    : delegate<Sid>(std::forward<S>(impl)), m_block_map(std::forward<B>(block_map)) {}
 
                 friend strides_t sid_get_strides(blocked_sid const &obj) {
                     return tuple_util::host_device::generate<generators_t, strides_t>(
@@ -111,8 +112,8 @@ namespace gridtools {
         } // namespace block_impl_
 
         template <class Sid, class BlockMap>
-        block_impl_::blocked_sid<Sid, BlockMap> block(Sid const &sid, BlockMap const &block_map) {
-            return {sid, block_map};
+        block_impl_::blocked_sid<decay_t<Sid>, decay_t<BlockMap>> block(Sid &&sid, BlockMap &&block_map) {
+            return {std::forward<Sid>(sid), std::forward<BlockMap>(block_map)};
         }
     } // namespace sid
 } // namespace gridtools
