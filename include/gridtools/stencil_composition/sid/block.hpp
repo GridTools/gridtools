@@ -51,20 +51,17 @@ namespace gridtools {
             template <class Stride, class BlockSize>
             using blocked_stride_type = decltype(block_stride(std::declval<Stride>(), std::declval<BlockSize>()));
 
-            template <class Dim, class BlockedDim>
-            struct generate_strides_f;
-
             template <class Dim>
-            struct generate_strides_f<Dim, Dim> {
-                using type = generate_strides_f;
+            struct generate_original_strides_f {
+                using type = generate_original_strides_f;
 
                 template <class Strides, class BlockMap>
-                auto operator()(Strides const &strides, BlockMap const &) GT_AUTO_RETURN(at_key<Dim>(strides));
+                auto operator()(Strides const &strides, BlockMap const &) const GT_AUTO_RETURN(at_key<Dim>(strides));
             };
 
             template <class Dim>
-            struct generate_strides_f<Dim, blocked_dim<Dim>> {
-                using type = generate_strides_f;
+            struct generate_blocked_strides_f {
+                using type = generate_blocked_strides_f;
 
                 template <class Strides, class BlockMap>
                 auto operator()(Strides const &strides, BlockMap const &block_map) const
@@ -96,13 +93,10 @@ namespace gridtools {
                 using strides_t = GT_META_CALL(hymap::from_meta_map,
                     (GT_META_CALL(meta::concat, (strides_map_t, GT_META_CALL(meta::transform, (block, block_map_t))))));
 
-                using original_dims_t = GT_META_CALL(meta::concat, (strides_dims_t, block_dims_t));
-                using blocked_dims_t = GT_META_CALL(get_keys, strides_t);
-
-                template <class L>
-                GT_META_DEFINE_ALIAS(make_generator, meta::rename, (generate_strides_f, L));
-                using generators_t = GT_META_CALL(
-                    meta::transform, (make_generator, GT_META_CALL(meta::zip, (original_dims_t, blocked_dims_t))));
+                using original_generators_t = GT_META_CALL(
+                    meta::transform, (generate_original_strides_f, strides_dims_t));
+                using blocked_generators_t = GT_META_CALL(meta::transform, (generate_blocked_strides_f, block_dims_t));
+                using generators_t = GT_META_CALL(meta::concat, (original_generators_t, blocked_generators_t));
 
               public:
                 blocked_sid(Sid const &impl, BlockMap const &block_map) noexcept
