@@ -46,9 +46,7 @@ namespace gridtools {
             }
 
             template <class Stride, class BlockSize, enable_if_t<just_multiply<Stride>::value, int> = 0>
-            Stride block_stride(Stride const &stride, BlockSize const &block_size) {
-                return stride * block_size;
-            }
+            auto block_stride(Stride const &stride, BlockSize const &block_size) GT_AUTO_RETURN(stride *block_size);
 
             template <class Stride, class BlockSize>
             using blocked_stride_type = decltype(block_stride(std::declval<Stride>(), std::declval<BlockSize>()));
