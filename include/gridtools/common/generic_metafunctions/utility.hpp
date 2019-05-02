@@ -19,7 +19,10 @@
 
 namespace gridtools {
     /**
-     *  `std::forward`/`std::move` versions that are guaranteed to be not constexpr
+     *  `std::forward`/`std::move` versions that are guaranteed to be not constexpr. They are needed because
+     *  some compilers, especially nvcc have problems with functions that return references in constexpr functions,
+     *  if they are not used in constexpr context. As the `std` versions are constexpr, we must have separate
+     *  functions that are constexpr only if the compiler is known to not mess up with them.
      */
     namespace wstd {
         template <class T>
