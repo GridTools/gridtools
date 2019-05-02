@@ -12,6 +12,7 @@
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
+#include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "./concept.hpp"
@@ -26,14 +27,14 @@ namespace gridtools {
 
         namespace block_impl_ {
             template <class Stride, class BlockSize>
-            struct blocked_stride {
-                Stride m_stride;
-                BlockSize m_block_size;
+            struct blocked_stride : tuple<Stride, BlockSize> {
+                using tuple<Stride, BlockSize>::tuple;
             };
 
             template <class Ptr, class Stride, class BlockSize, class Offset>
             GT_FUNCTION auto sid_shift(Ptr &ptr, blocked_stride<Stride, BlockSize> const &stride, Offset const &offset)
-                GT_AUTO_RETURN(shift(ptr, stride.m_stride, stride.m_block_size *offset));
+                GT_AUTO_RETURN(shift(
+                    ptr, tuple_util::host_device::get<0>(stride), tuple_util::host_device::get<1>(stride) * offset));
 
             template <class Stride>
             using just_multiply =
