@@ -140,16 +140,17 @@ namespace gridtools {
         };
 
         template <class HyMap>
-        GT_META_DEFINE_ALIAS(to_meta_map,
-            meta::zip,
-            (GT_META_CALL(meta::rename, (meta::list, GT_META_CALL(get_keys, HyMap))),
-                GT_META_CALL(meta::rename, (meta::list, GT_META_CALL(tuple_util::traits::to_types, HyMap)))));
+        GT_META_DEFINE_ALIAS(
+            to_meta_map, meta::zip, (GT_META_CALL(get_keys, HyMap), GT_META_CALL(tuple_util::traits::to_types, HyMap)));
+
+        template <class Keys, class Values, class HyMapKeys = GT_META_CALL(meta::rename, (keys, Keys))>
+        GT_META_DEFINE_ALIAS(from_keys_values, meta::rename, (HyMapKeys::template values, Values));
 
         template <class MetaMap,
-            class Keys = GT_META_CALL(
-                meta::rename, (hymap::keys, GT_META_CALL(meta::transform, (meta::first, MetaMap)))),
-            class Values = GT_META_CALL(meta::transform, (meta::second, MetaMap))>
-        GT_META_DEFINE_ALIAS(from_meta_map, meta::rename, (Keys::template values, Values));
+            class KeysAndValues = GT_META_CALL(meta::transpose, MetaMap),
+            class Keys = GT_META_CALL(meta::first, KeysAndValues),
+            class Values = GT_META_CALL(meta::second, KeysAndValues)>
+        GT_META_DEFINE_ALIAS(from_meta_map, from_keys_values, (Keys, Values));
     } // namespace hymap
 } // namespace gridtools
 
