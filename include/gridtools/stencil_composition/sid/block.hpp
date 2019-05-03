@@ -49,9 +49,9 @@ namespace gridtools {
             template <class Stride, class BlockSize, enable_if_t<std::is_integral<Stride>::value, int> = 0>
             auto block_stride(Stride const &stride, BlockSize const &block_size) GT_AUTO_RETURN(stride *block_size);
 
-            template <class T, T V, class BlockSize>
-            auto block_stride(std::integral_constant<T, V> const &, BlockSize const &block_size)
-                GT_AUTO_RETURN(V *block_size);
+            template <class StrideT, StrideT Stride, class BlockSize>
+            auto block_stride(integral_constant<StrideT, Stride>, BlockSize const &block_size)
+                GT_AUTO_RETURN(Stride *block_size);
 
             template <class Stride, class BlockSize>
             using blocked_stride_type = decltype(block_stride(std::declval<Stride>(), std::declval<BlockSize>()));

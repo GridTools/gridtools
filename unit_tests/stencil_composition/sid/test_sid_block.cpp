@@ -13,12 +13,15 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/hymap.hpp>
+#include <gridtools/common/integral_constant.hpp>
+#include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil_composition/dim.hpp>
 #include <gridtools/stencil_composition/positional.hpp>
+#include <gridtools/stencil_composition/sid/synthetic.hpp>
 
 namespace gridtools {
     namespace {
-        struct unused_dim;
+        struct some_dim;
 
         TEST(sid_block, smoke) {
             const int domain_size_i = 12;
@@ -27,7 +30,7 @@ namespace gridtools {
             constexpr int block_size_i = 3;
             const int block_size_j = 7;
 
-            auto blocks = tuple_util::make<hymap::keys<dim::i, dim::j, unused_dim>::values>(
+            auto blocks = tuple_util::make<hymap::keys<dim::i, dim::j, some_dim>::values>(
                 integral_constant<int_t, block_size_i>{}, block_size_j, 5);
 
             positional s{0, 0, 0};
@@ -92,7 +95,7 @@ namespace gridtools {
         TEST(sid_block, do_nothing) {
             positional s{0, 0, 0};
 
-            auto same_s = sid::block(s, tuple_util::make<hymap::keys<unused_dim>::values>(42));
+            auto same_s = sid::block(s, tuple_util::make<hymap::keys<some_dim>::values>(42));
             static_assert(std::is_same<decltype(s), decltype(same_s)>(), "");
         }
 
@@ -116,6 +119,30 @@ namespace gridtools {
                 sid::shift(ptr, sid::get_stride<dim::i>(strides), -block_size);
                 sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::i>>(strides), 1);
             }
+        }
+
+        TEST(sid_block, integral_strides_types) {
+            using namespace literals;
+
+            using dims_t = hymap::keys<dim::i, dim::j, dim::k, some_dim>;
+
+            auto strides = tuple_util::make<dims_t::values>(1, 2, 4_c, 8_c);
+            auto blocks = tuple_util::make<dims_t::values>(2, 2_c, 2, 2_c);
+
+            auto s = sid::synthetic()
+                         .set<sid::property::origin>(sid::simple_ptr_holder<int *>{nullptr})
+                         .set<sid::property::strides>(strides)
+                         .set<sid::property::strides_kind, void>();
+            static_assert(is_sid<decltype(s)>(), "");
+
+            auto blocked_s = sid::block(s, blocks);
+            static_assert(is_sid<decltype(blocked_s)>(), "");
+
+            auto blocked_strides = sid::get_strides(blocked_s);
+            EXPECT_EQ(sid::get_stride<sid::blocked_dim<dim::i>>(blocked_strides), 2);
+            EXPECT_EQ(sid::get_stride<sid::blocked_dim<dim::j>>(blocked_strides), 4);
+            EXPECT_EQ(sid::get_stride<sid::blocked_dim<dim::k>>(blocked_strides), 8);
+            EXPECT_EQ(sid::get_stride<sid::blocked_dim<some_dim>>(blocked_strides), 16_c);
         }
     } // namespace
 } // namespace gridtools
