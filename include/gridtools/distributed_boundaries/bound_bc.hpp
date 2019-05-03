@@ -219,7 +219,7 @@ namespace gridtools {
          * template argument list to the corresponding data members
          */
         template <typename ST>
-        bound_bc(BCApply bca, ST &&stores_list) : m_bcapply(bca), m_stores{std::forward<stores_type>(stores_list)} {}
+        bound_bc(BCApply bca, ST &&stores_list) : m_bcapply(bca), m_stores{wstd::forward<stores_type>(stores_list)} {}
 
         /**
          * @brief Function to retrieve the tuple of data stores to pass to the the boundary
@@ -268,7 +268,7 @@ namespace gridtools {
                 ro_store_tuple, m_stores, meta::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{});
 
             return bound_bc<BCApply, decltype(full_list), typename _impl::comm_indices<stores_type>::type>{
-                m_bcapply, std::move(full_list)};
+                m_bcapply, wstd::move(full_list)};
         }
     };
 

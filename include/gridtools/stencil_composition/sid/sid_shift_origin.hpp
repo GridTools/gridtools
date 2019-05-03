@@ -26,7 +26,7 @@ namespace gridtools {
               public:
                 template <class Arg, class Offsets>
                 shifted_sid(Arg &&original_sid, Offsets &&offsets) noexcept
-                    : delegate<Sid>(std::forward<Arg>(original_sid)), m_origin{[this, &offsets]() {
+                    : delegate<Sid>(wstd::forward<Arg>(original_sid)), m_origin{[this, &offsets]() {
                           auto &&strides = sid::get_strides(this->impl());
                           GT_META_CALL(sid::ptr_diff_type, Sid) ptr_offset{};
                           multi_shift(ptr_offset, strides, offsets);
@@ -37,12 +37,12 @@ namespace gridtools {
 
         template <class Sid, class Offset>
         shift_sid_origin_impl_::shifted_sid<decay_t<Sid>> shift_sid_origin(Sid &&sid, Offset &&offset) {
-            return {std::forward<Sid>(sid), std::forward<Offset>(offset)};
+            return {wstd::forward<Sid>(sid), wstd::forward<Offset>(offset)};
         }
 
         template <class Sid, class Offset>
         shift_sid_origin_impl_::shifted_sid<Sid &> shift_sid_origin(std::reference_wrapper<Sid> sid, Offset &&offset) {
-            return {sid.get(), std::forward<Offset>(offset)};
+            return {sid.get(), wstd::forward<Offset>(offset)};
         }
     } // namespace sid
 } // namespace gridtools

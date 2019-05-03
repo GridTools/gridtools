@@ -57,26 +57,26 @@ TEST(DataStoreTest, Simple) {
     using data_store_t = data_store<cuda_storage<double>, storage_info_t>;
     storage_info_t si(3, 3, 3);
 
-    constexpr storage_info<0, layout_map<2, 1, 0>> csi(3, 3, 3);
-    constexpr storage_info<1, layout_map<2, 1, 0>, halo<2, 1, 0>> csih(7, 5, 3);
-    constexpr storage_info<2, layout_map<2, 1, 0>, halo<2, 1, 0>, alignment<16>> csiha(7, 5, 3);
+    GT_CONSTEXPR storage_info<0, layout_map<2, 1, 0>> csi(3, 3, 3);
+    GT_CONSTEXPR storage_info<1, layout_map<2, 1, 0>, halo<2, 1, 0>> csih(7, 5, 3);
+    GT_CONSTEXPR storage_info<2, layout_map<2, 1, 0>, halo<2, 1, 0>, alignment<16>> csiha(7, 5, 3);
 
     // check sizes, strides, and alignment
-    GT_STATIC_ASSERT(csi.total_length<0>() == 3, "dimension check failed.");
-    GT_STATIC_ASSERT(csi.total_length<1>() == 3, "dimension check failed.");
-    GT_STATIC_ASSERT(csi.total_length<2>() == 3, "dimension check failed.");
+    EXPECT_EQ(csi.total_length<0>(), 3);
+    EXPECT_EQ(csi.total_length<1>(), 3);
+    EXPECT_EQ(csi.total_length<2>(), 3);
 
-    GT_STATIC_ASSERT(csi.stride<0>() == 1, "stride check failed.");
-    GT_STATIC_ASSERT(csi.stride<1>() == 3, "stride check failed.");
-    GT_STATIC_ASSERT(csi.stride<2>() == 9, "stride check failed.");
+    EXPECT_EQ(csi.stride<0>() , 1);
+    EXPECT_EQ(csi.stride<1>() , 3);
+    EXPECT_EQ(csi.stride<2>() , 9);
 
-    GT_STATIC_ASSERT(csih.total_length<0>() == 7, "dimension check failed.");
-    GT_STATIC_ASSERT(csih.total_length<1>() == 5, "dimension check failed.");
-    GT_STATIC_ASSERT(csih.total_length<2>() == 3, "dimension check failed.");
+    EXPECT_EQ(csih.total_length<0>(), 7);
+    EXPECT_EQ(csih.total_length<1>(), 5);
+    EXPECT_EQ(csih.total_length<2>(), 3);
 
-    GT_STATIC_ASSERT(csih.stride<0>() == 1, "stride check failed.");
-    GT_STATIC_ASSERT(csih.stride<1>() == 7, "stride check failed.");
-    GT_STATIC_ASSERT(csih.stride<2>() == 35, "stride check failed.");
+    EXPECT_EQ(csih.stride<0>() , 1);
+    EXPECT_EQ(csih.stride<1>() , 7);
+    EXPECT_EQ(csih.stride<2>() , 35);
 
     EXPECT_EQ(csiha.total_length<0>(), 7);
     EXPECT_EQ(csiha.total_length<1>(), 5);

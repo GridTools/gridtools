@@ -46,25 +46,18 @@ namespace gridtools {
         array<bool, I> m_value;
 
       public:
-        GT_FUNCTION
-        constexpr uint_t const &size() const { return m_size; }
+        GT_CONSTEXPR GT_FUNCTION uint_t const &size() const { return m_size; }
 
-        GT_FUNCTION
-        constexpr bool const &value(uint_t const &id) const { return m_value[id]; }
-        GT_FUNCTION
-        constexpr array<bool, I> const &value() const { return m_value; }
+        GT_CONSTEXPR GT_FUNCTION bool const &value(uint_t const &id) const { return m_value[id]; }
+        GT_CONSTEXPR GT_FUNCTION array<bool, I> const &value() const { return m_value; }
 
-        GT_FUNCTION
-        boollist(bool v0) : m_value{v0} {}
+        GT_FUNCTION boollist(bool v0) : m_value{v0} {}
 
-        GT_FUNCTION
-        boollist(bool v0, bool v1) : m_value{v0, v1} {}
+        GT_FUNCTION boollist(bool v0, bool v1) : m_value{v0, v1} {}
 
-        GT_FUNCTION
-        boollist(bool v0, bool v1, bool v2) : m_value{v0, v1, v2} {}
+        GT_FUNCTION boollist(bool v0, bool v1, bool v2) : m_value{v0, v1, v2} {}
 
-        GT_FUNCTION
-        boollist(boollist const &bl) : m_value(bl.m_value) {}
+        GT_FUNCTION boollist(boollist const &bl) : m_value(bl.m_value) {}
 
         GT_FUNCTION
         void copy_out(bool *arr) const {

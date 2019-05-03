@@ -203,22 +203,6 @@ TEST(StorageInfo, Simple) {
         EXPECT_EQ((si.index(1, 0, 2)), 5);
     }
 
-#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
-    // ICC 18 can not handle this
-    // storage info has to be constexpr capable
-    constexpr storage_info<0, layout_map<1, 0, 2>> si(3, 3, 3);
-    GT_STATIC_ASSERT(si.padded_total_length() == 27, "storage info is not constexpr anymore");
-    GT_STATIC_ASSERT(si.total_length() == 27, "storage info is not constexpr anymore");
-    GT_STATIC_ASSERT(si.length() == 27, "storage info is not constexpr anymore");
-    GT_STATIC_ASSERT(si.total_length<0>() == 3, "storage info is not constexpr anymore");
-    GT_STATIC_ASSERT(si.stride<0>() == 3, "storage info is not constexpr anymore");
-    GT_STATIC_ASSERT(si.stride<1>() == 9, "storage info is not constexpr anymore");
-    GT_STATIC_ASSERT(si.stride<2>() == 1, "storage info is not constexpr anymore");
-    GT_STATIC_ASSERT(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
-    GT_STATIC_ASSERT(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
-    GT_STATIC_ASSERT(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
-#endif
-
     // test wiht different dims
     storage_info<0, layout_map<1, 2, 3, 0>> x(5, 7, 8, 2);
     EXPECT_EQ((x.total_length<0>()), 5);
