@@ -40,34 +40,29 @@ namespace gridtools {
             Functor::template apply<Eval &>(eval);
         }
 
-        template <class Key, class Offsets, enable_if_t<has_key<decay_t<Offsets>, Key>::value, int> = 0>
-        GT_FUNCTION auto get_offset(Offsets &&offsets)
-            GT_AUTO_RETURN(host_device::at_key<Key>(std::forward<Offsets>(offsets)));
-
-        template <class Key, class Offsets>
-        GT_FUNCTION enable_if_t<!has_key<Offsets, Key>::value, integral_constant<int_t, 0>> get_offset(Offsets &&) {
-            return {};
-        }
-
         template <class Key>
         struct sum_offset_generator_f {
             using type = sum_offset_generator_f;
 
+            using default_t = integral_constant<int_t, 0>;
+
             template <class Lhs, class Rhs>
             GT_FUNCTION auto operator()(Lhs &&lhs, Rhs &&rhs) const
-                GT_AUTO_RETURN(get_offset<Key>(std::forward<Lhs>(lhs)) + get_offset<Key>(std::forward<Rhs>(rhs)));
+                GT_AUTO_RETURN((host_device::at_key_with_default<Key, default_t>(wstd::forward<Lhs>(lhs)) +
+                                host_device::at_key_with_default<Key, default_t>(wstd::forward<Rhs>(rhs))));
         };
 
         template <class Res, class Lhs, class Rhs>
         GT_FUNCTION Res sum_offsets(Lhs &&lhs, Rhs &&rhs) {
             using keys_t = GT_META_CALL(get_keys, Res);
             using generators_t = GT_META_CALL(meta::transform, (sum_offset_generator_f, keys_t));
-            return tuple_util::host_device::generate<generators_t, Res>(std::forward<Lhs>(lhs), std::forward<Rhs>(rhs));
+            return tuple_util::host_device::generate<generators_t, Res>(
+                wstd::forward<Lhs>(lhs), wstd::forward<Rhs>(rhs));
         }
 
         template <int_t I, int_t J, int_t K, class Accessor>
         GT_FUNCTION enable_if_t<I == 0 && J == 0 && K == 0, Accessor &&> get_offsets(Accessor &&acc) {
-            return std::forward<Accessor>(acc);
+            return wstd::forward<Accessor>(acc);
         }
 
         template <int_t I,
@@ -81,7 +76,7 @@ namespace gridtools {
             static constexpr hymap::keys<dim::i, dim::j, dim::k>::
                 values<integral_constant<int_t, I>, integral_constant<int_t, J>, integral_constant<int_t, K>>
                     offset = {};
-            return sum_offsets<Res>(std::forward<Accessor>(acc), offset);
+            return sum_offsets<Res>(wstd::forward<Accessor>(acc), offset);
         }
 
         template <class Res, class Offsets>
@@ -91,13 +86,13 @@ namespace gridtools {
             Offsets m_offsets;
 
             template <class Eval, class Src>
-            GT_FUNCTION constexpr auto operator()(Eval &eval, Src &&src) const
-                GT_AUTO_RETURN(eval(sum_offsets<Res>(m_offsets, std::forward<Src>(src))));
+            GT_FUNCTION GT_CONSTEXPR auto operator()(Eval &eval, Src &&src) const
+                GT_AUTO_RETURN(eval(sum_offsets<Res>(m_offsets, wstd::forward<Src>(src))));
         };
 
         template <class Res, class Offsets>
         GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
-            return {std::forward<Offsets>(offsets)};
+            return {wstd::forward<Offsets>(offsets)};
         }
 
         template <class T>
@@ -120,7 +115,7 @@ namespace gridtools {
                                 !(Param::intent_v == intent::inout && Decayed::intent_v == intent::in),
                     int> = 0>
             GT_FUNCTION auto operator()(Accessor &&accessor, LazyParam) const
-                GT_AUTO_RETURN((accessor_transform<Decayed>(get_offsets<I, J, K>(std::forward<Accessor>(accessor)))));
+                GT_AUTO_RETURN((accessor_transform<Decayed>(get_offsets<I, J, K>(wstd::forward<Accessor>(accessor)))));
 
             template <class Arg,
                 class Decayed = decay_t<Arg>,
@@ -129,8 +124,8 @@ namespace gridtools {
                 enable_if_t<!is_accessor<Decayed>::value &&
                                 !(Param::intent_v == intent::inout && std::is_const<remove_reference_t<Arg>>::value),
                     int> = 0>
-            GT_FUNCTION constexpr local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
-                return {const_expr::forward<Arg>(arg)};
+            GT_FUNCTION GT_CONSTEXPR local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
+                return {wstd::forward<Arg>(arg)};
             }
         };
 

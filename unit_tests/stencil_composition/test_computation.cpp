@@ -50,11 +50,11 @@ namespace gridtools {
             double get_time() const { return 0.; /* unused */ }
 
             template <typename Arg>
-            static constexpr rt_extent get_arg_extent(Arg) {
+            static rt_extent get_arg_extent(Arg) {
                 return {0, 0, 0, 0, 0, 0};
             }
             template <typename Arg>
-            static constexpr std::integral_constant<intent, intent::in> get_arg_intent(Arg) {
+            static std::integral_constant<intent, intent::in> get_arg_intent(Arg) {
                 return {};
             }
         };
