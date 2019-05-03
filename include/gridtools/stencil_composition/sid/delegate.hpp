@@ -30,8 +30,14 @@ namespace gridtools {
 
             GT_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
 
-            friend GT_CONSTEXPR auto sid_get_origin(delegate &obj) GT_AUTO_RETURN(get_origin(obj.m_impl));
-            friend GT_CONSTEXPR auto sid_get_strides(delegate const &obj) GT_AUTO_RETURN(get_strides(obj.m_impl));
+            // Clang does not like GT_AUTO_RETURN here
+            friend GT_CONSTEXPR decltype(get_origin(std::declval<Sid &>())) sid_get_origin(delegate &obj) {
+                return get_origin(obj.m_impl);
+            }
+            friend GT_CONSTEXPR decltype(get_strides(std::declval<Sid const &>())) sid_get_strides(
+                delegate const &obj) {
+                return get_strides(obj.m_impl);
+            }
 
           protected:
             GT_CONSTEXPR Sid const &impl() const { return m_impl; }
