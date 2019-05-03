@@ -62,7 +62,7 @@ namespace gridtools {
         TEST(sid_block, multilevel) {
             positional s{0, 0, 0};
 
-            const int domain_size_i = 20;
+            const int domain_size = 20;
             const int block_size_1 = 5;
             const int block_size_2 = 2;
             auto blocked_s = sid::block(s, tuple_util::make<hymap::keys<dim::i>::values>(block_size_1));
@@ -73,7 +73,7 @@ namespace gridtools {
 
             auto ptr = sid::get_origin(blocked_blocked_s);
             auto strides = sid::get_strides(blocked_blocked_s);
-            for (int ib2 = 0; ib2 < domain_size_i; ib2 += block_size_1 * block_size_2) {
+            for (int ib2 = 0; ib2 < domain_size; ib2 += block_size_1 * block_size_2) {
                 for (int ib = ib2; ib < ib2 + block_size_1 * block_size_2; ib += block_size_1) {
                     for (int i = ib; i < ib + block_size_1; ++i) {
                         EXPECT_EQ((*ptr).i, i);
@@ -94,6 +94,28 @@ namespace gridtools {
 
             auto same_s = sid::block(s, tuple_util::make<hymap::keys<unused_dim>::values>(42));
             static_assert(std::is_same<decltype(s), decltype(same_s)>(), "");
+        }
+
+        TEST(sid_block, reference_wrapper) {
+            positional s{0, 0, 0};
+
+            const int domain_size = 20;
+            const int block_size = 5;
+            auto blocked_s = sid::block(std::ref(s), tuple_util::make<hymap::keys<dim::i>::values>(block_size));
+            static_assert(is_sid<decltype(blocked_s)>(), "");
+
+            auto ptr = sid::get_origin(blocked_s);
+            auto strides = sid::get_strides(blocked_s);
+            for (int ib = 0; ib < domain_size; ib += block_size) {
+                for (int i = ib; i < ib + block_size; ++i) {
+                    EXPECT_EQ((*ptr).i, i);
+                    EXPECT_EQ((*ptr).j, 0);
+                    EXPECT_EQ((*ptr).k, 0);
+                    sid::shift(ptr, sid::get_stride<dim::i>(strides), 1);
+                }
+                sid::shift(ptr, sid::get_stride<dim::i>(strides), -block_size);
+                sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::i>>(strides), 1);
+            }
         }
     } // namespace
 } // namespace gridtools

@@ -9,6 +9,10 @@
  */
 #pragma once
 
+#include <functional>
+#include <type_traits>
+#include <utility>
+
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
@@ -139,5 +143,9 @@ namespace gridtools {
                 GT_INTERNAL_ERROR_MSG("invalid block size type in block map"));
             return {std::forward<Sid>(sid), std::forward<BlockMap>(block_map)};
         }
+
+        template <class Sid, class BlockMap>
+        auto block(std::reference_wrapper<Sid> const &sid, BlockMap &&block_map)
+            GT_AUTO_RETURN(block(sid.get(), std::forward<BlockMap>(block_map)));
     } // namespace sid
 } // namespace gridtools
