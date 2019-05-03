@@ -40,11 +40,17 @@
 #endif
 #endif
 
+#ifdef __CUDA_ARCH__
+#define GT_CONSTEXPR
+#else
+#define GT_CONSTEXPR constexpr
+#endif
+
 /**
  * Macro to allow make functions constexpr in c++14 (in case they are not only a return statement)
  */
 #if __cplusplus >= 201402L
-#define GT_CXX14CONSTEXPR constexpr
+#define GT_CXX14CONSTEXPR GT_CONSTEXPR
 #else
 #define GT_CXX14CONSTEXPR
 #endif

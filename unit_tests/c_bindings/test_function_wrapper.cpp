@@ -108,7 +108,7 @@ namespace gridtools {
             void inc(int &val) { ++val; }
 
             TEST(wrap, const_expr) {
-                constexpr auto wrapped_inc = wrap(inc);
+                GT_CONSTEXPR auto wrapped_inc = wrap(inc);
                 int i = 41;
                 wrapped_inc(&i);
                 EXPECT_EQ(42, i);

@@ -30,7 +30,7 @@ namespace gridtools {
 
                 template <class... Args>
                 void operator()(Args &&... args) const {
-                    m_obj.run(std::forward<Args>(args)...);
+                    m_obj.run(wstd::forward<Args>(args)...);
                 }
             };
 
@@ -78,7 +78,7 @@ namespace gridtools {
         struct impl : iface, _impl::computation_detail::impl_arg<impl<Obj>, Args>... {
             Obj m_obj;
 
-            impl(Obj &&obj) : m_obj{std::move(obj)} {}
+            impl(Obj &&obj) : m_obj{wstd::move(obj)} {}
 
             void run(arg_storage_pair_crefs_t const &args) override {
                 tuple_util::apply(_impl::computation_detail::run_f<Obj>{m_obj}, args);
@@ -95,7 +95,7 @@ namespace gridtools {
         computation() = default;
 
         template <class Obj>
-        computation(Obj obj) : m_impl(new impl<Obj>{std::move(obj)}) {
+        computation(Obj obj) : m_impl(new impl<Obj>{wstd::move(obj)}) {
             GT_STATIC_ASSERT((!std::is_same<typename std::decay<Obj>::type, computation>::value),
                 GT_INTERNAL_ERROR_MSG("computation move ctor got shadowed"));
             // TODO(anstaf): Check that Obj satisfies computation concept here.

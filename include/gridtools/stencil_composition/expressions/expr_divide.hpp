@@ -25,12 +25,12 @@ namespace gridtools {
         /**@brief Evaluator of the division expression*/
         struct divide_f {
             template <class Lhs, class Rhs>
-            GT_FUNCTION constexpr auto operator()(Lhs const &lhs, Rhs const &rhs) const GT_AUTO_RETURN(lhs / rhs);
+            GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs const &lhs, Rhs const &rhs) const GT_AUTO_RETURN(lhs / rhs);
         };
 
         /** Operator overload of the division expression */
         template <class Lhs, class Rhs>
-        GT_FUNCTION constexpr auto operator/(Lhs lhs, Rhs rhs) GT_AUTO_RETURN(make_expr(divide_f{}, lhs, rhs));
+        GT_FUNCTION GT_CONSTEXPR auto operator/(Lhs lhs, Rhs rhs) GT_AUTO_RETURN(make_expr(divide_f{}, lhs, rhs));
     } // namespace expressions
     /** @} */
     /** @} */
