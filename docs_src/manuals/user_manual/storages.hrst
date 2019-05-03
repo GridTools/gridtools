@@ -150,17 +150,17 @@ is surrounded by a halo region (green).
 
 **Interface**: A ``storage_info`` object provides methods for querying the meta data.
 
-* ``template <uint_t D> constexpr uint_t total_length() const``: retrieve the total number of data points in dimension
+* ``template <uint_t D> uint_t total_length() const``: retrieve the total number of data points in dimension
   ``D`` dimensions
-* ``template <int D> constexpr int stride() const``: retrieve the stride in dimension ``D``
+* ``template <int D> int stride() const``: retrieve the stride in dimension ``D``
 * ``const array<uint_t, ndims> &total_lengths() const``: return the array of total number of data points in each
   direction
 * ``const array<uint_t, ndims> &strides() const``: return the array of (aligned) strides.
-* ``template <uint_t D> constexpr uint_t begin() const``: retrieve the position of the first non halo point in dimension `D`
-* ``template <uint_t D> constexpr uint_t end() const``: retrieve the position of the last non halo point in dimension `D`
-* ``template <uint_t D> constexpr uint_t total_begin() const``: retrieve the position of the first point (can also be a
+* ``template <uint_t D> uint_t begin() const``: retrieve the position of the first non halo point in dimension `D`
+* ``template <uint_t D> uint_t end() const``: retrieve the position of the last non halo point in dimension `D`
+* ``template <uint_t D> uint_t total_begin() const``: retrieve the position of the first point (can also be a
   halo point) in dimension ``D`` (always ``0``)
-* ``template <uint_t D> constexpr uint_t total_end() const``: retrieve the position of the last point (can also be a
+* ``template <uint_t D> uint_t total_end() const``: retrieve the position of the last point (can also be a
   halo point) in dimension ``D``
 
 .. _data-store:
