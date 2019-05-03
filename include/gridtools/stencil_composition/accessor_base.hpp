@@ -14,6 +14,7 @@
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/dimension.hpp"
+#include "../common/functional.hpp"
 #include "../common/host_device.hpp"
 #include "../meta.hpp"
 
@@ -22,29 +23,30 @@ namespace gridtools {
         template <uint_t I>
         struct get_dimension_value_f {
             template <uint_t J>
-            GT_FUNCTION constexpr int_t operator()(dimension<J>) const {
+            GT_FUNCTION GT_CONSTEXPR int_t operator()(dimension<J>) const {
                 return 0;
             }
-            GT_FUNCTION constexpr int_t operator()(dimension<I> src) const { return src.value; }
+            GT_FUNCTION GT_CONSTEXPR int_t operator()(dimension<I> src) const { return src.value; }
         };
 
         template <uint_t I>
-        GT_FUNCTION constexpr int_t sum_dimensions() {
+        GT_FUNCTION GT_CONSTEXPR int_t sum_dimensions() {
             return 0;
         }
 
         template <uint_t I, class T, class... Ts>
-        GT_FUNCTION constexpr int_t sum_dimensions(T src, Ts... srcs) {
+        GT_FUNCTION GT_CONSTEXPR int_t sum_dimensions(T src, Ts... srcs) {
             return get_dimension_value_f<I>{}(src) + sum_dimensions<I>(srcs...);
         }
 
         template <uint_t Dim, uint_t... Is, class... Ts>
-        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(meta::integer_sequence<uint_t, Is...>, Ts... srcs) {
+        GT_FUNCTION GT_CONSTEXPR array<int_t, Dim> make_offsets_impl(
+            meta::integer_sequence<uint_t, Is...>, Ts... srcs) {
             return {sum_dimensions<Is + 1>(srcs...)...};
         }
 
         template <uint_t Dim, class... Ts>
-        GT_FUNCTION constexpr array<int_t, Dim> make_offsets(Ts... srcs) {
+        GT_FUNCTION GT_CONSTEXPR array<int_t, Dim> make_offsets(Ts... srcs) {
             return make_offsets_impl<Dim>(meta::make_integer_sequence<uint_t, Dim>{}, srcs...);
         }
     } // namespace accessor_base_impl_
@@ -82,12 +84,12 @@ namespace gridtools {
 
         template <class... Ints,
             enable_if_t<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value, int> = 0>
-        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : base_t{{offsets...}} {}
+        GT_FUNCTION GT_CONSTEXPR explicit accessor_base(Ints... offsets) : base_t{{offsets...}} {}
 
-        GT_FUNCTION constexpr explicit accessor_base(base_t const &src) : base_t{src} {}
+        GT_FUNCTION GT_CONSTEXPR explicit accessor_base(base_t const &src) : base_t{src} {}
 
         template <uint_t I, uint_t... Is>
-        GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
+        GT_FUNCTION GT_CONSTEXPR explicit accessor_base(dimension<I> d, dimension<Is>... ds)
             : base_t{accessor_base_impl_::make_offsets<Dim>(d, ds...)} {
             GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
                 "all dimensions should be of different indicies");
@@ -101,13 +103,13 @@ namespace gridtools {
         int_t data0, data1, data2;
         int_t m_workaround = 3;
 
-        GT_FORCE_INLINE constexpr accessor_base(array<int_t, 3> const &a) : data0(a[0]), data1(a[1]), data2(a[2]) {}
+        GT_FORCE_INLINE GT_CONSTEXPR accessor_base(array<int_t, 3> const &a) : data0(a[0]), data1(a[1]), data2(a[2]) {}
 
-        GT_FORCE_INLINE constexpr accessor_base(int_t data0 = {}, int_t data1 = {}, int_t data2 = {})
+        GT_FORCE_INLINE GT_CONSTEXPR accessor_base(int_t data0 = {}, int_t data1 = {}, int_t data2 = {})
             : data0(data0), data1(data1), data2(data2) {}
 
         template <uint_t I, uint_t... Is>
-        GT_FORCE_INLINE constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
+        GT_FORCE_INLINE GT_CONSTEXPR explicit accessor_base(dimension<I> d, dimension<Is>... ds)
             : accessor_base{accessor_base_impl_::make_offsets<3>(d, ds...)} {
             GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<I>, dimension<Is>...>>::value),
                 "all dimensions should be of different indicies");
@@ -117,15 +119,15 @@ namespace gridtools {
     namespace accessor_base_impl_ {
         struct accessor_base_3_getter {
             template <size_t I>
-            static GT_FORCE_INLINE constexpr enable_if_t<I == 0, int_t> get(accessor_base<3> const &acc) noexcept {
+            static GT_FORCE_INLINE GT_CONSTEXPR enable_if_t<I == 0, int_t> get(accessor_base<3> const &acc) noexcept {
                 return acc.data0;
             }
             template <size_t I>
-            static GT_FORCE_INLINE constexpr enable_if_t<I == 1, int_t> get(accessor_base<3> const &acc) noexcept {
+            static GT_FORCE_INLINE GT_CONSTEXPR enable_if_t<I == 1, int_t> get(accessor_base<3> const &acc) noexcept {
                 return acc.data1;
             }
             template <size_t I>
-            static GT_FORCE_INLINE constexpr enable_if_t<I == 2, int_t> get(accessor_base<3> const &acc) noexcept {
+            static GT_FORCE_INLINE GT_CONSTEXPR enable_if_t<I == 2, int_t> get(accessor_base<3> const &acc) noexcept {
                 return acc.data2;
             }
         };

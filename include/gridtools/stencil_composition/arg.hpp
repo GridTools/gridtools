@@ -47,7 +47,7 @@ namespace gridtools {
 
         arg_storage_pair() = default;
         arg_storage_pair(const DataStoreType &val) : m_value{val} {}
-        arg_storage_pair(DataStoreType &&val) noexcept : m_value{std::move(val)} {}
+        arg_storage_pair(DataStoreType &&val) noexcept : m_value{wstd::move(val)} {}
         ~arg_storage_pair() = default;
 
         DataStoreType m_value;
@@ -94,7 +94,7 @@ namespace gridtools {
 
         template <typename Arg>
         arg_storage_pair<plh, DataStoreType> operator=(Arg &&arg) const {
-            return {std::forward<Arg>(arg)};
+            return {wstd::forward<Arg>(arg)};
         }
     };
 

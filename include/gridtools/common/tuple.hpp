@@ -33,7 +33,7 @@ namespace gridtools {
             constexpr GT_FUNCTION tuple_leaf() noexcept : m_value() {}
 
             template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
-            constexpr GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : m_value(const_expr::forward<Arg>(arg)) {}
+            constexpr GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : m_value(wstd::forward<Arg>(arg)) {}
         };
 
         template <size_t I, class T>
@@ -45,7 +45,7 @@ namespace gridtools {
             tuple_leaf &operator=(tuple_leaf &&) = default;
 
             template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
-            constexpr GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : T(const_expr::forward<Arg>(arg)) {}
+            constexpr GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : T(wstd::forward<Arg>(arg)) {}
         };
 
         struct tuple_leaf_getter {
@@ -94,11 +94,11 @@ namespace gridtools {
 
             template <class... Args>
             constexpr GT_FUNCTION tuple_impl(Args &&... args) noexcept
-                : tuple_leaf<Is, Ts>(const_expr::forward<Args>(args))... {}
+                : tuple_leaf<Is, Ts>(wstd::forward<Args>(args))... {}
 
             template <class Src>
             constexpr GT_FUNCTION tuple_impl(Src &&src) noexcept
-                : tuple_leaf<Is, Ts>(tuple_leaf_getter::get<Is>(const_expr::forward<Src>(src)))... {}
+                : tuple_leaf<Is, Ts>(tuple_leaf_getter::get<Is>(wstd::forward<Src>(src)))... {}
 
             GT_FORCE_INLINE void swap(tuple_impl &other) noexcept {
                 using std::swap;
@@ -153,7 +153,7 @@ namespace gridtools {
 
             template <size_t I>
             static constexpr GT_FUNCTION auto get(tuple &&obj) noexcept GT_AUTO_RETURN(
-                impl_::tuple_leaf_getter::get<I>(const_expr::move(obj).m_impl));
+                impl_::tuple_leaf_getter::get<I>(wstd::move(obj).m_impl));
         };
         friend getter tuple_getter(tuple const &) { return {}; }
 
@@ -173,7 +173,7 @@ namespace gridtools {
         template <class... Args,
             enable_if_t<sizeof...(Ts) == sizeof...(Args) && conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(Args &&... args) noexcept : m_impl(const_expr::forward<Args>(args)...) {}
+        constexpr GT_FUNCTION tuple(Args &&... args) noexcept : m_impl(wstd::forward<Args>(args)...) {}
 
         template <class... Args,
             enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
@@ -184,7 +184,7 @@ namespace gridtools {
         template <class... Args,
             enable_if_t<sizeof...(Ts) == sizeof...(Args) && conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(tuple<Args...> &&src) noexcept : m_impl(const_expr::move(src).m_impl) {}
+        constexpr GT_FUNCTION tuple(tuple<Args...> &&src) noexcept : m_impl(wstd::move(src).m_impl) {}
 
         GT_FORCE_INLINE void swap(tuple &other) noexcept { m_impl.swap(other.m_impl); }
 
@@ -228,7 +228,7 @@ namespace gridtools {
         constexpr GT_FUNCTION tuple(T const &arg) noexcept : m_value(arg) {}
 
         template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
-        constexpr GT_FUNCTION tuple(Arg &&arg) noexcept : m_value(const_expr::forward<Arg>(arg)) {}
+        constexpr GT_FUNCTION tuple(Arg &&arg) noexcept : m_value(wstd::forward<Arg>(arg)) {}
 
         template <class Arg,
             enable_if_t<std::is_constructible<T, Arg const &>::value &&
@@ -241,7 +241,7 @@ namespace gridtools {
             enable_if_t<std::is_constructible<T, Arg &&>::value && !std::is_convertible<tuple<Arg>, T>::value &&
                             !std::is_constructible<T, tuple<Arg>>::value && !std::is_same<T, Arg>::value,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(tuple<Arg> &&src) noexcept : m_value(const_expr::move(src).m_value) {}
+        constexpr GT_FUNCTION tuple(tuple<Arg> &&src) noexcept : m_value(wstd::move(src).m_value) {}
 
         GT_FORCE_INLINE void swap(tuple &other) noexcept {
             using std::swap;

@@ -36,7 +36,7 @@ namespace gridtools {
     template <class Base, uint_t... Inxs, int_t... Vals>
     struct accessor_mixed<Base, pair_<Inxs, Vals>...> : Base {
         template <class... Ts>
-        GT_FUNCTION explicit constexpr accessor_mixed(Ts... args) : Base(dimension<Inxs>(Vals)..., args...) {}
+        GT_FUNCTION explicit GT_CONSTEXPR accessor_mixed(Ts... args) : Base(dimension<Inxs>(Vals)..., args...) {}
     };
 
     /**
