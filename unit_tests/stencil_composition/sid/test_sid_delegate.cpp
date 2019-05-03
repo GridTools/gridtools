@@ -76,5 +76,24 @@ namespace gridtools {
             EXPECT_EQ(&src[1][0], sid::get_origin(testee)());
         }
 
+        template <class Sid>
+        struct delegate_everything : sid::delegate<Sid> {
+            using sid::delegate<Sid>::delegate;
+        };
+
+        template <class Sid>
+        delegate_everything<Sid> just_delegate(Sid const &s) {
+            return delegate_everything<Sid>(s);
+        }
+
+        TEST(delegate, do_nothing) {
+            double data[3][5];
+            auto src = sid::synthetic()
+                           .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0]))
+                           .set<property::strides>(tu::make<tuple>(5_c, 1_c));
+            auto testee = just_delegate(src);
+            static_assert(is_sid<decltype(testee)>(), "");
+        }
+
     } // namespace
 } // namespace gridtools

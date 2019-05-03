@@ -30,12 +30,8 @@ namespace gridtools {
 
             GT_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
 
-            friend constexpr GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) {
-                return get_origin(obj.m_impl);
-            }
-            friend constexpr GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
-                return get_strides(obj.m_impl);
-            }
+            friend constexpr auto sid_get_origin(delegate &obj) GT_AUTO_RETURN(get_origin(obj.m_impl));
+            friend constexpr auto sid_get_strides(delegate const &obj) GT_AUTO_RETURN(get_strides(obj.m_impl));
 
           protected:
             constexpr Sid const &impl() const { return m_impl; }
