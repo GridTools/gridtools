@@ -31,10 +31,6 @@ namespace gridtools {
         };
 
         namespace block_impl_ {
-            template <class T>
-            using is_integral_or_integral_constant =
-                bool_constant<std::is_integral<T>::value || concept_impl_::is_integral_constant<T>::value>;
-
             template <class Stride, class BlockSize>
             struct blocked_stride : tuple<Stride, BlockSize> {
                 using tuple<Stride, BlockSize>::tuple;
@@ -45,17 +41,17 @@ namespace gridtools {
                 GT_AUTO_RETURN(shift(
                     ptr, tuple_util::host_device::get<0>(stride), tuple_util::host_device::get<1>(stride) * offset));
 
-            template <class Stride,
-                class BlockSize,
-                enable_if_t<!is_integral_or_integral_constant<Stride>::value, int> = 0>
+            template <class Stride, class BlockSize, enable_if_t<!std::is_integral<Stride>::value, int> = 0>
             blocked_stride<Stride, BlockSize> block_stride(Stride const &stride, BlockSize const &block_size) {
                 return {stride, block_size};
             }
 
-            template <class Stride,
-                class BlockSize,
-                enable_if_t<is_integral_or_integral_constant<Stride>::value, int> = 0>
+            template <class Stride, class BlockSize, enable_if_t<std::is_integral<Stride>::value, int> = 0>
             auto block_stride(Stride const &stride, BlockSize const &block_size) GT_AUTO_RETURN(stride *block_size);
+
+            template <class T, T V, class BlockSize>
+            auto block_stride(std::integral_constant<T, V> const &, BlockSize const &block_size)
+                GT_AUTO_RETURN(V *block_size);
 
             template <class Stride, class BlockSize>
             using blocked_stride_type = decltype(block_stride(std::declval<Stride>(), std::declval<BlockSize>()));
@@ -138,9 +134,6 @@ namespace gridtools {
 
         template <class Sid, class BlockMap, enable_if_t<!block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
         block_impl_::blocked_sid<decay_t<Sid>, decay_t<BlockMap>> block(Sid &&sid, BlockMap &&block_map) {
-            GT_STATIC_ASSERT((meta::all_of<block_impl_::is_integral_or_integral_constant,
-                                 GT_META_CALL(tuple_util::traits::to_types, decay_t<BlockMap>)>::value),
-                GT_INTERNAL_ERROR_MSG("invalid block size type in block map"));
             return {std::forward<Sid>(sid), std::forward<BlockMap>(block_map)};
         }
 
