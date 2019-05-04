@@ -96,7 +96,7 @@ namespace gridtools {
             void for_each_param(TypeToStr &&type_to_str, Fun &&fun) {
                 int count = 0;
                 for_each_type<Params>(for_each_param_helper_f<TypeToStr, Fun>{
-                    std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), count});
+                    wstd::forward<TypeToStr>(type_to_str), wstd::forward<Fun>(fun), count});
             };
 
             template <class CSignature>
@@ -439,7 +439,7 @@ namespace gridtools {
                 get_entities<Traits>().add(name,
                     std::bind(Traits::template generate_entity<Signature>,
                         std::placeholders::_1,
-                        std::forward<Params>(params)...));
+                        wstd::forward<Params>(params)...));
             }
 
             template <class CSignature>

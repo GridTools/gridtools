@@ -76,8 +76,8 @@ namespace gridtools {
 
             static_assert(std::is_same<decay_t<decltype(sid::get_stride<dim_0>(strides{}))>, stride>(), "");
             static_assert(std::is_same<decay_t<decltype(sid::get_stride<dim_1>(strides{}))>, stride>(), "");
-            static_assert(sid::get_stride<void>(strides{}) == 0, "");
-            static_assert(sid::get_stride<void *>(strides{}) == 0, "");
+            static_assert(decltype(sid::get_stride<void>(strides()))::value == 0, "");
+            static_assert(decltype(sid::get_stride<void *>(strides()))::value == 0, "");
 
             static_assert(std::is_same<decltype(sid::shift(std::declval<ptr &>(), stride{}, 0)), std::true_type>(), "");
             static_assert(
@@ -103,7 +103,7 @@ namespace gridtools {
             static_assert(std::is_same<decay_t<decltype(sid::get_origin(std::declval<testee &>())())>, testee *>(), "");
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
 
-            constexpr auto stride = sid::get_stride<void>(strides{});
+            GT_CONSTEXPR auto stride = sid::get_stride<void>(strides{});
             static_assert(stride == 0, "");
 
             static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>(), "");

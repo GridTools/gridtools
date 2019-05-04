@@ -134,7 +134,6 @@ namespace gridtools {
             return accumulate(plus_functor{}, (!Bitmask && Dims >= 0 && Dims < D ? 1 : 0)...);
         }
 
-      public:
         using type = layout_map<(Bitmask ? Dims - correction(Dims) : -1)...>;
     };
 

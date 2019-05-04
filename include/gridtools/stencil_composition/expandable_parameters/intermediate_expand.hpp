@@ -254,7 +254,7 @@ namespace gridtools {
 
             template <class Intermediate, class Args>
             void invoke_run(Intermediate &intermediate, Args &&args) {
-                tuple_util::apply(run_f<Intermediate>{intermediate}, std::forward<Args>(args));
+                tuple_util::apply(run_f<Intermediate>{intermediate}, wstd::forward<Args>(args));
             }
         } // namespace expand_detail
     }     // namespace _impl
@@ -314,7 +314,7 @@ namespace gridtools {
         intermediate_expand(Grid const &grid,
             std::pair<ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs> &&arg_refs)
             // expandable arg_storage_pairs are kept as a class member until run will be called.
-            : m_expandable_bound_arg_storage_pairs(std::move(arg_refs.first)),
+            : m_expandable_bound_arg_storage_pairs(wstd::move(arg_refs.first)),
               // plain arg_storage_pairs are bound to both intermediates;
               m_intermediate(grid, arg_refs.second, false), m_intermediate_remainder(grid, arg_refs.second, false),
               m_meter("NoName") {}
@@ -325,7 +325,7 @@ namespace gridtools {
             // public constructor splits given ard_storage_pairs to expandable and plain ones and delegates to the
             // private constructor.
             : intermediate_expand(
-                  grid, split_args_tuple<_impl::expand_detail::is_expandable>(std::move(arg_storage_pairs))) {}
+                  grid, split_args_tuple<_impl::expand_detail::is_expandable>(wstd::move(arg_storage_pairs))) {}
 
         template <class... Args, class... DataStores>
         void run(arg_storage_pair<Args, DataStores> const &... args) {
@@ -334,7 +334,7 @@ namespace gridtools {
             auto arg_groups = split_args<_impl::expand_detail::is_expandable>(args...);
             auto bound_expandable_arg_refs = tuple_util::transform(identity{}, m_expandable_bound_arg_storage_pairs);
             // concatenate expandable portion of arguments with the refs to bound expandable ard_storage_pairs
-            auto expandable_args = std::tuple_cat(std::move(bound_expandable_arg_refs), std::move(arg_groups.first));
+            auto expandable_args = std::tuple_cat(wstd::move(bound_expandable_arg_refs), wstd::move(arg_groups.first));
             const auto &plain_args = arg_groups.second;
             // extract size from the vectors within expandable args.
             // if vectors are not of the same length assert within `get_expandable_size` fails.
