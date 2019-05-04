@@ -32,21 +32,21 @@ namespace gridtools {
             template <class T>
             struct simple_ptr_holder {
                 T m_val;
-                GT_TARGET GT_FORCE_INLINE constexpr T const &operator()() const { return m_val; }
+                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR T const &operator()() const { return m_val; }
             };
 
             template <class T>
-            GT_FORCE_INLINE constexpr simple_ptr_holder<T> make_simple_ptr_holder(T const &ptr) {
+            GT_FORCE_INLINE GT_CONSTEXPR simple_ptr_holder<T> make_simple_ptr_holder(T const &ptr) {
                 return {ptr};
             }
 
             template <class T, class Arg>
-            GT_FORCE_INLINE constexpr auto operator+(simple_ptr_holder<T> const &obj, Arg &&arg)
-                GT_AUTO_RETURN(make_simple_ptr_holder(obj.m_val + const_expr::forward<Arg>(arg)));
+            GT_FORCE_INLINE GT_CONSTEXPR auto operator+(simple_ptr_holder<T> const &obj, Arg &&arg)
+                GT_AUTO_RETURN(make_simple_ptr_holder(obj.m_val + wstd::forward<Arg>(arg)));
 
             template <class T, class Arg>
-            GT_FORCE_INLINE constexpr auto operator+(simple_ptr_holder<T> &&obj, Arg &&arg)
-                GT_AUTO_RETURN(make_simple_ptr_holder(const_expr::move(obj).m_val + const_expr::forward<Arg>(arg)));
+            GT_FORCE_INLINE GT_CONSTEXPR auto operator+(simple_ptr_holder<T> &&obj, Arg &&arg)
+                GT_AUTO_RETURN(make_simple_ptr_holder(wstd::move(obj).m_val + wstd::forward<Arg>(arg)));
         }
     } // namespace sid
 } // namespace gridtools

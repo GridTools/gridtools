@@ -218,14 +218,14 @@ namespace gridtools {
              *  `get_origin` delegates to `sid_get_origin`
              */
             template <class Sid>
-            constexpr auto get_origin(Sid &obj) GT_AUTO_RETURN(sid_get_origin(obj));
+            GT_CONSTEXPR auto get_origin(Sid &obj) GT_AUTO_RETURN(sid_get_origin(obj));
 
             /**
              *  C-array specialization
              */
             template <class T, class Res = gridtools::add_pointer_t<gridtools::remove_all_extents_t<T>>>
-            constexpr gridtools::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>> get_origin(
-                T &obj) {
+            GT_CONSTEXPR gridtools::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>>
+            get_origin(T &obj) {
                 return {(Res)obj};
             }
 
@@ -275,14 +275,15 @@ namespace gridtools {
              *  `get_strides` delegates to `sid_get_strides`
              */
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            constexpr enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            GT_CONSTEXPR enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
             get_strides(Sid const &obj) {
                 return sid_get_strides(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            constexpr enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, default_strides>
-            get_strides(Sid const &) {
+            GT_CONSTEXPR
+                enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, default_strides>
+                get_strides(Sid const &) {
                 return {};
             }
 
@@ -302,7 +303,8 @@ namespace gridtools {
             struct get_array_strides<Inner[N], ElemSize> : get_array_strides<Inner[], ElemSize> {};
 
             template <class T>
-            constexpr enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(T const &) {
+            GT_CONSTEXPR enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(
+                T const &) {
                 return {};
             }
 
@@ -639,12 +641,12 @@ namespace gridtools {
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <class Key, class Strides>
-        constexpr GT_FUNCTION auto get_stride(Strides &&strides)
+        GT_CONSTEXPR GT_FUNCTION auto get_stride(Strides &&strides)
             GT_AUTO_RETURN((gridtools::host_device::at_key_with_default<Key, default_stride>(strides)));
 
         struct get_origin_f {
             template <class T>
-            constexpr auto operator()(T &obj) const GT_AUTO_RETURN(get_origin(obj));
+            GT_CONSTEXPR auto operator()(T &obj) const GT_AUTO_RETURN(get_origin(obj));
         };
     } // namespace sid
 
