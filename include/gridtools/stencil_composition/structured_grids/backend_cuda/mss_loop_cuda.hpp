@@ -23,8 +23,7 @@
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
-#include "../positional_iterate_domain.hpp"
-#include "./iterate_domain_cuda.hpp"
+#include "iterate_domain_cuda.hpp"
 
 /**@file
  * @brief mss loop implementations for the cuda backend
@@ -46,10 +45,7 @@ namespace gridtools {
 
             using iterate_domain_arguments_t =
                 iterate_domain_arguments<backend::cuda, LocalDomain, typename RunFunctorArguments::esf_sequence_t>;
-            using iterate_domain_cuda_t = iterate_domain_cuda<iterate_domain_arguments_t>;
-            using iterate_domain_t = typename conditional_t<local_domain_is_stateful<LocalDomain>::value,
-                meta::lazy::id<positional_iterate_domain<iterate_domain_cuda_t>>,
-                meta::lazy::id<iterate_domain_cuda_t>>::type;
+            using iterate_domain_t = iterate_domain_cuda<iterate_domain_arguments_t>;
 
             // number of threads
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);

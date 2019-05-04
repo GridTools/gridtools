@@ -15,6 +15,7 @@
 #include "mp_find.hpp"
 #include "mp_remove.hpp"
 #include "push_back.hpp"
+#include "replace.hpp"
 
 namespace gridtools {
     namespace meta {
@@ -24,8 +25,7 @@ namespace gridtools {
 
             template <class Map, template <class...> class L, class Key, class... Vals, class OldElem>
             struct mp_insert<Map, L<Key, Vals...>, OldElem> {
-                using type = typename push_back<GT_META_CALL(mp_remove, (Map, Key)),
-                    typename push_back<OldElem, Vals...>::type>::type;
+                using type = GT_META_CALL(meta::replace, (Map, OldElem, typename push_back<OldElem, Vals...>::type));
             };
 
             template <class Map, template <class...> class L, class Key, class... Vals>

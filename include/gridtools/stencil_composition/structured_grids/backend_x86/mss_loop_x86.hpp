@@ -12,7 +12,6 @@
 #include "../../backend_x86/basic_token_execution_x86.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
-#include "../positional_iterate_domain.hpp"
 #include "./iterate_domain_x86.hpp"
 #include "./run_esf_functor_x86.hpp"
 
@@ -36,11 +35,7 @@ namespace gridtools {
 
         using iterate_domain_arguments_t =
             iterate_domain_arguments<backend::x86, LocalDomain, typename RunFunctorArgs::esf_sequence_t>;
-        using iterate_domain_x86_t = iterate_domain_x86<iterate_domain_arguments_t>;
-        using iterate_domain_t = typename conditional_t<local_domain_is_stateful<LocalDomain>::value,
-            meta::lazy::id<positional_iterate_domain<iterate_domain_x86_t>>,
-            meta::lazy::id<iterate_domain_x86_t>>::type;
-        iterate_domain_t it_domain(local_domain);
+        iterate_domain_x86<iterate_domain_arguments_t> it_domain(local_domain);
 
         using extent_t = GT_META_CALL(get_extent_from_loop_intervals, typename RunFunctorArgs::loop_intervals_t);
         using interval_t = GT_META_CALL(meta::first, typename RunFunctorArgs::loop_intervals_t);

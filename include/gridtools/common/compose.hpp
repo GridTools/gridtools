@@ -13,6 +13,7 @@
 #ifndef GT_COMMON_COMPOSE_HPP_
 #define GT_COMMON_COMPOSE_HPP_
 
+#include "../meta/type_traits.hpp"
 #include "defs.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
@@ -52,7 +53,7 @@ namespace gridtools {
         /// compose(a, b, c)(x, y) <==> a(b(c(x, y)))
         ///
         template <class... Funs>
-        constexpr GT_TARGET GT_FORCE_INLINE compose_impl_::composed_f<Funs...> compose(Funs && ... funs) {
+        constexpr GT_TARGET GT_FORCE_INLINE compose_impl_::composed_f<decay_t<Funs>...> compose(Funs && ... funs) {
             return {const_expr::forward<Funs>(funs)...};
         }
 
