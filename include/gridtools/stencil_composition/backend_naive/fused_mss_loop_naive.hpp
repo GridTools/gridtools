@@ -34,7 +34,7 @@ namespace gridtools {
             Grid const &m_grid;
 
             template <class Arg, class Dim>
-            auto stride() const GT_AUTO_RETURN((sid::get_stride<Arg, dim::i>(m_strides)));
+            auto stride() const GT_AUTO_RETURN((sid::get_stride<Arg, Dim>(m_strides)));
 
             template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             void operator()() const {
