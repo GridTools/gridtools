@@ -644,6 +644,19 @@ namespace gridtools {
         GT_CONSTEXPR GT_FUNCTION auto get_stride(Strides &&strides)
             GT_AUTO_RETURN((gridtools::host_device::at_key_with_default<Key, default_stride>(strides)));
 
+        /**
+         *  A variation of get_stride helper that works with the strides that are maps of of maps.
+         *  I.e. `composite`.
+         */
+        template <class Key, class Dim, class Strides, enable_if_t<has_key<Strides, Dim>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION auto get_stride(Strides const &strides)
+            GT_AUTO_RETURN(gridtools::host_device::at_key<Key>(gridtools::host_device::at_key<Dim>(strides)));
+
+        template <class Key, class Dim, class Strides, enable_if_t<!has_key<Strides, Dim>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride(Strides const &strides) {
+            return {};
+        }
+
         struct get_origin_f {
             template <class T>
             GT_CONSTEXPR auto operator()(T &obj) const GT_AUTO_RETURN(get_origin(obj));

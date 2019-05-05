@@ -246,7 +246,7 @@ namespace gridtools {
         template <uint_t Color, bool = contains_color<Color>::value>
         struct colored_stage {
             template <class Ptr, class Strides, class Deref = meta::always<stage_impl_::default_dereference_f>>
-            GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides, Deref = {}) const {
+            GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides, Deref = {}) const {
                 typename Stage::template colored_stage<Color>{}(ptr, strides);
                 (void)(int[]){(typename Stages::template colored_stage<Color>{}(ptr, strides), 0)...};
             }
@@ -255,11 +255,11 @@ namespace gridtools {
         template <uint_t Color>
         struct colored_stage<Color, false> {
             template <class Ptr, class Strides, class Deref = meta::always<stage_impl_::default_dereference_f>>
-            GT_FUNCTION void operator()(Ptr const &, Strides const &, Deref = {}) const {}
+            GT_FUNCTION void operator()(Ptr &, Strides const &, Deref = {}) const {}
         };
 
         template <class Ptr, class Strides, class Deref = meta::always<stage_impl_::default_dereference_f>>
-        GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides, Deref deref = {}) const {
+        GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides, Deref deref = {}) const {
             Stage{}(ptr, strides, deref);
             (void)(int[]){(Stages{}(ptr, strides, deref), 0)...};
         }

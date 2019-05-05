@@ -44,9 +44,6 @@ namespace gridtools {
         pos3<int_t> const &m_pos_in_block;
         PtrMap &m_ptr_map;
 
-        template <class Arg, class Dim>
-        GT_FUNCTION auto stride() const GT_AUTO_RETURN(host_device::at_key<Arg>(sid::get_stride<Dim>(m_stride_maps)));
-
         template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
         GT_FUNCTION void operator()() const {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
@@ -54,7 +51,9 @@ namespace gridtools {
 
             host_device::at_key<Arg>(m_ptr_map) +=
                 get_tmp_storage_offset<storage_info_t, typename LocalDomain::max_extent_for_tmp_t>(Backend{},
-                    make_pos3<int>(stride<Arg, dim::i>(), stride<Arg, dim::j>(), stride<Arg, dim::k>()),
+                    make_pos3<int_t>(sid::get_stride<Arg, dim::i>(m_stride_maps),
+                        sid::get_stride<Arg, dim::j>(m_stride_maps),
+                        sid::get_stride<Arg, dim::k>(m_stride_maps)),
                     m_block_no,
                     m_pos_in_block);
         }
@@ -66,9 +65,15 @@ namespace gridtools {
 
             auto &ptr = host_device::at_key<Arg>(m_ptr_map);
 
-            sid::shift(ptr, stride<Arg, dim::i>(), m_begin.i + m_block_no.i * block_size.i + m_pos_in_block.i);
-            sid::shift(ptr, stride<Arg, dim::j>(), m_begin.j + m_block_no.j * block_size.j + m_pos_in_block.j);
-            sid::shift(ptr, stride<Arg, dim::k>(), m_begin.k + m_block_no.k * block_size.k + m_pos_in_block.k);
+            sid::shift(ptr,
+                sid::get_stride<Arg, dim::i>(m_stride_maps),
+                m_begin.i + m_block_no.i * block_size.i + m_pos_in_block.i);
+            sid::shift(ptr,
+                sid::get_stride<Arg, dim::j>(m_stride_maps),
+                m_begin.j + m_block_no.j * block_size.j + m_pos_in_block.j);
+            sid::shift(ptr,
+                sid::get_stride<Arg, dim::k>(m_stride_maps),
+                m_begin.k + m_block_no.k * block_size.k + m_pos_in_block.k);
         }
     };
 

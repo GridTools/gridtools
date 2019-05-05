@@ -44,7 +44,7 @@ namespace gridtools {
             typename LocalDomain::ptr_t &m_dst;
 
             template <class Arg, class Dim>
-            auto stride() const GT_AUTO_RETURN(at_key<Arg>(sid::get_stride<Dim>(m_local_domain.m_strides)));
+            GT_FORCE_INLINE auto stride() const GT_AUTO_RETURN((sid::get_stride<Arg, Dim>(m_local_domain.m_strides)));
 
             template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
@@ -86,7 +86,7 @@ namespace gridtools {
         int_t m_k_block_index; /** Local/global k-index (no blocking along k-axis). */
 
         template <class Arg, class Dim>
-        GT_FORCE_INLINE auto stride() const GT_AUTO_RETURN(at_key<Arg>(sid::get_stride<Dim>(m_strides)));
+        GT_FORCE_INLINE auto stride() const GT_AUTO_RETURN((sid::get_stride<Arg, Dim>(m_strides)));
 
         GT_FORCE_INLINE positional pos() const {
             positional res = at_key<positional>(m_ptr);
