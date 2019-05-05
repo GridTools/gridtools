@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../../tools/triplet.hpp"
+#include "../../tools/multiplet.hpp"
 #include "gtest/gtest.h"
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/storage/data_store.hpp>
@@ -143,13 +143,13 @@ TEST(DataViewTest, Looping) {
 
     typedef data_store<cuda_storage<triplet>, storage_info_t> data_store_t;
 
-    data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
+    data_store_t ds(si, [](int i, int j, int k) { return triplet{i, j, k}; }, "ds");
     auto view = make_host_view<access_mode::read_write>(ds);
 
     for (int i = view.begin<0>(); i <= view.end<0>(); ++i) {
         for (int j = view.begin<1>(); j <= view.end<1>(); ++j) {
             for (int k = view.begin<2>(); k <= view.end<2>(); ++k) {
-                EXPECT_EQ(view(i, j, k), triplet(i, j, k));
+                EXPECT_EQ(view(i, j, k), (triplet{i, j, k}));
             }
         }
     }
@@ -157,7 +157,7 @@ TEST(DataViewTest, Looping) {
     for (int i = view.total_begin<0>(); i <= view.total_end<0>(); ++i) {
         for (int j = view.total_begin<1>(); j <= view.total_end<1>(); ++j) {
             for (int k = view.total_begin<2>(); k <= view.total_end<2>(); ++k) {
-                EXPECT_EQ(view(i, j, k), triplet(i, j, k));
+                EXPECT_EQ(view(i, j, k), (triplet{i, j, k}));
             }
         }
     }
@@ -169,7 +169,7 @@ TEST(DataViewTest, TargetView) {
 
     typedef data_store<cuda_storage<triplet>, storage_info_t> data_store_t;
 
-    data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
+    data_store_t ds(si, [](int i, int j, int k) { return triplet{i, j, k}; }, "ds");
 
     auto target_view = make_target_view<access_mode::read_only>(ds);
     auto device_view = make_device_view<access_mode::read_only>(ds);
