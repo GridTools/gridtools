@@ -96,5 +96,25 @@ namespace gridtools {
             EXPECT_EQ(42, at_key<b>(dst));
             EXPECT_EQ(5.3, at_key<c>(dst));
         }
+
+        TEST(to_meta_map, smoke) {
+            using src_t = hymap::keys<a, b>::values<int, double>;
+            using dst_t = GT_META_CALL(hymap::to_meta_map, src_t);
+
+            static_assert(
+                std::is_same<GT_META_CALL(meta::second, (GT_META_CALL(meta::mp_find, (dst_t, a)))), int>(), "");
+            static_assert(
+                std::is_same<GT_META_CALL(meta::second, (GT_META_CALL(meta::mp_find, (dst_t, b)))), double>(), "");
+        }
+
+        TEST(from_meta_map, smoke) {
+            using src_t = meta::list<meta::list<a, int>, meta::list<b, double>>;
+            using dst_t = GT_META_CALL(hymap::from_meta_map, src_t);
+
+            static_assert(
+                std::is_same<typename std::decay<decltype(at_key<a>(std::declval<dst_t>()))>::type, int>(), "");
+            static_assert(
+                std::is_same<typename std::decay<decltype(at_key<b>(std::declval<dst_t>()))>::type, double>(), "");
+        }
     } // namespace
 } // namespace gridtools
