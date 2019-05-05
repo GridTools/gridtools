@@ -66,7 +66,7 @@ namespace gridtools {
 
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDA_VER_MINOR__ < 2
         struct lazy_storage_info_keys_t : meta::lazy::rename<hymap::keys, storage_infos_t> {};
-        using storage_info_t = typename lazy_storage_info_keys_t::type;
+        using storage_info_keys_t = typename lazy_storage_info_keys_t::type;
         struct lazy_compoisite_keys_t : meta::lazy::rename<sid::composite::keys, esf_args_t> {};
         using compoisite_keys_t = typename lazy_compoisite_keys_t::type;
 #else
