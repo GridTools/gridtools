@@ -72,8 +72,8 @@ namespace gridtools {
         using layout_map_t = layout_map<LayoutArgs...>;
 
         template <int N, typename... Dims>
-        GT_FUNCTION static GT_CONSTEXPR enable_if_t<N != -1 && N != layout_map_t::unmasked_length - 1, uint_t> get_stride(
-            Dims... d) {
+        GT_FUNCTION static GT_CONSTEXPR enable_if_t<N != -1 && N != layout_map_t::unmasked_length - 1, uint_t>
+        get_stride(Dims... d) {
             return (get_value_from_pack(layout_map_t::template find<N + 1>(), d...)) * get_stride<N + 1>(d...);
         }
 
@@ -83,7 +83,8 @@ namespace gridtools {
         }
 
         template <int N, typename... Dims>
-        GT_FUNCTION static GT_CONSTEXPR enable_if_t<N != -1 && N == layout_map_t::unmasked_length - 1, uint_t> get_stride(Dims...) {
+        GT_FUNCTION static GT_CONSTEXPR enable_if_t<N != -1 && N == layout_map_t::unmasked_length - 1, uint_t>
+        get_stride(Dims...) {
             return 1;
         }
 

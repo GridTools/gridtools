@@ -629,8 +629,9 @@ namespace gridtools {
             T2 StepV = 1,
             class T = common_type_t<T1, T2>,
             enable_if_t<(NumStepsV >= 0), int> = 0>
-        GT_CONSTEXPR GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0> make_loop(
-            std::integral_constant<T1, NumStepsV>, std::integral_constant<T2, StepV> = {}) {
+        GT_CONSTEXPR
+            GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
+            make_loop(std::integral_constant<T1, NumStepsV>, std::integral_constant<T2, StepV> = {}) {
             return {};
         }
 
@@ -649,7 +650,8 @@ namespace gridtools {
          *   }
          */
         template <class Ptr, class Strides, class OuterMostLoop, class... Loops>
-        GT_CONSTEXPR GT_FUNCTION auto make_range(Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops)
+        GT_CONSTEXPR GT_FUNCTION auto make_range(
+            Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops)
             GT_AUTO_RETURN(loop_impl_::make_range(wstd::move(ptr),
                 strides,
                 loop_impl_::make_cursor(tuple<OuterMostLoop, Loops...>{

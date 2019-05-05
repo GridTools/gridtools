@@ -27,7 +27,9 @@ namespace gridtools {
                 struct const_ptr_holder {
                     GT_META_CALL(sid::ptr_holder_type, Sid) m_impl;
 
-                    GT_CONSTEXPR GT_FUNCTION GT_META_CALL(sid::element_type, Sid) const *operator()() const { return m_impl(); }
+                    GT_CONSTEXPR GT_FUNCTION GT_META_CALL(sid::element_type, Sid) const *operator()() const {
+                        return m_impl();
+                    }
 
                     friend GT_CONSTEXPR const_ptr_holder operator+(const_ptr_holder const &obj, ptrdiff_t offset) {
                         return {obj.m_impl + offset};

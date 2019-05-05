@@ -224,7 +224,8 @@ namespace gridtools {
              *  C-array specialization
              */
             template <class T, class Res = gridtools::add_pointer_t<gridtools::remove_all_extents_t<T>>>
-            GT_CONSTEXPR gridtools::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>> get_origin(T &obj) {
+            GT_CONSTEXPR gridtools::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>>
+            get_origin(T &obj) {
                 return {(Res)obj};
             }
 
@@ -274,14 +275,15 @@ namespace gridtools {
              *  `get_strides` delegates to `sid_get_strides`
              */
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            GT_CONSTEXPR enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res> get_strides(
-                Sid const &obj) {
+            GT_CONSTEXPR enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            get_strides(Sid const &obj) {
                 return sid_get_strides(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            GT_CONSTEXPR enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, default_strides>
-            get_strides(Sid const &) {
+            GT_CONSTEXPR
+                enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, default_strides>
+                get_strides(Sid const &) {
                 return {};
             }
 
@@ -301,7 +303,8 @@ namespace gridtools {
             struct get_array_strides<Inner[N], ElemSize> : get_array_strides<Inner[], ElemSize> {};
 
             template <class T>
-            GT_CONSTEXPR enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(T const &) {
+            GT_CONSTEXPR enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(
+                T const &) {
                 return {};
             }
 

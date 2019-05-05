@@ -66,17 +66,17 @@ TEST(DataStoreTest, Simple) {
     EXPECT_EQ(csi.total_length<1>(), 3);
     EXPECT_EQ(csi.total_length<2>(), 3);
 
-    EXPECT_EQ(csi.stride<0>() , 1);
-    EXPECT_EQ(csi.stride<1>() , 3);
-    EXPECT_EQ(csi.stride<2>() , 9);
+    EXPECT_EQ(csi.stride<0>(), 1);
+    EXPECT_EQ(csi.stride<1>(), 3);
+    EXPECT_EQ(csi.stride<2>(), 9);
 
     EXPECT_EQ(csih.total_length<0>(), 7);
     EXPECT_EQ(csih.total_length<1>(), 5);
     EXPECT_EQ(csih.total_length<2>(), 3);
 
-    EXPECT_EQ(csih.stride<0>() , 1);
-    EXPECT_EQ(csih.stride<1>() , 7);
-    EXPECT_EQ(csih.stride<2>() , 35);
+    EXPECT_EQ(csih.stride<0>(), 1);
+    EXPECT_EQ(csih.stride<1>(), 7);
+    EXPECT_EQ(csih.stride<2>(), 35);
 
     EXPECT_EQ(csiha.total_length<0>(), 7);
     EXPECT_EQ(csiha.total_length<1>(), 5);

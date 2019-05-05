@@ -24,7 +24,8 @@ namespace gridtools {
 
     namespace _impl {
         template <typename T, typename U, size_t D, size_t... Is>
-        GT_FUNCTION GT_CONSTEXPR auto dot_impl(array<T, D> const &a, array<U, D> const &b, meta::integer_sequence<size_t, Is...>)
+        GT_FUNCTION GT_CONSTEXPR auto dot_impl(
+            array<T, D> const &a, array<U, D> const &b, meta::integer_sequence<size_t, Is...>)
             -> decltype(accumulate(plus_functor{}, (a[Is] * b[Is])...)) {
             return accumulate(plus_functor{}, (a[Is] * b[Is])...);
         }

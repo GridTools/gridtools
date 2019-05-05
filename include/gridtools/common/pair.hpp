@@ -166,7 +166,8 @@ namespace gridtools {
             static GT_CONSTEXPR GT_FUNCTION auto get(pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_get<I>::get(p));
 
             template <size_t I, class T1, class T2>
-            static GT_CONSTEXPR GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_get<I>::const_get(p));
+            static GT_CONSTEXPR GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(
+                pair_get<I>::const_get(p));
 
             template <size_t I, class T1, class T2>
             static GT_CONSTEXPR GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(
@@ -178,7 +179,8 @@ namespace gridtools {
     GT_CONSTEXPR GT_FUNCTION auto get(pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_impl_::pair_get<I>::get(p));
 
     template <size_t I, class T1, class T2>
-    GT_CONSTEXPR GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_impl_::pair_get<I>::const_get(p));
+    GT_CONSTEXPR GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(
+        pair_impl_::pair_get<I>::const_get(p));
 
     template <size_t I, class T1, class T2>
     GT_CONSTEXPR GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(
