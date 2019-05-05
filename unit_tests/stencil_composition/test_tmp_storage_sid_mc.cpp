@@ -72,8 +72,9 @@ TEST(tmp_storage_sid_mc, nonzero_k_extents) {
             for (int_t k = 0; k < size_k; ++k) {
                 for (int_t i = 0; i < size_i; ++i) {
                     // check alignment of first data point inside domain
-                    if (i == -extent_t::iminus::value)
+                    if (i == -extent_t::iminus::value) {
                         EXPECT_EQ(reinterpret_cast<std::uintptr_t>(ptr) % byte_alignment, 0);
+                    }
                     *ptr = f(i, j, k, thread);
                     sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
                 }
@@ -137,8 +138,9 @@ TEST(tmp_storage_sid_mc, zero_k_extents) {
         for (int_t j = 0; j < size_j; ++j) {
             for (int_t i = 0; i < size_i; ++i) {
                 // check alignment of first data point inside domain
-                if (i == -extent_t::iminus::value)
+                if (i == -extent_t::iminus::value) {
                     EXPECT_EQ(reinterpret_cast<std::uintptr_t>(ptr) % byte_alignment, 0);
+                }
                 *ptr = f(i, j, thread);
                 sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
             }

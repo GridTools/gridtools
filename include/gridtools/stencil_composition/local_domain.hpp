@@ -42,7 +42,7 @@ namespace gridtools {
     /**
      * This class extracts the proper iterators/storages from the full domain to adapt it for a particular functor.
      */
-    template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
+    template <class EsfArgs, class MaxExtentForTmp, class CacheSequence, bool IsStateful>
     struct local_domain {
         GT_STATIC_ASSERT(is_extent<MaxExtentForTmp>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((meta::all_of<is_plh, EsfArgs>::value), GT_INTERNAL_ERROR);
@@ -51,6 +51,7 @@ namespace gridtools {
 
         using esf_args_t = EsfArgs;
         using max_extent_for_tmp_t = MaxExtentForTmp;
+        using cache_sequence_t = CacheSequence;
 
         template <class Arg>
         GT_META_DEFINE_ALIAS(strides_kind_from_arg, sid::strides_kind, typename Arg::data_store_t);
@@ -107,12 +108,13 @@ namespace gridtools {
     template <class>
     struct is_local_domain : std::false_type {};
 
-    template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
-    struct is_local_domain<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> : std::true_type {};
+    template <class EsfArgs, class MaxExtentForTmp, class CacheSequence, bool IsStateful>
+    struct is_local_domain<local_domain<EsfArgs, MaxExtentForTmp, CacheSequence, IsStateful>> : std::true_type {};
 
     template <class>
     struct local_domain_is_stateful;
 
-    template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
-    struct local_domain_is_stateful<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> : bool_constant<IsStateful> {};
+    template <class EsfArgs, class MaxExtentForTmp, class CacheSequence, bool IsStateful>
+    struct local_domain_is_stateful<local_domain<EsfArgs, MaxExtentForTmp, CacheSequence, IsStateful>>
+        : bool_constant<IsStateful> {};
 } // namespace gridtools

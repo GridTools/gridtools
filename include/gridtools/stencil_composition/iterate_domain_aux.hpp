@@ -19,13 +19,11 @@
 #include "../meta/st_contains.hpp"
 #include "../meta/st_position.hpp"
 #include "../meta/type_traits.hpp"
-#include "accessor_intent.hpp"
 #include "arg.hpp"
 #include "block.hpp"
 #include "dim.hpp"
 #include "expressions/expressions.hpp"
 #include "pos3.hpp"
-#include "run_functor_arguments.hpp"
 #include "sid/concept.hpp"
 #include "tmp_storage.hpp"
 
@@ -144,23 +142,4 @@ namespace gridtools {
         ArrayIndex &index_array) {
         return {strides_map, begin, block_no, pos_in_block, index_array};
     }
-
-    /**
-     * function that checks a given pointer and offset combination results in an out of bounds access.
-     * the check is computing the fields offset in order to get the base address of the accessed storage.
-     * once the base address is known it can be checked if the requested access lies within the
-     * storages allocated memory.
-     */
-    template <typename StridesKind, typename LocalDomain>
-    GT_FUNCTION bool pointer_oob_check(LocalDomain const &local_domain, int_t offset) {
-        return offset < gridtools::host_device::at_key<StridesKind>(local_domain.m_total_length_map) && offset >= 0;
-    }
-
-    template <class Arg, intent Intent>
-    struct deref_type : std::add_lvalue_reference<typename Arg::data_store_t::data_t> {};
-
-    template <class Arg>
-    struct deref_type<Arg, intent::in> {
-        using type = typename Arg::data_store_t::data_t;
-    };
 } // namespace gridtools

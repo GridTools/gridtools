@@ -38,24 +38,18 @@ namespace gridtools {
             GT_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
-        template <typename RunFunctorArguments, size_t NumThreads>
-        __global__ void __launch_bounds__(NumThreads)
-            do_it_on_gpu(typename RunFunctorArguments::local_domain_t const l_domain,
-                typename RunFunctorArguments::grid_t const grid) {
+        template <typename RunFunctorArguments, size_t NumThreads, typename LocalDomain, typename Grid>
+        __global__ void __launch_bounds__(NumThreads) do_it_on_gpu(LocalDomain const l_domain, Grid const grid) {
 
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
             typedef typename RunFunctorArguments::max_extent_t max_extent_t;
 
-            using iterate_domain_arguments_t = iterate_domain_arguments<backend::cuda,
-                typename RunFunctorArguments::local_domain_t,
-                typename RunFunctorArguments::esf_sequence_t,
-                typename RunFunctorArguments::cache_sequence_t,
-                typename RunFunctorArguments::grid_t>;
+            using iterate_domain_arguments_t =
+                iterate_domain_arguments<backend::cuda, LocalDomain, typename RunFunctorArguments::esf_sequence_t>;
             using iterate_domain_cuda_t = iterate_domain_cuda<iterate_domain_arguments_t>;
-            using iterate_domain_t =
-                typename conditional_t<local_domain_is_stateful<typename RunFunctorArguments::local_domain_t>::value,
-                    meta::lazy::id<positional_iterate_domain<iterate_domain_cuda_t>>,
-                    meta::lazy::id<iterate_domain_cuda_t>>::type;
+            using iterate_domain_t = typename conditional_t<local_domain_is_stateful<LocalDomain>::value,
+                meta::lazy::id<positional_iterate_domain<iterate_domain_cuda_t>>,
+                meta::lazy::id<iterate_domain_cuda_t>>::type;
 
             // number of threads
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);

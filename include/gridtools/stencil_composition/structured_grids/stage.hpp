@@ -36,11 +36,12 @@
 #include "../../meta/logical.hpp"
 #include "../../meta/macros.hpp"
 #include "../../meta/type_traits.hpp"
+#include "../accessor_intent.hpp"
 #include "../arg.hpp"
 #include "../expressions/expr_base.hpp"
 #include "../has_apply.hpp"
 #include "../iterate_domain_fwd.hpp"
-#include "./extent.hpp"
+#include "extent.hpp"
 
 namespace gridtools {
 
@@ -53,9 +54,8 @@ namespace gridtools {
             ItDomain const &m_it_domain;
 
             template <class Accessor>
-            GT_FUNCTION auto operator()(Accessor const &arg) const
-                GT_AUTO_RETURN((m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value)),
-                                Accessor::intent_v>(arg)));
+            GT_FUNCTION auto operator()(Accessor const &arg) const GT_AUTO_RETURN(apply_intent<Accessor::intent_v>(
+                m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value))>(arg)));
 
             template <class Op, class... Ts>
             GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const

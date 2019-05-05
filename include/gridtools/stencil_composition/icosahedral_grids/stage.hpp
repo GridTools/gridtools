@@ -16,13 +16,14 @@
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../meta.hpp"
+#include "../accessor_intent.hpp"
 #include "../arg.hpp"
 #include "../extent.hpp"
 #include "../has_apply.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../location_type.hpp"
-#include "./icosahedral_topology.hpp"
-#include "./on_neighbors.hpp"
+#include "icosahedral_topology.hpp"
+#include "on_neighbors.hpp"
 
 /**
  *   @file
@@ -66,10 +67,8 @@ namespace gridtools {
             ItDomain const &m_it_domain;
 
             template <class Accessor>
-            GT_FUNCTION auto operator()(Accessor const &acc) const
-                GT_AUTO_RETURN((m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value)),
-                                Accessor::intent_v,
-                                Color>(acc)));
+            GT_FUNCTION auto operator()(Accessor const &acc) const GT_AUTO_RETURN(apply_intent<Accessor::intent_v>(
+                m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value))>(acc)));
 
             template <class ValueType, class LocationTypeT, class Reduction, class... Accessors>
             GT_FUNCTION ValueType operator()(
@@ -77,9 +76,9 @@ namespace gridtools {
                 constexpr auto offsets = connectivity<LocationType, LocationTypeT, Color>::offsets();
                 for (auto &&offset : offsets)
                     onneighbors.m_value = onneighbors.m_function(
-                        m_it_domain
-                            .template deref<GT_META_CALL(meta::at_c, (Args, Accessors::index_t::value)), intent::in, 0>(
-                                offset)...,
+                        apply_intent<intent::in>(
+                            m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessors::index_t::value))>(
+                                offset))...,
                         onneighbors.m_value);
                 return onneighbors.m_value;
             }
@@ -102,6 +101,7 @@ namespace gridtools {
         GT_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
+        using n_colors = typename LocationType::n_colors;
 
         template <uint_t Color, class Functor = GT_META_CALL(meta::at_c, (Functors, Color))>
         struct contains_color : bool_constant<!std::is_void<Functor>::value> {};
@@ -129,19 +129,21 @@ namespace gridtools {
 
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
-            static constexpr auto n_colors = LocationType::n_colors::value;
+            static constexpr int_t n_colors = LocationType::n_colors::value;
             host_device::for_each_type<GT_META_CALL(meta::make_indices_c, n_colors)>(
                 exec_for_color_f<ItDomain>{it_domain});
-            it_domain.increment_c(integral_constant<int, -n_colors>{});
+            it_domain.increment_c(integral_constant<int_t, -n_colors>{});
         }
     };
 
     template <class Stage, class... Stages>
     struct compound_stage {
         using extent_t = typename Stage::extent_t;
+        using n_colors = typename Stage::n_colors;
 
         GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::n_colors, n_colors>...>::value), GT_INTERNAL_ERROR);
 
         template <uint_t Color>
         struct contains_color : disjunction<typename Stage::template contains_color<Color>,
@@ -175,5 +177,4 @@ namespace gridtools {
         template <class Stages>
         GT_META_DEFINE_ALIAS(apply, meta::any_of, (stage_contains_color<Color>::template apply, Stages));
     };
-
 } // namespace gridtools

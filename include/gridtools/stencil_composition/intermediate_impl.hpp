@@ -74,9 +74,8 @@ namespace gridtools {
             struct generator {
                 template <class Grid>
                 ArgStoragePair operator()(Grid const &grid) const {
-                    static constexpr auto backend = Backend{};
-                    static constexpr auto arg = typename ArgStoragePair::arg_t{};
-                    return make_tmp_data_store<MaxExtent>(backend, arg, grid);
+                    return tmp_storage::make_tmp_data_store<MaxExtent>(
+                        Backend{}, typename ArgStoragePair::arg_t{}, grid);
                 }
             };
 
@@ -95,22 +94,6 @@ namespace gridtools {
             class Extents = GT_META_CALL(
                 meta::transform, (get_max_extent_for_tmp_from_mss_components, MssComponentsList))>
         GT_META_DEFINE_ALIAS(get_max_extent_for_tmp, meta::rename, (enclosing_extent, Extents));
-
-        template <class MaxExtent, bool IsStateful>
-        struct get_local_domain {
-            template <class MssComponents>
-            GT_META_DEFINE_ALIAS(apply,
-                local_domain,
-                (GT_META_CALL(extract_placeholders_from_mss, typename MssComponents::mss_descriptor_t),
-                    MaxExtent,
-                    IsStateful));
-        };
-
-        template <class MssComponentsList,
-            bool IsStateful,
-            class MaxExtentForTmp = GT_META_CALL(get_max_extent_for_tmp, MssComponentsList),
-            class GetLocalDomain = _impl::get_local_domain<MaxExtentForTmp, IsStateful>>
-        GT_META_DEFINE_ALIAS(get_local_domains, meta::transform, (GetLocalDomain::template apply, MssComponentsList));
 
         template <class Mss>
         GT_META_DEFINE_ALIAS(

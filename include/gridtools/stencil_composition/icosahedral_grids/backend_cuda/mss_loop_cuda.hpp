@@ -36,19 +36,15 @@ namespace gridtools {
             GT_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
-        template <typename RunFunctorArgs, size_t NumThreads>
-        __global__ void __launch_bounds__(NumThreads) do_it_on_gpu(
-            typename RunFunctorArgs::local_domain_t const l_domain, typename RunFunctorArgs::grid_t const grid) {
+        template <typename RunFunctorArgs, size_t NumThreads, class LocalDomain, class Grid>
+        __global__ void __launch_bounds__(NumThreads) do_it_on_gpu(LocalDomain const l_domain, Grid const grid) {
 
             typedef typename RunFunctorArgs::execution_type_t execution_type_t;
 
             typedef typename RunFunctorArgs::max_extent_t max_extent_t;
 
-            using iterate_domain_arguments_t = iterate_domain_arguments<backend::cuda,
-                typename RunFunctorArgs::local_domain_t,
-                typename RunFunctorArgs::esf_sequence_t,
-                typename RunFunctorArgs::cache_sequence_t,
-                typename RunFunctorArgs::grid_t>;
+            using iterate_domain_arguments_t =
+                iterate_domain_arguments<backend::cuda, LocalDomain, typename RunFunctorArgs::esf_sequence_t>;
 
             using iterate_domain_t = iterate_domain_cuda<iterate_domain_arguments_t>;
 

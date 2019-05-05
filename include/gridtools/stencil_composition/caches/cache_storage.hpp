@@ -64,11 +64,11 @@ namespace gridtools {
         T m_values[JSize][NumColors][ISize];
 
       public:
-        template <int_t Color, class Accessor>
-        GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
+        template <class Accessor>
+        GT_FUNCTION T &at(int_t i, int_t j, int_t color, Accessor const &acc) {
             using zero_t = integral_constant<int_t, 0>;
             i += host_device::at_key_with_default<dim::i, zero_t>(acc) + IZero;
-            int_t color = Color + host_device::at_key_with_default<dim::c, zero_t>(acc);
+            color += host_device::at_key_with_default<dim::c, zero_t>(acc);
             j += host_device::at_key_with_default<dim::j, zero_t>(acc) + JZero;
             assert((host_device::at_key_with_default<dim::k, zero_t>(acc) == 0));
             assert(i >= 0);

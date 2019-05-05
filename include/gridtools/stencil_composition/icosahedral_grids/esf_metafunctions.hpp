@@ -13,20 +13,6 @@
 #include "./esf.hpp"
 
 namespace gridtools {
-    template <class Esfs>
-    struct extract_esf_location_type {
-
-        GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
-
-        using locations_t = GT_META_CALL(meta::transform, (esf_get_location_type, Esfs));
-
-        GT_STATIC_ASSERT(!meta::is_empty<locations_t>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(meta::all_are_same<locations_t>::value,
-            "Error: all ESFs in a Multi Stage stencil should have the same location type");
-
-        using type = GT_META_CALL(meta::first, locations_t);
-    };
-
     GT_META_LAZY_NAMESPACE {
         template <class Esf>
         struct esf_param_list {

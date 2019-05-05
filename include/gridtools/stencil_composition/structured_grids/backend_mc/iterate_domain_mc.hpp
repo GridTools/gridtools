@@ -103,11 +103,8 @@ namespace gridtools {
         /**
          * @brief Returns the value pointed by an accessor.
          */
-        template <class Arg,
-            intent Intent,
-            class Accessor,
-            enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
-        GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
+        template <class Arg, class Accessor, enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+        GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
             using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
             using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
             auto const &strides = at_key<strides_kind_t>(m_strides_map);
@@ -119,11 +116,8 @@ namespace gridtools {
             return *(at_key<Arg>(m_ptr_map) + ptr_offset);
         }
 
-        template <class Arg,
-            intent Intent,
-            class Accessor,
-            enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
-        GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {
+        template <class Arg, class Accessor, enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+        GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
             using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
             using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
             auto const &strides = at_key<strides_kind_t>(m_strides_map);
