@@ -24,7 +24,7 @@
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
-#include "../tools/triplet.hpp"
+#include "../tools/multiplet.hpp"
 
 template <typename View>
 void show_view(View const &view) {
