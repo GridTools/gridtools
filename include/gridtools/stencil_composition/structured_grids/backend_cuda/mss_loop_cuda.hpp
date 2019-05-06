@@ -127,12 +127,13 @@ namespace gridtools {
             using from_t = GT_META_CALL(meta::first, interval_t);
 
             // initialize the indices.
-            const int_t kblock = impl_::compute_kblock<execution_type_t>::template get<from_t>(grid);
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
-                {iblock, jblock, kblock});
+                {iblock, jblock, 0});
 
             it_domain.set_block_pos(iblock, jblock);
+
+            it_domain.increment_k(impl_::compute_kblock<execution_type_t>::template get<from_t>(grid));
 
             // execute the k interval functors
             run_functors_on_interval<RunFunctorArguments, run_esf_functor_cuda>(it_domain, grid);
