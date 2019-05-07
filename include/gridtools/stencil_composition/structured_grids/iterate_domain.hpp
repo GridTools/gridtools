@@ -36,8 +36,9 @@ namespace gridtools {
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
-        GT_FUNCTION positional pos() const {
-            return *(host_device::at_key<positional>(m_ptr) + host_device::at_key<positional>(m_index));
+        template <class Dim>
+        GT_FUNCTION int_t pos() const {
+            return *(host_device::at_key<positional<Dim>>(m_ptr) + host_device::at_key<positional<Dim>>(m_index));
         }
 
         using ptr_t = typename local_domain_t::ptr_t;
@@ -98,10 +99,10 @@ namespace gridtools {
                     m_local_domain.m_strides, begin, block_no, pos_in_block, m_ptr));
         }
 
-        GT_FUNCTION int_t i() const { return pos().i; }
+        GT_FUNCTION int_t i() const { return pos<dim::i>(); }
 
-        GT_FUNCTION int_t j() const { return pos().j; }
+        GT_FUNCTION int_t j() const { return pos<dim::j>(); }
 
-        GT_FUNCTION int_t k() const { return pos().k; }
+        GT_FUNCTION int_t k() const { return pos<dim::k>(); }
     };
 } // namespace gridtools

@@ -140,7 +140,7 @@ namespace gridtools {
 
         template <class Arg, class DataStore = typename Arg::data_store_t, class Data = typename DataStore::data_t>
         GT_FUNCTION Data *deref_for_k_cache(int_t k_offset) const {
-            auto k = host_device::at_key<positional>(this->m_ptr).k + k_offset;
+            int_t k = *(host_device::at_key<positional<dim::k>>(this->m_ptr) + k_offset);
             if (k < 0 && k > host_device::at_key<typename DataStore::storage_info_t>(this->m_local_domain.m_ksize_map))
                 return nullptr;
             Data *res = host_device::at_key<Arg>(this->m_ptr);

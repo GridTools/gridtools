@@ -39,6 +39,7 @@
 #include "../has_apply.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../sid/multi_shift.hpp"
+#include "dim.hpp"
 #include "extent.hpp"
 
 namespace gridtools {
@@ -91,9 +92,9 @@ namespace gridtools {
             GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
                 GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
 
-            GT_FUNCTION int_t i() const { return host_device::at_key<positional>(m_ptr).i; }
-            GT_FUNCTION int_t j() const { return host_device::at_key<positional>(m_ptr).j; }
-            GT_FUNCTION int_t k() const { return host_device::at_key<positional>(m_ptr).k; }
+            GT_FUNCTION int_t i() const { return *host_device::at_key<positional<dim::i>>(m_ptr); }
+            GT_FUNCTION int_t j() const { return *host_device::at_key<positional<dim::j>>(m_ptr); }
+            GT_FUNCTION int_t k() const { return *host_device::at_key<positional<dim::k>>(m_ptr); }
         };
     } // namespace stage_impl_
 

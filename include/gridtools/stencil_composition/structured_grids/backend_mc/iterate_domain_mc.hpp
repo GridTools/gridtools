@@ -88,12 +88,13 @@ namespace gridtools {
         template <class Arg, class Dim>
         GT_FORCE_INLINE auto stride() const GT_AUTO_RETURN((sid::get_stride<Arg, Dim>(m_strides)));
 
-        GT_FORCE_INLINE positional pos() const {
-            positional res = at_key<positional>(m_ptr);
-            sid::shift(res, stride<positional, dim::i>(), m_i_block_index);
-            sid::shift(res, stride<positional, dim::j>(), m_j_block_index);
-            sid::shift(res, stride<positional, dim::k>(), m_k_block_index);
-            return res;
+        template <class Dim>
+        GT_FORCE_INLINE int_t pos() const {
+            auto ptr = at_key<positional<Dim>>(m_ptr);
+            sid::shift(ptr, stride<positional<Dim>, dim::i>(), m_i_block_index);
+            sid::shift(ptr, stride<positional<Dim>, dim::j>(), m_j_block_index);
+            sid::shift(ptr, stride<positional<Dim>, dim::k>(), m_k_block_index);
+            return *ptr;
         }
 
       public:
@@ -136,15 +137,15 @@ namespace gridtools {
 
         /** @brief Global i-index. */
         GT_FORCE_INLINE
-        int_t i() const { return pos().i; }
+        int_t i() const { return pos<dim::i>(); }
 
         /** @brief Global j-index. */
         GT_FORCE_INLINE
-        int_t j() const { return pos().j; }
+        int_t j() const { return pos<dim::j>(); }
 
         /** @brief Global k-index. */
         GT_FORCE_INLINE
-        int_t k() const { return pos().k; }
+        int_t k() const { return pos<dim::k>(); }
     };
 
     template <class LocalDomain, class IJCachedArgs>

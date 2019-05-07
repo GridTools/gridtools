@@ -16,6 +16,7 @@
 #include "../storage/sid.hpp"
 #include "arg.hpp"
 #include "caches/cache_traits.hpp"
+#include "dim.hpp"
 #include "extent.hpp"
 #include "positional.hpp"
 #include "sid/composite.hpp"
@@ -29,18 +30,29 @@ namespace gridtools {
                 using type = typename Arg::data_store_t;
             };
 
-            template <>
-            struct get_storage<positional> {
-                using type = positional;
+            template <class Dim>
+            struct get_storage<positional<Dim>> {
+                using type = positional<Dim>;
             };
+
+            template <bool IsStateful, bool NeedK>
+            struct positionals : meta::list<positional<dim::i>, positional<dim::j>, positional<dim::k>> {};
+
+            template <>
+            struct positionals<false, false> : meta::list<> {};
+
+            template <>
+            struct positionals<false, true> : meta::list<positional<dim::k>> {};
 
             template <class Args, bool IsStateful>
             struct add_positional : meta::lazy::id<Args> {};
 
             template <class Args>
-            struct add_positional<Args, true> : meta::lazy::push_back<Args, positional> {};
+            struct add_positional<Args, true>
+                : meta::lazy::push_back<Args, positional<dim::i>, positional<dim::j>, positional<dim::k>> {};
         }
         GT_META_DELEGATE_TO_LAZY(get_storage, class Arg, Arg);
+        GT_META_DELEGATE_TO_LAZY(positionals, (bool IsStateful, bool NeedK), (IsStateful, NeedK));
         GT_META_DELEGATE_TO_LAZY(add_positional, (class Args, bool IsStateful), (Args, IsStateful));
 
         template <class Arg>
@@ -80,9 +92,11 @@ namespace gridtools {
             (std::is_same<Backend, backend::mc>::value && is_tmp_arg<Arg>::value));
         using total_length_esf_args_t = GT_META_CALL(meta::filter, (arg_needs_total_length, EsfArgs));
 
+        using positionals_t = GT_META_CALL(
+            local_domain_impl_::positionals, (IsStateful, !meta::is_empty<ksize_esf_args_t>::value));
+
       public:
-        using esf_args_t = GT_META_CALL(local_domain_impl_::add_positional,
-            (used_esf_args_t, IsStateful || !meta::is_empty<ksize_esf_args_t>::value));
+        using esf_args_t = GT_META_CALL(meta::concat, (used_esf_args_t, positionals_t));
 
       private:
         using ksize_storage_infos_t = GT_META_CALL(
