@@ -95,7 +95,7 @@ def _retreive_outputs(rundir, commands, task_id):
                '--format', 'jobid,exitcode',
                '--parsable2',
                '--noheader']
-    for _ in range(10):
+    for i in range(1, 7):
         try:
             output = run(command)
         except subprocess.CalledProcessError:
@@ -105,7 +105,9 @@ def _retreive_outputs(rundir, commands, task_id):
         exitcodes = [int(code.split(':')[0]) for _, code in sorted(infos)]
         if len(exitcodes) == len(commands):
             break
-        time.sleep(1)
+        time.sleep(i**2)
+    else:
+        raise RuntimeError('Could not get exit codes of jobs')
 
     time.sleep(5)
 
