@@ -81,12 +81,18 @@ def _run_sbatch(rundir, commands, cwd, use_srun, use_mpi_config):
                             stdout=subprocess.PIPE)
     end = time.time()
     log.info(f'sbatch finished in {end - start:.2f}s')
-    if result.returncode != 0:
-        log.warning(f'sbatch finished with exit code '
-                    f'{result.returncode} and message',
-                    result.stderr.decode())
-    return int(re.match(r'Submitted batch job (\d+)',
-                        result.stdout.decode()).group(1))
+    if result.returncode != 0 and result.stderr:
+        log.error(f'sbatch finished with exit code '
+                  f'{result.returncode} and message',
+                  result.stderr.decode())
+        raise RuntimeError(f'Job submission failed: {result.stderr.decode()}')
+
+    m = re.match(r'Submitted batch job (\d+)', result.stdout.decode())
+    if not m:
+        log.error(f'Failed parsing sbatch output', result.stdout.decode())
+        raise RuntimeError('Job submission failed; sbatch output: '
+                           + result.stdout.decode())
+    return int(m.group(1))
 
 
 def _retreive_outputs(rundir, commands, task_id):
