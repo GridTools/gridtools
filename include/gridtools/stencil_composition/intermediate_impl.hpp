@@ -15,6 +15,7 @@
 #include "../common/tuple_util.hpp"
 #include "../meta/defs.hpp"
 #include "../storage/sid.hpp"
+#include "dim.hpp"
 #include "esf_metafunctions.hpp"
 #include "extract_placeholders.hpp"
 #include "local_domain.hpp"
@@ -39,6 +40,13 @@ namespace gridtools {
             return {src, dst};
         }
 
+        struct sink {
+            template <class T>
+            sink &operator=(T &&) {
+                return *this;
+            }
+        };
+
         // set pointers from the given storage to the local domain
         struct set_arg_store_pair_to_local_domain_f {
 
@@ -53,8 +61,11 @@ namespace gridtools {
                 auto const &src_strides = sid::get_strides(storage);
                 for_each_type<stride_dims_t>(set_stride<Arg>(src_strides, local_domain.m_strides));
 
-                at_key<typename DataStore::storage_info_t>(local_domain.m_total_length_map) =
+                at_key_with_default<typename DataStore::storage_info_t, sink>(local_domain.m_total_length_map) =
                     storage.info().padded_total_length();
+
+                at_key_with_default<typename DataStore::storage_info_t, sink>(local_domain.m_ksize_map) =
+                    storage.info().template total_length<dim::k::value>();
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class DataStore, class LocalDomain>

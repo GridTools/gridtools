@@ -62,9 +62,9 @@ namespace gridtools {
         using base_t::increment_j;
 
         // array storing the (i,j) position of the current thread within the block
-        array<int, 2> m_thread_pos;
-        const uint_t m_block_size_i;
-        const uint_t m_block_size_j;
+        array<int_t, 2> m_thread_pos;
+        int_t m_block_size_i;
+        int_t m_block_size_j;
         shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         iterate_domain_cache_t m_iterate_domain_cache;
 
@@ -82,7 +82,7 @@ namespace gridtools {
         static constexpr bool has_ij_caches = !meta::is_empty<GT_META_CALL(ij_caches, cache_sequence_t)>::value;
 
         template <class T>
-        GT_FUNCTION_DEVICE iterate_domain_cuda(T &&obj, uint_t block_size_i, uint_t block_size_j)
+        GT_FUNCTION_DEVICE iterate_domain_cuda(T &&obj, int_t block_size_i, int_t block_size_j)
             : base_t(wstd::forward<T>(obj)), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
         /**
@@ -91,9 +91,8 @@ namespace gridtools {
         template <typename Extent>
         GT_FUNCTION bool is_thread_in_domain() const {
             return m_thread_pos[0] >= Extent::iminus::value &&
-                   m_thread_pos[0] < (int)m_block_size_i + Extent::iplus::value &&
-                   m_thread_pos[1] >= Extent::jminus::value &&
-                   m_thread_pos[1] < (int)m_block_size_j + Extent::jplus::value;
+                   m_thread_pos[0] < m_block_size_i + Extent::iplus::value &&
+                   m_thread_pos[1] >= Extent::jminus::value && m_thread_pos[1] < m_block_size_j + Extent::jplus::value;
         }
 
         GT_FUNCTION_DEVICE void set_block_pos(int_t ipos, int_t jpos) {

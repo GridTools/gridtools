@@ -10,8 +10,7 @@
 #pragma once
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
-#include "structured_grids/backend_mc/mss_loop_mc.hpp"
-#include "structured_grids/backend_x86/mss_loop_x86.hpp"
+#include "../structured_grids/backend_cuda/iterate_domain_cuda.hpp"
 #else
-#include "icosahedral_grids/backend_x86/mss_loop_x86.hpp"
+#include "../icosahedral_grids/backend_cuda/iterate_domain_cuda.hpp"
 #endif

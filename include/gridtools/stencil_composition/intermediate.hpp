@@ -147,7 +147,8 @@ namespace gridtools {
         template <class MssComponents>
         GT_META_DEFINE_ALIAS(get_local_domain,
             local_domain,
-            (GT_META_CALL(extract_placeholders_from_mss, typename MssComponents::mss_descriptor_t),
+            (Backend,
+                GT_META_CALL(extract_placeholders_from_mss, typename MssComponents::mss_descriptor_t),
                 max_extent_for_tmp_t,
                 typename MssComponents::mss_descriptor_t::cache_sequence_t,
                 IsStateful));
