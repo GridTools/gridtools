@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # use the machines python virtualenv with required modules installed
-source /project/c14/jenkins/python-venvs/tave/bin/activate
+source /project/c14/jenkins/python-venvs/${label%%-*}/bin/activate
 
 grid=structured
 
