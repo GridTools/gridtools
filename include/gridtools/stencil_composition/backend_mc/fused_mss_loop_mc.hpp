@@ -40,13 +40,19 @@ namespace gridtools {
     void fused_mss_loop(backend::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
-        execinfo_mc exinfo(grid);
+        const execinfo_mc exinfo(grid);
         const int_t i_blocks = exinfo.i_blocks();
         const int_t j_blocks = exinfo.j_blocks();
-#pragma omp parallel for collapse(2)
-        for (int_t bj = 0; bj < j_blocks; ++bj) {
-            for (int_t bi = 0; bi < i_blocks; ++bi) {
-                run_mss_functors<MssComponents>(backend::mc{}, local_domain_lists, grid, exinfo.block(bi, bj));
+#pragma omp parallel
+        {
+            auto thread_local_domain_lists = local_domain_lists;
+            auto thread_grid = grid;
+#pragma omp for collapse(2) nowait
+            for (int_t bj = 0; bj < j_blocks; ++bj) {
+                for (int_t bi = 0; bi < i_blocks; ++bi) {
+                    run_mss_functors<MssComponents>(
+                        backend::mc{}, thread_local_domain_lists, thread_grid, exinfo.block(bi, bj));
+                }
             }
         }
     }
@@ -62,16 +68,22 @@ namespace gridtools {
     void fused_mss_loop(backend::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
-        execinfo_mc exinfo(grid);
+        const execinfo_mc exinfo(grid);
         const int_t i_blocks = exinfo.i_blocks();
         const int_t j_blocks = exinfo.j_blocks();
         const int_t k_first = grid.k_min();
         const int_t k_last = grid.k_max();
-#pragma omp parallel for collapse(3)
-        for (int_t bj = 0; bj < j_blocks; ++bj) {
-            for (int_t k = k_first; k <= k_last; ++k) {
-                for (int_t bi = 0; bi < i_blocks; ++bi) {
-                    run_mss_functors<MssComponents>(backend::mc{}, local_domain_lists, grid, exinfo.block(bi, bj, k));
+#pragma omp parallel
+        {
+            auto thread_local_domain_lists = local_domain_lists;
+            auto thread_grid = grid;
+#pragma omp for collapse(3) nowait
+            for (int_t bj = 0; bj < j_blocks; ++bj) {
+                for (int_t k = k_first; k <= k_last; ++k) {
+                    for (int_t bi = 0; bi < i_blocks; ++bi) {
+                        run_mss_functors<MssComponents>(
+                            backend::mc{}, thread_local_domain_lists, thread_grid, exinfo.block(bi, bj, k));
+                    }
                 }
             }
         }
