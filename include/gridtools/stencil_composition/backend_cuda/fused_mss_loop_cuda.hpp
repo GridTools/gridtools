@@ -12,19 +12,15 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../execution_types.hpp"
 #include "../grid.hpp"
-#include "../iteration_policy.hpp"
 #include "../local_domain.hpp"
 #include "../mss_components.hpp"
-#include "../mss_components_metafunctions.hpp"
 #include "../run_functor_arguments.hpp"
 #include "basic_token_execution_cuda.hpp"
-#include "block.hpp"
 #include "iterate_domain_cuda.hpp"
 #include "launch_kernel.hpp"
 #include "run_esf_functor_cuda.hpp"
@@ -128,14 +124,10 @@ namespace gridtools {
             }
         };
     } // namespace fused_mss_loop_cuda_impl_
-    /**
-     * @brief loops over all blocks and execute sequentially all mss functors for each block
-     * @tparam MssComponents a meta array with the mss components of all MSS
-     */
+
     template <class MssComponents, class LocalDomains, class Grid>
     void fused_mss_loop(backend::cuda, LocalDomains const &local_domains, const Grid &grid) {
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        using namespace std::placeholders;
         tuple_util::for_each(fused_mss_loop_cuda_impl_::mss_executor_f<Grid>{grid}, MssComponents{}, local_domains);
     }
 

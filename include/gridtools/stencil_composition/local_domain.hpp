@@ -141,6 +141,7 @@ namespace gridtools {
 
         ptr_holder_t m_ptr_holder;
         strides_t m_strides;
+
         total_length_map_t m_total_length_map;
         ksize_map_t m_ksize_map;
     };

@@ -153,11 +153,9 @@ namespace gridtools {
                 typename MssComponents::mss_descriptor_t::cache_sequence_t,
                 IsStateful));
 
-      public:
         // creates a tuple of local domains
         using local_domains_t = GT_META_CALL(meta::transform, (get_local_domain, mss_components_array_t));
 
-      private:
         // member fields
 
         Grid m_grid;
@@ -189,6 +187,15 @@ namespace gridtools {
             }
         };
 
+        template <class... Args, class... DataStores>
+        local_domains_t const &local_domains(arg_storage_pair<Args, DataStores> const &... srcs) {
+            _impl::update_local_domains(
+                tuple_util::flatten(
+                    std::make_tuple(m_tmp_arg_storage_pair_tuple, m_bound_arg_storage_pair_tuple, std::tie(srcs...))),
+                m_local_domains);
+            return m_local_domains;
+        }
+
       public:
         intermediate(Grid const &grid,
             std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...> arg_storage_pairs,
@@ -207,9 +214,6 @@ namespace gridtools {
 #endif
         }
 
-        // TODO(anstaf): introduce overload that takes a tuple of arg_storage_pair's. it will simplify a bit
-        //               implementation of the `intermediate_expanded` and `computation` by getting rid of
-        //               `boost::fusion::invoke`.
         template <class... Args, class... DataStores>
         enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value> run(
             arg_storage_pair<Args, DataStores> const &... srcs) {
@@ -256,25 +260,5 @@ namespace gridtools {
             GT_STATIC_ASSERT(is_plh<Placeholder>::value, "");
             return {};
         }
-
-        template <class... Args, class... DataStores>
-        local_domains_t const &local_domains(arg_storage_pair<Args, DataStores> const &... srcs) {
-            _impl::update_local_domains(
-                tuple_util::flatten(
-                    std::make_tuple(m_tmp_arg_storage_pair_tuple, m_bound_arg_storage_pair_tuple, std::tie(srcs...))),
-                m_local_domains);
-            return m_local_domains;
-        }
-    }; // namespace gridtools
-
-    /**
-     *  This metafunction exposes intermediate implementation specific details to a couple of unit tests.
-     *
-     *  @todo(anstaf):
-     *  I would consider this as a design flaw. `mss_local_domains_t` is not logically the interface of `intermediate`.
-     *  Probably the creation of local domains should be factored out into a separate component to resolve this issue.
-     */
-    template <typename Intermediate>
-    using intermediate_local_domains = typename Intermediate::local_domains_t;
-
+    };
 } // namespace gridtools
