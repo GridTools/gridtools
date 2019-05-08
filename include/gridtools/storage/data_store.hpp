@@ -31,36 +31,6 @@ namespace gridtools {
 
     namespace {
         /**
-         * @brief metafunction used to retrieve the appropriate function type that is needed in order
-         * to be able to initialize the data_store (underlying storage) with a given value (step case).
-         * E.g., It is not possible to initialize a 2 dimensional container with a lambda that expects 3 arguments.
-         * @tparam ReturnType the return type of the function or lambda
-         * @tparam StorageInfo storage_info type
-         * @tparam N the number of dimensions (e.g., layout_map<2,1,0> -> 3 dimensions)
-         * @tparam Args variadic pack of int types
-         */
-        template <typename ReturnType,
-            typename StorageInfo,
-            uint_t N = StorageInfo::layout_t::masked_length,
-            typename... Args>
-        struct appropriate_function_t {
-            typedef typename appropriate_function_t<ReturnType, StorageInfo, N - 1, Args..., int>::type type;
-        };
-
-        /**
-         * @brief metafunction used to retrieve the appropriate function type that is needed in order
-         * to be able to initialize the data_store (underlying storage) with a given value (base case).
-         * E.g., It is not possible to initialize a 2 dimensional container with a lambda that expects 3 arguments.
-         * @tparam ReturnType the return type of the function or lambda
-         * @tparam StorageInfo storage_info type
-         * @tparam Args variadic pack of int types
-         */
-        template <typename ReturnType, typename StorageInfo, typename... Args>
-        struct appropriate_function_t<ReturnType, StorageInfo, 0, Args...> {
-            typedef std::function<ReturnType(Args...)> type;
-        };
-
-        /**
          * @brief helper function used to initialize a storage with a given lambda (base case).
          * The reason for having this is that generic initializations should be supported.
          * E.g., a 4-dimensional storage should be initialize-able with a lambda of
@@ -75,8 +45,8 @@ namespace gridtools {
          * @param args pack that contains the current index for each dimension
          */
         template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
-        enable_if_t<(sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void> lambda_initializer(
-            Lambda init, StorageInfo si, DataType *ptr, Args... args) {
+        enable_if_t<(sizeof...(Args) == decay_t<StorageInfo>::layout_t::masked_length - 1), void> lambda_initializer(
+            Lambda &&init, StorageInfo &&si, DataType *ptr, Args... args) {
 #pragma ivdep
 #ifdef _OPENMP
 #pragma omp parallel for simd
@@ -101,14 +71,14 @@ namespace gridtools {
          * @param args pack that contains the current index for each dimension
          */
         template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
-        enable_if_t<(sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void> lambda_initializer(
-            Lambda init, StorageInfo si, DataType *ptr, Args... args) {
+        enable_if_t<(sizeof...(Args) < decay_t<StorageInfo>::layout_t::masked_length - 1), void> lambda_initializer(
+            Lambda &&init, StorageInfo &&si, DataType *ptr, Args... args) {
 #pragma ivdep
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
             for (int i = 0; i < si.template total_length<sizeof...(Args)>(); ++i) {
-                lambda_initializer(init, si, ptr, args..., i);
+                lambda_initializer(std::forward<Lambda>(init), std::forward<StorageInfo>(si), ptr, args..., i);
             }
         }
     } // namespace
@@ -174,9 +144,8 @@ namespace gridtools {
          * @param initializer initialization lambda
          * @param name Human readable name for the data_store
          */
-        data_store(StorageInfo const &info,
-            typename appropriate_function_t<data_t, StorageInfo>::type const &initializer,
-            std::string const &name = "")
+        template <class Initializer>
+        data_store(StorageInfo const &info, Initializer &&initializer, std::string const &name = "")
             : m_shared_storage(new storage_t(
                   info.padded_total_length(), info.first_index_of_inner_region(), typename StorageInfo::alignment_t{})),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {
