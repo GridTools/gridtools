@@ -27,7 +27,7 @@ namespace gridtools {
                 GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
                 template <class Esf>
                 GT_META_DEFINE_ALIAS(
-                    make_mss, meta::id, (mss_descriptor<ExecutionEngine, std::tuple<Esf>, std::tuple<>>));
+                    make_mss, meta::id, (mss_descriptor<ExecutionEngine, std::tuple<Esf>, CacheSequence>));
                 using esfs_t = GT_META_CALL(unwrap_independent, EsfSequence);
                 using type = GT_META_CALL(meta::transform, (make_mss, esfs_t));
             };
