@@ -19,6 +19,7 @@
 
 #include "../common/gt_assert.hpp"
 #include "../meta/type_traits.hpp"
+#include "../meta/utility.hpp"
 #include "./common/definitions.hpp"
 #include "./common/storage_info.hpp"
 #include "./common/storage_interface.hpp"
@@ -29,31 +30,38 @@ namespace gridtools {
      * @{
      */
 
-    namespace {
+    namespace data_store_impl_ {
+        template <class F,
+            class StorageInfo,
+            class DataType,
+            class = GT_META_CALL(meta::repeat_c, (StorageInfo::layout_t::masked_length, int_t)),
+            class = void>
+        struct is_valid_initializer : std::false_type {};
+
+        template <class F, class StorageInfo, class DataType, class... Indices>
+        struct is_valid_initializer<F,
+            StorageInfo,
+            DataType,
+            meta::list<Indices...>,
+            enable_if_t<std::is_convertible<decltype(std::declval<F>()(std::declval<Indices>()...)), DataType>::value>>
+            : std::true_type {};
+
         /**
          * @brief helper function used to initialize a storage with a given lambda (base case).
          * The reason for having this is that generic initializations should be supported.
          * E.g., a 4-dimensional storage should be initialize-able with a lambda of
          * type data_t(int, int, int, int).
-         * @tparam Lambda the lambda type
-         * @tparam StorageInfo storage_info type
-         * @tparam DataType value type of the container
-         * @tparam Args variadic list of integers
-         * @param init lambda instance
-         * @param si storage info object
-         * @param ptr storage cpu pointer
-         * @param args pack that contains the current index for each dimension
          */
-        template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
-        enable_if_t<(sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void> lambda_initializer(
-            Lambda init, StorageInfo const &si, DataType *ptr, Args... args) {
+        template <typename F, typename StorageInfo, typename DataType, typename... Indices>
+        enable_if_t<(sizeof...(Indices) == decay_t<StorageInfo>::layout_t::masked_length - 1), void> lambda_initializer(
+            F &&init, StorageInfo &&si, DataType *ptr, Indices... indices) {
+            const int_t total_length = si.template total_length<sizeof...(Indices)>();
 #pragma ivdep
 #ifdef _OPENMP
 #pragma omp parallel for simd
 #endif
-            for (int i = 0; i < si.template total_length<sizeof...(Args)>(); ++i) {
-                ptr[si.index(args..., i)] = init(args..., i);
-            }
+            for (int_t i = 0; i < total_length; ++i)
+                ptr[si.index(indices..., i)] = init(indices..., i);
         }
 
         /**
@@ -61,27 +69,19 @@ namespace gridtools {
          * The reason for having this is that generic initializations should be supported.
          * E.g., a 4-dimensional storage should be initialize-able with a lambda of
          * type data_t(int, int, int, int).
-         * @tparam Lambda the lambda type
-         * @tparam StorageInfo storage_info type
-         * @tparam DataType value type of the container
-         * @tparam Args variadic list of integers
-         * @param init lambda instance
-         * @param si storage info object
-         * @param ptr storage cpu pointer
-         * @param args pack that contains the current index for each dimension
          */
-        template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
-        enable_if_t<(sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void> lambda_initializer(
-            Lambda init, StorageInfo const &si, DataType *ptr, Args... args) {
+        template <typename F, typename StorageInfo, typename DataType, typename... Indices>
+        enable_if_t<(sizeof...(Indices) < decay_t<StorageInfo>::layout_t::masked_length - 1), void> lambda_initializer(
+            F &&init, StorageInfo &&si, DataType *ptr, Indices... indices) {
+            const int_t total_length = si.template total_length<sizeof...(Indices)>();
 #pragma ivdep
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-            for (int i = 0; i < si.template total_length<sizeof...(Args)>(); ++i) {
-                lambda_initializer(init, si, ptr, args..., i);
-            }
+            for (int_t i = 0; i < total_length; ++i)
+                lambda_initializer(std::forward<F>(init), std::forward<StorageInfo>(si), ptr, indices..., i);
         }
-    } // namespace
+    } // namespace data_store_impl_
 
     /** \ingroup storage
      * @brief data_store implementation. This struct wraps storage and storage information in one class.
@@ -144,13 +144,16 @@ namespace gridtools {
          * @param initializer initialization lambda
          * @param name Human readable name for the data_store
          */
-        template <class Initializer>
+        template <class Initializer,
+            enable_if_t<data_store_impl_::is_valid_initializer<decay_t<Initializer>, StorageInfo, data_t>::value, int> =
+                0>
         data_store(StorageInfo const &info, Initializer &&initializer, std::string const &name = "")
             : m_shared_storage(new storage_t(
                   info.padded_total_length(), info.first_index_of_inner_region(), typename StorageInfo::alignment_t{})),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {
             // initialize the storage with the given lambda
-            lambda_initializer(initializer, info, m_shared_storage->get_cpu_ptr());
+            data_store_impl_::lambda_initializer(
+                std::forward<Initializer>(initializer), info, m_shared_storage->get_cpu_ptr());
             // synchronize contents
             clone_to_device();
         }
