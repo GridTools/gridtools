@@ -77,6 +77,10 @@ namespace gridtools {
         template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
         enable_if_t<(sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void> lambda_initializer(
             Lambda init, StorageInfo si, DataType *ptr, Args... args) {
+#pragma ivdep
+#ifdef _OPENMP
+#pragma omp parallel for simd
+#endif
             for (int i = 0; i < si.template total_length<sizeof...(Args)>(); ++i) {
                 ptr[si.index(args..., i)] = init(args..., i);
             }
@@ -99,6 +103,10 @@ namespace gridtools {
         template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
         enable_if_t<(sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void> lambda_initializer(
             Lambda init, StorageInfo si, DataType *ptr, Args... args) {
+#pragma ivdep
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
             for (int i = 0; i < si.template total_length<sizeof...(Args)>(); ++i) {
                 lambda_initializer(init, si, ptr, args..., i);
             }
