@@ -77,7 +77,7 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(is_arg_used,
             bool_constant,
             (!is_tmp_arg<Arg>::value || !std::is_same<Backend, backend::cuda>::value ||
-                meta::st_contains<local_cached_args_t, Arg>::value));
+                !meta::st_contains<local_cached_args_t, Arg>::value));
         using used_esf_args_t = GT_META_CALL(meta::filter, (is_arg_used, EsfArgs));
 
         template <class Arg>
@@ -104,25 +104,14 @@ namespace gridtools {
         using total_length_storage_infos_t = GT_META_CALL(meta::dedup,
             (GT_META_CALL(meta::transform, (local_domain_impl_::get_storage_info, total_length_esf_args_t))));
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDA_VER_MINOR__ < 2
-        struct lazy_total_length_storage_info_keys_t : meta::lazy::rename<hymap::keys, total_length_storage_infos_t> {};
-        using total_length_storage_info_keys_t = typename lazy_total_length_storage_info_keys_t::type;
-        struct lazy_ksize_storage_info_keys_t : meta::lazy::rename<hymap::keys, ksize_storage_infos_t> {};
-        using ksize_storage_info_keys_t = typename lazy_ksize_storage_info_keys_t::type;
-        struct lazy_composite_keys_t : meta::lazy::rename<sid::composite::keys, esf_args_t> {};
-        using composite_keys_t = typename lazy_composite_keys_t::type;
-#else
-        using total_length_storage_info_keys_t = GT_META_CALL(
-            meta::rename, (hymap::keys, total_length_storage_infos_t));
-        using ksize_storage_info_keys_t = GT_META_CALL(meta::rename, (hymap::keys, ksize_storage_infos_t));
         using composite_keys_t = GT_META_CALL(meta::rename, (sid::composite::keys, esf_args_t));
-#endif
-        using ksize_map_t = GT_META_CALL(meta::rename,
-            (ksize_storage_info_keys_t::template values,
-                GT_META_CALL(meta::repeat, (meta::length<ksize_storage_info_keys_t>, uint_t))));
-        using total_length_map_t = GT_META_CALL(meta::rename,
-            (total_length_storage_info_keys_t::template values,
-                GT_META_CALL(meta::repeat, (meta::length<total_length_storage_info_keys_t>, uint_t))));
+
+        using ksize_map_t = GT_META_CALL(hymap::from_keys_values,
+            (ksize_storage_infos_t, GT_META_CALL(meta::repeat, (meta::length<ksize_storage_infos_t>, uint_t))));
+
+        using total_length_map_t = GT_META_CALL(hymap::from_keys_values,
+            (total_length_storage_infos_t,
+                GT_META_CALL(meta::repeat, (meta::length<total_length_storage_infos_t>, uint_t))));
 
         using storages_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_storage, esf_args_t));
 
