@@ -54,8 +54,6 @@ namespace gridtools {
             static constexpr auto jboundary_limit = BlockSizeJ + Extent::jplus::value - Extent::jminus::value;
             // iminus_limit adds to jboundary_limit an additional warp for regions (a,h,e)
             static constexpr auto iminus_limit = jboundary_limit + (Extent::iminus::value < 0 ? 1 : 0);
-            // iminus_limit adds to iminus_limit an additional warp for regions (c,i,g)
-            static constexpr auto iplus_limit = iminus_limit + (Extent::iplus::value > 0 ? 1 : 0);
 
             if (threadIdx.y < jboundary_limit) {
                 fun(threadIdx.x, (int_t)threadIdx.y + Extent::jminus::value);
@@ -67,7 +65,7 @@ namespace gridtools {
                 fun(-padded_boundary_ + (int_t)threadIdx.x % padded_boundary_,
                     (int_t)threadIdx.x / padded_boundary_ + Extent::jminus::value);
             } else {
-                assert(threadIdx.y < iplus_limit);
+                assert(threadIdx.y < iminus_limit + (Extent::iplus::value > 0 ? 1 : 0));
                 static constexpr auto padded_boundary_ = padded_boundary<Extent::iplus::value>::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
                 GT_STATIC_ASSERT(jboundary_limit * padded_boundary_ <= BlockSizeI, GT_INTERNAL_ERROR);
