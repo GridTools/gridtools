@@ -30,7 +30,8 @@ namespace gridtools {
 
             auto src = sid::synthetic()
                            .set<property::origin>(sid::make_simple_ptr_holder(&data[0][0][0]))
-                           .set<property::strides>(tuple_util::make<tuple>(5_c * 7_c, 7_c, 1_c));
+                           .set<property::strides>(tu::make<tuple>(5_c * 7_c, 7_c, 1_c))
+                           .set<property::upper_bounds>(tu::make<tuple>(3));
 
             auto offset = tuple_util::make<tuple>(1_c, 2);
             auto testee = sid::shift_sid_origin(src, offset);
@@ -39,6 +40,8 @@ namespace gridtools {
 
             EXPECT_EQ(&data[0][0][0], sid::get_origin(src)());
             EXPECT_EQ(&data[1][2][0], sid::get_origin(testee)());
+
+            EXPECT_EQ(4, tu::get<0>(sid::get_upper_bounds(testee)));
         }
 
         TEST(shift_sid_origin, c_array) {
@@ -50,6 +53,16 @@ namespace gridtools {
             static_assert(is_sid<decltype(testee)>(), "");
 
             EXPECT_EQ(&data[1][2][0], sid::get_origin(testee)());
+
+            auto lower_bounds = sid::get_lower_bounds(testee);
+            EXPECT_EQ(1, tu::get<0>(lower_bounds));
+            EXPECT_EQ(2, tu::get<1>(lower_bounds));
+            EXPECT_EQ(0, tu::get<2>(lower_bounds));
+
+            auto upper_bounds = sid::get_upper_bounds(testee);
+            EXPECT_EQ(4, tu::get<0>(upper_bounds));
+            EXPECT_EQ(7, tu::get<1>(upper_bounds));
+            EXPECT_EQ(7, tu::get<2>(upper_bounds));
         }
     } // namespace
 } // namespace gridtools

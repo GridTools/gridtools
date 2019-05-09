@@ -18,7 +18,7 @@
 namespace gridtools {
     namespace sid {
 
-        enum class property { origin, strides, ptr_diff, strides_kind };
+        enum class property { origin, strides, ptr_diff, strides_kind, lower_bounds, upper_bounds };
 
         namespace synthetic_impl_ {
             template <property Property, class T>
@@ -39,6 +39,24 @@ namespace gridtools {
             };
             template <class T>
             GT_CONSTEXPR T sid_get_strides(mixin<property::strides, T> const &obj) noexcept {
+                return obj.m_val;
+            }
+
+            template <class T>
+            struct mixin<property::lower_bounds, T> {
+                T m_val;
+            };
+            template <class T>
+            GT_CONSTEXPR T sid_get_lower_bounds(mixin<property::lower_bounds, T> const &obj) noexcept {
+                return obj.m_val;
+            }
+
+            template <class T>
+            struct mixin<property::upper_bounds, T> {
+                T m_val;
+            };
+            template <class T>
+            GT_CONSTEXPR T sid_get_upper_bounds(mixin<property::upper_bounds, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
