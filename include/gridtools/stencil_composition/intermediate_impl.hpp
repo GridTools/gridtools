@@ -47,6 +47,16 @@ namespace gridtools {
             }
         };
 
+        template <class Dim, class StorageInfo, enable_if_t<(Dim::value < StorageInfo::ndims), int> = 0>
+        uint_t padded_length(StorageInfo const &info) {
+            return info.template padded_length<Dim::value>();
+        }
+
+        template <class Dim, class StorageInfo, enable_if_t<(Dim::value >= StorageInfo::ndims), int> = 0>
+        uint_t padded_length(StorageInfo const &info) {
+            return std::numeric_limits<uint_t>::max();
+        }
+
         // set pointers from the given storage to the local domain
         struct set_arg_store_pair_to_local_domain_f {
 
@@ -65,7 +75,7 @@ namespace gridtools {
                     storage.info().padded_total_length();
 
                 at_key_with_default<typename DataStore::storage_info_t, sink>(local_domain.m_ksize_map) =
-                    storage.info().template total_length<dim::k::value>();
+                    padded_length<dim::k>(storage.info());
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class DataStore, class LocalDomain>
