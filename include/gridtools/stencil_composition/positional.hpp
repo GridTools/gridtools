@@ -26,7 +26,6 @@ namespace gridtools {
         friend GT_FUNCTION positional operator+(positional lhs, positional rhs) { return {lhs.m_val + rhs.m_val}; }
 
         friend GT_FUNCTION void sid_shift(positional &p, stride, int_t offset) { p.m_val += offset; }
-        friend positional sid_get_origin(positional obj) { return obj; }
         friend typename hymap::keys<Dim>::template values<stride> sid_get_strides(positional) { return {}; }
 
       public:
@@ -38,4 +37,9 @@ namespace gridtools {
 
     template <class Dim>
     positional<Dim> sid_get_ptr_diff(positional<Dim>);
+
+    template <class Dim>
+    positional<Dim> sid_get_origin(positional<Dim> obj) {
+        return obj;
+    }
 } // namespace gridtools
