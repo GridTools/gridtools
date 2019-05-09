@@ -314,6 +314,8 @@ namespace gridtools {
                 };
 
               public:
+                using type = keys;
+
                 template <class... Sids>
                 class values {
                     GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
@@ -363,6 +365,8 @@ namespace gridtools {
                     using ptr_diff_t = GT_META_CALL(compress, (GT_META_CALL(ptr_diff_type, Sids)...));
 
                   public:
+                    using type = values;
+
                     // Here the `SID` concept is modeled
 
                     friend ptr_holder_t sid_get_origin(values &obj) {
