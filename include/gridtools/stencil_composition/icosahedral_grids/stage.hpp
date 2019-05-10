@@ -99,18 +99,15 @@ namespace gridtools {
             Ptr const &m_ptr;
             Strides const &m_strides;
 
-            template <class Arg, class T>
-            static GT_FUNCTION auto deref(T &&ptr)
-                GT_AUTO_RETURN(Deref{}.template operator()<Arg>(wstd::forward<T>(ptr)));
-
             template <class Arg>
-            using ref_type = decltype(deref<Arg>(host_device::at_key<Arg>(std::declval<Ptr const &>())));
+            using ref_type =
+                decltype(Deref{}.template operator()<Arg>(host_device::at_key<Arg>(std::declval<Ptr const &>())));
 
             template <class Arg, class Offset>
             GT_FUNCTION ref_type<Arg> get_ref(Offset const &offset) const {
                 auto ptr = host_device::at_key<Arg>(m_ptr);
                 sid::multi_shift<Arg>(ptr, m_strides, offset);
-                return deref<Arg>(ptr);
+                return Deref{}.template operator()<Arg>(ptr);
             }
 
             template <class Accessor, class Arg = GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value))>
