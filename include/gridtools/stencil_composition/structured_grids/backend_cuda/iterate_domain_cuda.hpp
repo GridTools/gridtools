@@ -140,12 +140,14 @@ namespace gridtools {
 
         template <class Arg, class DataStore = typename Arg::data_store_t, class Data = typename DataStore::data_t>
         GT_FUNCTION Data *deref_for_k_cache(int_t k_offset) const {
-            int_t k = *(host_device::at_key<positional<dim::k>>(this->m_ptr) + k_offset);
-            if (k < 0 && k > host_device::at_key<typename DataStore::storage_info_t>(this->m_local_domain.m_ksize_map))
+            auto k = *(host_device::at_key<positional<dim::k>>(this->m_ptr) +
+                         host_device::at_key<positional<dim::k>>(this->m_index)) +
+                     k_offset;
+            if (k < 0 || k >= host_device::at_key<typename DataStore::storage_info_t>(this->m_local_domain.m_ksize_map))
                 return nullptr;
-            Data *res = host_device::at_key<Arg>(this->m_ptr);
-            sid::shift(res, sid::get_stride<Arg, dim::k>(this->m_local_domain.m_strides), k_offset);
-            return res;
+            auto offset = host_device::at_key<Arg>(this->m_index);
+            sid::shift(offset, sid::get_stride<Arg, dim::k>(this->m_local_domain.m_strides), k_offset);
+            return host_device::at_key<Arg>(this->m_ptr) + offset;
         }
 
         template <class Arg, class Accessor, enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
