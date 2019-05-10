@@ -89,12 +89,10 @@ namespace gridtools {
     namespace hymap_impl_ {
 
         template <class I>
-        GT_META_DEFINE_ALIAS(get_key, meta::id, (integral_constant<int, I::value>));
+        GT_META_DEFINE_ALIAS(get_key, integral_constant, (int_t, I::value));
 
-        template <class T>
-        GT_META_DEFINE_ALIAS(default_keys,
-            meta::transform,
-            (get_key, GT_META_CALL(meta::make_indices_for, GT_META_CALL(tuple_util::traits::to_types, T))));
+        template <class Tup, class Ts = GT_META_CALL(tuple_util::traits::to_types, Tup)>
+        GT_META_DEFINE_ALIAS(default_keys, meta::transform, (get_key, GT_META_CALL(meta::make_indices_for, Ts)));
 
         struct not_provided;
 
@@ -111,8 +109,8 @@ namespace gridtools {
     } // namespace hymap_impl_
 
 #if GT_BROKEN_TEMPLATE_ALIASES
-    template <class T>
-    struct get_keys : meta::id<hymap_impl_::get_keys<T>> {};
+    template <class Tup, class Keys = hymap_impl_::get_keys<Tup>>
+    struct get_keys : meta::id<Keys> {};
 #else
     using hymap_impl_::get_keys;
 #endif

@@ -87,8 +87,8 @@ namespace gridtools {
             }
         };
 
-        struct default_dereference_f {
-            template <class T>
+        struct default_deref_f {
+            template <class Arg, class T>
             GT_FUNCTION T &operator()(T *ptr) const {
                 return *ptr;
             }
@@ -99,22 +99,31 @@ namespace gridtools {
             Ptr const &m_ptr;
             Strides const &m_strides;
 
-            template <class Arg, class Accessor>
-            GT_FUNCTION auto get_ptr(Accessor const &acc) const -> decay_t<decltype(host_device::at_key<Arg>(m_ptr))> {
-                auto res = host_device::at_key<Arg>(m_ptr);
-                sid::multi_shift<Arg>(res, m_strides, acc);
-                return res;
+            template <class Arg, class T>
+            static GT_FUNCTION auto deref(T &&ptr)
+                GT_AUTO_RETURN(Deref{}.template operator()<Arg>(wstd::forward<T>(ptr)));
+
+            template <class Arg>
+            using ref_type = decltype(deref<Arg>(host_device::at_key<Arg>(std::declval<Ptr const &>())));
+
+            template <class Arg, class Offset>
+            GT_FUNCTION ref_type<Arg> get_ref(Offset const &offset) const {
+                auto ptr = host_device::at_key<Arg>(m_ptr);
+                sid::multi_shift<Arg>(ptr, m_strides, offset);
+                return deref<Arg>(ptr);
+            }
+
+            template <class Accessor, class Arg = GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value))>
+            GT_FUNCTION apply_intent_t<Accessor::intent_v, ref_type<Arg>> operator()(Accessor const &acc) const {
+                return get_ref<Arg>(acc);
             }
 
             template <class Accessor,
                 class Offset,
                 class Arg = GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value))>
-            GT_FUNCTION auto neighbor(Offset const &offset) const
-                GT_AUTO_RETURN(apply_intent<intent::in>(typename Deref::template apply<Arg>{}(get_ptr<Arg>(offset))));
-
-            template <class Accessor, class Arg = GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value))>
-            GT_FUNCTION auto operator()(Accessor const &acc) const GT_AUTO_RETURN(
-                apply_intent<Accessor::intent_v>(typename Deref::template apply<Arg>{}(get_ptr<Arg>(acc))));
+            GT_FUNCTION apply_intent_t<intent::in, ref_type<Arg>> neighbor(Offset const &offset) const {
+                return get_ref<Arg>(offset);
+            }
 
             template <class ValueType, class LocationTypeT, class Reduction, class... Accessors>
             GT_FUNCTION ValueType operator()(
@@ -180,8 +189,8 @@ namespace gridtools {
 
         template <uint_t Color, bool = contains_color<Color>::value>
         struct colored_stage {
-            template <class Ptr, class Strides, class Deref = meta::always<stage_impl_::default_dereference_f>>
-            GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides, Deref = {}) const {
+            template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
+            GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
                 using eval_t = stage_impl_::evaluator<Ptr, Strides, Args, Deref, LocationType, Color>;
                 using functor_t = GT_META_CALL(meta::at_c, (Functors, Color));
                 functor_t::template apply<eval_t const &>(eval_t{ptr, strides});
@@ -190,8 +199,8 @@ namespace gridtools {
 
         template <uint_t Color>
         struct colored_stage<Color, false> {
-            template <class Ptr, class Strides, class Deref = meta::always<stage_impl_::default_dereference_f>>
-            GT_FUNCTION void operator()(Ptr const &, Strides const &, Deref = {}) const {}
+            template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
+            GT_FUNCTION void operator()(Ptr const &, Strides const &) const {}
         };
 
         template <class Ptr, class Strides, class Deref>
@@ -200,13 +209,13 @@ namespace gridtools {
             Strides const &m_strides;
             template <class Color>
             GT_FUNCTION void operator()() const {
-                colored_stage<Color::value>{}(m_ptr, m_strides, Deref{});
+                colored_stage<Color::value>{}.template operator()<Deref>(m_ptr, m_strides);
                 sid::shift(m_ptr, sid::get_stride<dim::c>(m_strides), integral_constant<int_t, 1>{});
             }
         };
 
-        template <class Ptr, class Strides, class Deref = meta::always<stage_impl_::default_dereference_f>>
-        GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides, Deref = {}) const {
+        template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
+        GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides) const {
             static constexpr int_t n_colors = LocationType::n_colors::value;
             host_device::for_each_type<GT_META_CALL(meta::make_indices_c, n_colors)>(
                 call_for_color_f<Ptr, Strides, Deref>{ptr, strides});
@@ -245,23 +254,24 @@ namespace gridtools {
 
         template <uint_t Color, bool = contains_color<Color>::value>
         struct colored_stage {
-            template <class Ptr, class Strides, class Deref = meta::always<stage_impl_::default_dereference_f>>
-            GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides, Deref = {}) const {
-                typename Stage::template colored_stage<Color>{}(ptr, strides);
-                (void)(int[]){(typename Stages::template colored_stage<Color>{}(ptr, strides), 0)...};
+            template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
+            GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides) const {
+                typename Stage::template colored_stage<Color>{}.template operator()<Deref>(ptr, strides);
+                (void)(int[]){
+                    (typename Stages::template colored_stage<Color>{}.template operator()<Deref>(ptr, strides), 0)...};
             }
         };
 
         template <uint_t Color>
         struct colored_stage<Color, false> {
-            template <class Ptr, class Strides, class Deref = meta::always<stage_impl_::default_dereference_f>>
-            GT_FUNCTION void operator()(Ptr &, Strides const &, Deref = {}) const {}
+            template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
+            GT_FUNCTION void operator()(Ptr &, Strides const &) const {}
         };
 
-        template <class Ptr, class Strides, class Deref = meta::always<stage_impl_::default_dereference_f>>
-        GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides, Deref deref = {}) const {
-            Stage{}(ptr, strides, deref);
-            (void)(int[]){(Stages{}(ptr, strides, deref), 0)...};
+        template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
+        GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides) const {
+            Stage{}.template operator()<Deref>(ptr, strides);
+            (void)(int[]){(Stages{}.template operator()<Deref>(ptr, strides), 0)...};
         }
     };
 
