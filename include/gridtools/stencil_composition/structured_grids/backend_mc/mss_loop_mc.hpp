@@ -179,8 +179,8 @@ namespace gridtools {
      * @tparam RunFunctorArgs run functor arguments
      */
     template <class RunFunctorArgs, class LocalDomain, class Grid, class ExecutionInfo>
-    GT_FORCE_INLINE static void mss_loop(
-        backend::mc const &, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &execution_info) {
+    GT_FORCE_INLINE void mss_loop(
+        backend::mc, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &execution_info) {
         GT_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArgs>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
