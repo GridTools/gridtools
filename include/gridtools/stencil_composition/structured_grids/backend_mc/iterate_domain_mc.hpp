@@ -85,67 +85,45 @@ namespace gridtools {
         int_t m_j_block_index; /** Local j-index inside block. */
         int_t m_k_block_index; /** Local/global k-index (no blocking along k-axis). */
 
-        template <class Arg, class Dim>
-        GT_FORCE_INLINE auto stride() const GT_AUTO_RETURN((sid::get_stride<Arg, Dim>(m_strides)));
+        struct k_shift_f {
+            iterate_domain_mc *m_self;
+            int_t m_offset;
 
-        template <class Dim>
-        GT_FORCE_INLINE int_t pos() const {
-            auto ptr = at_key<positional<Dim>>(m_ptr);
-            sid::shift(ptr, stride<positional<Dim>, dim::i>(), m_i_block_index);
-            sid::shift(ptr, stride<positional<Dim>, dim::j>(), m_j_block_index);
-            sid::shift(ptr, stride<positional<Dim>, dim::k>(), m_k_block_index);
-            return *ptr;
-        }
+            template <class Arg, enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+            GT_FORCE_INLINE void operator()() const {
+                sid::shift(at_key<Arg>(m_self->m_ptr), sid::get_stride<Arg, dim::k>(m_self->m_strides), m_offset);
+            }
+            template <class Arg, enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+            GT_FORCE_INLINE void operator()() const {}
+        };
 
       public:
         GT_FORCE_INLINE
         iterate_domain_mc(LocalDomain const &local_domain, int_t i_block_base = 0, int_t j_block_base = 0)
             : m_strides(local_domain.m_strides), m_ptr(local_domain.m_ptr_holder()), m_i_block_index(0),
               m_j_block_index(0), m_k_block_index(0) {
-            for_each_type<typename LocalDomain::esf_args_t>(iterate_domain_mc_impl_::set_base_offset_f<LocalDomain>{
+            for_each_type<GT_META_CALL(get_keys, ptr_t)>(iterate_domain_mc_impl_::set_base_offset_f<LocalDomain>{
                 local_domain, i_block_base, j_block_base, m_ptr});
         }
 
         /** @brief Sets the local block index along the i-axis. */
-        GT_FORCE_INLINE void set_i_block_index(int_t i) { m_i_block_index = i; }
+        GT_FORCE_INLINE void set_i_block_index(int_t i) {
+            sid::shift(m_ptr, sid::get_stride<dim::i>(m_strides), i - m_i_block_index);
+            m_i_block_index = i;
+        }
         /** @brief Sets the local block index along the j-axis. */
-        GT_FORCE_INLINE void set_j_block_index(int_t j) { m_j_block_index = j; }
+        GT_FORCE_INLINE void set_j_block_index(int_t j) {
+            sid::shift(m_ptr, sid::get_stride<dim::j>(m_strides), j - m_j_block_index);
+            m_j_block_index = j;
+        }
         /** @brief Sets the local block index along the k-axis. */
-        GT_FORCE_INLINE void set_k_block_index(int_t k) { m_k_block_index = k; }
-
-        /**
-         * @brief Returns the value pointed by an accessor.
-         */
-        template <class Arg, class Accessor, enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
-        GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr)) {
-            auto ptr = at_key<Arg>(m_ptr);
-            sid::shift(ptr, stride<Arg, dim::i>(), m_i_block_index);
-            sid::shift(ptr, stride<Arg, dim::j>(), m_j_block_index);
-            sid::shift(ptr, stride<Arg, dim::k>(), m_k_block_index);
-            sid::multi_shift<Arg>(ptr, m_strides, accessor);
-            return *ptr;
+        GT_FORCE_INLINE void set_k_block_index(int_t k) {
+            for_each_type<GT_META_CALL(get_keys, ptr_t)>(k_shift_f{this, k - m_k_block_index});
+            m_k_block_index = k;
         }
 
-        template <class Arg, class Accessor, enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
-        GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr)) {
-            auto ptr = at_key<Arg>(m_ptr);
-            sid::shift(ptr, stride<Arg, dim::i>(), m_i_block_index);
-            sid::shift(ptr, stride<Arg, dim::j>(), m_j_block_index);
-            sid::multi_shift<Arg>(ptr, m_strides, accessor);
-            return *ptr;
-        }
-
-        /** @brief Global i-index. */
-        GT_FORCE_INLINE
-        int_t i() const { return pos<dim::i>(); }
-
-        /** @brief Global j-index. */
-        GT_FORCE_INLINE
-        int_t j() const { return pos<dim::j>(); }
-
-        /** @brief Global k-index. */
-        GT_FORCE_INLINE
-        int_t k() const { return pos<dim::k>(); }
+        GT_FORCE_INLINE ptr_t const &ptr() const { return m_ptr; }
+        GT_FORCE_INLINE strides_t const &strides() const { return m_strides; }
     };
 
     template <class LocalDomain, class IJCachedArgs>

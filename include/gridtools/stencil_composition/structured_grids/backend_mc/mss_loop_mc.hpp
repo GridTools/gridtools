@@ -41,7 +41,7 @@ namespace gridtools {
              * @brief Executes the corresponding Stage
              */
             template <class Stage>
-            GT_FORCE_INLINE void operator()(Stage) const {
+            GT_FORCE_INLINE void operator()(Stage stage) const {
                 using iteration_policy_t = iteration_policy<From, To, ExecutionType>;
                 using extent_t = typename Stage::extent_t;
 
@@ -63,7 +63,7 @@ namespace gridtools {
 #endif
                         for (int_t i = i_first; i < i_last; ++i) {
                             m_it_domain.set_i_block_index(i);
-                            Stage::exec(m_it_domain);
+                            stage(m_it_domain.ptr(), m_it_domain.strides());
                         }
                     }
                 }
@@ -89,7 +89,7 @@ namespace gridtools {
              * @param index Index in the functor list of the ESF functor that should be executed.
              */
             template <typename Stage>
-            GT_FORCE_INLINE void operator()(Stage) const {
+            GT_FORCE_INLINE void operator()(Stage stage) const {
                 using extent_t = typename Stage::extent_t;
 
                 const int_t i_first = extent_t::iminus::value;
@@ -105,7 +105,7 @@ namespace gridtools {
 #endif
                     for (int_t i = i_first; i < i_last; ++i) {
                         m_it_domain.set_i_block_index(i);
-                        Stage::exec(m_it_domain);
+                        stage(m_it_domain.ptr(), m_it_domain.strides());
                     }
                 }
             }
