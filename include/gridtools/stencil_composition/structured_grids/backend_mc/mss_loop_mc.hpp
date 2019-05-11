@@ -23,6 +23,8 @@
  */
 namespace gridtools {
     namespace _impl_mss_loop_mc {
+        using namespace literals;
+
         /**
          * @brief Class for inner (block-level) looping.
          * Specialization for stencils with serial execution along k-axis and non-zero max extent.
@@ -42,30 +44,39 @@ namespace gridtools {
              */
             template <class Stage>
             GT_FORCE_INLINE void operator()(Stage stage) const {
-                using iteration_policy_t = iteration_policy<From, To, ExecutionType>;
                 using extent_t = typename Stage::extent_t;
+                auto j_count = m_execution_info.j_block_size + extent_t::jplus::value - extent_t::jminus::value;
+                auto i_count = m_execution_info.i_block_size + extent_t::iplus::value - extent_t::iminus::value;
+                int_t k_first = m_grid.template value_at<From>();
+                int_t k_last = m_grid.template value_at<To>();
+                auto k_count = 1 + std::abs(k_last - k_first);
+                static constexpr conditional_t<execute::is_backward<ExecutionType>::value,
+                    integral_constant<int_t, -1>,
+                    integral_constant<int_t, 1>>
+                    k_step = {};
 
-                const int_t i_first = extent_t::iminus::value;
-                const int_t i_last = m_execution_info.i_block_size + extent_t::iplus::value;
-                const int_t j_first = extent_t::jminus::value;
-                const int_t j_last = m_execution_info.j_block_size + extent_t::jplus::value;
-                const int_t k_first = m_grid.template value_at<From>();
-                const int_t k_last = m_grid.template value_at<To>();
+                auto ptr = m_it_domain.ptr();
+                const auto &strides = m_it_domain.strides();
 
-                for (int_t j = j_first; j < j_last; ++j) {
-                    m_it_domain.set_j_block_index(j);
-                    for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
-                         iteration_policy_t::increment(k)) {
-                        m_it_domain.set_k_block_index(k);
+                sid::shift(ptr, sid::get_stride<dim::i>(strides), integral_constant<int_t, extent_t::iminus::value>{});
+                sid::shift(ptr, sid::get_stride<dim::j>(strides), integral_constant<int_t, extent_t::jminus::value>{});
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), k_first);
+
+                for (int_t j = 0; j < j_count; ++j) {
+                    for (int_t k = 0; k < k_count; ++k) {
 #ifdef NDEBUG
 #pragma ivdep
 #pragma omp simd
 #endif
-                        for (int_t i = i_first; i < i_last; ++i) {
-                            m_it_domain.set_i_block_index(i);
-                            stage(m_it_domain.ptr(), m_it_domain.strides());
+                        for (int_t i = 0; i < i_count; ++i) {
+                            stage(ptr, strides);
+                            sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
                         }
+                        sid::shift(ptr, sid::get_stride<dim::i>(strides), -i_count);
+                        sid::shift(ptr, sid::get_stride<dim::k>(strides), k_step);
                     }
+                    sid::shift(ptr, sid::get_stride<dim::k>(strides), -k_count * k_step);
+                    sid::shift(ptr, sid::get_stride<dim::j>(strides), 1_c);
                 }
             }
         };
@@ -91,22 +102,27 @@ namespace gridtools {
             template <typename Stage>
             GT_FORCE_INLINE void operator()(Stage stage) const {
                 using extent_t = typename Stage::extent_t;
+                auto j_count = m_execution_info.j_block_size + extent_t::jplus::value - extent_t::jminus::value;
+                auto i_count = m_execution_info.i_block_size + extent_t::iplus::value - extent_t::iminus::value;
 
-                const int_t i_first = extent_t::iminus::value;
-                const int_t i_last = m_execution_info.i_block_size + extent_t::iplus::value;
-                const int_t j_first = extent_t::jminus::value;
-                const int_t j_last = m_execution_info.j_block_size + extent_t::jplus::value;
+                auto ptr = m_it_domain.ptr();
+                const auto &strides = m_it_domain.strides();
 
-                for (int_t j = j_first; j < j_last; ++j) {
-                    m_it_domain.set_j_block_index(j);
+                sid::shift(ptr, sid::get_stride<dim::i>(strides), integral_constant<int_t, extent_t::iminus::value>{});
+                sid::shift(ptr, sid::get_stride<dim::j>(strides), integral_constant<int_t, extent_t::jminus::value>{});
+                m_it_domain.k_shift(ptr, m_execution_info.k);
+
+                for (int_t j = 0; j < j_count; ++j) {
 #ifdef NDEBUG
 #pragma ivdep
 #pragma omp simd
 #endif
-                    for (int_t i = i_first; i < i_last; ++i) {
-                        m_it_domain.set_i_block_index(i);
-                        stage(m_it_domain.ptr(), m_it_domain.strides());
+                    for (int_t i = 0; i < i_count; ++i) {
+                        stage(ptr, strides);
+                        sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
                     }
+                    sid::shift(ptr, sid::get_stride<dim::i>(strides), -i_count);
+                    sid::shift(ptr, sid::get_stride<dim::j>(strides), 1_c);
                 }
             }
         };
@@ -140,26 +156,18 @@ namespace gridtools {
          * Specialization for stencils with parallel execution along k-axis.
          */
         template <typename ExecutionType, typename ItDomain, typename Grid>
-        class interval_functor_mc<ExecutionType, ItDomain, Grid, execinfo_block_kparallel_mc> {
+        struct interval_functor_mc<ExecutionType, ItDomain, Grid, execinfo_block_kparallel_mc> {
             ItDomain &m_it_domain;
             Grid const &m_grid;
             const execinfo_block_kparallel_mc &m_execution_info;
 
-          public:
-            GT_FORCE_INLINE interval_functor_mc(
-                ItDomain &it_domain, Grid const &grid, execinfo_block_kparallel_mc const &execution_info)
-                : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {
-                m_it_domain.set_k_block_index(m_execution_info.k);
-            }
-
             template <class From, class To, class StageGroups>
             GT_FORCE_INLINE void operator()(loop_interval<From, To, StageGroups>) const {
-                const int_t k_first = this->m_grid.template value_at<From>();
-                const int_t k_last = this->m_grid.template value_at<To>();
-
-                if (k_first <= m_execution_info.k && m_execution_info.k <= k_last)
-                    gridtools::for_each<GT_META_CALL(meta::flatten, StageGroups)>(
-                        inner_functor_mc_kparallel<ItDomain>{m_it_domain, m_execution_info});
+                if (m_execution_info.k < this->m_grid.template value_at<From>() ||
+                    m_execution_info.k > this->m_grid.template value_at<To>())
+                    return;
+                gridtools::for_each<GT_META_CALL(meta::flatten, StageGroups)>(
+                    inner_functor_mc_kparallel<ItDomain>{m_it_domain, m_execution_info});
             }
         };
 

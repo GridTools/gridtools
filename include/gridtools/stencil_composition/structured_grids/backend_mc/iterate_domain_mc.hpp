@@ -81,17 +81,15 @@ namespace gridtools {
         strides_t const &m_strides;
         ptr_t m_ptr;
 
-        int_t m_i_block_index; /** Local i-index inside block. */
-        int_t m_j_block_index; /** Local j-index inside block. */
-        int_t m_k_block_index; /** Local/global k-index (no blocking along k-axis). */
-
+        template <class Offset>
         struct k_shift_f {
-            iterate_domain_mc *m_self;
-            int_t m_offset;
+            ptr_t &m_ptr;
+            strides_t const &m_strides;
+            Offset m_offset;
 
             template <class Arg, enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
-                sid::shift(at_key<Arg>(m_self->m_ptr), sid::get_stride<Arg, dim::k>(m_self->m_strides), m_offset);
+                sid::shift(at_key<Arg>(m_ptr), sid::get_stride<Arg, dim::k>(m_strides), m_offset);
             }
             template <class Arg, enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {}
@@ -100,29 +98,17 @@ namespace gridtools {
       public:
         GT_FORCE_INLINE
         iterate_domain_mc(LocalDomain const &local_domain, int_t i_block_base = 0, int_t j_block_base = 0)
-            : m_strides(local_domain.m_strides), m_ptr(local_domain.m_ptr_holder()), m_i_block_index(0),
-              m_j_block_index(0), m_k_block_index(0) {
+            : m_strides(local_domain.m_strides), m_ptr(local_domain.m_ptr_holder()) {
             for_each_type<GT_META_CALL(get_keys, ptr_t)>(iterate_domain_mc_impl_::set_base_offset_f<LocalDomain>{
                 local_domain, i_block_base, j_block_base, m_ptr});
         }
 
-        /** @brief Sets the local block index along the i-axis. */
-        GT_FORCE_INLINE void set_i_block_index(int_t i) {
-            sid::shift(m_ptr, sid::get_stride<dim::i>(m_strides), i - m_i_block_index);
-            m_i_block_index = i;
-        }
-        /** @brief Sets the local block index along the j-axis. */
-        GT_FORCE_INLINE void set_j_block_index(int_t j) {
-            sid::shift(m_ptr, sid::get_stride<dim::j>(m_strides), j - m_j_block_index);
-            m_j_block_index = j;
-        }
-        /** @brief Sets the local block index along the k-axis. */
-        GT_FORCE_INLINE void set_k_block_index(int_t k) {
-            for_each_type<GT_META_CALL(get_keys, ptr_t)>(k_shift_f{this, k - m_k_block_index});
-            m_k_block_index = k;
+        template <class Offset>
+        GT_FORCE_INLINE void k_shift(ptr_t &ptr, Offset offset) const {
+            for_each_type<GT_META_CALL(get_keys, ptr_t)>(k_shift_f<Offset>{ptr, m_strides, offset});
         }
 
-        GT_FORCE_INLINE ptr_t const &ptr() const { return m_ptr; }
+        GT_FORCE_INLINE ptr_t &ptr() { return m_ptr; }
         GT_FORCE_INLINE strides_t const &strides() const { return m_strides; }
     };
 
