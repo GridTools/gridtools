@@ -224,6 +224,7 @@ namespace gridtools {
     struct compound_stage {
         using extent_t = typename Stage::extent_t;
         using n_colors = typename Stage::n_colors;
+        using type = compound_stage;
 
         GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);

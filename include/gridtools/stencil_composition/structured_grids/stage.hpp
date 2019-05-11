@@ -97,6 +97,14 @@ namespace gridtools {
             GT_FUNCTION int_t k() const { return *host_device::at_key<positional<dim::k>>(m_ptr); }
         };
 
+        template <class... Functors>
+        struct compound_functor {
+            template <class Eval>
+            static GT_FUNCTION void apply(Eval &eval) {
+                (void)(int[]){(Functors::template apply<Eval &>(eval), 0)...};
+            }
+        };
+
     } // namespace stage_impl_
 
     /**
@@ -119,29 +127,20 @@ namespace gridtools {
 
         template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
         GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
-            using eval_t = stage_impl_::evaluator<Ptr, Strides, Args, Deref>;
-            Functor::template apply<eval_t const &>(eval_t{ptr, strides});
+            stage_impl_::evaluator<Ptr, Strides, Args, Deref> eval{ptr, strides};
+            Functor::apply(eval);
         }
     };
 
-    template <class Stage, class... Stages>
-    struct compound_stage {
-        using extent_t = typename Stage::extent_t;
+    GT_META_LAZY_NAMESPACE {
+        template <class... Stages>
+        struct compound_stage;
 
-        GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain const &it_domain) {
-            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
-            Stage::exec(it_domain);
-            (void)(int[]){(Stages::exec(it_domain), 0)...};
-        }
-
-        template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
-        GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
-            Stage{}.template operator()<Deref>(ptr, strides);
-            (void)(int[]){(Stages{}.template operator()<Deref>(ptr, strides), 0)...};
-        }
-    };
+        template <class Extent, class... Functors, class... Args>
+        struct compound_stage<regular_stage<Functors, Extent, Args>...> {
+            using args_t = GT_META_CALL(meta::dedup, GT_META_CALL(meta::concat, Args...));
+            using type = regular_stage<stage_impl_::compound_functor<Functors...>, Extent, args_t>;
+        };
+    }
+    GT_META_DELEGATE_TO_LAZY(compound_stage, class... Stages, Stages...);
 } // namespace gridtools

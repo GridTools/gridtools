@@ -21,15 +21,9 @@
 namespace gridtools {
 
     namespace _impl {
-#if GT_BROKEN_TEMPLATE_ALIASES
         template <class Stage>
-        struct get_extent_from_stage {
-            using type = typename Stage::extent_t;
-        };
-#else
-        template <class Stage>
-        using get_extent_from_stage = typename Stage::extent_t;
-#endif
+        GT_META_DEFINE_ALIAS(get_extent_from_stage, meta::id, typename Stage::extent_t);
+
         template <class Extent>
         struct has_same_extent {
             template <class Stage>
@@ -47,7 +41,7 @@ namespace gridtools {
             struct fuse_stages_with_the_same_extent;
             template <template <class...> class CompoundStage, template <class...> class L, class... Stages>
             struct fuse_stages_with_the_same_extent<CompoundStage, L<Stages...>> {
-                using type = CompoundStage<Stages...>;
+                using type = GT_META_CALL(CompoundStage, Stages...);
             };
             template <template <class...> class CompoundStage, template <class...> class L, class Stage>
             struct fuse_stages_with_the_same_extent<CompoundStage, L<Stage>> {
