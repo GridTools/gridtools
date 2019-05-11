@@ -116,7 +116,6 @@ namespace gridtools {
         using storages_t = GT_META_CALL(meta::transform, (local_domain_impl_::get_storage, esf_args_t));
 
         using composite_t = GT_META_CALL(meta::rename, (composite_keys_t::template values, storages_t));
-        GT_STATIC_ASSERT(is_sid<composite_t>::value, GT_INTERNAL_ERROR);
 
       public:
         using type = local_domain;
