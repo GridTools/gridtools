@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# use the machines python virtualenv with required modules installed
+source /project/c14/jenkins/python-venvs/${label%%-*}/bin/activate
+
 grid=structured
 
 for domain in 128 256; do
