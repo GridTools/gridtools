@@ -175,7 +175,7 @@ namespace gridtools {
         }
 
         struct accumulate_index_f {
-            double &m_acc;
+            int &m_acc;
             template <size_t I, class T>
             void operator()(T val) const {
                 m_acc += (I + 1) * val;
@@ -183,9 +183,9 @@ namespace gridtools {
         };
 
         TEST(for_each_index, functional) {
-            double acc = 0;
-            for_each_index(accumulate_index_f{acc}, std::make_tuple(42, 5.3));
-            EXPECT_EQ(52.6, acc);
+            int acc = 0;
+            for_each_index(accumulate_index_f{acc}, std::make_tuple(42, 5));
+            EXPECT_EQ(52, acc);
         }
 
         TEST(for_each, multiple_inputs) {
