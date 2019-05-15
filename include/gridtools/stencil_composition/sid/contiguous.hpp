@@ -39,13 +39,14 @@ namespace gridtools {
         template <class T, class PtrDiff = ptrdiff_t, class StridesKind = void, class Allocator, class Sizes>
         auto make_contiguous(Allocator &allocator, Sizes const &sizes) GT_AUTO_RETURN(
             (synthetic()
-                    .set<property::origin>(allocate(allocator, meta::lazy::id<T>{}, stride_util::total_size(sizes)))
-                    .template set<property::strides>(stride_util::make_strides_from_sizes(sizes))
-                    .template set<property::ptr_diff, PtrDiff>()
-                    .template set<property::strides_kind,
-                        GT_META_CALL(meta::if_,
-                            (std::is_void<StridesKind>, contiguous_impl_::strides_type<Sizes>, StridesKind))>()
-                    .template set<property::upper_bounds>(sizes)
-                    .template set<property::lower_bounds>(contiguous_impl_::zeros(sizes))));
+                    .set(allocate(allocator, meta::lazy::id<T>(), stride_util::total_size(sizes)),
+                        property_constant<property::origin>())
+                    .set(stride_util::make_strides_from_sizes(sizes), property_constant<property::strides>())
+                    .set(property_constant<property::ptr_diff>(), meta::lazy::id<PtrDiff>())
+                    .set(property_constant<property::strides_kind>(),
+                        meta::lazy::id<GT_META_CALL(meta::if_,
+                            (std::is_void<StridesKind>, contiguous_impl_::strides_type<Sizes>, StridesKind))>())
+                    .set(sizes, property_constant<property::upper_bounds>())
+                    .set(contiguous_impl_::zeros(sizes), property_constant<property::lower_bounds>())));
     } // namespace sid
 } // namespace gridtools

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <type_traits>
 #include <utility>
 
 #include "../../common/defs.hpp"
@@ -19,6 +20,9 @@ namespace gridtools {
     namespace sid {
 
         enum class property { origin, strides, ptr_diff, strides_kind, lower_bounds, upper_bounds };
+
+        template <property Property>
+        using property_constant = std::integral_constant<property, Property>;
 
         namespace synthetic_impl_ {
             template <property Property, class T>
@@ -91,12 +95,14 @@ namespace gridtools {
             template <>
             struct synthetic<> {
                 template <property Property, class T>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, T>> set() const &&noexcept {
+                GT_CONSTEXPR synthetic<unique_mixin<Property, T>> set(
+                    property_constant<Property> = {}, meta::lazy::id<T> = {}) const &&noexcept {
                     return synthetic{};
                 }
 
                 template <property Property, class T>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
+                GT_CONSTEXPR synthetic<unique_mixin<Property, decay_t<T>>> set(
+                    T &&val, property_constant<Property> = {}) const &&noexcept {
                     return {wstd::forward<T>(val), synthetic{}};
                 }
             };
@@ -112,14 +118,15 @@ namespace gridtools {
                 GT_CONSTEXPR synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
                     : Mixin{wstd::forward<T>(val)}, Mixins(wstd::move(src))... {}
 
-                template <property Property, class U>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, U>, Mixin, Mixins...> set() const &&noexcept {
+                template <property Property, class T>
+                GT_CONSTEXPR synthetic<unique_mixin<Property, T>, Mixin, Mixins...> set(
+                    property_constant<Property> = {}, meta::lazy::id<T> = {}) const &&noexcept {
                     return {wstd::move(*this)};
                 }
 
                 template <property Property, class T>
                 GT_CONSTEXPR synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(
-                    T &&val) const &&noexcept {
+                    T &&val, property_constant<Property> = {}) const &&noexcept {
                     return {wstd::forward<T>(val), wstd::move(*this)};
                 }
             };
