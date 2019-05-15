@@ -28,7 +28,9 @@ namespace gridtools {
 
     namespace tmp_cuda_impl_ {
         template <class Extent>
-        hymap::keys<dim::i, dim::j>::values<typename Extent::iminus, typename Extent::jminus> origin_offset(Extent) {
+        hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -Extent::iminus::value>,
+            integral_constant<int_t, -Extent::jminus::value>>
+        origin_offset(Extent) {
             return {};
         }
     } // namespace tmp_cuda_impl_
