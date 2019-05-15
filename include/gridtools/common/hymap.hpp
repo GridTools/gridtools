@@ -173,7 +173,7 @@ namespace gridtools {
             class Decayed = decay_t<Map>,
             class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, Decayed), Key)),
             enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE constexpr auto at_key_with_default(Map && map) noexcept GT_AUTO_RETURN(
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto at_key_with_default(Map && map) noexcept GT_AUTO_RETURN(
             tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map)));
 
         template <class Key,
@@ -182,7 +182,7 @@ namespace gridtools {
             class Decayed = decay_t<Map>,
             class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, Decayed), Key)),
             enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE constexpr Default at_key_with_default(Map &&) noexcept {
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Default at_key_with_default(Map &&) noexcept {
             return {};
         }
     }
