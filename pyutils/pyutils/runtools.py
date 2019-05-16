@@ -81,12 +81,18 @@ def _run_sbatch(rundir, commands, cwd, use_srun, use_mpi_config):
                             stdout=subprocess.PIPE)
     end = time.time()
     log.info(f'sbatch finished in {end - start:.2f}s')
-    if result.returncode != 0:
-        log.warning(f'sbatch finished with exit code '
-                    f'{result.returncode} and message',
-                    result.stderr.decode())
-    return int(re.match(r'Submitted batch job (\d+)',
-                        result.stdout.decode()).group(1))
+    if result.returncode != 0 and result.stderr:
+        log.error(f'sbatch finished with exit code '
+                  f'{result.returncode} and message',
+                  result.stderr.decode())
+        raise RuntimeError(f'Job submission failed: {result.stderr.decode()}')
+
+    m = re.match(r'Submitted batch job (\d+)', result.stdout.decode())
+    if not m:
+        log.error(f'Failed parsing sbatch output', result.stdout.decode())
+        raise RuntimeError('Job submission failed; sbatch output: '
+                           + result.stdout.decode())
+    return int(m.group(1))
 
 
 def _retreive_outputs(rundir, commands, task_id):
@@ -95,7 +101,7 @@ def _retreive_outputs(rundir, commands, task_id):
                '--format', 'jobid,exitcode',
                '--parsable2',
                '--noheader']
-    for _ in range(10):
+    for i in range(1, 7):
         try:
             output = run(command)
         except subprocess.CalledProcessError:
@@ -105,7 +111,9 @@ def _retreive_outputs(rundir, commands, task_id):
         exitcodes = [int(code.split(':')[0]) for _, code in sorted(infos)]
         if len(exitcodes) == len(commands):
             break
-        time.sleep(1)
+        time.sleep(i**2)
+    else:
+        raise RuntimeError('Could not get exit codes of jobs')
 
     time.sleep(5)
 
