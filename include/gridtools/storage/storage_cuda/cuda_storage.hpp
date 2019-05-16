@@ -95,6 +95,10 @@ namespace gridtools {
         template <typename Fun, uint_t Align = 1>
         cuda_storage(uint_t size, Fun &&initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
             : cuda_storage(size, offset_to_align, a) {
+#pragma ivdep
+#ifdef _OPENMP
+#pragma omp parallel for simd
+#endif
             for (uint_t i = 0; i < size; ++i)
                 m_cpu_ptr[i] = initializer(i);
             this->clone_to_device();
