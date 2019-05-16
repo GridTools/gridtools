@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>User Manual &mdash; GridTools 1.0.0 documentation</title>
+  <title>User Manual &mdash; GridTools 1.0.1 documentation</title>
   
 
   
@@ -372,17 +372,17 @@ is surrounded by a halo region (green).</p>
 </div>
 <p><strong>Interface</strong>: A <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> object provides methods for querying the meta data.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points in dimension
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points in dimension
 <code class="docutils literal notranslate"><span class="pre">D</span></code> dimensions</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;int</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">int</span> <span class="pre">stride()</span> <span class="pre">const</span></code>: retrieve the stride in dimension <code class="docutils literal notranslate"><span class="pre">D</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;int</span> <span class="pre">D&gt;</span> <span class="pre">int</span> <span class="pre">stride()</span> <span class="pre">const</span></code>: retrieve the stride in dimension <code class="docutils literal notranslate"><span class="pre">D</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">array&lt;uint_t,</span> <span class="pre">ndims&gt;</span> <span class="pre">&amp;total_lengths()</span> <span class="pre">const</span></code>: return the array of total number of data points in each
 direction</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">array&lt;uint_t,</span> <span class="pre">ndims&gt;</span> <span class="pre">&amp;strides()</span> <span class="pre">const</span></code>: return the array of (aligned) strides.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">begin()</span> <span class="pre">const</span></code>: retrieve the position of the first non halo point in dimension <cite>D</cite></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">end()</span> <span class="pre">const</span></code>: retrieve the position of the last non halo point in dimension <cite>D</cite></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">total_begin()</span> <span class="pre">const</span></code>: retrieve the position of the first point (can also be a
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">begin()</span> <span class="pre">const</span></code>: retrieve the position of the first non halo point in dimension <cite>D</cite></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">end()</span> <span class="pre">const</span></code>: retrieve the position of the last non halo point in dimension <cite>D</cite></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">total_begin()</span> <span class="pre">const</span></code>: retrieve the position of the first point (can also be a
 halo point) in dimension <code class="docutils literal notranslate"><span class="pre">D</span></code> (always <code class="docutils literal notranslate"><span class="pre">0</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">total_end()</span> <span class="pre">const</span></code>: retrieve the position of the last point (can also be a
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">total_end()</span> <span class="pre">const</span></code>: retrieve the position of the last point (can also be a
 halo point) in dimension <code class="docutils literal notranslate"><span class="pre">D</span></code></p></li>
 </ul>
 </div>
