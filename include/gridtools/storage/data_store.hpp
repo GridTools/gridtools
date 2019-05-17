@@ -78,9 +78,8 @@ namespace gridtools {
             : data_store(info, name) {
             int length = m_shared_storage_info->padded_total_length();
             auto *dst = m_shared_storage->get_cpu_ptr();
-#pragma ivdep
 #ifdef _OPENMP
-#pragma omp parallel for simd
+#pragma omp parallel for
 #endif
             for (int i = 0; i < length; ++i)
                 dst[i] = initializer(i);
