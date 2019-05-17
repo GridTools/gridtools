@@ -331,6 +331,8 @@ class call_interface : public testing::Test {
     }
 };
 
+const float_type call_interface::default_value;
+
 TEST_F(call_interface, call_to_copy_functor) {
     auto comp = gridtools::make_computation<backend_t>(grid,
         gridtools::make_multistage(

@@ -38,22 +38,3 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s1.get_cpu_ptr()[1], 200);
     EXPECT_EQ(s1.get_cpu_ptr()[0], 100);
 }
-
-TEST(StorageHostTest, InitializedStorage) {
-    // create two storages
-    gridtools::host_storage<int> s1(2, [](int) { return 3; });
-    gridtools::host_storage<int> s2(2, [](int) { return 5; });
-    // check values
-    EXPECT_EQ(s1.get_cpu_ptr()[0], 3);
-    EXPECT_EQ(s1.get_cpu_ptr()[1], 3);
-    EXPECT_EQ(s2.get_cpu_ptr()[0], 5);
-    EXPECT_EQ(s2.get_cpu_ptr()[1], 5);
-    // change one value
-    s1.get_cpu_ptr()[0] = 10;
-    s2.get_cpu_ptr()[1] = 20;
-    // check values
-    EXPECT_EQ(s1.get_cpu_ptr()[0], 10);
-    EXPECT_EQ(s1.get_cpu_ptr()[1], 3);
-    EXPECT_EQ(s2.get_cpu_ptr()[0], 5);
-    EXPECT_EQ(s2.get_cpu_ptr()[1], 20);
-}

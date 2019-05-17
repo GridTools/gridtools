@@ -110,8 +110,7 @@ namespace gridtools {
          * @param initializer initialization value
          * @param name Human readable name for the data_store
          */
-        template <class Initializer, enable_if_t<std::is_convertible<decay_t<Initializer>, data_t>::value, int> = 0>
-        data_store(StorageInfo const &info, Initializer &&initializer, std::string const &name = "")
+        data_store(StorageInfo const &info, data_t const &initializer, std::string const &name = "")
             : data_store(std::true_type{}, info, [&initializer](int) { return initializer; }, name) {}
 
         /**
@@ -122,7 +121,11 @@ namespace gridtools {
          * @param initializer initialization lambda
          * @param name Human readable name for the data_store
          */
-        template <class Initializer, enable_if_t<!std::is_convertible<decay_t<Initializer>, data_t>::value, int> = 0>
+        template <class Initializer,
+            enable_if_t<!std::is_convertible<Initializer, data_t const &>::value &&
+                            !std::is_convertible<Initializer, data_t *>::value &&
+                            !std::is_convertible<Initializer, std::string const &>::value,
+                int> = 0>
         data_store(StorageInfo const &info, Initializer &&initializer, std::string const &name = "")
             : data_store(std::true_type{},
                   info,
@@ -138,8 +141,9 @@ namespace gridtools {
          * @param own ownership information
          * @param name Human readable name for the data_store
          */
+        template <class T, enable_if_t<std::is_same<data_t *, T>::value, int> = 0>
         data_store(StorageInfo const &info,
-            data_t *external_ptr,
+            T external_ptr,
             ownership own = ownership::external_cpu,
             std::string const &name = "")
             : m_shared_storage(info.length() ? new storage_t(info.padded_total_length(), external_ptr, own) : nullptr),
