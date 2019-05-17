@@ -128,8 +128,6 @@ namespace gridtools {
       public:
         constexpr static uint_t id = Id;
 
-        GT_CONSTEXPR storage_info() = delete;
-
         /**
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
