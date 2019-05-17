@@ -77,26 +77,3 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s1.get_cpu_ptr()[1], 400);
     EXPECT_EQ(s1.get_cpu_ptr()[0], 300);
 }
-
-TEST(StorageHostTest, InitializedStorage) {
-    // create two storages
-    gridtools::cuda_storage<int> s1(2, [](int) { return 10; });
-    // initial check
-    initial_check_s1<<<1, 1>>>(s1.get_gpu_ptr());
-    s1.clone_from_device();
-    // check values
-    EXPECT_EQ(s1.get_cpu_ptr()[0], 10);
-    EXPECT_EQ(s1.get_cpu_ptr()[1], 10);
-    // change one value
-    s1.get_cpu_ptr()[1] = 20;
-    // check values
-    EXPECT_EQ(s1.get_cpu_ptr()[0], 10);
-    EXPECT_EQ(s1.get_cpu_ptr()[1], 20);
-    // some device things
-    s1.clone_to_device();
-    check_s1<<<1, 1>>>(s1.get_gpu_ptr());
-    s1.clone_from_device();
-    // check again
-    EXPECT_EQ(s1.get_cpu_ptr()[0], 30);
-    EXPECT_EQ(s1.get_cpu_ptr()[1], 40);
-}

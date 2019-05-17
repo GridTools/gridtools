@@ -31,56 +31,23 @@ namespace gridtools {
      */
 
     namespace data_store_impl_ {
-        template <class F,
-            class StorageInfo,
-            class DataType,
-            class = GT_META_CALL(meta::repeat_c, (StorageInfo::layout_t::masked_length, int_t)),
-            class = void>
-        struct is_valid_initializer : std::false_type {};
+        template <class Fun, class StorageInfo, class = meta::make_index_sequence<StorageInfo::ndims>>
+        struct initializer_adapter_f;
 
-        template <class F, class StorageInfo, class DataType, class... Indices>
-        struct is_valid_initializer<F,
-            StorageInfo,
-            DataType,
-            meta::list<Indices...>,
-            enable_if_t<std::is_convertible<decltype(std::declval<F>()(std::declval<Indices>()...)), DataType>::value>>
-            : std::true_type {};
+        template <class Fun, class StorageInfo, size_t... Is>
+        struct initializer_adapter_f<Fun, StorageInfo, meta::index_sequence<Is...>> {
+            Fun const &m_fun;
+            StorageInfo const &m_info;
 
-        /**
-         * @brief helper function used to initialize a storage with a given lambda (base case).
-         * The reason for having this is that generic initializations should be supported.
-         * E.g., a 4-dimensional storage should be initialize-able with a lambda of
-         * type data_t(int, int, int, int).
-         */
-        template <typename F, typename StorageInfo, typename DataType, typename... Indices>
-        enable_if_t<(sizeof...(Indices) == decay_t<StorageInfo>::layout_t::masked_length - 1), void> lambda_initializer(
-            F &&init, StorageInfo &&si, DataType *ptr, Indices... indices) {
-            const int_t total_length = si.template total_length<sizeof...(Indices)>();
-#pragma ivdep
-#ifdef _OPENMP
-#pragma omp parallel for simd
-#endif
-            for (int_t i = 0; i < total_length; ++i)
-                ptr[si.index(indices..., i)] = init(indices..., i);
-        }
+            template <size_t Dim>
+            int index_from_offset(int offset) const {
+                auto stride = m_info.template stride<Dim>();
+                return stride ? offset / stride % m_info.template padded_length<Dim>()
+                              : m_info.template total_length<Dim>() - 1;
+            }
 
-        /**
-         * @brief helper function used to initialize a storage with a given lambda (step case).
-         * The reason for having this is that generic initializations should be supported.
-         * E.g., a 4-dimensional storage should be initialize-able with a lambda of
-         * type data_t(int, int, int, int).
-         */
-        template <typename F, typename StorageInfo, typename DataType, typename... Indices>
-        enable_if_t<(sizeof...(Indices) < decay_t<StorageInfo>::layout_t::masked_length - 1), void> lambda_initializer(
-            F &&init, StorageInfo &&si, DataType *ptr, Indices... indices) {
-            const int_t total_length = si.template total_length<sizeof...(Indices)>();
-#pragma ivdep
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-            for (int_t i = 0; i < total_length; ++i)
-                lambda_initializer(std::forward<F>(init), std::forward<StorageInfo>(si), ptr, indices..., i);
-        }
+            auto operator()(int offset) const GT_AUTO_RETURN(m_fun(index_from_offset<Is>(offset)...));
+        };
     } // namespace data_store_impl_
 
     /** \ingroup storage
@@ -105,12 +72,25 @@ namespace gridtools {
         std::shared_ptr<storage_info_t> m_shared_storage_info;
         std::string m_name;
 
+      private:
+        template <class Initializer>
+        data_store(std::true_type, StorageInfo const &info, Initializer &&initializer, std::string const &name)
+            : data_store(info, name) {
+            int length = m_shared_storage_info->padded_total_length();
+            auto *dst = m_shared_storage->get_cpu_ptr();
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+            for (int i = 0; i < length; ++i)
+                dst[i] = initializer(i);
+            m_shared_storage->clone_to_device();
+        }
+
       public:
         /**
          * @brief data_store constructor. This constructor does not trigger an allocation of the required space.
          */
-        GT_CONSTEXPR data_store(std::string const &name = "")
-            : m_shared_storage(nullptr), m_shared_storage_info(nullptr), m_name(name) {}
+        data_store(std::string const &name = "") : m_name(name) {}
 
         /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
@@ -129,12 +109,8 @@ namespace gridtools {
          * @param initializer initialization value
          * @param name Human readable name for the data_store
          */
-        GT_CONSTEXPR data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length(),
-                  [initializer](int) { return initializer; },
-                  info.first_index_of_inner_region(),
-                  typename StorageInfo::alignment_t{})),
-              m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
+        data_store(StorageInfo const &info, data_t const &initializer, std::string const &name = "")
+            : data_store(std::true_type{}, info, [&initializer](int) { return initializer; }, name) {}
 
         /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
@@ -145,33 +121,15 @@ namespace gridtools {
          * @param name Human readable name for the data_store
          */
         template <class Initializer,
-            enable_if_t<data_store_impl_::is_valid_initializer<decay_t<Initializer>, StorageInfo, data_t>::value, int> =
-                0>
+            enable_if_t<!std::is_convertible<Initializer, data_t const &>::value &&
+                            !std::is_convertible<Initializer, data_t *>::value &&
+                            !std::is_convertible<Initializer, std::string const &>::value,
+                int> = 0>
         data_store(StorageInfo const &info, Initializer &&initializer, std::string const &name = "")
-            : m_shared_storage(new storage_t(
-                  info.padded_total_length(), info.first_index_of_inner_region(), typename StorageInfo::alignment_t{})),
-              m_shared_storage_info(new storage_info_t(info)), m_name(name) {
-            // initialize the storage with the given lambda
-            data_store_impl_::lambda_initializer(
-                std::forward<Initializer>(initializer), info, m_shared_storage->get_cpu_ptr());
-            // synchronize contents
-            clone_to_device();
-        }
-
-        data_store(data_store const &src, std::shared_ptr<StorageInfo> const &storage_info) : data_store(src) {
-            assert(valid());
-            assert(storage_info);
-            assert(*m_shared_storage_info == *storage_info);
-            m_shared_storage_info = storage_info;
-        }
-
-        data_store(data_store &&src, std::shared_ptr<StorageInfo> const &storage_info) noexcept
-            : data_store(wstd::move(src)) {
-            assert(valid());
-            assert(*storage_info);
-            assert(*m_shared_storage_info == *storage_info);
-            m_shared_storage_info = storage_info;
-        }
+            : data_store(std::true_type{},
+                  info,
+                  data_store_impl_::initializer_adapter_f<Initializer, StorageInfo>{initializer, info},
+                  name) {}
 
         /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
@@ -182,22 +140,13 @@ namespace gridtools {
          * @param own ownership information
          * @param name Human readable name for the data_store
          */
-        template <typename T = data_t *,
-            enable_if_t<std::is_pointer<T>::value && std::is_same<data_t *, T>::value, int> = 0>
-        explicit GT_CONSTEXPR data_store(StorageInfo const &info,
+        template <class T, enable_if_t<std::is_same<data_t *, T>::value, int> = 0>
+        data_store(StorageInfo const &info,
             T external_ptr,
             ownership own = ownership::external_cpu,
             std::string const &name = "")
-            : m_shared_storage(
-                  (info.length() == 0) ? nullptr : (new storage_t(info.padded_total_length(), external_ptr, own))),
-              m_shared_storage_info((info.length() == 0) ? nullptr : (new storage_info_t(info))), m_name(name) {}
-
-        // Explicit defaulting prevents nvcc to implicitly generate them with __device__
-        data_store(data_store &&other) = default;
-        data_store(data_store const &other) = default;
-        data_store &operator=(data_store const &other) = default;
-        data_store &operator=(data_store &&other) = default;
-        ~data_store() = default;
+            : m_shared_storage(info.length() ? new storage_t(info.padded_total_length(), external_ptr, own) : nullptr),
+              m_shared_storage_info(info.length() ? new storage_info_t(info) : nullptr), m_name(name) {}
 
         /**
          * @brief allocate the needed memory. this will instantiate a storage instance.
@@ -205,8 +154,8 @@ namespace gridtools {
          * @param info StorageInfo instance
          */
         void allocate(StorageInfo const &info) {
-            GT_ASSERT_OR_THROW((!m_shared_storage_info.get() && !m_shared_storage.get()),
-                "This data store has already been allocated.");
+            GT_ASSERT_OR_THROW(
+                !m_shared_storage_info.get() && !m_shared_storage.get(), "This data store has already been allocated.");
             m_shared_storage_info = std::make_shared<storage_info_t>(info);
             m_shared_storage = std::make_shared<storage_t>(m_shared_storage_info->padded_total_length(),
                 m_shared_storage_info->first_index_of_inner_region(),

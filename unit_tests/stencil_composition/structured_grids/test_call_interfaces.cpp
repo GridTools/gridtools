@@ -292,7 +292,6 @@ class call_interface : public testing::Test {
     data_store_t in;
     data_store_t out;
 
-    static constexpr float_type default_value = -1;
     data_store_t reference_unchanged;
     data_store_t reference_shifted;
     data_store_t reference_smaller_interval;
@@ -311,16 +310,11 @@ class call_interface : public testing::Test {
           verifier_(1e-12),
 #endif
           verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
-          in(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }), out(meta_, default_value),
+          in(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }), out(meta_, -1),
           reference_unchanged(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }),
           reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) * 100 + (j + 1) * 10 + k; }),
-          reference_smaller_interval(meta_,
-              [this](int i, int j, int k) {
-                  if (k > 0 && k < this->d3 - 1)
-                      return (float_type)(i * 100 + j * 10 + k);
-                  else
-                      return default_value;
-              }),
+          reference_smaller_interval(
+              meta_, [this](int i, int j, int k) { return k > 0 && k < d3 - 1 ? i * 100 + j * 10 + k : -1; }),
           reference_plus1(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k + 1; }) {
     }
 

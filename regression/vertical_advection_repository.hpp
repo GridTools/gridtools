@@ -29,14 +29,27 @@ namespace gridtools {
         template <class Fun>
         struct cached_f {
             Fun m_fun;
-            mutable std::map<std::array<int_t, 2>, column_t> m_cach;
+            mutable std::map<std::array<int_t, 2>, column_t> m_cache;
+
+            column_t const *lookup(int_t i, int_t j) const {
+                column_t const *res = nullptr;
+#pragma omp critical
+                {
+                    auto it = m_cache.find({i, j});
+                    if (it != m_cache.end())
+                        res = &it->second;
+                }
+                return res;
+            }
 
             double operator()(int_t i, int_t j, int_t k) const {
-                auto it = m_cach.find({i, j});
-                if (it == m_cach.end())
-                    it = m_cach.insert(it, {{i, j}, m_fun(i, j)});
-                assert(it != m_cach.end());
-                return it->second[k];
+                if (auto *cached = lookup(i, j))
+                    return (*cached)[k];
+                auto column = m_fun(i, j);
+                double res = column[k];
+#pragma omp critical
+                { m_cache.insert({{i, j}, std::move(column)}); }
+                return res;
             }
         };
         template <class Fun>

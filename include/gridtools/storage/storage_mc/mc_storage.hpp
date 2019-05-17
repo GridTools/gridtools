@@ -70,23 +70,6 @@ namespace gridtools {
         }
 
         /*
-         * @brief mc_storage constructor. Allocate memory on Mic and initialize the memory according to the given
-         * initializer.
-         * @param size defines the size of the storage and the allocated space.
-         * @param initializer initialization value
-         */
-        template <typename Fun, uint_t Align = 1>
-        mc_storage(uint_t size, Fun &&initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
-            : mc_storage(size, offset_to_align, a) {
-#pragma ivdep
-#ifdef _OPENMP
-#pragma omp parallel for simd
-#endif
-            for (uint_t i = 0; i < size; ++i)
-                m_ptr[i] = initializer(i);
-        }
-
-        /*
          * @brief swap implementation for mc_storage
          */
         void swap_impl(mc_storage &other) {
