@@ -74,19 +74,6 @@ namespace gridtools {
         }
 
         /*
-         * @brief host_storage constructor. Allocate memory on Host and initialize the memory according to the given
-         * initializer.
-         * @param size defines the size of the storage and the allocated space.
-         * @param initializer initialization value
-         */
-        template <typename Fun, uint_t Align = 1>
-        host_storage(uint_t size, Fun &&initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
-            : host_storage(size, offset_to_align, a) {
-            for (uint_t i = 0; i < size; ++i)
-                m_ptr[i] = initializer(i);
-        }
-
-        /*
          * @brief swap implementation for host_storage
          */
         void swap_impl(host_storage &other) {

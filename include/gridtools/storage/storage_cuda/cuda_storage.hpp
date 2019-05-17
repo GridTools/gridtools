@@ -87,20 +87,6 @@ namespace gridtools {
         }
 
         /*
-         * @brief cuda_storage constructor. Allocates memory on Host and Device and initializes the memory according to
-         * the given initializer.
-         * @param size defines the size of the storage and the allocated space.
-         * @param initializer initialization value
-         */
-        template <typename Fun, uint_t Align = 1>
-        cuda_storage(uint_t size, Fun &&initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
-            : cuda_storage(size, offset_to_align, a) {
-            for (uint_t i = 0; i < size; ++i)
-                m_cpu_ptr[i] = initializer(i);
-            this->clone_to_device();
-        }
-
-        /*
          * @brief swap implementation for cuda_storage
          */
         void swap_impl(cuda_storage &other) {
