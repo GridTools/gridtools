@@ -58,7 +58,7 @@ namespace gridtools {
             const int_t total_length = si.template total_length<sizeof...(Indices)>();
 #pragma ivdep
 #ifdef _OPENMP
-#pragma omp parallel for simd
+#pragma omp parallel for
 #endif
             for (int_t i = 0; i < total_length; ++i)
                 ptr[si.index(indices..., i)] = init(indices..., i);
