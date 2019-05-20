@@ -25,7 +25,7 @@ namespace gridtools {
         };
 
         struct stage_with_extents : computation_fixture<10> {
-            stage_with_extents() : computation_fixture<10>{10, 10, 10} {}
+            stage_with_extents() : computation_fixture<10>(100, 100, 100) {}
         };
 
         TEST_F(stage_with_extents, smoke) {
@@ -40,8 +40,8 @@ namespace gridtools {
             using extent_3 = decltype(comp.get_arg_extent(p_3));
 
             static_assert(std::is_same<extent_0, extent<-6, 6>>(), "");
-            static_assert(std::is_same<extent_1, extent<-4, 4>>(), "");
-            static_assert(std::is_same<extent_2, extent<-1, 1>>(), "");
+            static_assert(std::is_same<extent_1, extent<-5, 5>>(), "");
+            static_assert(std::is_same<extent_2, extent<-3, 3>>(), "");
             static_assert(std::is_same<extent_3, extent<>>(), "");
         }
     } // namespace
