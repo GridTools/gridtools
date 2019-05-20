@@ -24,7 +24,7 @@ make test
 
 - Boost (1.65.1 or later)
 - CMake (3.12.4 or later)
-- CUDA Toolkit (8.0 or later, optional)
+- CUDA Toolkit (9.0 or later, optional)
 
 ### Supported compilers
 
@@ -36,7 +36,6 @@ The GridTools libraries are currently nightly tested with the following compiler
 | NVCC 9.2 with Clang 3.8.1 | cuda | Piz Daint |
 | GNU 7.3.0 | x86, mc | Piz Daint |
 | Clang 7.0.1 | x86, mc | Piz Daint |
-| NVCC 8.0 with GNU 5.4.0 | cuda | Piz Kesch |
 
 ##### Known issues
 
@@ -46,6 +45,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 | Compiler | Backend | Date | Comments
 | --- | --- | --- | --- |
+| NVCC <= 8.0 | cuda | 2019-05-20 | removed workarounds in GT 1.1
 | NVCC <= 9.1 with GNU 6.x | cuda | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
 | PGI 18.5 | x86 | 2018-12-06 | no effort to fix compilation
 | Cray 8.7.3 | x86 | 2018-12-06 | no effort to fix compilation

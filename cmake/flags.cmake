@@ -29,8 +29,8 @@ CMAKE_DEPENDENT_OPTION(
 CMAKE_DEPENDENT_OPTION(
     GT_TREAT_WARNINGS_AS_ERROR "Treat warnings as errors"
     OFF "BUILD_TESTING" OFF)
-set( GT_CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )
-set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++11;c++14;c++17")
+set( GT_CXX_STANDARD "c++14" CACHE STRING "C++ standard to be used for compilation" )
+set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++14;c++17")
 
 option( GT_ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experimental repository" OFF )
 
