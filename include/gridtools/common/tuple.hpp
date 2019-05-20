@@ -144,16 +144,19 @@ namespace gridtools {
 
         struct getter {
             template <size_t I>
-            static GT_CONSTEXPR GT_FUNCTION auto get(tuple const &obj) noexcept GT_AUTO_RETURN(
-                impl_::tuple_leaf_getter::get<I>(obj.m_impl));
+            static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(tuple const &obj) noexcept {
+                return impl_::tuple_leaf_getter::get<I>(obj.m_impl);
+            }
 
             template <size_t I>
-            static GT_FUNCTION auto get(tuple &obj) noexcept GT_AUTO_RETURN(
-                impl_::tuple_leaf_getter::get<I>(obj.m_impl));
+            static GT_FUNCTION decltype(auto) get(tuple &obj) noexcept {
+                return impl_::tuple_leaf_getter::get<I>(obj.m_impl);
+            }
 
             template <size_t I>
-            static GT_CONSTEXPR GT_FUNCTION auto get(tuple &&obj) noexcept GT_AUTO_RETURN(
-                impl_::tuple_leaf_getter::get<I>(wstd::move(obj).m_impl));
+            static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(tuple &&obj) noexcept {
+                return impl_::tuple_leaf_getter::get<I>(wstd::move(obj).m_impl);
+            }
         };
         friend getter tuple_getter(tuple const &) { return {}; }
 
@@ -189,8 +192,10 @@ namespace gridtools {
         GT_FORCE_INLINE void swap(tuple &other) noexcept { m_impl.swap(other.m_impl); }
 
         template <class Other>
-        GT_FUNCTION auto operator=(Other &&other)
-            GT_AUTO_RETURN((m_impl.assign(wstd::forward<Other>(other).m_impl), *this));
+        GT_FUNCTION tuple &operator=(Other &&other) {
+            m_impl.assign(wstd::forward<Other>(other).m_impl);
+            return *this;
+        }
     };
 
     template <class T>
