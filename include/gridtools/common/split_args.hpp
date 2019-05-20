@@ -45,21 +45,25 @@ namespace gridtools {
                 meta::filter<apply_to_first<Pred>::template apply, meta::zip<Args, meta::make_indices_for<Args>>>>;
 
             template <class Args, template <class...> class L, class... Is>
-            auto get_part_helper(Args &&args, L<Is...> *)
-                GT_AUTO_RETURN(std::forward_as_tuple(std::get<Is::value>(wstd::forward<Args>(args))...));
+            auto get_part_helper(Args &&args, L<Is...> *) {
+                return std::forward_as_tuple(std::get<Is::value>(wstd::forward<Args>(args))...);
+            }
 
             template <template <class...> class Pred, class Args>
-            auto get_part(Args &&args) GT_AUTO_RETURN(
-                get_part_helper(wstd::forward<Args>(args), (make_filtered_indicies<Pred, Args> *)(nullptr)));
+            auto get_part(Args &&args) {
+                return get_part_helper(wstd::forward<Args>(args), (make_filtered_indicies<Pred, Args> *)(nullptr));
+            }
 
             template <template <class...> class Pred, class Args>
-            auto raw_split_args_tuple(Args &&args)
-                GT_AUTO_RETURN(std::make_pair(get_part<Pred>(wstd::forward<Args>(args)),
-                    get_part<meta::not_<Pred>::template apply>(wstd::forward<Args>(args))));
+            auto raw_split_args_tuple(Args &&args) {
+                return std::make_pair(get_part<Pred>(wstd::forward<Args>(args)),
+                    get_part<meta::not_<Pred>::template apply>(wstd::forward<Args>(args)));
+            }
 
             template <template <class...> class Pred, class Args>
-            auto split_args_tuple(Args &&args)
-                GT_AUTO_RETURN(raw_split_args_tuple<apply_to_decayed<Pred>::template apply>(wstd::forward<Args>(args)));
+            auto split_args_tuple(Args &&args) {
+                return raw_split_args_tuple<apply_to_decayed<Pred>::template apply>(wstd::forward<Args>(args));
+            }
         } // namespace _split_args
     }     // namespace _impl
 
@@ -74,11 +78,13 @@ namespace gridtools {
      * @return std::pair of two std::tuples. First tuple is from the types that satisfies predicate Pred
      */
     template <template <class...> class Pred, class... Args>
-    auto raw_split_args(Args &&... args)
-        GT_AUTO_RETURN(raw_split_args_tuple<Pred>(std::forward_as_tuple(wstd::forward<Args>(args)...)));
+    auto raw_split_args(Args &&... args) {
+        return raw_split_args_tuple<Pred>(std::forward_as_tuple(wstd::forward<Args>(args)...));
+    }
 
     /// A handy variation of raw_split_args that applies predicate on decayed argument types.
     template <template <class...> class Pred, class... Args>
-    auto split_args(Args &&... args)
-        GT_AUTO_RETURN(split_args_tuple<Pred>(std::forward_as_tuple(wstd::forward<Args>(args)...)));
+    auto split_args(Args &&... args) {
+        return split_args_tuple<Pred>(std::forward_as_tuple(wstd::forward<Args>(args)...));
+    }
 } // namespace gridtools

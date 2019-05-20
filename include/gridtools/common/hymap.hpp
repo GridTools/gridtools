@@ -161,8 +161,9 @@ namespace gridtools {
 namespace gridtools {
     GT_TARGET_NAMESPACE {
         template <class Key, class Map, class I = meta::st_position<get_keys<decay_t<Map>>, Key>>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto at_key(Map && map) noexcept GT_AUTO_RETURN(
-            tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map)));
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map) noexcept {
+            return tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map));
+        }
 
         template <class Key,
             class Default,
@@ -170,8 +171,9 @@ namespace gridtools {
             class Decayed = decay_t<Map>,
             class I = meta::st_position<get_keys<Decayed>, Key>,
             enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE constexpr auto at_key_with_default(Map && map) noexcept GT_AUTO_RETURN(
-            tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map)));
+        GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) at_key_with_default(Map && map) noexcept {
+            return tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map));
+        }
 
         template <class Key,
             class Default,

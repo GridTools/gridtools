@@ -163,28 +163,36 @@ namespace gridtools {
 
         struct getter {
             template <size_t I, class T1, class T2>
-            static GT_CONSTEXPR GT_FUNCTION auto get(pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_get<I>::get(p));
+            static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(pair<T1, T2> &p) noexcept {
+                return pair_get<I>::get(p);
+            }
 
             template <size_t I, class T1, class T2>
-            static GT_CONSTEXPR GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(
-                pair_get<I>::const_get(p));
+            static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(const pair<T1, T2> &p) noexcept {
+                return pair_get<I>::const_get(p);
+            }
 
             template <size_t I, class T1, class T2>
-            static GT_CONSTEXPR GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(
-                pair_get<I>::move_get(wstd::move(p)));
+            static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(pair<T1, T2> &&p) noexcept {
+                return pair_get<I>::move_get(wstd::move(p));
+            }
         };
     } // namespace pair_impl_
 
     template <size_t I, class T1, class T2>
-    GT_CONSTEXPR GT_FUNCTION auto get(pair<T1, T2> &p) noexcept GT_AUTO_RETURN(pair_impl_::pair_get<I>::get(p));
+    GT_CONSTEXPR GT_FUNCTION decltype(auto) get(pair<T1, T2> &p) noexcept {
+        return pair_impl_::pair_get<I>::get(p);
+    }
 
     template <size_t I, class T1, class T2>
-    GT_CONSTEXPR GT_FUNCTION auto get(const pair<T1, T2> &p) noexcept GT_AUTO_RETURN(
-        pair_impl_::pair_get<I>::const_get(p));
+    GT_CONSTEXPR GT_FUNCTION decltype(auto) get(const pair<T1, T2> &p) noexcept {
+        return pair_impl_::pair_get<I>::const_get(p);
+    }
 
     template <size_t I, class T1, class T2>
-    GT_CONSTEXPR GT_FUNCTION auto get(pair<T1, T2> &&p) noexcept GT_AUTO_RETURN(
-        pair_impl_::pair_get<I>::move_get(wstd::move(p)));
+    GT_CONSTEXPR GT_FUNCTION decltype(auto) get(pair<T1, T2> &&p) noexcept {
+        return pair_impl_::pair_get<I>::move_get(wstd::move(p));
+    }
 
     template <class T1, class T2>
     pair_impl_::getter tuple_getter(pair<T1, T2> const &);
