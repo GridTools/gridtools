@@ -29,10 +29,8 @@ namespace gridtools {
         struct stages_from_esf_f;
 
         template <class Esfs, class Index, class ExtentMap>
-        GT_META_DEFINE_ALIAS(stages_from_esfs,
-            meta::filter,
-            (meta::not_<meta::is_empty>::apply,
-                meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>));
+        using stages_from_esfs = meta::filter<meta::not_<meta::is_empty>::apply,
+            meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>>;
 
         GT_META_LAZY_NAMESPACE {
             template <class Functor, class Esf, class ExtentMap>
@@ -62,7 +60,7 @@ namespace gridtools {
         template <class Index, class ExtentMap>
         struct stages_from_esf_f {
             template <class Esf>
-            GT_META_DEFINE_ALIAS(apply, stages_from_esf, (Esf, Index, ExtentMap));
+            using apply = stages_from_esf<Esf, Index, ExtentMap>;
         };
     } // namespace _impl
 
@@ -100,6 +98,6 @@ namespace gridtools {
     template <class ExecutionEngine, class Esfs, class Caches, class ExtentMap>
     struct stages_maker<mss_descriptor<ExecutionEngine, Esfs, Caches>, ExtentMap> {
         template <class LevelIndex>
-        GT_META_DEFINE_ALIAS(apply, _impl::stages_from_esfs, (Esfs, LevelIndex, ExtentMap));
+        using apply = _impl::stages_from_esfs<Esfs, LevelIndex, ExtentMap>;
     };
 } // namespace gridtools

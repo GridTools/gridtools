@@ -38,7 +38,7 @@ namespace gridtools {
     };
 
     template <class T>
-    GT_META_DEFINE_ALIAS(is_grid, meta::is_instantiation_of, (grid, T));
+    using is_grid = meta::is_instantiation_of<grid, T>;
 
     template <typename Axis, typename GridTopology>
     GT_FUNCTION_HOST grid<typename Axis::axis_interval_t, GridTopology> make_grid(GridTopology const &grid_topology,

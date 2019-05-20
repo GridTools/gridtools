@@ -71,13 +71,11 @@ namespace gridtools {
             class To = meta::second<LoopInterval>,
             class StageGroups = meta::third<LoopInterval>,
             class Stages = meta::flatten<StageGroups>>
-        GT_META_DEFINE_ALIAS(
-            split_loop_interval, meta::transform, (meta::curry<meta::list, From, To>::template apply, Stages));
+        using split_loop_interval = meta::transform<meta::curry<meta::list, From, To>::template apply, Stages>;
 
         // split the list of loop intervals into the list of triples meta::list<From, To, Stage>
         template <class LoopIntervals>
-        GT_META_DEFINE_ALIAS(
-            split_loop_intervals, meta::flatten, (meta::transform<split_loop_interval, LoopIntervals>));
+        using split_loop_intervals = meta::flatten<meta::transform<split_loop_interval, LoopIntervals>>;
 
         // execute stages in mss
         template <class Grid>

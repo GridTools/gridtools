@@ -20,7 +20,7 @@ namespace gridtools {
         template <template <template <class...> class, class...> class F, template <class...> class G>
         struct curry_fun {
             template <class... Args>
-            GT_META_DEFINE_ALIAS(apply, F, (G, Args...));
+            using apply = F<G, Args...>;
         };
     } // namespace meta
 } // namespace gridtools

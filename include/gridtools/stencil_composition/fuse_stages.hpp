@@ -33,13 +33,13 @@ namespace gridtools {
         template <class Extent>
         struct has_same_extent {
             template <class Stage>
-            GT_META_DEFINE_ALIAS(apply, std::is_same, (Extent, typename Stage::extent_t));
+            using apply = std::is_same<Extent, typename Stage::extent_t>;
         };
 
         template <class AllStages>
         struct stages_with_the_given_extent {
             template <class Extent>
-            GT_META_DEFINE_ALIAS(apply, meta::filter, (has_same_extent<Extent>::template apply, AllStages));
+            using apply = meta::filter<has_same_extent<Extent>::template apply, AllStages>;
         };
 
         GT_META_LAZY_NAMESPACE {
@@ -61,7 +61,7 @@ namespace gridtools {
         template <template <class...> class CompoundStage>
         struct fuse_stages_with_the_same_extent_f {
             template <class Stages>
-            GT_META_DEFINE_ALIAS(apply, fuse_stages_with_the_same_extent, (CompoundStage, Stages));
+            using apply = fuse_stages_with_the_same_extent<CompoundStage, Stages>;
         };
 
     } // namespace _impl

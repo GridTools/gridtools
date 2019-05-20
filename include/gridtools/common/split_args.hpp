@@ -31,20 +31,18 @@ namespace gridtools {
             template <template <class...> class Pred>
             struct apply_to_first {
                 template <class L>
-                GT_META_DEFINE_ALIAS(apply, Pred, meta::first<L>);
+                using apply = Pred<meta::first<L>>;
             };
 
             template <template <class...> class Pred>
             struct apply_to_decayed {
                 template <class T>
-                GT_META_DEFINE_ALIAS(apply, Pred, decay_t<T>);
+                using apply = Pred<decay_t<T>>;
             };
 
             template <template <class...> class Pred, class Args>
-            GT_META_DEFINE_ALIAS(make_filtered_indicies,
-                meta::transform,
-                (meta::second,
-                    meta::filter<apply_to_first<Pred>::template apply, meta::zip<Args, meta::make_indices_for<Args>>>));
+            using make_filtered_indicies = meta::transform<meta::second,
+                meta::filter<apply_to_first<Pred>::template apply, meta::zip<Args, meta::make_indices_for<Args>>>>;
 
             template <class Args, template <class...> class L, class... Is>
             auto get_part_helper(Args &&args, L<Is...> *)

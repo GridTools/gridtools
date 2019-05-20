@@ -21,7 +21,7 @@ namespace gridtools {
         template <template <class...> class Pred>
         struct not_ {
             template <class T>
-            GT_META_DEFINE_ALIAS(apply, negation, Pred<T>);
+            using apply = negation<Pred<T>>;
         };
     } // namespace meta
 } // namespace gridtools

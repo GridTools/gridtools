@@ -89,11 +89,10 @@ namespace gridtools {
     namespace hymap_impl_ {
 
         template <class I>
-        GT_META_DEFINE_ALIAS(get_key, meta::id, (integral_constant<int, I::value>));
+        using get_key = meta::id<integral_constant<int, I::value>>;
 
         template <class T>
-        GT_META_DEFINE_ALIAS(
-            default_keys, meta::transform, (get_key, meta::make_indices_for<tuple_util::traits::to_types<T>>));
+        using default_keys = meta::transform<get_key, meta::make_indices_for<tuple_util::traits::to_types<T>>>;
 
         struct not_provided;
 
@@ -117,7 +116,7 @@ namespace gridtools {
 #endif
 
     template <class Map, class Key>
-    GT_META_DEFINE_ALIAS(has_key, meta::st_contains, (hymap_impl_::get_keys<Map>, Key));
+    using has_key = meta::st_contains<hymap_impl_::get_keys<Map>, Key>;
 
     namespace hymap {
         template <class... Keys>
@@ -139,16 +138,16 @@ namespace gridtools {
         };
 
         template <class HyMap>
-        GT_META_DEFINE_ALIAS(to_meta_map, meta::zip, (get_keys<HyMap>, tuple_util::traits::to_types<HyMap>));
+        using to_meta_map = meta::zip<get_keys<HyMap>, tuple_util::traits::to_types<HyMap>>;
 
         template <class Keys, class Values, class HyMapKeys = meta::rename<keys, Keys>>
-        GT_META_DEFINE_ALIAS(from_keys_values, meta::rename, (HyMapKeys::template values, Values));
+        using from_keys_values = meta::rename<HyMapKeys::template values, Values>;
 
         template <class MetaMap,
             class KeysAndValues = meta::transpose<MetaMap>,
             class Keys = meta::first<KeysAndValues>,
             class Values = meta::second<KeysAndValues>>
-        GT_META_DEFINE_ALIAS(from_meta_map, from_keys_values, (Keys, Values));
+        using from_meta_map = from_keys_values<Keys, Values>;
     } // namespace hymap
 } // namespace gridtools
 

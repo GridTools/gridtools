@@ -106,7 +106,7 @@ namespace gridtools {
 
         struct from_types_f {
             template <class... Ts>
-            GT_META_DEFINE_ALIAS(apply, meta::id, (array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>));
+            using apply = meta::id<array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>>;
         };
 
         struct getter {

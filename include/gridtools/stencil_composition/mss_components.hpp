@@ -21,19 +21,19 @@ namespace gridtools {
 
     namespace mss_comonents_impl_ {
         template <class Esf, class WArgs = esf_get_w_args_per_functor<Esf>>
-        GT_META_DEFINE_ALIAS(esf_produce_temporary, meta::any_of, (is_tmp_arg, WArgs));
+        using esf_produce_temporary = meta::any_of<is_tmp_arg, WArgs>;
 
         template <class ExtentMap>
         struct get_extent_f {
             template <class Esf>
-            GT_META_DEFINE_ALIAS(apply, get_esf_extent, (Esf, ExtentMap));
+            using apply = get_esf_extent<Esf, ExtentMap>;
         };
 
         template <class Esfs,
             class ExtentMap,
             class TmpEsfs = meta::filter<esf_produce_temporary, Esfs>,
             class Extents = meta::transform<get_extent_f<ExtentMap>::template apply, TmpEsfs>>
-        GT_META_DEFINE_ALIAS(get_max_extent_for_tmp, meta::rename, (enclosing_extent, Extents));
+        using get_max_extent_for_tmp = meta::rename<enclosing_extent, Extents>;
     } // namespace mss_comonents_impl_
 
     /**
@@ -67,10 +67,10 @@ namespace gridtools {
     };
 
     template <typename T>
-    GT_META_DEFINE_ALIAS(is_mss_components, meta::is_instantiation_of, (mss_components, T));
+    using is_mss_components = meta::is_instantiation_of<mss_components, T>;
 
     template <class MssComponents>
-    GT_META_DEFINE_ALIAS(get_max_extent_for_tmp_from_mss_components,
-        mss_comonents_impl_::get_max_extent_for_tmp,
-        (typename MssComponents::linear_esf_t, typename MssComponents::extent_map_t));
+    using get_max_extent_for_tmp_from_mss_components =
+        mss_comonents_impl_::get_max_extent_for_tmp<typename MssComponents::linear_esf_t,
+            typename MssComponents::extent_map_t>;
 } // namespace gridtools

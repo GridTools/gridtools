@@ -20,21 +20,19 @@ namespace gridtools {
         struct make_level_index {
             GT_STATIC_ASSERT(is_level_index<From>::value, GT_INTERNAL_ERROR);
             template <class N>
-            GT_META_DEFINE_ALIAS(apply, level_index, (N::value + From::value, From::offset_limit));
+            using apply = level_index<N::value + From::value, From::offset_limit>;
         };
 
         template <class Acc, class Cur, class Prev = meta::last<Acc>>
-        GT_META_DEFINE_ALIAS(loop_level_inserter,
-            meta::if_,
-            (std::is_same<meta::second<Cur>, meta::second<Prev>>, Acc, meta::push_back<Acc, Cur>));
+        using loop_level_inserter =
+            meta::if_<std::is_same<meta::second<Cur>, meta::second<Prev>>, Acc, meta::push_back<Acc, Cur>>;
 
         template <class LoopLevel, class From = meta::first<LoopLevel>>
-        GT_META_DEFINE_ALIAS(get_previous_to, level_index, (From::value - 1, From::offset_limit));
+        using get_previous_to = level_index<From::value - 1, From::offset_limit>;
 
         template <class LoopLevel, class ToIndex, class FromIndex = meta::first<LoopLevel>>
-        GT_META_DEFINE_ALIAS(make_loop_interval,
-            loop_interval,
-            (index_to_level<FromIndex>, index_to_level<ToIndex>, meta::second<LoopLevel>));
+        using make_loop_interval =
+            loop_interval<index_to_level<FromIndex>, index_to_level<ToIndex>, meta::second<LoopLevel>>;
 
         template <class T>
         struct has_stages : negation<meta::is_empty<meta::at_c<T, 2>>> {};

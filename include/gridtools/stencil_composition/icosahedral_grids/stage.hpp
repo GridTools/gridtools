@@ -58,7 +58,7 @@ namespace gridtools {
 
     namespace impl_ {
         template <class T>
-        GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_apply<T>::value || std::is_void<T>::value);
+        using functor_or_void = bool_constant<has_apply<T>::value || std::is_void<T>::value>;
 
         template <class ItDomain, class Args, class LocationType, uint_t Color>
         struct evaluator {
@@ -174,6 +174,6 @@ namespace gridtools {
     template <size_t Color>
     struct stage_group_contains_color {
         template <class Stages>
-        GT_META_DEFINE_ALIAS(apply, meta::any_of, (stage_contains_color<Color>::template apply, Stages));
+        using apply = meta::any_of<stage_contains_color<Color>::template apply, Stages>;
     };
 } // namespace gridtools

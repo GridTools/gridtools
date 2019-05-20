@@ -59,7 +59,7 @@ namespace gridtools {
                 : concat<L<T0, T1, T2, T3, T4>, typename take_c<N - 5, L<Ts...>>::type> {};
 
             template <class N, class List>
-            GT_META_DEFINE_ALIAS(take, take_c, (N::value, List));
+            using take = take_c<N::value, List>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         template <size_t N, class List>

@@ -41,7 +41,7 @@ namespace gridtools {
                               std::integral_constant<std::size_t, N>>::type> {};
 
             template <class List, class N>
-            GT_META_DEFINE_ALIAS(at, at_c, (List, N::value));
+            using at = at_c<List, N::value>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         // 'direct' versions of lazy functions

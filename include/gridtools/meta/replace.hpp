@@ -36,24 +36,23 @@ namespace gridtools {
         template <template <class...> class Pred, template <class...> class F>
         struct selective_call_impl {
             template <class Arg>
-            GT_META_DEFINE_ALIAS(apply, meta::if_, (Pred<Arg>, F<Arg>, Arg));
+            using apply = meta::if_<Pred<Arg>, F<Arg>, Arg>;
         };
 
         template <template <class...> class Pred, template <class...> class F, class List>
-        GT_META_DEFINE_ALIAS(selective_transform, transform, (selective_call_impl<Pred, F>::template apply, List));
+        using selective_transform = transform<selective_call_impl<Pred, F>::template apply, List>;
 
         /**
          *   replace all Old elements to New within List
          */
         template <class List, class Old, class New>
-        GT_META_DEFINE_ALIAS(replace,
-            selective_transform,
-            (curry<std::is_same, Old>::template apply, always<New>::template apply, List));
+        using replace =
+            selective_transform<curry<std::is_same, Old>::template apply, always<New>::template apply, List>;
 
         template <class Key>
         struct is_same_key_impl {
             template <class Elem>
-            GT_META_DEFINE_ALIAS(apply, std::is_same, (Key, first<Elem>));
+            using apply = std::is_same<Key, first<Elem>>;
         };
 
         template <class... NewVals>
@@ -70,11 +69,9 @@ namespace gridtools {
          *  replace element in the map by key
          */
         template <class Map, class Key, class... NewVals>
-        GT_META_DEFINE_ALIAS(mp_replace,
-            selective_transform,
-            (is_same_key_impl<Key>::template apply,
-                GT_META_INTERNAL_LAZY_PARAM(replace_values_impl<NewVals...>::template apply),
-                Map));
+        using mp_replace = selective_transform<is_same_key_impl<Key>::template apply,
+            GT_META_INTERNAL_LAZY_PARAM(replace_values_impl<NewVals...>::template apply),
+            Map>;
 
         template <std::size_t N, class New>
         struct replace_at_impl {
@@ -92,14 +89,12 @@ namespace gridtools {
          *  replace element at given position
          */
         template <class List, std::size_t N, class New>
-        GT_META_DEFINE_ALIAS(replace_at_c,
-            transform,
-            (GT_META_INTERNAL_LAZY_PARAM((replace_at_impl<N, New>::template apply)),
-                List,
-                typename make_indices_for<List>::type));
+        using replace_at_c = transform<GT_META_INTERNAL_LAZY_PARAM((replace_at_impl<N, New>::template apply)),
+            List,
+            typename make_indices_for<List>::type>;
 
         template <class List, class N, class New>
-        GT_META_DEFINE_ALIAS(replace_at, replace_at_c, (List, N::value, New));
+        using replace_at = replace_at_c<List, N::value, New>;
     } // namespace meta
 } // namespace gridtools
 

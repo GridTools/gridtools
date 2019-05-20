@@ -32,7 +32,7 @@ namespace gridtools {
         struct stage2 {};
 
         template <template <class...> class StagesMaker>
-        GT_META_DEFINE_ALIAS(testee, make_loop_intervals, (StagesMaker, axis_interval_t));
+        using testee = make_loop_intervals<StagesMaker, axis_interval_t>;
 
         namespace no_stages {
             using testee_t = testee<meta::always<list<>>::apply>;
@@ -53,11 +53,9 @@ namespace gridtools {
             constexpr bool has_stage2(int_t i) { return i >= idx<1, 1>() && i < idx<3, -1>(); }
 
             template <class Index>
-            GT_META_DEFINE_ALIAS(stages_maker,
-                meta::filter,
-                (meta::not_<std::is_void>::apply,
-                    meta::list<conditional_t<has_stage1(Index::value), stage1, void>,
-                        conditional_t<has_stage2(Index::value), stage2, void>>));
+            using stages_maker = meta::filter<meta::not_<std::is_void>::apply,
+                meta::list<conditional_t<has_stage1(Index::value), stage1, void>,
+                    conditional_t<has_stage2(Index::value), stage2, void>>>;
 
             using testee_t = testee<stages_maker>;
 

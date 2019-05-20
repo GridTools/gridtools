@@ -58,7 +58,7 @@ namespace gridtools {
         };
 
         template <class Mss>
-        GT_META_DEFINE_ALIAS(get_esfs, unwrap_independent, typename Mss::esf_sequence_t);
+        using get_esfs = unwrap_independent<typename Mss::esf_sequence_t>;
 
     } // namespace _impl
 
@@ -106,7 +106,7 @@ namespace gridtools {
         using non_cached_tmp_placeholders_t = _impl::extract_non_cached_tmp_args_from_msses<mss_descriptors_t>;
 
         template <class Arg>
-        GT_META_DEFINE_ALIAS(to_arg_storage_pair, meta::id, (arg_storage_pair<Arg, typename Arg::data_store_t>));
+        using to_arg_storage_pair = meta::id<arg_storage_pair<Arg, typename Arg::data_store_t>>;
 
         using tmp_arg_storage_pair_tuple_t = meta::transform<to_arg_storage_pair,
             meta::if_<needs_allocate_cached_tmp<Backend>, tmp_placeholders_t, non_cached_tmp_placeholders_t>>;
@@ -139,12 +139,10 @@ namespace gridtools {
         using max_extent_for_tmp_t = _impl::get_max_extent_for_tmp<mss_components_array_t>;
 
         template <class MssComponents>
-        GT_META_DEFINE_ALIAS(get_local_domain,
-            local_domain,
-            (extract_placeholders_from_mss<typename MssComponents::mss_descriptor_t>,
-                max_extent_for_tmp_t,
-                typename MssComponents::mss_descriptor_t::cache_sequence_t,
-                IsStateful));
+        using get_local_domain = local_domain<extract_placeholders_from_mss<typename MssComponents::mss_descriptor_t>,
+            max_extent_for_tmp_t,
+            typename MssComponents::mss_descriptor_t::cache_sequence_t,
+            IsStateful>;
 
       public:
         // creates a tuple of local domains

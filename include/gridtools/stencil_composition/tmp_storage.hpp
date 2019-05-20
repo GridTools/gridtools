@@ -120,7 +120,7 @@ namespace gridtools {
     };
 
     template <class Backend>
-    GT_META_DEFINE_ALIAS(
-        needs_allocate_cached_tmp, meta::id, decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(Backend{})));
+    using needs_allocate_cached_tmp =
+        meta::id<decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(Backend{}))>;
 
 } // namespace gridtools

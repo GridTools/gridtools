@@ -33,7 +33,7 @@ namespace gridtools {
     };
 
     template <class T>
-    GT_META_DEFINE_ALIAS(is_iterate_domain_arguments, meta::is_instantiation_of, (iterate_domain_arguments, T));
+    using is_iterate_domain_arguments = meta::is_instantiation_of<iterate_domain_arguments, T>;
 
     /**
      * @brief type that contains main metadata required to execute a mss kernel. This type will be passed to
@@ -54,7 +54,7 @@ namespace gridtools {
         using all_stages_t = meta::flatten<all_stage_groups_t>;
 
         template <class Stage>
-        GT_META_DEFINE_ALIAS(get_stage_extent, meta::id, typename Stage::extent_t);
+        using get_stage_extent = meta::id<typename Stage::extent_t>;
 
         using all_extents_t = meta::transform<get_stage_extent, all_stages_t>;
 
@@ -71,5 +71,5 @@ namespace gridtools {
     };
 
     template <class T>
-    GT_META_DEFINE_ALIAS(is_run_functor_arguments, meta::is_instantiation_of, (run_functor_arguments, T));
+    using is_run_functor_arguments = meta::is_instantiation_of<run_functor_arguments, T>;
 } // namespace gridtools

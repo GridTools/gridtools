@@ -26,16 +26,16 @@ namespace gridtools {
              *  Make a list of integral constants of indices from 0 to N
              */
             template <std::size_t N, template <class...> class L = list>
-            GT_META_DEFINE_ALIAS(make_indices_c, iseq_to_list, (make_index_sequence<N>, L));
+            using make_indices_c = iseq_to_list<make_index_sequence<N>, L>;
 
             template <class N, template <class...> class L = list>
-            GT_META_DEFINE_ALIAS(make_indices, iseq_to_list, (make_index_sequence<N::value>, L));
+            using make_indices = iseq_to_list<make_index_sequence<N::value>, L>;
 
             /**
              *  Make a list of integral constants of indices from 0 to length< List >
              */
             template <class List, template <class...> class L = list>
-            GT_META_DEFINE_ALIAS(make_indices_for, iseq_to_list, (make_index_sequence<length<List>::value>, L));
+            using make_indices_for = iseq_to_list<make_index_sequence<length<List>::value>, L>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         template <std::size_t N, template <class...> class L = list>

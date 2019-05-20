@@ -28,8 +28,7 @@ namespace gridtools {
         template <size_t Color>
         struct loop_interval_contains_color {
             template <class T>
-            GT_META_DEFINE_ALIAS(
-                apply, meta::any_of, (stage_group_contains_color<Color>::template apply, meta::at_c<T, 2>));
+            using apply = meta::any_of<stage_group_contains_color<Color>::template apply, meta::at_c<T, 2>>;
         };
 
         template <uint_t Color>
@@ -68,10 +67,8 @@ namespace gridtools {
             GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
             template <class Color>
-            GT_META_DEFINE_ALIAS(has_color,
-                meta::any_of,
-                (loop_interval_contains_color<Color::value>::template apply,
-                    typename RunFunctorArgs::loop_intervals_t));
+            using has_color = meta::any_of<loop_interval_contains_color<Color::value>::template apply,
+                typename RunFunctorArgs::loop_intervals_t>;
 
             IterateDomain &m_it_domain;
             Grid const &m_grid;

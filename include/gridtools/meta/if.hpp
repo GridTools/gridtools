@@ -23,10 +23,10 @@ namespace gridtools {
              *  Note: `std::conditional` should be named `if_c` according to `meta` name convention.
              */
             template <class Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
+            using if_ = std::conditional<Cond::value, Lhs, Rhs>;
 
             template <bool Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_c, std::conditional, (Cond, Lhs, Rhs));
+            using if_c = std::conditional<Cond, Lhs, Rhs>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         template <class Cond, class Lhs, class Rhs>

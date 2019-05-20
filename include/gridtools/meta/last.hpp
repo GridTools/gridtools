@@ -19,7 +19,7 @@ namespace gridtools {
     namespace meta {
         GT_META_LAZY_NAMESPACE {
             template <class List>
-            GT_META_DEFINE_ALIAS(last, at_c, (List, length<List>::value - 1));
+            using last = at_c<List, length<List>::value - 1>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         template <class List>

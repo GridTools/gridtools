@@ -21,9 +21,9 @@
 namespace gridtools {
     namespace meta {
         template <size_t N, class List, class... Ts>
-        GT_META_DEFINE_ALIAS(insert_c, concat, (take_c<N, List>, push_front<drop_front_c<N, List>, Ts...>));
+        using insert_c = concat<take_c<N, List>, push_front<drop_front_c<N, List>, Ts...>>;
 
         template <class N, class List, class... Ts>
-        GT_META_DEFINE_ALIAS(insert, concat, (take_c<N::value, List>, push_front<drop_front_c<N::value, List>, Ts...>));
+        using insert = concat<take_c<N::value, List>, push_front<drop_front_c<N::value, List>, Ts...>>;
     } // namespace meta
 } // namespace gridtools

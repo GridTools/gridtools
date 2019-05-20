@@ -50,7 +50,7 @@ namespace gridtools {
             };
 
             template <class N, class T>
-            GT_META_DEFINE_ALIAS(repeat, repeat_c, (N::value, T));
+            using repeat = repeat_c<N::value, T>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         template <std::size_t N, class T>

@@ -16,7 +16,7 @@
 namespace gridtools {
 
     template <class Esf>
-    GT_META_DEFINE_ALIAS(esf_param_list, meta::id, typename Esf::esf_function_t::param_list);
+    using esf_param_list = meta::id<typename Esf::esf_function_t::param_list>;
 
     GT_META_LAZY_NAMESPACE {
         template <class Esf, class Args>

@@ -32,8 +32,7 @@ namespace gridtools {
         };
 
         template <class... Esfs>
-        GT_META_DEFINE_ALIAS(
-            tuple_from_esfs, meta::flatten, (meta::list<std::tuple<>, typename tuple_from_esf<Esfs>::type...>));
+        using tuple_from_esfs = meta::flatten<meta::list<std::tuple<>, typename tuple_from_esf<Esfs>::type...>>;
 
         template <typename ExecutionEngine, typename... MssParameters>
         struct check_make_multistage_args : std::true_type {

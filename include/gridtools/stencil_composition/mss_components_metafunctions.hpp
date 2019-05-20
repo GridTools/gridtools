@@ -26,8 +26,7 @@ namespace gridtools {
             struct mss_split_esfs<mss_descriptor<ExecutionEngine, EsfSequence, CacheSequence>> {
                 GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
                 template <class Esf>
-                GT_META_DEFINE_ALIAS(
-                    make_mss, meta::id, (mss_descriptor<ExecutionEngine, std::tuple<Esf>, CacheSequence>));
+                using make_mss = meta::id<mss_descriptor<ExecutionEngine, std::tuple<Esf>, CacheSequence>>;
                 using esfs_t = unwrap_independent<EsfSequence>;
                 using type = meta::transform<make_mss, esfs_t>;
             };
@@ -48,7 +47,7 @@ namespace gridtools {
         template <class ExtentMap, class Axis>
         struct make_mms_components_f {
             template <class Mss>
-            GT_META_DEFINE_ALIAS(apply, meta::id, (mss_components<Mss, ExtentMap, Axis>));
+            using apply = meta::id<mss_components<Mss, ExtentMap, Axis>>;
         };
 
     } // namespace mss_comonents_metafunctions_impl_
@@ -63,6 +62,6 @@ namespace gridtools {
         class SplitMsses =
             typename mss_comonents_metafunctions_impl_::split_mss_into_independent_esfs<Fuse, Msses>::type,
         class Maker = mss_comonents_metafunctions_impl_::make_mms_components_f<ExtentMap, Axis>>
-    GT_META_DEFINE_ALIAS(build_mss_components_array, meta::transform, (Maker::template apply, SplitMsses));
+    using build_mss_components_array = meta::transform<Maker::template apply, SplitMsses>;
 
 } // namespace gridtools

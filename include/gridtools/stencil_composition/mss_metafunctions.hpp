@@ -42,8 +42,7 @@ namespace gridtools {
      * metafunction that determines if a given type is a valid parameter for mss_descriptor
      */
     template <class T>
-    GT_META_DEFINE_ALIAS(
-        is_mss_parameter, bool_constant, _impl::is_sequence_of_caches<T>::value || is_esf_descriptor<T>::value);
+    using is_mss_parameter = bool_constant<_impl::is_sequence_of_caches<T>::value || is_esf_descriptor<T>::value>;
 
     /**
      * @struct extract_mss_caches
@@ -72,6 +71,6 @@ namespace gridtools {
      * metafunction that extracts from a sequence of mss descriptor parameters, a sequence of all esf descriptors
      */
     template <class... Ts>
-    GT_META_DEFINE_ALIAS(extract_mss_esfs, meta::filter, (is_esf_descriptor, std::tuple<Ts...>));
+    using extract_mss_esfs = meta::filter<is_esf_descriptor, std::tuple<Ts...>>;
 
 } // namespace gridtools

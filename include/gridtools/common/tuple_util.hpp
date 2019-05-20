@@ -155,8 +155,7 @@ namespace gridtools {
                 //
                 struct array_from_types {
                     template <class... Ts>
-                    GT_META_DEFINE_ALIAS(
-                        apply, meta::id, (std::array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>));
+                    using apply = meta::id<std::array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>>;
                 };
 
                 /// getter for the standard "tuple like" entities: `std::tuple`, `std::pair` and `std::array`
@@ -238,13 +237,13 @@ namespace gridtools {
         ///  Generalization of std::tuple_size
         //
         template <class T>
-        GT_META_DEFINE_ALIAS(size, meta::length, traits::to_types<T>);
+        using size = meta::length<traits::to_types<T>>;
 
         ///  Generalization of std::tuple_element
         //
         GT_META_LAZY_NAMESPACE {
             template <size_t I, class T>
-            GT_META_DEFINE_ALIAS(element, meta::lazy::at_c, (traits::to_types<T>, I));
+            using element = meta::lazy::at_c<traits::to_types<T>, I>;
         }
         GT_META_DELEGATE_TO_LAZY(element, (size_t I, class T), (I, T));
 
@@ -252,10 +251,10 @@ namespace gridtools {
         namespace _impl {
 
             template <class T>
-            GT_META_DEFINE_ALIAS(to_types, traits::to_types, decay_t<T>);
+            using to_types = traits::to_types<decay_t<T>>;
 
             template <class Sample, class Types, class FromTypesMetaClass = traits::from_types<decay_t<Sample>>>
-            GT_META_DEFINE_ALIAS(from_types, meta::rename, (FromTypesMetaClass::template apply, Types));
+            using from_types = meta::rename<FromTypesMetaClass::template apply, Types>;
 
             enum class ref_kind { rvalue, lvalue, const_lvalue };
 
@@ -289,19 +288,18 @@ namespace gridtools {
             template <ref_kind Kind>
             struct get_accessor {
                 template <class T>
-                GT_META_DEFINE_ALIAS(apply, add_ref, (Kind, T));
+                using apply = add_ref<Kind, T>;
             };
 
             template <class Fun>
             struct get_fun_result {
                 template <class... Ts>
-                GT_META_DEFINE_ALIAS(apply, meta::id, decltype(std::declval<Fun>()(std::declval<Ts>()...)));
+                using apply = meta::id<decltype(std::declval<Fun>()(std::declval<Ts>()...))>;
             };
 
             template <class Tup>
-            GT_META_DEFINE_ALIAS(get_accessors,
-                meta::transform,
-                (get_accessor<get_ref_kind<Tup>::value>::template apply, to_types<Tup>));
+            using get_accessors =
+                meta::transform<get_accessor<get_ref_kind<Tup>::value>::template apply, to_types<Tup>>;
 
             template <class D, class... Ts>
             struct make_array_helper {
@@ -314,13 +312,13 @@ namespace gridtools {
             template <template <class...> class L>
             struct to_tuple_converter_helper {
                 template <class... Ts>
-                GT_META_DEFINE_ALIAS(apply, meta::id, L<Ts...>);
+                using apply = meta::id<L<Ts...>>;
             };
 
             template <template <class, size_t> class Arr, class D>
             struct to_array_converter_helper {
                 template <class... Ts>
-                GT_META_DEFINE_ALIAS(apply, meta::id, (Arr<typename make_array_helper<D, Ts...>::type, sizeof...(Ts)>));
+                using apply = meta::id<Arr<typename make_array_helper<D, Ts...>::type, sizeof...(Ts)>>;
             };
 
         } // namespace _impl
@@ -404,7 +402,7 @@ namespace gridtools {
                 };
 
                 template <class I>
-                GT_META_DEFINE_ALIAS(get_transform_generator, meta::id, transform_elem_f<I::value>);
+                using get_transform_generator = meta::id<transform_elem_f<I::value>>;
 
                 template <class GeneratorList, class Res>
                 struct generate_f;
@@ -419,8 +417,7 @@ namespace gridtools {
                 template <class Fun>
                 struct transform_f {
                     template <class... Args>
-                    GT_META_DEFINE_ALIAS(
-                        get_results_t, meta::transform, (get_fun_result<Fun>::template apply, Args...));
+                    using get_results_t = meta::transform<get_fun_result<Fun>::template apply, Args...>;
 
                     Fun m_fun;
 
@@ -490,13 +487,12 @@ namespace gridtools {
                     };
 
                     template <class OuterI, class InnerI>
-                    GT_META_DEFINE_ALIAS(get_generator, meta::id, (generator_f<OuterI::value, InnerI::value>));
+                    using get_generator = meta::id<generator_f<OuterI::value, InnerI::value>>;
 
                     template <class OuterI, class InnerTup>
-                    GT_META_DEFINE_ALIAS(get_inner_generators,
-                        meta::transform,
-                        (meta::bind<get_generator, OuterI, meta::_1>::template apply,
-                            meta::make_indices_for<InnerTup>));
+                    using get_inner_generators =
+                        meta::transform<meta::bind<get_generator, OuterI, meta::_1>::template apply,
+                            meta::make_indices_for<InnerTup>>;
 
                     template <class Tup,
                         class Accessors = meta::transform<get_accessors, get_accessors<Tup &&>>,
@@ -513,7 +509,7 @@ namespace gridtools {
                 template <size_t N>
                 struct drop_front_f {
                     template <class I>
-                    GT_META_DEFINE_ALIAS(get_drop_front_generator, meta::id, get_nth_f<N + I::value>);
+                    using get_drop_front_generator = meta::id<get_nth_f<N + I::value>>;
 
                     template <class Tup,
                         class Accessors = get_accessors<Tup &&>,
@@ -726,11 +722,11 @@ namespace gridtools {
                     template <class Tup>
                     struct get_inner_tuple_f {
                         template <class Types>
-                        GT_META_DEFINE_ALIAS(apply, from_types, (Tup, Types));
+                        using apply = from_types<Tup, Types>;
                     };
 
                     template <class I>
-                    GT_META_DEFINE_ALIAS(get_generator, meta::id, transform_f<get_nth_f<I::value>>);
+                    using get_generator = meta::id<transform_f<get_nth_f<I::value>>>;
 
                     template <class Tup,
                         class First = meta::first<to_types<Tup>>,
@@ -751,7 +747,7 @@ namespace gridtools {
                     template <class N>
                     struct generator_f {
                         template <class I>
-                        GT_META_DEFINE_ALIAS(apply, meta::id, get_nth_f<N::value - 1 - I::value>);
+                        using apply = meta::id<get_nth_f<N::value - 1 - I::value>>;
                     };
 
                     template <class Tup,
@@ -786,11 +782,11 @@ namespace gridtools {
                     Val m_val;
 
                     template <class I>
-                    GT_META_DEFINE_ALIAS(get_generator,
-                        meta::if_c,
-                        (I::value < N,
+                    using get_generator =
+                        meta::if_c <
+                        I::value<N,
                             insert_tup_generator_f<I::value>,
-                            meta::if_c<I::value == N, insert_val_generator_f, insert_tup_generator_f<I::value - 1>>));
+                            meta::if_c<I::value == N, insert_val_generator_f, insert_tup_generator_f<I::value - 1>>>;
 
                     template <class Tup,
                         class Accessors = get_accessors<Tup &&>,

@@ -39,7 +39,7 @@ namespace gridtools {
     };
 
     template <class T>
-    GT_META_DEFINE_ALIAS(is_loop_interval, meta::is_instantiation_of, (loop_interval, T));
+    using is_loop_interval = meta::is_instantiation_of<loop_interval, T>;
 
     namespace loop_interval_impl_ {
         GT_META_LAZY_NAMESPACE {
@@ -53,15 +53,15 @@ namespace gridtools {
         GT_META_DELEGATE_TO_LAZY(reverse_loop_interval, class T, T);
 
         template <class Stage>
-        GT_META_DEFINE_ALIAS(get_extent_from_stage, meta::id, typename Stage::extent_t);
+        using get_extent_from_stage = meta::id<typename Stage::extent_t>;
 
         template <class Interval,
             class StageGroups = meta::at_c<Interval, 2>,
             class Stages = meta::flatten<StageGroups>>
-        GT_META_DEFINE_ALIAS(get_extents_from_interval, meta::transform, (get_extent_from_stage, Stages));
+        using get_extents_from_interval = meta::transform<get_extent_from_stage, Stages>;
 
         template <class LoopIntervals, class ExtentsList = meta::transform<get_extents_from_interval, LoopIntervals>>
-        GT_META_DEFINE_ALIAS(all_extents_of_loop_intervals, meta::flatten, ExtentsList);
+        using all_extents_of_loop_intervals = meta::flatten<ExtentsList>;
 
     } // namespace loop_interval_impl_
 

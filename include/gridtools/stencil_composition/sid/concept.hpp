@@ -190,7 +190,7 @@ namespace gridtools {
             struct is_empty_or_tuple_of_empties : std::is_empty<T> {};
 
             template <class Tup, class Types = tuple_util::traits::to_types<Tup>>
-            GT_META_DEFINE_ALIAS(is_tuple_of_empties, meta::all_of, (is_empty_or_tuple_of_empties, Types));
+            using is_tuple_of_empties = meta::all_of<is_empty_or_tuple_of_empties, Types>;
 
             template <class Tup>
             struct is_empty_or_tuple_of_empties<Tup, enable_if_t<is_tuple_of_empties<Tup>::value>> : std::true_type {};
@@ -343,10 +343,8 @@ namespace gridtools {
              *  If stride of offset are zero or the target has no state, we don't need to shift
              */
             template <class T, class Stride, class Offset>
-            GT_META_DEFINE_ALIAS(need_shift,
-                bool_constant,
-                (!(std::is_empty<T>::value || is_integral_constant_of<Stride, 0>::value ||
-                    is_integral_constant_of<Offset, 0>::value)));
+            using need_shift = bool_constant<!(std::is_empty<T>::value || is_integral_constant_of<Stride, 0>::value ||
+                                               is_integral_constant_of<Offset, 0>::value)>;
 
             /**
              *  additional proxy is used here to ensure that evaluation context of `obj += stride * offset`
@@ -536,7 +534,7 @@ namespace gridtools {
              *  Meta predicate that validates a list of stride type against `shift` function
              */
             template <class StrideTypes, class T>
-            GT_META_DEFINE_ALIAS(are_valid_strides, meta::all_of, (is_valid_stride<T>::template apply, StrideTypes));
+            using are_valid_strides = meta::all_of<is_valid_stride<T>::template apply, StrideTypes>;
 
             /**
              *  Sfinae unsafe version of `is_sid` predicate
@@ -550,29 +548,25 @@ namespace gridtools {
                 class StridesType = strides_type<Sid>,
                 class StrideTypeList = tuple_util::traits::to_types<decay_t<StridesType>>,
                 class StridesKind = strides_kind<Sid>>
-            GT_META_DEFINE_ALIAS(is_sid,
-                conjunction,
-                (
-                    // `is_trivially_copyable` check is applied to the types that are will be passed from host to device
-                    std::is_trivially_copyable<PtrHolder>,
-                    std::is_trivially_copyable<StridesType>,
+            using is_sid = conjunction<std::is_trivially_copyable<PtrHolder>,
+                std::is_trivially_copyable<StridesType>,
 
-                    // verify that `PtrDiff` is sane
-                    std::is_default_constructible<PtrDiff>,
-                    std::is_convertible<decltype(std::declval<Ptr const &>() + std::declval<PtrDiff const &>()), Ptr>,
+                // verify that `PtrDiff` is sane
+                std::is_default_constructible<PtrDiff>,
+                std::is_convertible<decltype(std::declval<Ptr const &>() + std::declval<PtrDiff const &>()), Ptr>,
 
-                    // `PtrHolder` supports `+` as well
-                    // TODO(anstaf): we can do better here: verify that if we transform PtrHolder that way the result
-                    //               thing also models SID
-                    std::is_same<decay_t<decltype(std::declval<PtrHolder const &>() + std::declval<PtrDiff const &>())>,
-                        PtrHolder>,
+                // `PtrHolder` supports `+` as well
+                // TODO(anstaf): we can do better here: verify that if we transform PtrHolder that way the result
+                //               thing also models SID
+                std::is_same<decay_t<decltype(std::declval<PtrHolder const &>() + std::declval<PtrDiff const &>())>,
+                    PtrHolder>,
 
-                    // verify that `Reference` is sane
-                    negation<std::is_void<ReferenceType>>,
+                // verify that `Reference` is sane
+                negation<std::is_void<ReferenceType>>,
 
-                    // all strides must be applied via `shift` with both `Ptr` and `PtrDiff`
-                    are_valid_strides<StrideTypeList, Ptr>,
-                    are_valid_strides<StrideTypeList, PtrDiff>));
+                // all strides must be applied via `shift` with both `Ptr` and `PtrDiff`
+                are_valid_strides<StrideTypeList, Ptr>,
+                are_valid_strides<StrideTypeList, PtrDiff>>;
 
         } // namespace concept_impl_
 
@@ -621,17 +615,15 @@ namespace gridtools {
          *  The type of the element of the SID
          */
         template <class Sid, class Ref = reference_type<Sid>>
-        GT_META_DEFINE_ALIAS(element_type, meta::id, decay_t<Ref>);
+        using element_type = meta::id<decay_t<Ref>>;
 
         /**
          *  The const variation of the reference type
          */
         template <class Sid, class Ref = reference_type<Sid>>
-        GT_META_DEFINE_ALIAS(const_reference_type,
-            meta::id,
-            (conditional_t<std::is_reference<Ref>::value,
-                add_lvalue_reference_t<add_const_t<remove_reference_t<Ref>>>,
-                add_const_t<Ref>>));
+        using const_reference_type = meta::id<conditional_t<std::is_reference<Ref>::value,
+            add_lvalue_reference_t<add_const_t<remove_reference_t<Ref>>>,
+            add_const_t<Ref>>>;
 
         /**
          *  A getter from Strides to the given stride.

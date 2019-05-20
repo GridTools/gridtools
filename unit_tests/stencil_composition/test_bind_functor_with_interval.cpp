@@ -47,7 +47,7 @@ namespace gridtools {
         }
 
         template <uint_t Splitter, int_t Offset>
-        GT_META_DEFINE_ALIAS(idx, level_to_index, (lev<Splitter, Offset>));
+        using idx = level_to_index<lev<Splitter, Offset>>;
 
         struct simple_functor {
             using param_list = std::tuple<>;

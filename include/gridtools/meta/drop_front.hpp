@@ -37,10 +37,10 @@ namespace gridtools {
             };
 
             template <class N, class List>
-            GT_META_DEFINE_ALIAS(drop_front, drop_front_impl, (typename repeat_c<N::value, void>::type, List));
+            using drop_front = drop_front_impl<typename repeat_c<N::value, void>::type, List>;
 
             template <std::size_t N, class List>
-            GT_META_DEFINE_ALIAS(drop_front_c, drop_front_impl, (typename repeat_c<N, void>::type, List));
+            using drop_front_c = drop_front_impl<typename repeat_c<N, void>::type, List>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         template <std::size_t N, class List>

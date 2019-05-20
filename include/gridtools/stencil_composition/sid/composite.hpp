@@ -55,9 +55,8 @@ namespace gridtools {
                 GT_META_DELEGATE_TO_LAZY(make_map_helper, (class State, class Kind), (State, Kind));
 
                 template <class Kinds>
-                GT_META_DEFINE_ALIAS(make_index_map,
-                    meta::first,
-                    (meta::lfold<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>));
+                using make_index_map =
+                    meta::first<meta::lfold<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>>;
 
                 /**
                  *  `maybe_equal(lhs, rhs)` is a functional equivalent of the following pseudo code:
@@ -250,7 +249,7 @@ namespace gridtools {
                         GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Ts), GT_INTERNAL_ERROR);
 
                         template <class I>
-                        GT_META_DEFINE_ALIAS(get_compressed_type, meta::at, (meta::list<Ts...>, I));
+                        using get_compressed_type = meta::at<meta::list<Ts...>, I>;
 
                         using vals_t = meta::transform<get_compressed_type, primary_indices_t>;
 
@@ -327,7 +326,7 @@ namespace gridtools {
                     using compressed_t = compressed<map_t>;
 
                     template <class... Ts>
-                    GT_META_DEFINE_ALIAS(compress, meta::id, (typename compressed_t::template composite_entity<Ts...>));
+                    using compress = meta::id<typename compressed_t::template composite_entity<Ts...>>;
 
                     using stride_keys_t = meta::dedup<meta::concat<get_keys<strides_type<Sids>>...>>;
 
@@ -341,15 +340,13 @@ namespace gridtools {
 #endif
 
                     template <class... Values>
-                    GT_META_DEFINE_ALIAS(
-                        stride_hymap_ctor, meta::id, typename stride_hymap_keys_t::template values<Values...>);
+                    using stride_hymap_ctor = meta::id<typename stride_hymap_keys_t::template values<Values...>>;
 
                     // A helper for generating strides_t
                     // It is a meta function from the stride key to the stride type
                     template <class Key>
-                    GT_META_DEFINE_ALIAS(get_stride_type,
-                        compress,
-                        (impl_::normalized_stride_type<Key, decay_t<strides_type<Sids>>>...));
+                    using get_stride_type =
+                        compress<impl_::normalized_stride_type<Key, decay_t<strides_type<Sids>>>...>;
 
                     // all `SID` types are here
                     using ptr_holder_t = composite_ptr_holder<ptr_holder_type<Sids>...>;

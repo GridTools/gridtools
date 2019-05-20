@@ -36,9 +36,9 @@ namespace gridtools {
         namespace _layout_map {
             /* helper meta functions */
             template <typename Int>
-            GT_META_DEFINE_ALIAS(not_negative, bool_constant, Int::value >= 0);
+            using not_negative = bool_constant<Int::value >= 0>;
             template <typename A, typename B>
-            GT_META_DEFINE_ALIAS(integral_plus, std::integral_constant, (int, A::value + B::value));
+            using integral_plus = std::integral_constant<int, A::value + B::value>;
         } // namespace _layout_map
     }     // namespace _impl
 

@@ -24,7 +24,7 @@ namespace gridtools {
     namespace meta {
         GT_META_LAZY_NAMESPACE {
             template <class Lists>
-            GT_META_DEFINE_ALIAS(flatten, combine, (meta::concat, Lists));
+            using flatten = combine<meta::concat, Lists>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         template <class Lists>

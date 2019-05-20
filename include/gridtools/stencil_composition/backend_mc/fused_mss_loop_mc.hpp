@@ -20,13 +20,13 @@ namespace gridtools {
          * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
          */
         template <typename Mss>
-        GT_META_DEFINE_ALIAS(is_mss_kparallel, execute::is_parallel, typename Mss::execution_engine_t);
+        using is_mss_kparallel = execute::is_parallel<typename Mss::execution_engine_t>;
 
         /**
          * @brief Meta function to check if all MSS in an MssComponents array can be executed in parallel along k-axis.
          */
         template <typename Msses>
-        GT_META_DEFINE_ALIAS(all_mss_kparallel, meta::all_of, (is_mss_kparallel, Msses));
+        using all_mss_kparallel = meta::all_of<is_mss_kparallel, Msses>;
     } // namespace _impl
 
     /**

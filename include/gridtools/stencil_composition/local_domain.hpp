@@ -22,16 +22,16 @@ namespace gridtools {
 
     namespace local_domain_impl_ {
         template <class Arg, class Sid = typename Arg::data_store_t>
-        GT_META_DEFINE_ALIAS(get_sid_strides_kind_pair, meta::list, (Sid, sid::strides_kind<Sid>));
+        using get_sid_strides_kind_pair = meta::list<Sid, sid::strides_kind<Sid>>;
 
         template <class Item>
-        GT_META_DEFINE_ALIAS(get_strides, sid::strides_type, meta::second<Item>);
+        using get_strides = sid::strides_type<meta::second<Item>>;
 
         template <class Arg>
-        GT_META_DEFINE_ALIAS(get_ptr_holder, sid::ptr_holder_type, typename Arg::data_store_t);
+        using get_ptr_holder = sid::ptr_holder_type<typename Arg::data_store_t>;
 
         template <class Arg>
-        GT_META_DEFINE_ALIAS(get_ptr, sid::ptr_type, typename Arg::data_store_t);
+        using get_ptr = sid::ptr_type<typename Arg::data_store_t>;
 
         struct call_f {
             template <class PtrHolder>
@@ -54,7 +54,7 @@ namespace gridtools {
         using cache_sequence_t = CacheSequence;
 
         template <class Arg>
-        GT_META_DEFINE_ALIAS(strides_kind_from_arg, sid::strides_kind, typename Arg::data_store_t);
+        using strides_kind_from_arg = sid::strides_kind<typename Arg::data_store_t>;
 
         using tmp_strides_kinds_t =
             meta::dedup<meta::transform<strides_kind_from_arg, meta::filter<is_tmp_arg, EsfArgs>>>;
@@ -101,7 +101,7 @@ namespace gridtools {
     };
 
     template <class LocalDomain, class Arg>
-    GT_META_DEFINE_ALIAS(storage_from_arg, meta::id, typename Arg::data_store_t);
+    using storage_from_arg = meta::id<typename Arg::data_store_t>;
 
     template <class>
     struct is_local_domain : std::false_type {};

@@ -86,7 +86,7 @@ namespace gridtools {
      * Trait returning true it the template parameter is an interval
      */
     template <class T>
-    GT_META_DEFINE_ALIAS(is_interval, meta::is_instantiation_of, (interval, T));
+    using is_interval = meta::is_instantiation_of<interval, T>;
 
     /**
      * @struct interval_from_index
@@ -113,5 +113,5 @@ namespace gridtools {
      * Meta function computing an interval given a from and a to level index
      */
     template <class FromIndex, class ToIndex>
-    GT_META_DEFINE_ALIAS(make_interval, interval, (index_to_level<FromIndex>, index_to_level<ToIndex>));
+    using make_interval = interval<index_to_level<FromIndex>, index_to_level<ToIndex>>;
 } // namespace gridtools

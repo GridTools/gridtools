@@ -21,11 +21,10 @@ namespace gridtools {
     namespace meta {
         GT_META_LAZY_NAMESPACE {
             template <std::size_t N, class List>
-            GT_META_DEFINE_ALIAS(drop_back_c, reverse, (typename drop_front_c<N, typename reverse<List>::type>::type));
+            using drop_back_c = reverse<typename drop_front_c<N, typename reverse<List>::type>::type>;
 
             template <class N, class List>
-            GT_META_DEFINE_ALIAS(
-                drop_back, reverse, (typename drop_front_c<N::value, typename reverse<List>::type>::type));
+            using drop_back = reverse<typename drop_front_c<N::value, typename reverse<List>::type>::type>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         template <std::size_t N, class List>

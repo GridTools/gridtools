@@ -117,13 +117,11 @@ namespace gridtools {
         }
 
         template <class Policy, sync_type SyncType>
-        GT_META_DEFINE_ALIAS(sync_point,
-            std::integral_constant,
-            (int_t,
-                (execute::is_forward<Policy>::value && SyncType == sync_type::fill) ||
-                        (execute::is_backward<Policy>::value && SyncType == sync_type::flush)
-                    ? Plus
-                    : Minus));
+        using sync_point = std::integral_constant<int_t,
+            (execute::is_forward<Policy>::value && SyncType == sync_type::fill) ||
+                    (execute::is_backward<Policy>::value && SyncType == sync_type::flush)
+                ? Plus
+                : Minus>;
 
       public:
         /**

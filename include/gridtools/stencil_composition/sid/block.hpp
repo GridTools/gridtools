@@ -81,7 +81,7 @@ namespace gridtools {
                 using strides_dims_t = meta::transform<meta::first, strides_map_t>;
 
                 template <class MapEntry, class Dim = meta::first<MapEntry>>
-                GT_META_DEFINE_ALIAS(is_strides_dim, meta::st_contains, (strides_dims_t, Dim));
+                using is_strides_dim = meta::st_contains<strides_dims_t, Dim>;
 
                 using block_map_t = meta::filter<is_strides_dim, hymap::to_meta_map<BlockMap>>;
                 using block_dims_t = meta::transform<meta::first, block_map_t>;
@@ -90,7 +90,7 @@ namespace gridtools {
                     class Dim = meta::first<MapEntry>,
                     class BlockSize = meta::second<MapEntry>,
                     class Stride = meta::second<meta::mp_find<strides_map_t, Dim>>>
-                GT_META_DEFINE_ALIAS(block, meta::list, (blocked_dim<Dim>, blocked_stride_type<Stride, BlockSize>));
+                using block = meta::list<blocked_dim<Dim>, blocked_stride_type<Stride, BlockSize>>;
 
                 using blocked_strides_map_t = meta::transform<block, block_map_t>;
 

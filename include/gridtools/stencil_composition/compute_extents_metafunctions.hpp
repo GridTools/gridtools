@@ -24,24 +24,23 @@
 namespace gridtools {
     namespace compute_extents_metafunctions_impl_ {
         template <class Map, class Arg>
-        GT_META_DEFINE_ALIAS(lookup_extent_map,
-            meta::rename,
-            (enclosing_extent, meta::pop_front<meta::mp_find<Map, Arg, meta::list<Arg, extent<>>>>));
+        using lookup_extent_map =
+            meta::rename<enclosing_extent, meta::pop_front<meta::mp_find<Map, Arg, meta::list<Arg, extent<>>>>>;
 
         template <class Map>
         struct lookup_extent_map_f {
             template <class Arg>
-            GT_META_DEFINE_ALIAS(apply, lookup_extent_map, (Map, Arg));
+            using apply = lookup_extent_map<Map, Arg>;
         };
 
         template <intent Intent>
         struct has_intent {
             template <class Item, class Param = meta::second<Item>>
-            GT_META_DEFINE_ALIAS(apply, bool_constant, Param::intent_v == Intent);
+            using apply = bool_constant<Param::intent_v == Intent>;
         };
 
         template <class Esf>
-        GT_META_DEFINE_ALIAS(get_arg_param_pairs, meta::zip, (typename Esf::args_t, esf_param_list<Esf>));
+        using get_arg_param_pairs = meta::zip<typename Esf::args_t, esf_param_list<Esf>>;
 
         GT_META_LAZY_NAMESPACE {
             template <class ArgParamPair>
@@ -59,9 +58,8 @@ namespace gridtools {
             class ExtentMap,
             class ArgParamPairs = get_arg_param_pairs<Esf>,
             class OutArgs = meta::transform<get_out_arg, meta::filter<has_intent<intent::inout>::apply, ArgParamPairs>>>
-        GT_META_DEFINE_ALIAS(get_esf_extent,
-            meta::rename,
-            (enclosing_extent, meta::transform<lookup_extent_map_f<ExtentMap>::template apply, OutArgs>));
+        using get_esf_extent =
+            meta::rename<enclosing_extent, meta::transform<lookup_extent_map_f<ExtentMap>::template apply, OutArgs>>;
 
         GT_META_LAZY_NAMESPACE {
             template <class Esf, class ExtentMap>
@@ -71,9 +69,8 @@ namespace gridtools {
                 using in_arg_param_pairs_t = meta::filter<has_intent<intent::in>::apply, get_arg_param_pairs<Esf>>;
 
                 template <class ArgParamPair, class Param = meta::second<ArgParamPair>>
-                GT_META_DEFINE_ALIAS(make_item,
-                    meta::list,
-                    (meta::first<ArgParamPair>, sum_extent<esf_extent_t, typename Param::extent_t>));
+                using make_item =
+                    meta::list<meta::first<ArgParamPair>, sum_extent<esf_extent_t, typename Param::extent_t>>;
 
                 using new_items_t = meta::transform<make_item, in_arg_param_pairs_t>;
 
@@ -83,7 +80,7 @@ namespace gridtools {
         GT_META_DELEGATE_TO_LAZY(process_esf, (class Esf, class ExtentMap), (Esf, ExtentMap));
 
         template <class Esfs>
-        GT_META_DEFINE_ALIAS(get_extent_map, meta::rfold, (process_esf, meta::list<>, Esfs));
+        using get_extent_map = meta::rfold<process_esf, meta::list<>, Esfs>;
     } // namespace compute_extents_metafunctions_impl_
 
     using compute_extents_metafunctions_impl_::get_esf_extent;

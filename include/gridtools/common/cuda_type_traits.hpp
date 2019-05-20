@@ -41,6 +41,6 @@ namespace gridtools {
     } // namespace impl_
 
     template <class T>
-    GT_META_DEFINE_ALIAS(is_texture_type, meta::st_contains, (impl_::texture_types, T));
+    using is_texture_type = meta::st_contains<impl_::texture_types, T>;
 
 } // namespace gridtools

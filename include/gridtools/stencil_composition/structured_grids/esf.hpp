@@ -23,12 +23,12 @@
 namespace gridtools {
     namespace esf_impl_ {
         template <class Param>
-        GT_META_DEFINE_ALIAS(param_index, std::integral_constant, (size_t, Param::index_t::value));
+        using param_index = std::integral_constant<size_t, Param::index_t::value>;
 
         template <class ParamList,
             class Actual = meta::rename<meta::list, meta::transform<param_index, ParamList>>,
             class Expected = meta::make_indices_for<ParamList>>
-        GT_META_DEFINE_ALIAS(check_param_list, std::is_same, (Actual, Expected));
+        using check_param_list = std::is_same<Actual, Expected>;
 
         template <class, class = void>
         struct has_param_list : std::false_type {};

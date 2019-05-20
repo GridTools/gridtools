@@ -24,15 +24,14 @@ namespace gridtools {
         template <class L>
         struct cartesian_product_step_impl_impl {
             template <class T>
-            GT_META_DEFINE_ALIAS(apply, transform, (curry<push_back, T>::template apply, rename<list, L>));
+            using apply = transform<curry<push_back, T>::template apply, rename<list, L>>;
         };
 
         template <class S, class L>
-        GT_META_DEFINE_ALIAS(cartesian_product_step_impl,
-            rename,
-            (concat, transform<cartesian_product_step_impl_impl<L>::template apply, S>));
+        using cartesian_product_step_impl =
+            rename<concat, transform<cartesian_product_step_impl_impl<L>::template apply, S>>;
 
         template <class... Lists>
-        GT_META_DEFINE_ALIAS(cartesian_product, lfold, (cartesian_product_step_impl, list<list<>>, list<Lists...>));
+        using cartesian_product = lfold<cartesian_product_step_impl, list<list<>>, list<Lists...>>;
     } // namespace meta
 } // namespace gridtools

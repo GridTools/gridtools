@@ -28,7 +28,7 @@ namespace gridtools {
 #else
         GT_META_LAZY_NAMESPACE {
             template <class... Lists>
-            GT_META_DEFINE_ALIAS(zip, transpose, list<Lists...>);
+            using zip = transpose<list<Lists...>>;
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
         template <class... Lists>
