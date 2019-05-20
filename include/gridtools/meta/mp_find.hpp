@@ -24,7 +24,7 @@ namespace gridtools {
          *
          *  @return the inner list with a given Key or `void` if not found
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class Map, class Key, class Default = void>
             struct mp_find;
             template <class Key, template <class...> class L, class... Ts, class Default>

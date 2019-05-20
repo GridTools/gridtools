@@ -17,7 +17,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class List>
             using last = at_c<List, length<List>::value - 1>;
         }

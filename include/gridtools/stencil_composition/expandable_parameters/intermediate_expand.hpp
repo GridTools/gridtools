@@ -52,7 +52,7 @@ namespace gridtools {
              *     (meta class). He the inner name `apply` is not arbitrary. It just the requirement of meta class
              *     concept.
              */
-            GT_META_LAZY_NAMESPACE {
+            namespace lazy {
                 template <size_t I, class Plh>
                 struct convert_plh {
                     using type = Plh;
@@ -153,7 +153,7 @@ namespace gridtools {
             template <size_t ExpandFactor>
             struct expand_esf_f;
 
-            GT_META_LAZY_NAMESPACE {
+            namespace lazy {
                 template <size_t ExpandFactor, class Esf>
                 struct expand_esf {
                     using indices_t = meta::make_indices_c<ExpandFactor>;

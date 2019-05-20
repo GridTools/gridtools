@@ -13,7 +13,7 @@
 #include "./esf.hpp"
 
 namespace gridtools {
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <class Esf>
         struct esf_param_list {
             GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);

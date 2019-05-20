@@ -42,7 +42,7 @@ namespace gridtools {
     using is_loop_interval = meta::is_instantiation_of<loop_interval, T>;
 
     namespace loop_interval_impl_ {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class>
             struct reverse_loop_interval;
             template <class From, class To, class Payload>
@@ -65,7 +65,7 @@ namespace gridtools {
 
     } // namespace loop_interval_impl_
 
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <class Execute, class LoopIntervals>
         struct order_loop_intervals : meta::lazy::id<LoopIntervals> {};
 

@@ -43,7 +43,7 @@ namespace gridtools {
         template <class Esf>
         struct esf_functor_f;
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
 
             template <class Esf, class Color = typename Esf::color_t::color_t>
             struct get_functors {

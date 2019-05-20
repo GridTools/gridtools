@@ -27,13 +27,13 @@ namespace gridtools {
          *
          *   Complexity is amortized O(N), the depth of template instantiation is O(log(N))
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <template <class...> class, class...>
             struct combine;
         }
         GT_META_DELEGATE_TO_LAZY(combine, (template <class...> class F, class... Args), (F, Args...));
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <template <class...> class F, class List, std::size_t N>
             struct combine_impl {
                 static_assert(N > 0, "N in combine_impl<F, List, N> must be positive");

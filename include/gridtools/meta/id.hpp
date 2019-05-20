@@ -18,7 +18,7 @@ namespace gridtools {
         /**
          *  Identity
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class T>
             struct id {
                 using type = T;

@@ -195,7 +195,7 @@ namespace gridtools {
             template <class Tup>
             struct is_empty_or_tuple_of_empties<Tup, enable_if_t<is_tuple_of_empties<Tup>::value>> : std::true_type {};
 
-            GT_META_LAZY_NAMESPACE {
+            namespace lazy {
                 template <class, class = void>
                 struct default_kind;
                 template <class T>

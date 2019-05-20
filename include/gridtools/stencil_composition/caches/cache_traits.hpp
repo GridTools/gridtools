@@ -78,7 +78,7 @@ namespace gridtools {
      *  trait returning the parameter Arg type of a user provided cache
      */
 
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <typename T>
         struct cache_parameter;
 

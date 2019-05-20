@@ -21,33 +21,9 @@
 
 #if GT_BROKEN_TEMPLATE_ALIASES
 
-/**
- * backward compatible way to call function
- */
-#define GT_META_CALL(fun, args) typename GT_META_INTERNAL_APPLY(fun, args)::type
-
-/**
- * backward compatible way to define an alias to the function composition
- */
-#define GT_META_DEFINE_ALIAS(name, fun, args) \
-    struct name : GT_META_INTERNAL_APPLY(fun, args) {}
-
-#define GT_META_LAZY_NAMESPACE inline namespace lazy
-
-#define GT_META_DELEGATE_TO_LAZY(fun, signature, args) static_assert(1, "")
+#error unsupported
 
 #else
-
-/**
- * backward compatible way to call function
- */
-#define GT_META_CALL(fun, args) GT_META_INTERNAL_APPLY(fun, args)
-/**
- * backward compatible way to define an alias to the function composition
- */
-#define GT_META_DEFINE_ALIAS(name, fun, args) using name = GT_META_INTERNAL_APPLY(fun, args)
-
-#define GT_META_LAZY_NAMESPACE namespace lazy
 
 #define GT_META_DELEGATE_TO_LAZY(fun, signature, args) \
     template <BOOST_PP_REMOVE_PARENS(signature)>       \

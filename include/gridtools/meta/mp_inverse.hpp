@@ -20,7 +20,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class State, class Item>
             struct mp_inverse_helper;
 

@@ -18,7 +18,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <size_t N, class List, class E = void>
             struct take_c;
 

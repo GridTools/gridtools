@@ -42,7 +42,7 @@ namespace gridtools {
         template <class Esf>
         using get_arg_param_pairs = meta::zip<typename Esf::args_t, esf_param_list<Esf>>;
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class ArgParamPair>
             struct get_out_arg : meta::lazy::first<ArgParamPair> {
                 using extent_t = typename meta::lazy::second<ArgParamPair>::type::extent_t;
@@ -61,7 +61,7 @@ namespace gridtools {
         using get_esf_extent =
             meta::rename<enclosing_extent, meta::transform<lookup_extent_map_f<ExtentMap>::template apply, OutArgs>>;
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class Esf, class ExtentMap>
             struct process_esf {
                 using esf_extent_t = get_esf_extent<Esf, ExtentMap>;

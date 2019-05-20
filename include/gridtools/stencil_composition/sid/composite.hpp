@@ -38,7 +38,7 @@ namespace gridtools {
                     }
                 };
 
-                GT_META_LAZY_NAMESPACE {
+                namespace lazy {
                     template <class State, class Kind>
                     struct make_map_helper {
                         using map_t = meta::first<State>;

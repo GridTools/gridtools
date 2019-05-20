@@ -33,7 +33,7 @@ namespace gridtools {
             using apply = bool_constant<Param::intent_v == Intent>;
         };
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class Esf>
             struct tuple_from_esf {
                 using type = std::tuple<Esf>;

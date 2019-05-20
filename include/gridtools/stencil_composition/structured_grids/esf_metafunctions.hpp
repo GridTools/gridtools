@@ -18,7 +18,7 @@ namespace gridtools {
     template <class Esf>
     using esf_param_list = meta::id<typename Esf::esf_function_t::param_list>;
 
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <class Esf, class Args>
         struct esf_replace_args;
         template <class F, class OldArgs, class NewArgs>

@@ -38,7 +38,7 @@ namespace gridtools {
         struct has_stages : negation<meta::is_empty<meta::at_c<T, 2>>> {};
     } // namespace _impl
 
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <template <class...> class StagesMaker, class Interval>
         struct make_loop_intervals {
             GT_STATIC_ASSERT(is_interval<Interval>::value, GT_INTERNAL_ERROR);

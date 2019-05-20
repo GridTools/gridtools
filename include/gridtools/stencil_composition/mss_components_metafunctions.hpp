@@ -19,7 +19,7 @@
 
 namespace gridtools {
     namespace mss_comonents_metafunctions_impl_ {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class>
             struct mss_split_esfs;
             template <class ExecutionEngine, class EsfSequence, class CacheSequence>

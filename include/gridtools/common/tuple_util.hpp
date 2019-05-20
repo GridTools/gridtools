@@ -241,7 +241,7 @@ namespace gridtools {
 
         ///  Generalization of std::tuple_element
         //
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <size_t I, class T>
             using element = meta::lazy::at_c<traits::to_types<T>, I>;
         }
@@ -270,7 +270,7 @@ namespace gridtools {
             template <class T>
             struct get_ref_kind<T const &> : std::integral_constant<ref_kind, ref_kind::const_lvalue> {};
 
-            GT_META_LAZY_NAMESPACE {
+            namespace lazy {
                 template <ref_kind Kind, class Dst>
                 struct add_ref;
 

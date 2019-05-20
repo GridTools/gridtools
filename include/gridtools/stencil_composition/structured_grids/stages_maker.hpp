@@ -32,7 +32,7 @@ namespace gridtools {
         using stages_from_esfs = meta::filter<meta::not_<meta::is_empty>::apply,
             meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>>;
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class Functor, class Esf, class ExtentMap>
             struct stages_from_functor {
                 using extent_t = get_esf_extent<Esf, ExtentMap>;

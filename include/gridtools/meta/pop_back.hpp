@@ -17,7 +17,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class List>
             using pop_back = reverse<typename pop_front<typename reverse<List>::type>::type>;
         }

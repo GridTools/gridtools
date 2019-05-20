@@ -20,7 +20,7 @@ namespace gridtools {
         /**
          *  Produce a list of N identical elements
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class List, bool Rem>
             struct repeat_impl_expand;
 

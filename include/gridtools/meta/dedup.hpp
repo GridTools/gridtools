@@ -27,7 +27,7 @@ namespace gridtools {
         /**
          *  Removes duplicates from the List.
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class List>
             using dedup = lfold<dedup_step_impl, typename clear<List>::type, List>;
         }

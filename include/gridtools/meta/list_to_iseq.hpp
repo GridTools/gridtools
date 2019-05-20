@@ -18,7 +18,7 @@ namespace gridtools {
         /**
          *  Convert a list of integral constants to an integer sequence.
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class>
             struct list_to_iseq;
             template <template <class...> class L, template <class T, T> class Const, class Int, Int... Is>

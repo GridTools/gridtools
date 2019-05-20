@@ -19,7 +19,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <std::size_t N, class List>
             using drop_back_c = reverse<typename drop_front_c<N, typename reverse<List>::type>::type>;
 

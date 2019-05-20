@@ -14,7 +14,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class...>
             struct push_back;
             template <template <class...> class L, class... Us, class... Ts>

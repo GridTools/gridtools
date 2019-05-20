@@ -87,7 +87,7 @@ namespace gridtools {
         };
     } // namespace _impl
 
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <class Functor, class Index, class = void>
         struct bind_functor_with_interval {
             GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);

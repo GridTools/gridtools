@@ -18,7 +18,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class Map, class Elem, class OldElem = typename mp_find<Map, typename first<Elem>::type>::type>
             struct mp_insert;
 
