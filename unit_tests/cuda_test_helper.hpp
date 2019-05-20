@@ -25,6 +25,21 @@
 
 namespace gridtools {
     namespace on_device {
+        // Note that this specializations are required because if Fun is a nullary function, operator() of
+        // integral_constant will be taken instead of explicit conversion
+        template <class T, T (*Fun)()>
+        __global__ void kernel(T *res, integral_constant<T (*)(), Fun>) {
+            *res = Fun();
+        }
+        template <class T, T (*Fun)()>
+        T exec_with_shared_memory(size_t shm_size, integral_constant<T (*)(), Fun> fun) {
+            static_assert(std::is_trivially_copyable<T>::value, "");
+            auto res = cuda_util::cuda_malloc<T>();
+            kernel<<<1, 1, shm_size>>>(res.get(), fun);
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
+            return cuda_util::from_clone(res);
+        }
+
         template <class Res, class Fun, class... Args>
         __global__ void kernel(Res *res, Fun fun, Args... args) {
             *res = fun(args...);
