@@ -83,8 +83,7 @@ namespace gridtools {
         struct convert_strides_f<layout_map<Is...>> {
             using res_t =
                 tuple<typename stride_type<get_dimension_kind(Is, layout_map<Is...>::unmasked_length)>::type...>;
-            using generators_t = GT_META_CALL(
-                meta::transform, (stride_generator_f, GT_META_CALL(meta::make_indices_c, sizeof...(Is)), res_t));
+            using generators_t = meta::transform<stride_generator_f, meta::make_indices_c<sizeof...(Is)>, res_t>;
 
             template <class Src>
             res_t operator()(Src const &src) const {
@@ -159,8 +158,8 @@ namespace gridtools {
     StorageInfo sid_get_strides_kind(data_store<Storage, StorageInfo> const &);
 
     template <class Storage, class StorageInfo>
-    GT_META_CALL(meta::if_c, (StorageInfo::layout_t::unmasked_length == 0, storage_sid_impl_::empty_ptr_diff, int_t))
-    sid_get_ptr_diff(data_store<Storage, StorageInfo> const &);
+    meta::if_c<StorageInfo::layout_t::unmasked_length == 0, storage_sid_impl_::empty_ptr_diff, int_t> sid_get_ptr_diff(
+        data_store<Storage, StorageInfo> const &);
 
     /**
      *  Returns an object that models the `SID` concept the same way as original object does except that the pointers

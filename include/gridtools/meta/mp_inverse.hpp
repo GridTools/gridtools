@@ -12,6 +12,7 @@
 
 #include <type_traits>
 
+#include "clear.hpp"
 #include "fold.hpp"
 #include "list.hpp"
 #include "macros.hpp"
@@ -30,6 +31,6 @@ namespace gridtools {
         GT_META_DELEGATE_TO_LAZY(mp_inverse_helper, (class State, class Item), (State, Item));
 
         template <class Src>
-        GT_META_DEFINE_ALIAS(mp_inverse, lfold, (mp_inverse_helper, GT_META_CALL(clear, Src), Src));
+        GT_META_DEFINE_ALIAS(mp_inverse, lfold, (mp_inverse_helper, clear<Src>, Src));
     } // namespace meta
 } // namespace gridtools

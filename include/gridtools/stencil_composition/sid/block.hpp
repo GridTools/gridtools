@@ -77,37 +77,35 @@ namespace gridtools {
             class blocked_sid : public delegate<Sid> {
                 BlockMap m_block_map;
 
-                using strides_map_t = GT_META_CALL(hymap::to_meta_map, GT_META_CALL(strides_type, Sid));
-                using strides_dims_t = GT_META_CALL(meta::transform, (meta::first, strides_map_t));
+                using strides_map_t = hymap::to_meta_map<strides_type<Sid>>;
+                using strides_dims_t = meta::transform<meta::first, strides_map_t>;
 
-                template <class MapEntry, class Dim = GT_META_CALL(meta::first, MapEntry)>
+                template <class MapEntry, class Dim = meta::first<MapEntry>>
                 GT_META_DEFINE_ALIAS(is_strides_dim, meta::st_contains, (strides_dims_t, Dim));
 
-                using block_map_t = GT_META_CALL(
-                    meta::filter, (is_strides_dim, GT_META_CALL(hymap::to_meta_map, BlockMap)));
-                using block_dims_t = GT_META_CALL(meta::transform, (meta::first, block_map_t));
+                using block_map_t = meta::filter<is_strides_dim, hymap::to_meta_map<BlockMap>>;
+                using block_dims_t = meta::transform<meta::first, block_map_t>;
 
                 template <class MapEntry,
-                    class Dim = GT_META_CALL(meta::first, MapEntry),
-                    class BlockSize = GT_META_CALL(meta::second, MapEntry),
-                    class Stride = GT_META_CALL(meta::second, (GT_META_CALL(meta::mp_find, (strides_map_t, Dim))))>
+                    class Dim = meta::first<MapEntry>,
+                    class BlockSize = meta::second<MapEntry>,
+                    class Stride = meta::second<meta::mp_find<strides_map_t, Dim>>>
                 GT_META_DEFINE_ALIAS(block, meta::list, (blocked_dim<Dim>, blocked_stride_type<Stride, BlockSize>));
 
-                using blocked_strides_map_t = GT_META_CALL(meta::transform, (block, block_map_t));
+                using blocked_strides_map_t = meta::transform<block, block_map_t>;
 
-                using blocked_dims_t = GT_META_CALL(meta::transform, (meta::first, blocked_strides_map_t));
+                using blocked_dims_t = meta::transform<meta::first, blocked_strides_map_t>;
                 GT_STATIC_ASSERT(
-                    meta::is_empty<GT_META_CALL(meta::filter,
-                        (meta::curry<meta::st_contains, strides_dims_t>::template apply, blocked_dims_t))>::value,
+                    (meta::is_empty<meta::filter<meta::curry<meta::st_contains, strides_dims_t>::template apply,
+                            blocked_dims_t>>::value),
                     GT_INTERNAL_ERROR_MSG("tried to block already blocked dimension"));
 
-                using strides_t = GT_META_CALL(hymap::from_meta_map,
-                    (GT_META_CALL(meta::concat, (strides_map_t, GT_META_CALL(meta::transform, (block, block_map_t))))));
+                using strides_t =
+                    hymap::from_meta_map<meta::concat<strides_map_t, meta::transform<block, block_map_t>>>;
 
-                using original_generators_t = GT_META_CALL(
-                    meta::transform, (generate_original_strides_f, strides_dims_t));
-                using blocked_generators_t = GT_META_CALL(meta::transform, (generate_blocked_strides_f, block_dims_t));
-                using generators_t = GT_META_CALL(meta::concat, (original_generators_t, blocked_generators_t));
+                using original_generators_t = meta::transform<generate_original_strides_f, strides_dims_t>;
+                using blocked_generators_t = meta::transform<generate_blocked_strides_f, block_dims_t>;
+                using generators_t = meta::concat<original_generators_t, blocked_generators_t>;
 
               public:
                 template <class SidT, class BlockMapT>
@@ -122,10 +120,10 @@ namespace gridtools {
 
             template <class Sid,
                 class BlockMap,
-                class SidDims = GT_META_CALL(get_keys, GT_META_CALL(strides_type, decay_t<Sid>)),
-                class BlockMapDims = GT_META_CALL(get_keys, decay_t<BlockMap>)>
-            using no_common_dims = meta::is_empty<GT_META_CALL(
-                meta::filter, (meta::curry<meta::st_contains, SidDims>::template apply, BlockMapDims))>;
+                class SidDims = get_keys<strides_type<decay_t<Sid>>>,
+                class BlockMapDims = get_keys<decay_t<BlockMap>>>
+            using no_common_dims =
+                meta::is_empty<meta::filter<meta::curry<meta::st_contains, SidDims>::template apply, BlockMapDims>>;
 
         } // namespace block_impl_
 

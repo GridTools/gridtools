@@ -96,7 +96,7 @@ namespace gridtools {
             EXPECT_EQ(-1, at_key<b>(*ptr));
             EXPECT_EQ(&four[0][0][0], at_key<d>(ptr));
 
-            using ptr_diff_t = GT_META_CALL(sid::ptr_diff_type, decltype(testee));
+            using ptr_diff_t = sid::ptr_diff_type<decltype(testee)>;
 
             ptr_diff_t ptr_diff;
             EXPECT_EQ(0, at_key<a>(ptr_diff));

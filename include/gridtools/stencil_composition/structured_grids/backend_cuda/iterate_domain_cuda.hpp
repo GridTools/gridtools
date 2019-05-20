@@ -47,10 +47,10 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
         using caches_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
-        using ij_cache_args_t = GT_META_CALL(ij_cache_args, caches_t);
-        using k_cache_args_t = GT_META_CALL(k_cache_args, caches_t);
+        using ij_cache_args_t = ij_cache_args<caches_t>;
+        using k_cache_args_t = k_cache_args<caches_t>;
 
-        using readwrite_args_t = GT_META_CALL(compute_readwrite_args, typename IterateDomainArguments::esf_sequence_t);
+        using readwrite_args_t = compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>;
 
         // array storing the (i,j) position of the current thread within the block
         array<int, 2> m_thread_pos;
@@ -82,8 +82,8 @@ namespace gridtools {
         static GT_FUNCTION auto dereference(Ptr ptr) GT_AUTO_RETURN(*ptr);
 
       public:
-        static constexpr bool has_ij_caches = !meta::is_empty<GT_META_CALL(ij_caches, cache_sequence_t)>::value;
-        static constexpr bool has_k_caches = !meta::is_empty<GT_META_CALL(k_caches, cache_sequence_t)>::value;
+        static constexpr bool has_ij_caches = !meta::is_empty<ij_caches<cache_sequence_t>>::value;
+        static constexpr bool has_k_caches = !meta::is_empty<k_caches<cache_sequence_t>>::value;
 
         template <class LocalDomain>
         GT_FUNCTION_DEVICE iterate_domain_cuda(LocalDomain &&local_domain, uint_t block_size_i, uint_t block_size_j)

@@ -39,8 +39,7 @@ namespace gridtools {
         }
 
         template <class Functor, uint_t Splitter, int_t Offset>
-        using testee = GT_META_CALL(
-            bind_functor_with_interval, (Functor, GT_META_CALL(level_to_index, (lev<Splitter, Offset>))));
+        using testee = bind_functor_with_interval<Functor, level_to_index<lev<Splitter, Offset>>>;
 
         template <class Functor, uint_t Splitter, int_t Offset>
         const char *run() {

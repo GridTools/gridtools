@@ -131,8 +131,7 @@ namespace gridtools {
     } // namespace array_impl_
 
     template <typename T, size_t D>
-    GT_META_CALL(meta::repeat_c, (D, T))
-    tuple_to_types(array<T, D> const &);
+    meta::repeat_c<D, T> tuple_to_types(array<T, D> const &);
 
     template <typename T, size_t D>
     array_impl_::from_types_f tuple_from_types(array<T, D> const &);

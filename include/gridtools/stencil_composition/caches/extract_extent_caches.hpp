@@ -30,15 +30,13 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(apply,
                 meta::rename,
                 (enclosing_extent,
-                    GT_META_CALL(meta::transform,
-                        (get_extent, typename Esf::args_t, typename Esf::esf_function_t::param_list))));
+                    meta::transform<get_extent, typename Esf::args_t, typename Esf::esf_function_t::param_list>));
         };
     } // namespace extract_extent_caches_impl_
 
     template <class Arg,
         class Esfs,
-        class Extents = GT_META_CALL(
-            meta::transform, (extract_extent_caches_impl_::arg_extent_from_esf<Arg>::template apply, Esfs))>
+        class Extents = meta::transform<extract_extent_caches_impl_::arg_extent_from_esf<Arg>::template apply, Esfs>>
     GT_META_DEFINE_ALIAS(extract_k_extent_for_cache, meta::rename, (enclosing_extent, Extents));
 
 } // namespace gridtools

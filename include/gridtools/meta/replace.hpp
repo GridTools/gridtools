@@ -36,7 +36,7 @@ namespace gridtools {
         template <template <class...> class Pred, template <class...> class F>
         struct selective_call_impl {
             template <class Arg>
-            GT_META_DEFINE_ALIAS(apply, meta::if_, (Pred<Arg>, GT_META_CALL(F, Arg), Arg));
+            GT_META_DEFINE_ALIAS(apply, meta::if_, (Pred<Arg>, F<Arg>, Arg));
         };
 
         template <template <class...> class Pred, template <class...> class F, class List>
@@ -53,7 +53,7 @@ namespace gridtools {
         template <class Key>
         struct is_same_key_impl {
             template <class Elem>
-            GT_META_DEFINE_ALIAS(apply, std::is_same, (Key, GT_META_CALL(first, Elem)));
+            GT_META_DEFINE_ALIAS(apply, std::is_same, (Key, first<Elem>));
         };
 
         template <class... NewVals>

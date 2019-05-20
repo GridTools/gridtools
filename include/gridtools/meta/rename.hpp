@@ -28,7 +28,7 @@ namespace gridtools {
         GT_META_LAZY_NAMESPACE {
             template <template <class...> class To, template <class...> class From, class... Ts>
             struct rename<To, From<Ts...>> {
-                using type = GT_META_CALL(To, Ts...);
+                using type = To<Ts...>;
             };
             template <template <class...> class To>
             struct rename<To> {

@@ -42,9 +42,9 @@ namespace gridtools {
             meta::lazy::id<iterate_domain_x86_t>>::type;
         iterate_domain_t it_domain(local_domain);
 
-        using extent_t = GT_META_CALL(get_extent_from_loop_intervals, typename RunFunctorArgs::loop_intervals_t);
-        using interval_t = GT_META_CALL(meta::first, typename RunFunctorArgs::loop_intervals_t);
-        using from_t = GT_META_CALL(meta::first, interval_t);
+        using extent_t = get_extent_from_loop_intervals<typename RunFunctorArgs::loop_intervals_t>;
+        using interval_t = meta::first<typename RunFunctorArgs::loop_intervals_t>;
+        using from_t = meta::first<interval_t>;
         it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
             {execution_info.bi, execution_info.bj, 0},
             {extent_t::iminus::value,

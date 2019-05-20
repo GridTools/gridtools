@@ -26,9 +26,8 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(param_index, std::integral_constant, (size_t, Param::index_t::value));
 
         template <class ParamList,
-            class Actual = GT_META_CALL(
-                meta::rename, (meta::list, GT_META_CALL(meta::transform, (param_index, ParamList)))),
-            class Expected = GT_META_CALL(meta::make_indices_for, ParamList)>
+            class Actual = meta::rename<meta::list, meta::transform<param_index, ParamList>>,
+            class Expected = meta::make_indices_for<ParamList>>
         GT_META_DEFINE_ALIAS(check_param_list, std::is_same, (Actual, Expected));
 
         template <class, class = void>

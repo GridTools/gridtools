@@ -25,11 +25,9 @@ namespace gridtools {
             template <class Sid>
             class const_adapter : public delegate<Sid> {
                 struct const_ptr_holder {
-                    GT_META_CALL(sid::ptr_holder_type, Sid) m_impl;
+                    sid::ptr_holder_type<Sid> m_impl;
 
-                    GT_CONSTEXPR GT_FUNCTION GT_META_CALL(sid::element_type, Sid) const *operator()() const {
-                        return m_impl();
-                    }
+                    GT_CONSTEXPR GT_FUNCTION sid::element_type<Sid> const *operator()() const { return m_impl(); }
 
                     friend GT_CONSTEXPR const_ptr_holder operator+(const_ptr_holder const &obj, ptrdiff_t offset) {
                         return {obj.m_impl + offset};
@@ -52,7 +50,7 @@ namespace gridtools {
          */
         template <class SrcRef,
             class Src = decay_t<SrcRef>,
-            enable_if_t<std::is_pointer<GT_META_CALL(sid::ptr_type, Src)>::value, int> = 0>
+            enable_if_t<std::is_pointer<sid::ptr_type<Src>>::value, int> = 0>
         as_const_impl_::const_adapter<Src> as_const(SrcRef &&src) {
             return as_const_impl_::const_adapter<Src>{wstd::forward<SrcRef>(src)};
         }

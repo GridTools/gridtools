@@ -21,9 +21,7 @@
 
 namespace gridtools {
     namespace _impl {
-        template <class Functor,
-            class Index,
-            bool HasApply = has_apply<Functor, GT_META_CALL(index_to_level, Index)>::value>
+        template <class Functor, class Index, bool HasApply = has_apply<Functor, index_to_level<Index>>::value>
         struct find_from_index {
             using type = typename find_from_index<Functor, typename Index::prior>::type;
         };
@@ -39,7 +37,7 @@ namespace gridtools {
         template <class Functor,
             class FromIndex,
             class ToIndex = FromIndex,
-            bool HasApply = has_apply<Functor, GT_META_CALL(make_interval, (FromIndex, ToIndex))>::value>
+            bool HasApply = has_apply<Functor, make_interval<FromIndex, ToIndex>>::value>
         struct find_to_index {
             using type = typename find_to_index<Functor, FromIndex, typename ToIndex::next>::type;
         };
@@ -52,7 +50,7 @@ namespace gridtools {
         template <class Functor,
             class FromIndex,
             class ToIndex = FromIndex,
-            class Interval = GT_META_CALL(make_interval, (FromIndex, ToIndex)),
+            class Interval = make_interval<FromIndex, ToIndex>,
             bool HasApply = has_apply<Functor, Interval>::value>
         struct find_interval_impl {
             using type = typename find_interval_impl<Functor, FromIndex, typename ToIndex::next>::type;
@@ -68,9 +66,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(FromIndex::value <= Index::value, GT_INTERNAL_ERROR);
             using to_index_t = typename find_to_index<Functor, FromIndex>::type;
             GT_STATIC_ASSERT(FromIndex::value <= to_index_t::value, GT_INTERNAL_ERROR);
-            using type = conditional_t<(to_index_t::value < Index::value),
-                void,
-                GT_META_CALL(make_interval, (FromIndex, to_index_t))>;
+            using type = conditional_t<(to_index_t::value < Index::value), void, make_interval<FromIndex, to_index_t>>;
         };
 
         template <class Functor, class Index>

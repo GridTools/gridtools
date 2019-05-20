@@ -20,7 +20,7 @@
 namespace gridtools {
 
     namespace mss_comonents_impl_ {
-        template <class Esf, class WArgs = GT_META_CALL(esf_get_w_args_per_functor, Esf)>
+        template <class Esf, class WArgs = esf_get_w_args_per_functor<Esf>>
         GT_META_DEFINE_ALIAS(esf_produce_temporary, meta::any_of, (is_tmp_arg, WArgs));
 
         template <class ExtentMap>
@@ -31,8 +31,8 @@ namespace gridtools {
 
         template <class Esfs,
             class ExtentMap,
-            class TmpEsfs = GT_META_CALL(meta::filter, (esf_produce_temporary, Esfs)),
-            class Extents = GT_META_CALL(meta::transform, (get_extent_f<ExtentMap>::template apply, TmpEsfs))>
+            class TmpEsfs = meta::filter<esf_produce_temporary, Esfs>,
+            class Extents = meta::transform<get_extent_f<ExtentMap>::template apply, TmpEsfs>>
         GT_META_DEFINE_ALIAS(get_max_extent_for_tmp, meta::rename, (enclosing_extent, Extents));
     } // namespace mss_comonents_impl_
 
@@ -51,21 +51,19 @@ namespace gridtools {
 
         /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
             esf structs. Independent functors are listed one after the other.*/
-        using linear_esf_t = GT_META_CALL(unwrap_independent, typename MssDescriptor::esf_sequence_t);
+        using linear_esf_t = unwrap_independent<typename MssDescriptor::esf_sequence_t>;
 
         using extent_map_t = ExtentMap;
 
         // For historical reasons the user provided axis interval is stripped by one level from the right to produce
         // the interval that will be used for actual computation.
         // TODO(anstaf): fix this ugly convention
-        using default_interval_t = interval<typename Axis::FromLevel,
-            GT_META_CALL(index_to_level, typename level_to_index<typename Axis::ToLevel>::prior)>;
+        using default_interval_t =
+            interval<typename Axis::FromLevel, index_to_level<typename level_to_index<typename Axis::ToLevel>::prior>>;
 
         // calculate loop intervals and order them according to the execution policy.
-        using loop_intervals_t = GT_META_CALL(order_loop_intervals,
-            (execution_engine_t,
-                GT_META_CALL(make_loop_intervals,
-                    (stages_maker<MssDescriptor, ExtentMap>::template apply, default_interval_t))));
+        using loop_intervals_t = order_loop_intervals<execution_engine_t,
+            make_loop_intervals<stages_maker<MssDescriptor, ExtentMap>::template apply, default_interval_t>>;
     };
 
     template <typename T>

@@ -113,6 +113,5 @@ namespace gridtools {
      * Meta function computing an interval given a from and a to level index
      */
     template <class FromIndex, class ToIndex>
-    GT_META_DEFINE_ALIAS(
-        make_interval, interval, (GT_META_CALL(index_to_level, FromIndex), GT_META_CALL(index_to_level, ToIndex)));
+    GT_META_DEFINE_ALIAS(make_interval, interval, (index_to_level<FromIndex>, index_to_level<ToIndex>));
 } // namespace gridtools

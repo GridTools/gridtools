@@ -70,14 +70,14 @@ namespace gridtools {
         template <template <class...> class CompoundStage, class Stages>
         struct fuse_stages {
             GT_STATIC_ASSERT(meta::length<Stages>::value > 1, GT_INTERNAL_ERROR);
-            using all_extents_t = GT_META_CALL(meta::transform, (_impl::get_extent_from_stage, Stages));
-            using extents_t = GT_META_CALL(meta::dedup, all_extents_t);
+            using all_extents_t = meta::transform<_impl::get_extent_from_stage, Stages>;
+            using extents_t = meta::dedup<all_extents_t>;
             GT_STATIC_ASSERT(!meta::is_empty<extents_t>::value, GT_INTERNAL_ERROR);
-            using stages_grouped_by_extent_t = GT_META_CALL(
-                meta::transform, (_impl::stages_with_the_given_extent<Stages>::template apply, extents_t));
+            using stages_grouped_by_extent_t =
+                meta::transform<_impl::stages_with_the_given_extent<Stages>::template apply, extents_t>;
             GT_STATIC_ASSERT((!meta::any_of<meta::is_empty, stages_grouped_by_extent_t>::value), GT_INTERNAL_ERROR);
-            using type = GT_META_CALL(meta::transform,
-                (_impl::fuse_stages_with_the_same_extent_f<CompoundStage>::template apply, stages_grouped_by_extent_t));
+            using type = meta::transform<_impl::fuse_stages_with_the_same_extent_f<CompoundStage>::template apply,
+                stages_grouped_by_extent_t>;
         };
 
         template <template <class...> class CompoundStage, template <class...> class L, class Stage>

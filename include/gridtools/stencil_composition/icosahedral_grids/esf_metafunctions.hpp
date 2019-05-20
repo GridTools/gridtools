@@ -22,13 +22,13 @@ namespace gridtools {
             template <class I>
             GT_META_DEFINE_ALIAS(nth_param, meta::id, typename Esf::template esf_function<I::value>::param_list);
 
-            using colors_t = GT_META_CALL(meta::make_indices_c, Esf::location_type::n_colors::value);
-            using param_lists_t = GT_META_CALL(meta::transform, (nth_param, colors_t));
+            using colors_t = meta::make_indices_c<Esf::location_type::n_colors::value>;
+            using param_lists_t = meta::transform<nth_param, colors_t>;
 
             GT_STATIC_ASSERT(meta::all_are_same<param_lists_t>::value,
                 "Multiple Color specializations of the same ESF must contain the same param list");
 
-            using type = GT_META_CALL(meta::first, param_lists_t);
+            using type = meta::first<param_lists_t>;
         };
 
         template <class Esf, class Args>

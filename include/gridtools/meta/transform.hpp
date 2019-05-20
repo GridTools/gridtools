@@ -40,7 +40,7 @@ namespace gridtools {
             };
             template <template <class...> class F, template <class...> class L, class... Ts>
             struct transform<F, L<Ts...>> {
-                using type = L<GT_META_CALL(F, Ts)...>;
+                using type = L<F<Ts>...>;
             };
             template <template <class...> class F,
                 template <class...> class L1,
@@ -48,7 +48,7 @@ namespace gridtools {
                 template <class...> class L2,
                 class... T2s>
             struct transform<F, L1<T1s...>, L2<T2s...>> {
-                using type = L1<GT_META_CALL(F, (T1s, T2s))...>;
+                using type = L1<F<T1s, T2s>...>;
             };
 
             /**

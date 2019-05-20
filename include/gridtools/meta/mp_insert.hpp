@@ -24,8 +24,7 @@ namespace gridtools {
 
             template <class Map, template <class...> class L, class Key, class... Vals, class OldElem>
             struct mp_insert<Map, L<Key, Vals...>, OldElem> {
-                using type = typename push_back<GT_META_CALL(mp_remove, (Map, Key)),
-                    typename push_back<OldElem, Vals...>::type>::type;
+                using type = typename push_back<mp_remove<Map, Key>, typename push_back<OldElem, Vals...>::type>::type;
             };
 
             template <class Map, template <class...> class L, class Key, class... Vals>

@@ -30,7 +30,7 @@ namespace gridtools {
             using testee_t = decltype(testee);
 
             static_assert(is_sid<testee_t>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee_t), double const *>(), "");
+            static_assert(std::is_same<sid::ptr_type<testee_t>, double const *>(), "");
             EXPECT_EQ(sid::get_origin(src)(), sid::get_origin(testee)());
         }
     } // namespace

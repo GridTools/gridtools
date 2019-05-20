@@ -19,16 +19,16 @@ namespace gridtools {
         namespace shift_sid_origin_impl_ {
             template <class Sid>
             class shifted_sid : public delegate<Sid> {
-                GT_META_CALL(sid::ptr_holder_type, Sid) m_origin;
+                sid::ptr_holder_type<Sid> m_origin;
 
-                friend GT_META_CALL(sid::ptr_holder_type, Sid) sid_get_origin(shifted_sid &obj) { return obj.m_origin; }
+                friend sid::ptr_holder_type<Sid> sid_get_origin(shifted_sid &obj) { return obj.m_origin; }
 
               public:
                 template <class Arg, class Offsets>
                 shifted_sid(Arg &&original_sid, Offsets &&offsets) noexcept
                     : delegate<Sid>(wstd::forward<Arg>(original_sid)), m_origin{[this, &offsets]() {
                           auto &&strides = sid::get_strides(this->impl());
-                          GT_META_CALL(sid::ptr_diff_type, Sid) ptr_offset{};
+                          sid::ptr_diff_type<Sid> ptr_offset{};
                           multi_shift(ptr_offset, strides, offsets);
                           return sid::get_origin(this->impl()) + ptr_offset;
                       }()} {}

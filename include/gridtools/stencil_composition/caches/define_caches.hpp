@@ -24,8 +24,7 @@ namespace gridtools {
      * function that captures the list of caches provided by the user for a stencil
      */
     template <class... CacheSequences>
-    GT_META_CALL(meta::concat, (std::tuple<>, CacheSequences...))
-    define_caches(CacheSequences...) {
+    meta::concat<std::tuple<>, CacheSequences...> define_caches(CacheSequences...) {
         // the call to define_caches might gets a variadic list of cache sequences as input
         // (e.g., define_caches(cache<IJ, local>(p_flx(), p_fly()), cache<K, fill>(p_in())); ).
         GT_STATIC_ASSERT((conjunction<meta::all_of<is_cache, CacheSequences>...>::value),

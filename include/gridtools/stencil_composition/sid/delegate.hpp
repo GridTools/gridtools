@@ -30,10 +30,8 @@ namespace gridtools {
 
             GT_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
 
-            friend GT_CONSTEXPR GT_META_CALL(ptr_holder_type, Sid) sid_get_origin(delegate &obj) {
-                return get_origin(obj.m_impl);
-            }
-            friend GT_CONSTEXPR GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
+            friend GT_CONSTEXPR ptr_holder_type<Sid> sid_get_origin(delegate &obj) { return get_origin(obj.m_impl); }
+            friend GT_CONSTEXPR strides_type<Sid> sid_get_strides(delegate const &obj) {
                 return get_strides(obj.m_impl);
             }
 
@@ -50,11 +48,9 @@ namespace gridtools {
         };
 
         template <class Sid>
-        GT_META_CALL(ptr_diff_type, Sid)
-        sid_get_ptr_diff(delegate<Sid> const &);
+        ptr_diff_type<Sid> sid_get_ptr_diff(delegate<Sid> const &);
 
         template <class Sid>
-        GT_META_CALL(strides_kind, Sid)
-        sid_get_strides_kind(delegate<Sid> const &);
+        strides_kind<Sid> sid_get_strides_kind(delegate<Sid> const &);
     } // namespace sid
 } // namespace gridtools

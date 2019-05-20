@@ -494,8 +494,7 @@ namespace gridtools {
         };
 
         template <std::size_t N, class DimSelector>
-        using shorten_selector = GT_META_CALL(
-            meta::list_to_iseq, (GT_META_CALL(meta::take_c, (N, GT_META_CALL(meta::iseq_to_list, DimSelector)))));
+        using shorten_selector = meta::list_to_iseq<meta::take_c<N, meta::iseq_to_list<DimSelector>>>;
     } // namespace _impl
 
     /**

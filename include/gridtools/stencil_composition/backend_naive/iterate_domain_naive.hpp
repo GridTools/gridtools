@@ -57,8 +57,8 @@ namespace gridtools {
             void operator()() const {
                 auto const &strides = m_self->template strides<Arg>();
                 auto &ptr = at_key<Arg>(m_self->m_ptr_map);
-                using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
-                using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
+                using sid_t = storage_from_arg<LocalDomain, Arg>;
+                using strides_kind_t = sid::strides_kind<sid_t>;
                 GT_STATIC_ASSERT(is_storage_info<strides_kind_t>::value, GT_INTERNAL_ERROR);
                 sid::shift(ptr, sid::get_stride<dim::i>(strides), strides_kind_t::halo_t::template at<dim::i::value>());
                 sid::shift(ptr, sid::get_stride<dim::j>(strides), strides_kind_t::halo_t::template at<dim::j::value>());
@@ -78,9 +78,7 @@ namespace gridtools {
         strides_map_t m_strides_map;
         pos3<int_t> m_pos;
 
-        template <class Arg,
-            class Sid = GT_META_CALL(storage_from_arg, (LocalDomain, Arg)),
-            class StridesKind = GT_META_CALL(sid::strides_kind, Sid)>
+        template <class Arg, class Sid = storage_from_arg<LocalDomain, Arg>, class StridesKind = sid::strides_kind<Sid>>
         auto strides() const GT_AUTO_RETURN(at_key<StridesKind>(m_strides_map));
 
         template <class Dim>

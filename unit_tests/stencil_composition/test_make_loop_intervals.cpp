@@ -35,12 +35,12 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(testee, make_loop_intervals, (StagesMaker, axis_interval_t));
 
         namespace no_stages {
-            using testee_t = GT_META_CALL(testee, meta::always<list<>>::apply);
+            using testee_t = testee<meta::always<list<>>::apply>;
             static_assert(std::is_same<testee_t, list<>>{}, "");
         } // namespace no_stages
 
         namespace simple {
-            using testee_t = GT_META_CALL(testee, meta::always<list<stage1>>::apply);
+            using testee_t = testee<meta::always<list<stage1>>::apply>;
             static_assert(std::is_same<testee_t, list<loop_interval<from_t, to_t, list<stage1>>>>{}, "");
         } // namespace simple
 
@@ -59,7 +59,7 @@ namespace gridtools {
                     meta::list<conditional_t<has_stage1(Index::value), stage1, void>,
                         conditional_t<has_stage2(Index::value), stage2, void>>));
 
-            using testee_t = GT_META_CALL(testee, stages_maker);
+            using testee_t = testee<stages_maker>;
 
             using expected_t = list<loop_interval<lev<0, 2>, lev<1, -1>, list<stage1>>,
                 loop_interval<lev<1, 1>, lev<2, -1>, list<stage1, stage2>>,

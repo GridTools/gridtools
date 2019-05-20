@@ -60,8 +60,8 @@ namespace gridtools {
 
             using execution_type_t = typename RunFunctorArguments::execution_type_t;
             using loop_intervals_t = typename RunFunctorArguments::loop_intervals_t;
-            using first_t = GT_META_CALL(meta::first, loop_intervals_t);
-            using last_t = GT_META_CALL(meta::last, loop_intervals_t);
+            using first_t = meta::first<loop_intervals_t>;
+            using last_t = meta::last<loop_intervals_t>;
 
             ItDomain &m_domain;
             bool m_in_domain;
@@ -103,9 +103,9 @@ namespace gridtools {
             template <class LoopInterval>
             GT_FUNCTION void operator()() const {
                 GT_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
-                using from_t = GT_META_CALL(meta::first, LoopInterval);
-                using to_t = GT_META_CALL(meta::second, LoopInterval);
-                using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
+                using from_t = meta::first<LoopInterval>;
+                using to_t = meta::second<LoopInterval>;
+                using stage_groups_t = meta::at_c<LoopInterval, 2>;
                 using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t>;
                 const auto k_interval =
                     get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_t{}, execution_type_t{}, m_grid);
@@ -148,9 +148,9 @@ namespace gridtools {
             template <class LoopInterval>
             GT_FUNCTION void operator()() const {
                 GT_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
-                using from_t = GT_META_CALL(meta::first, LoopInterval);
-                using to_t = GT_META_CALL(meta::second, LoopInterval);
-                using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
+                using from_t = meta::first<LoopInterval>;
+                using to_t = meta::second<LoopInterval>;
+                using stage_groups_t = meta::at_c<LoopInterval, 2>;
                 using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t>;
                 const auto k_interval =
                     get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_t{}, execution_type_t{}, m_grid);

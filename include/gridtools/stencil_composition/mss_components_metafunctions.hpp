@@ -28,16 +28,16 @@ namespace gridtools {
                 template <class Esf>
                 GT_META_DEFINE_ALIAS(
                     make_mss, meta::id, (mss_descriptor<ExecutionEngine, std::tuple<Esf>, CacheSequence>));
-                using esfs_t = GT_META_CALL(unwrap_independent, EsfSequence);
-                using type = GT_META_CALL(meta::transform, (make_mss, esfs_t));
+                using esfs_t = unwrap_independent<EsfSequence>;
+                using type = meta::transform<make_mss, esfs_t>;
             };
         }
         GT_META_DELEGATE_TO_LAZY(mss_split_esfs, class Mss, Mss);
 
         template <bool Fuse, class Msses>
         struct split_mss_into_independent_esfs {
-            using mms_lists_t = GT_META_CALL(meta::transform, (mss_split_esfs, Msses));
-            using type = GT_META_CALL(meta::flatten, mms_lists_t);
+            using mms_lists_t = meta::transform<mss_split_esfs, Msses>;
+            using type = meta::flatten<mms_lists_t>;
         };
 
         template <class Msses>

@@ -56,12 +56,11 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(get_extent_from_stage, meta::id, typename Stage::extent_t);
 
         template <class Interval,
-            class StageGroups = GT_META_CALL(meta::at_c, (Interval, 2)),
-            class Stages = GT_META_CALL(meta::flatten, StageGroups)>
+            class StageGroups = meta::at_c<Interval, 2>,
+            class Stages = meta::flatten<StageGroups>>
         GT_META_DEFINE_ALIAS(get_extents_from_interval, meta::transform, (get_extent_from_stage, Stages));
 
-        template <class LoopIntervals,
-            class ExtentsList = GT_META_CALL(meta::transform, (get_extents_from_interval, LoopIntervals))>
+        template <class LoopIntervals, class ExtentsList = meta::transform<get_extents_from_interval, LoopIntervals>>
         GT_META_DEFINE_ALIAS(all_extents_of_loop_intervals, meta::flatten, ExtentsList);
 
     } // namespace loop_interval_impl_
@@ -72,12 +71,11 @@ namespace gridtools {
 
         template <class LoopIntervals>
         struct order_loop_intervals<execute::backward, LoopIntervals> {
-            using type = GT_META_CALL(meta::reverse,
-                (GT_META_CALL(meta::transform, (loop_interval_impl_::reverse_loop_interval, LoopIntervals))));
+            using type = meta::reverse<meta::transform<loop_interval_impl_::reverse_loop_interval, LoopIntervals>>;
         };
 
         template <class LoopIntervals,
-            class Extents = GT_META_CALL(loop_interval_impl_::all_extents_of_loop_intervals, LoopIntervals)>
+            class Extents = loop_interval_impl_::all_extents_of_loop_intervals<LoopIntervals>>
         struct get_extent_from_loop_intervals : meta::lazy::first<Extents> {
             GT_STATIC_ASSERT(meta::all_are_same<Extents>::value, GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT((meta::all_of<is_extent, Extents>::value), GT_INTERNAL_ERROR);

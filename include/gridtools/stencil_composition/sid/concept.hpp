@@ -189,7 +189,7 @@ namespace gridtools {
             template <class T, class = void>
             struct is_empty_or_tuple_of_empties : std::is_empty<T> {};
 
-            template <class Tup, class Types = GT_META_CALL(tuple_util::traits::to_types, Tup)>
+            template <class Tup, class Types = tuple_util::traits::to_types<Tup>>
             GT_META_DEFINE_ALIAS(is_tuple_of_empties, meta::all_of, (is_empty_or_tuple_of_empties, Types));
 
             template <class Tup>
@@ -294,9 +294,8 @@ namespace gridtools {
 
             template <class Inner, size_t ElemSize>
             struct get_array_strides<Inner[], ElemSize> {
-                using type = GT_META_CALL(meta::push_front,
-                    (typename get_array_strides<Inner, ElemSize>::type,
-                        integral_constant<ptrdiff_t, sizeof(Inner) / ElemSize>));
+                using type = meta::push_front<typename get_array_strides<Inner, ElemSize>::type,
+                    integral_constant<ptrdiff_t, sizeof(Inner) / ElemSize>>;
             };
 
             template <class Inner, size_t N, size_t ElemSize>
@@ -322,8 +321,8 @@ namespace gridtools {
             enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides_kind(Sid const &);
 
             template <class Sid, class Res = decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
-            enable_if_t<std::is_same<Res, not_provided>::value, GT_META_CALL(default_kind, strides_type<Sid>)>
-            get_strides_kind(Sid const &);
+            enable_if_t<std::is_same<Res, not_provided>::value, default_kind<strides_type<Sid>>> get_strides_kind(
+                Sid const &);
 
             /**
              *  `strides_kind` is deduced from `get_strides_kind`
@@ -549,7 +548,7 @@ namespace gridtools {
                 class ReferenceType = reference_type<Sid>,
                 class PtrDiff = ptr_diff_type<Sid>,
                 class StridesType = strides_type<Sid>,
-                class StrideTypeList = GT_META_CALL(tuple_util::traits::to_types, decay_t<StridesType>),
+                class StrideTypeList = tuple_util::traits::to_types<decay_t<StridesType>>,
                 class StridesKind = strides_kind<Sid>>
             GT_META_DEFINE_ALIAS(is_sid,
                 conjunction,
@@ -621,13 +620,13 @@ namespace gridtools {
         /**
          *  The type of the element of the SID
          */
-        template <class Sid, class Ref = GT_META_CALL(reference_type, Sid)>
+        template <class Sid, class Ref = reference_type<Sid>>
         GT_META_DEFINE_ALIAS(element_type, meta::id, decay_t<Ref>);
 
         /**
          *  The const variation of the reference type
          */
-        template <class Sid, class Ref = GT_META_CALL(reference_type, Sid)>
+        template <class Sid, class Ref = reference_type<Sid>>
         GT_META_DEFINE_ALIAS(const_reference_type,
             meta::id,
             (conditional_t<std::is_reference<Ref>::value,

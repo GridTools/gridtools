@@ -92,9 +92,8 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(get_key, meta::id, (integral_constant<int, I::value>));
 
         template <class T>
-        GT_META_DEFINE_ALIAS(default_keys,
-            meta::transform,
-            (get_key, GT_META_CALL(meta::make_indices_for, GT_META_CALL(tuple_util::traits::to_types, T))));
+        GT_META_DEFINE_ALIAS(
+            default_keys, meta::transform, (get_key, meta::make_indices_for<tuple_util::traits::to_types<T>>));
 
         struct not_provided;
 
@@ -104,7 +103,7 @@ namespace gridtools {
         enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_keys_fun(T const &);
 
         template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
-        enable_if_t<std::is_same<Res, not_provided>::value, GT_META_CALL(default_keys, T)> get_keys_fun(T const &);
+        enable_if_t<std::is_same<Res, not_provided>::value, default_keys<T>> get_keys_fun(T const &);
 
         template <class T>
         using get_keys = decltype(::gridtools::hymap_impl_::get_keys_fun(std::declval<T const &>()));
@@ -118,7 +117,7 @@ namespace gridtools {
 #endif
 
     template <class Map, class Key>
-    GT_META_DEFINE_ALIAS(has_key, meta::st_contains, (GT_META_CALL(hymap_impl_::get_keys, Map), Key));
+    GT_META_DEFINE_ALIAS(has_key, meta::st_contains, (hymap_impl_::get_keys<Map>, Key));
 
     namespace hymap {
         template <class... Keys>
@@ -140,16 +139,15 @@ namespace gridtools {
         };
 
         template <class HyMap>
-        GT_META_DEFINE_ALIAS(
-            to_meta_map, meta::zip, (GT_META_CALL(get_keys, HyMap), GT_META_CALL(tuple_util::traits::to_types, HyMap)));
+        GT_META_DEFINE_ALIAS(to_meta_map, meta::zip, (get_keys<HyMap>, tuple_util::traits::to_types<HyMap>));
 
-        template <class Keys, class Values, class HyMapKeys = GT_META_CALL(meta::rename, (keys, Keys))>
+        template <class Keys, class Values, class HyMapKeys = meta::rename<keys, Keys>>
         GT_META_DEFINE_ALIAS(from_keys_values, meta::rename, (HyMapKeys::template values, Values));
 
         template <class MetaMap,
-            class KeysAndValues = GT_META_CALL(meta::transpose, MetaMap),
-            class Keys = GT_META_CALL(meta::first, KeysAndValues),
-            class Values = GT_META_CALL(meta::second, KeysAndValues)>
+            class KeysAndValues = meta::transpose<MetaMap>,
+            class Keys = meta::first<KeysAndValues>,
+            class Values = meta::second<KeysAndValues>>
         GT_META_DEFINE_ALIAS(from_meta_map, from_keys_values, (Keys, Values));
     } // namespace hymap
 } // namespace gridtools
@@ -163,9 +161,7 @@ namespace gridtools {
 
 namespace gridtools {
     GT_TARGET_NAMESPACE {
-        template <class Key,
-            class Map,
-            class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, decay_t<Map>), Key))>
+        template <class Key, class Map, class I = meta::st_position<get_keys<decay_t<Map>>, Key>>
         GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto at_key(Map && map) noexcept GT_AUTO_RETURN(
             tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map)));
 
@@ -173,7 +169,7 @@ namespace gridtools {
             class Default,
             class Map,
             class Decayed = decay_t<Map>,
-            class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, Decayed), Key)),
+            class I = meta::st_position<get_keys<Decayed>, Key>,
             enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
         GT_TARGET GT_FORCE_INLINE constexpr auto at_key_with_default(Map && map) noexcept GT_AUTO_RETURN(
             tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map)));
@@ -182,7 +178,7 @@ namespace gridtools {
             class Default,
             class Map,
             class Decayed = decay_t<Map>,
-            class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, Decayed), Key)),
+            class I = meta::st_position<get_keys<Decayed>, Key>,
             enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
         GT_TARGET GT_FORCE_INLINE constexpr Default at_key_with_default(Map &&) noexcept {
             return {};

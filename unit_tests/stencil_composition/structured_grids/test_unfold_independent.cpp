@@ -34,7 +34,7 @@ namespace gridtools {
         using mss_type = decltype(make_multistage(
             execute::forward(), stage, stage, stage, make_independent(stage, stage, make_independent(stage, stage))));
 
-        using testee_t = GT_META_CALL(unwrap_independent, mss_type::esf_sequence_t);
+        using testee_t = unwrap_independent<mss_type::esf_sequence_t>;
 
         static_assert(meta::length<testee_t>::value == 7, "");
         static_assert(meta::all_of<is_esf_descriptor, testee_t>::value, "");

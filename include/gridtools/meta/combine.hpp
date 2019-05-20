@@ -38,9 +38,8 @@ namespace gridtools {
             struct combine_impl {
                 static_assert(N > 0, "N in combine_impl<F, List, N> must be positive");
                 static constexpr std::size_t m = N / 2;
-                using type = GT_META_CALL(F,
-                    (typename combine_impl<F, List, m>::type,
-                        typename combine_impl<F, typename drop_front_c<m, List>::type, N - m>::type));
+                using type = F<typename combine_impl<F, List, m>::type,
+                    typename combine_impl<F, typename drop_front_c<m, List>::type, N - m>::type>;
             };
             template <template <class...> class F, template <class...> class L, class T, class... Ts>
             struct combine_impl<F, L<T, Ts...>, 1> {
@@ -48,7 +47,7 @@ namespace gridtools {
             };
             template <template <class...> class F, template <class...> class L, class T1, class T2, class... Ts>
             struct combine_impl<F, L<T1, T2, Ts...>, 2> {
-                using type = GT_META_CALL(F, (T1, T2));
+                using type = F<T1, T2>;
             };
             template <template <class...> class F,
                 template <class...> class L,
@@ -57,7 +56,7 @@ namespace gridtools {
                 class T3,
                 class... Ts>
             struct combine_impl<F, L<T1, T2, T3, Ts...>, 3> {
-                using type = GT_META_CALL(F, (T1, GT_META_CALL(F, (T2, T3))));
+                using type = F<T1, F<T2, T3>>;
             };
             template <template <class...> class F,
                 template <class...> class L,
@@ -67,7 +66,7 @@ namespace gridtools {
                 class T4,
                 class... Ts>
             struct combine_impl<F, L<T1, T2, T3, T4, Ts...>, 4> {
-                using type = GT_META_CALL(F, (GT_META_CALL(F, (T1, T2)), GT_META_CALL(F, (T3, T4))));
+                using type = F<F<T1, T2>, F<T3, T4>>;
             };
             template <template <class...> class F>
             struct combine<F> {

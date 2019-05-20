@@ -54,8 +54,8 @@ namespace gridtools {
 
         template <class Res, class Lhs, class Rhs>
         GT_FUNCTION Res sum_offsets(Lhs &&lhs, Rhs &&rhs) {
-            using keys_t = GT_META_CALL(get_keys, Res);
-            using generators_t = GT_META_CALL(meta::transform, (sum_offset_generator_f, keys_t));
+            using keys_t = get_keys<Res>;
+            using generators_t = meta::transform<sum_offset_generator_f, keys_t>;
             return tuple_util::host_device::generate<generators_t, Res>(
                 wstd::forward<Lhs>(lhs), wstd::forward<Rhs>(rhs));
         }
@@ -150,9 +150,8 @@ namespace gridtools {
 
         template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>
         GT_FUNCTION void evaluate_bound_functor(Eval &eval, Args &&args) {
-            static constexpr GT_META_CALL(meta::rename,
-                (meta::ctor<tuple<>>::apply,
-                    GT_META_CALL(meta::transform, (meta::defer<meta::id>::apply, typename Functor::param_list))))
+            static constexpr meta::rename<meta::ctor<tuple<>>::apply,
+                meta::transform<meta::defer<meta::id>::apply, typename Functor::param_list>>
                 lazy_params = {};
             auto new_eval = make_evaluator(eval,
                 tuple_util::host_device::transform(get_transform_f<I, J, K>{}, wstd::forward<Args>(args), lazy_params));
@@ -201,12 +200,12 @@ namespace gridtools {
             "the called stencil function");
 
         using params_t = typename Functor::param_list;
-        using out_params_t = GT_META_CALL(meta::filter, (call_interfaces_impl_::is_out_param, params_t));
+        using out_params_t = meta::filter<call_interfaces_impl_::is_out_param, params_t>;
 
         GT_STATIC_ASSERT(meta::length<out_params_t>::value == 1,
             "Trying to invoke stencil operator with more than one output as a function");
 
-        using out_param_t = GT_META_CALL(meta::first, out_params_t);
+        using out_param_t = meta::first<out_params_t>;
         static constexpr size_t out_param_index = out_param_t::index_t::value;
 
       public:

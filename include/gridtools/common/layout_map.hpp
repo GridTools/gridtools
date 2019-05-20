@@ -49,11 +49,11 @@ namespace gridtools {
         using args = meta::list<std::integral_constant<int, Args>...>;
 
         /* list of all unmasked (i.e. non-negative) arguments */
-        using unmasked_args = GT_META_CALL(meta::filter, (_impl::_layout_map::not_negative, args));
+        using unmasked_args = meta::filter<_impl::_layout_map::not_negative, args>;
 
         /* sum of all unmasked arguments (only used for assertion below) */
         static constexpr int unmasked_arg_sum = meta::lazy::combine<_impl::_layout_map::integral_plus,
-            GT_META_CALL(meta::push_back, (unmasked_args, std::integral_constant<int, 0>))>::type::value;
+            meta::push_back<unmasked_args, std::integral_constant<int, 0>>>::type::value;
 
       public:
         /** @brief Length of layout map excluding masked dimensions. */

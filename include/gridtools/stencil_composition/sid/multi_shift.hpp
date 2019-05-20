@@ -39,7 +39,7 @@ namespace gridtools {
         template <class Ptr, class Strides, class Offsets, enable_if_t<tuple_util::size<Offsets>::value != 0, int> = 0>
         GT_FUNCTION void multi_shift(
             Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets const &GT_RESTRICT offsets) {
-            using keys_t = GT_META_CALL(get_keys, Offsets);
+            using keys_t = get_keys<Offsets>;
             gridtools::host_device::for_each_type<keys_t>(
                 multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});
         }

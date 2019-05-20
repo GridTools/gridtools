@@ -78,7 +78,7 @@ namespace gridtools {
                 descriptor.rank = std::rank<Arr>::value;
                 descriptor.is_acc_present = false;
 
-                using indices = GT_META_CALL(meta::make_indices, std::rank<Arr>);
+                using indices = meta::make_indices<std::rank<Arr>>;
                 host::for_each<indices>(
                     std::bind(_impl::fill_extent_f<Arr>{}, std::placeholders::_1, std::ref(descriptor)));
 

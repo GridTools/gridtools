@@ -24,8 +24,8 @@ namespace gridtools {
                 class... Args,
                 class ArgsPair = decltype(
                     split_args<is_arg_storage_pair>(wstd::forward<Args>(std::declval<Args>())...)),
-                class ArgStoragePairs = GT_META_CALL(decay_elements, typename ArgsPair::first_type),
-                class Msses = GT_META_CALL(decay_elements, typename ArgsPair::second_type)>
+                class ArgStoragePairs = decay_elements<typename ArgsPair::first_type>,
+                class Msses = decay_elements<typename ArgsPair::second_type>>
             intermediate_expand<Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses> operator()(
                 Grid const &grid, Args &&... args) const {
                 // split arg_storage_pair and mss descriptor arguments and forward it to intermediate constructor

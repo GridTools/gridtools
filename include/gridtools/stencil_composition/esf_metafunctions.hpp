@@ -25,11 +25,11 @@
 namespace gridtools {
     namespace esf_metafunctions_impl_ {
         template <class Esf>
-        GT_META_DEFINE_ALIAS(get_items, meta::zip, (typename Esf::args_t, GT_META_CALL(esf_param_list, Esf)));
+        GT_META_DEFINE_ALIAS(get_items, meta::zip, (typename Esf::args_t, esf_param_list<Esf>));
 
         template <intent Intent>
         struct has_intent {
-            template <class Item, class Param = GT_META_CALL(meta::second, Item)>
+            template <class Item, class Param = meta::second<Item>>
             GT_META_DEFINE_ALIAS(apply, bool_constant, Param::intent_v == Intent);
         };
 
@@ -60,24 +60,21 @@ namespace gridtools {
      *  Provide list of placeholders that corresponds to fields (temporary or not) that are written by EsfF.
      */
     template <class Esf,
-        class AllItems = GT_META_CALL(esf_metafunctions_impl_::get_items, Esf),
-        class WItems = GT_META_CALL(
-            meta::filter, (esf_metafunctions_impl_::has_intent<intent::inout>::apply, AllItems))>
+        class AllItems = esf_metafunctions_impl_::get_items<Esf>,
+        class WItems = meta::filter<esf_metafunctions_impl_::has_intent<intent::inout>::apply, AllItems>>
     GT_META_DEFINE_ALIAS(esf_get_w_args_per_functor, meta::transform, (meta::first, WItems));
 
     /**
      * Compute a list of all args specified by the user that are written into by at least one ESF
      */
     template <class Esfs,
-        class ItemLists = GT_META_CALL(meta::transform, (esf_metafunctions_impl_::get_items, Esfs)),
-        class AllItems = GT_META_CALL(meta::flatten, ItemLists),
-        class AllRwItems = GT_META_CALL(
-            meta::filter, (esf_metafunctions_impl_::has_intent<intent::inout>::apply, AllItems)),
-        class AllRwArgs = GT_META_CALL(meta::transform, (meta::first, AllRwItems))>
+        class ItemLists = meta::transform<esf_metafunctions_impl_::get_items, Esfs>,
+        class AllItems = meta::flatten<ItemLists>,
+        class AllRwItems = meta::filter<esf_metafunctions_impl_::has_intent<intent::inout>::apply, AllItems>,
+        class AllRwArgs = meta::transform<meta::first, AllRwItems>>
     GT_META_DEFINE_ALIAS(compute_readwrite_args, meta::dedup, AllRwArgs);
 
     // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
-    template <class Esfs,
-        class EsfLists = GT_META_CALL(meta::transform, (esf_metafunctions_impl_::tuple_from_esf, Esfs))>
+    template <class Esfs, class EsfLists = meta::transform<esf_metafunctions_impl_::tuple_from_esf, Esfs>>
     GT_META_DEFINE_ALIAS(unwrap_independent, meta::flatten, EsfLists);
 } // namespace gridtools
