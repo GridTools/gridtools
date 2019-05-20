@@ -379,7 +379,8 @@ namespace gridtools {
                         return wstd::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup)));
                     }
                     template <class Fun, class Tup1, class Tup2>
-                    GT_TARGET decltype(auto) operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const {
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) operator()(
+                        Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const {
                         return wstd::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup1>(tup1)),
                             GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup2>(tup2)));
                     }
@@ -843,7 +844,7 @@ namespace gridtools {
              * @endcode
              */
             template <class Fun, class Tup, class... Tups>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) transform(Fun && fun, Tup && tup, Tups && ... tups) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto transform(Fun && fun, Tup && tup, Tups && ... tups) {
                 return detail::transform_f<Fun>{wstd::forward<Fun>(fun)}(
                     wstd::forward<Tup>(tup), wstd::forward<Tups>(tups)...);
             }
@@ -1039,7 +1040,7 @@ namespace gridtools {
              * @endcode
              */
             template <class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) flatten(Tup && tup) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto flatten(Tup && tup) {
                 return flatten()(wstd::forward<Tup>(tup));
             }
 
@@ -1122,7 +1123,7 @@ namespace gridtools {
              * @endcode
              */
             template <size_t N, class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) drop_front(Tup && tup) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto drop_front(Tup && tup) {
                 return drop_front<N>()(wstd::forward<Tup>(tup));
             }
 
@@ -1156,7 +1157,7 @@ namespace gridtools {
              * @endcode
              */
             template <class Tup, class... Args>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) push_back(Tup && tup, Args && ... args) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto push_back(Tup && tup, Args && ... args) {
                 return push_back()(wstd::forward<Tup>(tup), wstd::forward<Args>(args)...);
             }
 
@@ -1166,7 +1167,7 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::push_front_f push_front() { return {}; }
 
             template <class Tup, class... Args>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) push_front(Tup && tup, Args && ... args) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto push_front(Tup && tup, Args && ... args) {
                 return push_front()(wstd::forward<Tup>(tup), wstd::forward<Args>(args)...);
             }
 
@@ -1236,13 +1237,13 @@ namespace gridtools {
             }
 
             template <class Pred, class... Tups>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) all_of(Pred && pred, Tups && ... tups) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR bool all_of(Pred && pred, Tups && ... tups) {
                 return detail::all_of_f<Pred>{wstd::forward<Pred>(pred)}(wstd::forward<Tups>(tups)...);
             }
 
             template <class Pred>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) all_of(Pred pred) {
-                return detail::all_of_f<Pred>{wstd::move(pred)};
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::all_of_f<Pred> all_of(Pred pred) {
+                return {wstd::move(pred)};
             }
 
             /**
@@ -1255,7 +1256,7 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::transpose_f transpose() { return {}; }
 
             template <class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) transpose(Tup && tup) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto transpose(Tup && tup) {
                 return transpose()(wstd::forward<Tup>(tup));
             }
 
@@ -1293,14 +1294,14 @@ namespace gridtools {
              * @endcode
              */
             template <class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) deep_copy(Tup && tup) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto deep_copy(Tup && tup) {
                 return deep_copy()(wstd::forward<Tup>(tup));
             }
 
             namespace detail {
                 // in impl as it is not as powerful as std::invoke (does not support invoking member functions)
                 template <class Fun, class... Args>
-                decltype(auto) invoke_impl(Fun &&f, Args &&... args) {
+                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) invoke_impl(Fun &&f, Args &&... args) {
                     return wstd::forward<Fun>(f)(wstd::forward<Args>(args)...);
                 }
 
@@ -1342,45 +1343,6 @@ namespace gridtools {
                 return L<Ts &...>{elems...};
             }
 
-// cuda8 has problems with deducing generic `make`/`tie` in the case of `pair`
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
-            template <template <class> class L, class T0>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR L<T0> make(T0 const &elem0) {
-                return L<T0>{elem0};
-            }
-            template <template <class, class> class L, class T0, class T1>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR L<T0, T1> make(T0 const &elem0, T1 const &elem1) {
-                return L<T0, T1>{elem0, elem1};
-            }
-            template <template <class, class, class> class L, class T0, class T1, class T2>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR L<T0, T1, T2> make(
-                T0 const &elem0, T1 const &elem1, T2 const &elem2) {
-                return L<T0, T1, T2>{elem0, elem1, elem2};
-            }
-            template <template <class, class, class, class> class L, class T0, class T1, class T2, class T3>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR L<T0, T1, T2, T3> make(
-                T0 const &elem0, T1 const &elem1, T2 const &elem2, T3 const &elem3) {
-                return L<T0, T1, T2, T3>{elem0, elem1, elem2, elem3};
-            }
-
-            template <template <class> class L, class T0>
-            GT_TARGET GT_FORCE_INLINE L<T0 &> tie(T0 & elem0) {
-                return L<T0 &>{elem0};
-            }
-            template <template <class, class> class L, class T0, class T1>
-            GT_TARGET GT_FORCE_INLINE L<T0 &, T1 &> tie(T0 & elem0, T1 & elem1) {
-                return L<T0 &, T1 &>{elem0, elem1};
-            }
-            template <template <class, class, class> class L, class T0, class T1, class T2>
-            GT_TARGET GT_FORCE_INLINE L<T0 &, T1 &, T2 &> tie(T0 & elem0, T1 & elem1, T2 & elem2) {
-                return L<T0 &, T1 &, T2 &>{elem0, elem1, elem2};
-            }
-            template <template <class, class, class, class> class L, class T0, class T1, class T2, class T3>
-            GT_TARGET GT_FORCE_INLINE L<T0 &, T1 &, T2 &, T3 &> tie(T0 & elem0, T1 & elem1, T2 & elem2, T3 & elem3) {
-                return L<T0 &, T1 &, T2 &, T3 &>{elem0, elem1, elem2, elem3};
-            }
-#endif
-
             /// Generalization of `std::experimental::make_array`
             //
             template <template <class, size_t> class Arr, class D = void, class... Ts>
@@ -1414,7 +1376,7 @@ namespace gridtools {
             }
 
             template <template <class...> class L, class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) convert_to(Tup const &tup) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto convert_to(Tup const &tup) {
                 return detail::convert_to_f<_impl::to_tuple_converter_helper<L>>{}(tup);
             }
 
@@ -1425,14 +1387,14 @@ namespace gridtools {
             }
 
             template <template <class, size_t> class Arr, class D = void, class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) convert_to(Tup const &tup) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto convert_to(Tup const &tup) {
                 return (detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>{}(tup));
             }
 
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::reverse_f reverse() { return {}; }
 
             template <class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) reverse(Tup && tup) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto reverse(Tup && tup) {
                 return reverse()(wstd::forward<Tup>(tup));
             }
 
@@ -1442,7 +1404,7 @@ namespace gridtools {
             }
 
             template <size_t I, class Val, class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) insert(Val && val, Tup && tup) {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto insert(Val && val, Tup && tup) {
                 return insert<I>(wstd::forward<Val>(val))(wstd::forward<Tup>(tup));
             }
         }
