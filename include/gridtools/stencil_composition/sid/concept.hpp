@@ -125,7 +125,7 @@
  *
  *  - Stride sid::get_stride<I>(Strides)
  *
- * TODO(anstaf): add lower/upper bounds stuff when the API will be finally settled.
+ * TODO(anstaf): Document lower/upper bounds stuff when the API will be finally settled.
  *
  */
 
