@@ -282,7 +282,7 @@ namespace gridtools {
 
                 template <class T>
                 struct add_ref<ref_kind::const_lvalue, T> : std::add_lvalue_reference<add_const_t<T>> {};
-            }
+            } // namespace lazy
             GT_META_DELEGATE_TO_LAZY(add_ref, (ref_kind Kind, class Dst), (Kind, Dst));
 
             template <ref_kind Kind>
@@ -976,14 +976,13 @@ namespace gridtools {
              *     double& value;
              *     template < class A, class B >
              *     void operator()(A a, B b) const {
-             *         if (mask)
-             *             value += a * b;
+             *         value += a * b;
              *     }
              * };
              *
              * // Binary function
              * sum_value = 0.;
-             * for_each(sum{sum_value}, std::make_tuple(1, 2, 3), std::make_tuple(1, 10));
+             * for_each_in_cartesian_product(sum{sum_value}, std::make_tuple(1, 2, 3), std::make_tuple(1, 10));
              * // sum_value == 66.
              * @endcode
              */
