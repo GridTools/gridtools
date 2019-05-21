@@ -245,7 +245,9 @@ namespace gridtools {
             this. We made the use of this function difficult on purpose.
         */
         template <class T>
-        auto get_raw_pointer_of(T const &src) GT_AUTO_RETURN(advanced_get_raw_pointer_of(src));
+        auto get_raw_pointer_of(T const &src) {
+            return advanced_get_raw_pointer_of(src);
+        }
     } // namespace advanced
 
     /**

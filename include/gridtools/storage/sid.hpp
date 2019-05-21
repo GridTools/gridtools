@@ -151,8 +151,9 @@ namespace gridtools {
     }
 
     template <class Storage, class StorageInfo>
-    auto sid_get_strides(data_store<Storage, StorageInfo> const &obj)
-        GT_AUTO_RETURN(storage_sid_impl_::convert_strides_f<typename StorageInfo::layout_t>{}(obj.strides()));
+    auto sid_get_strides(data_store<Storage, StorageInfo> const &obj) {
+        return storage_sid_impl_::convert_strides_f<typename StorageInfo::layout_t>{}(obj.strides());
+    }
 
     template <class Storage, class StorageInfo>
     StorageInfo sid_get_strides_kind(data_store<Storage, StorageInfo> const &);

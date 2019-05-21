@@ -46,7 +46,7 @@ namespace gridtools {
                               : m_info.template total_length<Dim>() - 1;
             }
 
-            auto operator()(int offset) const GT_AUTO_RETURN(m_fun(index_from_offset<Is>(offset)...));
+            auto operator()(int offset) const { return m_fun(index_from_offset<Is>(offset)...); }
         };
     } // namespace data_store_impl_
 
@@ -110,7 +110,8 @@ namespace gridtools {
          * @param name Human readable name for the data_store
          */
         data_store(StorageInfo const &info, data_t const &initializer, std::string const &name = "")
-            : data_store(std::true_type{}, info, [&initializer](int) { return initializer; }, name) {}
+            : data_store(
+                  std::true_type{}, info, [&initializer](int) { return initializer; }, name) {}
 
         /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
