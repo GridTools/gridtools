@@ -56,35 +56,51 @@ namespace gridtools {
         }
         GT_META_DELEGATE_TO_LAZY(get_out_arg, class T, T);
 
-        template <class Esf,
-            class ExtentMap,
-            class ArgParamPairs = GT_META_CALL(get_arg_param_pairs, Esf),
-            class OutArgs = GT_META_CALL(meta::transform,
-                (get_out_arg, GT_META_CALL(meta::filter, (has_intent<intent::inout>::apply, ArgParamPairs))))>
-        GT_META_DEFINE_ALIAS(get_esf_extent,
-            meta::rename,
-            (enclosing_extent,
-                GT_META_CALL(meta::transform, (lookup_extent_map_f<ExtentMap>::template apply, OutArgs))));
+        template <class Extent>
+        struct make_item_f {
+            template <class ArgParamPair, class Param = GT_META_CALL(meta::second, ArgParamPair)>
+            GT_META_DEFINE_ALIAS(apply,
+                meta::list,
+                (GT_META_CALL(meta::first, ArgParamPair),
+                    GT_META_CALL(sum_extent, (Extent, typename Param::extent_t))));
+        };
 
         GT_META_LAZY_NAMESPACE {
-            template <class Esf, class ExtentMap>
-            struct process_esf {
-                using esf_extent_t = GT_META_CALL(get_esf_extent, (Esf, ExtentMap));
+            template <class Esf, class ExtentMap, class Extent = typename Esf::extent_t>
+            struct get_esf_extent {
+                using type = Extent;
+            };
 
+            template <class Esf, class ExtentMap>
+            struct get_esf_extent<Esf, ExtentMap, void> {
+                using arg_param_pairs_t = GT_META_CALL(get_arg_param_pairs, Esf);
+                using out_args_t = GT_META_CALL(meta::transform,
+                    (compute_extents_metafunctions_impl_::get_out_arg,
+                        GT_META_CALL(meta::filter, (has_intent<intent::inout>::apply, arg_param_pairs_t))));
+                using extents_t = GT_META_CALL(
+                    meta::transform, (lookup_extent_map_f<ExtentMap>::template apply, out_args_t));
+                using type = GT_META_CALL(meta::rename, (enclosing_extent, extents_t));
+            };
+
+            template <class Esf, class ExtentMap, class Extent = typename Esf::extent_t>
+            struct process_esf {
+                using arg_param_pairs_t = GT_META_CALL(get_arg_param_pairs, Esf);
+                using new_items_t = GT_META_CALL(
+                    meta::transform, (make_item_f<Extent>::template apply, arg_param_pairs_t));
+                using type = GT_META_CALL(meta::lfold, (meta::mp_insert, ExtentMap, new_items_t));
+            };
+
+            template <class Esf, class ExtentMap>
+            struct process_esf<Esf, ExtentMap, void> {
+                using esf_extent_t = typename get_esf_extent<Esf, ExtentMap>::type;
                 using in_arg_param_pairs_t = GT_META_CALL(
                     meta::filter, (has_intent<intent::in>::apply, GT_META_CALL(get_arg_param_pairs, Esf)));
-
-                template <class ArgParamPair, class Param = GT_META_CALL(meta::second, ArgParamPair)>
-                GT_META_DEFINE_ALIAS(make_item,
-                    meta::list,
-                    (GT_META_CALL(meta::first, ArgParamPair),
-                        GT_META_CALL(sum_extent, (esf_extent_t, typename Param::extent_t))));
-
-                using new_items_t = GT_META_CALL(meta::transform, (make_item, in_arg_param_pairs_t));
-
+                using new_items_t = GT_META_CALL(
+                    meta::transform, (make_item_f<esf_extent_t>::template apply, in_arg_param_pairs_t));
                 using type = GT_META_CALL(meta::lfold, (meta::mp_insert, ExtentMap, new_items_t));
             };
         }
+        GT_META_DELEGATE_TO_LAZY(get_esf_extent, (class Esf, class ExtentMap), (Esf, ExtentMap));
         GT_META_DELEGATE_TO_LAZY(process_esf, (class Esf, class ExtentMap), (Esf, ExtentMap));
 
         template <class Esfs>
