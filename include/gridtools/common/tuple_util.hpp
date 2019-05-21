@@ -219,23 +219,12 @@ namespace gridtools {
             template <class T>
             decltype(tuple_from_types(std::declval<T>())) get_from_types(T);
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-#define GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(name)                                                          \
-    template <class, class = void>                                                                     \
-    struct name;                                                                                       \
-    template <class T>                                                                                 \
-    struct name<T, void_t<decltype(::gridtools::tuple_util::traits::get_##name(std::declval<T>()))>> { \
-        using type = decltype(::gridtools::tuple_util::traits::get_##name(std::declval<T>()));         \
-    }
-#else
-#define GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(name) \
-    template <class T>                        \
-    using name = decltype(::gridtools::tuple_util::traits::get_##name(std::declval<T>()))
-#endif
-            GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(getter);
-            GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(to_types);
-            GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(from_types);
-#undef GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS
+            template <class T>
+            using getter = decltype(::gridtools::tuple_util::traits::get_getter(std::declval<T>()));
+            template <class T>
+            using to_types = decltype(::gridtools::tuple_util::traits::get_to_types(std::declval<T>()));
+            template <class T>
+            using from_types = decltype(::gridtools::tuple_util::traits::get_from_types(std::declval<T>()));
         } // namespace traits
         /// @endcond
 
@@ -569,13 +558,8 @@ namespace gridtools {
 
                 template <class Fun>
                 struct fold_f {
-#if GT_BROKEN_TEMPLATE_ALIASES
-                    template <class S, class T>
-                    struct meta_fun : get_fun_result<Fun>::template apply<S, T> {};
-#else
                     template <class S, class T>
                     using meta_fun = typename get_fun_result<Fun>::template apply<S, T>;
-#endif
                     Fun m_fun;
 
                     template <size_t I, size_t N, class State, class Tup, enable_if_t<I == N, int> = 0>

@@ -17,7 +17,6 @@
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
-#include "../../meta/defs.hpp"
 #include "../../meta/id.hpp"
 #include "../../meta/logical.hpp"
 #include "../../meta/macros.hpp"

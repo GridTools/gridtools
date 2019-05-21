@@ -23,17 +23,15 @@ namespace gridtools {
         namespace lazy {
             template <class... Lists>
             struct zip : transpose<list<Lists...>> {};
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(zip, class... Lists, Lists...);
 #else
         namespace lazy {
             template <class... Lists>
             using zip = transpose<list<Lists...>>;
         }
-#if !GT_BROKEN_TEMPLATE_ALIASES
         template <class... Lists>
         using zip = typename lazy::transpose<list<Lists...>>::type;
-#endif
 #endif
     } // namespace meta
 } // namespace gridtools

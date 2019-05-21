@@ -11,7 +11,6 @@
 
 #include <cstddef>
 
-#include "defs.hpp"
 #include "list.hpp"
 #include "macros.hpp"
 
@@ -51,12 +50,10 @@ namespace gridtools {
 
             template <class N, class T>
             using repeat = repeat_c<N::value, T>;
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+        } // namespace lazy
         template <std::size_t N, class T>
         using repeat_c = typename lazy::repeat_c<N, T>::type;
         template <class N, class T>
         using repeat = typename lazy::repeat_c<N::value, T>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

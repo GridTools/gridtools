@@ -17,7 +17,6 @@
 
 #include "always.hpp"
 #include "curry.hpp"
-#include "defs.hpp"
 #include "first.hpp"
 #include "force.hpp"
 #include "if.hpp"
@@ -25,11 +24,7 @@
 #include "make_indices.hpp"
 #include "transform.hpp"
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-#define GT_META_INTERNAL_LAZY_PARAM(fun) BOOST_PP_REMOVE_PARENS(fun)
-#else
 #define GT_META_INTERNAL_LAZY_PARAM(fun) ::gridtools::meta::force<BOOST_PP_REMOVE_PARENS(fun)>::template apply
-#endif
 
 namespace gridtools {
     namespace meta {

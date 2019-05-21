@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../meta/dedup.hpp"
-#include "../meta/defs.hpp"
 #include "../meta/filter.hpp"
 #include "../meta/is_empty.hpp"
 #include "../meta/length.hpp"
@@ -21,15 +20,8 @@
 namespace gridtools {
 
     namespace _impl {
-#if GT_BROKEN_TEMPLATE_ALIASES
-        template <class Stage>
-        struct get_extent_from_stage {
-            using type = typename Stage::extent_t;
-        };
-#else
         template <class Stage>
         using get_extent_from_stage = typename Stage::extent_t;
-#endif
         template <class Extent>
         struct has_same_extent {
             template <class Stage>
@@ -53,7 +45,7 @@ namespace gridtools {
             struct fuse_stages_with_the_same_extent<CompoundStage, L<Stage>> {
                 using type = Stage;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(fuse_stages_with_the_same_extent,
             (template <class...> class CompoundStage, class Stages),
             (CompoundStage, Stages));
@@ -88,7 +80,7 @@ namespace gridtools {
         struct fuse_stages<CompoundStage, L<>> {
             using type = L<>;
         };
-    }
+    } // namespace lazy
     /**
      *  Group the stages from the input by extent and substitute each group by compound stage.
      */

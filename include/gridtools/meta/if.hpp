@@ -27,13 +27,11 @@ namespace gridtools {
 
             template <bool Cond, class Lhs, class Rhs>
             using if_c = std::conditional<Cond, Lhs, Rhs>;
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+        } // namespace lazy
         template <class Cond, class Lhs, class Rhs>
         using if_ = typename std::conditional<Cond::value, Lhs, Rhs>::type;
 
         template <bool Cond, class Lhs, class Rhs>
         using if_c = typename std::conditional<Cond, Lhs, Rhs>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

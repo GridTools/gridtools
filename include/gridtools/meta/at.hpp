@@ -13,7 +13,6 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "defs.hpp"
 #include "first.hpp"
 #include "macros.hpp"
 #include "make_indices.hpp"
@@ -42,13 +41,11 @@ namespace gridtools {
 
             template <class List, class N>
             using at = at_c<List, N::value>;
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+        } // namespace lazy
         // 'direct' versions of lazy functions
         template <class List, class N>
         using at = typename lazy::at_c<List, N::value>::type;
         template <class List, std::size_t N>
         using at_c = typename lazy::at_c<List, N>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

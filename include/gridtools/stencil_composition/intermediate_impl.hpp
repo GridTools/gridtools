@@ -12,7 +12,6 @@
 #include "../common/functional.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple_util.hpp"
-#include "../meta/defs.hpp"
 #include "../storage/sid.hpp"
 #include "esf_metafunctions.hpp"
 #include "extract_placeholders.hpp"

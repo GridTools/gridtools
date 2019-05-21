@@ -20,12 +20,6 @@ namespace gridtools {
     namespace meta {
         template <class...>
         struct f;
-#if GT_BROKEN_TEMPLATE_ALIASES
-        template <class...>
-        struct f {
-            using type = f;
-        };
-#endif
         template <class...>
         struct g;
 

@@ -12,7 +12,6 @@
 
 #include <cstddef>
 
-#include "defs.hpp"
 #include "iseq_to_list.hpp"
 #include "length.hpp"
 #include "list.hpp"
@@ -36,14 +35,12 @@ namespace gridtools {
              */
             template <class List, template <class...> class L = list>
             using make_indices_for = iseq_to_list<make_index_sequence<length<List>::value>, L>;
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+        } // namespace lazy
         template <std::size_t N, template <class...> class L = list>
         using make_indices_c = typename lazy::iseq_to_list<make_index_sequence<N>, L>::type;
         template <class N, template <class...> class L = list>
         using make_indices = typename lazy::iseq_to_list<make_index_sequence<N::value>, L>::type;
         template <class List, template <class...> class L = list>
         using make_indices_for = typename lazy::iseq_to_list<make_index_sequence<length<List>::value>, L>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

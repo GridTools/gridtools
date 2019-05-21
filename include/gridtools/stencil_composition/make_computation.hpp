@@ -14,7 +14,6 @@
 
 #include "../common/defs.hpp"
 #include "../common/split_args.hpp"
-#include "../meta/defs.hpp"
 #include "../meta/transform.hpp"
 #include "../meta/type_traits.hpp"
 #include "computation.hpp"
@@ -26,13 +25,8 @@
 namespace gridtools {
     namespace _impl {
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-        template <class List>
-        struct decay_elements : meta::transform<std::decay, List> {};
-#else
         template <class List>
         using decay_elements = meta::transform<decay_t, List>;
-#endif
 
         template <bool IsStateful, class Backend>
         struct make_intermediate_f {

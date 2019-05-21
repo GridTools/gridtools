@@ -60,12 +60,10 @@ namespace gridtools {
 
             template <class N, class List>
             using take = take_c<N::value, List>;
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+        } // namespace lazy
         template <size_t N, class List>
         using take_c = typename lazy::take_c<N, List>::type;
         template <class N, class List>
         using take = typename lazy::take_c<N::value, List>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

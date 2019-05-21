@@ -11,7 +11,6 @@
 #pragma once
 
 #include "clear.hpp"
-#include "defs.hpp"
 #include "fold.hpp"
 #include "if.hpp"
 #include "macros.hpp"
@@ -31,9 +30,7 @@ namespace gridtools {
             template <class List>
             using dedup = lfold<dedup_step_impl, typename clear<List>::type, List>;
         }
-#if !GT_BROKEN_TEMPLATE_ALIASES
         template <class List>
         using dedup = typename lazy::lfold<dedup_step_impl, typename lazy::clear<List>::type, List>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

@@ -26,12 +26,10 @@ namespace gridtools {
             struct ctor;
             template <template <class...> class L, class... Ts>
             struct ctor<L<Ts...>> : defer<L> {};
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+        } // namespace lazy
         template <class>
         struct ctor;
         template <template <class...> class L, class... Ts>
         struct ctor<L<Ts...>> : curry<L> {};
-#endif
     } // namespace meta
 } // namespace gridtools

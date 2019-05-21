@@ -12,7 +12,6 @@
 #include <cstddef>
 
 #include "curry_fun.hpp"
-#include "defs.hpp"
 #include "drop_front.hpp"
 #include "length.hpp"
 #include "macros.hpp"
@@ -74,6 +73,6 @@ namespace gridtools {
             };
             template <template <class...> class F, class List>
             struct combine<F, List> : combine_impl<F, List, length<List>::value> {};
-        }
-    } // namespace meta
+        } // namespace lazy
+    }     // namespace meta
 } // namespace gridtools

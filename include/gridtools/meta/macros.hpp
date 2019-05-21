@@ -14,22 +14,12 @@
 
 #include <boost/preprocessor.hpp>
 
-#include "defs.hpp"
-
 // internal
 #define GT_META_INTERNAL_APPLY(fun, args) BOOST_PP_REMOVE_PARENS(fun)<BOOST_PP_REMOVE_PARENS(args)>
-
-#if GT_BROKEN_TEMPLATE_ALIASES
-
-#error unsupported
-
-#else
 
 #define GT_META_DELEGATE_TO_LAZY(fun, signature, args) \
     template <BOOST_PP_REMOVE_PARENS(signature)>       \
     using fun = typename lazy::fun<BOOST_PP_REMOVE_PARENS(args)>::type
-
-#endif
 
 /**
  *  NVCC bug workaround: sizeof... works incorrectly within template alias context.

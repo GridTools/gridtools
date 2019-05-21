@@ -12,7 +12,6 @@
 
 #include "combine.hpp"
 #include "concat.hpp"
-#include "defs.hpp"
 #include "macros.hpp"
 
 namespace gridtools {
@@ -26,9 +25,7 @@ namespace gridtools {
             template <class Lists>
             using flatten = combine<meta::concat, Lists>;
         }
-#if !GT_BROKEN_TEMPLATE_ALIASES
         template <class Lists>
         using flatten = typename lazy::combine<concat, Lists>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

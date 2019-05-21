@@ -11,7 +11,6 @@
 #pragma once
 
 #include "at.hpp"
-#include "defs.hpp"
 #include "length.hpp"
 #include "macros.hpp"
 
@@ -21,9 +20,7 @@ namespace gridtools {
             template <class List>
             using last = at_c<List, length<List>::value - 1>;
         }
-#if !GT_BROKEN_TEMPLATE_ALIASES
         template <class List>
         using last = typename lazy::at_c<List, length<List>::value - 1>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

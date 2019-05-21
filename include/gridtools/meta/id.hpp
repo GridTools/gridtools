@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "defs.hpp"
 #include "macros.hpp"
 
 namespace gridtools {
@@ -23,10 +22,8 @@ namespace gridtools {
             struct id {
                 using type = T;
             };
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+        } // namespace lazy
         template <class T>
         using id = T;
-#endif
     } // namespace meta
 } // namespace gridtools
