@@ -27,9 +27,11 @@ def load(envfile):
 
 try:
     from pyutils import buildinfo
-    load(buildinfo.envfile)
 except ImportError:
     pass
+else:
+    if buildinfo.envfile is not None:
+        load(buildinfo.envfile)
 
 
 def _items_with_tag(tag):
