@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import asyncio
+import io
 import os
 import re
 import statistics
@@ -10,23 +12,59 @@ import time
 from pyutils import env, log
 
 
+async def _run_async(command, **kwargs):
+    process = await asyncio.create_subprocess_exec(
+        *command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT)
+    buffer = io.StringIO()
+
+    async def read_output():
+        async for line in process.stdout:
+            buffer.write(line.decode())
+
+    main_task = asyncio.gather(process.wait(), read_output())
+
+    log_pos = 0
+
+    def log_output():
+        nonlocal log_pos
+        buffer.seek(log_pos)
+        new_output = buffer.read()
+        log_pos = buffer.tell()
+        if new_output:
+            log.debug(f'Output from {command[0]}', new_output)
+
+    async def log_output_periodic():
+        while True:
+            await asyncio.sleep(10)
+            log_output()
+
+    log_task = asyncio.ensure_future(log_output_periodic())
+
+    await main_task
+    log_task.cancel()
+    log_output()
+
+    buffer.seek(0)
+    if process.returncode != 0:
+        raise RuntimeError(f'{command[0]} failed with message {buffer.read()}')
+
+    return buffer.read().strip()
+
+
 def run(command, **kwargs):
     if not command:
         raise ValueError('No command provided')
 
     log.info('Invoking', ' '.join(command))
     start = time.time()
-    try:
-        output = subprocess.check_output(command,
-                                         env=env.env,
-                                         stderr=subprocess.STDOUT,
-                                         **kwargs)
-    except subprocess.CalledProcessError as e:
-        log.error(f'{command[0]} failed with output', e.output.decode())
-        raise e
+
+    loop = asyncio.get_event_loop()
+    output = loop.run_until_complete(_run_async(command, env=env, **kwargs))
+
     end = time.time()
     log.info(f'{command[0]} finished in {end - start:.2f}s')
-    output = output.decode().strip()
     log.debug(f'{command[0]} output', output)
     return output
 
