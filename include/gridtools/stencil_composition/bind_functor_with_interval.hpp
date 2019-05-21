@@ -83,7 +83,9 @@ namespace gridtools {
             using param_list = typename Functor::param_list;
 
             template <class Eval>
-            static GT_FUNCTION auto apply(Eval &eval) GT_AUTO_RETURN(Functor::template apply<Eval &>(eval, Interval{}));
+            static GT_FUNCTION void apply(Eval &eval) {
+                Functor::template apply<Eval &>(eval, Interval{});
+            }
         };
     } // namespace _impl
 
@@ -115,7 +117,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = Functor;
         };
-    }
+    } // namespace lazy
     /**
      *   Takes an elementary functor (Functor) and the level index (Index) as an input; deduces the interval that should
      *   be used for the range from Index to Index::next and produces the functor where the deduced interval is bound.

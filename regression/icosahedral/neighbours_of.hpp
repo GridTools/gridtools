@@ -24,7 +24,9 @@ namespace gridtools {
         struct neighbour {
             int_t i, c, j, k;
             template <class Fun>
-            auto call(Fun &&fun) const GT_AUTO_RETURN(std::forward<Fun>(fun)(i, c, j, k));
+            auto call(Fun &&fun) const {
+                return std::forward<Fun>(fun)(i, c, j, k);
+            }
         };
 
         template <class FromLocation, class ToLocation>

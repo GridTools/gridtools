@@ -128,13 +128,14 @@ namespace gridtools {
     };
 
     template <class T, class Extent, class Allocator>
-    auto make_tmp_storage_mc(Allocator &allocator, pos3<std::size_t> const &block_size)
-        GT_AUTO_RETURN((sid::synthetic()
-                            .set<sid::property::origin>(
-                                allocator.template allocate<T>(_impl_tmp_mc::storage_size<T, Extent>(block_size)) +
-                                _impl_tmp_mc::origin_offset<T, Extent>(block_size))
-                            .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent>(block_size))
-                            .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<T, Extent>>()
-                            .template set<sid::property::ptr_diff, int_t>()));
+    auto make_tmp_storage_mc(Allocator &allocator, pos3<std::size_t> const &block_size) {
+        return sid::synthetic()
+            .set<sid::property::origin>(
+                allocator.template allocate<T>(_impl_tmp_mc::storage_size<T, Extent>(block_size)) +
+                _impl_tmp_mc::origin_offset<T, Extent>(block_size))
+            .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent>(block_size))
+            .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<T, Extent>>()
+            .template set<sid::property::ptr_diff, int_t>();
+    }
 
 } // namespace gridtools

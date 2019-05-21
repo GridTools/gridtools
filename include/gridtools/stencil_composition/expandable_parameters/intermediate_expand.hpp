@@ -79,7 +79,7 @@ namespace gridtools {
                 struct convert_arg_storage_pair<I, arg_storage_pair<Plh, std::vector<DataStore>>> {
                     using type = arg_storage_pair<typename convert_plh<I::value, Plh>::type, DataStore>;
                 };
-            };
+            }; // namespace lazy
             GT_META_DELEGATE_TO_LAZY(convert_plh, (size_t I, class Plh), (I, Plh));
             GT_META_DELEGATE_TO_LAZY(convert_cache, (class I, class Cache), (I, Cache));
             GT_META_DELEGATE_TO_LAZY(convert_arg_storage_pair, (class I, class ArgStoragePair), (I, ArgStoragePair));
@@ -175,7 +175,7 @@ namespace gridtools {
                     using esfs_t = meta::transform<expand_esf_f<ExpandFactor>::template apply, Esfs>;
                     using type = mss_descriptor<ExecutionEngine, esfs_t, expand_caches<ExpandFactor, Caches>>;
                 };
-            }
+            } // namespace lazy
             GT_META_DELEGATE_TO_LAZY(expand_esf, (size_t ExpandFactor, class Esf), (ExpandFactor, Esf));
             GT_META_DELEGATE_TO_LAZY(convert_mss, (size_t ExpandFactor, class Mss), (ExpandFactor, Mss));
 
@@ -224,9 +224,10 @@ namespace gridtools {
             }
 
             template <uint_t ExpandFactor, class ArgStoragePairs>
-            auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs const &src)
-                GT_AUTO_RETURN(tuple_util::deep_copy(
-                    tuple_util::flatten(tuple_util::transform(expand_arg_storage_pair_f<ExpandFactor>{offset}, src))));
+            auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs const &src) {
+                return tuple_util::deep_copy(
+                    tuple_util::flatten(tuple_util::transform(expand_arg_storage_pair_f<ExpandFactor>{offset}, src)));
+            }
 
             template <uint_t ExpandFactor, class MssDescriptors>
             using converted_mss_descriptors =
@@ -357,10 +358,12 @@ namespace gridtools {
         void reset_meter() { m_meter.reset(); }
 
         template <class Placeholder>
-        static constexpr auto get_arg_extent(Placeholder) GT_AUTO_RETURN(
-            converted_intermediate<1>::get_arg_extent(_impl::expand_detail::convert_plh<0, Placeholder>{}));
+        static constexpr auto get_arg_extent(Placeholder) {
+            return converted_intermediate<1>::get_arg_extent(_impl::expand_detail::convert_plh<0, Placeholder>{});
+        }
         template <class Placeholder>
-        static constexpr auto get_arg_intent(Placeholder) GT_AUTO_RETURN(
-            converted_intermediate<1>::get_arg_intent(_impl::expand_detail::convert_plh<0, Placeholder>{}));
+        static constexpr auto get_arg_intent(Placeholder) {
+            return converted_intermediate<1>::get_arg_intent(_impl::expand_detail::convert_plh<0, Placeholder>{});
+        }
     };
 } // namespace gridtools

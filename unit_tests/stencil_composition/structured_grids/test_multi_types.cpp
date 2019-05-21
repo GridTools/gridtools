@@ -104,7 +104,9 @@ namespace gridtools {
         enum class call_type { function, procedure };
 
         template <call_type Type, class Eval, class T, enable_if_t<Type == call_type::function, int> = 0>
-        GT_FUNCTION auto call_function0(Eval &eval, T obj) GT_AUTO_RETURN(call<function0>::with(eval, obj));
+        GT_FUNCTION auto call_function0(Eval &eval, T obj) {
+            return call<function0>::with(eval, obj);
+        };
 
         template <call_type Type, class Eval, class T, enable_if_t<Type == call_type::procedure, int> = 0>
         GT_FUNCTION type1 call_function0(Eval &eval, T obj) {

@@ -129,18 +129,5 @@ namespace gridtools {
             EXPECT_EQ("interval", (run<with_default_functor, 1, 1>()));
             EXPECT_EQ("default", (run<with_default_functor, 1, 2>()));
         }
-
-        struct int_functor {
-            using param_list = std::tuple<>;
-            template <class Eval>
-            static GT_FUNCTION int apply(Eval &, interval<lev<0, 1>, lev<1, 1>>) {
-                return 42;
-            }
-        };
-
-        TEST(bind_functor_with_interval, return_value) {
-            int dummy;
-            EXPECT_EQ(42, (testee<int_functor, 0, 1>::apply(dummy)));
-        }
     } // namespace
 } // namespace gridtools

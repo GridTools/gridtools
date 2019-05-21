@@ -79,7 +79,9 @@ namespace gridtools {
         }
 #endif
         template <class Arg, class Ptr>
-        static GT_FUNCTION auto dereference(Ptr ptr) GT_AUTO_RETURN(*ptr);
+        static GT_FUNCTION decltype(auto) dereference(Ptr ptr) {
+            return *ptr;
+        }
 
       public:
         static constexpr bool has_ij_caches = !meta::is_empty<ij_caches<cache_sequence_t>>::value;
@@ -173,8 +175,9 @@ namespace gridtools {
             enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value &&
                             !meta::st_contains<k_cache_args_t, Arg>::value,
                 int> = 0>
-        GT_FUNCTION auto deref(Accessor const &acc) const
-            GT_AUTO_RETURN(dereference<Arg>(this->template get_ptr<Arg>(acc)));
+        GT_FUNCTION decltype(auto) deref(Accessor const &acc) const {
+            return dereference<Arg>(this->template get_ptr<Arg>(acc));
+        }
     };
 
     template <typename IterateDomainArguments>

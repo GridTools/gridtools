@@ -35,7 +35,9 @@ namespace gridtools {
 
         struct call_f {
             template <class PtrHolder>
-            GT_DEVICE auto operator()(PtrHolder const &holder) const GT_AUTO_RETURN(holder());
+            GT_DEVICE auto operator()(PtrHolder const &holder) const {
+                return holder();
+            }
         };
     } // namespace local_domain_impl_
 

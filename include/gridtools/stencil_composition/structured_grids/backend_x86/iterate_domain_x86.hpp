@@ -25,7 +25,9 @@ namespace gridtools {
         using iterate_domain<IterateDomainArguments>::iterate_domain;
 
         template <class Arg, class Accessor>
-        GT_FORCE_INLINE auto deref(Accessor const &acc) const GT_AUTO_RETURN(*this->template get_ptr<Arg>(acc));
+        GT_FORCE_INLINE decltype(auto) deref(Accessor const &acc) const {
+            return *this->template get_ptr<Arg>(acc);
+        }
     };
 
     template <typename IterateDomainArguments>

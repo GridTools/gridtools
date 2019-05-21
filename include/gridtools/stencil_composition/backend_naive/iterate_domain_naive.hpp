@@ -79,7 +79,9 @@ namespace gridtools {
         pos3<int_t> m_pos;
 
         template <class Arg, class Sid = storage_from_arg<LocalDomain, Arg>, class StridesKind = sid::strides_kind<Sid>>
-        auto strides() const GT_AUTO_RETURN(at_key<StridesKind>(m_strides_map));
+        decltype(auto) strides() const {
+            return at_key<StridesKind>(m_strides_map);
+        }
 
         template <class Dim>
         void increment(int_t offset) {

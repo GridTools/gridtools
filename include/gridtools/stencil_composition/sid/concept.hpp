@@ -200,7 +200,7 @@ namespace gridtools {
                 struct default_kind;
                 template <class T>
                 struct default_kind<T, enable_if_t<is_empty_or_tuple_of_empties<decay_t<T>>::value>> : std::decay<T> {};
-            }
+            } // namespace lazy
             GT_META_DELEGATE_TO_LAZY(default_kind, class T, T);
             /////// END defaults PART ///////
 
@@ -218,7 +218,9 @@ namespace gridtools {
              *  `get_origin` delegates to `sid_get_origin`
              */
             template <class Sid>
-            GT_CONSTEXPR auto get_origin(Sid &obj) GT_AUTO_RETURN(sid_get_origin(obj));
+            GT_CONSTEXPR auto get_origin(Sid &obj) -> decltype(sid_get_origin(obj)) {
+                return sid_get_origin(obj);
+            }
 
             /**
              *  C-array specialization
@@ -417,8 +419,10 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> = 0>
-            GT_FUNCTION auto shift(T &obj, Stride const &GT_RESTRICT stride, Offset const &GT_RESTRICT offset)
-                GT_AUTO_RETURN(sid_shift(obj, stride, offset));
+            GT_FUNCTION decltype(auto) shift(
+                T &obj, Stride const &GT_RESTRICT stride, Offset const &GT_RESTRICT offset) {
+                return sid_shift(obj, stride, offset);
+            }
 
             /**
              *  `shift` overload where both `stride` and `offset` are known in compile time
@@ -632,12 +636,15 @@ namespace gridtools {
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <class Key, class Strides>
-        GT_CONSTEXPR GT_FUNCTION auto get_stride(Strides &&strides)
-            GT_AUTO_RETURN((gridtools::host_device::at_key_with_default<Key, default_stride>(strides)));
+        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
+            return gridtools::host_device::at_key_with_default<Key, default_stride>(strides);
+        }
 
         struct get_origin_f {
             template <class T>
-            GT_CONSTEXPR auto operator()(T &obj) const GT_AUTO_RETURN(get_origin(obj));
+            GT_CONSTEXPR auto operator()(T &obj) const {
+                return get_origin(obj);
+            }
         };
     } // namespace sid
 

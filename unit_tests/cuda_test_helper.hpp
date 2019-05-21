@@ -56,7 +56,8 @@ namespace gridtools {
         }
 
         template <class Fun, class... Args>
-        auto exec(Fun &&fun, Args &&... args)
-            GT_AUTO_RETURN(exec_with_shared_memory(0, std::forward<Fun>(fun), std::forward<Args>(args)...));
+        auto exec(Fun &&fun, Args &&... args) {
+            return exec_with_shared_memory(0, std::forward<Fun>(fun), std::forward<Args>(args)...);
+        }
     } // namespace on_device
 } // namespace gridtools

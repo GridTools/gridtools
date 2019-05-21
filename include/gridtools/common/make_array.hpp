@@ -34,7 +34,7 @@ namespace gridtools {
      */
     template <typename ForceType = void, typename... Types>
     GT_CONSTEXPR GT_FUNCTION auto make_array(Types &&... values) {
-        return tuple_util::host_device::make<array, ForceType>(wstd::forward<Types>(values)...));
+        return tuple_util::host_device::make<array, ForceType>(wstd::forward<Types>(values)...);
     }
 
     /** @} */

@@ -54,12 +54,15 @@ namespace gridtools {
             ItDomain const &m_it_domain;
 
             template <class Accessor>
-            GT_FUNCTION auto operator()(Accessor const &arg) const GT_AUTO_RETURN(apply_intent<Accessor::intent_v>(
-                m_it_domain.template deref<meta::at_c<Args, Accessor::index_t::value>>(arg)));
+            GT_FUNCTION decltype(auto) operator()(Accessor const &arg) const {
+                return apply_intent<Accessor::intent_v>(
+                    m_it_domain.template deref<meta::at_c<Args, Accessor::index_t::value>>(arg));
+            }
 
             template <class Op, class... Ts>
-            GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
-                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
+            GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const {
+                return expressions::evaluation::value(*this, arg);
+            }
 
             GT_FUNCTION int_t i() const { return m_it_domain.i(); }
             GT_FUNCTION int_t j() const { return m_it_domain.j(); }

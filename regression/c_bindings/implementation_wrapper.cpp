@@ -66,15 +66,17 @@ namespace {
     using p_in = arg<0, data_store_t>;
     using p_out = arg<1, data_store_t>;
 
-    auto make_grid(data_store_t data_store) -> decltype(make_grid(0, 0, 0)) {
+    auto make_grid(data_store_t data_store) {
         auto dims = data_store.total_lengths();
         return gridtools::make_grid(dims[0], dims[1], dims[2]);
     }
 
-    auto make_copy_stencil(data_store_t in, data_store_t out) GT_AUTO_RETURN(make_computation<backend_t>(make_grid(out),
-        p_in{} = in,
-        p_out{} = out,
-        make_multistage(execute::forward(), make_stage<copy_functor>(p_in{}, p_out{}))));
+    auto make_copy_stencil(data_store_t in, data_store_t out) {
+        return make_computation<backend_t>(make_grid(out),
+            p_in{} = in,
+            p_out{} = out,
+            make_multistage(execute::forward(), make_stage<copy_functor>(p_in{}, p_out{})));
+    }
     GT_EXPORT_BINDING_WRAPPED_2(create_copy_stencil, make_copy_stencil);
 
     using stencil_t = decltype(make_copy_stencil(std::declval<data_store_t>(), std::declval<data_store_t>()));

@@ -37,9 +37,11 @@ namespace gridtools {
             };
 
             template <class Ptr, class Stride, class BlockSize, class Offset>
-            GT_FUNCTION auto sid_shift(Ptr &ptr, blocked_stride<Stride, BlockSize> const &stride, Offset const &offset)
-                GT_AUTO_RETURN(shift(
-                    ptr, tuple_util::host_device::get<0>(stride), tuple_util::host_device::get<1>(stride) * offset));
+            GT_FUNCTION decltype(auto) sid_shift(
+                Ptr &ptr, blocked_stride<Stride, BlockSize> const &stride, Offset const &offset) {
+                return shift(
+                    ptr, tuple_util::host_device::get<0>(stride), tuple_util::host_device::get<1>(stride) * offset);
+            }
 
             template <class Stride, class BlockSize, enable_if_t<!std::is_integral<Stride>::value, int> = 0>
             blocked_stride<Stride, BlockSize> block_stride(Stride const &stride, BlockSize const &block_size) {
@@ -47,11 +49,14 @@ namespace gridtools {
             }
 
             template <class Stride, class BlockSize, enable_if_t<std::is_integral<Stride>::value, int> = 0>
-            auto block_stride(Stride const &stride, BlockSize const &block_size) GT_AUTO_RETURN(stride *block_size);
+            auto block_stride(Stride const &stride, BlockSize const &block_size) {
+                return stride * block_size;
+            }
 
             template <class StrideT, StrideT Stride, class BlockSize>
-            auto block_stride(integral_constant<StrideT, Stride>, BlockSize const &block_size)
-                GT_AUTO_RETURN(Stride *block_size);
+            auto block_stride(integral_constant<StrideT, Stride>, BlockSize const &block_size) {
+                return Stride * block_size;
+            }
 
             template <class Stride, class BlockSize>
             using blocked_stride_type = decltype(block_stride(std::declval<Stride>(), std::declval<BlockSize>()));
@@ -61,7 +66,9 @@ namespace gridtools {
                 using type = generate_original_strides_f;
 
                 template <class Strides, class BlockMap>
-                auto operator()(Strides const &strides, BlockMap const &) const GT_AUTO_RETURN(at_key<Dim>(strides));
+                decltype(auto) operator()(Strides const &strides, BlockMap const &) const {
+                    return at_key<Dim>(strides);
+                }
             };
 
             template <class Dim>
@@ -69,8 +76,9 @@ namespace gridtools {
                 using type = generate_blocked_strides_f;
 
                 template <class Strides, class BlockMap>
-                auto operator()(Strides const &strides, BlockMap const &block_map) const
-                    GT_AUTO_RETURN(block_stride(at_key<Dim>(strides), at_key<Dim>(block_map)));
+                auto operator()(Strides const &strides, BlockMap const &block_map) const {
+                    return block_stride(at_key<Dim>(strides), at_key<Dim>(block_map));
+                }
             };
 
             template <class Sid, class BlockMap>
@@ -128,7 +136,9 @@ namespace gridtools {
         } // namespace block_impl_
 
         template <class Sid, class BlockMap, enable_if_t<block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
-        auto block(Sid &&sid, BlockMap &&) GT_AUTO_RETURN(wstd::forward<Sid>(sid));
+        decltype(auto) block(Sid &&sid, BlockMap &&) {
+            return wstd::forward<Sid>(sid);
+        }
 
         template <class Sid, class BlockMap, enable_if_t<!block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
         block_impl_::blocked_sid<decay_t<Sid>, decay_t<BlockMap>> block(Sid &&sid, BlockMap &&block_map) {
@@ -136,7 +146,8 @@ namespace gridtools {
         }
 
         template <class Sid, class BlockMap>
-        auto block(std::reference_wrapper<Sid> const &sid, BlockMap &&block_map)
-            GT_AUTO_RETURN(block(sid.get(), wstd::forward<BlockMap>(block_map)));
+        decltype(auto) block(std::reference_wrapper<Sid> const &sid, BlockMap &&block_map) {
+            return block(sid.get(), wstd::forward<BlockMap>(block_map));
+        }
     } // namespace sid
 } // namespace gridtools

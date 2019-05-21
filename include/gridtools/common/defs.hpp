@@ -134,15 +134,6 @@ namespace gridtools {
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
     "GridTools Development Team. \nMessage\n\n" x
 
-#ifdef GT_DOXYGEN_SHOULD_EXCLUDE_THIS
-/* disable GT_AUTO_RETURN macro for doxygen as it creates many warnings */
-#define GT_AUTO_RETURN(expr)
-#else
-#define GT_AUTO_RETURN(expr)          \
-    ->decltype(expr) { return expr; } \
-    static_assert(1, "")
-#endif
-
 #if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
 #define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name)                          \
     __forceinline__ __host__ __device__ constexpr class_name() noexcept {} \

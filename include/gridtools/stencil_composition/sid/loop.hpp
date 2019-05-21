@@ -482,19 +482,22 @@ namespace gridtools {
 
             struct make_cursor_f {
                 template <class Cursor, class Loop>
-                GT_CONSTEXPR GT_FUNCTION auto operator()(Cursor &&cursor, Loop const &loop) const
-                    GT_AUTO_RETURN(loop.make_cursor(wstd::forward<Cursor>(cursor)));
+                GT_CONSTEXPR GT_FUNCTION auto operator()(Cursor &&cursor, Loop const &loop) const {
+                    return loop.make_cursor(wstd::forward<Cursor>(cursor));
+                }
             };
 
             template <class Loops>
-            GT_CONSTEXPR GT_FUNCTION auto make_cursor_r(Loops &&loops)
-                GT_AUTO_RETURN(tuple_util::host_device::fold(make_cursor_f{},
+            GT_CONSTEXPR GT_FUNCTION auto make_cursor_r(Loops &&loops) {
+                return tuple_util::host_device::fold(make_cursor_f{},
                     tuple_util::host_device::get<0>(wstd::forward<Loops>(loops)).make_cursor(),
-                    tuple_util::host_device::drop_front<1>(wstd::forward<Loops>(loops))));
+                    tuple_util::host_device::drop_front<1>(wstd::forward<Loops>(loops)));
+            }
 
             template <class Loops>
-            GT_CONSTEXPR GT_FUNCTION auto make_cursor(Loops &&loops)
-                GT_AUTO_RETURN(make_cursor_r(tuple_util::host_device::reverse(wstd::forward<Loops>(loops))));
+            GT_CONSTEXPR GT_FUNCTION auto make_cursor(Loops &&loops) {
+                return make_cursor_r(tuple_util::host_device::reverse(wstd::forward<Loops>(loops)));
+            }
 
             template <class Ptr, class Strides, class Cursor>
             struct range {
@@ -502,7 +505,7 @@ namespace gridtools {
                 Strides const &m_strides;
                 Cursor m_cursor;
 
-                GT_FUNCTION auto operator*() const GT_AUTO_RETURN(*m_ptr);
+                GT_FUNCTION decltype(auto) operator*() const { return *m_ptr; }
                 GT_FUNCTION void operator++() { m_cursor.next(m_ptr, m_strides); }
                 template <class T>
                 GT_FUNCTION bool operator!=(T &&) const {
@@ -651,11 +654,12 @@ namespace gridtools {
          */
         template <class Ptr, class Strides, class OuterMostLoop, class... Loops>
         GT_CONSTEXPR GT_FUNCTION auto make_range(
-            Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops)
-            GT_AUTO_RETURN(loop_impl_::make_range(wstd::move(ptr),
+            Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops) {
+            return loop_impl_::make_range(wstd::move(ptr),
                 strides,
                 loop_impl_::make_cursor(tuple<OuterMostLoop, Loops...>{
-                    wstd::forward<OuterMostLoop>(outer_most_loop), wstd::forward<Loops>(loops)...})));
+                    wstd::forward<OuterMostLoop>(outer_most_loop), wstd::forward<Loops>(loops)...}));
+        }
 
     } // namespace sid
 } // namespace gridtools

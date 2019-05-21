@@ -59,8 +59,9 @@ namespace gridtools {
         using ij_caches_tuple_t = typename boost::fusion::result_of::as_map<ij_caches_vector_t>::type;
 
         template <class Arg, class Accessor>
-        GT_FUNCTION auto get_k_cache(Accessor const &acc) const
-            GT_AUTO_RETURN(boost::fusion::at_key<Arg>(const_cast<k_caches_tuple_t &>(m_k_caches_tuple)).at(acc));
+        GT_FUNCTION decltype(auto) get_k_cache(Accessor const &acc) const {
+            return boost::fusion::at_key<Arg>(const_cast<k_caches_tuple_t &>(m_k_caches_tuple)).at(acc);
+        }
 
         // slide all the k caches
         template <class IterationPolicy>

@@ -64,15 +64,19 @@ namespace gridtools {
             }
 
             template <class Eval, class Arg, enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION GT_CONSTEXPR auto apply_eval(Eval &eval, Arg const &arg) GT_AUTO_RETURN(eval(arg));
+            GT_FUNCTION GT_CONSTEXPR decltype(auto) apply_eval(Eval &eval, Arg const &arg) {
+                return eval(arg);
+            }
 
             template <class Eval, class Op, class Arg>
-            GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Arg> const &arg)
-                GT_AUTO_RETURN(Op{}(eval(arg.m_arg)));
+            GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Arg> const &arg) {
+                return Op{}(eval(arg.m_arg));
+            }
 
             template <class Eval, class Op, class Lhs, class Rhs>
-            GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg)
-                GT_AUTO_RETURN(Op{}(apply_eval(eval, arg.m_lhs), apply_eval(eval, arg.m_rhs)));
+            GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg) {
+                return Op{}(apply_eval(eval, arg.m_lhs), apply_eval(eval, arg.m_rhs));
+            }
         } // namespace evaluation
     }     // namespace expressions
     /** @} */
