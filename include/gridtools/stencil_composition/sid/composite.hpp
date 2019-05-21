@@ -208,9 +208,6 @@ namespace gridtools {
                     friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
                 };
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-              public:
-#endif
                 /**
                  *  Implements strides and ptr_diffs compression based on skipping the objects of the
                  *  same kind.
@@ -331,7 +328,7 @@ namespace gridtools {
                     using compressed_t = compressed<map_t>;
 
                     template <class... Ts>
-                    using compress = meta::id<typename compressed_t::template composite_entity<Ts...>>;
+                    using compress = typename compressed_t::template composite_entity<Ts...>;
 
                     using stride_keys_t = meta::dedup<meta::concat<get_keys<strides_type<Sids>>...>>;
 
@@ -345,7 +342,7 @@ namespace gridtools {
 #endif
 
                     template <class... Values>
-                    using stride_hymap_ctor = meta::id<typename stride_hymap_keys_t::template values<Values...>>;
+                    using stride_hymap_ctor = typename stride_hymap_keys_t::template values<Values...>;
 
                     // A helper for generating strides_t
                     // It is a meta function from the stride key to the stride type

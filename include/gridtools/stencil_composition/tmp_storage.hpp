@@ -120,7 +120,6 @@ namespace gridtools {
     };
 
     template <class Backend>
-    using needs_allocate_cached_tmp =
-        meta::id<decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(Backend{}))>;
+    using needs_allocate_cached_tmp = decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(Backend{}));
 
 } // namespace gridtools

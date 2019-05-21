@@ -54,7 +54,7 @@ namespace gridtools {
         using all_stages_t = meta::flatten<all_stage_groups_t>;
 
         template <class Stage>
-        using get_stage_extent = meta::id<typename Stage::extent_t>;
+        using get_stage_extent = typename Stage::extent_t;
 
         using all_extents_t = meta::transform<get_stage_extent, all_stages_t>;
 

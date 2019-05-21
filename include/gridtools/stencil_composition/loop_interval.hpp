@@ -49,11 +49,11 @@ namespace gridtools {
             struct reverse_loop_interval<loop_interval<From, To, Payload>> {
                 using type = loop_interval<To, From, Payload>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(reverse_loop_interval, class T, T);
 
         template <class Stage>
-        using get_extent_from_stage = meta::id<typename Stage::extent_t>;
+        using get_extent_from_stage = typename Stage::extent_t;
 
         template <class Interval,
             class StageGroups = meta::at_c<Interval, 2>,
@@ -83,7 +83,7 @@ namespace gridtools {
 
         template <class LoopIntervals, template <class...> class L>
         struct get_extent_from_loop_intervals<LoopIntervals, L<>> : meta::lazy::id<extent<>> {};
-    }
+    } // namespace lazy
     /**
      * Applies execution policy to the list of loop intervals.
      * For backward execution loop_intervals are reversed and for each interval From and To levels got swapped.

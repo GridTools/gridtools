@@ -20,7 +20,7 @@ namespace gridtools {
 
         // Extract args from ESF.
         template <class Esf>
-        using get_args = meta::id<typename Esf::args_t>;
+        using get_args = typename Esf::args_t;
 
         // Extract ESFs from an MSS.
         template <class Mss>

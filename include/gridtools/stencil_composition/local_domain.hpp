@@ -103,7 +103,7 @@ namespace gridtools {
     };
 
     template <class LocalDomain, class Arg>
-    using storage_from_arg = meta::id<typename Arg::data_store_t>;
+    using storage_from_arg = typename Arg::data_store_t;
 
     template <class>
     struct is_local_domain : std::false_type {};

@@ -89,7 +89,7 @@ namespace gridtools {
     namespace hymap_impl_ {
 
         template <class I>
-        using get_key = meta::id<integral_constant<int, I::value>>;
+        using get_key = integral_constant<int, I::value>;
 
         template <class T>
         using default_keys = meta::transform<get_key, meta::make_indices_for<tuple_util::traits::to_types<T>>>;
@@ -108,12 +108,7 @@ namespace gridtools {
         using get_keys = decltype(::gridtools::hymap_impl_::get_keys_fun(std::declval<T const &>()));
     } // namespace hymap_impl_
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-    template <class T>
-    struct get_keys : meta::id<hymap_impl_::get_keys<T>> {};
-#else
     using hymap_impl_::get_keys;
-#endif
 
     template <class Map, class Key>
     using has_key = meta::st_contains<hymap_impl_::get_keys<Map>, Key>;

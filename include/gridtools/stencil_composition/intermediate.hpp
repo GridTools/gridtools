@@ -106,7 +106,7 @@ namespace gridtools {
         using non_cached_tmp_placeholders_t = _impl::extract_non_cached_tmp_args_from_msses<mss_descriptors_t>;
 
         template <class Arg>
-        using to_arg_storage_pair = meta::id<arg_storage_pair<Arg, typename Arg::data_store_t>>;
+        using to_arg_storage_pair = arg_storage_pair<Arg, typename Arg::data_store_t>;
 
         using tmp_arg_storage_pair_tuple_t = meta::transform<to_arg_storage_pair,
             meta::if_<needs_allocate_cached_tmp<Backend>, tmp_placeholders_t, non_cached_tmp_placeholders_t>>;

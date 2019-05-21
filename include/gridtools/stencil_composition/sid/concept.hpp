@@ -576,24 +576,14 @@ namespace gridtools {
 
         // Meta functions
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-#define GT_SID_DELEGATE_FROM_IMPL(name) \
-    template <class Sid>                \
-    struct name : meta::id<concept_impl_::name<Sid>> {}
-#else
-#define GT_SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
-#endif
+        using concept_impl_::ptr_diff_type;
+        using concept_impl_::ptr_holder_type;
+        using concept_impl_::ptr_type;
+        using concept_impl_::reference_type;
+        using concept_impl_::strides_kind;
+        using concept_impl_::strides_type;
 
-        GT_SID_DELEGATE_FROM_IMPL(ptr_holder_type);
-        GT_SID_DELEGATE_FROM_IMPL(ptr_type);
-        GT_SID_DELEGATE_FROM_IMPL(ptr_diff_type);
-        GT_SID_DELEGATE_FROM_IMPL(reference_type);
-        GT_SID_DELEGATE_FROM_IMPL(strides_type);
-        GT_SID_DELEGATE_FROM_IMPL(strides_kind);
-
-        GT_SID_DELEGATE_FROM_IMPL(default_ptr_diff);
-
-#undef GT_SID_DELEGATE_FROM_IMPL
+        using concept_impl_::default_ptr_diff;
 
         // Runtime functions
         using concept_impl_::get_origin;
@@ -619,15 +609,15 @@ namespace gridtools {
          *  The type of the element of the SID
          */
         template <class Sid, class Ref = reference_type<Sid>>
-        using element_type = meta::id<decay_t<Ref>>;
+        using element_type = decay_t<Ref>;
 
         /**
          *  The const variation of the reference type
          */
         template <class Sid, class Ref = reference_type<Sid>>
-        using const_reference_type = meta::id<conditional_t<std::is_reference<Ref>::value,
+        using const_reference_type = conditional_t<std::is_reference<Ref>::value,
             add_lvalue_reference_t<add_const_t<remove_reference_t<Ref>>>,
-            add_const_t<Ref>>>;
+            add_const_t<Ref>>;
 
         /**
          *  A getter from Strides to the given stride.

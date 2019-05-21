@@ -44,8 +44,8 @@ namespace gridtools {
         GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
 
         template <class Cache, class Arg = typename Cache::arg_t>
-        using make_item = meta::id<
-            boost::fusion::pair<Arg, typename make_k_cache_storage<Arg, extract_k_extent_for_cache<Arg, Esfs>>::type>>;
+        using make_item =
+            boost::fusion::pair<Arg, typename make_k_cache_storage<Arg, extract_k_extent_for_cache<Arg, Esfs>>::type>;
 
         using type = meta::transform<make_item, k_caches<Caches>>;
     };
@@ -55,8 +55,7 @@ namespace gridtools {
         GT_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
 
         template <class Cache, class Arg = typename Cache::arg_t>
-        using make_item =
-            meta::id<boost::fusion::pair<Arg, typename make_ij_cache_storage<Arg, ITile, JTile, MaxExtent>::type>>;
+        using make_item = boost::fusion::pair<Arg, typename make_ij_cache_storage<Arg, ITile, JTile, MaxExtent>::type>;
 
         using type = meta::transform<make_item, ij_caches<Caches>>;
     };

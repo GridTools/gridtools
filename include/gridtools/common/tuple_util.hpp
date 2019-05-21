@@ -159,7 +159,7 @@ namespace gridtools {
                 //
                 struct array_from_types {
                     template <class... Ts>
-                    using apply = meta::id<std::array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>>;
+                    using apply = std::array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>;
                 };
 
                 /// getter for the standard "tuple like" entities: `std::tuple`, `std::pair` and `std::array`
@@ -299,7 +299,7 @@ namespace gridtools {
             template <class Fun>
             struct get_fun_result {
                 template <class... Ts>
-                using apply = meta::id<decltype(std::declval<Fun>()(std::declval<Ts>()...))>;
+                using apply = decltype(std::declval<Fun>()(std::declval<Ts>()...));
             };
 
             template <class Tup>
@@ -317,13 +317,13 @@ namespace gridtools {
             template <template <class...> class L>
             struct to_tuple_converter_helper {
                 template <class... Ts>
-                using apply = meta::id<L<Ts...>>;
+                using apply = L<Ts...>;
             };
 
             template <template <class, size_t> class Arr, class D>
             struct to_array_converter_helper {
                 template <class... Ts>
-                using apply = meta::id<Arr<typename make_array_helper<D, Ts...>::type, sizeof...(Ts)>>;
+                using apply = Arr<typename make_array_helper<D, Ts...>::type, sizeof...(Ts)>;
             };
 
         } // namespace _impl
@@ -400,7 +400,7 @@ namespace gridtools {
                 };
 
                 template <class I>
-                using get_transform_generator = meta::id<transform_elem_f<I::value>>;
+                using get_transform_generator = transform_elem_f<I::value>;
 
                 template <class GeneratorList, class Res>
                 struct generate_f;
@@ -487,7 +487,7 @@ namespace gridtools {
                     };
 
                     template <class OuterI, class InnerI>
-                    using get_generator = meta::id<generator_f<OuterI::value, InnerI::value>>;
+                    using get_generator = generator_f<OuterI::value, InnerI::value>;
 
                     template <class OuterI, class InnerTup>
                     using get_inner_generators =
@@ -509,7 +509,7 @@ namespace gridtools {
                 template <size_t N>
                 struct drop_front_f {
                     template <class I>
-                    using get_drop_front_generator = meta::id<get_nth_f<N + I::value>>;
+                    using get_drop_front_generator = get_nth_f<N + I::value>;
 
                     template <class Tup,
                         class Accessors = get_accessors<Tup &&>,
@@ -731,7 +731,7 @@ namespace gridtools {
                     };
 
                     template <class I>
-                    using get_generator = meta::id<transform_f<get_nth_f<I::value>>>;
+                    using get_generator = transform_f<get_nth_f<I::value>>;
 
                     template <class Tup,
                         class First = meta::first<to_types<Tup>>,
@@ -752,7 +752,7 @@ namespace gridtools {
                     template <class N>
                     struct generator_f {
                         template <class I>
-                        using apply = meta::id<get_nth_f<N::value - 1 - I::value>>;
+                        using apply = get_nth_f<N::value - 1 - I::value>;
                     };
 
                     template <class Tup,

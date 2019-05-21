@@ -20,7 +20,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(Esf::location_type::n_colors::value > 0, GT_INTERNAL_ERROR);
 
             template <class I>
-            using nth_param = meta::id<typename Esf::template esf_function<I::value>::param_list>;
+            using nth_param = typename Esf::template esf_function<I::value>::param_list;
 
             using colors_t = meta::make_indices_c<Esf::location_type::n_colors::value>;
             using param_lists_t = meta::transform<nth_param, colors_t>;
@@ -38,7 +38,7 @@ namespace gridtools {
         struct esf_replace_args<esf_descriptor<F, Grid, Location, Color, OldArgs>, NewArgs> {
             using type = esf_descriptor<F, Grid, Location, Color, NewArgs>;
         };
-    }
+    } // namespace lazy
     GT_META_DELEGATE_TO_LAZY(esf_param_list, class Esf, Esf);
     GT_META_DELEGATE_TO_LAZY(esf_replace_args, (class Esf, class Args), (Esf, Args));
 

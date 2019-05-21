@@ -76,7 +76,7 @@ namespace gridtools {
             };
 
             template <class T>
-            using apply = meta::id<generator<T>>;
+            using apply = generator<T>;
         };
 
         template <class MaxExtent, class Backend, class Res, class Grid>

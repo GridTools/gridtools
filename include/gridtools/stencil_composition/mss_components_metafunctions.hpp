@@ -26,11 +26,11 @@ namespace gridtools {
             struct mss_split_esfs<mss_descriptor<ExecutionEngine, EsfSequence, CacheSequence>> {
                 GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
                 template <class Esf>
-                using make_mss = meta::id<mss_descriptor<ExecutionEngine, std::tuple<Esf>, CacheSequence>>;
+                using make_mss = mss_descriptor<ExecutionEngine, std::tuple<Esf>, CacheSequence>;
                 using esfs_t = unwrap_independent<EsfSequence>;
                 using type = meta::transform<make_mss, esfs_t>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(mss_split_esfs, class Mss, Mss);
 
         template <bool Fuse, class Msses>
@@ -47,7 +47,7 @@ namespace gridtools {
         template <class ExtentMap, class Axis>
         struct make_mms_components_f {
             template <class Mss>
-            using apply = meta::id<mss_components<Mss, ExtentMap, Axis>>;
+            using apply = mss_components<Mss, ExtentMap, Axis>;
         };
 
     } // namespace mss_comonents_metafunctions_impl_

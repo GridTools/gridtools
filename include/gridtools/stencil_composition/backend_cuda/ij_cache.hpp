@@ -19,8 +19,8 @@ namespace gridtools {
 #ifndef GT_ICOSAHEDRAL_GRIDS
     namespace ij_cache_impl_ {
         template <int_t IStride, int_t JStride>
-        using strides_map_t = meta::id<
-            hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, IStride>, integral_constant<int_t, JStride>>>;
+        using strides_map_t =
+            hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, IStride>, integral_constant<int_t, JStride>>;
 
         template <class T, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
         auto make_ij_cache(shared_allocator &allocator) {
@@ -38,9 +38,9 @@ namespace gridtools {
 #else
     namespace ij_cache_impl_ {
         template <int_t IStride, int_t CStride, int_t JStride>
-        using strides_map_t = meta::id<hymap::keys<dim::i, dim::c, dim::j>::values<integral_constant<int_t, IStride>,
+        using strides_map_t = hymap::keys<dim::i, dim::c, dim::j>::values<integral_constant<int_t, IStride>,
             integral_constant<int_t, CStride>,
-            integral_constant<int_t, JStride>>>;
+            integral_constant<int_t, JStride>>;
 
         template <class T, int_t ISize, int_t NumColors, int_t JSize, int_t IZero, int_t JZero>
         auto make_ij_cache(shared_allocator &allocator) {
