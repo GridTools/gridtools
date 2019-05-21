@@ -30,9 +30,8 @@ namespace gridtools {
         struct stages_from_esf_f;
 
         template <class Esfs, class Index, class ExtentMap>
-        using stages_from_esfs = meta::filter,
-              <meta::not_<meta::is_empty>::apply,
-                  meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>>;
+        using stages_from_esfs = meta::filter<meta::not_<meta::is_empty>::apply,
+            meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>>;
 
         template <class Index>
         struct bind_functor_with_interval_f {
@@ -96,7 +95,7 @@ namespace gridtools {
             struct esf_functor {
                 using type = typename Esf::template esf_function<Color::value>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(stages_from_esf, (class Esf, class Index, class ExtentMap), (Esf, Index, ExtentMap));
         GT_META_DELEGATE_TO_LAZY(esf_functor, (class Esf, class Color), (Esf, Color));
 
