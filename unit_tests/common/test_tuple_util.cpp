@@ -140,6 +140,20 @@ namespace gridtools {
                 testing::ElementsAre(11, 22));
         }
 
+        struct add_index_f {
+            template <size_t I, class T>
+            GT_FUNCTION GT_CONSTEXPR T operator()(T val) const {
+                return val + I;
+            }
+        };
+
+        TEST(transform_index, functional) {
+            auto src = std::make_tuple(42, 5.3);
+            auto res = transform_index(add_index_f{}, src);
+            static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
+            EXPECT_EQ(res, std::make_tuple(42, 6.3));
+        }
+
         struct accumulate_f {
             double &m_acc;
             template <class T>
@@ -158,6 +172,20 @@ namespace gridtools {
             double acc = 0;
             for_each(accumulate_f{acc}, make<std::array>(42, 5.3));
             EXPECT_EQ(47.3, acc);
+        }
+
+        struct accumulate_index_f {
+            int &m_acc;
+            template <size_t I, class T>
+            void operator()(T val) const {
+                m_acc += (I + 1) * val;
+            }
+        };
+
+        TEST(for_each_index, functional) {
+            int acc = 0;
+            for_each_index(accumulate_index_f{acc}, std::make_tuple(42, 5));
+            EXPECT_EQ(52, acc);
         }
 
         TEST(for_each, multiple_inputs) {

@@ -11,60 +11,51 @@
 
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
-#include "../../meta.hpp"
+#include "../../common/tuple_util.hpp"
 #include "../color.hpp"
 #include "../dim.hpp"
 #include "../extent.hpp"
+#include "../sid/blocked_dim.hpp"
+#include "../sid/contiguous.hpp"
 #include "../sid/sid_shift_origin.hpp"
-#include "../sid/synthetic.hpp"
-#include <memory>
 
 namespace gridtools {
 
     namespace tmp_cuda {
-        struct block_i;
-        struct block_j;
-
         template <int_t, int_t>
         struct blocksize {};
     } // namespace tmp_cuda
 
     namespace tmp_cuda_impl_ {
-        inline auto origin_offset(int_t shift_i, int_t shift_j)
-            GT_AUTO_RETURN((hymap::keys<dim::i, dim::j>::values<int_t, int_t>(shift_i, shift_j)));
-
-        template <class T, class Allocator>
-        auto make_ptr_holder(Allocator &alloc, size_t num_elements)
-            GT_AUTO_RETURN((allocate(alloc, meta::lazy::id<T>{}, num_elements)));
-
-        template <class Strides, class PtrHolder>
-        auto make_synthetic(Strides const &strides, PtrHolder const &ptr)
-            GT_AUTO_RETURN((sid::synthetic()
-                                .set<sid::property::origin>(ptr)
-                                .template set<sid::property::strides>(strides)
-                                .template set<sid::property::ptr_diff, int_t>()
-                                .template set<sid::property::strides_kind, Strides>()));
-
-        template <class BlockSizeI, class BlockSizeJ, uint_t NColors = 1>
-        std::size_t compute_size(int_t n_blocks_i, int_t n_blocks_j, int_t k_size) {
-            return BlockSizeI::value * BlockSizeJ::value * NColors * n_blocks_i * n_blocks_j * k_size;
+        template <class Extent>
+        hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -Extent::iminus::value>,
+            integral_constant<int_t, -Extent::jminus::value>>
+        origin_offset(Extent) {
+            return {};
         }
-
     } // namespace tmp_cuda_impl_
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
 
     namespace tmp_cuda_impl_ {
-        using namespace literals;
-        using stride_keys_t = hymap::keys<dim::i, dim::j, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>;
-
-        template <class BlockSizeI, class BlockSizeJ>
-        auto compute_strides(int_t n_blocks_i, int_t n_blocks_j)
-            GT_AUTO_RETURN((tuple_util::make<stride_keys_t::values>(1_c,
-                BlockSizeI{},
-                BlockSizeI{} * BlockSizeJ{},
-                BlockSizeI{} * BlockSizeJ{} * n_blocks_i,
-                BlockSizeI{} * BlockSizeJ{} * n_blocks_i * n_blocks_j)));
+        template <int_t ComputeBlockSizeI,
+            int_t ComputeBlockSizeJ,
+            int_t ExtentIMinus, // negative by convention
+            int_t ExtentIPlus,
+            int_t ExtentJMinus, // negative by convention
+            int_t ExtentJPlus,
+            int_t ExtentKMinus, // negative by convention
+            int_t ExtentKPlus,
+            class BlockSizeI = integral_constant<int_t, ComputeBlockSizeI - ExtentIMinus + ExtentIPlus>,
+            class BlockSizeJ = integral_constant<int_t, ComputeBlockSizeJ - ExtentJMinus + ExtentJPlus>>
+        auto sizes(tmp_cuda::blocksize<ComputeBlockSizeI, ComputeBlockSizeJ>,
+            extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, ExtentKMinus, ExtentKPlus>,
+            int_t n_blocks_i,
+            int_t n_blocks_j,
+            int_t k_size)
+            GT_AUTO_RETURN((tuple_util::make<
+                hymap::keys<dim::i, dim::j, sid::blocked_dim<dim::i>, sid::blocked_dim<dim::j>, dim::k>::values>(
+                BlockSizeI{}, BlockSizeJ{}, n_blocks_i, n_blocks_j, k_size)));
     } // namespace tmp_cuda_impl_
 
     /**
@@ -82,45 +73,40 @@ namespace gridtools {
      *  - alignment similar to old implementation (first data point in compute domain)
      *  - align first element of the temporary (i.e. in the redundant computation region)
      */
-    template <class T,
-        int_t ComputeBlockSizeI,
-        int_t ComputeBlockSizeJ,
-        int_t ExtentIMinus, // negative by convention
-        int_t ExtentIPlus,
-        int_t ExtentJMinus, // negative by convention
-        int_t ExtentJPlus,
-        int_t ExtentKMinus, // negative by convention
-        int_t ExtentKPlus,
-        class Allocator,
-        class BlockSizeI = integral_constant<int_t, ComputeBlockSizeI - ExtentIMinus + ExtentIPlus>,
-        class BlockSizeJ = integral_constant<int_t, ComputeBlockSizeJ - ExtentJMinus + ExtentJPlus>>
-    auto make_tmp_storage_cuda(tmp_cuda::blocksize<ComputeBlockSizeI, ComputeBlockSizeJ>,
-        extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, ExtentKMinus, ExtentKPlus>,
+    template <class T, class ComputeBlockSize, class Extent, class Allocator>
+    auto make_tmp_storage_cuda(ComputeBlockSize compute_block_size,
+        Extent extent,
         int_t n_blocks_i,
         int_t n_blocks_j,
         int_t k_size,
         Allocator &alloc)
-        GT_AUTO_RETURN((sid::shift_sid_origin(
-            tmp_cuda_impl_::make_synthetic(
-                tmp_cuda_impl_::compute_strides<BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j),
-                tmp_cuda_impl_::make_ptr_holder<T>(
-                    alloc, tmp_cuda_impl_::compute_size<BlockSizeI, BlockSizeJ>(n_blocks_i, n_blocks_j, k_size))),
-            tmp_cuda_impl_::origin_offset(-ExtentIMinus, -ExtentJMinus))));
+        GT_AUTO_RETURN(sid::shift_sid_origin(
+            sid::make_contiguous<T, int_t>(
+                alloc, tmp_cuda_impl_::sizes(compute_block_size, extent, n_blocks_i, n_blocks_j, k_size)),
+            tmp_cuda_impl_::origin_offset(extent)));
 
 #else
 
     namespace tmp_cuda_impl_ {
-        using namespace literals;
-        using stride_keys_t = hymap::keys<dim::i, dim::j, dim::c, tmp_cuda::block_i, tmp_cuda::block_j, dim::k>;
-
-        template <class BlockSizeI, class BlockSizeJ, uint_t NColors>
-        auto compute_strides(int_t n_blocks_i, int_t n_blocks_j)
-            GT_AUTO_RETURN((tuple_util::make<stride_keys_t::values>(1_c,
-                BlockSizeI{},
-                BlockSizeI{} * BlockSizeJ{},
-                BlockSizeI{} * BlockSizeJ{} * NColors,
-                BlockSizeI{} * BlockSizeJ{} * NColors * n_blocks_i,
-                BlockSizeI{} * BlockSizeJ{} * NColors * n_blocks_i * n_blocks_j)));
+        template <int_t ComputeBlockSizeI,
+            int_t ComputeBlockSizeJ,
+            int_t ExtentIMinus, // negative by convention
+            int_t ExtentIPlus,
+            int_t ExtentJMinus, // negative by convention
+            int_t ExtentJPlus,
+            int_t ExtentKMinus, // negative by convention
+            int_t ExtentKPlus,
+            uint_t NColors,
+            class BlockSizeI = integral_constant<int_t, ComputeBlockSizeI - ExtentIMinus + ExtentIPlus>,
+            class BlockSizeJ = integral_constant<int_t, ComputeBlockSizeJ - ExtentJMinus + ExtentJPlus>>
+        auto sizes(tmp_cuda::blocksize<ComputeBlockSizeI, ComputeBlockSizeJ>,
+            extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, ExtentKMinus, ExtentKPlus>,
+            color_type<NColors>,
+            int_t n_blocks_i,
+            int_t n_blocks_j,
+            int_t k_size) GT_AUTO_RETURN((tuple_util::make<hymap::
+                keys<dim::i, dim::j, dim::c, sid::blocked_dim<dim::i>, sid::blocked_dim<dim::j>, dim::k>::values>(
+            BlockSizeI{}, BlockSizeJ{}, integral_constant<int_t, NColors>{}, n_blocks_i, n_blocks_j, k_size)));
     } // namespace tmp_cuda_impl_
 
     /**
@@ -131,32 +117,18 @@ namespace gridtools {
      *  - alignment similar to old implementation (first data point in compute domain)
      *  - align first element of the temporary (i.e. in the redundant computation region)
      */
-    template <class T,
-        int_t ComputeBlockSizeI,
-        int_t ComputeBlockSizeJ,
-        int_t ExtentIMinus, // negative by convention
-        int_t ExtentIPlus,
-        int_t ExtentJMinus, // negative by convention
-        int_t ExtentJPlus,
-        int_t ExtentKMinus, // negative by convention
-        int_t ExtentKPlus,
-        uint_t NColors,
-        class Allocator,
-        class BlockSizeI = integral_constant<int_t, ComputeBlockSizeI - ExtentIMinus + ExtentIPlus>,
-        class BlockSizeJ = integral_constant<int_t, ComputeBlockSizeJ - ExtentJMinus + ExtentJPlus>>
-    auto make_tmp_storage_cuda(tmp_cuda::blocksize<ComputeBlockSizeI, ComputeBlockSizeJ>,
-        extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, ExtentKMinus, ExtentKPlus>,
-        color_type<NColors>,
+    template <class T, class ComputeBlockSize, class Extent, class Color, class Allocator>
+    auto make_tmp_storage_cuda(ComputeBlockSize compute_block_size,
+        Extent extent,
+        Color color,
         int_t n_blocks_i,
         int_t n_blocks_j,
         int_t k_size,
         Allocator &alloc)
-        GT_AUTO_RETURN((sid::shift_sid_origin(
-            tmp_cuda_impl_::make_synthetic(
-                tmp_cuda_impl_::compute_strides<BlockSizeI, BlockSizeJ, NColors>(n_blocks_i, n_blocks_j),
-                tmp_cuda_impl_::make_ptr_holder<T>(alloc,
-                    tmp_cuda_impl_::compute_size<BlockSizeI, BlockSizeJ, NColors>(n_blocks_i, n_blocks_j, k_size))),
-            tmp_cuda_impl_::origin_offset(-ExtentIMinus, -ExtentJMinus))));
+        GT_AUTO_RETURN(sid::shift_sid_origin(
+            sid::make_contiguous<T, int_t>(
+                alloc, tmp_cuda_impl_::sizes(compute_block_size, extent, color, n_blocks_i, n_blocks_j, k_size)),
+            tmp_cuda_impl_::origin_offset(extent)));
 #endif
 
 } // namespace gridtools
