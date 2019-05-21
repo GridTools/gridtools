@@ -10,36 +10,50 @@
 
 #include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
 
-#include <gridtools/stencil_composition/backend_cuda/simple_device_memory_allocator.hpp>
-#include <gridtools/stencil_composition/sid/concept.hpp>
-#include <gridtools/tools/backend_select.hpp>
-
-#include "../test_helper.hpp"
 #include <gtest/gtest.h>
 
+#include <gridtools/stencil_composition/backend_cuda/simple_device_memory_allocator.hpp>
+#include <gridtools/stencil_composition/color.hpp>
+#include <gridtools/stencil_composition/dim.hpp>
+#include <gridtools/stencil_composition/extent.hpp>
+#include <gridtools/stencil_composition/sid/concept.hpp>
+
+#include "../cuda_test_helper.hpp"
+
 namespace gridtools {
-    namespace {
-        TEST(tmp_cuda_storage, maker_with_device_allocator) {
-            simple_device_memory_allocator alloc;
+    namespace on_device {
 
-            // For CUDA 8.0 we need to instantiate the type, otherwise is_sid will fail.
-#ifndef GT_ICOSAHEDRAL_GRIDS
-            auto testee = make_tmp_storage_cuda<float_type>(tmp_cuda::blocksize<1, 1>{}, extent<>{}, 0, 0, 0, alloc);
-#else
-            auto testee = make_tmp_storage_cuda<float_type>(
-                tmp_cuda::blocksize<1, 1>{}, extent<>{}, color_type<1>{}, 0, 0, 0, alloc);
+        namespace {
+            using extent_t = extent<>;
+            using block_size_t = tmp_cuda::blocksize<2, 2>;
+
+            struct smoke_f {
+                template <class PtrHolder, class Strides>
+                __device__ bool operator()(PtrHolder const &holder, Strides const &strides) const {
+                    auto ptr = holder();
+                    sid::shift(ptr, sid::get_stride<dim::i>(strides), 1);
+                    sid::shift(ptr, sid::get_stride<dim::j>(strides), 1);
+                    sid::shift(ptr, sid::get_stride<dim::k>(strides), 1);
+                    *ptr = 42;
+                    return *ptr == 42;
+                }
+            };
+
+            TEST(tmp_cuda_storage, maker_with_device_allocator) {
+                simple_device_memory_allocator alloc;
+                auto testee = make_tmp_storage_cuda<int>(block_size_t{},
+                    extent_t{},
+#ifdef GT_ICOSAHEDRAL_GRIDS
+                    color_type<1>{},
 #endif
-            using testee_t = decltype(testee);
-
-            static_assert(sid::is_sid<testee_t>::value, "is_sid()");
-#if !(defined(__CUDACC__) && defined(__clang__) && __CUDACC_VER_MAJOR__ < 10)
-            // fails with internal error in cudafe++ for CUDA < 10 and clang as host compiler
-            ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_type, testee_t), float_type *>();
-            ASSERT_TYPE_EQ<GT_META_CALL(sid::ptr_diff_type, testee_t), int_t>();
-#endif
-        }
-
-    } // namespace
+                    1,
+                    1,
+                    2,
+                    alloc);
+                EXPECT_TRUE(exec(smoke_f{}, sid::get_origin(testee), sid::get_strides(testee)));
+            }
+        } // namespace
+    }     // namespace on_device
 } // namespace gridtools
 
 #include "test_tmp_storage_sid_cuda.cpp"

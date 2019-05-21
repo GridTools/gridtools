@@ -13,7 +13,7 @@
 #ifndef GT_COMMON_COMPOSE_HPP_
 #define GT_COMMON_COMPOSE_HPP_
 
-#include "../meta/type_traits.hpp"
+#include "../meta.hpp"
 #include "defs.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
@@ -37,8 +37,10 @@ namespace gridtools {
                 G m_g;
 
                 template <class... Args>
-                GT_CONSTEXPR GT_TARGET GT_FORCE_INLINE auto operator()(Args &&... args) const
-                    GT_AUTO_RETURN(m_f(m_g(wstd::forward<Args>(args)...)));
+                GT_CONSTEXPR GT_TARGET GT_FORCE_INLINE result_of_t<F(result_of_t<G(Args &&...)>)> operator()(
+                    Args &&... args) const {
+                    return m_f(m_g(wstd::forward<Args>(args)...));
+                }
             };
 
             template <class F, class... Fs>

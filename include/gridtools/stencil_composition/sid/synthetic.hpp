@@ -9,16 +9,21 @@
  */
 #pragma once
 
+#include <type_traits>
 #include <utility>
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
+#include "../../meta/id.hpp"
 #include "../../meta/type_traits.hpp"
 
 namespace gridtools {
     namespace sid {
 
-        enum class property { origin, strides, ptr_diff, strides_kind };
+        enum class property { origin, strides, ptr_diff, strides_kind, lower_bounds, upper_bounds };
+
+        template <property Property>
+        using property_constant = std::integral_constant<property, Property>;
 
         namespace synthetic_impl_ {
             template <property Property, class T>
@@ -39,6 +44,24 @@ namespace gridtools {
             };
             template <class T>
             GT_CONSTEXPR T sid_get_strides(mixin<property::strides, T> const &obj) noexcept {
+                return obj.m_val;
+            }
+
+            template <class T>
+            struct mixin<property::lower_bounds, T> {
+                T m_val;
+            };
+            template <class T>
+            GT_CONSTEXPR T sid_get_lower_bounds(mixin<property::lower_bounds, T> const &obj) noexcept {
+                return obj.m_val;
+            }
+
+            template <class T>
+            struct mixin<property::upper_bounds, T> {
+                T m_val;
+            };
+            template <class T>
+            GT_CONSTEXPR T sid_get_upper_bounds(mixin<property::upper_bounds, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
@@ -94,14 +117,15 @@ namespace gridtools {
                 GT_CONSTEXPR synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
                     : Mixin{wstd::forward<T>(val)}, Mixins(wstd::move(src))... {}
 
-                template <property Property, class U>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, U>, Mixin, Mixins...> set() const &&noexcept {
+                template <property Property, class T>
+                GT_CONSTEXPR synthetic<unique_mixin<Property, T>, Mixin, Mixins...> set(
+                    meta::lazy::id<T> = {}, property_constant<Property> = {}) const &&noexcept {
                     return {wstd::move(*this)};
                 }
 
                 template <property Property, class T>
                 GT_CONSTEXPR synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(
-                    T &&val) const &&noexcept {
+                    T &&val, property_constant<Property> = {}) const &&noexcept {
                     return {wstd::forward<T>(val), wstd::move(*this)};
                 }
             };
@@ -124,6 +148,24 @@ namespace gridtools {
          *  `set`'s can go in any order. `set` of the given property can participate at most once.
          *  Duplicated property `set`'s cause compiler error.
          *  Works both in run time and in compile time.
+         *
+         *  Due to CUDA8 bug `set` methods are supplied with default parameters of `property_constant` and
+         *  `meta::lazy::id` types. This is needed when the type of `synthetic` is template dependant and we can't use
+         *  `template` keyword (CUDA8 has problems in calculating `decltype` of expressions with `template`).
+         *  In this case we have the possibility to write:
+         *  ```
+         *      expr
+         *      .set(strides, property_constant<property::strides>)
+         *      .set(meta::lazy::id<PtrDiff>(), property_constant<property::ptr_diff>());
+         *  ```
+         *  instead of
+         *  ```
+         *      expr
+         *      .template set<property::strides>(strides)
+         *      .template set<property::ptr_diff, PtrDiff>();
+         *  ```
+         *
+         *  TODO(anstaf): remove this feature after CUDA8 drop.
          */
         GT_CONSTEXPR synthetic_impl_::synthetic<> synthetic() { return {}; }
     } // namespace sid

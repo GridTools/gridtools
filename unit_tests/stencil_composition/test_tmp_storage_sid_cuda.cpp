@@ -14,6 +14,7 @@
 #include <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
+#include <memory>
 #include <type_traits>
 #include <vector>
 
@@ -76,8 +77,8 @@ namespace gridtools {
                                 auto ptr = origin();
                                 sid::shift(ptr, host::at_key<dim::i>(strides), i);
                                 sid::shift(ptr, host::at_key<dim::j>(strides), j);
-                                sid::shift(ptr, host::at_key<tmp_cuda::block_i>(strides), bi);
-                                sid::shift(ptr, host::at_key<tmp_cuda::block_j>(strides), bj);
+                                sid::shift(ptr, host::at_key<sid::blocked_dim<dim::i>>(strides), bi);
+                                sid::shift(ptr, host::at_key<sid::blocked_dim<dim::j>>(strides), bj);
                                 sid::shift(ptr, host::at_key<dim::k>(strides), k);
                                 *ptr = {i, j, bi, bj, k};
                             }
@@ -91,8 +92,8 @@ namespace gridtools {
                                 auto ptr = origin();
                                 sid::shift(ptr, host::at_key<dim::i>(strides), i);
                                 sid::shift(ptr, host::at_key<dim::j>(strides), j);
-                                sid::shift(ptr, host::at_key<tmp_cuda::block_i>(strides), bi);
-                                sid::shift(ptr, host::at_key<tmp_cuda::block_j>(strides), bj);
+                                sid::shift(ptr, host::at_key<sid::blocked_dim<dim::i>>(strides), bi);
+                                sid::shift(ptr, host::at_key<sid::blocked_dim<dim::j>>(strides), bj);
                                 sid::shift(ptr, host::at_key<dim::k>(strides), k);
                                 ASSERT_EQ((index_info{i, j, bi, bj, k}), *ptr);
                             }
@@ -125,8 +126,8 @@ namespace gridtools {
                                     sid::shift(ptr, host::at_key<dim::i>(strides), i);
                                     sid::shift(ptr, host::at_key<dim::j>(strides), j);
                                     sid::shift(ptr, host::at_key<dim::c>(strides), c);
-                                    sid::shift(ptr, host::at_key<tmp_cuda::block_i>(strides), bi);
-                                    sid::shift(ptr, host::at_key<tmp_cuda::block_j>(strides), bj);
+                                    sid::shift(ptr, host::at_key<sid::blocked_dim<dim::i>>(strides), bi);
+                                    sid::shift(ptr, host::at_key<sid::blocked_dim<dim::j>>(strides), bj);
                                     sid::shift(ptr, host::at_key<dim::k>(strides), k);
                                     *ptr = {i, j, c, bi, bj, k};
                                 }
@@ -142,8 +143,8 @@ namespace gridtools {
                                     sid::shift(ptr, host::at_key<dim::i>(strides), i);
                                     sid::shift(ptr, host::at_key<dim::j>(strides), j);
                                     sid::shift(ptr, host::at_key<dim::c>(strides), c);
-                                    sid::shift(ptr, host::at_key<tmp_cuda::block_i>(strides), bi);
-                                    sid::shift(ptr, host::at_key<tmp_cuda::block_j>(strides), bj);
+                                    sid::shift(ptr, host::at_key<sid::blocked_dim<dim::i>>(strides), bi);
+                                    sid::shift(ptr, host::at_key<sid::blocked_dim<dim::j>>(strides), bj);
                                     sid::shift(ptr, host::at_key<dim::k>(strides), k);
                                     ASSERT_EQ((index_info{i, j, c, bi, bj, k}), *ptr);
                                 }

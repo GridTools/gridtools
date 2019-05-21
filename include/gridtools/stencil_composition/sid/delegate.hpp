@@ -34,6 +34,12 @@ namespace gridtools {
             friend GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
                 return get_strides(obj.m_impl);
             }
+            friend GT_CONSTEXPR GT_META_CALL(lower_bounds_type, Sid) sid_get_lower_bounds(delegate const &obj) {
+                return get_lower_bounds(obj.m_impl);
+            }
+            friend GT_CONSTEXPR GT_META_CALL(upper_bounds_type, Sid) sid_get_upper_bounds(delegate const &obj) {
+                return get_upper_bounds(obj.m_impl);
+            }
 
           protected:
             Sid const &impl() const { return m_impl; }

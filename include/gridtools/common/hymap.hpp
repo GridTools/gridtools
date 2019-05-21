@@ -186,6 +186,33 @@ namespace gridtools {
             return {};
         }
     }
+
+    namespace hymap {
+        GT_TARGET_NAMESPACE {
+
+            namespace hymap_detail {
+                template <class Fun, class Keys>
+                struct adapter_f {
+                    Fun m_fun;
+                    template <size_t I, class Value, class Key = GT_META_CALL(meta::at_c, (Keys, I))>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(Value &&value) const
+                        GT_AUTO_RETURN(m_fun.template operator()<Key>(wstd::forward<Value>(value)));
+                };
+            } // namespace hymap_detail
+
+            template <class Fun, class Map>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto transform(Fun && fun, Map && map)
+                GT_AUTO_RETURN(tuple_util::GT_TARGET_NAMESPACE_NAME::transform_index(
+                    hymap_detail::adapter_f<Fun, GT_META_CALL(get_keys, decay_t<Map>)>{wstd::forward<Fun>(fun)},
+                    wstd::forward<Map>(map)));
+
+            template <class Fun, class Map>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto for_each(Fun && fun, Map && map)
+                GT_AUTO_RETURN(tuple_util::GT_TARGET_NAMESPACE_NAME::for_each_index(
+                    hymap_detail::adapter_f<Fun, GT_META_CALL(get_keys, decay_t<Map>)>{wstd::forward<Fun>(fun)},
+                    wstd::forward<Map>(map)));
+        }
+    } // namespace hymap
 } // namespace gridtools
 
 #endif // GT_TARGET_ITERATING
