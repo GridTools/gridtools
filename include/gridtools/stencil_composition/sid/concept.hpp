@@ -124,6 +124,8 @@
  *
  *  - Stride sid::get_stride<I>(Strides)
  *
+ * TODO(anstaf): Document lower/upper bounds stuff when the API will be finally settled.
+ *
  */
 
 namespace gridtools {
@@ -172,11 +174,6 @@ namespace gridtools {
                 : std::true_type {};
 
             /////// BEGIN defaults PART /////
-            template <class...>
-            struct default_strides_templ;
-            template <>
-            struct default_strides_templ<> {};
-            using default_strides = default_strides_templ<>;
 
             template <class Ptr>
             auto sid_get_default_ptr_diff(Ptr const &ptr) -> decltype(ptr - ptr);
@@ -210,6 +207,8 @@ namespace gridtools {
             not_provided sid_get_strides(...);
             not_provided sid_get_ptr_diff(...);
             not_provided sid_get_strides_kind(...);
+            not_provided sid_get_lower_bounds(...);
+            not_provided sid_get_upper_bounds(...);
 
             // BEGIN `get_origin` PART
 
@@ -282,9 +281,8 @@ namespace gridtools {
             }
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            GT_CONSTEXPR
-                enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, default_strides>
-                get_strides(Sid const &) {
+            GT_CONSTEXPR enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
+            get_strides(Sid const &) {
                 return {};
             }
 
@@ -333,6 +331,62 @@ namespace gridtools {
                 decltype(::gridtools::sid::concept_impl_::get_strides_kind(std::declval<Sid const &>()));
 
             // END `strides_kind` PART
+
+            // BEGIN `get_lower_bounds`/`get_upper_bounds`
+
+            template <class Sid, class Res = decltype(sid_get_lower_bounds(std::declval<Sid const &>()))>
+            GT_CONSTEXPR enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            get_lower_bounds(Sid const &obj) {
+                return sid_get_lower_bounds(obj);
+            }
+
+            template <class Sid, class Res = decltype(sid_get_upper_bounds(std::declval<Sid const &>()))>
+            GT_CONSTEXPR enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            get_upper_bounds(Sid const &obj) {
+                return sid_get_upper_bounds(obj);
+            }
+
+            template <class Sid, class Res = decltype(sid_get_lower_bounds(std::declval<Sid const &>()))>
+            GT_CONSTEXPR enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
+            get_lower_bounds(Sid const &) {
+                return {};
+            }
+
+            template <class Sid, class Res = decltype(sid_get_upper_bounds(std::declval<Sid const &>()))>
+            GT_CONSTEXPR enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
+            get_upper_bounds(Sid const &) {
+                return {};
+            }
+
+            template <class T,
+                class Res = meta::rename<meta::ctor<tuple<>>::apply,
+                    meta::repeat<std::rank<T>, integral_constant<ptrdiff_t, 0>>>>
+            GT_CONSTEXPR enable_if_t<std::is_array<T>::value, Res> get_lower_bounds(T const &) {
+                return {};
+            }
+
+            template <class T>
+            struct array_extent_f {
+                template <class Dim>
+                using apply = integral_constant<ptrdiff_t, std::extent<T, Dim::value>::value>;
+            };
+
+            template <class T,
+                class Dims = meta::make_indices<std::rank<T>, tuple>,
+                class Res = meta::transform<array_extent_f<T>::template apply, Dims>>
+            GT_CONSTEXPR enable_if_t<std::is_array<T>::value, Res> get_upper_bounds(T const &) {
+                return {};
+            }
+
+            template <class Sid>
+            using lower_bounds_type =
+                decltype(::gridtools::sid::concept_impl_::get_lower_bounds(std::declval<Sid const &>()));
+
+            template <class Sid>
+            using upper_bounds_type =
+                decltype(::gridtools::sid::concept_impl_::get_upper_bounds(std::declval<Sid const &>()));
+
+            // END `get_lower_bound`/`get_upper_bound`
 
             // BEGIN `shift` PART
 
@@ -539,6 +593,12 @@ namespace gridtools {
             template <class StrideTypes, class T>
             using are_valid_strides = meta::all_of<is_valid_stride<T>::template apply, StrideTypes>;
 
+            template <class Bound>
+            using is_valid_bound = std::is_convertible<Bound, int_t>;
+
+            template <class BoundTypes>
+            using are_valid_bounds = meta::all_of<is_valid_bound, BoundTypes>;
+
             /**
              *  Sfinae unsafe version of `is_sid` predicate
              */
@@ -550,8 +610,13 @@ namespace gridtools {
                 class PtrDiff = ptr_diff_type<Sid>,
                 class StridesType = strides_type<Sid>,
                 class StrideTypeList = tuple_util::traits::to_types<decay_t<StridesType>>,
-                class StridesKind = strides_kind<Sid>>
-            using is_sid = conjunction<std::is_trivially_copyable<PtrHolder>,
+                class StridesKind = strides_kind<Sid>,
+                class LowerBoundsType = lower_bounds_type<Sid>,
+                class UpperBoundsType = upper_bounds_type<Sid>>
+            using is_sid = conjunction<
+
+                // `is_trivially_copyable` check is applied to the types that are will be passed from host to device
+                std::is_trivially_copyable<PtrHolder>,
                 std::is_trivially_copyable<StridesType>,
 
                 // verify that `PtrDiff` is sane
@@ -569,29 +634,44 @@ namespace gridtools {
 
                 // all strides must be applied via `shift` with both `Ptr` and `PtrDiff`
                 are_valid_strides<StrideTypeList, Ptr>,
-                are_valid_strides<StrideTypeList, PtrDiff>>;
+                are_valid_strides<StrideTypeList, PtrDiff>,
+
+                are_valid_bounds<tuple_util::traits::to_types<decay_t<LowerBoundsType>>>,
+                are_valid_bounds<tuple_util::traits::to_types<decay_t<UpperBoundsType>>>>;
 
         } // namespace concept_impl_
 
         // Meta functions
 
-        using concept_impl_::ptr_diff_type;
-        using concept_impl_::ptr_holder_type;
-        using concept_impl_::ptr_type;
-        using concept_impl_::reference_type;
-        using concept_impl_::strides_kind;
-        using concept_impl_::strides_type;
+#if GT_BROKEN_TEMPLATE_ALIASES
+#define GT_SID_DELEGATE_FROM_IMPL(name) \
+    template <class Sid>                \
+    struct name : meta::id<concept_impl_::name<Sid>> {}
+#else
+#define GT_SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
+#endif
 
-        using concept_impl_::default_ptr_diff;
+        GT_SID_DELEGATE_FROM_IMPL(ptr_holder_type);
+        GT_SID_DELEGATE_FROM_IMPL(ptr_type);
+        GT_SID_DELEGATE_FROM_IMPL(ptr_diff_type);
+        GT_SID_DELEGATE_FROM_IMPL(reference_type);
+        GT_SID_DELEGATE_FROM_IMPL(strides_type);
+        GT_SID_DELEGATE_FROM_IMPL(strides_kind);
+        GT_SID_DELEGATE_FROM_IMPL(lower_bounds_type);
+        GT_SID_DELEGATE_FROM_IMPL(upper_bounds_type);
+
+        GT_SID_DELEGATE_FROM_IMPL(default_ptr_diff);
+
+#undef GT_SID_DELEGATE_FROM_IMPL
 
         // Runtime functions
+        using concept_impl_::get_lower_bounds;
         using concept_impl_::get_origin;
         using concept_impl_::get_strides;
+        using concept_impl_::get_upper_bounds;
         using concept_impl_::shift;
 
         // Default behaviour
-        using concept_impl_::default_kind;
-        using concept_impl_::default_strides;
         using default_stride = integral_constant<int_t, 0>;
 
         /**
@@ -608,15 +688,15 @@ namespace gridtools {
          *  The type of the element of the SID
          */
         template <class Sid, class Ref = reference_type<Sid>>
-        using element_type = decay_t<Ref>;
+        using element_type = meta::id<decay_t<Ref>>;
 
         /**
          *  The const variation of the reference type
          */
         template <class Sid, class Ref = reference_type<Sid>>
-        using const_reference_type = conditional_t<std::is_reference<Ref>::value,
+        using const_reference_type = meta::id<conditional_t<std::is_reference<Ref>::value,
             add_lvalue_reference_t<add_const_t<remove_reference_t<Ref>>>,
-            add_const_t<Ref>>;
+            add_const_t<Ref>>>;
 
         /**
          *  A getter from Strides to the given stride.

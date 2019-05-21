@@ -108,6 +108,12 @@ namespace gridtools {
 
             static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>(), "");
             static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>(), "");
+
+            using lower_bounds = sid::lower_bounds_type<testee>;
+            static_assert(tuple_util::size<lower_bounds>() == 0, "");
+
+            using upper_bounds = sid::upper_bounds_type<testee>;
+            static_assert(tuple_util::size<upper_bounds>() == 0, "");
         } // namespace fallbacks
 
         template <class T, class Stride, class Offset>
@@ -158,7 +164,7 @@ namespace gridtools {
 
         TEST(c_array, smoke) {
             double testee[15][43] = {};
-            static_assert(sid::concept_impl_::is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>(), "");
 
             EXPECT_EQ(&testee[0][0], sid::get_origin(testee)());
 
@@ -183,11 +189,19 @@ namespace gridtools {
             sid::shift(ptr, sid::get_stride<integral_constant<int, 1>>(strides), 8);
 
             EXPECT_EQ(555, *ptr);
+
+            auto lower_bounds = sid::get_lower_bounds(testee);
+            EXPECT_EQ(0, tuple_util::get<0>(lower_bounds));
+            EXPECT_EQ(0, tuple_util::get<1>(lower_bounds));
+
+            auto upper_bounds = sid::get_upper_bounds(testee);
+            EXPECT_EQ(15, tuple_util::get<0>(upper_bounds));
+            EXPECT_EQ(43, tuple_util::get<1>(upper_bounds));
         }
 
         TEST(c_array, 4D) {
             double testee[2][3][4][5] = {};
-            static_assert(sid::concept_impl_::is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>(), "");
 
             EXPECT_EQ(&testee[0][0][0][0], sid::get_origin(testee)());
 
@@ -206,6 +220,18 @@ namespace gridtools {
             sid::shift(ptr, sid::get_stride<integral_constant<int, 3>>(strides), 4);
 
             EXPECT_EQ(555, *ptr);
+
+            auto lower_bounds = sid::get_lower_bounds(testee);
+            EXPECT_EQ(0, tuple_util::get<0>(lower_bounds));
+            EXPECT_EQ(0, tuple_util::get<1>(lower_bounds));
+            EXPECT_EQ(0, tuple_util::get<2>(lower_bounds));
+            EXPECT_EQ(0, tuple_util::get<3>(lower_bounds));
+
+            auto upper_bounds = sid::get_upper_bounds(testee);
+            EXPECT_EQ(2, tuple_util::get<0>(upper_bounds));
+            EXPECT_EQ(3, tuple_util::get<1>(upper_bounds));
+            EXPECT_EQ(4, tuple_util::get<2>(upper_bounds));
+            EXPECT_EQ(5, tuple_util::get<3>(upper_bounds));
         }
     } // namespace
 } // namespace gridtools

@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
+#include "../../common/integral_constant.hpp"
 #include "../../meta.hpp"
 
 namespace gridtools {
@@ -23,12 +24,12 @@ namespace gridtools {
     struct extent {
         using type = extent;
 
-        using iminus = std::integral_constant<int_t, IMinus>;
-        using iplus = std::integral_constant<int_t, IPlus>;
-        using jminus = std::integral_constant<int_t, JMinus>;
-        using jplus = std::integral_constant<int_t, JPlus>;
-        using kminus = std::integral_constant<int_t, KMinus>;
-        using kplus = std::integral_constant<int_t, KPlus>;
+        using iminus = integral_constant<int_t, IMinus>;
+        using iplus = integral_constant<int_t, IPlus>;
+        using jminus = integral_constant<int_t, JMinus>;
+        using jplus = integral_constant<int_t, JPlus>;
+        using kminus = integral_constant<int_t, KMinus>;
+        using kplus = integral_constant<int_t, KPlus>;
     };
 
     /**

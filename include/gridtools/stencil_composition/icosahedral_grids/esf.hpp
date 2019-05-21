@@ -53,6 +53,7 @@ namespace gridtools {
         using location_type = LocationType;
         using args_t = Args;
         using color_t = Color;
+        using extent_t = void;
     };
 
     template <template <uint_t> class EsfFunction, class Grid, class LocationType, class Color, class Args>

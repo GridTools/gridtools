@@ -114,5 +114,38 @@ namespace gridtools {
             static_assert(
                 std::is_same<typename std::decay<decltype(at_key<b>(std::declval<dst_t>()))>::type, double>(), "");
         }
+
+        struct add_3_f {
+            template <class Key, class Value>
+            Value operator()(Value x) const {
+                return x + 3;
+            }
+        };
+
+        TEST(transform, smoke) {
+            hymap::keys<a, b>::values<int, double> src = {42, 5.3};
+
+            auto dst = hymap::transform(add_3_f{}, src);
+
+            EXPECT_EQ(45, at_key<a>(dst));
+            EXPECT_EQ(8.3, at_key<b>(dst));
+        }
+
+        struct acc_f {
+            double &m_val;
+            template <class Key, class Value>
+            void operator()(Value x) const {
+                m_val += x;
+            }
+        };
+
+        TEST(for_each, smoke) {
+            hymap::keys<a, b>::values<int, double> src = {42, 5.3};
+
+            double acc = 0;
+            hymap::for_each(acc_f{acc}, src);
+
+            EXPECT_EQ(47.3, acc);
+        }
     } // namespace
 } // namespace gridtools

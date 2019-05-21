@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/hymap.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/macros.hpp>
@@ -30,6 +31,9 @@ namespace gridtools {
         namespace tu = tuple_util;
         using tuple_util::get;
 
+        template <int_t I>
+        using dim = integral_constant<int_t, I>;
+
         TEST(storage_sid, smoke) {
             static_assert(is_sid<data_store_t>(), "");
             static_assert(std::is_same<sid::ptr_type<data_store_t>, float_type *>(), "");
@@ -44,7 +48,7 @@ namespace gridtools {
             static_assert(std::is_same<tu::element<2, strides_t>, integral_constant<int_t, 1>>(), "");
             static_assert(std::is_same<tu::element<3, strides_t>, int_t>(), "");
 
-            data_store_t testee = {{10, 10, 10, 10}, 0};
+            data_store_t testee = {{10, 20, 30, 40}, 0};
 
             EXPECT_EQ(advanced_get_raw_pointer_of(make_target_view(testee)), sid::get_origin(testee)());
 
@@ -55,6 +59,17 @@ namespace gridtools {
             EXPECT_EQ(expected_strides[1], get<1>(strides));
             EXPECT_EQ(expected_strides[2], get<2>(strides));
             EXPECT_EQ(expected_strides[3], get<3>(strides));
+
+            auto lower_bounds = sid::get_lower_bounds(testee);
+            EXPECT_EQ(0, (at_key<dim<0>>(lower_bounds)));
+            EXPECT_EQ(0, (at_key<dim<2>>(lower_bounds)));
+            EXPECT_EQ(0, (at_key<dim<3>>(lower_bounds)));
+
+            auto info = testee.info();
+            auto upper_bounds = sid::get_upper_bounds(testee);
+            EXPECT_EQ(info.padded_length<0>(), (at_key<dim<0>>(upper_bounds)));
+            EXPECT_EQ(info.padded_length<2>(), (at_key<dim<2>>(upper_bounds)));
+            EXPECT_EQ(info.padded_length<3>(), (at_key<dim<3>>(upper_bounds)));
         }
 
         TEST(storage_sid, regression_strides_of_small_storage) {
@@ -70,7 +85,7 @@ namespace gridtools {
         }
 
         TEST(storage_sid, as_host) {
-            data_store_t data = {{10, 10, 10, 10}, 42};
+            data_store_t data = {{10, 20, 30, 40}, 42};
             auto testee = as_host(data);
 
             using testee_t = decltype(testee);
@@ -91,6 +106,17 @@ namespace gridtools {
 
             // we can dereference in the host context
             EXPECT_EQ(42, *sid::get_origin(testee)());
+
+            auto lower_bounds = sid::get_lower_bounds(testee);
+            EXPECT_EQ(0, (at_key<dim<0>>(lower_bounds)));
+            EXPECT_EQ(0, (at_key<dim<2>>(lower_bounds)));
+            EXPECT_EQ(0, (at_key<dim<3>>(lower_bounds)));
+
+            auto info = data.info();
+            auto upper_bounds = sid::get_upper_bounds(testee);
+            EXPECT_EQ(info.padded_length<0>(), (at_key<dim<0>>(upper_bounds)));
+            EXPECT_EQ(info.padded_length<2>(), (at_key<dim<2>>(upper_bounds)));
+            EXPECT_EQ(info.padded_length<3>(), (at_key<dim<3>>(upper_bounds)));
         }
 
         TEST(storage_sid, scalar) {
@@ -107,6 +133,12 @@ namespace gridtools {
             auto ptr = sid::get_origin(testee)();
 
             EXPECT_EQ(ptr, ptr + diff_t{});
+
+            using lower_bounds_t = sid::lower_bounds_type<testee_t>;
+            using upper_bounds_t = sid::upper_bounds_type<testee_t>;
+
+            static_assert(tuple_util::size<lower_bounds_t>() == 0, "");
+            static_assert(tuple_util::size<upper_bounds_t>() == 0, "");
         }
     } // namespace
 } // namespace gridtools

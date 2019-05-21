@@ -126,12 +126,10 @@ namespace gridtools {
 
         using esfs_t = meta::flatten<meta::transform<_impl::get_esfs, mss_descriptors_t>>;
 
-      public:
         // First we need to compute the association between placeholders and extents.
         // This information is needed to allocate temporaries, and to provide the extent information to the user.
         using extent_map_t = get_extent_map<esfs_t>;
 
-      private:
         using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<Backend>()));
         using mss_components_array_t =
             build_mss_components_array<fuse_esfs_t::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type>;

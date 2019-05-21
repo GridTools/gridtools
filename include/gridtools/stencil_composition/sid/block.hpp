@@ -20,16 +20,12 @@
 #include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
-#include "./concept.hpp"
-#include "./delegate.hpp"
+#include "blocked_dim.hpp"
+#include "concept.hpp"
+#include "delegate.hpp"
 
 namespace gridtools {
     namespace sid {
-        template <class Dim>
-        struct blocked_dim {
-            using type = blocked_dim;
-        };
-
         namespace block_impl_ {
             template <class Stride, class BlockSize>
             struct blocked_stride : tuple<Stride, BlockSize> {

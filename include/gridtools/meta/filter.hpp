@@ -41,7 +41,8 @@ namespace gridtools {
                 using type = curry_fun<meta::filter, Pred>;
             };
             template <template <class...> class Pred, template <class...> class L, class... Ts>
-            struct filter<Pred, L<Ts...>> : concat<L<>, typename wrap_if_impl<Pred<Ts>::value, L, Ts>::type...> {};
+            struct filter<Pred, L<Ts...>> : concat<L<>, typename wrap_if_impl<Pred<Ts>::type::value, L, Ts>::type...> {
+            };
         }
     } // namespace meta
 } // namespace gridtools

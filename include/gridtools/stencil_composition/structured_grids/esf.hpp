@@ -40,7 +40,7 @@ namespace gridtools {
     /**
      * @brief Descriptors for Elementary Stencil Function (ESF)
      */
-    template <class EsfFunction, class Args>
+    template <class EsfFunction, class Args, class Extent = void>
     struct esf_descriptor {
         GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value),
             "wrong types for the list of parameter placeholders check the make_stage syntax");
@@ -58,8 +58,9 @@ namespace gridtools {
 
         using esf_function_t = EsfFunction;
         using args_t = Args;
+        using extent_t = Extent;
     };
 
-    template <class EsfFunction, class Args>
-    struct is_esf_descriptor<esf_descriptor<EsfFunction, Args>> : std::true_type {};
+    template <class EsfFunction, class Args, class Extent>
+    struct is_esf_descriptor<esf_descriptor<EsfFunction, Args, Extent>> : std::true_type {};
 } // namespace gridtools

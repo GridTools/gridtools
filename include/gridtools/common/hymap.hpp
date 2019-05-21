@@ -166,7 +166,7 @@ namespace gridtools {
             class Decayed = decay_t<Map>,
             class I = meta::st_position<get_keys<Decayed>, Key>,
             enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE constexpr decltype(auto) at_key_with_default(Map && map) noexcept {
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key_with_default(Map && map) noexcept {
             return tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map));
         }
 
@@ -176,10 +176,40 @@ namespace gridtools {
             class Decayed = decay_t<Map>,
             class I = meta::st_position<get_keys<Decayed>, Key>,
             enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE constexpr Default at_key_with_default(Map &&) noexcept {
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Default at_key_with_default(Map &&) noexcept {
             return {};
         }
     }
+
+    namespace hymap {
+        GT_TARGET_NAMESPACE {
+
+            namespace hymap_detail {
+                template <class Fun, class Keys>
+                struct adapter_f {
+                    Fun m_fun;
+                    template <size_t I, class Value, class Key = meta::at_c<Keys, I>>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) operator()(Value &&value) const {
+                        return m_fun.template operator()<Key>(wstd::forward<Value>(value));
+                    }
+                }; // namespace hymap_detail
+            }      // namespace hymap_detail
+
+            template <class Fun, class Map>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto transform(Fun && fun, Map && map) {
+                return tuple_util::GT_TARGET_NAMESPACE_NAME::transform_index(
+                    hymap_detail::adapter_f<Fun, get_keys<decay_t<Map>>>{wstd::forward<Fun>(fun)},
+                    wstd::forward<Map>(map));
+            }
+
+            template <class Fun, class Map>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto for_each(Fun && fun, Map && map) {
+                return tuple_util::GT_TARGET_NAMESPACE_NAME::for_each_index(
+                    hymap_detail::adapter_f<Fun, get_keys<decay_t<Map>>>{wstd::forward<Fun>(fun)},
+                    wstd::forward<Map>(map));
+            }
+        } // namespace hymap
+    }     // namespace hymap
 } // namespace gridtools
 
 #endif // GT_TARGET_ITERATING
