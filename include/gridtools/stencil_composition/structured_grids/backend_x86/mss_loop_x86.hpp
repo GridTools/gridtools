@@ -48,7 +48,7 @@ namespace gridtools {
             Count m_count;
 
             template <class Ptr, class Strides>
-            GT_FORCE_INLINE void operator()(Ptr ptr, Strides const &strides) const {
+            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
                 for (int_t i = 0; i < m_count; ++i) {
                     for_each<Stages>(invoke_f<Ptr, Strides>{ptr, strides});
                     sid::shift(ptr, sid::get_stride<dim::k>(strides), Step{});
@@ -63,7 +63,7 @@ namespace gridtools {
             interval_executor_f(Count count) : m_offset(count * Step{}) {}
 
             template <class Ptr, class Strides>
-            GT_FORCE_INLINE void operator()(Ptr ptr, Strides const &strides) const {
+            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), m_offset);
             }
         };
@@ -74,7 +74,7 @@ namespace gridtools {
             interval_executor_f(integral_constant<int_t, 1>) {}
 
             template <class Ptr, class Strides>
-            GT_FORCE_INLINE void operator()(Ptr ptr, Strides const &strides) const {
+            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
                 for_each<Stages>(invoke_f<Ptr, Strides>{ptr, strides});
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), Step{});
             }
