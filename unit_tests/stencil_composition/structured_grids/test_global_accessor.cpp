@@ -7,7 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#define GT_PEDANTIC_DISABLED
 
 #include <gtest/gtest.h>
 

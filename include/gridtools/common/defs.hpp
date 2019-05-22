@@ -24,20 +24,10 @@
    @brief global definitions
 */
 
-#define GT_MAX_ARGS 20
-#define GT_MAX_INDEPENDENT 3
-#define GT_MAX_MSS 10
-
 #ifdef __CUDA_ARCH__
 #define GT_CONSTEXPR
 #else
 #define GT_CONSTEXPR constexpr
-#endif
-
-/** Macro to enable additional checks that may catch some errors in user code
- */
-#ifndef GT_PEDANTIC_DISABLED
-#define GT_PEDANTIC
 #endif
 
 #define GT_RESTRICT __restrict__
