@@ -16,8 +16,6 @@
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../../common/integral_constant.hpp"
-#include "../../../common/tuple.hpp"
-#include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
 #include "../../execution_types.hpp"
 #include "../../iterate_domain_aux.hpp"
@@ -33,93 +31,50 @@
  */
 namespace gridtools {
     namespace mss_loop_x86_impl_ {
-        template <class Ptr, class Strides>
-        struct invoke_f {
-            Ptr &m_ptr;
-            Strides const &m_strides;
-            template <class Fun>
-            GT_FORCE_INLINE void operator()(Fun &&fun) const {
-                fun(m_ptr, m_strides);
+        template <class ExecutionType>
+        integral_constant<int_t, execute::is_backward<ExecutionType>::value ? -1 : 1> step;
+
+        template <class ExecutionType,
+            class From,
+            class To,
+            class StageGroups,
+            class Grid,
+            class Ptr,
+            class Strides,
+            std::enable_if_t<!meta::is_empty<StageGroups>::value, int> = 0>
+        GT_FORCE_INLINE void execute_interval(
+            loop_interval<From, To, StageGroups>, Grid const &grid, Ptr &ptr, Strides const &strides) {
+            int_t n = grid.count(From{}, To{});
+            for (int_t i = 0; i < n; ++i) {
+                for_each<meta::flatten<StageGroups>>([&](auto stage) { stage(ptr, strides); });
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), step<ExecutionType>);
             }
-        };
-
-        template <class Step, class Count, class Stages, bool = meta::is_empty<Stages>::value>
-        struct interval_executor_f {
-            Count m_count;
-
-            template <class Ptr, class Strides>
-            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
-                for (int_t i = 0; i < m_count; ++i) {
-                    for_each<Stages>(invoke_f<Ptr, Strides>{ptr, strides});
-                    sid::shift(ptr, sid::get_stride<dim::k>(strides), Step{});
-                }
-            }
-        };
-
-        template <class Step, class Count, class Stages>
-        struct interval_executor_f<Step, Count, Stages, true> {
-            decltype(Count{} * Step{}) m_offset;
-
-            interval_executor_f(Count count) : m_offset(count * Step{}) {}
-
-            template <class Ptr, class Strides>
-            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
-                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_offset);
-            }
-        };
-
-        template <class Step, class Stages>
-        struct interval_executor_f<Step, integral_constant<int_t, 1>, Stages, false> {
-
-            interval_executor_f(integral_constant<int_t, 1>) {}
-
-            template <class Ptr, class Strides>
-            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
-                for_each<Stages>(invoke_f<Ptr, Strides>{ptr, strides});
-                sid::shift(ptr, sid::get_stride<dim::k>(strides), Step{});
-            }
-        };
-
-        template <class FromLevel, class ToLevel, class Grid>
-        using count_type = decltype(std::declval<Grid const>().count(FromLevel{}, ToLevel{}));
-
-        template <class ExecutionType, class Grid>
-        struct executor_maker_f {
-            using step_t = std::conditional_t<execute::is_backward<ExecutionType>::value,
-                integral_constant<int_t, -1>,
-                integral_constant<int_t, 1>>;
-
-            Grid const &m_grid;
-
-            template <class LoopInterval,
-                class From = meta::first<LoopInterval>,
-                class To = meta::second<LoopInterval>,
-                class Stages = meta::flatten<meta::third<LoopInterval>>>
-            interval_executor_f<step_t, count_type<From, To, Grid>, Stages> operator()(LoopInterval) const {
-                return {m_grid.count(From{}, To{})};
-            }
-        };
-
-        template <class Executors>
-        struct k_loop_f {
-            Executors m_executors;
-
-            template <class Ptr, class Strides>
-            GT_FORCE_INLINE void operator()(Ptr ptr, Strides const &strides) const {
-                tuple_util::for_each(invoke_f<Ptr, Strides>{ptr, strides}, m_executors);
-            }
-        };
-        template <class Executors>
-        k_loop_f<Executors> make_k_loop_raw(Executors executors) {
-            return {std::move(executors)};
         }
 
-        template <class LoopIntervals,
-            class ExecutionType,
+        template <class ExecutionType,
+            class Level,
+            class StageGroups,
             class Grid,
-            class Tuple = meta::rename<tuple, LoopIntervals>>
-        auto make_k_loop(Grid const &grid) {
-            return make_k_loop_raw(tuple_util::transform(executor_maker_f<ExecutionType, Grid>{grid}, Tuple{}));
+            class Ptr,
+            class Strides,
+            std::enable_if_t<!meta::is_empty<StageGroups>::value, int> = 0>
+        GT_FORCE_INLINE void execute_interval(
+            loop_interval<Level, Level, StageGroups>, Grid const &grid, Ptr &ptr, Strides const &strides) {
+            for_each<meta::flatten<StageGroups>>([&](auto stage) { stage(ptr, strides); });
+            sid::shift(ptr, sid::get_stride<dim::k>(strides), step<ExecutionType>);
+        }
+
+        template <class ExecutionType,
+            class From,
+            class To,
+            class StageGroups,
+            class Grid,
+            class Ptr,
+            class Strides,
+            std::enable_if_t<meta::is_empty<StageGroups>::value, int> = 0>
+        GT_FORCE_INLINE void execute_interval(
+            loop_interval<From, To, StageGroups>, Grid const &grid, Ptr &ptr, Strides const &strides) {
+            sid::shift(ptr, sid::get_stride<dim::k>(strides), step<ExecutionType> * grid.count(From{}, To{}));
         }
     } // namespace mss_loop_x86_impl_
 
@@ -165,7 +120,11 @@ namespace gridtools {
 
         auto i_loop = sid::make_loop<dim::i>(size_i);
         auto j_loop = sid::make_loop<dim::j>(size_j);
-        auto k_loop = mss_loop_x86_impl_::make_k_loop<loop_intervals_t, execution_type_t>(grid);
+        auto k_loop = [&](auto ptr, auto strides) {
+            for_each<loop_intervals_t>([&](auto loop_interval) {
+                mss_loop_x86_impl_::execute_interval<execution_type_t>(loop_interval, grid, ptr, strides);
+            });
+        };
 
         i_loop(j_loop(k_loop))(ptr, local_domain.m_strides);
     }
