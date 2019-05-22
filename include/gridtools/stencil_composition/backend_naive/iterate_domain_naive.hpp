@@ -114,7 +114,7 @@ namespace gridtools {
         void increment_c(int_t offset = 1) { increment<dim::c>(offset); }
 
         template <class Arg, class Accessor>
-        auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
+        decltype(auto) deref(Accessor const &accessor) const {
             auto p = at_key<Arg>(m_ptr_map);
             sid::multi_shift(p, strides<Arg>(), accessor);
             return *p;

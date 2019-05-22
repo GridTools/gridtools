@@ -56,13 +56,12 @@ namespace gridtools {
             specialization for Plc and one for NotPlc.
         */
         template <std::size_t I, typename ROTuple, typename AllTuple>
-        auto select_element(ROTuple const &ro_tuple, AllTuple const &, Plc) -> decltype(
-            std::get<std::is_placeholder<typename std::tuple_element<I, AllTuple>::type>::value - 1>(ro_tuple)) {
+        auto select_element(ROTuple const &ro_tuple, AllTuple const &, Plc) {
             return std::get<std::is_placeholder<typename std::tuple_element<I, AllTuple>::type>::value - 1>(ro_tuple);
         }
 
         template <std::size_t I, typename ROTuple, typename AllTuple>
-        auto select_element(ROTuple const &, AllTuple const &all, NotPlc) -> decltype(std::get<I>(all)) {
+        auto select_element(ROTuple const &, AllTuple const &all, NotPlc) {
             return std::get<I>(all);
         }
 
@@ -79,11 +78,7 @@ namespace gridtools {
             \param all      Tuple of elements that may include placeholders
         */
         template <typename ROTuple, typename AllTuple, std::size_t... IDs>
-        auto substitute_placeholders(ROTuple const &ro_tuple, AllTuple const &all, meta::index_sequence<IDs...>)
-            -> decltype(std::make_tuple(select_element<IDs>(ro_tuple,
-                all,
-                typename PlcOrNot<std::is_placeholder</*typename std::decay<*/
-                    typename std::tuple_element<IDs, AllTuple>::type /*>::type*/>::value>::type{})...)) {
+        auto substitute_placeholders(ROTuple const &ro_tuple, AllTuple const &all, meta::index_sequence<IDs...>) {
             return std::make_tuple(select_element<IDs>(ro_tuple,
                 all,
                 typename PlcOrNot<std::is_placeholder<
@@ -97,8 +92,7 @@ namespace gridtools {
             Small facility to obtain a tuple with the elements of am input  tuple execpt the first.
         */
         template <typename... Elems, std::size_t... IDs>
-        auto rest_tuple(std::tuple<Elems...> const &x, meta::index_sequence<IDs...>)
-            -> decltype(std::make_tuple(std::get<IDs + 1u>(x)...)) {
+        auto rest_tuple(std::tuple<Elems...> const &x, meta::index_sequence<IDs...>) {
             return std::make_tuple(std::get<IDs + 1u>(x)...);
         }
 

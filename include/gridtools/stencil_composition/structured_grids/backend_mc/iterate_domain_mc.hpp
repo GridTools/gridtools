@@ -104,7 +104,7 @@ namespace gridtools {
          * @brief Returns the value pointed by an accessor.
          */
         template <class Arg, class Accessor, std::enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
-        GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
+        GT_FORCE_INLINE decltype(auto) deref(Accessor const &accessor) const {
             using sid_t = storage_from_arg<LocalDomain, Arg>;
             using strides_kind_t = sid::strides_kind<sid_t>;
             auto const &strides = at_key<strides_kind_t>(m_strides_map);
@@ -117,7 +117,7 @@ namespace gridtools {
         }
 
         template <class Arg, class Accessor, std::enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
-        GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
+        GT_FORCE_INLINE decltype(auto) deref(Accessor const &accessor) const {
             using sid_t = storage_from_arg<LocalDomain, Arg>;
             using strides_kind_t = sid::strides_kind<sid_t>;
             auto const &strides = at_key<strides_kind_t>(m_strides_map);

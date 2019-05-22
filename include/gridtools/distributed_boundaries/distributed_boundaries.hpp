@@ -226,15 +226,13 @@ namespace gridtools {
 
         template <typename FirstJob>
         static auto collect_stores(
-            FirstJob const &firstjob, typename std::enable_if<is_bound_bc<FirstJob>::value, void *>::type = nullptr)
-            -> decltype(firstjob.exc_stores()) {
+            FirstJob const &firstjob, typename std::enable_if<is_bound_bc<FirstJob>::value, void *>::type = nullptr) {
             return firstjob.exc_stores();
         }
 
         template <typename FirstJob>
         static auto collect_stores(FirstJob const &first_job,
-            typename std::enable_if<not is_bound_bc<FirstJob>::value, void *>::type = nullptr)
-            -> decltype(std::make_tuple(first_job)) {
+            typename std::enable_if<not is_bound_bc<FirstJob>::value, void *>::type = nullptr) {
             return std::make_tuple(first_job);
         }
 
