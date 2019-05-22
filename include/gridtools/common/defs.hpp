@@ -28,31 +28,10 @@
 #define GT_MAX_INDEPENDENT 3
 #define GT_MAX_MSS 10
 
-#if __cplusplus >= 201402L // since c++14
-#define GT_DEPRECATED(msg) [[deprecated(msg)]]
-#else
-#ifdef __GNUC__
-#define GT_DEPRECATED(msg) __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define GT_DEPRECATED(msg) __declspec(deprecated)
-#else
-#define GT_DEPRECATED(msg)
-#endif
-#endif
-
 #ifdef __CUDA_ARCH__
 #define GT_CONSTEXPR
 #else
 #define GT_CONSTEXPR constexpr
-#endif
-
-/**
- * Macro to allow make functions constexpr in c++14 (in case they are not only a return statement)
- */
-#if __cplusplus >= 201402L
-#define GT_CXX14CONSTEXPR GT_CONSTEXPR
-#else
-#define GT_CXX14CONSTEXPR
 #endif
 
 /** Macro to enable additional checks that may catch some errors in user code
@@ -62,9 +41,6 @@
 #endif
 
 #define GT_RESTRICT __restrict__
-
-#define GT_NO_ERRORS 0
-#define GT_ERROR_NO_TEMPS 1
 
 #ifndef GT_DEFAULT_TILE_I
 #ifdef __CUDACC__

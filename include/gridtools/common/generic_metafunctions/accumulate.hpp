@@ -20,17 +20,17 @@
 */
 namespace gridtools {
 
-/** \ingroup common
-    @{
-    \ingroup allmeta
-    @{
-    \defgroup accumulate Accumulate
-    @{
-*/
-/*
- * find/replace constexpr_max(...) -> max({...}) once we are c++14
- */
-#if __cplusplus >= 201402L
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \defgroup accumulate Accumulate
+        @{
+    */
+    /*
+     * find/replace constexpr_max(...) -> max({...}) once we are c++14
+     */
+
     template <typename... Ts>
     GT_FUNCTION constexpr typename std::common_type<Ts...>::type constexpr_max(Ts... vals) {
         return std::max({vals...});
@@ -39,33 +39,6 @@ namespace gridtools {
     GT_FUNCTION constexpr typename std::common_type<Ts...>::type constexpr_min(Ts... vals) {
         return std::min({vals...});
     }
-#else
-    template <typename T>
-    GT_FUNCTION constexpr T constexpr_max(T v) {
-        return v;
-    }
-
-    /**
-     * @brief constexpr max of a sequence of values
-     */
-    template <typename T0, typename T1, typename... Ts>
-    GT_FUNCTION constexpr typename std::common_type<T0, T1, Ts...>::type constexpr_max(T0 v0, T1 v1, Ts... vals) {
-        return (v0 > v1) ? constexpr_max(v0, vals...) : constexpr_max(v1, vals...);
-    }
-
-    template <typename T>
-    GT_FUNCTION constexpr T constexpr_min(T v) {
-        return v;
-    }
-
-    /**
-     * @brief constexpr min of a sequence of values
-     */
-    template <typename T0, typename T1, typename... Ts>
-    GT_FUNCTION constexpr typename std::common_type<T0, T1, Ts...>::type constexpr_min(T0 v0, T1 v1, Ts... vals) {
-        return (v0 < v1) ? constexpr_min(v0, vals...) : constexpr_min(v1, vals...);
-    }
-#endif
 
     /**@brief operation to be used inside the accumulator*/
     struct multiplies {
