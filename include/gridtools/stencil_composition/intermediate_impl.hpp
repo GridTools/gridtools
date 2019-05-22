@@ -48,13 +48,13 @@ namespace gridtools {
         };
 
         template <class Dim, class StorageInfo, enable_if_t<(Dim::value < StorageInfo::ndims), int> = 0>
-        uint_t padded_length(StorageInfo const &info) {
+        int_t padded_length(StorageInfo const &info) {
             return info.template padded_length<Dim::value>();
         }
 
         template <class Dim, class StorageInfo, enable_if_t<(Dim::value >= StorageInfo::ndims), int> = 0>
-        uint_t padded_length(StorageInfo const &info) {
-            return std::numeric_limits<uint_t>::max();
+        int_t padded_length(StorageInfo const &info) {
+            return std::numeric_limits<int_t>::max();
         }
 
         // set pointers from the given storage to the local domain

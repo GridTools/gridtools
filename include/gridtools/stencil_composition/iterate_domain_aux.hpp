@@ -39,8 +39,8 @@ namespace gridtools {
     template <class StrideMaps, class LocalDomain, class PtrMap, class Backend>
     struct initialize_index_f {
         StrideMaps const &m_stride_maps;
-        pos3<uint_t> const &m_begin;
-        pos3<uint_t> const &m_block_no;
+        pos3<int_t> const &m_begin;
+        pos3<int_t> const &m_block_no;
         pos3<int_t> const &m_pos_in_block;
         PtrMap &m_ptr_map;
 
@@ -80,8 +80,8 @@ namespace gridtools {
     template <class Backend, class LocalDomain, class StrideMaps, class PtrMap>
     GT_FUNCTION initialize_index_f<StrideMaps, LocalDomain, PtrMap, Backend> initialize_index(
         StrideMaps const &stride_maps,
-        pos3<uint_t> const &begin,
-        pos3<uint_t> const &block_no,
+        pos3<int_t> const &begin,
+        pos3<int_t> const &block_no,
         pos3<int_t> const &pos_in_block,
         PtrMap &ptr_map) {
         return {stride_maps, begin, block_no, pos_in_block, ptr_map};

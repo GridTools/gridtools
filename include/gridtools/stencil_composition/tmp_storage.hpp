@@ -62,11 +62,11 @@
 namespace gridtools {
     namespace tmp_storage {
         template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
-        uint_t get_k_size(Backend, uint_t /*block_size*/, uint_t total_size) {
+        int_t get_k_size(Backend, int_t /*block_size*/, int_t total_size) {
             return total_size;
         }
         template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
-        GT_FUNCTION int_t get_k_block_offset(Backend, uint_t /*block_size*/, uint_t /*block_no*/) {
+        GT_FUNCTION int_t get_k_block_offset(Backend, int_t /*block_size*/, int_t /*block_no*/) {
             return 0;
         }
 

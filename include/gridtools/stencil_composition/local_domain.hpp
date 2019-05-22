@@ -107,7 +107,7 @@ namespace gridtools {
         using composite_keys_t = GT_META_CALL(meta::rename, (sid::composite::keys, esf_args_t));
 
         using ksize_map_t = GT_META_CALL(hymap::from_keys_values,
-            (ksize_storage_infos_t, GT_META_CALL(meta::repeat, (meta::length<ksize_storage_infos_t>, uint_t))));
+            (ksize_storage_infos_t, GT_META_CALL(meta::repeat, (meta::length<ksize_storage_infos_t>, int_t))));
 
         using total_length_map_t = GT_META_CALL(hymap::from_keys_values,
             (total_length_storage_infos_t,

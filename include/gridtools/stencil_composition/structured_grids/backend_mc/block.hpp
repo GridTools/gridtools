@@ -15,11 +15,11 @@
 
 namespace gridtools {
     template <class Grid>
-    uint_t block_i_size(backend::mc const &, Grid const &grid) {
+    int_t block_i_size(backend::mc, Grid const &grid) {
         return execinfo_mc{grid}.i_block_size();
     }
     template <class Grid>
-    uint_t block_j_size(backend::mc const &, Grid const &grid) {
+    int_t block_j_size(backend::mc, Grid const &grid) {
         return execinfo_mc{grid}.j_block_size();
     }
 } // namespace gridtools

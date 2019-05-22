@@ -63,29 +63,24 @@ namespace gridtools {
             Grid m_grid;
 
             GT_FUNCTION_DEVICE void operator()(int_t iblock, int_t jblock) const {
-                // number of threads
-                auto nx = m_grid.i_high_bound() - m_grid.i_low_bound() + 1;
-                auto ny = m_grid.j_high_bound() - m_grid.j_low_bound() + 1;
-
-                auto block_size_i = (blockIdx.x + 1) * BlockSizeI < nx ? BlockSizeI : nx - blockIdx.x * BlockSizeI;
-                auto block_size_j = (blockIdx.y + 1) * BlockSizeJ < ny ? BlockSizeJ : ny - blockIdx.y * BlockSizeJ;
-
-                // Doing construction of the iterate domain and assignment of pointers and strides
-                iterate_domain_t it_domain(m_local_domain, block_size_i, block_size_j);
-
                 using shared_iterate_domain_t = typename iterate_domain_t::shared_iterate_domain_t;
-                __shared__ char shared_iterate_domain[sizeof(shared_iterate_domain_t)];
-                it_domain.set_shared_iterate_domain_pointer(
-                    reinterpret_cast<shared_iterate_domain_t *>(&shared_iterate_domain));
-
                 using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
                 using from_t = GT_META_CALL(meta::first, interval_t);
 
-                // initialize the indices.
-                it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
-                    {blockIdx.x, blockIdx.y, blockIdx.z},
-                    {iblock, jblock, compute_kblock<execution_type_t, from_t>(m_grid)});
+                // number of threads
+                auto nx = m_grid.i_high_bound() - m_grid.i_low_bound() + 1;
+                auto ny = m_grid.j_high_bound() - m_grid.j_low_bound() + 1;
+                auto block_size_i = (blockIdx.x + 1) * BlockSizeI < nx ? BlockSizeI : nx - blockIdx.x * BlockSizeI;
+                auto block_size_j = (blockIdx.y + 1) * BlockSizeJ < ny ? BlockSizeJ : ny - blockIdx.y * BlockSizeJ;
 
+                __shared__ char shared_iterate_domain[sizeof(shared_iterate_domain_t)];
+
+                iterate_domain_t it_domain(m_local_domain, block_size_i, block_size_j);
+                it_domain.set_shared_iterate_domain_pointer(
+                    reinterpret_cast<shared_iterate_domain_t *>(&shared_iterate_domain));
+                it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
+                    {(int_t)blockIdx.x, (int_t)blockIdx.y, (int_t)blockIdx.z},
+                    {iblock, jblock, compute_kblock<execution_type_t, from_t>(m_grid)});
                 it_domain.set_block_pos(iblock, jblock);
 
                 // execute the k interval functors

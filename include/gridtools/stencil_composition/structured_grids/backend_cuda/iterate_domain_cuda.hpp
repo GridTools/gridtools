@@ -23,15 +23,20 @@
 #include "../../../common/array.hpp"
 #include "../../../common/cuda_type_traits.hpp"
 #include "../../../common/defs.hpp"
+#include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/host_device.hpp"
+#include "../../../common/hymap.hpp"
 #include "../../../meta.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../caches/cache_metafunctions.hpp"
+#include "../../dim.hpp"
 #include "../../esf_metafunctions.hpp"
+#include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../../local_domain.hpp"
+#include "../../pos3.hpp"
 #include "../../positional.hpp"
-#include "../iterate_domain.hpp"
+#include "../../sid/multi_shift.hpp"
 
 namespace gridtools {
 
@@ -39,10 +44,8 @@ namespace gridtools {
      * @brief iterate domain class for the CUDA backend
      */
     template <class IterateDomainArguments>
-    class iterate_domain_cuda : public iterate_domain<IterateDomainArguments> {
+    class iterate_domain_cuda {
         GT_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
-
-        using base_t = iterate_domain<IterateDomainArguments>;
 
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
@@ -50,27 +53,26 @@ namespace gridtools {
         using caches_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
         using ij_cache_args_t = GT_META_CALL(ij_cache_args, caches_t);
         using k_cache_args_t = GT_META_CALL(k_cache_args, caches_t);
-
         using readwrite_args_t = GT_META_CALL(compute_readwrite_args, typename IterateDomainArguments::esf_sequence_t);
-
-        // array storing the (i,j) position of the current thread within the block
-        array<int_t, 2> m_thread_pos;
-
         using cache_sequence_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
-
-      public:
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
-        typedef typename iterate_domain_cache_t::ij_caches_tuple_t shared_iterate_domain_t;
+      public:
+        using shared_iterate_domain_t = typename iterate_domain_cache_t::ij_caches_tuple_t;
 
       private:
-        using base_t::increment_i;
-        using base_t::increment_j;
-
+        local_domain_t const &m_local_domain;
+        typename local_domain_t::ptr_t m_ptr;
         int_t m_block_size_i;
         int_t m_block_size_j;
         shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         iterate_domain_cache_t m_iterate_domain_cache;
+        int_t m_thread_pos[2];
+
+        template <class Dim>
+        GT_FUNCTION int_t pos() const {
+            return *host_device::at_key<positional<Dim>>(m_ptr);
+        }
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
         template <class Arg, class T>
@@ -82,23 +84,49 @@ namespace gridtools {
         template <class Arg, class Ptr>
         static GT_FUNCTION auto dereference(Ptr ptr) GT_AUTO_RETURN(*ptr);
 
+        template <class Arg, class Accessor>
+        GT_FUNCTION auto get_ptr(Accessor const &acc) const -> decay_t<decltype(host_device::at_key<Arg>(m_ptr))> {
+            auto ptr = host_device::at_key<Arg>(m_ptr);
+            sid::multi_shift<Arg>(ptr, m_local_domain.m_strides, acc);
+            return ptr;
+        }
+
+      public:
+        template <class Offset = integral_constant<int_t, 1>>
+        GT_FUNCTION void increment_k(Offset offset = {}) {
+            sid::shift(m_ptr, sid::get_stride<dim::k>(m_local_domain.m_strides), offset);
+        }
+
+        /**@brief method for initializing the index */
+        GT_FUNCTION void initialize(pos3<int_t> begin, pos3<int_t> block_no, pos3<int_t> pos_in_block) {
+            host_device::for_each_type<typename local_domain_t::esf_args_t>(
+                initialize_index<typename IterateDomainArguments::backend_t, local_domain_t>(
+                    m_local_domain.m_strides, begin, block_no, pos_in_block, m_ptr));
+        }
+
+        GT_FUNCTION int_t i() const { return pos<dim::i>(); }
+
+        GT_FUNCTION int_t j() const { return pos<dim::j>(); }
+
+        GT_FUNCTION int_t k() const { return pos<dim::k>(); }
+
       public:
         static constexpr bool has_ij_caches = !meta::is_empty<GT_META_CALL(ij_caches, cache_sequence_t)>::value;
         static constexpr bool has_k_caches = !meta::is_empty<GT_META_CALL(k_caches, cache_sequence_t)>::value;
 
-        template <class LocalDomain>
-        GT_FUNCTION_DEVICE iterate_domain_cuda(LocalDomain &&local_domain, int_t block_size_i, int_t block_size_j)
-            : base_t(wstd::forward<LocalDomain>(local_domain)), m_block_size_i(block_size_i),
+        GT_FUNCTION_DEVICE iterate_domain_cuda(
+            local_domain_t const &local_domain, int_t block_size_i, int_t block_size_j)
+            : m_local_domain(local_domain), m_ptr(local_domain.m_ptr_holder()), m_block_size_i(block_size_i),
               m_block_size_j(block_size_j) {}
 
         /**
          * @brief determines whether the current (i,j) position is within the block size
          */
-        template <typename Extent>
+        template <class Extent>
         GT_FUNCTION bool is_thread_in_domain() const {
-            return m_thread_pos[0] >= Extent::iminus::value &&
-                   m_thread_pos[0] < m_block_size_i + Extent::iplus::value &&
-                   m_thread_pos[1] >= Extent::jminus::value && m_thread_pos[1] < m_block_size_j + Extent::jplus::value;
+            return Extent::iminus::value <= m_thread_pos[0] &&
+                   Extent::iplus::value > m_thread_pos[0] - m_block_size_i &&
+                   Extent::jminus::value <= m_thread_pos[1] && Extent::jplus::value > m_thread_pos[1] - m_block_size_j;
         }
 
         GT_FUNCTION_DEVICE void set_block_pos(int_t ipos, int_t jpos) {
@@ -140,14 +168,13 @@ namespace gridtools {
 
         template <class Arg, class DataStore = typename Arg::data_store_t, class Data = typename DataStore::data_t>
         GT_FUNCTION Data *deref_for_k_cache(int_t k_offset) const {
-            auto k = *(host_device::at_key<positional<dim::k>>(this->m_ptr) +
-                         host_device::at_key<positional<dim::k>>(this->m_index)) +
-                     k_offset;
-            if (k < 0 || k >= host_device::at_key<typename DataStore::storage_info_t>(this->m_local_domain.m_ksize_map))
+            auto k_pos = k() + k_offset;
+            if (k_pos < 0 ||
+                k_pos >= host_device::at_key<typename DataStore::storage_info_t>(m_local_domain.m_ksize_map))
                 return nullptr;
-            auto offset = host_device::at_key<Arg>(this->m_index);
-            sid::shift(offset, sid::get_stride<Arg, dim::k>(this->m_local_domain.m_strides), k_offset);
-            return host_device::at_key<Arg>(this->m_ptr) + offset;
+            Data *res = host_device::at_key<Arg>(this->m_ptr);
+            sid::shift(res, sid::get_stride<Arg, dim::k>(m_local_domain.m_strides), k_offset);
+            return res;
         }
 
         template <class Arg, class Accessor, enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>

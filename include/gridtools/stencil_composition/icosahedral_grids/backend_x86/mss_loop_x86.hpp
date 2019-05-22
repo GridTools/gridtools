@@ -63,7 +63,6 @@ namespace gridtools {
          */
         template <typename RunFunctorArgs, typename IterateDomain, typename Grid>
         struct color_execution_functor {
-          private:
             GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
@@ -76,15 +75,11 @@ namespace gridtools {
 
             IterateDomain &m_it_domain;
             Grid const &m_grid;
-            uint_t m_loop_size;
-
-          public:
-            color_execution_functor(IterateDomain &it_domain, Grid const &grid, uint_t loop_size)
-                : m_it_domain(it_domain), m_grid(grid), m_loop_size(loop_size) {}
+            int_t m_loop_size;
 
             template <class Color, enable_if_t<has_color<Color>::value, int> = 0>
             void operator()(Color) const {
-                for (uint_t j = 0; j != m_loop_size; ++j) {
+                for (int_t j = 0; j != m_loop_size; ++j) {
                     auto memorized_index = m_it_domain.index();
                     run_functors_on_interval<RunFunctorArgs, run_esf_functor_x86<Color::value>>(m_it_domain, m_grid);
                     m_it_domain.set_index(memorized_index);
@@ -127,23 +122,21 @@ namespace gridtools {
         using from_t = GT_META_CALL(meta::first, interval_t);
         it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
             {execution_info.bi, execution_info.bj, 0},
-            {extent_t::iminus::value,
-                extent_t::jminus::value,
-                static_cast<int_t>(grid.template value_at<from_t>() - grid.k_min())});
+            {extent_t::iminus::value, extent_t::jminus::value, grid.template value_at<from_t>() - grid.k_min()});
 
-        auto block_size_f = [](uint_t total, uint_t block_size, uint_t block_no) {
+        auto block_size_f = [](int_t total, int_t block_size, int_t block_no) {
             auto n = (total + block_size - 1) / block_size;
             return block_no == n - 1 ? total - block_no * block_size : block_size;
         };
         auto total_i = grid.i_high_bound() - grid.i_low_bound() + 1;
         auto total_j = grid.j_high_bound() - grid.j_low_bound() + 1;
-        const uint_t size_i = block_size_f(total_i, block_i_size(backend_target), execution_info.bi) +
-                              extent_t::iplus::value - extent_t::iminus::value;
-        const uint_t size_j = block_size_f(total_j, block_j_size(backend_target), execution_info.bj) +
-                              extent_t::jplus::value - extent_t::jminus::value;
+        int_t size_i = block_size_f(total_i, block_i_size(backend_target), execution_info.bi) + extent_t::iplus::value -
+                       extent_t::iminus::value;
+        int_t size_j = block_size_f(total_j, block_j_size(backend_target), execution_info.bj) + extent_t::jplus::value -
+                       extent_t::jminus::value;
         static constexpr int_t n_colors =
             _impl_mss_loop_x86::get_ncolors<typename RunFunctorArgs::loop_intervals_t>::value;
-        for (uint_t i = 0; i != size_i; ++i) {
+        for (int_t i = 0; i != size_i; ++i) {
             gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(
                 _impl_mss_loop_x86::color_execution_functor<RunFunctorArgs, iterate_domain_t, Grid>{
                     it_domain, grid, size_j});

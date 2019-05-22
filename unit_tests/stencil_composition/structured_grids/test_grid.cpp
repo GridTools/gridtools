@@ -21,8 +21,8 @@ TEST(test_grid, k_total_length) {
     static const int_t offset_from = -2;
     static const int_t offset_to = 2;
 
-    uint_t splitter_begin = 5;
-    uint_t splitter_end = 50;
+    int_t splitter_begin = 5;
+    int_t splitter_end = 50;
 
     typedef interval<level_t<0, offset_from>, level_t<1, offset_to + 1>> axis;
     grid<axis> grid_(halo_descriptor{}, halo_descriptor{}, {splitter_begin, splitter_end});
@@ -33,11 +33,10 @@ TEST(test_grid, k_total_length) {
 }
 
 class test_grid_copy_ctor : public ::testing::Test {
-  private:
     halo_descriptor halo_i;
     halo_descriptor halo_j;
-    const uint_t splitter_0;
-    const uint_t splitter_1;
+    int_t splitter_0;
+    int_t splitter_1;
 
   public:
     typedef interval<level_t<0, -1>, level_t<1, -1>> axis;

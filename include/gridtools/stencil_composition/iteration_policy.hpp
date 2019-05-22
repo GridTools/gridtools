@@ -33,18 +33,11 @@ namespace gridtools {
         using execution_type = ExecutionType;
 
         GT_FUNCTION static int_t increment(int_t &k) { return ++k; }
-        GT_FUNCTION static int_t decrement(int_t &k) { return --k; }
 
         template <typename IterateDomain>
         GT_FUNCTION static void increment(IterateDomain &eval) {
             GT_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
             eval.increment_k();
-        }
-
-        template <typename IterateDomain>
-        GT_FUNCTION static void increment_by(IterateDomain &eval, int_t step) {
-            GT_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
-            eval.increment_k(step);
         }
 
         GT_FUNCTION static bool condition(int_t a, int_t b) { return a <= b; }
@@ -63,7 +56,6 @@ namespace gridtools {
         using execution_type = execute::backward;
 
         GT_FUNCTION static int_t increment(int_t &k) { return --k; }
-        GT_FUNCTION static int_t decrement(int_t &k) { return ++k; }
 
         template <typename Domain>
         GT_FUNCTION static void increment(Domain &dom) {
@@ -75,12 +67,6 @@ namespace gridtools {
             using namespace literals;
             dom.template increment_k(-1_c);
 #endif
-        }
-
-        template <typename IterateDomain>
-        GT_FUNCTION static void increment_by(IterateDomain &eval, int_t step) {
-            GT_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
-            eval.increment_k(-step);
         }
 
         GT_FUNCTION static bool condition(int_t const &a, int_t const &b) { return a >= b; }

@@ -286,7 +286,6 @@ namespace gridtools {
         static_assert(integer_sequence<int, 1, 2, 3>::size() == 3, "");
 
         static_assert(std::is_same<make_integer_sequence<int, 3>, integer_sequence<int, 0, 1, 2>>::value, "");
-        static_assert(std::is_same<make_integer_sequence<bool, 1>, integer_sequence<bool, false>>::value, "");
 
         // take
         static_assert(std::is_same<GT_META_CALL(take_c, (2, f<int, double, void, void>)), f<int, double>>::value, "");

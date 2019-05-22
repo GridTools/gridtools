@@ -18,25 +18,25 @@ namespace gridtools {
     namespace tmp_storage {
         // Block specialisations
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_i_size(backend::x86 const &, uint_t block_size, uint_t /*total_size*/) {
+        int_t get_i_size(backend::x86, int_t block_size, int_t /*total_size*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<dim::i::value>();
             return (block_size + 2 * halo) * omp_get_max_threads();
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_i_block_offset(backend::x86 const &, uint_t block_size, uint_t /*block_no*/) {
+        GT_FUNCTION int_t get_i_block_offset(backend::x86, int_t block_size, int_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<dim::i::value>();
             return (block_size + 2 * halo) * omp_get_thread_num() + halo;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_j_size(backend::x86 const &, uint_t block_size, uint_t /*total_size*/) {
+        int_t get_j_size(backend::x86 const &, int_t block_size, int_t /*total_size*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<dim::j::value>();
             return block_size + 2 * halo;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_j_block_offset(backend::x86 const &, uint_t /*block_size*/, uint_t /*block_no*/) {
+        GT_FUNCTION int_t get_j_block_offset(backend::x86 const &, int_t /*block_size*/, int_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<dim::j::value>();
             return halo;
         }

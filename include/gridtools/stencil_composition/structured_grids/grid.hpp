@@ -34,7 +34,7 @@ namespace gridtools {
         return grid<typename Axis::axis_interval_t>(
             direction_i, direction_j, _impl::intervals_to_indices(axis.interval_sizes()));
     }
-    GT_FUNCTION_HOST grid<axis<1>::axis_interval_t> make_grid(uint_t di, uint_t dj, uint_t dk) {
+    GT_FUNCTION_HOST grid<axis<1>::axis_interval_t> make_grid(uint_t di, uint_t dj, int_t dk) {
         return make_grid(halo_descriptor(di), halo_descriptor(dj), axis<1>(dk));
     }
     template <typename Axis>
@@ -43,7 +43,7 @@ namespace gridtools {
             halo_descriptor(di), halo_descriptor(dj), _impl::intervals_to_indices(axis.interval_sizes()));
     }
     GT_FUNCTION_HOST grid<axis<1>::axis_interval_t> make_grid(
-        halo_descriptor const &direction_i, halo_descriptor const &direction_j, uint_t dk) {
+        halo_descriptor const &direction_i, halo_descriptor const &direction_j, int_t dk) {
         return make_grid(direction_i, direction_j, axis<1>(dk));
     }
 } // namespace gridtools
