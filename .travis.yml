@@ -23,14 +23,14 @@ env:
   - build_type=debug float_type=double grid_type=icosahedral compiler=clang-8
   - build_type=release float_type=double grid_type=icosahedral compiler=clang-8
   # CUDA 10.1
-  # - build_type=debug float_type=float grid_type=structured compiler=cuda-10.1
-  # - build_type=release float_type=float grid_type=structured compiler=cuda-10.1
-  # - build_type=debug float_type=double grid_type=structured compiler=cuda-10.1
-  # - build_type=release float_type=double grid_type=structured compiler=cuda-10.1
-  # - build_type=debug float_type=float grid_type=icosahedral compiler=cuda-10.1
-  # - build_type=release float_type=float grid_type=icosahedral compiler=cuda-10.1
-  # - build_type=debug float_type=double grid_type=icosahedral compiler=cuda-10.1
-  # - build_type=release float_type=double grid_type=icosahedral compiler=cuda-10.1
+  - build_type=debug float_type=float grid_type=structured compiler=cuda-10.1
+  - build_type=release float_type=float grid_type=structured compiler=cuda-10.1
+  - build_type=debug float_type=double grid_type=structured compiler=cuda-10.1
+  - build_type=release float_type=double grid_type=structured compiler=cuda-10.1
+  - build_type=debug float_type=float grid_type=icosahedral compiler=cuda-10.1
+  - build_type=release float_type=float grid_type=icosahedral compiler=cuda-10.1
+  - build_type=debug float_type=double grid_type=icosahedral compiler=cuda-10.1
+  - build_type=release float_type=double grid_type=icosahedral compiler=cuda-10.1
 
 before_install:
   - docker pull fthaler/gridtools:test-$compiler
