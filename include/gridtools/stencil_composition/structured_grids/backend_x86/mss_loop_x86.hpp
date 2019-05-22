@@ -120,7 +120,7 @@ namespace gridtools {
 
         auto i_loop = sid::make_loop<dim::i>(size_i);
         auto j_loop = sid::make_loop<dim::j>(size_j);
-        auto k_loop = [&](auto ptr, auto strides) {
+        auto k_loop = [&](auto ptr, auto const &strides) {
             for_each<loop_intervals_t>([&](auto loop_interval) {
                 mss_loop_x86_impl_::execute_interval<execution_type_t>(loop_interval, grid, ptr, strides);
             });
