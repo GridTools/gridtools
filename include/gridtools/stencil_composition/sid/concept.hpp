@@ -643,26 +643,16 @@ namespace gridtools {
 
         // Meta functions
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-#define GT_SID_DELEGATE_FROM_IMPL(name) \
-    template <class Sid>                \
-    struct name : meta::id<concept_impl_::name<Sid>> {}
-#else
-#define GT_SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
-#endif
+        using concept_impl_::lower_bounds_type;
+        using concept_impl_::ptr_diff_type;
+        using concept_impl_::ptr_holder_type;
+        using concept_impl_::ptr_type;
+        using concept_impl_::reference_type;
+        using concept_impl_::strides_kind;
+        using concept_impl_::strides_type;
+        using concept_impl_::upper_bounds_type;
 
-        GT_SID_DELEGATE_FROM_IMPL(ptr_holder_type);
-        GT_SID_DELEGATE_FROM_IMPL(ptr_type);
-        GT_SID_DELEGATE_FROM_IMPL(ptr_diff_type);
-        GT_SID_DELEGATE_FROM_IMPL(reference_type);
-        GT_SID_DELEGATE_FROM_IMPL(strides_type);
-        GT_SID_DELEGATE_FROM_IMPL(strides_kind);
-        GT_SID_DELEGATE_FROM_IMPL(lower_bounds_type);
-        GT_SID_DELEGATE_FROM_IMPL(upper_bounds_type);
-
-        GT_SID_DELEGATE_FROM_IMPL(default_ptr_diff);
-
-#undef GT_SID_DELEGATE_FROM_IMPL
+        using concept_impl_::default_ptr_diff;
 
         // Runtime functions
         using concept_impl_::get_lower_bounds;

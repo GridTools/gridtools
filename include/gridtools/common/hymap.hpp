@@ -43,7 +43,7 @@
  * `device` or `host_device`. `at_key` without `target_name` is an alias of `host::at_key`.
  *
  *  Compile time:
- *  - `get_keys` metafunction. Usage: `GT_META_CALL(get_keys, Hymap)`
+ *  - `get_keys` metafunction. Usage: `get_keys<Hymap>`
  *  - `has_key` metafunction. Usage `has_key<Hymap, Key>`
  *
  *  TODO(anstaf): add usage examples here
