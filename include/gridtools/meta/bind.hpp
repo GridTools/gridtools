@@ -45,7 +45,7 @@ namespace gridtools {
         template <template <class...> class F, class... BoundArgs>
         struct bind {
             template <class... Params>
-            GT_META_DEFINE_ALIAS(apply, F, (typename replace_placeholders_impl<BoundArgs, Params...>::type...));
+            using apply = F<typename replace_placeholders_impl<BoundArgs, Params...>::type...>;
         };
     } // namespace meta
 } // namespace gridtools

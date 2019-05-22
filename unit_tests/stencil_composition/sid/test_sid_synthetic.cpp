@@ -66,10 +66,10 @@ namespace gridtools {
                 static_assert(is_sid<testee>(), "");
                 static_assert(std::is_trivially_copyable<testee>(), "");
 
-                static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee), ptr>(), "");
-                static_assert(std::is_same<GT_META_CALL(sid::strides_type, testee), strides>(), "");
-                static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptr_diff>(), "");
-                static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides_kind>(), "");
+                static_assert(std::is_same<sid::ptr_type<testee>, ptr>(), "");
+                static_assert(std::is_same<sid::strides_type<testee>, strides>(), "");
+                static_assert(std::is_same<sid::ptr_diff_type<testee>, ptr_diff>(), "");
+                static_assert(std::is_same<sid::strides_kind<testee>, strides_kind>(), "");
 
                 EXPECT_EQ(&the_element, sid::get_origin(the_testee)().val);
                 EXPECT_EQ(3, tuple_util::get<0>(sid::get_strides(the_testee)).val);

@@ -23,27 +23,29 @@ namespace gridtools {
             struct add_offset_f {
                 Offsets const &m_offsets;
 
-                template <class Dim, class Bound, enable_if_t<has_key<Offsets, Dim>::value, int> = 0>
-                auto operator()(Bound &&bound) const
-                    GT_AUTO_RETURN(wstd::forward<Bound>(bound) + at_key<Dim>(m_offsets));
+                template <class Dim, class Bound, std::enable_if_t<has_key<Offsets, Dim>::value, int> = 0>
+                auto operator()(Bound &&bound) const {
+                    return wstd::forward<Bound>(bound) + at_key<Dim>(m_offsets);
+                }
 
-                template <class Dim, class Bound, enable_if_t<!has_key<Offsets, Dim>::value, int> = 0>
-                decay_t<Bound> operator()(Bound &&bound) const {
+                template <class Dim, class Bound, std::enable_if_t<!has_key<Offsets, Dim>::value, int> = 0>
+                std::decay_t<Bound> operator()(Bound &&bound) const {
                     return bound;
                 }
             };
 
             template <class Bounds, class Offsets>
-            auto add_offsets(Bounds &&bounds, Offsets const &offsets)
-                GT_AUTO_RETURN(hymap::transform(add_offset_f<Offsets>{offsets}, wstd::forward<Bounds>(bounds)));
+            auto add_offsets(Bounds &&bounds, Offsets const &offsets) {
+                return hymap::transform(add_offset_f<Offsets>{offsets}, wstd::forward<Bounds>(bounds));
+            }
 
             template <class Sid, class LowerBounds, class UpperBounds>
             class shifted_sid : public delegate<Sid> {
-                GT_META_CALL(sid::ptr_holder_type, Sid) m_origin;
+                sid::ptr_holder_type<Sid> m_origin;
                 LowerBounds m_lower_bounds;
                 UpperBounds m_upper_bounds;
 
-                friend GT_META_CALL(sid::ptr_holder_type, Sid) sid_get_origin(shifted_sid &obj) { return obj.m_origin; }
+                friend sid::ptr_holder_type<Sid> sid_get_origin(shifted_sid &obj) { return obj.m_origin; }
                 friend LowerBounds const &sid_get_lower_bounds(shifted_sid const &obj) { return obj.m_lower_bounds; }
                 friend UpperBounds const &sid_get_upper_bounds(shifted_sid const &obj) { return obj.m_upper_bounds; }
 
@@ -52,7 +54,7 @@ namespace gridtools {
                 shifted_sid(Arg &&original_sid, Offsets &&offsets) noexcept
                     : delegate<Sid>(wstd::forward<Arg>(original_sid)), m_origin{[this, &offsets]() {
                           auto &&strides = sid::get_strides(this->impl());
-                          GT_META_CALL(sid::ptr_diff_type, Sid) ptr_offset{};
+                          sid::ptr_diff_type<Sid> ptr_offset{};
                           multi_shift(ptr_offset, strides, offsets);
                           return sid::get_origin(this->impl()) + ptr_offset;
                       }()},
@@ -67,7 +69,8 @@ namespace gridtools {
         } // namespace shift_sid_origin_impl_
 
         template <class Sid, class Offset>
-        shift_sid_origin_impl_::shifted_sid_type<decay_t<Sid>, Offset> shift_sid_origin(Sid &&sid, Offset &&offset) {
+        shift_sid_origin_impl_::shifted_sid_type<std::decay_t<Sid>, Offset> shift_sid_origin(
+            Sid &&sid, Offset &&offset) {
             return {wstd::forward<Sid>(sid), wstd::forward<Offset>(offset)};
         }
 

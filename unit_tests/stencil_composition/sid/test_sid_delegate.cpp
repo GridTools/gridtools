@@ -29,9 +29,9 @@ namespace gridtools {
 
         template <class Sid>
         class i_shifted : public sid::delegate<Sid> {
-            friend GT_META_CALL(sid::ptr_holder_type, Sid) sid_get_origin(i_shifted &obj) {
+            friend sid::ptr_holder_type<Sid> sid_get_origin(i_shifted &obj) {
                 auto &&impl = obj.impl();
-                GT_META_CALL(sid::ptr_diff_type, Sid) offset{};
+                sid::ptr_diff_type<Sid> offset{};
                 sid::shift(offset, sid::get_stride<integral_constant<int, 0>>(sid::get_strides(impl)), 1_c);
                 return sid::get_origin(impl) + offset;
             }

@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/halo_descriptor.hpp"
@@ -84,7 +86,7 @@ namespace gridtools {
             int_t ToOffset,
             int_t OffsetLimit,
             int_t Extra = grid_base_impl_::real_offset(ToOffset) - grid_base_impl_::real_offset(FromOffset),
-            enable_if_t<(FromSplitter < ToSplitter), int> = 0>
+            std::enable_if_t<(FromSplitter < ToSplitter), int> = 0>
         GT_FUNCTION int_t count(
             level<FromSplitter, FromOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>) const {
             return value_list[ToSplitter] - value_list[FromSplitter] + Extra + 1;
@@ -96,7 +98,7 @@ namespace gridtools {
             int_t ToOffset,
             int_t OffsetLimit,
             int_t Extra = grid_base_impl_::real_offset(FromOffset) - grid_base_impl_::real_offset(ToOffset),
-            enable_if_t<(FromSplitter >= ToSplitter), int> = 0>
+            std::enable_if_t<(FromSplitter >= ToSplitter), int> = 0>
         GT_FUNCTION int_t count(
             level<FromSplitter, FromOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>) const {
             return value_list[FromSplitter] - value_list[ToSplitter] + Extra + 1;

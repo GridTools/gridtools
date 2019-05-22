@@ -40,7 +40,7 @@ namespace {
 } // namespace
 
 namespace gridtools {
-    template <typename T, typename = enable_if_t<is_data_store<remove_const_t<T>>::value>>
+    template <typename T, typename = std::enable_if_t<is_data_store<std::remove_const_t<T>>::value>>
     T gt_make_fortran_array_view(gt_fortran_array_descriptor *descriptor, T *) {
         if (descriptor->rank != 3) {
             throw std::runtime_error("only 3-dimensional arrays are supported");
@@ -48,7 +48,7 @@ namespace gridtools {
         return T(storage_info_t(descriptor->dims[0], descriptor->dims[1], descriptor->dims[2]),
             reinterpret_cast<typename T::data_t *>(descriptor->data));
     }
-    template <typename T, typename = enable_if_t<is_data_store<remove_const_t<T>>::value>>
+    template <typename T, typename = std::enable_if_t<is_data_store<std::remove_const_t<T>>::value>>
     gt_fortran_array_descriptor get_fortran_view_meta(T *) {
         gt_fortran_array_descriptor descriptor;
         descriptor.type = c_bindings::fortran_array_element_kind<typename T::data_t>::value;
@@ -66,15 +66,17 @@ namespace {
     using p_in = arg<0, data_store_t>;
     using p_out = arg<1, data_store_t>;
 
-    auto make_grid(data_store_t data_store) -> decltype(make_grid(0, 0, 0)) {
+    auto make_grid(data_store_t data_store) {
         auto dims = data_store.total_lengths();
         return gridtools::make_grid(dims[0], dims[1], dims[2]);
     }
 
-    auto make_copy_stencil(data_store_t in, data_store_t out) GT_AUTO_RETURN(make_computation<backend_t>(make_grid(out),
-        p_in{} = in,
-        p_out{} = out,
-        make_multistage(execute::forward(), make_stage<copy_functor>(p_in{}, p_out{}))));
+    auto make_copy_stencil(data_store_t in, data_store_t out) {
+        return make_computation<backend_t>(make_grid(out),
+            p_in{} = in,
+            p_out{} = out,
+            make_multistage(execute::forward(), make_stage<copy_functor>(p_in{}, p_out{})));
+    }
     GT_EXPORT_BINDING_WRAPPED_2(create_copy_stencil, make_copy_stencil);
 
     using stencil_t = decltype(make_copy_stencil(std::declval<data_store_t>(), std::declval<data_store_t>()));

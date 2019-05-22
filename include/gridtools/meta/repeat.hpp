@@ -11,7 +11,6 @@
 
 #include <cstddef>
 
-#include "defs.hpp"
 #include "list.hpp"
 #include "macros.hpp"
 
@@ -20,7 +19,7 @@ namespace gridtools {
         /**
          *  Produce a list of N identical elements
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class List, bool Rem>
             struct repeat_impl_expand;
 
@@ -50,13 +49,11 @@ namespace gridtools {
             };
 
             template <class N, class T>
-            GT_META_DEFINE_ALIAS(repeat, repeat_c, (N::value, T));
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+            using repeat = repeat_c<N::value, T>;
+        } // namespace lazy
         template <std::size_t N, class T>
         using repeat_c = typename lazy::repeat_c<N, T>::type;
         template <class N, class T>
         using repeat = typename lazy::repeat_c<N::value, T>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

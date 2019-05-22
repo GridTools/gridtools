@@ -84,8 +84,7 @@ namespace gridtools {
         static constexpr tmp_arg<8> p_tmp_8 = {};
         static constexpr tmp_arg<9> p_tmp_9 = {};
 
-        auto make_grid() const
-            GT_AUTO_RETURN(::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}));
+        auto make_grid() const { return ::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}); }
 
         template <class Storage = storage_type, class T = typename Storage::data_t>
         Storage make_storage(T &&obj = {}) const {
@@ -154,8 +153,9 @@ namespace gridtools {
 
         topology_t topology() const { return {m_d1, m_d2, m_d3}; }
 
-        auto make_grid() const
-            GT_AUTO_RETURN(::gridtools::make_grid(topology(), i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}));
+        auto make_grid() const {
+            return ::gridtools::make_grid(topology(), i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3});
+        }
 
       private:
         template <class Storage>
@@ -177,8 +177,9 @@ namespace gridtools {
         uint_t &d3() { return m_d3; }
 
         template <class... Args>
-        auto make_computation(Args &&... args) const
-            GT_AUTO_RETURN(::gridtools::make_computation<backend_t>(make_grid(), wstd::forward<Args>(args)...));
+        auto make_computation(Args &&... args) const {
+            return ::gridtools::make_computation<backend_t>(make_grid(), wstd::forward<Args>(args)...);
+        }
 
         template <class Expected, class Actual>
         void verify(

@@ -51,9 +51,9 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
         using caches_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
-        using ij_cache_args_t = GT_META_CALL(ij_cache_args, caches_t);
-        using k_cache_args_t = GT_META_CALL(k_cache_args, caches_t);
-        using readwrite_args_t = GT_META_CALL(compute_readwrite_args, typename IterateDomainArguments::esf_sequence_t);
+        using ij_cache_args_t = ij_cache_args<caches_t>;
+        using k_cache_args_t = k_cache_args<caches_t>;
+        using readwrite_args_t = compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>;
         using cache_sequence_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
@@ -76,16 +76,19 @@ namespace gridtools {
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
         template <class Arg, class T>
-        static GT_FUNCTION enable_if_t<!meta::st_contains<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
-        dereference(T *ptr) {
+        static GT_FUNCTION
+            std::enable_if_t<!meta::st_contains<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
+            dereference(T *ptr) {
             return __ldg(ptr);
         }
 #endif
         template <class Arg, class Ptr>
-        static GT_FUNCTION auto dereference(Ptr ptr) GT_AUTO_RETURN(*ptr);
+        static GT_FUNCTION decltype(auto) dereference(Ptr ptr) {
+            return *ptr;
+        }
 
         template <class Arg, class Accessor>
-        GT_FUNCTION auto get_ptr(Accessor const &acc) const -> decay_t<decltype(host_device::at_key<Arg>(m_ptr))> {
+        GT_FUNCTION auto get_ptr(Accessor const &acc) const {
             auto ptr = host_device::at_key<Arg>(m_ptr);
             sid::multi_shift<Arg>(ptr, m_local_domain.m_strides, acc);
             return ptr;
@@ -111,8 +114,8 @@ namespace gridtools {
         GT_FUNCTION int_t k() const { return pos<dim::k>(); }
 
       public:
-        static constexpr bool has_ij_caches = !meta::is_empty<GT_META_CALL(ij_caches, cache_sequence_t)>::value;
-        static constexpr bool has_k_caches = !meta::is_empty<GT_META_CALL(k_caches, cache_sequence_t)>::value;
+        static constexpr bool has_ij_caches = !meta::is_empty<ij_caches<cache_sequence_t>>::value;
+        static constexpr bool has_k_caches = !meta::is_empty<k_caches<cache_sequence_t>>::value;
 
         GT_FUNCTION_DEVICE iterate_domain_cuda(
             local_domain_t const &local_domain, int_t block_size_i, int_t block_size_j)
@@ -177,15 +180,15 @@ namespace gridtools {
             return res;
         }
 
-        template <class Arg, class Accessor, enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
+        template <class Arg, class Accessor, std::enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
         GT_FUNCTION typename Arg::data_store_t::data_t &deref(Accessor const &acc) const {
             return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain).at(m_thread_pos[0], m_thread_pos[1], acc);
         }
 
         template <class Arg,
             class Accessor,
-            enable_if_t<meta::st_contains<k_cache_args_t, Arg>::value &&
-                            !meta::st_contains<ij_cache_args_t, Arg>::value,
+            std::enable_if_t<meta::st_contains<k_cache_args_t, Arg>::value &&
+                                 !meta::st_contains<ij_cache_args_t, Arg>::value,
                 int> = 0>
         GT_FUNCTION typename Arg::data_store_t::data_t &deref(Accessor const &acc) const {
             return m_iterate_domain_cache.template get_k_cache<Arg>(acc);
@@ -193,11 +196,12 @@ namespace gridtools {
 
         template <class Arg,
             class Accessor,
-            enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value &&
-                            !meta::st_contains<k_cache_args_t, Arg>::value,
+            std::enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value &&
+                                 !meta::st_contains<k_cache_args_t, Arg>::value,
                 int> = 0>
-        GT_FUNCTION auto deref(Accessor const &acc) const
-            GT_AUTO_RETURN(dereference<Arg>(this->template get_ptr<Arg>(acc)));
+        GT_FUNCTION decltype(auto) deref(Accessor const &acc) const {
+            return dereference<Arg>(this->template get_ptr<Arg>(acc));
+        }
     };
 
     template <typename IterateDomainArguments>

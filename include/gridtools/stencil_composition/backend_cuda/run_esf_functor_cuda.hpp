@@ -53,8 +53,8 @@ namespace gridtools {
         GT_FUNCTION static void exec(ItDomain &it_domain) {
 
             GT_STATIC_ASSERT(!meta::is_empty<StageGroups>::value, GT_INTERNAL_ERROR);
-            using first_t = GT_META_CALL(meta::first, StageGroups);
-            using rest_t = GT_META_CALL(meta::pop_front, StageGroups);
+            using first_t = meta::first<StageGroups>;
+            using rest_t = meta::pop_front<StageGroups>;
 
             // execute the groups of independent stages calling `__syncthreads()` in between
             _impl::exec_stage_group<first_t>(it_domain);

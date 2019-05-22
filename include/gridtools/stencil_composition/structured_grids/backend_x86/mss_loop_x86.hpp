@@ -85,16 +85,16 @@ namespace gridtools {
 
         template <class ExecutionType, class Grid>
         struct executor_maker_f {
-            using step_t = conditional_t<execute::is_backward<ExecutionType>::value,
+            using step_t = std::conditional_t<execute::is_backward<ExecutionType>::value,
                 integral_constant<int_t, -1>,
                 integral_constant<int_t, 1>>;
 
             Grid const &m_grid;
 
             template <class LoopInterval,
-                class From = GT_META_CALL(meta::first, LoopInterval),
-                class To = GT_META_CALL(meta::second, LoopInterval),
-                class Stages = GT_META_CALL(meta::flatten, GT_META_CALL(meta::third, LoopInterval))>
+                class From = meta::first<LoopInterval>,
+                class To = meta::second<LoopInterval>,
+                class Stages = meta::flatten<meta::third<LoopInterval>>>
             interval_executor_f<step_t, count_type<From, To, Grid>, Stages> operator()(LoopInterval) const {
                 return {m_grid.count(From{}, To{})};
             }
@@ -117,9 +117,10 @@ namespace gridtools {
         template <class LoopIntervals,
             class ExecutionType,
             class Grid,
-            class Tuple = GT_META_CALL(meta::rename, (meta::ctor<tuple<>>::apply, LoopIntervals))>
-        auto make_k_loop(Grid const &grid) GT_AUTO_RETURN(
-            make_k_loop_raw(tuple_util::transform(executor_maker_f<ExecutionType, Grid>{grid}, Tuple{})));
+            class Tuple = meta::rename<tuple, LoopIntervals>>
+        auto make_k_loop(Grid const &grid) {
+            return make_k_loop_raw(tuple_util::transform(executor_maker_f<ExecutionType, Grid>{grid}, Tuple{}));
+        }
     } // namespace mss_loop_x86_impl_
 
     /**
@@ -136,9 +137,9 @@ namespace gridtools {
 
         using loop_intervals_t = typename RunFunctorArgs::loop_intervals_t;
         using execution_type_t = typename RunFunctorArgs::execution_type_t;
-        using extent_t = GT_META_CALL(get_extent_from_loop_intervals, loop_intervals_t);
-        using from_t = GT_META_CALL(meta::first, GT_META_CALL(meta::first, loop_intervals_t));
-        using to_t = GT_META_CALL(meta::second, GT_META_CALL(meta::last, loop_intervals_t));
+        using extent_t = get_extent_from_loop_intervals<loop_intervals_t>;
+        using from_t = meta::first<meta::first<loop_intervals_t>>;
+        using to_t = meta::second<meta::last<loop_intervals_t>>;
 
         int_t k_first = grid.template value_at<from_t>();
 

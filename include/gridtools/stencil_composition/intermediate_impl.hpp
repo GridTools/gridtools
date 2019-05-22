@@ -9,11 +9,12 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../common/functional.hpp"
 #include "../common/generic_metafunctions/for_each.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple_util.hpp"
-#include "../meta/defs.hpp"
 #include "../storage/sid.hpp"
 #include "dim.hpp"
 #include "esf_metafunctions.hpp"
@@ -47,12 +48,12 @@ namespace gridtools {
             }
         };
 
-        template <class Dim, class StorageInfo, enable_if_t<(Dim::value < StorageInfo::ndims), int> = 0>
+        template <class Dim, class StorageInfo, std::enable_if_t<(Dim::value < StorageInfo::ndims), int> = 0>
         int_t padded_length(StorageInfo const &info) {
             return info.template padded_length<Dim::value>();
         }
 
-        template <class Dim, class StorageInfo, enable_if_t<(Dim::value >= StorageInfo::ndims), int> = 0>
+        template <class Dim, class StorageInfo, std::enable_if_t<(Dim::value >= StorageInfo::ndims), int> = 0>
         int_t padded_length(StorageInfo const &info) {
             return std::numeric_limits<int_t>::max();
         }
@@ -62,12 +63,12 @@ namespace gridtools {
 
             // if the arg belongs to the local domain we set pointers
             template <class Arg, class DataStore, class LocalDomain>
-            enable_if_t<meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
+            std::enable_if_t<meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
                 arg_storage_pair<Arg, DataStore> const &src, LocalDomain &local_domain) const {
                 const auto &storage = src.m_value;
 
                 at_key<Arg>(local_domain.m_ptr_holder) = sid::get_origin(storage);
-                using stride_dims_t = GT_META_CALL(get_keys, GT_META_CALL(sid::strides_type, DataStore));
+                using stride_dims_t = get_keys<sid::strides_type<DataStore>>;
                 auto const &src_strides = sid::get_strides(storage);
                 for_each_type<stride_dims_t>(set_stride<Arg>(src_strides, local_domain.m_strides));
 
@@ -79,7 +80,7 @@ namespace gridtools {
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class DataStore, class LocalDomain>
-            enable_if_t<!meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
+            std::enable_if_t<!meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
                 arg_storage_pair<Arg, DataStore> const &, LocalDomain &) const {}
         };
 
@@ -90,23 +91,19 @@ namespace gridtools {
 
         template <class Mss>
         struct non_cached_tmp_f {
-            using local_caches_t = GT_META_CALL(meta::filter, (is_local_cache, typename Mss::cache_sequence_t));
-            using cached_args_t = GT_META_CALL(meta::transform, (cache_parameter, local_caches_t));
+            using local_caches_t = meta::filter<is_local_cache, typename Mss::cache_sequence_t>;
+            using cached_args_t = meta::transform<cache_parameter, local_caches_t>;
 
             template <class Arg>
-            GT_META_DEFINE_ALIAS(
-                apply, bool_constant, (is_tmp_arg<Arg>::value && !meta::st_contains<cached_args_t, Arg>::value));
+            using apply = bool_constant<is_tmp_arg<Arg>::value && !meta::st_contains<cached_args_t, Arg>::value>;
         };
 
         template <class Mss>
-        GT_META_DEFINE_ALIAS(extract_non_cached_tmp_args_from_mss,
-            meta::filter,
-            (non_cached_tmp_f<Mss>::template apply, GT_META_CALL(extract_placeholders_from_mss, Mss)));
+        using extract_non_cached_tmp_args_from_mss =
+            meta::filter<non_cached_tmp_f<Mss>::template apply, extract_placeholders_from_mss<Mss>>;
 
-        template <class Msses,
-            class ArgLists = GT_META_CALL(meta::transform, (extract_non_cached_tmp_args_from_mss, Msses))>
-        GT_META_DEFINE_ALIAS(
-            extract_non_cached_tmp_args_from_msses, meta::dedup, (GT_META_CALL(meta::flatten, ArgLists)));
+        template <class Msses, class ArgLists = meta::transform<extract_non_cached_tmp_args_from_mss, Msses>>
+        using extract_non_cached_tmp_args_from_msses = meta::dedup<meta::flatten<ArgLists>>;
 
         template <class MaxExtent, class Backend>
         struct get_tmp_arg_storage_pair_generator {
@@ -120,29 +117,27 @@ namespace gridtools {
             };
 
             template <class T>
-            GT_META_DEFINE_ALIAS(apply, meta::id, generator<T>);
+            using apply = generator<T>;
         };
 
         template <class MaxExtent, class Backend, class Res, class Grid>
         Res make_tmp_arg_storage_pairs(Grid const &grid) {
-            using generators = GT_META_CALL(
-                meta::transform, (get_tmp_arg_storage_pair_generator<MaxExtent, Backend>::template apply, Res));
+            using generators =
+                meta::transform<get_tmp_arg_storage_pair_generator<MaxExtent, Backend>::template apply, Res>;
             return tuple_util::generate<generators, Res>(grid);
         }
 
         template <class MssComponentsList,
-            class Extents = GT_META_CALL(
-                meta::transform, (get_max_extent_for_tmp_from_mss_components, MssComponentsList))>
-        GT_META_DEFINE_ALIAS(get_max_extent_for_tmp, meta::rename, (enclosing_extent, Extents));
+            class Extents = meta::transform<get_max_extent_for_tmp_from_mss_components, MssComponentsList>>
+        using get_max_extent_for_tmp = meta::rename<enclosing_extent, Extents>;
 
         template <class Mss>
-        GT_META_DEFINE_ALIAS(
-            rw_args_from_mss, compute_readwrite_args, GT_META_CALL(unwrap_independent, typename Mss::esf_sequence_t));
+        using rw_args_from_mss = compute_readwrite_args<unwrap_independent<typename Mss::esf_sequence_t>>;
 
         template <class Msses,
-            class RwArgsLists = GT_META_CALL(meta::transform, (rw_args_from_mss, Msses)),
-            class RawRwArgs = GT_META_CALL(meta::flatten, RwArgsLists)>
-        GT_META_DEFINE_ALIAS(all_rw_args, meta::dedup, RawRwArgs);
+            class RwArgsLists = meta::transform<rw_args_from_mss, Msses>,
+            class RawRwArgs = meta::flatten<RwArgsLists>>
+        using all_rw_args = meta::dedup<RawRwArgs>;
 
     } // namespace _impl
 } // namespace gridtools

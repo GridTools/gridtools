@@ -57,8 +57,7 @@ namespace gridtools {
 
         namespace impl_ {
             template <typename Value>
-            using minmax_return_type =
-                typename std::conditional<std::is_arithmetic<Value>::value, Value, Value const &>::type;
+            using minmax_return_type = std::conditional_t<std::is_arithmetic<Value>::value, Value, Value const &>;
         }
 
         template <typename Value>

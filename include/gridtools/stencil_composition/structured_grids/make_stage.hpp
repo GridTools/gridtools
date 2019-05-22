@@ -41,5 +41,7 @@ namespace gridtools {
      * Extents are given as a template argument.
      */
     template <typename Esf, typename Extent, typename... Args>
-    GT_CONSTEXPR auto make_stage_with_extent(Args... args) GT_AUTO_RETURN((make_stage<Esf, Extent>(args...)));
+    GT_CONSTEXPR auto make_stage_with_extent(Args... args) {
+        return make_stage<Esf, Extent>(args...);
+    }
 } // namespace gridtools

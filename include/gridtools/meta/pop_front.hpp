@@ -14,7 +14,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class>
             struct pop_front;
 
@@ -22,7 +22,7 @@ namespace gridtools {
             struct pop_front<L<T, Ts...>> {
                 using type = L<Ts...>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(pop_front, class List, List);
     } // namespace meta
 } // namespace gridtools

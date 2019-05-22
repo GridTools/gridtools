@@ -46,7 +46,7 @@ TEST(tmp_storage_sid_mc, nonzero_k_extents) {
     using tmp_t = decltype(tmp);
 
     static_assert(is_sid<tmp_t>(), "");
-    static_assert(std::is_same<GT_META_CALL(sid::ptr_type, tmp_t), double *>(), "");
+    static_assert(std::is_same<sid::ptr_type<tmp_t>, double *>(), "");
 
     auto f = [](int_t i, int_t j, int_t k, int_t t) { return i + j * 100 + k * 200 + t * 400; };
 
@@ -114,7 +114,7 @@ TEST(tmp_storage_sid_mc, zero_k_extents) {
     using tmp_t = decltype(tmp);
 
     static_assert(is_sid<tmp_t>(), "");
-    static_assert(std::is_same<GT_META_CALL(sid::ptr_type, tmp_t), double *>(), "");
+    static_assert(std::is_same<sid::ptr_type<tmp_t>, double *>(), "");
 
     auto f = [](int_t i, int_t j, int_t t) { return i + j * 100 + t * 200; };
 

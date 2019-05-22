@@ -45,7 +45,7 @@ namespace gridtools {
         }
 
         template <class Arg, class Accessor>
-        GT_FUNCTION auto get_ptr(Accessor const &acc) const -> decay_t<decltype(host_device::at_key<Arg>(m_ptr))> {
+        GT_FUNCTION auto get_ptr(Accessor const &acc) const {
             auto offset = host_device::at_key<Arg>(m_index);
             sid::multi_shift<Arg>(offset, m_local_domain.m_strides, acc);
             return host_device::at_key<Arg>(m_ptr) + offset;

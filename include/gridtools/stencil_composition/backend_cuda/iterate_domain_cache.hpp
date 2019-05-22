@@ -59,16 +59,16 @@ namespace gridtools {
         using ij_caches_tuple_t = typename boost::fusion::result_of::as_map<ij_caches_vector_t>::type;
 
         template <class Arg, class Accessor>
-        GT_FUNCTION auto get_k_cache(Accessor const &acc) const
-            GT_AUTO_RETURN(boost::fusion::at_key<Arg>(const_cast<k_caches_tuple_t &>(m_k_caches_tuple)).at(acc));
+        GT_FUNCTION decltype(auto) get_k_cache(Accessor const &acc) const {
+            return boost::fusion::at_key<Arg>(const_cast<k_caches_tuple_t &>(m_k_caches_tuple)).at(acc);
+        }
 
         // slide all the k caches
         template <class IterationPolicy>
         GT_FUNCTION void slide_caches() {
             GT_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
 
-            using k_caches_t = GT_META_CALL(
-                meta::transform, (cache_parameter, GT_META_CALL(meta::filter, (is_k_cache, cache_sequence_t))));
+            using k_caches_t = meta::transform<cache_parameter, meta::filter<is_k_cache, cache_sequence_t>>;
 
             _impl::slide_caches<k_caches_t, typename IterationPolicy::execution_type>(m_k_caches_tuple);
         }
@@ -84,8 +84,8 @@ namespace gridtools {
         GT_FUNCTION void fill_caches(IterateDomain const &it_domain, bool first_level) {
             GT_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
 
-            using filling_cache_args_t = GT_META_CALL(
-                meta::transform, (cache_parameter, GT_META_CALL(meta::filter, (is_filling_cache, cache_sequence_t))));
+            using filling_cache_args_t =
+                meta::transform<cache_parameter, meta::filter<is_filling_cache, cache_sequence_t>>;
 
             _impl::sync_caches<filling_cache_args_t, typename IterationPolicy::execution_type, sync_type::fill>(
                 it_domain, m_k_caches_tuple, first_level);
@@ -102,8 +102,8 @@ namespace gridtools {
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain, bool last_level) {
             GT_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
 
-            using flushing_cache_args_t = GT_META_CALL(
-                meta::transform, (cache_parameter, GT_META_CALL(meta::filter, (is_flushing_cache, cache_sequence_t))));
+            using flushing_cache_args_t =
+                meta::transform<cache_parameter, meta::filter<is_flushing_cache, cache_sequence_t>>;
 
             _impl::sync_caches<flushing_cache_args_t, typename IterationPolicy::execution_type, sync_type::flush>(
                 it_domain, m_k_caches_tuple, last_level);

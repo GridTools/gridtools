@@ -27,20 +27,20 @@ namespace gridtools {
          *
          *   For N lists M elements each complexity is O(N). I.e for one list it is O(1).
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <template <class...> class, class...>
             struct transform;
         }
         GT_META_DELEGATE_TO_LAZY(transform, (template <class...> class F, class... Args), (F, Args...));
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <template <class...> class F>
             struct transform<F> {
                 using type = curry_fun<meta::transform, F>;
             };
             template <template <class...> class F, template <class...> class L, class... Ts>
             struct transform<F, L<Ts...>> {
-                using type = L<GT_META_CALL(F, Ts)...>;
+                using type = L<F<Ts>...>;
             };
             template <template <class...> class F,
                 template <class...> class L1,
@@ -48,7 +48,7 @@ namespace gridtools {
                 template <class...> class L2,
                 class... T2s>
             struct transform<F, L1<T1s...>, L2<T2s...>> {
-                using type = L1<GT_META_CALL(F, (T1s, T2s))...>;
+                using type = L1<F<T1s, T2s>...>;
             };
 
             /**
@@ -70,7 +70,7 @@ namespace gridtools {
             template <template <class...> class F, class List, class... Lists>
             struct transform<F, List, Lists...>
                 : transform<rename<F>::type::template apply, typename transpose<list<List, Lists...>>::type> {};
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(transpose, class List, List);
     } // namespace meta
 } // namespace gridtools

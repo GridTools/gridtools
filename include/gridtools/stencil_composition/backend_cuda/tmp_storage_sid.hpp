@@ -52,10 +52,11 @@ namespace gridtools {
             extent<ExtentIMinus, ExtentIPlus, ExtentJMinus, ExtentJPlus, ExtentKMinus, ExtentKPlus>,
             int_t n_blocks_i,
             int_t n_blocks_j,
-            int_t k_size)
-            GT_AUTO_RETURN((tuple_util::make<
+            int_t k_size) {
+            return tuple_util::make<
                 hymap::keys<dim::i, dim::j, sid::blocked_dim<dim::i>, sid::blocked_dim<dim::j>, dim::k>::values>(
-                BlockSizeI{}, BlockSizeJ{}, n_blocks_i, n_blocks_j, k_size)));
+                BlockSizeI{}, BlockSizeJ{}, n_blocks_i, n_blocks_j, k_size);
+        }
     } // namespace tmp_cuda_impl_
 
     /**
@@ -79,11 +80,12 @@ namespace gridtools {
         int_t n_blocks_i,
         int_t n_blocks_j,
         int_t k_size,
-        Allocator &alloc)
-        GT_AUTO_RETURN(sid::shift_sid_origin(
+        Allocator &alloc) {
+        return sid::shift_sid_origin(
             sid::make_contiguous<T, int_t>(
                 alloc, tmp_cuda_impl_::sizes(compute_block_size, extent, n_blocks_i, n_blocks_j, k_size)),
-            tmp_cuda_impl_::origin_offset(extent)));
+            tmp_cuda_impl_::origin_offset(extent));
+    }
 
 #else
 
@@ -104,9 +106,11 @@ namespace gridtools {
             color_type<NColors>,
             int_t n_blocks_i,
             int_t n_blocks_j,
-            int_t k_size) GT_AUTO_RETURN((tuple_util::make<hymap::
-                keys<dim::i, dim::j, dim::c, sid::blocked_dim<dim::i>, sid::blocked_dim<dim::j>, dim::k>::values>(
-            BlockSizeI{}, BlockSizeJ{}, integral_constant<int_t, NColors>{}, n_blocks_i, n_blocks_j, k_size)));
+            int_t k_size) {
+            return tuple_util::make<hymap::
+                    keys<dim::i, dim::j, dim::c, sid::blocked_dim<dim::i>, sid::blocked_dim<dim::j>, dim::k>::values>(
+                BlockSizeI{}, BlockSizeJ{}, integral_constant<int_t, NColors>{}, n_blocks_i, n_blocks_j, k_size);
+        }
     } // namespace tmp_cuda_impl_
 
     /**
@@ -124,11 +128,12 @@ namespace gridtools {
         int_t n_blocks_i,
         int_t n_blocks_j,
         int_t k_size,
-        Allocator &alloc)
-        GT_AUTO_RETURN(sid::shift_sid_origin(
+        Allocator &alloc) {
+        return sid::shift_sid_origin(
             sid::make_contiguous<T, int_t>(
                 alloc, tmp_cuda_impl_::sizes(compute_block_size, extent, color, n_blocks_i, n_blocks_j, k_size)),
-            tmp_cuda_impl_::origin_offset(extent)));
+            tmp_cuda_impl_::origin_offset(extent));
+    }
 #endif
 
 } // namespace gridtools

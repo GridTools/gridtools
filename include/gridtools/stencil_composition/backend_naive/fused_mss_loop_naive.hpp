@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <type_traits>
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
@@ -34,9 +35,11 @@ namespace gridtools {
             Grid const &m_grid;
 
             template <class Arg, class Dim>
-            auto stride() const GT_AUTO_RETURN((sid::get_stride<Arg, Dim>(m_strides)));
+            auto stride() const {
+                return sid::get_stride<Arg, Dim>(m_strides);
+            }
 
-            template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             void operator()() const {
                 auto &ptr = at_key<Arg>(m_ptr);
                 using storage_info_t = typename Arg::data_store_t::storage_info_t;
@@ -46,7 +49,7 @@ namespace gridtools {
                 sid::shift(ptr, stride<Arg, dim::k>(), -m_grid.k_min());
             }
 
-            template <class Arg, enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
             void operator()() const {
                 auto &ptr = at_key<Arg>(m_ptr);
                 sid::shift(ptr, stride<Arg, dim::i>(), m_grid.i_low_bound());
@@ -86,23 +89,21 @@ namespace gridtools {
 
         template <class Ptr, class Strides, class Grid>
         stage_executor_f<Ptr, Strides, Grid> stage_executor(Ptr ptr, Strides const &strides, Grid const &grid) {
-            for_each_type<GT_META_CALL(get_keys, Ptr)>(correct_ptr_f<Ptr, Strides, Grid>{ptr, strides, grid});
+            for_each_type<get_keys<Ptr>>(correct_ptr_f<Ptr, Strides, Grid>{ptr, strides, grid});
             return {ptr, strides, grid};
         }
 
         // split the loop interval into the list of triples meta::list<From, To, Stage>
         template <class LoopInterval,
-            class From = GT_META_CALL(meta::first, LoopInterval),
-            class To = GT_META_CALL(meta::second, LoopInterval),
-            class StageGroups = GT_META_CALL(meta::third, LoopInterval),
-            class Stages = GT_META_CALL(meta::flatten, StageGroups)>
-        GT_META_DEFINE_ALIAS(
-            split_loop_interval, meta::transform, (meta::curry<meta::list, From, To>::template apply, Stages));
+            class From = meta::first<LoopInterval>,
+            class To = meta::second<LoopInterval>,
+            class StageGroups = meta::third<LoopInterval>,
+            class Stages = meta::flatten<StageGroups>>
+        using split_loop_interval = meta::transform<meta::curry<meta::list, From, To>::template apply, Stages>;
 
         // split the list of loop intervals into the list of triples meta::list<From, To, Stage>
         template <class LoopIntervals>
-        GT_META_DEFINE_ALIAS(
-            split_loop_intervals, meta::flatten, (GT_META_CALL(meta::transform, (split_loop_interval, LoopIntervals))));
+        using split_loop_intervals = meta::flatten<meta::transform<split_loop_interval, LoopIntervals>>;
 
         // execute stages in mss
         template <class Grid>
@@ -112,7 +113,7 @@ namespace gridtools {
             void operator()(MssComponents, LocalDomain const &local_domain) const {
                 GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-                using loop_intervals_t = GT_META_CALL(split_loop_intervals, typename MssComponents::loop_intervals_t);
+                using loop_intervals_t = split_loop_intervals<typename MssComponents::loop_intervals_t>;
                 for_each<loop_intervals_t>(stage_executor(local_domain.m_ptr_holder(), local_domain.m_strides, m_grid));
             }
         };

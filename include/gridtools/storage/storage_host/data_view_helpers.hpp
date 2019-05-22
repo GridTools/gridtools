@@ -32,9 +32,9 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::read_write,
         typename DataStore,
-        typename DecayedDS = decay_t<DataStore>>
-    enable_if_t<is_host_storage<typename DecayedDS::storage_t>::value &&
-                    is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+        typename DecayedDS = std::decay_t<DataStore>>
+    std::enable_if_t<is_host_storage<typename DecayedDS::storage_t>::value &&
+                         is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         data_view<DataStore, AccessMode>>
     make_host_view(DataStore const &ds) {
         return ds.valid() ? data_view<DecayedDS, AccessMode>(ds.get_storage_ptr()->get_cpu_ptr(),
@@ -52,9 +52,9 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::read_write,
         typename DataStore,
-        typename DecayedDS = decay_t<DataStore>>
-    enable_if_t<is_host_storage<typename DecayedDS::storage_t>::value &&
-                    is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+        typename DecayedDS = std::decay_t<DataStore>>
+    std::enable_if_t<is_host_storage<typename DecayedDS::storage_t>::value &&
+                         is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         data_view<DataStore, AccessMode>>
     make_target_view(DataStore const &ds) {
         return make_host_view<AccessMode>(ds);
@@ -68,10 +68,10 @@ namespace gridtools {
      */
     template <typename DataStore,
         typename DataView,
-        typename DecayedDS = decay_t<DataStore>,
-        typename DecayedDV = decay_t<DataView>>
-    enable_if_t<is_host_storage<typename DecayedDS::storage_t>::value &&
-                    is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+        typename DecayedDS = std::decay_t<DataStore>,
+        typename DecayedDV = std::decay_t<DataView>>
+    std::enable_if_t<is_host_storage<typename DecayedDS::storage_t>::value &&
+                         is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         bool>
     check_consistency(DataStore const &ds, DataView const &dv) {
         GT_STATIC_ASSERT(is_data_view<DecayedDV>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_view type"));

@@ -66,18 +66,21 @@ namespace gridtools {
         }
 
         template <typename LayoutMap>
-        GT_FUNCTION boollist<LayoutMap::masked_length> permute(enable_if_t<LayoutMap::masked_length == 1> * = 0) const {
+        GT_FUNCTION boollist<LayoutMap::masked_length> permute(
+            std::enable_if_t<LayoutMap::masked_length == 1> * = 0) const {
             return boollist<LayoutMap::masked_length>(m_value[LayoutMap::template find<0>()]);
         }
 
         template <typename LayoutMap>
-        GT_FUNCTION boollist<LayoutMap::masked_length> permute(enable_if_t<LayoutMap::masked_length == 2> * = 0) const {
+        GT_FUNCTION boollist<LayoutMap::masked_length> permute(
+            std::enable_if_t<LayoutMap::masked_length == 2> * = 0) const {
             return boollist<LayoutMap::masked_length>(
                 m_value[LayoutMap::template find<0>()], m_value[LayoutMap::template find<1>()]);
         }
 
         template <typename LayoutMap>
-        GT_FUNCTION boollist<LayoutMap::masked_length> permute(enable_if_t<LayoutMap::masked_length == 3> * = 0) const {
+        GT_FUNCTION boollist<LayoutMap::masked_length> permute(
+            std::enable_if_t<LayoutMap::masked_length == 3> * = 0) const {
             return boollist<LayoutMap::masked_length>(m_value[LayoutMap::template find<0>()],
                 m_value[LayoutMap::template find<1>()],
                 m_value[LayoutMap::template find<2>()]);

@@ -482,19 +482,22 @@ namespace gridtools {
 
             struct make_cursor_f {
                 template <class Cursor, class Loop>
-                GT_CONSTEXPR GT_FUNCTION auto operator()(Cursor &&cursor, Loop const &loop) const
-                    GT_AUTO_RETURN(loop.make_cursor(wstd::forward<Cursor>(cursor)));
+                GT_CONSTEXPR GT_FUNCTION auto operator()(Cursor &&cursor, Loop const &loop) const {
+                    return loop.make_cursor(wstd::forward<Cursor>(cursor));
+                }
             };
 
             template <class Loops>
-            GT_CONSTEXPR GT_FUNCTION auto make_cursor_r(Loops &&loops)
-                GT_AUTO_RETURN(tuple_util::host_device::fold(make_cursor_f{},
+            GT_CONSTEXPR GT_FUNCTION auto make_cursor_r(Loops &&loops) {
+                return tuple_util::host_device::fold(make_cursor_f{},
                     tuple_util::host_device::get<0>(wstd::forward<Loops>(loops)).make_cursor(),
-                    tuple_util::host_device::drop_front<1>(wstd::forward<Loops>(loops))));
+                    tuple_util::host_device::drop_front<1>(wstd::forward<Loops>(loops)));
+            }
 
             template <class Loops>
-            GT_CONSTEXPR GT_FUNCTION auto make_cursor(Loops &&loops)
-                GT_AUTO_RETURN(make_cursor_r(tuple_util::host_device::reverse(wstd::forward<Loops>(loops))));
+            GT_CONSTEXPR GT_FUNCTION auto make_cursor(Loops &&loops) {
+                return make_cursor_r(tuple_util::host_device::reverse(wstd::forward<Loops>(loops)));
+            }
 
             template <class Ptr, class Strides, class Cursor>
             struct range {
@@ -502,7 +505,7 @@ namespace gridtools {
                 Strides const &m_strides;
                 Cursor m_cursor;
 
-                GT_FUNCTION auto operator*() const GT_AUTO_RETURN(*m_ptr);
+                GT_FUNCTION decltype(auto) operator*() const { return *m_ptr; }
                 GT_FUNCTION void operator++() { m_cursor.next(m_ptr, m_strides); }
                 template <class T>
                 GT_FUNCTION bool operator!=(T &&) const {
@@ -583,9 +586,9 @@ namespace gridtools {
         template <class Key,
             class T1,
             class T2,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<std::is_integral<T1>::value && std::is_integral<T2>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION loop_impl_::generic_loop<Key, make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<std::is_integral<T1>::value && std::is_integral<T2>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION loop_impl_::generic_loop<Key, std::make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
             return {num_steps, step};
         }
 
@@ -593,9 +596,9 @@ namespace gridtools {
             class T1,
             class T2 = int,
             T2 Step = 1,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<std::is_integral<T1>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION loop_impl_::known_step_loop<Key, make_signed_t<T>, Step> make_loop(
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<std::is_integral<T1>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION loop_impl_::known_step_loop<Key, std::make_signed_t<T>, Step> make_loop(
             T1 num_steps, std::integral_constant<T2, Step> = {}) {
             return {num_steps};
         }
@@ -604,9 +607,9 @@ namespace gridtools {
             class T1,
             T1 NumStepsV,
             class T2,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<std::is_integral<T1>::value && (NumStepsV > 1), int> = 0>
-        GT_CONSTEXPR GT_FUNCTION loop_impl_::known_num_steps_loop<Key, make_signed_t<T>, NumStepsV> make_loop(
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<std::is_integral<T1>::value && (NumStepsV > 1), int> = 0>
+        GT_CONSTEXPR GT_FUNCTION loop_impl_::known_num_steps_loop<Key, std::make_signed_t<T>, NumStepsV> make_loop(
             std::integral_constant<T1, NumStepsV>, T2 step) {
             return {step};
         }
@@ -615,9 +618,9 @@ namespace gridtools {
             class T1,
             T1 NumStepsV,
             class T2,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<std::is_integral<T1>::value && (NumStepsV == 0 || NumStepsV == 1), int> = 0>
-        GT_CONSTEXPR GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, 0> make_loop(
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<std::is_integral<T1>::value && (NumStepsV == 0 || NumStepsV == 1), int> = 0>
+        GT_CONSTEXPR GT_FUNCTION loop_impl_::all_known_loop<Key, std::make_signed_t<T>, NumStepsV, 0> make_loop(
             std::integral_constant<T1, NumStepsV>, T2) {
             return {};
         }
@@ -627,10 +630,10 @@ namespace gridtools {
             T1 NumStepsV,
             class T2 = int,
             T2 StepV = 1,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<(NumStepsV >= 0), int> = 0>
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<(NumStepsV >= 0), int> = 0>
         GT_CONSTEXPR
-            GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
+            GT_FUNCTION loop_impl_::all_known_loop<Key, std::make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
             make_loop(std::integral_constant<T1, NumStepsV>, std::integral_constant<T2, StepV> = {}) {
             return {};
         }
@@ -651,11 +654,12 @@ namespace gridtools {
          */
         template <class Ptr, class Strides, class OuterMostLoop, class... Loops>
         GT_CONSTEXPR GT_FUNCTION auto make_range(
-            Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops)
-            GT_AUTO_RETURN(loop_impl_::make_range(wstd::move(ptr),
+            Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops) {
+            return loop_impl_::make_range(wstd::move(ptr),
                 strides,
                 loop_impl_::make_cursor(tuple<OuterMostLoop, Loops...>{
-                    wstd::forward<OuterMostLoop>(outer_most_loop), wstd::forward<Loops>(loops)...})));
+                    wstd::forward<OuterMostLoop>(outer_most_loop), wstd::forward<Loops>(loops)...}));
+        }
 
     } // namespace sid
 } // namespace gridtools

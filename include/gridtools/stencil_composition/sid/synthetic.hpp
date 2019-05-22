@@ -101,7 +101,7 @@ namespace gridtools {
                 }
 
                 template <property Property, class T>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
+                GT_CONSTEXPR synthetic<unique_mixin<Property, std::decay_t<T>>> set(T &&val) const &&noexcept {
                     return {wstd::forward<T>(val), synthetic{}};
                 }
             };
@@ -124,7 +124,7 @@ namespace gridtools {
                 }
 
                 template <property Property, class T>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(
+                GT_CONSTEXPR synthetic<unique_mixin<Property, std::decay_t<T>>, Mixin, Mixins...> set(
                     T &&val, property_constant<Property> = {}) const &&noexcept {
                     return {wstd::forward<T>(val), wstd::move(*this)};
                 }

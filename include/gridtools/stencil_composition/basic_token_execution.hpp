@@ -60,8 +60,8 @@ namespace gridtools {
 
             using execution_type_t = typename RunFunctorArguments::execution_type_t;
             using loop_intervals_t = typename RunFunctorArguments::loop_intervals_t;
-            using first_t = GT_META_CALL(meta::first, loop_intervals_t);
-            using last_t = GT_META_CALL(meta::last, loop_intervals_t);
+            using first_t = meta::first<loop_intervals_t>;
+            using last_t = meta::last<loop_intervals_t>;
 
             ItDomain &m_domain;
             bool m_in_domain;
@@ -71,7 +71,7 @@ namespace gridtools {
                 class Stages,
                 bool IsFirst,
                 bool IsLast,
-                enable_if_t<meta::length<Stages>::value != 0, int> = 0>
+                std::enable_if_t<meta::length<Stages>::value != 0, int> = 0>
             GT_FUNCTION void k_loop(int_t first, int_t last) const {
                 for (int_t cur = first; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
@@ -88,7 +88,7 @@ namespace gridtools {
                 class Stages,
                 bool IsFirst,
                 bool IsLast,
-                enable_if_t<meta::length<Stages>::value == 0, int> = 0>
+                std::enable_if_t<meta::length<Stages>::value == 0, int> = 0>
             GT_FUNCTION void k_loop(int_t first, int_t last) const {
                 for (int_t cur = first; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
@@ -103,9 +103,9 @@ namespace gridtools {
             template <class LoopInterval>
             GT_FUNCTION void operator()() const {
                 GT_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
-                using from_t = GT_META_CALL(meta::first, LoopInterval);
-                using to_t = GT_META_CALL(meta::second, LoopInterval);
-                using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
+                using from_t = meta::first<LoopInterval>;
+                using to_t = meta::second<LoopInterval>;
+                using stage_groups_t = meta::at_c<LoopInterval, 2>;
                 using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t>;
                 const auto k_interval =
                     get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_t{}, execution_type_t{}, m_grid);
@@ -124,14 +124,14 @@ namespace gridtools {
             ItDomain &m_domain;
             Grid const &m_grid;
 
-            template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value != 0, int> = 0>
+            template <class IterationPolicy, class Stages, std::enable_if_t<meta::length<Stages>::value != 0, int> = 0>
             GT_FUNCTION void k_loop(int_t first, int_t last) const {
                 for (int_t cur = first; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain))
                     RunEsfFunctor::template exec<Stages>(m_domain);
             }
 
-            template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value == 0, int> = 0>
+            template <class IterationPolicy, class Stages, std::enable_if_t<meta::length<Stages>::value == 0, int> = 0>
             GT_FUNCTION void k_loop(int_t first, int_t last) const {
                 // TODO(anstaf): supplement iteration_policy with the function that is functionally equivalent with
                 //               this loop. smth. like: dry_run(from, to, it_domain);
@@ -148,9 +148,9 @@ namespace gridtools {
             template <class LoopInterval>
             GT_FUNCTION void operator()() const {
                 GT_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
-                using from_t = GT_META_CALL(meta::first, LoopInterval);
-                using to_t = GT_META_CALL(meta::second, LoopInterval);
-                using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
+                using from_t = meta::first<LoopInterval>;
+                using to_t = meta::second<LoopInterval>;
+                using stage_groups_t = meta::at_c<LoopInterval, 2>;
                 using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t>;
                 const auto k_interval =
                     get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_t{}, execution_type_t{}, m_grid);
@@ -160,7 +160,8 @@ namespace gridtools {
     } // namespace _impl
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
-    GT_FUNCTION enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(ItDomain &it_domain, Grid const &grid) {
+    GT_FUNCTION std::enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(
+        ItDomain &it_domain, Grid const &grid) {
         bool in_domain = it_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
         host_device::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
             _impl::run_f_on_interval_with_k_caches<RunFunctorArguments, RunEsfFunctor, ItDomain, Grid>{
@@ -168,7 +169,8 @@ namespace gridtools {
     }
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
-    GT_FUNCTION enable_if_t<!ItDomain::has_k_caches> run_functors_on_interval(ItDomain &it_domain, Grid const &grid) {
+    GT_FUNCTION std::enable_if_t<!ItDomain::has_k_caches> run_functors_on_interval(
+        ItDomain &it_domain, Grid const &grid) {
         host_device::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
             _impl::run_f_on_interval<RunFunctorArguments, RunEsfFunctor, ItDomain, Grid>{it_domain, grid});
     }

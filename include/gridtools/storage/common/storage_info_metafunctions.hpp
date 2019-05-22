@@ -72,25 +72,25 @@ namespace gridtools {
         using layout_map_t = layout_map<LayoutArgs...>;
 
         template <int N, typename... Dims>
-        GT_FUNCTION static GT_CONSTEXPR enable_if_t<N != -1 && N != layout_map_t::unmasked_length - 1, uint_t>
+        GT_FUNCTION static GT_CONSTEXPR std::enable_if_t<N != -1 && N != layout_map_t::unmasked_length - 1, uint_t>
         get_stride(Dims... d) {
             return (get_value_from_pack(layout_map_t::template find<N + 1>(), d...)) * get_stride<N + 1>(d...);
         }
 
         template <int N, typename... Dims>
-        GT_FUNCTION static GT_CONSTEXPR enable_if_t<N == -1, uint_t> get_stride(Dims...) {
+        GT_FUNCTION static GT_CONSTEXPR std::enable_if_t<N == -1, uint_t> get_stride(Dims...) {
             return 0;
         }
 
         template <int N, typename... Dims>
-        GT_FUNCTION static GT_CONSTEXPR enable_if_t<N != -1 && N == layout_map_t::unmasked_length - 1, uint_t>
+        GT_FUNCTION static GT_CONSTEXPR std::enable_if_t<N != -1 && N == layout_map_t::unmasked_length - 1, uint_t>
         get_stride(Dims...) {
             return 1;
         }
 
       public:
         template <typename... Dims,
-            enable_if_t<sizeof...(Dims) == sizeof...(LayoutArgs) && is_all_integral<Dims...>::value, int> = 0>
+            std::enable_if_t<sizeof...(Dims) == sizeof...(LayoutArgs) && is_all_integral<Dims...>::value, int> = 0>
         GT_FUNCTION static GT_CONSTEXPR array<uint_t, sizeof...(LayoutArgs)> get_stride_array(Dims... ds) {
             return {get_stride<LayoutArgs>(ds...)...};
         }

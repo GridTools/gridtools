@@ -59,12 +59,9 @@ using esf2k_t = decltype(make_stage<functor2>(p_notin(), p_out()));
 
 using esfk_sequence_t = meta::list<esf1k_t, esf2k_t>;
 
-static_assert(
-    std::is_same<GT_META_CALL(extract_k_extent_for_cache, (p_out, esfk_sequence_t)), extent<0, 0, 0, 0, 0, 1>>(), "");
+static_assert(std::is_same<extract_k_extent_for_cache<p_out, esfk_sequence_t>, extent<0, 0, 0, 0, 0, 1>>(), "");
 
-static_assert(
-    std::is_same<GT_META_CALL(extract_k_extent_for_cache, (p_notin, esfk_sequence_t)), extent<0, 0, 0, 0, -1, 1>>(),
-    "");
+static_assert(std::is_same<extract_k_extent_for_cache<p_notin, esfk_sequence_t>, extent<0, 0, 0, 0, -1, 1>>(), "");
 
 TEST(cache_metafunctions, get_k_cache_storage_tuple) {
 

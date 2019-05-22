@@ -51,7 +51,7 @@ namespace gridtools {
         template <typename Index>
         void operator()(Index) const {
             GT_STATIC_ASSERT(Index::value < meta::length<MssComponentsArray>::value, GT_INTERNAL_ERROR);
-            using mss_components_t = GT_META_CALL(meta::at, (MssComponentsArray, Index));
+            using mss_components_t = meta::at<MssComponentsArray, Index>;
 
             typedef run_functor_arguments<Backend,
                 typename mss_components_t::linear_esf_t,
@@ -66,7 +66,7 @@ namespace gridtools {
     template <class MssComponentsArray, class Backend, class LocalDomains, class Grid, class ExecutionInfo>
     void run_mss_functors(
         Backend, LocalDomains const &local_domains, Grid const &grid, ExecutionInfo const &execution_info) {
-        for_each<GT_META_CALL(meta::make_indices_for, MssComponentsArray)>(
+        for_each<meta::make_indices_for<MssComponentsArray>>(
             mss_functor<MssComponentsArray, Backend, LocalDomains, Grid, ExecutionInfo>{
                 local_domains, grid, execution_info});
     }

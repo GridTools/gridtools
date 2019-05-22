@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../../meta/id.hpp"
+#include "../defs.hpp"
 #include "../host_device.hpp"
 
 namespace gridtools {

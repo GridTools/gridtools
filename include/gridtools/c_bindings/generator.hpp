@@ -241,7 +241,7 @@ namespace gridtools {
                         int>::type = 0>
                 std::string operator()() const {
                     static const gt_fortran_array_descriptor meta =
-                        get_fortran_view_meta((add_pointer_t<CppType>){nullptr});
+                        get_fortran_view_meta((std::add_pointer_t<CppType>){nullptr});
                     std::string dimensions = "dimension(";
                     for (int i = 0; i < meta.rank; ++i) {
                         if (i)
@@ -308,7 +308,7 @@ namespace gridtools {
                         int>::type = 0>
                 boost::optional<gt_fortran_array_descriptor> operator()() const {
                     static const gt_fortran_array_descriptor meta =
-                        get_fortran_view_meta((add_pointer_t<CppType>){nullptr});
+                        get_fortran_view_meta((std::add_pointer_t<CppType>){nullptr});
                     return meta;
                 }
                 template <class CppType,

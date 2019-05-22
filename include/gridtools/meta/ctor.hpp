@@ -21,17 +21,15 @@ namespace gridtools {
          *
          *  I.e ctor<some_instantiation_of_std_tuple>::apply is an alias of std::tuple.
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class>
             struct ctor;
             template <template <class...> class L, class... Ts>
             struct ctor<L<Ts...>> : defer<L> {};
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+        } // namespace lazy
         template <class>
         struct ctor;
         template <template <class...> class L, class... Ts>
         struct ctor<L<Ts...>> : curry<L> {};
-#endif
     } // namespace meta
 } // namespace gridtools

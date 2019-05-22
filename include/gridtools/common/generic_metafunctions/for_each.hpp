@@ -46,21 +46,6 @@ namespace gridtools {
                     (void)(int[]){((void)fun.template operator()<Ts>(), 0)...};
                 }
             };
-
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
-            // Specialization for empty loops as nvcc refuses to compile the normal version in device code
-            template <template <class...> class L>
-            struct for_each_impl<L<>> {
-                template <class Fun>
-                GT_TARGET GT_FORCE_INLINE static void exec(Fun const &) {}
-            };
-
-            template <template <class...> class L>
-            struct for_each_type_impl<L<>> {
-                template <class Fun>
-                GT_TARGET GT_FORCE_INLINE static void exec(Fun const &) {}
-            };
-#endif
         } // namespace for_each_detail
 
         /** \ingroup common

@@ -16,6 +16,7 @@
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
+#include "../../common/integral_constant.hpp"
 #include "../../meta.hpp"
 #include "../accessor_intent.hpp"
 #include "../arg.hpp"
@@ -60,7 +61,7 @@ namespace gridtools {
 
     namespace stage_impl_ {
         template <class T>
-        GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_apply<T>::value || std::is_void<T>::value);
+        using functor_or_void = bool_constant<has_apply<T>::value || std::is_void<T>::value>;
 
         template <class ItDomain, class Args, class LocationType, uint_t Color>
         struct itdomain_evaluator {
@@ -70,8 +71,10 @@ namespace gridtools {
             ItDomain const &m_it_domain;
 
             template <class Accessor>
-            GT_FUNCTION auto operator()(Accessor const &acc) const GT_AUTO_RETURN(apply_intent<Accessor::intent_v>(
-                m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value))>(acc)));
+            GT_FUNCTION decltype(auto) operator()(Accessor const &acc) const {
+                return apply_intent<Accessor::intent_v>(
+                    m_it_domain.template deref<meta::at_c<Args, Accessor::index_t::value>>(acc));
+            }
 
             template <class ValueType, class LocationTypeT, class Reduction, class... Accessors>
             GT_FUNCTION ValueType operator()(
@@ -80,8 +83,7 @@ namespace gridtools {
                 for (auto &&offset : offsets)
                     onneighbors.m_value = onneighbors.m_function(
                         apply_intent<intent::in>(
-                            m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessors::index_t::value))>(
-                                offset))...,
+                            m_it_domain.template deref<meta::at_c<Args, Accessors::index_t::value>>(offset))...,
                         onneighbors.m_value);
                 return onneighbors.m_value;
             }
@@ -110,14 +112,12 @@ namespace gridtools {
                 return Deref{}.template operator()<Arg>(ptr);
             }
 
-            template <class Accessor, class Arg = GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value))>
+            template <class Accessor, class Arg = meta::at_c<Args, Accessor::index_t::value>>
             GT_FUNCTION apply_intent_t<Accessor::intent_v, ref_type<Arg>> operator()(Accessor const &acc) const {
                 return get_ref<Arg>(acc);
             }
 
-            template <class Accessor,
-                class Offset,
-                class Arg = GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value))>
+            template <class Accessor, class Offset, class Arg = meta::at_c<Args, Accessor::index_t::value>>
             GT_FUNCTION apply_intent_t<intent::in, ref_type<Arg>> neighbor(Offset const &offset) const {
                 return get_ref<Arg>(offset);
             }
@@ -152,18 +152,18 @@ namespace gridtools {
         using extent_t = Extent;
         using n_colors = typename LocationType::n_colors;
 
-        template <uint_t Color, class Functor = GT_META_CALL(meta::at_c, (Functors, Color))>
+        template <uint_t Color, class Functor = meta::at_c<Functors, Color>>
         struct contains_color : bool_constant<!std::is_void<Functor>::value> {};
 
-        template <uint_t Color, class ItDomain, enable_if_t<contains_color<Color>::value, int> = 0>
+        template <uint_t Color, class ItDomain, std::enable_if_t<contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             using eval_t = stage_impl_::itdomain_evaluator<ItDomain, Args, LocationType, Color>;
-            using functor_t = GT_META_CALL(meta::at_c, (Functors, Color));
+            using functor_t = meta::at_c<Functors, Color>;
             eval_t eval{it_domain};
             functor_t::apply(eval);
         }
 
-        template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>
+        template <uint_t Color, class ItDomain, std::enable_if_t<!contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {}
 
         template <class ItDomain>
@@ -179,8 +179,7 @@ namespace gridtools {
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             static constexpr int_t n_colors = LocationType::n_colors::value;
-            host_device::for_each_type<GT_META_CALL(meta::make_indices_c, n_colors)>(
-                exec_for_color_f<ItDomain>{it_domain});
+            host_device::for_each_type<meta::make_indices_c<n_colors>>(exec_for_color_f<ItDomain>{it_domain});
             it_domain.increment_c(integral_constant<int_t, -n_colors>{});
         }
 
@@ -189,7 +188,7 @@ namespace gridtools {
             template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
             GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
                 using eval_t = stage_impl_::evaluator<Ptr, Strides, Args, Deref, LocationType, Color>;
-                using functor_t = GT_META_CALL(meta::at_c, (Functors, Color));
+                using functor_t = meta::at_c<Functors, Color>;
                 functor_t::template apply<eval_t const &>(eval_t{ptr, strides});
             }
         };
@@ -214,7 +213,7 @@ namespace gridtools {
         template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
         GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides) const {
             static constexpr int_t n_colors = LocationType::n_colors::value;
-            host_device::for_each_type<GT_META_CALL(meta::make_indices_c, n_colors)>(
+            host_device::for_each_type<meta::make_indices_c<n_colors>>(
                 call_for_color_f<Ptr, Strides, Deref>{ptr, strides});
             sid::shift(ptr, sid::get_stride<dim::c>(strides), integral_constant<int_t, -n_colors>{});
         }
@@ -234,13 +233,13 @@ namespace gridtools {
         struct contains_color : disjunction<typename Stage::template contains_color<Color>,
                                     typename Stages::template contains_color<Color>...> {};
 
-        template <uint_t Color, class ItDomain, enable_if_t<contains_color<Color>::value, int> = 0>
+        template <uint_t Color, class ItDomain, std::enable_if_t<contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             Stage::template exec<Color>(it_domain);
             (void)(int[]){(Stages::template exec<Color>(it_domain), 0)...};
         }
 
-        template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>
+        template <uint_t Color, class ItDomain, std::enable_if_t<!contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {}
 
         template <class ItDomain>
@@ -282,6 +281,6 @@ namespace gridtools {
     template <size_t Color>
     struct stage_group_contains_color {
         template <class Stages>
-        GT_META_DEFINE_ALIAS(apply, meta::any_of, (stage_contains_color<Color>::template apply, Stages));
+        using apply = meta::any_of<stage_contains_color<Color>::template apply, Stages>;
     };
 } // namespace gridtools

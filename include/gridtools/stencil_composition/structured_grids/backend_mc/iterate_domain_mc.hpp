@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cmath>
+#include <type_traits>
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/hymap.hpp"
@@ -44,9 +45,11 @@ namespace gridtools {
             typename LocalDomain::ptr_t &m_dst;
 
             template <class Arg, class Dim>
-            GT_FORCE_INLINE auto stride() const GT_AUTO_RETURN((sid::get_stride<Arg, Dim>(m_local_domain.m_strides)));
+            GT_FORCE_INLINE auto stride() const {
+                return sid::get_stride<Arg, Dim>(m_local_domain.m_strides);
+            }
 
-            template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
                 using storage_info_t = typename Arg::data_store_t::storage_info_t;
                 GT_STATIC_ASSERT(is_storage_info<storage_info_t>::value, GT_INTERNAL_ERROR);
@@ -59,7 +62,7 @@ namespace gridtools {
                 at_key<Arg>(m_dst) += offset;
             }
 
-            template <class Arg, enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
                 auto &ptr = at_key<Arg>(m_dst);
                 sid::shift(ptr, stride<Arg, dim::i>(), m_i_block_base);
@@ -87,11 +90,11 @@ namespace gridtools {
             strides_t const &m_strides;
             Offset m_offset;
 
-            template <class Arg, enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
                 sid::shift(at_key<Arg>(m_ptr), sid::get_stride<Arg, dim::k>(m_strides), m_offset);
             }
-            template <class Arg, enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {}
         };
 
@@ -99,13 +102,13 @@ namespace gridtools {
         GT_FORCE_INLINE
         iterate_domain_mc(LocalDomain const &local_domain, int_t i_block_base = 0, int_t j_block_base = 0)
             : m_strides(local_domain.m_strides), m_ptr(local_domain.m_ptr_holder()) {
-            for_each_type<GT_META_CALL(get_keys, ptr_t)>(iterate_domain_mc_impl_::set_base_offset_f<LocalDomain>{
+            for_each_type<get_keys<ptr_t>>(iterate_domain_mc_impl_::set_base_offset_f<LocalDomain>{
                 local_domain, i_block_base, j_block_base, m_ptr});
         }
 
         template <class Offset>
         GT_FORCE_INLINE void k_shift(ptr_t &ptr, Offset offset) const {
-            for_each_type<GT_META_CALL(get_keys, ptr_t)>(k_shift_f<Offset>{ptr, m_strides, offset});
+            for_each_type<get_keys<ptr_t>>(k_shift_f<Offset>{ptr, m_strides, offset});
         }
 
         GT_FORCE_INLINE ptr_t &ptr() { return m_ptr; }

@@ -20,20 +20,20 @@
 namespace gridtools {
 
     namespace mss_comonents_impl_ {
-        template <class Esf, class WArgs = GT_META_CALL(esf_get_w_args_per_functor, Esf)>
-        GT_META_DEFINE_ALIAS(esf_produce_temporary, meta::any_of, (is_tmp_arg, WArgs));
+        template <class Esf, class WArgs = esf_get_w_args_per_functor<Esf>>
+        using esf_produce_temporary = meta::any_of<is_tmp_arg, WArgs>;
 
         template <class ExtentMap>
         struct get_extent_f {
             template <class Esf>
-            GT_META_DEFINE_ALIAS(apply, get_esf_extent, (Esf, ExtentMap));
+            using apply = get_esf_extent<Esf, ExtentMap>;
         };
 
         template <class Esfs,
             class ExtentMap,
-            class TmpEsfs = GT_META_CALL(meta::filter, (esf_produce_temporary, Esfs)),
-            class Extents = GT_META_CALL(meta::transform, (get_extent_f<ExtentMap>::template apply, TmpEsfs))>
-        GT_META_DEFINE_ALIAS(get_max_extent_for_tmp, meta::rename, (enclosing_extent, Extents));
+            class TmpEsfs = meta::filter<esf_produce_temporary, Esfs>,
+            class Extents = meta::transform<get_extent_f<ExtentMap>::template apply, TmpEsfs>>
+        using get_max_extent_for_tmp = meta::rename<enclosing_extent, Extents>;
     } // namespace mss_comonents_impl_
 
     /**
@@ -51,28 +51,26 @@ namespace gridtools {
 
         /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
             esf structs. Independent functors are listed one after the other.*/
-        using linear_esf_t = GT_META_CALL(unwrap_independent, typename MssDescriptor::esf_sequence_t);
+        using linear_esf_t = unwrap_independent<typename MssDescriptor::esf_sequence_t>;
 
         using extent_map_t = ExtentMap;
 
         // For historical reasons the user provided axis interval is stripped by one level from the right to produce
         // the interval that will be used for actual computation.
         // TODO(anstaf): fix this ugly convention
-        using default_interval_t = interval<typename Axis::FromLevel,
-            GT_META_CALL(index_to_level, typename level_to_index<typename Axis::ToLevel>::prior)>;
+        using default_interval_t =
+            interval<typename Axis::FromLevel, index_to_level<typename level_to_index<typename Axis::ToLevel>::prior>>;
 
         // calculate loop intervals and order them according to the execution policy.
-        using loop_intervals_t = GT_META_CALL(order_loop_intervals,
-            (execution_engine_t,
-                GT_META_CALL(make_loop_intervals,
-                    (stages_maker<MssDescriptor, ExtentMap>::template apply, default_interval_t))));
+        using loop_intervals_t = order_loop_intervals<execution_engine_t,
+            make_loop_intervals<stages_maker<MssDescriptor, ExtentMap>::template apply, default_interval_t>>;
     };
 
     template <typename T>
-    GT_META_DEFINE_ALIAS(is_mss_components, meta::is_instantiation_of, (mss_components, T));
+    using is_mss_components = meta::is_instantiation_of<mss_components, T>;
 
     template <class MssComponents>
-    GT_META_DEFINE_ALIAS(get_max_extent_for_tmp_from_mss_components,
-        mss_comonents_impl_::get_max_extent_for_tmp,
-        (typename MssComponents::linear_esf_t, typename MssComponents::extent_map_t));
+    using get_max_extent_for_tmp_from_mss_components =
+        mss_comonents_impl_::get_max_extent_for_tmp<typename MssComponents::linear_esf_t,
+            typename MssComponents::extent_map_t>;
 } // namespace gridtools

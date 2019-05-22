@@ -19,12 +19,12 @@ namespace gridtools {
         /**
          *  Concatenate lists
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class...>
             struct concat;
         }
         GT_META_DELEGATE_TO_LAZY(concat, class... Lists, Lists...);
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <>
             struct concat<> : list<> {};
             template <template <class...> class L, class... Ts>
@@ -38,6 +38,6 @@ namespace gridtools {
 
             template <class L1, class L2, class L3, class... Lists>
             struct concat<L1, L2, L3, Lists...> : combine<meta::concat, list<L1, L2, L3, Lists...>> {};
-        }
-    } // namespace meta
+        } // namespace lazy
+    }     // namespace meta
 } // namespace gridtools

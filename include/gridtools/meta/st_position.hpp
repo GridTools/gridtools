@@ -27,8 +27,6 @@ namespace gridtools {
          */
         template <class Set, class T>
         struct st_position
-            : lazy::second<GT_META_CALL(mp_find,
-                  (GT_META_CALL(zip, (Set, GT_META_CALL(make_indices_for, Set))), T, meta::list<void, length<Set>>))>::
-                  type {};
+            : lazy::second<mp_find<zip<Set, make_indices_for<Set>>, T, meta::list<void, length<Set>>>>::type {};
     } // namespace meta
 } // namespace gridtools

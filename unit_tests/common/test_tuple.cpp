@@ -48,8 +48,8 @@ namespace gridtools {
         static_assert(tuple_util::size<tuple<int>>() == 1, "");
         static_assert(tuple_util::size<tuple<>>() == 0, "");
 
-        static_assert(std::is_same<GT_META_CALL(tuple_util::element, (1, tuple<int, char, double, char>)), char>(), "");
-        static_assert(std::is_same<GT_META_CALL(tuple_util::element, (0, tuple<int>)), int>(), "");
+        static_assert(std::is_same<tuple_util::element<1, tuple<int, char, double, char>>, char>(), "");
+        static_assert(std::is_same<tuple_util::element<0, tuple<int>>, int>(), "");
 
         using tuple_util::host_device::get;
 

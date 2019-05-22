@@ -44,7 +44,7 @@ namespace gridtools {
         pos3<int_t> const &m_pos_in_block;
         PtrMap &m_ptr_map;
 
-        template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
+        template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
         GT_FUNCTION void operator()() const {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
             GT_STATIC_ASSERT(is_storage_info<storage_info_t>::value, GT_INTERNAL_ERROR);
@@ -58,7 +58,7 @@ namespace gridtools {
                     m_pos_in_block);
         }
 
-        template <class Arg, enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
+        template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
         GT_FUNCTION void operator()() const {
             static constexpr auto be = Backend{};
             static constexpr auto block_size = make_pos3(block_i_size(be), block_j_size(be), block_k_size(be));

@@ -28,23 +28,23 @@
 namespace gridtools {
     namespace fused_mss_loop_cuda_impl_ {
         template <class ExecutionType>
-        enable_if_t<!execute::is_parallel<ExecutionType>::value, uint_t> blocks_required_z(uint_t) {
+        std::enable_if_t<!execute::is_parallel<ExecutionType>::value, int_t> blocks_required_z(uint_t) {
             return 1;
         }
 
         template <class ExecutionType>
-        enable_if_t<execute::is_parallel<ExecutionType>::value, uint_t> blocks_required_z(uint_t nz) {
+        std::enable_if_t<execute::is_parallel<ExecutionType>::value, int_t> blocks_required_z(uint_t nz) {
             return (nz + ExecutionType::block_size - 1) / ExecutionType::block_size;
         }
 
         template <class ExecutionType, class From, class Grid>
-        GT_FUNCTION_DEVICE enable_if_t<!execute::is_parallel<ExecutionType>::value, int_t> compute_kblock(
+        GT_FUNCTION_DEVICE std::enable_if_t<!execute::is_parallel<ExecutionType>::value, int_t> compute_kblock(
             Grid const &grid) {
             return grid.template value_at<From>() - grid.k_min();
         };
 
         template <class ExecutionType, class From, class Grid>
-        GT_FUNCTION_DEVICE enable_if_t<execute::is_parallel<ExecutionType>::value, int_t> compute_kblock(
+        GT_FUNCTION_DEVICE std::enable_if_t<execute::is_parallel<ExecutionType>::value, int_t> compute_kblock(
             Grid const &grid) {
             return max(blockIdx.z * ExecutionType::block_size, grid.template value_at<From>()) - grid.k_min();
         };
@@ -64,8 +64,8 @@ namespace gridtools {
 
             GT_FUNCTION_DEVICE void operator()(int_t iblock, int_t jblock) const {
                 using shared_iterate_domain_t = typename iterate_domain_t::shared_iterate_domain_t;
-                using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
-                using from_t = GT_META_CALL(meta::first, interval_t);
+                using interval_t = meta::first<typename RunFunctorArguments::loop_intervals_t>;
+                using from_t = meta::first<interval_t>;
 
                 // number of threads
                 auto nx = m_grid.i_high_bound() - m_grid.i_low_bound() + 1;

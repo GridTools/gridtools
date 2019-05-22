@@ -14,7 +14,6 @@
 #include "../../common/make_array.hpp"
 #include "../low_level/Halo_Exchange_3D.hpp"
 #include "../low_level/proc_grids_3D.hpp"
-#include <boost/type_traits/remove_pointer.hpp>
 #include <vector>
 
 #include "../../common/boollist.hpp"

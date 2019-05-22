@@ -23,16 +23,24 @@ namespace gridtools {
         */
         struct plus_f {
             template <class Lhs, class Rhs>
-            GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs const &lhs, Rhs const &rhs) const GT_AUTO_RETURN(lhs + rhs);
+            GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs const &lhs, Rhs const &rhs) const {
+                return lhs + rhs;
+            }
             template <class Arg>
-            GT_FUNCTION GT_CONSTEXPR auto operator()(Arg const &arg) const GT_AUTO_RETURN(+arg);
+            GT_FUNCTION GT_CONSTEXPR auto operator()(Arg const &arg) const {
+                return +arg;
+            }
         };
 
         template <class Lhs, class Rhs>
-        GT_FUNCTION GT_CONSTEXPR auto operator+(Lhs lhs, Rhs rhs) GT_AUTO_RETURN(make_expr(plus_f{}, lhs, rhs));
+        GT_FUNCTION GT_CONSTEXPR auto operator+(Lhs lhs, Rhs rhs) -> decltype(make_expr(plus_f{}, Lhs{}, Rhs{})) {
+            return make_expr(plus_f{}, lhs, rhs);
+        }
 
         template <class Arg>
-        GT_FUNCTION GT_CONSTEXPR auto operator+(Arg arg) GT_AUTO_RETURN(make_expr(plus_f{}, arg));
+        GT_FUNCTION GT_CONSTEXPR auto operator+(Arg arg) -> decltype(make_expr(plus_f{}, Arg{})) {
+            return make_expr(plus_f{}, arg);
+        }
         /** @} */
         /** @} */
     } // namespace expressions

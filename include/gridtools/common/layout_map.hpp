@@ -36,9 +36,9 @@ namespace gridtools {
         namespace _layout_map {
             /* helper meta functions */
             template <typename Int>
-            GT_META_DEFINE_ALIAS(not_negative, bool_constant, Int::value >= 0);
+            using not_negative = bool_constant<Int::value >= 0>;
             template <typename A, typename B>
-            GT_META_DEFINE_ALIAS(integral_plus, std::integral_constant, (int, A::value + B::value));
+            using integral_plus = std::integral_constant<int, A::value + B::value>;
         } // namespace _layout_map
     }     // namespace _impl
 
@@ -49,11 +49,11 @@ namespace gridtools {
         using args = meta::list<std::integral_constant<int, Args>...>;
 
         /* list of all unmasked (i.e. non-negative) arguments */
-        using unmasked_args = GT_META_CALL(meta::filter, (_impl::_layout_map::not_negative, args));
+        using unmasked_args = meta::filter<_impl::_layout_map::not_negative, args>;
 
         /* sum of all unmasked arguments (only used for assertion below) */
         static constexpr int unmasked_arg_sum = meta::lazy::combine<_impl::_layout_map::integral_plus,
-            GT_META_CALL(meta::push_back, (unmasked_args, std::integral_constant<int, 0>))>::type::value;
+            meta::push_back<unmasked_args, std::integral_constant<int, 0>>>::type::value;
 
       public:
         /** @brief Length of layout map excluding masked dimensions. */
@@ -92,12 +92,12 @@ namespace gridtools {
          * Use the versions with bounds check if applicable.
          */
         template <std::size_t I>
-        GT_FUNCTION static GT_CONSTEXPR typename std::enable_if<(I < masked_length), int>::type at_unsafe() {
+        GT_FUNCTION static GT_CONSTEXPR std::enable_if_t<(I < masked_length), int> at_unsafe() {
             return at<I>();
         }
 
         template <std::size_t I>
-        GT_FUNCTION static GT_CONSTEXPR typename std::enable_if<(I >= masked_length), int>::type at_unsafe() {
+        GT_FUNCTION static GT_CONSTEXPR std::enable_if_t<(I >= masked_length), int> at_unsafe() {
             return -1;
         }
 
