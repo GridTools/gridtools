@@ -33,7 +33,7 @@ env:
   # - build_type=release float_type=double grid_type=icosahedral compiler=cuda-10.1
 
 before_install:
-  - docker pull fthaler/gridtools:base
+  - docker pull fthaler/gridtools:test-$compiler
 
 script:
   - docker run -v $TRAVIS_BUILD_DIR:/gridtools -e build_type=$build_type -e float_type=$float_type -e grid_type=$grid_type fthaler/gridtools:test-$compiler
