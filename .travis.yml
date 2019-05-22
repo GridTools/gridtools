@@ -3,8 +3,18 @@ language: minimal
 services: 
   - docker
 
+env:
+  - build_type=debug float_type=float grid_type=structured
+  - build_type=release float_type=float grid_type=structured
+  - build_type=debug float_type=double grid_type=structured
+  - build_type=release float_type=double grid_type=structured
+  - build_type=debug float_type=float grid_type=icosahedral
+  - build_type=release float_type=float grid_type=icosahedral
+  - build_type=debug float_type=double grid_type=icosahedral
+  - build_type=release float_type=double grid_type=icosahedral
+
 before_install:
   - docker pull fthaler/gridtools:base
 
 script:
-  - docker run -v $TRAVIS_BUILD_DIR:/gridtools fthaler/gridtools:base
+  - docker run -v $TRAVIS_BUILD_DIR:/gridtools -e build_type=$build_type -e float_type=$float_type -e grid_type=$grid_type fthaler/gridtools:base
