@@ -30,13 +30,13 @@ namespace gridtools {
 
     namespace call_interfaces_impl_ {
         template <class Functor, class Region, class Eval>
-        GT_FUNCTION enable_if_t<!std::is_void<Region>::value> call_functor(Eval &eval) {
+        GT_FUNCTION std::enable_if_t<!std::is_void<Region>::value> call_functor(Eval &eval) {
             Functor::template apply<Eval &>(eval, Region{});
         }
 
         // overload for the default interval (Functor with one argument)
         template <class Functor, class Region, class Eval>
-        GT_FUNCTION enable_if_t<std::is_void<Region>::value> call_functor(Eval &eval) {
+        GT_FUNCTION std::enable_if_t<std::is_void<Region>::value> call_functor(Eval &eval) {
             Functor::template apply<Eval &>(eval);
         }
 
@@ -62,7 +62,7 @@ namespace gridtools {
         }
 
         template <int_t I, int_t J, int_t K, class Accessor>
-        GT_FUNCTION enable_if_t<I == 0 && J == 0 && K == 0, Accessor &&> get_offsets(Accessor &&acc) {
+        GT_FUNCTION std::enable_if_t<I == 0 && J == 0 && K == 0, Accessor &&> get_offsets(Accessor &&acc) {
             return wstd::forward<Accessor>(acc);
         }
 
@@ -70,10 +70,10 @@ namespace gridtools {
             int_t J,
             int_t K,
             class Accessor,
-            class Decayed = decay_t<Accessor>,
+            class Decayed = std::decay_t<Accessor>,
             class Size = tuple_util::size<Decayed>,
             class Res = array<int_t, Size::value>>
-        GT_FUNCTION enable_if_t<I != 0 || J != 0 || K != 0, Res> get_offsets(Accessor &&acc) {
+        GT_FUNCTION std::enable_if_t<I != 0 || J != 0 || K != 0, Res> get_offsets(Accessor &&acc) {
             static constexpr hymap::keys<dim::i, dim::j, dim::k>::
                 values<integral_constant<int_t, I>, integral_constant<int_t, J>, integral_constant<int_t, K>>
                     offset = {};
@@ -111,21 +111,22 @@ namespace gridtools {
         struct get_transform_f {
             template <class Accessor,
                 class LazyParam,
-                class Decayed = decay_t<Accessor>,
+                class Decayed = std::decay_t<Accessor>,
                 class Param = typename LazyParam::type,
-                enable_if_t<is_accessor<Decayed>::value &&
-                                !(Param::intent_v == intent::inout && Decayed::intent_v == intent::in),
+                std::enable_if_t<is_accessor<Decayed>::value &&
+                                     !(Param::intent_v == intent::inout && Decayed::intent_v == intent::in),
                     int> = 0>
             GT_FUNCTION auto operator()(Accessor &&accessor, LazyParam) const {
                 return accessor_transform<Decayed>(get_offsets<I, J, K>(wstd::forward<Accessor>(accessor)));
             }
 
             template <class Arg,
-                class Decayed = decay_t<Arg>,
+                class Decayed = std::decay_t<Arg>,
                 class LazyParam,
                 class Param = typename LazyParam::type,
-                enable_if_t<!is_accessor<Decayed>::value &&
-                                !(Param::intent_v == intent::inout && std::is_const<remove_reference_t<Arg>>::value),
+                std::enable_if_t<!is_accessor<Decayed>::value &&
+                                     !(Param::intent_v == intent::inout &&
+                                         std::is_const<std::remove_reference_t<Arg>>::value),
                     int> = 0>
             GT_FUNCTION GT_CONSTEXPR local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
                 return {wstd::forward<Arg>(arg)};
@@ -138,8 +139,8 @@ namespace gridtools {
             Transforms m_transforms;
 
             template <class Accessor,
-                class Decayed = decay_t<Accessor>,
-                enable_if_t<is_accessor<Decayed>::value, int> = 0>
+                class Decayed = std::decay_t<Accessor>,
+                std::enable_if_t<is_accessor<Decayed>::value, int> = 0>
             GT_FUNCTION decltype(auto) operator()(Accessor &&acc) const {
                 return tuple_util::host_device::get<Decayed::index_t::value>(m_transforms)(
                     m_eval, wstd::forward<Accessor>(acc));
@@ -233,8 +234,8 @@ namespace gridtools {
          */
         template <class Eval,
             class... Args,
-            class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, decay_t<Args>...>::type,
-            enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
+            class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, std::decay_t<Args>...>::type,
+            std::enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
         GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
             Res res;
             call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
@@ -277,7 +278,7 @@ namespace gridtools {
          * used to access values, w.r.t the offsets specified in a optional at<..> statement.
          */
         template <class Eval, class... Args>
-        GT_FUNCTION static enable_if_t<sizeof...(Args) == meta::length<typename Functor::param_list>::value> with(
+        GT_FUNCTION static std::enable_if_t<sizeof...(Args) == meta::length<typename Functor::param_list>::value> with(
             Eval &eval, Args &&... args) {
             call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
                 eval, tuple<Args &&...>{wstd::forward<Args>(args)...});

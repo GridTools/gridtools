@@ -54,8 +54,8 @@ namespace gridtools {
 
             template <class Index>
             using stages_maker = meta::filter<meta::not_<std::is_void>::apply,
-                meta::list<conditional_t<has_stage1(Index::value), stage1, void>,
-                    conditional_t<has_stage2(Index::value), stage2, void>>>;
+                meta::list<std::conditional_t<has_stage1(Index::value), stage1, void>,
+                    std::conditional_t<has_stage2(Index::value), stage2, void>>>;
 
             using testee_t = testee<stages_maker>;
 

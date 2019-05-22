@@ -42,7 +42,7 @@ namespace gridtools {
             int_t m_j_block_base;
             typename LocalDomain::ptr_map_t &m_dst;
 
-            template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
                 using sid_t = storage_from_arg<LocalDomain, Arg>;
                 using strides_kind_t = sid::strides_kind<sid_t>;
@@ -56,7 +56,7 @@ namespace gridtools {
                 at_key<Arg>(m_dst) += offset;
             }
 
-            template <class Arg, enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
                 using sid_t = storage_from_arg<LocalDomain, Arg>;
                 using strides_kind_t = sid::strides_kind<sid_t>;
@@ -103,7 +103,7 @@ namespace gridtools {
         /**
          * @brief Returns the value pointed by an accessor.
          */
-        template <class Arg, class Accessor, enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+        template <class Arg, class Accessor, std::enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
         GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
             using sid_t = storage_from_arg<LocalDomain, Arg>;
             using strides_kind_t = sid::strides_kind<sid_t>;
@@ -116,7 +116,7 @@ namespace gridtools {
             return *(at_key<Arg>(m_ptr_map) + ptr_offset);
         }
 
-        template <class Arg, class Accessor, enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+        template <class Arg, class Accessor, std::enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
         GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
             using sid_t = storage_from_arg<LocalDomain, Arg>;
             using strides_kind_t = sid::strides_kind<sid_t>;

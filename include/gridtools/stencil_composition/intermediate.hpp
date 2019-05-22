@@ -35,12 +35,12 @@ namespace gridtools {
     namespace _impl {
 
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        enable_if_t<(I < Layout::masked_length), bool> storage_info_dim_fits(
+        std::enable_if_t<(I < Layout::masked_length), bool> storage_info_dim_fits(
             storage_info<Id, Layout, Halo, Alignment> const &storage_info, int val) {
             return val < storage_info.template total_length<I>();
         }
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        enable_if_t<(I >= Layout::masked_length), bool> storage_info_dim_fits(
+        std::enable_if_t<(I >= Layout::masked_length), bool> storage_info_dim_fits(
             storage_info<Id, Layout, Halo, Alignment> const &, int) {
             return true;
         }
@@ -200,7 +200,7 @@ namespace gridtools {
         //               implementation of the `intermediate_expanded` and `computation` by getting rid of
         //               `boost::fusion::invoke`.
         template <class... Args, class... DataStores>
-        enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value> run(
+        std::enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value> run(
             arg_storage_pair<Args, DataStores> const &... srcs) {
             GT_STATIC_ASSERT((conjunction<meta::st_contains<free_placeholders_t, Args>...>::value),
                 "some placeholders are not used in mss descriptors");

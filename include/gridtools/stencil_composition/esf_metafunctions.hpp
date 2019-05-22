@@ -51,7 +51,7 @@ namespace gridtools {
                     "Horizontal extents of the outputs of ESFs are not all empty. All outputs must have empty "
                     "(horizontal) extents");
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(tuple_from_esf, class Esf, Esf);
         GT_META_DELEGATE_TO_LAZY(get_out_arg, class Item, Item);
     } // namespace esf_metafunctions_impl_

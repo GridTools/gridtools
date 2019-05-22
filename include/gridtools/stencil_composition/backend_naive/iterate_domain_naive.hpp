@@ -53,7 +53,7 @@ namespace gridtools {
             iterate_domain_naive *m_self;
             Grid const &m_grid;
 
-            template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             void operator()() const {
                 auto const &strides = m_self->template strides<Arg>();
                 auto &ptr = at_key<Arg>(m_self->m_ptr_map);
@@ -65,7 +65,7 @@ namespace gridtools {
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), -m_grid.k_min());
             }
 
-            template <class Arg, enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
             void operator()() const {
                 auto &ptr = at_key<Arg>(m_self->m_ptr_map);
                 auto const &strides = m_self->template strides<Arg>();

@@ -39,12 +39,12 @@ namespace gridtools {
                     ptr, tuple_util::host_device::get<0>(stride), tuple_util::host_device::get<1>(stride) * offset);
             }
 
-            template <class Stride, class BlockSize, enable_if_t<!std::is_integral<Stride>::value, int> = 0>
+            template <class Stride, class BlockSize, std::enable_if_t<!std::is_integral<Stride>::value, int> = 0>
             blocked_stride<Stride, BlockSize> block_stride(Stride const &stride, BlockSize const &block_size) {
                 return {stride, block_size};
             }
 
-            template <class Stride, class BlockSize, enable_if_t<std::is_integral<Stride>::value, int> = 0>
+            template <class Stride, class BlockSize, std::enable_if_t<std::is_integral<Stride>::value, int> = 0>
             auto block_stride(Stride const &stride, BlockSize const &block_size) {
                 return stride * block_size;
             }
@@ -124,20 +124,24 @@ namespace gridtools {
 
             template <class Sid,
                 class BlockMap,
-                class SidDims = get_keys<strides_type<decay_t<Sid>>>,
-                class BlockMapDims = get_keys<decay_t<BlockMap>>>
+                class SidDims = get_keys<strides_type<std::decay_t<Sid>>>,
+                class BlockMapDims = get_keys<std::decay_t<BlockMap>>>
             using no_common_dims =
                 meta::is_empty<meta::filter<meta::curry<meta::st_contains, SidDims>::template apply, BlockMapDims>>;
 
         } // namespace block_impl_
 
-        template <class Sid, class BlockMap, enable_if_t<block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
+        template <class Sid,
+            class BlockMap,
+            std::enable_if_t<block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
         decltype(auto) block(Sid &&sid, BlockMap &&) {
             return wstd::forward<Sid>(sid);
         }
 
-        template <class Sid, class BlockMap, enable_if_t<!block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
-        block_impl_::blocked_sid<decay_t<Sid>, decay_t<BlockMap>> block(Sid &&sid, BlockMap &&block_map) {
+        template <class Sid,
+            class BlockMap,
+            std::enable_if_t<!block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
+        block_impl_::blocked_sid<std::decay_t<Sid>, std::decay_t<BlockMap>> block(Sid &&sid, BlockMap &&block_map) {
             return {wstd::forward<Sid>(sid), wstd::forward<BlockMap>(block_map)};
         }
 

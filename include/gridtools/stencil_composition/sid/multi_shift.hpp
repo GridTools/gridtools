@@ -36,7 +36,10 @@ namespace gridtools {
          *   A helper the invokes `sid::shift` in several dimensions.
          *   `offsets` should be a hymap of individual offsets.
          */
-        template <class Ptr, class Strides, class Offsets, enable_if_t<tuple_util::size<Offsets>::value != 0, int> = 0>
+        template <class Ptr,
+            class Strides,
+            class Offsets,
+            std::enable_if_t<tuple_util::size<Offsets>::value != 0, int> = 0>
         GT_FUNCTION void multi_shift(
             Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets const &GT_RESTRICT offsets) {
             using keys_t = get_keys<Offsets>;
@@ -44,7 +47,10 @@ namespace gridtools {
                 multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});
         }
 
-        template <class Ptr, class Strides, class Offsets, enable_if_t<tuple_util::size<Offsets>::value == 0, int> = 0>
+        template <class Ptr,
+            class Strides,
+            class Offsets,
+            std::enable_if_t<tuple_util::size<Offsets>::value == 0, int> = 0>
         GT_FUNCTION void multi_shift(Ptr &, Strides const &, Offsets const &) {}
     } // namespace sid
 } // namespace gridtools

@@ -52,18 +52,18 @@ namespace gridtools {
         template <class Arg>
         using expr_or_accessor = bool_constant<is_expr<Arg>::value || is_accessor<Arg>::value>;
 
-        template <class Op, class... Args, enable_if_t<disjunction<expr_or_accessor<Args>...>::value, int> = 0>
+        template <class Op, class... Args, std::enable_if_t<disjunction<expr_or_accessor<Args>...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR expr<Op, Args...> make_expr(Op, Args... args) {
             return {args...};
         }
 
         namespace evaluation {
-            template <class Eval, class Arg, enable_if_t<std::is_arithmetic<Arg>::value, int> = 0>
+            template <class Eval, class Arg, std::enable_if_t<std::is_arithmetic<Arg>::value, int> = 0>
             GT_FUNCTION GT_CONSTEXPR Arg apply_eval(Eval &, Arg arg) {
                 return arg;
             }
 
-            template <class Eval, class Arg, enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
+            template <class Eval, class Arg, std::enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
             GT_FUNCTION GT_CONSTEXPR decltype(auto) apply_eval(Eval &eval, Arg const &arg) {
                 return eval(arg);
             }

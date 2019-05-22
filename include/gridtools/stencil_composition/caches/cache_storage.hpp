@@ -105,13 +105,13 @@ namespace gridtools {
         T m_values[Plus - Minus + 1];
 
         template <sync_type SyncType, class Data>
-        GT_FUNCTION enable_if_t<SyncType == sync_type::fill> sync_at(Data const &data, int_t k) {
+        GT_FUNCTION std::enable_if_t<SyncType == sync_type::fill> sync_at(Data const &data, int_t k) {
             if (auto *src = data.template deref_for_k_cache<Arg>(k))
                 m_values[k - Minus] = *src;
         }
 
         template <sync_type SyncType, class Data>
-        GT_FUNCTION enable_if_t<SyncType == sync_type::flush> sync_at(Data const &data, int_t k) {
+        GT_FUNCTION std::enable_if_t<SyncType == sync_type::flush> sync_at(Data const &data, int_t k) {
             if (auto *dst = data.template deref_for_k_cache<Arg>(k))
                 *dst = m_values[k - Minus];
         }
@@ -143,14 +143,14 @@ namespace gridtools {
          * @brief slides the values of the ring buffer
          */
         template <class Policy>
-        GT_FUNCTION enable_if_t<execute::is_forward<Policy>::value> slide() {
+        GT_FUNCTION std::enable_if_t<execute::is_forward<Policy>::value> slide() {
 #pragma unroll
             for (int_t k = 0; k < Plus - Minus; ++k)
                 m_values[k] = m_values[k + 1];
         }
 
         template <class Policy>
-        GT_FUNCTION enable_if_t<execute::is_backward<Policy>::value> slide() {
+        GT_FUNCTION std::enable_if_t<execute::is_backward<Policy>::value> slide() {
 #pragma unroll
             for (int_t k = Plus - Minus; k > 0; --k)
                 m_values[k] = m_values[k - 1];

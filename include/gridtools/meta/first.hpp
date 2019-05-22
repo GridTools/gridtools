@@ -21,7 +21,7 @@ namespace gridtools {
             struct first<L<T, Ts...>> {
                 using type = T;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(first, (class List), (List));
     } // namespace meta
 } // namespace gridtools

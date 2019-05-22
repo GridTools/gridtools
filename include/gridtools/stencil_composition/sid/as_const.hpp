@@ -49,8 +49,8 @@ namespace gridtools {
          *                 probably might we need the `host` and `device` variations as well
          */
         template <class SrcRef,
-            class Src = decay_t<SrcRef>,
-            enable_if_t<std::is_pointer<sid::ptr_type<Src>>::value, int> = 0>
+            class Src = std::decay_t<SrcRef>,
+            std::enable_if_t<std::is_pointer<sid::ptr_type<Src>>::value, int> = 0>
         as_const_impl_::const_adapter<Src> as_const(SrcRef &&src) {
             return as_const_impl_::const_adapter<Src>{wstd::forward<SrcRef>(src)};
         }

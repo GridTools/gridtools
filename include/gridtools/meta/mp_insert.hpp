@@ -29,7 +29,7 @@ namespace gridtools {
 
             template <class Map, template <class...> class L, class Key, class... Vals>
             struct mp_insert<Map, L<Key, Vals...>, void> : push_back<Map, L<Key, Vals...>> {};
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(
             mp_insert, (class Map, class Elem, class OldElem = mp_find<Map, first<Elem>>), (Map, Elem, OldElem));
     } // namespace meta

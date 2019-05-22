@@ -21,7 +21,7 @@ namespace gridtools {
             struct push_back<L<Us...>, Ts...> {
                 using type = L<Us..., Ts...>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(push_back, class... Args, Args...);
     } // namespace meta
 } // namespace gridtools

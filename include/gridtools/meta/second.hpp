@@ -21,7 +21,7 @@ namespace gridtools {
             struct second<L<T, U, Ts...>> {
                 using type = U;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(second, (class List), (List));
     } // namespace meta
 } // namespace gridtools

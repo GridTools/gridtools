@@ -27,7 +27,7 @@ namespace gridtools {
             struct iseq_to_list<ISec<Int, Is...>, L> {
                 using type = L<std::integral_constant<Int, Is>...>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(iseq_to_list, (class ISec, template <class...> class L = list), (ISec, L));
     } // namespace meta
 } // namespace gridtools

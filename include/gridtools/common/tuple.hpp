@@ -32,7 +32,7 @@ namespace gridtools {
 
             GT_CONSTEXPR GT_FUNCTION tuple_leaf() noexcept : m_value() {}
 
-            template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
+            template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
             GT_CONSTEXPR GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : m_value(wstd::forward<Arg>(arg)) {}
         };
 
@@ -44,7 +44,7 @@ namespace gridtools {
             tuple_leaf &operator=(tuple_leaf const &) = default;
             tuple_leaf &operator=(tuple_leaf &&) = default;
 
-            template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
+            template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
             GT_CONSTEXPR GT_FUNCTION tuple_leaf(Arg &&arg) noexcept : T(wstd::forward<Arg>(arg)) {}
         };
 
@@ -106,16 +106,16 @@ namespace gridtools {
             }
 
             template <class... Args,
-                enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                conjunction<std::is_assignable<Ts &, Args const &>...>::value,
+                std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
+                                     conjunction<std::is_assignable<Ts &, Args const &>...>::value,
                     int> = 0>
             GT_FUNCTION void assign(tuple_impl<meta::index_sequence<Is...>, Args...> const &src) noexcept {
                 void((int[]){(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(src), 0)...});
             }
 
             template <class... Args,
-                enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                conjunction<std::is_assignable<Ts &, Args &&>...>::value,
+                std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
+                                     conjunction<std::is_assignable<Ts &, Args &&>...>::value,
                     int> = 0>
             GT_FUNCTION void assign(tuple_impl<meta::index_sequence<Is...>, Args...> &&src) noexcept {
                 void((int[]){(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(wstd::move(src)), 0)...});
@@ -174,18 +174,20 @@ namespace gridtools {
         GT_CONSTEXPR GT_FUNCTION tuple(Ts const &... args) noexcept : m_impl(args...) {}
 
         template <class... Args,
-            enable_if_t<sizeof...(Ts) == sizeof...(Args) && conjunction<std::is_constructible<Ts, Args &&>...>::value,
+            std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
+                                 conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
         GT_CONSTEXPR GT_FUNCTION tuple(Args &&... args) noexcept : m_impl(wstd::forward<Args>(args)...) {}
 
         template <class... Args,
-            enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                            conjunction<std::is_constructible<Ts, Args const &>...>::value,
+            std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
+                                 conjunction<std::is_constructible<Ts, Args const &>...>::value,
                 int> = 0>
         GT_CONSTEXPR GT_FUNCTION tuple(tuple<Args...> const &src) noexcept : m_impl(src.m_impl) {}
 
         template <class... Args,
-            enable_if_t<sizeof...(Ts) == sizeof...(Args) && conjunction<std::is_constructible<Ts, Args &&>...>::value,
+            std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
+                                 conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
         GT_CONSTEXPR GT_FUNCTION tuple(tuple<Args...> &&src) noexcept : m_impl(wstd::move(src).m_impl) {}
 
@@ -202,17 +204,17 @@ namespace gridtools {
     class tuple<T> {
         T m_value;
         struct getter {
-            template <size_t I, enable_if_t<I == 0, int> = 0>
+            template <size_t I, std::enable_if_t<I == 0, int> = 0>
             static GT_CONSTEXPR GT_FUNCTION T const &get(tuple const &obj) noexcept {
                 return obj.m_value;
             }
 
-            template <size_t I, enable_if_t<I == 0, int> = 0>
+            template <size_t I, std::enable_if_t<I == 0, int> = 0>
             static GT_FUNCTION T &get(tuple &obj) noexcept {
                 return obj.m_value;
             }
 
-            template <size_t I, enable_if_t<I == 0, int> = 0>
+            template <size_t I, std::enable_if_t<I == 0, int> = 0>
             static GT_CONSTEXPR GT_FUNCTION T &&get(tuple &&obj) noexcept {
                 return static_cast<T &&>(obj.m_value);
             }
@@ -232,19 +234,19 @@ namespace gridtools {
 
         GT_CONSTEXPR GT_FUNCTION tuple(T const &arg) noexcept : m_value(arg) {}
 
-        template <class Arg, enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
+        template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
         GT_CONSTEXPR GT_FUNCTION tuple(Arg &&arg) noexcept : m_value(wstd::forward<Arg>(arg)) {}
 
         template <class Arg,
-            enable_if_t<std::is_constructible<T, Arg const &>::value &&
-                            !std::is_convertible<tuple<Arg> const &, T>::value &&
-                            !std::is_constructible<T, tuple<Arg> const &>::value && !std::is_same<T, Arg>::value,
+            std::enable_if_t<std::is_constructible<T, Arg const &>::value &&
+                                 !std::is_convertible<tuple<Arg> const &, T>::value &&
+                                 !std::is_constructible<T, tuple<Arg> const &>::value && !std::is_same<T, Arg>::value,
                 int> = 0>
         GT_CONSTEXPR GT_FUNCTION tuple(tuple<Arg> const &src) noexcept : m_value(src.m_value) {}
 
         template <class Arg,
-            enable_if_t<std::is_constructible<T, Arg &&>::value && !std::is_convertible<tuple<Arg>, T>::value &&
-                            !std::is_constructible<T, tuple<Arg>>::value && !std::is_same<T, Arg>::value,
+            std::enable_if_t<std::is_constructible<T, Arg &&>::value && !std::is_convertible<tuple<Arg>, T>::value &&
+                                 !std::is_constructible<T, tuple<Arg>>::value && !std::is_same<T, Arg>::value,
                 int> = 0>
         GT_CONSTEXPR GT_FUNCTION tuple(tuple<Arg> &&src) noexcept : m_value(wstd::move(src).m_value) {}
 
@@ -253,13 +255,13 @@ namespace gridtools {
             swap(m_value, other.m_value);
         }
 
-        template <class Arg, enable_if_t<std::is_assignable<T &, Arg const &>::value, int> = 0>
+        template <class Arg, std::enable_if_t<std::is_assignable<T &, Arg const &>::value, int> = 0>
         GT_FUNCTION tuple &operator=(tuple<Arg> const &src) noexcept {
             m_value = src.m_value;
             return *this;
         }
 
-        template <class Arg, enable_if_t<std::is_assignable<T &, Arg &&>::value, int> = 0>
+        template <class Arg, std::enable_if_t<std::is_assignable<T &, Arg &&>::value, int> = 0>
         GT_FUNCTION tuple &operator=(tuple<Arg> &&src) noexcept {
             m_value = wstd::move(src).m_value;
             return *this;

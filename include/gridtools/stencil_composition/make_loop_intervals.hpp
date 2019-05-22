@@ -74,7 +74,7 @@ namespace gridtools {
             // filter out interval with the empty stages
             using type = meta::filter<_impl::has_stages, loop_intervals_t>;
         };
-    }
+    } // namespace lazy
     /**
      * Calculate the loop intervals together with the stages that should be executed within each of them.
      *

@@ -55,7 +55,7 @@ namespace gridtools {
             template <template <class...> class L, class T0, class T1, class T2, class T3, class T4, class... Ts>
             struct reverse<L<T0, T1, T2, T3, T4, Ts...>>
                 : push_back<typename reverse<L<Ts...>>::type, T4, T3, T2, T1, T0> {};
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(reverse, class List, List);
     } // namespace meta
 } // namespace gridtools

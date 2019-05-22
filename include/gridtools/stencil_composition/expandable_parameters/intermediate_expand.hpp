@@ -208,7 +208,7 @@ namespace gridtools {
             };
 
             template <typename ArgStoragePairs>
-            enable_if_t<!meta::is_empty<ArgStoragePairs>::value, size_t> get_expandable_size(
+            std::enable_if_t<!meta::is_empty<ArgStoragePairs>::value, size_t> get_expandable_size(
                 ArgStoragePairs const &src) {
                 auto sizes = tuple_util::transform(get_value_size{}, src);
                 size_t res = tuple_util::get<0>(sizes);
@@ -217,7 +217,7 @@ namespace gridtools {
             }
 
             template <typename ArgStoragePairs>
-            enable_if_t<meta::is_empty<ArgStoragePairs>::value, size_t> get_expandable_size(
+            std::enable_if_t<meta::is_empty<ArgStoragePairs>::value, size_t> get_expandable_size(
                 ArgStoragePairs const &src) {
                 // If there is nothing to expand we are going to compute stencils once.
                 return 1;

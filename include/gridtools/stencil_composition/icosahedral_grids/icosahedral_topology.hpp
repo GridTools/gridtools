@@ -509,7 +509,7 @@ namespace gridtools {
             using dim_selector_4d_t = _impl::shorten_selector<4, DimSelector>;
             using filtered_layout = typename get_special_layout<layout_map_t, dim_selector_4d_t>::type;
 
-            using type = typename conditional_t<(DimSelector::size() > 4),
+            using type = typename std::conditional_t<(DimSelector::size() > 4),
                 extend_layout_map<filtered_layout, DimSelector::size() - 4>,
                 meta::lazy::id<filtered_layout>>::type;
         };

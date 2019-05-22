@@ -37,7 +37,7 @@ namespace gridtools {
             template <template <class...> class Pred>
             struct apply_to_decayed {
                 template <class T>
-                using apply = Pred<decay_t<T>>;
+                using apply = Pred<std::decay_t<T>>;
             };
 
             template <template <class...> class Pred, class Args>

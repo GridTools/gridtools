@@ -86,7 +86,7 @@ namespace gridtools {
         struct cache_parameter<detail::cache_impl<cacheType, Arg, cacheIOPolicy>> {
             using type = Arg;
         };
-    }
+    } // namespace lazy
     GT_META_DELEGATE_TO_LAZY(cache_parameter, typename T, T);
 
 } // namespace gridtools

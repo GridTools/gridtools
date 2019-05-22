@@ -21,7 +21,7 @@ namespace gridtools {
             struct clear<L<Ts...>> {
                 using type = L<>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(clear, class List, List);
     } // namespace meta
 } // namespace gridtools

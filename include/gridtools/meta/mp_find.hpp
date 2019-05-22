@@ -35,7 +35,7 @@ namespace gridtools {
 
                 using type = decltype(select((internal::inherit<id<Ts>...> *)0));
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(mp_find, (class Map, class Key, class Default = void), (Map, Key, Default));
     } // namespace meta
 } // namespace gridtools

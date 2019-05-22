@@ -73,8 +73,9 @@ namespace gridtools {
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
         template <class Arg, class T>
-        static GT_FUNCTION enable_if_t<!meta::st_contains<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
-        dereference(T *ptr) {
+        static GT_FUNCTION
+            std::enable_if_t<!meta::st_contains<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
+            dereference(T *ptr) {
             return __ldg(ptr);
         }
 #endif
@@ -156,15 +157,15 @@ namespace gridtools {
                        : nullptr;
         }
 
-        template <class Arg, class Accessor, enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
+        template <class Arg, class Accessor, std::enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
         GT_FUNCTION typename Arg::data_store_t::data_t &deref(Accessor const &acc) const {
             return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain).at(m_thread_pos[0], m_thread_pos[1], acc);
         }
 
         template <class Arg,
             class Accessor,
-            enable_if_t<meta::st_contains<k_cache_args_t, Arg>::value &&
-                            !meta::st_contains<ij_cache_args_t, Arg>::value,
+            std::enable_if_t<meta::st_contains<k_cache_args_t, Arg>::value &&
+                                 !meta::st_contains<ij_cache_args_t, Arg>::value,
                 int> = 0>
         GT_FUNCTION typename Arg::data_store_t::data_t &deref(Accessor const &acc) const {
             return m_iterate_domain_cache.template get_k_cache<Arg>(acc);
@@ -172,8 +173,8 @@ namespace gridtools {
 
         template <class Arg,
             class Accessor,
-            enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value &&
-                            !meta::st_contains<k_cache_args_t, Arg>::value,
+            std::enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value &&
+                                 !meta::st_contains<k_cache_args_t, Arg>::value,
                 int> = 0>
         GT_FUNCTION decltype(auto) deref(Accessor const &acc) const {
             return dereference<Arg>(this->template get_ptr<Arg>(acc));

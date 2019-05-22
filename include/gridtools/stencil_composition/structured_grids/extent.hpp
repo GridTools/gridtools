@@ -84,7 +84,7 @@ namespace gridtools {
 
         template <class... Extents>
         struct enclosing_extent : meta::lazy::combine<gridtools::enclosing_extent, meta::list<Extents...>> {};
-    }
+    } // namespace lazy
 
     /**
      * Metafunction taking two extents and yielding a extent which is the extension of one another

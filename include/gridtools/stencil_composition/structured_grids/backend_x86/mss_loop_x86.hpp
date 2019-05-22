@@ -37,7 +37,7 @@ namespace gridtools {
         using iterate_domain_arguments_t =
             iterate_domain_arguments<backend::x86, LocalDomain, typename RunFunctorArgs::esf_sequence_t>;
         using iterate_domain_x86_t = iterate_domain_x86<iterate_domain_arguments_t>;
-        using iterate_domain_t = typename conditional_t<local_domain_is_stateful<LocalDomain>::value,
+        using iterate_domain_t = typename std::conditional_t<local_domain_is_stateful<LocalDomain>::value,
             meta::lazy::id<positional_iterate_domain<iterate_domain_x86_t>>,
             meta::lazy::id<iterate_domain_x86_t>>::type;
         iterate_domain_t it_domain(local_domain);

@@ -108,7 +108,7 @@ namespace gridtools {
         template <uint_t Color, class Functor = meta::at_c<Functors, Color>>
         struct contains_color : bool_constant<!std::is_void<Functor>::value> {};
 
-        template <uint_t Color, class ItDomain, enable_if_t<contains_color<Color>::value, int> = 0>
+        template <uint_t Color, class ItDomain, std::enable_if_t<contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             using eval_t = impl_::evaluator<ItDomain, Args, LocationType, Color>;
             using functor_t = meta::at_c<Functors, Color>;
@@ -116,7 +116,7 @@ namespace gridtools {
             functor_t::apply(eval);
         }
 
-        template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>
+        template <uint_t Color, class ItDomain, std::enable_if_t<!contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {}
 
         template <class ItDomain>
@@ -150,13 +150,13 @@ namespace gridtools {
         struct contains_color : disjunction<typename Stage::template contains_color<Color>,
                                     typename Stages::template contains_color<Color>...> {};
 
-        template <uint_t Color, class ItDomain, enable_if_t<contains_color<Color>::value, int> = 0>
+        template <uint_t Color, class ItDomain, std::enable_if_t<contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             Stage::template exec<Color>(it_domain);
             (void)(int[]){((void)Stages::template exec<Color>(it_domain), 0)...};
         }
 
-        template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>
+        template <uint_t Color, class ItDomain, std::enable_if_t<!contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {}
 
         template <class ItDomain>

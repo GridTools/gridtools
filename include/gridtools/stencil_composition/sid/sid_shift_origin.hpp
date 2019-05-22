@@ -23,13 +23,13 @@ namespace gridtools {
             struct add_offset_f {
                 Offsets const &m_offsets;
 
-                template <class Dim, class Bound, enable_if_t<has_key<Offsets, Dim>::value, int> = 0>
+                template <class Dim, class Bound, std::enable_if_t<has_key<Offsets, Dim>::value, int> = 0>
                 auto operator()(Bound &&bound) const {
                     return wstd::forward<Bound>(bound) + at_key<Dim>(m_offsets);
                 }
 
-                template <class Dim, class Bound, enable_if_t<!has_key<Offsets, Dim>::value, int> = 0>
-                decay_t<Bound> operator()(Bound &&bound) const {
+                template <class Dim, class Bound, std::enable_if_t<!has_key<Offsets, Dim>::value, int> = 0>
+                std::decay_t<Bound> operator()(Bound &&bound) const {
                     return bound;
                 }
             };
@@ -69,7 +69,8 @@ namespace gridtools {
         } // namespace shift_sid_origin_impl_
 
         template <class Sid, class Offset>
-        shift_sid_origin_impl_::shifted_sid_type<decay_t<Sid>, Offset> shift_sid_origin(Sid &&sid, Offset &&offset) {
+        shift_sid_origin_impl_::shifted_sid_type<std::decay_t<Sid>, Offset> shift_sid_origin(
+            Sid &&sid, Offset &&offset) {
             return {wstd::forward<Sid>(sid), wstd::forward<Offset>(offset)};
         }
 

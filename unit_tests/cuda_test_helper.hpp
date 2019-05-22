@@ -44,7 +44,7 @@ namespace gridtools {
         __global__ void kernel(Res *res, Fun fun, Args... args) {
             *res = fun(args...);
         }
-        template <class Fun, class... Args, class Res = decay_t<result_of_t<Fun(Args...)>>>
+        template <class Fun, class... Args, class Res = std::decay_t<std::result_of_t<Fun(Args...)>>>
         Res exec_with_shared_memory(size_t shm_size, Fun fun, Args... args) {
             static_assert(!std::is_pointer<Fun>::value, "");
             static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");

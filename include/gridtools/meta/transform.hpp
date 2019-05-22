@@ -70,7 +70,7 @@ namespace gridtools {
             template <template <class...> class F, class List, class... Lists>
             struct transform<F, List, Lists...>
                 : transform<rename<F>::type::template apply, typename transpose<list<List, Lists...>>::type> {};
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(transpose, class List, List);
     } // namespace meta
 } // namespace gridtools

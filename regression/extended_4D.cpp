@@ -96,10 +96,10 @@ struct integration {
 };
 
 struct extended_4d : regression_fixture<> {
-    using layout_map_t = conditional_t<std::is_same<backend_t, backend::x86>::value,
+    using layout_map_t = std::conditional_t<std::is_same<backend_t, backend::x86>::value,
         layout_map<3, 4, 5, 0, 1, 2>,
         layout_map<5, 4, 3, 2, 1, 0>>;
-    using layout_map_quad_t =
+    using layout_map_quad_t = std::
         conditional_t<std::is_same<backend_t, backend::x86>::value, layout_map<1, 2, 3, 0>, layout_map<3, 2, 1, 0>>;
 
     template <unsigned Id, typename Layout>

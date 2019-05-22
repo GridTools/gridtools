@@ -144,8 +144,9 @@ namespace gridtools {
             struct get_static_const_value;
             template <class T>
             struct get_static_const_value<T,
-                enable_if_t<std::is_integral<decltype(T::value)>::value && std::is_const<decltype(T::value)>::value &&
-                            !std::is_member_pointer<decltype(&T::value)>::value>>
+                std::enable_if_t<std::is_integral<decltype(T::value)>::value &&
+                                 std::is_const<decltype(T::value)>::value &&
+                                 !std::is_member_pointer<decltype(&T::value)>::value>>
                 : std::integral_constant<decltype(T::value), T::value> {};
 
             /**
@@ -157,9 +158,9 @@ namespace gridtools {
             struct is_integral_constant : std::false_type {};
             template <class T>
             struct is_integral_constant<T,
-                enable_if_t<std::is_empty<T>::value && std::is_integral<decltype(T::value)>::value &&
-                            std::is_convertible<T, typename get_static_const_value<T>::value_type>::value &&
-                            T() == get_static_const_value<T>::value>> : std::true_type {};
+                std::enable_if_t<std::is_empty<T>::value && std::is_integral<decltype(T::value)>::value &&
+                                 std::is_convertible<T, typename get_static_const_value<T>::value_type>::value &&
+                                 T() == get_static_const_value<T>::value>> : std::true_type {};
 
             /**
              *  generic trait for integral constant of Val
@@ -170,7 +171,7 @@ namespace gridtools {
             struct is_integral_constant_of : std::false_type {};
 
             template <class T, int Val>
-            struct is_integral_constant_of<T, Val, enable_if_t<is_integral_constant<T>::value && T() == Val>>
+            struct is_integral_constant_of<T, Val, std::enable_if_t<is_integral_constant<T>::value && T() == Val>>
                 : std::true_type {};
 
             /////// BEGIN defaults PART /////
@@ -180,7 +181,7 @@ namespace gridtools {
 
             template <class Ptr>
             using default_ptr_diff = decltype(::gridtools::sid::concept_impl_::sid_get_default_ptr_diff(
-                std::declval<add_lvalue_reference_t<add_const_t<Ptr>>>()));
+                std::declval<std::add_lvalue_reference_t<std::add_const_t<Ptr>>>()));
 
             template <class T, class = void>
             struct is_empty_or_tuple_of_empties : std::is_empty<T> {};
@@ -189,13 +190,15 @@ namespace gridtools {
             using is_tuple_of_empties = meta::all_of<is_empty_or_tuple_of_empties, Types>;
 
             template <class Tup>
-            struct is_empty_or_tuple_of_empties<Tup, enable_if_t<is_tuple_of_empties<Tup>::value>> : std::true_type {};
+            struct is_empty_or_tuple_of_empties<Tup, std::enable_if_t<is_tuple_of_empties<Tup>::value>>
+                : std::true_type {};
 
             namespace lazy {
                 template <class, class = void>
                 struct default_kind;
                 template <class T>
-                struct default_kind<T, enable_if_t<is_empty_or_tuple_of_empties<decay_t<T>>::value>> : std::decay<T> {};
+                struct default_kind<T, std::enable_if_t<is_empty_or_tuple_of_empties<std::decay_t<T>>::value>>
+                    : std::decay<T> {};
             } // namespace lazy
             GT_META_DELEGATE_TO_LAZY(default_kind, class T, T);
             /////// END defaults PART ///////
@@ -223,9 +226,9 @@ namespace gridtools {
             /**
              *  C-array specialization
              */
-            template <class T, class Res = gridtools::add_pointer_t<gridtools::remove_all_extents_t<T>>>
-            GT_CONSTEXPR gridtools::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>>
-            get_origin(T &obj) {
+            template <class T, class Res = std::add_pointer_t<std::remove_all_extents_t<T>>>
+            GT_CONSTEXPR std::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>> get_origin(
+                T &obj) {
                 return {(Res)obj};
             }
 
@@ -239,7 +242,7 @@ namespace gridtools {
              *  `Ptr` type is deduced from `get_origin`
              */
             template <class Sid, class PtrHolder = ptr_holder_type<Sid>>
-            using ptr_type = decay_t<decltype(std::declval<PtrHolder>()())>;
+            using ptr_type = std::decay_t<decltype(std::declval<PtrHolder>()())>;
 
             /**
              *  `Reference` type is deduced from `Ptr` type
@@ -255,10 +258,10 @@ namespace gridtools {
              *  a proxy for sid_get_ptr_diff ADL resolution
              */
             template <class Sid, class Res = decltype(sid_get_ptr_diff(std::declval<Sid const &>()))>
-            enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_ptr_diff(Sid const &);
+            std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_ptr_diff(Sid const &);
 
             template <class Sid, class Res = decltype(sid_get_ptr_diff(std::declval<Sid const &>()))>
-            enable_if_t<std::is_same<Res, not_provided>::value, default_ptr_diff<ptr_type<Sid>>> get_ptr_diff(
+            std::enable_if_t<std::is_same<Res, not_provided>::value, default_ptr_diff<ptr_type<Sid>>> get_ptr_diff(
                 Sid const &);
 
             /**
@@ -275,18 +278,18 @@ namespace gridtools {
              *  `get_strides` delegates to `sid_get_strides`
              */
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            GT_CONSTEXPR enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            GT_CONSTEXPR std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
             get_strides(Sid const &obj) {
                 return sid_get_strides(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            GT_CONSTEXPR enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
+            GT_CONSTEXPR std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
             get_strides(Sid const &) {
                 return {};
             }
 
-            template <class T, size_t ElemSize = sizeof(remove_all_extents_t<T>)>
+            template <class T, size_t ElemSize = sizeof(std::remove_all_extents_t<T>)>
             struct get_array_strides {
                 using type = tuple<>;
             };
@@ -301,7 +304,7 @@ namespace gridtools {
             struct get_array_strides<Inner[N], ElemSize> : get_array_strides<Inner[], ElemSize> {};
 
             template <class T>
-            GT_CONSTEXPR enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(
+            GT_CONSTEXPR std::enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(
                 T const &) {
                 return {};
             }
@@ -317,10 +320,10 @@ namespace gridtools {
             // BEGIN `strides_kind` PART
 
             template <class Sid, class Res = decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
-            enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides_kind(Sid const &);
+            std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides_kind(Sid const &);
 
             template <class Sid, class Res = decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
-            enable_if_t<std::is_same<Res, not_provided>::value, default_kind<strides_type<Sid>>> get_strides_kind(
+            std::enable_if_t<std::is_same<Res, not_provided>::value, default_kind<strides_type<Sid>>> get_strides_kind(
                 Sid const &);
 
             /**
@@ -335,25 +338,25 @@ namespace gridtools {
             // BEGIN `get_lower_bounds`/`get_upper_bounds`
 
             template <class Sid, class Res = decltype(sid_get_lower_bounds(std::declval<Sid const &>()))>
-            GT_CONSTEXPR enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            GT_CONSTEXPR std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
             get_lower_bounds(Sid const &obj) {
                 return sid_get_lower_bounds(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_upper_bounds(std::declval<Sid const &>()))>
-            GT_CONSTEXPR enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            GT_CONSTEXPR std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
             get_upper_bounds(Sid const &obj) {
                 return sid_get_upper_bounds(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_lower_bounds(std::declval<Sid const &>()))>
-            GT_CONSTEXPR enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
+            GT_CONSTEXPR std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
             get_lower_bounds(Sid const &) {
                 return {};
             }
 
             template <class Sid, class Res = decltype(sid_get_upper_bounds(std::declval<Sid const &>()))>
-            GT_CONSTEXPR enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
+            GT_CONSTEXPR std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
             get_upper_bounds(Sid const &) {
                 return {};
             }
@@ -361,7 +364,7 @@ namespace gridtools {
             template <class T,
                 class Res = meta::rename<meta::ctor<tuple<>>::apply,
                     meta::repeat<std::rank<T>, integral_constant<ptrdiff_t, 0>>>>
-            GT_CONSTEXPR enable_if_t<std::is_array<T>::value, Res> get_lower_bounds(T const &) {
+            GT_CONSTEXPR std::enable_if_t<std::is_array<T>::value, Res> get_lower_bounds(T const &) {
                 return {};
             }
 
@@ -374,7 +377,7 @@ namespace gridtools {
             template <class T,
                 class Dims = meta::make_indices<std::rank<T>, tuple>,
                 class Res = meta::transform<array_extent_f<T>::template apply, Dims>>
-            GT_CONSTEXPR enable_if_t<std::is_array<T>::value, Res> get_upper_bounds(T const &) {
+            GT_CONSTEXPR std::enable_if_t<std::is_array<T>::value, Res> get_upper_bounds(T const &) {
                 return {};
             }
 
@@ -461,7 +464,8 @@ namespace gridtools {
              *  noop `shift` overload
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION enable_if_t<!need_shift<T, Stride, Offset>::value> shift(T &, Stride const &, Offset const &) {}
+            GT_FUNCTION std::enable_if_t<!need_shift<T, Stride, Offset>::value> shift(
+                T &, Stride const &, Offset const &) {}
 
             /**
              * `shift` overload that delegates to `sid_shift`
@@ -471,7 +475,8 @@ namespace gridtools {
             template <class T,
                 class Stride,
                 class Offset,
-                enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> = 0>
+                std::enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> =
+                    0>
             GT_FUNCTION decltype(auto) shift(
                 T &obj, Stride const &GT_RESTRICT stride, Offset const &GT_RESTRICT offset) {
                 return sid_shift(obj, stride, offset);
@@ -484,9 +489,10 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
-            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    !(has_inc<T>::value && PtrOffset == 1) && !(has_dec<T>::value && PtrOffset == -1)>
-            shift(T &obj, Stride const &, Offset const &) {
+            GT_FUNCTION
+                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                 !(has_inc<T>::value && PtrOffset == 1) && !(has_dec<T>::value && PtrOffset == -1)>
+                shift(T &obj, Stride const &, Offset const &) {
                 obj += integral_constant<int_t, PtrOffset>{};
             }
 
@@ -497,8 +503,8 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
-            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    has_inc<T>::value && PtrOffset == 1>
+            GT_FUNCTION std::enable_if_t<need_shift<T, Stride, Offset>::value &&
+                                         is_default_shiftable<T, Stride>::value && has_inc<T>::value && PtrOffset == 1>
             shift(T &obj, Stride const &, Offset const &) {
                 ++obj;
             }
@@ -510,8 +516,8 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
-            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    has_dec<T>::value && PtrOffset == -1>
+            GT_FUNCTION std::enable_if_t<need_shift<T, Stride, Offset>::value &&
+                                         is_default_shiftable<T, Stride>::value && has_dec<T>::value && PtrOffset == -1>
             shift(T &obj, Stride const &, Offset const &) {
                 --obj;
             }
@@ -520,9 +526,10 @@ namespace gridtools {
              *  `shift` overload where the offset is 1
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
-            shift(T &obj, Stride const &GT_RESTRICT stride, Offset const &) {
+            GT_FUNCTION
+                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                 !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
+                shift(T &obj, Stride const &GT_RESTRICT stride, Offset const &) {
                 obj += stride;
             }
 
@@ -530,10 +537,11 @@ namespace gridtools {
              *  `shift` overload where the offset is -1
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    !is_integral_constant<Stride>::value &&
-                                    is_integral_constant_of<Offset, -1>::value && has_dec_assignment<T, Stride>::value>
-            shift(T &obj, Stride const &GT_RESTRICT stride, Offset const &) {
+            GT_FUNCTION
+                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                 !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, -1>::value &&
+                                 has_dec_assignment<T, Stride>::value>
+                shift(T &obj, Stride const &GT_RESTRICT stride, Offset const &) {
                 obj -= stride;
             }
 
@@ -541,9 +549,10 @@ namespace gridtools {
              *  `shift` overload where the stride is 1
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
-            shift(T &obj, Stride const &, Offset const &GT_RESTRICT offset) {
+            GT_FUNCTION
+                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                 is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
+                shift(T &obj, Stride const &, Offset const &GT_RESTRICT offset) {
                 obj += offset;
             }
 
@@ -551,10 +560,11 @@ namespace gridtools {
              *  `shift` overload where the stride is -1
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    is_integral_constant_of<Stride, -1>::value &&
-                                    !is_integral_constant<Offset>::value && has_dec_assignment<T, Stride>::value>
-            shift(T &obj, Stride const &, Offset const &GT_RESTRICT offset) {
+            GT_FUNCTION
+                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                 is_integral_constant_of<Stride, -1>::value && !is_integral_constant<Offset>::value &&
+                                 has_dec_assignment<T, Stride>::value>
+                shift(T &obj, Stride const &, Offset const &GT_RESTRICT offset) {
                 obj -= offset;
             }
 
@@ -562,13 +572,13 @@ namespace gridtools {
              *  `shift` overload, default version
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION
-                enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                            !(is_integral_constant<Stride>::value && is_integral_constant<Offset>::value) &&
-                            !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
-                            !(has_dec_assignment<T, Stride>::value && (is_integral_constant_of<Stride, -1>::value ||
-                                                                          is_integral_constant_of<Offset, -1>::value))>
-                shift(T &obj, Stride const &GT_RESTRICT stride, Offset const &GT_RESTRICT offset) {
+            GT_FUNCTION std::enable_if_t<
+                need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                !(is_integral_constant<Stride>::value && is_integral_constant<Offset>::value) &&
+                !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
+                !(has_dec_assignment<T, Stride>::value &&
+                    (is_integral_constant_of<Stride, -1>::value || is_integral_constant_of<Offset, -1>::value))>
+            shift(T &obj, Stride const &GT_RESTRICT stride, Offset const &GT_RESTRICT offset) {
                 obj += stride * offset;
             }
 
@@ -609,7 +619,7 @@ namespace gridtools {
                 class ReferenceType = reference_type<Sid>,
                 class PtrDiff = ptr_diff_type<Sid>,
                 class StridesType = strides_type<Sid>,
-                class StrideTypeList = tuple_util::traits::to_types<decay_t<StridesType>>,
+                class StrideTypeList = tuple_util::traits::to_types<std::decay_t<StridesType>>,
                 class StridesKind = strides_kind<Sid>,
                 class LowerBoundsType = lower_bounds_type<Sid>,
                 class UpperBoundsType = upper_bounds_type<Sid>>
@@ -626,7 +636,8 @@ namespace gridtools {
                 // `PtrHolder` supports `+` as well
                 // TODO(anstaf): we can do better here: verify that if we transform PtrHolder that way the result
                 //               thing also models SID
-                std::is_same<decay_t<decltype(std::declval<PtrHolder const &>() + std::declval<PtrDiff const &>())>,
+                std::is_same<
+                    std::decay_t<decltype(std::declval<PtrHolder const &>() + std::declval<PtrDiff const &>())>,
                     PtrHolder>,
 
                 // verify that `Reference` is sane
@@ -636,8 +647,8 @@ namespace gridtools {
                 are_valid_strides<StrideTypeList, Ptr>,
                 are_valid_strides<StrideTypeList, PtrDiff>,
 
-                are_valid_bounds<tuple_util::traits::to_types<decay_t<LowerBoundsType>>>,
-                are_valid_bounds<tuple_util::traits::to_types<decay_t<UpperBoundsType>>>>;
+                are_valid_bounds<tuple_util::traits::to_types<std::decay_t<LowerBoundsType>>>,
+                are_valid_bounds<tuple_util::traits::to_types<std::decay_t<UpperBoundsType>>>>;
 
         } // namespace concept_impl_
 
@@ -670,7 +681,7 @@ namespace gridtools {
         template <class T, class = void>
         struct is_sid : std::false_type {};
         template <class T>
-        struct is_sid<T, enable_if_t<concept_impl_::is_sid<T>::value>> : std::true_type {};
+        struct is_sid<T, std::enable_if_t<concept_impl_::is_sid<T>::value>> : std::true_type {};
 
         // Auxiliary API
 
@@ -678,15 +689,15 @@ namespace gridtools {
          *  The type of the element of the SID
          */
         template <class Sid, class Ref = reference_type<Sid>>
-        using element_type = meta::id<decay_t<Ref>>;
+        using element_type = std::decay_t<Ref>;
 
         /**
          *  The const variation of the reference type
          */
         template <class Sid, class Ref = reference_type<Sid>>
-        using const_reference_type = meta::id<conditional_t<std::is_reference<Ref>::value,
-            add_lvalue_reference_t<add_const_t<remove_reference_t<Ref>>>,
-            add_const_t<Ref>>>;
+        using const_reference_type = std::conditional_t<std::is_reference<Ref>::value,
+            std::add_lvalue_reference_t<std::add_const_t<std::remove_reference_t<Ref>>>,
+            std::add_const_t<Ref>>;
 
         /**
          *  A getter from Strides to the given stride.

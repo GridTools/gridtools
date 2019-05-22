@@ -78,7 +78,9 @@ namespace gridtools {
          * @brief Strides, depending on data type due to padding to cache-line size. Specialization for non-zero extents
          * along k-dimension.
          */
-        template <class T, class Extent, enable_if_t<Extent::kminus::value != 0 || Extent::kplus::value != 0, int> = 0>
+        template <class T,
+            class Extent,
+            std::enable_if_t<Extent::kminus::value != 0 || Extent::kplus::value != 0, int> = 0>
         hymap::keys<dim::i, dim::j, dim::k, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t, int_t>
         strides(pos3<std::size_t> const &block_size) {
             auto bs = full_block_size<T, Extent>(block_size);
@@ -89,7 +91,9 @@ namespace gridtools {
          * @brief Strides, depending on data type due to padding to cache-line size. Specialization for zero extents
          * along k-dimension.
          */
-        template <class T, class Extent, enable_if_t<Extent::kminus::value == 0 && Extent::kplus::value == 0, int> = 0>
+        template <class T,
+            class Extent,
+            std::enable_if_t<Extent::kminus::value == 0 && Extent::kplus::value == 0, int> = 0>
         hymap::keys<dim::i, dim::j, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t> strides(
             pos3<std::size_t> const &block_size) {
             auto bs = full_block_size<T, Extent>(block_size);

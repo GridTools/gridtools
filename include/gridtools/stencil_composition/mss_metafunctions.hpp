@@ -60,7 +60,7 @@ namespace gridtools {
             "define_caches\n"
             "Only one instance of define_caches is allowed.");
 
-        using type = typename conditional_t<meta::length<tuple_of_caches>::value == 0,
+        using type = typename std::conditional_t<meta::length<tuple_of_caches>::value == 0,
             meta::lazy::id<std::tuple<>>,
             meta::lazy::first<tuple_of_caches>>::type;
 #endif

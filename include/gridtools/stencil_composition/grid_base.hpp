@@ -70,13 +70,13 @@ namespace gridtools {
         uint_t j_high_bound() const { return m_direction_j.end(); }
 
         template <class Level, int_t Offset = Level::offset>
-        GT_FUNCTION enable_if_t<(Offset > 0), uint_t> value_at() const {
+        GT_FUNCTION std::enable_if_t<(Offset > 0), uint_t> value_at() const {
             GT_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
             return value_list[Level::splitter] + Offset - 1;
         }
 
         template <class Level, int_t Offset = Level::offset>
-        GT_FUNCTION enable_if_t<(Offset <= 0), uint_t> value_at() const {
+        GT_FUNCTION std::enable_if_t<(Offset <= 0), uint_t> value_at() const {
             GT_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
             return value_list[Level::splitter] - static_cast<uint_t>(-Offset);
         }

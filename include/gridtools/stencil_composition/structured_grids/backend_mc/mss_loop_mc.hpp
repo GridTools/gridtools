@@ -176,7 +176,7 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArgs>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        using ij_cached_args_t = conditional_t<std::is_same<ExecutionInfo, execinfo_block_kparallel_mc>::value,
+        using ij_cached_args_t = std::conditional_t<std::is_same<ExecutionInfo, execinfo_block_kparallel_mc>::value,
             ij_cache_args<typename LocalDomain::cache_sequence_t>,
             meta::list<>>;
 

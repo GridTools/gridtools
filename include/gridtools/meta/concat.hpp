@@ -38,6 +38,6 @@ namespace gridtools {
 
             template <class L1, class L2, class L3, class... Lists>
             struct concat<L1, L2, L3, Lists...> : combine<meta::concat, list<L1, L2, L3, Lists...>> {};
-        }
-    } // namespace meta
+        } // namespace lazy
+    }     // namespace meta
 } // namespace gridtools

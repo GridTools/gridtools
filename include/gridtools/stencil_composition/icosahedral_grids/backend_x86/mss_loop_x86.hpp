@@ -78,7 +78,7 @@ namespace gridtools {
             color_execution_functor(IterateDomain &it_domain, Grid const &grid, uint_t loop_size)
                 : m_it_domain(it_domain), m_grid(grid), m_loop_size(loop_size) {}
 
-            template <class Color, enable_if_t<has_color<Color>::value, int> = 0>
+            template <class Color, std::enable_if_t<has_color<Color>::value, int> = 0>
             void operator()(Color) const {
                 for (uint_t j = 0; j != m_loop_size; ++j) {
                     auto memorized_index = m_it_domain.index();
@@ -89,7 +89,7 @@ namespace gridtools {
                 m_it_domain.increment_j(-m_loop_size);
                 m_it_domain.increment_c();
             }
-            template <class Color, enable_if_t<!has_color<Color>::value, int> = 0>
+            template <class Color, std::enable_if_t<!has_color<Color>::value, int> = 0>
             void operator()(Color) const {
                 // If there is no ESF in the sequence matching the color, we skip execution and simply increment the
                 // color iterator

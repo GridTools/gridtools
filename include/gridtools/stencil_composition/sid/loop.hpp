@@ -586,9 +586,9 @@ namespace gridtools {
         template <class Key,
             class T1,
             class T2,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<std::is_integral<T1>::value && std::is_integral<T2>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION loop_impl_::generic_loop<Key, make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<std::is_integral<T1>::value && std::is_integral<T2>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION loop_impl_::generic_loop<Key, std::make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
             return {num_steps, step};
         }
 
@@ -596,9 +596,9 @@ namespace gridtools {
             class T1,
             class T2 = int,
             T2 Step = 1,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<std::is_integral<T1>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION loop_impl_::known_step_loop<Key, make_signed_t<T>, Step> make_loop(
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<std::is_integral<T1>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION loop_impl_::known_step_loop<Key, std::make_signed_t<T>, Step> make_loop(
             T1 num_steps, std::integral_constant<T2, Step> = {}) {
             return {num_steps};
         }
@@ -607,9 +607,9 @@ namespace gridtools {
             class T1,
             T1 NumStepsV,
             class T2,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<std::is_integral<T1>::value && (NumStepsV > 1), int> = 0>
-        GT_CONSTEXPR GT_FUNCTION loop_impl_::known_num_steps_loop<Key, make_signed_t<T>, NumStepsV> make_loop(
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<std::is_integral<T1>::value && (NumStepsV > 1), int> = 0>
+        GT_CONSTEXPR GT_FUNCTION loop_impl_::known_num_steps_loop<Key, std::make_signed_t<T>, NumStepsV> make_loop(
             std::integral_constant<T1, NumStepsV>, T2 step) {
             return {step};
         }
@@ -618,9 +618,9 @@ namespace gridtools {
             class T1,
             T1 NumStepsV,
             class T2,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<std::is_integral<T1>::value && (NumStepsV == 0 || NumStepsV == 1), int> = 0>
-        GT_CONSTEXPR GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, 0> make_loop(
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<std::is_integral<T1>::value && (NumStepsV == 0 || NumStepsV == 1), int> = 0>
+        GT_CONSTEXPR GT_FUNCTION loop_impl_::all_known_loop<Key, std::make_signed_t<T>, NumStepsV, 0> make_loop(
             std::integral_constant<T1, NumStepsV>, T2) {
             return {};
         }
@@ -630,10 +630,10 @@ namespace gridtools {
             T1 NumStepsV,
             class T2 = int,
             T2 StepV = 1,
-            class T = common_type_t<T1, T2>,
-            enable_if_t<(NumStepsV >= 0), int> = 0>
+            class T = std::common_type_t<T1, T2>,
+            std::enable_if_t<(NumStepsV >= 0), int> = 0>
         GT_CONSTEXPR
-            GT_FUNCTION loop_impl_::all_known_loop<Key, make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
+            GT_FUNCTION loop_impl_::all_known_loop<Key, std::make_signed_t<T>, NumStepsV, (NumStepsV > 1) ? StepV : 0>
             make_loop(std::integral_constant<T1, NumStepsV>, std::integral_constant<T2, StepV> = {}) {
             return {};
         }

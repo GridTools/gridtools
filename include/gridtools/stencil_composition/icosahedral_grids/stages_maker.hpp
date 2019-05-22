@@ -73,7 +73,7 @@ namespace gridtools {
             struct stages_from_functors<Functors,
                 Esf,
                 ExtentMap,
-                enable_if_t<meta::all_of<std::is_void, Functors>::value>> {
+                std::enable_if_t<meta::all_of<std::is_void, Functors>::value>> {
                 using type = meta::list<>;
             };
 

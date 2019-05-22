@@ -28,7 +28,7 @@ namespace gridtools {
             struct lfold;
             template <template <class...> class, class...>
             struct rfold;
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(lfold, (template <class...> class F, class... Args), (F, Args...));
         GT_META_DELEGATE_TO_LAZY(rfold, (template <class...> class F, class... Args), (F, Args...));
 
@@ -96,6 +96,6 @@ namespace gridtools {
             struct rfold<F, S, L<T1, T2, T3, T4, Ts...>> {
                 using type = F<T1, F<T2, F<T3, F<T4, typename rfold<F, S, L<Ts...>>::type>>>>;
             };
-        }
-    } // namespace meta
+        } // namespace lazy
+    }     // namespace meta
 } // namespace gridtools

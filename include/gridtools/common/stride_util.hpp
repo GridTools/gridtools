@@ -26,12 +26,12 @@ namespace gridtools {
             template <class Sizes>
             struct stride_type<0, Sizes> : integral_constant<int_t, 1> {};
 
-            template <size_t I, class Sizes, enable_if_t<I == 0, int> = 0>
+            template <size_t I, class Sizes, std::enable_if_t<I == 0, int> = 0>
             integral_constant<int_t, 1> get_stride(Sizes const &) {
                 return {};
             }
 
-            template <size_t I, class Sizes, enable_if_t<I != 0, int> = 0>
+            template <size_t I, class Sizes, std::enable_if_t<I != 0, int> = 0>
             typename stride_type<I, Sizes>::type get_stride(Sizes const &sizes) {
                 return tuple_util::get<I - 1>(sizes) * get_stride<I - 1>(sizes);
             }

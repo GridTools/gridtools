@@ -29,7 +29,7 @@ namespace gridtools {
             struct list_to_iseq<L<>> {
                 using type = index_sequence<>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(list_to_iseq, class List, List);
     } // namespace meta
 } // namespace gridtools

@@ -39,7 +39,7 @@ namespace gridtools {
         template <class FromLocation,
             class ToLocation,
             uint_t C = 0,
-            enable_if_t<(C < FromLocation::n_colors::value), int> = 0>
+            std::enable_if_t<(C < FromLocation::n_colors::value), int> = 0>
         std::vector<array<int_t, 4>> get_offsets(uint_t c, std::integral_constant<uint_t, C> = {}) {
             if (c > C) {
                 return get_offsets<FromLocation, ToLocation>(c, std::integral_constant<uint_t, C + 1>{});

@@ -36,7 +36,7 @@ namespace gridtools {
     template <class MssComponents,
         class LocalDomainListArray,
         class Grid,
-        enable_if_t<!_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
+        std::enable_if_t<!_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
     void fused_mss_loop(backend::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
@@ -58,7 +58,7 @@ namespace gridtools {
     template <class MssComponents,
         class LocalDomainListArray,
         class Grid,
-        enable_if_t<_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
+        std::enable_if_t<_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
     void fused_mss_loop(backend::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 

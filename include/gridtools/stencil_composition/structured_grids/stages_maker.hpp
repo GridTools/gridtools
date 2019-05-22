@@ -54,7 +54,7 @@ namespace gridtools {
                 using stages_t = meta::flatten<stage_groups_t>;
                 using type = fuse_stages<compound_stage, stages_t>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(stages_from_esf, (class Esf, class Index, class ExtentMap), (Esf, Index, ExtentMap));
 
         template <class Index, class ExtentMap>

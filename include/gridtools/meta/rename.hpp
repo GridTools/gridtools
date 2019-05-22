@@ -34,6 +34,6 @@ namespace gridtools {
             struct rename<To> {
                 using type = curry_fun<meta::rename, To>;
             };
-        }
-    } // namespace meta
+        } // namespace lazy
+    }     // namespace meta
 } // namespace gridtools

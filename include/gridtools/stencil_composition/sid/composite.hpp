@@ -35,7 +35,7 @@ namespace gridtools {
 
                 struct call_f {
                     template <class T>
-                    GT_CONSTEXPR GT_FUNCTION auto operator()(T const &obj) const -> decay_t<decltype(obj())> {
+                    GT_CONSTEXPR GT_FUNCTION auto operator()(T const &obj) const {
                         return obj();
                     }
                 };
@@ -141,7 +141,7 @@ namespace gridtools {
                 template <template <class...> class L, class... Keys>
                 struct normalize_strides_f<L<Keys...>> {
                     template <class Sid, class Strides = strides_type<Sid>>
-                    GT_CONSTEXPR tuple<normalized_stride_type<Keys, decay_t<Strides>>...> operator()(
+                    GT_CONSTEXPR tuple<normalized_stride_type<Keys, std::decay_t<Strides>>...> operator()(
                         Sid const &sid) const {
                         return {get_stride<Keys>(get_strides(sid))...};
                     }
@@ -250,13 +250,13 @@ namespace gridtools {
 
                         vals_t m_vals;
 
-                        template <class... Args, enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
+                        template <class... Args, std::enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
                         GT_CONSTEXPR composite_entity(Args &&... args) noexcept
                             : composite_entity(tuple<Args &&...>{wstd::forward<Args &&>(args)...}) {}
 
                         template <template <class...> class L,
                             class... Args,
-                            enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
+                            std::enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
                         GT_CONSTEXPR composite_entity(L<Args...> &&tup) noexcept
                             : m_vals{tuple_util::generate<generators_t, vals_t>(wstd::move(tup))} {}
 
@@ -299,7 +299,7 @@ namespace gridtools {
 
                     struct convert_f {
                         template <template <class...> class L, class... Ts>
-                        GT_CONSTEXPR composite_entity<remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
+                        GT_CONSTEXPR composite_entity<std::remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
                             return {wstd::move(tup)};
                         }
                     };
@@ -341,7 +341,7 @@ namespace gridtools {
                     // It is a meta function from the stride key to the stride type
                     template <class Key>
                     using get_stride_type =
-                        compress<impl_::normalized_stride_type<Key, decay_t<strides_type<Sids>>>...>;
+                        compress<impl_::normalized_stride_type<Key, std::decay_t<strides_type<Sids>>>...>;
 
                     // all `SID` types are here
                     using ptr_holder_t = composite_ptr_holder<ptr_holder_type<Sids>...>;
