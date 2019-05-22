@@ -20,12 +20,12 @@ namespace gridtools {
 #endif
 
     template <typename _grid_>
-    MPI_Comm get_communicator(_grid_ const &g, typename std::enable_if<_grid_::has_communicator::value>::type * = 0) {
+    MPI_Comm get_communicator(_grid_ const &g, std::enable_if_t<_grid_::has_communicator::value> * = 0) {
         return g.communicator();
     }
 
     template <typename _grid_>
-    MPI_Comm get_communicator(_grid_ const &g, typename std::enable_if<!_grid_::has_communicator::value>::type * = 0) {
+    MPI_Comm get_communicator(_grid_ const &g, std::enable_if_t<!_grid_::has_communicator::value> * = 0) {
         return gridtools::GCL_WORLD;
     }
 

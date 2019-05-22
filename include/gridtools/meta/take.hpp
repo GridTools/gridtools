@@ -55,7 +55,7 @@ namespace gridtools {
                 class T3,
                 class T4,
                 class... Ts>
-            struct take_c<N, L<T0, T1, T2, T3, T4, Ts...>, typename std::enable_if<N >= 5>::type>
+            struct take_c<N, L<T0, T1, T2, T3, T4, Ts...>, std::enable_if_t<N >= 5>>
                 : concat<L<T0, T1, T2, T3, T4>, typename take_c<N - 5, L<Ts...>>::type> {};
 
             template <class N, class List>

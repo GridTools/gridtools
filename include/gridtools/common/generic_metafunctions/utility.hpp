@@ -26,15 +26,15 @@ namespace gridtools {
      */
     namespace wstd {
         template <class T>
-        GT_CONSTEXPR GT_HOST_DEVICE typename std::remove_reference<T>::type &&move(T &&obj) noexcept {
-            return static_cast<typename std::remove_reference<T>::type &&>(obj);
+        GT_CONSTEXPR GT_HOST_DEVICE std::remove_reference_t<T> &&move(T &&obj) noexcept {
+            return static_cast<std::remove_reference_t<T> &&>(obj);
         }
         template <class T>
-        GT_CONSTEXPR GT_HOST_DEVICE T &&forward(typename std::remove_reference<T>::type &obj) noexcept {
+        GT_CONSTEXPR GT_HOST_DEVICE T &&forward(std::remove_reference_t<T> &obj) noexcept {
             return static_cast<T &&>(obj);
         }
         template <class T>
-        GT_CONSTEXPR GT_HOST_DEVICE T &&forward(typename std::remove_reference<T>::type &&obj) noexcept {
+        GT_CONSTEXPR GT_HOST_DEVICE T &&forward(std::remove_reference_t<T> &&obj) noexcept {
             static_assert(
                 !std::is_lvalue_reference<T>::value, "Error: obj is instantiated with an lvalue reference type");
             return static_cast<T &&>(obj);

@@ -131,9 +131,9 @@ namespace gridtools {
                 }
 
                 template <class Key, class Strides, class I = meta::st_position<get_keys<Strides>, Key>>
-                using normalized_stride_type = typename std::conditional<(I::value < tuple_util::size<Strides>::value),
+                using normalized_stride_type = std::conditional_t<(I::value < tuple_util::size<Strides>::value),
                     tuple_util::lazy::element<I::value, Strides>,
-                    meta::lazy::id<default_stride>>::type::type;
+                    meta::lazy::id<default_stride>>::type;
 
                 template <class Keys>
                 struct normalize_strides_f;

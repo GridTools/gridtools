@@ -550,7 +550,7 @@ namespace gridtools {
             typename Halo = halo<0, 0, 0, 0>,
             typename Selector = selector<1, 1, 1, 1>,
             typename... IntTypes,
-            typename std::enable_if<is_all_integral<IntTypes...>::value, int>::type = 0>
+            std::enable_if_t<is_all_integral<IntTypes...>::value, int> = 0>
         data_store_t<LocationType, ValueType, Halo, Selector> make_storage(
             char const *name, IntTypes... extra_dims) const {
             GT_STATIC_ASSERT(is_location_type<LocationType>::value, "ERROR: location type is wrong");
