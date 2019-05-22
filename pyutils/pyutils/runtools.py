@@ -16,7 +16,9 @@ async def _run_async(command, **kwargs):
     process = await asyncio.create_subprocess_exec(
         *command,
         stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.STDOUT)
+        stderr=asyncio.subprocess.STDOUT,
+        env=env.env,
+        **kwargs)
     buffer = io.StringIO()
 
     async def read_output():
@@ -61,7 +63,7 @@ def run(command, **kwargs):
     start = time.time()
 
     loop = asyncio.get_event_loop()
-    output = loop.run_until_complete(_run_async(command, env=env, **kwargs))
+    output = loop.run_until_complete(_run_async(command, **kwargs))
 
     end = time.time()
     log.info(f'{command[0]} finished in {end - start:.2f}s')
@@ -171,10 +173,27 @@ def _retreive_outputs(rundir, commands, task_id):
     return outputs
 
 
+def _emulate_sbatch(commands, cwd):
+    outputs = []
+    for command in commands:
+        result = subprocess.run(command,
+                                env=env.env,
+                                cwd=cwd,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        outputs.append((result.returncode,
+                        result.stdout.decode().strip(),
+                        result.stderr.decode().strip()))
+    return outputs
+
+
 def sbatch(commands, cwd=None, use_srun=True, use_mpi_config=False):
-    with tempfile.TemporaryDirectory(dir='.') as rundir:
-        task = _run_sbatch(rundir, commands, cwd, use_srun, use_mpi_config)
-        return _retreive_outputs(rundir, commands, task)
+    if env.use_slurm():
+        with tempfile.TemporaryDirectory(dir='.') as rundir:
+            task = _run_sbatch(rundir, commands, cwd, use_srun, use_mpi_config)
+            return _retreive_outputs(rundir, commands, task)
+    else:
+        return _emulate_sbatch(commands, cwd)
 
 
 def sbatch_retry(commands, retries, *args, **kwargs):

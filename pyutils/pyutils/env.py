@@ -55,6 +55,10 @@ def set_cmake_arg(arg, value):
     env['GTCMAKE_' + arg] = value
 
 
+def use_slurm():
+    return 'GTRUN_NO_SLURM' not in env
+
+
 def sbatch_options(mpi):
     options = _items_with_tag('GTRUN_SBATCH_')
     if mpi:
