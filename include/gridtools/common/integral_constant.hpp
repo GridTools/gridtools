@@ -50,21 +50,21 @@ namespace gridtools {
     }                                                                                    \
     static_assert(1, "")
 
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(+, (typename std::common_type<T, U>::type));
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(-, (typename std::common_type<T, U>::type));
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(*, (typename std::common_type<T, U>::type));
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(/, (typename std::common_type<T, U>::type));
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(%, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(+, (std::common_type_t<T, U>));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(-, (std::common_type_t<T, U>));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(*, (std::common_type_t<T, U>));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(/, (std::common_type_t<T, U>));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(%, (std::common_type_t<T, U>::type));
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(==, bool);
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(!=, bool);
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<, bool);
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<=, bool);
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>, bool);
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>=, bool);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(&, (typename std::common_type<T, U>::type));
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(|, (typename std::common_type<T, U>::type));
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<<, (typename std::common_type<T, U>::type));
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>>, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(&, (std::common_type_t<T, U>));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(|, (std::common_type_t<T, U>));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<<, (std::common_type_t<T, U>));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>>, (std::common_type_t<T, U>));
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(&&, bool);
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(||, bool);
 

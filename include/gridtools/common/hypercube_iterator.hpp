@@ -77,10 +77,10 @@ namespace gridtools {
      * @brief constructs a view on a hypercube from an array of ranges (e.g. pairs); the end of the range is exclusive.
      */
     template <typename Container,
-        typename Decayed = typename std::decay<Container>::type,
+        typename Decayed = std::decay_t<Container>,
         size_t OuterD = tuple_size<Decayed>::value,
         size_t InnerD = tuple_size<typename tuple_element<0, Decayed>::type>::value,
-        typename std::enable_if<OuterD != 0 && InnerD == 2, int>::type = 0>
+        std::enable_if_t<OuterD != 0 && InnerD == 2, int> = 0>
     GT_FUNCTION impl_::hypercube_view<OuterD> make_hypercube_view(Container &&cube) {
         auto &&transposed = tuple_util::host_device::transpose(wstd::forward<Container>(cube));
         return {tuple_util::host_device::convert_to<array, size_t>(tuple_util::host_device::get<0>(transposed)),
@@ -91,8 +91,8 @@ namespace gridtools {
      * @brief short-circuit for zero dimensional hypercube (transpose cannot work)
      */
     template <typename Container,
-        size_t D = tuple_size<typename std::decay<Container>::type>::value,
-        typename std::enable_if<D == 0, int>::type = 0>
+        size_t D = tuple_size<std::decay_t<Container>>::value,
+        std::enable_if_t<D == 0, int> = 0>
     GT_FUNCTION array<array<size_t, 0>, 0> make_hypercube_view(Container &&) {
         return {};
     }
@@ -102,10 +102,10 @@ namespace gridtools {
      * start from 0); the end of the range is exclusive.
      */
     template <typename Container,
-        typename Decayed = typename std::decay<Container>::type,
+        typename Decayed = std::decay_t<Container>,
         size_t D = tuple_size<Decayed>::value,
-        typename std::enable_if<D != 0 && std::is_convertible<size_t, typename tuple_element<0, Decayed>::type>::value,
-            int>::type = 0>
+        std::enable_if_t<D != 0 && std::is_convertible<size_t, typename tuple_element<0, Decayed>::type>::value, int> =
+            0>
     GT_FUNCTION impl_::hypercube_view<D> make_hypercube_view(Container &&sizes) {
         return {tuple_util::host_device::convert_to<array, size_t>(wstd::forward<Container>(sizes))};
     }

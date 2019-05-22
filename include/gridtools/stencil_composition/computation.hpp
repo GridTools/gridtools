@@ -96,7 +96,7 @@ namespace gridtools {
 
         template <class Obj>
         computation(Obj obj) : m_impl(new impl<Obj>{wstd::move(obj)}) {
-            GT_STATIC_ASSERT((!std::is_same<typename std::decay<Obj>::type, computation>::value),
+            GT_STATIC_ASSERT((!std::is_same<std::decay_t<Obj>, computation>::value),
                 GT_INTERNAL_ERROR_MSG("computation move ctor got shadowed"));
             // TODO(anstaf): Check that Obj satisfies computation concept here.
         }
@@ -104,7 +104,7 @@ namespace gridtools {
         explicit operator bool() const { return !!m_impl; }
 
         template <class... SomeArgs, class... SomeDataStores>
-        typename std::enable_if<sizeof...(SomeArgs) == sizeof...(Args)>::type run(
+        std::enable_if_t<sizeof...(SomeArgs) == sizeof...(Args)> run(
             arg_storage_pair<SomeArgs, SomeDataStores> const &... args) {
             m_impl->run(permute_to<arg_storage_pair_crefs_t>(std::make_tuple(std::cref(args)...)));
         }

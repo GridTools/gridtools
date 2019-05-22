@@ -208,7 +208,7 @@ namespace gridtools {
         }
 
         template <typename BCApply>
-        typename std::enable_if<is_bound_bc<BCApply>::value, void>::type apply_boundary(BCApply bcapply) {
+        std::enable_if_t<is_bound_bc<BCApply>::value, void> apply_boundary(BCApply bcapply) {
             /*Apply boundary to data*/
             call_apply(boundary<typename BCApply::boundary_class,
                            typename CTraits::compute_arch,
@@ -220,19 +220,19 @@ namespace gridtools {
         }
 
         template <typename BCApply>
-        typename std::enable_if<not is_bound_bc<BCApply>::value, void>::type apply_boundary(BCApply) {
+        std::enable_if_t<not is_bound_bc<BCApply>::value, void> apply_boundary(BCApply) {
             /* do nothing for a pure data_store*/
         }
 
         template <typename FirstJob>
         static auto collect_stores(
-            FirstJob const &firstjob, typename std::enable_if<is_bound_bc<FirstJob>::value, void *>::type = nullptr) {
+            FirstJob const &firstjob, std::enable_if_t<is_bound_bc<FirstJob>::value, void *> = nullptr) {
             return firstjob.exc_stores();
         }
 
         template <typename FirstJob>
-        static auto collect_stores(FirstJob const &first_job,
-            typename std::enable_if<not is_bound_bc<FirstJob>::value, void *>::type = nullptr) {
+        static auto collect_stores(
+            FirstJob const &first_job, std::enable_if_t<not is_bound_bc<FirstJob>::value, void *> = nullptr) {
             return std::make_tuple(first_job);
         }
 
@@ -240,8 +240,7 @@ namespace gridtools {
         void call_pack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::read_write,
-                typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
-                    make(std::get<Ids>(stores)))...);
+                std::decay_t<std::tuple_element_t<Ids, Stores>>>::make(std::get<Ids>(stores)))...);
         }
 
         template <typename Stores, uint_t... Ids>
@@ -251,8 +250,7 @@ namespace gridtools {
         void call_unpack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::read_write,
-                typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
-                    make(std::get<Ids>(stores)))...);
+                std::decay_t<std::tuple_element_t<Ids, Stores>>>::make(std::get<Ids>(stores)))...);
         }
 
         template <typename Stores, uint_t... Ids>

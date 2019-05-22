@@ -32,11 +32,11 @@ namespace gridtools {
      */
 
     template <typename... Ts>
-    GT_FUNCTION constexpr typename std::common_type<Ts...>::type constexpr_max(Ts... vals) {
+    GT_FUNCTION constexpr std::common_type_t<Ts...> constexpr_max(Ts... vals) {
         return std::max({vals...});
     }
     template <typename... Ts>
-    GT_FUNCTION constexpr typename std::common_type<Ts...>::type constexpr_min(Ts... vals) {
+    GT_FUNCTION constexpr std::common_type_t<Ts...> constexpr_min(Ts... vals) {
         return std::min({vals...});
     }
 
