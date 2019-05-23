@@ -288,7 +288,7 @@ namespace gridtools {
             template <class Fun>
             struct get_fun_result_index {
                 template <class I, class... Ts>
-                using apply = decltype(std::declval<Fun>().template operator() < I::value > (std::declval<Ts>()...));
+                using apply = decltype(std::declval<Fun>().template operator()<I::value>(std::declval<Ts>()...));
             };
 
             template <class Fun>
@@ -1375,21 +1375,21 @@ namespace gridtools {
             //
             template <template <class...> class L, class... Ts>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR L<Ts...> make(Ts const &... elems) {
-                return {elems...};
+                return L<Ts...>{elems...};
             }
 
             /// Generalization of `std::tie`
             //
             template <template <class...> class L, class... Ts>
             GT_TARGET GT_FORCE_INLINE L<Ts &...> tie(Ts & ... elems) {
-                return {elems...};
+                return L<Ts &...>{elems...};
             }
 
             /// Generalization of `std::experimental::make_array`
             //
             template <template <class, size_t> class Arr, class D = void, class... Ts>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Arr<typename _impl::make_array_helper<D, Ts...>::type, sizeof...(Ts)>
-                make(Ts && ... elems) {
+            make(Ts && ... elems) {
                 using common_type_t = typename _impl::make_array_helper<D, Ts...>::type;
                 return {{implicit_cast<common_type_t>(wstd::forward<Ts>(elems))...}};
             }
