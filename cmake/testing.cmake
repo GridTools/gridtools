@@ -17,8 +17,19 @@ target_link_libraries( GridToolsTest INTERFACE Threads::Threads)
 include(workaround_threads)
 _fix_threads_flags()
 
+include(FetchContent)
 option(INSTALL_GTEST OFF)
-add_subdirectory(./tools/googletest)
+mark_as_advanced(INSTALL_GTEST)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        release-1.8.1
+)
+FetchContent_GetProperties(googletest)
+if(NOT googletest_POPULATED)
+  FetchContent_Populate(googletest)
+  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+endif()
 
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
