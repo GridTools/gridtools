@@ -116,16 +116,16 @@ namespace gridtools {
 #ifdef __CUDACC__
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
-        GT_FUNCTION auto fabs(double val) -> decltype(::fabs(val)) { return ::fabs(val); }
+        GT_FUNCTION decltype(auto) fabs(double val) { return ::fabs(val); }
 
-        GT_FUNCTION auto fabs(float val) -> decltype(::fabs(val)) { return ::fabs(val); }
+        GT_FUNCTION decltype(auto) fabs(float val) { return ::fabs(val); }
 
         template <typename Value>
-        GT_FUNCTION auto fabs(Value val) -> decltype(::fabs((double)val)) {
+        GT_FUNCTION decltype(auto) fabs(Value val) {
             return ::fabs((double)val);
         }
 #ifndef __CUDA_ARCH__
-        GT_FUNCTION_HOST auto fabs(long double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
+        GT_FUNCTION_HOST decltype(auto) fabs(long double val) { return std::fabs(val); }
 #else
         // long double not supported in device code
         template <typename ErrorTrigger = double>
@@ -141,15 +141,15 @@ namespace gridtools {
 #ifdef __CUDACC__
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
-        GT_FUNCTION auto abs(int val) -> decltype(::abs(val)) { return ::abs(val); }
+        GT_FUNCTION decltype(auto) abs(int val) { return ::abs(val); }
 
-        GT_FUNCTION auto abs(long val) -> decltype(::abs(val)) { return ::abs(val); }
+        GT_FUNCTION decltype(auto) abs(long val) { return ::abs(val); }
 
-        GT_FUNCTION auto abs(long long val) -> decltype(::abs(val)) { return ::abs(val); }
+        GT_FUNCTION decltype(auto) abs(long long val) { return ::abs(val); }
 
         // forward to fabs
         template <typename Value>
-        GT_FUNCTION auto abs(Value val) -> decltype(math::fabs(val)) {
+        GT_FUNCTION decltype(auto) abs(Value val) {
             return math::fabs(val);
         }
 #else
@@ -200,9 +200,9 @@ namespace gridtools {
 #ifdef __CUDACC__
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
-        GT_FUNCTION auto fmod(float x, float y) -> decltype(::fmodf(x, y)) { return ::fmodf(x, y); }
+        GT_FUNCTION decltype(auto) fmod(float x, float y) { return ::fmodf(x, y); }
 
-        GT_FUNCTION auto fmod(double x, double y) -> decltype(::fmod(x, y)) { return ::fmod(x, y); }
+        GT_FUNCTION decltype(auto) fmod(double x, double y) { return ::fmod(x, y); }
 
 #ifdef __CUDA_ARCH__
         template <typename ErrorTrigger = int>
@@ -211,7 +211,7 @@ namespace gridtools {
             return -1.;
         }
 #else
-        GT_FUNCTION auto fmod(long double x, long double y) -> decltype(std::fmod(x, y)) { return std::fmod(x, y); }
+        GT_FUNCTION decltype(auto) fmod(long double x, long double y) { return std::fmod(x, y); }
 #endif
 #else
         using std::fmod;
@@ -220,12 +220,12 @@ namespace gridtools {
 #ifdef __CUDACC__
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
-        GT_FUNCTION auto trunc(float val) -> decltype(::truncf(val)) { return ::truncf(val); }
+        GT_FUNCTION decltype(auto) trunc(float val) { return ::truncf(val); }
 
-        GT_FUNCTION auto trunc(double val) -> decltype(::trunc(val)) { return ::trunc(val); }
+        GT_FUNCTION decltype(auto) trunc(double val) { return ::trunc(val); }
 
         template <typename Value>
-        GT_FUNCTION auto trunc(Value val) -> decltype(::trunc((double)val)) {
+        GT_FUNCTION decltype(auto) trunc(Value val) {
             return ::trunc((double)val);
         }
 
@@ -236,7 +236,7 @@ namespace gridtools {
             return 1.;
         }
 #else
-        GT_FUNCTION auto trunc(long double val) -> decltype(std::trunc(val)) { return std::trunc(val); }
+        GT_FUNCTION decltype(auto) trunc(long double val) { return std::trunc(val); }
 #endif
 #else
         using std::trunc;
