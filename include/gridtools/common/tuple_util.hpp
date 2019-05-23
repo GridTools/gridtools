@@ -288,7 +288,7 @@ namespace gridtools {
             template <class Fun>
             struct get_fun_result_index {
                 template <class I, class... Ts>
-                using apply = decltype(std::declval<Fun>().template operator()<I::value>(std::declval<Ts>()...));
+                using apply = decltype(std::declval<Fun>().template operator() < I::value > (std::declval<Ts>()...));
             };
 
             template <class Fun>
@@ -405,7 +405,7 @@ namespace gridtools {
                 struct generate_f<L<Generators...>, Res> {
                     template <class... Args>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Args &&... args) const {
-                        return {Generators{}(wstd::forward<Args>(args)...)...};
+                        return Res{Generators{}(wstd::forward<Args>(args)...)...};
                     }
                 };
 
@@ -1389,7 +1389,7 @@ namespace gridtools {
             //
             template <template <class, size_t> class Arr, class D = void, class... Ts>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Arr<typename _impl::make_array_helper<D, Ts...>::type, sizeof...(Ts)>
-            make(Ts && ... elems) {
+                make(Ts && ... elems) {
                 using common_type_t = typename _impl::make_array_helper<D, Ts...>::type;
                 return {{implicit_cast<common_type_t>(wstd::forward<Ts>(elems))...}};
             }

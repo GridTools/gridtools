@@ -29,7 +29,7 @@ namespace gridtools {
         static event_holder create_event() {
             cudaEvent_t event;
             GT_CUDA_CHECK(cudaEventCreate(&event));
-            return {event};
+            return event_holder{event};
         }
 
         event_holder m_start = create_event();
