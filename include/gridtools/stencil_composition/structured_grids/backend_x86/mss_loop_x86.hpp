@@ -31,9 +31,6 @@
  */
 namespace gridtools {
     namespace mss_loop_x86_impl_ {
-        template <class ExecutionType>
-        integral_constant<int_t, execute::is_backward<ExecutionType>::value ? -1 : 1> step;
-
         template <class ExecutionType,
             class From,
             class To,
@@ -47,7 +44,7 @@ namespace gridtools {
             int_t n = grid.count(From{}, To{});
             for (int_t i = 0; i < n; ++i) {
                 for_each<meta::flatten<StageGroups>>([&](auto stage) { stage(ptr, strides); });
-                sid::shift(ptr, sid::get_stride<dim::k>(strides), step<ExecutionType>);
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
             }
         }
 
@@ -61,7 +58,7 @@ namespace gridtools {
         GT_FORCE_INLINE void execute_interval(
             loop_interval<Level, Level, StageGroups>, Grid const &grid, Ptr &ptr, Strides const &strides) {
             for_each<meta::flatten<StageGroups>>([&](auto stage) { stage(ptr, strides); });
-            sid::shift(ptr, sid::get_stride<dim::k>(strides), step<ExecutionType>);
+            sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
         }
 
         template <class ExecutionType,
@@ -74,7 +71,7 @@ namespace gridtools {
             std::enable_if_t<meta::is_empty<StageGroups>::value, int> = 0>
         GT_FORCE_INLINE void execute_interval(
             loop_interval<From, To, StageGroups>, Grid const &grid, Ptr &ptr, Strides const &strides) {
-            sid::shift(ptr, sid::get_stride<dim::k>(strides), step<ExecutionType> * grid.count(From{}, To{}));
+            sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType> * grid.count(From{}, To{}));
         }
     } // namespace mss_loop_x86_impl_
 

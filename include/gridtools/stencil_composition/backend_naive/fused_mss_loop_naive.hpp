@@ -27,10 +27,8 @@
 
 namespace gridtools {
     namespace naive_impl_ {
-
-        template <class Ptr, class Strides, class Grid>
+        template <class Strides, class Grid>
         struct correct_ptr_f {
-            Ptr &m_ptr;
             Strides const &m_strides;
             Grid const &m_grid;
 
@@ -39,9 +37,8 @@ namespace gridtools {
                 return sid::get_stride<Arg, Dim>(m_strides);
             }
 
-            template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
-            void operator()() const {
-                auto &ptr = at_key<Arg>(m_ptr);
+            template <class Arg, class Ptr, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
+            void operator()(Ptr &ptr) const {
                 using storage_info_t = typename Arg::data_store_t::storage_info_t;
                 GT_STATIC_ASSERT(is_storage_info<storage_info_t>::value, GT_INTERNAL_ERROR);
                 sid::shift(ptr, stride<Arg, dim::i>(), storage_info_t::halo_t::template at<dim::i::value>());
@@ -49,74 +46,16 @@ namespace gridtools {
                 sid::shift(ptr, stride<Arg, dim::k>(), -m_grid.k_min());
             }
 
-            template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
-            void operator()() const {
-                auto &ptr = at_key<Arg>(m_ptr);
+            template <class Arg, class Ptr, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
+            void operator()(Ptr &ptr) const {
                 sid::shift(ptr, stride<Arg, dim::i>(), m_grid.i_low_bound());
                 sid::shift(ptr, stride<Arg, dim::j>(), m_grid.j_low_bound());
             }
         };
-
-        // execute a stage with the given local domain on the given computation area defined by grid
         template <class Ptr, class Strides, class Grid>
-        struct stage_executor_f {
-            Ptr m_ptr;
-            Strides const &m_strides;
-            Grid const &m_grid;
-
-            template <template <class...> class L, class From, class To, class Stage>
-            void operator()(L<From, To, Stage>) const {
-                using extent_t = typename Stage::extent_t;
-
-                int_t k_from = m_grid.template value_at<From>();
-                int_t k_to = m_grid.template value_at<To>();
-
-                Ptr ptr = m_ptr;
-
-                sid::shift(ptr, sid::get_stride<dim::i>(m_strides), extent_t::iminus::value);
-                sid::shift(ptr, sid::get_stride<dim::j>(m_strides), extent_t::jminus::value);
-                sid::shift(ptr, sid::get_stride<dim::k>(m_strides), k_from);
-
-                auto i_loop = sid::make_loop<dim::i>(int_t(m_grid.i_high_bound() - m_grid.i_low_bound() + 1 +
-                                                           extent_t::iplus::value - extent_t::iminus::value));
-                auto j_loop = sid::make_loop<dim::j>(int_t(m_grid.j_high_bound() - m_grid.j_low_bound() + 1 +
-                                                           extent_t::jplus::value - extent_t::jminus::value));
-                auto k_loop = sid::make_loop<dim::k>(1 + std::abs(k_to - k_from), k_to >= k_from ? 1 : -1);
-
-                i_loop(j_loop(k_loop(Stage{})))(ptr, m_strides);
-            }
-        };
-
-        template <class Ptr, class Strides, class Grid>
-        stage_executor_f<Ptr, Strides, Grid> stage_executor(Ptr ptr, Strides const &strides, Grid const &grid) {
-            for_each_type<get_keys<Ptr>>(correct_ptr_f<Ptr, Strides, Grid>{ptr, strides, grid});
-            return {ptr, strides, grid};
+        void correct_ptr(Ptr &ptr, Strides const &strides, Grid const &grid) {
+            hymap::for_each(correct_ptr_f<Strides, Grid>{strides, grid}, ptr);
         }
-
-        // split the loop interval into the list of triples meta::list<From, To, Stage>
-        template <class LoopInterval,
-            class From = meta::first<LoopInterval>,
-            class To = meta::second<LoopInterval>,
-            class StageGroups = meta::third<LoopInterval>,
-            class Stages = meta::flatten<StageGroups>>
-        using split_loop_interval = meta::transform<meta::curry<meta::list, From, To>::template apply, Stages>;
-
-        // split the list of loop intervals into the list of triples meta::list<From, To, Stage>
-        template <class LoopIntervals>
-        using split_loop_intervals = meta::flatten<meta::transform<split_loop_interval, LoopIntervals>>;
-
-        // execute stages in mss
-        template <class Grid>
-        struct mss_executor_f {
-            Grid const &m_grid;
-            template <class MssComponents, class LocalDomain>
-            void operator()(MssComponents, LocalDomain const &local_domain) const {
-                GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
-                GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-                using loop_intervals_t = split_loop_intervals<typename MssComponents::loop_intervals_t>;
-                for_each<loop_intervals_t>(stage_executor(local_domain.m_ptr_holder(), local_domain.m_strides, m_grid));
-            }
-        };
     } // namespace naive_impl_
 
     /**
@@ -125,7 +64,41 @@ namespace gridtools {
      */
     template <class MssComponents, class LocalDomains, class Grid>
     void fused_mss_loop(backend::naive, LocalDomains const &local_domains, Grid const &grid) {
-        tuple_util::for_each(naive_impl_::mss_executor_f<Grid>{grid}, MssComponents{}, local_domains);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        tuple_util::for_each(
+            [&](auto mss_components, auto const &local_domain) {
+                using mss_components_t = decltype(mss_components);
+                GT_STATIC_ASSERT(is_local_domain<std::decay_t<decltype(local_domain)>>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(is_mss_components<mss_components_t>::value, GT_INTERNAL_ERROR);
+                for_each<typename mss_components_t::loop_intervals_t>([&](auto loop_interval) {
+                    using loop_interval_t = decltype(loop_interval);
+                    using from_t = meta::first<loop_interval_t>;
+                    using to_t = meta::second<loop_interval_t>;
+                    using stages_t = meta::flatten<meta::third<loop_interval_t>>;
+                    for_each<stages_t>([&](auto stage) {
+                        auto ptr = local_domain.m_ptr_holder();
+                        auto const &strides = local_domain.m_strides;
+                        naive_impl_::correct_ptr(ptr, strides, grid);
+
+                        using extent_t = typename decltype(stage)::extent_t;
+
+                        sid::shift(ptr, sid::get_stride<dim::i>(strides), typename extent_t::iminus{});
+                        sid::shift(ptr, sid::get_stride<dim::j>(strides), typename extent_t::jminus{});
+                        sid::shift(ptr, sid::get_stride<dim::k>(strides), grid.template value_at<from_t>());
+
+                        auto i_loop = sid::make_loop<dim::i>(grid.i_high_bound() - grid.i_low_bound() + 1 +
+                                                             extent_t::iplus::value - extent_t::iminus::value);
+                        auto j_loop = sid::make_loop<dim::j>(grid.j_high_bound() - grid.j_low_bound() + 1 +
+                                                             extent_t::jplus::value - extent_t::jminus::value);
+                        auto k_loop = sid::make_loop<dim::k>(grid.count(from_t{}, to_t{}),
+                            execute::step<typename mss_components_t::mss_descriptor_t::execution_engine_t>);
+
+                        i_loop(j_loop(k_loop(stage)))(ptr, strides);
+                    });
+                });
+            },
+            MssComponents{},
+            local_domains);
     }
 
     /**
