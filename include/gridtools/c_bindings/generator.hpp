@@ -63,17 +63,17 @@ namespace gridtools {
                 using type = typename recursive_remove_cv<typename std::remove_pointer<T>::type>::type *;
             };
 
-            struct get_c_type_name_f {
-                template <class T>
-                std::string operator()() const {
-                    return boost::typeindex::type_id<typename recursive_remove_cv<T>::type>().pretty_name();
-                }
-            };
-
             template <class T>
             std::string get_c_type_name() {
                 return boost::typeindex::type_id<typename recursive_remove_cv<T>::type>().pretty_name();
             }
+
+            struct get_c_type_name_f {
+                template <class T>
+                std::string operator()() const {
+                    return get_c_type_name<T>();
+                }
+            };
 
             template <class TypeToStr, class Fun>
             struct for_each_param_helper_f {
