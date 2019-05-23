@@ -405,7 +405,7 @@ namespace gridtools {
                 struct generate_f<L<Generators...>, Res> {
                     template <class... Args>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Args &&... args) const {
-                        return {Generators{}(wstd::forward<Args>(args)...)...};
+                        return Res{Generators{}(wstd::forward<Args>(args)...)...};
                     }
                 };
 
@@ -1375,14 +1375,14 @@ namespace gridtools {
             //
             template <template <class...> class L, class... Ts>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR L<Ts...> make(Ts const &... elems) {
-                return {elems...};
+                return L<Ts...>{elems...};
             }
 
             /// Generalization of `std::tie`
             //
             template <template <class...> class L, class... Ts>
             GT_TARGET GT_FORCE_INLINE L<Ts &...> tie(Ts & ... elems) {
-                return {elems...};
+                return L<Ts &...>{elems...};
             }
 
             /// Generalization of `std::experimental::make_array`
