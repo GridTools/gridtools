@@ -187,7 +187,7 @@ def _emulate_sbatch(commands, cwd):
     return outputs
 
 
-def sbatch(commands, cwd=None, use_srun=True, use_mpi_config=False):
+def _sbatch(commands, cwd=None, use_srun=True, use_mpi_config=False):
     if env.use_slurm():
         with tempfile.TemporaryDirectory(dir='.') as rundir:
             task = _run_sbatch(rundir, commands, cwd, use_srun, use_mpi_config)
@@ -196,8 +196,19 @@ def sbatch(commands, cwd=None, use_srun=True, use_mpi_config=False):
         return _emulate_sbatch(commands, cwd)
 
 
+def sbatch(commands, *args, **kwargs):
+    outputs = _sbatch(commands, *args, **kwargs)
+    failures = ''
+    for command, (exitcode, stdout, stderr) in zip(commands, outputs):
+        if exitcode != 0:
+            failures += f'Command "{command}" failed with output:\n{stdout}\n{stderr}\n'
+    if failures:
+        raise RuntimeError(failures)
+    return [stdout for _, stdout, _ in outputs]
+
+
 def sbatch_retry(commands, retries, *args, **kwargs):
-    outputs = sbatch(commands, *args, **kwargs)
+    outputs = _sbatch(commands, *args, **kwargs)
     for retry in range(retries):
         exitcodes = [exitcode for exitcode, *_ in outputs]
         if all(exitcode == 0 for exitcode in exitcodes):
@@ -213,12 +224,12 @@ def sbatch_retry(commands, retries, *args, **kwargs):
                 failed_commands.append(command)
                 failed_indices.append(i)
 
-        failed_outputs = sbatch(failed_commands, *args, **kwargs)
+        failed_outputs = _sbatch(failed_commands, *args, **kwargs)
 
         for i, o in zip(failed_indices, failed_outputs):
             outputs[i] = o
-    for command, (exitcode, stdout, stderr) in zip(commands, outputs):
+    for command, (exitcode, _, stderr) in zip(commands, outputs):
         if exitcode != 0:
             raise RuntimeError(f'Command "{command}" still failed after '
                                f'{retries} retries with output: {stderr}')
-    return outputs
+    return [stdout for _, stdout, _ in outputs]
