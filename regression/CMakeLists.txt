@@ -45,6 +45,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
           if (srcfile IN_LIST SOURCES_PERFTEST)
               add_dependencies(perftests ${srcfile}_x86)
+              set_property(TEST tests.${srcfile}_x86_23_11_43 APPEND PROPERTY LABELS perftests_x86)
           endif()
         endforeach(srcfile)
 
@@ -102,6 +103,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
               )
           if (srcfile IN_LIST SOURCES_PERFTEST)
             add_dependencies(perftests ${srcfile}_mc)
+            set_property(TEST tests.${srcfile}_mc_23_11_43 APPEND PROPERTY LABELS perftests_mc)
           endif()
         endforeach(srcfile)
 
@@ -133,6 +135,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
                )
            if (srcfile IN_LIST SOURCES_PERFTEST)
              add_dependencies(perftests ${srcfile}_cuda)
+             set_property(TEST tests.${srcfile}_mc_63_38_10 APPEND PROPERTY LABELS perftests_cuda)
            endif()
 
            if (GT_CUDA_PTX_GENERATION)
