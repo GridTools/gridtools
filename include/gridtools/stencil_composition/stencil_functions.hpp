@@ -42,7 +42,6 @@ namespace gridtools {
 
         template <class Key>
         struct sum_offset_generator_f {
-            using type = sum_offset_generator_f;
 
             using default_t = integral_constant<int_t, 0>;
 

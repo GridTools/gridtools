@@ -164,19 +164,6 @@ namespace gridtools {
         //
         local_domains_t m_local_domains;
 
-        struct check_grid_against_extents_f {
-            Grid const &m_grid;
-
-            template <class Placeholder>
-            void operator()() const {
-                using extent_t = decltype(intermediate::get_arg_extent(Placeholder()));
-                assert(-extent_t::iminus::value <= static_cast<int_t>(m_grid.direction_i().minus()));
-                assert(extent_t::iplus::value <= static_cast<int_t>(m_grid.direction_i().plus()));
-                assert(-extent_t::jminus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
-                assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().plus()));
-            }
-        };
-
         template <class... Args, class... DataStores>
         local_domains_t const &local_domains(arg_storage_pair<Args, DataStores> const &... srcs) {
             _impl::update_local_domains(
@@ -200,7 +187,13 @@ namespace gridtools {
             if (timer_enabled)
                 m_meter.reset(new performance_meter_t{"NoName"});
 #ifndef NDEBUG
-            for_each_type<non_tmp_placeholders_t>(check_grid_against_extents_f{m_grid});
+            for_each<non_tmp_placeholders_t>([&](auto placeholder) {
+                using extent_t = decltype(get_arg_extent(placeholder));
+                assert(-extent_t::iminus::value <= static_cast<int_t>(m_grid.direction_i().minus()));
+                assert(extent_t::iplus::value <= static_cast<int_t>(m_grid.direction_i().plus()));
+                assert(-extent_t::jminus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
+                assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().plus()));
+            });
 #endif
         }
 

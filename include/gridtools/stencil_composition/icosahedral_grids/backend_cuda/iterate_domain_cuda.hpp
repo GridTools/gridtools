@@ -16,14 +16,11 @@
 #include <type_traits>
 #include <utility>
 
-#include <boost/fusion/include/at_key.hpp>
-
 #include "../../../common/array.hpp"
 #include "../../../common/cuda_type_traits.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../../meta.hpp"
-#include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../caches/cache_metafunctions.hpp"
 #include "../../esf_metafunctions.hpp"
 #include "../../iterate_domain_fwd.hpp"
@@ -44,18 +41,16 @@ namespace gridtools {
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
         GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
-        using caches_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
+        using caches_t = typename local_domain_t::cache_sequence_t;
         using ij_cache_args_t = ij_cache_args<caches_t>;
         using k_cache_args_t = k_cache_args<caches_t>;
-
         using readwrite_args_t = compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>;
 
-        using cache_sequence_t = typename IterateDomainArguments::local_domain_t::cache_sequence_t;
-
       public:
-        using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
-
-        typedef typename iterate_domain_cache_t::ij_caches_tuple_t shared_iterate_domain_t;
+        using shared_iterate_domain_t = get_ij_cache_storage_map<caches_t,
+            typename local_domain_t::max_extent_for_tmp_t,
+            block_i_size(backend::cuda{}),
+            block_j_size(backend::cuda{})>;
 
       private:
         using base_t::increment_i;
@@ -66,7 +61,6 @@ namespace gridtools {
         int_t m_block_size_i;
         int_t m_block_size_j;
         shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
-        iterate_domain_cache_t m_iterate_domain_cache;
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
         template <class Arg, class T>
@@ -82,7 +76,7 @@ namespace gridtools {
         }
 
       public:
-        static constexpr bool has_ij_caches = !meta::is_empty<ij_caches<cache_sequence_t>>::value;
+        static constexpr bool has_ij_caches = !meta::is_empty<ij_cache_args_t>::value;
 
         template <class T>
         GT_FUNCTION_DEVICE iterate_domain_cuda(T &&obj, int_t block_size_i, int_t block_size_j)
@@ -109,7 +103,7 @@ namespace gridtools {
 
         template <class Arg, class Accessor, std::enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
         GT_FUNCTION typename Arg::data_store_t::data_t &deref(Accessor const &acc) const {
-            return boost::fusion::at_key<Arg>(*m_pshared_iterate_domain)
+            return host_device::at_key<Arg>(*m_pshared_iterate_domain)
                 .at(m_thread_pos[0], m_thread_pos[1], this->m_color, acc);
         }
 

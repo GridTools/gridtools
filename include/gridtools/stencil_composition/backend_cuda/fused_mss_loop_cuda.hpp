@@ -87,20 +87,23 @@ namespace gridtools {
                 run_functors_on_interval<RunFunctorArguments, run_esf_functor_cuda>(it_domain, m_grid);
             }
         };
+    } // namespace fused_mss_loop_cuda_impl_
 
-        template <class Grid>
-        struct mss_executor_f {
-            Grid const &m_grid;
+    template <class MssComponents, class LocalDomains, class Grid>
+    void fused_mss_loop(backend::cuda, LocalDomains const &local_domains, const Grid &grid) {
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        tuple_util::for_each(
+            [&](auto mss_components, auto const &local_domain) {
+                using mss_components_t = decltype(mss_components);
+                using local_domain_t = std::decay_t<decltype(local_domain)>;
 
-            template <class MssComponents, class LocalDomain>
-            void operator()(MssComponents, LocalDomain const &local_domain) const {
-                GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
-                GT_STATIC_ASSERT(is_mss_components<MssComponents>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(is_mss_components<mss_components_t>::value, GT_INTERNAL_ERROR);
 
-                using execution_type_t = typename MssComponents::execution_engine_t;
+                using execution_type_t = typename mss_components_t::execution_engine_t;
                 using run_functor_args_t = run_functor_arguments<backend::cuda,
-                    typename MssComponents::linear_esf_t,
-                    typename MssComponents::loop_intervals_t,
+                    typename mss_components_t::linear_esf_t,
+                    typename mss_components_t::loop_intervals_t,
                     execution_type_t>;
                 using max_extent_t = typename run_functor_args_t::max_extent_t;
 
@@ -109,21 +112,17 @@ namespace gridtools {
                 static constexpr int_t block_size_j = GT_DEFAULT_TILE_J;
 
                 // number of blocks required
-                uint_t xblocks = (m_grid.i_high_bound() - m_grid.i_low_bound() + block_size_i) / block_size_i;
-                uint_t yblocks = (m_grid.j_high_bound() - m_grid.j_low_bound() + block_size_j) / block_size_j;
-                uint_t zblocks = blocks_required_z<execution_type_t>(m_grid.k_total_length());
+                uint_t xblocks = (grid.i_high_bound() - grid.i_low_bound() + block_size_i) / block_size_i;
+                uint_t yblocks = (grid.j_high_bound() - grid.j_low_bound() + block_size_j) / block_size_j;
+                uint_t zblocks = fused_mss_loop_cuda_impl_::blocks_required_z<execution_type_t>(grid.k_total_length());
 
                 launch_kernel<max_extent_t, block_size_i, block_size_j>({xblocks, yblocks, zblocks},
-                    do_it_on_gpu_f<run_functor_args_t, block_size_i, block_size_j, LocalDomain, Grid>{
-                        local_domain, m_grid});
-            }
-        };
-    } // namespace fused_mss_loop_cuda_impl_
-
-    template <class MssComponents, class LocalDomains, class Grid>
-    void fused_mss_loop(backend::cuda, LocalDomains const &local_domains, const Grid &grid) {
-        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        tuple_util::for_each(fused_mss_loop_cuda_impl_::mss_executor_f<Grid>{grid}, MssComponents{}, local_domains);
+                    fused_mss_loop_cuda_impl_::
+                        do_it_on_gpu_f<run_functor_args_t, block_size_i, block_size_j, local_domain_t, Grid>{
+                            local_domain, grid});
+            },
+            MssComponents{},
+            local_domains);
     }
 
     /**

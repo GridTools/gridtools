@@ -72,15 +72,15 @@ namespace gridtools {
                 bool IsFirst,
                 bool IsLast,
                 std::enable_if_t<meta::length<Stages>::value != 0, int> = 0>
-            GT_FUNCTION void k_loop(int_t first, int_t last) const {
+            GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
                 for (int_t cur = first; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
                     if (m_in_domain)
-                        m_domain.template fill_caches<IterationPolicy>(IsFirst && cur == first);
+                        m_domain.template fill_caches<execution_type_t>(IsFirst && cur == first);
                     RunEsfFunctor::template exec<Stages>(m_domain);
                     if (m_in_domain)
-                        m_domain.template flush_caches<IterationPolicy>(IsLast && cur == last);
-                    m_domain.template slide_caches<IterationPolicy>();
+                        m_domain.template flush_caches<execution_type_t>(IsLast && cur == last);
+                    m_domain.template slide_caches<execution_type_t>();
                 }
             }
 
@@ -89,19 +89,19 @@ namespace gridtools {
                 bool IsFirst,
                 bool IsLast,
                 std::enable_if_t<meta::length<Stages>::value == 0, int> = 0>
-            GT_FUNCTION void k_loop(int_t first, int_t last) const {
+            GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
                 for (int_t cur = first; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
                     if (m_in_domain) {
-                        m_domain.template fill_caches<IterationPolicy>(IsFirst && cur == first);
-                        m_domain.template flush_caches<IterationPolicy>(IsLast && cur == last);
+                        m_domain.template fill_caches<execution_type_t>(IsFirst && cur == first);
+                        m_domain.template flush_caches<execution_type_t>(IsLast && cur == last);
                     }
-                    m_domain.template slide_caches<IterationPolicy>();
+                    m_domain.template slide_caches<execution_type_t>();
                 }
             }
 
             template <class LoopInterval>
-            GT_FUNCTION void operator()() const {
+            GT_FUNCTION_DEVICE void operator()() const {
                 GT_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
                 using from_t = meta::first<LoopInterval>;
                 using to_t = meta::second<LoopInterval>;
@@ -160,10 +160,10 @@ namespace gridtools {
     } // namespace _impl
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
-    GT_FUNCTION std::enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(
+    GT_FUNCTION_DEVICE std::enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(
         ItDomain &it_domain, Grid const &grid) {
         bool in_domain = it_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
-        host_device::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
+        device::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
             _impl::run_f_on_interval_with_k_caches<RunFunctorArguments, RunEsfFunctor, ItDomain, Grid>{
                 it_domain, in_domain, grid});
     }
