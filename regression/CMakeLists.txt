@@ -135,7 +135,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
                )
            if (srcfile IN_LIST SOURCES_PERFTEST)
              add_dependencies(perftests ${srcfile}_cuda)
-             set_property(TEST tests.${srcfile}_mc_63_38_10 APPEND PROPERTY LABELS perftests_cuda)
+             set_property(TEST tests.${srcfile}_cuda_63_38_10 APPEND PROPERTY LABELS perftests_cuda)
            endif()
 
            if (GT_CUDA_PTX_GENERATION)
