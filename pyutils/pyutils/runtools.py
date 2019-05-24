@@ -96,7 +96,7 @@ def _generate_sbatch(commands, cwd, use_srun, use_mpi_config):
     code += f'cd {cwd}\n'
     code += 'case $SLURM_ARRAY_TASK_ID in\n'
     for i, command in enumerate(commands):
-        commandstr = ' '.join(command)
+        commandstr = ' '.join(f"'{c}'" for c in command)
         code += f'    {i})\n        {srun} {commandstr}\n        ;;\n'
     code += '    *)\nesac'
     return code
