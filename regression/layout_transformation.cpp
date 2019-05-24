@@ -19,7 +19,7 @@ namespace {
     class generic_benchmark {
       public:
         template <typename F>
-        generic_benchmark(const std::string &name, F &&f) : m_f(f), m_meter(name) {}
+        generic_benchmark(F &&f) : m_f(f), m_meter("") {}
 
         void run() {
             m_meter.start();
@@ -65,33 +65,24 @@ namespace {
     }
 } // namespace
 
-template <typename SrcLayout, typename SrcAlignment, typename DstLayout, typename DstAlignment>
 struct layout_transformation : regression_fixture<0> {
-  private:
     template <int_t Id, typename Layout, typename Alignment>
     using storage_info_t =
         typename storage_tr::select_custom_layout_storage_info_align<Id, Layout, halo<0, 0, 0>, Alignment>::type;
     template <int_t Id, typename Layout, typename Alignment>
     using storage_t = storage_tr::data_store_t<float_type, storage_info_t<Id, Layout, Alignment>>;
+};
 
-    using src_storage_t = storage_t<0, SrcLayout, SrcAlignment>;
-    using dst_storage_t = storage_t<1, DstLayout, DstAlignment>;
+TEST_F(layout_transformation, ijk_to_kji) {
+
+    using src_storage_t = storage_t<0, layout_map<0, 1, 2>, alignment<1>>;
+    using dst_storage_t = storage_t<1, layout_map<2, 1, 0>, alignment<32>>;
 
     src_storage_t src = make_storage<src_storage_t>([](int i, int j, int k) { return i + j + k; });
     dst_storage_t dst = make_storage<dst_storage_t>(-1.);
 
-  public:
-    void run_test() {
+    transform(src, dst);
+    verify_result(src, dst);
 
-        transform(src, dst);
-        verify_result(src, dst);
-
-        benchmark(generic_benchmark{"same_layout", [&]() { transform(src, dst); }});
-    }
-};
-
-using IJK_to_IJK = layout_transformation<layout_map<0, 1, 2>, alignment<1>, layout_map<0, 1, 2>, alignment<32>>;
-TEST_F(IJK_to_IJK, perf) { run_test(); }
-
-using IJK_to_KJI = layout_transformation<layout_map<0, 1, 2>, alignment<1>, layout_map<2, 1, 0>, alignment<1>>;
-TEST_F(IJK_to_KJI, perf) { run_test(); }
+    benchmark(generic_benchmark{[&]() { transform(src, dst); }});
+}
