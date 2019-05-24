@@ -18,7 +18,7 @@ include(workaround_threads)
 _fix_threads_flags()
 
 include(FetchContent)
-option(INSTALL_GTEST OFF)
+option(INSTALL_GTEST OFF) #TODO replace with set(INSTALL_GTEST OFF) with CMake >= 3.13
 mark_as_advanced(INSTALL_GTEST)
 FetchContent_Declare(
   googletest
