@@ -44,12 +44,12 @@ namespace gridtools {
     /**
      * Metafunction taking extents and yielding an extent containing them
      */
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <class...>
         struct enclosing_extent;
     }
     GT_META_DELEGATE_TO_LAZY(enclosing_extent, class... Extents, Extents...);
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <>
         struct enclosing_extent<> {
             using type = extent<>;
@@ -84,20 +84,18 @@ namespace gridtools {
 
         template <class... Extents>
         struct enclosing_extent : meta::lazy::combine<gridtools::enclosing_extent, meta::list<Extents...>> {};
-    }
+    } // namespace lazy
 
     /**
      * Metafunction taking two extents and yielding a extent which is the extension of one another
      */
     template <typename Extent1, typename Extent2>
-    GT_META_DEFINE_ALIAS(sum_extent,
-        extent,
-        (Extent1::iminus::value + Extent2::iminus::value,
-            Extent1::iplus::value + Extent2::iplus::value,
-            Extent1::jminus::value + Extent2::jminus::value,
-            Extent1::jplus::value + Extent2::jplus::value,
-            Extent1::kminus::value + Extent2::kminus::value,
-            Extent1::kplus::value + Extent2::kplus::value));
+    using sum_extent = extent<Extent1::iminus::value + Extent2::iminus::value,
+        Extent1::iplus::value + Extent2::iplus::value,
+        Extent1::jminus::value + Extent2::jminus::value,
+        Extent1::jplus::value + Extent2::jplus::value,
+        Extent1::kminus::value + Extent2::kminus::value,
+        Extent1::kplus::value + Extent2::kplus::value>;
 
     struct rt_extent {
         template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus>

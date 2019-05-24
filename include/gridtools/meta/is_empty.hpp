@@ -17,6 +17,6 @@
 namespace gridtools {
     namespace meta {
         template <class T>
-        GT_META_DEFINE_ALIAS(is_empty, bool_constant, length<T>::value == 0);
+        using is_empty = bool_constant<length<T>::value == 0>;
     } // namespace meta
 } // namespace gridtools

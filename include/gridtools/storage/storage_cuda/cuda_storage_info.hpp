@@ -45,8 +45,9 @@ namespace gridtools {
          * method.
          */
         template <class SI>
-        auto make_storage_info_ptr_cache(SI const &src)
-            GT_AUTO_RETURN(std::make_pair(src, cuda_util::make_clone(src).release()));
+        auto make_storage_info_ptr_cache(SI const &src) {
+            return std::make_pair(src, cuda_util::make_clone(src).release());
+        }
     } // namespace impl_
 
     /*

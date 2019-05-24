@@ -62,7 +62,7 @@ namespace gridtools {
             };
             template <class T>
             struct param_converted_to_c<T,
-                typename std::enable_if<std::is_class<remove_reference_t<T>>::value &&
+                typename std::enable_if<std::is_class<typename std::remove_reference<T>::type>::value &&
                                         !is_fortran_array_bindable<T>::value>::type> {
                 using type = gt_handle *;
             };
@@ -105,7 +105,7 @@ namespace gridtools {
 
             template <class T, typename std::enable_if<std::is_pointer<T>::value, int>::type = 0>
             T convert_from_c(gt_handle *obj) {
-                return &any_cast<remove_pointer_t<T> &>(obj->m_value);
+                return &any_cast<std::remove_pointer_t<T> &>(obj->m_value);
             }
             template <class T, typename std::enable_if<!std::is_pointer<T>::value, int>::type = 0>
             T convert_from_c(gt_handle *obj) {

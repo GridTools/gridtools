@@ -1,6 +1,4 @@
-if("${GT_CXX_STANDARD}" STREQUAL "c++11")
-    set (GT_CXX_STANDARD_VALUE 11)
-elseif("${GT_CXX_STANDARD}" STREQUAL "c++14")
+if("${GT_CXX_STANDARD}" STREQUAL "c++14")
     set (GT_CXX_STANDARD_VALUE 14)
 elseif("${GT_CXX_STANDARD}" STREQUAL "c++17")
     set (GT_CXX_STANDARD_VALUE 17)
@@ -16,7 +14,7 @@ set(CMAKE_CUDA_EXTENSIONS OFF)
 
 add_library(gridtools INTERFACE)
 add_library(GridTools::gridtools ALIAS gridtools)
-target_compile_features(gridtools INTERFACE cxx_std_11)
+target_compile_features(gridtools INTERFACE cxx_std_14)
 target_include_directories(gridtools
     INTERFACE
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -36,13 +34,13 @@ endif()
 target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
 if(CUDA_AVAILABLE)
   target_compile_definitions(gridtools INTERFACE GT_USE_GPU)
-  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 8.0 )
-      message(FATAL_ERROR "CUDA 7.X or lower is not supported")
+  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 9.0 )
+      message(FATAL_ERROR "CUDA 8.X or lower is not supported")
   endif()
 
   # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
   target_compile_options(gridtools INTERFACE
-      $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<STREQUAL:$<TARGET_PROPERTY:CUDA_STANDARD>,14>>:--expt-relaxed-constexpr>)
+      $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
   if(${GT_CXX_STANDARD} STREQUAL "c++17")
     message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
@@ -128,17 +126,12 @@ if( GT_ENABLE_BACKEND_CUDA )
      target_compile_options(GridToolsTest INTERFACE
          $<$<COMPILE_LANGUAGE:CUDA>:-Werror=cross-execution-space-call>
          $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas=--warning-as-error>
-         $<$<COMPILE_LANGUAGE:CUDA>:-Xnvlink=--warning-as-error>)
-     if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL 9.0 )
-         target_compile_options(GridToolsTest INTERFACE
-             $<$<COMPILE_LANGUAGE:CUDA>:-Werror=deprecated-declarations>)
-     endif()
+         $<$<COMPILE_LANGUAGE:CUDA>:-Xnvlink=--warning-as-error>
+         $<$<COMPILE_LANGUAGE:CUDA>:-Werror=deprecated-declarations>)
   endif()
 
-  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL 9.0 )
-    # suppress because of boost::fusion::vector ctor
-    target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
-  endif()
+  # suppress because of boost::fusion::vector ctor
+  target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL 9.2 )
     # suppress because of warnings in GTest
     target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=177>)

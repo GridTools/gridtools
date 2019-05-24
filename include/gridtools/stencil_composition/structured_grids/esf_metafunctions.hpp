@@ -16,16 +16,16 @@
 namespace gridtools {
 
     template <class Esf>
-    GT_META_DEFINE_ALIAS(esf_param_list, meta::id, typename Esf::esf_function_t::param_list);
+    using esf_param_list = typename Esf::esf_function_t::param_list;
 
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <class Esf, class Args>
         struct esf_replace_args;
         template <class F, class OldArgs, class NewArgs>
         struct esf_replace_args<esf_descriptor<F, OldArgs>, NewArgs> {
             using type = esf_descriptor<F, NewArgs>;
         };
-    }
+    } // namespace lazy
     GT_META_DELEGATE_TO_LAZY(esf_replace_args, (class Esf, class Args), (Esf, Args));
 
 } // namespace gridtools

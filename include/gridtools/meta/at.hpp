@@ -13,7 +13,6 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "defs.hpp"
 #include "first.hpp"
 #include "macros.hpp"
 #include "make_indices.hpp"
@@ -26,7 +25,7 @@ namespace gridtools {
         /**
          *   Take Nth element of the List
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class List, std::size_t N>
             struct at_c;
 
@@ -41,14 +40,12 @@ namespace gridtools {
                               std::integral_constant<std::size_t, N>>::type> {};
 
             template <class List, class N>
-            GT_META_DEFINE_ALIAS(at, at_c, (List, N::value));
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+            using at = at_c<List, N::value>;
+        } // namespace lazy
         // 'direct' versions of lazy functions
         template <class List, class N>
         using at = typename lazy::at_c<List, N::value>::type;
         template <class List, std::size_t N>
         using at_c = typename lazy::at_c<List, N>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

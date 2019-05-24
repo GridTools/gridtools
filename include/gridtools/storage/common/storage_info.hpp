@@ -41,7 +41,7 @@ namespace gridtools {
          * @return true if the dimension, stride, size, initial_offset, etc. is equal, otherwise false
          */
         template <uint_t N, typename StorageInfo>
-        GT_FUNCTION enable_if_t<N == 0, bool> equality_check(StorageInfo a, StorageInfo b) {
+        GT_FUNCTION std::enable_if_t<N == 0, bool> equality_check(StorageInfo a, StorageInfo b) {
             return (a.template total_length<N>() == b.template total_length<N>()) &&
                    (a.template stride<N>() == b.template stride<N>()) && (a.length() == b.length()) &&
                    (a.total_length() == b.total_length()) && (a.padded_total_length() == b.padded_total_length());
@@ -53,7 +53,7 @@ namespace gridtools {
          * @return true if the dimension, stride, size, initial_offset, etc. is equal, otherwise false
          */
         template <uint_t N, typename StorageInfo>
-        GT_FUNCTION enable_if_t<N != 0, bool> equality_check(StorageInfo a, StorageInfo b) {
+        GT_FUNCTION std::enable_if_t<N != 0, bool> equality_check(StorageInfo a, StorageInfo b) {
             return (a.template total_length<N>() == b.template total_length<N>()) &&
                    (a.template stride<N>() == b.template stride<N>()) && equality_check<N - 1>(a, b);
         }
@@ -133,7 +133,7 @@ namespace gridtools {
          * region is added to the corresponding dimensions and the alignment is applied.
          */
         template <typename... Dims,
-            enable_if_t<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int> = 0>
+            std::enable_if_t<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR storage_info(Dims... dims_)
             : m_total_lengths{static_cast<uint_t>(dims_)...},
               m_padded_lengths{pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
@@ -323,7 +323,7 @@ namespace gridtools {
          */
 
         template <typename... Ints,
-            enable_if_t<sizeof...(Ints) == ndims && is_all_integral_or_enum<Ints...>::value, int> = 0>
+            std::enable_if_t<sizeof...(Ints) == ndims && is_all_integral_or_enum<Ints...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR int index(Ints... idx) const {
 #ifdef NDEBUG
             return offset(meta::make_integer_sequence<uint_t, ndims>{}, idx...);

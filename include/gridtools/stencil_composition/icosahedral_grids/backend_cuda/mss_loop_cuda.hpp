@@ -125,8 +125,8 @@ namespace gridtools {
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
 
-            using interval_t = GT_META_CALL(meta::first, typename RunFunctorArgs::loop_intervals_t);
-            using from_t = GT_META_CALL(meta::first, interval_t);
+            using interval_t = meta::first<typename RunFunctorArgs::loop_intervals_t>;
+            using from_t = meta::first<interval_t>;
 
             const int_t kblock = impl_::compute_kblock<execution_type_t>::template get<from_t>(grid);
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},

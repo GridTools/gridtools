@@ -29,27 +29,27 @@ namespace custom {
         double b;
 
         struct getter {
-            template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
+            template <size_t I, std::enable_if_t<I == 0, int> = 0>
             static GT_CONSTEXPR int get(foo const &obj) {
                 return obj.a;
             }
-            template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
+            template <size_t I, std::enable_if_t<I == 0, int> = 0>
             static int &get(foo &obj) {
                 return obj.a;
             }
-            template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
+            template <size_t I, std::enable_if_t<I == 0, int> = 0>
             static GT_CONSTEXPR int get(foo &&obj) {
                 return obj.a;
             }
-            template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
+            template <size_t I, std::enable_if_t<I == 1, int> = 0>
             static GT_CONSTEXPR double get(foo const &obj) {
                 return obj.b;
             }
-            template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
+            template <size_t I, std::enable_if_t<I == 1, int> = 0>
             static double &get(foo &obj) {
                 return obj.b;
             }
-            template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
+            template <size_t I, std::enable_if_t<I == 1, int> = 0>
             static GT_CONSTEXPR double get(foo &&obj) {
                 return obj.b;
             }

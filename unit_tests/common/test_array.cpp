@@ -30,7 +30,6 @@ TEST(array, iterate_empty) {
     }
 }
 
-#if __cplusplus >= 201402L
 TEST(array, constexpr_compare) {
     constexpr array<uint_t, 3> a{0, 0, 0};
     constexpr array<uint_t, 3> b{0, 0, 0};
@@ -42,7 +41,6 @@ TEST(array, constexpr_compare) {
     ASSERT_TRUE(eq);
     ASSERT_TRUE(neq);
 }
-#endif
 
 TEST(array, iterate) {
     const int N = 5;

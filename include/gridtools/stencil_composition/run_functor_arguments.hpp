@@ -33,7 +33,7 @@ namespace gridtools {
     };
 
     template <class T>
-    GT_META_DEFINE_ALIAS(is_iterate_domain_arguments, meta::is_instantiation_of, (iterate_domain_arguments, T));
+    using is_iterate_domain_arguments = meta::is_instantiation_of<iterate_domain_arguments, T>;
 
     /**
      * @brief type that contains main metadata required to execute a mss kernel. This type will be passed to
@@ -50,14 +50,13 @@ namespace gridtools {
         GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((meta::all_of<is_loop_interval, LoopIntervals>::value), GT_INTERNAL_ERROR);
 
-        using all_stage_groups_t = GT_META_CALL(
-            meta::flatten, (GT_META_CALL(meta::transform, (meta::third, LoopIntervals))));
-        using all_stages_t = GT_META_CALL(meta::flatten, all_stage_groups_t);
+        using all_stage_groups_t = meta::flatten<meta::transform<meta::third, LoopIntervals>>;
+        using all_stages_t = meta::flatten<all_stage_groups_t>;
 
         template <class Stage>
-        GT_META_DEFINE_ALIAS(get_stage_extent, meta::id, typename Stage::extent_t);
+        using get_stage_extent = typename Stage::extent_t;
 
-        using all_extents_t = GT_META_CALL(meta::transform, (get_stage_extent, all_stages_t));
+        using all_extents_t = meta::transform<get_stage_extent, all_stages_t>;
 
       public:
         using backend_t = Backend;
@@ -68,9 +67,9 @@ namespace gridtools {
         using esf_sequence_t = EsfSequence;
         using loop_intervals_t = LoopIntervals;
         using execution_type_t = ExecutionEngine;
-        using max_extent_t = GT_META_CALL(meta::rename, (enclosing_extent, all_extents_t));
+        using max_extent_t = meta::rename<enclosing_extent, all_extents_t>;
     };
 
     template <class T>
-    GT_META_DEFINE_ALIAS(is_run_functor_arguments, meta::is_instantiation_of, (run_functor_arguments, T));
+    using is_run_functor_arguments = meta::is_instantiation_of<run_functor_arguments, T>;
 } // namespace gridtools

@@ -20,13 +20,13 @@ namespace gridtools {
          * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
          */
         template <typename Mss>
-        GT_META_DEFINE_ALIAS(is_mss_kparallel, execute::is_parallel, typename Mss::execution_engine_t);
+        using is_mss_kparallel = execute::is_parallel<typename Mss::execution_engine_t>;
 
         /**
          * @brief Meta function to check if all MSS in an MssComponents array can be executed in parallel along k-axis.
          */
         template <typename Msses>
-        GT_META_DEFINE_ALIAS(all_mss_kparallel, meta::all_of, (is_mss_kparallel, Msses));
+        using all_mss_kparallel = meta::all_of<is_mss_kparallel, Msses>;
     } // namespace _impl
 
     /**
@@ -36,7 +36,7 @@ namespace gridtools {
     template <class MssComponents,
         class LocalDomainListArray,
         class Grid,
-        enable_if_t<!_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
+        std::enable_if_t<!_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
     void fused_mss_loop(backend::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 
@@ -58,7 +58,7 @@ namespace gridtools {
     template <class MssComponents,
         class LocalDomainListArray,
         class Grid,
-        enable_if_t<_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
+        std::enable_if_t<_impl::all_mss_kparallel<MssComponents>::value, int> = 0>
     void fused_mss_loop(backend::mc, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
 

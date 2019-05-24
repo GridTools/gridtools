@@ -56,13 +56,12 @@ namespace gridtools {
             specialization for Plc and one for NotPlc.
         */
         template <std::size_t I, typename ROTuple, typename AllTuple>
-        auto select_element(ROTuple const &ro_tuple, AllTuple const &, Plc) -> decltype(
-            std::get<std::is_placeholder<typename std::tuple_element<I, AllTuple>::type>::value - 1>(ro_tuple)) {
-            return std::get<std::is_placeholder<typename std::tuple_element<I, AllTuple>::type>::value - 1>(ro_tuple);
+        decltype(auto) select_element(ROTuple const &ro_tuple, AllTuple const &, Plc) {
+            return std::get<std::is_placeholder<std::tuple_element_t<I, AllTuple>>::value - 1>(ro_tuple);
         }
 
         template <std::size_t I, typename ROTuple, typename AllTuple>
-        auto select_element(ROTuple const &, AllTuple const &all, NotPlc) -> decltype(std::get<I>(all)) {
+        decltype(auto) select_element(ROTuple const &, AllTuple const &all, NotPlc) {
             return std::get<I>(all);
         }
 
@@ -79,16 +78,10 @@ namespace gridtools {
             \param all      Tuple of elements that may include placeholders
         */
         template <typename ROTuple, typename AllTuple, std::size_t... IDs>
-        auto substitute_placeholders(ROTuple const &ro_tuple, AllTuple const &all, meta::index_sequence<IDs...>)
-            -> decltype(std::make_tuple(select_element<IDs>(ro_tuple,
-                all,
-                typename PlcOrNot<std::is_placeholder</*typename std::decay<*/
-                    typename std::tuple_element<IDs, AllTuple>::type /*>::type*/>::value>::type{})...)) {
+        auto substitute_placeholders(ROTuple const &ro_tuple, AllTuple const &all, meta::index_sequence<IDs...>) {
             return std::make_tuple(select_element<IDs>(ro_tuple,
                 all,
-                typename PlcOrNot<std::is_placeholder<
-                    /*typename std::decay<*/
-                    typename std::tuple_element<IDs, AllTuple>::type /*>::type*/>::value>::type{})...);
+                typename PlcOrNot<std::is_placeholder<std::tuple_element_t<IDs, AllTuple>>::value>::type{})...);
         }
 
         inline std::tuple<> rest_tuple(std::tuple<>, meta::index_sequence<>) { return {}; }
@@ -97,8 +90,7 @@ namespace gridtools {
             Small facility to obtain a tuple with the elements of am input  tuple execpt the first.
         */
         template <typename... Elems, std::size_t... IDs>
-        auto rest_tuple(std::tuple<Elems...> const &x, meta::index_sequence<IDs...>)
-            -> decltype(std::make_tuple(std::get<IDs + 1u>(x)...)) {
+        auto rest_tuple(std::tuple<Elems...> const &x, meta::index_sequence<IDs...>) {
             return std::make_tuple(std::get<IDs + 1u>(x)...);
         }
 
@@ -122,7 +114,7 @@ namespace gridtools {
             struct collect_indices<I,
                 meta::index_sequence<Is...>,
                 std::tuple<First, Elems...>,
-                typename std::enable_if<(std::is_placeholder<First>::value == 0), void>::type> {
+                std::enable_if_t<(std::is_placeholder<First>::value == 0), void>> {
                 using type =
                     typename collect_indices<I + 1, meta::index_sequence<Is..., I>, std::tuple<Elems...>>::type;
             };
@@ -131,7 +123,7 @@ namespace gridtools {
             struct collect_indices<I,
                 ISeq,
                 std::tuple<First, Elems...>,
-                typename std::enable_if<(std::is_placeholder<First>::value > 0), void>::type> {
+                std::enable_if_t<(std::is_placeholder<First>::value > 0), void>> {
                 using type = typename collect_indices<I + 1, ISeq, std::tuple<Elems...>>::type;
             };
 
@@ -140,15 +132,13 @@ namespace gridtools {
 
         template <typename T>
         constexpr bool data_store_or_placeholder(
-            typename std::enable_if<(is_data_store<T>::value or (std::is_placeholder<T>::value > 0)), void *>::type =
-                nullptr) {
+            std::enable_if_t<(is_data_store<T>::value or (std::is_placeholder<T>::value > 0)), void *> = nullptr) {
             return true;
         }
 
         template <typename T>
         constexpr bool data_store_or_placeholder(
-            typename std::enable_if<not(is_data_store<T>::value or (std::is_placeholder<T>::value > 0)), void *>::type =
-                nullptr) {
+            std::enable_if_t<not(is_data_store<T>::value or (std::is_placeholder<T>::value > 0)), void *> = nullptr) {
             return false;
         }
 
@@ -171,13 +161,12 @@ namespace gridtools {
         struct contains_placeholders<std::tuple<>> : std::false_type {};
 
         template <typename T, typename... Ts>
-        struct contains_placeholders<std::tuple<T, Ts...>,
-            typename std::enable_if<(std::is_placeholder<T>::value == 0), void>::type>
+        struct contains_placeholders<std::tuple<T, Ts...>, std::enable_if_t<(std::is_placeholder<T>::value == 0), void>>
             : contains_placeholders<std::tuple<Ts...>>::type {};
 
         template <typename T, typename... Ts>
-        struct contains_placeholders<std::tuple<T, Ts...>,
-            typename std::enable_if<(std::is_placeholder<T>::value > 0), void>::type> : std::true_type {};
+        struct contains_placeholders<std::tuple<T, Ts...>, std::enable_if_t<(std::is_placeholder<T>::value > 0), void>>
+            : std::true_type {};
 
         /** @} */
 
@@ -207,7 +196,7 @@ namespace gridtools {
     struct bound_bc<BCApply, std::tuple<DataStores...>, meta::index_sequence<ExcStoresIndices...>> {
         using boundary_class = BCApply;
         using stores_type = std::tuple<DataStores...>;
-        using exc_stores_type = std::tuple<typename std::tuple_element<ExcStoresIndices, stores_type>::type const &...>;
+        using exc_stores_type = std::tuple<std::tuple_element_t<ExcStoresIndices, stores_type> const &...>;
 
       private:
         boundary_class m_bcapply;
@@ -237,7 +226,7 @@ namespace gridtools {
          * communication pattern
          */
         exc_stores_type exc_stores() const {
-            return std::tuple<typename std::tuple_element<ExcStoresIndices, stores_type>::type const &...>(
+            return std::tuple<std::tuple_element_t<ExcStoresIndices, stores_type> const &...>(
                 std::get<ExcStoresIndices>(m_stores)...);
         }
 
@@ -288,12 +277,12 @@ namespace gridtools {
      * \param stores Parameter pack with the data stores or placeholders (std::placeholders hosuld be used)
      */
     template <typename BCApply, typename... DataStores>
-    bound_bc<BCApply, std::tuple<typename std::decay<DataStores>::type...>, meta::index_sequence_for<DataStores...>>
-    bind_bc(BCApply bc_apply, DataStores &&... stores) {
+    bound_bc<BCApply, std::tuple<std::decay_t<DataStores>...>, meta::index_sequence_for<DataStores...>> bind_bc(
+        BCApply bc_apply, DataStores &&... stores) {
 
         // Concept checking on BCApply is not ready yet.
         // Check that the stores... are either data stores or placeholders
-        GT_STATIC_ASSERT(_impl::data_stores_or_placeholders<typename std::decay<DataStores>::type...>(),
+        GT_STATIC_ASSERT(_impl::data_stores_or_placeholders<std::decay_t<DataStores>...>(),
             "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
         return {bc_apply, std::forward_as_tuple(stores...)};
     }

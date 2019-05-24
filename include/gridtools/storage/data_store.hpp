@@ -46,7 +46,7 @@ namespace gridtools {
                               : m_info.template total_length<Dim>() - 1;
             }
 
-            auto operator()(int offset) const GT_AUTO_RETURN(m_fun(index_from_offset<Is>(offset)...));
+            auto operator()(int offset) const { return m_fun(index_from_offset<Is>(offset)...); }
         };
     } // namespace data_store_impl_
 
@@ -121,9 +121,9 @@ namespace gridtools {
          * @param name Human readable name for the data_store
          */
         template <class Initializer,
-            enable_if_t<!std::is_convertible<Initializer, data_t const &>::value &&
-                            !std::is_convertible<Initializer, data_t *>::value &&
-                            !std::is_convertible<Initializer, std::string const &>::value,
+            std::enable_if_t<!std::is_convertible<Initializer, data_t const &>::value &&
+                                 !std::is_convertible<Initializer, data_t *>::value &&
+                                 !std::is_convertible<Initializer, std::string const &>::value,
                 int> = 0>
         data_store(StorageInfo const &info, Initializer &&initializer, std::string const &name = "")
             : data_store(std::true_type{},
@@ -140,7 +140,7 @@ namespace gridtools {
          * @param own ownership information
          * @param name Human readable name for the data_store
          */
-        template <class T, enable_if_t<std::is_same<data_t *, T>::value, int> = 0>
+        template <class T, std::enable_if_t<std::is_same<data_t *, T>::value, int> = 0>
         data_store(StorageInfo const &info,
             T external_ptr,
             ownership own = ownership::external_cpu,
@@ -186,7 +186,7 @@ namespace gridtools {
          * @return size of dimension (including halos but not padding)
          */
         template <int Dim>
-        auto total_length() const -> decltype(m_shared_storage_info->template total_length<Dim>()) {
+        auto total_length() const {
             GT_ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->template total_length<Dim>();
         }
@@ -195,7 +195,7 @@ namespace gridtools {
          * @brief member function to retrieve the total size (dimensions, halos, padding).
          * @return total size
          */
-        auto padded_total_length() const -> decltype(m_shared_storage_info->padded_total_length()) {
+        auto padded_total_length() const {
             GT_ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->padded_total_length();
         }
@@ -204,7 +204,7 @@ namespace gridtools {
          * @brief member function to retrieve the inner domain size + halo (dimensions, halos).
          * @return inner domain size + halo
          */
-        auto total_length() const -> decltype(m_shared_storage_info->total_length()) {
+        auto total_length() const {
             GT_ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->total_length();
         }
@@ -213,7 +213,7 @@ namespace gridtools {
          * @brief member function to retrieve the inner domain size (dimensions, no halos).
          * @return inner domain size
          */
-        auto length() const -> decltype(m_shared_storage_info->length()) {
+        auto length() const {
             GT_ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->length();
         }
@@ -221,7 +221,7 @@ namespace gridtools {
         /**
          * @brief forward total_lengths() from storage_info
          */
-        auto total_lengths() const -> decltype(m_shared_storage_info->total_lengths()) {
+        decltype(auto) total_lengths() const {
             GT_ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->total_lengths();
         }
@@ -229,7 +229,7 @@ namespace gridtools {
         /**
          * @brief forward strides() from storage_info
          */
-        auto strides() const -> decltype(m_shared_storage_info->strides()) { return m_shared_storage_info->strides(); }
+        decltype(auto) strides() const { return m_shared_storage_info->strides(); }
 
         /**
          * @brief retrieve the underlying storage_info instance

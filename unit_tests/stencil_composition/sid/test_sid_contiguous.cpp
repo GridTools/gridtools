@@ -58,9 +58,9 @@ namespace gridtools {
             auto testee = sid::make_contiguous<int>(alloc, sizes);
 
             using testee_t = decltype(testee);
-            using ptr_diff_t = GT_META_CALL(sid::ptr_diff_type, testee_t);
-            using strides_t = GT_META_CALL(sid::strides_type, testee_t);
-            using strides_kind_t = GT_META_CALL(sid::strides_kind, testee_t);
+            using ptr_diff_t = sid::ptr_diff_type<testee_t>;
+            using strides_t = sid::strides_type<testee_t>;
+            using strides_kind_t = sid::strides_kind<testee_t>;
 
             static_assert(is_sid<testee_t>(), "");
             static_assert(std::is_same<ptrdiff_t, ptr_diff_t>(), "");

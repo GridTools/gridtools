@@ -33,8 +33,9 @@ namespace gridtools {
         \param values List of values to put in the array. The length of the list set the size of the array.
      */
     template <typename ForceType = void, typename... Types>
-    GT_CONSTEXPR GT_FUNCTION auto make_array(Types &&... values)
-        GT_AUTO_RETURN((tuple_util::host_device::make<array, ForceType>(wstd::forward<Types>(values)...)));
+    GT_CONSTEXPR GT_FUNCTION auto make_array(Types &&... values) {
+        return tuple_util::host_device::make<array, ForceType>(wstd::forward<Types>(values)...);
+    }
 
     /** @} */
 } // namespace gridtools

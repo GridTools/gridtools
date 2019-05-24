@@ -47,7 +47,7 @@ namespace gridtools {
             using iterate_domain_arguments_t =
                 iterate_domain_arguments<backend::cuda, LocalDomain, typename RunFunctorArguments::esf_sequence_t>;
             using iterate_domain_cuda_t = iterate_domain_cuda<iterate_domain_arguments_t>;
-            using iterate_domain_t = typename conditional_t<local_domain_is_stateful<LocalDomain>::value,
+            using iterate_domain_t = typename std::conditional_t<local_domain_is_stateful<LocalDomain>::value,
                 meta::lazy::id<positional_iterate_domain<iterate_domain_cuda_t>>,
                 meta::lazy::id<iterate_domain_cuda_t>>::type;
 
@@ -127,8 +127,8 @@ namespace gridtools {
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
 
-            using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
-            using from_t = GT_META_CALL(meta::first, interval_t);
+            using interval_t = meta::first<typename RunFunctorArguments::loop_intervals_t>;
+            using from_t = meta::first<interval_t>;
 
             // initialize the indices.
             const int_t kblock = impl_::compute_kblock<execution_type_t>::template get<from_t>(grid);

@@ -24,47 +24,13 @@
    @brief global definitions
 */
 
-#define GT_MAX_ARGS 20
-#define GT_MAX_INDEPENDENT 3
-#define GT_MAX_MSS 10
-
-#if __cplusplus >= 201402L // since c++14
-#define GT_DEPRECATED(msg) [[deprecated(msg)]]
-#else
-#ifdef __GNUC__
-#define GT_DEPRECATED(msg) __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define GT_DEPRECATED(msg) __declspec(deprecated)
-#else
-#define GT_DEPRECATED(msg)
-#endif
-#endif
-
 #ifdef __CUDA_ARCH__
 #define GT_CONSTEXPR
 #else
 #define GT_CONSTEXPR constexpr
 #endif
 
-/**
- * Macro to allow make functions constexpr in c++14 (in case they are not only a return statement)
- */
-#if __cplusplus >= 201402L
-#define GT_CXX14CONSTEXPR GT_CONSTEXPR
-#else
-#define GT_CXX14CONSTEXPR
-#endif
-
-/** Macro to enable additional checks that may catch some errors in user code
- */
-#ifndef GT_PEDANTIC_DISABLED
-#define GT_PEDANTIC
-#endif
-
 #define GT_RESTRICT __restrict__
-
-#define GT_NO_ERRORS 0
-#define GT_ERROR_NO_TEMPS 1
 
 #ifndef GT_DEFAULT_TILE_I
 #ifdef __CUDACC__
@@ -133,15 +99,6 @@ namespace gridtools {
 #define GT_INTERNAL_ERROR_MSG(x)                                                                                \
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
     "GridTools Development Team. \nMessage\n\n" x
-
-#ifdef GT_DOXYGEN_SHOULD_EXCLUDE_THIS
-/* disable GT_AUTO_RETURN macro for doxygen as it creates many warnings */
-#define GT_AUTO_RETURN(expr)
-#else
-#define GT_AUTO_RETURN(expr)          \
-    ->decltype(expr) { return expr; } \
-    static_assert(1, "")
-#endif
 
 #if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
 #define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name)                          \

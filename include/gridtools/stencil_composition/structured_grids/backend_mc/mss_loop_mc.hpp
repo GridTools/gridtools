@@ -129,7 +129,7 @@ namespace gridtools {
 
             template <class From, class To, class StageGroups>
             GT_FORCE_INLINE void operator()(loop_interval<From, To, StageGroups>) const {
-                gridtools::for_each<GT_META_CALL(meta::flatten, StageGroups)>(
+                gridtools::for_each<meta::flatten<StageGroups>>(
                     inner_functor_mc_kserial<ExecutionType, ItDomain, Grid, From, To>{
                         m_it_domain, m_grid, m_execution_info});
             }
@@ -158,7 +158,7 @@ namespace gridtools {
                 const int_t k_last = this->m_grid.template value_at<To>();
 
                 if (k_first <= m_execution_info.k && m_execution_info.k <= k_last)
-                    gridtools::for_each<GT_META_CALL(meta::flatten, StageGroups)>(
+                    gridtools::for_each<meta::flatten<StageGroups>>(
                         inner_functor_mc_kparallel<ItDomain>{m_it_domain, m_execution_info});
             }
         };
@@ -176,8 +176,8 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArgs>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        using ij_cached_args_t = conditional_t<std::is_same<ExecutionInfo, execinfo_block_kparallel_mc>::value,
-            GT_META_CALL(ij_cache_args, typename LocalDomain::cache_sequence_t),
+        using ij_cached_args_t = std::conditional_t<std::is_same<ExecutionInfo, execinfo_block_kparallel_mc>::value,
+            ij_cache_args<typename LocalDomain::cache_sequence_t>,
             meta::list<>>;
 
         using iterate_domain_t = iterate_domain_mc<LocalDomain, ij_cached_args_t>;

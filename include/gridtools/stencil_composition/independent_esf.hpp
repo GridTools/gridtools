@@ -22,7 +22,7 @@ namespace gridtools {
     struct independent_esf;
 
     template <class T>
-    GT_META_DEFINE_ALIAS(is_independent, meta::is_instantiation_of, (independent_esf, T));
+    using is_independent = meta::is_instantiation_of<independent_esf, T>;
 
     template <class Esfs>
     struct is_esf_descriptor<independent_esf<Esfs>> : std::true_type {};

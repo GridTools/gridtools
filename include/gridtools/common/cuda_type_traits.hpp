@@ -21,27 +21,26 @@
 
 namespace gridtools {
     namespace impl_ {
-        using texture_types = GT_META_CALL(meta::dedup,
-            (meta::list<char,
-                short,
-                int,
-                long long,
-                unsigned char,
-                unsigned short,
-                unsigned int,
-                unsigned long long,
-                int2,
-                int4,
-                uint2,
-                uint4,
-                float,
-                float2,
-                float4,
-                double,
-                double2>));
+        using texture_types = meta::dedup<meta::list<char,
+            short,
+            int,
+            long long,
+            unsigned char,
+            unsigned short,
+            unsigned int,
+            unsigned long long,
+            int2,
+            int4,
+            uint2,
+            uint4,
+            float,
+            float2,
+            float4,
+            double,
+            double2>>;
     } // namespace impl_
 
     template <class T>
-    GT_META_DEFINE_ALIAS(is_texture_type, meta::st_contains, (impl_::texture_types, T));
+    using is_texture_type = meta::st_contains<impl_::texture_types, T>;
 
 } // namespace gridtools

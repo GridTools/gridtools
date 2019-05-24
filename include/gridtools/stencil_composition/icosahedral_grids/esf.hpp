@@ -22,12 +22,10 @@
 namespace gridtools {
     namespace esf_impl_ {
         template <class Arg, class Accessor>
-        GT_META_DEFINE_ALIAS(
-            is_same_location, std::is_same, (typename Arg::location_t, typename Accessor::location_type));
+        using is_same_location = std::is_same<typename Arg::location_t, typename Accessor::location_type>;
 
         template <class Args, class Accessors>
-        GT_META_DEFINE_ALIAS(
-            are_same_locations, meta::all, (GT_META_CALL(meta::transform, (is_same_location, Args, Accessors))));
+        using are_same_locations = meta::all<meta::transform<is_same_location, Args, Accessors>>;
 
         template <class, class = void>
         struct has_param_list : std::false_type {};

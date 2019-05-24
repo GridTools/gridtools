@@ -27,7 +27,7 @@ namespace gridtools {
         struct is_set : std::false_type {};
 
         template <template <class...> class L, class... Ts>
-        struct is_set<L<Ts...>> : std::is_same<L<Ts...>, GT_META_CALL(dedup, L<Ts...>)> {};
+        struct is_set<L<Ts...>> : std::is_same<L<Ts...>, dedup<L<Ts...>>> {};
 
         /**
          *   is_set_fast evaluates to std::true_type if the parameter is a set.

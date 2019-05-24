@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
+#include "../../common/integral_constant.hpp"
 #include "../block.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../pos3.hpp"
@@ -25,8 +26,7 @@ namespace gridtools {
             typename Base::array_index_t index;
             pos3<int_t> pos;
 
-            auto operator[](int_t i) const GT_AUTO_RETURN(index[i]);
-            auto operator[](int_t i) GT_AUTO_RETURN(index[i]);
+            auto operator[](int_t i) const { return index[i]; }
         };
 
         using Base::Base;

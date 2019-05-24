@@ -37,14 +37,14 @@ namespace gridtools {
         using iterate_domain_arguments_t =
             iterate_domain_arguments<backend::x86, LocalDomain, typename RunFunctorArgs::esf_sequence_t>;
         using iterate_domain_x86_t = iterate_domain_x86<iterate_domain_arguments_t>;
-        using iterate_domain_t = typename conditional_t<local_domain_is_stateful<LocalDomain>::value,
+        using iterate_domain_t = typename std::conditional_t<local_domain_is_stateful<LocalDomain>::value,
             meta::lazy::id<positional_iterate_domain<iterate_domain_x86_t>>,
             meta::lazy::id<iterate_domain_x86_t>>::type;
         iterate_domain_t it_domain(local_domain);
 
-        using extent_t = GT_META_CALL(get_extent_from_loop_intervals, typename RunFunctorArgs::loop_intervals_t);
-        using interval_t = GT_META_CALL(meta::first, typename RunFunctorArgs::loop_intervals_t);
-        using from_t = GT_META_CALL(meta::first, interval_t);
+        using extent_t = get_extent_from_loop_intervals<typename RunFunctorArgs::loop_intervals_t>;
+        using interval_t = meta::first<typename RunFunctorArgs::loop_intervals_t>;
+        using from_t = meta::first<interval_t>;
         it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
             {execution_info.bi, execution_info.bj, 0},
             {extent_t::iminus::value,

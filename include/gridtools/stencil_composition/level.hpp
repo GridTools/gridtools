@@ -73,18 +73,15 @@ namespace gridtools {
     struct is_level_index<level_index<Index, OffsetLimit>> : std::true_type {};
 
     template <class Level>
-    GT_META_DEFINE_ALIAS(level_to_index,
-        level_index,
-        (_impl::calc_level_index(Level::splitter, Level::offset, Level::offset_limit), Level::offset_limit));
+    using level_to_index =
+        level_index<_impl::calc_level_index(Level::splitter, Level::offset, Level::offset_limit), Level::offset_limit>;
 
     /**
      * @struct index_to_level
      * Meta function converting a unique index back into a level
      */
     template <class Index>
-    GT_META_DEFINE_ALIAS(index_to_level,
-        level,
-        (_impl::get_splitter_from_index(Index::value, Index::offset_limit),
-            _impl::get_offset_from_index(Index::value, Index::offset_limit),
-            Index::offset_limit));
+    using index_to_level = level<_impl::get_splitter_from_index(Index::value, Index::offset_limit),
+        _impl::get_offset_from_index(Index::value, Index::offset_limit),
+        Index::offset_limit>;
 } // namespace gridtools

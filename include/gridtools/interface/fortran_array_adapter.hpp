@@ -18,7 +18,7 @@ namespace gridtools {
         class StorageInfo = typename DataStore::storage_info_t,
         class Layout = typename DataStore::storage_info_t::layout_t>
     class fortran_array_adapter {
-        static_assert(is_data_store<remove_const_t<DataStore>>::value, "");
+        static_assert(is_data_store<std::remove_const_t<DataStore>>::value, "");
 
       public:
         fortran_array_adapter(const gt_fortran_array_descriptor &descriptor) : m_descriptor(descriptor) {

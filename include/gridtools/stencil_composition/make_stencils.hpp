@@ -32,8 +32,7 @@ namespace gridtools {
         };
 
         template <class... Esfs>
-        GT_META_DEFINE_ALIAS(
-            tuple_from_esfs, meta::flatten, (meta::list<std::tuple<>, typename tuple_from_esf<Esfs>::type...>));
+        using tuple_from_esfs = meta::flatten<meta::list<std::tuple<>, typename tuple_from_esf<Esfs>::type...>>;
 
         template <typename ExecutionEngine, typename... MssParameters>
         struct check_make_multistage_args : std::true_type {
@@ -60,7 +59,7 @@ namespace gridtools {
         // Check argument types before mss_descriptor is instantiated to get nicer error messages
         bool ArgsOk = _impl::check_make_multistage_args<ExecutionEngine, MssParameters...>::value>
     mss_descriptor<ExecutionEngine,
-        GT_META_CALL(extract_mss_esfs, (MssParameters...)),
+        extract_mss_esfs<MssParameters...>,
         typename extract_mss_caches<MssParameters...>::type>
     make_multistage(ExecutionEngine, MssParameters...) {
         return {};
@@ -81,7 +80,7 @@ namespace gridtools {
        make_independent(make_independent(f1, f2), f3) will produce independent_esf<tuple<f1, f2, f3>>
      */
     template <class Esf1, class Esf2, class... Esfs>
-    independent_esf<GT_META_CALL(_impl::tuple_from_esfs, (Esf1, Esf2, Esfs...))> make_independent(Esf1, Esf2, Esfs...) {
+    independent_esf<_impl::tuple_from_esfs<Esf1, Esf2, Esfs...>> make_independent(Esf1, Esf2, Esfs...) {
         return {};
     }
 

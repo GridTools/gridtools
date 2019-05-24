@@ -63,17 +63,17 @@ namespace gridtools {
                 using type = typename recursive_remove_cv<typename std::remove_pointer<T>::type>::type *;
             };
 
-            struct get_c_type_name_f {
-                template <class T>
-                std::string operator()() const {
-                    return boost::typeindex::type_id<typename recursive_remove_cv<T>::type>().pretty_name();
-                }
-            };
-
             template <class T>
             std::string get_c_type_name() {
                 return boost::typeindex::type_id<typename recursive_remove_cv<T>::type>().pretty_name();
             }
+
+            struct get_c_type_name_f {
+                template <class T>
+                std::string operator()() const {
+                    return get_c_type_name<T>();
+                }
+            };
 
             template <class TypeToStr, class Fun>
             struct for_each_param_helper_f {
@@ -241,7 +241,7 @@ namespace gridtools {
                         int>::type = 0>
                 std::string operator()() const {
                     static const gt_fortran_array_descriptor meta =
-                        get_fortran_view_meta((add_pointer_t<CppType>){nullptr});
+                        get_fortran_view_meta((std::add_pointer_t<CppType>){nullptr});
                     std::string dimensions = "dimension(";
                     for (int i = 0; i < meta.rank; ++i) {
                         if (i)
@@ -308,7 +308,7 @@ namespace gridtools {
                         int>::type = 0>
                 boost::optional<gt_fortran_array_descriptor> operator()() const {
                     static const gt_fortran_array_descriptor meta =
-                        get_fortran_view_meta((add_pointer_t<CppType>){nullptr});
+                        get_fortran_view_meta((std::add_pointer_t<CppType>){nullptr});
                     return meta;
                 }
                 template <class CppType,

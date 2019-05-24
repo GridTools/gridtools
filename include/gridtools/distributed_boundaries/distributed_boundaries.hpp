@@ -37,31 +37,6 @@ namespace gridtools {
     using namespace mock_;
 #endif
 
-    namespace _workaround {
-        /** \internal Workaround for NVCC that has troubles with tuple_cat */
-        template <typename... Tuples>
-        struct pairwise_tuple_cat;
-
-        template <typename Tuple>
-        struct pairwise_tuple_cat<Tuple> {
-            static Tuple apply(Tuple t) { return t; }
-        };
-
-        template <typename Tuple1, typename Tuple2, typename... Rest>
-        struct pairwise_tuple_cat<Tuple1, Tuple2, Rest...> {
-            static auto apply(Tuple1 t, Tuple2 s, Rest... rest) -> decltype(
-                pairwise_tuple_cat<decltype(std::tuple_cat(t, s)), Rest...>::apply(std::tuple_cat(t, s), rest...)) {
-                return pairwise_tuple_cat<decltype(std::tuple_cat(t, s)), Rest...>::apply(
-                    std::tuple_cat(t, s), rest...);
-            }
-        };
-
-        template <typename... Tuples>
-        auto tuple_cat(Tuples... ts) -> decltype(pairwise_tuple_cat<Tuples...>::apply(ts...)) {
-            return pairwise_tuple_cat<Tuples...>::apply(ts...);
-        };
-    } // namespace _workaround
-
     /** \ingroup Distributed-Boundaries
      * @{ */
 
@@ -185,30 +160,21 @@ namespace gridtools {
         */
         template <typename... Jobs>
         void exchange(Jobs const &... jobs) {
-#ifdef __CUDACC__
-            // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
-            // This can be removed when nvcc supports it.
-            auto all_stores_for_exc = _workaround::tuple_cat(collect_stores(jobs)...);
-#else
             auto all_stores_for_exc = std::tuple_cat(collect_stores(jobs)...);
-#endif
-            if (m_max_stores < std::tuple_size<decltype(all_stores_for_exc)>::value) {
-                std::string err{"Too many data stores to be exchanged" +
-                                std::to_string(std::tuple_size<decltype(all_stores_for_exc)>::value) +
+            if (m_max_stores < sizeof...(jobs)) {
+                std::string err{"Too many data stores to be exchanged" + std::to_string(sizeof...(jobs)) +
                                 " instead of the maximum allowed, which is " + std::to_string(m_max_stores)};
                 throw std::runtime_error(err);
             }
 
             m_meter_pack.start();
-            call_pack(all_stores_for_exc,
-                meta::make_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
+            call_pack(all_stores_for_exc, meta::make_integer_sequence<uint_t, sizeof...(jobs)>{});
             m_meter_pack.pause();
             m_meter_exchange.start();
             m_he.exchange();
             m_meter_exchange.pause();
             m_meter_pack.start();
-            call_unpack(all_stores_for_exc,
-                meta::make_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
+            call_unpack(all_stores_for_exc, meta::make_integer_sequence<uint_t, sizeof...(jobs)>{});
             m_meter_pack.pause();
 
             boundary_only(jobs...);
@@ -242,7 +208,7 @@ namespace gridtools {
         }
 
         template <typename BCApply>
-        typename std::enable_if<is_bound_bc<BCApply>::value, void>::type apply_boundary(BCApply bcapply) {
+        std::enable_if_t<is_bound_bc<BCApply>::value, void> apply_boundary(BCApply bcapply) {
             /*Apply boundary to data*/
             call_apply(boundary<typename BCApply::boundary_class,
                            typename CTraits::compute_arch,
@@ -254,21 +220,19 @@ namespace gridtools {
         }
 
         template <typename BCApply>
-        typename std::enable_if<not is_bound_bc<BCApply>::value, void>::type apply_boundary(BCApply) {
+        std::enable_if_t<not is_bound_bc<BCApply>::value, void> apply_boundary(BCApply) {
             /* do nothing for a pure data_store*/
         }
 
         template <typename FirstJob>
         static auto collect_stores(
-            FirstJob const &firstjob, typename std::enable_if<is_bound_bc<FirstJob>::value, void *>::type = nullptr)
-            -> decltype(firstjob.exc_stores()) {
+            FirstJob const &firstjob, std::enable_if_t<is_bound_bc<FirstJob>::value, void *> = nullptr) {
             return firstjob.exc_stores();
         }
 
         template <typename FirstJob>
-        static auto collect_stores(FirstJob const &first_job,
-            typename std::enable_if<not is_bound_bc<FirstJob>::value, void *>::type = nullptr)
-            -> decltype(std::make_tuple(first_job)) {
+        static auto collect_stores(
+            FirstJob const &first_job, std::enable_if_t<not is_bound_bc<FirstJob>::value, void *> = nullptr) {
             return std::make_tuple(first_job);
         }
 
@@ -276,8 +240,7 @@ namespace gridtools {
         void call_pack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::read_write,
-                typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
-                    make(std::get<Ids>(stores)))...);
+                std::decay_t<std::tuple_element_t<Ids, Stores>>>::make(std::get<Ids>(stores)))...);
         }
 
         template <typename Stores, uint_t... Ids>
@@ -287,8 +250,7 @@ namespace gridtools {
         void call_unpack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::read_write,
-                typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
-                    make(std::get<Ids>(stores)))...);
+                std::decay_t<std::tuple_element_t<Ids, Stores>>>::make(std::get<Ids>(stores)))...);
         }
 
         template <typename Stores, uint_t... Ids>

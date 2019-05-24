@@ -42,12 +42,12 @@ namespace gridtools {
             int_t m_j_block_base;
             typename LocalDomain::ptr_map_t &m_dst;
 
-            template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
-                using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
-                using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
+                using sid_t = storage_from_arg<LocalDomain, Arg>;
+                using strides_kind_t = sid::strides_kind<sid_t>;
                 auto length = at_key<strides_kind_t>(m_local_domain.m_total_length_map);
-                GT_META_CALL(sid::ptr_diff_type, sid_t) offset = std::lround(length * thread_factor());
+                sid::ptr_diff_type<sid_t> offset = std::lround(length * thread_factor());
                 assert(offset == ((long long)length * omp_get_thread_num()) / omp_get_max_threads());
                 auto const &strides = at_key<strides_kind_t>(m_local_domain.m_strides_map);
                 GT_STATIC_ASSERT(is_storage_info<strides_kind_t>::value, GT_INTERNAL_ERROR);
@@ -56,10 +56,10 @@ namespace gridtools {
                 at_key<Arg>(m_dst) += offset;
             }
 
-            template <class Arg, enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
-                using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
-                using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
+                using sid_t = storage_from_arg<LocalDomain, Arg>;
+                using strides_kind_t = sid::strides_kind<sid_t>;
                 auto &ptr = at_key<Arg>(m_dst);
                 auto const &strides = at_key<strides_kind_t>(m_local_domain.m_strides_map);
                 sid::shift(ptr, sid::get_stride<dim::i>(strides), m_i_block_base);
@@ -103,12 +103,12 @@ namespace gridtools {
         /**
          * @brief Returns the value pointed by an accessor.
          */
-        template <class Arg, class Accessor, enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
-        GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
-            using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
-            using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
+        template <class Arg, class Accessor, std::enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+        GT_FORCE_INLINE decltype(auto) deref(Accessor const &accessor) const {
+            using sid_t = storage_from_arg<LocalDomain, Arg>;
+            using strides_kind_t = sid::strides_kind<sid_t>;
             auto const &strides = at_key<strides_kind_t>(m_strides_map);
-            GT_META_CALL(sid::ptr_diff_type, sid_t) ptr_offset{};
+            sid::ptr_diff_type<sid_t> ptr_offset{};
             sid::shift(ptr_offset, sid::get_stride<dim::i>(strides), m_i_block_index);
             sid::shift(ptr_offset, sid::get_stride<dim::j>(strides), m_j_block_index);
             sid::shift(ptr_offset, sid::get_stride<dim::k>(strides), m_k_block_index);
@@ -116,12 +116,12 @@ namespace gridtools {
             return *(at_key<Arg>(m_ptr_map) + ptr_offset);
         }
 
-        template <class Arg, class Accessor, enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
-        GT_FORCE_INLINE auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
-            using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
-            using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
+        template <class Arg, class Accessor, std::enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
+        GT_FORCE_INLINE decltype(auto) deref(Accessor const &accessor) const {
+            using sid_t = storage_from_arg<LocalDomain, Arg>;
+            using strides_kind_t = sid::strides_kind<sid_t>;
             auto const &strides = at_key<strides_kind_t>(m_strides_map);
-            GT_META_CALL(sid::ptr_diff_type, sid_t) ptr_offset{};
+            sid::ptr_diff_type<sid_t> ptr_offset{};
             sid::shift(ptr_offset, sid::get_stride<dim::i>(strides), m_i_block_index);
             sid::shift(ptr_offset, sid::get_stride<dim::j>(strides), m_j_block_index);
             sid::multi_shift(ptr_offset, strides, accessor);

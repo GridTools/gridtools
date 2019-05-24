@@ -33,9 +33,9 @@ namespace gridtools {
     template <access_mode AccessMode = access_mode::read_write,
         typename CudaDataStore,
         typename Res = data_view<CudaDataStore, AccessMode>>
-    enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
-                    is_storage_info<typename CudaDataStore::storage_info_t>::value &&
-                    is_data_store<CudaDataStore>::value,
+    std::enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
+                         is_storage_info<typename CudaDataStore::storage_info_t>::value &&
+                         is_data_store<CudaDataStore>::value,
         Res>
     make_host_view(CudaDataStore const &ds) {
         if (!ds.valid())
@@ -63,9 +63,9 @@ namespace gridtools {
     template <access_mode AccessMode = access_mode::read_write,
         typename CudaDataStore,
         typename Res = data_view<CudaDataStore, AccessMode>>
-    enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
-                    is_storage_info<typename CudaDataStore::storage_info_t>::value &&
-                    is_data_store<CudaDataStore>::value,
+    std::enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
+                         is_storage_info<typename CudaDataStore::storage_info_t>::value &&
+                         is_data_store<CudaDataStore>::value,
         Res>
     make_device_view(CudaDataStore const &ds) {
         if (!ds.valid())
@@ -93,9 +93,9 @@ namespace gridtools {
     template <access_mode AccessMode = access_mode::read_write,
         typename CudaDataStore,
         typename Res = data_view<CudaDataStore, AccessMode>>
-    enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
-                    is_storage_info<typename CudaDataStore::storage_info_t>::value &&
-                    is_data_store<CudaDataStore>::value,
+    std::enable_if_t<is_cuda_storage<typename CudaDataStore::storage_t>::value &&
+                         is_storage_info<typename CudaDataStore::storage_info_t>::value &&
+                         is_data_store<CudaDataStore>::value,
         Res>
     make_target_view(CudaDataStore const &ds) {
         return make_device_view<AccessMode>(ds);
@@ -108,8 +108,8 @@ namespace gridtools {
      * @return true if the given view is in a valid state and can be used safely.
      */
     template <typename DataStore, typename DataView>
-    enable_if_t<is_cuda_storage<typename DataStore::storage_t>::value &&
-                    is_storage_info<typename DataStore::storage_info_t>::value && is_data_store<DataStore>::value,
+    std::enable_if_t<is_cuda_storage<typename DataStore::storage_t>::value &&
+                         is_storage_info<typename DataStore::storage_info_t>::value && is_data_store<DataStore>::value,
         bool>
     check_consistency(DataStore const &d, DataView const &v) {
         GT_STATIC_ASSERT(is_data_view<DataView>::value, "Passed type is no data_view type");

@@ -45,11 +45,11 @@ namespace gridtools {
       public:
         any_moveable() = default;
 
-        template <class Arg, class Decayed = typename std::decay<Arg>::type>
+        template <class Arg, class Decayed = std::decay_t<Arg>>
         any_moveable(Arg &&arg) : m_impl(new impl<Decayed>(wstd::forward<Arg>(arg))) {}
         any_moveable(any_moveable &&) = default;
 
-        template <class Arg, class Decayed = typename std::decay<Arg>::type>
+        template <class Arg, class Decayed = std::decay_t<Arg>>
         any_moveable &operator=(Arg &&obj) {
             m_impl.reset(new impl<Decayed>(wstd::forward<Arg>(obj)));
             return *this;
@@ -72,11 +72,10 @@ namespace gridtools {
 
     template <class T>
     T any_cast(any_moveable &src) {
-        auto *ptr = any_cast<typename std::remove_reference<T>::type>(&src);
+        auto *ptr = any_cast<std::remove_reference_t<T>>(&src);
         if (!ptr)
             throw bad_any_cast{};
-        using ref_t = typename std::
-            conditional<std::is_reference<T>::value, T, typename std::add_lvalue_reference<T>::type>::type;
+        using ref_t = std::conditional_t<std::is_reference<T>::value, T, std::add_lvalue_reference_t<T>>;
         return static_cast<ref_t>(*ptr);
     }
 
@@ -87,8 +86,7 @@ namespace gridtools {
 
     template <class T>
     T any_cast(any_moveable &&src) {
-        GT_STATIC_ASSERT(
-            std::is_rvalue_reference<T &&>::value || std::is_const<typename std::remove_reference<T>::type>::value,
+        GT_STATIC_ASSERT(std::is_rvalue_reference<T &&>::value || std::is_const<std::remove_reference_t<T>>::value,
             "any_cast shall not be used for getting nonconst references to temporary objects");
         return any_cast<T>(src);
     }
