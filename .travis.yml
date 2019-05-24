@@ -9,7 +9,7 @@ env:
   - compiler=gcc-9
   - compiler=clang-8
   - compiler=clang-9
-  #- compiler=cuda-10.1
+  - compiler=cuda-10.1
 
 before_install:
   - docker pull mrtravis/gridtools:test-$compiler
