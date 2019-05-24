@@ -1,5 +1,3 @@
-#define SLOW
-
 /*
  * GridTools
  *
@@ -169,7 +167,6 @@ namespace gridtools {
                         sorted_strides[j] = tmp;
                     }
 
-#ifndef SLOW
             for (uint_t i = 0; i < ndims; ++i) {
                 if (strides[i] == sorted_strides[ndims - 1])
                     m_padded_lengths[i] = dims[i];
@@ -184,26 +181,6 @@ namespace gridtools {
                     m_padded_lengths[i] = sorted_strides[i_in_sorted_stride + 1] / strides[i];
                 }
             }
-#else
-
-            for (uint_t i = 0; i < ndims; ++i) {
-                if (strides[i] == sorted_strides[ndims - 1])
-                    m_padded_lengths[i] = dims[i];
-                else if (strides[i] == 0) {
-                    m_padded_lengths[i] = 0;
-                } else {
-                    int i_in_sorted_stride = 0;
-                    for (; i_in_sorted_stride < ndims; ++i_in_sorted_stride)
-                        if (strides[i] == sorted_strides[i_in_sorted_stride])
-                            break;
-                    for (int j = i_in_sorted_stride; j < ndims; ++j)
-                        if (strides[i] != sorted_strides[j]) {
-                            m_padded_lengths[i] = sorted_strides[j] / strides[i];
-                            break;
-                        }
-                }
-            }
-#endif
         }
 
         /**
