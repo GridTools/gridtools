@@ -22,6 +22,7 @@
 #include "../dim.hpp"
 #include "../grid.hpp"
 #include "../local_domain.hpp"
+#include "../mss_components.hpp"
 #include "../sid/concept.hpp"
 #include "../sid/loop.hpp"
 
