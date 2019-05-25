@@ -66,16 +66,16 @@ namespace gridtools {
     void fused_mss_loop(backend::naive, LocalDomains const &local_domains, Grid const &grid) {
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         tuple_util::for_each(
-            [&](auto mss_components, auto const &local_domain) {
+            [&grid](auto mss_components, auto const &local_domain) {
                 using mss_components_t = decltype(mss_components);
                 GT_STATIC_ASSERT(is_local_domain<std::decay_t<decltype(local_domain)>>::value, GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT(is_mss_components<mss_components_t>::value, GT_INTERNAL_ERROR);
-                for_each<typename mss_components_t::loop_intervals_t>([&](auto loop_interval) {
+                for_each<typename mss_components_t::loop_intervals_t>([&grid, &local_domain](auto loop_interval) {
                     using loop_interval_t = decltype(loop_interval);
                     using from_t = meta::first<loop_interval_t>;
                     using to_t = meta::second<loop_interval_t>;
                     using stages_t = meta::flatten<meta::third<loop_interval_t>>;
-                    for_each<stages_t>([&](auto stage) {
+                    for_each<stages_t>([&grid, &local_domain](auto stage) {
                         auto ptr = local_domain.m_ptr_holder();
                         auto const &strides = local_domain.m_strides;
                         naive_impl_::correct_ptr(ptr, strides, grid);
