@@ -24,7 +24,7 @@
    @brief global definitions
 */
 
-#ifdef __CUDA_ARCH__
+#ifdef __CUDACC__
 #define GT_CONSTEXPR
 #else
 #define GT_CONSTEXPR constexpr
