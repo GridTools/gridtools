@@ -212,9 +212,7 @@ namespace gridtools {
         template <typename BCApply>
         std::enable_if_t<is_bound_bc<BCApply>::value, void> apply_boundary(BCApply bcapply) {
             /*Apply boundary to data*/
-            call_apply(boundary<typename BCApply::boundary_class,
-                           typename CTraits::compute_arch,
-                           proc_grid_predicate<typename pattern_type::grid_type>>(m_halos,
+            call_apply(make_boundary<typename CTraits::compute_arch>(m_halos,
                            bcapply.boundary_to_apply(),
                            proc_grid_predicate<typename pattern_type::grid_type>(m_he.comm())),
                 bcapply.stores(),
