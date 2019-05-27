@@ -41,4 +41,4 @@ class AdvectionPdBott(Stencil):
 
 class LayoutTransformation(Stencil):
     gridtools_path = path('layout_transformation')
-    halo = 0
+    halo = 2

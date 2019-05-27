@@ -65,7 +65,7 @@ namespace {
     }
 } // namespace
 
-struct layout_transformation : regression_fixture<0> {
+struct layout_transformation : regression_fixture<2> {
     template <int_t Id, typename Layout, typename Alignment>
     using storage_info_t =
         typename storage_tr::select_custom_layout_storage_info_align<Id, Layout, halo<0, 0, 0>, Alignment>::type;
