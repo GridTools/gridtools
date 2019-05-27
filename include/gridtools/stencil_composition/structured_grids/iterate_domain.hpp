@@ -97,7 +97,7 @@ namespace gridtools {
         }
 
         /**@brief method for initializing the index */
-        GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
+        GT_FUNCTION void initialize(pos3<int_t> begin, pos3<int_t> block_no, pos3<int_t> pos_in_block) {
             using backend_t = typename IterateDomainArguments::backend_t;
             host_device::for_each_type<typename local_domain_t::strides_kinds_t>(
                 initialize_index<backend_t, local_domain_t>(

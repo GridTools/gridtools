@@ -24,16 +24,6 @@ namespace gridtools {
 
     namespace _impl {
         namespace computation_detail {
-            template <class Obj>
-            struct run_f {
-                Obj &m_obj;
-
-                template <class... Args>
-                void operator()(Args &&... args) const {
-                    m_obj.run(wstd::forward<Args>(args)...);
-                }
-            };
-
             template <typename Arg>
             struct iface_arg {
                 virtual ~iface_arg() = default;
@@ -81,7 +71,7 @@ namespace gridtools {
             impl(Obj &&obj) : m_obj{wstd::move(obj)} {}
 
             void run(arg_storage_pair_crefs_t const &args) override {
-                tuple_util::apply(_impl::computation_detail::run_f<Obj>{m_obj}, args);
+                tuple_util::apply([&](auto const &... args) { m_obj.run(args...); }, args);
             }
             std::string print_meter() const override { return m_obj.print_meter(); }
             double get_time() const override { return m_obj.get_time(); }

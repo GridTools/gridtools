@@ -105,10 +105,10 @@ namespace gridtools {
                 class IndicesAndCaches = meta::cartesian_product<Indices, Caches>,
                 class RawExpandedCaches = meta::transform<convert_cache_f, IndicesAndCaches>,
                 class ExpandedCaches = meta::dedup<RawExpandedCaches>>
-            using expand_caches = meta::rename<meta::ctor<std::tuple<>>::apply, ExpandedCaches>;
+            using expand_caches = meta::rename<std::tuple, ExpandedCaches>;
 
             template <size_t ExpandFactor, class ArgStoragePair>
-            using expand_arg_storage_pair = meta::rename<meta::ctor<std::tuple<>>::apply,
+            using expand_arg_storage_pair = meta::rename<std::tuple,
                 meta::transform<convert_arg_storage_pair_f<ArgStoragePair>::template apply,
                     meta::make_indices_c<ExpandFactor>>>;
 
@@ -158,7 +158,7 @@ namespace gridtools {
                 struct expand_esf {
                     using indices_t = meta::make_indices_c<ExpandFactor>;
                     using esfs_t = meta::transform<convert_esf<Esf>::template apply, indices_t>;
-                    using tuple_t = meta::rename<meta::ctor<std::tuple<>>::apply, esfs_t>;
+                    using tuple_t = meta::rename<std::tuple, esfs_t>;
                     using type = independent_esf<tuple_t>;
                 };
                 template <size_t ExpandFactor, class Esfs>

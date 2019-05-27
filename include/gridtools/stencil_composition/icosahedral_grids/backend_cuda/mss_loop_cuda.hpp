@@ -130,7 +130,7 @@ namespace gridtools {
 
             const int_t kblock = impl_::compute_kblock<execution_type_t>::template get<from_t>(grid);
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
-                {blockIdx.x, blockIdx.y, blockIdx.z},
+                {(int_t)blockIdx.x, (int_t)blockIdx.y, (int_t)blockIdx.z},
                 {iblock, jblock, kblock});
             it_domain.set_block_pos(iblock, jblock);
 

@@ -47,7 +47,7 @@ namespace gridtools {
             Base::template increment_k(offset);
         }
 
-        GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
+        GT_FUNCTION void initialize(pos3<int_t> begin, pos3<int_t> block_no, pos3<int_t> pos_in_block) {
             static constexpr auto backend = typename Base::iterate_domain_arguments_t::backend_t{};
             static constexpr auto block_size =
                 make_pos3(block_i_size(backend), block_j_size(backend), block_k_size(backend));

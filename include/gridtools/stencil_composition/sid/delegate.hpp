@@ -30,27 +30,25 @@ namespace gridtools {
 
             GT_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
 
-            friend GT_CONSTEXPR ptr_holder_type<Sid> sid_get_origin(delegate &obj) { return get_origin(obj.m_impl); }
-            friend GT_CONSTEXPR strides_type<Sid> sid_get_strides(delegate const &obj) {
-                return get_strides(obj.m_impl);
-            }
-            friend GT_CONSTEXPR lower_bounds_type<Sid> sid_get_lower_bounds(delegate const &obj) {
+            friend ptr_holder_type<Sid> sid_get_origin(delegate &obj) { return get_origin(obj.m_impl); }
+            friend strides_type<Sid> sid_get_strides(delegate const &obj) { return get_strides(obj.m_impl); }
+            friend lower_bounds_type<Sid> sid_get_lower_bounds(delegate const &obj) {
                 return get_lower_bounds(obj.m_impl);
             }
-            friend GT_CONSTEXPR upper_bounds_type<Sid> sid_get_upper_bounds(delegate const &obj) {
+            friend upper_bounds_type<Sid> sid_get_upper_bounds(delegate const &obj) {
                 return get_upper_bounds(obj.m_impl);
             }
 
           protected:
-            GT_CONSTEXPR Sid const &impl() const { return m_impl; }
+            Sid const &impl() const { return m_impl; }
             Sid &impl() { return m_impl; }
 
           public:
             template <class Arg>
-            explicit GT_CONSTEXPR delegate(std::initializer_list<Arg> lst) : m_impl(*lst.begin()) {}
+            explicit delegate(std::initializer_list<Arg> lst) : m_impl(*lst.begin()) {}
 
             template <class Arg>
-            explicit GT_CONSTEXPR delegate(Arg &&arg) noexcept : m_impl(wstd::forward<Arg>(arg)) {}
+            explicit delegate(Arg &&arg) noexcept : m_impl(wstd::forward<Arg>(arg)) {}
         };
 
         template <class Sid>
