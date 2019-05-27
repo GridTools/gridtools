@@ -10,8 +10,6 @@
 
 #include <gtest/gtest.h>
 
-#include <boost/fusion/include/make_vector.hpp>
-
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>

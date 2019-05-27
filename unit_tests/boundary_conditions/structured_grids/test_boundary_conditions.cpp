@@ -11,8 +11,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <boost/utility/enable_if.hpp>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/boundary_conditions/boundary.hpp>
@@ -64,7 +62,7 @@ struct bc_two {
         uint_t i,
         uint_t j,
         uint_t k,
-        typename boost::enable_if<is_one_of<is_minus<J>, is_minus<K>>>::type * = nullptr) const {
+        std::enable_if_t<is_one_of<is_minus<J>, is_minus<K>>::value> * = nullptr) const {
         data_field0(i, j, k) = (i + j + k + 1);
     }
 
