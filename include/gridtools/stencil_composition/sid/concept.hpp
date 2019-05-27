@@ -714,7 +714,7 @@ namespace gridtools {
          *  I.e. `composite`.
          */
         template <class Key, class Dim, class Strides, std::enable_if_t<has_key<Strides, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION auto get_stride(Strides const &strides) {
+        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides const &strides) {
             return gridtools::host_device::at_key<Key>(gridtools::host_device::at_key<Dim>(strides));
         }
 

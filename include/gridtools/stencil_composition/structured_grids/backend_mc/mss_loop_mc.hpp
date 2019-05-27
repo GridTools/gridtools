@@ -14,7 +14,6 @@
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../meta.hpp"
 #include "../../caches/cache_metafunctions.hpp"
-#include "../../iteration_policy.hpp"
 #include "../../loop_interval.hpp"
 #include "../../run_functor_arguments.hpp"
 #include "execinfo_mc.hpp"
@@ -68,7 +67,9 @@ namespace gridtools {
                     for (int_t k = 0; k < k_count; ++k) {
 #ifdef NDEBUG
 #pragma ivdep
+#ifndef __INTEL_COMPILER
 #pragma omp simd
+#endif
 #endif
                         for (int_t i = 0; i < i_count; ++i) {
                             stage(ptr, strides);
@@ -117,7 +118,9 @@ namespace gridtools {
                 for (int_t j = 0; j < j_count; ++j) {
 #ifdef NDEBUG
 #pragma ivdep
+#ifndef __INTEL_COMPILER
 #pragma omp simd
+#endif
 #endif
                     for (int_t i = 0; i < i_count; ++i) {
                         stage(ptr, strides);

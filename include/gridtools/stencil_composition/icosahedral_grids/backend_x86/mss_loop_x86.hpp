@@ -13,7 +13,6 @@
 #include "../../../common/host_device.hpp"
 #include "../../../meta.hpp"
 #include "../../backend_x86/basic_token_execution_x86.hpp"
-#include "../../iteration_policy.hpp"
 #include "../../loop_interval.hpp"
 #include "../../pos3.hpp"
 #include "../esf_metafunctions.hpp"

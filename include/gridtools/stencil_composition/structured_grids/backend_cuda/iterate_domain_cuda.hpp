@@ -174,7 +174,7 @@ namespace gridtools {
             auto k_pos = k() + k_offset;
             if (k_pos < 0 || k_pos >= device::at_key<typename DataStore::storage_info_t>(m_local_domain.m_ksize_map))
                 return nullptr;
-            Data *res = device::at_key<Arg>(this->m_ptr);
+            Data *res = device::at_key<Arg>(m_ptr);
             sid::shift(res, sid::get_stride<Arg, dim::k>(m_local_domain.m_strides), k_offset);
             return res;
         }
