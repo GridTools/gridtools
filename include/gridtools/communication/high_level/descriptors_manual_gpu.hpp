@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../../meta/utility.hpp"
+#include <utility>
 
 #ifdef __CUDACC__
 #include "m_packXL.hpp"
@@ -426,7 +426,7 @@ namespace gridtools {
         template <typename... Pointers>
         void pack(const Pointers *... fields) {
             typedef translate_t<3, default_layout_map<3>::type> translate;
-            auto ints = meta::make_integer_sequence<unsigned int, sizeof...(Pointers)>{};
+            auto ints = std::make_integer_sequence<unsigned int, sizeof...(Pointers)>{};
             if (send_size[translate()(0, 0, -1)]) {
                 m_packZL_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
             }
@@ -489,7 +489,7 @@ namespace gridtools {
 
         template <typename... Pointers>
         void unpack(Pointers *... fields) {
-            auto ints = meta::make_integer_sequence<unsigned int, sizeof...(Pointers)>{};
+            auto ints = std::make_integer_sequence<unsigned int, sizeof...(Pointers)>{};
             typedef translate_t<3, default_layout_map<3>::type> translate;
             if (recv_size[translate()(0, 0, -1)]) {
                 m_unpackZL_variadic(
