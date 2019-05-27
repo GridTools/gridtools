@@ -17,8 +17,20 @@ target_link_libraries( GridToolsTest INTERFACE Threads::Threads)
 include(workaround_threads)
 _fix_threads_flags()
 
-option(INSTALL_GTEST OFF)
-add_subdirectory(./tools/googletest)
+include(FetchContent)
+option(INSTALL_GTEST OFF) #TODO replace with set(INSTALL_GTEST OFF) with CMake >= 3.13
+mark_as_advanced(INSTALL_GTEST)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        release-1.8.1
+)
+# TODO Replace the next 5 lines with `FetchContent_MakeAvailable(googletest)` once we upgrade to CMake 3.14+.
+FetchContent_GetProperties(googletest)
+if(NOT googletest_POPULATED)
+  FetchContent_Populate(googletest)
+  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+endif()
 
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
