@@ -158,5 +158,4 @@
 #include "meta/third.hpp"
 #include "meta/transform.hpp"
 #include "meta/type_traits.hpp"
-#include "meta/utility.hpp"
 #include "meta/zip.hpp"

@@ -13,7 +13,6 @@
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/layout_map.hpp"
-#include "../../meta/utility.hpp"
 #include "alignment.hpp"
 #include "halo.hpp"
 

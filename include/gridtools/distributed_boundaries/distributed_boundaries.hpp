@@ -13,6 +13,8 @@
 /** \defgroup Distributed-Boundaries Distributed Boundary Conditions
  */
 
+#include <utility>
+
 #include "../boundary_conditions/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
@@ -168,13 +170,13 @@ namespace gridtools {
             }
 
             m_meter_pack.start();
-            call_pack(all_stores_for_exc, meta::make_integer_sequence<uint_t, sizeof...(jobs)>{});
+            call_pack(all_stores_for_exc, std::make_integer_sequence<uint_t, sizeof...(jobs)>{});
             m_meter_pack.pause();
             m_meter_exchange.start();
             m_he.exchange();
             m_meter_exchange.pause();
             m_meter_pack.start();
-            call_unpack(all_stores_for_exc, meta::make_integer_sequence<uint_t, sizeof...(jobs)>{});
+            call_unpack(all_stores_for_exc, std::make_integer_sequence<uint_t, sizeof...(jobs)>{});
             m_meter_pack.pause();
 
             boundary_only(jobs...);
@@ -203,7 +205,7 @@ namespace gridtools {
       private:
         template <typename BoundaryApply, typename ArgsTuple, uint_t... Ids>
         static void call_apply(
-            BoundaryApply boundary_apply, ArgsTuple const &args, meta::integer_sequence<uint_t, Ids...>) {
+            BoundaryApply boundary_apply, ArgsTuple const &args, std::integer_sequence<uint_t, Ids...>) {
             boundary_apply.apply(std::get<Ids>(args)...);
         }
 
@@ -216,7 +218,7 @@ namespace gridtools {
                            bcapply.boundary_to_apply(),
                            proc_grid_predicate<typename pattern_type::grid_type>(m_he.comm())),
                 bcapply.stores(),
-                meta::make_integer_sequence<uint_t, std::tuple_size<typename BCApply::stores_type>::value>{});
+                std::make_integer_sequence<uint_t, std::tuple_size<typename BCApply::stores_type>::value>{});
         }
 
         template <typename BCApply>
@@ -237,24 +239,24 @@ namespace gridtools {
         }
 
         template <typename Stores, uint_t... Ids>
-        void call_pack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
+        void call_pack(Stores const &stores, std::integer_sequence<uint_t, Ids...>) {
             m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::read_write,
                 std::decay_t<std::tuple_element_t<Ids, Stores>>>::make(std::get<Ids>(stores)))...);
         }
 
         template <typename Stores, uint_t... Ids>
-        void call_pack(Stores const &stores, meta::integer_sequence<uint_t>) {}
+        void call_pack(Stores const &stores, std::integer_sequence<uint_t>) {}
 
         template <typename Stores, uint_t... Ids>
-        void call_unpack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
+        void call_unpack(Stores const &stores, std::integer_sequence<uint_t, Ids...>) {
             m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::read_write,
                 std::decay_t<std::tuple_element_t<Ids, Stores>>>::make(std::get<Ids>(stores)))...);
         }
 
         template <typename Stores, uint_t... Ids>
-        static void call_unpack(Stores const &stores, meta::integer_sequence<uint_t>) {}
+        static void call_unpack(Stores const &stores, std::integer_sequence<uint_t>) {}
     };
 
     /** @} */

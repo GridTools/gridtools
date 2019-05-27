@@ -10,7 +10,8 @@
 
 #pragma once
 
-#include "../meta/utility.hpp"
+#include <utility>
+
 #include "layout_map.hpp"
 #include "selector.hpp"
 
@@ -63,15 +64,15 @@ namespace gridtools {
 
         // build an extended layout
         template <int_t... Indices>
-        struct build_ext_layout<insert_location::post, meta::integer_sequence<int_t, Indices...>> {
+        struct build_ext_layout<insert_location::post, std::integer_sequence<int_t, Indices...>> {
             using type = layout_map<(Args == -1 ? -1 : Args + NExtraDim)..., Indices...>;
         };
         template <int_t... Indices>
-        struct build_ext_layout<insert_location::pre, meta::integer_sequence<int_t, Indices...>> {
+        struct build_ext_layout<insert_location::pre, std::integer_sequence<int_t, Indices...>> {
             using type = layout_map<Indices..., (Args == -1 ? -1 : Args + NExtraDim)...>;
         };
 
-        using type = typename build_ext_layout<Location, meta::make_integer_sequence<int_t, NExtraDim>>::type;
+        using type = typename build_ext_layout<Location, std::make_integer_sequence<int_t, NExtraDim>>::type;
     };
 
     template <int_t D>
