@@ -254,11 +254,6 @@ namespace gridtools {
                           f<g<int, int *, int **>, g<void, void *>>>{},
             "");
 
-        static_assert(std::is_same<integer_sequence<int>::value_type, int>::value, "");
-        static_assert(integer_sequence<int, 1, 2, 3>::size() == 3, "");
-
-        static_assert(std::is_same<make_integer_sequence<int, 3>, integer_sequence<int, 0, 1, 2>>::value, "");
-
         // take
         static_assert(std::is_same<take_c<2, f<int, double, void, void>>, f<int, double>>::value, "");
         static_assert(std::is_same<take_c<20, repeat_c<100, int>>, repeat_c<20, int>>::value, "");
@@ -283,7 +278,7 @@ namespace gridtools {
 
             static_assert(!has_type_member<int>::value, "");
             static_assert(has_type_member<X>::value, "");
-        }
+        } // namespace defect_cwg_1558
 
     } // namespace meta
 } // namespace gridtools

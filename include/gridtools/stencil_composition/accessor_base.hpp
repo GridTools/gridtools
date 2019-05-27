@@ -10,6 +10,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
@@ -92,11 +93,11 @@ namespace gridtools {
      *  TODO(anstaf) : check offsets against extent
      */
 
-    template <size_t Dim, class = meta::make_index_sequence<Dim>>
+    template <size_t Dim, class = std::make_index_sequence<Dim>>
     class accessor_base;
 
     template <size_t Dim, size_t... Is>
-    class accessor_base<Dim, meta::index_sequence<Is...>> : public array<int_t, Dim> {
+    class accessor_base<Dim, std::index_sequence<Is...>> : public array<int_t, Dim> {
         using base_t = array<int_t, Dim>;
 
         template <class... Ts>
@@ -140,7 +141,7 @@ namespace gridtools {
     };
 
     template <>
-    class accessor_base<0, meta::index_sequence<>> : public tuple<> {
+    class accessor_base<0, std::index_sequence<>> : public tuple<> {
         template <class... Ts>
         GT_FUNCTION GT_CONSTEXPR accessor_base(accessor_base_impl_::check_all_zeros) {}
 

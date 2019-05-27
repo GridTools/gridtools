@@ -11,9 +11,9 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../meta/type_traits.hpp"
-#include "../meta/utility.hpp"
 #include "defs.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
@@ -84,7 +84,7 @@ namespace gridtools {
         struct tuple_impl;
 
         template <size_t... Is, class... Ts>
-        struct tuple_impl<meta::index_sequence<Is...>, Ts...> : tuple_leaf<Is, Ts>... {
+        struct tuple_impl<std::index_sequence<Is...>, Ts...> : tuple_leaf<Is, Ts>... {
             GT_DECLARE_DEFAULT_EMPTY_CTOR(tuple_impl);
 
             tuple_impl(tuple_impl const &) = default;
@@ -109,7 +109,7 @@ namespace gridtools {
                 std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                                      conjunction<std::is_assignable<Ts &, Args const &>...>::value,
                     int> = 0>
-            GT_FUNCTION void assign(tuple_impl<meta::index_sequence<Is...>, Args...> const &src) noexcept {
+            GT_FUNCTION void assign(tuple_impl<std::index_sequence<Is...>, Args...> const &src) noexcept {
                 void((int[]){(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(src), 0)...});
             }
 
@@ -117,7 +117,7 @@ namespace gridtools {
                 std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                                      conjunction<std::is_assignable<Ts &, Args &&>...>::value,
                     int> = 0>
-            GT_FUNCTION void assign(tuple_impl<meta::index_sequence<Is...>, Args...> &&src) noexcept {
+            GT_FUNCTION void assign(tuple_impl<std::index_sequence<Is...>, Args...> &&src) noexcept {
                 void((int[]){(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(wstd::move(src)), 0)...});
             }
         };
@@ -140,7 +140,7 @@ namespace gridtools {
      */
     template <class... Ts>
     class tuple {
-        impl_::tuple_impl<meta::index_sequence_for<Ts...>, Ts...> m_impl;
+        impl_::tuple_impl<std::index_sequence_for<Ts...>, Ts...> m_impl;
 
         struct getter {
             template <size_t I>
