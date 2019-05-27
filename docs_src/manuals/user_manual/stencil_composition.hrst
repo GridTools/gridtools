@@ -194,7 +194,7 @@ Examples:
    axis_t my_axis(5, 10); // iteration space spans 5 + 10 levels
 
    using first_interval = axis_t::get_interval<0>;         // interval [0, 4]
-   using second_interval = axis_t::get_interval1>;         // [5, 14]
+   using second_interval = axis_t::get_interval<1>;        // [5, 14]
    using full_interval = my_axis_t::full_interval;         // [0, 14]
 
    using first_level_only_interval = full_interval::first_level; // [0]
