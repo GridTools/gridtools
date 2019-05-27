@@ -11,6 +11,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../../common/array.hpp"
 #include "../../common/array_dot_product.hpp"
@@ -22,7 +23,6 @@
 #include "../../common/host_device.hpp"
 #include "../../common/layout_map.hpp"
 #include "../../meta/type_traits.hpp"
-#include "../../meta/utility.hpp"
 #include "alignment.hpp"
 #include "halo.hpp"
 #include "storage_info_metafunctions.hpp"
@@ -103,23 +103,23 @@ namespace gridtools {
          */
         template <uint_t... Idxs, typename Array, typename Halo = zero_halo<ndims>>
         GT_FUNCTION static GT_CONSTEXPR uint_t multiply_if_layout(
-            meta::integer_sequence<uint_t, Idxs...>, Array const &array, Halo h = zero_halo<ndims>{}) {
+            std::integer_sequence<uint_t, Idxs...>, Array const &array, Halo h = zero_halo<ndims>{}) {
             return accumulate(
                 multiplies(), ((layout_t::template at<Idxs>() >= 0) ? array[Idxs] - 2 * h.at(Idxs) : 1)...);
         }
 
         template <uint_t... Seq, typename... Ints>
-        GT_FUNCTION GT_CONSTEXPR int offset(meta::integer_sequence<uint_t, Seq...>, Ints... idx) const {
+        GT_FUNCTION GT_CONSTEXPR int offset(std::integer_sequence<uint_t, Seq...>, Ints... idx) const {
             return accumulate(plus_functor(), (idx * m_strides[Seq])...);
         }
 
         template <int... Inds>
-        GT_FUNCTION GT_CONSTEXPR int first_index_impl(meta::integer_sequence<int, Inds...>) const {
+        GT_FUNCTION GT_CONSTEXPR int first_index_impl(std::integer_sequence<int, Inds...>) const {
             return index(halo_t::template at<Inds>()...);
         }
 
         template <uint_t... Ints, typename... Coords>
-        GT_FUNCTION GT_CONSTEXPR bool check_bounds(meta::integer_sequence<uint_t, Ints...>, Coords... coords) const {
+        GT_FUNCTION GT_CONSTEXPR bool check_bounds(std::integer_sequence<uint_t, Ints...>, Coords... coords) const {
             return accumulate(logical_and(),
                 true,
                 ((layout_t::template at<Ints>() < 0) or (((int)coords >= 0) and (coords < m_total_lengths[Ints])))...);
@@ -193,7 +193,7 @@ namespace gridtools {
          * @return total size including dimensions, halos, initial_offset, padding, and initial_offset
          */
         GT_FUNCTION GT_CONSTEXPR uint_t padded_total_length() const {
-            return multiply_if_layout(meta::make_integer_sequence<uint_t, ndims>{}, m_padded_lengths);
+            return multiply_if_layout(std::make_integer_sequence<uint_t, ndims>{}, m_padded_lengths);
         }
 
         /**
@@ -202,7 +202,7 @@ namespace gridtools {
          * @return number of domain elements
          */
         GT_FUNCTION GT_CONSTEXPR uint_t total_length() const {
-            return multiply_if_layout(meta::make_integer_sequence<uint_t, ndims>{}, m_total_lengths);
+            return multiply_if_layout(std::make_integer_sequence<uint_t, ndims>{}, m_total_lengths);
         }
 
         /**
@@ -211,7 +211,7 @@ namespace gridtools {
          * @return number of inner domain elements
          */
         GT_FUNCTION GT_CONSTEXPR uint_t length() const {
-            return multiply_if_layout(meta::make_integer_sequence<uint_t, ndims>{}, m_total_lengths, halo_t{});
+            return multiply_if_layout(std::make_integer_sequence<uint_t, ndims>{}, m_total_lengths, halo_t{});
         }
 
         /**
@@ -326,10 +326,10 @@ namespace gridtools {
             std::enable_if_t<sizeof...(Ints) == ndims && is_all_integral_or_enum<Ints...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR int index(Ints... idx) const {
 #ifdef NDEBUG
-            return offset(meta::make_integer_sequence<uint_t, ndims>{}, idx...);
+            return offset(std::make_integer_sequence<uint_t, ndims>{}, idx...);
 #else
-            return error_or_return(check_bounds(meta::make_integer_sequence<uint_t, ndims>{}, idx...),
-                offset(meta::make_integer_sequence<uint_t, ndims>{}, idx...),
+            return error_or_return(check_bounds(std::make_integer_sequence<uint_t, ndims>{}, idx...),
+                offset(std::make_integer_sequence<uint_t, ndims>{}, idx...),
                 "Storage out of bounds access");
 #endif
         }
@@ -345,7 +345,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION GT_CONSTEXPR int first_index_of_inner_region() const {
-            return first_index_impl(meta::make_integer_sequence<int, ndims>{});
+            return first_index_impl(std::make_integer_sequence<int, ndims>{});
         }
 
         /**

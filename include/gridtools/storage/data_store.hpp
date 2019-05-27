@@ -16,10 +16,10 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include "../common/gt_assert.hpp"
 #include "../meta/type_traits.hpp"
-#include "../meta/utility.hpp"
 #include "./common/definitions.hpp"
 #include "./common/storage_info.hpp"
 #include "./common/storage_interface.hpp"
@@ -31,11 +31,11 @@ namespace gridtools {
      */
 
     namespace data_store_impl_ {
-        template <class Fun, class StorageInfo, class = meta::make_index_sequence<StorageInfo::ndims>>
+        template <class Fun, class StorageInfo, class = std::make_index_sequence<StorageInfo::ndims>>
         struct initializer_adapter_f;
 
         template <class Fun, class StorageInfo, size_t... Is>
-        struct initializer_adapter_f<Fun, StorageInfo, meta::index_sequence<Is...>> {
+        struct initializer_adapter_f<Fun, StorageInfo, std::index_sequence<Is...>> {
             Fun const &m_fun;
             StorageInfo const &m_info;
 

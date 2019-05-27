@@ -13,6 +13,7 @@
 #include <functional>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "../boundary_conditions/boundary.hpp"
 #include "../common/halo_descriptor.hpp"
@@ -68,7 +69,7 @@ namespace gridtools {
         /** \internal
             @brief This functions takes a tuple that may contain placeholders and returns a tuple
             for which the placeholders have been substituted by the corresponding elements
-            of the another tuple. The function takes a gt_integer_sequence of the size of the tuple
+            of the another tuple. The function takes a index_sequence of the size of the tuple
             with placeholders.
 
             This facility uses gridtools::_impl::select_element to discriminate between elements that
@@ -78,24 +79,24 @@ namespace gridtools {
             \param all      Tuple of elements that may include placeholders
         */
         template <typename ROTuple, typename AllTuple, std::size_t... IDs>
-        auto substitute_placeholders(ROTuple const &ro_tuple, AllTuple const &all, meta::index_sequence<IDs...>) {
+        auto substitute_placeholders(ROTuple const &ro_tuple, AllTuple const &all, std::index_sequence<IDs...>) {
             return std::make_tuple(select_element<IDs>(ro_tuple,
                 all,
                 typename PlcOrNot<std::is_placeholder<std::tuple_element_t<IDs, AllTuple>>::value>::type{})...);
         }
 
-        inline std::tuple<> rest_tuple(std::tuple<>, meta::index_sequence<>) { return {}; }
+        inline std::tuple<> rest_tuple(std::tuple<>, std::index_sequence<>) { return {}; }
 
         /** \internal
             Small facility to obtain a tuple with the elements of am input  tuple execpt the first.
         */
         template <typename... Elems, std::size_t... IDs>
-        auto rest_tuple(std::tuple<Elems...> const &x, meta::index_sequence<IDs...>) {
+        auto rest_tuple(std::tuple<Elems...> const &x, std::index_sequence<IDs...>) {
             return std::make_tuple(std::get<IDs + 1u>(x)...);
         }
 
         /**
-           @brief Metafunction to return an gt_integer_sequence indicating
+           @brief Metafunction to return an index_sequence indicating
            the elements in the Tuple that are not std::placeholders
 
            \tparam Tuple Tuple to be evaluated
@@ -112,11 +113,10 @@ namespace gridtools {
 
             template <std::size_t I, size_t... Is, typename First, typename... Elems>
             struct collect_indices<I,
-                meta::index_sequence<Is...>,
+                std::index_sequence<Is...>,
                 std::tuple<First, Elems...>,
                 std::enable_if_t<(std::is_placeholder<First>::value == 0), void>> {
-                using type =
-                    typename collect_indices<I + 1, meta::index_sequence<Is..., I>, std::tuple<Elems...>>::type;
+                using type = typename collect_indices<I + 1, std::index_sequence<Is..., I>, std::tuple<Elems...>>::type;
             };
 
             template <std::size_t I, typename ISeq, typename First, typename... Elems>
@@ -127,7 +127,7 @@ namespace gridtools {
                 using type = typename collect_indices<I + 1, ISeq, std::tuple<Elems...>>::type;
             };
 
-            using type = typename collect_indices<0, meta::index_sequence<>, InputTuple>::type;
+            using type = typename collect_indices<0, std::index_sequence<>, InputTuple>::type;
         };
 
         template <typename T>
@@ -186,14 +186,14 @@ namespace gridtools {
      *
      * \tparam BCApply The class name with boudary condition functions applied by gridtools::boundary
      * \tparam DataStores Tuple type of data stores (or placeholders) to be passed for boundary condition application
-     * \tparam ExcStoresIndicesSeq gt_integer_sequence with the indices of data_stores in DataStores that will be
+     * \tparam ExcStoresIndicesSeq index_sequence with the indices of data_stores in DataStores that will be
      * undergo halo-update operations
      */
     template <typename BCApply, typename DataStores, typename ExcStoresIndicesSeq>
     struct bound_bc;
 
     template <typename BCApply, typename... DataStores, std::size_t... ExcStoresIndices>
-    struct bound_bc<BCApply, std::tuple<DataStores...>, meta::index_sequence<ExcStoresIndices...>> {
+    struct bound_bc<BCApply, std::tuple<DataStores...>, std::index_sequence<ExcStoresIndices...>> {
         using boundary_class = BCApply;
         using stores_type = std::tuple<DataStores...>;
         using exc_stores_type = std::tuple<std::tuple_element_t<ExcStoresIndices, stores_type> const &...>;
@@ -249,12 +249,12 @@ namespace gridtools {
         auto associate(ReadOnly &&... ro_stores) const -> bound_bc<BCApply,
             decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
                 m_stores,
-                meta::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{})),
+                std::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{})),
             typename _impl::comm_indices<stores_type>::type> {
             auto ro_store_tuple = std::forward_as_tuple(ro_stores...);
             // we need to substitute the placeholders with the
             auto full_list = _impl::substitute_placeholders(
-                ro_store_tuple, m_stores, meta::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{});
+                ro_store_tuple, m_stores, std::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{});
 
             return bound_bc<BCApply, decltype(full_list), typename _impl::comm_indices<stores_type>::type>{
                 m_bcapply, wstd::move(full_list)};
@@ -277,7 +277,7 @@ namespace gridtools {
      * \param stores Parameter pack with the data stores or placeholders (std::placeholders hosuld be used)
      */
     template <typename BCApply, typename... DataStores>
-    bound_bc<BCApply, std::tuple<std::decay_t<DataStores>...>, meta::index_sequence_for<DataStores...>> bind_bc(
+    bound_bc<BCApply, std::tuple<std::decay_t<DataStores>...>, std::index_sequence_for<DataStores...>> bind_bc(
         BCApply bc_apply, DataStores &&... stores) {
 
         // Concept checking on BCApply is not ready yet.

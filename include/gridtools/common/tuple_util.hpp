@@ -561,7 +561,7 @@ namespace gridtools {
                         class Accessors = get_accessors<Tup &&>,
                         class Res = from_types<Tup, meta::push_back<Accessors, Args &&...>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup, Args &&... args) const {
-                        return push_back_impl_f<meta::make_index_sequence<size<Accessors>::value>, Res>{}(
+                        return push_back_impl_f<std::make_index_sequence<size<Accessors>::value>, Res>{}(
                             wstd::forward<Tup>(tup), wstd::forward<Args>(args)...);
                     }
                 };
@@ -584,7 +584,7 @@ namespace gridtools {
                         class Accessors = get_accessors<Tup &&>,
                         class Res = from_types<Tup, meta::push_front<Accessors, Args &&...>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup, Args &&... args) const {
-                        return push_front_impl_f<meta::make_index_sequence<size<Accessors>::value>, Res>{}(
+                        return push_front_impl_f<std::make_index_sequence<size<Accessors>::value>, Res>{}(
                             wstd::forward<Tup>(tup), wstd::forward<Args>(args)...);
                     }
                 };
@@ -1349,7 +1349,7 @@ namespace gridtools {
 
                 template <class Fun, class Tup, std::size_t... Is>
                 GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) apply_impl(
-                    Fun &&f, Tup &&tup, meta::index_sequence<Is...>) {
+                    Fun &&f, Tup &&tup, std::index_sequence<Is...>) {
                     return invoke_impl(wstd::forward<Fun>(f), get<Is>(wstd::forward<Tup>(tup))...);
                 }
             } // namespace detail
@@ -1368,7 +1368,7 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) apply(Fun && fun, Tup && tup) {
                 return detail::apply_impl(wstd::forward<Fun>(fun),
                     wstd::forward<Tup>(tup),
-                    meta::make_index_sequence<size<std::decay_t<Tup>>::value>{});
+                    std::make_index_sequence<size<std::decay_t<Tup>>::value>{});
             }
 
             /// Generalization of `std::make_tuple`

@@ -9,6 +9,6 @@
  */
 
 // Unittest disabled for the combination nvcc + clang with nvcc < 10.0 because of problems with operator""if
-#if not (defined __clang__ && __CUDACC_VER_MAJOR < 10)
+#if not(defined __clang__ && __CUDACC_VER_MAJOR < 10)
 #include "test_repository.cpp"
 #endif
