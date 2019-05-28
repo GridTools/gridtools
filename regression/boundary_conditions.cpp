@@ -74,7 +74,6 @@ namespace {
         dst.sync();
 
         auto src_v = gridtools::make_host_view<access_mode::read_only>(src);
-        // auto dst_v = gridtools::make_host_view<access_mode::read_only>(dst);
         auto dst_v = gridtools::make_host_view(dst);
 
         // check inner domain (should be zero)
@@ -97,23 +96,23 @@ namespace {
         // check edge (direction<minus_, minus_, K>)
         for (uint_t i = 0; i < halos[0].begin(); ++i)
             for (uint_t j = 0; j < halos[1].begin(); ++j)
-                for (uint_t k = halos[2].begin(); k < halos[2].total_length(); ++k) {
+                for (uint_t k = halos[2].begin(); k <= halos[2].end() + halos[2].plus(); ++k) {
                     EXPECT_EQ(dst_v(i, j, k), 155554);
                     dst_v(i, j, k) = -1;
                 }
 
         // check face (direction<I, minus_, K>)
-        for (uint_t i = halos[0].begin(); i < halos[0].total_length(); ++i)
+        for (uint_t i = halos[0].begin(); i <= halos[0].end() + halos[0].plus(); ++i)
             for (uint_t j = 0; j < halos[1].begin(); ++j)
-                for (uint_t k = 0; k < halos[2].total_length(); ++k) {
+                for (uint_t k = 0; k < halos[2].end() + halos[2].plus(); ++k) {
                     EXPECT_EQ(dst_v(i, j, k), 176);
                     dst_v(i, j, k) = -1;
                 }
 
         // remainder
-        for (uint_t i = 0; i < halos[0].total_length(); ++i)
-            for (uint_t j = halos[1].begin(); j < halos[1].total_length(); ++j)
-                for (uint_t k = 0; k < halos[2].total_length(); ++k)
+        for (uint_t i = 0; i < halos[0].end() + halos[0].plus(); ++i)
+            for (uint_t j = halos[1].begin(); j < halos[1].end() + halos[1].plus(); ++j)
+                for (uint_t k = 0; k < halos[2].end() + halos[2].plus(); ++k)
                     if (i < halos[0].begin() || i > halos[0].end() || k < halos[2].begin() || k > halos[2].end() ||
                         j > halos[1].end()) {
                         EXPECT_EQ(dst_v(i, j, k), src_v(i, j, k) * 2);
@@ -121,10 +120,10 @@ namespace {
                     }
 
         // test the test (all values should be set to -1 now)
-        for (uint_t i = 0; i < halos[0].total_length(); ++i)
-            for (uint_t j = 0; j < halos[1].total_length(); ++j)
-                for (uint_t k = 0; k < halos[2].total_length(); ++k)
-                    ASSERT_EQ(dst_v(i, j, k), -1) << i << ", " << j << ", " << k;
+        for (uint_t i = 0; i < halos[0].end() + halos[0].plus(); ++i)
+            for (uint_t j = 0; j < halos[1].end() + halos[1].plus(); ++j)
+                for (uint_t k = 0; k < halos[2].end() + halos[2].plus(); ++k)
+                    ASSERT_EQ(dst_v(i, j, k), -1);
 
         src.sync();
         dst.sync();
