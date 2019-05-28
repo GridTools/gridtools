@@ -8,7 +8,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "generic_benchmark.hpp"
+
 #include <gridtools/boundary_conditions/boundary.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include <gtest/gtest.h>
@@ -16,25 +19,6 @@
 using namespace gridtools;
 
 namespace {
-    class generic_benchmark {
-      public:
-        template <typename F>
-        generic_benchmark(F &&f) : m_f(f), m_meter("") {}
-
-        void run() {
-            m_meter.start();
-            m_f();
-            m_meter.pause();
-        }
-        void reset_meter() { m_meter.reset(); }
-        std::string print_meter() { return m_meter.to_string(); }
-
-      private:
-        std::function<void()> m_f;
-
-        using performance_meter_t = typename timer_traits<backend_t>::timer_type;
-        performance_meter_t m_meter;
-    };
     struct direction_bc_input {
         float_type value;
 
@@ -161,5 +145,5 @@ TEST_F(distributed_boundary, test) {
     apply_boundary(halos, src, dst);
     verify_result(halos, src, dst);
 
-    benchmark(generic_benchmark{[&]() { apply_boundary(halos, src, dst); }});
+    benchmark(generic_benchmark<backend_t>{[&]() { apply_boundary(halos, src, dst); }});
 }
