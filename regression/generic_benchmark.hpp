@@ -8,6 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#pragma once
+
 #include <gridtools/common/timer/timer_traits.hpp>
 
 #include <functional>
