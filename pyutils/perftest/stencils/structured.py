@@ -43,6 +43,6 @@ class LayoutTransformation(Stencil):
     gridtools_path = path('layout_transformation')
     halo = 2
 
-class DistributedBoundaries(Stencil):
-    gridtools_path = path('distributed_boundaries')
+class BoundaryConditions(Stencil):
+    gridtools_path = path('boundary_conditions')
     halo = 3
