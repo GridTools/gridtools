@@ -46,6 +46,8 @@ namespace gridtools {
             return {halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2};
         }
 
+        auto make_grid() const { return ::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}); }
+
 #ifndef GT_ICOSAHEDRAL_GRIDS
         using halo_t = halo<HaloSize, HaloSize, 0>;
         using storage_info_t = storage_tr::storage_info_t<0, 3, halo_t>;
@@ -83,8 +85,6 @@ namespace gridtools {
         static constexpr tmp_arg<7> p_tmp_7 = {};
         static constexpr tmp_arg<8> p_tmp_8 = {};
         static constexpr tmp_arg<9> p_tmp_9 = {};
-
-        auto make_grid() const { return ::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}); }
 
         template <class Storage = storage_type, class T = typename Storage::data_t>
         Storage make_storage(T &&obj = {}) const {
@@ -152,10 +152,6 @@ namespace gridtools {
         }
 
         topology_t topology() const { return {m_d1, m_d2, m_d3}; }
-
-        auto make_grid() const {
-            return ::gridtools::make_grid(topology(), i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3});
-        }
 
       private:
         template <class Storage>
