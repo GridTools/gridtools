@@ -19,10 +19,12 @@ bool verify(double weight, data_store_t const &in1, data_store_t const &in2, dat
     for (int k = in1_v.total_begin<2>(); k <= in1_v.total_end<2>(); ++k) {
         for (int i = in1_v.total_begin<0>(); i <= in1_v.total_end<0>(); ++i) {
             for (int j = in1_v.total_begin<1>(); j <= in1_v.total_end<1>(); ++j) {
-                if (weight * in1_v(i, j, k) + (1.0 - weight) * in2_v(i, j, k) != out_v(i, j, k)) {
+                if (weight * in1_v(i, j, k) + (1.0 - weight) * in2_v(i, j, k) - out_v(i, j, k) > 1e-8) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
                               << "expected = " << weight * in1_v(i, j, k) + (1.0 - weight) * in2_v(i, j, k)
-                              << ", out = " << out_v(i, j, k) << std::endl;
+                              << ", out = " << out_v(i, j, k) << ", diff = "
+                              << weight * in1_v(i, j, k) + (1.0 - weight) * in2_v(i, j, k) - out_v(i, j, k)
+                              << std::endl;
                     success = false;
                 }
             }
