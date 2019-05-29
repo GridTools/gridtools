@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@)
-project(computation LANGUAGES CXX)
+project(stencil_computation LANGUAGES CXX)
 
 # enable CUDA if it is found on the system
 include(../workaround_check_language.cmake) # see https://gitlab.kitware.com/cmake/cmake/issues/19013
