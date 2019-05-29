@@ -2,9 +2,7 @@
 
 #include <iostream>
 
-constexpr double weight = 0.4;
-
-bool verify(data_store_t const &in1, data_store_t const &in2, data_store_t const &out) {
+bool verify(double weight, data_store_t const &in1, data_store_t const &in2, data_store_t const &out) {
     auto in1_v = gridtools::make_host_view<gridtools::access_mode::read_only>(in1);
     auto in2_v = gridtools::make_host_view<gridtools::access_mode::read_only>(in2);
     auto out_v = gridtools::make_host_view<gridtools::access_mode::read_only>(out);
@@ -34,6 +32,7 @@ bool verify(data_store_t const &in1, data_store_t const &in2, data_store_t const
 }
 int main(int argc, char **argv) {
     unsigned int d1, d2, d3;
+    const double weight = 0.4;
 
     if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " dimx dimy dimz\n";
@@ -51,19 +50,20 @@ int main(int argc, char **argv) {
     // grid (no particular care has to be taken to describe halo points).
     auto grid = gridtools::make_grid(d1, d2, d3);
 
+    // Create some data stores
     data_store_t in1{meta_data_, [](int i, int j, int k) { return i + j + k; }, "in"};
     data_store_t in2{meta_data_, [](int i, int j, int k) { return 4 * i + 2 * j + k; }, "in"};
     data_store_t out{meta_data_, -1.0, "out"};
 
-    interpolate_stencil my_stencil{grid, 0.4};
-
-    my_stencil.run(in1, in2, out);
+    // Use the wrapped computation
+    interpolate_stencil my_stencil{grid, weight};
+    my_stencil.run({in1, in2}, {out});
 
     out.sync();
     in1.sync();
     in2.sync();
 
-    bool success = verify(in1, in2, out);
+    bool success = verify(weight, in1, in2, out);
 
     if (success) {
         std::cout << "Successful\n";

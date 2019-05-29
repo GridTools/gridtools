@@ -11,6 +11,7 @@
 #include "interpolate_stencil.hpp"
 
 #include <gridtools/stencil_composition/expressions/expressions.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 
 struct interpolate_stage {
     using in1 = gridtools::accessor<0, gridtools::intent::in>;
@@ -28,12 +29,13 @@ struct interpolate_stage {
     }
 };
 
+// `make_computation` should never be called in a header, because the compilation overhead is very significant
 interpolate_stencil::interpolate_stencil(grid_t const &grid, double weight)
     : m_stencil(gridtools::make_computation<backend_t>(grid,
           p_weight() = gridtools::make_global_parameter<backend_t>(weight),
           gridtools::make_multistage(gridtools::execute::parallel{},
               gridtools::make_stage<interpolate_stage>(p_in1{}, p_in2(), p_weight(), p_out())))) {}
 
-void interpolate_stencil::run(data_store_t &in1, data_store_t &in2, data_store_t &out) {
-    m_stencil.run(p_in1() = in1, p_in2() = in2, p_out() = out);
+void interpolate_stencil::run(inputs const &inputs, outputs const &outputs) {
+    m_stencil.run(p_in1() = inputs.in1, p_in2() = inputs.in2, p_out() = outputs.out);
 }
