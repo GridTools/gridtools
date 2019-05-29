@@ -1,6 +1,6 @@
 #!/bin/bash
 
-:14
+echo "Running on host $(hostname)"
 
 # remove -cn from label (for daint)
 label=${label%%-*}
