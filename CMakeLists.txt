@@ -35,8 +35,23 @@ include (definitions)
 if (BUILD_TESTING)
     include (testing)
 endif()
-include (bindings)
 include (components)
+
+include(FetchContent)
+
+set(CPP_BINDGEN_GT_LEGACY ON)
+FetchContent_Declare(
+  c_bindings
+  SOURCE_DIR /home/vogtha/git/c_bindings
+  # GIT_REPOSITORY https://github.com/GridTools/c_bindings.git
+  # GIT_TAG        master
+)
+FetchContent_GetProperties(c_bindings)
+if(NOT c_bindings_POPULATED)
+  FetchContent_Populate(c_bindings)
+  add_subdirectory(${c_bindings_SOURCE_DIR} ${c_bindings_BINARY_DIR})
+endif()
+include(gt_add_bindings_library)
 
 # TODO this install targets are not finished on purpose.
 if( COMPONENT_COMMON )
@@ -92,10 +107,6 @@ if( COMPONENT_TOOLS )
     generate_target_for(NAME tools)
 endif()
 
-if(COMPONENT_C_BINDINGS)
-    generate_target_for(NAME c_bindings)
-endif()
-
 # ===============
 # tests
 # ===============
@@ -131,4 +142,5 @@ if(GT_ENABLE_PYUTILS)
     add_subdirectory(pyutils)
 endif()
 
-include(export)
+# absolute path to avoid collision with "export" from other packages
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/export.cmake)

@@ -7,6 +7,7 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         # ... but actually generate the preprocessed file
         target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS})
         target_link_libraries( ${cpp_file}_OBJECTS common )
+        target_link_libraries( ${cpp_file}_OBJECTS cpp_bindgen_interface )
 
         # add a target for the generated file
         add_custom_command( OUTPUT ${preprocessed_file_out}
@@ -51,6 +52,7 @@ if (GT_ENABLE_BACKEND_X86)
 
     add_executable( custom_test_generated_repository ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
     target_link_libraries(custom_test_generated_repository gtest_main GridToolsTestX86 )
+    target_link_libraries(custom_test_generated_repository cpp_bindgen_interface)
     gridtools_add_test(
         NAME custom_test_generated_repository
         COMMAND $<TARGET_FILE:custom_test_generated_repository>
