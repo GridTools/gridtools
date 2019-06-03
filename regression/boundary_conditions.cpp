@@ -19,6 +19,11 @@
 using namespace gridtools;
 
 namespace {
+    static constexpr float_type face_value = 88;
+    static constexpr float_type edge_value = 77777;
+    static constexpr float_type corner_value = 55555;
+    static constexpr float_type factor = 2;
+
     struct direction_bc_input {
         float_type value;
 
@@ -39,7 +44,7 @@ namespace {
         template <sign I, sign K, typename DataField0, typename DataField1>
         GT_FUNCTION void operator()(
             direction<I, minus_, K>, DataField0 &, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
-            data_field1(i, j, k) = 88 * value;
+            data_field1(i, j, k) = face_value * value;
         }
 
         // relative coordinates
@@ -50,7 +55,7 @@ namespace {
             uint_t i,
             uint_t j,
             uint_t k) const {
-            data_field1(i, j, k) = 77777 * value;
+            data_field1(i, j, k) = edge_value * value;
         }
 
         template <typename DataField0, typename DataField1>
@@ -60,13 +65,13 @@ namespace {
             uint_t i,
             uint_t j,
             uint_t k) const {
-            data_field1(i, j, k) = 55555 * value;
+            data_field1(i, j, k) = corner_value * value;
         }
     };
 
     template <typename Src, typename Dst>
     void apply_boundary(array<halo_descriptor, 3> const &halos, Src &src, Dst &dst) {
-        gridtools::make_boundary<backend_t>(halos, direction_bc_input{2.0}).apply(src, dst);
+        gridtools::make_boundary<backend_t>(halos, direction_bc_input{factor}).apply(src, dst);
     }
     template <typename Src, typename Dst>
     void verify_result(array<halo_descriptor, 3> const &halos, Src &src, Dst &dst) {
@@ -89,7 +94,7 @@ namespace {
         for (uint_t i = 0; i < halos[0].begin(); ++i)
             for (uint_t j = 0; j < halos[1].begin(); ++j)
                 for (uint_t k = 0; k < halos[2].begin(); ++k) {
-                    EXPECT_EQ(dst_v(i, j, k), 111110);
+                    EXPECT_EQ(dst_v(i, j, k), factor * corner_value);
                     dst_v(i, j, k) = -1;
                 }
 
@@ -97,7 +102,7 @@ namespace {
         for (uint_t i = 0; i < halos[0].begin(); ++i)
             for (uint_t j = 0; j < halos[1].begin(); ++j)
                 for (uint_t k = halos[2].begin(); k <= halos[2].end() + halos[2].plus(); ++k) {
-                    EXPECT_EQ(dst_v(i, j, k), 155554);
+                    EXPECT_EQ(dst_v(i, j, k), factor * edge_value);
                     dst_v(i, j, k) = -1;
                 }
 
@@ -105,7 +110,7 @@ namespace {
         for (uint_t i = halos[0].begin(); i <= halos[0].end() + halos[0].plus(); ++i)
             for (uint_t j = 0; j < halos[1].begin(); ++j)
                 for (uint_t k = 0; k < halos[2].end() + halos[2].plus(); ++k) {
-                    EXPECT_EQ(dst_v(i, j, k), 176);
+                    EXPECT_EQ(dst_v(i, j, k), factor * face_value);
                     dst_v(i, j, k) = -1;
                 }
 
@@ -115,7 +120,7 @@ namespace {
                 for (uint_t k = 0; k < halos[2].end() + halos[2].plus(); ++k)
                     if (i < halos[0].begin() || i > halos[0].end() || k < halos[2].begin() || k > halos[2].end() ||
                         j > halos[1].end()) {
-                        EXPECT_EQ(dst_v(i, j, k), src_v(i, j, k) * 2);
+                        EXPECT_EQ(dst_v(i, j, k), factor * src_v(i, j, k));
                         dst_v(i, j, k) = -1;
                     }
 
