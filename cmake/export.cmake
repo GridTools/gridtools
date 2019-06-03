@@ -59,6 +59,8 @@ install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsCo
   DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake" COMPONENT dev)
 
 set(CMAKE_SOURCES
+    "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake" # TODO remove in GT 2.0
+    "${PROJECT_SOURCE_DIR}/cmake/gt_add_bindings_library.cmake" # TODO remove in GT 2.0
     "${PROJECT_SOURCE_DIR}/cmake/fortran_helpers.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/workaround_mpi.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/workaround_check_language.cmake"
