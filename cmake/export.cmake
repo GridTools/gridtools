@@ -5,18 +5,21 @@ include(CMakePackageConfigHelpers)
 
 # for install tree
 set(GRIDTOOLS_MODULE_PATH lib/cmake)
+set(GT_CPP_BINDGEN_CONFIG_LOCATION ${GRIDTOOLS_MODULE_PATH})
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake
-  PATH_VARS GRIDTOOLS_MODULE_PATH
+  PATH_VARS GRIDTOOLS_MODULE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake
   COMPATIBILITY SameMajorVersion )
 # for build tree
 set(GRIDTOOLS_MODULE_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake)
+FetchContent_GetProperties(cpp_bindgen)
+set(GT_CPP_BINDGEN_CONFIG_LOCATION ${cpp_bindgen_BINARY_DIR})
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}/GridToolsConfig.cmake
-  PATH_VARS GRIDTOOLS_MODULE_PATH
+  PATH_VARS GRIDTOOLS_MODULE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
   INSTALL_DESTINATION ${PROJECT_BINARY_DIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
