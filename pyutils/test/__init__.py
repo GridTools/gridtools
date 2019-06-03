@@ -12,36 +12,27 @@ def _ctest(label, verbose):
     return command
 
 
-def _run_nompi(verbose_ctest):
-    log.info('Running non-MPI tests')
-    outputs = runtools.sbatch([_ctest('unittest_*', verbose_ctest),
-                               _ctest('regression_*', verbose_ctest)],
+def _run_nompi(label, verbose_ctest):
+    log.info('Running non-MPI tests', label)
+    output, = runtools.sbatch([_ctest(label, verbose_ctest)],
                               cwd=buildinfo.binary_dir)
-    unit_exitcode, stdout, stderr = outputs[0]
-    log.info('ctest unit test output', stdout)
-    regression_exitcode, stdout, stderr = outputs[1]
-    log.info('ctest regression test output', stdout)
-
-    if unit_exitcode != 0 or regression_exitcode != 0:
-        raise RuntimeError('ctest failed')
+    log.info('ctest unit test output', output)
 
 
-def _run_mpi(verbose_ctest):
-    log.info('Running MPI tests')
-    output, = runtools.sbatch([_ctest('mpitest_*', verbose_ctest)],
-                              cwd=buildinfo.binary_dir, use_srun=False,
+def _run_mpi(label, verbose_ctest):
+    log.info('Running MPI tests', label)
+    output, = runtools.sbatch([_ctest(label, verbose_ctest)],
+                              cwd=buildinfo.binary_dir,
+                              use_srun=False,
                               use_mpi_config=True)
-    exitcode, stdout, stderr = output
-    log.info('ctest MPI test output', stdout)
-
-    if exitcode != 0:
-        raise RuntimeError('ctest failed')
+    log.info('ctest MPI test output', output)
 
 
-def run(mpi, verbose_ctest):
-    _run_nompi(verbose_ctest)
-    if mpi:
-        _run_mpi(verbose_ctest)
+def run(label, mpi_label, verbose_ctest):
+    if label:
+        _run_nompi(label, verbose_ctest)
+    if mpi_label:
+        _run_mpi(mpi_label, verbose_ctest)
 
 
 def compile_examples(build_dir):
