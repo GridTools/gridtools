@@ -9,7 +9,8 @@
  */
 #pragma once
 
-#include "../meta/utility.hpp"
+#include <utility>
+
 #include "./array.hpp"
 #include "./generic_metafunctions/accumulate.hpp"
 
@@ -25,8 +26,7 @@ namespace gridtools {
     namespace _impl {
         template <typename T, typename U, size_t D, size_t... Is>
         GT_FUNCTION GT_CONSTEXPR auto dot_impl(
-            array<T, D> const &a, array<U, D> const &b, meta::integer_sequence<size_t, Is...>)
-            -> decltype(accumulate(plus_functor{}, (a[Is] * b[Is])...)) {
+            array<T, D> const &a, array<U, D> const &b, std::integer_sequence<size_t, Is...>) {
             return accumulate(plus_functor{}, (a[Is] * b[Is])...);
         }
     } // namespace _impl
@@ -48,7 +48,7 @@ namespace gridtools {
         size_t D,
         std::enable_if_t<std::is_arithmetic<T>::value and std::is_arithmetic<U>::value, T> = 0>
     GT_FUNCTION GT_CONSTEXPR T array_dot_product(array<T, D> const &a, array<U, D> const &b) {
-        return _impl::dot_impl(a, b, meta::make_integer_sequence<size_t, D>{});
+        return _impl::dot_impl(a, b, std::make_integer_sequence<size_t, D>{});
     }
 
     /** @} */

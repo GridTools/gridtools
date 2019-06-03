@@ -12,8 +12,6 @@
 #include "../../common/array.hpp"
 #include "../../common/boollist.hpp"
 #include "../GCL.hpp"
-#include <boost/algorithm/string.hpp>
-#include <boost/type_traits/integral_constant.hpp>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -37,7 +35,7 @@ namespace gridtools {
          */
         static const int ndims = Ndims;
 
-        typedef boost::true_type has_communicator;
+        typedef std::true_type has_communicator;
         typedef gridtools::boollist<ndims> period_type;
 
       private:

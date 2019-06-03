@@ -11,6 +11,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
           copy_stencil
           vertical_advection_dycore
           advection_pdbott_prepare_tracers
+          layout_transformation
           )
       set(SOURCES
           ${SOURCES_PERFTEST}

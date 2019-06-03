@@ -17,7 +17,6 @@
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
-#include "../../meta/utility.hpp"
 
 #define GT_FILENAME <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 #include GT_ITERATE_ON_TARGETS()

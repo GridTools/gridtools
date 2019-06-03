@@ -9,10 +9,6 @@
  */
 #include <iostream>
 
-#include <boost/preprocessor/arithmetic/inc.hpp>
-#include <boost/preprocessor/repetition/enum_params.hpp>
-#include <boost/preprocessor/repetition/repeat.hpp>
-
 #include <gridtools/boundary_conditions/boundary.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
