@@ -46,7 +46,7 @@ FetchContent_Declare(
   # SOURCE_DIR /home/vogtha/git/c_bindings #TODO change
 
   GIT_REPOSITORY https://github.com/havogt/c_bindings.git # TODO change
-  GIT_TAG        renaming_round_2
+  GIT_TAG        export_package_mode
 
   # GIT_REPOSITORY https://github.com/GridTools/c_bindings.git
   # GIT_TAG        master
