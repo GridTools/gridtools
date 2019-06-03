@@ -13,22 +13,22 @@
 #include "./esf.hpp"
 
 namespace gridtools {
-    GT_META_LAZY_NAMESPACE {
+    namespace lazy {
         template <class Esf>
         struct esf_param_list {
             GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT(Esf::location_type::n_colors::value > 0, GT_INTERNAL_ERROR);
 
             template <class I>
-            GT_META_DEFINE_ALIAS(nth_param, meta::id, typename Esf::template esf_function<I::value>::param_list);
+            using nth_param = typename Esf::template esf_function<I::value>::param_list;
 
-            using colors_t = GT_META_CALL(meta::make_indices_c, Esf::location_type::n_colors::value);
-            using param_lists_t = GT_META_CALL(meta::transform, (nth_param, colors_t));
+            using colors_t = meta::make_indices_c<Esf::location_type::n_colors::value>;
+            using param_lists_t = meta::transform<nth_param, colors_t>;
 
             GT_STATIC_ASSERT(meta::all_are_same<param_lists_t>::value,
                 "Multiple Color specializations of the same ESF must contain the same param list");
 
-            using type = GT_META_CALL(meta::first, param_lists_t);
+            using type = meta::first<param_lists_t>;
         };
 
         template <class Esf, class Args>
@@ -38,7 +38,7 @@ namespace gridtools {
         struct esf_replace_args<esf_descriptor<F, Grid, Location, Color, OldArgs>, NewArgs> {
             using type = esf_descriptor<F, Grid, Location, Color, NewArgs>;
         };
-    }
+    } // namespace lazy
     GT_META_DELEGATE_TO_LAZY(esf_param_list, class Esf, Esf);
     GT_META_DELEGATE_TO_LAZY(esf_replace_args, (class Esf, class Args), (Esf, Args));
 

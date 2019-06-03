@@ -22,10 +22,10 @@ namespace gridtools {
         template <class Key>
         struct mp_remove_helper {
             template <class T>
-            GT_META_DEFINE_ALIAS(apply, negation, (std::is_same<typename lazy::first<T>::type, Key>));
+            using apply = negation<std::is_same<typename lazy::first<T>::type, Key>>;
         };
 
         template <class Map, class Key>
-        GT_META_DEFINE_ALIAS(mp_remove, filter, (mp_remove_helper<Key>::template apply, Map));
+        using mp_remove = filter<mp_remove_helper<Key>::template apply, Map>;
     } // namespace meta
 } // namespace gridtools

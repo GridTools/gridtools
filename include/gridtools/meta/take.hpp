@@ -18,7 +18,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <size_t N, class List, class E = void>
             struct take_c;
 
@@ -55,17 +55,15 @@ namespace gridtools {
                 class T3,
                 class T4,
                 class... Ts>
-            struct take_c<N, L<T0, T1, T2, T3, T4, Ts...>, typename std::enable_if<N >= 5>::type>
+            struct take_c<N, L<T0, T1, T2, T3, T4, Ts...>, std::enable_if_t<N >= 5>>
                 : concat<L<T0, T1, T2, T3, T4>, typename take_c<N - 5, L<Ts...>>::type> {};
 
             template <class N, class List>
-            GT_META_DEFINE_ALIAS(take, take_c, (N::value, List));
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+            using take = take_c<N::value, List>;
+        } // namespace lazy
         template <size_t N, class List>
         using take_c = typename lazy::take_c<N, List>::type;
         template <class N, class List>
         using take = typename lazy::take_c<N::value, List>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

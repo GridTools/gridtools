@@ -52,7 +52,7 @@ namespace gridtools {
              *     (meta class). He the inner name `apply` is not arbitrary. It just the requirement of meta class
              *     concept.
              */
-            GT_META_LAZY_NAMESPACE {
+            namespace lazy {
                 template <size_t I, class Plh>
                 struct convert_plh {
                     using type = Plh;
@@ -79,43 +79,38 @@ namespace gridtools {
                 struct convert_arg_storage_pair<I, arg_storage_pair<Plh, std::vector<DataStore>>> {
                     using type = arg_storage_pair<typename convert_plh<I::value, Plh>::type, DataStore>;
                 };
-            };
+            }; // namespace lazy
             GT_META_DELEGATE_TO_LAZY(convert_plh, (size_t I, class Plh), (I, Plh));
             GT_META_DELEGATE_TO_LAZY(convert_cache, (class I, class Cache), (I, Cache));
             GT_META_DELEGATE_TO_LAZY(convert_arg_storage_pair, (class I, class ArgStoragePair), (I, ArgStoragePair));
 
             template <class IndexAndCache>
-            GT_META_DEFINE_ALIAS(convert_cache_f,
-                convert_cache,
-                (GT_META_CALL(meta::first, IndexAndCache), GT_META_CALL(meta::second, IndexAndCache)));
+            using convert_cache_f = convert_cache<meta::first<IndexAndCache>, meta::second<IndexAndCache>>;
 
             template <size_t I>
             struct convert_plh_f {
                 template <class Plh>
-                GT_META_DEFINE_ALIAS(apply, convert_plh, (I, Plh));
+                using apply = convert_plh<I, Plh>;
             };
 
             template <class ArgStoragePair>
             struct convert_arg_storage_pair_f {
                 template <class I>
-                GT_META_DEFINE_ALIAS(apply, convert_arg_storage_pair, (I, ArgStoragePair));
+                using apply = convert_arg_storage_pair<I, ArgStoragePair>;
             };
 
             template <size_t ExpandFactor,
                 class Caches,
-                class Indices = GT_META_CALL(meta::make_indices_c, ExpandFactor),
-                class IndicesAndCaches = GT_META_CALL(meta::cartesian_product, (Indices, Caches)),
-                class RawExpandedCaches = GT_META_CALL(meta::transform, (convert_cache_f, IndicesAndCaches)),
-                class ExpandedCaches = GT_META_CALL(meta::dedup, RawExpandedCaches)>
-            GT_META_DEFINE_ALIAS(expand_caches, meta::rename, (meta::ctor<std::tuple<>>::apply, ExpandedCaches));
+                class Indices = meta::make_indices_c<ExpandFactor>,
+                class IndicesAndCaches = meta::cartesian_product<Indices, Caches>,
+                class RawExpandedCaches = meta::transform<convert_cache_f, IndicesAndCaches>,
+                class ExpandedCaches = meta::dedup<RawExpandedCaches>>
+            using expand_caches = meta::rename<meta::ctor<std::tuple<>>::apply, ExpandedCaches>;
 
             template <size_t ExpandFactor, class ArgStoragePair>
-            GT_META_DEFINE_ALIAS(expand_arg_storage_pair,
-                meta::rename,
-                (meta::ctor<std::tuple<>>::apply,
-                    GT_META_CALL(meta::transform,
-                        (convert_arg_storage_pair_f<ArgStoragePair>::template apply,
-                            GT_META_CALL(meta::make_indices_c, ExpandFactor)))));
+            using expand_arg_storage_pair = meta::rename<meta::ctor<std::tuple<>>::apply,
+                meta::transform<convert_arg_storage_pair_f<ArgStoragePair>::template apply,
+                    meta::make_indices_c<ExpandFactor>>>;
 
             template <class I>
             struct data_store_generator_f {
@@ -130,10 +125,10 @@ namespace gridtools {
             template <size_t ExpandFactor>
             struct expand_arg_storage_pair_f {
                 size_t m_offset;
-                template <class T, class Res = GT_META_CALL(expand_arg_storage_pair, (ExpandFactor, T))>
+                template <class T, class Res = expand_arg_storage_pair<ExpandFactor, T>>
                 Res operator()(T const &obj) const {
-                    using indices_t = GT_META_CALL(meta::make_indices_c, ExpandFactor);
-                    using generators_t = GT_META_CALL(meta::transform, (data_store_generator_f, indices_t));
+                    using indices_t = meta::make_indices_c<ExpandFactor>;
+                    using generators_t = meta::transform<data_store_generator_f, indices_t>;
                     auto const &src = obj.m_value;
                     Res res = tuple_util::generate<generators_t, Res>(src, m_offset);
                     return res;
@@ -141,38 +136,35 @@ namespace gridtools {
             };
 
             template <size_t I, class Plhs>
-            GT_META_DEFINE_ALIAS(convert_plhs, meta::transform, (convert_plh_f<I>::template apply, Plhs));
+            using convert_plhs = meta::transform<convert_plh_f<I>::template apply, Plhs>;
 
             template <class Esf>
             struct convert_esf {
                 template <class I>
-                GT_META_DEFINE_ALIAS(
-                    apply, esf_replace_args, (Esf, GT_META_CALL(convert_plhs, (I::value, typename Esf::args_t))));
+                using apply = esf_replace_args<Esf, convert_plhs<I::value, typename Esf::args_t>>;
             };
 
             template <size_t ExpandFactor>
             struct expand_normal_esf_f {
                 template <class Esf>
-                GT_META_DEFINE_ALIAS(apply,
-                    meta::transform,
-                    (convert_esf<Esf>::template apply, GT_META_CALL(meta::make_indices_c, ExpandFactor)));
+                using apply = meta::transform<convert_esf<Esf>::template apply, meta::make_indices_c<ExpandFactor>>;
             };
 
             template <size_t ExpandFactor>
             struct expand_esf_f;
 
-            GT_META_LAZY_NAMESPACE {
+            namespace lazy {
                 template <size_t ExpandFactor, class Esf>
                 struct expand_esf {
-                    using indices_t = GT_META_CALL(meta::make_indices_c, ExpandFactor);
-                    using esfs_t = GT_META_CALL(meta::transform, (convert_esf<Esf>::template apply, indices_t));
-                    using tuple_t = GT_META_CALL(meta::rename, (meta::ctor<std::tuple<>>::apply, esfs_t));
+                    using indices_t = meta::make_indices_c<ExpandFactor>;
+                    using esfs_t = meta::transform<convert_esf<Esf>::template apply, indices_t>;
+                    using tuple_t = meta::rename<meta::ctor<std::tuple<>>::apply, esfs_t>;
                     using type = independent_esf<tuple_t>;
                 };
                 template <size_t ExpandFactor, class Esfs>
                 struct expand_esf<ExpandFactor, independent_esf<Esfs>> {
-                    using type = independent_esf<GT_META_CALL(meta::flatten,
-                        (GT_META_CALL(meta::transform, (expand_normal_esf_f<ExpandFactor>::template apply, Esfs))))>;
+                    using type = independent_esf<
+                        meta::flatten<meta::transform<expand_normal_esf_f<ExpandFactor>::template apply, Esfs>>>;
                 };
 
                 template <size_t ExpandFactor, class Mss>
@@ -180,24 +172,23 @@ namespace gridtools {
 
                 template <size_t ExpandFactor, class ExecutionEngine, class Esfs, class Caches>
                 struct convert_mss<ExpandFactor, mss_descriptor<ExecutionEngine, Esfs, Caches>> {
-                    using esfs_t = GT_META_CALL(meta::transform, (expand_esf_f<ExpandFactor>::template apply, Esfs));
-                    using type =
-                        mss_descriptor<ExecutionEngine, esfs_t, GT_META_CALL(expand_caches, (ExpandFactor, Caches))>;
+                    using esfs_t = meta::transform<expand_esf_f<ExpandFactor>::template apply, Esfs>;
+                    using type = mss_descriptor<ExecutionEngine, esfs_t, expand_caches<ExpandFactor, Caches>>;
                 };
-            }
+            } // namespace lazy
             GT_META_DELEGATE_TO_LAZY(expand_esf, (size_t ExpandFactor, class Esf), (ExpandFactor, Esf));
             GT_META_DELEGATE_TO_LAZY(convert_mss, (size_t ExpandFactor, class Mss), (ExpandFactor, Mss));
 
             template <size_t ExpandFactor>
             struct expand_esf_f {
                 template <class Esf>
-                GT_META_DEFINE_ALIAS(apply, expand_esf, (ExpandFactor, Esf));
+                using apply = expand_esf<ExpandFactor, Esf>;
             };
 
             template <size_t ExpandFactor>
             struct convert_mss_descriptor_f {
                 template <class T>
-                GT_META_DEFINE_ALIAS(apply, convert_mss, (ExpandFactor, T));
+                using apply = convert_mss<ExpandFactor, T>;
             };
 
             template <typename T>
@@ -217,7 +208,7 @@ namespace gridtools {
             };
 
             template <typename ArgStoragePairs>
-            enable_if_t<!meta::is_empty<ArgStoragePairs>::value, size_t> get_expandable_size(
+            std::enable_if_t<!meta::is_empty<ArgStoragePairs>::value, size_t> get_expandable_size(
                 ArgStoragePairs const &src) {
                 auto sizes = tuple_util::transform(get_value_size{}, src);
                 size_t res = tuple_util::get<0>(sizes);
@@ -226,21 +217,21 @@ namespace gridtools {
             }
 
             template <typename ArgStoragePairs>
-            enable_if_t<meta::is_empty<ArgStoragePairs>::value, size_t> get_expandable_size(
+            std::enable_if_t<meta::is_empty<ArgStoragePairs>::value, size_t> get_expandable_size(
                 ArgStoragePairs const &src) {
                 // If there is nothing to expand we are going to compute stencils once.
                 return 1;
             }
 
             template <uint_t ExpandFactor, class ArgStoragePairs>
-            auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs const &src)
-                GT_AUTO_RETURN(tuple_util::deep_copy(
-                    tuple_util::flatten(tuple_util::transform(expand_arg_storage_pair_f<ExpandFactor>{offset}, src))));
+            auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs const &src) {
+                return tuple_util::deep_copy(
+                    tuple_util::flatten(tuple_util::transform(expand_arg_storage_pair_f<ExpandFactor>{offset}, src)));
+            }
 
             template <uint_t ExpandFactor, class MssDescriptors>
-            GT_META_DEFINE_ALIAS(converted_mss_descriptors,
-                meta::transform,
-                (convert_mss_descriptor_f<ExpandFactor>::template apply, MssDescriptors));
+            using converted_mss_descriptors =
+                meta::transform<convert_mss_descriptor_f<ExpandFactor>::template apply, MssDescriptors>;
 
             template <class Intermediate>
             struct run_f {
@@ -284,17 +275,17 @@ namespace gridtools {
         class BoundArgStoragePairs,
         class MssDescriptors>
     class intermediate_expand {
-        using non_expandable_bound_arg_storage_pairs_t = GT_META_CALL(
-            meta::filter, (meta::not_<_impl::expand_detail::is_expandable>::apply, BoundArgStoragePairs));
-        using expandable_bound_arg_storage_pairs_t = GT_META_CALL(
-            meta::filter, (_impl::expand_detail::is_expandable, BoundArgStoragePairs));
+        using non_expandable_bound_arg_storage_pairs_t =
+            meta::filter<meta::not_<_impl::expand_detail::is_expandable>::apply, BoundArgStoragePairs>;
+        using expandable_bound_arg_storage_pairs_t =
+            meta::filter<_impl::expand_detail::is_expandable, BoundArgStoragePairs>;
 
         template <size_t N>
         using converted_intermediate = intermediate<IsStateful,
             Backend,
             Grid,
             non_expandable_bound_arg_storage_pairs_t,
-            GT_META_CALL(_impl::expand_detail::converted_mss_descriptors, (N, MssDescriptors))>;
+            _impl::expand_detail::converted_mss_descriptors<N, MssDescriptors>>;
 
         /// Storages that are expandable, is bound in construction time.
         //
@@ -367,10 +358,12 @@ namespace gridtools {
         void reset_meter() { m_meter.reset(); }
 
         template <class Placeholder>
-        static constexpr auto get_arg_extent(Placeholder) GT_AUTO_RETURN(converted_intermediate<1>::get_arg_extent(
-            GT_META_CALL(_impl::expand_detail::convert_plh, (0, Placeholder)){}));
+        static constexpr auto get_arg_extent(Placeholder) {
+            return converted_intermediate<1>::get_arg_extent(_impl::expand_detail::convert_plh<0, Placeholder>{});
+        }
         template <class Placeholder>
-        static constexpr auto get_arg_intent(Placeholder) GT_AUTO_RETURN(converted_intermediate<1>::get_arg_intent(
-            GT_META_CALL(_impl::expand_detail::convert_plh, (0, Placeholder)){}));
+        static constexpr auto get_arg_intent(Placeholder) {
+            return converted_intermediate<1>::get_arg_intent(_impl::expand_detail::convert_plh<0, Placeholder>{});
+        }
     };
 } // namespace gridtools

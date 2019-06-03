@@ -39,8 +39,9 @@ struct iterate_domain_mock {
 
     // copy of the iterate_domain for expr
     template <class Op, class... Args>
-    GT_FUNCTION auto operator()(expr<Op, Args...> const &arg) const
-        GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
+    GT_FUNCTION auto operator()(expr<Op, Args...> const &arg) const {
+        return expressions::evaluation::value(*this, arg);
+    }
 };
 
 using val = accessor_mock<float>;

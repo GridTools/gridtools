@@ -11,7 +11,6 @@
 #pragma once
 
 #include "clear.hpp"
-#include "defs.hpp"
 #include "fold.hpp"
 #include "if.hpp"
 #include "macros.hpp"
@@ -22,19 +21,16 @@ namespace gridtools {
     namespace meta {
         // internals
         template <class S, class T>
-        GT_META_DEFINE_ALIAS(
-            dedup_step_impl, if_c, (st_contains<S, T>::value, S, typename lazy::push_back<S, T>::type));
+        using dedup_step_impl = if_c<st_contains<S, T>::value, S, typename lazy::push_back<S, T>::type>;
 
         /**
          *  Removes duplicates from the List.
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class List>
-            GT_META_DEFINE_ALIAS(dedup, lfold, (dedup_step_impl, typename clear<List>::type, List));
+            using dedup = lfold<dedup_step_impl, typename clear<List>::type, List>;
         }
-#if !GT_BROKEN_TEMPLATE_ALIASES
         template <class List>
         using dedup = typename lazy::lfold<dedup_step_impl, typename lazy::clear<List>::type, List>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

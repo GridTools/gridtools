@@ -10,8 +10,7 @@
 #pragma once
 
 #include <type_traits>
-
-#include "../meta/utility.hpp"
+#include <utility>
 
 #include "defs.hpp"
 
@@ -30,7 +29,7 @@ namespace gridtools {
      *  @tparam Bitmask bitmask defining the masked and unmasked dimensions
      */
     template <bool... Bitmask>
-    using selector = meta::integer_sequence<bool, Bitmask...>;
+    using selector = std::integer_sequence<bool, Bitmask...>;
 
     template <typename T>
     struct is_selector : std::false_type {};

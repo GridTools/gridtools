@@ -30,13 +30,11 @@ namespace gridtools {
          *    - amortized complexity is O(1) because of it [in terms of the number of template instantiations].
          */
         template <class... Ts>
-        GT_META_DEFINE_ALIAS(conjunction_fast,
-            std::is_same,
-            (list<std::integral_constant<bool, Ts::value>...>,
-                GT_META_CALL(repeat_c, (GT_SIZEOF_3_DOTS(Ts), std::true_type))));
+        using conjunction_fast = std::is_same<list<std::integral_constant<bool, Ts::value>...>,
+            repeat_c<GT_SIZEOF_3_DOTS(Ts), std::true_type>>;
 
         template <class... Ts>
-        GT_META_DEFINE_ALIAS(disjunction_fast, negation, conjunction_fast<negation<Ts>...>);
+        using disjunction_fast = negation<conjunction_fast<negation<Ts>...>>;
 
         /**
          *   all elements in lists are true
@@ -54,13 +52,13 @@ namespace gridtools {
          *  All elements satisfy predicate
          */
         template <template <class...> class Pred, class List>
-        GT_META_DEFINE_ALIAS(all_of, all, (GT_META_CALL(transform, (Pred, List))));
+        using all_of = all<transform<Pred, List>>;
 
         /**
          *  Some element satisfy predicate
          */
         template <template <class...> class Pred, class List>
-        GT_META_DEFINE_ALIAS(any_of, any, (GT_META_CALL(transform, (Pred, List))));
+        using any_of = any<transform<Pred, List>>;
 
         template <class List>
         struct all_are_same;
@@ -69,8 +67,7 @@ namespace gridtools {
         struct all_are_same<L<>> : std::true_type {};
 
         template <template <class...> class L, class T, class... Ts>
-        struct all_are_same<L<T, Ts...>>
-            : std::is_same<list<Ts...>, GT_META_CALL(repeat_c, (GT_SIZEOF_3_DOTS(Ts), T))> {};
+        struct all_are_same<L<T, Ts...>> : std::is_same<list<Ts...>, repeat_c<GT_SIZEOF_3_DOTS(Ts), T>> {};
 
     } // namespace meta
 } // namespace gridtools

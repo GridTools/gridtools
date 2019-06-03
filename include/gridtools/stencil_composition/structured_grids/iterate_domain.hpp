@@ -56,7 +56,7 @@ namespace gridtools {
         }
 
         template <class Arg, class Accessor>
-        GT_FUNCTION auto get_ptr(Accessor const &acc) const -> decay_t<decltype(host_device::at_key<Arg>(m_ptr_map))> {
+        GT_FUNCTION auto get_ptr(Accessor const &acc) const {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
             static constexpr auto storage_info_index =

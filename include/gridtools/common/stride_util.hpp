@@ -20,19 +20,18 @@ namespace gridtools {
 
             template <size_t I, class Sizes>
             struct stride_type {
-                using type = decltype(
-                    GT_META_CALL(tuple_util::element, (I - 1, Sizes)){} * typename stride_type<I - 1, Sizes>::type{});
+                using type = decltype(tuple_util::element<I - 1, Sizes>{} * typename stride_type<I - 1, Sizes>::type{});
             };
 
             template <class Sizes>
             struct stride_type<0, Sizes> : integral_constant<int_t, 1> {};
 
-            template <size_t I, class Sizes, enable_if_t<I == 0, int> = 0>
+            template <size_t I, class Sizes, std::enable_if_t<I == 0, int> = 0>
             integral_constant<int_t, 1> get_stride(Sizes const &) {
                 return {};
             }
 
-            template <size_t I, class Sizes, enable_if_t<I != 0, int> = 0>
+            template <size_t I, class Sizes, std::enable_if_t<I != 0, int> = 0>
             typename stride_type<I, Sizes>::type get_stride(Sizes const &sizes) {
                 return tuple_util::get<I - 1>(sizes) * get_stride<I - 1>(sizes);
             }
@@ -42,15 +41,20 @@ namespace gridtools {
                 Sizes const &m_sizes;
 
                 template <size_t I, class Size>
-                auto operator()(Size &&) const GT_AUTO_RETURN(get_stride<I>(m_sizes));
+                auto operator()(Size &&) const {
+                    return get_stride<I>(m_sizes);
+                }
             };
         } // namespace _impl
 
         template <class Sizes>
-        auto make_strides_from_sizes(Sizes const &sizes)
-            GT_AUTO_RETURN(tuple_util::transform_index(_impl::from_size_to_stride_f<Sizes>{sizes}, sizes));
+        auto make_strides_from_sizes(Sizes const &sizes) {
+            return tuple_util::transform_index(_impl::from_size_to_stride_f<Sizes>{sizes}, sizes);
+        }
 
         template <class Sizes>
-        auto total_size(Sizes const &sizes) GT_AUTO_RETURN(tuple_util::fold(binop::prod{}, sizes));
+        auto total_size(Sizes const &sizes) {
+            return tuple_util::fold(binop::prod{}, sizes);
+        }
     } // namespace stride_util
 } // namespace gridtools

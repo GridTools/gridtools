@@ -28,18 +28,16 @@ namespace gridtools {
         template <size_t Color>
         struct loop_interval_contains_color {
             template <class T>
-            GT_META_DEFINE_ALIAS(apply,
-                meta::any_of,
-                (stage_group_contains_color<Color>::template apply, GT_META_CALL(meta::at_c, (T, 2))));
+            using apply = meta::any_of<stage_group_contains_color<Color>::template apply, meta::at_c<T, 2>>;
         };
 
         template <uint_t Color>
         struct run_esf_functor_x86 {
             template <class StageGroups, class ItDomain>
             GT_FORCE_INLINE static void exec(ItDomain &it_domain) {
-                using stages_t = GT_META_CALL(meta::flatten, StageGroups);
+                using stages_t = meta::flatten<StageGroups>;
                 GT_STATIC_ASSERT(meta::length<stages_t>::value == 1, GT_INTERNAL_ERROR);
-                using stage_t = GT_META_CALL(meta::first, stages_t);
+                using stage_t = meta::first<stages_t>;
                 stage_t::template exec<Color>(it_domain);
             }
         };
@@ -69,10 +67,8 @@ namespace gridtools {
             GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
             template <class Color>
-            GT_META_DEFINE_ALIAS(has_color,
-                meta::any_of,
-                (loop_interval_contains_color<Color::value>::template apply,
-                    typename RunFunctorArgs::loop_intervals_t));
+            using has_color = meta::any_of<loop_interval_contains_color<Color::value>::template apply,
+                typename RunFunctorArgs::loop_intervals_t>;
 
             IterateDomain &m_it_domain;
             Grid const &m_grid;
@@ -82,7 +78,7 @@ namespace gridtools {
             color_execution_functor(IterateDomain &it_domain, Grid const &grid, uint_t loop_size)
                 : m_it_domain(it_domain), m_grid(grid), m_loop_size(loop_size) {}
 
-            template <class Color, enable_if_t<has_color<Color>::value, int> = 0>
+            template <class Color, std::enable_if_t<has_color<Color>::value, int> = 0>
             void operator()(Color) const {
                 for (uint_t j = 0; j != m_loop_size; ++j) {
                     auto memorized_index = m_it_domain.index();
@@ -93,7 +89,7 @@ namespace gridtools {
                 m_it_domain.increment_j(-m_loop_size);
                 m_it_domain.increment_c();
             }
-            template <class Color, enable_if_t<!has_color<Color>::value, int> = 0>
+            template <class Color, std::enable_if_t<!has_color<Color>::value, int> = 0>
             void operator()(Color) const {
                 // If there is no ESF in the sequence matching the color, we skip execution and simply increment the
                 // color iterator
@@ -122,9 +118,9 @@ namespace gridtools {
         using iterate_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
         iterate_domain_t it_domain(local_domain);
 
-        using extent_t = GT_META_CALL(get_extent_from_loop_intervals, typename RunFunctorArgs::loop_intervals_t);
-        using interval_t = GT_META_CALL(meta::first, typename RunFunctorArgs::loop_intervals_t);
-        using from_t = GT_META_CALL(meta::first, interval_t);
+        using extent_t = get_extent_from_loop_intervals<typename RunFunctorArgs::loop_intervals_t>;
+        using interval_t = meta::first<typename RunFunctorArgs::loop_intervals_t>;
+        using from_t = meta::first<interval_t>;
         it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
             {execution_info.bi, execution_info.bj, 0},
             {extent_t::iminus::value,
@@ -144,7 +140,7 @@ namespace gridtools {
         static constexpr int_t n_colors =
             _impl_mss_loop_x86::get_ncolors<typename RunFunctorArgs::loop_intervals_t>::value;
         for (uint_t i = 0; i != size_i; ++i) {
-            gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(
+            gridtools::for_each<meta::make_indices_c<n_colors>>(
                 _impl_mss_loop_x86::color_execution_functor<RunFunctorArgs, iterate_domain_t, Grid>{
                     it_domain, grid, size_j});
             it_domain.increment_c(integral_constant<int, -n_colors>{});

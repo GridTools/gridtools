@@ -30,21 +30,19 @@ namespace gridtools {
         struct stages_from_esf_f;
 
         template <class Esfs, class Index, class ExtentMap>
-        GT_META_DEFINE_ALIAS(stages_from_esfs,
-            meta::filter,
-            (meta::not_<meta::is_empty>::apply,
-                GT_META_CALL(meta::transform, (stages_from_esf_f<Index, ExtentMap>::template apply, Esfs))));
+        using stages_from_esfs = meta::filter<meta::not_<meta::is_empty>::apply,
+            meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>>;
 
         template <class Index>
         struct bind_functor_with_interval_f {
             template <class Functor>
-            GT_META_DEFINE_ALIAS(apply, bind_functor_with_interval, (Functor, Index));
+            using apply = bind_functor_with_interval<Functor, Index>;
         };
 
         template <class Esf>
         struct esf_functor_f;
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
 
             template <class Esf, class Color = typename Esf::color_t::color_t>
             struct get_functors {
@@ -54,66 +52,63 @@ namespace gridtools {
                 GT_STATIC_ASSERT(n_colors > 0, GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT(color < n_colors, GT_INTERNAL_ERROR);
 
-                using before_t = GT_META_CALL(meta::repeat_c, (color, void));
-                using after_t = GT_META_CALL(meta::repeat_c, (n_colors - color - 1, void));
+                using before_t = meta::repeat_c<color, void>;
+                using after_t = meta::repeat_c<n_colors - color - 1, void>;
 
-                using type = GT_META_CALL(
-                    meta::concat, (before_t, meta::list<typename Esf::template esf_function<color>>, after_t));
+                using type = meta::concat<before_t, meta::list<typename Esf::template esf_function<color>>, after_t>;
             };
 
             template <class Esf>
             struct get_functors<Esf, void> {
-                using type = GT_META_CALL(meta::transform,
-                    (esf_functor_f<Esf>::template apply,
-                        GT_META_CALL(meta::make_indices_c, Esf::location_type::n_colors::value)));
+                using type = meta::transform<esf_functor_f<Esf>::template apply,
+                    meta::make_indices_c<Esf::location_type::n_colors::value>>;
             };
 
             template <class Functors, class Esf, class ExtentMap, class = void>
             struct stages_from_functors {
-                using extent_t = GT_META_CALL(get_esf_extent, (Esf, ExtentMap));
+                using extent_t = get_esf_extent<Esf, ExtentMap>;
                 using type = meta::list<stage<Functors, extent_t, typename Esf::args_t, typename Esf::location_type>>;
             };
             template <class Functors, class Esf, class ExtentMap>
             struct stages_from_functors<Functors,
                 Esf,
                 ExtentMap,
-                enable_if_t<meta::all_of<std::is_void, Functors>::value>> {
+                std::enable_if_t<meta::all_of<std::is_void, Functors>::value>> {
                 using type = meta::list<>;
             };
 
             template <class Esf, class Index, class ExtentMap>
-            struct stages_from_esf : stages_from_functors<GT_META_CALL(meta::transform,
-                                                              (bind_functor_with_interval_f<Index>::template apply,
-                                                                  typename get_functors<Esf>::type)),
-                                         Esf,
-                                         ExtentMap> {};
+            struct stages_from_esf
+                : stages_from_functors<meta::transform<bind_functor_with_interval_f<Index>::template apply,
+                                           typename get_functors<Esf>::type>,
+                      Esf,
+                      ExtentMap> {};
 
             template <class Index, class Esfs, class ExtentMap>
             struct stages_from_esf<independent_esf<Esfs>, Index, ExtentMap> {
-                using stage_groups_t = GT_META_CALL(
-                    meta::transform, (stages_from_esf_f<Index, ExtentMap>::template apply, Esfs));
-                using stages_t = GT_META_CALL(meta::flatten, stage_groups_t);
-                using type = GT_META_CALL(fuse_stages, (compound_stage, stages_t));
+                using stage_groups_t = meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>;
+                using stages_t = meta::flatten<stage_groups_t>;
+                using type = fuse_stages<compound_stage, stages_t>;
             };
 
             template <class Esf, class Color>
             struct esf_functor {
                 using type = typename Esf::template esf_function<Color::value>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(stages_from_esf, (class Esf, class Index, class ExtentMap), (Esf, Index, ExtentMap));
         GT_META_DELEGATE_TO_LAZY(esf_functor, (class Esf, class Color), (Esf, Color));
 
         template <class Index, class ExtentMap>
         struct stages_from_esf_f {
             template <class Esf>
-            GT_META_DEFINE_ALIAS(apply, stages_from_esf, (Esf, Index, ExtentMap));
+            using apply = stages_from_esf<Esf, Index, ExtentMap>;
         };
 
         template <class Esf>
         struct esf_functor_f {
             template <class Color>
-            GT_META_DEFINE_ALIAS(apply, esf_functor, (Esf, Color));
+            using apply = esf_functor<Esf, Color>;
         };
     } // namespace _impl
 
@@ -151,6 +146,6 @@ namespace gridtools {
     template <class ExecutionEngine, class Esfs, class Caches, class ExtentMap>
     struct stages_maker<mss_descriptor<ExecutionEngine, Esfs, Caches>, ExtentMap> {
         template <class LevelIndex>
-        GT_META_DEFINE_ALIAS(apply, _impl::stages_from_esfs, (Esfs, LevelIndex, ExtentMap));
+        using apply = _impl::stages_from_esfs<Esfs, LevelIndex, ExtentMap>;
     };
 } // namespace gridtools

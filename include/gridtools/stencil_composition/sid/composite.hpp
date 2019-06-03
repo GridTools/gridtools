@@ -28,37 +28,37 @@ namespace gridtools {
             namespace impl_ {
                 struct deref_f {
                     template <class T>
-                    GT_CONSTEXPR GT_FUNCTION auto operator()(T const &obj) const GT_AUTO_RETURN(*obj);
+                    GT_CONSTEXPR GT_FUNCTION decltype(auto) operator()(T const &obj) const {
+                        return *obj;
+                    }
                 };
 
                 struct call_f {
                     template <class T>
-                    GT_CONSTEXPR GT_FUNCTION auto operator()(T const &obj) const -> decay_t<decltype(obj())> {
+                    GT_CONSTEXPR GT_FUNCTION auto operator()(T const &obj) const {
                         return obj();
                     }
                 };
 
-                GT_META_LAZY_NAMESPACE {
+                namespace lazy {
                     template <class State, class Kind>
                     struct make_map_helper {
-                        using map_t = GT_META_CALL(meta::first, State);
-                        using kinds_t = GT_META_CALL(meta::second, State);
+                        using map_t = meta::first<State>;
+                        using kinds_t = meta::second<State>;
                         using pos_t = typename meta::length<map_t>::type;
                         using kind_pos_t = typename meta::find<kinds_t, Kind>::type;
-                        using new_map_t = GT_META_CALL(meta::push_back, (map_t, tuple<pos_t, kind_pos_t>));
-                        using new_kinds_t = GT_META_CALL(meta::if_c,
-                            (kind_pos_t::value == meta::length<kinds_t>::value,
-                                GT_META_CALL(meta::push_back, (kinds_t, Kind)),
-                                kinds_t));
+                        using new_map_t = meta::push_back<map_t, tuple<pos_t, kind_pos_t>>;
+                        using new_kinds_t = meta::if_c<kind_pos_t::value == meta::length<kinds_t>::value,
+                            meta::push_back<kinds_t, Kind>,
+                            kinds_t>;
                         using type = meta::list<new_map_t, new_kinds_t>;
                     };
-                }
+                } // namespace lazy
                 GT_META_DELEGATE_TO_LAZY(make_map_helper, (class State, class Kind), (State, Kind));
 
                 template <class Kinds>
-                GT_META_DEFINE_ALIAS(make_index_map,
-                    meta::first,
-                    (GT_META_CALL(meta::lfold, (make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds))));
+                using make_index_map =
+                    meta::first<meta::lfold<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>>;
 
                 /**
                  *  `maybe_equal(lhs, rhs)` is a functional equivalent of the following pseudo code:
@@ -94,12 +94,11 @@ namespace gridtools {
                 struct item_generator<L<Key, PrimaryIndex, SecondaryIndices...>> {
                     using type = item_generator;
 
-                    template <class Args, class Res = GT_META_CALL(tuple_util::element, (PrimaryIndex::value, Args))>
+                    template <class Args, class Res = tuple_util::element<PrimaryIndex::value, Args>>
                     Res const &operator()(Args const &args) const noexcept {
                         GT_STATIC_ASSERT(
                             (conjunction<
-                                std::is_same<GT_META_CALL(tuple_util::element, (SecondaryIndices::value, Args)),
-                                    Res>...>::value),
+                                std::is_same<tuple_util::element<SecondaryIndices::value, Args>, Res>...>::value),
                             GT_INTERNAL_ERROR);
                         assert((are_secondaries_equal_to_primary<SecondaryIndices...>(
                             tuple_util::get<PrimaryIndex::value>(args), args)));
@@ -127,29 +126,23 @@ namespace gridtools {
                     Offset const &GT_RESTRICT offset) {
                     static constexpr size_t size = tuple_util::size<ObjTup>::value;
                     GT_STATIC_ASSERT(tuple_util::size<StrideTup>::value == size, GT_INTERNAL_ERROR);
-                    gridtools::host_device::for_each_type<GT_META_CALL(meta::make_indices_c, size)>(
+                    gridtools::host_device::for_each_type<meta::make_indices_c<size>>(
                         shift_t<ObjTup, StrideTup, Offset>{obj_tup, stride_tup, offset});
                 }
 
-                template <class Key, class Strides, class I = meta::st_position<GT_META_CALL(get_keys, Strides), Key>>
-#if GT_BROKEN_TEMPLATE_ALIASES
-                struct normalized_stride_type : std::conditional<(I::value < tuple_util::size<Strides>::value),
-                                                    tuple_util::lazy::element<I::value, Strides>,
-                                                    meta::lazy::id<default_stride>>::type {
-                };
-#else
-                using normalized_stride_type = typename std::conditional<(I::value < tuple_util::size<Strides>::value),
-                    tuple_util::lazy::element<I::value, Strides>,
-                    meta::lazy::id<default_stride>>::type::type;
-#endif
+                template <class Key, class Strides, class I = meta::st_position<get_keys<Strides>, Key>>
+                using normalized_stride_type =
+                    typename std::conditional_t<(I::value < tuple_util::size<Strides>::value),
+                        tuple_util::lazy::element<I::value, Strides>,
+                        meta::lazy::id<default_stride>>::type;
 
                 template <class Keys>
                 struct normalize_strides_f;
 
                 template <template <class...> class L, class... Keys>
                 struct normalize_strides_f<L<Keys...>> {
-                    template <class Sid, class Strides = GT_META_CALL(strides_type, Sid)>
-                    GT_CONSTEXPR tuple<GT_META_CALL(normalized_stride_type, (Keys, decay_t<Strides>))...> operator()(
+                    template <class Sid, class Strides = strides_type<Sid>>
+                    GT_CONSTEXPR tuple<normalized_stride_type<Keys, std::decay_t<Strides>>...> operator()(
                         Sid const &sid) const {
                         return {get_stride<Keys>(get_strides(sid))...};
                     }
@@ -186,8 +179,9 @@ namespace gridtools {
                     typename hymap::keys<Keys...>::template values<Ptrs...> m_vals;
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
-                    GT_CONSTEXPR GT_FUNCTION auto operator*() const
-                        GT_AUTO_RETURN(tuple_util::host_device::transform(impl_::deref_f{}, m_vals));
+                    GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
+                        return tuple_util::host_device::transform(impl_::deref_f{}, m_vals);
+                    }
 
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
                 };
@@ -200,16 +194,14 @@ namespace gridtools {
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
 
-                    GT_CONSTEXPR GT_FUNCTION auto operator()() const
-                        GT_AUTO_RETURN(tuple_util::host_device::convert_to<composite_ptr>(
-                            tuple_util::host_device::transform(impl_::call_f{}, m_vals)));
+                    GT_CONSTEXPR GT_FUNCTION auto operator()() const {
+                        return tuple_util::host_device::convert_to<composite_ptr>(
+                            tuple_util::host_device::transform(impl_::call_f{}, m_vals));
+                    }
 
                     friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
                 };
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-              public:
-#endif
                 /**
                  *  Implements strides and ptr_diffs compression based on skipping the objects of the
                  *  same kind.
@@ -232,39 +224,40 @@ namespace gridtools {
                      *  Note that it could be several UncompressedIndices per one CompressedIndex
                      *
                      */
-                    using inversed_map_t = GT_META_CALL(meta::mp_inverse, Map);
+                    using inversed_map_t = meta::mp_inverse<Map>;
                     /**
                      *  A tuple of the first of UncompressedIndices per each CompressedIndex
                      */
-                    using primary_indices_t = GT_META_CALL(meta::transform, (meta::second, inversed_map_t));
+                    using primary_indices_t = meta::transform<meta::second, inversed_map_t>;
 
-                    using generators_t = GT_META_CALL(meta::transform, (impl_::item_generator, inversed_map_t));
+                    using generators_t = meta::transform<impl_::item_generator, inversed_map_t>;
 
                     template <size_t I,
                         class T,
-                        class Item = GT_META_CALL(meta::mp_find, (Map, std::integral_constant<size_t, I>)),
-                        class Pos = GT_META_CALL(meta::second, Item)>
-                    static GT_CONSTEXPR GT_FUNCTION auto get(T &&obj)
-                        GT_AUTO_RETURN(tuple_util::host_device::get<Pos::value>(wstd::forward<T>(obj).m_vals));
+                        class Item = meta::mp_find<Map, std::integral_constant<size_t, I>>,
+                        class Pos = meta::second<Item>>
+                    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(T &&obj) {
+                        return tuple_util::host_device::get<Pos::value>(wstd::forward<T>(obj).m_vals);
+                    }
 
                     template <class... Ts>
                     struct composite_entity {
                         GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Ts), GT_INTERNAL_ERROR);
 
                         template <class I>
-                        GT_META_DEFINE_ALIAS(get_compressed_type, meta::at, (meta::list<Ts...>, I));
+                        using get_compressed_type = meta::at<meta::list<Ts...>, I>;
 
-                        using vals_t = GT_META_CALL(meta::transform, (get_compressed_type, primary_indices_t));
+                        using vals_t = meta::transform<get_compressed_type, primary_indices_t>;
 
                         vals_t m_vals;
 
-                        template <class... Args, enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
+                        template <class... Args, std::enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
                         GT_CONSTEXPR composite_entity(Args &&... args) noexcept
                             : composite_entity(tuple<Args &&...>{wstd::forward<Args &&>(args)...}) {}
 
                         template <template <class...> class L,
                             class... Args,
-                            enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
+                            std::enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
                         GT_CONSTEXPR composite_entity(L<Args...> &&tup) noexcept
                             : m_vals{tuple_util::generate<generators_t, vals_t>(wstd::move(tup))} {}
 
@@ -307,7 +300,7 @@ namespace gridtools {
 
                     struct convert_f {
                         template <template <class...> class L, class... Ts>
-                        GT_CONSTEXPR composite_entity<remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
+                        GT_CONSTEXPR composite_entity<std::remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
                             return {wstd::move(tup)};
                         }
                     };
@@ -322,45 +315,40 @@ namespace gridtools {
                     typename hymap::keys<Keys...>::template values<Sids...> m_sids;
 
                     // Extracted lists of raw kinds (uncompresed)
-                    using strides_kinds_t = meta::list<GT_META_CALL(strides_kind, Sids)...>;
+                    using strides_kinds_t = meta::list<strides_kind<Sids>...>;
 
                     // The index map that is needed to build compressed composite objects
-                    using map_t = GT_META_CALL(impl_::make_index_map, strides_kinds_t);
+                    using map_t = impl_::make_index_map<strides_kinds_t>;
                     using compressed_t = compressed<map_t>;
 
                     template <class... Ts>
-                    GT_META_DEFINE_ALIAS(compress, meta::id, (typename compressed_t::template composite_entity<Ts...>));
+                    using compress = typename compressed_t::template composite_entity<Ts...>;
 
-                    using stride_keys_t = GT_META_CALL(meta::dedup,
-                        GT_META_CALL(meta::concat, GT_META_CALL(get_keys, GT_META_CALL(strides_type, Sids))...));
+                    using stride_keys_t = meta::dedup<meta::concat<get_keys<strides_type<Sids>>...>>;
 
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2
                     struct stride_hymap_keys {
-                        using type = GT_META_CALL(meta::rename, (hymap::keys, stride_keys_t));
+                        using type = meta::rename<hymap::keys, stride_keys_t>;
                     };
                     using stride_hymap_keys_t = typename stride_hymap_keys::type;
 #else
-                    using stride_hymap_keys_t = GT_META_CALL(meta::rename, (hymap::keys, stride_keys_t));
+                    using stride_hymap_keys_t = meta::rename<hymap::keys, stride_keys_t>;
 #endif
 
                     template <class... Values>
-                    GT_META_DEFINE_ALIAS(
-                        stride_hymap_ctor, meta::id, typename stride_hymap_keys_t::template values<Values...>);
+                    using stride_hymap_ctor = typename stride_hymap_keys_t::template values<Values...>;
 
                     // A helper for generating strides_t
                     // It is a meta function from the stride key to the stride type
                     template <class Key>
-                    GT_META_DEFINE_ALIAS(get_stride_type,
-                        compress,
-                        (GT_META_CALL(
-                            impl_::normalized_stride_type, (Key, decay_t < GT_META_CALL(strides_type, Sids)) >)...));
+                    using get_stride_type =
+                        compress<impl_::normalized_stride_type<Key, std::decay_t<strides_type<Sids>>>...>;
 
                     // all `SID` types are here
-                    using ptr_holder_t = composite_ptr_holder<GT_META_CALL(ptr_holder_type, Sids)...>;
-                    using ptr_t = composite_ptr<GT_META_CALL(ptr_type, Sids)...>;
-                    using strides_t = GT_META_CALL(meta::rename,
-                        (stride_hymap_ctor, GT_META_CALL(meta::transform, (get_stride_type, stride_keys_t))));
-                    using ptr_diff_t = GT_META_CALL(compress, (GT_META_CALL(ptr_diff_type, Sids)...));
+                    using ptr_holder_t = composite_ptr_holder<ptr_holder_type<Sids>...>;
+                    using ptr_t = composite_ptr<ptr_type<Sids>...>;
+                    using strides_t = meta::rename<stride_hymap_ctor, meta::transform<get_stride_type, stride_keys_t>>;
+                    using ptr_diff_t = compress<ptr_diff_type<Sids>...>;
 
                   public:
                     // Here the `SID` concept is modeled
@@ -378,9 +366,7 @@ namespace gridtools {
 
                     friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
 
-                    friend GT_META_CALL(meta::dedup, strides_kinds_t) sid_get_strides_kind(values const &) {
-                        return {};
-                    }
+                    friend meta::dedup<strides_kinds_t> sid_get_strides_kind(values const &) { return {}; }
 
                     // Here the `tuple_like` concept is modeled
 

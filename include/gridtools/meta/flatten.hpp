@@ -12,7 +12,6 @@
 
 #include "combine.hpp"
 #include "concat.hpp"
-#include "defs.hpp"
 #include "macros.hpp"
 
 namespace gridtools {
@@ -22,13 +21,11 @@ namespace gridtools {
      *  Note: this function doesn't go recursive. It just concatenates the inner lists.
      */
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class Lists>
-            GT_META_DEFINE_ALIAS(flatten, combine, (meta::concat, Lists));
+            using flatten = combine<meta::concat, Lists>;
         }
-#if !GT_BROKEN_TEMPLATE_ALIASES
         template <class Lists>
         using flatten = typename lazy::combine<concat, Lists>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

@@ -106,7 +106,7 @@ namespace gridtools {
 
         struct from_types_f {
             template <class... Ts>
-            GT_META_DEFINE_ALIAS(apply, meta::id, (array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>));
+            using apply = array<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>;
         };
 
         struct getter {
@@ -131,8 +131,7 @@ namespace gridtools {
     } // namespace array_impl_
 
     template <typename T, size_t D>
-    GT_META_CALL(meta::repeat_c, (D, T))
-    tuple_to_types(array<T, D> const &);
+    meta::repeat_c<D, T> tuple_to_types(array<T, D> const &);
 
     template <typename T, size_t D>
     array_impl_::from_types_f tuple_from_types(array<T, D> const &);
@@ -142,7 +141,7 @@ namespace gridtools {
 
     // in case we need a constexpr version we need to implement a recursive one for c++11
     template <typename T, typename U, size_t D>
-    GT_CXX14CONSTEXPR GT_FUNCTION bool operator==(gridtools::array<T, D> const &a, gridtools::array<U, D> const &b) {
+    GT_CONSTEXPR GT_FUNCTION bool operator==(gridtools::array<T, D> const &a, gridtools::array<U, D> const &b) {
         for (size_t i = 0; i < D; ++i) {
             if (a[i] != b[i])
                 return false;
@@ -151,7 +150,7 @@ namespace gridtools {
     }
 
     template <typename T, typename U, size_t D>
-    GT_CXX14CONSTEXPR GT_FUNCTION bool operator!=(gridtools::array<T, D> const &a, gridtools::array<U, D> const &b) {
+    GT_CONSTEXPR GT_FUNCTION bool operator!=(gridtools::array<T, D> const &a, gridtools::array<U, D> const &b) {
         return !(a == b);
     }
 

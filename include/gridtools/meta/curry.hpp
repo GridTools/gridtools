@@ -22,7 +22,7 @@ namespace gridtools {
         template <template <class...> class F, class... BoundArgs>
         struct curry {
             template <class... Args>
-            GT_META_DEFINE_ALIAS(apply, F, (BoundArgs..., Args...));
+            using apply = F<BoundArgs..., Args...>;
         };
     } // namespace meta
 } // namespace gridtools

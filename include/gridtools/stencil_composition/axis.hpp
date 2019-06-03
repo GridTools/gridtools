@@ -62,8 +62,8 @@ namespace gridtools {
         using full_interval = interval<level<0, 1, LevelOffsetLimit>, level<NIntervals, -1, LevelOffsetLimit>>;
 
         template <typename... IntervalSizes,
-            typename std::enable_if<sizeof...(IntervalSizes) == NIntervals && is_all_integral<IntervalSizes...>::value,
-                int>::type = 0>
+            std::enable_if_t<sizeof...(IntervalSizes) == NIntervals && is_all_integral<IntervalSizes...>::value, int> =
+                0>
         axis(IntervalSizes... interval_sizes) : interval_sizes_{interval_sizes...} {}
 
         uint_t interval_size(const uint_t index) const { return interval_sizes_[index]; }

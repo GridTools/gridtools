@@ -53,19 +53,19 @@ namespace gridtools {
             iterate_domain_naive *m_self;
             Grid const &m_grid;
 
-            template <class Arg, enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
             void operator()() const {
                 auto const &strides = m_self->template strides<Arg>();
                 auto &ptr = at_key<Arg>(m_self->m_ptr_map);
-                using sid_t = GT_META_CALL(storage_from_arg, (LocalDomain, Arg));
-                using strides_kind_t = GT_META_CALL(sid::strides_kind, sid_t);
+                using sid_t = storage_from_arg<LocalDomain, Arg>;
+                using strides_kind_t = sid::strides_kind<sid_t>;
                 GT_STATIC_ASSERT(is_storage_info<strides_kind_t>::value, GT_INTERNAL_ERROR);
                 sid::shift(ptr, sid::get_stride<dim::i>(strides), strides_kind_t::halo_t::template at<dim::i::value>());
                 sid::shift(ptr, sid::get_stride<dim::j>(strides), strides_kind_t::halo_t::template at<dim::j::value>());
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), -m_grid.k_min());
             }
 
-            template <class Arg, enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
+            template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
             void operator()() const {
                 auto &ptr = at_key<Arg>(m_self->m_ptr_map);
                 auto const &strides = m_self->template strides<Arg>();
@@ -78,10 +78,10 @@ namespace gridtools {
         strides_map_t m_strides_map;
         pos3<int_t> m_pos;
 
-        template <class Arg,
-            class Sid = GT_META_CALL(storage_from_arg, (LocalDomain, Arg)),
-            class StridesKind = GT_META_CALL(sid::strides_kind, Sid)>
-        auto strides() const GT_AUTO_RETURN(at_key<StridesKind>(m_strides_map));
+        template <class Arg, class Sid = storage_from_arg<LocalDomain, Arg>, class StridesKind = sid::strides_kind<Sid>>
+        decltype(auto) strides() const {
+            return at_key<StridesKind>(m_strides_map);
+        }
 
         template <class Dim>
         void increment(int_t offset) {
@@ -114,7 +114,7 @@ namespace gridtools {
         void increment_c(int_t offset = 1) { increment<dim::c>(offset); }
 
         template <class Arg, class Accessor>
-        auto deref(Accessor const &accessor) const -> decltype(*at_key<Arg>(m_ptr_map)) {
+        decltype(auto) deref(Accessor const &accessor) const {
             auto p = at_key<Arg>(m_ptr_map);
             sid::multi_shift(p, strides<Arg>(), accessor);
             return *p;

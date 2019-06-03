@@ -11,7 +11,7 @@
 #pragma once
 
 /**
- *  C++11 metaprogramming library.
+ *  C++14 metaprogramming library.
  *
  *  Basic Concepts
  *  ==============
@@ -90,51 +90,10 @@
  *       ex: `length`, `is_list`
  *   - meta class
  *
- *  nVidia and Intel compilers with versions < 9 and < 18 respectively have a bug that doesn't allow to use template
- *  aliases. To deal with that, the library has two modes that are switching by `GT_BROKEN_TEMPLATE_ALIASES` macro.
- *  If the value of `GT_BROKEN_TEMPLATE_ALIASES` is set to non zero, the notion of function is degradated to lazy
- *  function like in MPL.
- *
- *  In this case non-lazy functions don't exist and `lazy` nested namespace is `inline` [I.e. `meta::concat`
- *  for example is the same as `meta::lazy::concat`]. High order functions in this case interpret their functional
- *  parameters as a lazy functions [I.e. they use `::type` to invoke them].
- *
- *  `GT_META_CALL` and `GT_META_DEFINE_ALIAS` macros are defined to help keep the user code independent on that
- *  interface difference. Unfortunately in general case, it is not always possible to maintain that compatibility
- *  only using that two macros. Direct <tt>\#if GT_BROKEN_TEMPLATE_ALIASES`</tt> could be necessary.
- *
  *  Syntax sugar: All high order functions being called with only functional arguments return partially applied
  *  versions of themselves [which became plane functions].
  *  Example, where it could be useful is:
  *  transform a list of lists:  <tt>using out = meta::transform<meta::transform<fun>::apply, in>;</tt>
- *
- *  Guidelines for Using Meta in Compatible with Retarded Compilers Mode
- *  =====================================================================
- *    - don't punic;
- *    - write and debug your code for some sane compiler pretending that template aliases are not a problem;
- *    - uglify each and every call of the function from meta `namespace` with `GT_META_CALL` macro;
- *      for example the code like:
- *         using my_stuff = meta::concat<a, meta::front<b>, meta::clear<c>>;
- *      should be uglified like:
- *         using m_staff = GT_META_CALL(meta::concat, (GT_META_CALL(meta::front, a), GT_META_CALL(meta::clear, c)));
- *    - uglify with the same macro calls to the functions that you define using composition of `meta::` functions;
- *    - replace every definition of template alias in you code with `GT_META_DEFINE_ALIAS`;
- *      for example the code like:
- *         template <class T, class U>
- *         using my_lookup = meta::second<meta::mp_find<typename T::the_map, my_get_key<U>>>;
- *      should be uglified like:
- *         template <class T, class U>
- *         GT_META_DEFINE_ALIAS(my_lookup, meta::second, (GT_META_CALL(meta::mp_find,
- *            (GT_META_CALL(typename T::the_map, GT_META_CALL(my_get_key, U)))));
- *    - modifications above should not break compilation for the sane compiler, check it;
- *    - also check if the code compiles for your retarded compiler;
- *    - if yes, you are lucky;
- *    - if not, possible reason is that you have hand written lazy function and its `direct` counterpart that is
- *      defined smth. like `template <class T> using foo = lazy_foo<T>;` and you pass `foo` to the high order
- * function.
- *      in this case, you need to add retarded version (where `lazy_foo` would just named `foo`) under
- *      <tt>\#if GT_BROKEN_TEMPLATE_ALIASES</tt>;
- *    - if it is still not your case, ask \@anstaf.
  *
  *  TODO List
  *  =========
@@ -154,7 +113,6 @@
 #include "meta/debug.hpp"
 #include "meta/dedup.hpp"
 #include "meta/defer.hpp"
-#include "meta/defs.hpp"
 #include "meta/drop_back.hpp"
 #include "meta/drop_front.hpp"
 #include "meta/filter.hpp"
@@ -200,5 +158,4 @@
 #include "meta/third.hpp"
 #include "meta/transform.hpp"
 #include "meta/type_traits.hpp"
-#include "meta/utility.hpp"
 #include "meta/zip.hpp"

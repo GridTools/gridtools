@@ -17,7 +17,6 @@
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
-#include "../../meta/utility.hpp"
 
 #define GT_FILENAME <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 #include GT_ITERATE_ON_TARGETS()
@@ -41,12 +40,14 @@ namespace gridtools {
             }
 
             template <class T, class Arg>
-            GT_FORCE_INLINE GT_CONSTEXPR auto operator+(simple_ptr_holder<T> const &obj, Arg &&arg)
-                GT_AUTO_RETURN(make_simple_ptr_holder(obj.m_val + wstd::forward<Arg>(arg)));
+            GT_FORCE_INLINE GT_CONSTEXPR auto operator+(simple_ptr_holder<T> const &obj, Arg &&arg) {
+                return make_simple_ptr_holder(obj.m_val + wstd::forward<Arg>(arg));
+            }
 
             template <class T, class Arg>
-            GT_FORCE_INLINE GT_CONSTEXPR auto operator+(simple_ptr_holder<T> &&obj, Arg &&arg)
-                GT_AUTO_RETURN(make_simple_ptr_holder(wstd::move(obj).m_val + wstd::forward<Arg>(arg)));
+            GT_FORCE_INLINE GT_CONSTEXPR auto operator+(simple_ptr_holder<T> &&obj, Arg &&arg) {
+                return make_simple_ptr_holder(wstd::move(obj).m_val + wstd::forward<Arg>(arg));
+            }
         }
     } // namespace sid
 } // namespace gridtools

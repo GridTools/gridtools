@@ -126,11 +126,10 @@ typedef decltype(make_stage<functor6>(o6(), o5(), in1(), in2())) functor6__;
 template <class...>
 struct lst;
 
-using map_t = GT_META_CALL(
-    get_extent_map, (lst<functor0__, functor1__, functor2__, functor3__, functor4__, functor5__, functor6__>));
+using map_t = get_extent_map<lst<functor0__, functor1__, functor2__, functor3__, functor4__, functor5__, functor6__>>;
 
 template <class Arg, int_t... ExpectedExtentValues>
-using testee = std::is_same<GT_META_CALL(lookup_extent_map, (map_t, Arg)), extent<ExpectedExtentValues...>>;
+using testee = std::is_same<lookup_extent_map<map_t, Arg>, extent<ExpectedExtentValues...>>;
 
 static_assert(testee<o0, -5, 11, -10, 10, -5, 13>::value, "");
 static_assert(testee<o1, -5, 9, -10, 8, -3, 10>::value, "");

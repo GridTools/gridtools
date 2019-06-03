@@ -84,8 +84,7 @@ namespace gridtools {
         struct convert_strides_f<layout_map<Is...>> {
             using res_t =
                 tuple<typename stride_type<get_dimension_kind(Is, layout_map<Is...>::unmasked_length)>::type...>;
-            using generators_t = GT_META_CALL(
-                meta::transform, (stride_generator_f, GT_META_CALL(meta::make_indices_c, sizeof...(Is)), res_t));
+            using generators_t = meta::transform<stride_generator_f, meta::make_indices_c<sizeof...(Is)>, res_t>;
 
             template <class Src>
             res_t operator()(Src const &src) const {
@@ -144,28 +143,28 @@ namespace gridtools {
         };
 
         template <class Src>
-        GT_META_DEFINE_ALIAS(to_dim, integral_constant, (int_t, Src::value));
+        using to_dim = integral_constant<int_t, Src::value>;
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class Layout>
             struct get_unmasked_dims;
             template <int... Is>
             struct get_unmasked_dims<layout_map<Is...>> {
-                using indices_t = GT_META_CALL(meta::make_indices_c, (sizeof...(Is), tuple));
-                using dims_t = GT_META_CALL(meta::transform, (to_dim, indices_t));
-                using items_t = GT_META_CALL(meta::zip, (dims_t, meta::list<bool_constant<Is >= 0>...>));
-                using filtered_items_t = GT_META_CALL(meta::filter, (meta::second, items_t));
-                using type = GT_META_CALL(meta::transform, (meta::first, filtered_items_t));
+                using indices_t = meta::make_indices_c<sizeof...(Is), tuple>;
+                using dims_t = meta::transform<to_dim, indices_t>;
+                using items_t = meta::zip<dims_t, meta::list<bool_constant<Is >= 0>...>>;
+                using filtered_items_t = meta::filter<meta::second, items_t>;
+                using type = meta::transform<meta::first, filtered_items_t>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(get_unmasked_dims, class Layout, Layout);
 
         template <class StorageInfo,
             class Value,
             class Layout = typename StorageInfo::layout_t,
-            class Dims = GT_META_CALL(get_unmasked_dims, Layout),
-            class Values = GT_META_CALL(meta::repeat_c, (Layout::unmasked_length, Value))>
-        GT_META_DEFINE_ALIAS(bounds_type, hymap::from_keys_values, (Dims, Values));
+            class Dims = get_unmasked_dims<Layout>,
+            class Values = meta::repeat_c<Layout::unmasked_length, Value>>
+        using bounds_type = hymap::from_keys_values<Dims, Values>;
 
         template <class Dim>
         struct upper_bound_generator_f {
@@ -194,28 +193,27 @@ namespace gridtools {
     }
 
     template <class Storage, class StorageInfo>
-    auto sid_get_strides(data_store<Storage, StorageInfo> const &obj)
-        GT_AUTO_RETURN(storage_sid_impl_::convert_strides_f<typename StorageInfo::layout_t>{}(obj.strides()));
+    auto sid_get_strides(data_store<Storage, StorageInfo> const &obj) {
+        return storage_sid_impl_::convert_strides_f<typename StorageInfo::layout_t>{}(obj.strides());
+    }
 
     template <class Storage, class StorageInfo>
     StorageInfo sid_get_strides_kind(data_store<Storage, StorageInfo> const &);
 
     template <class Storage, class StorageInfo>
-    GT_META_CALL(meta::if_c, (StorageInfo::layout_t::unmasked_length == 0, storage_sid_impl_::empty_ptr_diff, int_t))
-    sid_get_ptr_diff(data_store<Storage, StorageInfo> const &);
+    meta::if_c<StorageInfo::layout_t::unmasked_length == 0, storage_sid_impl_::empty_ptr_diff, int_t> sid_get_ptr_diff(
+        data_store<Storage, StorageInfo> const &);
 
     template <class Storage, class StorageInfo>
-    GT_META_CALL(storage_sid_impl_::bounds_type, (StorageInfo, integral_constant<int_t, 0>))
-    sid_get_lower_bounds(data_store<Storage, StorageInfo> const &) {
+    storage_sid_impl_::bounds_type<StorageInfo, integral_constant<int_t, 0>> sid_get_lower_bounds(
+        data_store<Storage, StorageInfo> const &) {
         return {};
     }
 
-    template <class Storage,
-        class StorageInfo,
-        class Res = GT_META_CALL(storage_sid_impl_::bounds_type, (StorageInfo, int_t))>
+    template <class Storage, class StorageInfo, class Res = storage_sid_impl_::bounds_type<StorageInfo, int_t>>
     Res sid_get_upper_bounds(data_store<Storage, StorageInfo> const &obj) {
-        using keys_t = GT_META_CALL(get_keys, Res);
-        using generators_t = GT_META_CALL(meta::transform, (storage_sid_impl_::upper_bound_generator_f, keys_t));
+        using keys_t = get_keys<Res>;
+        using generators_t = meta::transform<storage_sid_impl_::upper_bound_generator_f, keys_t>;
         return tuple_util::generate<generators_t, Res>(obj.info());
     }
 

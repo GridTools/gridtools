@@ -10,6 +10,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
@@ -33,7 +34,7 @@ namespace gridtools {
             return src.value;
         }
 
-        template <uint_t I, uint_t J, class... Ts, enable_if_t<I != J, int> = 0>
+        template <uint_t I, uint_t J, class... Ts, std::enable_if_t<I != J, int> = 0>
         GT_FUNCTION GT_CONSTEXPR int_t pick_dimension(dimension<J> src, Ts... srcs) {
             return pick_dimension<I>(srcs...);
         }
@@ -55,12 +56,12 @@ namespace gridtools {
                       "unexpected non zero accessor offset")} {}
         };
 
-        template <size_t Dim, uint_t I, enable_if_t<(I > Dim), int> = 0>
+        template <size_t Dim, uint_t I, std::enable_if_t<(I > Dim), int> = 0>
         GT_FUNCTION GT_CONSTEXPR int_t out_of_range_dim(dimension<I> obj) {
             return obj.value;
         }
 
-        template <size_t Dim, uint_t I, enable_if_t<(I <= Dim), int> = 0>
+        template <size_t Dim, uint_t I, std::enable_if_t<(I <= Dim), int> = 0>
         GT_FUNCTION GT_CONSTEXPR int_t out_of_range_dim(dimension<I>) {
             return 0;
         }
@@ -92,11 +93,11 @@ namespace gridtools {
      *  TODO(anstaf) : check offsets against extent
      */
 
-    template <size_t Dim, class = meta::make_index_sequence<Dim>>
+    template <size_t Dim, class = std::make_index_sequence<Dim>>
     class accessor_base;
 
     template <size_t Dim, size_t... Is>
-    class accessor_base<Dim, meta::index_sequence<Is...>> : public array<int_t, Dim> {
+    class accessor_base<Dim, std::index_sequence<Is...>> : public array<int_t, Dim> {
         using base_t = array<int_t, Dim>;
 
         template <class... Ts>
@@ -107,13 +108,13 @@ namespace gridtools {
         GT_FUNCTION GT_CONSTEXPR accessor_base() : base_t{{}} {}
 
         template <class... Ts,
-            enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+            std::enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(Ts... offsets) : base_t{{offsets...}} {}
 
         GT_FUNCTION GT_CONSTEXPR accessor_base(base_t const &src) : base_t{src} {}
 
 #ifndef NDEBUG
-        template <class... Ts, enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts... zeros)
             : accessor_base{accessor_base_impl_::check_all_zeros{zeros...}, offsets...} {}
 
@@ -126,7 +127,7 @@ namespace gridtools {
                 "all dimensions should be of different indicies");
         }
 #else
-        template <class... Ts, enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts...)
             : base_t{{offsets...}} {}
 
@@ -140,7 +141,7 @@ namespace gridtools {
     };
 
     template <>
-    class accessor_base<0, meta::index_sequence<>> : public tuple<> {
+    class accessor_base<0, std::index_sequence<>> : public tuple<> {
         template <class... Ts>
         GT_FUNCTION GT_CONSTEXPR accessor_base(accessor_base_impl_::check_all_zeros) {}
 
@@ -150,7 +151,7 @@ namespace gridtools {
         GT_FUNCTION GT_CONSTEXPR accessor_base(array<int_t, 0> const &) {}
 
 #ifndef NDEBUG
-        template <class... Ts, enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(Ts... zeros)
             : accessor_base{accessor_base_impl_::check_all_zeros {
                   zeros...
@@ -163,7 +164,7 @@ namespace gridtools {
                   zeros.value...
               }} {}
 #else
-        template <class... Ts, enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(Ts...) {}
 
         template <uint_t J, uint_t... Js>

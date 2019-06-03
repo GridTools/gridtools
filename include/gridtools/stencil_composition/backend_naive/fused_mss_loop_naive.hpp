@@ -67,17 +67,15 @@ namespace gridtools {
 
         // split the loop interval into the list of triples meta::list<From, To, Stage>
         template <class LoopInterval,
-            class From = GT_META_CALL(meta::first, LoopInterval),
-            class To = GT_META_CALL(meta::second, LoopInterval),
-            class StageGroups = GT_META_CALL(meta::third, LoopInterval),
-            class Stages = GT_META_CALL(meta::flatten, StageGroups)>
-        GT_META_DEFINE_ALIAS(
-            split_loop_interval, meta::transform, (meta::curry<meta::list, From, To>::template apply, Stages));
+            class From = meta::first<LoopInterval>,
+            class To = meta::second<LoopInterval>,
+            class StageGroups = meta::third<LoopInterval>,
+            class Stages = meta::flatten<StageGroups>>
+        using split_loop_interval = meta::transform<meta::curry<meta::list, From, To>::template apply, Stages>;
 
         // split the list of loop intervals into the list of triples meta::list<From, To, Stage>
         template <class LoopIntervals>
-        GT_META_DEFINE_ALIAS(
-            split_loop_intervals, meta::flatten, (GT_META_CALL(meta::transform, (split_loop_interval, LoopIntervals))));
+        using split_loop_intervals = meta::flatten<meta::transform<split_loop_interval, LoopIntervals>>;
 
         // execute stages in mss
         template <class Grid>
@@ -87,7 +85,7 @@ namespace gridtools {
             void operator()(MssComponents, LocalDomain const &local_domain) const {
                 GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-                using loop_intervals_t = GT_META_CALL(split_loop_intervals, typename MssComponents::loop_intervals_t);
+                using loop_intervals_t = split_loop_intervals<typename MssComponents::loop_intervals_t>;
                 for_each<loop_intervals_t>(stage_executor_f<LocalDomain, Grid>{local_domain, m_grid});
             }
         };

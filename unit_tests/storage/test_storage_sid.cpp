@@ -36,17 +36,17 @@ namespace gridtools {
 
         TEST(storage_sid, smoke) {
             static_assert(is_sid<data_store_t>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, data_store_t), float_type *>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, data_store_t), int_t>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::strides_kind, data_store_t), storage_info_t>(), "");
+            static_assert(std::is_same<sid::ptr_type<data_store_t>, float_type *>(), "");
+            static_assert(std::is_same<sid::ptr_diff_type<data_store_t>, int_t>(), "");
+            static_assert(std::is_same<sid::strides_kind<data_store_t>, storage_info_t>(), "");
 
-            using strides_t = GT_META_CALL(sid::strides_type, data_store_t);
+            using strides_t = sid::strides_type<data_store_t>;
 
             static_assert(tu::size<strides_t>() == 4, "");
-            static_assert(std::is_same<GT_META_CALL(tu::element, (0, strides_t)), int_t>(), "");
-            static_assert(std::is_same<GT_META_CALL(tu::element, (1, strides_t)), integral_constant<int_t, 0>>(), "");
-            static_assert(std::is_same<GT_META_CALL(tu::element, (2, strides_t)), integral_constant<int_t, 1>>(), "");
-            static_assert(std::is_same<GT_META_CALL(tu::element, (3, strides_t)), int_t>(), "");
+            static_assert(std::is_same<tu::element<0, strides_t>, int_t>(), "");
+            static_assert(std::is_same<tu::element<1, strides_t>, integral_constant<int_t, 0>>(), "");
+            static_assert(std::is_same<tu::element<2, strides_t>, integral_constant<int_t, 1>>(), "");
+            static_assert(std::is_same<tu::element<3, strides_t>, int_t>(), "");
 
             data_store_t testee = {{10, 20, 30, 40}, 0};
 
@@ -91,17 +91,10 @@ namespace gridtools {
             using testee_t = decltype(testee);
 
             static_assert(is_sid<testee_t>(), "");
-            static_assert(
-                std::is_same<GT_META_CALL(sid::ptr_type, testee_t), GT_META_CALL(sid::ptr_type, data_store_t)>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee_t),
-                              GT_META_CALL(sid::ptr_diff_type, data_store_t)>(),
-                "");
-            static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee_t),
-                              GT_META_CALL(sid::strides_kind, data_store_t)>(),
-                "");
-            static_assert(std::is_same<GT_META_CALL(sid::strides_type, testee_t),
-                              GT_META_CALL(sid::strides_type, data_store_t)>(),
-                "");
+            static_assert(std::is_same<sid::ptr_type<testee_t>, sid::ptr_type<data_store_t>>(), "");
+            static_assert(std::is_same<sid::ptr_diff_type<testee_t>, sid::ptr_diff_type<data_store_t>>(), "");
+            static_assert(std::is_same<sid::strides_kind<testee_t>, sid::strides_kind<data_store_t>>(), "");
+            static_assert(std::is_same<sid::strides_type<testee_t>, sid::strides_type<data_store_t>>(), "");
 
             auto testee_strides = sid::get_strides(testee);
             auto data_strides = sid::get_strides(data);
@@ -132,7 +125,7 @@ namespace gridtools {
 
             static_assert(sid::concept_impl_::is_sid<testee_t>(), "");
 
-            using diff_t = GT_META_CALL(sid::ptr_diff_type, testee_t);
+            using diff_t = sid::ptr_diff_type<testee_t>;
             static_assert(std::is_empty<diff_t>(), "");
 
             testee_t testee = {storage_info_t{10}, 0};
@@ -141,8 +134,8 @@ namespace gridtools {
 
             EXPECT_EQ(ptr, ptr + diff_t{});
 
-            using lower_bounds_t = GT_META_CALL(sid::lower_bounds_type, testee_t);
-            using upper_bounds_t = GT_META_CALL(sid::upper_bounds_type, testee_t);
+            using lower_bounds_t = sid::lower_bounds_type<testee_t>;
+            using upper_bounds_t = sid::upper_bounds_type<testee_t>;
 
             static_assert(tuple_util::size<lower_bounds_t>() == 0, "");
             static_assert(tuple_util::size<upper_bounds_t>() == 0, "");

@@ -36,7 +36,7 @@ namespace gridtools {
             EXPECT_EQ((*ptr).j, 10);
             EXPECT_EQ((*ptr).k, 14);
 
-            using diff_t = GT_META_CALL(sid::ptr_diff_type, positional);
+            using diff_t = sid::ptr_diff_type<positional>;
 
             diff_t diff{};
 

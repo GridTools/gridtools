@@ -72,8 +72,7 @@ namespace gridtools {
      *  @brief Used to generate a zero initialzed halo. Used as a default value for storage info halo.
      */
     template <uint_t Cnt>
-    using zero_halo =
-        typename _impl::list_to_halo<GT_META_CALL(meta::repeat_c, (Cnt, std::integral_constant<uint_t, 0>))>::type;
+    using zero_halo = typename _impl::list_to_halo<meta::repeat_c<Cnt, std::integral_constant<uint_t, 0>>>::type;
 
     /* used to check if a given type is a halo type */
     template <typename T>

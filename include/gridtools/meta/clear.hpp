@@ -14,14 +14,14 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class>
             struct clear;
             template <template <class...> class L, class... Ts>
             struct clear<L<Ts...>> {
                 using type = L<>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(clear, class List, List);
     } // namespace meta
 } // namespace gridtools

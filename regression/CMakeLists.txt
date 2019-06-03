@@ -11,10 +11,11 @@ if( COMPONENT_STENCIL_COMPOSITION )
           copy_stencil
           vertical_advection_dycore
           advection_pdbott_prepare_tracers
+          layout_transformation
+          boundary_conditions
           )
       set(SOURCES
           ${SOURCES_PERFTEST}
-          boundary_condition
           laplacian positional_stencil
           tridiagonal
           alignment

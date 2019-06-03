@@ -11,7 +11,6 @@
 
 #include <cstddef>
 
-#include "defs.hpp"
 #include "id.hpp"
 #include "list.hpp"
 #include "macros.hpp"
@@ -24,7 +23,7 @@ namespace gridtools {
          *
          *  Complexity is amortized O(1).
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class SomeList, class List>
             class drop_front_impl;
             template <class... Us, template <class...> class L, class... Ts>
@@ -37,16 +36,14 @@ namespace gridtools {
             };
 
             template <class N, class List>
-            GT_META_DEFINE_ALIAS(drop_front, drop_front_impl, (typename repeat_c<N::value, void>::type, List));
+            using drop_front = drop_front_impl<typename repeat_c<N::value, void>::type, List>;
 
             template <std::size_t N, class List>
-            GT_META_DEFINE_ALIAS(drop_front_c, drop_front_impl, (typename repeat_c<N, void>::type, List));
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+            using drop_front_c = drop_front_impl<typename repeat_c<N, void>::type, List>;
+        } // namespace lazy
         template <std::size_t N, class List>
         using drop_front_c = typename lazy::drop_front_impl<typename repeat_c<N, void>::type, List>::type;
         template <class N, class List>
         using drop_front = typename lazy::drop_front_impl<typename repeat_c<N::value, void>::type, List>::type;
-#endif
     } // namespace meta
 } // namespace gridtools

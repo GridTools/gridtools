@@ -35,12 +35,12 @@ namespace gridtools {
     namespace _impl {
 
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        enable_if_t<(I < Layout::masked_length), bool> storage_info_dim_fits(
+        std::enable_if_t<(I < Layout::masked_length), bool> storage_info_dim_fits(
             storage_info<Id, Layout, Halo, Alignment> const &storage_info, int val) {
             return val < storage_info.template total_length<I>();
         }
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        enable_if_t<(I >= Layout::masked_length), bool> storage_info_dim_fits(
+        std::enable_if_t<(I >= Layout::masked_length), bool> storage_info_dim_fits(
             storage_info<Id, Layout, Halo, Alignment> const &, int) {
             return true;
         }
@@ -58,7 +58,7 @@ namespace gridtools {
         };
 
         template <class Mss>
-        GT_META_DEFINE_ALIAS(get_esfs, unwrap_independent, typename Mss::esf_sequence_t);
+        using get_esfs = unwrap_independent<typename Mss::esf_sequence_t>;
 
     } // namespace _impl
 
@@ -99,22 +99,17 @@ namespace gridtools {
 
         using performance_meter_t = typename timer_traits<Backend>::timer_type;
 
-        using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, mss_descriptors_t);
-        using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
-        using non_tmp_placeholders_t = GT_META_CALL(meta::filter, (meta::not_<is_tmp_arg>::apply, placeholders_t));
+        using placeholders_t = extract_placeholders_from_msses<mss_descriptors_t>;
+        using tmp_placeholders_t = meta::filter<is_tmp_arg, placeholders_t>;
+        using non_tmp_placeholders_t = meta::filter<meta::not_<is_tmp_arg>::apply, placeholders_t>;
 
-        using non_cached_tmp_placeholders_t = GT_META_CALL(
-            _impl::extract_non_cached_tmp_args_from_msses, mss_descriptors_t);
+        using non_cached_tmp_placeholders_t = _impl::extract_non_cached_tmp_args_from_msses<mss_descriptors_t>;
 
         template <class Arg>
-        GT_META_DEFINE_ALIAS(to_arg_storage_pair, meta::id, (arg_storage_pair<Arg, typename Arg::data_store_t>));
+        using to_arg_storage_pair = arg_storage_pair<Arg, typename Arg::data_store_t>;
 
-        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::transform,
-            (to_arg_storage_pair,
-                GT_META_CALL(meta::if_,
-                    (GT_META_CALL(needs_allocate_cached_tmp, Backend),
-                        tmp_placeholders_t,
-                        non_cached_tmp_placeholders_t))));
+        using tmp_arg_storage_pair_tuple_t = meta::transform<to_arg_storage_pair,
+            meta::if_<needs_allocate_cached_tmp<Backend>, tmp_placeholders_t, non_cached_tmp_placeholders_t>>;
 
         GT_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
             "some bound placeholders are not used in mss descriptors");
@@ -125,34 +120,31 @@ namespace gridtools {
         template <class Arg>
         using is_free = negation<meta::st_contains<meta::list<BoundPlaceholders...>, Arg>>;
 
-        using free_placeholders_t = GT_META_CALL(meta::filter, (is_free, non_tmp_placeholders_t));
+        using free_placeholders_t = meta::filter<is_free, non_tmp_placeholders_t>;
 
         using bound_arg_storage_pair_tuple_t = std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>;
 
-        using esfs_t = GT_META_CALL(
-            meta::flatten, (GT_META_CALL(meta::transform, (_impl::get_esfs, mss_descriptors_t))));
+        using esfs_t = meta::flatten<meta::transform<_impl::get_esfs, mss_descriptors_t>>;
 
         // First we need to compute the association between placeholders and extents.
         // This information is needed to allocate temporaries, and to provide the extent information to the user.
-        using extent_map_t = GT_META_CALL(get_extent_map, esfs_t);
+        using extent_map_t = get_extent_map<esfs_t>;
 
         using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<Backend>()));
-        using mss_components_array_t = GT_META_CALL(build_mss_components_array,
-            (fuse_esfs_t::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type));
+        using mss_components_array_t =
+            build_mss_components_array<fuse_esfs_t::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type>;
 
-        using max_extent_for_tmp_t = GT_META_CALL(_impl::get_max_extent_for_tmp, mss_components_array_t);
+        using max_extent_for_tmp_t = _impl::get_max_extent_for_tmp<mss_components_array_t>;
 
         template <class MssComponents>
-        GT_META_DEFINE_ALIAS(get_local_domain,
-            local_domain,
-            (GT_META_CALL(extract_placeholders_from_mss, typename MssComponents::mss_descriptor_t),
-                max_extent_for_tmp_t,
-                typename MssComponents::mss_descriptor_t::cache_sequence_t,
-                IsStateful));
+        using get_local_domain = local_domain<extract_placeholders_from_mss<typename MssComponents::mss_descriptor_t>,
+            max_extent_for_tmp_t,
+            typename MssComponents::mss_descriptor_t::cache_sequence_t,
+            IsStateful>;
 
       public:
         // creates a tuple of local domains
-        using local_domains_t = GT_META_CALL(meta::transform, (get_local_domain, mss_components_array_t));
+        using local_domains_t = meta::transform<get_local_domain, mss_components_array_t>;
 
       private:
         // member fields
@@ -208,7 +200,7 @@ namespace gridtools {
         //               implementation of the `intermediate_expanded` and `computation` by getting rid of
         //               `boost::fusion::invoke`.
         template <class... Args, class... DataStores>
-        enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value> run(
+        std::enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value> run(
             arg_storage_pair<Args, DataStores> const &... srcs) {
             GT_STATIC_ASSERT((conjunction<meta::st_contains<free_placeholders_t, Args>...>::value),
                 "some placeholders are not used in mss descriptors");
@@ -242,14 +234,14 @@ namespace gridtools {
         }
 
         template <class Placeholder,
-            class RwArgs = GT_META_CALL(_impl::all_rw_args, mss_descriptors_t),
+            class RwArgs = _impl::all_rw_args<mss_descriptors_t>,
             intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? intent::inout : intent::in>
         static constexpr std::integral_constant<intent, Intent> get_arg_intent(Placeholder) {
             return {};
         }
 
         template <class Placeholder>
-        static constexpr GT_META_CALL(lookup_extent_map, (extent_map_t, Placeholder)) get_arg_extent(Placeholder) {
+        static constexpr lookup_extent_map<extent_map_t, Placeholder> get_arg_extent(Placeholder) {
             GT_STATIC_ASSERT(is_plh<Placeholder>::value, "");
             return {};
         }

@@ -43,7 +43,7 @@
  * `device` or `host_device`. `at_key` without `target_name` is an alias of `host::at_key`.
  *
  *  Compile time:
- *  - `get_keys` metafunction. Usage: `GT_META_CALL(get_keys, Hymap)`
+ *  - `get_keys` metafunction. Usage: `get_keys<Hymap>`
  *  - `has_key` metafunction. Usage `has_key<Hymap, Key>`
  *
  *  TODO(anstaf): add usage examples here
@@ -89,36 +89,29 @@ namespace gridtools {
     namespace hymap_impl_ {
 
         template <class I>
-        GT_META_DEFINE_ALIAS(get_key, meta::id, (integral_constant<int, I::value>));
+        using get_key = integral_constant<int, I::value>;
 
         template <class T>
-        GT_META_DEFINE_ALIAS(default_keys,
-            meta::transform,
-            (get_key, GT_META_CALL(meta::make_indices_for, GT_META_CALL(tuple_util::traits::to_types, T))));
+        using default_keys = meta::transform<get_key, meta::make_indices_for<tuple_util::traits::to_types<T>>>;
 
         struct not_provided;
 
         not_provided hymap_get_keys(...);
 
         template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
-        enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_keys_fun(T const &);
+        std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_keys_fun(T const &);
 
         template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
-        enable_if_t<std::is_same<Res, not_provided>::value, GT_META_CALL(default_keys, T)> get_keys_fun(T const &);
+        std::enable_if_t<std::is_same<Res, not_provided>::value, default_keys<T>> get_keys_fun(T const &);
 
         template <class T>
         using get_keys = decltype(::gridtools::hymap_impl_::get_keys_fun(std::declval<T const &>()));
     } // namespace hymap_impl_
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-    template <class T>
-    struct get_keys : meta::id<hymap_impl_::get_keys<T>> {};
-#else
     using hymap_impl_::get_keys;
-#endif
 
     template <class Map, class Key>
-    GT_META_DEFINE_ALIAS(has_key, meta::st_contains, (GT_META_CALL(hymap_impl_::get_keys, Map), Key));
+    using has_key = meta::st_contains<hymap_impl_::get_keys<Map>, Key>;
 
     namespace hymap {
         template <class... Keys>
@@ -140,17 +133,16 @@ namespace gridtools {
         };
 
         template <class HyMap>
-        GT_META_DEFINE_ALIAS(
-            to_meta_map, meta::zip, (GT_META_CALL(get_keys, HyMap), GT_META_CALL(tuple_util::traits::to_types, HyMap)));
+        using to_meta_map = meta::zip<get_keys<HyMap>, tuple_util::traits::to_types<HyMap>>;
 
-        template <class Keys, class Values, class HyMapKeys = GT_META_CALL(meta::rename, (keys, Keys))>
-        GT_META_DEFINE_ALIAS(from_keys_values, meta::rename, (HyMapKeys::template values, Values));
+        template <class Keys, class Values, class HyMapKeys = meta::rename<keys, Keys>>
+        using from_keys_values = meta::rename<HyMapKeys::template values, Values>;
 
         template <class MetaMap,
-            class KeysAndValues = GT_META_CALL(meta::transpose, MetaMap),
-            class Keys = GT_META_CALL(meta::first, KeysAndValues),
-            class Values = GT_META_CALL(meta::second, KeysAndValues)>
-        GT_META_DEFINE_ALIAS(from_meta_map, from_keys_values, (Keys, Values));
+            class KeysAndValues = meta::transpose<MetaMap>,
+            class Keys = meta::first<KeysAndValues>,
+            class Values = meta::second<KeysAndValues>>
+        using from_meta_map = from_keys_values<Keys, Values>;
     } // namespace hymap
 } // namespace gridtools
 
@@ -163,27 +155,27 @@ namespace gridtools {
 
 namespace gridtools {
     GT_TARGET_NAMESPACE {
-        template <class Key,
-            class Map,
-            class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, decay_t<Map>), Key))>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto at_key(Map && map) noexcept GT_AUTO_RETURN(
-            tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map)));
+        template <class Key, class Map, class I = meta::st_position<get_keys<std::decay_t<Map>>, Key>>
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map) noexcept {
+            return tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map));
+        }
 
         template <class Key,
             class Default,
             class Map,
-            class Decayed = decay_t<Map>,
-            class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, Decayed), Key)),
-            enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto at_key_with_default(Map && map) noexcept GT_AUTO_RETURN(
-            tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map)));
+            class Decayed = std::decay_t<Map>,
+            class I = meta::st_position<get_keys<Decayed>, Key>,
+            std::enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key_with_default(Map && map) noexcept {
+            return tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map));
+        }
 
         template <class Key,
             class Default,
             class Map,
-            class Decayed = decay_t<Map>,
-            class I = GT_META_CALL(meta::st_position, (GT_META_CALL(get_keys, Decayed), Key)),
-            enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
+            class Decayed = std::decay_t<Map>,
+            class I = meta::st_position<get_keys<Decayed>, Key>,
+            std::enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
         GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Default at_key_with_default(Map &&) noexcept {
             return {};
         }
@@ -196,25 +188,28 @@ namespace gridtools {
                 template <class Fun, class Keys>
                 struct adapter_f {
                     Fun m_fun;
-                    template <size_t I, class Value, class Key = GT_META_CALL(meta::at_c, (Keys, I))>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(Value &&value) const
-                        GT_AUTO_RETURN(m_fun.template operator()<Key>(wstd::forward<Value>(value)));
-                };
-            } // namespace hymap_detail
+                    template <size_t I, class Value, class Key = meta::at_c<Keys, I>>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) operator()(Value &&value) const {
+                        return m_fun.template operator()<Key>(wstd::forward<Value>(value));
+                    }
+                }; // namespace hymap_detail
+            }      // namespace hymap_detail
 
             template <class Fun, class Map>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto transform(Fun && fun, Map && map)
-                GT_AUTO_RETURN(tuple_util::GT_TARGET_NAMESPACE_NAME::transform_index(
-                    hymap_detail::adapter_f<Fun, GT_META_CALL(get_keys, decay_t<Map>)>{wstd::forward<Fun>(fun)},
-                    wstd::forward<Map>(map)));
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto transform(Fun && fun, Map && map) {
+                return tuple_util::GT_TARGET_NAMESPACE_NAME::transform_index(
+                    hymap_detail::adapter_f<Fun, get_keys<std::decay_t<Map>>>{wstd::forward<Fun>(fun)},
+                    wstd::forward<Map>(map));
+            }
 
             template <class Fun, class Map>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto for_each(Fun && fun, Map && map)
-                GT_AUTO_RETURN(tuple_util::GT_TARGET_NAMESPACE_NAME::for_each_index(
-                    hymap_detail::adapter_f<Fun, GT_META_CALL(get_keys, decay_t<Map>)>{wstd::forward<Fun>(fun)},
-                    wstd::forward<Map>(map)));
-        }
-    } // namespace hymap
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto for_each(Fun && fun, Map && map) {
+                return tuple_util::GT_TARGET_NAMESPACE_NAME::for_each_index(
+                    hymap_detail::adapter_f<Fun, get_keys<std::decay_t<Map>>>{wstd::forward<Fun>(fun)},
+                    wstd::forward<Map>(map));
+            }
+        } // namespace hymap
+    }     // namespace hymap
 } // namespace gridtools
 
 #endif // GT_TARGET_ITERATING

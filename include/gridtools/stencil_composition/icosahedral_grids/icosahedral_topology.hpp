@@ -473,8 +473,9 @@ namespace gridtools {
         GT_STATIC_ASSERT((is_location_type<DestLocation>::value), "Error: unknown dst location type");
         GT_STATIC_ASSERT(Color < SrcLocation::n_colors::value, "Error: Color index beyond color length");
 
-        GT_FUNCTION constexpr static auto offsets() GT_AUTO_RETURN(
-            from<SrcLocation>::template to<DestLocation>::template with_color<static_uint<Color>>::offsets());
+        GT_FUNCTION constexpr static auto offsets() {
+            return from<SrcLocation>::template to<DestLocation>::template with_color<static_uint<Color>>::offsets();
+        }
     };
 
     namespace _impl {
@@ -494,8 +495,7 @@ namespace gridtools {
         };
 
         template <std::size_t N, class DimSelector>
-        using shorten_selector = GT_META_CALL(
-            meta::list_to_iseq, (GT_META_CALL(meta::take_c, (N, GT_META_CALL(meta::iseq_to_list, DimSelector)))));
+        using shorten_selector = meta::list_to_iseq<meta::take_c<N, meta::iseq_to_list<DimSelector>>>;
     } // namespace _impl
 
     /**
@@ -509,7 +509,7 @@ namespace gridtools {
             using dim_selector_4d_t = _impl::shorten_selector<4, DimSelector>;
             using filtered_layout = typename get_special_layout<layout_map_t, dim_selector_4d_t>::type;
 
-            using type = typename conditional_t<(DimSelector::size() > 4),
+            using type = typename std::conditional_t<(DimSelector::size() > 4),
                 extend_layout_map<filtered_layout, DimSelector::size() - 4>,
                 meta::lazy::id<filtered_layout>>::type;
         };
@@ -550,7 +550,7 @@ namespace gridtools {
             typename Halo = halo<0, 0, 0, 0>,
             typename Selector = selector<1, 1, 1, 1>,
             typename... IntTypes,
-            typename std::enable_if<is_all_integral<IntTypes...>::value, int>::type = 0>
+            std::enable_if_t<is_all_integral<IntTypes...>::value, int> = 0>
         data_store_t<LocationType, ValueType, Halo, Selector> make_storage(
             char const *name, IntTypes... extra_dims) const {
             GT_STATIC_ASSERT(is_location_type<LocationType>::value, "ERROR: location type is wrong");

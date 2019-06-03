@@ -16,24 +16,22 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             /**
              *  Normalized std::conditional version, which is proper function in the terms of meta library.
              *
              *  Note: `std::conditional` should be named `if_c` according to `meta` name convention.
              */
             template <class Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
+            using if_ = std::conditional<Cond::value, Lhs, Rhs>;
 
             template <bool Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_c, std::conditional, (Cond, Lhs, Rhs));
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
+            using if_c = std::conditional<Cond, Lhs, Rhs>;
+        } // namespace lazy
         template <class Cond, class Lhs, class Rhs>
-        using if_ = typename std::conditional<Cond::value, Lhs, Rhs>::type;
+        using if_ = std::conditional_t<Cond::value, Lhs, Rhs>;
 
         template <bool Cond, class Lhs, class Rhs>
-        using if_c = typename std::conditional<Cond, Lhs, Rhs>::type;
-#endif
+        using if_c = std::conditional_t<Cond, Lhs, Rhs>;
     } // namespace meta
 } // namespace gridtools

@@ -14,7 +14,6 @@
 
 #include "../common/defs.hpp"
 #include "../common/split_args.hpp"
-#include "../meta/defs.hpp"
 #include "../meta/transform.hpp"
 #include "../meta/type_traits.hpp"
 #include "computation.hpp"
@@ -26,13 +25,8 @@
 namespace gridtools {
     namespace _impl {
 
-#if GT_BROKEN_TEMPLATE_ALIASES
         template <class List>
-        struct decay_elements : meta::transform<std::decay, List> {};
-#else
-        template <class List>
-        using decay_elements = meta::transform<decay_t, List>;
-#endif
+        using decay_elements = meta::transform<std::decay_t, List>;
 
         template <bool IsStateful, class Backend>
         struct make_intermediate_f {
@@ -40,8 +34,8 @@ namespace gridtools {
                 class... Args,
                 class ArgsPair = decltype(
                     split_args<is_arg_storage_pair>(wstd::forward<Args>(std::declval<Args>())...)),
-                class ArgStoragePairs = GT_META_CALL(decay_elements, typename ArgsPair::first_type),
-                class Msses = GT_META_CALL(decay_elements, typename ArgsPair::second_type)>
+                class ArgStoragePairs = decay_elements<typename ArgsPair::first_type>,
+                class Msses = decay_elements<typename ArgsPair::second_type>>
             intermediate<IsStateful, Backend, Grid, ArgStoragePairs, Msses> operator()(
                 Grid const &grid, Args &&... args) const {
                 // split arg_storage_pair and mss descriptor arguments and forward it to intermediate constructor
@@ -59,16 +53,18 @@ namespace gridtools {
 #endif
 
     /// generator for intermediate
-    template <class Backend, class Grid, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
-    auto make_computation(Grid const &grid, Arg &&arg, Args &&... args)
-        GT_AUTO_RETURN((_impl::make_intermediate_f<GT_POSITIONAL_WHEN_DEBUGGING, Backend>{}(
-            grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...)));
+    template <class Backend, class Grid, class Arg, class... Args, std::enable_if_t<is_grid<Grid>::value, int> = 0>
+    auto make_computation(Grid const &grid, Arg &&arg, Args &&... args) {
+        return _impl::make_intermediate_f<GT_POSITIONAL_WHEN_DEBUGGING, Backend>{}(
+            grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...);
+    }
 
 #undef GT_POSITIONAL_WHEN_DEBUGGING
 
-    template <class Backend, class Grid, class Arg, class... Args, enable_if_t<is_grid<Grid>::value, int> = 0>
-    auto make_positional_computation(Grid const &grid, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
-        (_impl::make_intermediate_f<true, Backend>{}(grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...)));
+    template <class Backend, class Grid, class Arg, class... Args, std::enable_if_t<is_grid<Grid>::value, int> = 0>
+    auto make_positional_computation(Grid const &grid, Arg &&arg, Args &&... args) {
+        return _impl::make_intermediate_f<true, Backend>{}(grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...);
+    }
 
     // user protection only, catch the case where no backend is specified
     template <class... Args>

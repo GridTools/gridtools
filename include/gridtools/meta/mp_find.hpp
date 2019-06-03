@@ -24,7 +24,7 @@ namespace gridtools {
          *
          *  @return the inner list with a given Key or `void` if not found
          */
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class Map, class Key, class Default = void>
             struct mp_find;
             template <class Key, template <class...> class L, class... Ts, class Default>
@@ -35,7 +35,7 @@ namespace gridtools {
 
                 using type = decltype(select((internal::inherit<id<Ts>...> *)0));
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(mp_find, (class Map, class Key, class Default = void), (Map, Key, Default));
     } // namespace meta
 } // namespace gridtools

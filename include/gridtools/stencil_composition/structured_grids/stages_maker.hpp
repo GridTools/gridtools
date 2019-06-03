@@ -29,15 +29,13 @@ namespace gridtools {
         struct stages_from_esf_f;
 
         template <class Esfs, class Index, class ExtentMap>
-        GT_META_DEFINE_ALIAS(stages_from_esfs,
-            meta::filter,
-            (meta::not_<meta::is_empty>::apply,
-                GT_META_CALL(meta::transform, (stages_from_esf_f<Index, ExtentMap>::template apply, Esfs))));
+        using stages_from_esfs = meta::filter<meta::not_<meta::is_empty>::apply,
+            meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>>;
 
-        GT_META_LAZY_NAMESPACE {
+        namespace lazy {
             template <class Functor, class Esf, class ExtentMap>
             struct stages_from_functor {
-                using extent_t = GT_META_CALL(get_esf_extent, (Esf, ExtentMap));
+                using extent_t = get_esf_extent<Esf, ExtentMap>;
                 using type = meta::list<regular_stage<Functor, extent_t, typename Esf::args_t>>;
             };
             template <class Esf, class ExtentMap>
@@ -47,24 +45,22 @@ namespace gridtools {
 
             template <class Esf, class Index, class ExtentMap>
             struct stages_from_esf
-                : stages_from_functor<GT_META_CALL(bind_functor_with_interval, (typename Esf::esf_function_t, Index)),
-                      Esf,
-                      ExtentMap> {};
+                : stages_from_functor<bind_functor_with_interval<typename Esf::esf_function_t, Index>, Esf, ExtentMap> {
+            };
 
             template <class Index, class Esfs, class ExtentMap>
             struct stages_from_esf<independent_esf<Esfs>, Index, ExtentMap> {
-                using stage_groups_t = GT_META_CALL(
-                    meta::transform, (stages_from_esf_f<Index, ExtentMap>::template apply, Esfs));
-                using stages_t = GT_META_CALL(meta::flatten, stage_groups_t);
-                using type = GT_META_CALL(fuse_stages, (compound_stage, stages_t));
+                using stage_groups_t = meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>;
+                using stages_t = meta::flatten<stage_groups_t>;
+                using type = fuse_stages<compound_stage, stages_t>;
             };
-        }
+        } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(stages_from_esf, (class Esf, class Index, class ExtentMap), (Esf, Index, ExtentMap));
 
         template <class Index, class ExtentMap>
         struct stages_from_esf_f {
             template <class Esf>
-            GT_META_DEFINE_ALIAS(apply, stages_from_esf, (Esf, Index, ExtentMap));
+            using apply = stages_from_esf<Esf, Index, ExtentMap>;
         };
     } // namespace _impl
 
@@ -102,6 +98,6 @@ namespace gridtools {
     template <class ExecutionEngine, class Esfs, class Caches, class ExtentMap>
     struct stages_maker<mss_descriptor<ExecutionEngine, Esfs, Caches>, ExtentMap> {
         template <class LevelIndex>
-        GT_META_DEFINE_ALIAS(apply, _impl::stages_from_esfs, (Esfs, LevelIndex, ExtentMap));
+        using apply = _impl::stages_from_esfs<Esfs, LevelIndex, ExtentMap>;
     };
 } // namespace gridtools

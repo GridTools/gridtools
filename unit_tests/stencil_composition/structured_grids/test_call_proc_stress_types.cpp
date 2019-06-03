@@ -61,10 +61,10 @@ namespace {
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
-            using out_type = decay_t<decltype(eval(out{}))>;
+            using out_type = std::decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
-            using local_type = decay_t<decltype(eval(local{}))>;
+            using local_type = std::decay_t<decltype(eval(local{}))>;
             (void)ASSERT_TYPE_EQ<special_type<local_tag>, local_type>{};
         }
     };
@@ -76,10 +76,10 @@ namespace {
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
-            using out_type = decay_t<decltype(eval(out{}))>;
+            using out_type = std::decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
-            using in_type = decay_t<decltype(eval(in{}))>;
+            using in_type = std::decay_t<decltype(eval(in{}))>;
             (void)ASSERT_TYPE_EQ<special_type<in_tag>, in_type>{};
 
             special_type<local_tag> local{};
@@ -95,10 +95,10 @@ namespace {
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
-            using out_type = decay_t<decltype(eval(out{}))>;
+            using out_type = std::decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
-            using in_type = decay_t<decltype(eval(in{}))>;
+            using in_type = std::decay_t<decltype(eval(in{}))>;
             (void)ASSERT_TYPE_EQ<special_type<in_tag>, in_type>{};
 
             call_proc<triple_nesting_with_type_switching_second_stage>::with(eval, in(), out());

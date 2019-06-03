@@ -35,5 +35,5 @@ namespace gridtools {
     };
 
     template <typename Mss>
-    GT_META_DEFINE_ALIAS(is_mss_descriptor, meta::is_instantiation_of, (mss_descriptor, Mss));
+    using is_mss_descriptor = meta::is_instantiation_of<mss_descriptor, Mss>;
 } // namespace gridtools

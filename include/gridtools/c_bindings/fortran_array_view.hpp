@@ -62,15 +62,17 @@ namespace gridtools {
         template <class, class = void>
         struct fortran_array_element_kind;
         template <class T>
-        struct fortran_array_element_kind<T, enable_if_t<std::is_integral<T>::value>>
+        struct fortran_array_element_kind<T, std::enable_if_t<std::is_integral<T>::value>>
             : _impl::fortran_array_element_kind_impl<typename std::make_signed<T>::type> {};
         template <class T>
-        struct fortran_array_element_kind<T, enable_if_t<std::is_floating_point<T>::value>>
+        struct fortran_array_element_kind<T, std::enable_if_t<std::is_floating_point<T>::value>>
             : _impl::fortran_array_element_kind_impl<T> {};
 
         namespace get_fortran_view_meta_impl {
-            template <class T, class Arr = remove_reference_t<T>, class ElementType = remove_all_extents_t<Arr>>
-            enable_if_t<std::is_array<Arr>::value && std::is_arithmetic<ElementType>::value,
+            template <class T,
+                class Arr = std::remove_reference_t<T>,
+                class ElementType = std::remove_all_extents_t<Arr>>
+            std::enable_if_t<std::is_array<Arr>::value && std::is_arithmetic<ElementType>::value,
                 gt_fortran_array_descriptor>
             get_fortran_view_meta(T *) {
                 gt_fortran_array_descriptor descriptor;
@@ -78,7 +80,7 @@ namespace gridtools {
                 descriptor.rank = std::rank<Arr>::value;
                 descriptor.is_acc_present = false;
 
-                using indices = GT_META_CALL(meta::make_indices, std::rank<Arr>);
+                using indices = meta::make_indices<std::rank<Arr>>;
                 host::for_each<indices>(
                     std::bind(_impl::fill_extent_f<Arr>{}, std::placeholders::_1, std::ref(descriptor)));
 
@@ -86,8 +88,9 @@ namespace gridtools {
             }
 
             template <class T>
-            enable_if_t<(T::gt_view_rank::value > 0) && std::is_arithmetic<typename T::gt_view_element_type>::value &&
-                            (T::gt_is_acc_present::value == T::gt_is_acc_present::value),
+            std::enable_if_t<(T::gt_view_rank::value > 0) &&
+                                 std::is_arithmetic<typename T::gt_view_element_type>::value &&
+                                 (T::gt_is_acc_present::value == T::gt_is_acc_present::value),
                 gt_fortran_array_descriptor>
             get_fortran_view_meta(T *) {
                 gt_fortran_array_descriptor descriptor;
@@ -121,7 +124,7 @@ namespace gridtools {
         struct is_fortran_array_view_inspectable : std::false_type {};
         template <class T>
         struct is_fortran_array_view_inspectable<T,
-            enable_if_t<std::is_same<decltype(get_fortran_view_meta(std::declval<add_pointer_t<T>>())),
+            std::enable_if_t<std::is_same<decltype(get_fortran_view_meta(std::declval<std::add_pointer_t<T>>())),
                 gt_fortran_array_descriptor>::value>> : std::true_type {};
 
         /**
@@ -142,18 +145,19 @@ namespace gridtools {
 
         template <class T>
         struct is_fortran_array_convertible<T,
-            enable_if_t<std::is_same<decay_t<T>, gt_fortran_array_descriptor>::value ||
-                        std::is_convertible<gt_fortran_array_descriptor, T>::value>> : std::true_type {};
+            std::enable_if_t<std::is_same<std::decay_t<T>, gt_fortran_array_descriptor>::value ||
+                             std::is_convertible<gt_fortran_array_descriptor, T>::value>> : std::true_type {};
 
         template <class T>
         struct is_fortran_array_convertible<T,
-            enable_if_t<std::is_lvalue_reference<T>::value && std::is_array<remove_reference_t<T>>::value &&
-                        std::is_arithmetic<remove_all_extents_t<remove_reference_t<T>>>::value>> : std::true_type {};
+            std::enable_if_t<std::is_lvalue_reference<T>::value && std::is_array<std::remove_reference_t<T>>::value &&
+                             std::is_arithmetic<std::remove_all_extents_t<std::remove_reference_t<T>>>::value>>
+            : std::true_type {};
 
         template <class T>
         struct is_fortran_array_convertible<T,
-            enable_if_t<std::is_same<decltype(gt_make_fortran_array_view(
-                                         std::declval<gt_fortran_array_descriptor *>(), std::declval<T *>())),
+            std::enable_if_t<std::is_same<decltype(gt_make_fortran_array_view(
+                                              std::declval<gt_fortran_array_descriptor *>(), std::declval<T *>())),
                 T>::value>> : std::true_type {};
 
         /**
@@ -176,18 +180,18 @@ namespace gridtools {
             : bool_constant<is_fortran_array_bindable<T>::value && is_fortran_array_view_inspectable<T>::value> {};
 
         template <class T>
-        enable_if_t<std::is_same<decay_t<T>, gt_fortran_array_descriptor>::value ||
-                        std::is_convertible<gt_fortran_array_descriptor, T>::value,
+        std::enable_if_t<std::is_same<std::decay_t<T>, gt_fortran_array_descriptor>::value ||
+                             std::is_convertible<gt_fortran_array_descriptor, T>::value,
             T>
         make_fortran_array_view(gt_fortran_array_descriptor *descriptor) {
             return *descriptor;
         }
         template <class T>
-        enable_if_t<std::is_lvalue_reference<T>::value && std::is_array<remove_reference_t<T>>::value &&
-                        std::is_arithmetic<remove_all_extents_t<remove_reference_t<T>>>::value,
+        std::enable_if_t<std::is_lvalue_reference<T>::value && std::is_array<std::remove_reference_t<T>>::value &&
+                             std::is_arithmetic<std::remove_all_extents_t<std::remove_reference_t<T>>>::value,
             T>
         make_fortran_array_view(gt_fortran_array_descriptor *descriptor) {
-            static gt_fortran_array_descriptor cpp_meta = get_fortran_view_meta((add_pointer_t<T>){nullptr});
+            static gt_fortran_array_descriptor cpp_meta = get_fortran_view_meta((std::add_pointer_t<T>){nullptr});
             if (descriptor->type != cpp_meta.type) {
                 throw std::runtime_error("Types do not match: fortran-type (" + std::to_string(descriptor->type) +
                                          ") != c-type (" + std::to_string(cpp_meta.type) + ")");
@@ -201,12 +205,12 @@ namespace gridtools {
                     throw std::runtime_error("Extents do not match");
             }
 
-            return *reinterpret_cast<remove_reference_t<T> *>(descriptor->data);
+            return *reinterpret_cast<std::remove_reference_t<T> *>(descriptor->data);
         }
         template <class T>
-        enable_if_t<std::is_same<decltype(gt_make_fortran_array_view(
-                                     std::declval<gt_fortran_array_descriptor *>(), std::declval<T *>())),
-                        T>::value,
+        std::enable_if_t<std::is_same<decltype(gt_make_fortran_array_view(
+                                          std::declval<gt_fortran_array_descriptor *>(), std::declval<T *>())),
+                             T>::value,
             T>
         make_fortran_array_view(gt_fortran_array_descriptor *descriptor) {
             return gt_make_fortran_array_view(descriptor, (T *){nullptr});
