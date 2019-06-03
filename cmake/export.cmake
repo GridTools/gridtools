@@ -4,15 +4,19 @@ export(PACKAGE GridTools)
 include(CMakePackageConfigHelpers)
 
 # for install tree
+set(GRIDTOOLS_MODULE_PATH lib/cmake)
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake
+  PATH_VARS GRIDTOOLS_MODULE_PATH
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake
   COMPATIBILITY SameMajorVersion )
 # for build tree
+set(GRIDTOOLS_MODULE_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake)
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}/GridToolsConfig.cmake
+  PATH_VARS GRIDTOOLS_MODULE_PATH
   INSTALL_DESTINATION ${PROJECT_BINARY_DIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake

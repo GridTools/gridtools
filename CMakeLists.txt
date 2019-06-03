@@ -39,7 +39,7 @@ include (components)
 
 include(FetchContent)
 
-option(CPP_BINDGEN_GT_LEGACY "Enables the legacy mode for API compatibility with GridTools 1.x" ON)
+set(CPP_BINDGEN_GT_LEGACY ON CACHE BOOL "Enables the legacy mode for API compatibility with GridTools 1.x" FORCE)
 mark_as_advanced(CPP_BINDGEN_GT_LEGACY)
 FetchContent_Declare(
   c_bindings
