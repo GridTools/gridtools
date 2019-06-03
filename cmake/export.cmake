@@ -5,7 +5,7 @@ include(CMakePackageConfigHelpers)
 
 # for install tree
 set(GRIDTOOLS_MODULE_PATH lib/cmake)
-set(GT_CPP_BINDGEN_CONFIG_LOCATION ${GRIDTOOLS_MODULE_PATH})
+set(GT_CPP_BINDGEN_CONFIG_LOCATION "\${CMAKE_CURRENT_LIST_DIR}")
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake
   PATH_VARS GRIDTOOLS_MODULE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
