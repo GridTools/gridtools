@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 cmake_policy(SET CMP0048 NEW)
+cmake_policy(SET CMP0077 NEW)
 file(STRINGS "version.txt" __GT_VERSION)
 project(GridTools VERSION ${__GT_VERSION} LANGUAGES CXX)
 unset(__GT_VERSION)
@@ -39,10 +40,15 @@ include (components)
 
 include(FetchContent)
 
-set(CPP_BINDGEN_GT_LEGACY ON)
+option(CPP_BINDGEN_GT_LEGACY "Enables the legacy mode for API compatibility with GridTools 1.x" ON)
+mark_as_advanced(CPP_BINDGEN_GT_LEGACY)
 FetchContent_Declare(
   c_bindings
-  SOURCE_DIR /home/vogtha/git/c_bindings
+  # SOURCE_DIR /home/vogtha/git/c_bindings #TODO change
+
+  GIT_REPOSITORY https://github.com/havogt/c_bindings.git # TODO change
+  GIT_TAG        renaming_round_2
+
   # GIT_REPOSITORY https://github.com/GridTools/c_bindings.git
   # GIT_TAG        master
 )
@@ -117,7 +123,7 @@ if(BUILD_TESTING)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)
-  
+
   add_subdirectory(docs_src/manuals/getting_started)
 endif()
 
