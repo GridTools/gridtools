@@ -8,7 +8,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "generic_benchmark.hpp"
+
 #include <gridtools/interface/layout_transformation/layout_transformation.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include <gtest/gtest.h>
@@ -16,26 +19,6 @@
 using namespace gridtools;
 
 namespace {
-    class generic_benchmark {
-      public:
-        template <typename F>
-        generic_benchmark(F &&f) : m_f(f), m_meter("") {}
-
-        void run() {
-            m_meter.start();
-            m_f();
-            m_meter.pause();
-        }
-        void reset_meter() { m_meter.reset(); }
-        std::string print_meter() { return m_meter.to_string(); }
-
-      private:
-        std::function<void()> m_f;
-
-        using performance_meter_t = typename timer_traits<backend_t>::timer_type;
-        performance_meter_t m_meter;
-    };
-
     template <typename Src, typename Dst>
     void transform(Src &src, Dst &dst) {
         auto src_v = gridtools::make_target_view(src);
@@ -84,5 +67,5 @@ TEST_F(layout_transformation, ijk_to_kji) {
     transform(src, dst);
     verify_result(src, dst);
 
-    benchmark(generic_benchmark{[&]() { transform(src, dst); }});
+    benchmark(generic_benchmark<backend_t>{[&]() { transform(src, dst); }});
 }
