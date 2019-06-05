@@ -50,6 +50,8 @@ namespace gridtools {
         arg_storage_pair(DataStoreType &&val) noexcept : m_value{wstd::move(val)} {}
         ~arg_storage_pair() = default;
 
+        static constexpr ArgType arg() { return {}; }
+
         DataStoreType m_value;
 
         typedef ArgType arg_t;

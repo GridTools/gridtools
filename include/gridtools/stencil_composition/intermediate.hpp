@@ -64,9 +64,6 @@ namespace gridtools {
 
     /**
      *   This functor checks that grid size is small enough to not make the stencil go out of bound on data fields.
-     *
-     *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
-     *   \tparam Grid The Grid
      */
     template <class Grid>
     _impl::storage_info_fits_grid_f<Grid> storage_info_fits_grid(Grid const &grid) {
@@ -137,14 +134,11 @@ namespace gridtools {
         using max_extent_for_tmp_t = _impl::get_max_extent_for_tmp<mss_components_array_t>;
 
         template <class MssComponents>
-        using get_local_domain = local_domain<Backend,
-            extract_placeholders_from_mss<typename MssComponents::mss_descriptor_t>,
-            max_extent_for_tmp_t,
-            typename MssComponents::mss_descriptor_t::cache_sequence_t,
-            IsStateful>;
+        using get_local_domain_f =
+            get_local_domain<Backend, typename MssComponents::mss_descriptor_t, max_extent_for_tmp_t, IsStateful>;
 
         // creates a tuple of local domains
-        using local_domains_t = meta::transform<get_local_domain, mss_components_array_t>;
+        using local_domains_t = meta::transform<get_local_domain_f, mss_components_array_t>;
 
         // member fields
 
@@ -156,21 +150,18 @@ namespace gridtools {
         //
         tmp_arg_storage_pair_tuple_t m_tmp_arg_storage_pair_tuple;
 
-        /// tuple with storages that are bound during costruction
-        //  Each item holds a storage and its view
+        /// tuple with storages that are bound during construction
+        //
         bound_arg_storage_pair_tuple_t m_bound_arg_storage_pair_tuple;
 
         /// Here are local domains (structures with raw pointers for passing to backend.
         //
         local_domains_t m_local_domains;
 
-        template <class... Args, class... DataStores>
-        local_domains_t const &local_domains(arg_storage_pair<Args, DataStores> const &... srcs) {
-            _impl::update_local_domains(
-                tuple_util::flatten(
-                    std::make_tuple(m_tmp_arg_storage_pair_tuple, m_bound_arg_storage_pair_tuple, std::tie(srcs...))),
-                m_local_domains);
-            return m_local_domains;
+        template <class Srcs>
+        void update_local_domains(Srcs const &srcs) {
+            tuple_util::for_each_in_cartesian_product(
+                [&](auto const &src, auto &dst) { dst.set_data_store(src.arg(), src.m_value); }, srcs, m_local_domains);
         }
 
       public:
@@ -195,6 +186,8 @@ namespace gridtools {
                 assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().plus()));
             });
 #endif
+            update_local_domains(m_tmp_arg_storage_pair_tuple);
+            update_local_domains(m_bound_arg_storage_pair_tuple);
         }
 
         template <class... Args, class... DataStores>
@@ -206,7 +199,8 @@ namespace gridtools {
                 meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
             if (m_meter)
                 m_meter->start();
-            fused_mss_loop<mss_components_array_t>(Backend{}, local_domains(srcs...), m_grid);
+            update_local_domains(std::tie(srcs...));
+            fused_mss_loop<mss_components_array_t>(Backend{}, m_local_domains, m_grid);
             if (m_meter)
                 m_meter->pause();
         }

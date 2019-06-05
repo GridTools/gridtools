@@ -12,9 +12,10 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
+#include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 
-#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 20
+#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 1
 
 namespace gridtools {
     namespace execute {

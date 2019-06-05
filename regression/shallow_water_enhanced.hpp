@@ -34,7 +34,6 @@
 
 // [namespaces]
 using namespace gridtools;
-using namespace execute;
 using namespace expressions;
 // [namespaces]
 

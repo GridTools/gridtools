@@ -15,7 +15,6 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execute;
 
 template <typename T>
 struct direction_bc_input {

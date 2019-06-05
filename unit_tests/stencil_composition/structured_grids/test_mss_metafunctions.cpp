@@ -13,7 +13,6 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execute;
 
 struct functor1 {
     typedef accessor<0> in;

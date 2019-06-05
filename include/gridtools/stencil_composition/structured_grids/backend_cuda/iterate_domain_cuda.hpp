@@ -102,7 +102,7 @@ namespace gridtools {
 
         /**@brief method for initializing the index */
         GT_FUNCTION_DEVICE void initialize(pos3<int_t> begin, pos3<int_t> block_no, pos3<int_t> pos_in_block) {
-            device::for_each_type<typename local_domain_t::esf_args_t>(
+            device::for_each_type<get_keys<typename local_domain_t::ptr_t>>(
                 initialize_index<typename IterateDomainArguments::backend_t, local_domain_t>(
                     m_local_domain.m_strides, begin, block_no, pos_in_block, m_ptr));
         }
@@ -113,7 +113,6 @@ namespace gridtools {
 
         GT_FUNCTION int_t k() const { return pos<dim::k>(); }
 
-      public:
         static constexpr bool has_ij_caches = !meta::is_empty<ij_caches<caches_t>>::value;
         static constexpr bool has_k_caches = !meta::is_empty<k_caches<caches_t>>::value;
 
@@ -171,8 +170,7 @@ namespace gridtools {
 
         template <class Arg, class DataStore = typename Arg::data_store_t, class Data = typename DataStore::data_t>
         GT_FUNCTION_DEVICE Data *deref_for_k_cache(int_t k_offset) const {
-            auto k_pos = k() + k_offset;
-            if (k_pos < 0 || k_pos >= device::at_key<typename DataStore::storage_info_t>(m_local_domain.m_ksize_map))
+            if (!m_local_domain.template validate_k_pos<Arg>(k() + k_offset))
                 return nullptr;
             Data *res = device::at_key<Arg>(m_ptr);
             sid::shift(res, sid::get_stride<Arg, dim::k>(m_local_domain.m_strides), k_offset);

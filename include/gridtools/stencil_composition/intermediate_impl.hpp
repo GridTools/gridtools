@@ -26,69 +26,6 @@
 
 namespace gridtools {
     namespace _impl {
-        template <class Arg, class Src, class Dst>
-        struct set_stride_f {
-            Src const &m_src;
-            Dst &m_dst;
-
-            template <class Dim>
-            void operator()() const {
-                at_key<Arg>(at_key<Dim>(m_dst)) = at_key<Dim>(m_src);
-            }
-        };
-        template <class Arg, class Src, class Dst>
-        set_stride_f<Arg, Src, Dst> set_stride(Src const &src, Dst &dst) {
-            return {src, dst};
-        }
-
-        struct sink {
-            template <class T>
-            sink &operator=(T &&) {
-                return *this;
-            }
-        };
-
-        template <class Dim, class StorageInfo, std::enable_if_t<(Dim::value < StorageInfo::ndims), int> = 0>
-        int_t padded_length(StorageInfo const &info) {
-            return info.template padded_length<Dim::value>();
-        }
-
-        template <class Dim, class StorageInfo, std::enable_if_t<(Dim::value >= StorageInfo::ndims), int> = 0>
-        int_t padded_length(StorageInfo const &info) {
-            return std::numeric_limits<int_t>::max();
-        }
-
-        // set pointers from the given storage to the local domain
-        struct set_arg_store_pair_to_local_domain_f {
-
-            // if the arg belongs to the local domain we set pointers
-            template <class Arg, class DataStore, class LocalDomain>
-            std::enable_if_t<meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
-                arg_storage_pair<Arg, DataStore> const &src, LocalDomain &local_domain) const {
-                const auto &storage = src.m_value;
-
-                at_key<Arg>(local_domain.m_ptr_holder) = sid::get_origin(storage);
-                using stride_dims_t = get_keys<sid::strides_type<DataStore>>;
-                auto const &src_strides = sid::get_strides(storage);
-                for_each_type<stride_dims_t>(set_stride<Arg>(src_strides, local_domain.m_strides));
-
-                at_key_with_default<typename DataStore::storage_info_t, sink>(local_domain.m_total_length_map) =
-                    storage.info().padded_total_length();
-
-                at_key_with_default<typename DataStore::storage_info_t, sink>(local_domain.m_ksize_map) =
-                    padded_length<dim::k>(storage.info());
-            }
-            // do nothing if arg is not in this local domain
-            template <class Arg, class DataStore, class LocalDomain>
-            std::enable_if_t<!meta::st_contains<typename LocalDomain::esf_args_t, Arg>::value> operator()(
-                arg_storage_pair<Arg, DataStore> const &, LocalDomain &) const {}
-        };
-
-        template <class Srcs, class LocalDomains>
-        void update_local_domains(Srcs const &srcs, LocalDomains &local_domains) {
-            tuple_util::for_each_in_cartesian_product(set_arg_store_pair_to_local_domain_f{}, srcs, local_domains);
-        }
-
         template <class Mss>
         struct non_cached_tmp_f {
             using local_caches_t = meta::filter<is_local_cache, typename Mss::cache_sequence_t>;

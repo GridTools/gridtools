@@ -86,7 +86,7 @@ namespace gridtools {
 
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<int_t> begin, pos3<int_t> block_no, pos3<int_t> pos_in_block) {
-            host_device::for_each_type<typename local_domain_t::esf_args_t>(
+            host_device::for_each_type<get_keys<typename local_domain_t::ptr_t>>(
                 initialize_index<typename IterateDomainArguments::backend_t, local_domain_t>(
                     m_local_domain.m_strides, begin, block_no, pos_in_block, m_ptr));
         }
