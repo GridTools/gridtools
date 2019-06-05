@@ -70,7 +70,7 @@ namespace gridtools {
        \tparam BoundaryFunction The boundary condition functor
        \tparam Arch The target where the data is (e.g., Host or Cuda)
        \tparam Predicate Runtime predicate for deciding if to apply boundary conditions or not on certain regions based
-       on runtime values (useful to deal with non-priodic distributed examples
+       on runtime values (useful to deal with non-periodic distributed examples
      */
     template <typename BoundaryFunction, class Arch, typename Predicate = default_predicate>
     struct boundary {
@@ -88,6 +88,13 @@ namespace gridtools {
                 _impl::proper_view<Arch, access_mode::read_write, std::decay_t<DataFields>>::make(data_fields)...);
         }
     };
+
+    template <class Arch, class BoundaryFunction, class Predicate = default_predicate>
+    auto make_boundary(
+        array<halo_descriptor, 3> const &hd, BoundaryFunction &&boundary_f, Predicate &&predicate = Predicate()) {
+        return boundary<BoundaryFunction, Arch, Predicate>(
+            hd, std::forward<BoundaryFunction>(boundary_f), std::forward<Predicate>(predicate));
+    }
 
     /** @} */
 

@@ -27,9 +27,11 @@ def load(envfile):
 
 try:
     from pyutils import buildinfo
-    load(buildinfo.envfile)
 except ImportError:
     pass
+else:
+    if buildinfo.envfile is not None:
+        load(buildinfo.envfile)
 
 
 def _items_with_tag(tag):
@@ -51,6 +53,10 @@ def set_cmake_arg(arg, value):
     if isinstance(value, bool):
         value = 'ON' if value else 'OFF'
     env['GTCMAKE_' + arg] = value
+
+
+def use_slurm():
+    return 'GTRUN_NO_SLURM' not in env
 
 
 def sbatch_options(mpi):
