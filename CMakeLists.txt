@@ -45,8 +45,8 @@ FetchContent_Declare(
   c_bindings
   # SOURCE_DIR /home/vogtha/git/c_bindings #TODO change
 
-  GIT_REPOSITORY https://github.com/lukasm91/c_bindings.git # TODO change
-  GIT_TAG        enable_cuda
+  GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git # TODO change
+  GIT_TAG        conditional_c_compiler
 
   # GIT_REPOSITORY https://github.com/GridTools/c_bindings.git
   # GIT_TAG        master
