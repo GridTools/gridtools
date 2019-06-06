@@ -43,8 +43,8 @@ set(CPP_BINDGEN_GT_LEGACY ON CACHE BOOL "Enables the legacy mode for API compati
 mark_as_advanced(CPP_BINDGEN_GT_LEGACY)
 FetchContent_Declare(
   cpp_bindgen
-  GIT_REPOSITORY https://github.com/GridTools/cpp_bindgen.git
-  GIT_TAG        master
+  GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git
+  GIT_TAG        disable_compiler_detection
 )
 FetchContent_GetProperties(cpp_bindgen)
 if(NOT cpp_bindgen_POPULATED)
