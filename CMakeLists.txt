@@ -42,19 +42,14 @@ include(FetchContent)
 set(CPP_BINDGEN_GT_LEGACY ON CACHE BOOL "Enables the legacy mode for API compatibility with GridTools 1.x" FORCE)
 mark_as_advanced(CPP_BINDGEN_GT_LEGACY)
 FetchContent_Declare(
-  c_bindings
-  # SOURCE_DIR /home/vogtha/git/c_bindings #TODO change
-
-  GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git # TODO change
-  GIT_TAG        conditional_c_compiler
-
-  # GIT_REPOSITORY https://github.com/GridTools/c_bindings.git
-  # GIT_TAG        master
+  cpp_bindgen
+  GIT_REPOSITORY https://github.com/GridTools/cpp_bindgen.git
+  GIT_TAG        master
 )
-FetchContent_GetProperties(c_bindings)
-if(NOT c_bindings_POPULATED)
-  FetchContent_Populate(c_bindings)
-  add_subdirectory(${c_bindings_SOURCE_DIR} ${c_bindings_BINARY_DIR})
+FetchContent_GetProperties(cpp_bindgen)
+if(NOT cpp_bindgen_POPULATED)
+  FetchContent_Populate(cpp_bindgen)
+  add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR})
 endif()
 include(gt_add_bindings_library)
 
