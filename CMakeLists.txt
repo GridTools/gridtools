@@ -39,7 +39,7 @@ include (components)
 
 include(FetchContent)
 
-set(CPP_BINDGEN_GT_LEGACY ON CACHE BOOL "Enables the legacy mode for API compatibility with GridTools 1.x" FORCE)
+option(CPP_BINDGEN_GT_LEGACY "Enables the legacy mode for API compatibility with GridTools 1.x" ON)
 mark_as_advanced(CPP_BINDGEN_GT_LEGACY)
 FetchContent_Declare(
   cpp_bindgen
@@ -51,7 +51,6 @@ if(NOT cpp_bindgen_POPULATED)
   FetchContent_Populate(cpp_bindgen)
   add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR})
 endif()
-include(gt_add_bindings_library)
 
 # TODO this install targets are not finished on purpose.
 if( COMPONENT_COMMON )
