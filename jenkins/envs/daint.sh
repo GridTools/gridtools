@@ -12,7 +12,7 @@ export BOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0
 export CUDATOOLKIT_HOME=$CUDA_PATH
 export CUDA_ARCH=sm_60
 
-export GTRUN_BUILD_COMMAND='srun -C gpu -p cscsci --time=00:20:00 make -j 24'
+export GTRUN_BUILD_COMMAND='srun -C gpu -p cscsci -A d75 --time=00:20:00 make -j 24'
 export GTRUN_SBATCH_PARTITION='cscsci'
 export GTRUN_SBATCH_NODES=1
 export GTRUN_SBATCH_NTASKS_PER_CORE=2
