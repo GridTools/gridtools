@@ -38,6 +38,7 @@
 #include "../expressions/expr_base.hpp"
 #include "../has_apply.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../positional.hpp"
 #include "../sid/multi_shift.hpp"
 #include "dim.hpp"
 #include "extent.hpp"

@@ -59,6 +59,10 @@ namespace gridtools {
 
         GT_FUNCTION int_t j_high_bound() const { return m_direction_j.end(); }
 
+        GT_FUNCTION int_t i_size() const { return m_direction_i.end() + 1 - m_direction_i.begin(); }
+
+        GT_FUNCTION int_t j_size() const { return m_direction_j.end() + 1 - m_direction_j.begin(); }
+
         template <class Level, int_t Offset = grid_impl_::real_offset(Level::offset)>
         GT_FUNCTION int_t value_at() const {
             GT_STATIC_ASSERT(is_level<Level>::value, GT_INTERNAL_ERROR);

@@ -50,17 +50,9 @@ namespace gridtools {
 
             template <>
             struct positionals<false, true> : meta::list<positional<dim::k>> {};
-
-            template <class Args, bool IsStateful>
-            struct add_positional : meta::lazy::id<Args> {};
-
-            template <class Args>
-            struct add_positional<Args, true>
-                : meta::lazy::push_back<Args, positional<dim::i>, positional<dim::j>, positional<dim::k>> {};
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(get_storage, class Arg, Arg);
         GT_META_DELEGATE_TO_LAZY(positionals, (bool IsStateful, bool NeedK), (IsStateful, NeedK));
-        GT_META_DELEGATE_TO_LAZY(add_positional, (class Args, bool IsStateful), (Args, IsStateful));
 
         template <class Arg>
         using get_lower_bound = std::decay_t<
@@ -103,50 +95,6 @@ namespace gridtools {
 
         template <class Backend, class Mss, class MaxExtentForTmp, bool IsStateful>
         struct get_local_domain;
-
-        template <class Composite>
-        struct naive_local_domain {
-            GT_STATIC_ASSERT(is_sid<Composite>::value, GT_INTERNAL_ERROR);
-
-            using ptr_holder_t = sid::ptr_holder_type<Composite>;
-            using strides_t = sid::strides_type<Composite>;
-
-            template <class Arg, class DataStore, std::enable_if_t<has_key<Composite, Arg>::value, int> = 0>
-            void set_data_store(Arg, DataStore &data_store) {
-                GT_STATIC_ASSERT(is_sid<DataStore>::value, "");
-
-                at_key<Arg>(m_ptr_holder) = sid::get_origin(data_store);
-                using stride_dims_t = get_keys<sid::strides_type<DataStore>>;
-                auto const &src_strides = sid::get_strides(data_store);
-                for_each_type<stride_dims_t>(local_domain_impl_::set_stride<Arg>(src_strides, m_strides));
-            }
-
-            template <class Arg, class DataStore, std::enable_if_t<!has_key<Composite, Arg>::value, int> = 0>
-            void set_data_store(Arg, DataStore &) {}
-
-            ptr_holder_t m_ptr_holder;
-            strides_t m_strides;
-        };
-        template <class Composite>
-        struct is_local_domain<naive_local_domain<Composite>> : std::true_type {};
-
-        template <class Mss, class MaxExtentForTmp, bool IsStateful>
-        struct get_local_domain<backend::naive, Mss, MaxExtentForTmp, IsStateful> {
-            GT_STATIC_ASSERT(is_extent<MaxExtentForTmp>::value, GT_INTERNAL_ERROR);
-
-            using esf_args_t = extract_placeholders_from_mss<Mss>;
-            GT_STATIC_ASSERT((meta::all_of<is_plh, esf_args_t>::value), GT_INTERNAL_ERROR);
-
-            using args_t = meta::push_back<esf_args_t, positional<dim::i>, positional<dim::j>, positional<dim::k>>;
-
-            using composite_keys_t = meta::rename<sid::composite::keys, args_t>;
-
-            using storages_t = meta::transform<get_storage, args_t>;
-
-            using composite_t = meta::rename<composite_keys_t::template values, storages_t>;
-
-            using type = naive_local_domain<composite_t>;
-        };
 
         template <class Composite, class CacheSequence, class TotalLengthMap>
         struct mc_local_domain {
@@ -391,89 +339,6 @@ namespace gridtools {
                 cuda_local_domain<composite_t, MaxExtentForTmp, caches_t, k_lower_bounds_map_t, k_upper_bounds_map_t>;
         };
     } // namespace local_domain_impl_
-
-    template <class Composite,
-        class MaxExtentForTmp,
-        class CacheSequence,
-        class KLowerBoundsMap,
-        class KUpperBoundsMap,
-        class TotalLengthMap>
-    class local_domain {
-        GT_STATIC_ASSERT(is_extent<MaxExtentForTmp>::value, GT_INTERNAL_ERROR);
-
-        KLowerBoundsMap m_k_lower_bounds_map;
-        KUpperBoundsMap m_k_upper_bounds_map;
-
-        template <class Arg, class DataStore, std::enable_if_t<has_key<KLowerBoundsMap, Arg>::value, int> = 0>
-        void set_k_lower_bounds(Arg, DataStore const &data_store) {
-            at_key<Arg>(m_k_lower_bounds_map) = at_key<dim::k>(sid::get_lower_bounds(data_store));
-        }
-        template <class Arg, class DataStore, std::enable_if_t<!has_key<KLowerBoundsMap, Arg>::value, int> = 0>
-        void set_k_lower_bounds(Arg, DataStore const &data_store) {}
-
-        template <class Arg, class DataStore, std::enable_if_t<has_key<KUpperBoundsMap, Arg>::value, int> = 0>
-        void set_k_upper_bounds(Arg, DataStore const &data_store) {
-            at_key<Arg>(m_k_upper_bounds_map) = at_key<dim::k>(sid::get_upper_bounds(data_store));
-        }
-        template <class Arg, class DataStore, std::enable_if_t<!has_key<KUpperBoundsMap, Arg>::value, int> = 0>
-        void set_k_upper_bounds(Arg, DataStore const &data_store) {}
-
-        template <class Arg, std::enable_if_t<has_key<KLowerBoundsMap, Arg>::value, int> = 0>
-        GT_FUNCTION_DEVICE bool left_validate_k_pos(int_t pos) const {
-            return pos >= device::at_key<Arg>(m_k_lower_bounds_map);
-        }
-        template <class Arg, std::enable_if_t<!has_key<KLowerBoundsMap, Arg>::value, int> = 0>
-        GT_FUNCTION_DEVICE bool left_validate_k_pos(int_t pos) const {
-            return true;
-        }
-
-        template <class Arg, std::enable_if_t<has_key<KUpperBoundsMap, Arg>::value, int> = 0>
-        GT_FUNCTION_DEVICE bool right_validate_k_pos(int_t pos) const {
-            return pos < device::at_key<Arg>(m_k_upper_bounds_map);
-        }
-        template <class Arg, std::enable_if_t<!has_key<KUpperBoundsMap, Arg>::value, int> = 0>
-        GT_FUNCTION_DEVICE bool right_validate_k_pos(int_t pos) const {
-            return true;
-        }
-
-      public:
-        using max_extent_for_tmp_t = MaxExtentForTmp;
-        using cache_sequence_t = CacheSequence;
-
-        using ptr_holder_t = sid::ptr_holder_type<Composite>;
-        using ptr_t = sid::ptr_type<Composite>;
-        using strides_t = sid::strides_type<Composite>;
-        using ptr_diff_t = sid::ptr_diff_type<Composite>;
-
-        template <class Arg, class DataStore, std::enable_if_t<has_key<Composite, Arg>::value, int> = 0>
-        void set_data_store(Arg, DataStore &data_store) {
-            GT_STATIC_ASSERT(is_sid<DataStore>::value, "");
-
-            at_key<Arg>(m_ptr_holder) = sid::get_origin(data_store);
-            using stride_dims_t = get_keys<sid::strides_type<DataStore>>;
-            auto const &src_strides = sid::get_strides(data_store);
-            for_each_type<stride_dims_t>(local_domain_impl_::set_stride<Arg>(src_strides, m_strides));
-
-            at_key_with_default<typename DataStore::storage_info_t, local_domain_impl_::sink>(m_total_length_map) =
-                data_store.info().padded_total_length();
-
-            set_k_lower_bounds(Arg{}, data_store);
-            set_k_upper_bounds(Arg{}, data_store);
-        }
-
-        template <class Arg, class DataStore, std::enable_if_t<!has_key<Composite, Arg>::value, int> = 0>
-        void set_data_store(Arg, DataStore &) {}
-
-        template <class Arg>
-        GT_FUNCTION_DEVICE bool validate_k_pos(int_t pos) const {
-            return left_validate_k_pos<Arg>(pos) && right_validate_k_pos<Arg>(pos);
-        }
-
-        ptr_holder_t m_ptr_holder;
-        strides_t m_strides;
-
-        TotalLengthMap m_total_length_map;
-    };
 
     using local_domain_impl_::is_local_domain;
 

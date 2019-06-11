@@ -44,19 +44,18 @@
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 #include "../meta.hpp"
-#include "./arg.hpp"
-#include "./backend_cuda/tmp_storage.hpp"
-#include "./backend_naive/tmp_storage.hpp"
-#include "./backend_x86/tmp_storage.hpp"
-#include "./block.hpp"
-#include "./grid.hpp"
-#include "./location_type.hpp"
-#include "./pos3.hpp"
+#include "arg.hpp"
+#include "backend_cuda/tmp_storage.hpp"
+#include "backend_x86/tmp_storage.hpp"
+#include "block.hpp"
+#include "grid.hpp"
+#include "location_type.hpp"
+#include "pos3.hpp"
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
-#include "./structured_grids/tmp_storage.hpp"
+#include "structured_grids/tmp_storage.hpp"
 #else
-#include "./icosahedral_grids/tmp_storage.hpp"
+#include "icosahedral_grids/tmp_storage.hpp"
 #endif
 
 namespace gridtools {

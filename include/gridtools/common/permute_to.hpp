@@ -14,6 +14,7 @@
 
 #include "../meta/st_position.hpp"
 #include "../meta/type_traits.hpp"
+#include "defs.hpp"
 #include "tuple_util.hpp"
 
 namespace gridtools {

@@ -9,233 +9,141 @@
  */
 #pragma once
 
-#include <memory>
-#include <tuple>
-#include <utility>
+#include <type_traits>
 
-#include "../common/timer/timer_traits.hpp"
+#include "../common/defs.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
+#include "arg.hpp"
+#include "caches/cache_traits.hpp"
 #include "compute_extents_metafunctions.hpp"
-#include "dim.hpp"
-#include "esf.hpp"
+#include "esf_metafunctions.hpp"
+#include "extent.hpp"
 #include "extract_placeholders.hpp"
 #include "fused_mss_loop.hpp"
 #include "grid.hpp"
-#include "intermediate_impl.hpp"
-#include "level.hpp"
 #include "local_domain.hpp"
+#include "mss_components.hpp"
 #include "mss_components_metafunctions.hpp"
+#include "tmp_storage.hpp"
 
-/**
- * @file
- * \brief this file contains mainly helper metafunctions which simplify the interface for the application developer
- * */
 namespace gridtools {
-    namespace _impl {
-
-        template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        std::enable_if_t<(I < Layout::masked_length), bool> storage_info_dim_fits(
-            storage_info<Id, Layout, Halo, Alignment> const &storage_info, int val) {
-            return val < storage_info.template total_length<I>();
-        }
-        template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        std::enable_if_t<(I >= Layout::masked_length), bool> storage_info_dim_fits(
-            storage_info<Id, Layout, Halo, Alignment> const &, int) {
-            return true;
-        }
-
-        template <class Grid>
-        struct storage_info_fits_grid_f {
-            Grid const &grid;
-
-            template <uint_t Id, class Layout, class Halo, class Alignment>
-            bool operator()(storage_info<Id, Layout, Halo, Alignment> const &src) const {
-                return storage_info_dim_fits<dim::k::value>(src, grid.k_max()) &&
-                       storage_info_dim_fits<dim::j::value>(src, grid.j_high_bound()) &&
-                       storage_info_dim_fits<dim::i::value>(src, grid.i_high_bound());
-            }
-        };
-
+    namespace intermediate_impl_ {
         template <class Mss>
         using get_esfs = unwrap_independent<typename Mss::esf_sequence_t>;
 
-    } // namespace _impl
+        template <class Mss>
+        struct non_cached_tmp_f {
+            using local_caches_t = meta::filter<is_local_cache, typename Mss::cache_sequence_t>;
+            using cached_args_t = meta::transform<cache_parameter, local_caches_t>;
 
-    /**
-     *   This functor checks that grid size is small enough to not make the stencil go out of bound on data fields.
-     */
-    template <class Grid>
-    _impl::storage_info_fits_grid_f<Grid> storage_info_fits_grid(Grid const &grid) {
-        return {grid};
-    }
+            template <class Arg>
+            using apply = bool_constant<is_tmp_arg<Arg>::value && !meta::st_contains<cached_args_t, Arg>::value>;
+        };
 
-    /**
-     *  @brief structure collecting helper metafunctions
-     */
-    template <bool IsStateful, class Backend, class Grid, class BoundArgStoragePairs, class MssDescriptors>
-    class intermediate;
-
-    template <bool IsStateful,
-        class Backend,
-        class Grid,
-        class... BoundPlaceholders,
-        class... BoundDataStores,
-        class... MssDescriptors>
-    class intermediate<IsStateful,
-        Backend,
-        Grid,
-        std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
-        std::tuple<MssDescriptors...>> {
-        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-
-        GT_STATIC_ASSERT(conjunction<is_mss_descriptor<MssDescriptors>...>::value,
-            "make_computation args should be mss descriptors");
-
-        using mss_descriptors_t = std::tuple<MssDescriptors...>;
-
-        using performance_meter_t = typename timer_traits<Backend>::timer_type;
-
-        using placeholders_t = extract_placeholders_from_msses<mss_descriptors_t>;
-        using tmp_placeholders_t = meta::filter<is_tmp_arg, placeholders_t>;
-        using non_tmp_placeholders_t = meta::filter<meta::not_<is_tmp_arg>::apply, placeholders_t>;
-
-        using non_cached_tmp_placeholders_t = _impl::extract_non_cached_tmp_args_from_msses<mss_descriptors_t>;
+        template <class Mss>
+        using extract_non_cached_tmp_args_from_mss =
+            meta::filter<non_cached_tmp_f<Mss>::template apply, extract_placeholders_from_mss<Mss>>;
 
         template <class Arg>
         using to_arg_storage_pair = arg_storage_pair<Arg, typename Arg::data_store_t>;
 
-        using tmp_arg_storage_pair_tuple_t = meta::transform<to_arg_storage_pair,
-            meta::if_<needs_allocate_cached_tmp<Backend>, tmp_placeholders_t, non_cached_tmp_placeholders_t>>;
+        template <class MaxExtent, class Backend>
+        struct get_tmp_arg_storage_pair_generator {
+            template <class ArgStoragePair>
+            struct apply {
+                template <class Grid>
+                ArgStoragePair operator()(Grid const &grid) const {
+                    return {
+                        tmp_storage::make_tmp_data_store<MaxExtent>(Backend{}, typename ArgStoragePair::arg_t{}, grid)};
+                }
+            };
+        };
 
-        GT_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
-            "some bound placeholders are not used in mss descriptors");
-
-        GT_STATIC_ASSERT(
-            meta::is_set_fast<meta::list<BoundPlaceholders...>>::value, "bound placeholders should be all different");
-
-        template <class Arg>
-        using is_free = negation<meta::st_contains<meta::list<BoundPlaceholders...>, Arg>>;
-
-        using free_placeholders_t = meta::filter<is_free, non_tmp_placeholders_t>;
-
-        using bound_arg_storage_pair_tuple_t = std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>;
-
-        using esfs_t = meta::flatten<meta::transform<_impl::get_esfs, mss_descriptors_t>>;
-
-        // First we need to compute the association between placeholders and extents.
-        // This information is needed to allocate temporaries, and to provide the extent information to the user.
-        using extent_map_t = get_extent_map<esfs_t>;
-
-        using fuse_esfs_t = decltype(mss_fuse_esfs(std::declval<Backend>()));
-        using mss_components_array_t =
-            build_mss_components_array<fuse_esfs_t::value, mss_descriptors_t, extent_map_t, typename Grid::axis_type>;
-
-        using max_extent_for_tmp_t = _impl::get_max_extent_for_tmp<mss_components_array_t>;
-
-        template <class MssComponents>
-        using get_local_domain_f =
-            get_local_domain<Backend, typename MssComponents::mss_descriptor_t, max_extent_for_tmp_t, IsStateful>;
-
-        // creates a tuple of local domains
-        using local_domains_t = meta::transform<get_local_domain_f, mss_components_array_t>;
-
-        // member fields
-
-        Grid m_grid;
-
-        std::unique_ptr<performance_meter_t> m_meter;
-
-        /// tuple with temporary storages
-        //
-        tmp_arg_storage_pair_tuple_t m_tmp_arg_storage_pair_tuple;
-
-        /// tuple with storages that are bound during construction
-        //
-        bound_arg_storage_pair_tuple_t m_bound_arg_storage_pair_tuple;
-
-        /// Here are local domains (structures with raw pointers for passing to backend.
-        //
-        local_domains_t m_local_domains;
-
-        template <class Srcs>
-        void update_local_domains(Srcs const &srcs) {
-            tuple_util::for_each_in_cartesian_product(
-                [&](auto const &src, auto &dst) { dst.set_data_store(src.arg(), src.m_value); }, srcs, m_local_domains);
+        template <class MaxExtent, class Backend, class Res, class Grid>
+        Res make_tmp_arg_storage_pairs(Grid const &grid) {
+            using generators =
+                meta::transform<get_tmp_arg_storage_pair_generator<MaxExtent, Backend>::template apply, Res>;
+            return tuple_util::generate<generators, Res>(grid);
         }
 
-      public:
-        intermediate(Grid const &grid,
-            std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...> arg_storage_pairs,
-            bool timer_enabled = true)
-            // grid just stored to the member
-            : m_grid(grid),
-              // here we create temporary storages.
-              m_tmp_arg_storage_pair_tuple(
-                  _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(grid)),
-              // stash bound storages
-              m_bound_arg_storage_pair_tuple(wstd::move(arg_storage_pairs)) {
-            if (timer_enabled)
-                m_meter.reset(new performance_meter_t{"NoName"});
-#ifndef NDEBUG
-            for_each<non_tmp_placeholders_t>([&](auto placeholder) {
-                using extent_t = decltype(get_arg_extent(placeholder));
-                assert(-extent_t::iminus::value <= static_cast<int_t>(m_grid.direction_i().minus()));
-                assert(extent_t::iplus::value <= static_cast<int_t>(m_grid.direction_i().plus()));
-                assert(-extent_t::jminus::value <= static_cast<int_t>(m_grid.direction_j().minus()));
-                assert(extent_t::jplus::value <= static_cast<int_t>(m_grid.direction_j().plus()));
-            });
-#endif
-            update_local_domains(m_tmp_arg_storage_pair_tuple);
-            update_local_domains(m_bound_arg_storage_pair_tuple);
-        }
+        template <class LocalDomains>
+        struct data_store_set_f {
+            LocalDomains &m_local_domains;
+            template <class Plh, class DataStore>
+            void operator()(DataStore &data_store) const {
+                tuple_util::for_each([&](auto &dst) { dst.set_data_store(Plh{}, data_store); }, m_local_domains);
+            }
+        };
 
-        template <class... Args, class... DataStores>
-        std::enable_if_t<sizeof...(Args) == meta::length<free_placeholders_t>::value> run(
-            arg_storage_pair<Args, DataStores> const &... srcs) {
-            GT_STATIC_ASSERT((conjunction<meta::st_contains<free_placeholders_t, Args>...>::value),
-                "some placeholders are not used in mss descriptors");
-            GT_STATIC_ASSERT(
-                meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
-            if (m_meter)
-                m_meter->start();
-            update_local_domains(std::tie(srcs...));
-            fused_mss_loop<mss_components_array_t>(Backend{}, m_local_domains, m_grid);
-            if (m_meter)
-                m_meter->pause();
-        }
+        template <bool IsStateful, class Backend, class Grid, class Msses>
+        class intermediate {
+            GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
-        std::string print_meter() const {
-            assert(m_meter);
-            return m_meter->to_string();
-        }
+            using placeholders_t = extract_placeholders_from_msses<Msses>;
+            using tmp_placeholders_t = meta::filter<is_tmp_arg, placeholders_t>;
+            using non_tmp_placeholders_t = meta::filter<meta::not_<is_tmp_arg>::apply, placeholders_t>;
 
-        double get_time() const {
-            assert(m_meter);
-            return m_meter->total_time();
-        }
+            using non_cached_tmp_placeholders_t =
+                meta::dedup<meta::flatten<meta::transform<extract_non_cached_tmp_args_from_mss, Msses>>>;
 
-        size_t get_count() const {
-            assert(m_meter);
-            return m_meter->count();
-        }
+            using tmp_arg_storage_pair_tuple_t = meta::transform<to_arg_storage_pair,
+                meta::if_<needs_allocate_cached_tmp<Backend>, tmp_placeholders_t, non_cached_tmp_placeholders_t>>;
 
-        void reset_meter() {
-            assert(m_meter);
-            m_meter->reset();
-        }
+            using esfs_t = meta::flatten<meta::transform<get_esfs, Msses>>;
 
-        template <class Placeholder,
-            class RwArgs = _impl::all_rw_args<mss_descriptors_t>,
-            intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? intent::inout : intent::in>
-        static constexpr std::integral_constant<intent, Intent> get_arg_intent(Placeholder) {
-            return {};
-        }
+            // First we need to compute the association between placeholders and extents.
+            // This information is needed to allocate temporaries, and to provide the extent information to the user.
+            using extent_map_t = get_extent_map<esfs_t>;
 
-        template <class Placeholder>
-        static constexpr lookup_extent_map<extent_map_t, Placeholder> get_arg_extent(Placeholder) {
-            GT_STATIC_ASSERT(is_plh<Placeholder>::value, "");
-            return {};
-        }
-    };
+            using fuse_esfs_t = decltype(mss_fuse_esfs(Backend{}));
+            using mss_components_array_t =
+                build_mss_components_array<fuse_esfs_t::value, Msses, extent_map_t, typename Grid::axis_type>;
+
+            using max_extent_for_tmp_t = meta::rename<enclosing_extent,
+                meta::transform<get_max_extent_for_tmp_from_mss_components, mss_components_array_t>>;
+
+            template <class MssComponents>
+            using get_local_domain_f =
+                get_local_domain<Backend, typename MssComponents::mss_descriptor_t, max_extent_for_tmp_t, IsStateful>;
+
+            // creates a tuple of local domains
+            using local_domains_t = meta::transform<get_local_domain_f, mss_components_array_t>;
+
+            // member fields
+
+            Grid m_grid;
+
+            /// tuple with temporary storages
+            //
+            tmp_arg_storage_pair_tuple_t m_tmp_arg_storage_pair_tuple;
+
+            /// Here are local domains (structures with raw pointers for passing to backend.
+            //
+            mutable local_domains_t m_local_domains;
+
+          public:
+            intermediate(Grid const &grid)
+                : m_grid(grid),
+                  m_tmp_arg_storage_pair_tuple(
+                      make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(grid)) {
+                tuple_util::for_each_in_cartesian_product(
+                    [&](auto const &src, auto &dst) { dst.set_data_store(src.arg(), src.m_value); },
+                    m_tmp_arg_storage_pair_tuple,
+                    m_local_domains);
+            }
+
+            template <class DataStoreMap>
+            void operator()(DataStoreMap const &data_store_map) const {
+                hymap::for_each(data_store_set_f<local_domains_t>{m_local_domains}, data_store_map);
+                fused_mss_loop<mss_components_array_t>(Backend{}, m_local_domains, m_grid);
+            }
+        };
+    } // namespace intermediate_impl_
+
+    template <class Backend, class IsStateful, class Grid, class Msses>
+    intermediate_impl_::intermediate<IsStateful::value, Backend, Grid, Msses> make_intermediate(
+        Backend, IsStateful, Grid const &grid, Msses) {
+        return {grid};
+    }
 } // namespace gridtools
