@@ -91,7 +91,6 @@ TEST_F(horizontal_diffusion, test) {
         p_out = out,
         p_coeff = make_storage(repo.coeff),
         make_multistage(execute::parallel(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_lap, p_flx, p_fly)),
             make_stage<lap_function>(p_lap, p_in),
             make_independent(
                 make_stage<flx_function>(p_flx, p_in, p_lap), make_stage<fly_function>(p_fly, p_in, p_lap)),

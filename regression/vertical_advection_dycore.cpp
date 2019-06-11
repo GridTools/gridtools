@@ -180,11 +180,6 @@ TEST_F(vertical_advection_dycore, test) {
         p_utens = make_storage(repo.utens),
         p_dtr_stage = make_storage<scalar_storage_type>(repo.dtr_stage),
         make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::local>(p_acol),
-                cache<cache_type::k, cache_io_policy::local>(p_bcol),
-                cache<cache_type::k, cache_io_policy::flush>(p_ccol),
-                cache<cache_type::k, cache_io_policy::flush>(p_dcol),
-                cache<cache_type::k, cache_io_policy::fill>(p_u_stage)),
             make_stage<u_forward_function>(
                 p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
         make_multistage(execute::backward(),
