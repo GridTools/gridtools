@@ -19,8 +19,6 @@ namespace cs_test {
 
     using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
-    using x_interval = axis<1>::full_interval;
-
     template <uint_t Color>
     struct test_functor {
         typedef in_accessor<0, icosahedral_topology_t::cells, extent<1>> in;
@@ -28,7 +26,7 @@ namespace cs_test {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -42,8 +40,7 @@ TEST(test_copy_stencil, run) {
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 2;
-    const uint_t halo_k = 0;
-    const uint_t d3 = 6 + halo_k * 2;
+    const uint_t d3 = 6;
     const uint_t d1 = 6 + halo_nc * 2;
     const uint_t d2 = 12 + halo_mc * 2;
     icosahedral_topology_t icosahedral_grid(d1, d2, d3);
@@ -71,10 +68,9 @@ TEST(test_copy_stencil, run) {
     halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
     halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-    gridtools::grid<axis<1>::axis_interval_t, icosahedral_topology_t> grid_(
-        icosahedral_grid, di, dj, {halo_k, d3 - halo_k});
+    auto grid = make_grid(di, dj, d3);
 
-    auto copy = gridtools::make_computation<backend_t>(grid_,
+    auto copy = gridtools::make_computation<backend_t>(grid,
         p_in_cells() = in_cells,
         p_out_cells() = out_cells,
         gridtools::make_multistage // mss_descriptor
@@ -83,10 +79,6 @@ TEST(test_copy_stencil, run) {
                 p_in_cells(), p_out_cells())));
     copy.run();
 
-    in_cells.sync();
-    out_cells.sync();
-
-    verifier ver(1e-10);
-    array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
-    EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
+    EXPECT_TRUE(verifier(default_precision<float_type>())
+                    .verify(grid, in_cells, out_cells, {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {0, 0}}}));
 }
