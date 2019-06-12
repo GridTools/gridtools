@@ -16,11 +16,11 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
+#include <gridtools/common/hymap.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execute;
 
 typedef storage_traits<backend::x86>::storage_info_t<0, 2> storage_info_ij_t;
 typedef storage_traits<backend::x86>::data_store_t<float_type, storage_info_ij_t> storage_type;
@@ -45,11 +45,11 @@ typedef detail::cache_impl<cache_type::k, p_out, cache_io_policy::local> cache3_
 typedef detail::cache_impl<cache_type::k, p_notin, cache_io_policy::local> cache4_t;
 typedef std::tuple<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
-TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
-    using testee_t = get_ij_cache_storage_tuple<caches_t, extent<-2, 2, -3, 2>, 32, 4>::type;
+TEST(cache_metafunctions, get_ij_cache_storage_map) {
+    using testee_t = get_ij_cache_storage_map<caches_t, extent<-2, 2, -3, 2>, 32, 4>;
 
-    using expected_t = std::tuple<boost::fusion::pair<p_in, ij_cache_storage<float_type, 36, 9, 2, 3>>,
-        boost::fusion::pair<p_buff, ij_cache_storage<float_type, 36, 9, 2, 3>>>;
+    using expected_t = hymap::keys<p_in, p_buff>::values<ij_cache_storage<float_type, 36, 9, 2, 3>,
+        ij_cache_storage<float_type, 36, 9, 2, 3>>;
 
     static_assert(std::is_same<testee_t, expected_t>::value, "");
 }
@@ -63,12 +63,12 @@ static_assert(std::is_same<extract_k_extent_for_cache<p_out, esfk_sequence_t>, e
 
 static_assert(std::is_same<extract_k_extent_for_cache<p_notin, esfk_sequence_t>, extent<0, 0, 0, 0, -1, 1>>(), "");
 
-TEST(cache_metafunctions, get_k_cache_storage_tuple) {
+TEST(cache_metafunctions, get_k_cache_storage_map) {
 
-    using testee_t = typename get_k_cache_storage_tuple<caches_t, esfk_sequence_t>::type;
+    using testee_t = get_k_cache_storage_map<caches_t, esfk_sequence_t>;
 
-    using expected_t = std::tuple<boost::fusion::pair<p_out, k_cache_storage<p_out, float_type, 0, 1>>,
-        boost::fusion::pair<p_notin, k_cache_storage<p_notin, float_type, -1, 1>>>;
+    using expected_t = hymap::keys<p_out, p_notin>::values<k_cache_storage<p_out, float_type, 0, 1>,
+        k_cache_storage<p_notin, float_type, -1, 1>>;
 
     static_assert(std::is_same<testee_t, expected_t>::value, "");
 }

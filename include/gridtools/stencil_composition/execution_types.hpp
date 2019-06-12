@@ -9,10 +9,13 @@
  */
 #pragma once
 
-#include "../common/defs.hpp"
 #include <type_traits>
 
-#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 20
+#include "../common/defs.hpp"
+#include "../common/host_device.hpp"
+#include "../common/integral_constant.hpp"
+
+#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 1
 
 namespace gridtools {
     namespace execute {
@@ -41,6 +44,9 @@ namespace gridtools {
 
         template <>
         struct is_backward<backward> : std::true_type {};
+
+        template <typename T>
+        GT_DEVICE constexpr integral_constant<int_t, is_backward<T>::value ? -1 : 1> step = {};
     } // namespace execute
 
     template <typename T>

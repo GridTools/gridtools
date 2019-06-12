@@ -14,9 +14,8 @@
 
 #pragma once
 
-#include <boost/fusion/include/pair.hpp>
-
 #include "../../common/defs.hpp"
+#include "../../common/hymap.hpp"
 #include "../../meta.hpp"
 #include "../esf_fwd.hpp"
 #include "./cache.hpp"
@@ -38,25 +37,27 @@ namespace gridtools {
     template <class Caches>
     using k_cache_args = meta::transform<cache_parameter, k_caches<Caches>>;
 
-    template <class Caches, class Esfs>
-    struct get_k_cache_storage_tuple {
-        GT_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
+    namespace cache_metafunctions_impl_ {
+        template <class MaxExtent, int_t ITile, int_t JTile>
+        struct make_ij_cache_storage_f {
+            template <class Arg>
+            using apply = typename make_ij_cache_storage<Arg, ITile, JTile, MaxExtent>::type;
+        };
 
-        template <class Cache, class Arg = typename Cache::arg_t>
-        using make_item =
-            boost::fusion::pair<Arg, typename make_k_cache_storage<Arg, extract_k_extent_for_cache<Arg, Esfs>>::type>;
+        template <class Esfs>
+        struct make_k_cache_storage_f {
+            template <class Arg>
+            using apply = typename make_k_cache_storage<Arg, extract_k_extent_for_cache<Arg, Esfs>>::type;
+        };
+    } // namespace cache_metafunctions_impl_
 
-        using type = meta::transform<make_item, k_caches<Caches>>;
-    };
+    template <class Caches, class MaxExtent, int_t ITile, int_t JTile, class Args = ij_cache_args<Caches>>
+    using get_ij_cache_storage_map = hymap::from_keys_values<Args,
+        meta::transform<cache_metafunctions_impl_::make_ij_cache_storage_f<MaxExtent, ITile, JTile>::template apply,
+            Args>>;
 
-    template <class Caches, class MaxExtent, int_t ITile, int_t JTile>
-    struct get_ij_cache_storage_tuple {
-        GT_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
+    template <class Caches, class Esfs, class Args = k_cache_args<Caches>>
+    using get_k_cache_storage_map = hymap::from_keys_values<Args,
+        meta::transform<cache_metafunctions_impl_::make_k_cache_storage_f<Esfs>::template apply, Args>>;
 
-        template <class Cache, class Arg = typename Cache::arg_t>
-        using make_item = boost::fusion::pair<Arg, typename make_ij_cache_storage<Arg, ITile, JTile, MaxExtent>::type>;
-
-        using type = meta::transform<make_item, ij_caches<Caches>>;
-    };
 } // namespace gridtools

@@ -17,11 +17,15 @@
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil_composition/dim.hpp>
 #include <gridtools/stencil_composition/positional.hpp>
+#include <gridtools/stencil_composition/sid/composite.hpp>
 #include <gridtools/stencil_composition/sid/synthetic.hpp>
 
 namespace gridtools {
     namespace {
         struct some_dim;
+
+        using positional_t = sid::composite::keys<dim::i, dim::j, dim::k>::
+            values<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
 
         TEST(sid_block, smoke) {
             const int domain_size_i = 12;
@@ -33,23 +37,23 @@ namespace gridtools {
             auto blocks = tuple_util::make<hymap::keys<dim::i, dim::j, some_dim>::values>(
                 integral_constant<int_t, block_size_i>{}, block_size_j, 5);
 
-            positional s{0, 0, 0};
+            positional_t s;
             auto blocked_s = sid::block(s, blocks);
             static_assert(is_sid<decltype(blocked_s)>(), "");
 
             auto strides = sid::get_strides(blocked_s);
             for (int ib = 0; ib < domain_size_i; ib += block_size_i) {
                 for (int jb = 0; jb < domain_size_j; jb += block_size_j) {
-                    auto ptr = sid::get_origin(blocked_s);
+                    auto ptr = sid::get_origin(blocked_s)();
                     sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::i>>(strides), ib / block_size_i);
                     sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::j>>(strides), jb / block_size_j);
 
                     for (int i = ib; i < ib + block_size_i; ++i) {
                         for (int j = jb; j < jb + block_size_j; ++j) {
                             for (int k = 0; k < domain_size_k; ++k) {
-                                EXPECT_EQ((*ptr).i, i);
-                                EXPECT_EQ((*ptr).j, j);
-                                EXPECT_EQ((*ptr).k, k);
+                                EXPECT_EQ(*at_key<dim::i>(ptr), i);
+                                EXPECT_EQ(*at_key<dim::j>(ptr), j);
+                                EXPECT_EQ(*at_key<dim::k>(ptr), k);
                                 sid::shift(ptr, sid::get_stride<dim::k>(strides), 1);
                             }
                             sid::shift(ptr, sid::get_stride<dim::k>(strides), -domain_size_k);
@@ -63,7 +67,7 @@ namespace gridtools {
         }
 
         TEST(sid_block, multilevel) {
-            positional s{0, 0, 0};
+            positional_t s;
 
             const int domain_size = 20;
             const int block_size_1 = 5;
@@ -74,14 +78,14 @@ namespace gridtools {
                 sid::block(blocked_s, tuple_util::make<hymap::keys<sid::blocked_dim<dim::i>>::values>(block_size_2));
             static_assert(is_sid<decltype(blocked_blocked_s)>(), "");
 
-            auto ptr = sid::get_origin(blocked_blocked_s);
+            auto ptr = sid::get_origin(blocked_blocked_s)();
             auto strides = sid::get_strides(blocked_blocked_s);
             for (int ib2 = 0; ib2 < domain_size; ib2 += block_size_1 * block_size_2) {
                 for (int ib = ib2; ib < ib2 + block_size_1 * block_size_2; ib += block_size_1) {
                     for (int i = ib; i < ib + block_size_1; ++i) {
-                        EXPECT_EQ((*ptr).i, i);
-                        EXPECT_EQ((*ptr).j, 0);
-                        EXPECT_EQ((*ptr).k, 0);
+                        EXPECT_EQ(*at_key<dim::i>(ptr), i);
+                        EXPECT_EQ(*at_key<dim::j>(ptr), 0);
+                        EXPECT_EQ(*at_key<dim::k>(ptr), 0);
                         sid::shift(ptr, sid::get_stride<dim::i>(strides), 1);
                     }
                     sid::shift(ptr, sid::get_stride<dim::i>(strides), -block_size_1);
@@ -93,27 +97,27 @@ namespace gridtools {
         }
 
         TEST(sid_block, do_nothing) {
-            positional s{0, 0, 0};
+            positional_t s;
 
             auto same_s = sid::block(s, tuple_util::make<hymap::keys<some_dim>::values>(42));
             static_assert(std::is_same<decltype(s), decltype(same_s)>(), "");
         }
 
         TEST(sid_block, reference_wrapper) {
-            positional s{0, 0, 0};
+            positional_t s;
 
             const int domain_size = 20;
             const int block_size = 5;
             auto blocked_s = sid::block(std::ref(s), tuple_util::make<hymap::keys<dim::i>::values>(block_size));
             static_assert(is_sid<decltype(blocked_s)>(), "");
 
-            auto ptr = sid::get_origin(blocked_s);
+            auto ptr = sid::get_origin(blocked_s)();
             auto strides = sid::get_strides(blocked_s);
             for (int ib = 0; ib < domain_size; ib += block_size) {
                 for (int i = ib; i < ib + block_size; ++i) {
-                    EXPECT_EQ((*ptr).i, i);
-                    EXPECT_EQ((*ptr).j, 0);
-                    EXPECT_EQ((*ptr).k, 0);
+                    EXPECT_EQ(*at_key<dim::i>(ptr), i);
+                    EXPECT_EQ(*at_key<dim::j>(ptr), 0);
+                    EXPECT_EQ(*at_key<dim::k>(ptr), 0);
                     sid::shift(ptr, sid::get_stride<dim::i>(strides), 1);
                 }
                 sid::shift(ptr, sid::get_stride<dim::i>(strides), -block_size);

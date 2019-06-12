@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
@@ -19,15 +21,26 @@
 namespace gridtools {
     namespace sid {
         namespace multi_shift_impl_ {
-            template <class Ptr, class Strides, class Offsets>
+            template <class Ptr, class Strides>
             struct shift_f {
+                Ptr &GT_RESTRICT m_ptr;
+                Strides const &GT_RESTRICT m_strides;
+
+                template <class Key, class Value>
+                GT_FUNCTION void operator()(Value value) const {
+                    shift(m_ptr, get_stride<Key>(m_strides), value);
+                }
+            };
+
+            template <class Arg, class Ptr, class Strides, class Offsets>
+            struct composite_strides_shift_f {
                 Ptr &GT_RESTRICT m_ptr;
                 Strides const &GT_RESTRICT m_strides;
                 Offsets const &GT_RESTRICT m_offsets;
 
                 template <class Key>
                 GT_FUNCTION void operator()() const {
-                    shift(m_ptr, get_stride<Key>(m_strides), gridtools::host_device::at_key<Key>(m_offsets));
+                    shift(m_ptr, get_stride<Arg, Key>(m_strides), gridtools::host_device::at_key<Key>(m_offsets));
                 }
             };
         } // namespace multi_shift_impl_
@@ -42,12 +55,31 @@ namespace gridtools {
             std::enable_if_t<tuple_util::size<Offsets>::value != 0, int> = 0>
         GT_FUNCTION void multi_shift(
             Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets const &GT_RESTRICT offsets) {
-            using keys_t = get_keys<Offsets>;
-            gridtools::host_device::for_each_type<keys_t>(
-                multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});
+            hymap::host_device::for_each(multi_shift_impl_::shift_f<Ptr, Strides>{ptr, strides}, offsets);
         }
 
         template <class Ptr,
+            class Strides,
+            class Offsets,
+            std::enable_if_t<tuple_util::size<Offsets>::value == 0, int> = 0>
+        GT_FUNCTION void multi_shift(Ptr &, Strides const &, Offsets const &) {}
+
+        /**
+         *   Variation of multi_shift that works with the strides of composite sid.
+         */
+        template <class Arg,
+            class Ptr,
+            class Strides,
+            class Offsets,
+            std::enable_if_t<tuple_util::size<Offsets>::value != 0, int> = 0>
+        GT_FUNCTION void multi_shift(
+            Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets const &GT_RESTRICT offsets) {
+            gridtools::host_device::for_each_type<get_keys<Offsets>>(
+                multi_shift_impl_::composite_strides_shift_f<Arg, Ptr, Strides, Offsets>{ptr, strides, offsets});
+        }
+
+        template <class Arg,
+            class Ptr,
             class Strides,
             class Offsets,
             std::enable_if_t<tuple_util::size<Offsets>::value == 0, int> = 0>

@@ -24,7 +24,7 @@ namespace gridtools {
                 return (x + Alignment - 1) / Alignment * Alignment;
             }
             template <class StorageInfo, class MaxExtent>
-            GT_FUNCTION GT_CONSTEXPR uint_t full_block_i_size(uint_t block_size) {
+            GT_FUNCTION GT_CONSTEXPR int_t full_block_i_size(uint_t block_size) {
                 return align<StorageInfo>(
                     block_size + static_cast<uint_t>(MaxExtent::iplus::value - MaxExtent::iminus::value));
             }
@@ -40,7 +40,7 @@ namespace gridtools {
         constexpr std::false_type needs_allocate_cached_tmp(backend::cuda const &) { return {}; }
 
         template <class StorageInfo, class MaxExtent>
-        uint_t get_i_size(backend::cuda const &, uint_t block_size, uint_t total_size) {
+        int_t get_i_size(backend::cuda const &, uint_t block_size, uint_t total_size) {
             GT_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
             static constexpr auto additional_offset = _impl::additional_i_offset<StorageInfo, MaxExtent>();
             auto full_block_size = _impl::full_block_i_size<StorageInfo, MaxExtent>(block_size);
@@ -57,7 +57,7 @@ namespace gridtools {
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_j_size(backend::cuda const &, uint_t block_size, uint_t total_size) {
+        int_t get_j_size(backend::cuda const &, uint_t block_size, uint_t total_size) {
             static constexpr auto halo = StorageInfo::halo_t::template at<dim::j::value>();
             auto full_block_size = block_size + 2 * halo;
             auto num_blocks = (total_size + block_size - 1) / block_size;

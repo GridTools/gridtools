@@ -22,6 +22,7 @@ namespace gridtools {
     namespace _impl {
         template <class Stage>
         using get_extent_from_stage = typename Stage::extent_t;
+
         template <class Extent>
         struct has_same_extent {
             template <class Stage>

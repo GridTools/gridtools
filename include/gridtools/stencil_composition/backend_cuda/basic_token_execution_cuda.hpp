@@ -52,12 +52,12 @@ namespace gridtools {
      */
     template <class FromLevel, class ToLevel, uint_t BlockSize, class Grid>
     GT_FUNCTION pair<int, int> get_k_interval(backend::cuda, execute::parallel_block<BlockSize>, Grid const &grid) {
-        return make_pair(math::max(blockIdx.z * BlockSize, grid.template value_at<FromLevel>()),
-            math::min((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<ToLevel>()));
+        return {math::max<int>(blockIdx.z * BlockSize, grid.template value_at<FromLevel>()),
+            math::min<int>((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<ToLevel>())};
     }
 
     template <class FromLevel, class ToLevel, class ExecutionEngine, class Grid>
     GT_FUNCTION pair<int, int> get_k_interval(backend::cuda, ExecutionEngine, Grid const &grid) {
-        return make_pair(grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>());
+        return {grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>()};
     }
 } // namespace gridtools

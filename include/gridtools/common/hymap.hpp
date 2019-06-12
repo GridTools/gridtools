@@ -76,6 +76,8 @@
 #ifndef GT_COMMON_HYMAP_HPP_
 #define GT_COMMON_HYMAP_HPP_
 
+#include <type_traits>
+
 #include "../meta.hpp"
 #include "defs.hpp"
 #include "generic_metafunctions/utility.hpp"
@@ -91,17 +93,17 @@ namespace gridtools {
         template <class I>
         using get_key = integral_constant<int, I::value>;
 
-        template <class T>
-        using default_keys = meta::transform<get_key, meta::make_indices_for<tuple_util::traits::to_types<T>>>;
+        template <class Tup, class Ts = tuple_util::traits::to_types<Tup>>
+        using default_keys = meta::transform<get_key, meta::make_indices_for<Ts>>;
 
         struct not_provided;
 
         not_provided hymap_get_keys(...);
 
-        template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
+        template <class T, class Res = decltype(hymap_get_keys(std::declval<T const>()))>
         std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_keys_fun(T const &);
 
-        template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
+        template <class T, class Res = decltype(hymap_get_keys(std::declval<T const>()))>
         std::enable_if_t<std::is_same<Res, not_provided>::value, default_keys<T>> get_keys_fun(T const &);
 
         template <class T>

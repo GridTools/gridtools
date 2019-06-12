@@ -35,7 +35,10 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_level<FromLevel>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_level<ToLevel>::value, GT_INTERNAL_ERROR);
 
-        using type = loop_interval;
+        template <class Grid>
+        static GT_FUNCTION auto count(Grid const &grid) {
+            return grid.count(FromLevel{}, ToLevel{});
+        }
     };
 
     template <class T>

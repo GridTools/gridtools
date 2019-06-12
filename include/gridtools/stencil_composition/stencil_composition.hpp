@@ -20,12 +20,15 @@
  *  The stuff that is needed only for definitions of the stencil functions should not be included here.
  */
 
+#include "../storage/sid.hpp"
 #include "accessor.hpp"
+#include "backend_naive/intermediate.hpp"
 #include "caches/define_caches.hpp"
 #include "computation.hpp"
 #include "esf.hpp"
 #include "global_parameter.hpp"
 #include "grid.hpp"
+#include "intermediate.hpp"
 #include "make_computation.hpp"
 #include "make_stage.hpp"
 #include "make_stencils.hpp"

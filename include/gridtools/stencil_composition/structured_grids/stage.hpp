@@ -32,22 +32,22 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
-#include "../../meta/at.hpp"
-#include "../../meta/logical.hpp"
-#include "../../meta/macros.hpp"
-#include "../../meta/type_traits.hpp"
+#include "../../meta.hpp"
 #include "../accessor_intent.hpp"
 #include "../arg.hpp"
 #include "../expressions/expr_base.hpp"
 #include "../has_apply.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../positional.hpp"
+#include "../sid/multi_shift.hpp"
+#include "dim.hpp"
 #include "extent.hpp"
 
 namespace gridtools {
 
-    namespace impl_ {
+    namespace stage_impl_ {
         template <class ItDomain, class Args>
-        struct evaluator {
+        struct itdomain_evaluator {
             GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
 
@@ -68,7 +68,40 @@ namespace gridtools {
             GT_FUNCTION int_t j() const { return m_it_domain.j(); }
             GT_FUNCTION int_t k() const { return m_it_domain.k(); }
         };
-    } // namespace impl_
+
+        struct default_deref_f {
+            template <class Arg, class T>
+            GT_FUNCTION T &operator()(T *ptr) const {
+                return *ptr;
+            }
+        };
+
+        template <class Ptr, class Strides, class Args, class Deref>
+        struct evaluator {
+            Ptr const &m_ptr;
+            Strides const &m_strides;
+
+            template <class Arg>
+            using ref_type =
+                decltype(Deref{}.template operator()<Arg>(host_device::at_key<Arg>(std::declval<Ptr const &>())));
+
+            template <class Accessor, class Arg = meta::at_c<Args, Accessor::index_t::value>>
+            GT_FUNCTION apply_intent_t<Accessor::intent_v, ref_type<Arg>> operator()(Accessor const &acc) const {
+                auto ptr = host_device::at_key<Arg>(m_ptr);
+                sid::multi_shift<Arg>(ptr, m_strides, acc);
+                return Deref{}.template operator()<Arg>(ptr);
+            }
+
+            template <class Op, class... Ts>
+            GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const {
+                return expressions::evaluation::value(*this, arg);
+            }
+
+            GT_FUNCTION int_t i() const { return *host_device::at_key<positional<dim::i>>(m_ptr); }
+            GT_FUNCTION int_t j() const { return *host_device::at_key<positional<dim::j>>(m_ptr); }
+            GT_FUNCTION int_t k() const { return *host_device::at_key<positional<dim::k>>(m_ptr); }
+        };
+    } // namespace stage_impl_
 
     /**
      *   A stage that is associated with an elementary functor.
@@ -84,13 +117,21 @@ namespace gridtools {
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain const &it_domain) {
             GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
-            impl_::evaluator<ItDomain, Args> eval{it_domain};
+            stage_impl_::itdomain_evaluator<ItDomain, Args> eval{it_domain};
+            Functor::apply(eval);
+        }
+
+        template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
+        GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
+            stage_impl_::evaluator<Ptr, Strides, Args, Deref> eval{ptr, strides};
             Functor::apply(eval);
         }
     };
 
     template <class Stage, class... Stages>
     struct compound_stage {
+        using type = compound_stage;
+
         using extent_t = typename Stage::extent_t;
 
         GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
@@ -100,7 +141,13 @@ namespace gridtools {
         static GT_FUNCTION void exec(ItDomain const &it_domain) {
             GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             Stage::exec(it_domain);
-            (void)(int[]){((void)Stages::exec(it_domain), 0)...};
+            (void)(int[]){(Stages::exec(it_domain), 0)...};
+        }
+
+        template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
+        GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
+            Stage{}.template operator()<Deref>(ptr, strides);
+            (void)(int[]){(Stages{}.template operator()<Deref>(ptr, strides), 0)...};
         }
     };
 } // namespace gridtools

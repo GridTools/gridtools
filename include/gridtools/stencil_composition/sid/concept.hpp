@@ -362,8 +362,7 @@ namespace gridtools {
             }
 
             template <class T,
-                class Res = meta::rename<meta::ctor<tuple<>>::apply,
-                    meta::repeat<std::rank<T>, integral_constant<ptrdiff_t, 0>>>>
+                class Res = meta::rename<tuple, meta::repeat<std::rank<T>, integral_constant<ptrdiff_t, 0>>>>
             GT_CONSTEXPR std::enable_if_t<std::is_array<T>::value, Res> get_lower_bounds(T const &) {
                 return {};
             }
@@ -708,6 +707,20 @@ namespace gridtools {
         template <class Key, class Strides>
         GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
             return gridtools::host_device::at_key_with_default<Key, default_stride>(strides);
+        }
+
+        /**
+         *  A variation of get_stride helper that works with the strides that are maps of of maps.
+         *  I.e. `composite`.
+         */
+        template <class Key, class Dim, class Strides, std::enable_if_t<has_key<Strides, Dim>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides const &strides) {
+            return gridtools::host_device::at_key<Key>(gridtools::host_device::at_key<Dim>(strides));
+        }
+
+        template <class Key, class Dim, class Strides, std::enable_if_t<!has_key<Strides, Dim>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride(Strides const &strides) {
+            return {};
         }
 
         struct get_origin_f {
