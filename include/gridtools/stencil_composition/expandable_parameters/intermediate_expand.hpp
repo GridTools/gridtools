@@ -128,7 +128,7 @@ namespace gridtools {
             size_t &m_res;
             template <class T>
             void operator()(std::vector<T> const &val) const {
-                if (m_res == -1)
+                if (m_res == (size_t)-1)
                     m_res = val.size();
                 else
                     assert(m_res == val.size());
@@ -139,9 +139,9 @@ namespace gridtools {
 
         template <class DataStoreMap>
         size_t get_expandable_size(DataStoreMap const &src) {
-            size_t res = -1;
+            size_t res = (size_t)-1;
             tuple_util::for_each(get_size_f{res}, src);
-            return res == -1 ? 1 : res;
+            return res == (size_t)-1 ? 1 : res;
         }
 
         template <class ExpandFactor, class Item, bool = is_expandable<meta::first<Item>>::value>

@@ -50,7 +50,8 @@ namespace gridtools {
                 class Item = meta::mp_find<Bound, Plh>,
                 std::enable_if_t<!std::is_void<Item>::value, int> = 0>
             decltype(auto) operator()(Bound &bound, Free &&) const {
-                return (std::get<meta::st_position<Bound, Item>::value>(bound).m_value);
+                auto &&res = std::get<meta::st_position<Bound, Item>::value>(bound).m_value;
+                return res;
             }
             template <class Bound,
                 class Free,
@@ -59,7 +60,8 @@ namespace gridtools {
                 class Item = meta::mp_find<FreeMap, Plh>,
                 std::enable_if_t<!std::is_void<Item>::value, int> = 0>
             decltype(auto) operator()(Bound &, Free &&free) const {
-                return (std::get<meta::st_position<FreeMap, Item>::value>(std::forward<Free>(free)).m_value);
+                auto &&res = std::get<meta::st_position<FreeMap, Item>::value>(std::forward<Free>(free)).m_value;
+                return res;
             }
         };
 
