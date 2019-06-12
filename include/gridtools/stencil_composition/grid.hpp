@@ -138,7 +138,7 @@ namespace gridtools {
     grid<typename Axis::axis_interval_t> make_grid(uint_t di, uint_t dj, Axis const &axis) {
         return {halo_descriptor(di), halo_descriptor(dj), axis.interval_sizes()};
     }
-    grid<axis<1>::axis_interval_t> make_grid(
+    inline grid<axis<1>::axis_interval_t> make_grid(
         halo_descriptor const &direction_i, halo_descriptor const &direction_j, int_t dk) {
         return make_grid(direction_i, direction_j, axis<1>(dk));
     }
