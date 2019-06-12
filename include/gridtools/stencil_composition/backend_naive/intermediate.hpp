@@ -61,7 +61,7 @@ namespace gridtools {
                 grid.i_size() + typename Extent::iplus{} - typename Extent::iminus{});
 #else
             return tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i>::values>(
-                typename Plh::location_t::n_colors{},
+                integral_constant<int, Plh::location_t::n_colors::value>{},
                 grid.k_max() + 1,
                 grid.j_size() + typename Extent::jplus{} - typename Extent::jminus{},
                 grid.i_size() + typename Extent::iplus{} - typename Extent::iminus{});
