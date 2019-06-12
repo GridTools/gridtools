@@ -48,8 +48,7 @@ namespace gridtools {
 
         template <class Grid>
         GT_FUNCTION execinfo_mc(const Grid &grid)
-            : m_i_grid_size(grid.i_high_bound() - grid.i_low_bound() + 1),
-              m_j_grid_size(grid.j_high_bound() - grid.j_low_bound() + 1), m_i_low_bound(grid.i_low_bound()),
+            : m_i_grid_size(grid.i_size()), m_j_grid_size(grid.j_size()), m_i_low_bound(grid.i_low_bound()),
               m_j_low_bound(grid.j_low_bound()) {
             const int_t threads = omp_get_max_threads();
 

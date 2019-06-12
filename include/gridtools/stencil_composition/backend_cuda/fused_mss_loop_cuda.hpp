@@ -68,8 +68,8 @@ namespace gridtools {
                 using from_t = meta::first<interval_t>;
 
                 // number of threads
-                auto nx = m_grid.i_high_bound() - m_grid.i_low_bound() + 1;
-                auto ny = m_grid.j_high_bound() - m_grid.j_low_bound() + 1;
+                auto nx = m_grid.i_size();
+                auto ny = m_grid.j_size();
                 auto block_size_i = (blockIdx.x + 1) * BlockSizeI < nx ? BlockSizeI : nx - blockIdx.x * BlockSizeI;
                 auto block_size_j = (blockIdx.y + 1) * BlockSizeJ < ny ? BlockSizeJ : ny - blockIdx.y * BlockSizeJ;
 
@@ -112,8 +112,8 @@ namespace gridtools {
                 static constexpr int_t block_size_j = GT_DEFAULT_TILE_J;
 
                 // number of blocks required
-                uint_t xblocks = (grid.i_high_bound() - grid.i_low_bound() + block_size_i) / block_size_i;
-                uint_t yblocks = (grid.j_high_bound() - grid.j_low_bound() + block_size_j) / block_size_j;
+                uint_t xblocks = (grid.i_size() + block_size_i - 1) / block_size_i;
+                uint_t yblocks = (grid.j_size() + block_size_j - 1) / block_size_j;
                 uint_t zblocks = fused_mss_loop_cuda_impl_::blocks_required_z<execution_type_t>(grid.k_total_length());
 
                 launch_kernel<max_extent_t, block_size_i, block_size_j>({xblocks, yblocks, zblocks},

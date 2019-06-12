@@ -27,14 +27,14 @@
  *    PositionsInBlock - 3D struct that specifies the position of the target point within the block
  *
  *  Backend API:
- *    1. get_i_size, get_j_size, and optionally get_k_size
- *    2. get_i_block_offset, get_j_block_offset and optionally get_k_block_offset
+ *    1. get_i_size, get_j_size
+ *    2. get_i_block_offset, get_j_block_offset
  *    3. make_storage_info
  *
  *    Signatures:
  *    StorageInfo make_storage_info<StorageInfo, NColors>(uint_t i_size, uint_t j_size, uint_t k_size);
  *    uint_t get_i_size<StorageInfo, MaxExtent>(Backend, uint_t block_size, uint_t total_size);
- *    GT_FUNCTION int_t get_k_block_offset<StorageInfo, MaxExtent>(Backend, uint_t block_size, uint_t total_size);
+
  *
  *    Backend overloads should be defined in the gridtools::tmp_storage namespace
  *    TODO(anstaf): switch to ADL lookup mechanism
@@ -60,15 +60,6 @@
 
 namespace gridtools {
     namespace tmp_storage {
-        template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
-        int_t get_k_size(Backend, int_t /*block_size*/, int_t total_size) {
-            return total_size;
-        }
-        template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
-        GT_FUNCTION int_t get_k_block_offset(Backend, int_t /*block_size*/, int_t /*block_no*/) {
-            return 0;
-        }
-
         template <class Backend>
         constexpr std::true_type needs_allocate_cached_tmp(Backend const &) {
             return {};
@@ -80,27 +71,11 @@ namespace gridtools {
             GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
             using storage_info_t = typename DataStore::storage_info_t;
             return {make_storage_info<storage_info_t, NColors>(backend,
-                get_i_size<storage_info_t, MaxExtent>(
-                    backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
-                get_j_size<storage_info_t, MaxExtent>(
-                    backend, block_j_size(backend, grid), grid.j_high_bound() - grid.j_low_bound() + 1),
-                get_k_size<storage_info_t, MaxExtent>(backend, block_k_size(backend, grid), grid.k_total_length()))};
+                get_i_size<storage_info_t, MaxExtent>(backend, block_i_size(backend, grid), grid.i_size()),
+                get_j_size<storage_info_t, MaxExtent>(backend, block_j_size(backend, grid), grid.j_size()),
+                grid.k_total_length())};
         }
     } // namespace tmp_storage
-
-    template <class MaxExtent, class ArgTag, class DataStore, int_t I, uint_t NColors, class Backend, class Grid>
-    DataStore make_tmp_data_store(
-        Backend backend, plh<ArgTag, DataStore, location_type<I, NColors>, true>, Grid const &grid) {
-        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        using namespace tmp_storage;
-        using storage_info_t = typename DataStore::storage_info_t;
-        return {make_storage_info<storage_info_t, NColors>(backend,
-            get_i_size<storage_info_t, MaxExtent>(
-                backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
-            get_j_size<storage_info_t, MaxExtent>(
-                backend, block_j_size(backend, grid), grid.j_high_bound() - grid.j_low_bound() + 1),
-            get_k_size<storage_info_t, MaxExtent>(backend, block_k_size(backend, grid), grid.k_total_length()))};
-    }
 
     template <class StorageInfo, class MaxExtent, class Backend, class Stride, class BlockNo, class PosInBlock>
     GT_FUNCTION int_t get_tmp_storage_offset(Backend const &backend,
@@ -108,14 +83,11 @@ namespace gridtools {
         BlockNo const &GT_RESTRICT block_no,
         PosInBlock const &GT_RESTRICT pos_in_block) {
         using namespace tmp_storage;
-        static constexpr auto block_size =
-            make_pos3(block_i_size(Backend{}), block_j_size(Backend{}), block_k_size(Backend{}));
-        return stride.i *
-                   (get_i_block_offset<StorageInfo, MaxExtent>(backend, block_size.i, block_no.i) + pos_in_block.i) +
-               stride.j *
-                   (get_j_block_offset<StorageInfo, MaxExtent>(backend, block_size.j, block_no.j) + pos_in_block.j) +
-               stride.k *
-                   (get_k_block_offset<StorageInfo, MaxExtent>(backend, block_size.k, block_no.k) + pos_in_block.k);
+        return stride.i * (get_i_block_offset<StorageInfo, MaxExtent>(backend, block_i_size(Backend{}), block_no.i) +
+                              pos_in_block.i) +
+               stride.j * (get_j_block_offset<StorageInfo, MaxExtent>(backend, block_j_size(Backend{}), block_no.j) +
+                              pos_in_block.j) +
+               stride.k * pos_in_block.k;
     };
 
     template <class Backend>

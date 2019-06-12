@@ -31,8 +31,8 @@ namespace gridtools {
     void fused_mss_loop(backend::x86, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
         GT_STATIC_ASSERT((meta::all_of<is_mss_components, MssComponents>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        int_t n = grid.i_high_bound() - grid.i_low_bound();
-        int_t m = grid.j_high_bound() - grid.j_low_bound();
+        int_t n = grid.i_size() - 1;
+        int_t m = grid.j_size() - 1;
 
         int_t NBI = n / block_i_size(backend::x86{});
         int_t NBJ = m / block_j_size(backend::x86{});

@@ -123,8 +123,8 @@ namespace gridtools {
             auto n = (total + block_size - 1) / block_size;
             return block_no == n - 1 ? total - block_no * block_size : block_size;
         };
-        auto total_i = grid.i_high_bound() - grid.i_low_bound() + 1;
-        auto total_j = grid.j_high_bound() - grid.j_low_bound() + 1;
+        auto total_i = grid.i_size();
+        auto total_j = grid.j_size();
         int_t size_i = block_size_f(total_i, block_i_size(backend_target), execution_info.bi) + extent_t::iplus::value -
                        extent_t::iminus::value;
         int_t size_j = block_size_f(total_j, block_j_size(backend_target), execution_info.bj) + extent_t::jplus::value -

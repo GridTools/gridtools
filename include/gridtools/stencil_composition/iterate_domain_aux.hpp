@@ -61,19 +61,16 @@ namespace gridtools {
         template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
         GT_FUNCTION void operator()() const {
             static constexpr auto be = Backend{};
-            static constexpr auto block_size = make_pos3(block_i_size(be), block_j_size(be), block_k_size(be));
 
             auto &ptr = host_device::at_key<Arg>(m_ptr_map);
 
             sid::shift(ptr,
                 sid::get_stride<Arg, dim::i>(m_stride_maps),
-                m_begin.i + m_block_no.i * block_size.i + m_pos_in_block.i);
+                m_begin.i + m_block_no.i * block_i_size(be) + m_pos_in_block.i);
             sid::shift(ptr,
                 sid::get_stride<Arg, dim::j>(m_stride_maps),
-                m_begin.j + m_block_no.j * block_size.j + m_pos_in_block.j);
-            sid::shift(ptr,
-                sid::get_stride<Arg, dim::k>(m_stride_maps),
-                m_begin.k + m_block_no.k * block_size.k + m_pos_in_block.k);
+                m_begin.j + m_block_no.j * block_j_size(be) + m_pos_in_block.j);
+            sid::shift(ptr, sid::get_stride<Arg, dim::k>(m_stride_maps), m_begin.k + m_pos_in_block.k);
         }
     };
 

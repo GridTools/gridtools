@@ -45,11 +45,6 @@
 #endif
 
 namespace gridtools {
-    template <class Backend>
-    GT_FUNCTION constexpr int_t block_k_size(Backend const &) {
-        return 0;
-    }
-
     template <class Backend, class Grid>
     int_t block_i_size(Backend const &backend, Grid const &) {
         return block_i_size(backend);
@@ -57,10 +52,5 @@ namespace gridtools {
     template <class Backend, class Grid>
     int_t block_j_size(Backend const &backend, Grid const &) {
         return block_j_size(backend);
-    }
-    template <class Backend, class Grid>
-    int_t block_k_size(Backend const &, Grid const &grid) {
-        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        return grid.k_total_length();
     }
 } // namespace gridtools

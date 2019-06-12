@@ -33,16 +33,19 @@ namespace gridtools {
 
         static constexpr size_t size = Axis::ToLevel::splitter - Axis::FromLevel::splitter + 1;
 
+        uint_t m_i_low_bound;
+        uint_t m_i_size;
+        uint_t m_j_low_bound;
+        uint_t m_j_size;
         uint_t m_value_list[size];
-        halo_descriptor m_direction_i;
-        halo_descriptor m_direction_j;
 
       public:
         using axis_type = Axis;
 
         template <class Intervals = std::initializer_list<int_t>>
         grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j, Intervals const &intervals)
-            : m_direction_i(direction_i), m_direction_j(direction_j) {
+            : m_i_low_bound(direction_i.begin()), m_i_size(direction_i.end() + 1 - direction_i.begin()),
+              m_j_low_bound(direction_j.begin()), m_j_size(direction_j.end() + 1 - direction_j.begin()) {
             m_value_list[0] = 0;
             auto src = std::begin(intervals);
             for (size_t i = 1; i < size; ++i, ++src) {
@@ -51,17 +54,13 @@ namespace gridtools {
             }
         }
 
-        GT_FUNCTION int_t i_low_bound() const { return m_direction_i.begin(); }
+        GT_FUNCTION int_t i_low_bound() const { return (int_t)m_i_low_bound; }
 
-        GT_FUNCTION int_t i_high_bound() const { return m_direction_i.end(); }
+        GT_FUNCTION int_t j_low_bound() const { return (int_t)m_j_low_bound; }
 
-        GT_FUNCTION int_t j_low_bound() const { return m_direction_j.begin(); }
+        GT_FUNCTION int_t i_size() const { return (int_t)m_i_size; }
 
-        GT_FUNCTION int_t j_high_bound() const { return m_direction_j.end(); }
-
-        GT_FUNCTION int_t i_size() const { return m_direction_i.end() + 1 - m_direction_i.begin(); }
-
-        GT_FUNCTION int_t j_size() const { return m_direction_j.end() + 1 - m_direction_j.begin(); }
+        GT_FUNCTION int_t j_size() const { return (int_t)m_j_size; }
 
         template <class Level, int_t Offset = grid_impl_::real_offset(Level::offset)>
         GT_FUNCTION int_t value_at() const {
@@ -117,10 +116,6 @@ namespace gridtools {
          * The total length of the k dimension as defined by the axis.
          */
         GT_FUNCTION int_t k_total_length() const { return k_max() - k_min() + 1; }
-
-        GT_FUNCTION halo_descriptor const &direction_i() const { return m_direction_i; }
-
-        GT_FUNCTION halo_descriptor const &direction_j() const { return m_direction_j; }
     };
 
     template <class T>

@@ -129,7 +129,7 @@ namespace gridtools {
                         using from_t = meta::first<loop_interval_t>;
                         using to_t = meta::second<loop_interval_t>;
                         using stages_t = meta::flatten<meta::third<loop_interval_t>>;
-                        for_each<stages_t>([&](auto stage) {
+                        for_each<stages_t>([&grid, &origin, &strides](auto stage) {
                             using extent_t = typename decltype(stage)::extent_t;
 
                             auto i_loop = sid::make_loop<dim::i>(
