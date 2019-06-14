@@ -97,7 +97,9 @@ namespace gridtools {
     namespace _impl {
         // replace the storage_info ID contained in a given storage with the new value
         template <unsigned Id, class DataStore>
-        struct tmp_data_store;
+        struct tmp_data_store {
+            using type = DataStore;
+        };
 
         template <unsigned Id, class Storage, class StorageInfo>
         struct tmp_data_store<Id, data_store<Storage, StorageInfo>> {

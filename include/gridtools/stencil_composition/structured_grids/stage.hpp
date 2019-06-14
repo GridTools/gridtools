@@ -130,8 +130,6 @@ namespace gridtools {
 
     template <class Stage, class... Stages>
     struct compound_stage {
-        using type = compound_stage;
-
         using extent_t = typename Stage::extent_t;
 
         GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);

@@ -79,7 +79,7 @@ namespace gridtools {
      *   It is guarantied that all inner lists are not empty.
      *   Examples of valid return types:
      *      list<> -  no stages should be executed for the given interval level
-     *      list<list<stage1>> - a singe stage to execute
+     *      list<list<stage1>> - a single stage to execute
      *      list<list<stage1>, list<stage2>> - two stages should be executed in the given order
      *      list<list<stage1, stage2>> - two stages should be executed in any order or in parallel
      *      list<list<stage1>, list<stage2, stage3>, list<stage4>> - an order of execution can be

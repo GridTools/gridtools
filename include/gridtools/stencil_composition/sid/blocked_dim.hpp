@@ -12,8 +12,6 @@
 namespace gridtools {
     namespace sid {
         template <class>
-        struct blocked_dim {
-            using type = blocked_dim;
-        };
+        struct blocked_dim {};
     } // namespace sid
 } // namespace gridtools

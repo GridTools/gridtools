@@ -7,44 +7,51 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#pragma once
+
+#ifndef __CUDACC__
+#error This is CUDA only header
+#endif
+
+#include <cstdlib>
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 
 namespace gridtools {
+    namespace cuda {
+        class shared_allocator {
+            size_t m_offset = 0; // in bytes
 
-    class shared_allocator {
-      private:
-        uint_t m_offset = 0; // in bytes
+          public:
+            template <class T>
+            struct lazy_alloc {
+                size_t m_offset;
 
-      public:
-        template <typename T>
-        struct lazy_alloc {
-            using element_type = T;
+                GT_FUNCTION_DEVICE T *operator()() const {
+                    extern __shared__ char ij_cache_shm[];
+                    return reinterpret_cast<T *>(ij_cache_shm + m_offset);
+                }
 
-            uint_t m_offset;
-            GT_FUNCTION_DEVICE T *operator()() const {
-                extern __shared__ char ij_cache_shm[];
-                return reinterpret_cast<T *>(ij_cache_shm + m_offset);
+                friend lazy_alloc operator+(lazy_alloc l, ptrdiff_t r) {
+                    l.m_offset += r * sizeof(T);
+                    return l;
+                }
+            };
+
+            /**
+             * \param size size of allocation in number of elements
+             */
+            template <class LazyT>
+            friend auto allocate(shared_allocator &obj, LazyT, size_t size) {
+                using type = typename LazyT::type;
+                static constexpr auto alignment = alignof(type);
+                auto aligned = (obj.m_offset + alignment - 1) / alignment * alignment;
+                obj.m_offset = aligned + size * sizeof(type);
+                return lazy_alloc<type>{aligned};
             }
 
-            friend GT_FORCE_INLINE lazy_alloc operator+(lazy_alloc l, int_t r) {
-                l.m_offset += r * sizeof(T);
-                return l;
-            }
+            size_t size() const { return m_offset; }
         };
-
-        /**
-         * \param sz size of allocation in number of elements
-         */
-        template <class T, uint_t Alignment = alignof(T)>
-        lazy_alloc<T> allocate(uint_t sz) {
-            auto aligned = (m_offset + Alignment - 1) / Alignment * Alignment;
-            m_offset = aligned + sz * sizeof(T);
-            return {aligned};
-        }
-
-        uint_t size() const { return m_offset; }
-    };
-
+    } // namespace cuda
 } // namespace gridtools

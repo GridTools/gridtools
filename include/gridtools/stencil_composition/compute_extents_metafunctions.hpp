@@ -100,4 +100,5 @@ namespace gridtools {
     using compute_extents_metafunctions_impl_::get_esf_extent;
     using compute_extents_metafunctions_impl_::get_extent_map;
     using compute_extents_metafunctions_impl_::lookup_extent_map;
+    using compute_extents_metafunctions_impl_::lookup_extent_map_f;
 } // namespace gridtools

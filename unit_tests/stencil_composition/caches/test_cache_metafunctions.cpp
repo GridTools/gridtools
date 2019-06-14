@@ -45,15 +45,6 @@ typedef detail::cache_impl<cache_type::k, p_out, cache_io_policy::local> cache3_
 typedef detail::cache_impl<cache_type::k, p_notin, cache_io_policy::local> cache4_t;
 typedef std::tuple<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
-TEST(cache_metafunctions, get_ij_cache_storage_map) {
-    using testee_t = get_ij_cache_storage_map<caches_t, extent<-2, 2, -3, 2>, 32, 4>;
-
-    using expected_t = hymap::keys<p_in, p_buff>::values<ij_cache_storage<float_type, 36, 9, 2, 3>,
-        ij_cache_storage<float_type, 36, 9, 2, 3>>;
-
-    static_assert(std::is_same<testee_t, expected_t>::value, "");
-}
-
 using esf1k_t = decltype(make_stage<functor2>(p_in(), p_notin()));
 using esf2k_t = decltype(make_stage<functor2>(p_notin(), p_out()));
 

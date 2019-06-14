@@ -27,9 +27,9 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
 
-        typedef Backend backend_t;
-        typedef LocalDomain local_domain_t;
-        typedef EsfSequence esf_sequence_t;
+        using backend_t = Backend;
+        using local_domain_t = LocalDomain;
+        using esf_sequence_t = EsfSequence;
     };
 
     template <class T>

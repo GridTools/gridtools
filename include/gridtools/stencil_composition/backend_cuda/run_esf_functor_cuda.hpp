@@ -9,62 +9,43 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
-#include "../../meta/first.hpp"
-#include "../../meta/is_empty.hpp"
-#include "../../meta/macros.hpp"
-#include "../../meta/pop_front.hpp"
+#include "../../meta.hpp"
 
 namespace gridtools {
-    namespace _impl {
-        template <class ItDomain>
-        struct exec_stage_f {
-            ItDomain &m_domain;
-            template <class Stage>
-            GT_FUNCTION void operator()() const {
-                if (m_domain.template is_thread_in_domain<typename Stage::extent_t>())
-                    Stage::exec(m_domain);
-            }
-        };
+    namespace cuda {
+        namespace _impl {
+            GT_FUNCTION_DEVICE void final_sync(std::true_type) { __syncthreads(); }
+            GT_FUNCTION_DEVICE void final_sync(std::false_type) {}
+        } // namespace _impl
 
-        template <class Stages, class ItDomain>
-        GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
-            host_device::for_each_type<Stages>(exec_stage_f<ItDomain>{it_domain});
-        }
-
-        template <class ItDomain>
-        struct exec_stage_group_f {
-            ItDomain &m_domain;
-
-            template <class Stages>
-            GT_FUNCTION void operator()() const {
-#ifdef __CUDA_ARCH__
-                __syncthreads();
-#endif
-                exec_stage_group<Stages>(m_domain);
-            }
-        };
-    } // namespace _impl
-
-    struct run_esf_functor_cuda {
-        template <class StageGroups, class ItDomain>
-        GT_FUNCTION static void exec(ItDomain &it_domain) {
+        template <class StageGroups, class Domain>
+        GT_FUNCTION_DEVICE void run_esf_functor_cuda(Domain &domain) {
 
             GT_STATIC_ASSERT(!meta::is_empty<StageGroups>::value, GT_INTERNAL_ERROR);
             using first_t = meta::first<StageGroups>;
             using rest_t = meta::pop_front<StageGroups>;
 
+            auto exec_stage_group = [&](auto stages) {
+                device::for_each<decltype(stages)>([&](auto stage) {
+                    if (domain.template is_thread_in_domain<typename decltype(stage)::extent_t>())
+                        stage.exec(domain);
+                });
+            };
+
             // execute the groups of independent stages calling `__syncthreads()` in between
-            _impl::exec_stage_group<first_t>(it_domain);
-            host_device::for_each_type<rest_t>(_impl::exec_stage_group_f<ItDomain>{it_domain});
+            exec_stage_group(first_t{});
+            device::for_each<rest_t>([&](auto stages) {
+                __syncthreads();
+                exec_stage_group(stages);
+            });
 
             // call additional `__syncthreads()` at the end of the k-level if the domain has IJ caches
-#ifdef __CUDA_ARCH__
-            if (ItDomain::has_ij_caches)
-                __syncthreads();
-#endif
+            _impl::final_sync(domain.has_ij_caches());
         }
-    };
+    } // namespace cuda
 } // namespace gridtools

@@ -32,3 +32,7 @@
 #include "make_computation.hpp"
 #include "make_stage.hpp"
 #include "make_stencils.hpp"
+
+#ifdef __CUDACC__
+#include "backend_cuda/intermediate.hpp"
+#endif

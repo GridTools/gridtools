@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include <cuda_runtime.h>
 #include <memory>
 #include <vector>
 
@@ -17,25 +16,20 @@
 #include "../sid/simple_ptr_holder.hpp"
 
 namespace gridtools {
+    namespace cuda {
+        /**
+         * @brief Allocator for CUDA device memory.
+         */
+        class simple_device_memory_allocator {
+            std::vector<std::shared_ptr<void>> m_buffers;
 
-    /**
-     * @brief Allocator for CUDA device memory.
-     */
-    class simple_device_memory_allocator {
-        std::vector<std::shared_ptr<void>> m_ptrs;
-
-      public:
-        template <class T>
-        sid::device::simple_ptr_holder<T *> allocate(size_t num_elements) {
-            T *ptr;
-            GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T) * num_elements));
-            m_ptrs.emplace_back(ptr, [](T *ptr) { assert(cudaFree(ptr) == cudaSuccess); });
-            return {ptr};
-        }
-    };
-
-    template <class Tag, class T = typename Tag::type>
-    sid::device::simple_ptr_holder<T *> allocate(simple_device_memory_allocator &alloc, Tag, size_t num_elements) {
-        return alloc.template allocate<T>(num_elements);
-    }
+            template <class LazyT>
+            friend auto allocate(simple_device_memory_allocator &self, LazyT, size_t size) {
+                auto buffer = cuda_util::cuda_malloc<typename LazyT::type>(size);
+                auto res = sid::device::make_simple_ptr_holder(buffer.get());
+                self.m_buffers.emplace_back(std::move(buffer));
+                return res;
+            }
+        };
+    } // namespace cuda
 } // namespace gridtools
