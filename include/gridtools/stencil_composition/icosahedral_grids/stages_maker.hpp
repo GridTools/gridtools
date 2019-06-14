@@ -42,28 +42,11 @@ namespace gridtools {
         template <class Esf>
         struct esf_functor_f;
 
+        template <class Esf>
+        using get_functors = meta::transform<esf_functor_f<Esf>::template apply,
+            meta::make_indices_c<Esf::location_type::n_colors::value>>;
+
         namespace lazy {
-
-            template <class Esf, class Color = typename Esf::color_t::color_t>
-            struct get_functors {
-                static constexpr uint_t color = Color::value;
-                static constexpr uint_t n_colors = Esf::location_type::n_colors::value;
-
-                GT_STATIC_ASSERT(n_colors > 0, GT_INTERNAL_ERROR);
-                GT_STATIC_ASSERT(color < n_colors, GT_INTERNAL_ERROR);
-
-                using before_t = meta::repeat_c<color, void>;
-                using after_t = meta::repeat_c<n_colors - color - 1, void>;
-
-                using type = meta::concat<before_t, meta::list<typename Esf::template esf_function<color>>, after_t>;
-            };
-
-            template <class Esf>
-            struct get_functors<Esf, void> {
-                using type = meta::transform<esf_functor_f<Esf>::template apply,
-                    meta::make_indices_c<Esf::location_type::n_colors::value>>;
-            };
-
             template <class Functors, class Esf, class ExtentMap, class = void>
             struct stages_from_functors {
                 using extent_t = get_esf_extent<Esf, ExtentMap>;
@@ -79,8 +62,8 @@ namespace gridtools {
 
             template <class Esf, class Index, class ExtentMap>
             struct stages_from_esf
-                : stages_from_functors<meta::transform<bind_functor_with_interval_f<Index>::template apply,
-                                           typename get_functors<Esf>::type>,
+                : stages_from_functors<
+                      meta::transform<bind_functor_with_interval_f<Index>::template apply, get_functors<Esf>>,
                       Esf,
                       ExtentMap> {};
 

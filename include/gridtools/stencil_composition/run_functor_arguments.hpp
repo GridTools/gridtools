@@ -14,7 +14,6 @@
 #include "../meta/is_instantiation_of.hpp"
 #include "../meta/logical.hpp"
 #include "caches/cache_traits.hpp"
-#include "color.hpp"
 #include "esf_fwd.hpp"
 #include "extent.hpp"
 #include "local_domain.hpp"
