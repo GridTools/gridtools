@@ -26,16 +26,6 @@
 namespace gridtools {
     namespace cuda {
         namespace fused_mss_loop_cuda_impl_ {
-            template <class ExecutionType>
-            std::enable_if_t<!execute::is_parallel<ExecutionType>::value, int_t> blocks_required_z(uint_t) {
-                return 1;
-            }
-
-            template <class ExecutionType>
-            std::enable_if_t<execute::is_parallel<ExecutionType>::value, int_t> blocks_required_z(uint_t nz) {
-                return (nz + ExecutionType::block_size - 1) / ExecutionType::block_size;
-            }
-
             template <class ExecutionType, class From, class Grid>
             GT_FUNCTION_DEVICE std::enable_if_t<!execute::is_parallel<ExecutionType>::value, int_t> compute_kblock(
                 Grid const &grid) {
@@ -48,10 +38,16 @@ namespace gridtools {
                 return max(blockIdx.z * ExecutionType::block_size, grid.template value_at<From>());
             };
 
-            template <class RunFunctorArguments, int_t BlockSizeI, int_t BlockSizeJ, class LocalDomain, class Grid>
+            template <class ExecutionType,
+                class LoopIntervals,
+                class MaxExtent,
+                class EsfSequence,
+                int_t BlockSizeI,
+                int_t BlockSizeJ,
+                class LocalDomain,
+                class Grid>
             struct kernel_f {
-                using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using iterate_domain_t = iterate_domain<LocalDomain, typename RunFunctorArguments::esf_sequence_t>;
+                using iterate_domain_t = iterate_domain<LocalDomain, EsfSequence>;
 
                 GT_STATIC_ASSERT(std::is_trivially_copyable<LocalDomain>::value, GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT(std::is_trivially_copyable<Grid>::value, GT_INTERNAL_ERROR);
@@ -60,7 +56,7 @@ namespace gridtools {
                 Grid m_grid;
 
                 GT_FUNCTION_DEVICE void operator()(int_t iblock, int_t jblock) const {
-                    using interval_t = meta::first<typename RunFunctorArguments::loop_intervals_t>;
+                    using interval_t = meta::first<LoopIntervals>;
                     using from_t = meta::first<interval_t>;
 
                     // number of threads
@@ -74,17 +70,25 @@ namespace gridtools {
                         block_size_j,
                         iblock,
                         jblock,
-                        compute_kblock<execution_type_t, from_t>(m_grid));
+                        compute_kblock<ExecutionType, from_t>(m_grid));
 
                     // execute the k interval functors
-                    run_functors_on_interval<RunFunctorArguments>(it_domain, m_grid);
+                    run_functors_on_interval<ExecutionType, LoopIntervals, MaxExtent>(it_domain, m_grid);
                 }
             };
         } // namespace fused_mss_loop_cuda_impl_
 
-        template <class RunFunctorArguments, int_t BlockSizeI, int_t BlockSizeJ, class LocalDomain, class Grid>
-        fused_mss_loop_cuda_impl_::kernel_f<RunFunctorArguments, BlockSizeI, BlockSizeJ, LocalDomain, Grid> make_kernel(
-            LocalDomain const &local_domain, Grid const &grid) {
+        template <class ExecutionType,
+            class LoopIntervals,
+            class MaxExtent,
+            class EsfSequence,
+            int_t BlockSizeI,
+            int_t BlockSizeJ,
+            class LocalDomain,
+            class Grid>
+        fused_mss_loop_cuda_impl_::
+            kernel_f<ExecutionType, LoopIntervals, MaxExtent, EsfSequence, BlockSizeI, BlockSizeJ, LocalDomain, Grid>
+            make_kernel(LocalDomain const &local_domain, Grid const &grid) {
             return {local_domain, grid};
         }
     } // namespace cuda

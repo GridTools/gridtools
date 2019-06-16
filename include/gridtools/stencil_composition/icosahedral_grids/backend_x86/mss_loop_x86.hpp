@@ -99,17 +99,13 @@ namespace gridtools {
      * @tparam RunFunctorArgs run functor arguments
      */
     template <class RunFunctorArgs, class LocalDomain, class Grid, class ExecutionInfo>
-    GT_FORCE_INLINE static void mss_loop(backend::x86 const &backend_target,
-        LocalDomain const &local_domain,
-        Grid const &grid,
-        const ExecutionInfo &execution_info) {
+    GT_FORCE_INLINE static void mss_loop(
+        backend::x86, LocalDomain const &local_domain, Grid const &grid, ExecutionInfo const &execution_info) {
         GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-        using iterate_domain_arguments_t =
-            iterate_domain_arguments<backend::x86, LocalDomain, typename RunFunctorArgs::esf_sequence_t>;
-        using iterate_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
+        using iterate_domain_t = iterate_domain_x86<LocalDomain>;
         iterate_domain_t it_domain(local_domain);
 
         using extent_t = get_extent_from_loop_intervals<typename RunFunctorArgs::loop_intervals_t>;
@@ -125,9 +121,9 @@ namespace gridtools {
         };
         auto total_i = grid.i_size();
         auto total_j = grid.j_size();
-        int_t size_i = block_size_f(total_i, block_i_size(backend_target), execution_info.bi) + extent_t::iplus::value -
+        int_t size_i = block_size_f(total_i, block_i_size(backend::x86{}), execution_info.bi) + extent_t::iplus::value -
                        extent_t::iminus::value;
-        int_t size_j = block_size_f(total_j, block_j_size(backend_target), execution_info.bj) + extent_t::jplus::value -
+        int_t size_j = block_size_f(total_j, block_j_size(backend::x86{}), execution_info.bj) + extent_t::jplus::value -
                        extent_t::jminus::value;
         static constexpr int_t n_colors =
             _impl_mss_loop_x86::get_ncolors<typename RunFunctorArgs::loop_intervals_t>::value;

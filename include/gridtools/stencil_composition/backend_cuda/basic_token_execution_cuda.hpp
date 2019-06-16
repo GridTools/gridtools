@@ -73,14 +73,10 @@ namespace gridtools {
             /**
                @brief   Execution kernel containing the loop over k levels
             */
-            template <typename RunFunctorArguments, class ItDomain, class Grid>
+            template <class ExecutionType, class LoopIntervals, class ItDomain, class Grid>
             struct run_f_on_interval_with_k_caches {
-                GT_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArguments>::value, GT_INTERNAL_ERROR);
-
-                using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using loop_intervals_t = typename RunFunctorArguments::loop_intervals_t;
-                using first_t = meta::first<loop_intervals_t>;
-                using last_t = meta::last<loop_intervals_t>;
+                using first_t = meta::first<LoopIntervals>;
+                using last_t = meta::last<LoopIntervals>;
 
                 ItDomain &m_domain;
                 bool m_in_domain;
@@ -93,13 +89,13 @@ namespace gridtools {
                     std::enable_if_t<meta::length<Stages>::value != 0, int> = 0>
                 GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
                     for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<execution_type_t>)) {
+                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<ExecutionType>)) {
                         if (m_in_domain)
-                            m_domain.template fill_caches<execution_type_t>(IsFirst && cur == first);
+                            m_domain.template fill_caches<ExecutionType>(IsFirst && cur == first);
                         run_esf_functor_cuda<Stages>(m_domain);
                         if (m_in_domain)
-                            m_domain.template flush_caches<execution_type_t>(IsLast && cur == last);
-                        m_domain.template slide_caches<execution_type_t>();
+                            m_domain.template flush_caches<ExecutionType>(IsLast && cur == last);
+                        m_domain.template slide_caches<ExecutionType>();
                     }
                 }
 
@@ -110,12 +106,12 @@ namespace gridtools {
                     std::enable_if_t<meta::length<Stages>::value == 0, int> = 0>
                 GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
                     for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<execution_type_t>)) {
+                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<ExecutionType>)) {
                         if (m_in_domain) {
-                            m_domain.template fill_caches<execution_type_t>(IsFirst && cur == first);
-                            m_domain.template flush_caches<execution_type_t>(IsLast && cur == last);
+                            m_domain.template fill_caches<ExecutionType>(IsFirst && cur == first);
+                            m_domain.template flush_caches<ExecutionType>(IsLast && cur == last);
                         }
-                        m_domain.template slide_caches<execution_type_t>();
+                        m_domain.template slide_caches<ExecutionType>();
                     }
                 }
 
@@ -125,7 +121,7 @@ namespace gridtools {
                     using from_t = meta::first<LoopInterval>;
                     using to_t = meta::second<LoopInterval>;
                     using stage_groups_t = meta::at_c<LoopInterval, 2>;
-                    using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t>;
+                    using iteration_policy_t = iteration_policy<from_t, to_t, ExecutionType>;
                     constexpr auto is_first = std::is_same<LoopInterval, first_t>::value;
                     constexpr auto is_last = std::is_same<LoopInterval, last_t>::value;
                     k_loop<iteration_policy_t, stage_groups_t, is_first, is_last>(
@@ -133,12 +129,8 @@ namespace gridtools {
                 }
             };
 
-            template <typename RunFunctorArguments, class ItDomain, class Grid>
+            template <class ExecutionType, class ItDomain, class Grid>
             struct run_f_on_interval {
-                GT_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArguments>::value, GT_INTERNAL_ERROR);
-
-                using execution_type_t = typename RunFunctorArguments::execution_type_t;
-
                 ItDomain &m_domain;
                 Grid const &m_grid;
 
@@ -147,7 +139,7 @@ namespace gridtools {
                     std::enable_if_t<meta::length<Stages>::value != 0, int> = 0>
                 GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
                     for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<execution_type_t>))
+                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<ExecutionType>))
                         run_esf_functor_cuda<Stages>(m_domain);
                 }
 
@@ -155,15 +147,8 @@ namespace gridtools {
                     class Stages,
                     std::enable_if_t<meta::length<Stages>::value == 0, int> = 0>
                 GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
-                    // TODO(anstaf): supplement iteration_policy with the function that is functionally equivalent with
-                    //               this loop. smth. like: dry_run(from, to, it_domain);
-                    //
-                    // The weird thing here: because we use unnatural to C/C++ convention that the ranges are
-                    // defined not by [begin, end) but by [first, last], the implementation of this function would be
-                    // a bit messy [much more cryptic comparing to the current loop]. For me it is not clear what
-                    // to do first: fix an alien convention everywhere or implement this TODO.
                     for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<execution_type_t>)) {
+                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<ExecutionType>)) {
                     }
                 }
 
@@ -173,27 +158,27 @@ namespace gridtools {
                     using from_t = meta::first<LoopInterval>;
                     using to_t = meta::second<LoopInterval>;
                     using stage_groups_t = meta::at_c<LoopInterval, 2>;
-                    using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t>;
-                    const auto k_interval = get_k_interval<from_t, to_t>(execution_type_t{}, m_grid);
+                    using iteration_policy_t = iteration_policy<from_t, to_t, ExecutionType>;
+                    const auto k_interval = get_k_interval<from_t, to_t>(ExecutionType{}, m_grid);
                     k_loop<iteration_policy_t, stage_groups_t>(k_interval.first, k_interval.second);
                 }
             };
         } // namespace _impl
 
-        template <class RunFunctorArguments, class ItDomain, class Grid>
+        template <class ExecutionType, class LoopIntervals, class MaxExtent, class ItDomain, class Grid>
         GT_FUNCTION_DEVICE std::enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(
             ItDomain &it_domain, Grid const &grid) {
-            bool in_domain = it_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
-            device::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
-                _impl::run_f_on_interval_with_k_caches<RunFunctorArguments, ItDomain, Grid>{
+            bool in_domain = it_domain.template is_thread_in_domain<MaxExtent>();
+            device::for_each_type<LoopIntervals>(
+                _impl::run_f_on_interval_with_k_caches<ExecutionType, LoopIntervals, ItDomain, Grid>{
                     it_domain, in_domain, grid});
         }
 
-        template <class RunFunctorArguments, class ItDomain, class Grid>
+        template <class ExecutionType, class LoopIntervals, class MaxExtent, class ItDomain, class Grid>
         GT_FUNCTION_DEVICE std::enable_if_t<!ItDomain::has_k_caches> run_functors_on_interval(
             ItDomain &it_domain, Grid const &grid) {
-            device::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
-                _impl::run_f_on_interval<RunFunctorArguments, ItDomain, Grid>{it_domain, grid});
+            device::for_each_type<LoopIntervals>(
+                _impl::run_f_on_interval<ExecutionType, ItDomain, Grid>{it_domain, grid});
         }
     } // namespace cuda
 } // namespace gridtools

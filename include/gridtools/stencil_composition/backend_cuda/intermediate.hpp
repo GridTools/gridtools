@@ -12,6 +12,7 @@
 #include <tuple>
 #include <type_traits>
 
+#include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/tuple_util.hpp"
@@ -24,19 +25,19 @@
 #include "../extent.hpp"
 #include "../extract_placeholders.hpp"
 #include "../grid.hpp"
-#include "../local_domain.hpp"
-#include "../mss_components.hpp"
-#include "../mss_components_metafunctions.hpp"
+#include "../make_loop_intervals.hpp"
+#include "../mss.hpp"
 #include "../positional.hpp"
+#include "../sid/allocator.hpp"
 #include "../sid/block.hpp"
 #include "../sid/composite.hpp"
 #include "../sid/concept.hpp"
 #include "../sid/sid_shift_origin.hpp"
+#include "../stages_maker.hpp"
 #include "fused_mss_loop_cuda.hpp"
 #include "ij_cache.hpp"
 #include "launch_kernel.hpp"
 #include "shared_allocator.hpp"
-#include "simple_device_memory_allocator.hpp"
 #include "tmp_storage_sid.hpp"
 
 namespace gridtools {
@@ -85,15 +86,6 @@ namespace gridtools {
             ptr_holder_t m_ptr_holder;
             strides_t m_strides;
         };
-
-        template <class CacheSequence, class Composite, class LowerKBounds, class UpperKBounds>
-        auto make_local_domain(Composite &composite, LowerKBounds lower_k_bounds, UpperKBounds upper_k_bounds) {
-            return local_domain<Composite, CacheSequence, LowerKBounds, UpperKBounds>{
-                composite, std::move(lower_k_bounds), std::move(upper_k_bounds)};
-        }
-
-        template <class Mss>
-        using get_esfs = unwrap_independent<typename Mss::esf_sequence_t>;
 
         template <class Mss>
         struct non_cached_tmp_f {
@@ -220,85 +212,90 @@ namespace gridtools {
                 plhs_t{}));
         }
 
-        template <class Grid, class Msses>
-        class intermediate {
-            GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        template <class ExecutionType>
+        std::enable_if_t<!execute::is_parallel<ExecutionType>::value, int_t> blocks_required_z(uint_t) {
+            return 1;
+        }
 
-            using esfs_t = meta::flatten<meta::transform<get_esfs, Msses>>;
+        template <class ExecutionType>
+        std::enable_if_t<execute::is_parallel<ExecutionType>::value, int_t> blocks_required_z(uint_t nz) {
+            return (nz + ExecutionType::block_size - 1) / ExecutionType::block_size;
+        }
 
-            // First we need to compute the association between placeholders and extents.
-            // This information is needed to allocate temporaries, and to provide the extent information to the
-            // user.
+        template <class Grid, class Mss, class DataStoreMap, class CudaAlloc>
+        auto make_composite_sid(Grid const &grid,
+            Mss,
+            DataStoreMap const &data_store_map,
+            CudaAlloc &cuda_alloc,
+            shared_allocator &shared_alloc) {
+            using esfs_t = unwrap_independent<typename Mss::esf_sequence_t>;
             using extent_map_t = get_extent_map<esfs_t>;
+            using plhs_t = extract_placeholders_from_mss<Mss>;
+            using tmp_plhs_t = meta::filter<is_tmp_arg, plhs_t>;
+            using non_tmp_plhs_t = meta::filter<meta::not_<is_tmp_arg>::apply, plhs_t>;
+            using non_cached_tmp_plhs_t = meta::filter<non_cached_tmp_f<Mss>::template apply, tmp_plhs_t>;
+            using ij_cached_tmp_plhs_t = meta::filter<ij_cached_tmp_f<Mss>::template apply, tmp_plhs_t>;
+            using keys_t = meta::rename<sid::composite::keys,
+                meta::concat<non_tmp_plhs_t, non_cached_tmp_plhs_t, ij_cached_tmp_plhs_t, positionals_t>>;
 
-            // member fields
-            Grid m_grid;
+            return tuple_util::convert_to<keys_t::template values>(tuple_util::deep_copy(
+                tuple_util::flatten(tuple_util::make<std::tuple>(make_data_stores<non_tmp_plhs_t>(grid, data_store_map),
+                    make_non_cached_temporaries<non_cached_tmp_plhs_t, extent_map_t>(cuda_alloc, grid),
+                    make_ij_cached_temporaries<ij_cached_tmp_plhs_t, extent_map_t>(shared_alloc),
+                    make_positionals(grid)))));
+        }
 
-          public:
-            intermediate(Grid const &grid) : m_grid(grid) {}
+        template <class CacheSequence, class Composite, class LowerKBounds, class UpperKBounds>
+        auto make_local_domain(Composite &composite, LowerKBounds lower_k_bounds, UpperKBounds upper_k_bounds) {
+            return local_domain<Composite, CacheSequence, LowerKBounds, UpperKBounds>{
+                composite, std::move(lower_k_bounds), std::move(upper_k_bounds)};
+        }
 
-            template <class DataStoreMap>
-            void operator()(DataStoreMap const &data_store_map) const {
-                for_each<Msses>([&](auto mss) {
-                    using mss_t = decltype(mss);
-                    using plhs_t = extract_placeholders_from_mss<mss_t>;
-                    using tmp_plhs_t = meta::filter<is_tmp_arg, plhs_t>;
-                    using non_tmp_plhs_t = meta::filter<meta::not_<is_tmp_arg>::apply, plhs_t>;
-                    using non_cached_tmp_plhs_t = meta::filter<non_cached_tmp_f<mss_t>::template apply, tmp_plhs_t>;
-                    using ij_cached_tmp_plhs_t = meta::filter<ij_cached_tmp_f<mss_t>::template apply, tmp_plhs_t>;
-                    using non_tmp_cached_plhs_t = meta::filter<non_tmp_cached_f<mss_t>::apply, non_tmp_plhs_t>;
+        template <class Grid, class Mss, class DataStoreMap>
+        void exec_mss(Grid const &grid, Mss mss, DataStoreMap const &data_store_map) {
+            using esfs_t = unwrap_independent<typename Mss::esf_sequence_t>;
+            using extent_map_t = get_extent_map<esfs_t>;
+            using plhs_t = extract_placeholders_from_mss<Mss>;
+            using non_tmp_plhs_t = meta::filter<meta::not_<is_tmp_arg>::apply, plhs_t>;
+            using non_tmp_cached_plhs_t = meta::filter<non_tmp_cached_f<Mss>::apply, non_tmp_plhs_t>;
 
-                    shared_allocator shared_alloc;
-                    simple_device_memory_allocator cuda_allocator;
+            auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char>);
+            shared_allocator shared_alloc;
 
-                    auto non_tmp_data_stores = make_data_stores<non_tmp_plhs_t>(m_grid, data_store_map);
+            auto composite = make_composite_sid(grid, mss, data_store_map, cuda_alloc, shared_alloc);
 
-                    auto non_cached_temporaries =
-                        make_non_cached_temporaries<non_cached_tmp_plhs_t, extent_map_t>(cuda_allocator, m_grid);
+            auto local_domain = make_local_domain<typename Mss::cache_sequence_t>(composite,
+                make_k_lower_bounds<non_tmp_cached_plhs_t>(data_store_map),
+                make_k_upper_bounds<non_tmp_cached_plhs_t>(data_store_map));
 
-                    auto ij_cached_temporaries =
-                        make_ij_cached_temporaries<ij_cached_tmp_plhs_t, extent_map_t>(shared_alloc);
+            using execution_type_t = typename Mss::execution_engine_t;
+            using max_extent_t =
+                meta::rename<enclosing_extent, meta::transform<get_esf_extent_f<extent_map_t>::template apply, esfs_t>>;
+            using default_interval_t = interval<typename Grid::axis_type::FromLevel,
+                index_to_level<typename level_to_index<typename Grid::axis_type::ToLevel>::prior>>;
+            using loop_intervals_t = order_loop_intervals<execution_type_t,
+                make_loop_intervals<stages_maker<Mss, extent_map_t>::template apply, default_interval_t>>;
 
-                    auto positionals = make_positionals(m_grid);
+            // number of blocks required
+            uint_t xblocks = (grid.i_size() + GT_DEFAULT_TILE_I - 1) / GT_DEFAULT_TILE_I;
+            uint_t yblocks = (grid.j_size() + GT_DEFAULT_TILE_J - 1) / GT_DEFAULT_TILE_J;
+            uint_t zblocks = blocks_required_z<execution_type_t>(grid.k_max() + 1);
 
-                    using keys_t = meta::rename<sid::composite::keys,
-                        meta::concat<non_tmp_plhs_t, non_cached_tmp_plhs_t, ij_cached_tmp_plhs_t, positionals_t>>;
-
-                    auto composite = tuple_util::convert_to<keys_t::template values>(
-                        tuple_util::deep_copy(tuple_util::flatten(tuple_util::make<std::tuple>(
-                            non_tmp_data_stores, non_cached_temporaries, ij_cached_temporaries, positionals))));
-
-                    auto local_domain = make_local_domain<typename mss_t::cache_sequence_t>(composite,
-                        make_k_lower_bounds<non_tmp_cached_plhs_t>(data_store_map),
-                        make_k_upper_bounds<non_tmp_cached_plhs_t>(data_store_map));
-
-                    using local_domain_t = decltype(local_domain);
-
-                    using execution_type_t = typename mss_t::execution_engine_t;
-
-                    using mss_components_t = mss_components<mss_t, extent_map_t, typename Grid::axis_type>;
-                    using run_functor_args_t = run_functor_arguments<backend,
-                        typename mss_components_t::linear_esf_t,
-                        typename mss_components_t::loop_intervals_t,
-                        execution_type_t>;
-                    using max_extent_t = typename run_functor_args_t::max_extent_t;
-
-                    // number of blocks required
-                    uint_t xblocks = (m_grid.i_size() + GT_DEFAULT_TILE_I - 1) / GT_DEFAULT_TILE_I;
-                    uint_t yblocks = (m_grid.j_size() + GT_DEFAULT_TILE_J - 1) / GT_DEFAULT_TILE_J;
-                    uint_t zblocks =
-                        fused_mss_loop_cuda_impl_::blocks_required_z<execution_type_t>(m_grid.k_total_length());
-
-                    launch_kernel<max_extent_t, GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J>({xblocks, yblocks, zblocks},
-                        make_kernel<run_functor_args_t, GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J>(local_domain, m_grid),
-                        shared_alloc.size());
-                });
-            }
-        };
+            launch_kernel<max_extent_t, GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J>({xblocks, yblocks, zblocks},
+                make_kernel<execution_type_t,
+                    loop_intervals_t,
+                    max_extent_t,
+                    esfs_t,
+                    GT_DEFAULT_TILE_I,
+                    GT_DEFAULT_TILE_J>(local_domain, grid),
+                shared_alloc.size());
+        }
 
         template <class IsStateful, class Grid, class Msses>
-        intermediate<Grid, Msses> make_intermediate(backend, IsStateful, Grid const &grid, Msses) {
-            return {grid};
+        auto make_intermediate(backend, IsStateful, Grid const &grid, Msses) {
+            return [grid](auto const &data_store_map) {
+                for_each<Msses>([&](auto mss) { exec_mss(grid, mss, data_store_map); });
+            };
         }
     } // namespace cuda
 } // namespace gridtools

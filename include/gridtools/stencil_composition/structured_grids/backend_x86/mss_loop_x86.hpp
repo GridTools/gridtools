@@ -98,7 +98,7 @@ namespace gridtools {
         auto ptr = local_domain.m_ptr_holder();
 
         for_each_type<get_keys<typename LocalDomain::ptr_t>>(
-            initialize_index<backend::x86, LocalDomain>(local_domain.m_strides,
+            initialize_index<typename LocalDomain::max_extent_for_tmp_t>(local_domain.m_strides,
                 {grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {execution_info.bi, execution_info.bj, 0},
                 {extent_t::iminus::value, extent_t::jminus::value, k_first - grid.k_min()},

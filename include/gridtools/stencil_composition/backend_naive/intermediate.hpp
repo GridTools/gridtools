@@ -28,27 +28,16 @@
 #include "../loop_interval.hpp"
 #include "../make_loop_intervals.hpp"
 #include "../positional.hpp"
+#include "../sid/allocator.hpp"
 #include "../sid/composite.hpp"
 #include "../sid/concept.hpp"
 #include "../sid/contiguous.hpp"
 #include "../sid/loop.hpp"
 #include "../sid/sid_shift_origin.hpp"
-#include "../sid/simple_ptr_holder.hpp"
 #include "../stages_maker.hpp"
 
 namespace gridtools {
     namespace naive {
-        class allocator {
-            std::vector<std::shared_ptr<void>> m_buffers;
-
-            template <class LazyT>
-            friend auto allocate(allocator &self, LazyT, size_t size) {
-                auto buffer = std::make_unique<typename LazyT::type[]>(size);
-                auto res = sid::make_simple_ptr_holder(buffer.get());
-                self.m_buffers.emplace_back(std::move(buffer));
-                return res;
-            }
-        };
 
         template <class Mss>
         using get_esfs = unwrap_independent<typename Mss::esf_sequence_t>;
@@ -86,7 +75,7 @@ namespace gridtools {
                 using extent_map_t = get_extent_map<meta::flatten<meta::transform<get_esfs, Msses>>>;
                 using positionals_t = std::tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
 
-                allocator alloc;
+                auto alloc = sid::make_allocator(&std::make_unique<char[]>);
 
                 auto temporaries = tuple_util::transform(
                     [&](auto plh) {

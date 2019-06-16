@@ -11,15 +11,13 @@
 #include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
 
 #include <memory>
-#include <type_traits>
-#include <vector>
 
 #include <gtest/gtest.h>
 
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/stencil_composition/arg.hpp>
+#include <gridtools/stencil_composition/sid/allocator.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
-#include <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 #include "../tools/multiplet.hpp"
@@ -28,19 +26,6 @@ namespace gridtools {
     namespace cuda {
         namespace {
             using namespace literals;
-
-            // Strided access can be tested with host memory
-            class allocator {
-                std::vector<std::shared_ptr<void>> m_buffers;
-
-                template <class LazyT>
-                friend auto allocate(allocator &self, LazyT, size_t size) {
-                    using type = typename LazyT::type;
-                    type *buffer = new type[size];
-                    self.m_buffers.emplace_back(buffer, [](type *p) { delete[] p; });
-                    return sid::make_simple_ptr_holder(buffer);
-                }
-            };
 
             using extent_t = extent<-1, 2, -3, 4>;
             constexpr auto blocksize_i = 32_c;
@@ -60,7 +45,8 @@ namespace gridtools {
                 using index_info = multiplet<5>;
 
                 constexpr tmp_arg<0, data_store<index_info>> plh;
-                allocator alloc;
+
+                auto alloc = sid::make_allocator(&std::make_unique<char[]>);
 
                 auto testee =
                     make_tmp_storage(plh, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);
@@ -104,7 +90,7 @@ namespace gridtools {
                 using index_info = multiplet<6>;
                 constexpr tmp_arg<0, data_store<index_info>, enumtype::cells> plh;
 
-                allocator alloc;
+                auto alloc = sid::make_allocator(&std::make_unique<char[]>);
 
                 auto testee =
                     make_tmp_storage(plh, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);

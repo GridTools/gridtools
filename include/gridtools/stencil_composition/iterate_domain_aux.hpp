@@ -36,7 +36,7 @@
 */
 
 namespace gridtools {
-    template <class StrideMaps, class LocalDomain, class PtrMap, class Backend>
+    template <class StrideMaps, class MaxExrtentForTmp, class PtrMap>
     struct initialize_index_f {
         StrideMaps const &m_stride_maps;
         pos3<int_t> const &m_begin;
@@ -45,12 +45,12 @@ namespace gridtools {
         PtrMap &m_ptr_map;
 
         template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
-        GT_FUNCTION void operator()() const {
+        GT_FORCE_INLINE void operator()() const {
             using storage_info_t = typename Arg::data_store_t::storage_info_t;
             GT_STATIC_ASSERT(is_storage_info<storage_info_t>::value, GT_INTERNAL_ERROR);
 
             host_device::at_key<Arg>(m_ptr_map) +=
-                get_tmp_storage_offset<storage_info_t, typename LocalDomain::max_extent_for_tmp_t>(Backend{},
+                get_tmp_storage_offset<storage_info_t, MaxExrtentForTmp>(backend::x86{},
                     make_pos3<int_t>(sid::get_stride<Arg, dim::i>(m_stride_maps),
                         sid::get_stride<Arg, dim::j>(m_stride_maps),
                         sid::get_stride<Arg, dim::k>(m_stride_maps)),
@@ -59,8 +59,8 @@ namespace gridtools {
         }
 
         template <class Arg, std::enable_if_t<!is_tmp_arg<Arg>::value, int> = 0>
-        GT_FUNCTION void operator()() const {
-            static constexpr auto be = Backend{};
+        GT_FORCE_INLINE void operator()() const {
+            static constexpr auto be = backend::x86{};
 
             auto &ptr = host_device::at_key<Arg>(m_ptr_map);
 
@@ -74,8 +74,8 @@ namespace gridtools {
         }
     };
 
-    template <class Backend, class LocalDomain, class StrideMaps, class PtrMap>
-    GT_FUNCTION initialize_index_f<StrideMaps, LocalDomain, PtrMap, Backend> initialize_index(
+    template <class MaxExrtentForTmp, class StrideMaps, class PtrMap>
+    GT_FORCE_INLINE initialize_index_f<StrideMaps, MaxExrtentForTmp, PtrMap> initialize_index(
         StrideMaps const &stride_maps,
         pos3<int_t> const &begin,
         pos3<int_t> const &block_no,
