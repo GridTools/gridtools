@@ -52,6 +52,7 @@ def save(filename, data):
         filename: The name of the output file.
         data: An instance of `Result`.
     """
+    log.debug(f'Saving data to {filename}', data)
     def convert(d):
         if isinstance(d, time.datetime):
             return time.timestr(d)
@@ -73,6 +74,7 @@ def load(filename):
     """
     with open(filename, 'r') as fp:
         data = json.load(fp)
+    log.debug(f'Read json from {filename}', data)
 
     if data['version'] == version:
         d = data['runinfo']
