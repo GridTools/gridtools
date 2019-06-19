@@ -27,16 +27,15 @@ namespace gridtools {
         template <size_t Color>
         struct loop_interval_contains_color {
             template <class T>
-            using apply = meta::any_of<stage_group_contains_color<Color>::template apply, meta::at_c<T, 2>>;
+            using apply = meta::any_of<stage_contains_color<Color>::template apply, meta::third<T>>;
         };
 
         template <uint_t Color>
         struct run_esf_functor_x86 {
-            template <class StageGroups, class ItDomain>
+            template <class Stages, class ItDomain>
             GT_FORCE_INLINE static void exec(ItDomain &it_domain) {
-                using stages_t = meta::flatten<StageGroups>;
-                GT_STATIC_ASSERT(meta::length<stages_t>::value == 1, GT_INTERNAL_ERROR);
-                using stage_t = meta::first<stages_t>;
+                GT_STATIC_ASSERT(meta::length<Stages>::value == 1, GT_INTERNAL_ERROR);
+                using stage_t = meta::first<Stages>;
                 stage_t::template exec<Color>(it_domain);
             }
         };
@@ -45,13 +44,8 @@ namespace gridtools {
         struct get_ncolors;
 
         // In the x86 case loop intervals contains a single stage.
-        template <template <class...> class L0,
-            template <class...> class L1,
-            template <class...> class L2,
-            class From,
-            class To,
-            class Stage>
-        struct get_ncolors<L0<loop_interval<From, To, L1<L2<Stage>>>>> : Stage::n_colors {};
+        template <template <class...> class L0, template <class...> class L, class From, class To, class Stage>
+        struct get_ncolors<L0<loop_interval<From, To, L<Stage>>>> : Stage::n_colors {};
 
         /**
          * @tparam RunFunctorArgs run functor argument type with the main configuration of the MSS

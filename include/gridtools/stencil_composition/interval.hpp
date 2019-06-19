@@ -12,7 +12,7 @@
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 #include "../meta/is_instantiation_of.hpp"
-#include "./level.hpp"
+#include "level.hpp"
 
 namespace gridtools {
 
@@ -34,8 +34,6 @@ namespace gridtools {
         // (due to this trick we can search all do method overloads starting at a given from position)
         interval() = default;
         GT_FUNCTION interval(TFromLevel);
-
-        using type = interval;
 
         // check the parameters are of type level
         GT_STATIC_ASSERT(is_level<TFromLevel>::value, "check the first template parameter is of type level");

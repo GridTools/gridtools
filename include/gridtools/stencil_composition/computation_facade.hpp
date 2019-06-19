@@ -30,10 +30,9 @@
 #include "positional.hpp"
 
 namespace gridtools {
-
     namespace computation_facade_impl_ {
         template <class Mss>
-        using get_esfs = unwrap_independent<typename Mss::esf_sequence_t>;
+        using get_esfs = typename Mss::esf_sequence_t;
 
         template <class Mss>
         using rw_args_from_mss = compute_readwrite_args<get_esfs<Mss>>;

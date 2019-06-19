@@ -10,175 +10,131 @@
 
 #pragma once
 
-#include "../../common/array.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/gt_math.hpp"
 #include "../../common/host_device.hpp"
-#include "../../common/pair.hpp"
+#include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../execution_types.hpp"
-#include "../interval.hpp"
-#include "../iteration_policy.hpp"
-#include "../level.hpp"
-#include "../loop_interval.hpp"
-#include "../run_functor_arguments.hpp"
-#include "run_esf_functor_cuda.hpp"
 
 namespace gridtools {
     namespace cuda {
-        /**
-         * get_k_interval specialization for parallel execution policy. The full k-axis is split into equally-sized
-         * block sub-intervals and assigned to the blocks in z-direction. Each block iterates over all computation
-         * intervals and calculates the subinterval which intersects with the block sub-interval.
-         *
-         * Example with with an axis with four intervals, that is distributed among 2 blocks:
-         *
-         * Computation intervals   block sub-intervals
-         *                           with two blocks
-         *
-         *                                       B1   B2
-         *    0 ---------           0 --------- ---         Block B1 calculates the complete intervals I1 and I2, and
-         * parts |                     |    1 :          of I3. It does not calculate anything for I4. |  I1 B1  | : |
-         * |      :          1. iteration: get_k_interval(...) = [0, 4] |                     |      :          2.
-         * iteration: get_k_interval(...) = [5, 7] 5    ---                    |     ---         3. iteration:
-         * get_k_interval(...) = [8, 9] |                     |    2 :          4. iteration: get_k_interval(...) = [18,
-         * 9] (= no calculation) | I2                  |      : 8    ---                    |     --- | |    3 : | I3 10
-         * ---    ---  ---    Block B2 calculates parts of the interval I3, and the complete |                     | 3 :
-         * interval I4. It does not calculate anything for I1 and I2. |                 B2  |           : | | :     1.
-         * iteration: get_k_interval(...) = [10, 4] (= no calculation) |                     |           :     2.
-         * iteration: get_k_interval(...) = [10, 7] (= no calculation) |                     |           :     3.
-         * iteration: get_k_interval(...) = [10, 17] |                     |           :     4. iteration:
-         * get_k_interval(...) = [18, 20] |                     |           : 18    ---                    | --- | I4 |
-         * 4 : 20 ---------          20 ---------      ---
-         */
-        template <class FromLevel, class ToLevel, uint_t BlockSize, class Grid>
-        GT_FUNCTION_DEVICE pair<int, int> get_k_interval(execute::parallel_block<BlockSize>, Grid const &grid) {
-            return {math::max<int>(blockIdx.z * BlockSize, grid.template value_at<FromLevel>()),
-                math::min<int>((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<ToLevel>())};
-        }
-
-        template <class FromLevel, class ToLevel, class ExecutionEngine, class Grid>
-        GT_FUNCTION_DEVICE pair<int, int> get_k_interval(ExecutionEngine, Grid const &grid) {
-            return {grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>()};
-        }
-
         namespace _impl {
+            template <class I>
+            using is_first_f = bool_constant<I::value == 0>;
 
-            /**
-               @brief basic token of execution responsible of handling the discretization over the vertical dimension.
-               This may be done with a loop over k or by partitioning the k axis and executing in parallel, depending on
-               the execution_policy defined in the multi-stage stencil.
-            */
-            /**
-               @brief   Execution kernel containing the loop over k levels
-            */
-            template <class ExecutionType, class LoopIntervals, class ItDomain, class Grid>
-            struct run_f_on_interval_with_k_caches {
-                using first_t = meta::first<LoopIntervals>;
-                using last_t = meta::last<LoopIntervals>;
+            template <class Length, class I>
+            using is_last_f = bool_constant<I::value + 1 == Length::value>;
 
-                ItDomain &m_domain;
-                bool m_in_domain;
-                Grid const &m_grid;
+            template <class Args, class Fun>
+            GT_FUNCTION_DEVICE void for_each_with_first_last(Fun const &fun, Args const &args) {
+                using indices_t = meta::make_indices_for<Args, tuple>;
+                tuple_util::device::for_each(fun,
+                    args,
+                    meta::transform<is_first_f, indices_t>{},
+                    meta::transform<meta::curry<is_last_f, meta::length<Args>>::template apply, indices_t>{});
+            }
 
-                template <class IterationPolicy,
-                    class Stages,
-                    bool IsFirst,
-                    bool IsLast,
-                    std::enable_if_t<meta::length<Stages>::value != 0, int> = 0>
-                GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
-                    for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<ExecutionType>)) {
-                        if (m_in_domain)
-                            m_domain.template fill_caches<ExecutionType>(IsFirst && cur == first);
-                        run_esf_functor_cuda<Stages>(m_domain);
-                        if (m_in_domain)
-                            m_domain.template flush_caches<ExecutionType>(IsLast && cur == last);
-                        m_domain.template slide_caches<ExecutionType>();
-                    }
+            template <class Fun>
+            GT_FUNCTION_DEVICE void loop_with_first_last(Fun const &fun, int_t size) {
+                switch (size) {
+                case 0:
+                    break;
+                case 1:
+                    fun(std::true_type{}, std::true_type{});
+                    break;
+                case 2:
+                    fun(std::true_type{}, std::false_type{});
+                    fun(std::false_type{}, std::true_type{});
+                    break;
+                default:
+                    fun(std::true_type{}, std::false_type{});
+                    for (int_t i = 2; i < size; ++i)
+                        fun(std::false_type{}, std::false_type{});
+                    fun(std::false_type{}, std::true_type{});
                 }
+            }
 
-                template <class IterationPolicy,
-                    class Stages,
-                    bool IsFirst,
-                    bool IsLast,
-                    std::enable_if_t<meta::length<Stages>::value == 0, int> = 0>
-                GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
-                    for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<ExecutionType>)) {
-                        if (m_in_domain) {
-                            m_domain.template fill_caches<ExecutionType>(IsFirst && cur == first);
-                            m_domain.template flush_caches<ExecutionType>(IsLast && cur == last);
-                        }
-                        m_domain.template slide_caches<ExecutionType>();
-                    }
-                }
+            template <class Fun, class I, class Int, Int Size>
+            GT_FUNCTION_DEVICE void loop_with_first_last(Fun const &fun, std::integral_constant<Int, Size>) {
+                for_each_with_first_last([&fun](auto, auto is_first, auto is_last) { fun(is_first, is_last); },
+                    meta::iseq_to_list<std::make_integer_sequence<Int, Size>, tuple>{});
+            }
 
-                template <class LoopInterval>
-                GT_FUNCTION_DEVICE void operator()() const {
-                    GT_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
-                    using from_t = meta::first<LoopInterval>;
-                    using to_t = meta::second<LoopInterval>;
-                    using stage_groups_t = meta::at_c<LoopInterval, 2>;
-                    using iteration_policy_t = iteration_policy<from_t, to_t, ExecutionType>;
-                    constexpr auto is_first = std::is_same<LoopInterval, first_t>::value;
-                    constexpr auto is_last = std::is_same<LoopInterval, last_t>::value;
-                    k_loop<iteration_policy_t, stage_groups_t, is_first, is_last>(
-                        m_grid.template value_at<from_t>(), m_grid.template value_at<to_t>());
+            template <uint_t BlockSize>
+            GT_FUNCTION_DEVICE auto strip_from(execute::parallel_block<BlockSize>, int_t src) {
+                return math::max<int_t>(blockIdx.z * BlockSize, src);
+            }
+
+            template <uint_t BlockSize>
+            GT_FUNCTION_DEVICE auto strip_to(execute::parallel_block<BlockSize>, int_t src) {
+                return math::min<int_t>((blockIdx.z + 1) * BlockSize - 1, src);
+            }
+
+            template <class ExecutionType>
+            struct modify_count_f {
+                template <class Count>
+                GT_FUNCTION_DEVICE Count operator()(Count count) const {
+                    return count;
                 }
             };
 
-            template <class ExecutionType, class ItDomain, class Grid>
-            struct run_f_on_interval {
-                ItDomain &m_domain;
-                Grid const &m_grid;
+            template <uint_t BlockSize>
+            struct modify_count_f<execute::parallel_block<BlockSize>> {
+                mutable int_t m_cur = -blockIdx.z * BlockSize;
 
-                template <class IterationPolicy,
-                    class Stages,
-                    std::enable_if_t<meta::length<Stages>::value != 0, int> = 0>
-                GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
-                    for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<ExecutionType>))
-                        run_esf_functor_cuda<Stages>(m_domain);
-                }
-
-                template <class IterationPolicy,
-                    class Stages,
-                    std::enable_if_t<meta::length<Stages>::value == 0, int> = 0>
-                GT_FUNCTION_DEVICE void k_loop(int_t first, int_t last) const {
-                    for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), m_domain.increment_k(execute::step<ExecutionType>)) {
-                    }
-                }
-
-                template <class LoopInterval>
-                GT_FUNCTION_DEVICE void operator()() const {
-                    GT_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
-                    using from_t = meta::first<LoopInterval>;
-                    using to_t = meta::second<LoopInterval>;
-                    using stage_groups_t = meta::at_c<LoopInterval, 2>;
-                    using iteration_policy_t = iteration_policy<from_t, to_t, ExecutionType>;
-                    const auto k_interval = get_k_interval<from_t, to_t>(ExecutionType{}, m_grid);
-                    k_loop<iteration_policy_t, stage_groups_t>(k_interval.first, k_interval.second);
+                template <class Count>
+                GT_FUNCTION_DEVICE int_t operator()(Count count) const {
+                    if (m_cur >= BlockSize)
+                        return 0;
+                    int_t res = math::min<int_t>(m_cur + count, BlockSize) - math::max(m_cur, 0);
+                    m_cur += count;
+                    return res;
                 }
             };
         } // namespace _impl
 
-        template <class ExecutionType, class LoopIntervals, class MaxExtent, class ItDomain, class Grid>
+        template <class ExecutionType, class MaxExtent, class ItDomain, class Grid, class LoopIntervals>
         GT_FUNCTION_DEVICE std::enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(
-            ItDomain &it_domain, Grid const &grid) {
+            ItDomain &it_domain, Grid const &, LoopIntervals const &loop_intervals) {
             bool in_domain = it_domain.template is_thread_in_domain<MaxExtent>();
-            device::for_each_type<LoopIntervals>(
-                _impl::run_f_on_interval_with_k_caches<ExecutionType, LoopIntervals, ItDomain, Grid>{
-                    it_domain, in_domain, grid});
+            _impl::for_each_with_first_last(
+                [&](auto const &loop_interval, auto is_first_interval, auto is_last_interval) {
+                    _impl::loop_with_first_last(
+                        [&](auto is_first_level, auto is_last_level) {
+                            if (in_domain)
+                                it_domain.fill_caches(ExecutionType(),
+                                    bool_constant<decltype(is_first_interval)::value &&decltype(
+                                        is_first_level)::value>());
+                            loop_interval(it_domain.ptr(), it_domain.strides(), [&](auto extent) {
+                                return it_domain.template is_thread_in_domain<decltype(extent)>();
+                            });
+                            if (in_domain)
+                                it_domain.flush_caches(ExecutionType(),
+                                    bool_constant<decltype(is_last_interval)::value &&decltype(
+                                        is_last_level)::value>());
+                            it_domain.increment_k(ExecutionType());
+                        },
+                        loop_interval.count());
+                },
+                loop_intervals);
         }
 
-        template <class ExecutionType, class LoopIntervals, class MaxExtent, class ItDomain, class Grid>
+        template <class ExecutionType, class MaxExtent, class ItDomain, class Grid, class LoopIntervals>
         GT_FUNCTION_DEVICE std::enable_if_t<!ItDomain::has_k_caches> run_functors_on_interval(
-            ItDomain &it_domain, Grid const &grid) {
-            device::for_each_type<LoopIntervals>(
-                _impl::run_f_on_interval<ExecutionType, ItDomain, Grid>{it_domain, grid});
+            ItDomain &it_domain, Grid const &grid, LoopIntervals const &loop_intervals) {
+            _impl::modify_count_f<ExecutionType> modify_count;
+            tuple_util::device::for_each(
+                [&](auto const &loop_interval) {
+                    auto count = modify_count(loop_interval.count());
+                    for (int_t i = 0; i < count; ++i) {
+                        loop_interval(it_domain.ptr(), it_domain.strides(), [&](auto extent) {
+                            return it_domain.template is_thread_in_domain<decltype(extent)>();
+                        });
+                        it_domain.increment_k(ExecutionType());
+                    }
+                },
+                loop_intervals);
         }
     } // namespace cuda
 } // namespace gridtools

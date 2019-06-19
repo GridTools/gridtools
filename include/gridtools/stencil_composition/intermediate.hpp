@@ -30,7 +30,7 @@
 namespace gridtools {
     namespace intermediate_impl_ {
         template <class Mss>
-        using get_esfs = unwrap_independent<typename Mss::esf_sequence_t>;
+        using get_esfs = typename Mss::esf_sequence_t;
 
         template <class Mss>
         struct non_cached_tmp_f {

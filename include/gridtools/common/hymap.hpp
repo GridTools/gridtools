@@ -100,10 +100,10 @@ namespace gridtools {
 
         not_provided hymap_get_keys(...);
 
-        template <class T, class Res = decltype(hymap_get_keys(std::declval<T const>()))>
+        template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
         std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_keys_fun(T const &);
 
-        template <class T, class Res = decltype(hymap_get_keys(std::declval<T const>()))>
+        template <class T, class Res = decltype(hymap_get_keys(std::declval<T const &>()))>
         std::enable_if_t<std::is_same<Res, not_provided>::value, default_keys<T>> get_keys_fun(T const &);
 
         template <class T>
@@ -128,10 +128,7 @@ namespace gridtools {
                 GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_vals);
 
                 friend keys hymap_get_keys(values const &) { return {}; }
-
-                using type = values;
             };
-            using type = keys;
         };
 
         template <class HyMap>
@@ -145,7 +142,37 @@ namespace gridtools {
             class Keys = meta::first<KeysAndValues>,
             class Values = meta::second<KeysAndValues>>
         using from_meta_map = from_keys_values<Keys, Values>;
-    } // namespace hymap
+
+        namespace hymap_impl_ {
+            template <class Maps>
+            using merged_keys = meta::dedup<meta::transform<meta::first, meta::flatten<Maps>>>;
+
+            template <class Key>
+            struct find_f {
+                template <class Map>
+                using apply = meta::second<meta::mp_find<Map, Key, meta::list<void, void>>>;
+            };
+
+            template <class State, class Val>
+            using get_first_folder = meta::if_<std::is_void<State>, Val, State>;
+
+            template <class Maps>
+            struct merged_value_f {
+                template <class Key>
+                using apply = meta::lfold<get_first_folder, void, meta::transform<find_f<Key>::template apply, Maps>>;
+            };
+
+            template <class Src>
+            using map_of_refs = decltype(tuple_util::transform(identity{}, std::declval<Src>()));
+
+            template <class Maps,
+                class RefMaps = meta::transform<map_of_refs, Maps>,
+                class MetaMaps = meta::transform<to_meta_map, RefMaps>,
+                class Keys = merged_keys<MetaMaps>,
+                class Values = meta::transform<merged_value_f<MetaMaps>::template apply, Keys>>
+            using merged = from_keys_values<Keys, Values>;
+        } // namespace hymap_impl_
+    }     // namespace hymap
 } // namespace gridtools
 
 #define GT_FILENAME <gridtools/common/hymap.hpp>
@@ -157,9 +184,29 @@ namespace gridtools {
 
 namespace gridtools {
     GT_TARGET_NAMESPACE {
-        template <class Key, class Map, class I = meta::st_position<get_keys<std::decay_t<Map>>, Key>>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map) noexcept {
+        template <class Key,
+            class Map,
+            class... Maps,
+            class Decayed = std::decay_t<Map>,
+            class I = meta::st_position<get_keys<Decayed>, Key>,
+            std::enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map, Maps && ...) noexcept {
             return tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map));
+        }
+
+        template <class Key>
+        GT_TARGET void at_key() {
+            GT_STATIC_ASSERT(sizeof(Key) != sizeof(Key), "wrong key");
+        }
+
+        template <class Key,
+            class Map,
+            class... Maps,
+            class Decayed = std::decay_t<Map>,
+            class I = meta::st_position<get_keys<Decayed>, Key>,
+            std::enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map, Maps && ... maps) noexcept {
+            return at_key<Key>(wstd::forward<Maps>(maps)...);
         }
 
         template <class Key,
@@ -185,7 +232,6 @@ namespace gridtools {
 
     namespace hymap {
         GT_TARGET_NAMESPACE {
-
             namespace hymap_detail {
                 template <class Fun, class Keys>
                 struct adapter_f {
@@ -194,8 +240,16 @@ namespace gridtools {
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) operator()(Value &&value) const {
                         return m_fun.template operator()<Key>(wstd::forward<Value>(value));
                     }
-                }; // namespace hymap_detail
-            }      // namespace hymap_detail
+                };
+
+                template <class Key>
+                struct merged_generator_f {
+                    template <class... Maps>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) operator()(Maps &&... maps) const {
+                        return gridtools::GT_TARGET_NAMESPACE_NAME::at_key<Key>(wstd::forward<Maps>(maps)...);
+                    }
+                };
+            } // namespace hymap_detail
 
             template <class Fun, class Map>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto transform(Fun && fun, Map && map) {
@@ -205,13 +259,20 @@ namespace gridtools {
             }
 
             template <class Fun, class Map>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto for_each(Fun && fun, Map && map) {
-                return tuple_util::GT_TARGET_NAMESPACE_NAME::for_each_index(
+            GT_TARGET GT_FORCE_INLINE void for_each(Fun && fun, Map && map) {
+                tuple_util::GT_TARGET_NAMESPACE_NAME::for_each_index(
                     hymap_detail::adapter_f<Fun, get_keys<std::decay_t<Map>>>{wstd::forward<Fun>(fun)},
                     wstd::forward<Map>(map));
             }
-        } // namespace hymap
-    }     // namespace hymap
+
+            template <class... Maps>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto merge(Maps && ... maps) {
+                using res_t = hymap_impl_::merged<meta::list<Maps &&...>>;
+                using generators_t = meta::transform<hymap_detail::merged_generator_f, get_keys<res_t>>;
+                return tuple_util::generate<generators_t, res_t>(wstd::forward<Maps>(maps)...);
+            }
+        }
+    } // namespace hymap
 } // namespace gridtools
 
 #endif // GT_TARGET_ITERATING

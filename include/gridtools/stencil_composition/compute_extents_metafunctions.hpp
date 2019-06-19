@@ -12,7 +12,6 @@
 #include "../meta.hpp"
 #include "esf_metafunctions.hpp"
 #include "mss.hpp"
-#include "mss_metafunctions.hpp"
 
 /** @file
     This file implements the metafunctions to perform data dependency analysis on a multi-stage computation (MSS).

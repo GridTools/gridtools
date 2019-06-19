@@ -148,11 +148,10 @@ namespace gridtools {
             Grid const &m_grid;
             execinfo_block_kserial_mc const &m_execution_info;
 
-            template <class From, class To, class StageGroups>
-            GT_FORCE_INLINE void operator()(loop_interval<From, To, StageGroups>) const {
-                gridtools::for_each<meta::flatten<StageGroups>>(
-                    inner_functor_mc_kserial<ExecutionType, ItDomain, Grid, From, To>{
-                        m_it_domain, m_grid, m_execution_info});
+            template <class From, class To, class Stages>
+            GT_FORCE_INLINE void operator()(loop_interval<From, To, Stages>) const {
+                gridtools::for_each<Stages>(inner_functor_mc_kserial<ExecutionType, ItDomain, Grid, From, To>{
+                    m_it_domain, m_grid, m_execution_info});
             }
         };
 
@@ -166,13 +165,12 @@ namespace gridtools {
             Grid const &m_grid;
             const execinfo_block_kparallel_mc &m_execution_info;
 
-            template <class From, class To, class StageGroups>
-            GT_FORCE_INLINE void operator()(loop_interval<From, To, StageGroups>) const {
-                if (m_execution_info.k < this->m_grid.template value_at<From>() ||
-                    m_execution_info.k > this->m_grid.template value_at<To>())
+            template <class From, class To, class Stages>
+            GT_FORCE_INLINE void operator()(loop_interval<From, To, Stages>) const {
+                if (m_execution_info.k < m_grid.template value_at<From>() ||
+                    m_execution_info.k > m_grid.template value_at<To>())
                     return;
-                gridtools::for_each<meta::flatten<StageGroups>>(
-                    inner_functor_mc_kparallel<ItDomain>{m_it_domain, m_execution_info});
+                gridtools::for_each<Stages>(inner_functor_mc_kparallel<ItDomain>{m_it_domain, m_execution_info});
             }
         };
 

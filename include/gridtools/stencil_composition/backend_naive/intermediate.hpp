@@ -40,7 +40,7 @@ namespace gridtools {
     namespace naive {
 
         template <class Mss>
-        using get_esfs = unwrap_independent<typename Mss::esf_sequence_t>;
+        using get_esfs = typename Mss::esf_sequence_t;
 
         template <class Plh, class Extent, class Grid>
         auto tmp_sizes(Grid const &grid) {
@@ -117,7 +117,7 @@ namespace gridtools {
                         using loop_interval_t = decltype(loop_interval);
                         using from_t = meta::first<loop_interval_t>;
                         using to_t = meta::second<loop_interval_t>;
-                        using stages_t = meta::flatten<meta::third<loop_interval_t>>;
+                        using stages_t = meta::third<loop_interval_t>;
                         for_each<stages_t>([&grid, &origin, &strides](auto stage) {
                             using extent_t = typename decltype(stage)::extent_t;
 

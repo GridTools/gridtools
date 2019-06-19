@@ -26,16 +26,20 @@
 namespace gridtools {
     namespace cuda {
         namespace fused_mss_loop_cuda_impl_ {
-            template <class ExecutionType, class From, class Grid>
-            GT_FUNCTION_DEVICE std::enable_if_t<!execute::is_parallel<ExecutionType>::value, int_t> compute_kblock(
-                Grid const &grid) {
-                return grid.template value_at<From>();
+            template <class Grid>
+            GT_FUNCTION_DEVICE auto compute_kblock(execute::forward, Grid const &grid) {
+                return grid.k_min();
             };
 
-            template <class ExecutionType, class From, class Grid>
+            template <class Grid>
+            GT_FUNCTION_DEVICE auto compute_kblock(execute::backward, Grid const &grid) {
+                return grid.k_max();
+            };
+
+            template <class ExecutionType, class Grid>
             GT_FUNCTION_DEVICE std::enable_if_t<execute::is_parallel<ExecutionType>::value, int_t> compute_kblock(
-                Grid const &grid) {
-                return max(blockIdx.z * ExecutionType::block_size, grid.template value_at<From>());
+                ExecutionType, Grid const &grid) {
+                return blockIdx.z * ExecutionType::block_size + grid.k_min();
             };
 
             template <class ExecutionType,
@@ -54,11 +58,9 @@ namespace gridtools {
 
                 LocalDomain m_local_domain;
                 Grid m_grid;
+                LoopIntervals m_loop_intervals;
 
                 GT_FUNCTION_DEVICE void operator()(int_t iblock, int_t jblock) const {
-                    using interval_t = meta::first<LoopIntervals>;
-                    using from_t = meta::first<interval_t>;
-
                     // number of threads
                     auto nx = m_grid.i_size();
                     auto ny = m_grid.j_size();
@@ -70,26 +72,26 @@ namespace gridtools {
                         block_size_j,
                         iblock,
                         jblock,
-                        compute_kblock<ExecutionType, from_t>(m_grid));
+                        compute_kblock(ExecutionType(), m_grid));
 
                     // execute the k interval functors
-                    run_functors_on_interval<ExecutionType, LoopIntervals, MaxExtent>(it_domain, m_grid);
+                    run_functors_on_interval<ExecutionType, MaxExtent>(it_domain, m_grid, m_loop_intervals);
                 }
             };
         } // namespace fused_mss_loop_cuda_impl_
 
         template <class ExecutionType,
-            class LoopIntervals,
             class MaxExtent,
             class EsfSequence,
             int_t BlockSizeI,
             int_t BlockSizeJ,
             class LocalDomain,
-            class Grid>
+            class Grid,
+            class LoopIntervals>
         fused_mss_loop_cuda_impl_::
             kernel_f<ExecutionType, LoopIntervals, MaxExtent, EsfSequence, BlockSizeI, BlockSizeJ, LocalDomain, Grid>
-            make_kernel(LocalDomain const &local_domain, Grid const &grid) {
-            return {local_domain, grid};
+            make_kernel(LocalDomain const &local_domain, Grid const &grid, LoopIntervals const &loop_intervals) {
+            return {local_domain, grid, loop_intervals};
         }
     } // namespace cuda
 } // namespace gridtools

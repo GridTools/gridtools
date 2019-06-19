@@ -34,43 +34,43 @@ namespace gridtools {
         template <class ExecutionType,
             class From,
             class To,
-            class StageGroups,
+            class Stages,
             class Grid,
             class Ptr,
             class Strides,
-            std::enable_if_t<!meta::is_empty<StageGroups>::value, int> = 0>
+            std::enable_if_t<!meta::is_empty<Stages>::value, int> = 0>
         GT_FORCE_INLINE void execute_interval(
-            loop_interval<From, To, StageGroups>, Grid const &grid, Ptr &ptr, Strides const &strides) {
+            loop_interval<From, To, Stages>, Grid const &grid, Ptr &ptr, Strides const &strides) {
             int_t n = grid.count(From{}, To{});
             for (int_t i = 0; i < n; ++i) {
-                for_each<meta::flatten<StageGroups>>([&](auto stage) { stage(ptr, strides); });
+                for_each<Stages>([&](auto stage) { stage(ptr, strides); });
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
             }
         }
 
         template <class ExecutionType,
             class Level,
-            class StageGroups,
+            class Stages,
             class Grid,
             class Ptr,
             class Strides,
-            std::enable_if_t<!meta::is_empty<StageGroups>::value, int> = 0>
+            std::enable_if_t<!meta::is_empty<Stages>::value, int> = 0>
         GT_FORCE_INLINE void execute_interval(
-            loop_interval<Level, Level, StageGroups>, Grid const &grid, Ptr &ptr, Strides const &strides) {
-            for_each<meta::flatten<StageGroups>>([&](auto stage) { stage(ptr, strides); });
+            loop_interval<Level, Level, Stages>, Grid const &grid, Ptr &ptr, Strides const &strides) {
+            for_each<Stages>([&](auto stage) { stage(ptr, strides); });
             sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
         }
 
         template <class ExecutionType,
             class From,
             class To,
-            class StageGroups,
+            class Stages,
             class Grid,
             class Ptr,
             class Strides,
-            std::enable_if_t<meta::is_empty<StageGroups>::value, int> = 0>
+            std::enable_if_t<meta::is_empty<Stages>::value, int> = 0>
         GT_FORCE_INLINE void execute_interval(
-            loop_interval<From, To, StageGroups>, Grid const &grid, Ptr &ptr, Strides const &strides) {
+            loop_interval<From, To, Stages>, Grid const &grid, Ptr &ptr, Strides const &strides) {
             sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType> * grid.count(From{}, To{}));
         }
     } // namespace mss_loop_x86_impl_

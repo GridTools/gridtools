@@ -45,21 +45,16 @@ typedef detail::cache_impl<cache_type::k, p_out, cache_io_policy::local> cache3_
 typedef detail::cache_impl<cache_type::k, p_notin, cache_io_policy::local> cache4_t;
 typedef std::tuple<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
-using esf1k_t = decltype(make_stage<functor2>(p_in(), p_notin()));
-using esf2k_t = decltype(make_stage<functor2>(p_notin(), p_out()));
+using stage1_t = decltype(make_stage<functor2>(p_in(), p_notin()));
+using stage2_t = decltype(make_stage<functor2>(p_notin(), p_out()));
 
-using esfk_sequence_t = meta::list<esf1k_t, esf2k_t>;
+template <class... Stages>
+using esfs = typename decltype(make_multistage(execute::forward(), Stages{}...))::esf_sequence_t;
+
+using esfk_sequence_t = esfs<stage1_t, stage2_t>;
 
 static_assert(std::is_same<extract_k_extent_for_cache<p_out, esfk_sequence_t>, extent<0, 0, 0, 0, 0, 1>>(), "");
 
 static_assert(std::is_same<extract_k_extent_for_cache<p_notin, esfk_sequence_t>, extent<0, 0, 0, 0, -1, 1>>(), "");
 
-TEST(cache_metafunctions, get_k_cache_storage_map) {
-
-    using testee_t = get_k_cache_storage_map<caches_t, esfk_sequence_t>;
-
-    using expected_t = hymap::keys<p_out, p_notin>::values<k_cache_storage<p_out, float_type, 0, 1>,
-        k_cache_storage<p_notin, float_type, -1, 1>>;
-
-    static_assert(std::is_same<testee_t, expected_t>::value, "");
-}
+TEST(dummy, dummy) {}

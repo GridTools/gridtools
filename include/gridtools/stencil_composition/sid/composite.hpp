@@ -92,8 +92,6 @@ namespace gridtools {
 
                 template <template <class...> class L, class Key, class PrimaryIndex, class... SecondaryIndices>
                 struct item_generator<L<Key, PrimaryIndex, SecondaryIndices...>> {
-                    using type = item_generator;
-
                     template <class Args, class Res = tuple_util::element<PrimaryIndex::value, Args>>
                     Res const &operator()(Args const &args) const noexcept {
                         GT_STATIC_ASSERT(
@@ -307,8 +305,6 @@ namespace gridtools {
                 };
 
               public:
-                using type = keys;
-
                 template <class... Sids>
                 class values {
                     GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
@@ -353,8 +349,6 @@ namespace gridtools {
                     using ptr_diff_t = compress<ptr_diff_type<Sids>...>;
 
                   public:
-                    using type = values;
-
                     // Here the `SID` concept is modeled
 
                     friend ptr_holder_t sid_get_origin(values &obj) {
