@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import collections
 import json
 
 from pyutils import log
@@ -10,19 +9,35 @@ from perftest import time
 version = 0.5
 
 
-Result = collections.namedtuple('Result',
-                                ['version', 'datetime', 'runinfo', 'domain',
-                                 'times'])
+def record(name, attrs):
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    def __repr__(self):
+        attrrepr = ', '.join(f'{s}={getattr(self, s)}' for s in self.__slots__)
+        return f'{self.__class__.__name__}({attrrepr})'
+
+    def __iter__(self):
+        for s in self.__slots__:
+            yield s, getattr(self, s)
+
+    return type(name, (), dict(__slots__=tuple(attrs),
+                               __init__=__init__,
+                               __repr__=__repr__,
+                               __iter__=__iter__))
 
 
-RunInfo = collections.namedtuple('RunInfo',
-                                 ['name', 'version', 'datetime', 'precision',
-                                  'backend', 'grid', 'compiler', 'hostname',
-                                  'clustername'])
+Result = record('Result',
+                ['version', 'datetime', 'runinfo', 'domain', 'times'])
 
 
-Time = collections.namedtuple('Time',
-                              ['stencil', 'measurements'])
+RunInfo = record('RunInfo',
+                 ['name', 'version', 'datetime', 'precision', 'backend',
+                  'grid', 'compiler', 'hostname', 'clustername'])
+
+
+Time = record('Time', ['stencil', 'measurements'])
 
 
 def from_data(runinfo, domain, stencils, times):
@@ -53,13 +68,12 @@ def save(filename, data):
         data: An instance of `Result`.
     """
     log.debug(f'Saving data to {filename}', data)
+
     def convert(d):
         if isinstance(d, time.datetime):
             return time.timestr(d)
-        try:
-            return d._asdict()
-        except AttributeError:
-            return d
+        if isinstance(d, (Result, RunInfo, Time)):
+            return dict(d)
 
     with open(filename, 'w') as fp:
         json.dump(data, fp, indent=4, sort_keys=True, default=convert)
@@ -152,10 +166,10 @@ def compare(results):
         A tuple of one `Data` object holding all common result attributes and
         a list of `Data` objects holding all other (unequal) attributes.
     """
-    first, *rest = [r._asdict() for r in results]
+    first, *rest = [dict(r) for r in results]
     common_keys = set(first.keys()).intersection(*(r.keys() for r in rest))
     common = {k: first[k] for k in common_keys
               if all(first[k] == r[k] for r in rest)}
-    diff = [{k: v for k, v in r._asdict().items() if k not in common.keys()}
+    diff = [{k: v for k, v in r if k not in common.keys()}
             for r in results]
     return common, diff
