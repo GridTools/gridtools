@@ -74,7 +74,7 @@ namespace gridtools {
                     return lhs == rhs;
                 }
 
-                GT_FORCE_INLINE bool maybe_equal(...) { return true; }
+                inline bool maybe_equal(...) { return true; }
 
                 template <class PrimaryValue, class Tup>
                 bool are_secondaries_equal_to_primary(PrimaryValue const &, Tup const &) {
