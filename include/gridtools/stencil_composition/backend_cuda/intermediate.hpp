@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include <tuple>
 #include <type_traits>
+#include <utility>
 
 #include "../../common/cuda_type_traits.hpp"
 #include "../../common/cuda_util.hpp"
@@ -170,7 +170,7 @@ namespace gridtools {
                 Plhs{});
         }
 
-        using positionals_t = std::tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
+        using positionals_t = tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
 
         template <class Grid>
         positionals_t make_positionals(Grid const &grid) {
@@ -379,7 +379,7 @@ namespace gridtools {
                     shared_allocator shared_alloc;
 
                     auto composite = tuple_util::convert_to<composite_keys_t::template values>(
-                        tuple_util::deep_copy(tuple_util::flatten(tuple_util::make<std::tuple>( //
+                        tuple_util::deep_copy(tuple_util::flatten(tuple_util::make<tuple>( //
                             make_k_cached<k_cached_plhs_t, esfs_t>(),
                             make_ij_cached<ij_cached_plhs_t, extent_map_t>(shared_alloc),
                             make_data_stores<non_tmp_non_cached_plhs_t>(grid, data_store_map),
