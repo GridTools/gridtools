@@ -61,37 +61,21 @@ namespace gridtools {
                     meta::iseq_to_list<std::make_integer_sequence<Int, Size>, tuple>{});
             }
 
-            template <uint_t BlockSize>
-            GT_FUNCTION_DEVICE auto strip_from(execute::parallel_block<BlockSize>, int_t src) {
-                return math::max<int_t>(blockIdx.z * BlockSize, src);
-            }
-
-            template <uint_t BlockSize>
-            GT_FUNCTION_DEVICE auto strip_to(execute::parallel_block<BlockSize>, int_t src) {
-                return math::min<int_t>((blockIdx.z + 1) * BlockSize - 1, src);
-            }
-
             template <class ExecutionType>
-            struct modify_count_f {
-                template <class Count>
-                GT_FUNCTION_DEVICE Count operator()(Count count) const {
-                    return count;
-                }
-            };
+            GT_FUNCTION_DEVICE auto make_count_modifier(ExecutionType) {
+                return [](auto x) { return x; };
+            }
 
-            template <uint_t BlockSize>
-            struct modify_count_f<execute::parallel_block<BlockSize>> {
-                mutable int_t m_cur = -blockIdx.z * BlockSize;
-
-                template <class Count>
-                GT_FUNCTION_DEVICE int_t operator()(Count count) const {
-                    if (m_cur >= BlockSize)
+            template <int_t BlockSize>
+            GT_FUNCTION_DEVICE auto make_count_modifier(execute::parallel_block<BlockSize>) {
+                return [cur = -(int_t)blockIdx.z * BlockSize](int_t x) mutable {
+                    if (cur >= BlockSize)
                         return 0;
-                    int_t res = math::min<int_t>(m_cur + count, BlockSize) - math::max(m_cur, 0);
-                    m_cur += count;
+                    int_t res = math::min(cur + x, BlockSize) - math::max(cur, 0);
+                    cur += x;
                     return res;
-                }
-            };
+                };
+            }
         } // namespace _impl
 
         template <class ExecutionType, class MaxExtent, class ItDomain, class Grid, class LoopIntervals>
@@ -123,10 +107,10 @@ namespace gridtools {
         template <class ExecutionType, class MaxExtent, class ItDomain, class Grid, class LoopIntervals>
         GT_FUNCTION_DEVICE std::enable_if_t<!ItDomain::has_k_caches> run_functors_on_interval(
             ItDomain &it_domain, Grid const &grid, LoopIntervals const &loop_intervals) {
-            _impl::modify_count_f<ExecutionType> modify_count;
+            auto count_modifier = _impl::make_count_modifier(ExecutionType{});
             tuple_util::device::for_each(
                 [&](auto const &loop_interval) {
-                    auto count = modify_count(loop_interval.count());
+                    auto count = count_modifier(loop_interval.count());
                     for (int_t i = 0; i < count; ++i) {
                         loop_interval(it_domain.ptr(), it_domain.strides(), [&](auto extent) {
                             return it_domain.template is_thread_in_domain<decltype(extent)>();
