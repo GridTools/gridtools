@@ -54,9 +54,9 @@ namespace gridtools {
          */
         template <typename RunFunctorArgs, typename IterateDomain, typename Grid>
         struct color_execution_functor {
-            GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArgs>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
             template <class Color>
             using has_color = meta::any_of<loop_interval_contains_color<Color::value>::template apply,
@@ -93,11 +93,11 @@ namespace gridtools {
      * @tparam RunFunctorArgs run functor arguments
      */
     template <class RunFunctorArgs, class LocalDomain, class Grid, class ExecutionInfo>
-    GT_FORCE_INLINE static void mss_loop(
+    GT_FORCE_INLINE void mss_loop(
         backend::x86, LocalDomain const &local_domain, Grid const &grid, ExecutionInfo const &execution_info) {
-        GT_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArgs>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
         using iterate_domain_t = iterate_domain_x86<LocalDomain>;
         iterate_domain_t it_domain(local_domain);
@@ -122,7 +122,7 @@ namespace gridtools {
         static constexpr int_t n_colors =
             _impl_mss_loop_x86::get_ncolors<typename RunFunctorArgs::loop_intervals_t>::value;
         for (int_t i = 0; i != size_i; ++i) {
-            gridtools::for_each<meta::make_indices_c<n_colors>>(
+            for_each<meta::make_indices_c<n_colors>>(
                 _impl_mss_loop_x86::color_execution_functor<RunFunctorArgs, iterate_domain_t, Grid>{
                     it_domain, grid, size_j});
             it_domain.increment_c(integral_constant<int, -n_colors>{});

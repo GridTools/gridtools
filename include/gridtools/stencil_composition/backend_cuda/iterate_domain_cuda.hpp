@@ -21,17 +21,12 @@
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../meta.hpp"
-#include "../block.hpp"
 #include "../caches/cache_metafunctions.hpp"
 #include "../caches/extract_extent_caches.hpp"
 #include "../dim.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../execution_types.hpp"
-#include "../iterate_domain_fwd.hpp"
-#include "../local_domain.hpp"
-#include "../pos3.hpp"
 #include "../positional.hpp"
-#include "../run_functor_arguments.hpp"
 #include "../sid/multi_shift.hpp"
 #include "k_cache.hpp"
 
@@ -50,41 +45,19 @@ namespace gridtools {
             orig = cache;
         }
 
-        template <class LocalDomain, class EsfSequence>
+        template <class LocalDomain>
         class iterate_domain {
             using caches_t = typename LocalDomain::cache_sequence_t;
-            using k_cache_args_t = k_cache_args<caches_t>;
-            using readonly_args_t = compute_readonly_args<EsfSequence>;
 
-          public:
-            struct deref_f {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
-                template <class Arg, class T>
-                GT_FUNCTION
-                    std::enable_if_t<meta::st_contains<readonly_args_t, Arg>::value && is_texture_type<T>::value, T>
-                    operator()(T *ptr) const {
-                    return __ldg(ptr);
-                }
-#endif
-                template <class, class Ptr>
-                GT_FUNCTION decltype(auto) operator()(Ptr ptr) const {
-                    return *ptr;
-                }
-            };
-
-          private:
             LocalDomain const &m_local_domain;
             typename LocalDomain::ptr_t m_ptr;
-            int_t m_block_size_i;
-            int_t m_block_size_j;
-            int_t m_thread_pos[2];
             k_caches_holder<typename LocalDomain::ptr_t, typename LocalDomain::strides_t> m_k_caches_holder;
 
             template <class Arg, class Offset>
             GT_FUNCTION_DEVICE decltype(auto) deref(Offset offset) const {
-                auto ptr = host_device::at_key<Arg>(m_ptr);
+                auto ptr = device::at_key<Arg>(m_ptr);
                 sid::shift(ptr, sid::get_stride<Arg, dim::k>(m_local_domain.m_strides), offset);
-                return deref_f().template operator()<Arg>(ptr);
+                return *ptr;
             }
 
             template <sync_type SyncType, class Arg, class Offset>
@@ -124,14 +97,8 @@ namespace gridtools {
             }
 
           public:
-            GT_FUNCTION_DEVICE iterate_domain(LocalDomain const &local_domain,
-                int_t block_size_i,
-                int_t block_size_j,
-                int_t ipos,
-                int_t jpos,
-                int_t kpos)
-                : m_local_domain(local_domain), m_ptr(local_domain.m_ptr_holder()), m_block_size_i(block_size_i),
-                  m_block_size_j(block_size_j), m_thread_pos{ipos, jpos} {
+            GT_FUNCTION_DEVICE iterate_domain(LocalDomain const &local_domain, int_t ipos, int_t jpos, int_t kpos)
+                : m_local_domain(local_domain), m_ptr(local_domain.m_ptr_holder()) {
                 typename LocalDomain::ptr_diff_t ptr_offset{};
                 shift<sid::blocked_dim<dim::i>>(ptr_offset, blockIdx.x);
                 shift<sid::blocked_dim<dim::j>>(ptr_offset, blockIdx.y);
@@ -161,22 +128,6 @@ namespace gridtools {
             GT_FUNCTION_DEVICE static negation<meta::is_empty<ij_caches<caches_t>>> has_ij_caches() { return {}; }
             static constexpr bool has_k_caches = !meta::is_empty<k_caches<caches_t>>::value;
 
-            /**
-             * @brief determines whether the current (i,j) position is within the block size
-             */
-            template <class Extent>
-            GT_FUNCTION_DEVICE bool is_thread_in_domain() const {
-                return Extent::iminus::value <= m_thread_pos[0] &&
-                       Extent::iplus::value > m_thread_pos[0] - m_block_size_i &&
-                       Extent::jminus::value <= m_thread_pos[1] &&
-                       Extent::jplus::value > m_thread_pos[1] - m_block_size_j;
-            }
-
-            GT_FUNCTION_DEVICE void set_block_pos(int_t ipos, int_t jpos) {
-                m_thread_pos[0] = ipos;
-                m_thread_pos[1] = jpos;
-            }
-
             template <class ExecutionType, class IsFirstLevel>
             GT_FUNCTION_DEVICE void fill_caches(ExecutionType, IsFirstLevel) {
                 using filling_cache_args_t = meta::transform<cache_parameter, meta::filter<is_filling_cache, caches_t>>;
@@ -196,7 +147,4 @@ namespace gridtools {
             GT_FUNCTION decltype(auto) strides() const { return m_local_domain.m_strides; }
         };
     } // namespace cuda
-
-    template <class LocalDomain, class EsfSequence>
-    struct is_iterate_domain<cuda::iterate_domain<LocalDomain, EsfSequence>> : std::true_type {};
 } // namespace gridtools

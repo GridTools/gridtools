@@ -281,9 +281,9 @@ namespace gridtools {
             template <class Ptr, class Strides, class Validator>
             GT_FUNCTION_DEVICE void operator()(
                 Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Validator const &validator) const {
+                syncthreads(NeedSync{});
                 if (validator(Stage::extent()))
                     Stage{}.template operator()<Deref>(ptr, strides);
-                syncthreads(NeedSync{});
             }
         };
 
@@ -398,14 +398,10 @@ namespace gridtools {
 
                     auto loop_intervals = make_loop_intervals<execution_type_t, mss_t, extent_map_t>(grid);
 
-                    // number of blocks required
-                    uint_t xblocks = (grid.i_size() + GT_DEFAULT_TILE_I - 1) / GT_DEFAULT_TILE_I;
-                    uint_t yblocks = (grid.j_size() + GT_DEFAULT_TILE_J - 1) / GT_DEFAULT_TILE_J;
-                    uint_t zblocks = blocks_required_z<execution_type_t>(grid.k_total_length());
-
-                    launch_kernel<max_extent_t, GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J>({xblocks, yblocks, zblocks},
-                        make_kernel<execution_type_t, max_extent_t, esfs_t, GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J>(
-                            local_domain, grid, loop_intervals),
+                    launch_kernel<max_extent_t, GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J>(grid.i_size(),
+                        grid.j_size(),
+                        blocks_required_z<execution_type_t>(grid.k_total_length()),
+                        make_kernel<execution_type_t>(local_domain, grid, loop_intervals),
                         shared_alloc.size());
                 });
             };

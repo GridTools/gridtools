@@ -78,22 +78,19 @@ namespace gridtools {
             }
         } // namespace _impl
 
-        template <class ExecutionType, class MaxExtent, class ItDomain, class Grid, class LoopIntervals>
+        template <class ExecutionType, class ItDomain, class LoopIntervals, class Validator>
         GT_FUNCTION_DEVICE std::enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(
-            ItDomain &it_domain, Grid const &, LoopIntervals const &loop_intervals) {
-            bool in_domain = it_domain.template is_thread_in_domain<MaxExtent>();
+            ItDomain &it_domain, LoopIntervals const &loop_intervals, Validator const &validator) {
             _impl::for_each_with_first_last(
                 [&](auto const &loop_interval, auto is_first_interval, auto is_last_interval) {
                     _impl::loop_with_first_last(
                         [&](auto is_first_level, auto is_last_level) {
-                            if (in_domain)
+                            if (validator())
                                 it_domain.fill_caches(ExecutionType(),
                                     bool_constant<decltype(is_first_interval)::value &&decltype(
                                         is_first_level)::value>());
-                            loop_interval(it_domain.ptr(), it_domain.strides(), [&](auto extent) {
-                                return it_domain.template is_thread_in_domain<decltype(extent)>();
-                            });
-                            if (in_domain)
+                            loop_interval(it_domain.ptr(), it_domain.strides(), validator);
+                            if (validator())
                                 it_domain.flush_caches(ExecutionType(),
                                     bool_constant<decltype(is_last_interval)::value &&decltype(
                                         is_last_level)::value>());
@@ -104,17 +101,15 @@ namespace gridtools {
                 loop_intervals);
         }
 
-        template <class ExecutionType, class MaxExtent, class ItDomain, class Grid, class LoopIntervals>
+        template <class ExecutionType, class ItDomain, class LoopIntervals, class Validator>
         GT_FUNCTION_DEVICE std::enable_if_t<!ItDomain::has_k_caches> run_functors_on_interval(
-            ItDomain &it_domain, Grid const &grid, LoopIntervals const &loop_intervals) {
+            ItDomain &it_domain, LoopIntervals const &loop_intervals, Validator const &validator) {
             auto count_modifier = _impl::make_count_modifier(ExecutionType{});
             tuple_util::device::for_each(
                 [&](auto const &loop_interval) {
                     auto count = count_modifier(loop_interval.count());
                     for (int_t i = 0; i < count; ++i) {
-                        loop_interval(it_domain.ptr(), it_domain.strides(), [&](auto extent) {
-                            return it_domain.template is_thread_in_domain<decltype(extent)>();
-                        });
+                        loop_interval(it_domain.ptr(), it_domain.strides(), validator);
                         it_domain.increment_k(ExecutionType());
                     }
                 },

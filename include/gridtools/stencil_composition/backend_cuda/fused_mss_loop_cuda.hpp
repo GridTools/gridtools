@@ -17,8 +17,6 @@
 #include "../../meta.hpp"
 #include "../execution_types.hpp"
 #include "../grid.hpp"
-#include "../local_domain.hpp"
-#include "../mss_components.hpp"
 #include "basic_token_execution_cuda.hpp"
 #include "iterate_domain_cuda.hpp"
 #include "launch_kernel.hpp"
@@ -42,17 +40,8 @@ namespace gridtools {
                 return blockIdx.z * ExecutionType::block_size + grid.k_min();
             };
 
-            template <class ExecutionType,
-                class LoopIntervals,
-                class MaxExtent,
-                class EsfSequence,
-                int_t BlockSizeI,
-                int_t BlockSizeJ,
-                class LocalDomain,
-                class Grid>
+            template <class ExecutionType, class LoopIntervals, class LocalDomain, class Grid>
             struct kernel_f {
-                using iterate_domain_t = iterate_domain<LocalDomain, EsfSequence>;
-
                 GT_STATIC_ASSERT(std::is_trivially_copyable<LocalDomain>::value, GT_INTERNAL_ERROR);
                 GT_STATIC_ASSERT(std::is_trivially_copyable<Grid>::value, GT_INTERNAL_ERROR);
 
@@ -60,37 +49,19 @@ namespace gridtools {
                 Grid m_grid;
                 LoopIntervals m_loop_intervals;
 
-                GT_FUNCTION_DEVICE void operator()(int_t iblock, int_t jblock) const {
-                    // number of threads
-                    auto nx = m_grid.i_size();
-                    auto ny = m_grid.j_size();
-                    auto block_size_i = (blockIdx.x + 1) * BlockSizeI < nx ? BlockSizeI : nx - blockIdx.x * BlockSizeI;
-                    auto block_size_j = (blockIdx.y + 1) * BlockSizeJ < ny ? BlockSizeJ : ny - blockIdx.y * BlockSizeJ;
-
-                    iterate_domain_t it_domain(m_local_domain,
-                        block_size_i,
-                        block_size_j,
-                        iblock,
-                        jblock,
-                        compute_kblock(ExecutionType(), m_grid));
-
+                template <class Validator>
+                GT_FUNCTION_DEVICE void operator()(int_t iblock, int_t jblock, Validator &&validator) const {
+                    iterate_domain<LocalDomain> it_domain(
+                        m_local_domain, iblock, jblock, compute_kblock(ExecutionType(), m_grid));
                     // execute the k interval functors
-                    run_functors_on_interval<ExecutionType, MaxExtent>(it_domain, m_grid, m_loop_intervals);
+                    run_functors_on_interval<ExecutionType>(it_domain, m_loop_intervals, validator);
                 }
             };
         } // namespace fused_mss_loop_cuda_impl_
 
-        template <class ExecutionType,
-            class MaxExtent,
-            class EsfSequence,
-            int_t BlockSizeI,
-            int_t BlockSizeJ,
-            class LocalDomain,
-            class Grid,
-            class LoopIntervals>
-        fused_mss_loop_cuda_impl_::
-            kernel_f<ExecutionType, LoopIntervals, MaxExtent, EsfSequence, BlockSizeI, BlockSizeJ, LocalDomain, Grid>
-            make_kernel(LocalDomain const &local_domain, Grid const &grid, LoopIntervals const &loop_intervals) {
+        template <class ExecutionType, class LocalDomain, class Grid, class LoopIntervals>
+        fused_mss_loop_cuda_impl_::kernel_f<ExecutionType, LoopIntervals, LocalDomain, Grid> make_kernel(
+            LocalDomain const &local_domain, Grid const &grid, LoopIntervals const &loop_intervals) {
             return {local_domain, grid, loop_intervals};
         }
     } // namespace cuda
