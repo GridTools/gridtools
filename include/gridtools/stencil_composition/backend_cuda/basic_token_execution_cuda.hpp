@@ -66,12 +66,12 @@ namespace gridtools {
                 return [](auto x) { return x; };
             }
 
-            template <int_t BlockSize>
+            template <uint_t BlockSize>
             GT_FUNCTION_DEVICE auto make_count_modifier(execute::parallel_block<BlockSize>) {
-                return [cur = -(int_t)blockIdx.z * BlockSize](int_t x) mutable {
-                    if (cur >= BlockSize)
+                return [cur = -(int_t)blockIdx.z * (int_t)BlockSize](int_t x) mutable {
+                    if (cur >= (int_t)BlockSize)
                         return 0;
-                    int_t res = math::min(cur + x, BlockSize) - math::max(cur, 0);
+                    int_t res = math::min(cur + x, (int_t)BlockSize) - math::max(cur, 0);
                     cur += x;
                     return res;
                 };
