@@ -32,19 +32,18 @@ namespace gridtools {
                     (blockIdx.x + 1) * IBlockSize < m_i_size ? IBlockSize : m_i_size - blockIdx.x * IBlockSize;
                 int_t j_block_size =
                     (blockIdx.y + 1) * JBlockSize < m_j_size ? JBlockSize : m_j_size - blockIdx.y * JBlockSize;
-                bool expected = Extent::iminus::value > iblock && Extent::iplus::value + i_block_size > iblock &&
-                                Extent::jminus::value > jblock && Extent::jplus::value + j_block_size > jblock;
+                bool expected = Extent::iminus::value <= iblock && Extent::iplus::value + i_block_size > iblock &&
+                                Extent::jminus::value <= jblock && Extent::jplus::value + j_block_size > jblock;
                 bool actual = is_valid(Extent());
                 if (actual == expected)
                     return;
                 atomicAdd(m_failures, 1);
-                printf("failure at {%d,%d} of block {%d,%d}: expected = %s, actual = %s\n",
+                printf("failure at {%d,%d} of block {%d,%d}: false %s\n",
                     iblock,
                     jblock,
                     blockIdx.x,
                     blockIdx.y,
-                    expected ? "true" : "false",
-                    actual ? "true" : "false");
+                    actual ? "positive" : "negative");
             }
         };
 

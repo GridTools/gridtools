@@ -69,7 +69,10 @@ namespace gridtools {
             struct dim_validator_f<Dim, region::minus> {
                 int_t m_lim;
 
-                GT_FUNCTION_DEVICE dim_validator_f(int_t pos, int_t block_size) : m_lim(pos) {}
+                GT_FUNCTION_DEVICE dim_validator_f(int_t pos, int_t block_size) : m_lim(pos) {
+                    assert(pos < 0);
+                    assert(block_size > 0);
+                }
 
                 template <class Extent>
                 GT_FUNCTION_DEVICE bool validate(Extent) const {
@@ -79,7 +82,11 @@ namespace gridtools {
 
             template <class Dim>
             struct dim_validator_f<Dim, region::center> {
-                GT_FUNCTION_DEVICE dim_validator_f(int_t pos, int_t block_size) {}
+                GT_FUNCTION_DEVICE dim_validator_f(int_t pos, int_t block_size) {
+                    assert(pos >= 0);
+                    assert(block_size > 0);
+                    assert(pos < block_size);
+                }
 
                 template <class Extent>
                 GT_FUNCTION_DEVICE bool validate(Extent) const {
@@ -91,7 +98,10 @@ namespace gridtools {
             struct dim_validator_f<Dim, region::plus> {
                 int_t m_lim;
 
-                GT_FUNCTION_DEVICE dim_validator_f(int_t pos, int_t block_size) : m_lim(pos - block_size) {}
+                GT_FUNCTION_DEVICE dim_validator_f(int_t pos, int_t block_size) : m_lim(pos - block_size) {
+                    assert(block_size > 0);
+                    assert(pos >= block_size);
+                }
 
                 template <class Extent>
                 GT_FUNCTION_DEVICE bool validate(Extent) const {
@@ -107,7 +117,7 @@ namespace gridtools {
 
                 GT_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
 
-                GT_FUNCTION_DEVICE extent_validator_f(int_t i_pos, int_t i_block_size, int_t j_pos, int_t j_block_size)
+                GT_FUNCTION_DEVICE extent_validator_f(int_t i_pos, int_t j_pos, int_t i_block_size, int_t j_block_size)
                     : i_validator_t(i_pos, i_block_size), j_validator_t(j_pos, j_block_size) {}
 
                 template <class Extent = MaxExtent>
@@ -146,11 +156,12 @@ namespace gridtools {
                 Fun const &fun, int_t i_block, int_t j_block, int_t i_block_size, int_t j_block_size) {
                 region i_region = get_region(i_block, i_block_size);
                 region j_region = get_region(j_block, j_block_size);
-                region_dispatch(i_region, [=, &fun](auto i_region) {
-                    region_dispatch(i_region, [=, &fun](auto j_region) {
+
+                region_dispatch(i_region, [=, &fun](auto i_region_c) {
+                    region_dispatch(j_region, [=, &fun](auto j_region_c) {
                         fun(i_block,
                             j_block,
-                            extent_validator_f<Extent, decltype(i_region)::value, decltype(j_region)::value>{
+                            extent_validator_f<Extent, decltype(i_region_c)::value, decltype(j_region_c)::value>{
                                 i_block, j_block, i_block_size, j_block_size});
                     });
                 });
@@ -190,7 +201,7 @@ namespace gridtools {
                 int_t i_block_size =
                     (blockIdx.x + 1) * BlockSizeI < i_size ? BlockSizeI : i_size - blockIdx.x * BlockSizeI;
                 int_t j_block_size =
-                    (blockIdx.y + 1) * BlockSizeJ < j_size ? BlockSizeJ : i_size - blockIdx.y * BlockSizeJ;
+                    (blockIdx.y + 1) * BlockSizeJ < j_size ? BlockSizeJ : j_size - blockIdx.y * BlockSizeJ;
 
                 call_with_validator<Extent>(fun, i_block, j_block, i_block_size, j_block_size);
             }

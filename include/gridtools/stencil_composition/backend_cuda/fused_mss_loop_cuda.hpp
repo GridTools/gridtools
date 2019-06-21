@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
@@ -50,11 +51,11 @@ namespace gridtools {
                 LoopIntervals m_loop_intervals;
 
                 template <class Validator>
-                GT_FUNCTION_DEVICE void operator()(int_t iblock, int_t jblock, Validator &&validator) const {
+                GT_FUNCTION_DEVICE void operator()(int_t iblock, int_t jblock, Validator validator) const {
                     iterate_domain<LocalDomain> it_domain(
                         m_local_domain, iblock, jblock, compute_kblock(ExecutionType(), m_grid));
                     // execute the k interval functors
-                    run_functors_on_interval<ExecutionType>(it_domain, m_loop_intervals, validator);
+                    run_functors_on_interval<ExecutionType>(it_domain, m_loop_intervals, wstd::move(validator));
                 }
             };
         } // namespace fused_mss_loop_cuda_impl_

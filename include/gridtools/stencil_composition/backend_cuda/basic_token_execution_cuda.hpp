@@ -80,7 +80,7 @@ namespace gridtools {
 
         template <class ExecutionType, class ItDomain, class LoopIntervals, class Validator>
         GT_FUNCTION_DEVICE std::enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(
-            ItDomain &it_domain, LoopIntervals const &loop_intervals, Validator const &validator) {
+            ItDomain &it_domain, LoopIntervals const &loop_intervals, Validator validator) {
             _impl::for_each_with_first_last(
                 [&](auto const &loop_interval, auto is_first_interval, auto is_last_interval) {
                     _impl::loop_with_first_last(
@@ -103,7 +103,7 @@ namespace gridtools {
 
         template <class ExecutionType, class ItDomain, class LoopIntervals, class Validator>
         GT_FUNCTION_DEVICE std::enable_if_t<!ItDomain::has_k_caches> run_functors_on_interval(
-            ItDomain &it_domain, LoopIntervals const &loop_intervals, Validator const &validator) {
+            ItDomain &it_domain, LoopIntervals const &loop_intervals, Validator validator) {
             auto count_modifier = _impl::make_count_modifier(ExecutionType{});
             tuple_util::device::for_each(
                 [&](auto const &loop_interval) {
