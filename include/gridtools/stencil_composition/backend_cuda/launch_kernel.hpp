@@ -17,6 +17,7 @@
 
 #include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
 #include "../dim.hpp"
 #include "../extent.hpp"
