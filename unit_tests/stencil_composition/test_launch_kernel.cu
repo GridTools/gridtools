@@ -94,7 +94,7 @@ namespace gridtools {
                     if (count == 3)
                         return;
                     atomicAdd(m_failures, 1);
-                    printf("failure: i = %d, count == %d\n", count);
+                    printf("failure: i = %d, count == %d\n", iblock, count);
                 }
             }
         };
@@ -102,7 +102,7 @@ namespace gridtools {
         TEST(syncthreads, smoke) {
             auto failures = cuda_util::make_clone(0);
             auto count = cuda_util::make_clone(0);
-            launch_kernel<extent<-1, 0, 1, 0>, 32, 8>(1, 1, 1, syncthreads_kernel_f{failures.get(), count.get()}, 0);
+            launch_kernel<extent<-1, 1>, 32, 8>(1, 1, 1, syncthreads_kernel_f{failures.get(), count.get()}, 0);
             EXPECT_EQ(0, cuda_util::from_clone(failures));
         }
     } // namespace cuda
