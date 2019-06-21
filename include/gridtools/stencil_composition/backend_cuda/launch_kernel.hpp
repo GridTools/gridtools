@@ -183,6 +183,75 @@ namespace gridtools {
                 region i_region = get_region(i_block, i_block_size);
                 region j_region = get_region(j_block, j_block_size);
 
+                switch (i_region) {
+                case region::minus:
+                    switch (j_region) {
+                    case region::minus:
+                        fun(i_block,
+                            j_block,
+                            extent_validator_f<Extent, region::minus, region::minus>{
+                                i_block, j_block, i_block_size, j_block_size});
+                        break;
+                    case region::center:
+                        fun(i_block,
+                            j_block,
+                            extent_validator_f<Extent, region::minus, region::center>{
+                                i_block, j_block, i_block_size, j_block_size});
+                        break;
+                    case region::plus:
+                        fun(i_block,
+                            j_block,
+                            extent_validator_f<Extent, region::minus, region::plus>{
+                                i_block, j_block, i_block_size, j_block_size});
+                        break;
+                    }
+                    break;
+                case region::center:
+                    switch (j_region) {
+                    case region::minus:
+                        fun(i_block,
+                            j_block,
+                            extent_validator_f<Extent, region::center, region::minus>{
+                                i_block, j_block, i_block_size, j_block_size});
+                        break;
+                    case region::center:
+                        fun(i_block,
+                            j_block,
+                            extent_validator_f<Extent, region::center, region::center>{
+                                i_block, j_block, i_block_size, j_block_size});
+                        break;
+                    case region::plus:
+                        fun(i_block,
+                            j_block,
+                            extent_validator_f<Extent, region::center, region::plus>{
+                                i_block, j_block, i_block_size, j_block_size});
+                        break;
+                    }
+                    break;
+                case region::plus:
+                    switch (j_region) {
+                    case region::minus:
+                        fun(i_block,
+                            j_block,
+                            extent_validator_f<Extent, region::plus, region::minus>{
+                                i_block, j_block, i_block_size, j_block_size});
+                        break;
+                    case region::center:
+                        fun(i_block,
+                            j_block,
+                            extent_validator_f<Extent, region::plus, region::center>{
+                                i_block, j_block, i_block_size, j_block_size});
+                        break;
+                    case region::plus:
+                        fun(i_block,
+                            j_block,
+                            extent_validator_f<Extent, region::plus, region::plus>{
+                                i_block, j_block, i_block_size, j_block_size});
+                        break;
+                    }
+                    break;
+                }
+#if 0
                 region_dispatch(i_region, [=, &fun](auto i_region_c) {
                     region_dispatch(j_region, [=, &fun](auto j_region_c) {
                         fun(i_block,
@@ -191,6 +260,7 @@ namespace gridtools {
                                 i_block, j_block, i_block_size, j_block_size});
                     });
                 });
+#endif
             }
 
             template <size_t NumThreads, int_t BlockSizeI, int_t BlockSizeJ, class Extent, class Fun>
@@ -229,8 +299,9 @@ namespace gridtools {
                 int_t j_block_size =
                     (blockIdx.y + 1) * BlockSizeJ < j_size ? BlockSizeJ : j_size - blockIdx.y * BlockSizeJ;
 
-                //                call_with_validator<Extent>(fun, i_block, j_block, i_block_size, j_block_size);
-                fun(i_block, j_block, naive_extent_validator_f<Extent>{i_block, j_block, i_block_size, j_block_size});
+                call_with_validator<Extent>(fun, i_block, j_block, i_block_size, j_block_size);
+                //          fun(i_block, j_block, naive_extent_validator_f<Extent>{i_block, j_block, i_block_size,
+                //          j_block_size});
             }
         } // namespace launch_kernel_impl_
 
