@@ -48,101 +48,16 @@ namespace gridtools {
 
             constexpr int_t ceil(int_t x) { return x < 2 ? 1 : 2 * ceil((x + 1) / 2); }
 
-            enum class region { minus, center, plus };
-
-            template <class Extent, class Dim, region>
-            struct extent_part;
-
-            template <class Extent>
-            struct extent_part<Extent, dim::i, region::minus> : Extent::iminus {};
-            template <class Extent>
-            struct extent_part<Extent, dim::i, region::plus> : Extent::iplus {};
-            template <class Extent>
-            struct extent_part<Extent, dim::j, region::minus> : Extent::jminus {};
-            template <class Extent>
-            struct extent_part<Extent, dim::j, region::plus> : Extent::jplus {};
-
-            template <class Dim, region>
-            struct dim_validator_f;
-
-            template <class Dim>
-            struct dim_validator_f<Dim, region::minus> {
-                int_t m_lim;
-
-                GT_FUNCTION_DEVICE dim_validator_f(int_t pos, int_t block_size) : m_lim(pos) {
-                    assert(pos < 0);
-                    assert(block_size > 0);
-                }
-
-                template <class Extent>
-                GT_FUNCTION_DEVICE bool validate(Extent) const {
-                    return extent_part<Extent, Dim, region::minus>::value <= m_lim;
-                }
-            };
-
-            template <class Dim>
-            struct dim_validator_f<Dim, region::center> {
-                GT_FUNCTION_DEVICE dim_validator_f(int_t pos, int_t block_size) {
-                    assert(pos >= 0);
-                    assert(block_size > 0);
-                    assert(pos < block_size);
-                }
-
-                template <class Extent>
-                GT_FUNCTION_DEVICE bool validate(Extent) const {
-                    return true;
-                }
-            };
-
-            template <class Dim>
-            struct dim_validator_f<Dim, region::plus> {
-                int_t m_lim;
-
-                GT_FUNCTION_DEVICE dim_validator_f(int_t pos, int_t block_size) : m_lim(pos - block_size) {
-                    assert(block_size > 0);
-                    assert(pos >= block_size);
-                }
-
-                template <class Extent>
-                GT_FUNCTION_DEVICE bool validate(Extent) const {
-                    return extent_part<Extent, Dim, region::plus>::value > m_lim;
-                }
-            };
-
-            template <class MaxExtent, region IRegion, region JRegion>
-            struct extent_validator_f : dim_validator_f<dim::i, IRegion>, dim_validator_f<dim::j, JRegion> {
-
-                using i_validator_t = dim_validator_f<dim::i, IRegion>;
-                using j_validator_t = dim_validator_f<dim::j, JRegion>;
-
+            template <class MaxExtent>
+            struct extent_validator_f {
                 GT_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
 
-                GT_FUNCTION_DEVICE extent_validator_f(int_t i_pos, int_t j_pos, int_t i_block_size, int_t j_block_size)
-                    : i_validator_t(i_pos, i_block_size), j_validator_t(j_pos, j_block_size) {}
-
-                template <class Extent = MaxExtent>
-                GT_FUNCTION_DEVICE bool operator()(Extent extent = {}) const {
-                    GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::iminus::value >= MaxExtent::iminus::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::iplus::value <= MaxExtent::iplus::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::jminus::value >= MaxExtent::jminus::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::jplus::value <= MaxExtent::jplus::value, GT_INTERNAL_ERROR);
-
-                    return i_validator_t::validate(extent) && j_validator_t::validate(extent);
-                }
-            };
-
-            template <class MaxExtent>
-            struct naive_extent_validator_f {
                 int_t m_i_lo;
                 int_t m_i_hi;
                 int_t m_j_lo;
                 int_t m_j_hi;
 
-                GT_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
-
-                GT_FUNCTION_DEVICE naive_extent_validator_f(
-                    int_t i_pos, int_t j_pos, int_t i_block_size, int_t j_block_size)
+                GT_FUNCTION_DEVICE extent_validator_f(int_t i_pos, int_t j_pos, int_t i_block_size, int_t j_block_size)
                     : m_i_lo(i_pos), m_i_hi(i_pos - i_block_size), m_j_lo(j_pos), m_j_hi(j_pos - j_block_size) {}
 
                 template <class Extent = MaxExtent>
@@ -157,135 +72,6 @@ namespace gridtools {
                            Extent::jminus::value <= m_j_lo && Extent::jplus::value > m_j_hi;
                 }
             };
-
-            template <class MaxExtent>
-            struct inner_region_extent_validator_f {
-                GT_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
-
-                template <class Extent = MaxExtent>
-                GT_FUNCTION_DEVICE bool operator()(Extent extent = {}) const {
-                    GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::iminus::value >= MaxExtent::iminus::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::iplus::value <= MaxExtent::iplus::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::jminus::value >= MaxExtent::jminus::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::jplus::value <= MaxExtent::jplus::value, GT_INTERNAL_ERROR);
-
-                    return true;
-                }
-            };
-
-            GT_FUNCTION_DEVICE region get_region(int_t pos, int_t size) {
-                return pos < 0 ? region::minus : pos < size ? region::center : region::plus;
-            }
-
-            template <class Fun>
-            GT_FUNCTION_DEVICE void region_dispatch(region val, Fun &&fun) {
-                switch (val) {
-                case region::minus:
-                    wstd::forward<Fun>(fun)(integral_constant<region, region::minus>{});
-                    break;
-                case region::center:
-                    wstd::forward<Fun>(fun)(integral_constant<region, region::center>{});
-                    break;
-                case region::plus:
-                    wstd::forward<Fun>(fun)(integral_constant<region, region::plus>{});
-                    break;
-                }
-            }
-
-            template <class Extent, class Fun>
-            GT_FUNCTION_DEVICE void call_with_validator(
-                Fun const &fun, int_t i_block, int_t j_block, int_t i_block_size, int_t j_block_size) {
-                region i_region = get_region(i_block, i_block_size);
-                region j_region = get_region(j_block, j_block_size);
-
-                if (i_region == region::center && j_region == region::center)
-                    fun(i_block, j_block, inner_region_extent_validator_f<Extent>{});
-                else
-                    fun(i_block,
-                        j_block,
-                        naive_extent_validator_f<Extent>{i_block, j_block, i_block_size, j_block_size});
-#if 0
-                switch (i_region) {
-                case region::minus:
-                    switch (j_region) {
-                    case region::minus:
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, region::minus, region::minus>{
-                                i_block, j_block, i_block_size, j_block_size});
-                        break;
-                    case region::center:
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, region::minus, region::center>{
-                                i_block, j_block, i_block_size, j_block_size});
-                        break;
-                    case region::plus:
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, region::minus, region::plus>{
-                                i_block, j_block, i_block_size, j_block_size});
-                        break;
-                    }
-                    break;
-                case region::center:
-                    switch (j_region) {
-                    case region::minus:
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, region::center, region::minus>{
-                                i_block, j_block, i_block_size, j_block_size});
-                        break;
-                    case region::center:
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, region::center, region::center>{
-                                i_block, j_block, i_block_size, j_block_size});
-                        break;
-                    case region::plus:
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, region::center, region::plus>{
-                                i_block, j_block, i_block_size, j_block_size});
-                        break;
-                    }
-                    break;
-                case region::plus:
-                    switch (j_region) {
-                    case region::minus:
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, region::plus, region::minus>{
-                                i_block, j_block, i_block_size, j_block_size});
-                        break;
-                    case region::center:
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, region::plus, region::center>{
-                                i_block, j_block, i_block_size, j_block_size});
-                        break;
-                    case region::plus:
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, region::plus, region::plus>{
-                                i_block, j_block, i_block_size, j_block_size});
-                        break;
-                    }
-                    break;
-                }
-#endif
-#if 0
-                region_dispatch(i_region, [=, &fun](auto i_region_c) {
-                    region_dispatch(j_region, [=, &fun](auto j_region_c) {
-                        fun(i_block,
-                            j_block,
-                            extent_validator_f<Extent, decltype(i_region_c)::value, decltype(j_region_c)::value>{
-                                i_block, j_block, i_block_size, j_block_size});
-                    });
-                });
-#endif
-            }
 
             template <size_t NumThreads, int_t BlockSizeI, int_t BlockSizeJ, class Extent, class Fun>
             __global__ void __launch_bounds__(NumThreads) wrapper(Fun const fun, int_t i_size, int_t j_size) {
@@ -323,9 +109,7 @@ namespace gridtools {
                 int_t j_block_size =
                     (blockIdx.y + 1) * BlockSizeJ < j_size ? BlockSizeJ : j_size - blockIdx.y * BlockSizeJ;
 
-                call_with_validator<Extent>(fun, i_block, j_block, i_block_size, j_block_size);
-                //          fun(i_block, j_block, naive_extent_validator_f<Extent>{i_block, j_block, i_block_size,
-                //          j_block_size});
+                fun(i_block, j_block, extent_validator_f<Extent>{i_block, j_block, i_block_size, j_block_size});
             }
         } // namespace launch_kernel_impl_
 
