@@ -158,6 +158,22 @@ namespace gridtools {
                 }
             };
 
+            template <class MaxExtent>
+            struct inner_region_extent_validator_f {
+                GT_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
+
+                template <class Extent = MaxExtent>
+                GT_FUNCTION_DEVICE bool operator()(Extent extent = {}) const {
+                    GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+                    GT_STATIC_ASSERT(Extent::iminus::value >= MaxExtent::iminus::value, GT_INTERNAL_ERROR);
+                    GT_STATIC_ASSERT(Extent::iplus::value <= MaxExtent::iplus::value, GT_INTERNAL_ERROR);
+                    GT_STATIC_ASSERT(Extent::jminus::value >= MaxExtent::jminus::value, GT_INTERNAL_ERROR);
+                    GT_STATIC_ASSERT(Extent::jplus::value <= MaxExtent::jplus::value, GT_INTERNAL_ERROR);
+
+                    return true;
+                }
+            };
+
             GT_FUNCTION_DEVICE region get_region(int_t pos, int_t size) {
                 return pos < 0 ? region::minus : pos < size ? region::center : region::plus;
             }
@@ -183,6 +199,13 @@ namespace gridtools {
                 region i_region = get_region(i_block, i_block_size);
                 region j_region = get_region(j_block, j_block_size);
 
+                if (i_region == region::center && j_region == region::center)
+                    fun(i_block, j_block, inner_region_extent_validator_f<Extent>{});
+                else
+                    fun(i_block,
+                        j_block,
+                        naive_extent_validator_f<Extent>{i_block, j_block, i_block_size, j_block_size});
+#if 0
                 switch (i_region) {
                 case region::minus:
                     switch (j_region) {
@@ -251,6 +274,7 @@ namespace gridtools {
                     }
                     break;
                 }
+#endif
 #if 0
                 region_dispatch(i_region, [=, &fun](auto i_region_c) {
                     region_dispatch(j_region, [=, &fun](auto j_region_c) {
