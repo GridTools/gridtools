@@ -72,7 +72,7 @@ else()
     set(prec double)
 endif()
 
-gt_add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
+cpp_bindgen_add_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
 target_link_libraries(repository_${prec} PUBLIC gridtools gtest)
 if(GT_SINGLE_PRECISION)
     target_compile_definitions(repository_${prec} PUBLIC GT_FLOAT_PRECISION=4)
@@ -85,7 +85,7 @@ if (CMAKE_Fortran_COMPILER_LOADED)
 
     add_library(repository_fortran_lib test_repository.f90)
     target_link_libraries(repository_fortran_lib repository_${prec}_fortran)
-    gt_enable_fortran_preprocessing_on_target(repository_fortran_lib)
+    cpp_bindgen_enable_fortran_preprocessing_on_target(repository_fortran_lib)
 
     if (GT_ENABLE_BACKEND_X86)
         add_custom_test(

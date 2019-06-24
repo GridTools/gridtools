@@ -18,7 +18,7 @@ detect_cuda()
 detect_openmp()
 detect_mpi()
 
-include (flags)
+include(flags)
 
 if(POLICY CMP0060)
   # Policy to avoid cmake to substitute libraries with paths and extensions with -l<libname>
@@ -31,11 +31,11 @@ endif()
 # 3) testing methods
 # 4) build configurator (include path, compiler flags, etc.
 # ===============
-include (definitions)
+include(definitions)
 if (BUILD_TESTING)
-    include (testing)
+    include(testing)
 endif()
-include (components)
+include(components)
 
 include(FetchContent)
 
