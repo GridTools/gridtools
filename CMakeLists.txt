@@ -38,18 +38,20 @@ endif()
 include(components)
 
 include(FetchContent)
-
-option(CPP_BINDGEN_GT_LEGACY "Enables the legacy mode for API compatibility with GridTools 1.x" ON)
-mark_as_advanced(CPP_BINDGEN_GT_LEGACY)
 FetchContent_Declare(
   cpp_bindgen
   GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git
   GIT_TAG        disable_compiler_detection
 )
-FetchContent_GetProperties(cpp_bindgen)
-if(NOT cpp_bindgen_POPULATED)
-  FetchContent_Populate(cpp_bindgen)
-  add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR})
+set(CPP_BINDGEN_GT_LEGACY ON)
+if(${CMAKE_VERSION} VERSION_LESS 3.14)
+    FetchContent_GetProperties(cpp_bindgen)
+    if(NOT cpp_bindgen_POPULATED)
+      FetchContent_Populate(cpp_bindgen)
+      add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR})
+    endif()
+else()
+    FetchContent_MakeAvailable(cpp_bindgen)
 endif()
 
 # TODO this install targets are not finished on purpose.
@@ -72,12 +74,12 @@ endif()
 
 if( COMPONENT_BOUNDARY_CONDITIONS )
     generate_target_for(NAME boundary_conditions)
-    target_link_libraries( boundary_conditions INTERFACE common )
+    target_link_libraries(boundary_conditions INTERFACE common)
 endif()
 
 if( COMPONENT_STENCIL_COMPOSITION )
     generate_target_for(NAME stencil_composition)
-    target_link_libraries( stencil_composition INTERFACE common )
+    target_link_libraries(stencil_composition INTERFACE common)
 endif()
 
 if( COMPONENT_GCL )
@@ -90,12 +92,12 @@ endif()
 
 if( COMPONENT_DISTRIBUTED_BOUNDARIES )
     generate_target_for(NAME distributed_boundaries)
-    target_link_libraries( distributed_boundaries INTERFACE boundary_conditions gcl )
+    target_link_libraries(distributed_boundaries INTERFACE boundary_conditions gcl)
 endif()
 
 if( COMPONENT_STORAGE )
     generate_target_for(NAME storage)
-    target_link_libraries( distributed_boundaries INTERFACE common )
+    target_link_libraries(distributed_boundaries INTERFACE common)
 endif()
 
 if( COMPONENT_INTERFACE )
