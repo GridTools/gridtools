@@ -185,7 +185,8 @@ namespace gridtools {
 
             template <class Plh>
             using apply =
-                has_key<sid::lower_bounds_type<std::decay_t<meta::second<meta::mp_find<map_t, Plh>>>>, dim::k>;
+                has_key<sid::lower_bounds_type<std::decay_t<meta::second<meta::mp_find<map_t, k_cache_original<Plh>>>>>,
+                    dim::k>;
         };
 
         template <class Plhs, class DataStoreMap>
@@ -194,7 +195,7 @@ namespace gridtools {
             return tuple_util::convert_to<meta::rename<hymap::keys, plhs_t>::template values>(tuple_util::transform(
                 [&](auto plh) {
                     using plh_t = decltype(plh);
-                    return at_key<dim::k>(sid::get_lower_bounds(at_key<plh_t>(data_store_map)));
+                    return at_key<dim::k>(sid::get_lower_bounds(at_key<k_cache_original<plh_t>>(data_store_map)));
                 },
                 plhs_t{}));
         }
@@ -205,7 +206,8 @@ namespace gridtools {
 
             template <class Plh>
             using apply =
-                has_key<sid::upper_bounds_type<std::decay_t<meta::second<meta::mp_find<map_t, Plh>>>>, dim::k>;
+                has_key<sid::upper_bounds_type<std::decay_t<meta::second<meta::mp_find<map_t, k_cache_original<Plh>>>>>,
+                    dim::k>;
         };
 
         template <class Plhs, class DataStoreMap>
@@ -214,7 +216,7 @@ namespace gridtools {
             return tuple_util::convert_to<meta::rename<hymap::keys, plhs_t>::template values>(tuple_util::transform(
                 [&](auto plh) {
                     using plh_t = decltype(plh);
-                    return at_key<dim::k>(sid::get_upper_bounds(at_key<plh_t>(data_store_map)));
+                    return at_key<dim::k>(sid::get_upper_bounds(at_key<k_cache_original<plh_t>>(data_store_map)));
                 },
                 plhs_t{}));
         }
@@ -390,9 +392,12 @@ namespace gridtools {
                             filter_map<tmp_k_cached_plhs_t>(temporaries),
                             make_positionals(grid)))));
 
+                    using non_local_k_cached_plhs_t =
+                        meta::filter<is_cached<non_local_k_caches_t>::template apply, plhs_t>;
+
                     auto local_domain = make_local_domain<typename mss_t::cache_sequence_t>(composite,
-                        make_k_lower_bounds<non_tmp_k_cached_plhs_t>(data_store_map),
-                        make_k_upper_bounds<non_tmp_k_cached_plhs_t>(data_store_map));
+                        make_k_lower_bounds<non_local_k_cached_plhs_t>(composite),
+                        make_k_upper_bounds<non_local_k_cached_plhs_t>(composite));
 
                     using execution_type_t = typename mss_t::execution_engine_t;
                     using max_extent_t = meta::rename<enclosing_extent,

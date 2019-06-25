@@ -62,7 +62,8 @@ namespace gridtools {
 
             template <sync_type SyncType, class Arg, class Offset>
             GT_FUNCTION_DEVICE void sync_at(Offset offset) {
-                if (m_local_domain.template validate_k_pos<Arg>(k() + offset))
+                if (m_local_domain.template validate_k_pos<Arg>(
+                        *host_device::at_key<positional<dim::k>>(m_ptr) + offset))
                     do_sync<SyncType>(deref<k_cache_original<Arg>>(offset), deref<Arg>(offset));
             }
 
@@ -84,11 +85,6 @@ namespace gridtools {
                     using sync_point_t = integral_constant<int_t, decltype(i)::value + stride_t::minus>;
                     sync_at<SyncType, Arg>(sync_point_t{});
                 });
-            }
-
-            template <class Dim>
-            GT_FUNCTION int_t pos() const {
-                return *host_device::at_key<positional<Dim>>(m_ptr);
             }
 
             template <class Dim, class Ptr, class Offset>
@@ -119,13 +115,6 @@ namespace gridtools {
                 shift<dim::c>(m_ptr, offset);
             }
 
-            GT_FUNCTION int_t i() const { return pos<dim::i>(); }
-
-            GT_FUNCTION int_t j() const { return pos<dim::j>(); }
-
-            GT_FUNCTION int_t k() const { return pos<dim::k>(); }
-
-            GT_FUNCTION_DEVICE static negation<meta::is_empty<ij_caches<caches_t>>> has_ij_caches() { return {}; }
             static constexpr bool has_k_caches = !meta::is_empty<k_caches<caches_t>>::value;
 
             template <class ExecutionType, class IsFirstLevel>
