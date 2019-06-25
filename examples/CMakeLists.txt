@@ -22,6 +22,18 @@ endfunction()
 if(GT_INSTALL_EXAMPLES)
     set(enabled_examples) # used in CMakeLists.txt.in, filled in install_example()
     install_example(DIRECTORY stencil_composition SOURCES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
+
+    configure_file(stencil_computation/CMakeLists.txt.in
+        ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/stencil_computation/CMakeLists.txt @ONLY)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/stencil_computation/CMakeLists.txt
+        DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/stencil_computation)
+    install(
+        DIRECTORY stencil_computation
+        DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
+        PATTERN "CMakeLists.txt.in" EXCLUDE
+        )
+    list(APPEND enabled_examples stencil_computation)
+
     install_example(DIRECTORY boundary_conditions SOURCES boundary_conditions boundary_conditions_provided)
 
     # If clang+nvcc, we disable the c-bindings test, if CUDA < 10.0 because nvcc has problems with C++14 in this combination

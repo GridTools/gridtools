@@ -10,10 +10,10 @@ else()
         vertical_advection_dycore
         advection_pdbott_prepare_tracers
         layout_transformation
+        boundary_conditions
         )
     set(SOURCES
         ${SOURCES_PERFTEST}
-        boundary_condition
         laplacian positional_stencil
         tridiagonal
         alignment
@@ -44,6 +44,7 @@ else()
 
             if (srcfile IN_LIST SOURCES_PERFTEST)
                 add_dependencies(perftests ${srcfile}_x86)
+                set_property(TEST tests.${srcfile}_x86_23_11_43 APPEND PROPERTY LABELS perftests_x86)
             endif()
         endforeach(srcfile)
 
@@ -101,6 +102,7 @@ else()
               )
           if (srcfile IN_LIST SOURCES_PERFTEST)
               add_dependencies(perftests ${srcfile}_mc)
+              set_property(TEST tests.${srcfile}_mc_23_11_43 APPEND PROPERTY LABELS perftests_mc)
           endif()
         endforeach(srcfile)
 
@@ -132,6 +134,7 @@ else()
                )
            if(srcfile IN_LIST SOURCES_PERFTEST)
                add_dependencies(perftests ${srcfile}_cuda)
+               set_property(TEST tests.${srcfile}_cuda_63_38_10 APPEND PROPERTY LABELS perftests_cuda)
            endif()
 
            if(GT_CUDA_PTX_GENERATION)

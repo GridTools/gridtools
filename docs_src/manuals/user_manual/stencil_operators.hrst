@@ -275,7 +275,7 @@ have some negative impact on compilation time.
 The ``expressions``-namespace has overloads for common operations on accessors, namely ``+``, ``-``, ``*``, ``/``,
 ``pow<>``. Using those operations with accessors creates an expression that can be evaluated using ``eval``. An
 extensive example of its usage, demonstrating its effectiveness, can be found in the `shallow water implementation
-<https://github.com/eth-cscs/gridtools/blob/master/regression/shallow_water_enhanced.hpp>`_.
+<https://github.com/GridTools/gridtools/blob/master/regression/shallow_water_enhanced.hpp>`_.
 
 Note that those expressions can also be used to lazily evaluate expressions. This provides a way to reuse expressions in
 your code:
