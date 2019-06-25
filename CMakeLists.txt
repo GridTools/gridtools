@@ -5,7 +5,7 @@ file(STRINGS "version.txt" __GT_VERSION)
 project(GridTools VERSION ${__GT_VERSION} LANGUAGES CXX)
 unset(__GT_VERSION)
 
-list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(CTest)
 
@@ -21,8 +21,8 @@ detect_mpi()
 include(flags)
 
 if(POLICY CMP0060)
-  # Policy to avoid cmake to substitute libraries with paths and extensions with -l<libname>
-  cmake_policy(SET CMP0060 NEW)
+    # Policy to avoid cmake to substitute libraries with paths and extensions with -l<libname>
+    cmake_policy(SET CMP0060 NEW)
 endif()
 
 # ===============
@@ -53,28 +53,16 @@ else()
     FetchContent_MakeAvailable(cpp_bindgen)
 endif()
 
-add_library(gcl
-    src/GCL.cpp
-    include/gridtools/communication/GCL.hpp
-    include/gridtools/communication/high_level/stats_collector.hpp
-    )
-target_link_libraries(gcl PUBLIC gridtools)
-if(GT_USE_MPI)
-    target_link_libraries(gcl PUBLIC MPI::MPI_CXX)
-endif()
+add_subdirectory(src)
 
 # ===============
 # tests
 # ===============
 if(BUILD_TESTING)
-  # TODO move to the right directory
-  add_library(regression_main src/tools/regression_fixture.cpp)
-  target_link_libraries(regression_main gtest gridtools)
+    add_subdirectory(regression)
+    add_subdirectory(unit_tests)
 
-  add_subdirectory(regression)
-  add_subdirectory(unit_tests)
-
-  add_subdirectory(docs_src/manuals/getting_started)
+    add_subdirectory(docs_src/manuals/getting_started)
 endif()
 
 # ===============
@@ -88,7 +76,7 @@ endif()
 # Downloads the gridtools_experimental repository
 # ===============
 if(GT_ENABLE_EXPERIMENTAL_REPOSITORY)
-  include(gridtools_experimental/download_gridtools_experimental)
+    include(gridtools_experimental/download_gridtools_experimental)
 endif()
 
 # ===============
