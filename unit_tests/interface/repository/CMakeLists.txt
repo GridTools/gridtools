@@ -6,7 +6,7 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         add_library( ${cpp_file}_OBJECTS OBJECT EXCLUDE_FROM_ALL ${cpp_file} )
         # ... but actually generate the preprocessed file
         target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS})
-        target_link_libraries( ${cpp_file}_OBJECTS common )
+        target_link_libraries( ${cpp_file}_OBJECTS gridtools )
         target_link_libraries( ${cpp_file}_OBJECTS cpp_bindgen_interface )
 
         # add a target for the generated file

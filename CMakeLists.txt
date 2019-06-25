@@ -35,53 +35,32 @@ include(definitions)
 if (BUILD_TESTING)
     include(testing)
 endif()
-include(components)
 
 include(FetchContent)
 FetchContent_Declare(
-  cpp_bindgen
-  GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git
-  GIT_TAG        disable_compiler_detection
+    cpp_bindgen
+    GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git
+    GIT_TAG        disable_compiler_detection
 )
 set(CPP_BINDGEN_GT_LEGACY ON)
 if(${CMAKE_VERSION} VERSION_LESS 3.14)
     FetchContent_GetProperties(cpp_bindgen)
     if(NOT cpp_bindgen_POPULATED)
-      FetchContent_Populate(cpp_bindgen)
-      add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR})
+        FetchContent_Populate(cpp_bindgen)
+        add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR})
     endif()
 else()
     FetchContent_MakeAvailable(cpp_bindgen)
 endif()
 
-# TODO this install targets are not finished on purpose.
-if(COMPONENT_COMMON)
-    install(TARGETS gridtools EXPORT GridToolstargets
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
-      INCLUDES DESTINATION include
+add_library(gcl
+    src/GCL.cpp
+    include/gridtools/communication/GCL.hpp
+    include/gridtools/communication/high_level/stats_collector.hpp
     )
-    install(EXPORT GridToolstargets
-      FILE GridToolsTargets.cmake
-      NAMESPACE gridtools::
-      DESTINATION ${INSTALL_CONFIGDIR}
-    )
-
-    add_library(common INTERFACE)
-    target_link_libraries(common INTERFACE gridtools)
-endif()
-
-if(COMPONENT_GCL)
-    add_library(gcl
-        src/GCL.cpp
-        include/gridtools/communication/GCL.hpp
-        include/gridtools/communication/high_level/stats_collector.hpp
-        )
-    target_link_libraries(gcl PUBLIC gridtools)
-    if(GT_USE_MPI)
-        target_link_libraries(gcl PUBLIC MPI::MPI_CXX)
-    endif()
+target_link_libraries(gcl PUBLIC gridtools)
+if(GT_USE_MPI)
+    target_link_libraries(gcl PUBLIC MPI::MPI_CXX)
 endif()
 
 # ===============

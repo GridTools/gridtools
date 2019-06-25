@@ -1,5 +1,6 @@
 # this registers the build-tree with a global CMake-registry
 export(PACKAGE GridTools)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/)
 
 include(CMakePackageConfigHelpers)
 
@@ -31,23 +32,18 @@ install(TARGETS gridtools EXPORT GridToolsTargets
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include
 )
-if (COMPONENT_GCL)
-    install(TARGETS gcl EXPORT GridToolsTargets
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
-      INCLUDES DESTINATION include
-    )
-    export(TARGETS gridtools gcl
-        FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
-        NAMESPACE GridTools::
-    )
-else()
-    export(TARGETS gridtools
-        FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
-        NAMESPACE GridTools::
-    )
-endif()
+
+install(TARGETS gcl EXPORT GridToolsTargets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+export(TARGETS gridtools gcl
+    FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
+    NAMESPACE GridTools::
+)
+
 install(EXPORT GridToolsTargets
   FILE GridToolsTargets.cmake
   NAMESPACE GridTools::

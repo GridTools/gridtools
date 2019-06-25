@@ -21,28 +21,21 @@ endfunction()
 
 if(GT_INSTALL_EXAMPLES)
     set(enabled_examples) # used in CMakeLists.txt.in, filled in install_example()
-    if(COMPONENT_STENCIL_COMPOSITION)
-        install_example(DIRECTORY stencil_composition SOURCES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
-    endif()
+    install_example(DIRECTORY stencil_composition SOURCES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
+    install_example(DIRECTORY boundary_conditions SOURCES boundary_conditions boundary_conditions_provided)
 
-    if(COMPONENT_BOUNDARY_CONDITIONS)
-        install_example(DIRECTORY boundary_conditions SOURCES boundary_conditions boundary_conditions_provided)
-    endif()
-
-    if(COMPONENT_C_BINDINGS)
-        # If clang+nvcc, we disable the c-bindings test, if CUDA < 10.0 because nvcc has problems with C++14 in this combination
-        if(NOT ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang AND DEFINED CMAKE_CUDA_COMPILER AND "${CMAKE_CUDA_COMPILER_VERSION}" VERSION_LESS "10.0"))
-            configure_file(c_bindings/CMakeLists.txt.in
-                ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt @ONLY)
-            install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt
-                DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/c_bindings)
-            install(
-                DIRECTORY c_bindings
-                DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
-                PATTERN "CMakeLists.txt.in" EXCLUDE
-                )
-            list(APPEND enabled_examples c_bindings)
-        endif()
+    # If clang+nvcc, we disable the c-bindings test, if CUDA < 10.0 because nvcc has problems with C++14 in this combination
+    if(NOT ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang AND DEFINED CMAKE_CUDA_COMPILER AND "${CMAKE_CUDA_COMPILER_VERSION}" VERSION_LESS "10.0"))
+        configure_file(c_bindings/CMakeLists.txt.in
+            ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt @ONLY)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt
+            DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/c_bindings)
+        install(
+            DIRECTORY c_bindings
+            DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
+            PATTERN "CMakeLists.txt.in" EXCLUDE
+            )
+        list(APPEND enabled_examples c_bindings)
     endif()
 
     configure_file(cmake_skeletons/CMakeLists.txt.driver.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeLists.txt @ONLY)
