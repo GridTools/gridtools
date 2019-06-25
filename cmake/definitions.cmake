@@ -50,10 +50,6 @@ if(CUDA_AVAILABLE)
     target_link_libraries(gridtools INTERFACE ${CUDA_CUDART_LIBRARY})
   endif()
 
-# Controls preprocessor expansion of macros in Fortran source code.
-# TODO decide where to put this. Probably this should go into fortran bindings
-target_compile_options(gridtools INTERFACE $<$<AND:$<CXX_COMPILER_ID:Cray>,$<COMPILE_LANGUAGE:Fortran>>:-eF>)
-
 if(MPI_AVAILABLE)
     target_compile_definitions(gridtools INTERFACE GCL_MPI)
     if(GT_ENABLE_BACKEND_CUDA)
