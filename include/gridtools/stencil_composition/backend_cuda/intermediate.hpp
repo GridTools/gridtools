@@ -155,10 +155,11 @@ namespace gridtools {
             return tuple_util::transform([&](auto plh) { return make_k_cache(plh, Esfs()); }, Plhs{});
         }
 
+        using block_map_t = hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, GT_DEFAULT_TILE_I>,
+            integral_constant<int_t, GT_DEFAULT_TILE_J>>;
+
         template <class Plhs, class Grid, class DataStoreMap>
         auto make_data_stores(Grid const &grid, DataStoreMap const &data_store_map) {
-            using block_map_t = hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, GT_DEFAULT_TILE_I>,
-                integral_constant<int_t, GT_DEFAULT_TILE_J>>;
             return tuple_util::transform(
                 [&data_store_map,
                     offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
@@ -173,8 +174,9 @@ namespace gridtools {
         using positionals_t = tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
 
         template <class Grid>
-        positionals_t make_positionals(Grid const &grid) {
-            return {grid.i_low_bound(), grid.j_low_bound(), 0};
+        auto make_positionals(Grid const &grid) {
+            return tuple_util::transform([](auto pos) { return sid::block(pos, block_map_t{}); },
+                positionals_t{grid.i_low_bound(), grid.j_low_bound(), 0});
         }
 
         template <class DataStoreMap>
