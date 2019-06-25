@@ -81,13 +81,13 @@ namespace gridtools {
 
             template <class Validator>
             GT_FUNCTION_DEVICE void operator()(int_t iblock, int_t jblock, Validator is_valid) const {
-                if (is_valid()) {
+                if (is_valid(extent<-1, 1>())) {
                     assert(jblock == 0);
                     assert(iblock >= -1 && iblock <= 1);
                     atomicAdd(m_count, 1);
                 }
                 __syncthreads();
-                if (is_valid()) {
+                if (is_valid(extent<-1, 1>())) {
                     assert(jblock == 0);
                     assert(iblock >= -1 && iblock <= 1);
                     auto count = atomicAdd(m_count, 0);

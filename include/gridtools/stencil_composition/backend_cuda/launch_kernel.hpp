@@ -60,8 +60,8 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE extent_validator_f(int_t i_pos, int_t j_pos, int_t i_block_size, int_t j_block_size)
                     : m_i_lo(i_pos), m_i_hi(i_pos - i_block_size), m_j_lo(j_pos), m_j_hi(j_pos - j_block_size) {}
 
-                template <class Extent = MaxExtent>
-                GT_FUNCTION_DEVICE bool operator()(Extent extent = {}) const {
+                template <class Extent>
+                GT_FUNCTION_DEVICE bool operator()(Extent) const {
                     GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
                     GT_STATIC_ASSERT(Extent::iminus::value >= MaxExtent::iminus::value, GT_INTERNAL_ERROR);
                     GT_STATIC_ASSERT(Extent::iplus::value <= MaxExtent::iplus::value, GT_INTERNAL_ERROR);

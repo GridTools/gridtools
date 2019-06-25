@@ -85,12 +85,12 @@ namespace gridtools {
                 [&](auto const &loop_interval, auto is_first_interval, auto is_last_interval) {
                     _impl::loop_with_first_last(
                         [&](auto is_first_level, auto is_last_level) {
-                            if (validator())
+                            if (validator(extent<>()))
                                 it_domain.fill_caches(ExecutionType(),
                                     bool_constant<decltype(is_first_interval)::value &&decltype(
                                         is_first_level)::value>());
                             loop_interval(it_domain.ptr(), it_domain.strides(), validator);
-                            if (validator())
+                            if (validator(extent<>()))
                                 it_domain.flush_caches(ExecutionType(),
                                     bool_constant<decltype(is_last_interval)::value &&decltype(
                                         is_last_level)::value>());
