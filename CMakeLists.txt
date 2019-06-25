@@ -55,7 +55,7 @@ else()
 endif()
 
 # TODO this install targets are not finished on purpose.
-if( COMPONENT_COMMON )
+if(COMPONENT_COMMON)
     install(TARGETS gridtools EXPORT GridToolstargets
       LIBRARY DESTINATION lib
       ARCHIVE DESTINATION lib
@@ -68,44 +68,20 @@ if( COMPONENT_COMMON )
       DESTINATION ${INSTALL_CONFIGDIR}
     )
 
-    generate_target_for(NAME common)
+    add_library(common INTERFACE)
     target_link_libraries(common INTERFACE gridtools)
 endif()
 
-if( COMPONENT_BOUNDARY_CONDITIONS )
-    generate_target_for(NAME boundary_conditions)
-    target_link_libraries(boundary_conditions INTERFACE common)
-endif()
-
-if( COMPONENT_STENCIL_COMPOSITION )
-    generate_target_for(NAME stencil_composition)
-    target_link_libraries(stencil_composition INTERFACE common)
-endif()
-
-if( COMPONENT_GCL )
-    generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high_level/stats_collector.hpp )
-    target_link_libraries(gcl gridtools)
-    if( GT_USE_MPI )
-        target_link_libraries(gcl MPI::MPI_CXX)
+if(COMPONENT_GCL)
+    add_library(gcl
+        src/GCL.cpp
+        include/gridtools/communication/GCL.hpp
+        include/gridtools/communication/high_level/stats_collector.hpp
+        )
+    target_link_libraries(gcl PUBLIC gridtools)
+    if(GT_USE_MPI)
+        target_link_libraries(gcl PUBLIC MPI::MPI_CXX)
     endif()
-endif()
-
-if( COMPONENT_DISTRIBUTED_BOUNDARIES )
-    generate_target_for(NAME distributed_boundaries)
-    target_link_libraries(distributed_boundaries INTERFACE boundary_conditions gcl)
-endif()
-
-if( COMPONENT_STORAGE )
-    generate_target_for(NAME storage)
-    target_link_libraries(distributed_boundaries INTERFACE common)
-endif()
-
-if( COMPONENT_INTERFACE )
-    generate_target_for(NAME interface)
-endif()
-
-if( COMPONENT_TOOLS )
-    generate_target_for(NAME tools)
 endif()
 
 # ===============
