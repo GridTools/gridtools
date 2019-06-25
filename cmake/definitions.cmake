@@ -24,8 +24,8 @@ include(workaround_icc)
 _workaround_icc(gridtools)
 
 set(REQUIRED_BOOST_VERSION 1.58)
-find_package( Boost ${REQUIRED_BOOST_VERSION} REQUIRED )
-target_link_libraries( gridtools INTERFACE Boost::boost)
+find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
+target_link_libraries(gridtools INTERFACE Boost::boost)
 
 if(OPENMP_AVAILABLE)
     target_link_libraries( gridtools INTERFACE OpenMP::OpenMP_CXX)
@@ -97,10 +97,6 @@ endif()
 if( GT_TREAT_WARNINGS_AS_ERROR )
     target_compile_options(GridToolsTest INTERFACE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-Werror>)
 endif()
-
-
-## clang tools ## TODO (update)
-find_package(ClangTools)
 
 # TESTS ONLY
 if(GT_ENABLE_BACKEND_X86)

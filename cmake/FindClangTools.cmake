@@ -16,30 +16,30 @@
 #  CLANG_FORMAT_FOUND   Whether clang format was found
 #
 
-find_program(CLANG_TIDY_BIN 
-  NAMES clang-tidy-6.0.0 clang-tidy
-  PATHS ${ClangTools_PATH} $ENV{CLANG_TOOLS_PATH} ~/bin /usr/local/bin /usr/bin 
-        NO_DEFAULT_PATH
+find_program(CLANG_TIDY_BIN
+    NAMES clang-tidy-6.0.0 clang-tidy-6 clang-tidy
+    DOC "Path to clang tidy executable"
+    PATHS ${ClangTools_PATH} $ENV{CLANG_TOOLS_PATH}
 )
-
-if ("${CLANG_TIDY_BIN}" STREQUAL "CLANG_TIDY_BIN-NOTFOUND") 
-  set(CLANG_TIDY_FOUND 0)
-  message(STATUS "clang-tidy not found")
+if(NOT CLANG_TIDY_BIN)
+    set(CLANG_TIDY_FOUND 0)
+    message(STATUS "clang-tidy not found")
 else()
-  set(CLANG_TIDY_FOUND 1)
-  message(STATUS "clang-tidy found at ${CLANG_TIDY_BIN}")
+    set(CLANG_TIDY_FOUND 1)
+    message(STATUS "clang-tidy found at ${CLANG_TIDY_BIN}")
+    mark_as_advanced(CLANG_TIDY_BIN)
 endif()
 
-find_program(CLANG_FORMAT_BIN 
-  NAMES clang-format-6.0.0 clang-format
-  PATHS ${ClangTools_PATH} $ENV{CLANG_TOOLS_PATH}  ~/bin /usr/local/bin /usr/bin 
-        NO_DEFAULT_PATH
-)
-
-if("${CLANG_FORMAT_BIN}" STREQUAL "CLANG_FORMAT_BIN-NOTFOUND") 
-  set(CLANG_FORMAT_FOUND 0)
-  message(STATUS "clang-format not found")
+find_program(CLANG_FORMAT_BIN
+    NAMES clang-format-6.0.0 clang-format-6 clang-format
+    DOC "Path to clang format executable"
+    PATHS ${ClangTools_PATH} $ENV{CLANG_TOOLS_PATH}
+    )
+if(NOT CLANG_FORMAT_BIN)
+    set(CLANG_FORMAT_FOUND 0)
+    message(STATUS "clang-format not found")
 else()
-  set(CLANG_FORMAT_FOUND 1)
-  message(STATUS "clang-format found at ${CLANG_FORMAT_BIN}")
+    set(CLANG_FORMAT_FOUND 1)
+    message(STATUS "clang-format found at ${CLANG_FORMAT_BIN}")
+    mark_as_advanced(CLANG_FORMAT_BIN)
 endif()

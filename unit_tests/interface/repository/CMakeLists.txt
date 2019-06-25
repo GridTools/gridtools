@@ -25,10 +25,10 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
     endif()
 endmacro(generate_preprocessed_file)
 
-if (GT_ENABLE_BACKEND_X86)
+if(GT_ENABLE_BACKEND_X86)
     # generate a file where we can inspect the generated repository
-    set( GENERATED_REPOSITORY ${CMAKE_CURRENT_BINARY_DIR}/generated_repository.cpp )
-    generate_preprocessed_file( ${GENERATED_REPOSITORY} plain_repository_generator.cpp )
+    set(GENERATED_REPOSITORY ${CMAKE_CURRENT_BINARY_DIR}/generated_repository.cpp)
+    generate_preprocessed_file(${GENERATED_REPOSITORY} plain_repository_generator.cpp)
 
     # clean the preprocessed file from comments and from everything before our class starts
     add_custom_command(OUTPUT ${GENERATED_REPOSITORY}
@@ -39,8 +39,11 @@ if (GT_ENABLE_BACKEND_X86)
       APPEND
       )
 
+    ## clang tools
+    find_package(ClangTools)
+
     # format the generated file if we can
-    if( CLANG_FORMAT_FOUND )
+    if(CLANG_FORMAT_FOUND)
         add_custom_command(OUTPUT ${GENERATED_REPOSITORY}
             COMMAND ${CLANG_FORMAT_BIN} -i ${GENERATED_REPOSITORY}
             APPEND
