@@ -52,8 +52,13 @@
 
 #ifdef __CUDACC__
 #define GT_HOST_DEVICE __host__ __device__
+#ifdef __NVCC__
 #define GT_DEVICE __device__
 #define GT_HOST __host__
+#else
+#define GT_DEVICE __device__ __host__
+#define GT_HOST __host__ __device__
+#endif
 #else
 #define GT_HOST_DEVICE
 #define GT_DEVICE

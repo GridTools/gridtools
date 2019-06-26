@@ -23,8 +23,12 @@ namespace gridtools {
      */
     class timer_cuda : public timer<timer_cuda> // CRTP
     {
+        struct destroy_event {
+            inline void operator()(CUevent_st* ptr) { cudaEventDestroy(ptr); }
+        };
+
         using event_holder =
-            std::unique_ptr<CUevent_st, std::integral_constant<decltype(&cudaEventDestroy), cudaEventDestroy>>;
+            std::unique_ptr<CUevent_st, destroy_event>;
 
         static event_holder create_event() {
             cudaEvent_t event;

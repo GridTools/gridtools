@@ -115,7 +115,7 @@ namespace gridtools {
          * @brief Class for per-block looping on a single interval.
          */
         template <typename ExecutionType, typename ItDomain, typename Grid, typename ExecutionInfo>
-        class interval_functor_mc;
+        struct interval_functor_mc;
 
         /**
          * @brief Class for per-block looping on a single interval.
@@ -140,12 +140,11 @@ namespace gridtools {
          * Specialization for stencils with parallel execution along k-axis.
          */
         template <typename ExecutionType, typename ItDomain, typename Grid>
-        class interval_functor_mc<ExecutionType, ItDomain, Grid, execinfo_block_kparallel_mc> {
+        struct interval_functor_mc<ExecutionType, ItDomain, Grid, execinfo_block_kparallel_mc> {
             ItDomain &m_it_domain;
             Grid const &m_grid;
             const execinfo_block_kparallel_mc &m_execution_info;
 
-          public:
             GT_FORCE_INLINE interval_functor_mc(
                 ItDomain &it_domain, Grid const &grid, execinfo_block_kparallel_mc const &execution_info)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {
