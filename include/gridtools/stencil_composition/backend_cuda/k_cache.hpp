@@ -25,7 +25,7 @@ namespace gridtools {
         template <class>
         struct k_cache_original {};
 
-        namespace k_cache_impl2_ {
+        namespace k_cache_impl_ {
             struct stride {};
 
             template <class T, int_t Minus, int_t Plus>
@@ -118,12 +118,12 @@ namespace gridtools {
             }
 
             inline fake make_k_cache_sid() { return {}; }
-        } // namespace k_cache_impl2_
+        } // namespace k_cache_impl_
 
-        using k_cache_impl2_::make_k_cache_sid;
-        using k_cache_impl2_::make_k_caches_maker;
+        using k_cache_impl_::make_k_cache_sid;
+        using k_cache_impl_::make_k_caches_maker;
 
-        namespace k_cache_impl_ {
+        namespace k_cache_impl_old_ {
             template <class T>
             struct ptr_holder {
                 GT_FUNCTION_DEVICE T *operator()() const { return nullptr; }
@@ -206,15 +206,9 @@ namespace gridtools {
                     .set<sid::property::ptr_diff, int_t>()
                     .set<sid::property::strides>(
                         hymap::keys<dim::k>::values<stride<extent_t::kminus::value, extent_t::kplus::value>>())
-                    .template set<sid::property::origin>(
-                        k_cache_impl_::ptr_holder<typename Plh::data_store_t::data_t>());
+                    .template set<sid::property::origin>(ptr_holder<typename Plh::data_store_t::data_t>());
             }
 
-        } // namespace k_cache_impl_
-
-        using k_cache_impl_::bind_k_caches;
-        using k_cache_impl_::k_caches_holder;
-        using k_cache_impl_::k_step;
-        using k_cache_impl_::make_k_cache;
-    } // namespace cuda
+        } // namespace k_cache_impl_old_
+    }     // namespace cuda
 } // namespace gridtools
