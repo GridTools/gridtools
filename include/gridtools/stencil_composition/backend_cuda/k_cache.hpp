@@ -45,6 +45,10 @@ namespace gridtools {
             struct storage {
                 T m_values[Plus - Minus + 1];
 
+                storage() = default;
+                storage(storage const &) = delete;
+                storage(storage &&) = default;
+
                 template <class Step, std::enable_if_t<Step::value == 1, int> = 0>
                 GT_FUNCTION_DEVICE void slide(Step) {
 #pragma unroll
@@ -61,8 +65,8 @@ namespace gridtools {
             };
 
             template <class T, int_t Minus, int_t Plus>
-            GT_FUNCTION_DEVICE ptr<T, Minus, Plus> make_ptr(storage<T, Minus, Plus> const &src) {
-                return {const_cast<storage<T, Minus, Plus> &>(src).m_values, 0};
+            GT_FUNCTION_DEVICE ptr<T, Minus, Plus> make_ptr(storage<T, Minus, Plus> &src) {
+                return {src.m_values, 0};
             }
 
             struct fake {
@@ -83,7 +87,7 @@ namespace gridtools {
 
               public:
                 template <class Ptrs>
-                GT_FUNCTION_DEVICE auto mixin_ptrs(Ptrs const &ptrs) const {
+                GT_FUNCTION_DEVICE auto mixin_ptrs(Ptrs const &ptrs) {
                     return hymap::device::merge(
                         tuple_util::device::transform([](auto &storage) { return make_ptr(storage); }, m_storages),
                         ptrs);
@@ -91,7 +95,7 @@ namespace gridtools {
 
                 template <class Step>
                 GT_FUNCTION_DEVICE void slide(Step step) {
-                    tuple_util::device::for_each([&step](auto storage) { storage.slide(step); }, m_storages);
+                    tuple_util::device::for_each([step](auto &storage) { storage.slide(step); }, m_storages);
                 }
             };
 
