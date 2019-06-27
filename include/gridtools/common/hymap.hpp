@@ -206,7 +206,7 @@ namespace gridtools {
             class I = meta::st_position<get_keys<Decayed>, Key>,
             std::enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
         GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map, Maps && ... maps) noexcept {
-            return at_key<Key>(wstd::forward<Maps>(maps)...);
+            return GT_TARGET_NAMESPACE_NAME::at_key<Key>(wstd::forward<Maps>(maps)...);
         }
 
         template <class Key,
@@ -269,7 +269,8 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto merge(Maps && ... maps) {
                 using res_t = hymap_impl_::merged<meta::list<Maps &&...>>;
                 using generators_t = meta::transform<hymap_detail::merged_generator_f, get_keys<res_t>>;
-                return tuple_util::generate<generators_t, res_t>(wstd::forward<Maps>(maps)...);
+                return tuple_util::GT_TARGET_NAMESPACE_NAME::generate<generators_t, res_t>(
+                    wstd::forward<Maps>(maps)...);
             }
         }
     } // namespace hymap

@@ -35,6 +35,7 @@
 #include "../sid/concept.hpp"
 #include "../sid/sid_shift_origin.hpp"
 #include "../stages_maker.hpp"
+#include "basic_token_execution_cuda.hpp"
 #include "fused_mss_loop_cuda.hpp"
 #include "ij_cache.hpp"
 #include "k_cache.hpp"
@@ -152,7 +153,7 @@ namespace gridtools {
 
         template <class Plhs, class Esfs>
         auto make_k_cached() {
-            return tuple_util::transform([&](auto plh) { return make_k_cache(plh, Esfs()); }, Plhs{});
+            return tuple_util::transform([](auto plh) { return make_k_cache_sid(); }, Plhs{});
         }
 
         using block_map_t = hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, GT_DEFAULT_TILE_I>,
@@ -347,7 +348,7 @@ namespace gridtools {
                     using mss_t = decltype(mss);
                     using esfs_t = get_esfs<mss_t>;
 
-                    using caches_t = get_caches<mss_t>;
+                    using caches_t = meta::filter<is_local_cache, get_caches<mss_t>>;
                     using ij_caches_t = meta::filter<is_ij_cache, caches_t>;
                     using local_caches_t = meta::filter<is_local_cache, caches_t>;
                     using k_caches_t = meta::filter<is_k_cache, caches_t>;
@@ -392,23 +393,28 @@ namespace gridtools {
                             filter_map<tmp_k_cached_plhs_t>(temporaries),
                             make_positionals(grid)))));
 
-                    using non_local_k_cached_plhs_t =
-                        meta::filter<is_cached<non_local_k_caches_t>::template apply, plhs_t>;
-
-                    auto local_domain = make_local_domain<typename mss_t::cache_sequence_t>(composite,
-                        make_k_lower_bounds<non_local_k_cached_plhs_t>(composite),
-                        make_k_upper_bounds<non_local_k_cached_plhs_t>(composite));
-
+                    //                    using non_local_k_cached_plhs_t =
+                    //                        meta::filter<is_cached<non_local_k_caches_t>::template apply, plhs_t>;
+                    //
+                    //                    auto local_domain = make_local_domain<typename
+                    //                    mss_t::cache_sequence_t>(composite,
+                    //                        make_k_lower_bounds<non_local_k_cached_plhs_t>(composite),
+                    //                        make_k_upper_bounds<non_local_k_cached_plhs_t>(composite));
+                    //
                     using execution_type_t = typename mss_t::execution_engine_t;
                     using max_extent_t = meta::rename<enclosing_extent,
                         meta::transform<get_esf_extent_f<extent_map_t>::template apply, esfs_t>>;
 
                     auto loop_intervals = make_loop_intervals<execution_type_t, mss_t, extent_map_t>(grid);
 
+                    auto k_loop = make_k_loop(mss, grid, std::move(loop_intervals), composite);
+
+                    auto kernel = make_kernel(composite, std::move(k_loop));
+
                     launch_kernel<max_extent_t, GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J>(grid.i_size(),
                         grid.j_size(),
                         blocks_required_z<execution_type_t>(grid.k_total_length()),
-                        make_kernel<execution_type_t>(local_domain, grid, loop_intervals),
+                        kernel,
                         shared_alloc.size());
                 });
             };

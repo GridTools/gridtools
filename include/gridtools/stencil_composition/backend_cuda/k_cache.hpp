@@ -13,6 +13,7 @@
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
+#include "../caches/cache_traits.hpp"
 #include "../caches/extract_extent_caches.hpp"
 #include "../dim.hpp"
 #include "../execution_types.hpp"
@@ -20,6 +21,108 @@
 
 namespace gridtools {
     namespace cuda {
+
+        template <class>
+        struct k_cache_original {};
+
+        namespace k_cache_impl2_ {
+            struct stride {};
+
+            template <class T, int_t Minus, int_t Plus>
+            struct ptr {
+                T (&m_values)[Plus - Minus + 1];
+                int_t m_offset;
+
+                GT_FUNCTION T &operator*() const { return m_values[m_offset - Minus]; }
+            };
+
+            template <class T, int_t Minus, int_t Plus>
+            GT_FUNCTION void sid_shift(ptr<T, Minus, Plus> &p, stride, int_t offset) {
+                p.m_offset += offset;
+            }
+
+            template <class T, int_t Minus, int_t Plus>
+            struct storage {
+                T m_values[Plus - Minus + 1];
+
+                template <class Step, std::enable_if_t<Step::value == 1, int> = 0>
+                GT_FUNCTION_DEVICE void slide(Step) {
+#pragma unroll
+                    for (int_t k = 0; k < Plus - Minus; ++k)
+                        m_values[k] = m_values[k + 1];
+                }
+
+                template <class Step, std::enable_if_t<Step::value == -1, int> = 0>
+                GT_FUNCTION_DEVICE void slide(Step) {
+#pragma unroll
+                    for (int_t k = Plus - Minus; k > 0; --k)
+                        m_values[k] = m_values[k - 1];
+                }
+            };
+
+            template <class T, int_t Minus, int_t Plus>
+            GT_FUNCTION_DEVICE ptr<T, Minus, Plus> make_ptr(storage<T, Minus, Plus> const &src) {
+                return {const_cast<storage<T, Minus, Plus> &>(src).m_values, 0};
+            }
+
+            struct fake {
+                GT_FUNCTION fake operator()() const { return {}; }
+                fake operator*() const;
+            };
+            fake sid_get_ptr_diff(fake);
+            fake sid_get_origin(fake) { return {}; }
+            GT_FUNCTION void sid_shift(fake &, stride, int_t) {}
+            GT_FUNCTION fake operator+(fake, fake) { return {}; }
+            hymap::keys<dim::k>::values<stride> sid_get_strides(fake) { return {}; }
+
+            GT_STATIC_ASSERT(is_sid<fake>(), GT_INTERNAL_ERROR);
+
+            template <class Storages>
+            class k_caches {
+                Storages m_storages;
+
+              public:
+                template <class Ptrs>
+                GT_FUNCTION_DEVICE auto mixin_ptrs(Ptrs const &ptrs) const {
+                    return hymap::device::merge(
+                        tuple_util::device::transform([](auto &storage) { return make_ptr(storage); }, m_storages),
+                        ptrs);
+                }
+
+                template <class Step>
+                GT_FUNCTION_DEVICE void slide(Step step) {
+                    tuple_util::device::for_each([&step](auto storage) { storage.slide(step); }, m_storages);
+                }
+            };
+
+            template <class Esfs>
+            struct storage_type_f {
+                template <class Plh, class Extent = extract_k_extent_for_cache<Plh, Esfs>>
+                using apply = storage<typename Plh::data_store_t::data_t, Extent::kminus::value, Extent::kplus::value>;
+            };
+
+            template <class Mss,
+                class Plhs = meta::transform<cache_parameter,
+                    meta::filter<is_local_cache, meta::filter<is_k_cache, typename Mss::cache_sequence_t>>>,
+                class Storages = meta::transform<storage_type_f<typename Mss::esf_sequence_t>::template apply, Plhs>>
+            using k_caches_type = k_caches<hymap::from_keys_values<Plhs, Storages>>;
+
+            template <class Mss>
+            struct k_caches_maker_f {
+                GT_FUNCTION_DEVICE k_caches_type<Mss> operator()() const { return {}; }
+            };
+
+            template <class Mss, class Composite>
+            k_caches_maker_f<Mss> make_k_caches_maker(Mss, Composite &&) {
+                return {};
+            }
+
+            inline fake make_k_cache_sid() { return {}; }
+        } // namespace k_cache_impl2_
+
+        using k_cache_impl2_::make_k_cache_sid;
+        using k_cache_impl2_::make_k_caches_maker;
+
         namespace k_cache_impl_ {
             template <class T>
             struct ptr_holder {
@@ -107,12 +210,9 @@ namespace gridtools {
                         k_cache_impl_::ptr_holder<typename Plh::data_store_t::data_t>());
             }
 
-            template <class>
-            struct k_cache_original {};
         } // namespace k_cache_impl_
 
         using k_cache_impl_::bind_k_caches;
-        using k_cache_impl_::k_cache_original;
         using k_cache_impl_::k_caches_holder;
         using k_cache_impl_::k_step;
         using k_cache_impl_::make_k_cache;

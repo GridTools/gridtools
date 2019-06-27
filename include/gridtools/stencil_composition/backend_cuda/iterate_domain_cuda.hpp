@@ -93,26 +93,14 @@ namespace gridtools {
             }
 
           public:
-            GT_FUNCTION_DEVICE iterate_domain(LocalDomain const &local_domain, int_t ipos, int_t jpos, int_t kpos)
-                : m_local_domain(local_domain), m_ptr(local_domain.m_ptr_holder()) {
-                typename LocalDomain::ptr_diff_t ptr_offset{};
-                shift<sid::blocked_dim<dim::i>>(ptr_offset, blockIdx.x);
-                shift<sid::blocked_dim<dim::j>>(ptr_offset, blockIdx.y);
-                shift<dim::i>(ptr_offset, ipos);
-                shift<dim::j>(ptr_offset, jpos);
-                shift<dim::k>(ptr_offset, kpos);
-                m_ptr = m_ptr + ptr_offset;
+            GT_FUNCTION_DEVICE iterate_domain(LocalDomain const &local_domain, typename LocalDomain::ptr_t ptr)
+                : m_local_domain(local_domain), m_ptr(wstd::move(ptr)) {
                 bind_k_caches(m_k_caches_holder, m_ptr, m_local_domain.m_strides);
             }
 
             template <class ExecutionType>
             GT_FUNCTION_DEVICE void increment_k(ExecutionType) {
                 shift<dim::k>(m_ptr, k_step<ExecutionType>());
-            }
-
-            template <class Offset = integral_constant<int_t, 1>>
-            GT_FUNCTION void increment_c(Offset offset = {}) {
-                shift<dim::c>(m_ptr, offset);
             }
 
             static constexpr bool has_k_caches = !meta::is_empty<k_caches<caches_t>>::value;

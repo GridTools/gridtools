@@ -16,6 +16,7 @@
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../execution_types.hpp"
+#include "k_cache.hpp"
 
 namespace gridtools {
     namespace cuda {
@@ -76,7 +77,95 @@ namespace gridtools {
                     return res;
                 };
             }
+
+            template <class ExecutionType>
+            GT_FUNCTION_DEVICE int_t start_offset(ExecutionType) {
+                return 0;
+            };
+
+            template <uint_t BlockSize>
+            GT_FUNCTION_DEVICE int_t start_offset(execute::parallel_block<BlockSize>) {
+                return blockIdx.z * BlockSize;
+            };
+
+            template <class ExecutionType, class Grid>
+            GT_FUNCTION_DEVICE int_t start(ExecutionType, Grid const &grid) {
+                return grid.k_min();
+            };
+
+            template <class Grid>
+            GT_FUNCTION_DEVICE int_t start(execute::backward, Grid const &grid) {
+                return grid.k_max();
+            };
         } // namespace _impl
+
+        template <class ExecutionType, class LoopIntervals, class KCachesMaker>
+        struct cached_k_loop_f {
+            LoopIntervals m_loop_intervals;
+            KCachesMaker m_k_caches_maker;
+            int_t m_start;
+
+            template <class Ptr, class Strides, class Validator>
+            GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start);
+                auto k_caches = m_k_caches_maker();
+                _impl::for_each_with_first_last(
+                    [&](auto const &loop_interval, auto is_first_interval, auto is_last_interval) {
+                        _impl::loop_with_first_last(
+                            [&](auto is_first_level, auto is_last_level) {
+                                loop_interval(k_caches.mixin_ptrs(ptr), strides, validator);
+                                k_caches.slide(execute::step<ExecutionType>);
+                                sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
+                            },
+                            loop_interval.count());
+                    },
+                    m_loop_intervals);
+            }
+        };
+
+        template <class ExecutionType, class LoopIntervals>
+        struct k_loop_f {
+            LoopIntervals m_loop_intervals;
+            int_t m_start;
+
+            template <class Ptr, class Strides, class Validator>
+            GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start + _impl::start_offset(ExecutionType()));
+                auto count_modifier = _impl::make_count_modifier(ExecutionType{});
+                tuple_util::device::for_each(
+                    [&](auto const &loop_interval) {
+                        auto count = count_modifier(loop_interval.count());
+                        for (int_t i = 0; i < count; ++i) {
+                            loop_interval(ptr, strides, validator);
+                            sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
+                        }
+                    },
+                    m_loop_intervals);
+            }
+        };
+
+        template <class Mss,
+            class Grid,
+            class LoopIntervals,
+            class Composite,
+            std::enable_if_t<meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value, int> = 0>
+        auto make_k_loop(Mss, Grid const &grid, LoopIntervals loop_intervals, Composite &&composite) {
+            using execution_t = typename Mss::execution_engine_t;
+            auto caches_maker = make_k_caches_maker(Mss(), std::forward<Composite>(composite));
+            return cached_k_loop_f<execution_t, LoopIntervals, decltype(caches_maker)>{
+                std::move(loop_intervals), std::move(caches_maker), _impl::start(execution_t(), grid)};
+        }
+
+        template <class Mss,
+            class Grid,
+            class LoopIntervals,
+            class Composite,
+            std::enable_if_t<!meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value, int> = 0>
+        auto make_k_loop(Mss, Grid const &grid, LoopIntervals loop_intervals, Composite &&) {
+            using execution_t = typename Mss::execution_engine_t;
+            return k_loop_f<typename Mss::execution_engine_t, LoopIntervals>{
+                std::move(loop_intervals), _impl::start(execution_t(), grid)};
+        }
 
         template <class ExecutionType, class ItDomain, class LoopIntervals, class Validator>
         GT_FUNCTION_DEVICE std::enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(
