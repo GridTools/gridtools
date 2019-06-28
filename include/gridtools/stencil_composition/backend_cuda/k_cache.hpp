@@ -26,17 +26,15 @@ namespace gridtools {
         struct k_cache_original {};
 
         namespace k_cache_impl_ {
-            template <class T, int_t Minus, int_t Plus>
+            template <class T>
             struct ptr {
-                T (&m_values)[Plus - Minus + 1];
-                int_t m_offset;
-
-                GT_FUNCTION T &operator*() const { return m_values[m_offset - Minus]; }
+                T *m_ptr;
+                GT_FUNCTION T &operator*() const { return *m_ptr; }
             };
 
-            template <class T, int_t Minus, int_t Plus, class Stride>
-            GT_FUNCTION void sid_shift(ptr<T, Minus, Plus> &p, Stride &&, int_t offset) {
-                p.m_offset += offset;
+            template <class T, class Stride>
+            GT_FUNCTION void sid_shift(ptr<T> &p, Stride &&, int_t offset) {
+                p.m_ptr += offset;
             }
 
             template <class T, int_t Minus, int_t Plus>
@@ -60,12 +58,9 @@ namespace gridtools {
                     for (int_t k = Plus - Minus; k > 0; --k)
                         m_values[k] = m_values[k - 1];
                 }
-            };
 
-            template <class T, int_t Minus, int_t Plus>
-            GT_FUNCTION_DEVICE ptr<T, Minus, Plus> make_ptr(storage<T, Minus, Plus> &src) {
-                return {src.m_values, 0};
-            }
+                GT_FUNCTION_DEVICE ptr<T> ptr() { return {m_values - Minus}; }
+            };
 
             struct fake {
                 GT_FUNCTION fake operator()() const { return {}; }
@@ -85,7 +80,7 @@ namespace gridtools {
 
               public:
                 GT_FUNCTION_DEVICE auto ptr() {
-                    return tuple_util::device::transform([](auto &storage) { return make_ptr(storage); }, m_storages);
+                    return tuple_util::device::transform([](auto &storage) { return storage.ptr(); }, m_storages);
                 }
 
                 template <class Step>
