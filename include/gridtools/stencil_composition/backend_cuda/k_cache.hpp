@@ -26,8 +26,6 @@ namespace gridtools {
         struct k_cache_original {};
 
         namespace k_cache_impl_ {
-            struct stride {};
-
             template <class T, int_t Minus, int_t Plus>
             struct ptr {
                 T (&m_values)[Plus - Minus + 1];
@@ -36,8 +34,8 @@ namespace gridtools {
                 GT_FUNCTION T &operator*() const { return m_values[m_offset - Minus]; }
             };
 
-            template <class T, int_t Minus, int_t Plus>
-            GT_FUNCTION void sid_shift(ptr<T, Minus, Plus> &p, stride, int_t offset) {
+            template <class T, int_t Minus, int_t Plus, class Stride>
+            GT_FUNCTION void sid_shift(ptr<T, Minus, Plus> &p, Stride &&, int_t offset) {
                 p.m_offset += offset;
             }
 
@@ -75,9 +73,9 @@ namespace gridtools {
             };
             fake sid_get_ptr_diff(fake);
             fake sid_get_origin(fake) { return {}; }
-            GT_FUNCTION void sid_shift(fake &, stride, int_t) {}
+            GT_FUNCTION void sid_shift(fake &, fake, int_t) {}
             GT_FUNCTION fake operator+(fake, fake) { return {}; }
-            hymap::keys<dim::k>::values<stride> sid_get_strides(fake) { return {}; }
+            hymap::keys<dim::k>::values<fake> sid_get_strides(fake) { return {}; }
 
             GT_STATIC_ASSERT(is_sid<fake>(), GT_INTERNAL_ERROR);
 
@@ -86,11 +84,8 @@ namespace gridtools {
                 Storages m_storages;
 
               public:
-                template <class Ptrs>
-                GT_FUNCTION_DEVICE auto mixin_ptrs(Ptrs const &ptrs) {
-                    return hymap::device::merge(
-                        tuple_util::device::transform([](auto &storage) { return make_ptr(storage); }, m_storages),
-                        ptrs);
+                GT_FUNCTION_DEVICE auto ptr() {
+                    return tuple_util::device::transform([](auto &storage) { return make_ptr(storage); }, m_storages);
                 }
 
                 template <class Step>

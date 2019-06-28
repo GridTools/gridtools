@@ -170,7 +170,7 @@ namespace gridtools {
                 class MetaMaps = meta::transform<to_meta_map, RefMaps>,
                 class Keys = merged_keys<MetaMaps>,
                 class Values = meta::transform<merged_value_f<MetaMaps>::template apply, Keys>>
-            using merged = from_keys_values<Keys, Values>;
+            using merged_old = from_keys_values<Keys, Values>;
         } // namespace hymap_impl_
     }     // namespace hymap
 } // namespace gridtools
@@ -265,15 +265,122 @@ namespace gridtools {
                     wstd::forward<Map>(map));
             }
 
-            template <class... Maps>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto merge(Maps && ... maps) {
-                using res_t = hymap_impl_::merged<meta::list<Maps &&...>>;
-                using generators_t = meta::transform<hymap_detail::merged_generator_f, get_keys<res_t>>;
-                return tuple_util::GT_TARGET_NAMESPACE_NAME::generate<generators_t, res_t>(
-                    wstd::forward<Maps>(maps)...);
+            template <class Primary, class Secondary>
+            class merged : tuple<Primary, Secondary> {
+                using base_t = tuple<Primary, Secondary>;
+
+                using meta_primary_t = to_meta_map<Primary>;
+                using meta_secondary_t = to_meta_map<Secondary>;
+
+                using primary_keys_t = meta::transform<meta::first, meta_primary_t>;
+                using secondary_keys_t = meta::transform<meta::first, meta_secondary_t>;
+
+                template <class Key,
+                    class PrimaryItem = meta::mp_find<meta_primary_t, Key>,
+                    class SecondaryItem = meta::mp_find<meta_secondary_t, Key>>
+                using get_value_type = meta::second<meta::if_<std::is_void<PrimaryItem>, SecondaryItem, PrimaryItem>>;
+
+                //                template <class Key, class Map = meta::st_contains<primary_keys_t, Key>, class Index =
+                //                void> using get_index_map_item = meta::list<Key, Map, Index>;
+
+                using keys_t = meta::dedup<meta::concat<primary_keys_t, secondary_keys_t>>;
+                using values_t = meta::transform<get_value_type, keys_t>;
+
+                template <size_t I, class Key = meta::at_c<keys_t, I>>
+                using is_primary_index = meta::st_contains<primary_keys_t, Key>;
+
+                template <size_t I, class Key = meta::at_c<keys_t, I>>
+                using inner_index = meta::if_<is_primary_index<I>,
+                    meta::st_position<primary_keys_t, Key>,
+                    meta::st_position<secondary_keys_t, Key>>;
+
+                template <size_t I,
+                    class Key = meta::at_c<keys_t, I>,
+                    class PrimaryPos = meta::st_position<primary_keys_t, Key>,
+                    class SecondaryPos = meta::st_position<secondary_keys_t, Key>>
+                using split_index = meta::if_c<(PrimaryPos::value < meta::length<primary_keys_t>::value),
+                    meta::list<std::integral_constant<size_t, 0>, PrimaryPos>,
+                    meta::list<std::integral_constant<size_t, 1>, SecondaryPos>>;
+
+                friend values_t tuple_to_types(merged const &) { return {}; }
+
+                friend keys_t hymap_get_keys(merged const &) { return {}; }
+
+                friend struct merged_getter;
+
+                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR base_t const &base() const { return *this; }
+                GT_TARGET GT_FORCE_INLINE base_t &base() { return *this; }
+
+                template <size_t I>
+                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) source() const {
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get < is_primary_index<I>::value ? 0 : 1 > (base());
+                }
+                template <size_t I>
+                GT_TARGET GT_FORCE_INLINE decltype(auto) source() {
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get < is_primary_index<I>::value ? 0 : 1 > (base());
+                }
+
+                template <size_t I>
+                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) get() const {
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get<inner_index<I>::value>(source<I>());
+                }
+                template <size_t I>
+                GT_TARGET GT_FORCE_INLINE decltype(auto) get() {
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get<inner_index<I>::value>(source<I>());
+                }
+
+              public:
+                merged() = default;
+
+                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR merged(Primary primary, Secondary secondary)
+                    : base_t(wstd::move(primary), wstd::move(secondary)) {}
+
+                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Primary const &primary() const {
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get<0>(base());
+                }
+                GT_TARGET GT_FORCE_INLINE Primary &primary() {
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get<0>(base());
+                }
+
+                GT_TARGET GT_FORCE_INLINE Secondary const &secondary() const {
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get<1>(base());
+                }
+                GT_TARGET GT_FORCE_INLINE Secondary &secondary() {
+                    return tuple_util::GT_TARGET_NAMESPACE_NAME::get<1>(base());
+                }
+
+                // TODO:
+                // - element wise ctor
+                // - tuple_from_types
+            };
+
+            struct merged_getter {
+                template <size_t I, class Primary, class Secondary>
+                static GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) get(
+                    merged<Primary, Secondary> const &obj) {
+                    return obj.template get<I>();
+                }
+                template <size_t I, class Primary, class Secondary>
+                static GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) get(merged<Primary, Secondary> &obj) {
+                    return obj.template get<I>();
+                }
+            };
+
+            template <class Primary, class Secondary>
+            merged_getter tuple_getter(merged<Primary, Secondary> const &);
+
+            template <class Primary, class Secondary>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR merged<Primary, Secondary> merge(
+                Primary primary, Secondary secondary) {
+                return {wstd::move(primary), wstd::move(secondary)};
             }
-        }
-    } // namespace hymap
+
+            template <class Primary, class... Secondaries>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto merge(Primary primary, Secondaries... secondaries) {
+                return merge(wstd::move(primary), merge(wstd::move(secondaries)...));
+            }
+        } // namespace hymap
+    }     // namespace hymap
 } // namespace gridtools
 
 #endif // GT_TARGET_ITERATING

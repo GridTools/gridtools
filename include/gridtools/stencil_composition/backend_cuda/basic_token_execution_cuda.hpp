@@ -109,13 +109,16 @@ namespace gridtools {
             GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start);
                 auto k_caches = m_k_caches_maker();
+                auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
                 _impl::for_each_with_first_last(
                     [&](auto const &loop_interval, auto is_first_interval, auto is_last_interval) {
                         _impl::loop_with_first_last(
                             [&](auto is_first_level, auto is_last_level) {
-                                loop_interval(k_caches.mixin_ptrs(ptr), strides, validator);
+                                loop_interval(mixed_ptr, strides, validator);
                                 k_caches.slide(execute::step<ExecutionType>);
-                                sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
+                                sid::shift(mixed_ptr.secondary(),
+                                    sid::get_stride<dim::k>(strides),
+                                    execute::step<ExecutionType>);
                             },
                             loop_interval.count());
                     },
