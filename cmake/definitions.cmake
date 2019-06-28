@@ -20,6 +20,12 @@ target_include_directories(gridtools
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
     )
+install(TARGETS gridtools EXPORT GridToolsTargets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 include(workaround_icc)
 _workaround_icc(gridtools)
 

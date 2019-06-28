@@ -26,14 +26,7 @@ write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
   COMPATIBILITY SameMinorVersion )
 
-install(TARGETS gridtools EXPORT GridToolsTargets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
-)
-
-export(TARGETS gridtools gcl
+export(EXPORT GridToolsTargets
     FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
     NAMESPACE GridTools::
 )
