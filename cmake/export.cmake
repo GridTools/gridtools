@@ -33,12 +33,6 @@ install(TARGETS gridtools EXPORT GridToolsTargets
   INCLUDES DESTINATION include
 )
 
-install(TARGETS gcl EXPORT GridToolsTargets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
-)
 export(TARGETS gridtools gcl
     FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
     NAMESPACE GridTools::
