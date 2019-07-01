@@ -23,7 +23,7 @@
 */
 
 #ifdef __CUDA_ARCH__
-#define GT_CONSTEXPR
+#define GT_CONSTEXPR constexpr
 #else
 #define GT_CONSTEXPR constexpr
 #endif
