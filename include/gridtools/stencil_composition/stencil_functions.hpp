@@ -142,8 +142,7 @@ namespace gridtools {
                 class Decayed = std::decay_t<Accessor>,
                 std::enable_if_t<is_accessor<Decayed>::value, int> = 0>
             GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
-                return tuple_util::host_device::get<Decayed::index_t::value>(m_transforms)(
-                    m_eval, wstd::forward<Accessor>(acc));
+                return tuple_util::host_device::get<Decayed::index_t::value>(m_transforms)(m_eval, wstd::move(acc));
             }
 
             template <class Op, class... Ts>
@@ -238,8 +237,8 @@ namespace gridtools {
             std::enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
         GT_FUNCTION static Res with(Eval &eval, Args... args) {
             Res res;
-            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
-                tuple_util::host_device::insert<out_param_index>(res, tuple<Args &&...>{wstd::forward<Args>(args)...}));
+            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
+                eval, tuple_util::host_device::insert<out_param_index>(res, tuple<Args &&...>{wstd::move(args)...}));
             return res;
         }
     };

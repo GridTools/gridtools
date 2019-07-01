@@ -65,7 +65,7 @@ namespace gridtools {
 
             template <class Eval, class Arg, std::enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
             GT_FUNCTION GT_CONSTEXPR decltype(auto) apply_eval(Eval &eval, Arg arg) {
-                return eval(arg);
+                return eval(wstd::move(arg));
             }
 
             template <class Eval, class Op, class Arg>
