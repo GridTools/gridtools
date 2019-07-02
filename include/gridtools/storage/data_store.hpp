@@ -145,8 +145,8 @@ namespace gridtools {
             T external_ptr,
             ownership own = ownership::external_cpu,
             std::string const &name = "")
-            : m_shared_storage(info.length() ? new storage_t(info.padded_total_length(), external_ptr, own) : nullptr),
-              m_shared_storage_info(info.length() ? new storage_info_t(info) : nullptr), m_name(name) {}
+            : m_shared_storage(new storage_t(info.padded_total_length(), external_ptr, own)),
+              m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
          * @brief allocate the needed memory. this will instantiate a storage instance.
