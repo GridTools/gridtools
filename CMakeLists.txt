@@ -41,7 +41,7 @@ include(FetchContent)
 FetchContent_Declare(
   cpp_bindgen
   GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git
-  GIT_TAG        master
+  GIT_TAG        gen_to_bindgen
 )
 set(CPP_BINDGEN_GT_LEGACY ON)
 if(${CMAKE_VERSION} VERSION_LESS 3.14)
