@@ -8,11 +8,11 @@
 extern "C" {
 #endif
 
-gen_handle* make_exported_repository(int, int, int);
-void prefix_set_exported_ijfield(gen_handle*, gen_fortran_array_descriptor*);
-void prefix_set_exported_ijkfield(gen_handle*, gen_fortran_array_descriptor*);
-void prefix_set_exported_jkfield(gen_handle*, gen_fortran_array_descriptor*);
-void verify_exported_repository(gen_handle*);
+bindgen_handle* make_exported_repository(int, int, int);
+void prefix_set_exported_ijfield(bindgen_handle*, bindgen_fortran_array_descriptor*);
+void prefix_set_exported_ijkfield(bindgen_handle*, bindgen_fortran_array_descriptor*);
+void prefix_set_exported_jkfield(bindgen_handle*, bindgen_fortran_array_descriptor*);
+void verify_exported_repository(bindgen_handle*);
 
 #ifdef __cplusplus
 }
