@@ -43,7 +43,6 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git
   GIT_TAG        gen_to_bindgen
 )
-set(CPP_BINDGEN_GT_LEGACY ON)
 if(${CMAKE_VERSION} VERSION_LESS 3.14)
     FetchContent_GetProperties(cpp_bindgen)
     if(NOT cpp_bindgen_POPULATED)
