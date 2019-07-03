@@ -18,15 +18,27 @@
 namespace gridtools {
     namespace lazy {
         template <class T, class = void>
-        struct const_ref_c : std::add_lvalue_reference<std::add_const_t<T>> {};
+        struct const_ref : std::add_lvalue_reference<std::add_const_t<T>> {};
 
         template <class T>
-        struct const_ref_c<T,
+        struct const_ref<T,
             std::enable_if_t<!std::is_reference<T>::value && std::is_trivially_copy_constructible<T>::value &&
-                             sizeof(T) <= sizeof(std::add_pointer_t<T>)>> : std::remove_const<T> {};
+                             sizeof(T) <= sizeof(std::add_pointer_t<T>)>> : std::add_const<T> {};
+
+        template <class T, class = void>
+        struct rvalue_ref : std::add_rvalue_reference<T> {};
 
         template <class T>
-        using const_ref = const_ref_c<T>;
+        struct rvalue_ref<T,
+            std::enable_if_t<!std::is_reference<T>::value && std::is_trivially_copy_constructible<T>::value &&
+                             sizeof(T) <= sizeof(std::add_pointer_t<T>)>> {
+            using type = T;
+        };
     } // namespace lazy
-    GT_META_DELEGATE_TO_LAZY(const_ref, class T, T);
+
+    template <class T>
+    using const_ref = typename lazy::const_ref<T>::type;
+
+    template <class T>
+    using rvalue_ref = typename lazy::rvalue_ref<T>::type;
 } // namespace gridtools

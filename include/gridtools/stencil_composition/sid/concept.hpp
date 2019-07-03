@@ -707,7 +707,7 @@ namespace gridtools {
          */
         template <class Key, class Strides>
         GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
-            return gridtools::host_device::at_key_with_default<Key, default_stride>(strides);
+            return gridtools::host_device::at_key_with_default<Key, default_stride>(wstd::forward<Strides>(strides));
         }
 
         struct get_origin_f {
