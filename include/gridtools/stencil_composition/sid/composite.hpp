@@ -95,7 +95,7 @@ namespace gridtools {
                     using type = item_generator;
 
                     template <class Args, class Res = tuple_util::element<PrimaryIndex::value, Args>>
-                    Res const &operator()(Args const &args) const noexcept {
+                    decltype(auto) operator()(Args const &args) const noexcept {
                         GT_STATIC_ASSERT(
                             (conjunction<
                                 std::is_same<tuple_util::element<SecondaryIndices::value, Args>, Res>...>::value),
