@@ -123,24 +123,12 @@ namespace gridtools {
             integral_constant<int_t, GT_DEFAULT_TILE_J>>;
 
         template <class Grid, class DataStoreMap>
-        auto shift_origin(Grid const &grid, DataStoreMap data_stores) {
+        auto shift_origin_and_block(Grid const &grid, DataStoreMap data_stores) {
             return tuple_util::transform(
-                [offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(grid.i_low_bound(),
-                     grid.j_low_bound())](auto &src) { return sid::shift_sid_origin(std::ref(src), offsets); },
+                [offsets =
+                        tuple_util::make<hymap::keys<dim::i, dim::j>::values>(grid.i_low_bound(), grid.j_low_bound())](
+                    auto &src) { return sid::block(sid::shift_sid_origin(std::ref(src), offsets), block_map_t{}); },
                 std::move(data_stores));
-        }
-
-        template <class Plhs, class Grid, class DataStoreMap>
-        auto make_data_stores(Grid const &grid, DataStoreMap const &data_store_map) {
-            return tuple_util::transform(
-                [&data_store_map,
-                    offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
-                        grid.i_low_bound(), grid.j_low_bound())](auto plh) {
-                    using plh_t = decltype(plh);
-                    return sid::block(
-                        sid::shift_sid_origin(std::ref(at_key<plh_t>(data_store_map)), offsets), block_map_t{});
-                },
-                Plhs{});
         }
 
         template <class Grid>
@@ -363,8 +351,8 @@ namespace gridtools {
         auto make_intermediate(backend, NeedPositionals, Grid const &grid, Msses msses) {
             return [grid](auto external_data_stores) {
                 auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char>);
-                auto data_stores = hymap::concat(
-                    shift_origin(grid, std::move(external_data_stores)), make_temporaries<Msses>(grid, cuda_alloc));
+                auto data_stores = hymap::concat(shift_origin_and_block(grid, std::move(external_data_stores)),
+                    make_temporaries<Msses>(grid, cuda_alloc));
                 launch_msses<NeedPositionals::value>(Msses(), grid, data_stores);
             };
         }
