@@ -29,6 +29,9 @@
 #endif
 
 #ifdef __CUDA_ARCH__
+#if __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2
+#define __PRETTY_FUNCTION__ ""
+#endif
 #define GT_ASSERT_OR_THROW(cond, msg) assert(cond)
 #else
 #define GT_ASSERT_OR_THROW(cond, msg) \
