@@ -315,7 +315,7 @@ namespace gridtools {
 
             using positionals_t = meta::if_c<NeedPositionals,
                 meta::list<dim::i, dim::j, dim::k>,
-                meta::if_<meta::is_empty<non_local_k_caches_t>, meta::list<dim::k>, meta::list<>>>;
+                meta::if_<meta::is_empty<non_local_k_caches_t>, meta::list<>, meta::list<dim::k>>>;
 
             auto composite = hymap::concat(sid::composite::keys<>::values<>(),
                 make_k_cached_sids<Mss>(),
