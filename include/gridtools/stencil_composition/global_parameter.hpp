@@ -17,16 +17,20 @@
 
 namespace gridtools {
     namespace global_parameter_impl_ {
-        struct ptr_diff {};
+        struct ptr_diff {
+            template <class T>
+            friend GT_FUNCTION T *operator+(T *p, ptr_diff) {
+                return p;
+            }
+        };
 
         template <class T>
         struct global_parameter {
             GT_STATIC_ASSERT(std::is_trivially_copyable<T>(), "global parameter should be trivially copyable");
 
-            T m_val;
+            T m_value;
 
-            GT_FUNCTION T const &operator*() const { return m_val; }
-            GT_FUNCTION global_parameter const &operator()() const { return *this; }
+            GT_FUNCTION T const *operator()() const { return &m_value; }
 
             friend GT_FUNCTION global_parameter operator+(global_parameter obj, ptr_diff) { return obj; }
             friend global_parameter sid_get_origin(global_parameter const &obj) { return obj; }
