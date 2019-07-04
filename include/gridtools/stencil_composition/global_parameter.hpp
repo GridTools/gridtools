@@ -9,26 +9,41 @@
  */
 #pragma once
 
-#include <cassert>
+#include <type_traits>
+#include <utility>
 
-#include "../storage/storage_facility.hpp"
+#include "../common/defs.hpp"
+#include "../common/host_device.hpp"
 
 namespace gridtools {
-    template <class Backend, class T>
-    using global_parameter = typename storage_traits<Backend>::template data_store_t<T,
-        typename storage_traits<Backend>::template special_storage_info_t<0, selector<0>, halo<0>>>;
+    namespace global_parameter_impl_ {
+        struct ptr_diff {};
 
-    template <class Backend, class T>
-    global_parameter<Backend, T> make_global_parameter(T const &value) {
-        return {{1}, value};
+        template <class T>
+        struct global_parameter {
+            GT_STATIC_ASSERT(std::is_trivially_copyable<T>(), "global parameter should be trivially copyable");
+
+            T m_val;
+
+            GT_FUNCTION T const &operator*() const { return m_val; }
+            GT_FUNCTION global_parameter const &operator()() const { return *this; }
+
+            friend GT_FUNCTION global_parameter operator+(global_parameter obj, ptr_diff) { return obj; }
+            friend global_parameter sid_get_origin(global_parameter const &obj) { return obj; }
+            friend ptr_diff sid_get_ptr_diff(global_parameter) { return {}; }
+        };
+    } // namespace global_parameter_impl_
+
+    template <class U, class T = U>
+    using global_parameter = global_parameter_impl_::global_parameter<T>;
+
+    template <class = void, class T>
+    global_parameter<T> make_global_parameter(T val) {
+        return {std::move(val)};
     }
 
-    template <class GlobalParameter, class T>
-    void update_global_parameter(GlobalParameter &gp, T const &value) {
-        gp.sync();
-        auto view = make_host_view(gp);
-        assert(check_consistency(gp, view) && "Cannot create a valid view to a global parameter. Properly synced?");
-        view(0) = value;
-        gp.sync();
+    template <class T>
+    void update_global_parameter(global_parameter<T> &dst, T src) {
+        dst = {std::move(src)};
     }
 } // namespace gridtools

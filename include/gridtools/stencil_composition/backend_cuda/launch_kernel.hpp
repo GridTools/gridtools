@@ -60,8 +60,8 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE extent_validator_f(int_t i_pos, int_t j_pos, int_t i_block_size, int_t j_block_size)
                     : m_i_lo(i_pos), m_i_hi(i_pos - i_block_size), m_j_lo(j_pos), m_j_hi(j_pos - j_block_size) {}
 
-                template <class Extent>
-                GT_FUNCTION_DEVICE bool operator()(Extent) const {
+                template <class Extent = MaxExtent>
+                GT_FUNCTION_DEVICE bool operator()(Extent = {}) const {
                     GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
                     GT_STATIC_ASSERT(Extent::iminus::value >= MaxExtent::iminus::value, GT_INTERNAL_ERROR);
                     GT_STATIC_ASSERT(Extent::iplus::value <= MaxExtent::iplus::value, GT_INTERNAL_ERROR);
@@ -70,6 +70,14 @@ namespace gridtools {
 
                     return Extent::iminus::value <= m_i_lo && Extent::iplus::value > m_i_hi &&
                            Extent::jminus::value <= m_j_lo && Extent::jplus::value > m_j_hi;
+                }
+            };
+
+            struct dummy_validator_f {
+                template <class Extent = extent<>>
+                GT_FUNCTION_DEVICE bool operator()(Extent = {}) const {
+                    GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+                    return true;
                 }
             };
 
@@ -116,14 +124,12 @@ namespace gridtools {
             __global__ void __launch_bounds__(NumThreads)
                 zero_extent_wrapper(Fun const fun, int_t i_size, int_t j_size) {
                 if (blockIdx.x * BlockSizeI + threadIdx.x < i_size && blockIdx.y * BlockSizeJ + threadIdx.y < j_size)
-                    fun(threadIdx.x, threadIdx.y, [](auto) { return true; });
-                else
-                    fun(threadIdx.x, threadIdx.y, [](auto) { return false; });
+                    fun(threadIdx.x, threadIdx.y, dummy_validator_f());
             }
 
             template <size_t NumThreads, class Fun>
             __global__ void __launch_bounds__(NumThreads) trivial_wrapper(Fun const fun) {
-                fun(threadIdx.x, threadIdx.y, [](auto) { return true; });
+                fun(threadIdx.x, threadIdx.y, dummy_validator_f());
             }
 
             template <class Extent>
@@ -140,7 +146,7 @@ namespace gridtools {
             class Fun,
             std::enable_if_t<!launch_kernel_impl_::is_empty_ij_extents<Extent>(), int> = 0>
         GT_FORCE_INLINE void launch_kernel(
-            int_t i_size, int_t j_size, uint_t zblocks, Fun const &fun, size_t shared_memory_size = 0) {
+            int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
             GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT(Extent::iminus::value <= 0, GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT(Extent::iplus::value >= 0, GT_INTERNAL_ERROR);
@@ -158,7 +164,7 @@ namespace gridtools {
             dim3 threads = {BlockSizeI, BlockSizeJ + halo_lines, 1};
 
             launch_kernel_impl_::wrapper<num_threads, BlockSizeI, BlockSizeJ, Extent>
-                <<<blocks, threads, shared_memory_size>>>(fun, i_size, j_size);
+                <<<blocks, threads, shared_memory_size>>>(std::move(fun), i_size, j_size);
 
 #ifndef NDEBUG
             GT_CUDA_CHECK(cudaDeviceSynchronize());
@@ -173,7 +179,7 @@ namespace gridtools {
             class Fun,
             std::enable_if_t<launch_kernel_impl_::is_empty_ij_extents<Extent>(), int> = 0>
         GT_FORCE_INLINE void launch_kernel(
-            int_t i_size, int_t j_size, uint_t zblocks, Fun const &fun, size_t shared_memory_size = 0) {
+            int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
 
             GT_STATIC_ASSERT(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
 
@@ -186,10 +192,11 @@ namespace gridtools {
             dim3 threads = {BlockSizeI, BlockSizeJ, 1};
 
             if (i_size % BlockSizeI == 0 && j_size % BlockSizeJ == 0)
-                launch_kernel_impl_::trivial_wrapper<num_threads><<<blocks, threads, shared_memory_size>>>(fun);
+                launch_kernel_impl_::trivial_wrapper<num_threads>
+                    <<<blocks, threads, shared_memory_size>>>(std::move(fun));
             else
                 launch_kernel_impl_::zero_extent_wrapper<num_threads, BlockSizeI, BlockSizeJ>
-                    <<<blocks, threads, shared_memory_size>>>(fun, i_size, j_size);
+                    <<<blocks, threads, shared_memory_size>>>(std::move(fun), i_size, j_size);
 
 #ifndef NDEBUG
             GT_CUDA_CHECK(cudaDeviceSynchronize());

@@ -40,7 +40,7 @@ namespace gridtools {
         } // namespace fused_mss_loop_cuda_impl_
 
         template <class Composite, class KLoop>
-        fused_mss_loop_cuda_impl_::kernel_f<Composite, KLoop> make_kernel(Composite &composite, KLoop k_loop) {
+        fused_mss_loop_cuda_impl_::kernel_f<Composite, KLoop> make_kernel_fun(Composite &composite, KLoop k_loop) {
             return {sid::get_origin(composite), sid::get_strides(composite), std::move(k_loop)};
         }
     } // namespace cuda

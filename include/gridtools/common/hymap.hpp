@@ -91,7 +91,7 @@ namespace gridtools {
     namespace hymap_impl_ {
 
         template <class I>
-        using get_key = integral_constant<int, I::value>;
+        using get_key = integral_constant<int_t, I::value>;
 
         template <class Tup, class Ts = tuple_util::traits::to_types<Tup>>
         using default_keys = meta::transform<get_key, meta::make_indices_for<Ts>>;
@@ -108,8 +108,60 @@ namespace gridtools {
 
         template <class T>
         using get_keys = decltype(::gridtools::hymap_impl_::get_keys_fun(std::declval<T const &>()));
+
+        template <class Map, class = void>
+        struct values_are_nested_in_keys : std::false_type {};
+
+        template <template <class...> class L, class... Values>
+        struct values_are_nested_in_keys<L<Values...>,
+            std::enable_if_t<
+                std::is_same<L<Values...>, typename get_keys<L<Values...>>::template values<Values...>>::value>>
+            : std::true_type {};
+
+        template <template <class...> class Ctor>
+        struct from_key_values_nested {
+            template <class Keys, class Values>
+            using apply = meta::rename<meta::rename<Ctor, Keys>::template values, Values>;
+        };
+
+        template <class Keys, class Values>
+        struct nth_value_f {
+            GT_STATIC_ASSERT(meta::is_set_fast<Keys>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(meta::length<Keys>::values == meta::length<Values>::value, GT_INTERNAL_ERROR);
+
+            template <class Index>
+            using apply = meta::at<Values, meta::st_position<Keys, Index>>;
+        };
+
+        template <class TupleFromValues>
+        struct from_key_values_tuple {
+            template <class Keys,
+                class Values,
+                class Indices = meta::make_indices_for<Values>,
+                class OderedValues = meta::transform<nth_value_f<Keys, Values>::template apply, Indices>>
+            using apply = typename TupleFromValues::template apply<OderedValues>;
+        };
+
+        template <class Map>
+        using default_from_keys_values = meta::if_<values_are_nested_in_keys<Map>,
+            from_key_values_nested<meta::ctor<get_keys<Map>>::template apply>,
+            from_key_values_tuple<tuple_util::traits::from_types<Map>>>;
+
+        not_provided hymap_from_keys_values(...);
+
+        template <class T, class Res = decltype(hymap_from_keys_values(std::declval<T const &>()))>
+        std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_from_keys_values_fun(T const &);
+
+        template <class T, class Res = decltype(hymap_from_keys_values(std::declval<T const &>()))>
+        std::enable_if_t<std::is_same<Res, not_provided>::value, default_from_keys_values<T>> get_from_keys_values_fun(
+            T const &);
+
+        template <class T>
+        using get_from_keys_values =
+            decltype(::gridtools::hymap_impl_::get_from_keys_values_fun(std::declval<T const &>()));
     } // namespace hymap_impl_
 
+    using hymap_impl_::get_from_keys_values;
     using hymap_impl_::get_keys;
 
     template <class Map, class Key>
@@ -134,14 +186,13 @@ namespace gridtools {
         template <class HyMap>
         using to_meta_map = meta::zip<get_keys<HyMap>, tuple_util::traits::to_types<HyMap>>;
 
-        template <class Keys, class Values, class HyMapKeys = meta::rename<keys, Keys>>
-        using from_keys_values = meta::rename<HyMapKeys::template values, Values>;
+        template <class Keys, class Values, template <class...> class KeyCtor = keys>
+        using from_keys_values = meta::rename<meta::rename<KeyCtor, Keys>::template values, Values>;
 
         template <class MetaMap,
-            class KeysAndValues = meta::transpose<MetaMap>,
-            class Keys = meta::first<KeysAndValues>,
-            class Values = meta::second<KeysAndValues>>
-        using from_meta_map = from_keys_values<Keys, Values>;
+            template <class...> class KeyCtor = keys,
+            class KeysAndValues = meta::transpose<MetaMap>>
+        using from_meta_map = from_keys_values<meta::first<KeysAndValues>, meta::second<KeysAndValues>, KeyCtor>;
 
         namespace hymap_impl_ {
             template <class Maps>
@@ -171,6 +222,11 @@ namespace gridtools {
                 class Keys = merged_keys<MetaMaps>,
                 class Values = meta::transform<merged_value_f<MetaMaps>::template apply, Keys>>
             using merged_old = from_keys_values<Keys, Values>;
+
+            struct concat_result_maker_f {
+                template <class Values, class Maps, class Keys = meta::flatten<meta::transform<get_keys, Maps>>>
+                using apply = typename get_from_keys_values<meta::first<Maps>>::template apply<Keys, Values>;
+            };
         } // namespace hymap_impl_
     }     // namespace hymap
 } // namespace gridtools
@@ -265,6 +321,20 @@ namespace gridtools {
                     wstd::forward<Map>(map));
             }
 
+            template <class... Maps>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto concat(Maps... maps) {
+                GT_STATIC_ASSERT(meta::is_set_fast<meta::concat<get_keys<Maps>...>>::value, GT_INTERNAL_ERROR);
+                return tuple_util::concat_ex<hymap_impl_::concat_result_maker_f>(wstd::move(maps)...);
+            }
+
+            template <template <class...> class KeyCtor,
+                class Keys,
+                class Tup,
+                class HyMapKeys = meta::rename<KeyCtor, Keys>>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto convert_to(Tup && tup) {
+                return tuple_util::convert_to<HyMapKeys::template values>(wstd::forward<Tup>(tup));
+            }
+
             template <class Primary, class Secondary>
             class merged : tuple<Primary, Secondary> {
                 using base_t = tuple<Primary, Secondary>;
@@ -279,9 +349,6 @@ namespace gridtools {
                     class PrimaryItem = meta::mp_find<meta_primary_t, Key>,
                     class SecondaryItem = meta::mp_find<meta_secondary_t, Key>>
                 using get_value_type = meta::second<meta::if_<std::is_void<PrimaryItem>, SecondaryItem, PrimaryItem>>;
-
-                //                template <class Key, class Map = meta::st_contains<primary_keys_t, Key>, class Index =
-                //                void> using get_index_map_item = meta::list<Key, Map, Index>;
 
                 using keys_t = meta::dedup<meta::concat<primary_keys_t, secondary_keys_t>>;
                 using values_t = meta::transform<get_value_type, keys_t>;
@@ -352,6 +419,7 @@ namespace gridtools {
                 // TODO:
                 // - element wise ctor
                 // - tuple_from_types
+                // - hymap_from_keys_values
             };
 
             struct merged_getter {

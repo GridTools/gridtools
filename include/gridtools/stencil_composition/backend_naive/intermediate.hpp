@@ -10,10 +10,8 @@
 #pragma once
 
 #include <functional>
-#include <memory>
 #include <tuple>
-#include <type_traits>
-#include <vector>
+#include <utility>
 
 #include "../../common/hymap.hpp"
 #include "../../common/tuple_util.hpp"
@@ -38,7 +36,6 @@
 
 namespace gridtools {
     namespace naive {
-
         template <class Mss>
         using get_esfs = typename Mss::esf_sequence_t;
 
@@ -57,56 +54,57 @@ namespace gridtools {
 #endif
         }
 
-        template <class Extent, class Grid>
-        auto tmp_offsets(Grid const &grid) {
-            return tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
-                -typename Extent::iminus{}, -typename Extent::jminus{});
+        template <class Grid, class DataStoreMap>
+        auto shift_origin(Grid const &grid, DataStoreMap data_stores) {
+            return tuple_util::transform(
+                [offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(grid.i_low_bound(),
+                     grid.j_low_bound())](auto &src) { return sid::shift_sid_origin(std::ref(src), offsets); },
+                std::move(data_stores));
+        }
+
+        template <class Msses, class Grid, class Alloc>
+        auto make_temporaries(Grid const &grid, Alloc &alloc) {
+            using plhs_t = meta::filter<is_tmp_arg, extract_placeholders_from_msses<Msses>>;
+            return tuple_util::transform(
+                [&](auto plh) {
+                    using plh_t = decltype(plh);
+                    using extent_map_t = get_extent_map<meta::flatten<meta::transform<get_esfs, Msses>>>;
+                    using extent_t = lookup_extent_map<extent_map_t, plh_t>;
+                    using data_t = typename plh_t::data_store_t::data_t;
+                    using stride_kind = meta::list<extent_t, typename plh_t::location_t::n_colors>;
+                    using offsets_t =
+                        hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -extent_t::iminus::value>,
+                            integral_constant<int_t, -extent_t::jminus::value>>;
+                    return sid::shift_sid_origin(
+                        sid::make_contiguous<data_t, ptrdiff_t, stride_kind>(alloc, tmp_sizes<plh_t, extent_t>(grid)),
+                        offsets_t());
+                },
+                hymap::from_keys_values<plhs_t, plhs_t>());
         }
 
         template <class Grid>
-        auto data_store_offsets(Grid const &grid) {
-            return tuple_util::make<hymap::keys<dim::i, dim::j>::values>(grid.i_low_bound(), grid.j_low_bound());
+        auto make_positionals(Grid const &grid) {
+            using positionals_t = std::tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
+            return hymap::convert_to<hymap::keys, positionals_t>(
+                positionals_t{grid.i_low_bound(), grid.j_low_bound(), 0});
         }
 
         template <class IsStateful, class Grid, class Msses>
         auto make_intermediate(backend, IsStateful, Grid const &grid, Msses) {
-            return [grid](auto const &data_store_map) {
-                using tmp_plhs_t = meta::filter<is_tmp_arg, extract_placeholders_from_msses<Msses>>;
-                using extent_map_t = get_extent_map<meta::flatten<meta::transform<get_esfs, Msses>>>;
-                using positionals_t = std::tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
-
+            return [grid](auto data_stores) {
                 auto alloc = sid::make_allocator(&std::make_unique<char[]>);
 
-                auto temporaries = tuple_util::transform(
-                    [&](auto plh) {
-                        using plh_t = decltype(plh);
-                        using extent_t = lookup_extent_map<extent_map_t, plh_t>;
-                        using data_t = typename plh_t::data_store_t::data_t;
-                        using stride_kind = meta::list<extent_t, typename plh_t::location_t::n_colors>;
-                        return sid::shift_sid_origin(sid::make_contiguous<data_t, ptrdiff_t, stride_kind>(
-                                                         alloc, tmp_sizes<plh_t, extent_t>(grid)),
-                            tmp_offsets<extent_t>(grid));
-                    },
-                    tmp_plhs_t{});
+                auto composite = hymap::concat(sid::composite::keys<>::values<>(),
+                    shift_origin(grid, std::move(data_stores)),
+                    make_temporaries<Msses>(grid, alloc),
+                    make_positionals(grid));
 
-                auto data_stores = tuple_util::transform(
-                    [&](auto &src) { return sid::shift_sid_origin(std::ref(src), data_store_offsets(grid)); },
-                    data_store_map);
-
-                positionals_t positionals = {grid.i_low_bound(), grid.j_low_bound(), 0};
-
-                using keys_t = meta::rename<sid::composite::keys,
-                    meta::concat<get_keys<decltype(data_stores)>, tmp_plhs_t, positionals_t>>;
-
-                auto composite =
-                    tuple_util::convert_to<keys_t::template values>(tuple_util::deep_copy(tuple_util::flatten(
-                        tuple_util::make<std::tuple>(std::tuple<>{}, data_stores, temporaries, positionals))));
-
-                auto origin = sid_get_origin(composite);
+                auto origin = sid::get_origin(composite);
                 auto strides = sid::get_strides(composite);
 
                 for_each<Msses>([&](auto mss) {
                     using mss_t = decltype(mss);
+                    using extent_map_t = get_extent_map<get_esfs<mss_t>>;
                     using execution_engine_t = typename mss_t::execution_engine_t;
                     using default_interval_t = interval<typename Grid::axis_type::FromLevel,
                         index_to_level<typename level_to_index<typename Grid::axis_type::ToLevel>::prior>>;

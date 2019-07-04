@@ -47,12 +47,20 @@ namespace gridtools {
             template <>
             struct positionals<false> : meta::list<> {};
 
+            template <class Arg, class = void>
+            struct get_storage_info {
+                using type = void;
+            };
+
+            template <class Arg>
+            struct get_storage_info<Arg, void_t<typename Arg::data_store_t::storage_info_t>> {
+                using type = typename Arg::data_store_t::storage_info_t;
+            };
+
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(get_storage, class Arg, Arg);
         GT_META_DELEGATE_TO_LAZY(positionals, bool IsStateful, IsStateful);
-
-        template <class Arg>
-        using get_storage_info = typename Arg::data_store_t::storage_info_t;
+        GT_META_DELEGATE_TO_LAZY(get_storage_info, class Arg, Arg);
 
         template <class Arg, class Src, class Dst>
         struct set_stride_f {
@@ -88,6 +96,19 @@ namespace gridtools {
             using ptr_t = sid::ptr_type<Composite>;
             using strides_t = sid::strides_type<Composite>;
 
+            ptr_holder_t m_ptr_holder;
+            strides_t m_strides;
+            TotalLengthMap m_total_length_map;
+
+            template <class Arg, class DataStore, class StorageInfo = get_storage_info<Arg>>
+            std::enable_if_t<has_key<TotalLengthMap, StorageInfo>::value> set_padded_length(
+                DataStore const &data_store) {
+                at_key<StorageInfo>(m_total_length_map) = data_store.info().padded_total_length();
+            }
+            template <class Arg, class DataStore>
+            std::enable_if_t<!has_key<TotalLengthMap, get_storage_info<Arg>>::value> set_padded_length(
+                DataStore const &data_store) {}
+
             template <class Arg, class DataStore, std::enable_if_t<has_key<Composite, Arg>::value, int> = 0>
             void set_data_store(Arg, DataStore &data_store) {
                 GT_STATIC_ASSERT(is_sid<DataStore>::value, "");
@@ -97,17 +118,11 @@ namespace gridtools {
                 auto const &src_strides = sid::get_strides(data_store);
                 for_each_type<stride_dims_t>(set_stride<Arg>(src_strides, m_strides));
 
-                at_key_with_default<typename DataStore::storage_info_t, sink>(m_total_length_map) =
-                    data_store.info().padded_total_length();
+                set_padded_length<Arg>(data_store);
             }
 
             template <class Arg, class DataStore, std::enable_if_t<!has_key<Composite, Arg>::value, int> = 0>
             void set_data_store(Arg, DataStore &) {}
-
-            ptr_holder_t m_ptr_holder;
-            strides_t m_strides;
-
-            TotalLengthMap m_total_length_map;
         };
         template <class Composite, class CacheSequence, class TotalLengthMap>
         struct is_local_domain<mc_local_domain<Composite, CacheSequence, TotalLengthMap>> : std::true_type {};

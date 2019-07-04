@@ -16,6 +16,7 @@
 #include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/hymap.hpp"
+#include "../../common/integral_constant.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../arg.hpp"
@@ -36,83 +37,44 @@
 #include "../sid/sid_shift_origin.hpp"
 #include "../stages_maker.hpp"
 #include "basic_token_execution_cuda.hpp"
+#include "fill_flush.hpp"
 #include "fused_mss_loop_cuda.hpp"
 #include "ij_cache.hpp"
 #include "k_cache.hpp"
 #include "launch_kernel.hpp"
+#include "loop_interval.hpp"
 #include "need_sync.hpp"
 #include "shared_allocator.hpp"
 #include "tmp_storage_sid.hpp"
 
 namespace gridtools {
     namespace cuda {
-        template <class Composite, class CacheSequence, class KLowerBoundsMap, class KUpperBoundsMap>
-        class local_domain {
-            KLowerBoundsMap m_k_lower_bounds_map;
-            KUpperBoundsMap m_k_upper_bounds_map;
-
-            template <class Arg, std::enable_if_t<has_key<KLowerBoundsMap, Arg>::value, int> = 0>
-            GT_FUNCTION_DEVICE bool left_validate_k_pos(int_t pos) const {
-                return pos >= device::at_key<Arg>(m_k_lower_bounds_map);
-            }
-            template <class Arg, std::enable_if_t<!has_key<KLowerBoundsMap, Arg>::value, int> = 0>
-            GT_FUNCTION_DEVICE bool left_validate_k_pos(int_t pos) const {
-                return true;
-            }
-
-            template <class Arg, std::enable_if_t<has_key<KUpperBoundsMap, Arg>::value, int> = 0>
-            GT_FUNCTION_DEVICE bool right_validate_k_pos(int_t pos) const {
-                return pos < device::at_key<Arg>(m_k_upper_bounds_map);
-            }
-            template <class Arg, std::enable_if_t<!has_key<KUpperBoundsMap, Arg>::value, int> = 0>
-            GT_FUNCTION_DEVICE bool right_validate_k_pos(int_t pos) const {
-                return true;
-            }
-
-          public:
-            using cache_sequence_t = CacheSequence;
-
-            using ptr_holder_t = sid::ptr_holder_type<Composite>;
-            using ptr_t = sid::ptr_type<Composite>;
-            using strides_t = sid::strides_type<Composite>;
-            using ptr_diff_t = sid::ptr_diff_type<Composite>;
-
-            local_domain(Composite &composite, KLowerBoundsMap k_lower_bounds_map, KUpperBoundsMap k_upper_bounds_map)
-                : m_k_lower_bounds_map(std::move(k_lower_bounds_map)),
-                  m_k_upper_bounds_map(std::move(k_upper_bounds_map)), m_ptr_holder(sid::get_origin(composite)),
-                  m_strides(sid::get_strides(composite)) {}
-
-            template <class Arg>
-            GT_FUNCTION_DEVICE bool validate_k_pos(int_t pos) const {
-                return left_validate_k_pos<Arg>(pos) && right_validate_k_pos<Arg>(pos);
-            }
-
-            ptr_holder_t m_ptr_holder;
-            strides_t m_strides;
-        };
+        template <class Mss>
+        using get_esfs = typename Mss::esf_sequence_t;
 
         template <class Mss>
-        struct ij_cached_tmp_f {
-            using cached_args_t =
-                meta::transform<cache_parameter, meta::filter<is_ij_cache, typename Mss::cache_sequence_t>>;
+        using get_caches = typename Mss::cache_sequence_t;
 
-            template <class Arg>
-            using apply = meta::st_contains<cached_args_t, Arg>;
+        template <class Plh>
+        struct plh_is_not_locally_cached_for_mss_f {
+            template <class Mss>
+            using apply = negation<meta::
+                    st_contains<meta::transform<cache_parameter, meta::filter<is_local_cache, get_caches<Mss>>>, Plh>>;
         };
 
-        template <class Mss>
-        struct non_tmp_cached_f {
-            using non_tmp_cached_args_t = meta::transform<cache_parameter,
-                meta::filter<meta::not_<is_local_cache>::apply, typename Mss::cache_sequence_t>>;
-
-            template <class Arg>
-            using apply = meta::st_contains<non_tmp_cached_args_t, Arg>;
+        template <class Msses>
+        struct is_not_locally_cached_in_msses_f {
+            template <class Plh>
+            using apply = meta::all_of<plh_is_not_locally_cached_for_mss_f<Plh>::template apply, Msses>;
         };
 
-        template <class Plhs, class ExtentMap, class Allocator, class Grid>
-        auto make_temporaries(Allocator &allocator, Grid const &grid) {
-            using extent_t =
-                meta::rename<enclosing_extent, meta::transform<lookup_extent_map_f<ExtentMap>::template apply, Plhs>>;
+        template <class Msses, class Grid, class Allocator>
+        auto make_temporaries(Grid const &grid, Allocator &allocator) {
+            using plhs_t = meta::filter<is_not_locally_cached_in_msses_f<Msses>::template apply,
+                meta::filter<is_tmp_arg, extract_placeholders_from_msses<Msses>>>;
+            using extent_map_t = get_extent_map<meta::flatten<meta::transform<get_esfs, Msses>>>;
+            using extent_t = meta::rename<enclosing_extent,
+                meta::transform<lookup_extent_map_f<extent_map_t>::template apply, plhs_t>>;
             return tuple_util::transform(
                 [&allocator,
                     n_blocks_i = (grid.i_size() + GT_DEFAULT_TILE_I - 1) / GT_DEFAULT_TILE_I,
@@ -127,13 +89,13 @@ namespace gridtools {
                         k_size,
                         allocator);
                 },
-                hymap::from_keys_values<Plhs, Plhs>{});
+                hymap::from_keys_values<plhs_t, plhs_t>());
         }
 
-        template <class Plhs, class Src>
-        auto filter_map(Src const &src) {
-            return tuple_util::transform(
-                [&](auto plh) -> decltype(auto) { return at_key<decltype(plh)>(src); }, Plhs{});
+        template <class Plhs, template <class...> class ToKey, class Src>
+        auto filter_map(Src &src) {
+            return tuple_util::transform([&](auto plh) -> decltype(auto) { return at_key<decltype(plh)>(src); },
+                hymap::from_keys_values<meta::transform<ToKey, Plhs>, Plhs>());
         }
 
         template <class Plhs, class ExtentMap>
@@ -145,19 +107,28 @@ namespace gridtools {
                     return make_ij_cache(plh,
                         integral_constant<int_t, GT_DEFAULT_TILE_I>{},
                         integral_constant<int_t, GT_DEFAULT_TILE_J>{},
-                        extent_t{},
+                        extent_t(),
                         allocator);
                 },
-                Plhs{});
+                hymap::from_keys_values<Plhs, Plhs>());
         }
 
-        template <class Plhs, class Esfs>
-        auto make_k_cached() {
-            return tuple_util::transform([](auto plh) { return make_k_cache_sid(); }, Plhs{});
-        }
+        template <class Caches>
+        using is_cached = meta::curry<meta::st_contains, meta::transform<cache_parameter, Caches>>;
+
+        template <class Caches>
+        using is_not_cached = meta::not_<is_cached<Caches>::template apply>;
 
         using block_map_t = hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, GT_DEFAULT_TILE_I>,
             integral_constant<int_t, GT_DEFAULT_TILE_J>>;
+
+        template <class Grid, class DataStoreMap>
+        auto shift_origin(Grid const &grid, DataStoreMap data_stores) {
+            return tuple_util::transform(
+                [offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(grid.i_low_bound(),
+                     grid.j_low_bound())](auto &src) { return sid::shift_sid_origin(std::ref(src), offsets); },
+                std::move(data_stores));
+        }
 
         template <class Plhs, class Grid, class DataStoreMap>
         auto make_data_stores(Grid const &grid, DataStoreMap const &data_store_map) {
@@ -172,96 +143,23 @@ namespace gridtools {
                 Plhs{});
         }
 
-        using positionals_t = tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
+        template <class Grid>
+        auto make_positionals(meta::list<dim::i, dim::j, dim::k>, Grid const &grid) {
+            using positionals_t = std::tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
+            return tuple_util::transform([](auto pos) { return sid::block(pos, block_map_t{}); },
+                hymap::convert_to<hymap::keys, positionals_t>(
+                    positionals_t{grid.i_low_bound(), grid.j_low_bound(), 0}));
+        }
 
         template <class Grid>
-        auto make_positionals(Grid const &grid) {
-            return tuple_util::transform([](auto pos) { return sid::block(pos, block_map_t{}); },
-                positionals_t{grid.i_low_bound(), grid.j_low_bound(), 0});
+        tuple<> make_positionals(meta::list<>, Grid const &) {
+            return {};
         }
 
-        template <class DataStoreMap>
-        struct has_k_lower_bound_f {
-            using map_t = hymap::to_meta_map<DataStoreMap>;
-
-            template <class Plh>
-            using apply =
-                has_key<sid::lower_bounds_type<std::decay_t<meta::second<meta::mp_find<map_t, k_cache_original<Plh>>>>>,
-                    dim::k>;
-        };
-
-        template <class Plhs, class DataStoreMap>
-        auto make_k_lower_bounds(DataStoreMap const &data_store_map) {
-            using plhs_t = meta::filter<has_k_lower_bound_f<DataStoreMap>::template apply, Plhs>;
-            return tuple_util::convert_to<meta::rename<hymap::keys, plhs_t>::template values>(tuple_util::transform(
-                [&](auto plh) {
-                    using plh_t = decltype(plh);
-                    return at_key<dim::k>(sid::get_lower_bounds(at_key<k_cache_original<plh_t>>(data_store_map)));
-                },
-                plhs_t{}));
+        template <class Grid>
+        hymap::keys<positional<dim::k>>::values<positional<dim::k>> make_positionals(meta::list<dim::k>, Grid const &) {
+            return {};
         }
-
-        template <class DataStoreMap>
-        struct has_k_upper_bound_f {
-            using map_t = hymap::to_meta_map<DataStoreMap>;
-
-            template <class Plh>
-            using apply =
-                has_key<sid::upper_bounds_type<std::decay_t<meta::second<meta::mp_find<map_t, k_cache_original<Plh>>>>>,
-                    dim::k>;
-        };
-
-        template <class Plhs, class DataStoreMap>
-        auto make_k_upper_bounds(DataStoreMap const &data_store_map) {
-            using plhs_t = meta::filter<has_k_upper_bound_f<DataStoreMap>::template apply, Plhs>;
-            return tuple_util::convert_to<meta::rename<hymap::keys, plhs_t>::template values>(tuple_util::transform(
-                [&](auto plh) {
-                    using plh_t = decltype(plh);
-                    return at_key<dim::k>(sid::get_upper_bounds(at_key<k_cache_original<plh_t>>(data_store_map)));
-                },
-                plhs_t{}));
-        }
-
-        template <class ExecutionType>
-        std::enable_if_t<!execute::is_parallel<ExecutionType>::value, int_t> blocks_required_z(uint_t) {
-            return 1;
-        }
-
-        template <class ExecutionType>
-        std::enable_if_t<execute::is_parallel<ExecutionType>::value, int_t> blocks_required_z(uint_t nz) {
-            return (nz + ExecutionType::block_size - 1) / ExecutionType::block_size;
-        }
-
-        template <class Caches>
-        using is_cached = meta::curry<meta::st_contains, meta::transform<cache_parameter, Caches>>;
-
-        template <class Caches>
-        using is_not_cached = meta::not_<is_cached<Caches>::template apply>;
-
-        template <class Mss>
-        using get_esfs = typename Mss::esf_sequence_t;
-
-        template <class Mss>
-        using get_caches = typename Mss::cache_sequence_t;
-
-        template <class CacheSequence, class Composite, class LowerKBounds, class UpperKBounds>
-        auto make_local_domain(Composite &composite, LowerKBounds lower_k_bounds, UpperKBounds upper_k_bounds) {
-            return local_domain<Composite, CacheSequence, LowerKBounds, UpperKBounds>{
-                composite, std::move(lower_k_bounds), std::move(upper_k_bounds)};
-        }
-
-        template <class Plh>
-        struct plh_is_not_locally_cached_for_mss_f {
-            template <class Mss>
-            using apply = negation<meta::
-                    st_contains<meta::transform<cache_parameter, meta::filter<is_local_cache, get_caches<Mss>>>, Plh>>;
-        };
-
-        template <class Msses>
-        struct is_not_locally_cached_in_msses_f {
-            template <class Plh>
-            using apply = meta::all_of<plh_is_not_locally_cached_for_mss_f<Plh>::template apply, Msses>;
-        };
 
         GT_FUNCTION_DEVICE void syncthreads(std::true_type) { __syncthreads(); }
         GT_FUNCTION_DEVICE void syncthreads(std::false_type) {}
@@ -292,33 +190,16 @@ namespace gridtools {
             }
         };
 
-        template <class Count, class Stages>
-        class cuda_loop_interval {
-            Count m_count;
-            Stages m_stages;
-
-          public:
-            cuda_loop_interval(Count count, Stages stages) : m_count(count), m_stages(stages) {}
-
-            GT_FUNCTION_DEVICE Count count() const { return m_count; }
-
-            template <class Ptr, class Strides, class Validator>
-            GT_FUNCTION_DEVICE void operator()(
-                Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Validator const &validator) const {
-                tuple_util::device::for_each([&](auto const &stage) { stage(ptr, strides, validator); }, m_stages);
-            }
-        };
-
         template <class Stage>
         using get_esf = typename Stage::esf_t;
 
-        template <class ExecutionType, class Mss, class ExtentMap, class Grid>
+        template <class Mss, class ExtentMap, class Grid>
         auto make_loop_intervals(Grid const &grid) {
             using deref_t = deref_f<compute_readonly_args<typename Mss::esf_sequence_t>>;
             using default_interval_t = interval<typename Grid::axis_type::FromLevel,
                 index_to_level<typename level_to_index<typename Grid::axis_type::ToLevel>::prior>>;
             using res_t = meta::rename<tuple,
-                order_loop_intervals<ExecutionType,
+                order_loop_intervals<typename Mss::execution_engine_t,
                     gridtools::make_loop_intervals<stages_maker<Mss, ExtentMap>::template apply, default_interval_t>>>;
             return tuple_util::transform(
                 [&](auto interval) {
@@ -331,92 +212,160 @@ namespace gridtools {
                         meta::transform<meta::curry<cuda_stage_adaptor_f, deref_t>::template apply,
                             stages_t,
                             need_syncs_t>>;
-                    return cuda_loop_interval<decltype(count), adapted_stages_t>(count, adapted_stages_t{});
+                    return make_loop_interval(count, adapted_stages_t());
                 },
                 res_t{});
         }
 
-        template <class IsStateful, class Grid, class Msses>
-        auto make_intermediate(backend, IsStateful, Grid const &grid, Msses) {
-            return [grid](auto const &data_store_map) {
-                using extent_map_t = get_extent_map<meta::flatten<meta::transform<get_esfs, Msses>>>;
-                using all_tmp_plhs_t = meta::filter<is_not_locally_cached_in_msses_f<Msses>::template apply,
-                    meta::filter<is_tmp_arg, extract_placeholders_from_msses<Msses>>>;
+        template <class... Funs>
+        struct multi_kernel {
+            tuple<Funs...> m_funs;
+
+            template <class Validator>
+            GT_FUNCTION_DEVICE void operator()(int_t i_block, int_t j_block, Validator const &validator) const {
+                tuple_util::device::for_each(
+                    [&](auto fun) {
+                        // TODO: insert memory fence here?
+                        fun(i_block, j_block, validator);
+                    },
+                    m_funs);
+            }
+        };
+
+        template <class Fun>
+        Fun make_multi_kernel(tuple<Fun> tup) {
+            return tuple_util::get<0>(std::move(tup));
+        }
+
+        template <class... Funs>
+        multi_kernel<Funs...> make_multi_kernel(tuple<Funs...> tup) {
+            return {std::move(tup)};
+        }
+
+        template <uint_t BlockSize>
+        std::enable_if_t<BlockSize == 0, int_t> blocks_required_z(uint_t) {
+            return 1;
+        }
+
+        template <uint_t BlockSize>
+        std::enable_if_t<BlockSize != 0, int_t> blocks_required_z(uint_t nz) {
+            return (nz + BlockSize - 1) / BlockSize;
+        }
+
+        template <class MaxExtent, size_t BlockSize, class... Funs>
+        struct kernel {
+            tuple<Funs...> m_funs;
+            size_t m_shared_memory_size;
+
+            template <class Grid, class Kernel>
+            Kernel launch_or_fuse(Grid const &grid, Kernel kernel) && {
+                launch_kernel<MaxExtent, GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J>(grid.i_size(),
+                    grid.j_size(),
+                    blocks_required_z<BlockSize>(grid.k_total_length()),
+                    make_multi_kernel(std::move(m_funs)),
+                    m_shared_memory_size);
+                return kernel;
+            }
+
+            template <class Grid, class Fun>
+            kernel<MaxExtent, BlockSize, Funs..., Fun> launch_or_fuse(
+                Grid const &grid, kernel<MaxExtent, BlockSize, Fun> kernel) && {
+                return {tuple_util::push_back(std::move(m_funs), tuple_util::get<0>(std::move(kernel.m_funs))),
+                    std::max(m_shared_memory_size, kernel.m_shared_memory_size)};
+            }
+        };
+
+        struct no_kernel {
+            template <class Grid, class Kernel>
+            Kernel launch_or_fuse(Grid &&, Kernel kernel) && {
+                return kernel;
+            }
+        };
+
+        template <class MaxExtent, class ExecutionType, class Fun>
+        kernel<MaxExtent, 0, Fun> make_kernel(ExecutionType, Fun fun, size_t m_shared_memory_size) {
+            return {{std::forward<Fun>(fun)}, m_shared_memory_size};
+        }
+
+        template <class MaxExtent, uint_t BlockSize, class Fun>
+        kernel<MaxExtent, BlockSize, Fun> make_kernel(
+            execute::parallel_block<BlockSize>, Fun fun, size_t m_shared_memory_size) {
+            return {{std::forward<Fun>(fun)}, m_shared_memory_size};
+        }
+
+        template <bool NeedPositionals, class Mss, class Grid, class DataStores>
+        auto make_mss_kernel(Grid const &grid, DataStores &data_stores) {
+            using esfs_t = get_esfs<Mss>;
+            using extent_map_t = get_extent_map<esfs_t>;
+
+            using caches_t = get_caches<Mss>;
+            using ij_caches_t = meta::filter<is_ij_cache, caches_t>;
+            using k_caches_t = meta::filter<is_k_cache, caches_t>;
+            using non_local_k_caches_t = meta::filter<meta::not_<is_local_cache>::apply, k_caches_t>;
+
+            using plhs_t = extract_placeholders_from_mss<Mss>;
+
+            using k_cached_plhs_t = meta::filter<is_cached<k_caches_t>::template apply, plhs_t>;
+            using ij_cached_plhs_t = meta::filter<is_cached<ij_caches_t>::template apply, plhs_t>;
+
+            using non_cached_plhs_t = meta::filter<is_not_cached<caches_t>::template apply, plhs_t>;
+            using cached_plhs_t = meta::filter<is_cached<non_local_k_caches_t>::template apply, plhs_t>;
+
+            shared_allocator shared_alloc;
+
+            using positionals_t = meta::if_c<NeedPositionals,
+                meta::list<dim::i, dim::j, dim::k>,
+                meta::if_<meta::is_empty<non_local_k_caches_t>, meta::list<dim::k>, meta::list<>>>;
+
+            auto composite = hymap::concat(sid::composite::keys<>::values<>(),
+                make_k_cached_sids<Mss>(),
+                make_ij_cached<ij_cached_plhs_t, extent_map_t>(shared_alloc),
+                filter_map<non_cached_plhs_t, meta::id>(data_stores),
+                filter_map<cached_plhs_t, k_cache_original>(data_stores),
+                make_bound_checkers<Mss>(data_stores),
+                make_positionals(positionals_t(), grid));
+
+            auto loop_intervals = add_fill_flush_stages<Mss>(make_loop_intervals<Mss, extent_map_t>(grid));
+
+            auto k_loop = make_k_loop<Mss>(grid, std::move(loop_intervals));
+
+            auto kernel_fun = make_kernel_fun(composite, std::move(k_loop));
+
+            using max_extent_t =
+                meta::rename<enclosing_extent, meta::transform<get_esf_extent_f<extent_map_t>::template apply, esfs_t>>;
+            return make_kernel<max_extent_t>(
+                typename Mss::execution_engine_t(), std::move(kernel_fun), shared_alloc.size());
+        }
+
+        template <bool NeedPositionals,
+            template <class...> class L,
+            class Grid,
+            class DataStores,
+            class PrevKernel = no_kernel>
+        void launch_msses(L<>, Grid const &grid, DataStores &data_stores, PrevKernel prev_kernel = {}) {
+            std::move(prev_kernel).launch_or_fuse(grid, no_kernel());
+        }
+
+        template <bool NeedPositionals,
+            template <class...> class L,
+            class Mss,
+            class... Msses,
+            class Grid,
+            class DataStores,
+            class PrevKernel = no_kernel>
+        void launch_msses(L<Mss, Msses...>, Grid const &grid, DataStores &data_stores, PrevKernel prev_kernel = {}) {
+            auto kernel = make_mss_kernel<NeedPositionals, Mss>(grid, data_stores);
+            auto fused_kernel = std::move(prev_kernel).launch_or_fuse(grid, std::move(kernel));
+            launch_msses<NeedPositionals>(L<Msses...>(), grid, data_stores, std::move(fused_kernel));
+        }
+
+        template <class NeedPositionals, class Grid, class Msses>
+        auto make_intermediate(backend, NeedPositionals, Grid const &grid, Msses msses) {
+            return [grid](auto external_data_stores) {
                 auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char>);
-                auto temporaries = make_temporaries<all_tmp_plhs_t, extent_map_t>(cuda_alloc, grid);
-                for_each<Msses>([&](auto mss) {
-                    using mss_t = decltype(mss);
-                    using esfs_t = get_esfs<mss_t>;
-
-                    using caches_t = meta::filter<is_local_cache, get_caches<mss_t>>;
-                    using ij_caches_t = meta::filter<is_ij_cache, caches_t>;
-                    using local_caches_t = meta::filter<is_local_cache, caches_t>;
-                    using k_caches_t = meta::filter<is_k_cache, caches_t>;
-                    using non_local_k_caches_t = meta::filter<meta::not_<is_local_cache>::apply, k_caches_t>;
-
-                    using plhs_t = extract_placeholders_from_mss<mss_t>;
-                    using non_tmp_plhs_t = meta::filter<meta::not_<is_tmp_arg>::apply, plhs_t>;
-                    using tmp_plhs_t = meta::filter<is_tmp_arg, plhs_t>;
-
-                    using k_cached_plhs_t = meta::filter<is_cached<k_caches_t>::template apply, plhs_t>;
-                    using ij_cached_plhs_t = meta::filter<is_cached<ij_caches_t>::template apply, plhs_t>;
-                    using non_tmp_non_cached_plhs_t =
-                        meta::filter<is_not_cached<caches_t>::template apply, non_tmp_plhs_t>;
-                    using tmp_non_cached_plhs_t = meta::filter<is_not_cached<caches_t>::template apply, tmp_plhs_t>;
-                    using non_tmp_k_cached_plhs_t =
-                        meta::filter<is_cached<non_local_k_caches_t>::template apply, non_tmp_plhs_t>;
-                    using tmp_k_cached_plhs_t =
-                        meta::filter<is_cached<non_local_k_caches_t>::template apply, tmp_plhs_t>;
-
-                    using non_cached_tmp_plhs_t =
-                        meta::filter<is_not_cached<local_caches_t>::template apply, tmp_plhs_t>;
-
-                    using composite_keys_t = meta::rename<sid::composite::keys,
-                        meta::concat< //
-                            k_cached_plhs_t,
-                            ij_cached_plhs_t,
-                            non_tmp_non_cached_plhs_t,
-                            tmp_non_cached_plhs_t,
-                            meta::transform<k_cache_original, non_tmp_k_cached_plhs_t>,
-                            meta::transform<k_cache_original, tmp_k_cached_plhs_t>,
-                            positionals_t>>;
-
-                    shared_allocator shared_alloc;
-
-                    auto composite = tuple_util::convert_to<composite_keys_t::template values>(
-                        tuple_util::deep_copy(tuple_util::flatten(tuple_util::make<tuple>( //
-                            make_k_cached<k_cached_plhs_t, esfs_t>(),
-                            make_ij_cached<ij_cached_plhs_t, extent_map_t>(shared_alloc),
-                            make_data_stores<non_tmp_non_cached_plhs_t>(grid, data_store_map),
-                            filter_map<tmp_non_cached_plhs_t>(temporaries),
-                            make_data_stores<non_tmp_k_cached_plhs_t>(grid, data_store_map),
-                            filter_map<tmp_k_cached_plhs_t>(temporaries),
-                            make_positionals(grid)))));
-
-                    //                    using non_local_k_cached_plhs_t =
-                    //                        meta::filter<is_cached<non_local_k_caches_t>::template apply, plhs_t>;
-                    //
-                    //                    auto local_domain = make_local_domain<typename
-                    //                    mss_t::cache_sequence_t>(composite,
-                    //                        make_k_lower_bounds<non_local_k_cached_plhs_t>(composite),
-                    //                        make_k_upper_bounds<non_local_k_cached_plhs_t>(composite));
-                    //
-                    using execution_type_t = typename mss_t::execution_engine_t;
-                    using max_extent_t = meta::rename<enclosing_extent,
-                        meta::transform<get_esf_extent_f<extent_map_t>::template apply, esfs_t>>;
-
-                    auto loop_intervals = make_loop_intervals<execution_type_t, mss_t, extent_map_t>(grid);
-
-                    auto k_loop = make_k_loop(mss, grid, std::move(loop_intervals), composite);
-
-                    auto kernel = make_kernel(composite, std::move(k_loop));
-
-                    launch_kernel<max_extent_t, GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J>(grid.i_size(),
-                        grid.j_size(),
-                        blocks_required_z<execution_type_t>(grid.k_total_length()),
-                        kernel,
-                        shared_alloc.size());
-                });
+                auto data_stores = hymap::concat(
+                    shift_origin(grid, std::move(external_data_stores)), make_temporaries<Msses>(grid, cuda_alloc));
+                launch_msses<NeedPositionals::value>(Msses(), grid, data_stores);
             };
         }
     } // namespace cuda

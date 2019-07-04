@@ -28,6 +28,7 @@
 #include "extract_placeholders.hpp"
 #include "mss.hpp"
 #include "positional.hpp"
+#include "sid/composite.hpp"
 
 namespace gridtools {
     namespace computation_facade_impl_ {

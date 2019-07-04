@@ -172,5 +172,14 @@ namespace gridtools {
             EXPECT_EQ(16, at_key<c>(testee));
         }
 
+        TEST(concat, smoke) {
+            auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2);
+            auto m2 = tuple_util::make<hymap::keys<c>::values>(3.5);
+
+            auto testee = hymap::concat(m1, m2);
+            EXPECT_EQ(1, at_key<a>(testee));
+            EXPECT_EQ(2, at_key<b>(testee));
+            EXPECT_EQ(3.5, at_key<c>(testee));
+        }
     } // namespace
 } // namespace gridtools
