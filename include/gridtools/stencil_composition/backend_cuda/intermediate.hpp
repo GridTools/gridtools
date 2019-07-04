@@ -213,7 +213,7 @@ namespace gridtools {
             GT_FUNCTION_DEVICE void operator()(int_t i_block, int_t j_block, Validator const &validator) const {
                 tuple_util::device::for_each(
                     [&](auto fun) {
-                        // TODO: insert memory fence here?
+                        __threadfence_block();
                         fun(i_block, j_block, validator);
                     },
                     m_funs);
