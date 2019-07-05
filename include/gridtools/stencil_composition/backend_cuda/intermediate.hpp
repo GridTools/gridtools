@@ -240,7 +240,7 @@ namespace gridtools {
             return (nz + BlockSize - 1) / BlockSize;
         }
 
-        template <class MaxExtent, size_t BlockSize, class... Funs>
+        template <class MaxExtent, uint_t BlockSize, class... Funs>
         struct kernel {
             tuple<Funs...> m_funs;
             size_t m_shared_memory_size;
