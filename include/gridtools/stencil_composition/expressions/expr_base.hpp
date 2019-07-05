@@ -66,9 +66,17 @@ namespace gridtools {
             template <class Eval, class Arg, enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
             GT_FUNCTION GT_CONSTEXPR auto apply_eval(Eval &eval, Arg arg) GT_AUTO_RETURN(eval(wstd::move(arg)));
 
+            // intel compiler 18.0 segfaults if this is a value. On the other hand, nvcc performs much worse in the
+            // dycore if it is a lvalue reference
+#if defined(__INTEL_COMPILER) && (__INTEL_COMPILER <= 1800)
             template <class Eval, class Op, class Arg>
             GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Arg> const &arg)
                 GT_AUTO_RETURN(Op{}(eval(arg.m_arg)));
+#else
+            template <class Eval, class Op, class Arg>
+            GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Arg> arg)
+                GT_AUTO_RETURN(Op{}(eval(std::move(arg.m_arg))));
+#endif
 
             template <class Eval, class Op, class Lhs, class Rhs>
             GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg)
