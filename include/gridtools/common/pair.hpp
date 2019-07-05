@@ -133,7 +133,7 @@ namespace gridtools {
         template <>
         struct pair_get<0> {
             template <typename T1, typename T2>
-            static GT_CONSTEXPR GT_FUNCTION const T1 &const_get(const pair<T1, T2> &p) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION GT_META_CALL(const_ref, T1) const_get(const pair<T1, T2> &p) noexcept {
                 return p.first;
             }
             template <typename T1, typename T2>
@@ -141,14 +141,14 @@ namespace gridtools {
                 return p.first;
             }
             template <typename T1, typename T2>
-            static GT_CONSTEXPR GT_FUNCTION T1 &&move_get(pair<T1, T2> &&p) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T1 move_get(pair<T1, T2> &&p) noexcept {
                 return wstd::move(p.first);
             }
         };
         template <>
         struct pair_get<1> {
             template <typename T1, typename T2>
-            static GT_CONSTEXPR GT_FUNCTION const T2 &const_get(const pair<T1, T2> &p) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION GT_META_CALL(const_ref, T2) const_get(const pair<T1, T2> &p) noexcept {
                 return p.second;
             }
             template <typename T1, typename T2>
@@ -156,7 +156,7 @@ namespace gridtools {
                 return p.second;
             }
             template <typename T1, typename T2>
-            static GT_CONSTEXPR GT_FUNCTION T2 &&move_get(pair<T1, T2> &&p) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T2 move_get(pair<T1, T2> &&p) noexcept {
                 return wstd::move(p.second);
             }
         };
