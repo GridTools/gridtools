@@ -147,5 +147,39 @@ namespace gridtools {
 
             EXPECT_EQ(47.3, acc);
         }
+
+        TEST(at_key, multi_args) {
+            auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2);
+            auto m2 = tuple_util::make<hymap::keys<b, c>::values>(3.5, 16);
+
+            EXPECT_EQ(1, at_key<a>(m1, m2));
+            EXPECT_EQ(1, at_key<a>(m2, m1));
+
+            EXPECT_EQ(2, at_key<b>(m1, m2));
+            EXPECT_EQ(3.5, at_key<b>(m2, m1));
+
+            EXPECT_EQ(16, at_key<c>(m1, m2));
+            EXPECT_EQ(16, at_key<c>(m2, m1));
+        }
+
+        TEST(merge, smoke) {
+            auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2);
+            auto m2 = tuple_util::make<hymap::keys<b, c>::values>(3.5, 16);
+            auto testee = hymap::merge(m1, m2);
+
+            EXPECT_EQ(1, at_key<a>(testee));
+            EXPECT_EQ(2, at_key<b>(testee));
+            EXPECT_EQ(16, at_key<c>(testee));
+        }
+
+        TEST(concat, smoke) {
+            auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2);
+            auto m2 = tuple_util::make<hymap::keys<c>::values>(3.5);
+
+            auto testee = hymap::concat(m1, m2);
+            EXPECT_EQ(1, at_key<a>(testee));
+            EXPECT_EQ(2, at_key<b>(testee));
+            EXPECT_EQ(3.5, at_key<c>(testee));
+        }
     } // namespace
 } // namespace gridtools
