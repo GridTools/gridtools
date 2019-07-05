@@ -40,7 +40,7 @@ install(DIRECTORY include/gridtools/ DESTINATION include/gridtools)
 # Install the GridToolsConfig.cmake and GridToolsConfigVersion.cmake
 install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake"
     "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake"
-  DESTINATION "lib/cmake" COMPONENT dev)
+  DESTINATION "lib/cmake")
 
 set(CMAKE_SOURCES
     "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake" # TODO remove in GT 2.0
