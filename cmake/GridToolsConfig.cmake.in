@@ -37,6 +37,7 @@ if (GRIDTOOLS_ENABLE_PERFORMANCE_METERS)
 endif()
 
 set_and_check(GridTools_MODULE_PATH @PACKAGE_GRIDTOOLS_MODULE_PATH@)
+set_and_check(GridTools_INCLUDE_PATH @PACKAGE_GRIDTOOLS_INCLUDE_PATH@)
 
 # Remove with GT 2.0 (cpp_bindgen will be fully standalone)
 set(CPP_BINDGEN_GT_LEGACY ON CACHE BOOL "Enables the legacy mode for API compatibility with GridTools 1.x" FORCE)

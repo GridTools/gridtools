@@ -41,8 +41,11 @@ include(FetchContent)
 FetchContent_Declare(
   cpp_bindgen
   GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git
-  GIT_TAG        gen_to_bindgen
+  GIT_TAG        add_install_function
 )
+# Enable legacy mode for CPP_BINDGEN for users of GT 1.0
+# TODO remove in GT 2.0
+set(CPP_BINDGEN_GT_LEGACY ON)
 if(${CMAKE_VERSION} VERSION_LESS 3.14)
     FetchContent_GetProperties(cpp_bindgen)
     if(NOT cpp_bindgen_POPULATED)
@@ -55,18 +58,6 @@ endif()
 
 # TODO this install targets are not finished on purpose.
 if( COMPONENT_COMMON )
-    install(TARGETS gridtools EXPORT GridToolstargets
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
-      INCLUDES DESTINATION include
-    )
-    install(EXPORT GridToolstargets
-      FILE GridToolsTargets.cmake
-      NAMESPACE gridtools::
-      DESTINATION ${INSTALL_CONFIGDIR}
-    )
-
     generate_target_for(NAME common)
     target_link_libraries(common INTERFACE gridtools)
 endif()

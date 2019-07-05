@@ -5,27 +5,29 @@ include(CMakePackageConfigHelpers)
 
 # for install tree
 set(GRIDTOOLS_MODULE_PATH lib/cmake)
+set(GRIDTOOLS_INCLUDE_PATH include)
 set(GT_CPP_BINDGEN_CONFIG_LOCATION "\${CMAKE_CURRENT_LIST_DIR}")
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake
-  PATH_VARS GRIDTOOLS_MODULE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
+  PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_INCLUDE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake
   COMPATIBILITY SameMajorVersion )
 # for build tree
 set(GRIDTOOLS_MODULE_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake)
+set(GRIDTOOLS_INCLUDE_PATH ${CMAKE_SOURCE_DIR}/include)
 FetchContent_GetProperties(cpp_bindgen)
 set(GT_CPP_BINDGEN_CONFIG_LOCATION ${cpp_bindgen_BINARY_DIR})
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}/GridToolsConfig.cmake
-  PATH_VARS GRIDTOOLS_MODULE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
+  PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_INCLUDE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
   INSTALL_DESTINATION ${PROJECT_BINARY_DIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
-  COMPATIBILITY SameMinorVersion )
+  COMPATIBILITY SameMajorVersion )
 
-install(TARGETS gridtools EXPORT GridToolsTargets
+install(TARGETS gridtools cpp_bindgen_interface EXPORT GridToolsTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
@@ -38,12 +40,12 @@ if (COMPONENT_GCL)
       RUNTIME DESTINATION bin
       INCLUDES DESTINATION include
     )
-    export(TARGETS gridtools gcl
+    export(TARGETS gridtools gcl cpp_bindgen_interface
         FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
         NAMESPACE GridTools::
     )
 else()
-    export(TARGETS gridtools
+    export(TARGETS gridtools cpp_bindgen_interface
         FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
         NAMESPACE GridTools::
     )

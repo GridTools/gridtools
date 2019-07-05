@@ -37,11 +37,11 @@ flavours of this macro are explained below. The macro generates a wrapper around
   BINDGEN_EXPORT_BINDING_2(add, add_impl);
 
 The user can generate a C header and a Fortran module that matches this header by
-adding a call to ``cpp_bindgen_add_library`` in his CMake project:
+adding a call to ``bindgen_add_library`` in his CMake project:
 
 .. code-block:: CMake
 
-  cpp_bindgen_add_library(add_lib SOURCES add.cpp)
+  bindgen_add_library(add_lib SOURCES add.cpp)
 
 This will generate a library ``add_lib`` which contains the exported symbol ``add``,
 and it will generate a target ``add_lib_declarations`` that generates the files
@@ -240,7 +240,7 @@ which then can be transformed into a |GT| storage.
 CMake usage
 -----------
 
-A call to ``cpp_bindgen_add_library`` generates the libraries and the headers. By default,
+A call to ``bindgen_add_library`` generates the libraries and the headers. By default,
 the C header file and the Fortran file is written directly into the source tree. This choice was
 taken to improve building in cross-build environments, because the process cannot rely
 on generated binaries being executable on the host system. The output folder can be overwritten

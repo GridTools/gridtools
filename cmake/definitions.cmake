@@ -20,6 +20,7 @@ target_include_directories(gridtools
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
 )
+target_link_libraries(gridtools INTERFACE cpp_bindgen_interface)
 include(workaround_icc)
 _workaround_icc(gridtools)
 
@@ -71,7 +72,7 @@ target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
 target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(GridToolsTest INTERFACE 
+    target_compile_options(GridToolsTest INTERFACE
         $<$<COMPILE_LANGUAGE:CXX>:-Wall -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-local-typedefs -Wno-attributes -Wno-unused-but-set-variable -Wno-unneeded-internal-declaration -Wno-unused-function>)
     target_compile_options(GridToolsTest INTERFACE
         "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -Wall,-Wno-unknown-pragmas,-Wno-sign-compare,-Wno-attributes,-Wno-unused-but-set-variable,-Wno-unneeded-internal-declaration,-Wno-unused-function>")
@@ -84,7 +85,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.9.0")
         # attribute noalias has been added in clang 3.9.0
-        target_compile_options(GridToolsTest INTERFACE 
+        target_compile_options(GridToolsTest INTERFACE
             $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-attributes>)
         target_compile_options(GridToolsTest INTERFACE
             "SHELL:$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unknown-attributes>")
@@ -228,4 +229,3 @@ function(gridtools_add_mpi_test)
   set_tests_properties(${___NAME} PROPERTIES LABELS "${___LABELS}")
   set_tests_properties(${___NAME} PROPERTIES PROCESSORS ${___NPROC})
 endfunction()
-
