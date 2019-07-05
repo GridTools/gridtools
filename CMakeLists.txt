@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION 3.14.5)
 
 cmake_policy(SET CMP0048 NEW)
 file(STRINGS "version.txt" __GT_VERSION)
@@ -46,15 +46,7 @@ FetchContent_Declare(
 # Enable legacy mode for CPP_BINDGEN for users of GT 1.0
 # TODO remove in GT 2.0
 set(CPP_BINDGEN_GT_LEGACY ON)
-if(${CMAKE_VERSION} VERSION_LESS 3.14)
-    FetchContent_GetProperties(cpp_bindgen)
-    if(NOT cpp_bindgen_POPULATED)
-      FetchContent_Populate(cpp_bindgen)
-      add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR})
-    endif()
-else()
-    FetchContent_MakeAvailable(cpp_bindgen)
-endif()
+FetchContent_MakeAvailable(cpp_bindgen)
 
 # TODO this install targets are not finished on purpose.
 if( COMPONENT_COMMON )

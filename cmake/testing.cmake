@@ -25,12 +25,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG        release-1.8.1
 )
-# TODO Replace the next 5 lines with `FetchContent_MakeAvailable(googletest)` once we upgrade to CMake 3.14+.
-FetchContent_GetProperties(googletest)
-if(NOT googletest_POPULATED)
-  FetchContent_Populate(googletest)
-  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-endif()
+FetchContent_MakeAvailable(googletest)
 
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
