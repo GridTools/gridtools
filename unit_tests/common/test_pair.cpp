@@ -26,8 +26,6 @@ TEST(pair, get_rval_ref) {
     size_t val0 = 1;
     size_t val1 = 2;
 
-    static_assert(
-        !std::is_reference<decltype(gridtools::get<0>(gridtools::pair<size_t, size_t>{val0, val1}))>::value, "");
     EXPECT_EQ(val0, gridtools::get<0>(gridtools::pair<size_t, size_t>{val0, val1}));
     EXPECT_EQ(val1, gridtools::get<1>(gridtools::pair<size_t, size_t>{val0, val1}));
 }
