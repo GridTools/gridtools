@@ -24,21 +24,8 @@ namespace gridtools {
         struct const_ref<T,
             std::enable_if_t<!std::is_reference<T>::value && std::is_trivially_copy_constructible<T>::value &&
                              sizeof(T) <= sizeof(std::add_pointer_t<T>)>> : std::add_const<T> {};
-
-        template <class T, class = void>
-        struct rvalue_ref : std::add_rvalue_reference<T> {};
-
-        template <class T>
-        struct rvalue_ref<T,
-            std::enable_if_t<!std::is_reference<T>::value && std::is_trivially_copy_constructible<T>::value &&
-                             sizeof(T) <= sizeof(std::add_pointer_t<T>)>> {
-            using type = T;
-        };
     } // namespace lazy
 
     template <class T>
     using const_ref = typename lazy::const_ref<T>::type;
-
-    template <class T>
-    using rvalue_ref = typename lazy::rvalue_ref<T>::type;
 } // namespace gridtools
