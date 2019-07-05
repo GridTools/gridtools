@@ -6,7 +6,7 @@ module load craype-network-infiniband
 module load craype-haswell
 module load craype-accel-nvidia35
 module load cray-libsci
-module load cudatoolkit/8.0.61
+module swap cudatoolkit/8.0.61
 module load mvapich2gdr_gnu/2.2_cuda_8.0
 module load gcc/5.4.0-2.26
 module load /users/jenkins/easybuild/kesch/modules/all/cmake/3.12.4
