@@ -11,21 +11,21 @@ implicit none
     end function
     subroutine prefix_set_exported_ijfield_impl(arg0, arg1) bind(c, name="prefix_set_exported_ijfield")
       use iso_c_binding
-      use gen_array_descriptor
+      use bindgen_array_descriptor
       type(c_ptr), value :: arg0
-      type(gen_fortran_array_descriptor) :: arg1
+      type(bindgen_fortran_array_descriptor) :: arg1
     end subroutine
     subroutine prefix_set_exported_ijkfield_impl(arg0, arg1) bind(c, name="prefix_set_exported_ijkfield")
       use iso_c_binding
-      use gen_array_descriptor
+      use bindgen_array_descriptor
       type(c_ptr), value :: arg0
-      type(gen_fortran_array_descriptor) :: arg1
+      type(bindgen_fortran_array_descriptor) :: arg1
     end subroutine
     subroutine prefix_set_exported_jkfield_impl(arg0, arg1) bind(c, name="prefix_set_exported_jkfield")
       use iso_c_binding
-      use gen_array_descriptor
+      use bindgen_array_descriptor
       type(c_ptr), value :: arg0
-      type(gen_fortran_array_descriptor) :: arg1
+      type(bindgen_fortran_array_descriptor) :: arg1
     end subroutine
     subroutine verify_exported_repository(arg0) bind(c)
       use iso_c_binding
@@ -36,10 +36,10 @@ implicit none
 contains
     subroutine prefix_set_exported_ijfield(arg0, arg1)
       use iso_c_binding
-      use gen_array_descriptor
+      use bindgen_array_descriptor
       type(c_ptr), value, target :: arg0
       real(c_double), dimension(:,:), target :: arg1
-      type(gen_fortran_array_descriptor) :: descriptor1
+      type(bindgen_fortran_array_descriptor) :: descriptor1
 
       !$acc data present(arg1)
       !$acc host_data use_device(arg1)
@@ -55,10 +55,10 @@ contains
     end subroutine
     subroutine prefix_set_exported_ijkfield(arg0, arg1)
       use iso_c_binding
-      use gen_array_descriptor
+      use bindgen_array_descriptor
       type(c_ptr), value, target :: arg0
       real(c_double), dimension(:,:,:), target :: arg1
-      type(gen_fortran_array_descriptor) :: descriptor1
+      type(bindgen_fortran_array_descriptor) :: descriptor1
 
       !$acc data present(arg1)
       !$acc host_data use_device(arg1)
@@ -74,10 +74,10 @@ contains
     end subroutine
     subroutine prefix_set_exported_jkfield(arg0, arg1)
       use iso_c_binding
-      use gen_array_descriptor
+      use bindgen_array_descriptor
       type(c_ptr), value, target :: arg0
       real(c_double), dimension(:,:), target :: arg1
-      type(gen_fortran_array_descriptor) :: descriptor1
+      type(bindgen_fortran_array_descriptor) :: descriptor1
 
       !$acc data present(arg1)
       !$acc host_data use_device(arg1)

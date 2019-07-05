@@ -67,7 +67,7 @@ function (fetch_tests_helper target_arch filetype subfolder )
             set(unit_test "${unit_test}_${target_arch_l}")
             # create the test
             add_executable (${unit_test} ${test_source} )
-            target_link_libraries(${unit_test} GridToolsTest${target_arch_u} cpp_bindgen_generator c_bindings_handle gtest gmock_main)
+            target_link_libraries(${unit_test} GridToolsTest${target_arch_u} cpp_bindgen_generator gtest gmock_main)
 
             gridtools_add_test(
                 NAME ${unit_test}
