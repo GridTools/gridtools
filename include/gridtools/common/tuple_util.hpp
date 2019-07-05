@@ -1096,10 +1096,23 @@ namespace gridtools {
                 return {wstd::move(fun)};
             }
 
+            /*
+             *  Concatenate several tuple-likes into one.
+             *  The type of result is deduced from the first argument
+             */
+            constexpr detail::concat_f<_impl::default_concat_result_maker_f> concat = {};
+
+            /*
+             * Variation of concat that allows to specify the resulting type.
+             *
+             * ResultMaker is a meta class with the following signature:
+             *   struct ResultMaker {
+             *     template <class FlattenTypesList,  ArgumentsOfConcatList>
+             *     using apply = ...;
+             *   }
+             */
             template <class ResultMaker>
             constexpr detail::concat_f<ResultMaker> concat_ex = {};
-
-            constexpr detail::concat_f<_impl::default_concat_result_maker_f> concat = {};
 
             /**
              * @brief Non-recursively flattens a tuple of tuples into a single tuple.
@@ -1118,10 +1131,13 @@ namespace gridtools {
              * // flat == {1, 2, 3, 4, 5}
              * @endcode
              */
+            constexpr detail::flatten_f<_impl::default_concat_result_maker_f> flatten = {};
+
+            /*
+             * Extended variation of flatten. See concat_ex comments
+             */
             template <class ResultMaker>
             constexpr detail::flatten_f<ResultMaker> flatten_ex = {};
-
-            constexpr detail::flatten_f<_impl::default_concat_result_maker_f> flatten = {};
 
             /**
              * @brief Constructs an object from generator functors.
@@ -1169,24 +1185,6 @@ namespace gridtools {
             }
 
             /**
-             * @brief Returns a functor that removes the first `N` elements from a tuple.
-             *
-             * @tparam N Number of elements to remove.
-             *
-             * Example:
-             * @code
-             * auto dropper = drop_front<2>();
-             * auto tup = std::make_tuple(1, 2, 3, 4);
-             * auto res = dropper(tup);
-             * // res == {3, 4}
-             * @endcode
-             */
-            template <size_t N>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::drop_front_f<N> drop_front() {
-                return {};
-            }
-
-            /**
              * @brief Removes the first `N` elements from a tuple.
              *
              * @tparam N Number of elements to remove.
@@ -1201,23 +1199,8 @@ namespace gridtools {
              * // res == {3, 4}
              * @endcode
              */
-            template <size_t N, class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto drop_front(Tup && tup) {
-                return drop_front<N>()(wstd::forward<Tup>(tup));
-            }
-
-            /**
-             * @brief Returns a functor that appends elements to a tuple.
-             *
-             * Example:
-             * @code
-             * auto pusher = push_back();
-             * auto tup = std::make_tuple(1, 2);
-             * auto res = pusher(tup, 3, 4);
-             * // res = {1, 2, 3, 4}
-             * @endcode
-             */
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::push_back_f push_back() { return {}; }
+            template <size_t N>
+            constexpr detail::drop_front_f<N> drop_front = {};
 
             /**
              * @brief Appends elements to a tuple.
@@ -1235,20 +1218,12 @@ namespace gridtools {
              * // res = {1, 2, 3, 4}
              * @endcode
              */
-            template <class Tup, class... Args>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto push_back(Tup && tup, Args && ... args) {
-                return push_back()(wstd::forward<Tup>(tup), wstd::forward<Args>(args)...);
-            }
+            constexpr detail::push_back_f push_back = {};
 
             /**
              * @brief Appends elements to a tuple from the front.
              */
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::push_front_f push_front() { return {}; }
-
-            template <class Tup, class... Args>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto push_front(Tup && tup, Args && ... args) {
-                return push_front()(wstd::forward<Tup>(tup), wstd::forward<Args>(args)...);
-            }
+            constexpr detail::push_front_f push_front = {};
 
             /**
              * @brief Left fold on tuple-like objects.
@@ -1332,12 +1307,7 @@ namespace gridtools {
              *   transpose(make<array>(make<array>(1, 2, 3), make<array>(10, 20, 30))) returns the same as
              *   make<array>(make<array>(1, 10), make<array>(2, 20), make<array>(3, 30));
              */
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::transpose_f transpose() { return {}; }
-
-            template <class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto transpose(Tup && tup) {
-                return transpose()(wstd::forward<Tup>(tup));
-            }
+            constexpr detail::transpose_f transpose = {};
 
             /**
              * @brief Replaces reference types by value types in a tuple.
@@ -1449,12 +1419,7 @@ namespace gridtools {
                 return (detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>{}(wstd::forward<Tup>(tup)));
             }
 
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::reverse_f reverse() { return {}; }
-
-            template <class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto reverse(Tup && tup) {
-                return reverse()(wstd::forward<Tup>(tup));
-            }
+            constexpr detail::reverse_f reverse = {};
 
             template <size_t I, class Val>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::insert_f<I, Val> insert(Val && val) {
