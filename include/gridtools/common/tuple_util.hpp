@@ -271,8 +271,7 @@ namespace gridtools {
                 };
 
                 template <class T>
-                struct add_ref<ref_kind::lvalue, T> : std::add_lvalue_reference<T> {
-                };
+                struct add_ref<ref_kind::lvalue, T> : std::add_lvalue_reference<T> {};
 
                 template <class T>
                 struct add_ref<ref_kind::const_lvalue, T> : std::add_lvalue_reference<std::add_const_t<T>> {};
@@ -419,8 +418,7 @@ namespace gridtools {
                     template <class Tup,
                         class... Tups,
                         class Is = meta::make_indices<size<std::decay_t<Tup>>>,
-                        class Res =
-                            from_types<Tup, get_results_t<Is, get_accessors<Tup >, get_accessors<Tups >...>>>
+                        class Res = from_types<Tup, get_results_t<Is, get_accessors<Tup>, get_accessors<Tups>...>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup, Tups &&... tups) const {
                         using generators_t = meta::transform<get_transform_index_generator, Is>;
                         return generate_f<generators_t, Res>{}(
@@ -517,7 +515,7 @@ namespace gridtools {
                             meta::make_indices_for<InnerTup>>;
 
                     template <class Tup,
-                        class Accessors = meta::transform<get_accessors, get_accessors<Tup >>,
+                        class Accessors = meta::transform<get_accessors, get_accessors<Tup>>,
                         class First = meta::first<to_types<Tup>>,
                         class Res = from_types<First, meta::flatten<Accessors>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
@@ -753,7 +751,7 @@ namespace gridtools {
 
                     template <class Tup,
                         class First = meta::first<to_types<Tup>>,
-                        class Accessors = meta::transform<get_accessors, get_accessors<Tup >>,
+                        class Accessors = meta::transform<get_accessors, get_accessors<Tup>>,
                         class Types = meta::transpose<Accessors>,
                         class InnerTuples = meta::transform<get_inner_tuple_f<Tup>::template apply, Types>,
                         class Res = from_types<First, InnerTuples>>
