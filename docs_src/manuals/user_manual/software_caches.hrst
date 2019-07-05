@@ -66,9 +66,9 @@ The ``cache`` construct adheres to the following syntax:
 where ``p_args...`` is a list of placeholders for which the specified caching
 should be used.
 Full examples on :term:`Cache` usages can be found in the source code in the
-`horizontal diffusion <https://github.com/eth-cscs/gridtools/blob/master/gt_examples/stencil_composition/horizontal_diffusion_limited.cpp>`_
+`horizontal diffusion <https://github.com/GridTools/gridtools/blob/master/gt_examples/stencil_composition/horizontal_diffusion_limited.cpp>`_
 and
-`vertical advection <https://github.com/eth-cscs/gridtools/blob/master/regression/vertical_advection_dycore.cpp>`_.
+`vertical advection <https://github.com/GridTools/gridtools/blob/master/regression/vertical_advection_dycore.cpp>`_.
 
 We now describe the details of each element of the ``cache`` constructs.
 

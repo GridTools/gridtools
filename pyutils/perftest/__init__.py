@@ -60,7 +60,7 @@ def run(domain, runs):
         log.info('Running stencils')
         alloutputs = runtools.sbatch_retry(allcommands, 5)
         log.info('Running stencils finished')
-        alltimes = [_parse_time(o) for _, o, _ in alloutputs]
+        alltimes = [_parse_time(o) for o in alloutputs]
         times = [alltimes[i:i + runs] for i in range(0, len(alltimes), runs)]
 
         info = result.RunInfo(name='gridtools',

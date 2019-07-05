@@ -23,6 +23,18 @@ if(GT_INSTALL_EXAMPLES)
     set(enabled_examples) # used in CMakeLists.txt.in, filled in install_example()
     if(COMPONENT_STENCIL_COMPOSITION)
         install_example(DIRECTORY stencil_composition SOURCES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
+
+        configure_file(stencil_computation/CMakeLists.txt.in
+            ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/stencil_computation/CMakeLists.txt @ONLY)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/stencil_computation/CMakeLists.txt
+            DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/stencil_computation)
+        install(
+            DIRECTORY stencil_computation
+            DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
+            PATTERN "CMakeLists.txt.in" EXCLUDE
+            )
+        list(APPEND enabled_examples stencil_computation)
+
     endif()
 
     if(COMPONENT_BOUNDARY_CONDITIONS)

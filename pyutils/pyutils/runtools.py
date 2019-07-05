@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import asyncio
+import io
 import os
 import re
 import statistics
@@ -10,23 +12,61 @@ import time
 from pyutils import env, log
 
 
+async def _run_async(command, **kwargs):
+    process = await asyncio.create_subprocess_exec(
+        *command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+        env=env.env,
+        **kwargs)
+    buffer = io.StringIO()
+
+    async def read_output():
+        async for line in process.stdout:
+            buffer.write(line.decode())
+
+    main_task = asyncio.gather(process.wait(), read_output())
+
+    log_pos = 0
+
+    def log_output():
+        nonlocal log_pos
+        buffer.seek(log_pos)
+        new_output = buffer.read()
+        log_pos = buffer.tell()
+        if new_output:
+            log.debug(f'Output from {command[0]}', new_output)
+
+    async def log_output_periodic():
+        while True:
+            await asyncio.sleep(10)
+            log_output()
+
+    log_task = asyncio.ensure_future(log_output_periodic())
+
+    await main_task
+    log_task.cancel()
+    log_output()
+
+    buffer.seek(0)
+    if process.returncode != 0:
+        raise RuntimeError(f'{command[0]} failed with message {buffer.read()}')
+
+    return buffer.read().strip()
+
+
 def run(command, **kwargs):
     if not command:
         raise ValueError('No command provided')
 
     log.info('Invoking', ' '.join(command))
     start = time.time()
-    try:
-        output = subprocess.check_output(command,
-                                         env=env.env,
-                                         stderr=subprocess.STDOUT,
-                                         **kwargs)
-    except subprocess.CalledProcessError as e:
-        log.error(f'{command[0]} failed with output', e.output.decode())
-        raise e
+
+    loop = asyncio.get_event_loop()
+    output = loop.run_until_complete(_run_async(command, **kwargs))
+
     end = time.time()
     log.info(f'{command[0]} finished in {end - start:.2f}s')
-    output = output.decode().strip()
     log.debug(f'{command[0]} output', output)
     return output
 
@@ -56,7 +96,7 @@ def _generate_sbatch(commands, cwd, use_srun, use_mpi_config):
     code += f'cd {cwd}\n'
     code += 'case $SLURM_ARRAY_TASK_ID in\n'
     for i, command in enumerate(commands):
-        commandstr = ' '.join(command)
+        commandstr = ' '.join(f"'{c}'" for c in command)
         code += f'    {i})\n        {srun} {commandstr}\n        ;;\n'
     code += '    *)\nesac'
     return code
@@ -133,14 +173,42 @@ def _retreive_outputs(rundir, commands, task_id):
     return outputs
 
 
-def sbatch(commands, cwd=None, use_srun=True, use_mpi_config=False):
-    with tempfile.TemporaryDirectory(dir='.') as rundir:
-        task = _run_sbatch(rundir, commands, cwd, use_srun, use_mpi_config)
-        return _retreive_outputs(rundir, commands, task)
+def _emulate_sbatch(commands, cwd):
+    outputs = []
+    for command in commands:
+        result = subprocess.run(command,
+                                env=env.env,
+                                cwd=cwd,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        outputs.append((result.returncode,
+                        result.stdout.decode().strip(),
+                        result.stderr.decode().strip()))
+    return outputs
+
+
+def _sbatch(commands, cwd=None, use_srun=True, use_mpi_config=False):
+    if env.use_slurm():
+        with tempfile.TemporaryDirectory(dir='.') as rundir:
+            task = _run_sbatch(rundir, commands, cwd, use_srun, use_mpi_config)
+            return _retreive_outputs(rundir, commands, task)
+    else:
+        return _emulate_sbatch(commands, cwd)
+
+
+def sbatch(commands, *args, **kwargs):
+    outputs = _sbatch(commands, *args, **kwargs)
+    failures = ''
+    for command, (exitcode, stdout, stderr) in zip(commands, outputs):
+        if exitcode != 0:
+            failures += f'Command "{command}" failed with output:\n{stdout}\n{stderr}\n'
+    if failures:
+        raise RuntimeError(failures)
+    return [stdout for _, stdout, _ in outputs]
 
 
 def sbatch_retry(commands, retries, *args, **kwargs):
-    outputs = sbatch(commands, *args, **kwargs)
+    outputs = _sbatch(commands, *args, **kwargs)
     for retry in range(retries):
         exitcodes = [exitcode for exitcode, *_ in outputs]
         if all(exitcode == 0 for exitcode in exitcodes):
@@ -156,12 +224,12 @@ def sbatch_retry(commands, retries, *args, **kwargs):
                 failed_commands.append(command)
                 failed_indices.append(i)
 
-        failed_outputs = sbatch(failed_commands, *args, **kwargs)
+        failed_outputs = _sbatch(failed_commands, *args, **kwargs)
 
         for i, o in zip(failed_indices, failed_outputs):
             outputs[i] = o
-    for command, (exitcode, stdout, stderr) in zip(commands, outputs):
+    for command, (exitcode, _, stderr) in zip(commands, outputs):
         if exitcode != 0:
             raise RuntimeError(f'Command "{command}" still failed after '
                                f'{retries} retries with output: {stderr}')
-    return outputs
+    return [stdout for _, stdout, _ in outputs]
