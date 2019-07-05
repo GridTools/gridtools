@@ -27,7 +27,7 @@ write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
   COMPATIBILITY SameMajorVersion )
 
-install(TARGETS gridtools cpp_bindgen_interface EXPORT GridToolsTargets
+install(TARGETS gridtools cpp_bindgen_interface EXPORT GridToolsTargets #TODO remove cpp_bindgen_interface in GT 2.0
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
@@ -40,12 +40,12 @@ if (COMPONENT_GCL)
       RUNTIME DESTINATION bin
       INCLUDES DESTINATION include
     )
-    export(TARGETS gridtools gcl cpp_bindgen_interface
+    export(TARGETS gridtools gcl cpp_bindgen_interface #TODO remove cpp_bindgen_interface in GT 2.0
         FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
         NAMESPACE GridTools::
     )
 else()
-    export(TARGETS gridtools cpp_bindgen_interface
+    export(TARGETS gridtools cpp_bindgen_interface #TODO remove cpp_bindgen_interface in GT 2.0
         FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
         NAMESPACE GridTools::
     )
