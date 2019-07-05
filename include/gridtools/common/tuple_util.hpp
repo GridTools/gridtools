@@ -112,14 +112,16 @@
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
 
-#define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                           \
-    template <class... Args,                                                                                     \
-        std::enable_if_t<std::is_constructible<decltype(member_name), Args &&...>::value, int> = 0>              \
-    GT_CONSTEXPR GT_FUNCTION class_name(Args &&... args) noexcept : member_name{wstd::forward<Args>(args)...} {} \
-    GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name);                                                                   \
-    class_name(class_name const &) = default;                                                                    \
-    class_name(class_name &&) = default;                                                                         \
-    class_name &operator=(class_name const &) = default;                                                         \
+#define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                      \
+    template <class Arg,                                                                                    \
+        class... Args,                                                                                      \
+        std::enable_if_t<std::is_constructible<decltype(member_name), Arg &&, Args &&...>::value, int> = 0> \
+    GT_CONSTEXPR GT_FUNCTION class_name(Arg &&arg, Args &&... args) noexcept                                \
+        : member_name{wstd::forward<Arg>(arg), wstd::forward<Args>(args)...} {}                             \
+    GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name);                                                              \
+    class_name(class_name const &) = default;                                                               \
+    class_name(class_name &&) = default;                                                                    \
+    class_name &operator=(class_name const &) = default;                                                    \
     class_name &operator=(class_name &&) = default
 
 #define GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(class_name, member_name)                   \
