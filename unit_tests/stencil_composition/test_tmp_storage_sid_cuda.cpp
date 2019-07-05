@@ -88,7 +88,7 @@ namespace gridtools {
             constexpr int_t ncolors = 2;
             TEST(tmp_cuda_storage_sid_block, write_in_blocks) {
                 using index_info = multiplet<6>;
-                constexpr tmp_arg<0, data_store<index_info>, enumtype::cells> plh;
+                constexpr tmp_arg<0, data_store<index_info>, enumtype::cells> plh = {};
 
                 auto alloc = sid::make_allocator(&std::make_unique<char[]>);
 
