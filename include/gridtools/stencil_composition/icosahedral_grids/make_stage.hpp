@@ -12,12 +12,11 @@
 #include <tuple>
 
 #include "../../common/defs.hpp"
-#include "./esf.hpp"
+#include "esf.hpp"
 
 namespace gridtools {
-
     template <template <uint_t> class Functor, typename Grid, typename LocationType, typename... Args>
-    esf_descriptor<Functor, Grid, LocationType, nocolor, std::tuple<Args...>> make_stage(Args...) {
+    constexpr std::tuple<esf_descriptor<Functor, Grid, LocationType, std::tuple<Args...>>> make_stage(Args...) {
         return {};
     }
 } // namespace gridtools

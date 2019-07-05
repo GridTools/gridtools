@@ -123,10 +123,10 @@ typedef decltype(make_stage<functor4>(o0(), o1(), o3(), o4())) functor4__;
 typedef decltype(make_stage<functor5>(in3(), o4(), in0(), o5())) functor5__;
 typedef decltype(make_stage<functor6>(o6(), o5(), in1(), in2())) functor6__;
 
-template <class...>
-struct lst;
+template <class... Stages>
+using esfs = typename decltype(make_multistage(execute::forward(), Stages{}...))::esf_sequence_t;
 
-using map_t = get_extent_map<lst<functor0__, functor1__, functor2__, functor3__, functor4__, functor5__, functor6__>>;
+using map_t = get_extent_map<esfs<functor0__, functor1__, functor2__, functor3__, functor4__, functor5__, functor6__>>;
 
 template <class Arg, int_t... ExpectedExtentValues>
 using testee = std::is_same<lookup_extent_map<map_t, Arg>, extent<ExpectedExtentValues...>>;

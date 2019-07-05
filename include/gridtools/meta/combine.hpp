@@ -40,6 +40,10 @@ namespace gridtools {
                 using type = F<typename combine_impl<F, List, m>::type,
                     typename combine_impl<F, typename drop_front_c<m, List>::type, N - m>::type>;
             };
+            template <template <class...> class F, class List>
+            struct combine_impl<F, List, 0> {
+                using type = F<>;
+            };
             template <template <class...> class F, template <class...> class L, class T, class... Ts>
             struct combine_impl<F, L<T, Ts...>, 1> {
                 using type = T;

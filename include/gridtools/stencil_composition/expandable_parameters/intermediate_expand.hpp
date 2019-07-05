@@ -24,7 +24,6 @@
 #include "../caches/cache_definitions.hpp"
 #include "../caches/define_caches.hpp"
 #include "../esf_metafunctions.hpp"
-#include "../independent_esf.hpp"
 #include "../mss.hpp"
 #include "expand_factor.hpp"
 
@@ -87,30 +86,21 @@ namespace gridtools {
                 meta::transform<meta::curry<convert_plh, I>::template apply, typename Esf::args_t>>;
         };
 
-        template <class ExpandFactor, class Esf>
-        using expand_normal_esf = meta::transform<convert_esf<Esf>::template apply, meta::make_indices<ExpandFactor>>;
+        template <class ExpandFactor>
+        struct expand_esf_f {
+            template <class Esf>
+            using apply =
+                meta::transform<convert_esf<Esf>::template apply, meta::make_indices<ExpandFactor, std::tuple>>;
+        };
 
         namespace lazy {
-            template <class...>
-            struct expand_esf;
-
-            template <class ExpandFactor, class Esf>
-            struct expand_esf<ExpandFactor, Esf> {
-                using type = independent_esf<meta::rename<std::tuple, expand_normal_esf<ExpandFactor, Esf>>>;
-            };
-            template <class ExpandFactor, class Esfs>
-            struct expand_esf<ExpandFactor, independent_esf<Esfs>> {
-                using type = independent_esf<
-                    meta::flatten<meta::transform<meta::curry<expand_normal_esf, ExpandFactor>::template apply, Esfs>>>;
-            };
 
             template <class...>
             struct convert_mss;
 
             template <class ExpandFactor, class ExecutionEngine, class Esfs, class Caches>
             struct convert_mss<ExpandFactor, mss_descriptor<ExecutionEngine, Esfs, Caches>> {
-                using esf_converter_t = meta::curry<meta::force<expand_esf>::template apply, ExpandFactor>;
-                using esfs_t = meta::transform<esf_converter_t::template apply, Esfs>;
+                using esfs_t = meta::flatten<meta::transform<expand_esf_f<ExpandFactor>::template apply, Esfs>>;
 
                 using indices_and_caches_t = meta::cartesian_product<meta::make_indices<ExpandFactor>, Caches>;
                 using caches_t =

@@ -77,7 +77,7 @@ namespace gridtools {
             std::enable_if_t<(FromSplitter < ToSplitter), int> = 0>
         GT_FUNCTION int_t count(
             level<FromSplitter, FromOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>) const {
-            return m_value_list[ToSplitter] - m_value_list[FromSplitter] + Extra + 1;
+            return (int_t)m_value_list[ToSplitter] - (int_t)m_value_list[FromSplitter] + Extra + 1;
         }
 
         template <uint_t FromSplitter,
@@ -89,7 +89,7 @@ namespace gridtools {
             std::enable_if_t<(FromSplitter >= ToSplitter), int> = 0>
         GT_FUNCTION int_t count(
             level<FromSplitter, FromOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>) const {
-            return m_value_list[FromSplitter] - m_value_list[ToSplitter] + Extra + 1;
+            return (int_t)m_value_list[FromSplitter] - (int_t)m_value_list[ToSplitter] + Extra + 1;
         }
 
         template <uint_t Splitter,

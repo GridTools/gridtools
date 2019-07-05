@@ -12,52 +12,115 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/gt_math.hpp"
-#include "../../common/pair.hpp"
-#include "../basic_token_execution.hpp"
+#include "../../common/host_device.hpp"
+#include "../../common/tuple_util.hpp"
+#include "../../meta.hpp"
 #include "../execution_types.hpp"
+#include "k_cache.hpp"
 
 namespace gridtools {
-    /**
-     * get_k_interval specialization for parallel execution policy. The full k-axis is split into equally-sized block
-     * sub-intervals and assigned to the blocks in z-direction. Each block iterates over all computation intervals and
-     * calculates the subinterval which intersects with the block sub-interval.
-     *
-     * Example with with an axis with four intervals, that is distributed among 2 blocks:
-     *
-     * Computation intervals   block sub-intervals
-     *                           with two blocks
-     *
-     *                                       B1   B2
-     *    0 ---------           0 --------- ---         Block B1 calculates the complete intervals I1 and I2, and parts
-     *          |                     |    1 :          of I3. It does not calculate anything for I4.
-     *          |  I1             B1  |      :
-     *          |                     |      :          1. iteration: get_k_interval(...) = [0, 4]
-     *          |                     |      :          2. iteration: get_k_interval(...) = [5, 7]
-     *    5    ---                    |     ---         3. iteration: get_k_interval(...) = [8, 9]
-     *          |                     |    2 :          4. iteration: get_k_interval(...) = [18, 9] (= no calculation)
-     *          | I2                  |      :
-     *    8    ---                    |     ---
-     *          |                     |    3 :
-     *          | I3           10    ---    ---  ---    Block B2 calculates parts of the interval I3, and the complete
-     *          |                     |         3 :     interval I4. It does not calculate anything for I1 and I2.
-     *          |                 B2  |           :
-     *          |                     |           :     1. iteration: get_k_interval(...) = [10, 4] (= no calculation)
-     *          |                     |           :     2. iteration: get_k_interval(...) = [10, 7] (= no calculation)
-     *          |                     |           :     3. iteration: get_k_interval(...) = [10, 17]
-     *          |                     |           :     4. iteration: get_k_interval(...) = [18, 20]
-     *          |                     |           :
-     *   18    ---                    |          ---
-     *          | I4                  |         4 :
-     *   20 ---------          20 ---------      ---
-     */
-    template <class FromLevel, class ToLevel, uint_t BlockSize, class Grid>
-    GT_FUNCTION pair<int, int> get_k_interval(backend::cuda, execute::parallel_block<BlockSize>, Grid const &grid) {
-        return {math::max<int>(blockIdx.z * BlockSize, grid.template value_at<FromLevel>()),
-            math::min<int>((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<ToLevel>())};
-    }
+    namespace cuda {
+        namespace _impl {
+            template <class ExecutionType>
+            GT_FUNCTION_DEVICE auto make_count_modifier(ExecutionType) {
+                return [](auto x) { return x; };
+            }
 
-    template <class FromLevel, class ToLevel, class ExecutionEngine, class Grid>
-    GT_FUNCTION pair<int, int> get_k_interval(backend::cuda, ExecutionEngine, Grid const &grid) {
-        return {grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>()};
-    }
+            template <uint_t BlockSize>
+            GT_FUNCTION_DEVICE auto make_count_modifier(execute::parallel_block<BlockSize>) {
+                return [cur = -(int_t)blockIdx.z * (int_t)BlockSize](int_t x) mutable {
+                    if (cur >= (int_t)BlockSize)
+                        return 0;
+                    int_t res = math::min(cur + x, (int_t)BlockSize) - math::max(cur, 0);
+                    cur += x;
+                    return res;
+                };
+            }
+
+            template <class ExecutionType>
+            GT_FUNCTION_DEVICE int_t start_offset(ExecutionType) {
+                return 0;
+            };
+
+            template <uint_t BlockSize>
+            GT_FUNCTION_DEVICE int_t start_offset(execute::parallel_block<BlockSize>) {
+                return blockIdx.z * BlockSize;
+            };
+
+            template <class ExecutionType, class Grid>
+            auto start(ExecutionType, Grid const &grid) {
+                return grid.k_min();
+            };
+
+            template <class Grid>
+            auto start(execute::backward, Grid const &grid) {
+                return grid.k_max();
+            };
+        } // namespace _impl
+
+        template <class ExecutionType, class LoopIntervals, class KCaches>
+        struct cached_k_loop_f {
+            LoopIntervals m_loop_intervals;
+            int_t m_start;
+
+            template <class Ptr, class Strides, class Validator>
+            GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start);
+                KCaches k_caches;
+                auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
+                tuple_util::device::for_each(
+                    [&](auto const &loop_interval) {
+                        auto count = loop_interval.count();
+                        for (int_t i = 0; i < count; ++i) {
+                            loop_interval(mixed_ptr, strides, validator);
+                            k_caches.slide(execute::step<ExecutionType>);
+                            sid::shift(
+                                mixed_ptr.secondary(), sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
+                        }
+                    },
+                    m_loop_intervals);
+            }
+        };
+
+        template <class ExecutionType, class LoopIntervals>
+        struct k_loop_f {
+            LoopIntervals m_loop_intervals;
+            int_t m_start;
+
+            template <class Ptr, class Strides, class Validator>
+            GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start + _impl::start_offset(ExecutionType()));
+                auto count_modifier = _impl::make_count_modifier(ExecutionType{});
+                tuple_util::device::for_each(
+                    [&](auto const &loop_interval) {
+                        auto count = count_modifier(loop_interval.count());
+                        for (int_t i = 0; i < count; ++i) {
+                            loop_interval(ptr, strides, validator);
+                            sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
+                        }
+                    },
+                    m_loop_intervals);
+            }
+        };
+
+        template <class Mss,
+            class Grid,
+            class LoopIntervals,
+            std::enable_if_t<meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value, int> = 0>
+        auto make_k_loop(Grid const &grid, LoopIntervals loop_intervals) {
+            using execution_t = typename Mss::execution_engine_t;
+            return cached_k_loop_f<execution_t, LoopIntervals, k_caches_type<Mss>>{
+                std::move(loop_intervals), _impl::start(execution_t(), grid)};
+        }
+
+        template <class Mss,
+            class Grid,
+            class LoopIntervals,
+            std::enable_if_t<!meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value, int> = 0>
+        auto make_k_loop(Grid const &grid, LoopIntervals loop_intervals) {
+            using execution_t = typename Mss::execution_engine_t;
+            return k_loop_f<typename Mss::execution_engine_t, LoopIntervals>{
+                std::move(loop_intervals), _impl::start(execution_t(), grid)};
+        }
+    } // namespace cuda
 } // namespace gridtools

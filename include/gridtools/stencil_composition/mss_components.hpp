@@ -14,7 +14,6 @@
 #include "esf_metafunctions.hpp"
 #include "make_loop_intervals.hpp"
 #include "mss.hpp"
-#include "mss_metafunctions.hpp"
 #include "stages_maker.hpp"
 
 namespace gridtools {
@@ -51,7 +50,7 @@ namespace gridtools {
 
         /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
             esf structs. Independent functors are listed one after the other.*/
-        using linear_esf_t = unwrap_independent<typename MssDescriptor::esf_sequence_t>;
+        using linear_esf_t = typename MssDescriptor::esf_sequence_t;
 
         using extent_map_t = ExtentMap;
 

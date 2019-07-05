@@ -45,7 +45,6 @@
 #include "../common/host_device.hpp"
 #include "../meta.hpp"
 #include "arg.hpp"
-#include "backend_cuda/tmp_storage.hpp"
 #include "backend_x86/tmp_storage.hpp"
 #include "block.hpp"
 #include "grid.hpp"
@@ -70,7 +69,7 @@ namespace gridtools {
             Backend backend, plh<ArgTag, DataStore, location_type<I, NColors>, true>, Grid const &grid) {
             GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
             using storage_info_t = typename DataStore::storage_info_t;
-            return {make_storage_info<storage_info_t, NColors>(backend,
+            return {make_storage_info<storage_info_t, NColors>(
                 get_i_size<storage_info_t, MaxExtent>(backend, block_i_size(backend, grid), grid.i_size()),
                 get_j_size<storage_info_t, MaxExtent>(backend, block_j_size(backend, grid), grid.j_size()),
                 grid.k_total_length())};

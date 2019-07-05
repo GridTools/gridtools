@@ -35,22 +35,21 @@
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 
-#include "./grid.hpp"
+#include "grid.hpp"
 
-#include "./backend_cuda/block.hpp"
-#include "./backend_x86/block.hpp"
+#include "backend_x86/block.hpp"
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
-#include "./structured_grids/block.hpp"
+#include "structured_grids/block.hpp"
 #endif
 
 namespace gridtools {
     template <class Backend, class Grid>
-    int_t block_i_size(Backend const &backend, Grid const &) {
+    int_t block_i_size(Backend backend, Grid const &) {
         return block_i_size(backend);
     }
     template <class Backend, class Grid>
-    int_t block_j_size(Backend const &backend, Grid const &) {
+    int_t block_j_size(Backend backend, Grid const &) {
         return block_j_size(backend);
     }
 } // namespace gridtools

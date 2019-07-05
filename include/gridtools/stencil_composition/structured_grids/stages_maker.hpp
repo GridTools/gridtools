@@ -16,53 +16,35 @@
 #include "../../meta.hpp"
 #include "../bind_functor_with_interval.hpp"
 #include "../compute_extents_metafunctions.hpp"
-#include "../fuse_stages.hpp"
-#include "../independent_esf.hpp"
 #include "../mss.hpp"
 #include "esf.hpp"
 #include "stage.hpp"
 
 namespace gridtools {
 
-    namespace _impl {
-        template <class Index, class ExtentMap>
-        struct stages_from_esf_f;
-
-        template <class Esfs, class Index, class ExtentMap>
-        using stages_from_esfs = meta::filter<meta::not_<meta::is_empty>::apply,
-            meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>>;
-
-        namespace lazy {
-            template <class Functor, class Esf, class ExtentMap>
-            struct stages_from_functor {
-                using extent_t = get_esf_extent<Esf, ExtentMap>;
-                using type = meta::list<regular_stage<Functor, extent_t, typename Esf::args_t>>;
-            };
-            template <class Esf, class ExtentMap>
-            struct stages_from_functor<void, Esf, ExtentMap> {
-                using type = meta::list<>;
-            };
-
-            template <class Esf, class Index, class ExtentMap>
-            struct stages_from_esf
-                : stages_from_functor<bind_functor_with_interval<typename Esf::esf_function_t, Index>, Esf, ExtentMap> {
-            };
-
-            template <class Index, class Esfs, class ExtentMap>
-            struct stages_from_esf<independent_esf<Esfs>, Index, ExtentMap> {
-                using stage_groups_t = meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>;
-                using stages_t = meta::flatten<stage_groups_t>;
-                using type = fuse_stages<compound_stage, stages_t>;
-            };
-        } // namespace lazy
-        GT_META_DELEGATE_TO_LAZY(stages_from_esf, (class Esf, class Index, class ExtentMap), (Esf, Index, ExtentMap));
+    namespace stages_maker_impl_ {
+        template <class Functor, class Esf, class ExtentMap>
+        struct stages_from_functor {
+            using extent_t = get_esf_extent<Esf, ExtentMap>;
+            using type = meta::list<stage<Functor, extent_t, Esf>>;
+        };
+        template <class Esf, class ExtentMap>
+        struct stages_from_functor<void, Esf, ExtentMap> {
+            using type = meta::list<>;
+        };
 
         template <class Index, class ExtentMap>
         struct stages_from_esf_f {
             template <class Esf>
-            using apply = stages_from_esf<Esf, Index, ExtentMap>;
+            using apply = typename stages_from_functor<bind_functor_with_interval<typename Esf::esf_function_t, Index>,
+                Esf,
+                ExtentMap>::type;
         };
-    } // namespace _impl
+
+        template <class Esfs, class Index, class ExtentMap>
+        using stages_from_esfs =
+            meta::flatten<meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>>;
+    } // namespace stages_maker_impl_
 
     /**
      *   Transforms `mss_descriptor` into a sequence of stages.
@@ -74,16 +56,6 @@ namespace gridtools {
      *
      *   This metafunction returns another metafunction (i.e. has nested `apply` metafunction) that accepts
      *   a single argument that has to be a level_index and returns the stages (classes that model Stage concept)
-     *   The returned stages are organized as a type list of type lists. The inner lists represent the stages that are
-     *   independent on each other. The outer list represents the sequence that should be executed in order.
-     *   It is guarantied that all inner lists are not empty.
-     *   Examples of valid return types:
-     *      list<> -  no stages should be executed for the given interval level
-     *      list<list<stage1>> - a singe stage to execute
-     *      list<list<stage1>, list<stage2>> - two stages should be executed in the given order
-     *      list<list<stage1, stage2>> - two stages should be executed in any order or in parallel
-     *      list<list<stage1>, list<stage2, stage3>, list<stage4>> - an order of execution can be
-     *         either 1,2,3,4 or 1,3,2,4
      *
      *   Note that the collection of stages is calculated for the provided level_index. It can happen that same mss
      *   produces different stages for the different level indices because of interval overloads. If for two level
@@ -92,12 +64,9 @@ namespace gridtools {
      *
      *   TODO(anstaf): unit test!!!
      */
-    template <class Descriptor, class ExtentMap>
-    struct stages_maker;
-
-    template <class ExecutionEngine, class Esfs, class Caches, class ExtentMap>
-    struct stages_maker<mss_descriptor<ExecutionEngine, Esfs, Caches>, ExtentMap> {
+    template <class Mss, class ExtentMap>
+    struct stages_maker {
         template <class LevelIndex>
-        using apply = _impl::stages_from_esfs<Esfs, LevelIndex, ExtentMap>;
+        using apply = stages_maker_impl_::stages_from_esfs<typename Mss::esf_sequence_t, LevelIndex, ExtentMap>;
     };
 } // namespace gridtools

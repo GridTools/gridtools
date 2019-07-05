@@ -24,8 +24,11 @@
 #include "../has_apply.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../location_type.hpp"
+#include "../sid/composite.hpp"
+#include "../sid/concept.hpp"
 #include "../sid/multi_shift.hpp"
 #include "dim.hpp"
+#include "esf.hpp"
 #include "icosahedral_topology.hpp"
 #include "on_neighbors.hpp"
 
@@ -141,23 +144,29 @@ namespace gridtools {
      *                    corresponds to the color number. If a functor should not be executed for the given color,
      *                    the correspondent element in the list is `void`
      */
-    template <class Functors, class Extent, class Args, class LocationType>
+    template <class Functors, class Extent, class Esf>
     struct stage {
         GT_STATIC_ASSERT((meta::all_of<stage_impl_::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
+
+        using esf_t = Esf;
+        using location_type = typename Esf::location_type;
+        using n_colors = typename location_type::n_colors;
+        using args_t = typename Esf::args_t;
+
+        GT_STATIC_ASSERT(meta::length<Functors>::value == n_colors::value, GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
-        using n_colors = typename LocationType::n_colors;
+
+        static GT_FUNCTION Extent extent() { return {}; }
 
         template <uint_t Color, class Functor = meta::at_c<Functors, Color>>
         struct contains_color : bool_constant<!std::is_void<Functor>::value> {};
 
         template <uint_t Color, class ItDomain, std::enable_if_t<contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
-            using eval_t = stage_impl_::itdomain_evaluator<ItDomain, Args, LocationType, Color>;
+            using eval_t = stage_impl_::itdomain_evaluator<ItDomain, args_t, location_type, Color>;
             using functor_t = meta::at_c<Functors, Color>;
             eval_t eval{it_domain};
             functor_t::apply(eval);
@@ -167,27 +176,19 @@ namespace gridtools {
         static GT_FUNCTION void exec(ItDomain &it_domain) {}
 
         template <class ItDomain>
-        struct exec_for_color_f {
-            ItDomain &m_domain;
-            template <class Color>
-            GT_FUNCTION void operator()() const {
-                exec<Color::value>(m_domain);
-                m_domain.increment_c();
-            }
-        };
-
-        template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
-            static constexpr int_t n_colors = LocationType::n_colors::value;
-            host_device::for_each_type<meta::make_indices_c<n_colors>>(exec_for_color_f<ItDomain>{it_domain});
-            it_domain.increment_c(integral_constant<int_t, -n_colors>{});
+            host_device::for_each<meta::make_indices<n_colors>>([&](auto color) {
+                exec<decltype(color)::value>(it_domain);
+                it_domain.increment_c();
+            });
+            it_domain.increment_c(integral_constant<int_t, -(int_t)n_colors::value>{});
         }
 
         template <uint_t Color, bool = contains_color<Color>::value>
         struct colored_stage {
             template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
             GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
-                using eval_t = stage_impl_::evaluator<Ptr, Strides, Args, Deref, LocationType, Color>;
+                using eval_t = stage_impl_::evaluator<Ptr, Strides, args_t, Deref, location_type, Color>;
                 using functor_t = meta::at_c<Functors, Color>;
                 functor_t::template apply<eval_t const &>(eval_t{ptr, strides});
             }
@@ -199,76 +200,12 @@ namespace gridtools {
             GT_FUNCTION void operator()(Ptr const &, Strides const &) const {}
         };
 
-        template <class Ptr, class Strides, class Deref>
-        struct call_for_color_f {
-            Ptr &m_ptr;
-            Strides const &m_strides;
-            template <class Color>
-            GT_FUNCTION void operator()() const {
-                colored_stage<Color::value>{}.template operator()<Deref>(m_ptr, m_strides);
-                sid::shift(m_ptr, sid::get_stride<dim::c>(m_strides), integral_constant<int_t, 1>{});
-            }
-        };
-
         template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
-        GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides) const {
-            static constexpr int_t n_colors = LocationType::n_colors::value;
-            host_device::for_each_type<meta::make_indices_c<n_colors>>(
-                call_for_color_f<Ptr, Strides, Deref>{ptr, strides});
-            sid::shift(ptr, sid::get_stride<dim::c>(strides), integral_constant<int_t, -n_colors>{});
-        }
-    };
-
-    template <class Stage, class... Stages>
-    struct compound_stage {
-        using extent_t = typename Stage::extent_t;
-        using n_colors = typename Stage::n_colors;
-        using type = compound_stage;
-
-        GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::n_colors, n_colors>...>::value), GT_INTERNAL_ERROR);
-
-        template <uint_t Color>
-        struct contains_color : disjunction<typename Stage::template contains_color<Color>,
-                                    typename Stages::template contains_color<Color>...> {};
-
-        template <uint_t Color, class ItDomain, std::enable_if_t<contains_color<Color>::value, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            Stage::template exec<Color>(it_domain);
-            (void)(int[]){(Stages::template exec<Color>(it_domain), 0)...};
-        }
-
-        template <uint_t Color, class ItDomain, std::enable_if_t<!contains_color<Color>::value, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {}
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
-            Stage::exec(it_domain);
-            (void)(int[]){(Stages::exec(it_domain), 0)...};
-        }
-
-        template <uint_t Color, bool = contains_color<Color>::value>
-        struct colored_stage {
-            template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
-            GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides) const {
-                typename Stage::template colored_stage<Color>{}.template operator()<Deref>(ptr, strides);
-                (void)(int[]){
-                    (typename Stages::template colored_stage<Color>{}.template operator()<Deref>(ptr, strides), 0)...};
-            }
-        };
-
-        template <uint_t Color>
-        struct colored_stage<Color, false> {
-            template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
-            GT_FUNCTION void operator()(Ptr &, Strides const &) const {}
-        };
-
-        template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
-        GT_FUNCTION void operator()(Ptr &ptr, Strides const &strides) const {
-            Stage{}.template operator()<Deref>(ptr, strides);
-            (void)(int[]){(Stages{}.template operator()<Deref>(ptr, strides), 0)...};
+        GT_FUNCTION void operator()(Ptr ptr, Strides const &strides) const {
+            host_device::for_each<meta::make_indices<n_colors>>([&](auto color) {
+                colored_stage<decltype(color)::value>{}.template operator()<Deref>(ptr, strides);
+                sid::shift(ptr, sid::get_stride<dim::c>(strides), integral_constant<int_t, 1>());
+            });
         }
     };
 

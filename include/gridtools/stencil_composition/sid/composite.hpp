@@ -26,20 +26,6 @@ namespace gridtools {
     namespace sid {
         namespace composite {
             namespace impl_ {
-                struct deref_f {
-                    template <class T>
-                    GT_CONSTEXPR GT_FUNCTION decltype(auto) operator()(T const &obj) const {
-                        return *obj;
-                    }
-                };
-
-                struct call_f {
-                    template <class T>
-                    GT_CONSTEXPR GT_FUNCTION auto operator()(T const &obj) const {
-                        return obj();
-                    }
-                };
-
                 namespace lazy {
                     template <class State, class Kind>
                     struct make_map_helper {
@@ -74,7 +60,7 @@ namespace gridtools {
                     return lhs == rhs;
                 }
 
-                GT_FORCE_INLINE bool maybe_equal(...) { return true; }
+                inline bool maybe_equal(...) { return true; }
 
                 template <class PrimaryValue, class Tup>
                 bool are_secondaries_equal_to_primary(PrimaryValue const &, Tup const &) {
@@ -92,8 +78,6 @@ namespace gridtools {
 
                 template <template <class...> class L, class Key, class PrimaryIndex, class... SecondaryIndices>
                 struct item_generator<L<Key, PrimaryIndex, SecondaryIndices...>> {
-                    using type = item_generator;
-
                     template <class Args, class Res = tuple_util::element<PrimaryIndex::value, Args>>
                     Res const &operator()(Args const &args) const noexcept {
                         GT_STATIC_ASSERT(
@@ -180,7 +164,8 @@ namespace gridtools {
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
                     GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
-                        return tuple_util::host_device::transform(impl_::deref_f{}, m_vals);
+                        return tuple_util::host_device::transform(
+                            [](auto const &ptr) -> decltype(auto) { return *ptr; }, m_vals);
                     }
 
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
@@ -196,7 +181,7 @@ namespace gridtools {
 
                     GT_CONSTEXPR GT_FUNCTION auto operator()() const {
                         return tuple_util::host_device::convert_to<composite_ptr>(
-                            tuple_util::host_device::transform(impl_::call_f{}, m_vals));
+                            tuple_util::host_device::transform([](auto const &obj) { return obj(); }, m_vals));
                     }
 
                     friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
@@ -307,8 +292,6 @@ namespace gridtools {
                 };
 
               public:
-                using type = keys;
-
                 template <class... Sids>
                 class values {
                     GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
@@ -353,8 +336,6 @@ namespace gridtools {
                     using ptr_diff_t = compress<ptr_diff_type<Sids>...>;
 
                   public:
-                    using type = values;
-
                     // Here the `SID` concept is modeled
 
                     friend ptr_holder_t sid_get_origin(values &obj) {

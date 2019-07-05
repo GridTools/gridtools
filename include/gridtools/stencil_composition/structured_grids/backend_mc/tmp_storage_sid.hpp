@@ -18,6 +18,7 @@
 #include "../../../common/hymap.hpp"
 #include "../../dim.hpp"
 #include "../../pos3.hpp"
+#include "../../sid/allocator.hpp"
 #include "../../sid/concept.hpp"
 #include "../../sid/simple_ptr_holder.hpp"
 #include "../../sid/synthetic.hpp"
@@ -114,28 +115,23 @@ namespace gridtools {
             return pad<T>(offset);
         }
 
+        struct make_allocation_f {
+            auto operator()(size_t size) const {
+                return std::unique_ptr<void, GT_INTEGRAL_CONSTANT_FROM_VALUE(&hugepage_free)>(hugepage_alloc(size));
+            }
+        };
     } // namespace _impl_tmp_mc
 
     /**
      * @brief Simple allocator for temporaries.
      */
-    class tmp_allocator_mc {
-        using deleter_t = std::integral_constant<decltype(&hugepage_free), &hugepage_free>;
-        std::vector<std::unique_ptr<void, deleter_t>> m_ptrs;
-
-      public:
-        template <class T>
-        sid::host::simple_ptr_holder<T *> allocate(std::size_t n) {
-            m_ptrs.emplace_back(hugepage_alloc(n * sizeof(T)));
-            return {static_cast<T *>(m_ptrs.back().get())};
-        };
-    };
+    using tmp_allocator_mc = sid::cached_allocator<_impl_tmp_mc::make_allocation_f>;
 
     template <class T, class Extent, class Allocator>
     auto make_tmp_storage_mc(Allocator &allocator, pos3<std::size_t> const &block_size) {
         return sid::synthetic()
             .set<sid::property::origin>(
-                allocator.template allocate<T>(_impl_tmp_mc::storage_size<T, Extent>(block_size)) +
+                allocate(allocator, meta::lazy::id<T>(), _impl_tmp_mc::storage_size<T, Extent>(block_size)) +
                 _impl_tmp_mc::origin_offset<T, Extent>(block_size))
             .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent>(block_size))
             .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<T, Extent>>()

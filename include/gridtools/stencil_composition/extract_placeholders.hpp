@@ -11,7 +11,6 @@
 #pragma once
 
 #include "../meta.hpp"
-#include "esf_metafunctions.hpp"
 
 namespace gridtools {
     namespace extract_placeholders_impl_ {
@@ -24,12 +23,13 @@ namespace gridtools {
 
         // Extract ESFs from an MSS.
         template <class Mss>
-        using get_esfs = unwrap_independent<typename Mss::esf_sequence_t>;
+        using get_esfs = typename Mss::esf_sequence_t;
     } // namespace extract_placeholders_impl_
 
-    template <class Mss, class Esfs = unwrap_independent<typename Mss::esf_sequence_t>>
+    template <class Mss>
     using extract_placeholders_from_mss =
-        meta::dedup<extract_placeholders_impl_::flatten_trees<Esfs, extract_placeholders_impl_::get_args>>;
+        meta::dedup<extract_placeholders_impl_::flatten_trees<extract_placeholders_impl_::get_esfs<Mss>,
+            extract_placeholders_impl_::get_args>>;
 
     /// Takes a type list of MSS descriptions and returns deduplicated type list of all placeholders
     /// that are used in the given msses.
