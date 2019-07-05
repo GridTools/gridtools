@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import functools
 import itertools
 import math
 import os
 import re
-import statistics
+import warnings
+
+import numpy as np
 
 from perftest import result, time
 from pyutils import log
@@ -80,7 +83,8 @@ def compare(results):
         results: List of `result.Result` objects.
     """
 
-    stencils, stenciltimes = result.times_by_stencil(results)
+    stenciltimes = result.times_by_stencil(results, missing=[np.nan])
+    stencils = stenciltimes.keys()
 
     cols = math.ceil(math.sqrt(len(stencils)) / (0.5 * len(results)))
     rows = math.ceil(len(stencils) / cols)
@@ -96,14 +100,16 @@ def compare(results):
                  verticalalignment='center')
 
     xticks = list(range(1, len(results) + 1))
-    for ax, stencil, times in itertools.zip_longest(axes, stencils,
-                                                    stenciltimes):
-        if stencil:
+    for ax, st in itertools.zip_longest(axes, sorted(stenciltimes.items())):
+        if st:
+            stencil, times = st
             ax.set_title(stencil.title())
 
-            medians = [statistics.median(t) for t in times]
-            ax.bar(xticks, medians, width=0.9, color=colors)
-            ax.boxplot(times, widths=0.9, medianprops={'color': 'black'})
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=RuntimeWarning)
+                medians = [np.median(t) for t in times]
+                ax.bar(xticks, medians, width=0.9, color=colors)
+                ax.boxplot(times, widths=0.9, medianprops={'color': 'black'})
 
             ax.set_xticklabels(titles, wrap=True)
         else:
@@ -145,7 +151,17 @@ def history(results, key='job', limit=None):
             raise ValueError('"limit" must be a positive integer')
         results = results[-limit:]
 
-    data = result.percentiles_by_stencil(results, [0, 25, 50, 75, 100])
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=RuntimeWarning)
+        percentiles = [result.times_by_stencil(results,
+                                               missing=[np.nan],
+                                               func=functools.partial(
+                                                   np.percentile, q=q))
+                       for q in (0, 25, 50, 75, 100)]
+
+    stencils = percentiles[0].keys()
+    percentiles = {stencil: [p[stencil] for p in percentiles]
+                   for stencil in stencils}
 
     dates = [matplotlib.dates.date2num(get_datetime(r)) for r in results]
 
@@ -163,9 +179,10 @@ def history(results, key='job', limit=None):
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
 
-    colors = discrete_colors(len(data[0]))
+    colors = discrete_colors(len(stencils))
 
-    for color, stencil, mint, q1, q2, q3, maxt in zip(colors, *data):
+    for color, (stencil, qs) in zip(colors, percentiles.items()):
+        mint, q1, q2, q3, maxt = qs
         ax.fill_between(dates, mint, maxt, alpha=0.2, color=color)
         ax.fill_between(dates, q1, q3, alpha=0.5, color=color)
         ax.plot(dates, q2, '|-', label=stencil.title(), color=color)
