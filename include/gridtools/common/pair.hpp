@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "defs.hpp"
+#include "generic_metafunctions/const_ref.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
 
