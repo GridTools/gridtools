@@ -23,6 +23,42 @@
 #include "../../meta.hpp"
 #include "simple_ptr_holder.hpp"
 
+/**
+ *
+ *  Allocator concept
+ *  -----------------
+ *
+ *  For any allocator type function `allocate` should be avaliable by ADL if it is called like this:
+ *
+ *  Allocator allocator;
+ *
+ *  auto ptr_holder = allocate(allocator, meta:::lazy:id<T>, size);
+ *
+ *  The return value of `allocate` should be a ptr holder in the sid concept sense.
+ *  Allocator should keep the ownership of the allocated resources.
+ *
+ *
+ *  API
+ *  ---
+ *
+ *  The library provides two types that model the concept:
+ *    - `allocator`,
+ *    - `cached_allocator`.
+ *
+ *  Both are templated with the functor that takes the size in bytes and returns std::unique_ptr
+ *
+ *  There are also correspondent generators: `make_allocator` and `make_cached_allocator`.
+ *
+ *  Semantics:
+ *    - `allocator` keeps the resources that are allocated and releases them in dtor.
+ *    - `cached_allocator` keeps resources during its lifetime. On dtor it stashes the resources in the internal static
+ *      storage. The newly created instances of `cached_allocator` will attempt to reuse the stashed resources.
+ *
+ *  To make the simplest possible allocator one can do:
+ *    `auto alloc = make_allocator(&std::make_unique<char[]>);`
+ *
+ */
+
 namespace gridtools {
     namespace sid {
         namespace allocator_impl_ {
