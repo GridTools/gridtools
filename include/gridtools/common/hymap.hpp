@@ -30,12 +30,19 @@
  *  Hymaps provide the mentioned keys type lists by declaring the function that should be available by ADL:
  *  `Keys hymap_get_keys(Hymap)`.
  *
+ *  Another ADL searchable function is provided to specify the way how to create hymap class from keys and values:
+ *   - `FromKeysValuesMataClass hymap_from_keys_values(Hymap)`;
+ *
  *  The Default Behaviour
  *  ---------------------
  *  If hymap doesn't provide `hymap_get_keys`, the default is taken which is:
  *  `meta::list<integral_constant<int, 0>, ..., integral_constant<int, N> >` where N is `tuple_util::size` of hymap.
  *  This means that any `tuple_like` automatically models Hymap. And for the plain `tuple_like`'s you can use
  *  `at_key<integral_constant<int, N>>(obj)` instead of `tuple_util::get<N>(obj)`.
+ *
+ *  There are two default `hymap_from_keys_values`: is provided if for hymaps that are structured like:
+ *     `SomeKeyTemplate<key_a, key_b, key_c>::values<val_a, val_b, val_c>`;
+ *     It just use `SomeKeyTemplate` with nested `values` to create a type.
  *
  *  User API
  *  --------
@@ -45,6 +52,7 @@
  *  Compile time:
  *  - `get_keys` metafunction. Usage: `get_keys<Hymap>`
  *  - `has_key` metafunction. Usage `has_key<Hymap, Key>`
+ *  - `get_from_keys_values` metafunction.
  *
  *  TODO(anstaf): add usage examples here
  *
@@ -124,28 +132,8 @@ namespace gridtools {
             using apply = meta::rename<meta::rename<Ctor, Keys>::template values, Values>;
         };
 
-        template <class Keys, class Values>
-        struct nth_value_f {
-            GT_STATIC_ASSERT(meta::is_set_fast<Keys>::value, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(meta::length<Keys>::values == meta::length<Values>::value, GT_INTERNAL_ERROR);
-
-            template <class Index>
-            using apply = meta::at<Values, meta::st_position<Keys, Index>>;
-        };
-
-        template <class TupleFromValues>
-        struct from_key_values_tuple {
-            template <class Keys,
-                class Values,
-                class Indices = meta::make_indices_for<Values>,
-                class OderedValues = meta::transform<nth_value_f<Keys, Values>::template apply, Indices>>
-            using apply = typename TupleFromValues::template apply<OderedValues>;
-        };
-
         template <class Map>
-        using default_from_keys_values = meta::if_<values_are_nested_in_keys<Map>,
-            from_key_values_nested<meta::ctor<get_keys<Map>>::template apply>,
-            from_key_values_tuple<tuple_util::traits::from_types<Map>>>;
+        using default_from_keys_values = from_key_values_nested<meta::ctor<get_keys<Map>>::template apply>;
 
         not_provided hymap_from_keys_values(...);
 
@@ -153,8 +141,9 @@ namespace gridtools {
         std::enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_from_keys_values_fun(T const &);
 
         template <class T, class Res = decltype(hymap_from_keys_values(std::declval<T const &>()))>
-        std::enable_if_t<std::is_same<Res, not_provided>::value, default_from_keys_values<T>> get_from_keys_values_fun(
-            T const &);
+        std::enable_if_t<std::is_same<Res, not_provided>::value && values_are_nested_in_keys<T>::value,
+            default_from_keys_values<T>>
+        get_from_keys_values_fun(T const &);
 
         template <class T>
         using get_from_keys_values =
@@ -297,14 +286,6 @@ namespace gridtools {
                         return m_fun.template operator()<Key>(wstd::forward<Value>(value));
                     }
                 };
-
-                template <class Key>
-                struct merged_generator_f {
-                    template <class... Maps>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) operator()(Maps &&... maps) const {
-                        return gridtools::GT_TARGET_NAMESPACE_NAME::at_key<Key>(wstd::forward<Maps>(maps)...);
-                    }
-                };
             } // namespace hymap_detail
 
             template <class Fun, class Map>
@@ -321,6 +302,8 @@ namespace gridtools {
                     wstd::forward<Map>(map));
             }
 
+            // Concatenate several maps into one. The type of the result is infered from the type of the first map.
+            // Precondition: keys should not overlap.
             template <class... Maps>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto concat(Maps... maps) {
                 GT_STATIC_ASSERT(meta::is_set_fast<meta::concat<get_keys<Maps>...>>::value, GT_INTERNAL_ERROR);
@@ -335,6 +318,9 @@ namespace gridtools {
                 return tuple_util::convert_to<HyMapKeys::template values>(wstd::forward<Tup>(tup));
             }
 
+            // This class holds two maps and models hymap content.
+            // at_key returns the item of the primary map if the key is found there
+            // otherwise it falls bake to the secondary map.
             template <class Primary, class Secondary>
             class merged : tuple<Primary, Secondary> {
                 using base_t = tuple<Primary, Secondary>;
@@ -437,6 +423,9 @@ namespace gridtools {
             template <class Primary, class Secondary>
             merged_getter tuple_getter(merged<Primary, Secondary> const &);
 
+            // merge the maps
+            // unlike concat keys could overlap
+            // in the case of overlap the value is taken from the primary map
             template <class Primary, class Secondary>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR merged<Primary, Secondary> merge(
                 Primary primary, Secondary secondary) {

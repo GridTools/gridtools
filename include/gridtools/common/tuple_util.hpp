@@ -339,6 +339,25 @@ namespace gridtools {
 #endif // GT_COMMON_TUPLE_UTIL_HPP_
 #else  // GT_TARGET_ITERATING
 
+#ifdef GT_TARGET_HAS_DEVICE
+
+#define DEFINE_FUNCTOR_INSTANCE(name, functor)                                    \
+    template <class... Args>                                                      \
+    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) name(Args &&... args) { \
+        return functor()(std::forward<Args>(args)...);                            \
+    }                                                                             \
+    static_assert(1, "")
+
+#define DEFINE_TEMPLATED_FUNCTOR_INSTANCE(name, functor) GT_DEVICE constexpr functor name = {}
+
+#else
+
+#define DEFINE_FUNCTOR_INSTANCE(name, functor) constexpr functor name = {}
+
+#define DEFINE_TEMPLATED_FUNCTOR_INSTANCE(name, functor) constexpr functor name = {}
+
+#endif
+
 namespace gridtools {
     namespace tuple_util {
         GT_TARGET_NAMESPACE {
@@ -1100,7 +1119,7 @@ namespace gridtools {
              *  Concatenate several tuple-likes into one.
              *  The type of result is deduced from the first argument
              */
-            constexpr detail::concat_f<_impl::default_concat_result_maker_f> concat = {};
+            DEFINE_FUNCTOR_INSTANCE(concat, detail::concat_f<_impl::default_concat_result_maker_f>);
 
             /*
              * Variation of concat that allows to specify the resulting type.
@@ -1112,7 +1131,7 @@ namespace gridtools {
              *   }
              */
             template <class ResultMaker>
-            constexpr detail::concat_f<ResultMaker> concat_ex = {};
+            DEFINE_TEMPLATED_FUNCTOR_INSTANCE(concat_ex, detail::concat_f<ResultMaker>);
 
             /**
              * @brief Non-recursively flattens a tuple of tuples into a single tuple.
@@ -1131,13 +1150,13 @@ namespace gridtools {
              * // flat == {1, 2, 3, 4, 5}
              * @endcode
              */
-            constexpr detail::flatten_f<_impl::default_concat_result_maker_f> flatten = {};
+            DEFINE_FUNCTOR_INSTANCE(flatten, detail::flatten_f<_impl::default_concat_result_maker_f>);
 
             /*
              * Extended variation of flatten. See concat_ex comments
              */
             template <class ResultMaker>
-            constexpr detail::flatten_f<ResultMaker> flatten_ex = {};
+            DEFINE_TEMPLATED_FUNCTOR_INSTANCE(flatten_ex, detail::flatten_f<ResultMaker>);
 
             /**
              * @brief Constructs an object from generator functors.
@@ -1200,7 +1219,7 @@ namespace gridtools {
              * @endcode
              */
             template <size_t N>
-            constexpr detail::drop_front_f<N> drop_front = {};
+            DEFINE_TEMPLATED_FUNCTOR_INSTANCE(drop_front, detail::drop_front_f<N>);
 
             /**
              * @brief Appends elements to a tuple.
@@ -1218,12 +1237,12 @@ namespace gridtools {
              * // res = {1, 2, 3, 4}
              * @endcode
              */
-            constexpr detail::push_back_f push_back = {};
+            DEFINE_FUNCTOR_INSTANCE(push_back, detail::push_back_f);
 
             /**
              * @brief Appends elements to a tuple from the front.
              */
-            constexpr detail::push_front_f push_front = {};
+            DEFINE_FUNCTOR_INSTANCE(push_front, detail::push_front_f);
 
             /**
              * @brief Left fold on tuple-like objects.
@@ -1307,7 +1326,7 @@ namespace gridtools {
              *   transpose(make<array>(make<array>(1, 2, 3), make<array>(10, 20, 30))) returns the same as
              *   make<array>(make<array>(1, 10), make<array>(2, 20), make<array>(3, 30));
              */
-            constexpr detail::transpose_f transpose = {};
+            DEFINE_FUNCTOR_INSTANCE(transpose, detail::transpose_f);
 
             /**
              * @brief Replaces reference types by value types in a tuple.
@@ -1324,7 +1343,7 @@ namespace gridtools {
              * // tup == {4}, tupcopy == {3}
              * @endcode
              */
-            constexpr detail::transform_f<gridtools::GT_TARGET_NAMESPACE_NAME::clone> deep_copy = {};
+            DEFINE_FUNCTOR_INSTANCE(deep_copy, detail::transform_f<gridtools::GT_TARGET_NAMESPACE_NAME::clone>);
 
             namespace detail {
                 // in impl as it is not as powerful as std::invoke (does not support invoking member functions)
@@ -1419,7 +1438,7 @@ namespace gridtools {
                 return (detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>{}(wstd::forward<Tup>(tup)));
             }
 
-            constexpr detail::reverse_f reverse = {};
+            DEFINE_FUNCTOR_INSTANCE(reverse, detail::reverse_f);
 
             template <size_t I, class Val>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR detail::insert_f<I, Val> insert(Val && val) {
@@ -1433,6 +1452,9 @@ namespace gridtools {
         }
     } // namespace tuple_util
 } // namespace gridtools
+
+#undef DEFINE_TEMPLATED_FUNCTOR_INSTANCE
+#undef DEFINE_FUNCTOR_INSTANCE
 
 #endif // GT_TARGET_ITERATING
 

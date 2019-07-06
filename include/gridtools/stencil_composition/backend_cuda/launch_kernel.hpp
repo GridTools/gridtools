@@ -140,6 +140,30 @@ namespace gridtools {
 
         } // namespace launch_kernel_impl_
 
+        /**
+         * Launch the functor `fun` with the signature `fun(int_t i_pos, int_t j_pos, ExtentValidator validator)`
+         * as a cuda kernel.
+         *
+         * The functor should be callable in device.
+         * `i_pos` parameter refers to the i position within the logical block. Note that it can go out of the block
+         * bounds. The user can check if the position is valid for the given extent with the provided validator:
+         *
+         * struct fun_f {
+         *  __device__ void fun(int i, int j, Validator v) const {
+         *    if (v(extent<-1, 1>())) {
+         *       // do stuff
+         *    }
+         *  }
+         * };
+         *
+         *  \param Extent maximum requested extent
+         *  \param BlockSizeI the logical size of the block in i dimension
+         *  \param BlockSizeJ the logical size of the block in j dimension
+         *  \param i_size the size of the computation area in i dimension
+         *  \param j_size the size of the computation area in j dimension
+         *  \param zblocks number of the blocks in k dimension
+         *  \param shared_memory_size delegated to cuda
+         */
         template <class Extent,
             int_t BlockSizeI,
             int_t BlockSizeJ,
