@@ -83,8 +83,8 @@ namespace gridtools {
                             (conjunction<
                                 std::is_same<tuple_util::element<SecondaryIndices::value, Args>, Res>...>::value),
                             GT_INTERNAL_ERROR);
-                        assert((are_secondaries_equal_to_primary<SecondaryIndices...>(
-                            tuple_util::get<PrimaryIndex::value>(args), args)));
+                        host_assert(are_secondaries_equal_to_primary<SecondaryIndices...>(
+                            tuple_util::get<PrimaryIndex::value>(args), args));
                         return tuple_util::get<PrimaryIndex::value>(args);
                     }
                 };

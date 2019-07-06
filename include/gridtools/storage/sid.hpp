@@ -62,7 +62,7 @@ namespace gridtools {
             using type = stride_generator_f;
             template <class Src>
             integral_constant<int_t, V> operator()(Src const &src) {
-                assert(src[I::value] == V);
+                host_assert(src[I::value] == V);
                 return {};
             }
         };
@@ -72,7 +72,7 @@ namespace gridtools {
             using type = stride_generator_f;
             template <class Src>
             int_t operator()(Src const &src) {
-                assert(src[I::value] != 0);
+                host_assert(src[I::value] != 0);
                 return (int_t)src[I::value];
             }
         };
@@ -120,7 +120,7 @@ namespace gridtools {
 
             friend ptr_holder<typename Storage::data_t> sid_get_origin(host_adapter const &obj) {
                 auto &&storage_ptr = obj.m_impl.get_storage_ptr();
-                assert(storage_ptr);
+                host_assert(storage_ptr);
                 if (storage_ptr->host_needs_update_impl())
                     storage_ptr->sync();
                 storage_ptr->reactivate_host_write_views();
