@@ -22,11 +22,7 @@
    @brief global definitions
 */
 
-#ifdef __CUDACC__
-#define GT_CONSTEXPR
-#else
 #define GT_CONSTEXPR constexpr
-#endif
 
 #define GT_RESTRICT __restrict__
 
