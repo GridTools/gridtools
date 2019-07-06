@@ -9,12 +9,11 @@
  */
 #pragma once
 
-#include <cassert>
-
 #include "../../common/binops.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
+#include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/tuple.hpp"
@@ -79,7 +78,7 @@ namespace gridtools {
                 template <template <class...> class L, class Key, class PrimaryIndex, class... SecondaryIndices>
                 struct item_generator<L<Key, PrimaryIndex, SecondaryIndices...>> {
                     template <class Args, class Res = tuple_util::element<PrimaryIndex::value, Args>>
-                    Res const &operator()(Args const &args) const noexcept {
+                    decltype(auto) operator()(Args const &args) const noexcept {
                         GT_STATIC_ASSERT(
                             (conjunction<
                                 std::is_same<tuple_util::element<SecondaryIndices::value, Args>, Res>...>::value),
