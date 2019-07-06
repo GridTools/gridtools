@@ -10,31 +10,16 @@
 
 #pragma once
 
-#include "../make_computation.hpp"
+#include <tuple>
+#include <utility>
 
+#include "../../meta.hpp"
+#include "../computation_facade.hpp"
+#include "../mss.hpp"
 #include "expand_factor.hpp"
 #include "intermediate_expand.hpp"
 
 namespace gridtools {
-    namespace _impl {
-
-        template <uint_t Factor, bool IsStateful, class Backend>
-        struct make_intermediate_expand_f {
-            template <class Grid,
-                class... Args,
-                class ArgsPair = decltype(
-                    split_args<is_arg_storage_pair>(wstd::forward<Args>(std::declval<Args>())...)),
-                class ArgStoragePairs = decay_elements<typename ArgsPair::first_type>,
-                class Msses = decay_elements<typename ArgsPair::second_type>>
-            intermediate_expand<Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses> operator()(
-                Grid const &grid, Args &&... args) const {
-                // split arg_storage_pair and mss descriptor arguments and forward it to intermediate constructor
-                auto &&args_pair = split_args<is_arg_storage_pair>(wstd::forward<Args>(args)...);
-                return {grid, wstd::move(args_pair.first)};
-            }
-        };
-
-    } // namespace _impl
 
 #ifndef NDEBUG
 #define GT_POSITIONAL_WHEN_DEBUGGING true
@@ -42,42 +27,28 @@ namespace gridtools {
 #define GT_POSITIONAL_WHEN_DEBUGGING false
 #endif
 
-    /// generator for intermediate/intermediate_expand
+    /// generator for intermediate_expand
     ///
-    template <class Backend,
-        class Grid,
-        size_t N,
-        class Arg,
-        class... Args,
-        std::enable_if_t<is_grid<Grid>::value, int> = 0>
-    auto make_expandable_computation(expand_factor<N>, Grid const &grid, Arg &&arg, Args &&... args) {
-        return _impl::make_intermediate_expand_f<N, GT_POSITIONAL_WHEN_DEBUGGING, Backend>{}(
-            grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...);
+    template <class Backend, bool IsStateful = GT_POSITIONAL_WHEN_DEBUGGING, class Grid, size_t N, class... Args>
+    auto make_expandable_computation(expand_factor<N> factor, Grid const &grid, Args... args) {
+        return make_computation_facade<Backend>(make_intermediate_expand(factor,
+                                                    Backend{},
+                                                    bool_constant<IsStateful>{},
+                                                    grid,
+                                                    meta::filter<is_mss_descriptor, std::tuple<Args...>>{}),
+            std::move(args)...);
     }
 
 #undef GT_POSITIONAL_WHEN_DEBUGGING
 
-    template <class Backend,
-        class Grid,
-        size_t N,
-        class Arg,
-        class... Args,
-        std::enable_if_t<is_grid<Grid>::value, int> = 0>
-    auto make_expandable_positional_computation(expand_factor<N>, Grid const &grid, Arg &&arg, Args &&... args) {
-        return _impl::make_intermediate_expand_f<N, true, Backend>{}(
-            grid, wstd::forward<Arg>(arg), wstd::forward<Args>(args)...);
-    }
-
     // user protection only, catch the case where no backend is specified
     template <class... Args>
-    computation<> make_expandable_computation(Args &&...) {
-        GT_STATIC_ASSERT(!sizeof...(Args), "No backend was specified on a call to make_expandable_computation");
-        return {};
+    void make_expandable_computation(Args &&...) {
+        GT_STATIC_ASSERT((sizeof...(Args), false), "No backend was specified on a call to make_computation");
     }
-    template <class... Args>
-    computation<> make_expandable_positional_computation(Args &&...) {
-        GT_STATIC_ASSERT(
-            !sizeof...(Args), "No backend was specified on a call to make_expandable_positional_computation");
-        return {};
+
+    template <class Backend, class Grid, size_t N, class... Args>
+    auto make_expandable_positional_computation(expand_factor<N> factor, Grid const &grid, Args... args) {
+        return make_expandable_computation<Backend, true, Grid>(factor, grid, std::move(args)...);
     }
 } // namespace gridtools

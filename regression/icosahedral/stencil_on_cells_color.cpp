@@ -32,7 +32,7 @@ struct on_cells_color_functor {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        if (Color == downward_triangle)
+        if (Color == 0)
             eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return rhs - lhs; }, float_type{}, in()));
         else
             eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return lhs + rhs; }, float_type{}, in()));

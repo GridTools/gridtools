@@ -34,9 +34,9 @@ namespace gridtools {
         template <class Esf, class Args>
         struct esf_replace_args;
 
-        template <template <uint_t> class F, class Grid, class Location, class Color, class OldArgs, class NewArgs>
-        struct esf_replace_args<esf_descriptor<F, Grid, Location, Color, OldArgs>, NewArgs> {
-            using type = esf_descriptor<F, Grid, Location, Color, NewArgs>;
+        template <template <uint_t> class F, class Grid, class Location, class OldArgs, class NewArgs>
+        struct esf_replace_args<esf_descriptor<F, Grid, Location, OldArgs>, NewArgs> {
+            using type = esf_descriptor<F, Grid, Location, NewArgs>;
         };
     } // namespace lazy
     GT_META_DELEGATE_TO_LAZY(esf_param_list, class Esf, Esf);

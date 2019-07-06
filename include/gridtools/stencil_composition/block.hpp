@@ -35,33 +35,21 @@
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 
-#include "./grid.hpp"
+#include "grid.hpp"
 
-#include "./backend_cuda/block.hpp"
-#include "./backend_naive/block.hpp"
-#include "./backend_x86/block.hpp"
+#include "backend_x86/block.hpp"
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
-#include "./structured_grids/block.hpp"
+#include "structured_grids/block.hpp"
 #endif
 
 namespace gridtools {
-    template <class Backend>
-    GT_FUNCTION constexpr uint_t block_k_size(Backend const &) {
-        return 0;
-    }
-
     template <class Backend, class Grid>
-    uint_t block_i_size(Backend const &backend, Grid const &) {
+    int_t block_i_size(Backend backend, Grid const &) {
         return block_i_size(backend);
     }
     template <class Backend, class Grid>
-    uint_t block_j_size(Backend const &backend, Grid const &) {
+    int_t block_j_size(Backend backend, Grid const &) {
         return block_j_size(backend);
-    }
-    template <class Backend, class Grid>
-    uint_t block_k_size(Backend const &, Grid const &grid) {
-        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        return grid.k_total_length();
     }
 } // namespace gridtools

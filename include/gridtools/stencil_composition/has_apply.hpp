@@ -22,7 +22,7 @@ namespace gridtools {
         template <class T, class... ExtraArgs>
         struct has_apply_impl<T,
             std::tuple<ExtraArgs...>,
-            void_t<decltype(T::apply(std::declval<int &>(), std::declval<ExtraArgs>()...))>> : std::true_type {};
+            void_t<decltype(T::apply(std::declval<int const &>(), std::declval<ExtraArgs>()...))>> : std::true_type {};
     } // namespace _impl
 
     /**

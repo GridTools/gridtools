@@ -33,9 +33,6 @@ namespace gridtools {
         template <class LoopLevel, class ToIndex, class FromIndex = meta::first<LoopLevel>>
         using make_loop_interval =
             loop_interval<index_to_level<FromIndex>, index_to_level<ToIndex>, meta::second<LoopLevel>>;
-
-        template <class T>
-        struct has_stages : negation<meta::is_empty<meta::at_c<T, 2>>> {};
     } // namespace _impl
 
     namespace lazy {
@@ -69,10 +66,7 @@ namespace gridtools {
             using to_indices_t = meta::push_back<intermediate_to_indices_t, to_index_t>;
 
             // make loop intervals
-            using loop_intervals_t = meta::transform<_impl::make_loop_interval, loop_levels_t, to_indices_t>;
-
-            // filter out interval with the empty stages
-            using type = meta::filter<_impl::has_stages, loop_intervals_t>;
+            using type = meta::transform<_impl::make_loop_interval, loop_levels_t, to_indices_t>;
         };
     } // namespace lazy
     /**
@@ -88,7 +82,6 @@ namespace gridtools {
      *   - for each level within the interval compute stages using provided callback.
      *   - use lfold to glue together the sequential levels that have the same calculated stages.
      *   - transform the result into the sequence of loop intervals
-     *   - filter out the intervals with empty stages
      *
      *   TODO(anstaf): verify that doxy formatting is OK here.
      */

@@ -18,7 +18,6 @@
 
 */
 using namespace gridtools;
-using namespace execute;
 
 namespace {
     template <int exponent>
