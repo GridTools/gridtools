@@ -15,6 +15,7 @@
 #endif
 
 #include "../../common/boost_pp_generic_macros.hpp"
+#include "../../common/defs.hpp"
 #include "../fortran_array_adapter.hpp"
 #include "boost/variant.hpp"
 #include "repository_macro_helpers.hpp"
@@ -27,6 +28,7 @@
 #include <boost/preprocessor/seq.hpp>
 #include <boost/preprocessor/tuple.hpp>
 #include <cpp_bindgen/export.hpp>
+#include <unordered_map>
 
 #ifndef GT_REPO_GETTER_PREFIX
 #define GT_REPO_GETTER_PREFIX
