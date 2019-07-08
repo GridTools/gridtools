@@ -2,6 +2,9 @@
 
 source $(dirname "$BASH_SOURCE")/base.sh
 
+module load PE/17.06
+module load python/3.6.2-gmvolf-17.02
+
 module load craype-network-infiniband
 module load craype-haswell
 module load craype-accel-nvidia35
