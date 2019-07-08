@@ -40,8 +40,8 @@ include(components)
 include(FetchContent)
 FetchContent_Declare(
   cpp_bindgen
-  GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git
-  GIT_TAG        add_install_function
+  GIT_REPOSITORY https://github.com/GridTools/cpp_bindgen.git
+  GIT_TAG        master
 )
 # Enable legacy mode for CPP_BINDGEN for users of GT 1.0
 # TODO remove in GT 2.0
