@@ -27,5 +27,5 @@ namespace gridtools {
     } // namespace lazy
 
     template <class T>
-    using const_ref = typename lazy::const_ref<T>::type;
+    GT_META_DEFINE_ALIAS(const_ref, lazy::const_ref, T);
 } // namespace gridtools
