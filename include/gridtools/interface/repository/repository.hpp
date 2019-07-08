@@ -16,7 +16,6 @@
 
 #include "../../common/boost_pp_generic_macros.hpp"
 #include "../fortran_array_adapter.hpp"
-#include <boost/preprocessor/seq.hpp>
 #include "boost/variant.hpp"
 #include "repository_macro_helpers.hpp"
 #include <boost/mpl/contains.hpp>
@@ -25,12 +24,9 @@
 #include <boost/preprocessor/list.hpp>
 #include <boost/preprocessor/selection/max.hpp>
 #include <boost/preprocessor/selection/min.hpp>
+#include <boost/preprocessor/seq.hpp>
 #include <boost/preprocessor/tuple.hpp>
 #include <cpp_bindgen/export.hpp>
-
-#include "../../common/defs.hpp"
-#include <unordered_map>
-#endif
 
 #ifndef GT_REPO_GETTER_PREFIX
 #define GT_REPO_GETTER_PREFIX
