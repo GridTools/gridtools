@@ -43,6 +43,6 @@ set_and_check(GridTools_INCLUDE_PATH @PACKAGE_GRIDTOOLS_INCLUDE_PATH@)
 set(CPP_BINDGEN_GT_LEGACY ON CACHE BOOL "Enables the legacy mode for API compatibility with GridTools 1.x" FORCE)
 mark_as_advanced(CPP_BINDGEN_GT_LEGACY)
 find_dependency(cpp_bindgen
-    HINTS @GT_CPP_BINDGEN_CONFIG_LOCATION@) # TODO discuss with Lukas
+    HINTS @GT_CPP_BINDGEN_CONFIG_LOCATION@)
 
 check_required_components(GridTools)

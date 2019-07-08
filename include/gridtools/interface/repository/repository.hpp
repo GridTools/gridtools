@@ -16,7 +16,7 @@
 
 #include "../../common/boost_pp_generic_macros.hpp"
 #include "../fortran_array_adapter.hpp"
-#include "boost/preprocessor/seq.hpp"
+#include <boost/preprocessor/seq.hpp>
 #include "boost/variant.hpp"
 #include "repository_macro_helpers.hpp"
 #include <boost/mpl/contains.hpp>
@@ -28,7 +28,6 @@
 #include <boost/preprocessor/tuple.hpp>
 #include <cpp_bindgen/export.hpp>
 
-#ifndef GT_PARSE_PREPROCESSOR
 #include "../../common/defs.hpp"
 #include <unordered_map>
 #endif
