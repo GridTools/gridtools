@@ -448,4 +448,20 @@ for GPUs or
    using backend_t = backend::mc;
 
 for modern CPUs or Xeon Phis.
-   
+
+------------
+Type-erasure
+------------
+
+The result of ``make_computation`` can be assigned to a ``gridtools::computation``. The parameters of ``computation``
+are the placeholders that will be assigned at runtime, i.e., when calling the ``run``-method of the computation.
+
+You should use objects of type ``computation`` in your headers in order to reduce compilation times, and assign the
+return values of ``make_computation`` in only one compilation unit. The ``computation`` object is type erased; the
+expensive methods are compiled only when the result of ``make_computation`` is assigned to the computation.
+
+An example of this pattern can be found in the examples: `Stencil definition
+<https://github.com/GridTools/gridtools/blob/master/examples/stencil_computation/interpolate_stencil.cpp>`_, `Header
+with a computation
+<https://github.com/GridTools/gridtools/blob/master/examples/stencil_computation/interpolate_stencil.hpp>`_, `Driver
+<https://github.com/GridTools/gridtools/blob/master/examples/stencil_computation/driver.cpp>`_ .

@@ -1,0 +1,18 @@
+language: minimal
+
+services: 
+  - docker
+
+env:
+  - compiler=gcc-7
+  - compiler=gcc-8
+  - compiler=gcc-9
+  - compiler=clang-7
+  - compiler=clang-8
+  - compiler=cuda-10.1
+
+before_install:
+  - docker pull mrtravis/gridtools:test-$compiler
+
+script:
+  - docker run -v $TRAVIS_BUILD_DIR:/gridtools mrtravis/gridtools:test-$compiler

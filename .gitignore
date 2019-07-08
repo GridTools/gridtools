@@ -51,3 +51,5 @@ __pycache__
 !Vagrant_bootstrap.sh
 !Vagrantfile
 !version.txt
+!.travis.yml
+
