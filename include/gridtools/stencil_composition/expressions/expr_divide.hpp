@@ -24,14 +24,14 @@ namespace gridtools {
 
         struct divide_f {
             template <class Lhs, class Rhs>
-            GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs const &lhs, Rhs const &rhs) const {
+            GT_FUNCTION constexpr auto operator()(Lhs const &lhs, Rhs const &rhs) const {
                 return lhs / rhs;
             }
         };
 
         template <class Lhs, class Rhs>
-        GT_FUNCTION GT_CONSTEXPR auto operator/(Lhs lhs, Rhs rhs) -> decltype(make_expr(divide_f{}, Lhs{}, Rhs{})) {
-            return make_expr(divide_f{}, lhs, rhs);
+        GT_FUNCTION constexpr auto operator/(Lhs lhs, Rhs rhs) -> decltype(make_expr(divide_f(), Lhs(), Rhs())) {
+            return make_expr(divide_f(), lhs, rhs);
         }
     } // namespace expressions
     /** @} */

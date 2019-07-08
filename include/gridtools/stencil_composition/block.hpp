@@ -15,7 +15,7 @@
  * Overloads of block_i_size/block_j_size/block_k_size are defined here.
  *
  * There are two forms of block_*_size :
- *   - GT_FUNCTION GT_CONSTEXPR  uint_t block_i_size(Backend)
+ *   - GT_FUNCTION constexpr uint_t block_i_size(Backend)
  *   - uint_t block_i_size(Backend, Grid)
  *  where  Backend is instantiation of the backend target tag and Grid is instantiation of grid.
  *

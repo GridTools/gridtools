@@ -53,13 +53,13 @@ namespace gridtools {
         using expr_or_accessor = bool_constant<is_expr<Arg>::value || is_accessor<Arg>::value>;
 
         template <class Op, class... Args, std::enable_if_t<disjunction<expr_or_accessor<Args>...>::value, int> = 0>
-        GT_FUNCTION GT_CONSTEXPR expr<Op, Args...> make_expr(Op, Args... args) {
+        GT_FUNCTION constexpr expr<Op, Args...> make_expr(Op, Args... args) {
             return {args...};
         }
 
         namespace evaluation {
             template <class Eval, class Arg, std::enable_if_t<std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION GT_CONSTEXPR Arg apply_eval(Eval &, Arg arg) {
+            GT_FUNCTION constexpr Arg apply_eval(Eval &, Arg arg) {
                 return arg;
             }
 
@@ -67,23 +67,23 @@ namespace gridtools {
             // dycore if it is a lvalue reference
 #if defined(__INTEL_COMPILER) && (__INTEL_COMPILER <= 1800)
             template <class Eval, class Arg, std::enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION GT_CONSTEXPR decltype(auto) apply_eval(Eval &eval, Arg const &arg) {
+            GT_FUNCTION constexpr decltype(auto) apply_eval(Eval &eval, Arg const &arg) {
                 return eval(arg);
             }
 #else
             template <class Eval, class Arg, std::enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION GT_CONSTEXPR decltype(auto) apply_eval(Eval &eval, Arg arg) {
-                return eval(wstd::move(arg));
+            GT_FUNCTION constexpr decltype(auto) apply_eval(Eval &eval, Arg arg) {
+                return eval(std::move(arg));
             }
 #endif
 
             template <class Eval, class Op, class Arg>
-            GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Arg> const &arg) {
+            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Arg> const &arg) {
                 return Op{}(eval(arg.m_arg));
             }
 
             template <class Eval, class Op, class Lhs, class Rhs>
-            GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg) {
+            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg) {
                 return Op{}(apply_eval(eval, arg.m_lhs), apply_eval(eval, arg.m_rhs));
             }
         } // namespace evaluation

@@ -25,7 +25,7 @@ namespace gridtools {
 
                 template <class Dim, class Bound, std::enable_if_t<has_key<Offsets, Dim>::value, int> = 0>
                 auto operator()(Bound &&bound) const {
-                    return wstd::forward<Bound>(bound) + at_key<Dim>(m_offsets);
+                    return std::forward<Bound>(bound) + at_key<Dim>(m_offsets);
                 }
 
                 template <class Dim, class Bound, std::enable_if_t<!has_key<Offsets, Dim>::value, int> = 0>
@@ -36,7 +36,7 @@ namespace gridtools {
 
             template <class Bounds, class Offsets>
             auto add_offsets(Bounds &&bounds, Offsets const &offsets) {
-                return hymap::transform(add_offset_f<Offsets>{offsets}, wstd::forward<Bounds>(bounds));
+                return hymap::transform(add_offset_f<Offsets>{offsets}, std::forward<Bounds>(bounds));
             }
 
             template <class Sid, class LowerBounds, class UpperBounds>
@@ -54,7 +54,7 @@ namespace gridtools {
 
                 template <class Arg, class Offsets>
                 shifted_sid(Arg &&original_sid, Offsets &&offsets) noexcept
-                    : delegate<Sid>(wstd::forward<Arg>(original_sid)), m_origin{[this, &offsets]() {
+                    : delegate<Sid>(std::forward<Arg>(original_sid)), m_origin{[this, &offsets]() {
                           auto &&strides = sid::get_strides(this->impl());
                           sid::ptr_diff_type<Sid> ptr_offset{};
                           multi_shift(ptr_offset, strides, offsets);
@@ -73,13 +73,13 @@ namespace gridtools {
         template <class Sid, class Offset>
         shift_sid_origin_impl_::shifted_sid_type<std::decay_t<Sid>, Offset> shift_sid_origin(
             Sid &&sid, Offset &&offset) {
-            return {wstd::forward<Sid>(sid), wstd::forward<Offset>(offset)};
+            return {std::forward<Sid>(sid), std::forward<Offset>(offset)};
         }
 
         template <class Sid, class Offset>
         shift_sid_origin_impl_::shifted_sid_type<Sid &, Offset> shift_sid_origin(
             std::reference_wrapper<Sid> sid, Offset &&offset) {
-            return {sid.get(), wstd::forward<Offset>(offset)};
+            return {sid.get(), std::forward<Offset>(offset)};
         }
     } // namespace sid
 } // namespace gridtools

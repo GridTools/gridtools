@@ -48,7 +48,7 @@ namespace gridtools {
             explicit delegate(std::initializer_list<Arg> lst) : m_impl(*lst.begin()) {}
 
             template <class Arg>
-            explicit delegate(Arg &&arg) noexcept : m_impl(wstd::forward<Arg>(arg)) {}
+            explicit delegate(Arg &&arg) noexcept : m_impl(std::forward<Arg>(arg)) {}
         };
 
         template <class Sid>

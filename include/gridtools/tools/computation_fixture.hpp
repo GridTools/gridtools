@@ -88,7 +88,7 @@ namespace gridtools {
 
         template <class Storage = storage_type, class T = typename Storage::data_t>
         Storage make_storage(T &&obj = {}) const {
-            return {{m_d1, m_d2, m_d3}, wstd::forward<T>(obj)};
+            return {{m_d1, m_d2, m_d3}, std::forward<T>(obj)};
         }
 
         template <class Storage = storage_type>
@@ -133,7 +133,7 @@ namespace gridtools {
 
         template <class Location, class Storage = storage_type<Location>, class T = typename Storage::data_t>
         Storage make_storage(T &&obj = {}) const {
-            return {{m_d1, Location::n_colors::value, m_d2, m_d3}, wstd::forward<T>(obj)};
+            return {{m_d1, Location::n_colors::value, m_d2, m_d3}, std::forward<T>(obj)};
         }
 
         template <class Location, class Storage = storage_type<Location>>
@@ -143,7 +143,7 @@ namespace gridtools {
 
         template <class Location, class Storage = storage_type_4d<Location>, class T = typename Storage::data_t>
         Storage make_storage_4d(uint_t dim, T &&val = {}) {
-            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, wstd::forward<T>(val)};
+            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, std::forward<T>(val)};
         }
 
         template <class Location, class Storage = storage_type_4d<Location>>
@@ -178,7 +178,7 @@ namespace gridtools {
 
         template <class... Args>
         auto make_computation(Args &&... args) const {
-            return ::gridtools::make_computation<backend_t>(make_grid(), wstd::forward<Args>(args)...);
+            return ::gridtools::make_computation<backend_t>(make_grid(), std::forward<Args>(args)...);
         }
 
         template <class Expected, class Actual>

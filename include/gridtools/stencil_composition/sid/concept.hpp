@@ -219,7 +219,7 @@ namespace gridtools {
              *  `get_origin` delegates to `sid_get_origin`
              */
             template <class Sid>
-            GT_CONSTEXPR auto get_origin(Sid &obj) -> decltype(sid_get_origin(obj)) {
+            auto get_origin(Sid &obj) -> decltype(sid_get_origin(obj)) {
                 return sid_get_origin(obj);
             }
 
@@ -227,8 +227,7 @@ namespace gridtools {
              *  C-array specialization
              */
             template <class T, class Res = std::add_pointer_t<std::remove_all_extents_t<T>>>
-            GT_CONSTEXPR std::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>> get_origin(
-                T &obj) {
+            std::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>> get_origin(T &obj) {
                 return {(Res)obj};
             }
 
@@ -278,14 +277,14 @@ namespace gridtools {
              *  `get_strides` delegates to `sid_get_strides`
              */
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            GT_CONSTEXPR std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
-            get_strides(Sid const &obj) {
+            std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res> get_strides(
+                Sid const &obj) {
                 return sid_get_strides(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            GT_CONSTEXPR std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
-            get_strides(Sid const &) {
+            std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>> get_strides(
+                Sid const &) {
                 return {};
             }
 
@@ -304,8 +303,7 @@ namespace gridtools {
             struct get_array_strides<Inner[N], ElemSize> : get_array_strides<Inner[], ElemSize> {};
 
             template <class T>
-            GT_CONSTEXPR std::enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(
-                T const &) {
+            std::enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(T const &) {
                 return {};
             }
 
@@ -338,32 +336,32 @@ namespace gridtools {
             // BEGIN `get_lower_bounds`/`get_upper_bounds`
 
             template <class Sid, class Res = decltype(sid_get_lower_bounds(std::declval<Sid const &>()))>
-            GT_CONSTEXPR std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
             get_lower_bounds(Sid const &obj) {
                 return sid_get_lower_bounds(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_upper_bounds(std::declval<Sid const &>()))>
-            GT_CONSTEXPR std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            std::enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
             get_upper_bounds(Sid const &obj) {
                 return sid_get_upper_bounds(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_lower_bounds(std::declval<Sid const &>()))>
-            GT_CONSTEXPR std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
+            std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
             get_lower_bounds(Sid const &) {
                 return {};
             }
 
             template <class Sid, class Res = decltype(sid_get_upper_bounds(std::declval<Sid const &>()))>
-            GT_CONSTEXPR std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
+            std::enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, tuple<>>
             get_upper_bounds(Sid const &) {
                 return {};
             }
 
             template <class T,
                 class Res = meta::rename<tuple, meta::repeat<std::rank<T>, integral_constant<ptrdiff_t, 0>>>>
-            GT_CONSTEXPR std::enable_if_t<std::is_array<T>::value, Res> get_lower_bounds(T const &) {
+            std::enable_if_t<std::is_array<T>::value, Res> get_lower_bounds(T const &) {
                 return {};
             }
 
@@ -376,7 +374,7 @@ namespace gridtools {
             template <class T,
                 class Dims = meta::make_indices<std::rank<T>, tuple>,
                 class Res = meta::transform<array_extent_f<T>::template apply, Dims>>
-            GT_CONSTEXPR std::enable_if_t<std::is_array<T>::value, Res> get_upper_bounds(T const &) {
+            std::enable_if_t<std::is_array<T>::value, Res> get_upper_bounds(T const &) {
                 return {};
             }
 
@@ -722,13 +720,6 @@ namespace gridtools {
         GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride(Strides const &strides) {
             return {};
         }
-
-        struct get_origin_f {
-            template <class T>
-            GT_CONSTEXPR auto operator()(T &obj) const {
-                return get_origin(obj);
-            }
-        };
     } // namespace sid
 
     /*

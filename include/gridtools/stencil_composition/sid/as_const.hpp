@@ -27,9 +27,9 @@ namespace gridtools {
                 struct const_ptr_holder {
                     sid::ptr_holder_type<Sid> m_impl;
 
-                    GT_CONSTEXPR GT_FUNCTION sid::element_type<Sid> const *operator()() const { return m_impl(); }
+                    constexpr GT_FUNCTION sid::element_type<Sid> const *operator()() const { return m_impl(); }
 
-                    friend GT_CONSTEXPR const_ptr_holder operator+(const_ptr_holder const &obj, ptrdiff_t offset) {
+                    friend constexpr const_ptr_holder operator+(const_ptr_holder const &obj, ptrdiff_t offset) {
                         return {obj.m_impl + offset};
                     }
                 };
@@ -52,7 +52,7 @@ namespace gridtools {
             class Src = std::decay_t<SrcRef>,
             std::enable_if_t<std::is_pointer<sid::ptr_type<Src>>::value, int> = 0>
         as_const_impl_::const_adapter<Src> as_const(SrcRef &&src) {
-            return as_const_impl_::const_adapter<Src>{wstd::forward<SrcRef>(src)};
+            return as_const_impl_::const_adapter<Src>{std::forward<SrcRef>(src)};
         }
     } // namespace sid
 } // namespace gridtools

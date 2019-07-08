@@ -29,7 +29,7 @@ namespace gridtools {
 
         constexpr arg<0, fake_storage_type> p0 = {};
         constexpr arg<1, fake_storage_type> p1 = {};
-        GT_CONSTEXPR auto stage = make_stage<functor>(p0, p1);
+        constexpr auto stage = make_stage<functor>(p0, p1);
 
         using mss_type = decltype(make_multistage(
             execute::forward(), stage, stage, stage, make_independent(stage, stage, make_independent(stage, stage))));
@@ -39,6 +39,6 @@ namespace gridtools {
         static_assert(meta::length<testee_t>::value == 7, "");
         static_assert(meta::all_of<is_esf_descriptor, testee_t>::value, "");
 
-        TEST(dummy, dumy) {}
+        TEST(dummy, dummy) {}
     } // namespace
 } // namespace gridtools

@@ -24,14 +24,14 @@ namespace gridtools {
         template <int I>
         struct pow_f {
             template <class Arg>
-            GT_FUNCTION GT_CONSTEXPR auto operator()(Arg const &arg) const {
+            GT_FUNCTION constexpr auto operator()(Arg const &arg) const {
                 return gt_pow<I>::template apply(arg);
             }
         };
 
         template <int I, class Arg>
-        GT_FUNCTION GT_CONSTEXPR auto pow(Arg arg) -> decltype(make_expr(pow_f<I>{}, Arg{})) {
-            return make_expr(pow_f<I>{}, arg);
+        GT_FUNCTION constexpr auto pow(Arg arg) -> decltype(make_expr(pow_f<I>(), Arg())) {
+            return make_expr(pow_f<I>(), arg);
         }
         /** @} */
         /** @} */

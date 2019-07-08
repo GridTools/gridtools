@@ -257,7 +257,7 @@ namespace gridtools {
                 ro_store_tuple, m_stores, std::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{});
 
             return bound_bc<BCApply, decltype(full_list), typename _impl::comm_indices<stores_type>::type>{
-                m_bcapply, wstd::move(full_list)};
+                m_bcapply, std::move(full_list)};
         }
     };
 

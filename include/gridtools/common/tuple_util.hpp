@@ -535,8 +535,8 @@ namespace gridtools {
                 template <size_t... IndicesToSkip>
                 struct select_arg_f<std::index_sequence<IndicesToSkip...>> {
                     template <class T, class... Ts>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR T &&operator()(
-                        skip_me_type<IndicesToSkip> &&..., T &&obj, Ts...) const {
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR T operator()(
+                        skip_me_type<IndicesToSkip> &&..., T &&obj, Ts &&...) const {
                         return wstd::forward<T>(obj);
                     }
                 };

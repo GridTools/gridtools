@@ -87,14 +87,14 @@ namespace gridtools {
             Offsets m_offsets;
 
             template <class Eval, class Src>
-            GT_FUNCTION GT_CONSTEXPR decltype(auto) operator()(Eval &eval, Src &&src) const {
+            GT_FUNCTION decltype(auto) operator()(Eval &eval, Src &&src) const {
                 return eval(sum_offsets<Res>(m_offsets, wstd::forward<Src>(src)));
             }
         };
 
         template <class Res, class Offsets>
-        GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
-            return {wstd::forward<Offsets>(offsets)};
+        constexpr GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
+            return {std::forward<Offsets>(offsets)};
         }
 
         template <class T>
@@ -128,8 +128,8 @@ namespace gridtools {
                                      !(Param::intent_v == intent::inout &&
                                          std::is_const<std::remove_reference_t<Arg>>::value),
                     int> = 0>
-            GT_FUNCTION GT_CONSTEXPR local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
-                return {wstd::forward<Arg>(arg)};
+            GT_FUNCTION constexpr local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
+                return {std::forward<Arg>(arg)};
             }
         };
 

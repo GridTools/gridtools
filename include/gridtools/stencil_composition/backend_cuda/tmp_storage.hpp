@@ -20,11 +20,11 @@ namespace gridtools {
         namespace _impl {
             template <class StorageInfo,
                 uint_t Alignment = StorageInfo::alignment_t::value ? StorageInfo::alignment_t::value : 1>
-            GT_FUNCTION GT_CONSTEXPR uint_t align(uint_t x) {
+            GT_FUNCTION constexpr uint_t align(uint_t x) {
                 return (x + Alignment - 1) / Alignment * Alignment;
             }
             template <class StorageInfo, class MaxExtent>
-            GT_FUNCTION GT_CONSTEXPR uint_t full_block_i_size(uint_t block_size) {
+            GT_FUNCTION constexpr uint_t full_block_i_size(uint_t block_size) {
                 return align<StorageInfo>(
                     block_size + static_cast<uint_t>(MaxExtent::iplus::value - MaxExtent::iminus::value));
             }
