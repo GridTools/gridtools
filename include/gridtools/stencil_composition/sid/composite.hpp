@@ -95,7 +95,8 @@ namespace gridtools {
                     using type = item_generator;
 
                     template <class Args, class Res = GT_META_CALL(tuple_util::element, (PrimaryIndex::value, Args))>
-                    Res const &operator()(Args const &args) const noexcept {
+                    GT_META_CALL(const_ref, Res)
+                    operator()(Args const &args) const noexcept {
                         GT_STATIC_ASSERT(
                             (conjunction<
                                 std::is_same<GT_META_CALL(tuple_util::element, (SecondaryIndices::value, Args)),
