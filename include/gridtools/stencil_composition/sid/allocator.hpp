@@ -45,7 +45,7 @@
  *    - `allocator`,
  *    - `cached_allocator`.
  *
- *  Both are templated with the functor that takes the size in bytes and returns std::unique_ptr
+ *  Both are templated with the functor that takes the size in bytes and returns `std::unique_ptr`
  *
  *  There are also correspondent generators: `make_allocator` and `make_cached_allocator`.
  *

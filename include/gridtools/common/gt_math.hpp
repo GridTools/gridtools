@@ -11,7 +11,6 @@
 #include <cmath>
 
 #include "defs.hpp"
-#include "generic_metafunctions/const_ref.hpp"
 #include "host_device.hpp"
 
 namespace gridtools {

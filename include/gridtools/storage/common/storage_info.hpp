@@ -218,7 +218,7 @@ namespace gridtools {
         /**
          * @brief Returns the array of total_lengths, the lengths including the halo points (the outer region)
          */
-        GT_FUNCTION constexpr const array<uint_t, ndims> &total_lengths() const { return m_total_lengths; }
+        GT_FUNCTION constexpr const_ref<array<uint_t, ndims>> total_lengths() const { return m_total_lengths; }
 
         /*
          * @brief Returns the length of a dimension including the halo points (the outer region)
@@ -341,7 +341,7 @@ namespace gridtools {
          * @param offsets given offset array
          * @return index
          */
-        GT_FUNCTION constexpr int index(gridtools::array<int, ndims> const &offsets) const {
+        GT_FUNCTION constexpr int index(const_ref<gridtools::array<int, ndims>> offsets) const {
             return array_dot_product(offsets, m_strides);
         }
 
@@ -354,9 +354,11 @@ namespace gridtools {
          * @param rhs right hand side storage info instance
          * @return true if the storage infos are equal, false otherwise
          */
-        GT_FUNCTION bool operator==(this_t const &rhs) const { return impl_::equality_check<ndims - 1>(*this, rhs); }
+        GT_FUNCTION bool operator==(storage_info const &rhs) const {
+            return impl_::equality_check<ndims - 1>(*this, rhs);
+        }
 
-        GT_FUNCTION bool operator!=(this_t const &rhs) const { return !operator==(rhs); }
+        GT_FUNCTION bool operator!=(storage_info const &rhs) const { return !operator==(rhs); }
     };
 
     template <typename T>

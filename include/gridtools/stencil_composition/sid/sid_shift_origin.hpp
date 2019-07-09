@@ -50,8 +50,6 @@ namespace gridtools {
                 friend UpperBounds const &sid_get_upper_bounds(shifted_sid const &obj) { return obj.m_upper_bounds; }
 
               public:
-                shifted_sid() = default;
-
                 template <class Arg, class Offsets>
                 shifted_sid(Arg &&original_sid, Offsets &&offsets) noexcept
                     : delegate<Sid>(std::forward<Arg>(original_sid)), m_origin{[this, &offsets]() {

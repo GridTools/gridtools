@@ -106,7 +106,7 @@ namespace gridtools {
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
 
             auto stride = sid::get_stride<void>(strides{});
-            static_assert(stride == 0, "");
+            static_assert(decltype(stride)::value == 0, "");
 
             static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>(), "");
             static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>(), "");
