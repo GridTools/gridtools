@@ -9,30 +9,39 @@
  */
 #pragma once
 
-#include "../../meta.hpp"
-#include "../mss_functor.hpp"
+#include <utility>
 
-/**@file
- * @brief fused mss loop implementations for the cuda backend
- */
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/utility.hpp"
+#include "../../common/host_device.hpp"
+#include "../dim.hpp"
+#include "../sid/blocked_dim.hpp"
+#include "../sid/concept.hpp"
+
 namespace gridtools {
-    /**
-     * @brief struct holding backend-specific runtime information about stencil execution.
-     * Empty for the CUDA backend.
-     */
-    struct execution_info_cuda {};
+    namespace cuda {
+        namespace fused_mss_loop_cuda_impl_ {
+            template <class Sid, class KLoop>
+            struct kernel_f {
+                sid::ptr_holder_type<Sid> m_ptr_holder;
+                sid::strides_type<Sid> m_strides;
+                KLoop k_loop;
 
-    /**
-     * @brief loops over all blocks and execute sequentially all mss functors for each block
-     * @tparam MssComponents a meta array with the mss components of all MSS
-     */
-    template <class MssComponents, class LocalDomainListArray, class Grid>
-    void fused_mss_loop(backend::cuda, LocalDomainListArray const &local_domain_lists, const Grid &grid) {
-        run_mss_functors<MssComponents>(backend::cuda{}, local_domain_lists, grid, execution_info_cuda{});
-    }
+                template <class Validator>
+                GT_FUNCTION_DEVICE void operator()(int_t i_block, int_t j_block, Validator validator) const {
+                    sid::ptr_diff_type<Sid> offset = {};
+                    sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(m_strides), blockIdx.x);
+                    sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(m_strides), blockIdx.y);
+                    sid::shift(offset, sid::get_stride<dim::i>(m_strides), i_block);
+                    sid::shift(offset, sid::get_stride<dim::j>(m_strides), j_block);
+                    k_loop(m_ptr_holder() + offset, m_strides, wstd::move(validator));
+                }
+            };
+        } // namespace fused_mss_loop_cuda_impl_
 
-    /**
-     * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
-     */
-    constexpr std::true_type mss_fuse_esfs(backend::cuda) { return {}; }
+        template <class Composite, class KLoop>
+        fused_mss_loop_cuda_impl_::kernel_f<Composite, KLoop> make_kernel_fun(Composite &composite, KLoop k_loop) {
+            return {sid::get_origin(composite), sid::get_strides(composite), std::move(k_loop)};
+        }
+    } // namespace cuda
 } // namespace gridtools

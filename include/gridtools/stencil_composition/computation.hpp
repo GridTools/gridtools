@@ -14,44 +14,44 @@
 #include <utility>
 
 #include "../common/defs.hpp"
-#include "../common/permute_to.hpp"
-#include "../meta/type_traits.hpp"
+#include "../common/tuple_util.hpp"
+#include "../meta.hpp"
 #include "accessor_intent.hpp"
 #include "arg.hpp"
 #include "extent.hpp"
 
 namespace gridtools {
 
-    namespace _impl {
-        namespace computation_detail {
-            template <class Obj>
-            struct run_f {
-                Obj &m_obj;
+    namespace computation_impl_ {
+        template <class Arg>
+        struct iface_arg {
+            virtual ~iface_arg() = default;
+            virtual rt_extent get_arg_extent(Arg) const = 0;
+            virtual intent get_arg_intent(Arg) const = 0;
+        };
 
-                template <class... Args>
-                void operator()(Args &&... args) const {
-                    m_obj.run(std::forward<Args>(args)...);
-                }
-            };
+        template <class T, class Arg>
+        struct impl_arg : virtual iface_arg<Arg> {
+            rt_extent get_arg_extent(Arg) const override {
+                return static_cast<const T *>(this)->m_obj.get_arg_extent(Arg());
+            }
+            intent get_arg_intent(Arg) const override {
+                return static_cast<const T *>(this)->m_obj.get_arg_intent(Arg());
+            }
+        };
 
-            template <typename Arg>
-            struct iface_arg {
-                virtual ~iface_arg() = default;
-                virtual rt_extent get_arg_extent(Arg) const = 0;
-                virtual intent get_arg_intent(Arg) const = 0;
-            };
+        template <class Arg>
+        struct generator_f {
+            template <class ArgDataStoreRefs>
+            arg_storage_pair<Arg, typename Arg::data_store_t const &> operator()(ArgDataStoreRefs const &srcs) const {
+                using map_t = meta::transform<std::decay_t, ArgDataStoreRefs>;
+                using item_t = meta::mp_find<map_t, Arg>;
+                GT_STATIC_ASSERT(!std::is_void<item_t>::value, GT_INTERNAL_ERROR);
+                return {tuple_util::get<meta::st_position<map_t, item_t>::value>(srcs).m_value};
+            }
+        };
 
-            template <class T, class Arg>
-            struct impl_arg : virtual iface_arg<Arg> {
-                rt_extent get_arg_extent(Arg) const override {
-                    return static_cast<const T *>(this)->m_obj.get_arg_extent(Arg());
-                }
-                intent get_arg_intent(Arg) const override {
-                    return static_cast<const T *>(this)->m_obj.get_arg_intent(Arg());
-                }
-            };
-        } // namespace computation_detail
-    }     // namespace _impl
+    } // namespace computation_impl_
 
     /**
      * Type erasure for computations (the objects that are produced by make_computation)
@@ -63,9 +63,9 @@ namespace gridtools {
     class computation {
         GT_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "template parameters should be args");
 
-        using arg_storage_pair_crefs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t> const &...>;
+        using arg_storage_pair_crefs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t const &>...>;
 
-        struct iface : virtual _impl::computation_detail::iface_arg<Args>... {
+        struct iface : virtual computation_impl_::iface_arg<Args>... {
             virtual ~iface() = default;
             virtual void run(arg_storage_pair_crefs_t const &) = 0;
             virtual std::string print_meter() const = 0;
@@ -75,13 +75,13 @@ namespace gridtools {
         };
 
         template <class Obj>
-        struct impl : iface, _impl::computation_detail::impl_arg<impl<Obj>, Args>... {
+        struct impl : iface, computation_impl_::impl_arg<impl<Obj>, Args>... {
             Obj m_obj;
 
             impl(Obj &&obj) : m_obj{std::move(obj)} {}
 
             void run(arg_storage_pair_crefs_t const &args) override {
-                tuple_util::apply(_impl::computation_detail::run_f<Obj>{m_obj}, args);
+                tuple_util::apply([&](auto const &... args) { m_obj.run(args...); }, args);
             }
             std::string print_meter() const override { return m_obj.print_meter(); }
             double get_time() const override { return m_obj.get_time(); }
@@ -106,7 +106,8 @@ namespace gridtools {
         template <class... SomeArgs, class... SomeDataStores>
         std::enable_if_t<sizeof...(SomeArgs) == sizeof...(Args)> run(
             arg_storage_pair<SomeArgs, SomeDataStores> const &... args) {
-            m_impl->run(permute_to<arg_storage_pair_crefs_t>(std::make_tuple(std::cref(args)...)));
+            using generators_t = meta::transform<computation_impl_::generator_f, meta::list<Args...>>;
+            m_impl->run(tuple_util::generate<generators_t, arg_storage_pair_crefs_t>(std::tie(args...)));
         }
 
         std::string print_meter() const { return m_impl->print_meter(); }
@@ -119,12 +120,12 @@ namespace gridtools {
 
         template <class Arg>
         std::enable_if_t<meta::st_contains<meta::list<Args...>, Arg>::value, rt_extent> get_arg_extent(Arg) const {
-            return static_cast<_impl::computation_detail::iface_arg<Arg> const &>(*m_impl).get_arg_extent(Arg());
+            return static_cast<computation_impl_::iface_arg<Arg> const &>(*m_impl).get_arg_extent(Arg());
         }
 
         template <class Arg>
         std::enable_if_t<meta::st_contains<meta::list<Args...>, Arg>::value, intent> get_arg_intent(Arg) const {
-            return static_cast<_impl::computation_detail::iface_arg<Arg> const &>(*m_impl).get_arg_intent(Arg());
+            return static_cast<computation_impl_::iface_arg<Arg> const &>(*m_impl).get_arg_intent(Arg());
         }
     };
 

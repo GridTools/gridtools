@@ -27,8 +27,8 @@ namespace gridtools {
                 GT_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
                 template <class Esf>
                 using make_mss = mss_descriptor<ExecutionEngine, std::tuple<Esf>, CacheSequence>;
-                using esfs_t = unwrap_independent<EsfSequence>;
-                using type = meta::transform<make_mss, esfs_t>;
+
+                using type = meta::transform<make_mss, EsfSequence>;
             };
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(mss_split_esfs, class Mss, Mss);

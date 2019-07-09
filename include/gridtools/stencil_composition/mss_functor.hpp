@@ -53,9 +53,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(Index::value < meta::length<MssComponentsArray>::value, GT_INTERNAL_ERROR);
             using mss_components_t = meta::at<MssComponentsArray, Index>;
 
-            typedef run_functor_arguments<Backend,
-                typename mss_components_t::linear_esf_t,
-                typename mss_components_t::loop_intervals_t,
+            typedef run_functor_arguments<typename mss_components_t::loop_intervals_t,
                 typename mss_components_t::execution_engine_t>
                 run_functor_args_t;
 

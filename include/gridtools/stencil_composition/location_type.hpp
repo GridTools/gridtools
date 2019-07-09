@@ -12,12 +12,13 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
+#include "../common/integral_constant.hpp"
 
 namespace gridtools {
     template <int_t I, uint_t NColors>
     struct location_type {
         static const int_t value = I;
-        typedef static_uint<NColors> n_colors; //! <- is the number of locations of this type
+        typedef integral_constant<uint_t, NColors> n_colors; //! <- is the number of locations of this type
     };
 
     template <typename T>

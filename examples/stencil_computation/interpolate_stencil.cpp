@@ -32,7 +32,7 @@ struct interpolate_stage {
 // `make_computation` should never be called in a header, because the compilation overhead is very significant
 interpolate_stencil::interpolate_stencil(grid_t const &grid, double weight)
     : m_stencil(gridtools::make_computation<backend_t>(grid,
-          p_weight() = gridtools::make_global_parameter<backend_t>(weight),
+          p_weight() = gridtools::make_global_parameter(weight),
           gridtools::make_multistage(gridtools::execute::parallel{},
               gridtools::make_stage<interpolate_stage>(p_in1{}, p_in2(), p_weight(), p_out())))) {}
 

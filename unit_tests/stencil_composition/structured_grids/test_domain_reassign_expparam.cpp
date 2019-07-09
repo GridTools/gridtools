@@ -12,16 +12,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/defs.hpp>
-#include <gridtools/common/halo_descriptor.hpp>
-#include <gridtools/stencil_composition/accessor.hpp>
-#include <gridtools/stencil_composition/arg.hpp>
-#include <gridtools/stencil_composition/computation.hpp>
 #include <gridtools/stencil_composition/expandable_parameters/make_computation.hpp>
-#include <gridtools/stencil_composition/grid.hpp>
-#include <gridtools/stencil_composition/make_computation.hpp>
-#include <gridtools/stencil_composition/make_stage.hpp>
-#include <gridtools/stencil_composition/make_stencils.hpp>
+#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 

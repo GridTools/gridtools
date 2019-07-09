@@ -35,7 +35,10 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_level<FromLevel>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_level<ToLevel>::value, GT_INTERNAL_ERROR);
 
-        using type = loop_interval;
+        template <class Grid>
+        static GT_FUNCTION auto count(Grid const &grid) {
+            return grid.count(FromLevel{}, ToLevel{});
+        }
     };
 
     template <class T>
@@ -55,9 +58,7 @@ namespace gridtools {
         template <class Stage>
         using get_extent_from_stage = typename Stage::extent_t;
 
-        template <class Interval,
-            class StageGroups = meta::at_c<Interval, 2>,
-            class Stages = meta::flatten<StageGroups>>
+        template <class Interval, class Stages = meta::third<Interval>>
         using get_extents_from_interval = meta::transform<get_extent_from_stage, Stages>;
 
         template <class LoopIntervals, class ExtentsList = meta::transform<get_extents_from_interval, LoopIntervals>>

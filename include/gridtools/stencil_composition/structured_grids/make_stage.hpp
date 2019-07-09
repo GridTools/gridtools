@@ -27,7 +27,7 @@ namespace gridtools {
      * If Extent is not provided it is derived from the stage definitions.
      */
     template <class Esf, class Extent = void, class... Args>
-    constexpr esf_descriptor<Esf, std::tuple<Args...>, Extent> make_stage(Args...) {
+    constexpr std::tuple<esf_descriptor<Esf, std::tuple<Args...>, Extent>> make_stage(Args...) {
         GT_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "Malformed make_stage");
         GT_STATIC_ASSERT(sizeof...(Args) == meta::length<typename Esf::param_list>::value,
             "wrong number of arguments passed to the make_stage");

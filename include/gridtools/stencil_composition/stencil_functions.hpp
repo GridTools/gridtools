@@ -42,7 +42,6 @@ namespace gridtools {
 
         template <class Key>
         struct sum_offset_generator_f {
-            using type = sum_offset_generator_f;
 
             using default_t = integral_constant<int_t, 0>;
 
@@ -157,8 +156,7 @@ namespace gridtools {
 
         template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>
         GT_FUNCTION void evaluate_bound_functor(Eval &eval, Args &&args) {
-            static constexpr meta::rename<meta::ctor<tuple<>>::apply,
-                meta::transform<meta::defer<meta::id>::apply, typename Functor::param_list>>
+            static constexpr meta::rename<tuple, meta::transform<meta::lazy::id, typename Functor::param_list>>
                 lazy_params = {};
             auto new_eval = make_evaluator(eval,
                 tuple_util::host_device::transform(get_transform_f<I, J, K>{}, wstd::forward<Args>(args), lazy_params));
