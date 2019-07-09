@@ -215,6 +215,7 @@ namespace gridtools {
             dim3 blocks = {xblocks, yblocks, zblocks};
             dim3 threads = {BlockSizeI, BlockSizeJ, 1};
 
+            // TODO(anstaf): to investigate if this optimization has impact
             if (i_size % BlockSizeI == 0 && j_size % BlockSizeJ == 0)
                 launch_kernel_impl_::trivial_wrapper<num_threads>
                     <<<blocks, threads, shared_memory_size>>>(std::move(fun));
