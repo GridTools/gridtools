@@ -17,15 +17,15 @@ namespace gridtools {
     namespace binop {
         struct sum {
             template <class Lhs, class Rhs>
-            GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs &&lhs, Rhs &&rhs) const {
-                return wstd::forward<Lhs>(lhs) + wstd::forward<Rhs>(rhs);
+            GT_FUNCTION constexpr auto operator()(Lhs &&lhs, Rhs &&rhs) const {
+                return std::forward<Lhs>(lhs) + std::forward<Rhs>(rhs);
             }
         };
 
         struct prod {
             template <class Lhs, class Rhs>
-            GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs &&lhs, Rhs &&rhs) const {
-                return wstd::forward<Lhs>(lhs) * wstd::forward<Rhs>(rhs);
+            GT_FUNCTION constexpr auto operator()(Lhs &&lhs, Rhs &&rhs) const {
+                return std::forward<Lhs>(lhs) * std::forward<Rhs>(rhs);
             }
         };
     } // namespace binop

@@ -45,7 +45,7 @@ namespace gridtools {
         template <class T>
         unique_cuda_ptr<T> cuda_malloc(size_t size = 1) {
             T *ptr;
-            GT_CUDA_CHECK(cudaMalloc(&ptr, size * sizeof(std::conditional_t<std::is_void<T>::value, char, T>)));
+            GT_CUDA_CHECK(cudaMalloc(&ptr, size * sizeof(T)));
             return unique_cuda_ptr<T>{ptr};
         }
 

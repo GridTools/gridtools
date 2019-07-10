@@ -42,7 +42,7 @@
  *
  *  There are two default `hymap_from_keys_values`: is provided if for hymaps that are structured like:
  *     `SomeKeyTemplate<key_a, key_b, key_c>::values<val_a, val_b, val_c>`;
- *     It just use `SomeKeyTemplate` with nested `values` to create a type.
+ *     It just uses `SomeKeyTemplate` with nested `values` to create a type.
  *
  *  User API
  *  --------

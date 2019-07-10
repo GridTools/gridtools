@@ -254,7 +254,7 @@ namespace gridtools {
 
             enum class ref_kind { rvalue, lvalue, const_lvalue };
 
-            template <class T>
+            template <class>
             struct get_ref_kind : std::integral_constant<ref_kind, ref_kind::rvalue> {};
 
             template <class T>
@@ -536,7 +536,7 @@ namespace gridtools {
                 struct select_arg_f<std::index_sequence<IndicesToSkip...>> {
                     template <class T, class... Ts>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR T &&operator()(
-                        skip_me_type<IndicesToSkip> &&..., T &&obj, Ts...) const {
+                        skip_me_type<IndicesToSkip> &&..., T &&obj, Ts &&...) const {
                         return wstd::forward<T>(obj);
                     }
                 };

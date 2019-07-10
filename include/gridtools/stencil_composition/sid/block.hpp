@@ -114,7 +114,7 @@ namespace gridtools {
               public:
                 template <class SidT, class BlockMapT>
                 blocked_sid(SidT &&impl, BlockMapT &&block_map) noexcept
-                    : delegate<Sid>(wstd::forward<SidT>(impl)), m_block_map(wstd::forward<BlockMapT>(block_map)) {}
+                    : delegate<Sid>(std::forward<SidT>(impl)), m_block_map(std::forward<BlockMapT>(block_map)) {}
 
                 friend strides_t sid_get_strides(blocked_sid const &obj) {
                     return tuple_util::generate<generators_t, strides_t>(get_strides(obj.impl()), obj.m_block_map);
@@ -134,19 +134,19 @@ namespace gridtools {
             class BlockMap,
             std::enable_if_t<block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
         decltype(auto) block(Sid &&sid, BlockMap &&) {
-            return wstd::forward<Sid>(sid);
+            return std::forward<Sid>(sid);
         }
 
         template <class Sid,
             class BlockMap,
             std::enable_if_t<!block_impl_::no_common_dims<Sid, BlockMap>::value, int> = 0>
         block_impl_::blocked_sid<std::decay_t<Sid>, std::decay_t<BlockMap>> block(Sid &&sid, BlockMap &&block_map) {
-            return {wstd::forward<Sid>(sid), wstd::forward<BlockMap>(block_map)};
+            return {std::forward<Sid>(sid), std::forward<BlockMap>(block_map)};
         }
 
         template <class Sid, class BlockMap>
         decltype(auto) block(std::reference_wrapper<Sid> const &sid, BlockMap &&block_map) {
-            return block(sid.get(), wstd::forward<BlockMap>(block_map));
+            return block(sid.get(), std::forward<BlockMap>(block_map));
         }
     } // namespace sid
 } // namespace gridtools

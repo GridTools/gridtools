@@ -25,7 +25,7 @@ namespace gridtools {
     template <typename TimerImpl>
     class timer {
       protected:
-        timer(std::string name) : m_name(wstd::move(name)) {}
+        timer(std::string name) : m_name(std::move(name)) {}
 
       public:
         /**

@@ -218,6 +218,8 @@ namespace gridtools {
             EXPECT_EQ(concat(std::make_tuple(1, 2), std::make_tuple(3, 4)), std::make_tuple(1, 2, 3, 4));
         }
 
+        TEST(concat, mixed) { EXPECT_EQ(concat(std::tuple<>(), make<std::array>(3, 4)), std::make_tuple(3, 4)); }
+
         TEST(concat, array) {
             EXPECT_THAT(concat(make<std::array>(1, 2), make<std::array>(3, 4)), testing::ElementsAre(1, 2, 3, 4));
         }

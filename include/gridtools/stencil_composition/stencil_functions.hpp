@@ -86,14 +86,14 @@ namespace gridtools {
             Offsets m_offsets;
 
             template <class Eval, class Src>
-            GT_FUNCTION GT_CONSTEXPR decltype(auto) operator()(Eval &eval, Src &&src) const {
+            GT_FUNCTION decltype(auto) operator()(Eval &eval, Src &&src) const {
                 return eval(sum_offsets<Res>(m_offsets, wstd::forward<Src>(src)));
             }
         };
 
         template <class Res, class Offsets>
-        GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
-            return {wstd::forward<Offsets>(offsets)};
+        constexpr GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets &&offsets) {
+            return {std::forward<Offsets>(offsets)};
         }
 
         template <class T>
@@ -127,8 +127,8 @@ namespace gridtools {
                                      !(Param::intent_v == intent::inout &&
                                          std::is_const<std::remove_reference_t<Arg>>::value),
                     int> = 0>
-            GT_FUNCTION GT_CONSTEXPR local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
-                return {wstd::forward<Arg>(arg)};
+            GT_FUNCTION constexpr local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
+                return {std::forward<Arg>(arg)};
             }
         };
 
@@ -140,9 +140,8 @@ namespace gridtools {
             template <class Accessor,
                 class Decayed = std::decay_t<Accessor>,
                 std::enable_if_t<is_accessor<Decayed>::value, int> = 0>
-            GT_FUNCTION decltype(auto) operator()(Accessor &&acc) const {
-                return tuple_util::host_device::get<Decayed::index_t::value>(m_transforms)(
-                    m_eval, wstd::forward<Accessor>(acc));
+            GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
+                return tuple_util::host_device::get<Decayed::index_t::value>(m_transforms)(m_eval, wstd::move(acc));
             }
 
             template <class Op, class... Ts>
@@ -232,12 +231,12 @@ namespace gridtools {
          */
         template <class Eval,
             class... Args,
-            class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, std::decay_t<Args>...>::type,
+            class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, Args...>::type,
             std::enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
-        GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
+        GT_FUNCTION static Res with(Eval &eval, Args... args) {
             Res res;
-            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
-                tuple_util::host_device::insert<out_param_index>(res, tuple<Args &&...>{wstd::forward<Args>(args)...}));
+            call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
+                eval, tuple_util::host_device::insert<out_param_index>(res, tuple<Args &&...>{wstd::move(args)...}));
             return res;
         }
     };

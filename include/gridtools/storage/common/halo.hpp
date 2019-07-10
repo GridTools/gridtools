@@ -56,7 +56,7 @@ namespace gridtools {
          * type with 3 entries cannot be passed to a <3 or >3 dimensional storage_info.
          * @return number of dimensions
          */
-        GT_FUNCTION static GT_CONSTEXPR uint_t size() { return sizeof...(N); }
+        GT_FUNCTION static constexpr uint_t size() { return sizeof...(N); }
     };
 
     namespace _impl {

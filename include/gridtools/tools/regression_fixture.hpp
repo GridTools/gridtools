@@ -26,7 +26,7 @@ namespace gridtools {
         template <class... Args>
         void verify(Args &&... args) const {
             if (s_needs_verification)
-                computation_fixture<HaloSize, Axis>::verify(wstd::forward<Args>(args)...);
+                computation_fixture<HaloSize, Axis>::verify(std::forward<Args>(args)...);
         }
 
         template <class Comp>
