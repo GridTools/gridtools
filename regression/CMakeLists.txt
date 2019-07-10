@@ -159,7 +159,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
     endif(GT_ENABLE_BACKEND_CUDA)
 
     if ( COMPONENT_C_BINDINGS )
-        #add_subdirectory( c_bindings )
+        add_subdirectory( c_bindings )
     endif()
 
     if ( COMPONENT_GCL )

@@ -43,18 +43,18 @@ if(GT_INSTALL_EXAMPLES)
 
     if(COMPONENT_C_BINDINGS)
         # If clang+nvcc, we disable the c-bindings test, if CUDA < 10.0 because nvcc has problems with C++14 in this combination
-        #if(NOT ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang AND DEFINED CMAKE_CUDA_COMPILER AND "${CMAKE_CUDA_COMPILER_VERSION}" VERSION_LESS "10.0"))
-            #configure_file(c_bindings/CMakeLists.txt.in
-                #${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt @ONLY)
-            #install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt
-                #DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/c_bindings)
-            #install(
-                #DIRECTORY c_bindings
-                #DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
-                #PATTERN "CMakeLists.txt.in" EXCLUDE
-                #)
-            #list(APPEND enabled_examples c_bindings)
-        #endif()
+        if(NOT ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang AND DEFINED CMAKE_CUDA_COMPILER AND "${CMAKE_CUDA_COMPILER_VERSION}" VERSION_LESS "10.0"))
+            configure_file(c_bindings/CMakeLists.txt.in
+                ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt @ONLY)
+            install(FILES ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/c_bindings/CMakeLists.txt
+                DESTINATION ${GT_INSTALL_EXAMPLES_PATH}/c_bindings)
+            install(
+                DIRECTORY c_bindings
+                DESTINATION ${GT_INSTALL_EXAMPLES_PATH}
+                PATTERN "CMakeLists.txt.in" EXCLUDE
+                )
+            list(APPEND enabled_examples c_bindings)
+        endif()
     endif()
 
     configure_file(cmake_skeletons/CMakeLists.txt.driver.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeLists.txt @ONLY)
