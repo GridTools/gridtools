@@ -34,20 +34,22 @@ endif()
 target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
 if(CUDA_AVAILABLE)
   target_compile_definitions(gridtools INTERFACE GT_USE_GPU)
-  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 9.0 )
-      message(FATAL_ERROR "CUDA 8.X or lower is not supported")
-  endif()
+  #if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 9.0 )
+      #message(FATAL_ERROR "CUDA 8.X or lower is not supported")
+  #endif()
 
   # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
-  target_compile_options(gridtools INTERFACE
-      $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+  #target_compile_options(gridtools INTERFACE
+      #$<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
   if(${GT_CXX_STANDARD} STREQUAL "c++17")
     message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
   endif()
 
-  target_include_directories( gridtools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
-  target_link_libraries( gridtools INTERFACE ${CUDA_CUDART_LIBRARY} )
+  #target_include_directories( gridtools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
+  #target_link_libraries( gridtools INTERFACE ${CUDA_CUDART_LIBRARY} )
+  target_include_directories(gridtools INTERFACE /usr/local/cuda-10.1/include)
+  target_link_libraries( gridtools INTERFACE /usr/local/cuda-10.1/lib64/libcudart.so)
 endif()
 
 # Controls preprocessor expansion of macros in Fortran source code.
@@ -132,10 +134,10 @@ if( GT_ENABLE_BACKEND_CUDA )
 
   # suppress because of boost::fusion::vector ctor
   target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
-  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL 9.2 )
-    # suppress because of warnings in GTest
-    target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=177>)
-  endif()
+  #if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL 9.2 )
+    ## suppress because of warnings in GTest
+    #target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=177>)
+  #endif()
 
   add_library(GridToolsTestCUDA INTERFACE)
   target_compile_definitions(GridToolsTestCUDA INTERFACE GT_BACKEND_CUDA)

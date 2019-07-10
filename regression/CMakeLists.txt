@@ -121,8 +121,10 @@ if( COMPONENT_STENCIL_COMPOSITION )
     if(GT_ENABLE_BACKEND_CUDA)
 
        foreach(srcfile IN LISTS SOURCES)
+           set_source_files_properties(${srcfile}.cu PROPERTIES LANGUAGE CXX)
            add_executable( ${srcfile}_cuda ${srcfile}.cu)
            target_link_libraries(${srcfile}_cuda regression_main GridToolsTestCUDA)
+           target_compile_options(${srcfile}_cuda PRIVATE -xcuda --cuda-gpu-arch=${GT_CUDA_ARCH})
 
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_47_38_61
@@ -157,7 +159,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
     endif(GT_ENABLE_BACKEND_CUDA)
 
     if ( COMPONENT_C_BINDINGS )
-        add_subdirectory( c_bindings )
+        #add_subdirectory( c_bindings )
     endif()
 
     if ( COMPONENT_GCL )

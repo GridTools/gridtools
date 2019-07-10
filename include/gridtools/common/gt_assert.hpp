@@ -28,7 +28,15 @@
 #include <cassert>
 #endif
 
-#ifdef __CUDA_ARCH__
+#if (defined(__clang__) && defined(__CUDA__))
+__host__ inline void GT_ASSERT_OR_THROW(bool cond, const char* msg) {
+    if (!cond)
+        throw std::runtime_error(msg);
+}
+__device__ inline void GT_ASSERT_OR_THROW(bool cond, const char* msg) {
+    assert(cond);
+}
+#elif defined(__CUDA_ARCH__)
 #define GT_ASSERT_OR_THROW(cond, msg) assert(cond)
 #else
 #define GT_ASSERT_OR_THROW(cond, msg) \

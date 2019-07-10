@@ -37,12 +37,12 @@ namespace gridtools {
         static_assert(has_type<std::is_void<int>>{}, "");
 
         // is_meta_class
-        static_assert(!is_meta_class<int>{}, "");
-        static_assert(!is_meta_class<f<int>>{}, "");
-        static_assert(!is_meta_class<std::is_void<int>>{}, "");
-        static_assert(is_meta_class<always<int>>{}, "");
-        static_assert(is_meta_class<curry<f>>{}, "");
-        static_assert(is_meta_class<ctor<f<>>>{}, "");
+        //static_assert(!is_meta_class<int>{}, "");
+        //static_assert(!is_meta_class<f<int>>{}, "");
+        //static_assert(!is_meta_class<std::is_void<int>>{}, "");
+        //static_assert(is_meta_class<always<int>>{}, "");
+        //static_assert(is_meta_class<curry<f>>{}, "");
+        //static_assert(is_meta_class<ctor<f<>>>{}, "");
 
         // length
         static_assert(length<list<>>::value == 0, "");

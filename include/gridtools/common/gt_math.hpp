@@ -116,9 +116,9 @@ namespace gridtools {
 #ifdef __CUDACC__
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
-        GT_FUNCTION decltype(auto) fabs(double val) { return ::fabs(val); }
+        GT_FUNCTION decltype(auto) fabs(double val) { return std::fabs(val); }
 
-        GT_FUNCTION decltype(auto) fabs(float val) { return ::fabs(val); }
+        GT_FUNCTION decltype(auto) fabs(float val) { return std::fabs(val); }
 
         template <typename Value>
         GT_FUNCTION decltype(auto) fabs(Value val) {
