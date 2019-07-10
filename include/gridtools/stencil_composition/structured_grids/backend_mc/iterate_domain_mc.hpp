@@ -46,7 +46,7 @@ namespace gridtools {
 
             template <class Arg, class Dim>
             GT_FORCE_INLINE auto stride() const {
-                return sid::get_stride<Arg, Dim>(m_local_domain.m_strides);
+                return sid::get_stride_element<Arg, Dim>(m_local_domain.m_strides);
             }
 
             template <class Arg, std::enable_if_t<is_tmp_arg<Arg>::value, int> = 0>
@@ -92,7 +92,7 @@ namespace gridtools {
 
             template <class Arg, std::enable_if_t<!meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {
-                sid::shift(at_key<Arg>(m_ptr), sid::get_stride<Arg, dim::k>(m_strides), m_offset);
+                sid::shift(at_key<Arg>(m_ptr), sid::get_stride_element<Arg, dim::k>(m_strides), m_offset);
             }
             template <class Arg, std::enable_if_t<meta::st_contains<IJCachedArgs, Arg>::value, int> = 0>
             GT_FORCE_INLINE void operator()() const {}

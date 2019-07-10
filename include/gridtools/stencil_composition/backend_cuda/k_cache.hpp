@@ -69,7 +69,7 @@ namespace gridtools {
                     if (cur + Plus >= m_upper_bound)
                         return;
                     auto ptr = device::at_key<Plh>(ptrs);
-                    sid::shift(ptr, sid::get_stride<Plh, dim::k>(strides), integral_constant<int_t, Plus>());
+                    sid::shift(ptr, sid::get_stride_element<Plh, dim::k>(strides), integral_constant<int_t, Plus>());
                     this->m_values[Plus - Minus] = *ptr;
                 }
 
@@ -79,35 +79,35 @@ namespace gridtools {
                     if (cur + Minus < m_lower_bound)
                         return;
                     auto ptr = device::at_key<Plh>(ptrs);
-                    sid::shift(ptr, sid::get_stride<Plh, dim::k>(strides), integral_constant<int_t, Minus>());
+                    sid::shift(ptr, sid::get_stride_element<Plh, dim::k>(strides), integral_constant<int_t, Minus>());
                     this->m_values[0] = *ptr;
                 }
 
                 template <class Step, class Ptrs, class Strides, std::enable_if_t<Step::value == 1, int> = 0>
                 GT_FUNCTION_DEVICE void initial_fill(Step, Ptrs const &ptrs, Strides const &strides) {
                     auto ptr = device::at_key<Plh>(ptrs);
-                    sid::shift(ptr, sid::get_stride<Plh, dim::k>(strides), integral_constant<int_t, Plus>());
+                    sid::shift(ptr, sid::get_stride_element<Plh, dim::k>(strides), integral_constant<int_t, Plus>());
                     int_t begin = m_lower_bound - *device::at_key<positional<dim::k>>(ptrs) - Minus;
 #pragma unroll
                     for (int_t k = Plus - Minus; k >= 0; --k) {
                         if (k < begin)
                             return;
                         this->m_values[k] = *ptr;
-                        sid::shift(ptr, sid::get_stride<Plh, dim::k>(strides), integral_constant<int_t, -1>());
+                        sid::shift(ptr, sid::get_stride_element<Plh, dim::k>(strides), integral_constant<int_t, -1>());
                     }
                 }
 
                 template <class Step, class Ptrs, class Strides, std::enable_if_t<Step::value == -1, int> = 0>
                 GT_FUNCTION_DEVICE void initial_fill(Step, Ptrs const &ptrs, Strides const &strides) {
                     auto ptr = device::at_key<Plh>(ptrs);
-                    sid::shift(ptr, sid::get_stride<Plh, dim::k>(strides), integral_constant<int_t, Minus>());
+                    sid::shift(ptr, sid::get_stride_element<Plh, dim::k>(strides), integral_constant<int_t, Minus>());
                     int_t end = m_upper_bound - *device::at_key<positional<dim::k>>(ptrs) - Plus;
 #pragma unroll
                     for (int_t k = 0; k <= Plus - Minus; ++k) {
                         if (k >= end)
                             return;
                         this->m_values[k] = *ptr;
-                        sid::shift(ptr, sid::get_stride<Plh, dim::k>(strides), integral_constant<int_t, 1>());
+                        sid::shift(ptr, sid::get_stride_element<Plh, dim::k>(strides), integral_constant<int_t, 1>());
                     }
                 }
             };
