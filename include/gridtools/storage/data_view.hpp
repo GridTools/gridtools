@@ -22,14 +22,7 @@
 
 #ifndef GT_CHECK_MEMORY_SPACE
 
-#if defined(__clang__) && defined(__CUDA__)
-__host__ inline void GT_CHECK_MEMORY_SPACE(bool device_view) {
-    GT_ASSERT_OR_THROW(!device_view, "can not access a host view from within a GPU kernel");
-}
-__device__ inline void GT_CHECK_MEMORY_SPACE(bool device_view) {
-    GT_ASSERT_OR_THROW(device_view, "can not access a device view from a host function");
-}
-#elif defined(__CUDA_ARCH__)
+#ifdef __CUDA_ARCH__
 #define GT_CHECK_MEMORY_SPACE(device_view) \
     GT_ASSERT_OR_THROW(device_view, "can not access a host view from within a GPU kernel")
 #else
