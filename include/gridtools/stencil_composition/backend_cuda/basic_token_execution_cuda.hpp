@@ -21,32 +21,6 @@
 namespace gridtools {
     namespace cuda {
         namespace _impl {
-            template <class ExecutionType>
-            GT_FUNCTION_DEVICE auto make_count_modifier(ExecutionType) {
-                return [](auto x) { return x; };
-            }
-
-            template <uint_t BlockSize>
-            GT_FUNCTION_DEVICE auto make_count_modifier(execute::parallel_block<BlockSize>) {
-                return [cur = -(int_t)blockIdx.z * (int_t)BlockSize](int_t x) mutable {
-                    if (cur >= (int_t)BlockSize)
-                        return 0;
-                    int_t res = math::min(cur + x, (int_t)BlockSize) - math::max(cur, 0);
-                    cur += x;
-                    return res;
-                };
-            }
-
-            template <class ExecutionType>
-            GT_FUNCTION_DEVICE int_t start_offset(ExecutionType) {
-                return 0;
-            };
-
-            template <uint_t BlockSize>
-            GT_FUNCTION_DEVICE int_t start_offset(execute::parallel_block<BlockSize>) {
-                return blockIdx.z * BlockSize;
-            };
-
             template <class ExecutionType, class Grid>
             auto start(ExecutionType, Grid const &grid) {
                 return grid.k_min();
@@ -70,8 +44,7 @@ namespace gridtools {
                 auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
                 tuple_util::device::for_each(
                     [&](auto const &loop_interval) {
-                        auto count = loop_interval.count();
-                        for (int_t i = 0; i < count; ++i) {
+                        for (int_t i = 0; i < loop_interval.count(); ++i) {
                             loop_interval(mixed_ptr, strides, validator);
                             k_caches.slide(execute::step<ExecutionType>);
                             sid::shift(
@@ -89,12 +62,10 @@ namespace gridtools {
 
             template <class Ptr, class Strides, class Validator>
             GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
-                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start + _impl::start_offset(ExecutionType()));
-                auto count_modifier = _impl::make_count_modifier(ExecutionType{});
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start);
                 tuple_util::device::for_each(
                     [&](auto const &loop_interval) {
-                        auto count = count_modifier(loop_interval.count());
-                        for (int_t i = 0; i < count; ++i) {
+                        for (int_t i = 0; i < loop_interval.count(); ++i) {
                             loop_interval(ptr, strides, validator);
                             sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
                         }
