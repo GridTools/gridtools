@@ -29,7 +29,7 @@ namespace gridtools {
 
             struct smoke_f {
                 template <class PtrHolder, class Strides>
-                __host__ __device__ bool operator()(PtrHolder const &holder, Strides const &strides) const {
+                GT_DEVICE bool operator()(PtrHolder const &holder, Strides const &strides) const {
                     auto ptr = holder();
                     sid::shift(ptr, sid::get_stride<dim::i>(strides), 1);
                     sid::shift(ptr, sid::get_stride<dim::j>(strides), 1);

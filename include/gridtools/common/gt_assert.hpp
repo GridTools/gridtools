@@ -28,20 +28,30 @@
 #include <cassert>
 #endif
 
-#if (defined(__clang__) && defined(__CUDA__))
-__host__ inline void GT_ASSERT_OR_THROW(bool cond, const char* msg) {
-    if (!cond)
-        throw std::runtime_error(msg);
+#if defined(__clang__) && defined(__CUDACC__) // Clang CUDA compilation
+namespace gt_assert_impl_ {
+__host__ inline void throw_error(const std::string& msg) {
+    throw std::runtime_error(msg);
 }
-__device__ inline void GT_ASSERT_OR_THROW(bool cond, const char* msg) {
-    assert(cond);
+
+__device__ void throw_error(const char*);
 }
-#elif defined(__CUDA_ARCH__)
+
+#ifdef __CUDA_ARCH__
+#define GT_ASSERT_OR_THROW(cond, msg) assert(cond)
+#else
+#define GT_ASSERT_OR_THROW(cond, msg) \
+    if (!(cond))                      \
+    gt_assert_impl_::throw_error(msg)
+#endif
+#else // NVIDIA CUDA compilation or host-only compilation
+#ifdef __CUDA_ARCH__
 #define GT_ASSERT_OR_THROW(cond, msg) assert(cond)
 #else
 #define GT_ASSERT_OR_THROW(cond, msg) \
     if (!(cond))                      \
     throw std::runtime_error(msg)
+#endif
 #endif
 /** @} */
 /** @} */
