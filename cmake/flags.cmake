@@ -15,6 +15,10 @@ option( GT_GCL_ONLY "If on only library is build but not the examples and tests"
 option( GT_TESTS_ICOSAHEDRAL_GRID "compile tests for icosahedral grids" OFF )
 
 CMAKE_DEPENDENT_OPTION(
+    GT_USE_CLANG_CUDA "Compile CUDA code with Clang"
+    OFF "GT_ENABLE_BACKEND_CUDA" OFF)
+
+CMAKE_DEPENDENT_OPTION(
     GT_CUDA_PTX_GENERATION "Compile regression tests to intermediate representation"
     OFF "BUILD_TESTING" OFF)
 CMAKE_DEPENDENT_OPTION(
