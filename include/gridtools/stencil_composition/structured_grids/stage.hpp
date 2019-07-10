@@ -62,15 +62,15 @@ namespace gridtools {
                 decltype(Deref{}.template operator()<Arg>(host_device::at_key<Arg>(std::declval<Ptr const &>())));
 
             template <class Accessor, class Arg = meta::at_c<Args, Accessor::index_t::value>>
-            GT_FUNCTION apply_intent_t<Accessor::intent_v, ref_type<Arg>> operator()(Accessor const &acc) const {
+            GT_FUNCTION apply_intent_t<Accessor::intent_v, ref_type<Arg>> operator()(Accessor acc) const {
                 auto ptr = host_device::at_key<Arg>(m_ptr);
-                sid::multi_shift<Arg>(ptr, m_strides, acc);
+                sid::multi_shift<Arg>(ptr, m_strides, wstd::move(acc));
                 return Deref{}.template operator()<Arg>(ptr);
             }
 
             template <class Op, class... Ts>
-            GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const {
-                return expressions::evaluation::value(*this, arg);
+            GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const {
+                return expressions::evaluation::value(*this, wstd::move(arg));
             }
 
             GT_FUNCTION int_t i() const { return *host_device::at_key<positional<dim::i>>(m_ptr); }

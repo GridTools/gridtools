@@ -25,7 +25,7 @@ namespace gridtools {
             struct shift_f {
                 Ptr &GT_RESTRICT m_ptr;
                 Strides const &GT_RESTRICT m_strides;
-                Offsets const &GT_RESTRICT m_offsets;
+                Offsets m_offsets;
 
                 template <class Key>
                 GT_FUNCTION void operator()() const {
@@ -37,7 +37,7 @@ namespace gridtools {
             struct composite_strides_shift_f {
                 Ptr &GT_RESTRICT m_ptr;
                 Strides const &GT_RESTRICT m_strides;
-                Offsets const &GT_RESTRICT m_offsets;
+                Offsets m_offsets;
 
                 template <class Key>
                 GT_FUNCTION void operator()() const {
@@ -54,17 +54,16 @@ namespace gridtools {
             class Strides,
             class Offsets,
             std::enable_if_t<tuple_util::size<Offsets>::value != 0, int> = 0>
-        GT_FUNCTION void multi_shift(
-            Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets const &GT_RESTRICT offsets) {
+        GT_FUNCTION void multi_shift(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets offsets) {
             gridtools::host_device::for_each_type<get_keys<Offsets>>(
-                multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});
+                multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, wstd::move(offsets)});
         }
 
         template <class Ptr,
             class Strides,
             class Offsets,
             std::enable_if_t<tuple_util::size<Offsets>::value == 0, int> = 0>
-        GT_FUNCTION void multi_shift(Ptr &, Strides const &, Offsets const &) {}
+        GT_FUNCTION void multi_shift(Ptr &, Strides const &, Offsets) {}
 
         /**
          *   Variation of multi_shift that works with the strides of composite sid.
@@ -74,10 +73,10 @@ namespace gridtools {
             class Strides,
             class Offsets,
             std::enable_if_t<tuple_util::size<Offsets>::value != 0, int> = 0>
-        GT_FUNCTION void multi_shift(
-            Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets const &GT_RESTRICT offsets) {
+        GT_FUNCTION void multi_shift(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets offsets) {
             gridtools::host_device::for_each_type<get_keys<Offsets>>(
-                multi_shift_impl_::composite_strides_shift_f<Arg, Ptr, Strides, Offsets>{ptr, strides, offsets});
+                multi_shift_impl_::composite_strides_shift_f<Arg, Ptr, Strides, Offsets>{
+                    ptr, strides, std::move(offsets)});
         }
 
         template <class Arg,
@@ -85,6 +84,6 @@ namespace gridtools {
             class Strides,
             class Offsets,
             std::enable_if_t<tuple_util::size<Offsets>::value == 0, int> = 0>
-        GT_FUNCTION void multi_shift(Ptr &, Strides const &, Offsets const &) {}
+        GT_FUNCTION void multi_shift(Ptr &, Strides const &, Offsets) {}
     } // namespace sid
 } // namespace gridtools
