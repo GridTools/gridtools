@@ -29,7 +29,7 @@ namespace gridtools {
 
             struct smoke_f {
                 template <class PtrHolder, class Strides>
-                __device__ bool operator()(PtrHolder const &holder, Strides const &strides) const {
+                __host__ __device__ bool operator()(PtrHolder const &holder, Strides const &strides) const {
                     auto ptr = holder();
                     sid::shift(ptr, sid::get_stride<dim::i>(strides), 1);
                     sid::shift(ptr, sid::get_stride<dim::j>(strides), 1);
@@ -50,7 +50,7 @@ namespace gridtools {
                     1,
                     2,
                     alloc);
-                /*EXPECT_TRUE(exec(smoke_f{}, sid::get_origin(testee), sid::get_strides(testee)));*/
+                EXPECT_TRUE(exec(smoke_f{}, sid::get_origin(testee), sid::get_strides(testee)));
             }
         } // namespace
     }     // namespace on_device
