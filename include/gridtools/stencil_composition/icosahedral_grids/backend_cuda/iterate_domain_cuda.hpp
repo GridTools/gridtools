@@ -68,7 +68,7 @@ namespace gridtools {
         shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         iterate_domain_cache_t m_iterate_domain_cache;
 
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(__NVCC__) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
         template <class Arg, class T>
         static GT_FUNCTION
             std::enable_if_t<!meta::st_contains<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
