@@ -42,10 +42,10 @@ namespace gridtools {
                     auto &&bound_checker = *device::at_key<BoundChecker>(ptrs);
 
                     auto original = device::at_key<k_cache_original<Plh>>(ptrs);
-                    sid::shift(original, sid::get_stride<k_cache_original<Plh>, dim::k>(strides), From());
+                    sid::shift(original, sid::get_stride_element<k_cache_original<Plh>, dim::k>(strides), From());
 
                     auto cache = device::at_key<Plh>(ptrs);
-                    sid::shift(cache, sid::get_stride<k_cache_original<Plh>, dim::k>(strides), From());
+                    sid::shift(cache, sid::get_stride_element<k_cache_original<Plh>, dim::k>(strides), From());
 
 #pragma unroll
                     for (int i = 0; i < Count::value; ++i) {
@@ -53,8 +53,8 @@ namespace gridtools {
                             return;
                         if (extent_validator())
                             Sync()(*cache, *original);
-                        sid::shift(original, sid::get_stride<k_cache_original<Plh>, dim::k>(strides), Step());
-                        sid::shift(cache, sid::get_stride<Plh, dim::k>(strides), Step());
+                        sid::shift(original, sid::get_stride_element<k_cache_original<Plh>, dim::k>(strides), Step());
+                        sid::shift(cache, sid::get_stride_element<Plh, dim::k>(strides), Step());
                         k_pos += Step::value;
                     }
                 }
@@ -70,10 +70,10 @@ namespace gridtools {
                     auto &&bound_checker = *device::at_key<BoundChecker>(ptrs);
 
                     auto original = device::at_key<k_cache_original<Plh>>(ptrs);
-                    sid::shift(original, sid::get_stride<k_cache_original<Plh>, dim::k>(strides), Offset());
+                    sid::shift(original, sid::get_stride_element<k_cache_original<Plh>, dim::k>(strides), Offset());
 
                     auto cache = device::at_key<Plh>(ptrs);
-                    sid::shift(cache, sid::get_stride<Plh, dim::k>(strides), Offset());
+                    sid::shift(cache, sid::get_stride_element<Plh, dim::k>(strides), Offset());
                     if (bound_checker(k_pos) && extent_validator())
                         Sync()(*cache, *original);
                 }

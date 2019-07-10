@@ -51,9 +51,9 @@ namespace gridtools {
 
             host_device::at_key<Arg>(m_ptr_map) +=
                 get_tmp_storage_offset<storage_info_t, MaxExrtentForTmp>(backend::x86{},
-                    make_pos3<int_t>(sid::get_stride<Arg, dim::i>(m_stride_maps),
-                        sid::get_stride<Arg, dim::j>(m_stride_maps),
-                        sid::get_stride<Arg, dim::k>(m_stride_maps)),
+                    make_pos3<int_t>(sid::get_stride_element<Arg, dim::i>(m_stride_maps),
+                        sid::get_stride_element<Arg, dim::j>(m_stride_maps),
+                        sid::get_stride_element<Arg, dim::k>(m_stride_maps)),
                     m_block_no,
                     m_pos_in_block);
         }
@@ -65,12 +65,12 @@ namespace gridtools {
             auto &ptr = host_device::at_key<Arg>(m_ptr_map);
 
             sid::shift(ptr,
-                sid::get_stride<Arg, dim::i>(m_stride_maps),
+                sid::get_stride_element<Arg, dim::i>(m_stride_maps),
                 m_begin.i + m_block_no.i * block_i_size(be) + m_pos_in_block.i);
             sid::shift(ptr,
-                sid::get_stride<Arg, dim::j>(m_stride_maps),
+                sid::get_stride_element<Arg, dim::j>(m_stride_maps),
                 m_begin.j + m_block_no.j * block_j_size(be) + m_pos_in_block.j);
-            sid::shift(ptr, sid::get_stride<Arg, dim::k>(m_stride_maps), m_begin.k + m_pos_in_block.k);
+            sid::shift(ptr, sid::get_stride_element<Arg, dim::k>(m_stride_maps), m_begin.k + m_pos_in_block.k);
         }
     };
 

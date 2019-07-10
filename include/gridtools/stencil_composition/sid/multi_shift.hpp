@@ -41,7 +41,8 @@ namespace gridtools {
 
                 template <class Key>
                 GT_FUNCTION void operator()() const {
-                    shift(m_ptr, get_stride<Arg, Key>(m_strides), gridtools::host_device::at_key<Key>(m_offsets));
+                    shift(
+                        m_ptr, get_stride_element<Arg, Key>(m_strides), gridtools::host_device::at_key<Key>(m_offsets));
                 }
             };
         } // namespace multi_shift_impl_
