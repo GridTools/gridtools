@@ -76,7 +76,12 @@ namespace gridtools {
           \param[in] e The end parameter (inclusive)
           \param[in] l The total_length parameter
          */
-        GT_FUNCTION_HOST halo_descriptor(uint_t m, uint_t p, uint_t b, uint_t e, uint_t l)
+#ifdef __NVCC__
+    GT_FUNCTION
+#else
+    GT_FUNCTION_HOST
+#endif
+        halo_descriptor(uint_t m, uint_t p, uint_t b, uint_t e, uint_t l)
             : m_minus(m), m_plus(p), m_begin(b), m_end(e), m_total_length(l) {
             GT_ASSERT_OR_THROW((m_minus + m_plus + (m_end - m_begin + 1) <= m_total_length),
                 "Invalid halo_descriptor: compute range (length) plus halos exceed total length." + std::to_string(m) +
