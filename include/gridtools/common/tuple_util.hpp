@@ -253,10 +253,7 @@ namespace gridtools {
             enum class ref_kind { rvalue, lvalue, const_lvalue };
 
             template <class>
-            struct get_ref_kind;
-
-            template <class T>
-            struct get_ref_kind<T &&> : std::integral_constant<ref_kind, ref_kind::rvalue> {};
+            struct get_ref_kind : std::integral_constant<ref_kind, ref_kind::rvalue> {};
 
             template <class T>
             struct get_ref_kind<T &> : std::integral_constant<ref_kind, ref_kind::lvalue> {};
@@ -269,7 +266,9 @@ namespace gridtools {
                 struct add_ref;
 
                 template <class T>
-                struct add_ref<ref_kind::rvalue, T> : std::add_rvalue_reference<T> {};
+                struct add_ref<ref_kind::rvalue, T> {
+                    using type = T;
+                };
 
                 template <class T>
                 struct add_ref<ref_kind::lvalue, T> : std::add_lvalue_reference<T> {};
@@ -419,8 +418,7 @@ namespace gridtools {
                     template <class Tup,
                         class... Tups,
                         class Is = meta::make_indices<size<std::decay_t<Tup>>>,
-                        class Res =
-                            from_types<Tup, get_results_t<Is, get_accessors<Tup &&>, get_accessors<Tups &&>...>>>
+                        class Res = from_types<Tup, get_results_t<Is, get_accessors<Tup>, get_accessors<Tups>...>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup, Tups &&... tups) const {
                         using generators_t = meta::transform<get_transform_index_generator, Is>;
                         return generate_f<generators_t, Res>{}(
@@ -517,7 +515,7 @@ namespace gridtools {
                             meta::make_indices_for<InnerTup>>;
 
                     template <class Tup,
-                        class Accessors = meta::transform<get_accessors, get_accessors<Tup &&>>,
+                        class Accessors = meta::transform<get_accessors, get_accessors<Tup>>,
                         class First = meta::first<to_types<Tup>>,
                         class Res = from_types<First, meta::flatten<Accessors>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
@@ -534,7 +532,7 @@ namespace gridtools {
                     using get_drop_front_generator = get_nth_f<N + I::value>;
 
                     template <class Tup,
-                        class Accessors = get_accessors<Tup &&>,
+                        class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::drop_front_c<N, Accessors>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
                         using generators =
@@ -558,7 +556,7 @@ namespace gridtools {
                 struct push_back_f {
                     template <class Tup,
                         class... Args,
-                        class Accessors = get_accessors<Tup &&>,
+                        class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::push_back<Accessors, Args &&...>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup, Args &&... args) const {
                         return push_back_impl_f<std::make_index_sequence<size<Accessors>::value>, Res>{}(
@@ -581,7 +579,7 @@ namespace gridtools {
                 struct push_front_f {
                     template <class Tup,
                         class... Args,
-                        class Accessors = get_accessors<Tup &&>,
+                        class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::push_front<Accessors, Args &&...>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup, Args &&... args) const {
                         return push_front_impl_f<std::make_index_sequence<size<Accessors>::value>, Res>{}(
@@ -634,7 +632,7 @@ namespace gridtools {
                         size_t N,
                         class State,
                         class Tup,
-                        class AllAccessors = get_accessors<Tup &&>,
+                        class AllAccessors = get_accessors<Tup>,
                         class Accessors = meta::drop_front_c<I, AllAccessors>,
                         class Res = meta::lfold<meta_fun, State &&, Accessors>,
                         std::enable_if_t<(I + 4 < N), int> = 0>
@@ -651,7 +649,7 @@ namespace gridtools {
 
                     template <class State,
                         class Tup,
-                        class Accessors = get_accessors<Tup &&>,
+                        class Accessors = get_accessors<Tup>,
                         class Res = meta::lfold<meta_fun, State &&, Accessors>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(State &&state, Tup &&tup) const {
                         return impl<0, size<std::decay_t<Tup>>::value>(
@@ -659,7 +657,7 @@ namespace gridtools {
                     }
 
                     template <class Tup,
-                        class AllAccessors = get_accessors<Tup &&>,
+                        class AllAccessors = get_accessors<Tup>,
                         class StateAccessor = meta::first<AllAccessors>,
                         class Accessors = meta::drop_front_c<1, AllAccessors>,
                         class Res = meta::lfold<meta_fun, StateAccessor, Accessors>>
@@ -753,7 +751,7 @@ namespace gridtools {
 
                     template <class Tup,
                         class First = meta::first<to_types<Tup>>,
-                        class Accessors = meta::transform<get_accessors, get_accessors<Tup &&>>,
+                        class Accessors = meta::transform<get_accessors, get_accessors<Tup>>,
                         class Types = meta::transpose<Accessors>,
                         class InnerTuples = meta::transform<get_inner_tuple_f<Tup>::template apply, Types>,
                         class Res = from_types<First, InnerTuples>>
@@ -774,7 +772,7 @@ namespace gridtools {
                     };
 
                     template <class Tup,
-                        class Accessors = get_accessors<Tup &&>,
+                        class Accessors = get_accessors<Tup>,
                         class Res = from_types<Tup, meta::reverse<Accessors>>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
                         using n_t = size<std::decay_t<Tup>>;
@@ -813,7 +811,7 @@ namespace gridtools {
                             meta::if_c<I::value == N, insert_val_generator_f, insert_tup_generator_f<I::value - 1>>>;
 
                     template <class Tup,
-                        class Accessors = get_accessors<Tup &&>,
+                        class Accessors = get_accessors<Tup>,
                         class Types = meta::insert_c<N, Accessors, Val>,
                         class Res = from_types<Tup, Types>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
