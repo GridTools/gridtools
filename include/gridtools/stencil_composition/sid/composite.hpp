@@ -130,6 +130,8 @@ namespace gridtools {
                         return {get_stride<Keys>(get_strides(sid))...};
                     }
                 };
+
+                struct ctor_tag {};
             } // namespace impl_
 
             /**
@@ -235,15 +237,11 @@ namespace gridtools {
 
                         vals_t m_vals;
 
-                        template <class... Args, std::enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
-                        constexpr composite_entity(Args &&... args) noexcept
-                            : composite_entity(tuple<Args &&...>{std::forward<Args &&>(args)...}) {}
-
-                        template <template <class...> class L,
-                            class... Args,
-                            std::enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
-                        constexpr composite_entity(L<Args...> &&tup) noexcept
-                            : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {}
+                        template <template <class...> class L, class... Args>
+                        composite_entity(impl_::ctor_tag, L<Args...> &&tup) noexcept
+                            : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {
+                            GT_STATIC_ASSERT(sizeof...(Args) == sizeof...(Keys), GT_INTERNAL_ERROR);
+                        }
 
                         GT_DECLARE_DEFAULT_EMPTY_CTOR(composite_entity);
                         composite_entity(composite_entity const &) = default;
@@ -284,8 +282,8 @@ namespace gridtools {
 
                     struct convert_f {
                         template <template <class...> class L, class... Ts>
-                        constexpr composite_entity<std::remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
-                            return {std::move(tup)};
+                        composite_entity<std::remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
+                            return {impl_::ctor_tag(), std::move(tup)};
                         }
                     };
                 };
@@ -343,7 +341,7 @@ namespace gridtools {
 
                     friend strides_t sid_get_strides(values const &obj) {
                         return tuple_util::convert_to<stride_hymap_keys_t::template values>(
-                            tuple_util::transform(typename compressed_t::convert_f{},
+                            tuple_util::transform(typename compressed_t::convert_f(),
                                 tuple_util::transpose(
                                     tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>{}, obj.m_sids))));
                     }
