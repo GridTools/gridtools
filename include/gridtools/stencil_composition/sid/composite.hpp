@@ -107,13 +107,17 @@ namespace gridtools {
                 template <class ObjTup, class StrideTup, class Offset>
                 GT_FUNCTION void composite_shift_impl(
                     ObjTup &GT_RESTRICT obj_tup, StrideTup &&GT_RESTRICT stride_tup, Offset offset) {
-                    tuple_util::host_device::for_each([offset](auto& obj, auto&& stride){
-                        shift(obj, wstd::forward<decltype(stride)>(stride), offset);
-                        }, obj_tup, wstd::forward<StrideTup>(stride_tup));
-//                    GT_STATIC_ASSERT(
-//                        tuple_util::size<StrideTup>::value == tuple_util::size<ObjTup>::value, GT_INTERNAL_ERROR);
-//                    gridtools::host_device::for_each<meta::make_indices<tuple_util::size<ObjTup>>>(
-//                        shift_t<ObjTup, StrideTup, Offset>{obj_tup, wstd::forward<StrideTup>(stride_tup), offset});
+                    tuple_util::host_device::for_each(
+                        [offset](
+                            auto &obj, auto &&stride) { shift(obj, wstd::forward<decltype(stride)>(stride), offset); },
+                        obj_tup,
+                        wstd::forward<StrideTup>(stride_tup));
+                    //                    GT_STATIC_ASSERT(
+                    //                        tuple_util::size<StrideTup>::value == tuple_util::size<ObjTup>::value,
+                    //                        GT_INTERNAL_ERROR);
+                    //                    gridtools::host_device::for_each<meta::make_indices<tuple_util::size<ObjTup>>>(
+                    //                        shift_t<ObjTup, StrideTup, Offset>{obj_tup,
+                    //                        wstd::forward<StrideTup>(stride_tup), offset});
                 }
 
                 template <class Key, class Strides, class I = meta::st_position<get_keys<Strides>, Key>>
