@@ -472,10 +472,11 @@ namespace gridtools {
             template <class T,
                 class Stride,
                 class Offset,
-                std::enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> =
-                    0>
-            GT_FUNCTION decltype(auto) shift(T &obj, Stride const &GT_RESTRICT stride, Offset offset) {
-                return sid_shift(obj, stride, offset);
+                std::enable_if_t<need_shift<T, std::decay_t<Stride>, Offset>::value &&
+                                     !is_default_shiftable<T, std::decay_t<Stride>>::value,
+                    int> = 0>
+            GT_FUNCTION decltype(auto) shift(T &obj, Stride &&GT_RESTRICT stride, Offset offset) {
+                return sid_shift(obj, wstd::forward<Stride>(stride), offset);
             }
 
             /**
@@ -567,15 +568,15 @@ namespace gridtools {
             /**
              *  `shift` overload, default version
              */
-            template <class T, class Stride, class Offset>
+            template <class T, class Stride, class Offset, class Decayed = std::decay_t<Stride>>
             GT_FUNCTION std::enable_if_t<
-                need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                !(is_integral_constant<Stride>::value && is_integral_constant<Offset>::value) &&
-                !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
-                !(has_dec_assignment<T, Stride>::value &&
-                    (is_integral_constant_of<Stride, -1>::value || is_integral_constant_of<Offset, -1>::value))>
-            shift(T &obj, Stride const &GT_RESTRICT stride, Offset offset) {
-                obj += stride * offset;
+                need_shift<T, Decayed, Offset>::value && is_default_shiftable<T, Decayed>::value &&
+                !(is_integral_constant<Decayed>::value && is_integral_constant<Offset>::value) &&
+                !(is_integral_constant_of<Decayed, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
+                !(has_dec_assignment<T, Decayed>::value &&
+                    (is_integral_constant_of<Decayed, -1>::value || is_integral_constant_of<Offset, -1>::value))>
+            shift(T &obj, Stride &&GT_RESTRICT stride, Offset offset) {
+                obj += std::forward<Stride>(stride) * offset;
             }
 
             // END `shift` PART
