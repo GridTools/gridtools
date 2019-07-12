@@ -34,7 +34,7 @@ namespace gridtools {
         GT_FUNCTION static T get(char const *msg) {
 #ifdef __CUDA_ARCH__
             assert(false);
-            return *((T volatile *)(0x0));
+            return {};
 #else
             throw std::runtime_error(msg);
 #endif
