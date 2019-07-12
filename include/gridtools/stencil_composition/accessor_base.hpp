@@ -18,8 +18,12 @@
 #include "../common/error.hpp"
 #include "../common/functional.hpp"
 #include "../common/host_device.hpp"
+#include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
 #include "../meta.hpp"
+#include "accessor_intent.hpp"
+#include "extent.hpp"
+#include "is_accessor.hpp"
 
 namespace gridtools {
     namespace accessor_base_impl_ {
@@ -94,28 +98,31 @@ namespace gridtools {
      *  TODO(anstaf) : check offsets against extent
      */
 
-    template <size_t Dim, class = std::make_index_sequence<Dim>>
+    template <uint_t Id, intent Intent, class Extent, size_t Dim, class = std::make_index_sequence<Dim>>
     class accessor_base;
 
-    template <size_t Dim, size_t... Is>
-    class accessor_base<Dim, std::index_sequence<Is...>> : public array<int_t, Dim> {
+    template <uint_t Id, intent Intent, class Extent, size_t Dim, size_t... Is>
+    class accessor_base<Id, Intent, Extent, Dim, std::index_sequence<Is...>> : public array<int_t, Dim> {
         using base_t = array<int_t, Dim>;
 
         template <class... Ts>
         GT_FUNCTION constexpr accessor_base(accessor_base_impl_::check_all_zeros, Ts... offsets)
-            : base_t{{offsets...}} {}
+            : base_t({offsets...}) {}
+
+      protected:
+        // for icgrid
+        GT_FUNCTION constexpr accessor_base(base_t src) : base_t(std::move(src)) {}
 
       public:
+        using index_t = integral_constant<uint_t, Id>;
+        static constexpr intent intent_v = Intent;
+        using extent_t = Extent;
+
         GT_FUNCTION constexpr accessor_base() : base_t({}) {}
-        accessor_base(accessor_base const &) = default;
-        accessor_base(accessor_base &&) = default;
 
         template <class... Ts,
             std::enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
         GT_FUNCTION constexpr accessor_base(Ts... offsets) : base_t({offsets...}) {}
-
-        GT_FUNCTION constexpr accessor_base(base_t const &src) : base_t(src) {}
-        GT_FUNCTION constexpr accessor_base(base_t &&src) : base_t(std::move(src)) {}
 
 #ifndef NDEBUG
         template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
@@ -144,15 +151,19 @@ namespace gridtools {
 #endif
     };
 
-    template <>
-    class accessor_base<0, std::index_sequence<>> : public tuple<> {
+    template <uint_t Id, class Extent, intent Intent>
+    class accessor_base<Id, Intent, Extent, 0, std::index_sequence<>> : public tuple<> {
         template <class... Ts>
         GT_FUNCTION constexpr accessor_base(accessor_base_impl_::check_all_zeros) {}
 
       public:
-        GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor_base);
+        GT_STATIC_ASSERT((std::is_same<Extent, extent<>>::value), GT_INTERNAL_ERROR);
 
-        GT_FUNCTION constexpr accessor_base(array<int_t, 0> const &) {}
+        using index_t = integral_constant<uint_t, Id>;
+        static constexpr intent intent_v = Intent;
+        using extent_t = Extent;
+
+        GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor_base);
 
 #ifndef NDEBUG
         template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
@@ -170,4 +181,14 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(dimension<J> zero, dimension<Js>... zeros) {}
 #endif
     };
+
+    template <uint_t ID, intent Intent, typename Extent, size_t Number>
+    meta::repeat_c<Number, int_t> tuple_to_types(accessor_base<ID, Intent, Extent, Number> const &);
+
+    template <uint_t ID, intent Intent, typename Extent, size_t Number>
+    meta::always<accessor_base<ID, Intent, Extent, Number>> tuple_from_types(
+        accessor_base<ID, Intent, Extent, Number> const &);
+
+    template <uint_t ID, intent Intent, typename Extent, size_t Number, class Seq>
+    struct is_accessor<accessor_base<ID, Intent, Extent, Number, Seq>> : std::true_type {};
 } // namespace gridtools
