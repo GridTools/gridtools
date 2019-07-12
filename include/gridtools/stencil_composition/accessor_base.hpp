@@ -19,7 +19,6 @@
 #include "../common/functional.hpp"
 #include "../common/host_device.hpp"
 #include "../common/tuple.hpp"
-#include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 
 namespace gridtools {
@@ -44,16 +43,18 @@ namespace gridtools {
             using type = int_t;
         };
 
-        class check_all_zeros {
-            bool m_dummy;
+        struct check_all_zeros {
+            struct ctor_tag {};
 
-          public:
+            GT_FUNCTION constexpr check_all_zeros(ctor_tag) {}
+
+            template <class T, class... Ts>
+            GT_FUNCTION constexpr check_all_zeros(ctor_tag, T val, Ts... vals)
+                : check_all_zeros(
+                      error_or_return(val == 0, ctor_tag(), "unexpected non zero accessor offset"), vals...) {}
+
             template <class... Ts>
-            GT_FUNCTION constexpr check_all_zeros(Ts... vals)
-                : m_dummy{error_or_return(tuple_util::host_device::all_of(
-                                              host_device::identity{}, array<bool, sizeof...(Ts)>{{(vals == 0)...}}),
-                      false,
-                      "unexpected non zero accessor offset")} {}
+            GT_FUNCTION constexpr check_all_zeros(Ts... vals) : check_all_zeros(ctor_tag(), vals...) {}
         };
 
         template <size_t Dim, uint_t I, std::enable_if_t<(I > Dim), int> = 0>
