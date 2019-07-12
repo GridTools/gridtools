@@ -11,7 +11,6 @@
 
 #include "../../common/binops.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/const_ref.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/gt_assert.hpp"
