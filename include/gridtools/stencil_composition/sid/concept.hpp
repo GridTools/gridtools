@@ -703,21 +703,28 @@ namespace gridtools {
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <class Key, class Strides>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides const &strides) {
-            return gridtools::host_device::at_key_with_default<Key, default_stride>(strides);
+        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
+            return gridtools::host_device::at_key_with_default<Key, default_stride>(wstd::forward<Strides>(strides));
         }
 
         /**
          *  A variation of get_stride helper that works with the strides that are maps of of maps.
          *  I.e. `composite`.
          */
-        template <class Key, class Dim, class Strides, std::enable_if_t<has_key<Strides, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride_element(Strides const &strides) {
-            return gridtools::host_device::at_key<Key>(gridtools::host_device::at_key<Dim>(strides));
+        template <class Key,
+            class Dim,
+            class Strides,
+            std::enable_if_t<has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride_element(Strides &&strides) {
+            return gridtools::host_device::at_key<Key>(
+                gridtools::host_device::at_key<Dim>(wstd::forward<Strides>(strides)));
         }
 
-        template <class Key, class Dim, class Strides, std::enable_if_t<!has_key<Strides, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides const &) {
+        template <class Key,
+            class Dim,
+            class Strides,
+            std::enable_if_t<!has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides &&) {
             return {};
         }
     } // namespace sid
