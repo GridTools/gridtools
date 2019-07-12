@@ -47,18 +47,22 @@ namespace gridtools {
             using type = int_t;
         };
 
+        template <class... Ts>
+        using are_ints = conjunction<std::is_convertible<Ts, int_t>...>;
+
         struct check_all_zeros {
             struct ctor_tag {};
 
             GT_FUNCTION constexpr check_all_zeros(ctor_tag) {}
 
-            template <class T, class... Ts>
-            GT_FUNCTION constexpr check_all_zeros(ctor_tag, T val, Ts... vals)
+            template <class... Ts>
+            GT_FUNCTION constexpr check_all_zeros(ctor_tag, int_t val, Ts... vals)
                 : check_all_zeros(
                       error_or_return(val == 0, ctor_tag(), "unexpected non zero accessor offset"), vals...) {}
 
-            template <class... Ts>
-            GT_FUNCTION constexpr check_all_zeros(Ts... vals) : check_all_zeros(ctor_tag(), vals...) {}
+            template <class... Ts, std::enable_if_t<are_ints<Ts...>::value, int> = 0>
+            GT_FUNCTION constexpr check_all_zeros(Ts... vals)
+                : check_all_zeros(ctor_tag(), static_cast<int_t>(vals)...) {}
         };
 
         template <size_t Dim, uint_t I, std::enable_if_t<(I > Dim), int> = 0>
@@ -109,10 +113,6 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(accessor_base_impl_::check_all_zeros, Ts... offsets)
             : base_t({offsets...}) {}
 
-      protected:
-        // for icgrid
-        GT_FUNCTION constexpr accessor_base(base_t src) : base_t(std::move(src)) {}
-
       public:
         using index_t = integral_constant<uint_t, Id>;
         static constexpr intent intent_v = Intent;
@@ -120,12 +120,14 @@ namespace gridtools {
 
         GT_FUNCTION constexpr accessor_base() : base_t({}) {}
 
+        GT_FUNCTION constexpr accessor_base(base_t src) : base_t(std::move(src)) {}
+
         template <class... Ts,
             std::enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
         GT_FUNCTION constexpr accessor_base(Ts... offsets) : base_t({offsets...}) {}
 
 #ifndef NDEBUG
-        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
         GT_FUNCTION constexpr accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts... zeros)
             : accessor_base(accessor_base_impl_::check_all_zeros(zeros...), offsets...) {}
 
@@ -138,7 +140,7 @@ namespace gridtools {
                 "all dimensions should be of different indicies");
         }
 #else
-        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
         GT_FUNCTION constexpr accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts...)
             : base_t({offsets...}) {}
 
@@ -166,7 +168,7 @@ namespace gridtools {
         GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor_base);
 
 #ifndef NDEBUG
-        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
         GT_FUNCTION constexpr accessor_base(Ts... zeros)
             : accessor_base(accessor_base_impl_::check_all_zeros(zeros...)) {}
 
@@ -174,7 +176,7 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(dimension<J> zero, dimension<Js>... zeros)
             : accessor_base(accessor_base_impl_::check_all_zeros(zero.value, zeros.value...)) {}
 #else
-        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
         GT_FUNCTION constexpr accessor_base(Ts...) {}
 
         template <uint_t J, uint_t... Js>
