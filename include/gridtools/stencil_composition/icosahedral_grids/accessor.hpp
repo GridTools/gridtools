@@ -24,17 +24,22 @@ namespace gridtools {
     /**
      * This is the type of the accessors accessed by a stencil functor.
      */
-    template <uint_t ID, intent Intent, typename LocationType, typename Extent = extent<>, uint_t FieldDimensions = 4>
-    struct accessor : accessor_base<FieldDimensions> {
-        GT_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
-        using index_t = static_uint<ID>;
-        static constexpr intent intent_v = Intent;
-        using extent_t = Extent;
-        using location_type = LocationType;
-        static constexpr uint_t value = ID;
+    template <uint_t Id, intent Intent, class LocationType, class Extent = extent<>, uint_t FieldDimensions = 4>
+    class accessor : public accessor_base<Id, Intent, Extent, FieldDimensions> {
+        using base_t = typename accessor::accessor_base;
 
-        /**inheriting all constructors from accessor_base*/
-        using accessor_base<FieldDimensions>::accessor_base;
+      public:
+        GT_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
+        using location_type = LocationType;
+
+        GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor);
+        accessor(accessor const &) = default;
+        accessor(accessor &&) = default;
+
+        GT_FUNCTION constexpr accessor(array<int_t, FieldDimensions> src) : base_t(std::move(src)) {}
+
+        template <uint_t J, uint_t... Js>
+        GT_FUNCTION constexpr accessor(dimension<J> src, dimension<Js>... srcs) : base_t(src, srcs...) {}
     };
 
     template <uint_t ID, intent Intent, typename LocationType, typename Extent, uint_t FieldDimensions>

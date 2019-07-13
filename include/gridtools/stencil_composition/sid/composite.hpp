@@ -90,27 +90,13 @@ namespace gridtools {
                 };
 
                 template <class ObjTup, class StrideTup, class Offset>
-                struct shift_t {
-                    ObjTup &GT_RESTRICT m_obj_tup;
-                    StrideTup const &GT_RESTRICT m_stride_tup;
-                    Offset const &GT_RESTRICT m_offset;
-
-                    template <class I>
-                    GT_FUNCTION void operator()() const {
-                        shift(tuple_util::host_device::get<I::value>(m_obj_tup),
-                            tuple_util::host_device::get<I::value>(m_stride_tup),
-                            m_offset);
-                    }
-                };
-
-                template <class ObjTup, class StrideTup, class Offset>
-                GT_FUNCTION void composite_shift_impl(ObjTup &GT_RESTRICT obj_tup,
-                    StrideTup const &GT_RESTRICT stride_tup,
-                    Offset const &GT_RESTRICT offset) {
-                    static constexpr size_t size = tuple_util::size<ObjTup>::value;
-                    GT_STATIC_ASSERT(tuple_util::size<StrideTup>::value == size, GT_INTERNAL_ERROR);
-                    gridtools::host_device::for_each_type<meta::make_indices_c<size>>(
-                        shift_t<ObjTup, StrideTup, Offset>{obj_tup, stride_tup, offset});
+                GT_FUNCTION void composite_shift_impl(
+                    ObjTup &GT_RESTRICT obj_tup, StrideTup &&GT_RESTRICT stride_tup, Offset offset) {
+                    tuple_util::host_device::for_each(
+                        [offset](
+                            auto &obj, auto &&stride) { shift(obj, wstd::forward<decltype(stride)>(stride), offset); },
+                        obj_tup,
+                        wstd::forward<StrideTup>(stride_tup));
                 }
 
                 template <class Key, class Strides, class I = meta::st_position<get_keys<Strides>, Key>>
@@ -125,8 +111,7 @@ namespace gridtools {
                 template <template <class...> class L, class... Keys>
                 struct normalize_strides_f<L<Keys...>> {
                     template <class Sid, class Strides = strides_type<Sid>>
-                    constexpr tuple<normalized_stride_type<Keys, std::decay_t<Strides>>...> operator()(
-                        Sid const &sid) const {
+                    tuple<normalized_stride_type<Keys, std::decay_t<Strides>>...> operator()(Sid const &sid) const {
                         return {get_stride<Keys>(get_strides(sid))...};
                     }
                 };
@@ -258,16 +243,21 @@ namespace gridtools {
                         }
 
                         template <class... PtrHolders>
-                        friend constexpr GT_FORCE_INLINE composite_ptr_holder<PtrHolders...> operator+(
+                        friend composite_ptr_holder<PtrHolders...> operator+(
                             composite_ptr_holder<PtrHolders...> const &lhs, composite_entity const &rhs) {
                             return tuple_util::transform(binop::sum{}, lhs, rhs);
                         }
 
                         template <class... Ptrs, class Offset>
-                        friend GT_FUNCTION void sid_shift(composite_ptr<Ptrs...> &ptr,
-                            composite_entity const &stride,
-                            Offset const &GT_RESTRICT offset) {
+                        friend GT_FUNCTION void sid_shift(
+                            composite_ptr<Ptrs...> &ptr, composite_entity const &stride, Offset offset) {
                             impl_::composite_shift_impl(ptr.m_vals, stride, offset);
+                        }
+
+                        template <class... Ptrs, class Offset>
+                        friend GT_FUNCTION void sid_shift(
+                            composite_ptr<Ptrs...> &ptr, composite_entity &&stride, Offset offset) {
+                            impl_::composite_shift_impl(ptr.m_vals, wstd::move(stride), offset);
                         }
 
                         friend keys hymap_get_keys(composite_entity const &) { return {}; }
@@ -276,8 +266,15 @@ namespace gridtools {
                     template <class... PtrDiffs, class... Strides, class Offset>
                     friend GT_FUNCTION void sid_shift(composite_entity<PtrDiffs...> &GT_RESTRICT ptr_diff,
                         composite_entity<Strides...> const &GT_RESTRICT stride,
-                        Offset const &GT_RESTRICT offset) {
+                        Offset offset) {
                         impl_::composite_shift_impl(ptr_diff.m_vals, stride.m_vals, offset);
+                    }
+
+                    template <class... PtrDiffs, class... Strides, class Offset>
+                    friend GT_FUNCTION void sid_shift(composite_entity<PtrDiffs...> &GT_RESTRICT ptr_diff,
+                        composite_entity<Strides...> &&stride,
+                        Offset offset) {
+                        impl_::composite_shift_impl(ptr_diff.m_vals, wstd::move(stride.m_vals), offset);
                     }
 
                     struct convert_f {

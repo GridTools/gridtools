@@ -167,16 +167,35 @@ namespace gridtools {
             }
         };
 
-        template <class Deref, class Stage, class NeedSync>
-        struct cuda_stage_adaptor_f {
+        template <class Deref, class NeedSync, class Extent, class... Stages>
+        struct cuda_stage {
             template <class Ptr, class Strides, class Validator>
             GT_FUNCTION_DEVICE void operator()(
                 Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Validator const &validator) const {
-                syncthreads(NeedSync{});
-                if (validator(Stage::extent()))
-                    Stage{}.template operator()<Deref>(ptr, strides);
+                syncthreads(NeedSync());
+                if (validator(Extent()))
+                    (void)(int[]){(Stages()(ptr, strides), 0)...};
             }
         };
+
+        template <class Deref>
+        struct adapt_stage_f {
+            template <class Stage, class NeedSync>
+            using apply = cuda_stage<Deref, typename NeedSync::type, typename Stage::extent_t, Stage>;
+        };
+
+        namespace lazy {
+            template <class State, class Current>
+            struct fuse_stages_folder : meta::lazy::push_front<State, Current> {};
+
+            template <class Deref, class NeedSync, class Extent, class... Stages, class... CudaStages, class Stage>
+            struct fuse_stages_folder<meta::list<cuda_stage<Deref, NeedSync, Extent, Stages...>, CudaStages...>,
+                cuda_stage<Deref, std::false_type, Extent, Stage>> {
+                using type = meta::list<cuda_stage<Deref, NeedSync, Extent, Stages..., Stage>, CudaStages...>;
+            };
+
+        } // namespace lazy
+        GT_META_DELEGATE_TO_LAZY(fuse_stages_folder, (class State, class Current), (State, Current));
 
         template <class Stage>
         using get_esf = typename Stage::esf_t;
@@ -196,11 +215,11 @@ namespace gridtools {
                     using stages_t = meta::third<interval_t>;
                     using esfs_t = meta::transform<get_esf, stages_t>;
                     using need_syncs_t = need_sync<esfs_t, typename Mss::cache_sequence_t>;
-                    using adapted_stages_t = meta::rename<tuple,
-                        meta::transform<meta::curry<cuda_stage_adaptor_f, deref_t>::template apply,
-                            stages_t,
-                            need_syncs_t>>;
-                    return make_loop_interval(count, adapted_stages_t());
+                    using cuda_stages_t =
+                        meta::transform<adapt_stage_f<deref_t>::template apply, stages_t, need_syncs_t>;
+                    using fused_stages_t = meta::reverse<meta::lfold<fuse_stages_folder, meta::list<>, cuda_stages_t>>;
+
+                    return make_loop_interval(count, fused_stages_t());
                 },
                 res_t{});
         }

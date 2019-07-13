@@ -472,10 +472,11 @@ namespace gridtools {
             template <class T,
                 class Stride,
                 class Offset,
-                std::enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> =
-                    0>
-            GT_FUNCTION decltype(auto) shift(T &obj, Stride const &GT_RESTRICT stride, Offset offset) {
-                return sid_shift(obj, stride, offset);
+                std::enable_if_t<need_shift<T, std::decay_t<Stride>, Offset>::value &&
+                                     !is_default_shiftable<T, std::decay_t<Stride>>::value,
+                    int> = 0>
+            GT_FUNCTION decltype(auto) shift(T &obj, Stride &&GT_RESTRICT stride, Offset offset) {
+                return sid_shift(obj, wstd::forward<Stride>(stride), offset);
             }
 
             /**
@@ -567,15 +568,15 @@ namespace gridtools {
             /**
              *  `shift` overload, default version
              */
-            template <class T, class Stride, class Offset>
+            template <class T, class Stride, class Offset, class Decayed = std::decay_t<Stride>>
             GT_FUNCTION std::enable_if_t<
-                need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                !(is_integral_constant<Stride>::value && is_integral_constant<Offset>::value) &&
-                !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
-                !(has_dec_assignment<T, Stride>::value &&
-                    (is_integral_constant_of<Stride, -1>::value || is_integral_constant_of<Offset, -1>::value))>
-            shift(T &obj, Stride const &GT_RESTRICT stride, Offset offset) {
-                obj += stride * offset;
+                need_shift<T, Decayed, Offset>::value && is_default_shiftable<T, Decayed>::value &&
+                !(is_integral_constant<Decayed>::value && is_integral_constant<Offset>::value) &&
+                !(is_integral_constant_of<Decayed, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
+                !(has_dec_assignment<T, Decayed>::value &&
+                    (is_integral_constant_of<Decayed, -1>::value || is_integral_constant_of<Offset, -1>::value))>
+            shift(T &obj, Stride &&GT_RESTRICT stride, Offset offset) {
+                obj += std::forward<Stride>(stride) * offset;
             }
 
             // END `shift` PART
@@ -702,21 +703,28 @@ namespace gridtools {
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <class Key, class Strides>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides const &strides) {
-            return gridtools::host_device::at_key_with_default<Key, default_stride>(strides);
+        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
+            return gridtools::host_device::at_key_with_default<Key, default_stride>(wstd::forward<Strides>(strides));
         }
 
         /**
          *  A variation of get_stride helper that works with the strides that are maps of of maps.
          *  I.e. `composite`.
          */
-        template <class Key, class Dim, class Strides, std::enable_if_t<has_key<Strides, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride_element(Strides const &strides) {
-            return gridtools::host_device::at_key<Key>(gridtools::host_device::at_key<Dim>(strides));
+        template <class Key,
+            class Dim,
+            class Strides,
+            std::enable_if_t<has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride_element(Strides &&strides) {
+            return gridtools::host_device::at_key<Key>(
+                gridtools::host_device::at_key<Dim>(wstd::forward<Strides>(strides)));
         }
 
-        template <class Key, class Dim, class Strides, std::enable_if_t<!has_key<Strides, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides const &) {
+        template <class Key,
+            class Dim,
+            class Strides,
+            std::enable_if_t<!has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
+        GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides &&) {
             return {};
         }
     } // namespace sid
