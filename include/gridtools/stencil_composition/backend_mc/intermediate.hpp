@@ -61,13 +61,26 @@ namespace gridtools {
             return tuple_util::make<hymap::keys<dim::i, dim::j>::values>(info.i_block_size(), info.j_block_size());
         }
 
+        struct block_f {
+            hymap::keys<dim::i, dim::j>::values<int_t, int_t> m_block_sizes;
+
+            block_f(execinfo_mc const &info) : m_block_sizes{info.i_block_size(), info.j_block_size()} {}
+
+            template <class Grid>
+            block_f(Grid const &grid) : block_f(execinfo_mc(grid)) {}
+
+            template <class T>
+            auto operator()(T &&data_store) const {
+                return sid::block(std::forward<T>(data_store), m_block_sizes);
+            }
+        };
+
         template <class Grid, class DataStoreMap>
         auto shift_origin_and_block(Grid const &grid, DataStoreMap data_stores) {
             return tuple_util::transform(
                 [offsets = tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(
                      grid.i_low_bound(), grid.j_low_bound(), grid.k_min()),
-                    block_map = make_block_map(grid)](
-                    auto &src) { return sid::block(sid::shift_sid_origin(std::ref(src), offsets), block_map); },
+                    block = block_f(grid)](auto &src) { return block(sid::shift_sid_origin(std::ref(src), offsets)); },
                 std::move(data_stores));
         }
 
@@ -93,8 +106,7 @@ namespace gridtools {
         template <class Grid>
         auto make_positionals(meta::list<dim::i, dim::j, dim::k>, Grid const &grid) {
             using positionals_t = std::tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
-            return tuple_util::transform(
-                [block_map = make_block_map(grid)](auto pos) { return sid::block(pos, block_map); },
+            return tuple_util::transform(block_f(grid),
                 hymap::convert_to<hymap::keys, positionals_t>(
                     positionals_t{grid.i_low_bound(), grid.j_low_bound(), grid.k_min()}));
         }
@@ -104,10 +116,18 @@ namespace gridtools {
             return {};
         }
 
+        template <class DataStores>
+        struct at_key_f {
+            DataStores &m_src;
+            template <class Plh>
+            GT_FORCE_INLINE decltype(auto) operator()(Plh) const {
+                return at_key<Plh>(m_src);
+            }
+        };
+
         template <class Plhs, class Src>
         auto filter_map(Src &src) {
-            return tuple_util::transform([&](auto plh) -> decltype(auto) { return at_key<decltype(plh)>(src); },
-                hymap::from_keys_values<Plhs, Plhs>());
+            return tuple_util::transform(at_key_f<Src>{src}, hymap::from_keys_values<Plhs, Plhs>());
         }
 
         template <class Mss, class NeedPositionals, class Grid, class DataStores>
@@ -131,16 +151,20 @@ namespace gridtools {
             }
         };
 
+        template <class Grid>
+        struct adapt_interval_f {
+            Grid const &m_grid;
+            template <class Interval>
+            auto operator()(Interval) const {
+                auto count = m_grid.count(meta::first<Interval>(), meta::second<Interval>());
+                return loop_interval<decltype(count), meta::third<Interval>>{count};
+            }
+        };
+
         template <class MssComponents, class Grid>
         auto make_loop_intervals(Grid const &grid) {
             return tuple_util::transform(
-                [&](auto interval) {
-                    using interval_t = decltype(interval);
-                    using stages_t = meta::third<interval_t>;
-                    auto count = grid.count(meta::first<interval_t>{}, meta::second<interval_t>{});
-                    return loop_interval<decltype(count), meta::third<interval_t>>{count};
-                },
-                meta::rename<tuple, typename MssComponents::loop_intervals_t>());
+                adapt_interval_f<Grid>{grid}, meta::rename<tuple, typename MssComponents::loop_intervals_t>());
         }
 
         template <class MssComponentsList, class NeedPositionals, class Grid, class DataStortes>
