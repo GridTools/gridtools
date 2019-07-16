@@ -19,8 +19,6 @@ from matplotlib import pyplot as plt  # noqa: E402
 
 plt.style.use('ggplot')
 
-prop_cycle = matplotlib.rcParams['axes.prop_cycle']
-
 
 def figsize(rows=1, cols=1):
     """Default figsize for a plot with given subplot rows and columns."""
@@ -29,7 +27,9 @@ def figsize(rows=1, cols=1):
 
 def discrete_colors(n):
     """Generates `n` discrete colors for plotting."""
-    return [c['color'] for c in itertools.islice(iter(prop_cycle), n)]
+    colors = plt.cm.tab20.colors
+    colors = colors[::2] + colors[1::2]
+    return list(itertools.islice(itertools.cycle(colors), n))
 
 
 def get_titles(results):
