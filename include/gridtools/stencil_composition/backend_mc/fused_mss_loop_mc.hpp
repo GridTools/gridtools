@@ -26,23 +26,20 @@
 
 namespace gridtools {
     namespace mc {
-        template <class Extent, class Info>
-        GT_FORCE_INLINE auto make_i_loop(Info const &info) {
-            return [size = info.i_block_size + Extent::iplus::value - Extent::iminus::value](
-                       auto stage, auto &ptr, auto const &strides) {
+        template <class Stage, class Ptr, class Strides>
+        GT_FORCE_INLINE void i_loop(int_t size, Stage stage, Ptr &ptr, Strides const &strides) {
 #ifdef NDEBUG
 #pragma ivdep
 #ifndef __INTEL_COMPILER
 #pragma omp simd
 #endif
 #endif
-                for (int_t i = 0; i < size; ++i) {
-                    using namespace literals;
-                    stage(ptr, strides);
-                    sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
-                }
-                sid::shift(ptr, sid::get_stride<dim::i>(strides), -size);
-            };
+            for (int_t i = 0; i < size; ++i) {
+                using namespace literals;
+                stage(ptr, strides);
+                sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
+            }
+            sid::shift(ptr, sid::get_stride<dim::i>(strides), -size);
         }
 
         template <class Funs>
@@ -55,6 +52,27 @@ namespace gridtools {
                     tuple_util::for_each([block = info.block(i, j)](auto &&fun) { fun(block); }, funs);
                 }
             }
+        }
+
+        template <class KStep, class Ptr, class Strides>
+        struct k_i_loops_f {
+            int_t m_i_size;
+            Ptr &m_ptr;
+            Strides const &m_strides;
+
+            template <class Interval>
+            GT_FORCE_INLINE void operator()(Interval interval) const {
+                for (int_t k = 0; k < interval.count(); ++k) {
+                    i_loop(m_i_size, interval, m_ptr, m_strides);
+                    sid::shift(m_ptr, sid::get_stride<dim::k>(m_strides), KStep());
+                }
+            }
+        };
+
+        template <class KStep, class Ptr, class Strides>
+        GT_FORCE_INLINE k_i_loops_f<KStep, Ptr, Strides> make_k_i_loops(
+            int_t i_size, Ptr &ptr, Strides const &strides) {
+            return {i_size, ptr, strides};
         }
 
         integral_constant<int_t, 0> k_start(int_t, integral_constant<int_t, 1>) { return {}; }
@@ -79,18 +97,13 @@ namespace gridtools {
                 sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), info.j_block);
                 auto ptr = origin() + offset;
 
-                int_t j_count = info.j_block_size + Extent::jplus::value - Extent::jminus::value;
-                auto i_loop = make_i_loop<Extent>(info);
-                for (int_t j = 0; j < j_count; ++j) {
+                int_t j_size = info.j_block_size + Extent::jplus::value - Extent::jminus::value;
+                int_t i_size = info.i_block_size + Extent::iplus::value - Extent::iminus::value;
+
+                auto k_i_loops = make_k_i_loops<KStep>(i_size, ptr, strides);
+                for (int_t j = 0; j < j_size; ++j) {
                     using namespace literals;
-                    tuple_util::for_each(
-                        [&ptr, &strides, i_loop](auto loop_interval) {
-                            for (int_t k = 0; k < loop_interval.count(); ++k) {
-                                i_loop(loop_interval, ptr, strides);
-                                sid::shift(ptr, sid::get_stride<dim::k>(strides), KStep());
-                            }
-                        },
-                        loop_intervals);
+                    tuple_util::for_each(k_i_loops, loop_intervals);
                     sid::shift(ptr, sid::get_stride<dim::k>(strides), k_shift_back);
                     sid::shift(ptr, sid::get_stride<dim::j>(strides), 1_c);
                 }
@@ -127,15 +140,15 @@ namespace gridtools {
                 auto ptr = origin() + offset;
 
                 int_t j_count = info.j_block_size + Extent::jplus::value - Extent::jminus::value;
-                auto i_loop = make_i_loop<Extent>(info);
+                int_t i_size = info.i_block_size + Extent::iplus::value - Extent::iminus::value;
 
                 for (int_t j = 0; j < j_count; ++j) {
                     using namespace literals;
                     int_t cur = 0;
                     tuple_util::for_each(
-                        [&ptr, &strides, &cur, k = info.k, i_loop](auto loop_interval) {
+                        [&ptr, &strides, &cur, k = info.k, i_size](auto loop_interval) {
                             if (k >= cur && k < cur + loop_interval.count())
-                                i_loop(loop_interval, ptr, strides);
+                                i_loop(i_size, loop_interval, ptr, strides);
                             cur += loop_interval.count();
                         },
                         loop_intervals);
