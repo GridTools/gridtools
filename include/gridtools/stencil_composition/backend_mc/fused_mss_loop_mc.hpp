@@ -151,8 +151,7 @@ namespace gridtools {
                         [&ptr, &strides, &cur, k = info.k, i_loop](auto loop_interval) {
                             if (k >= cur && k < cur + loop_interval.count())
                                 i_loop(loop_interval, ptr, strides);
-                            else
-                                cur += loop_interval.count();
+                            cur += loop_interval.count();
                         },
                         loop_intervals);
                     sid::shift(ptr, sid::get_stride<dim::j>(strides), 1_c);
