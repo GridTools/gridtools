@@ -181,7 +181,7 @@ def history(results, key='job', limit=None):
 
     colors = discrete_colors(len(stencils))
 
-    for color, (stencil, qs) in zip(colors, percentiles.items()):
+    for color, (stencil, qs) in zip(colors, sorted(percentiles.items())):
         mint, q1, q2, q3, maxt = qs
         ax.fill_between(dates, mint, maxt, alpha=0.2, color=color)
         ax.fill_between(dates, q1, q3, alpha=0.5, color=color)
