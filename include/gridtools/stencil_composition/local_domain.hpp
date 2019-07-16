@@ -47,20 +47,9 @@ namespace gridtools {
             template <>
             struct positionals<false> : meta::list<> {};
 
-            template <class Arg, class = void>
-            struct get_storage_info {
-                using type = void;
-            };
-
-            template <class Arg>
-            struct get_storage_info<Arg, void_t<typename Arg::data_store_t::storage_info_t>> {
-                using type = typename Arg::data_store_t::storage_info_t;
-            };
-
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(get_storage, class Arg, Arg);
         GT_META_DELEGATE_TO_LAZY(positionals, bool IsStateful, IsStateful);
-        GT_META_DELEGATE_TO_LAZY(get_storage_info, class Arg, Arg);
 
         template <class Arg, class Src, class Dst>
         struct set_stride_f {
@@ -77,83 +66,8 @@ namespace gridtools {
             return {src, dst};
         }
 
-        struct sink {
-            template <class T>
-            sink &operator=(T &&) {
-                return *this;
-            }
-        };
-
         template <class Backend, class Mss, class MaxExtentForTmp, bool IsStateful>
         struct get_local_domain;
-
-        template <class Composite, class CacheSequence, class TotalLengthMap>
-        struct mc_local_domain {
-            GT_STATIC_ASSERT(is_sid<Composite>::value, GT_INTERNAL_ERROR);
-
-            using cache_sequence_t = CacheSequence;
-            using ptr_holder_t = sid::ptr_holder_type<Composite>;
-            using ptr_t = sid::ptr_type<Composite>;
-            using strides_t = sid::strides_type<Composite>;
-
-            ptr_holder_t m_ptr_holder;
-            strides_t m_strides;
-            TotalLengthMap m_total_length_map;
-
-            template <class Arg, class DataStore, class StorageInfo = get_storage_info<Arg>>
-            std::enable_if_t<has_key<TotalLengthMap, StorageInfo>::value> set_padded_length(
-                DataStore const &data_store) {
-                at_key<StorageInfo>(m_total_length_map) = data_store.info().padded_total_length();
-            }
-            template <class Arg, class DataStore>
-            std::enable_if_t<!has_key<TotalLengthMap, get_storage_info<Arg>>::value> set_padded_length(
-                DataStore const &data_store) {}
-
-            template <class Arg, class DataStore, std::enable_if_t<has_key<Composite, Arg>::value, int> = 0>
-            void set_data_store(Arg, DataStore &data_store) {
-                GT_STATIC_ASSERT(is_sid<DataStore>::value, "");
-
-                at_key<Arg>(m_ptr_holder) = sid::get_origin(data_store);
-                using stride_dims_t = get_keys<sid::strides_type<DataStore>>;
-                auto const &src_strides = sid::get_strides(data_store);
-                for_each_type<stride_dims_t>(set_stride<Arg>(src_strides, m_strides));
-
-                set_padded_length<Arg>(data_store);
-            }
-
-            template <class Arg, class DataStore, std::enable_if_t<!has_key<Composite, Arg>::value, int> = 0>
-            void set_data_store(Arg, DataStore &) {}
-        };
-        template <class Composite, class CacheSequence, class TotalLengthMap>
-        struct is_local_domain<mc_local_domain<Composite, CacheSequence, TotalLengthMap>> : std::true_type {};
-
-        template <class Mss, class MaxExtentForTmp, bool IsStateful>
-        struct get_local_domain<backend::mc, Mss, MaxExtentForTmp, IsStateful> {
-            GT_STATIC_ASSERT(is_extent<MaxExtentForTmp>::value, GT_INTERNAL_ERROR);
-
-            using esf_args_t = extract_placeholders_from_mss<Mss>;
-            GT_STATIC_ASSERT((meta::all_of<is_plh, esf_args_t>::value), GT_INTERNAL_ERROR);
-
-            using total_length_esf_args_t = meta::filter<is_tmp_arg, esf_args_t>;
-
-            using total_length_storage_infos_t =
-                meta::dedup<meta::transform<get_storage_info, total_length_esf_args_t>>;
-
-            using total_length_map_t = hymap::from_keys_values<total_length_storage_infos_t,
-                meta::repeat<meta::length<total_length_storage_infos_t>, uint_t>>;
-
-            using positionals_t = positionals<IsStateful>;
-
-            using args_t = meta::concat<esf_args_t, positionals_t>;
-
-            using composite_keys_t = meta::rename<sid::composite::keys, args_t>;
-
-            using storages_t = meta::transform<get_storage, args_t>;
-
-            using composite_t = meta::rename<composite_keys_t::template values, storages_t>;
-
-            using type = mc_local_domain<composite_t, typename Mss::cache_sequence_t, total_length_map_t>;
-        };
 
         template <class Composite, class MaxExtentForTmp>
         struct x86_local_domain {

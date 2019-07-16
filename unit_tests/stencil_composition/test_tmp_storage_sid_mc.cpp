@@ -12,17 +12,18 @@
 
 #include <omp.h>
 
+#include <gridtools/stencil_composition/backend_mc/tmp_storage_sid.hpp>
 #include <gridtools/stencil_composition/extent.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
-#include <gridtools/stencil_composition/structured_grids/backend_mc/tmp_storage_sid.hpp>
 
 using namespace gridtools;
 using namespace gridtools::literals;
+using namespace gridtools::mc;
 
 static constexpr std::size_t byte_alignment = 64;
 
 TEST(tmp_storage_sid_mc, allocator) {
-    tmp_allocator_mc allocator;
+    mc::tmp_allocator_mc allocator;
 
     std::size_t n = 100;
     auto ptr_holder = allocate(allocator, meta::lazy::id<double>(), n);

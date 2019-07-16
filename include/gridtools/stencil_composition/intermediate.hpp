@@ -96,9 +96,7 @@ namespace gridtools {
             // This information is needed to allocate temporaries, and to provide the extent information to the user.
             using extent_map_t = get_extent_map<esfs_t>;
 
-            using fuse_esfs_t = decltype(mss_fuse_esfs(Backend{}));
-            using mss_components_array_t =
-                build_mss_components_array<fuse_esfs_t::value, Msses, extent_map_t, typename Grid::axis_type>;
+            using mss_components_array_t = build_mss_components_array<Msses, extent_map_t, typename Grid::axis_type>;
 
             using max_extent_for_tmp_t = meta::rename<enclosing_extent,
                 meta::transform<get_max_extent_for_tmp_from_mss_components, mss_components_array_t>>;

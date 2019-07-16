@@ -11,8 +11,6 @@
 
 #include "../../common/defs.hpp"
 
-#include "./backend_mc/tmp_storage.hpp"
-
 namespace gridtools {
     namespace tmp_storage {
         template <class StorageInfo, size_t /*NColors*/>
