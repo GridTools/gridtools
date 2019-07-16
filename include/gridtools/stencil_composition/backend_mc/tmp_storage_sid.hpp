@@ -81,7 +81,8 @@ namespace gridtools {
              */
             template <class T,
                 class Extent,
-                std::enable_if_t<Extent::kminus::value != 0 || Extent::kplus::value != 0, int> = 0>
+                bool AllParallel,
+                std::enable_if_t<!AllParallel || Extent::kminus::value != 0 || Extent::kplus::value != 0, int> = 0>
             hymap::keys<dim::i, dim::j, dim::k, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t, int_t>
             strides(pos3<std::size_t> const &block_size) {
                 auto bs = full_block_size<T, Extent>(block_size);
@@ -94,7 +95,8 @@ namespace gridtools {
              */
             template <class T,
                 class Extent,
-                std::enable_if_t<Extent::kminus::value == 0 && Extent::kplus::value == 0, int> = 0>
+                bool AllParallel,
+                std::enable_if_t<AllParallel && Extent::kminus::value == 0 && Extent::kplus::value == 0, int> = 0>
             hymap::keys<dim::i, dim::j, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t> strides(
                 pos3<std::size_t> const &block_size) {
                 auto bs = full_block_size<T, Extent>(block_size);
@@ -104,9 +106,9 @@ namespace gridtools {
             /**
              * @brief Offset from allocation start to first element inside compute domain.
              */
-            template <class T, class Extent>
+            template <class T, class Extent, bool AllParallel>
             std::size_t origin_offset(pos3<std::size_t> const &block_size) {
-                auto st = strides<T, Extent>(block_size);
+                auto st = strides<T, Extent, AllParallel>(block_size);
                 std::size_t offset = sid::get_stride<dim::i>(st) * -Extent::iminus::value +
                                      sid::get_stride<dim::j>(st) * -Extent::jminus::value +
                                      sid::get_stride<dim::k>(st) * -Extent::kminus::value;
@@ -126,13 +128,13 @@ namespace gridtools {
          */
         using tmp_allocator_mc = sid::cached_allocator<_impl_tmp_mc::make_allocation_f>;
 
-        template <class T, class Extent, class Allocator>
+        template <class T, class Extent, bool AllParallel, class Allocator>
         auto make_tmp_storage_mc(Allocator &allocator, pos3<std::size_t> const &block_size) {
             return sid::synthetic()
                 .set<sid::property::origin>(
                     allocate(allocator, meta::lazy::id<T>(), _impl_tmp_mc::storage_size<T, Extent>(block_size)) +
-                    _impl_tmp_mc::origin_offset<T, Extent>(block_size))
-                .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent>(block_size))
+                    _impl_tmp_mc::origin_offset<T, Extent, AllParallel>(block_size))
+                .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent, AllParallel>(block_size))
                 .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<T, Extent>>()
                 .template set<sid::property::ptr_diff, int_t>();
         }

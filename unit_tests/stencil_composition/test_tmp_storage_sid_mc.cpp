@@ -42,7 +42,7 @@ TEST(tmp_storage_sid_mc, nonzero_k_extents) {
     pos3<std::size_t> block_size{12, 2, 8};
 
     tmp_allocator_mc allocator;
-    auto tmp = make_tmp_storage_mc<double, extent_t>(allocator, block_size);
+    auto tmp = make_tmp_storage_mc<double, extent_t, false>(allocator, block_size);
 
     using tmp_t = decltype(tmp);
 
@@ -110,7 +110,7 @@ TEST(tmp_storage_sid_mc, zero_k_extents) {
     pos3<std::size_t> block_size{12, 5, 1};
 
     tmp_allocator_mc allocator;
-    auto tmp = make_tmp_storage_mc<double, extent_t>(allocator, block_size);
+    auto tmp = make_tmp_storage_mc<double, extent_t, true>(allocator, block_size);
 
     using tmp_t = decltype(tmp);
 

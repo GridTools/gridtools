@@ -40,6 +40,21 @@ namespace gridtools {
         template <class Mss>
         using get_esfs = typename Mss::esf_sequence_t;
 
+        namespace _impl {
+            /**
+             * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
+             */
+            template <typename Mss>
+            using is_mss_kparallel = execute::is_parallel<typename Mss::execution_engine_t>;
+
+            /**
+             * @brief Meta function to check if all MSS in an MssComponents array can be executed in parallel along
+             * k-axis.
+             */
+            template <typename Msses>
+            using all_mss_kparallel = meta::all_of<is_mss_kparallel, Msses>;
+        } // namespace _impl
+
         template <class Grid>
         auto make_block_map(Grid const &grid) {
             execinfo_mc info(grid);
@@ -69,7 +84,8 @@ namespace gridtools {
                     using plh_t = decltype(plh);
                     using data_t = typename plh_t::data_store_t::data_t;
                     using extent_t = lookup_extent_map<extent_map_t, plh_t>;
-                    return make_tmp_storage_mc<data_t, extent_t>(allocator, block_size);
+                    return make_tmp_storage_mc<data_t, extent_t, _impl::all_mss_kparallel<Msses>::value>(
+                        allocator, block_size);
                 },
                 hymap::from_keys_values<plhs_t, plhs_t>());
         }
