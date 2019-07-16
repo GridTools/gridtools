@@ -20,7 +20,6 @@
 #include "../meta/macros.hpp"
 #include "../meta/repeat.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/const_ref.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
@@ -118,13 +117,13 @@ namespace gridtools {
             }
 
             template <size_t I, typename T, size_t D>
-            static GT_FUNCTION GT_CONSTEXPR const_ref<T> get(const array<T, D> &arr) noexcept {
+            static GT_FUNCTION GT_CONSTEXPR const T &get(const array<T, D> &arr) noexcept {
                 GT_STATIC_ASSERT(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
 
             template <size_t I, typename T, size_t D>
-            static GT_FUNCTION GT_CONSTEXPR T get(array<T, D> &&arr) noexcept {
+            static GT_FUNCTION GT_CONSTEXPR T &&get(array<T, D> &&arr) noexcept {
                 GT_STATIC_ASSERT(I < D, "index is out of bounds");
                 return wstd::move(arr.m_array[I]);
             }
@@ -188,13 +187,13 @@ namespace gridtools {
     }
 
     template <size_t I, typename T, size_t D>
-    GT_FUNCTION GT_CONSTEXPR const_ref<T> get(const array<T, D> &arr) noexcept {
+    GT_FUNCTION GT_CONSTEXPR const T &get(const array<T, D> &arr) noexcept {
         GT_STATIC_ASSERT(I < D, "index is out of bounds");
         return arr.m_array[I];
     }
 
     template <size_t I, typename T, size_t D>
-    GT_FUNCTION GT_CONSTEXPR T get(array<T, D> &&arr) noexcept {
+    GT_FUNCTION GT_CONSTEXPR T &&get(array<T, D> &&arr) noexcept {
         GT_STATIC_ASSERT(I < D, "index is out of bounds");
         return wstd::move(get<I>(arr));
     }
