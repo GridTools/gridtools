@@ -55,12 +55,6 @@ namespace gridtools {
             using all_mss_kparallel = meta::all_of<is_mss_kparallel, Msses>;
         } // namespace _impl
 
-        template <class Grid>
-        auto make_block_map(Grid const &grid) {
-            execinfo_mc info(grid);
-            return tuple_util::make<hymap::keys<dim::i, dim::j>::values>(info.i_block_size(), info.j_block_size());
-        }
-
         struct block_f {
             hymap::keys<dim::i, dim::j>::values<int_t, int_t> m_block_sizes;
 

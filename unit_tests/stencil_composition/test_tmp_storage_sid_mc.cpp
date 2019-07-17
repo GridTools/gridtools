@@ -59,7 +59,7 @@ TEST(tmp_storage_sid_mc, nonzero_k_extents) {
 
         double *ptr = sid::get_origin(tmp)();
         // shift to origin of thread
-        sid::shift(ptr, sid::get_stride<thread_dim_mc>(strides), thread);
+        sid::shift(ptr, sid::get_stride<dim::thread>(strides), thread);
 
         // shift to very first data point in temporary
         sid::shift(ptr, sid::get_stride<dim::i>(strides), extent_t::iminus::value);
@@ -127,7 +127,7 @@ TEST(tmp_storage_sid_mc, zero_k_extents) {
 
         double *ptr = sid::get_origin(tmp)();
         // shift to origin of thread
-        sid::shift(ptr, sid::get_stride<thread_dim_mc>(strides), thread);
+        sid::shift(ptr, sid::get_stride<dim::thread>(strides), thread);
 
         // shift to very first data point in temporary
         sid::shift(ptr, sid::get_stride<dim::i>(strides), extent_t::iminus::value);

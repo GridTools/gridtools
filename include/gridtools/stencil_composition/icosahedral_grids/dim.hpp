@@ -18,5 +18,7 @@ namespace gridtools {
         using c = integral_constant<int, 1>;
         using j = integral_constant<int, 2>;
         using k = integral_constant<int, 3>;
+
+        struct thread;
     } // namespace dim
 } // namespace gridtools

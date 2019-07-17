@@ -25,8 +25,6 @@
 
 namespace gridtools {
     namespace mc {
-        struct thread_dim_mc;
-
         namespace _impl_tmp_mc {
 
             using byte_alignment = std::integral_constant<std::size_t, 64>;
@@ -83,7 +81,7 @@ namespace gridtools {
                 class Extent,
                 bool AllParallel,
                 std::enable_if_t<!AllParallel || Extent::kminus::value != 0 || Extent::kplus::value != 0, int> = 0>
-            hymap::keys<dim::i, dim::j, dim::k, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t, int_t>
+            hymap::keys<dim::i, dim::j, dim::k, dim::thread>::values<integral_constant<int_t, 1>, int_t, int_t, int_t>
             strides(pos3<std::size_t> const &block_size) {
                 auto bs = full_block_size<T, Extent>(block_size);
                 return {integral_constant<int, 1>{}, bs.i * bs.k, bs.i, bs.i * bs.j * bs.k};
@@ -97,7 +95,7 @@ namespace gridtools {
                 class Extent,
                 bool AllParallel,
                 std::enable_if_t<AllParallel && Extent::kminus::value == 0 && Extent::kplus::value == 0, int> = 0>
-            hymap::keys<dim::i, dim::j, thread_dim_mc>::values<integral_constant<int_t, 1>, int_t, int_t> strides(
+            hymap::keys<dim::i, dim::j, dim::thread>::values<integral_constant<int_t, 1>, int_t, int_t> strides(
                 pos3<std::size_t> const &block_size) {
                 auto bs = full_block_size<T, Extent>(block_size);
                 return {integral_constant<int, 1>{}, bs.i, bs.i * bs.j};
