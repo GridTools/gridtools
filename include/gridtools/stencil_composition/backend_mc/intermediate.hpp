@@ -105,7 +105,7 @@ namespace gridtools {
 
         template <class Grid>
         auto make_positionals(meta::list<dim::i, dim::j, dim::k>, Grid const &grid) {
-            using positionals_t = std::tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
+            using positionals_t = tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
             return tuple_util::transform(block_f(grid),
                 hymap::convert_to<hymap::keys, positionals_t>(
                     positionals_t{grid.i_low_bound(), grid.j_low_bound(), grid.k_min()}));
