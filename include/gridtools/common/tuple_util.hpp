@@ -339,7 +339,7 @@ namespace gridtools {
 #endif // GT_COMMON_TUPLE_UTIL_HPP_
 #else  // GT_TARGET_ITERATING
 
-#ifdef GT_TARGET_HAS_DEVICE
+#ifdef __NVCC__
 
 #define DEFINE_FUNCTOR_INSTANCE(name, functor)                                    \
     template <class... Args>                                                      \

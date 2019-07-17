@@ -46,7 +46,7 @@ namespace gridtools {
         struct is_backward<backward> : std::true_type {};
 
         template <typename T>
-        GT_DEVICE constexpr integral_constant<int_t, is_backward<T>::value ? -1 : 1> step = {};
+        constexpr integral_constant<int_t, is_backward<T>::value ? -1 : 1> step = {};
     } // namespace execute
 
     template <typename T>
