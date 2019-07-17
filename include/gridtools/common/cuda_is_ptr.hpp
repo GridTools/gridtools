@@ -12,8 +12,7 @@
 
 #ifdef GT_USE_GPU
 
-#include <cuda_runtime.h>
-
+#include "hip_wrappers.hpp"
 #include "../common/cuda_util.hpp"
 
 namespace gridtools {
@@ -23,6 +22,9 @@ namespace gridtools {
      * cuda-memcheck.
      */
     inline bool is_gpu_ptr(void *ptr) {
+#ifdef __HIPCC__
+        throw std::runtime_error("HIP implementation not yet functional");
+#else
         cudaPointerAttributes ptrAttributes;
         cudaError_t error = cudaPointerGetAttributes(&ptrAttributes, ptr);
         if (error == cudaSuccess)
@@ -37,6 +39,7 @@ namespace gridtools {
 
         cudaGetLastError(); // clear the error code
         return false;       // it is not a ptr allocated with cudaMalloc, cudaMallocHost, ...
+#endif
     }
 } // namespace gridtools
 

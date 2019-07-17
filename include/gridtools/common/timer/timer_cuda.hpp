@@ -10,7 +10,7 @@
 #pragma once
 
 #include "../cuda_util.hpp"
-#include <cuda_runtime.h>
+#include "../hip_wrappers.hpp"
 #include <memory>
 #include <string>
 

@@ -9,15 +9,15 @@
  */
 #pragma once
 
+#include "hip_wrappers.hpp"
+
 #ifndef __CUDACC__
 #error This is CUDA only header
 #endif
 
 #include "../meta/dedup.hpp"
 #include "../meta/list.hpp"
-#include "../meta/macros.hpp"
 #include "../meta/st_contains.hpp"
-#include "../meta/type_traits.hpp"
 
 namespace gridtools {
     namespace impl_ {

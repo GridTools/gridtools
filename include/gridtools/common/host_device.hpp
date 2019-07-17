@@ -19,7 +19,7 @@
 */
 
 #ifdef GT_USE_GPU
-#include <cuda_runtime.h>
+#include "hip_wrappers.hpp"
 #endif
 
 #if defined(__CUDACC__)
