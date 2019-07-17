@@ -56,9 +56,9 @@ namespace gridtools {
                                 loop_interval(ptr, strides);
                                 sid::shift(ptr, sid::get_stride<dim::k>(strides), KStep());
                             }
-                            sid::shift(ptr, sid::get_stride<dim::k>(strides), k_shift_back);
                         },
                         loop_intervals);
+                    sid::shift(ptr, sid::get_stride<dim::k>(strides), k_shift_back);
                 };
 
                 i_loop(j_loop(k_loop))(ptr, strides);
