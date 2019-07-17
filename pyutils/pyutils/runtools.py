@@ -71,20 +71,35 @@ def run(command, **kwargs):
     return output
 
 
+def _runscript_file(rundir):
+    return os.path.join(rundir, 'run_jobs.sh')
+
+
 def _sbatch_file(rundir):
     return os.path.join(rundir, 'run.sh')
 
 
-def _stdout_file(rundir, command_id):
-    return os.path.join(rundir, f'stdout_{command_id}.out')
+def _stdout_file(rundir):
+    return os.path.join(rundir, f'stdout.out')
 
 
-def _stderr_file(rundir, command_id):
-    return os.path.join(rundir, f'stderr_{command_id}.out')
+def _stderr_file(rundir):
+    return os.path.join(rundir, f'stderr.out')
 
 
-def _generate_sbatch(commands, cwd, use_srun, use_mpi_config):
-    code = f'#!/bin/bash -l\n#SBATCH --array=0-{len(commands) - 1}\n'
+def _generate_runscript(commands):
+    code = ''
+    for command in commands:
+        code += ' '.join(f"'{c}'" for c in command) + '\n'
+        code += 'echo "%PYUTILS%$?%RETURNCODE%" >&2\n'
+        code += 'echo "%PYUTILS%"\n'
+    return code
+
+
+def _generate_sbatch(rundir, cwd, use_srun, use_mpi_config):
+    code = f'#!/bin/bash -l\n'
+    code += f'#SBATCH --output={_stdout_file(rundir)}\n'
+    code += f'#SBATCH --error={_stderr_file(rundir)}\n'
 
     for option in env.sbatch_options(use_mpi_config):
         code += f'#SBATCH {option}\n'
@@ -94,23 +109,22 @@ def _generate_sbatch(commands, cwd, use_srun, use_mpi_config):
     srun = env.srun_command() if use_srun else ''
 
     code += f'cd {cwd}\n'
-    code += 'case $SLURM_ARRAY_TASK_ID in\n'
-    for i, command in enumerate(commands):
-        commandstr = ' '.join(f"'{c}'" for c in command)
-        code += f'    {i})\n        {srun} {commandstr}\n        ;;\n'
-    code += '    *)\nesac'
+    code += f'{srun} bash {_runscript_file(rundir)}\n'
     return code
 
 
 def _run_sbatch(rundir, commands, cwd, use_srun, use_mpi_config):
-    sbatchstr = _generate_sbatch(commands, cwd, use_srun, use_mpi_config)
+    sbatchstr = _generate_sbatch(rundir, cwd, use_srun, use_mpi_config)
     log.debug('Generated sbatch file', sbatchstr)
     with open(_sbatch_file(rundir), 'w') as sbatch:
         sbatch.write(sbatchstr)
 
+    runscriptstr = _generate_runscript(commands)
+    log.debug('Generated runscript file', runscriptstr)
+    with open(_runscript_file(rundir), 'w') as runscript:
+        runscript.write(runscriptstr)
+
     command = ['sbatch',
-               '--output', _stdout_file(rundir, '%a'),
-               '--error', _stderr_file(rundir, '%a'),
                '--wait',
                _sbatch_file(rundir)]
     log.info('Invoking sbatch', ' '.join(command))
@@ -147,30 +161,32 @@ def _retreive_outputs(rundir, commands, task_id):
         except subprocess.CalledProcessError:
             time.sleep(1)
             continue
-        infos = [o.split('|') for o in output.splitlines() if '.batch' in o]
-        exitcodes = [int(code.split(':')[0]) for _, code in sorted(infos)]
-        if len(exitcodes) == len(commands):
+        infos = [o.split('|')[1] for o in output.splitlines() if '.batch' in o]
+        if len(infos) > 1:
+            raise RuntimeError(f'Unexpected sacct output: {output}')
+        elif len(infos) == 1:
+            exitcode = int(infos[0].split(':')[0])
+            if exitcode != 0:
+                log.warning('Batch job finished with non-zero exitcode',
+                            exitcode)
             break
         time.sleep(i**2)
     else:
-        raise RuntimeError('Could not get exit codes of jobs')
+        raise RuntimeError('Could not get exit code of job')
 
     time.sleep(5)
 
-    outputs = []
-    for i, (command, exitcode) in enumerate(zip(commands, exitcodes)):
-        if exitcode != 0:
-            log.debug(f'Exit code of command "{command}"', exitcode)
-        with open(_stdout_file(rundir, i), 'r') as outfile:
-            stdout = outfile.read()
-            if stdout.strip():
-                log.debug(f'Stdout of command "{command}"', stdout)
-        with open(_stderr_file(rundir, i), 'r') as outfile:
-            stderr = outfile.read()
-            if stderr.strip():
-                log.debug(f'Stderr of command "{command}"', stderr)
-        outputs.append((exitcode, stdout, stderr))
-    return outputs
+    with open(_stderr_file(rundir), 'r') as outfile:
+        stderr = outfile.read()
+        stderr = stderr.split('%RETURNCODE%\n')[:-1]
+        stderr, exitcodes = zip(*(o.split('%PYUTILS%') for o in stderr))
+        exitcodes = [int(exitcode) for exitcode in exitcodes]
+
+    with open(_stdout_file(rundir), 'r') as outfile:
+        stdout = outfile.read()
+        stdout = stdout.split('%PYUTILS%\n')[:-1]
+
+    return list(zip(exitcodes, stdout, stderr))
 
 
 def _emulate_sbatch(commands, cwd):
@@ -201,7 +217,8 @@ def sbatch(commands, *args, **kwargs):
     failures = ''
     for command, (exitcode, stdout, stderr) in zip(commands, outputs):
         if exitcode != 0:
-            failures += f'Command "{command}" failed with output:\n{stdout}\n{stderr}\n'
+            failures += (f'Command "{command}" failed with output:\n'
+                         f'{stdout}\n{stderr}\n')
     if failures:
         raise RuntimeError(failures)
     return [stdout for _, stdout, _ in outputs]
