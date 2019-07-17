@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <cmath>
+
 #include "../common/array.hpp"
 #include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
@@ -190,9 +192,9 @@ namespace gridtools {
                     for (int j = 0; j < 3; ++j) {
                         for (int k = 0; k < 3; ++k) {
                             if (i != 1 or j != 1 or k != 1) {
-                                configuration[0] = max(configuration[0], sizes[i][j][k].max());
-                                configuration[1] = max(configuration[1], sizes[i][j][k].median());
-                                configuration[2] = max(configuration[2], sizes[i][j][k].min());
+                                configuration[0] = std::max(configuration[0], sizes[i][j][k].max());
+                                configuration[1] = std::max(configuration[1], sizes[i][j][k].median());
+                                configuration[2] = std::max(configuration[2], sizes[i][j][k].min());
                             }
                         }
                     }
