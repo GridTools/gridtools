@@ -22,9 +22,6 @@ namespace gridtools {
      * cuda-memcheck.
      */
     inline bool is_gpu_ptr(void *ptr) {
-#ifdef __HIPCC__
-        throw std::runtime_error("HIP implementation not yet functional");
-#else
         cudaPointerAttributes ptrAttributes;
         cudaError_t error = cudaPointerGetAttributes(&ptrAttributes, ptr);
         if (error == cudaSuccess)
@@ -34,12 +31,16 @@ namespace gridtools {
 #else
             return ptrAttributes.type == cudaMemoryTypeDevice;
 #endif
+#ifdef __HIPCC__
+        // HIP sets a different error code than CUDA here
+        if (error != hipErrorUnknown)
+#else
         if (error != cudaErrorInvalidValue)
+#endif
             GT_CUDA_CHECK(error);
 
         cudaGetLastError(); // clear the error code
         return false;       // it is not a ptr allocated with cudaMalloc, cudaMallocHost, ...
-#endif
     }
 } // namespace gridtools
 
