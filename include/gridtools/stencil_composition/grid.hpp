@@ -33,19 +33,21 @@ namespace gridtools {
 
         static constexpr size_t size = Axis::ToLevel::splitter - Axis::FromLevel::splitter + 1;
 
-        uint_t m_i_low_bound;
-        uint_t m_i_size;
-        uint_t m_j_low_bound;
-        uint_t m_j_size;
-        uint_t m_value_list[size];
+        int_t m_i_low_bound;
+        int_t m_i_size;
+        int_t m_j_low_bound;
+        int_t m_j_size;
+        int_t m_value_list[size];
 
       public:
         using axis_type = Axis;
 
         template <class Intervals = std::initializer_list<int_t>>
         grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j, Intervals const &intervals)
-            : m_i_low_bound(direction_i.begin()), m_i_size(direction_i.end() + 1 - direction_i.begin()),
-              m_j_low_bound(direction_j.begin()), m_j_size(direction_j.end() + 1 - direction_j.begin()) {
+            : m_i_low_bound((int_t)direction_i.begin()),
+              m_i_size((int_t)direction_i.end() + 1 - (int_t)direction_i.begin()),
+              m_j_low_bound((int_t)direction_j.begin()),
+              m_j_size((int_t)direction_j.end() + 1 - (int_t)direction_j.begin()) {
             m_value_list[0] = 0;
             auto src = std::begin(intervals);
             for (size_t i = 1; i < size; ++i, ++src) {
@@ -54,18 +56,18 @@ namespace gridtools {
             }
         }
 
-        GT_FUNCTION int_t i_low_bound() const { return (int_t)m_i_low_bound; }
+        int_t i_low_bound() const { return m_i_low_bound; }
 
-        GT_FUNCTION int_t j_low_bound() const { return (int_t)m_j_low_bound; }
+        int_t j_low_bound() const { return m_j_low_bound; }
 
-        GT_FUNCTION int_t i_size() const { return (int_t)m_i_size; }
+        int_t i_size() const { return m_i_size; }
 
-        GT_FUNCTION int_t j_size() const { return (int_t)m_j_size; }
+        int_t j_size() const { return m_j_size; }
 
         template <class Level, int_t Offset = grid_impl_::real_offset(Level::offset)>
-        GT_FUNCTION int_t value_at() const {
+        int_t value_at() const {
             GT_STATIC_ASSERT(is_level<Level>::value, GT_INTERNAL_ERROR);
-            return (int_t)m_value_list[Level::splitter] + Offset;
+            return m_value_list[Level::splitter] + Offset;
         }
 
         template <uint_t FromSplitter,
@@ -75,9 +77,8 @@ namespace gridtools {
             int_t OffsetLimit,
             int_t Extra = grid_impl_::real_offset(ToOffset) - grid_impl_::real_offset(FromOffset),
             std::enable_if_t<(FromSplitter < ToSplitter), int> = 0>
-        GT_FUNCTION int_t count(
-            level<FromSplitter, FromOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>) const {
-            return (int_t)m_value_list[ToSplitter] - (int_t)m_value_list[FromSplitter] + Extra + 1;
+        int_t count(level<FromSplitter, FromOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>) const {
+            return m_value_list[ToSplitter] - m_value_list[FromSplitter] + Extra + 1;
         }
 
         template <uint_t FromSplitter,
@@ -87,9 +88,8 @@ namespace gridtools {
             int_t OffsetLimit,
             int_t Extra = grid_impl_::real_offset(FromOffset) - grid_impl_::real_offset(ToOffset),
             std::enable_if_t<(FromSplitter >= ToSplitter), int> = 0>
-        GT_FUNCTION int_t count(
-            level<FromSplitter, FromOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>) const {
-            return (int_t)m_value_list[FromSplitter] - (int_t)m_value_list[ToSplitter] + Extra + 1;
+        int_t count(level<FromSplitter, FromOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>) const {
+            return m_value_list[FromSplitter] - m_value_list[ToSplitter] + Extra + 1;
         }
 
         template <uint_t Splitter,
@@ -98,16 +98,14 @@ namespace gridtools {
             int_t OffsetLimit,
             int_t Delta = grid_impl_::real_offset(ToOffset) - grid_impl_::real_offset(FromOffset),
             int_t Val = (Delta > 0) ? 1 + Delta : 1 - Delta>
-        GT_FUNCTION integral_constant<int_t, Val> count(
+        integral_constant<int_t, Val> count(
             level<Splitter, FromOffset, OffsetLimit>, level<Splitter, ToOffset, OffsetLimit>) const {
             return {};
         }
 
-        GT_FUNCTION integral_constant<int_t, grid_impl_::real_offset(Axis::FromLevel::offset)> k_min() const {
-            return {};
-        }
+        integral_constant<int_t, grid_impl_::real_offset(Axis::FromLevel::offset)> k_min() const { return {}; }
 
-        GT_FUNCTION int_t k_max() const {
+        int_t k_max() const {
             // -1 because the axis has to be one level bigger than the largest k interval
             return value_at<typename Axis::ToLevel>() - 1;
         }
@@ -115,7 +113,7 @@ namespace gridtools {
         /**
          * The total length of the k dimension as defined by the axis.
          */
-        GT_FUNCTION int_t k_total_length() const { return k_max() - k_min() + 1; }
+        int_t k_total_length() const { return k_max() - k_min() + 1; }
     };
 
     template <class T>

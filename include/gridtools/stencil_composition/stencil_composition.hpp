@@ -33,6 +33,10 @@
 #include "make_stage.hpp"
 #include "make_stencils.hpp"
 
+#ifndef GT_ICOSAHEDRAL_GRIDS
+#include "backend_mc/intermediate.hpp"
+#endif
+
 #ifdef __CUDACC__
 #include "backend_cuda/intermediate.hpp"
 #endif
