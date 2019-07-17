@@ -1,5 +1,5 @@
 function(_workaround_cuda target)
-    if( GT_ENABLE_BACKEND_CUDA )
+    if( GT_ENABLE_BACKEND_CUDA AND NOT GT_USE_CLANG_CUDA)
       # workaround for boost::optional with CUDA9.2
       # TODO Note that if you need to compile with CUDA 9.2, you cannot build the library with CUDA 9.0!
       # We should fix that by putting this logic into a header.

@@ -34,8 +34,13 @@ endif()
 target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
 if(CUDA_AVAILABLE)
   target_compile_definitions(gridtools INTERFACE GT_USE_GPU)
-  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 9.0 )
+  if(GT_USE_HIP)
+    target_compile_definitions(gridtools INTERFACE GT_USE_HIP)
+  endif()
+  if(NOT GT_USE_CLANG_CUDA)
+    if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 9.0)
       message(FATAL_ERROR "CUDA 8.X or lower is not supported")
+    endif()
   endif()
 
   # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
@@ -46,8 +51,20 @@ if(CUDA_AVAILABLE)
     message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
   endif()
 
-  target_include_directories( gridtools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
-  target_link_libraries( gridtools INTERFACE ${CUDA_CUDART_LIBRARY} )
+  if(NOT GT_USE_HIP)
+    target_include_directories( gridtools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
+    target_link_libraries( gridtools INTERFACE ${CUDA_CUDART_LIBRARY} )
+  endif()
+
+  if(GT_USE_CLANG_CUDA)
+    if(GT_USE_HIP)
+        set(CUDA_CLANG_OPTIONS -xhip --amdgpu-target=${GT_CUDA_ARCH} -D__CUDACC__)
+    else()
+      get_filename_component(CUDA_BIN_DIR ${CMAKE_CUDA_COMPILER} DIRECTORY)
+      get_filename_component(CUDA_ROOT_DIR ${CUDA_BIN_DIR} DIRECTORY)
+      set(CUDA_CLANG_OPTIONS -xcuda --cuda-gpu-arch=${GT_CUDA_ARCH} --cuda-path=${CUDA_ROOT_DIR})
+    endif()
+  endif()
 endif()
 
 # Controls preprocessor expansion of macros in Fortran source code.
@@ -132,9 +149,11 @@ if( GT_ENABLE_BACKEND_CUDA )
 
   # suppress because of boost::fusion::vector ctor
   target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
-  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL 9.2 )
-    # suppress because of warnings in GTest
-    target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=177>)
+  if(NOT GT_USE_CLANG_CUDA)
+    if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL 9.2)
+        # suppress because of warnings in GTest
+        target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=177>)
+    endif()
   endif()
 
   add_library(GridToolsTestCUDA INTERFACE)
@@ -173,7 +192,7 @@ endif()
 ## caching ##
 if( NOT GT_TESTS_ENABLE_CACHING )
     # TODO this should be exposed to find_package (GT_ENABLE_CACHING)
-    target_compile_definitions(GridToolsTest GT_DISABLE_CACHING)
+    target_compile_definitions(GridToolsTest INTERFACE GT_DISABLE_CACHING)
 endif()
 
 # add a target to generate API documentation with Doxygen
