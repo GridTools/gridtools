@@ -15,7 +15,6 @@
 
 #include "../meta/type_traits.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/const_ref.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
 
@@ -51,7 +50,7 @@ namespace gridtools {
 
         struct tuple_leaf_getter {
             template <size_t I, class T>
-            static GT_CONSTEXPR GT_FUNCTION const_ref<T> get(tuple_leaf<I, T, false> const &obj) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T const &get(tuple_leaf<I, T, false> const &obj) noexcept {
                 return obj.m_value;
             }
 
@@ -61,12 +60,12 @@ namespace gridtools {
             }
 
             template <size_t I, class T>
-            static GT_CONSTEXPR GT_FUNCTION T get(tuple_leaf<I, T, false> &&obj) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T &&get(tuple_leaf<I, T, false> &&obj) noexcept {
                 return static_cast<T &&>(get<I>(obj));
             }
 
             template <size_t I, class T>
-            static GT_CONSTEXPR GT_FUNCTION const_ref<T> get(tuple_leaf<I, T, true> const &obj) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T const &get(tuple_leaf<I, T, true> const &obj) noexcept {
                 return obj;
             }
 
@@ -76,7 +75,7 @@ namespace gridtools {
             }
 
             template <size_t I, class T>
-            static GT_CONSTEXPR GT_FUNCTION T get(tuple_leaf<I, T, true> &&obj) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T &&get(tuple_leaf<I, T, true> &&obj) noexcept {
                 return static_cast<T &&>(obj);
             }
         };
@@ -172,7 +171,7 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-        GT_CONSTEXPR GT_FUNCTION tuple(const_ref<Ts>... args) noexcept : m_impl(args...) {}
+        GT_CONSTEXPR GT_FUNCTION tuple(Ts const &... args) noexcept : m_impl(args...) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
@@ -206,7 +205,7 @@ namespace gridtools {
         T m_value;
         struct getter {
             template <size_t I, std::enable_if_t<I == 0, int> = 0>
-            static GT_CONSTEXPR GT_FUNCTION const_ref<T> get(tuple const &obj) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T const &get(tuple const &obj) noexcept {
                 return obj.m_value;
             }
 
@@ -216,7 +215,7 @@ namespace gridtools {
             }
 
             template <size_t I, std::enable_if_t<I == 0, int> = 0>
-            static GT_CONSTEXPR GT_FUNCTION T get(tuple &&obj) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T &&get(tuple &&obj) noexcept {
                 return static_cast<T &&>(obj.m_value);
             }
         };
@@ -233,7 +232,7 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-        GT_CONSTEXPR GT_FUNCTION tuple(const_ref<T> arg) noexcept : m_value(arg) {}
+        GT_CONSTEXPR GT_FUNCTION tuple(T const &arg) noexcept : m_value(arg) {}
 
         template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
         GT_CONSTEXPR GT_FUNCTION tuple(Arg &&arg) noexcept : m_value(wstd::forward<Arg>(arg)) {}
