@@ -22,16 +22,18 @@
 
 #include "../storage/sid.hpp"
 #include "accessor.hpp"
-#include "backend_naive/intermediate.hpp"
 #include "caches/define_caches.hpp"
 #include "computation.hpp"
 #include "esf.hpp"
+#include "expressions/expressions.hpp"
 #include "global_parameter.hpp"
 #include "grid.hpp"
-#include "intermediate.hpp"
 #include "make_computation.hpp"
 #include "make_stage.hpp"
 #include "make_stencils.hpp"
+
+#include "backend_naive/intermediate.hpp"
+#include "backend_x86/intermediate.hpp"
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
 #include "backend_mc/intermediate.hpp"

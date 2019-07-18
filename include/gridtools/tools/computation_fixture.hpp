@@ -108,12 +108,10 @@ namespace gridtools {
         using edges = enumtype::edges;
         using vertices = enumtype::vertices;
 
-        using topology_t = icosahedral_topology<backend_t>;
-
         using halo_t = halo<HaloSize, 0, HaloSize, 0>;
 
         template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
-        using storage_info_t = topology_t::template meta_storage_t<Location, Halo, Selector>;
+        using storage_info_t = icosahedral_storage_info_type<backend_t, Location, Halo, Selector>;
 
         template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
         using storage_type = storage_tr::data_store_t<float_type, storage_info_t<Location, Selector, Halo>>;
@@ -150,8 +148,6 @@ namespace gridtools {
         Storage make_storage_4d(uint_t dim, double val) {
             return {{d1(), Location::n_colors::value, d2(), d3(), dim}, (typename Storage::data_t)val};
         }
-
-        topology_t topology() const { return {m_d1, m_d2, m_d3}; }
 
       private:
         template <class Storage>

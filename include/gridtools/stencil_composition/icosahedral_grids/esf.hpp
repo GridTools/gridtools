@@ -33,11 +33,10 @@ namespace gridtools {
         struct has_param_list<T, void_t<typename T::param_list>> : std::true_type {};
     } // namespace esf_impl_
 
-    template <template <uint_t> class EsfFunction, class Grid, class LocationType, class Args>
+    template <template <uint_t> class EsfFunction, class LocationType, class Args>
     struct esf_descriptor {
         GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value),
             "wrong types for the list of parameter placeholders check the make_stage syntax");
-        GT_STATIC_ASSERT(is_grid_topology<Grid>::value, "Error: wrong grid type");
         GT_STATIC_ASSERT((esf_impl_::are_same_locations<Args, typename EsfFunction<0>::param_list>::value),
             "Location types of placeholders and accessors must match");
         GT_STATIC_ASSERT(esf_impl_::has_param_list<EsfFunction<0>>::type::value,
@@ -47,12 +46,11 @@ namespace gridtools {
         template <uint_t C>
         using esf_function = EsfFunction<C>;
 
-        using grid_t = Grid;
         using location_type = LocationType;
         using args_t = Args;
         using extent_t = void;
     };
 
-    template <template <uint_t> class EsfFunction, class Grid, class LocationType, class Args>
-    struct is_esf_descriptor<esf_descriptor<EsfFunction, Grid, LocationType, Args>> : std::true_type {};
+    template <template <uint_t> class EsfFunction, class LocationType, class Args>
+    struct is_esf_descriptor<esf_descriptor<EsfFunction, LocationType, Args>> : std::true_type {};
 } // namespace gridtools

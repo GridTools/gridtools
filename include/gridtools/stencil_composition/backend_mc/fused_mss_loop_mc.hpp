@@ -18,7 +18,6 @@
 #include "../loop_interval.hpp"
 #include "../mss_components.hpp"
 #include "../mss_components_metafunctions.hpp"
-#include "../run_functor_arguments.hpp"
 #include "../sid/blocked_dim.hpp"
 #include "../sid/loop.hpp"
 #include "execinfo_mc.hpp"
@@ -92,7 +91,7 @@ namespace gridtools {
                        k_shift_back = -k_total_length * KStep(),
                        loop_intervals](execinfo_block_kserial_mc const &info) {
                 sid::ptr_diff_type<Composite> offset{};
-                sid::shift(offset, sid::get_stride<thread_dim_mc>(strides), omp_get_thread_num());
+                sid::shift(offset, sid::get_stride<dim::thread>(strides), omp_get_thread_num());
                 sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(strides), info.i_block);
                 sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), info.j_block);
                 auto ptr = origin() + offset;
@@ -133,7 +132,7 @@ namespace gridtools {
             return [origin = sid::get_origin(composite) + offset, strides = std::move(strides), loop_intervals](
                        execinfo_block_kparallel_mc const &info) {
                 sid::ptr_diff_type<Composite> offset{};
-                sid::shift(offset, sid::get_stride<thread_dim_mc>(strides), omp_get_thread_num());
+                sid::shift(offset, sid::get_stride<dim::thread>(strides), omp_get_thread_num());
                 sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(strides), info.i_block);
                 sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), info.j_block);
                 sid::shift(offset, sid::get_stride<dim::k>(strides), info.k);

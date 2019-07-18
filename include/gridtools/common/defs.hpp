@@ -92,11 +92,15 @@ namespace gridtools {
         struct backend {};
     } // namespace mc
 
+    namespace x86 {
+        struct backend {};
+    } // namespace x86
+
     /** tags specifying the backend to use */
     namespace backend {
         using cuda = cuda::backend;
         using mc = mc::backend;
-        struct x86 {};
+        using x86 = x86::backend;
         using naive = naive::backend;
     } // namespace backend
 

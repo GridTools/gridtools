@@ -15,8 +15,8 @@
 #include "esf.hpp"
 
 namespace gridtools {
-    template <template <uint_t> class Functor, typename Grid, typename LocationType, typename... Args>
-    constexpr std::tuple<esf_descriptor<Functor, Grid, LocationType, std::tuple<Args...>>> make_stage(Args...) {
+    template <template <uint_t> class Functor, typename LocationType, typename... Args>
+    constexpr std::tuple<esf_descriptor<Functor, LocationType, std::tuple<Args...>>> make_stage(Args...) {
         return {};
     }
 } // namespace gridtools
