@@ -46,11 +46,7 @@ namespace gridtools {
         template <uint_t Id, uint_t Dims, typename Halo>
         struct select_storage_info {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-#ifndef GT_ICOSAHEDRAL_GRIDS
             using layout = typename impl::layout_swap_mc<typename get_layout<Dims, false>::type>::type;
-#else
-            using layout = typename get_layout<Dims, true>::type;
-#endif
             using type = mc_storage_info<Id, layout, Halo>;
         };
 
@@ -65,22 +61,14 @@ namespace gridtools {
         struct select_special_storage_info {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
             GT_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
-#ifndef GT_ICOSAHEDRAL_GRIDS
             using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size(), false>::type>::type;
-#else
-            using layout = typename get_layout<Selector::size(), true>::type;
-#endif
             using type = mc_storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo>;
         };
 
         template <uint_t Id, uint_t Dims, typename Halo, typename Align>
         struct select_storage_info_align {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-#ifndef GT_ICOSAHEDRAL_GRIDS
             using layout = typename impl::layout_swap_mc<typename get_layout<Dims, false>::type>::type;
-#else
-            using layout = typename get_layout<Dims, true>::type;
-#endif
             using type = storage_info<Id, layout, Halo, Align>;
         };
 
@@ -95,11 +83,7 @@ namespace gridtools {
         struct select_special_storage_info_align {
             GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
             GT_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
-#ifndef GT_ICOSAHEDRAL_GRIDS
             using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size(), false>::type>::type;
-#else
-            using layout = typename get_layout<Selector::size(), true>::type;
-#endif
             using type = storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo, Align>;
         };
     };

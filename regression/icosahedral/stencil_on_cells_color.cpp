@@ -57,7 +57,7 @@ TEST_F(stencil_on_cells, with_color) {
     auto out = make_storage<cells>();
     make_computation(p_in = make_storage<cells>(in),
         p_out = out,
-        make_multistage(execute::forward(), make_stage<on_cells_color_functor, topology_t, cells>(p_in, p_out)))
+        make_multistage(execute::forward(), make_stage<on_cells_color_functor, cells>(p_in, p_out)))
         .run();
     verify(make_storage<cells>(ref), out);
 }
