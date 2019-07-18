@@ -9,4 +9,6 @@
  */
 #pragma once
 
+#ifdef GT_ICOSAHEDRAL_GRIDS
 #include "./backend_x86/fused_mss_loop_x86.hpp"
+#endif

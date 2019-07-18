@@ -16,113 +16,63 @@
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../../common/integral_constant.hpp"
+#include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
-#include "../../execution_types.hpp"
-#include "../../grid.hpp"
-#include "../../iterate_domain_aux.hpp"
-#include "../../local_domain.hpp"
-#include "../../run_functor_arguments.hpp"
+#include "../../dim.hpp"
 #include "../../sid/concept.hpp"
 #include "../../sid/loop.hpp"
 #include "../dim.hpp"
 
-/**@file
- * @brief mss loop implementations for the x86 backend
- */
 namespace gridtools {
-    namespace mss_loop_x86_impl_ {
-        template <class ExecutionType,
-            class From,
-            class To,
-            class Stages,
-            class Grid,
-            class Ptr,
-            class Strides,
-            std::enable_if_t<!meta::is_empty<Stages>::value, int> = 0>
-        GT_FORCE_INLINE void execute_interval(
-            loop_interval<From, To, Stages>, Grid const &grid, Ptr &ptr, Strides const &strides) {
-            int_t n = grid.count(From{}, To{});
-            for (int_t i = 0; i < n; ++i) {
-                for_each<Stages>([&](auto stage) { stage(ptr, strides); });
-                sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
+    namespace x86 {
+
+        template <class KStep, class Intervals>
+        struct k_loop_f {
+            Intervals m_intervals;
+            int_t m_shift_back;
+
+            template <class Ptr, class Strides>
+            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
+                tuple_util::for_each(
+                    [&ptr, &strides](auto interval) {
+                        for (int k = 0; k < interval.count(); ++k) {
+                            interval(ptr, strides);
+                            sid::shift(ptr, sid::get_stride<dim::k>(strides), KStep());
+                        }
+                    },
+                    m_intervals);
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_shift_back);
             }
-        }
-
-        template <class ExecutionType,
-            class Level,
-            class Stages,
-            class Grid,
-            class Ptr,
-            class Strides,
-            std::enable_if_t<!meta::is_empty<Stages>::value, int> = 0>
-        GT_FORCE_INLINE void execute_interval(
-            loop_interval<Level, Level, Stages>, Grid const &grid, Ptr &ptr, Strides const &strides) {
-            for_each<Stages>([&](auto stage) { stage(ptr, strides); });
-            sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
-        }
-
-        template <class ExecutionType,
-            class From,
-            class To,
-            class Stages,
-            class Grid,
-            class Ptr,
-            class Strides,
-            std::enable_if_t<meta::is_empty<Stages>::value, int> = 0>
-        GT_FORCE_INLINE void execute_interval(
-            loop_interval<From, To, Stages>, Grid const &grid, Ptr &ptr, Strides const &strides) {
-            sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType> * grid.count(From{}, To{}));
-        }
-    } // namespace mss_loop_x86_impl_
-
-    /**
-     * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
-     * and sequentially executes all the functors in the mss
-     * @tparam RunFunctorArgs run functor arguments
-     */
-    template <class RunFunctorArgs, class LocalDomain, class Grid, class ExecutionInfo>
-    GT_FORCE_INLINE void mss_loop(
-        backend::x86, LocalDomain const &local_domain, Grid const &grid, const ExecutionInfo &execution_info) {
-        GT_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArgs>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-
-        using loop_intervals_t = typename RunFunctorArgs::loop_intervals_t;
-        using execution_type_t = typename RunFunctorArgs::execution_type_t;
-        using extent_t = get_extent_from_loop_intervals<loop_intervals_t>;
-        using from_t = meta::first<meta::first<loop_intervals_t>>;
-        using to_t = meta::second<meta::last<loop_intervals_t>>;
-
-        int_t k_first = grid.template value_at<from_t>();
-
-        auto ptr = local_domain.m_ptr_holder();
-
-        for_each_type<get_keys<typename LocalDomain::ptr_t>>(
-            initialize_index<typename LocalDomain::max_extent_for_tmp_t>(local_domain.m_strides,
-                {grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
-                {execution_info.bi, execution_info.bj, 0},
-                {extent_t::iminus::value, extent_t::jminus::value, k_first - grid.k_min()},
-                ptr));
-
-        auto block_size_f = [](int_t total, int_t block_size, int_t block_no) {
-            int_t n = (total + block_size - 1) / block_size;
-            return block_no == n - 1 ? total - block_no * block_size : block_size;
-        };
-        int_t total_i = grid.i_size();
-        int_t total_j = grid.j_size();
-        int_t size_i = block_size_f(total_i, block_i_size(backend::x86{}), execution_info.bi) + extent_t::iplus::value -
-                       extent_t::iminus::value;
-        int_t size_j = block_size_f(total_j, block_j_size(backend::x86{}), execution_info.bj) + extent_t::jplus::value -
-                       extent_t::jminus::value;
-
-        auto i_loop = sid::make_loop<dim::i>(size_i);
-        auto j_loop = sid::make_loop<dim::j>(size_j);
-        auto k_loop = [&](auto ptr, auto const &strides) {
-            for_each<loop_intervals_t>([&](auto loop_interval) {
-                mss_loop_x86_impl_::execute_interval<execution_type_t>(loop_interval, grid, ptr, strides);
-            });
         };
 
-        i_loop(j_loop(k_loop))(ptr, local_domain.m_strides);
-    }
+        integral_constant<int_t, 0> k_start(int_t, integral_constant<int_t, 1>) { return {}; }
+
+        int_t k_start(int_t total_length, integral_constant<int_t, -1>) { return total_length - 1; }
+
+        template <class Extent, class KStep, class Composite, class LoopIntervals>
+        auto make_mss_loop(int_t k_total_length, KStep, Composite composite, LoopIntervals loop_intervals) {
+            auto strides = sid::get_strides(composite);
+            sid::ptr_diff_type<Composite> offset{};
+            sid::shift(offset, sid::get_stride<dim::i>(strides), typename Extent::iminus());
+            sid::shift(offset, sid::get_stride<dim::j>(strides), typename Extent::jminus());
+            sid::shift(offset, sid::get_stride<dim::k>(strides), k_start(k_total_length, KStep()));
+
+            return [origin = sid::get_origin(composite) + offset,
+                       strides = std::move(strides),
+                       k_loop = k_loop_f<KStep, LoopIntervals>{std::move(loop_intervals), -k_total_length * KStep()}](
+                       int_t i_block, int_t j_block, int_t i_size, int_t j_size) {
+                sid::ptr_diff_type<Composite> offset{};
+                sid::shift(offset, sid::get_stride<dim::thread>(strides), omp_get_thread_num());
+                sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(strides), i_block);
+                sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), j_block);
+                auto ptr = origin() + offset;
+
+                auto i_loop = sid::make_loop<dim::i>(i_size + Extent::iplus::value - Extent::iminus::value);
+                auto j_loop = sid::make_loop<dim::j>(j_size + Extent::jplus::value - Extent::jminus::value);
+
+                i_loop(j_loop(k_loop))(ptr, strides);
+            };
+        }
+
+    } // namespace x86
 } // namespace gridtools

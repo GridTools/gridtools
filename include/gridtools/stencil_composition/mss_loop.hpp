@@ -9,8 +9,6 @@
  */
 #pragma once
 
-#ifndef GT_ICOSAHEDRAL_GRIDS
-#include "structured_grids/backend_x86/mss_loop_x86.hpp"
-#else
+#ifdef GT_ICOSAHEDRAL_GRIDS
 #include "icosahedral_grids/backend_x86/mss_loop_x86.hpp"
 #endif

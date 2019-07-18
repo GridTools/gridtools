@@ -11,61 +11,34 @@
 
 #include <type_traits>
 
-#include "../../common/defs.hpp"
-#include "../../common/hymap.hpp"
-#include "../../common/tuple_util.hpp"
-#include "../../meta.hpp"
-#include "../../storage/sid.hpp"
-#include "../arg.hpp"
-#include "../caches/cache_traits.hpp"
-#include "../compute_extents_metafunctions.hpp"
-#include "../dim.hpp"
-#include "../esf_metafunctions.hpp"
-#include "../extent.hpp"
-#include "../extract_placeholders.hpp"
-#include "../grid.hpp"
-#include "../mss_components.hpp"
-#include "../mss_components_metafunctions.hpp"
-#include "../positional.hpp"
-#include "../sid/block.hpp"
-#include "../sid/composite.hpp"
-#include "../sid/concept.hpp"
-#include "../sid/sid_shift_origin.hpp"
-#include "execinfo_mc.hpp"
-#include "fused_mss_loop_mc.hpp"
-#include "tmp_storage_sid.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/tuple_util.hpp"
+#include "../../../meta.hpp"
+#include "../../arg.hpp"
+#include "../../compute_extents_metafunctions.hpp"
+#include "../../esf_metafunctions.hpp"
+#include "../../extent.hpp"
+#include "../../extract_placeholders.hpp"
+#include "../../grid.hpp"
+#include "../../mss_components.hpp"
+#include "../../mss_components_metafunctions.hpp"
+#include "../../sid/allocator.hpp"
+#include "../../sid/block.hpp"
+#include "../../sid/contiguous.hpp"
+#include "../../sid/sid_shift_origin.hpp"
+#include "mss_loop_x86.hpp"
 
 namespace gridtools {
-    namespace mc {
+    namespace x86 {
         template <class Mss>
         using get_esfs = typename Mss::esf_sequence_t;
 
-        namespace _impl {
-            /**
-             * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
-             */
-            template <typename Mss>
-            using is_mss_kparallel = execute::is_parallel<typename Mss::execution_engine_t>;
-
-            /**
-             * @brief Meta function to check if all MSS in an MssComponents array can be executed in parallel along
-             * k-axis.
-             */
-            template <typename Msses>
-            using all_mss_kparallel = meta::all_of<is_mss_kparallel, Msses>;
-        } // namespace _impl
-
         struct block_f {
-            hymap::keys<dim::i, dim::j>::values<int_t, int_t> m_block_sizes;
-
-            block_f(execinfo_mc const &info) : m_block_sizes{info.i_block_size(), info.j_block_size()} {}
-
-            template <class Grid>
-            block_f(Grid const &grid) : block_f(execinfo_mc(grid)) {}
-
             template <class T>
             auto operator()(T &&data_store) const {
-                return sid::block(std::forward<T>(data_store), m_block_sizes);
+                return sid::block(std::forward<T>(data_store),
+                    hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, GT_DEFAULT_TILE_I>,
+                        integral_constant<int_t, GT_DEFAULT_TILE_J>>());
             }
         };
 
@@ -74,7 +47,7 @@ namespace gridtools {
             return tuple_util::transform(
                 [offsets = tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(
                      grid.i_low_bound(), grid.j_low_bound(), grid.k_min()),
-                    block = block_f(grid)](auto &src) { return block(sid::shift_sid_origin(std::ref(src), offsets)); },
+                    block = block_f()](auto &src) { return block(sid::shift_sid_origin(std::ref(src), offsets)); },
                 std::move(data_stores));
         }
 
@@ -82,17 +55,22 @@ namespace gridtools {
         auto make_temporaries(Grid const &grid, Allocator &allocator) {
             using plhs_t = meta::filter<is_tmp_arg, extract_placeholders_from_msses<Msses>>;
             using extent_map_t = get_extent_map<meta::flatten<meta::transform<get_esfs, Msses>>>;
-            execinfo_mc info(grid);
             return tuple_util::transform(
-                [&allocator,
-                    block_size = make_pos3(
-                        (size_t)info.i_block_size(), (size_t)info.j_block_size(), (size_t)grid.k_total_length())](
-                    auto plh) {
+                [&allocator, &grid](auto plh) {
                     using plh_t = decltype(plh);
                     using data_t = typename plh_t::data_store_t::data_t;
                     using extent_t = lookup_extent_map<extent_map_t, plh_t>;
-                    return make_tmp_storage_mc<data_t, extent_t, _impl::all_mss_kparallel<Msses>::value>(
-                        allocator, block_size);
+                    return sid::shift_sid_origin(
+                        sid::make_contiguous<data_t, int_t, extent_t>(allocator,
+                            tuple_util::make<hymap::keys<dim::k, dim::j, dim::i, dim::thread>::values>(
+                                grid.k_total_length(),
+                                integral_constant<int_t,
+                                    GT_DEFAULT_TILE_J + extent_t::jplus::value - extent_t::jminus::value>(),
+                                integral_constant<int_t,
+                                    GT_DEFAULT_TILE_I + extent_t::iplus::value - extent_t::iminus::value>(),
+                                omp_get_max_threads())),
+                        hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -extent_t::iminus::value>,
+                            integral_constant<int_t, -extent_t::jminus::value>>());
                 },
                 hymap::from_keys_values<plhs_t, plhs_t>());
         }
@@ -100,7 +78,7 @@ namespace gridtools {
         template <class Grid>
         auto make_positionals(meta::list<dim::i, dim::j, dim::k>, Grid const &grid) {
             using positionals_t = tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
-            return tuple_util::transform(block_f(grid),
+            return tuple_util::transform(block_f(),
                 hymap::convert_to<hymap::keys, positionals_t>(
                     positionals_t{grid.i_low_bound(), grid.j_low_bound(), grid.k_min()}));
         }
@@ -162,22 +140,7 @@ namespace gridtools {
         }
 
         template <class MssComponentsList, class NeedPositionals, class Grid, class DataStortes>
-        auto make_mss_parallel_loops(Grid const &grid, DataStortes &data_stores) {
-            return tuple_util::transform(
-                [&](auto mss_components) {
-                    using mss_components_t = decltype(mss_components);
-                    using extent_t = get_extent_from_loop_intervals<typename mss_components_t::loop_intervals_t>;
-
-                    auto composite =
-                        make_composite<typename mss_components_t::mss_descriptor_t, NeedPositionals>(grid, data_stores);
-                    auto loop_intervals = make_loop_intervals<mss_components_t>(grid);
-                    return make_mss_parallel_loop<extent_t>(std::move(composite), std::move(loop_intervals));
-                },
-                MssComponentsList());
-        }
-
-        template <class MssComponentsList, class NeedPositionals, class Grid, class DataStortes>
-        auto make_mss_serial_loops(Grid const &grid, DataStortes &data_stores) {
+        auto make_mss_loops(Grid const &grid, DataStortes &data_stores) {
             return tuple_util::transform(
                 [&](auto mss_components) {
                     using mss_components_t = decltype(mss_components);
@@ -188,7 +151,7 @@ namespace gridtools {
                         make_composite<typename mss_components_t::mss_descriptor_t, NeedPositionals>(grid, data_stores);
                     auto loop_intervals = make_loop_intervals<mss_components_t>(grid);
 
-                    return make_mss_serial_loop<extent_t>(grid.k_total_length(),
+                    return make_mss_loop<extent_t>(grid.k_total_length(),
                         execute::step<execution_t>,
                         std::move(composite),
                         std::move(loop_intervals));
@@ -196,41 +159,38 @@ namespace gridtools {
                 MssComponentsList());
         }
 
-        template <class MssComponentsList,
-            class NeedPositionals,
-            class Grid,
-            class DataStortes,
-            std::enable_if_t<_impl::all_mss_kparallel<MssComponentsList>::value, int> = 0>
-        void run_loops(Grid const &grid, DataStortes data_stores) {
-            exec_parallel(execinfo_mc(grid),
-                grid.k_total_length(),
-                make_mss_parallel_loops<MssComponentsList, NeedPositionals>(grid, data_stores));
-        }
-
-        template <class MssComponentsList,
-            class NeedPositionals,
-            class Grid,
-            class DataStortes,
-            std::enable_if_t<!_impl::all_mss_kparallel<MssComponentsList>::value, int> = 0>
-        void run_loops(Grid const &grid, DataStortes data_stores) {
-            exec_serial(
-                execinfo_mc(grid), make_mss_serial_loops<MssComponentsList, NeedPositionals>(grid, data_stores));
-        }
-
-        template <class NeedPositionals, class Grid, class Msses>
-        auto make_intermediate(backend, NeedPositionals, Grid const &grid, Msses) {
+        template <class IsStateful, class Grid, class Msses>
+        auto make_intermediate(backend, IsStateful, Grid const &grid, Msses) {
             return [grid](auto external_data_stores) {
-                tmp_allocator_mc alloc;
+                auto alloc = sid::make_cached_allocator(&std::make_unique<char[]>);
+
                 auto data_stores = hymap::concat(shift_origin_and_block(grid, std::move(external_data_stores)),
                     make_temporaries<Msses>(grid, alloc));
 
                 using esfs_t = meta::flatten<meta::transform<get_esfs, Msses>>;
+
                 using extent_map_t = get_extent_map<esfs_t>;
+
                 using mss_components_array_t =
                     build_mss_components_array<Msses, extent_map_t, typename Grid::axis_type>;
 
-                run_loops<mss_components_array_t, NeedPositionals>(grid, std::move(data_stores));
+                auto mss_loops = make_mss_loops<mss_components_array_t, IsStateful>(grid, data_stores);
+
+                int_t total_i = grid.i_size();
+                int_t total_j = grid.j_size();
+
+                int_t NBI = (total_i + GT_DEFAULT_TILE_I - 1) / GT_DEFAULT_TILE_I;
+                int_t NBJ = (total_j + GT_DEFAULT_TILE_J - 1) / GT_DEFAULT_TILE_J;
+
+#pragma omp parallel for collapse(2)
+                for (int_t bi = 0; bi < NBI; ++bi) {
+                    for (int_t bj = 0; bj < NBJ; ++bj) {
+                        int_t i_size = bi + 1 == NBI ? total_i - bi * GT_DEFAULT_TILE_I : GT_DEFAULT_TILE_I;
+                        int_t j_size = bj + 1 == NBJ ? total_j - bj * GT_DEFAULT_TILE_J : GT_DEFAULT_TILE_J;
+                        tuple_util::for_each([=](auto &&fun) { fun(bi, bj, i_size, j_size); }, mss_loops);
+                    }
+                }
             };
         }
-    } // namespace mc
+    } // namespace x86
 } // namespace gridtools
