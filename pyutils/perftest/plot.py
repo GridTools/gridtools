@@ -19,8 +19,6 @@ from matplotlib import pyplot as plt  # noqa: E402
 
 plt.style.use('ggplot')
 
-prop_cycle = matplotlib.rcParams['axes.prop_cycle']
-
 
 def figsize(rows=1, cols=1):
     """Default figsize for a plot with given subplot rows and columns."""
@@ -29,7 +27,9 @@ def figsize(rows=1, cols=1):
 
 def discrete_colors(n):
     """Generates `n` discrete colors for plotting."""
-    return [c['color'] for c in itertools.islice(iter(prop_cycle), n)]
+    colors = plt.cm.tab20.colors
+    colors = colors[::2] + colors[1::2]
+    return list(itertools.islice(itertools.cycle(colors), n))
 
 
 def get_titles(results):
@@ -181,7 +181,7 @@ def history(results, key='job', limit=None):
 
     colors = discrete_colors(len(stencils))
 
-    for color, (stencil, qs) in zip(colors, percentiles.items()):
+    for color, (stencil, qs) in zip(colors, sorted(percentiles.items())):
         mint, q1, q2, q3, maxt = qs
         ax.fill_between(dates, mint, maxt, alpha=0.2, color=color)
         ax.fill_between(dates, q1, q3, alpha=0.5, color=color)
