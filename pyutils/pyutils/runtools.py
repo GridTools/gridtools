@@ -178,12 +178,14 @@ def _retreive_outputs(rundir, commands, task_id):
 
     with open(_stderr_file(rundir), 'r') as outfile:
         stderr = outfile.read()
+        log.debug('Raw job stderr', stderr)
         stderr = stderr.split('%RETURNCODE%\n')[:-1]
         stderr, exitcodes = zip(*(o.split('%PYUTILS%') for o in stderr))
         exitcodes = [int(exitcode) for exitcode in exitcodes]
 
     with open(_stdout_file(rundir), 'r') as outfile:
         stdout = outfile.read()
+        log.debug('Raw job stdout', stdout)
         stdout = stdout.split('%PYUTILS%\n')[:-1]
 
     return list(zip(exitcodes, stdout, stderr))
