@@ -12,16 +12,15 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../../common/defs.hpp"
-#include "../../../common/generic_metafunctions/for_each.hpp"
-#include "../../../common/host_device.hpp"
-#include "../../../common/integral_constant.hpp"
-#include "../../../common/tuple_util.hpp"
-#include "../../../meta.hpp"
-#include "../../dim.hpp"
-#include "../../sid/concept.hpp"
-#include "../../sid/loop.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/host_device.hpp"
+#include "../../common/integral_constant.hpp"
+#include "../../common/tuple_util.hpp"
+#include "../../meta.hpp"
 #include "../dim.hpp"
+#include "../sid/concept.hpp"
+#include "../sid/loop.hpp"
 
 namespace gridtools {
     namespace x86 {

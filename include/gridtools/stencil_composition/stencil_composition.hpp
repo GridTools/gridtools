@@ -33,12 +33,10 @@
 #include "make_stencils.hpp"
 
 #include "backend_naive/intermediate.hpp"
+#include "backend_x86/intermediate.hpp"
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
 #include "backend_mc/intermediate.hpp"
-#include "structured_grids/backend_x86/intermediate.hpp"
-#else
-#include "intermediate.hpp"
 #endif
 
 #ifdef __CUDACC__

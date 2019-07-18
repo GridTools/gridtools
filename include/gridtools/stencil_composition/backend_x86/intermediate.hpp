@@ -11,21 +11,21 @@
 
 #include <type_traits>
 
-#include "../../../common/defs.hpp"
-#include "../../../common/tuple_util.hpp"
-#include "../../../meta.hpp"
-#include "../../arg.hpp"
-#include "../../compute_extents_metafunctions.hpp"
-#include "../../esf_metafunctions.hpp"
-#include "../../extent.hpp"
-#include "../../extract_placeholders.hpp"
-#include "../../grid.hpp"
-#include "../../mss_components.hpp"
-#include "../../mss_components_metafunctions.hpp"
-#include "../../sid/allocator.hpp"
-#include "../../sid/block.hpp"
-#include "../../sid/contiguous.hpp"
-#include "../../sid/sid_shift_origin.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/tuple_util.hpp"
+#include "../../meta.hpp"
+#include "../arg.hpp"
+#include "../compute_extents_metafunctions.hpp"
+#include "../esf_metafunctions.hpp"
+#include "../extent.hpp"
+#include "../extract_placeholders.hpp"
+#include "../grid.hpp"
+#include "../mss_components.hpp"
+#include "../mss_components_metafunctions.hpp"
+#include "../sid/allocator.hpp"
+#include "../sid/block.hpp"
+#include "../sid/contiguous.hpp"
+#include "../sid/sid_shift_origin.hpp"
 #include "mss_loop_x86.hpp"
 
 namespace gridtools {
@@ -51,6 +51,23 @@ namespace gridtools {
                 std::move(data_stores));
         }
 
+        template <class Plh, class Extent, class Grid>
+        auto tmp_sizes(Grid const &grid) {
+#ifndef GT_ICOSAHEDRAL_GRIDS
+            return tuple_util::make<hymap::keys<dim::k, dim::j, dim::i, dim::thread>::values>(grid.k_total_length(),
+                integral_constant<int_t, GT_DEFAULT_TILE_J + Extent::jplus::value - Extent::jminus::value>(),
+                integral_constant<int_t, GT_DEFAULT_TILE_I + Extent::iplus::value - Extent::iminus::value>(),
+                omp_get_max_threads());
+#else
+            return tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i, dim::thread>::values>(
+                integral_constant<int, Plh::location_t::n_colors::value>(),
+                grid.k_total_length(),
+                integral_constant<int_t, GT_DEFAULT_TILE_J + Extent::jplus::value - Extent::jminus::value>(),
+                integral_constant<int_t, GT_DEFAULT_TILE_I + Extent::iplus::value - Extent::iminus::value>(),
+                omp_get_max_threads());
+#endif
+        }
+
         template <class Msses, class Grid, class Allocator>
         auto make_temporaries(Grid const &grid, Allocator &allocator) {
             using plhs_t = meta::filter<is_tmp_arg, extract_placeholders_from_msses<Msses>>;
@@ -61,14 +78,7 @@ namespace gridtools {
                     using data_t = typename plh_t::data_store_t::data_t;
                     using extent_t = lookup_extent_map<extent_map_t, plh_t>;
                     return sid::shift_sid_origin(
-                        sid::make_contiguous<data_t, int_t, extent_t>(allocator,
-                            tuple_util::make<hymap::keys<dim::k, dim::j, dim::i, dim::thread>::values>(
-                                grid.k_total_length(),
-                                integral_constant<int_t,
-                                    GT_DEFAULT_TILE_J + extent_t::jplus::value - extent_t::jminus::value>(),
-                                integral_constant<int_t,
-                                    GT_DEFAULT_TILE_I + extent_t::iplus::value - extent_t::iminus::value>(),
-                                omp_get_max_threads())),
+                        sid::make_contiguous<data_t, int_t, extent_t>(allocator, tmp_sizes<plh_t, extent_t>(grid)),
                         hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -extent_t::iminus::value>,
                             integral_constant<int_t, -extent_t::jminus::value>>());
                 },

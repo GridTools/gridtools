@@ -35,9 +35,6 @@ namespace gridtools {
         };
     };
 
-    template <typename T>
-    struct is_grid_topology;
-
     /**
      * Following specializations provide all information about the connectivity of the icosahedral/ocahedral grid
      * While ordering is arbitrary up to some extent, if must respect some rules that user expect, and that conform
@@ -487,7 +484,7 @@ namespace gridtools {
         };
         template <>
         struct default_layout<backend::x86> {
-            using type = layout_map<0, 1, 2, 3>;
+            using type = layout_map<0, 3, 1, 2>;
         };
         template <>
         struct default_layout<backend::naive> {
@@ -496,80 +493,20 @@ namespace gridtools {
 
         template <std::size_t N, class DimSelector>
         using shorten_selector = meta::list_to_iseq<meta::take_c<N, meta::iseq_to_list<DimSelector>>>;
+
+        template <class Backend,
+            class Selector,
+            class Layout = typename default_layout<Backend>::type,
+            class Selector4D = shorten_selector<4, Selector>,
+            class FilteredLayout = typename get_special_layout<Layout, Selector4D>::type>
+        using select_layout = typename std::conditional_t<(Selector::size() > 4),
+            extend_layout_map<FilteredLayout, Selector::size() - 4>,
+            meta::lazy::id<FilteredLayout>>::type;
     } // namespace _impl
 
-    /**
-     */
-    template <typename Backend>
-    class icosahedral_topology {
-      private:
-        template <typename DimSelector>
-        struct select_layout {
-            using layout_map_t = typename _impl::default_layout<Backend>::type;
-            using dim_selector_4d_t = _impl::shorten_selector<4, DimSelector>;
-            using filtered_layout = typename get_special_layout<layout_map_t, dim_selector_4d_t>::type;
-
-            using type = typename std::conditional_t<(DimSelector::size() > 4),
-                extend_layout_map<filtered_layout, DimSelector::size() - 4>,
-                meta::lazy::id<filtered_layout>>::type;
-        };
-
-      public:
-        using cells = enumtype::cells;
-        using edges = enumtype::edges;
-        using vertices = enumtype::vertices;
-        using type = icosahedral_topology<Backend>;
-
-        // returns a layout map with ordering specified by the Backend but where
-        // the user can specify the active dimensions
-        template <typename Selector>
-        using layout_t = typename select_layout<Selector>::type;
-
-        template <typename LocationType, typename Halo = halo<0, 0, 0, 0>, typename Selector = selector<1, 1, 1, 1>>
-        using meta_storage_t = typename storage_traits<Backend>::template custom_layout_storage_info_t<
-            impl::compute_uuid<LocationType::value, Selector>::value,
-            layout_t<Selector>,
-            Halo>;
-
-        template <typename LocationType,
-            typename ValueType,
-            typename Halo = halo<0, 0, 0, 0>,
-            typename Selector = selector<1, 1, 1, 1>>
-        using data_store_t = typename storage_traits<Backend>::template data_store_t<ValueType,
-            meta_storage_t<LocationType, Halo, Selector>>;
-
-        array<uint_t, 3> m_dims; // Sizes as cells in a multi-dimensional Cell array
-
-      public:
-        template <typename... UInt>
-
-        GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim) : m_dims{idim, jdim, kdim} {}
-
-        template <typename LocationType,
-            typename ValueType,
-            typename Halo = halo<0, 0, 0, 0>,
-            typename Selector = selector<1, 1, 1, 1>,
-            typename... IntTypes,
-            std::enable_if_t<is_all_integral<IntTypes...>::value, int> = 0>
-        data_store_t<LocationType, ValueType, Halo, Selector> make_storage(
-            char const *name, IntTypes... extra_dims) const {
-            GT_STATIC_ASSERT(is_location_type<LocationType>::value, "ERROR: location type is wrong");
-            GT_STATIC_ASSERT(is_selector<Selector>::value, "ERROR: dimension selector is wrong");
-            GT_STATIC_ASSERT(
-                Selector::size() == sizeof...(IntTypes) + 4, "ERROR: Mismatch between Selector and extra-dimensions");
-
-            using meta_storage_type = meta_storage_t<LocationType, Halo, Selector>;
-            GT_STATIC_ASSERT(Selector::size() == meta_storage_type::layout_t::masked_length,
-                "ERROR: Mismatch between Selector and space dimensions");
-
-            return {{m_dims[0], LocationType::n_colors::value, m_dims[1], m_dims[2], extra_dims...}, name};
-        }
-    };
-
-    template <typename T>
-    struct is_grid_topology : std::false_type {};
-
-    template <typename Backend>
-    struct is_grid_topology<icosahedral_topology<Backend>> : std::true_type {};
-
+    template <class Backend, class Location, class Halo, class Selector>
+    using icosahedral_storage_info_type = typename storage_traits<Backend>::template custom_layout_storage_info_t<
+        impl::compute_uuid<Location::value, Selector>::value,
+        _impl::select_layout<Backend, Selector>,
+        Halo>;
 } // namespace gridtools
