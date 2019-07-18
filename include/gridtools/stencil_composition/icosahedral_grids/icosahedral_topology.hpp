@@ -484,7 +484,7 @@ namespace gridtools {
         };
         template <>
         struct default_layout<backend::x86> {
-            using type = layout_map<0, 1, 2, 3>;
+            using type = layout_map<0, 3, 1, 2>;
         };
         template <>
         struct default_layout<backend::naive> {
