@@ -208,6 +208,7 @@ def _emulate_sbatch(commands, cwd):
 def _sbatch(commands, cwd=None, use_srun=True, use_mpi_config=False):
     if env.use_slurm():
         with tempfile.TemporaryDirectory(dir='.') as rundir:
+            rundir = os.path.abspath(rundir)
             task = _run_sbatch(rundir, commands, cwd, use_srun, use_mpi_config)
             return _retreive_outputs(rundir, commands, task)
     else:
