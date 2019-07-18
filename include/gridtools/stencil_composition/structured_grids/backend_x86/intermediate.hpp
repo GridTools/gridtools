@@ -60,14 +60,17 @@ namespace gridtools {
                     using plh_t = decltype(plh);
                     using data_t = typename plh_t::data_store_t::data_t;
                     using extent_t = lookup_extent_map<extent_map_t, plh_t>;
-                    return sid::make_contiguous<data_t, int_t, extent_t>(allocator,
-                        tuple_util::make<hymap::keys<dim::i, dim::j, dim::k, dim::thread>::values>(
-                            integral_constant<int_t,
-                                GT_DEFAULT_TILE_I + extent_t::iplus::value - extent_t::iminus::value>(),
-                            integral_constant<int_t,
-                                GT_DEFAULT_TILE_J + extent_t::jplus::value - extent_t::jminus::value>(),
-                            grid.k_total_length(),
-                            omp_get_max_threads()));
+                    return sid::shift_sid_origin(
+                        sid::make_contiguous<data_t, int_t, extent_t>(allocator,
+                            tuple_util::make<hymap::keys<dim::k, dim::j, dim::i, dim::thread>::values>(
+                                grid.k_total_length(),
+                                integral_constant<int_t,
+                                    GT_DEFAULT_TILE_J + extent_t::jplus::value - extent_t::jminus::value>(),
+                                integral_constant<int_t,
+                                    GT_DEFAULT_TILE_I + extent_t::iplus::value - extent_t::iminus::value>(),
+                                omp_get_max_threads())),
+                        hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -extent_t::iminus::value>,
+                            integral_constant<int_t, -extent_t::jminus::value>>());
                 },
                 hymap::from_keys_values<plhs_t, plhs_t>());
         }
