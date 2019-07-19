@@ -24,19 +24,14 @@ find_package(GridTools @GridTools_VERSION@ REQUIRED
 #   GIT_REPOSITORY https://github.com/GridTools/cpp_bindgen.git
 #   GIT_TAG        master # consider replacing master by a tagged version
 # )
-# #FetchContent_MakeAvailable(cpp_bindgen) for CMake >= 3.14
-# FetchContent_GetProperties(cpp_bindgen)
-# if(NOT cpp_bindgen_POPULATED)
-#   FetchContent_Populate(cpp_bindgen)
-#   add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR})
-# endif()
+# FetchContent_MakeAvailable(cpp_bindgen)
 
 enable_testing()
 
 # 5) generate a bindings library for mc-backend. This generates two targets:
 #    - copy_stencil_lib_mc_c (the C library)
 #    - copy_stencil_lib_mc_fortran (the Fortran Library)
-cpp_bindgen_add_library(copy_stencil_lib_mc SOURCES copy_stencil_wrapper.cpp)
+bindgen_add_library(copy_stencil_lib_mc SOURCES copy_stencil_wrapper.cpp)
 target_link_libraries(copy_stencil_lib_mc PUBLIC GridTools::gridtools)
 
 include(CheckLanguage)
@@ -54,9 +49,9 @@ check_language(Fortran)
 if (CMAKE_Fortran_COMPILER)
     enable_language(Fortran)
     # 6) If a library needs to be used from Fortran, it is necessary to call
-    #    cpp_bindgen_enable_fortran_library with the bindings library in order to
+    #    bindgen_enable_fortran_library with the bindings library in order to
     #    build the right modules
-    cpp_bindgen_enable_fortran_library(copy_stencil_lib_mc)
+    bindgen_enable_fortran_library(copy_stencil_lib_mc)
 
     add_executable(example_driver_fortran driver.f90)
     target_link_libraries(example_driver_fortran copy_stencil_lib_mc_fortran)
@@ -66,7 +61,7 @@ endif()
 
 if (CMAKE_CUDA_COMPILER)
     if(GRIDTOOLS_HAS_BACKEND_CUDA)
-        cpp_bindgen_add_library(copy_stencil_lib_cuda SOURCES copy_stencil_wrapper.cu)
+        bindgen_add_library(copy_stencil_lib_cuda SOURCES copy_stencil_wrapper.cu)
         target_link_libraries(copy_stencil_lib_cuda PUBLIC GridTools::gridtools)
 
         if (CMAKE_C_COMPILER_LOADED)

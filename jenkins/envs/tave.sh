@@ -4,7 +4,7 @@ source $(dirname "$BASH_SOURCE")/base.sh
 
 module rm PrgEnv-cray
 module rm CMake
-module load /users/jenkins/easybuild/tave/modules/all/CMake/3.12.4
+module load /users/jenkins/easybuild/tave/modules/all/CMake/3.14.5
 
 export BOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0
 export GTCMAKE_GT_ENABLE_BINDINGS_GENERATION=OFF

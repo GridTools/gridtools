@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION 3.14.5)
 
 cmake_policy(SET CMP0048 NEW)
 file(STRINGS "version.txt" __GT_VERSION)
@@ -39,18 +39,13 @@ endif()
 include(FetchContent)
 FetchContent_Declare(
     cpp_bindgen
-    GIT_REPOSITORY https://github.com/havogt/cpp_bindgen.git
-    GIT_TAG        gen_to_bindgen
-)
-if(${CMAKE_VERSION} VERSION_LESS 3.14)
-    FetchContent_GetProperties(cpp_bindgen)
-    if(NOT cpp_bindgen_POPULATED)
-        FetchContent_Populate(cpp_bindgen)
-        add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR})
-    endif()
-else()
-    FetchContent_MakeAvailable(cpp_bindgen)
-endif()
+    GIT_REPOSITORY https://github.com/GridTools/cpp_bindgen.git
+    GIT_TAG        master
+    )
+# Enable legacy mode for CPP_BINDGEN for users of GT 1.0
+# TODO remove in GT 2.0
+set(CPP_BINDGEN_GT_LEGACY ON)
+FetchContent_MakeAvailable(cpp_bindgen)
 
 add_subdirectory(src)
 
