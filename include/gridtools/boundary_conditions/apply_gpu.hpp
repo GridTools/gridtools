@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <cmath>
+
 #include "../common/array.hpp"
 #include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
@@ -26,54 +28,68 @@ namespace gridtools {
         /// Since predicate is runtime evaluated possibly on host-only data, we need to evaluate it before passing it to
         /// the CUDA kernels
         struct precomputed_pred {
-            array<array<array<bool, 3>, 3>, 3> m_values;
-
             template <typename Predicate>
             precomputed_pred(Predicate const &p) {
-                m_values[0][0][0] = p(direction<minus_, minus_, minus_>{});
-                m_values[0][0][1] = p(direction<minus_, minus_, zero_>{});
-                m_values[0][0][2] = p(direction<minus_, minus_, plus_>{});
+                init<minus_, minus_, minus_>(p);
+                init<minus_, minus_, zero_>(p);
+                init<minus_, minus_, plus_>(p);
 
-                m_values[0][1][0] = p(direction<minus_, zero_, minus_>{});
-                m_values[0][1][1] = p(direction<minus_, zero_, zero_>{});
-                m_values[0][1][2] = p(direction<minus_, zero_, plus_>{});
+                init<minus_, zero_, minus_>(p);
+                init<minus_, zero_, zero_>(p);
+                init<minus_, zero_, plus_>(p);
 
-                m_values[0][2][0] = p(direction<minus_, plus_, minus_>{});
-                m_values[0][2][1] = p(direction<minus_, plus_, zero_>{});
-                m_values[0][2][2] = p(direction<minus_, plus_, plus_>{});
+                init<minus_, plus_, minus_>(p);
+                init<minus_, plus_, zero_>(p);
+                init<minus_, plus_, plus_>(p);
 
-                m_values[1][0][0] = p(direction<zero_, minus_, minus_>{});
-                m_values[1][0][1] = p(direction<zero_, minus_, zero_>{});
-                m_values[1][0][2] = p(direction<zero_, minus_, plus_>{});
+                init<zero_, minus_, minus_>(p);
+                init<zero_, minus_, zero_>(p);
+                init<zero_, minus_, plus_>(p);
 
-                m_values[1][1][0] = p(direction<zero_, zero_, minus_>{});
+                init<zero_, zero_, minus_>(p);
 
-                m_values[1][1][2] = p(direction<zero_, zero_, plus_>{});
+                init<zero_, zero_, plus_>(p);
 
-                m_values[1][2][0] = p(direction<zero_, plus_, minus_>{});
-                m_values[1][2][1] = p(direction<zero_, plus_, zero_>{});
-                m_values[1][2][2] = p(direction<zero_, plus_, plus_>{});
+                init<zero_, plus_, minus_>(p);
+                init<zero_, plus_, zero_>(p);
+                init<zero_, plus_, plus_>(p);
 
-                m_values[2][0][0] = p(direction<plus_, minus_, minus_>{});
-                m_values[2][0][1] = p(direction<plus_, minus_, zero_>{});
-                m_values[2][0][2] = p(direction<plus_, minus_, plus_>{});
+                init<plus_, minus_, minus_>(p);
+                init<plus_, minus_, zero_>(p);
+                init<plus_, minus_, plus_>(p);
 
-                m_values[2][1][0] = p(direction<plus_, zero_, minus_>{});
-                m_values[2][1][1] = p(direction<plus_, zero_, zero_>{});
-                m_values[2][1][2] = p(direction<plus_, zero_, plus_>{});
+                init<plus_, zero_, minus_>(p);
+                init<plus_, zero_, zero_>(p);
+                init<plus_, zero_, plus_>(p);
 
-                m_values[2][2][0] = p(direction<plus_, plus_, minus_>{});
-                m_values[2][2][1] = p(direction<plus_, plus_, zero_>{});
-                m_values[2][2][2] = p(direction<plus_, plus_, plus_>{});
+                init<plus_, plus_, minus_>(p);
+                init<plus_, plus_, zero_>(p);
+                init<plus_, plus_, plus_>(p);
             }
 
-            GT_FUNCTION
             precomputed_pred(precomputed_pred const &) = default;
 
             template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
             GT_FUNCTION bool operator()(direction<I, J, K>) const {
-                return m_values[static_cast<int>(I) + 1][static_cast<int>(J) + 1][static_cast<int>(K) + 1];
+                static constexpr uint_t index = direction_index<I, J, K>();
+                return (m_values >> index) & 0x1;
             }
+
+          private:
+            template <gridtools::sign I, gridtools::sign J, gridtools::sign K, class Predicate>
+            void init(Predicate const &p) {
+                static constexpr uint_t mask = 0x1 << direction_index<I, J, K>();
+                m_values = (m_values & ~mask) | (p(direction<I, J, K>{}) ? mask : 0);
+            }
+
+            template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
+            GT_FUNCTION static constexpr uint_t direction_index() {
+                return (static_cast<int>(I) + 1) * 9 + (static_cast<int>(J) + 1) * 3 + (static_cast<int>(K) + 1);
+            }
+
+            GT_STATIC_ASSERT(sizeof(uint_t) >= 4, GT_INTERNAL_ERROR);
+
+            uint_t m_values;
         };
 
         /** This class contains the information needed to identify
@@ -96,10 +112,8 @@ namespace gridtools {
                 array<uint_t, 3> m_start;
                 array<uint_t, 3> m_perm = {{0, 1, 2}};
 
-                GT_FUNCTION
                 shape_type() = default;
 
-                GT_FUNCTION
                 shape_type(uint_t x, uint_t y, uint_t z, uint_t s0, uint_t s1, uint_t s2)
                     : m_size{x, y, z}, m_sorted{m_size}, m_start{s0, s1, s2} {
                     array<uint_t, 3> forward_perm = {{0, 1, 2}};
@@ -157,7 +171,6 @@ namespace gridtools {
                 operatior. These pieces are encoded into shapes that
                 are described above here.
              */
-            GT_FUNCTION
             kernel_configuration(array<halo_descriptor, 3> const &halos) {
 
                 array<array<uint_t, 3>, 3> segments;
@@ -190,9 +203,9 @@ namespace gridtools {
                     for (int j = 0; j < 3; ++j) {
                         for (int k = 0; k < 3; ++k) {
                             if (i != 1 or j != 1 or k != 1) {
-                                configuration[0] = max(configuration[0], sizes[i][j][k].max());
-                                configuration[1] = max(configuration[1], sizes[i][j][k].median());
-                                configuration[2] = max(configuration[2], sizes[i][j][k].min());
+                                configuration[0] = std::max(configuration[0], sizes[i][j][k].max());
+                                configuration[1] = std::max(configuration[1], sizes[i][j][k].median());
+                                configuration[2] = std::max(configuration[2], sizes[i][j][k].min());
                             }
                         }
                     }
@@ -232,7 +245,7 @@ namespace gridtools {
         _impl::kernel_configuration const conf,
         Halos const halos,
         DataViews const... data_views) {
-        array<uint_t, 3> th{blockIdx.x * blockDim.x + threadIdx.x,
+        const array<uint_t, 3> th{blockIdx.x * blockDim.x + threadIdx.x,
             blockIdx.y * blockDim.y + threadIdx.y,
             blockIdx.z * blockDim.z + threadIdx.z};
 
@@ -303,7 +316,7 @@ namespace gridtools {
         _impl::kernel_configuration m_conf;
         BoundaryFunction const m_boundary_function;
         Predicate m_predicate;
-        static const uint_t ntx = 8, nty = 32, ntz = 1;
+        static constexpr uint_t ntx = 8, nty = 32, ntz = 1;
         const dim3 threads{ntx, nty, ntz};
 
       public:
