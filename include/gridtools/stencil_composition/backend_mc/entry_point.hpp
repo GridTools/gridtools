@@ -70,12 +70,8 @@ namespace gridtools {
         };
 
         template <class Grid, class DataStoreMap>
-        auto shift_origin_and_block(Grid const &grid, DataStoreMap data_stores) {
-            return tuple_util::transform(
-                [offsets = tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(
-                     grid.i_low_bound(), grid.j_low_bound(), grid.k_min()),
-                    block = block_f(grid)](auto &src) { return block(sid::shift_sid_origin(std::ref(src), offsets)); },
-                std::move(data_stores));
+        auto block(Grid const &grid, DataStoreMap data_stores) {
+            return tuple_util::transform(block_f(grid), std::move(data_stores));
         }
 
         template <class Msses, class Grid, class Allocator>
@@ -89,25 +85,12 @@ namespace gridtools {
                         (size_t)info.i_block_size(), (size_t)info.j_block_size(), (size_t)grid.k_total_length())](
                     auto plh) {
                     using plh_t = decltype(plh);
-                    using data_t = typename plh_t::data_store_t::data_t;
+                    using data_t = typename plh_t::data_t;
                     using extent_t = lookup_extent_map<extent_map_t, plh_t>;
                     return make_tmp_storage_mc<data_t, extent_t, _impl::all_mss_kparallel<Msses>::value>(
                         allocator, block_size);
                 },
                 hymap::from_keys_values<plhs_t, plhs_t>());
-        }
-
-        template <class Grid>
-        auto make_positionals(meta::list<dim::i, dim::j, dim::k>, Grid const &grid) {
-            using positionals_t = tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
-            return tuple_util::transform(block_f(grid),
-                hymap::convert_to<hymap::keys, positionals_t>(
-                    positionals_t{grid.i_low_bound(), grid.j_low_bound(), grid.k_min()}));
-        }
-
-        template <class Grid>
-        tuple<> make_positionals(meta::list<>, Grid const &) {
-            return {};
         }
 
         template <class DataStores>
@@ -124,15 +107,11 @@ namespace gridtools {
             return tuple_util::transform(at_key_f<Src>{src}, hymap::from_keys_values<Plhs, Plhs>());
         }
 
-        template <class Mss, class NeedPositionals, class Grid, class DataStores>
-        auto make_composite(Grid grid, DataStores &data_stores) {
-            using positionals_t = meta::if_<NeedPositionals, meta::list<dim::i, dim::j, dim::k>, meta::list<>>;
-
+        template <class Mss, class DataStores, class Positionals>
+        auto make_composite(DataStores &data_stores, Positionals positionals) {
             using plhs_t = extract_placeholders_from_mss<Mss>;
 
-            return hymap::concat(sid::composite::keys<>::values<>(),
-                filter_map<plhs_t>(data_stores),
-                make_positionals(positionals_t(), grid));
+            return hymap::concat(sid::composite::keys<>::values<>(), filter_map<plhs_t>(data_stores), positionals);
         }
 
         template <class Count, class Stages>
@@ -161,23 +140,23 @@ namespace gridtools {
                 adapt_interval_f<Grid>{grid}, meta::rename<tuple, typename MssComponents::loop_intervals_t>());
         }
 
-        template <class MssComponentsList, class NeedPositionals, class Grid, class DataStortes>
-        auto make_mss_parallel_loops(Grid const &grid, DataStortes &data_stores) {
+        template <class MssComponentsList, class Grid, class DataStortes, class Positionals>
+        auto make_mss_parallel_loops(Grid const &grid, DataStortes &data_stores, Positionals positionals) {
             return tuple_util::transform(
                 [&](auto mss_components) {
                     using mss_components_t = decltype(mss_components);
                     using extent_t = get_extent_from_loop_intervals<typename mss_components_t::loop_intervals_t>;
 
                     auto composite =
-                        make_composite<typename mss_components_t::mss_descriptor_t, NeedPositionals>(grid, data_stores);
+                        make_composite<typename mss_components_t::mss_descriptor_t>(data_stores, positionals);
                     auto loop_intervals = make_loop_intervals<mss_components_t>(grid);
                     return make_mss_parallel_loop<extent_t>(std::move(composite), std::move(loop_intervals));
                 },
                 MssComponentsList());
         }
 
-        template <class MssComponentsList, class NeedPositionals, class Grid, class DataStortes>
-        auto make_mss_serial_loops(Grid const &grid, DataStortes &data_stores) {
+        template <class MssComponentsList, class NeedPositionals, class Grid, class DataStortes, class Positionals>
+        auto make_mss_serial_loops(Grid const &grid, DataStortes &data_stores, Positionals positionals) {
             return tuple_util::transform(
                 [&](auto mss_components) {
                     using mss_components_t = decltype(mss_components);
@@ -185,7 +164,7 @@ namespace gridtools {
                     using execution_t = typename mss_components_t::execution_engine_t;
 
                     auto composite =
-                        make_composite<typename mss_components_t::mss_descriptor_t, NeedPositionals>(grid, data_stores);
+                        make_composite<typename mss_components_t::mss_descriptor_t>(data_stores, positionals);
                     auto loop_intervals = make_loop_intervals<mss_components_t>(grid);
 
                     return make_mss_serial_loop<extent_t>(grid.k_total_length(),
@@ -197,40 +176,38 @@ namespace gridtools {
         }
 
         template <class MssComponentsList,
-            class NeedPositionals,
             class Grid,
             class DataStortes,
+            class Positionals,
             std::enable_if_t<_impl::all_mss_kparallel<MssComponentsList>::value, int> = 0>
-        void run_loops(Grid const &grid, DataStortes data_stores) {
+        void run_loops(Grid const &grid, DataStortes data_stores, Positionals positionals) {
             exec_parallel(execinfo_mc(grid),
                 grid.k_total_length(),
-                make_mss_parallel_loops<MssComponentsList, NeedPositionals>(grid, data_stores));
+                make_mss_parallel_loops<MssComponentsList>(grid, data_stores, positionals));
         }
 
         template <class MssComponentsList,
             class NeedPositionals,
             class Grid,
             class DataStortes,
+            class Positionals,
             std::enable_if_t<!_impl::all_mss_kparallel<MssComponentsList>::value, int> = 0>
-        void run_loops(Grid const &grid, DataStortes data_stores) {
-            exec_serial(
-                execinfo_mc(grid), make_mss_serial_loops<MssComponentsList, NeedPositionals>(grid, data_stores));
+        void run_loops(Grid const &grid, DataStortes data_stores, Positionals positionals) {
+            exec_serial(execinfo_mc(grid), make_mss_serial_loops<MssComponentsList>(grid, data_stores, positionals));
         }
 
-        template <class NeedPositionals, class Grid, class Msses>
-        auto make_intermediate(backend, NeedPositionals, Grid const &grid, Msses) {
-            return [grid](auto external_data_stores) {
-                tmp_allocator_mc alloc;
-                auto data_stores = hymap::concat(shift_origin_and_block(grid, std::move(external_data_stores)),
-                    make_temporaries<Msses>(grid, alloc));
+        template <class Grid, class Msses, class DataStores, class Positionals>
+        void gridtools_backend_entry_point(
+            backend, Msses, Grid const &grid, DataStores external_data_stores, Positionals positionals) {
+            tmp_allocator_mc alloc;
+            auto data_stores =
+                hymap::concat(block(grid, std::move(external_data_stores)), make_temporaries<Msses>(grid, alloc));
 
-                using esfs_t = meta::flatten<meta::transform<get_esfs, Msses>>;
-                using extent_map_t = get_extent_map<esfs_t>;
-                using mss_components_array_t =
-                    build_mss_components_array<Msses, extent_map_t, typename Grid::axis_type>;
+            using esfs_t = meta::flatten<meta::transform<get_esfs, Msses>>;
+            using extent_map_t = get_extent_map<esfs_t>;
+            using mss_components_array_t = build_mss_components_array<Msses, extent_map_t, typename Grid::axis_type>;
 
-                run_loops<mss_components_array_t, NeedPositionals>(grid, std::move(data_stores));
-            };
+            run_loops<mss_components_array_t>(grid, std::move(data_stores), block(grid, positionals));
         }
     } // namespace mc
 } // namespace gridtools

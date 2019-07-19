@@ -21,6 +21,7 @@
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../arg.hpp"
+#include "../backend.hpp"
 #include "../caches/cache_definitions.hpp"
 #include "../caches/define_caches.hpp"
 #include "../esf_metafunctions.hpp"
@@ -28,9 +29,7 @@
 #include "expand_factor.hpp"
 
 namespace gridtools {
-
     namespace intermediate_expand_impl_ {
-
         template <class Plh, class = void>
         struct is_expandable : std::false_type {};
 
@@ -60,9 +59,14 @@ namespace gridtools {
                 using type = Plh;
             };
 
-            template <class I, class ID, class DataStore, class Location, bool Temporary>
-            struct convert_plh<I, plh<ID, std::vector<DataStore>, Location, Temporary>> {
-                using type = plh<expand_tag<I, ID>, DataStore, Location, Temporary>;
+            template <class I, class ID, class DataStore, class Location>
+            struct convert_plh<I, plh<ID, std::vector<DataStore>, Location>> {
+                using type = plh<expand_tag<I, ID>, DataStore, Location>;
+            };
+
+            template <class I, class ID, class Data, class Location>
+            struct convert_plh<I, tmp_plh<ID, std::vector<Data>, Location>> {
+                using type = tmp_plh<expand_tag<I, ID>, Data, Location>;
             };
 
             template <class I, class Cache>
@@ -94,7 +98,6 @@ namespace gridtools {
         };
 
         namespace lazy {
-
             template <class...>
             struct convert_mss;
 
@@ -170,7 +173,7 @@ namespace gridtools {
                 using tag_t = typename Plh::tag_t;
                 using index_t = meta::first<tag_t>;
                 using src_plh_t =
-                    plh<meta::second<tag_t>, std::vector<typename Plh::data_store_t>, typename Plh::location_t, false>;
+                    plh<meta::second<tag_t>, std::vector<typename Plh::data_store_t>, typename Plh::location_t>;
                 return at_key<src_plh_t>(map)[offset + index_t::value];
             }
         };
@@ -191,24 +194,24 @@ namespace gridtools {
             return tuple_util::generate<generators_t, res_t>(offset, data_store_map);
         }
 
-        template <class ExpandFactor, class Backend, class IsStateful, class Grid, class Msses>
-        auto make_intermediate_expand(ExpandFactor, Backend, IsStateful, Grid const &grid, Msses) {
-            auto make_converted_intermediate = [&](auto expand_factor) {
-                return make_intermediate(
-                    Backend{}, IsStateful{}, grid, convert_msses<decltype(expand_factor), Msses>{});
-            };
-            return [intermediate = make_converted_intermediate(ExpandFactor{}),
-                       intermediate_remainder = make_converted_intermediate(expand_factor<1>{})](
-                       auto const &data_store_map) {
-                size_t size = get_expandable_size(data_store_map);
+        template <class ExpandFactor, class Backend, class IsStateful, class Msses>
+        struct expandable_entry_point_f {
+            template <class Factor>
+            using converted_entry_point = backend_entry_point_f<Backend, IsStateful, convert_msses<Factor, Msses>>;
+
+            template <class Grid, class DataStores>
+            void operator()(Grid const &grid, DataStores data_stores) const {
+                size_t size = get_expandable_size(data_stores);
                 size_t offset = 0;
                 for (; size - offset >= ExpandFactor::value; offset += ExpandFactor::value)
-                    intermediate(convert_data_store_map<ExpandFactor>(offset, data_store_map));
+                    converted_entry_point<ExpandFactor>()(
+                        grid, convert_data_store_map<ExpandFactor>(offset, data_stores));
                 for (; offset < size; ++offset)
-                    intermediate_remainder(convert_data_store_map<expand_factor<1>>(offset, data_store_map));
-            };
-        }
+                    converted_entry_point<expand_factor<1>>()(
+                        grid, convert_data_store_map<expand_factor<1>>(offset, data_stores));
+            }
+        };
     } // namespace intermediate_expand_impl_
 
-    using intermediate_expand_impl_::make_intermediate_expand;
+    using intermediate_expand_impl_::expandable_entry_point_f;
 } // namespace gridtools

@@ -32,13 +32,15 @@ namespace gridtools {
             template <class>
             struct k_cache_original {};
 
+            struct k_pos_key;
+
             template <class Plh, class BoundChecker, class Sync, class From, class Count, class Step>
             struct sync_all_stage {
                 template <class Ptrs, class Strides, class ExtentValidator>
                 GT_FUNCTION_DEVICE void operator()(Ptrs const &GT_RESTRICT ptrs,
                     Strides const &GT_RESTRICT strides,
                     ExtentValidator &&extent_validator) const {
-                    auto k_pos = *device::at_key<positional<dim::k>>(ptrs) + From();
+                    auto k_pos = *device::at_key<k_pos_key>(ptrs) + From();
                     auto &&bound_checker = *device::at_key<BoundChecker>(ptrs);
 
                     auto original = device::at_key<k_cache_original<Plh>>(ptrs);
@@ -66,7 +68,7 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE void operator()(Ptrs const &GT_RESTRICT ptrs,
                     Strides const &GT_RESTRICT strides,
                     ExtentValidator &&extent_validator) const {
-                    auto k_pos = *device::at_key<positional<dim::k>>(ptrs) + Offset();
+                    auto k_pos = *device::at_key<k_pos_key>(ptrs) + Offset();
                     auto &&bound_checker = *device::at_key<BoundChecker>(ptrs);
 
                     auto original = device::at_key<k_cache_original<Plh>>(ptrs);
@@ -311,8 +313,13 @@ namespace gridtools {
             template <class Mss, class DataStores>
             auto make_bound_checkers(DataStores const &data_stores) {
                 using plhs_t = meta::dedup<meta::concat<sync_plhs<Mss, fill>, sync_plhs<Mss, flush>>>;
-                return hymap::concat(
-                    make_lower_bound_sids<Mss, plhs_t>(data_stores), make_upper_bound_sids<Mss, plhs_t>(data_stores));
+                using positionals_t = meta::if_<meta::is_empty<plhs_t>,
+                    hymap::keys<>::values<>,
+                    hymap::keys<k_pos_key>::values<positional<dim::k>>>;
+
+                return hymap::concat(make_lower_bound_sids<Mss, plhs_t>(data_stores),
+                    make_upper_bound_sids<Mss, plhs_t>(data_stores),
+                    positionals_t());
             }
         } // namespace fill_flush_impl_
 

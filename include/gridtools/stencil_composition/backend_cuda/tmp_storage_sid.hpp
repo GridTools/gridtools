@@ -85,7 +85,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(is_plh<Plh>::value, GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
             return sid::shift_sid_origin(
-                sid::make_contiguous<typename Plh::data_store_t::data_t, int_t>(
+                sid::make_contiguous<typename Plh::data_t, int_t>(
                     alloc, tmp_impl_::sizes(plh, block_size_i, block_size_j, extent, n_blocks_i, n_blocks_j, k_size)),
                 tmp_impl_::origin_offset(extent));
         }

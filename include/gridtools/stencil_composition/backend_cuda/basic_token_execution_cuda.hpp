@@ -22,13 +22,13 @@ namespace gridtools {
     namespace cuda {
         namespace _impl {
             template <class ExecutionType, class Grid>
-            auto start(ExecutionType, Grid const &grid) {
-                return grid.k_min();
+            integral_constant<int_t, 0> start(ExecutionType, Grid &&) {
+                return {};
             };
 
             template <class Grid>
             auto start(execute::backward, Grid const &grid) {
-                return grid.k_max();
+                return grid.k_total_length();
             };
         } // namespace _impl
 
@@ -74,14 +74,13 @@ namespace gridtools {
             }
         };
 
-        template <int_t BlockSize, class LoopIntervals, class Start>
+        template <int_t BlockSize, class LoopIntervals>
         struct parallel_k_loop_f {
             LoopIntervals m_loop_intervals;
-            Start m_start;
 
             template <class Ptr, class Strides, class Validator>
             GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
-                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start + (int_t)blockIdx.z * BlockSize);
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), (int_t)blockIdx.z * BlockSize);
                 int cur = -(int_t)blockIdx.z * BlockSize;
                 tuple_util::device::for_each(
                     [&](auto const &loop_interval) {
@@ -103,16 +102,18 @@ namespace gridtools {
         };
 
         template <class Mss,
+            class DataStores,
             class Grid,
             class LoopIntervals,
             std::enable_if_t<meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value, int> = 0>
         auto make_k_loop(Grid const &grid, LoopIntervals loop_intervals) {
             using execution_t = typename Mss::execution_engine_t;
-            return cached_k_loop_f<execution_t, LoopIntervals, k_caches_type<Mss>>{
+            return cached_k_loop_f<execution_t, LoopIntervals, k_caches_type<Mss, DataStores>>{
                 std::move(loop_intervals), _impl::start(execution_t(), grid)};
         }
 
         template <class Mss,
+            class /*DataStores*/,
             class Grid,
             class LoopIntervals,
             std::enable_if_t<!meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value &&
@@ -125,14 +126,14 @@ namespace gridtools {
         }
 
         template <class Mss,
+            class /*DataStores*/,
             class Grid,
             class LoopIntervals,
             std::enable_if_t<!meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value &&
                                  execute::is_parallel<typename Mss::execution_engine_t>::value,
                 int> = 0>
         auto make_k_loop(Grid const &grid, LoopIntervals loop_intervals) {
-            return parallel_k_loop_f<Mss::execution_engine_t::block_size, LoopIntervals, decltype(grid.k_min())>{
-                std::move(loop_intervals), grid.k_min()};
+            return parallel_k_loop_f<Mss::execution_engine_t::block_size, LoopIntervals>{std::move(loop_intervals)};
         }
 
     } // namespace cuda

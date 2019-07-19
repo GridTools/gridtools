@@ -92,15 +92,31 @@ namespace gridtools {
                 }
             };
 
-            template <class Esfs>
+            template <class Plh, class DataStores, bool = has_key<DataStores, Plh>::value>
+            struct get_data_type {
+                using plhs_t = get_keys<DataStores>;
+                using index_t = meta::st_position<plhs_t, Plh>;
+                using data_store_t = std::decay_t<tuple_util::element<index_t::value, DataStores>>;
+                using type = sid::element_type<data_store_t>;
+            };
+
+            template <class Plh, class DataStores>
+            struct get_data_type<Plh, DataStores, false> {
+                using type = typename Plh::data_t;
+            };
+
+            template <class Esfs, class DataStores>
             struct storage_type_f {
                 template <class Plh, class Extent = extract_k_extent_for_cache<Plh, Esfs>>
-                using apply = storage<typename Plh::data_store_t::data_t, Extent::kminus::value, Extent::kplus::value>;
+                using apply =
+                    storage<typename get_data_type<Plh, DataStores>::type, Extent::kminus::value, Extent::kplus::value>;
             };
 
             template <class Mss,
+                class DataStores,
                 class Plhs = meta::transform<cache_parameter, meta::filter<is_k_cache, typename Mss::cache_sequence_t>>,
-                class Storages = meta::transform<storage_type_f<typename Mss::esf_sequence_t>::template apply, Plhs>>
+                class Storages =
+                    meta::transform<storage_type_f<typename Mss::esf_sequence_t, DataStores>::template apply, Plhs>>
             using k_caches_type = k_caches<hymap::from_keys_values<Plhs, Storages>>;
         } // namespace k_cache_impl_
 

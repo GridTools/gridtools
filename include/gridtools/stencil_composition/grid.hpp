@@ -105,15 +105,13 @@ namespace gridtools {
 
         integral_constant<int_t, grid_impl_::real_offset(Axis::FromLevel::offset)> k_min() const { return {}; }
 
-        int_t k_max() const {
-            // -1 because the axis has to be one level bigger than the largest k interval
-            return value_at<typename Axis::ToLevel>() - 1;
-        }
-
         /**
          * The total length of the k dimension as defined by the axis.
          */
-        int_t k_total_length() const { return k_max() - k_min() + 1; }
+        int_t k_total_length() const {
+            // the axis has to be one level bigger than the largest k interval
+            return value_at<typename Axis::ToLevel>() - k_min();
+        }
     };
 
     template <class T>

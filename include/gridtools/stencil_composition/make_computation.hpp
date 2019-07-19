@@ -14,6 +14,7 @@
 
 #include "../common/defs.hpp"
 #include "../meta.hpp"
+#include "backend.hpp"
 #include "computation_facade.hpp"
 #include "mss.hpp"
 
@@ -25,12 +26,11 @@ namespace gridtools {
 #define GT_POSITIONAL_WHEN_DEBUGGING false
 #endif
 
-    template <class Backend, bool IsStateful = GT_POSITIONAL_WHEN_DEBUGGING, class Grid, class... Args>
-    auto make_computation(Grid const &grid, Args... args) {
-        return make_computation_facade<Backend>(
-            make_intermediate(
-                Backend{}, bool_constant<IsStateful>{}, grid, meta::filter<is_mss_descriptor, std::tuple<Args...>>{}),
-            std::move(args)...);
+    template <class Backend, bool IsStateful = GT_POSITIONAL_WHEN_DEBUGGING, class... Args>
+    auto make_computation(Args... args) {
+        using msses_t = meta::filter<is_mss_descriptor, std::tuple<Args...>>;
+        using entry_point_t = backend_entry_point_f<Backend, bool_constant<IsStateful>, msses_t>;
+        return make_computation_facade<Backend, entry_point_t>(std::move(args)...);
     }
 
 #undef GT_POSITIONAL_WHEN_DEBUGGING

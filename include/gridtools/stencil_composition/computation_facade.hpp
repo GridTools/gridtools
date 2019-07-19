@@ -65,7 +65,7 @@ namespace gridtools {
             }
         };
 
-        template <class BoundArgStoragePairs, class MssDescriptors, class Meter, class Intermediate>
+        template <class BoundArgStoragePairs, class MssDescriptors, class Meter, class EntryPoint, class Grid>
         class computation_facade {
 
             GT_STATIC_ASSERT((meta::all_of<is_arg_storage_pair, BoundArgStoragePairs>::value), GT_INTERNAL_ERROR);
@@ -95,7 +95,7 @@ namespace gridtools {
 
             Meter m_meter;
 
-            Intermediate m_intermediate;
+            Grid m_grid;
             BoundArgStoragePairs m_bound_data_stores;
 
             template <class Plh>
@@ -114,9 +114,8 @@ namespace gridtools {
             }
 
           public:
-            computation_facade(Intermediate intermediate, BoundArgStoragePairs bound_data_stores)
-                : m_meter{"NoName"}, m_intermediate{std::move(intermediate)}, m_bound_data_stores{
-                                                                                  std::move(bound_data_stores)} {}
+            computation_facade(Grid grid, BoundArgStoragePairs bound_data_stores)
+                : m_meter{"NoName"}, m_grid(std::move(grid)), m_bound_data_stores(std::move(bound_data_stores)) {}
 
             template <class... Plhs, class... DataStores>
             std::enable_if_t<sizeof...(Plhs) == meta::length<free_placeholders_t>::value> run(
@@ -126,7 +125,7 @@ namespace gridtools {
                 GT_STATIC_ASSERT(
                     meta::is_set_fast<meta::list<Plhs...>>::value, "free placeholders should be all different");
                 m_meter.start();
-                m_intermediate(data_store_map(std::move(srcs)...));
+                EntryPoint()(m_grid, data_store_map(std::move(srcs)...));
                 m_meter.pause();
             }
 
@@ -152,13 +151,14 @@ namespace gridtools {
     } // namespace computation_facade_impl_
 
     template <class Backend,
-        class Intermediate,
+        class EntryPoint,
+        class Grid,
         class... Args,
         class BoundArgStoragePairs = meta::filter<is_arg_storage_pair, std::tuple<Args...>>,
         class MssDescriptors = meta::filter<is_mss_descriptor, meta::list<Args...>>,
         class Meter = typename timer_traits<Backend>::timer_type>
-    computation_facade_impl_::computation_facade<BoundArgStoragePairs, MssDescriptors, Meter, Intermediate>
-    make_computation_facade(Intermediate intermediate, Args... args) {
-        return {std::move(intermediate), split_args<is_arg_storage_pair>(std::move(args)...).first};
+    computation_facade_impl_::computation_facade<BoundArgStoragePairs, MssDescriptors, Meter, EntryPoint, Grid>
+    make_computation_facade(Grid grid, Args... args) {
+        return {std::move(grid), split_args<is_arg_storage_pair>(std::move(args)...).first};
     }
 } // namespace gridtools
