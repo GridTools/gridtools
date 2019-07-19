@@ -1,6 +1,7 @@
 include (CMakeDependentOption)
 
-set( CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON CACHE INTERNAL "" )
+set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON CACHE BOOL "")
+mark_as_advanced(CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
 
 option( GT_ENABLE_PYUTILS "If on, Python utility scripts will be configured" OFF)
 option( GT_ENABLE_BACKEND_CUDA "Compile CUDA GPU backend examples and unit tests" ${CUDA_AVAILABLE})
@@ -34,7 +35,7 @@ set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++14;c++17")
 
 option( GT_ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experimental repository" OFF )
 
-#if we are pointing to the default install path (usually system) we will disable installation of examples by default    
+#if we are pointing to the default install path (usually system) we will disable installation of examples by default
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(_default_GT_INSTALL_EXAMPLES OFF)
 else()
@@ -42,7 +43,7 @@ else()
 endif()
 option(GT_INSTALL_EXAMPLES "Install example sources" ${_default_GT_INSTALL_EXAMPLES})
 if(GT_INSTALL_EXAMPLES)
-    set(GT_INSTALL_EXAMPLES_PATH "${CMAKE_INSTALL_PREFIX}/gridtools_examples" CACHE FILEPATH 
+    set(GT_INSTALL_EXAMPLES_PATH "${CMAKE_INSTALL_PREFIX}/gridtools_examples" CACHE FILEPATH
         "Specifies where the source codes of examples should be installed")
     mark_as_advanced(CLEAR GT_INSTALL_EXAMPLES_PATH)
 else()

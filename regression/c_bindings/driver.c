@@ -56,7 +56,7 @@ void verify(const char *label, float_type arr[I][J][K]) {
 int main() {
     float_type in[I][J][K];
     float_type out[I][J][K];
-    gt_handle *in_handle, *out_handle, *stencil;
+    bindgen_handle *in_handle, *out_handle, *stencil;
 
     init_in(in);
 
@@ -71,9 +71,9 @@ int main() {
     verify("in", in);
     verify("out", out);
 
-    gt_release(stencil);
-    gt_release(in_handle);
-    gt_release(out_handle);
+    bindgen_release(stencil);
+    bindgen_release(in_handle);
+    bindgen_release(out_handle);
 
     printf("It works!\n");
 }

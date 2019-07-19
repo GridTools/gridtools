@@ -25,5 +25,4 @@ endif()
 
 if ( COMPONENT_C_BINDINGS )
    add_subdirectory( interface )
-   add_subdirectory( c_bindings )
 endif()

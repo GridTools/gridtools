@@ -7,6 +7,7 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         # ... but actually generate the preprocessed file
         target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS})
         target_link_libraries( ${cpp_file}_OBJECTS common )
+        target_link_libraries( ${cpp_file}_OBJECTS cpp_bindgen_interface )
 
         # add a target for the generated file
         add_custom_command( OUTPUT ${preprocessed_file_out}
@@ -51,6 +52,7 @@ if (GT_ENABLE_BACKEND_X86)
 
     add_executable( custom_test_generated_repository ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
     target_link_libraries(custom_test_generated_repository gtest_main GridToolsTestX86 )
+    target_link_libraries(custom_test_generated_repository cpp_bindgen_interface)
     gridtools_add_test(
         NAME custom_test_generated_repository
         COMMAND $<TARGET_FILE:custom_test_generated_repository>
@@ -70,7 +72,7 @@ else()
     set(prec double)
 endif()
 
-gt_add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
+bindgen_add_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
 target_link_libraries(repository_${prec} PUBLIC gridtools gtest)
 if(GT_SINGLE_PRECISION)
     target_compile_definitions(repository_${prec} PUBLIC GT_FLOAT_PRECISION=4)
@@ -83,7 +85,7 @@ if (CMAKE_Fortran_COMPILER_LOADED)
 
     add_library(repository_fortran_lib test_repository.f90)
     target_link_libraries(repository_fortran_lib repository_${prec}_fortran)
-    gt_enable_fortran_preprocessing_on_target(repository_fortran_lib)
+    bindgen_enable_fortran_preprocessing_on_target(repository_fortran_lib)
 
     if (GT_ENABLE_BACKEND_X86)
         add_custom_test(

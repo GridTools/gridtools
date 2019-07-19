@@ -9,9 +9,9 @@
  */
 #pragma once
 
-#include "../c_bindings/fortran_array_view.hpp"
 #include "../storage/common/storage_info_rt.hpp"
 #include "./layout_transformation/layout_transformation.hpp"
+#include <cpp_bindgen/fortran_array_view.hpp>
 
 namespace gridtools {
     template <class DataStore,
@@ -21,18 +21,18 @@ namespace gridtools {
         static_assert(is_data_store<std::remove_const_t<DataStore>>::value, "");
 
       public:
-        fortran_array_adapter(const gt_fortran_array_descriptor &descriptor) : m_descriptor(descriptor) {
-            if (m_descriptor.rank != gt_view_rank::value)
+        fortran_array_adapter(const bindgen_fortran_array_descriptor &descriptor) : m_descriptor(descriptor) {
+            if (m_descriptor.rank != bindgen_view_rank::value)
                 throw std::runtime_error("rank does not match (descriptor-rank [" + std::to_string(m_descriptor.rank) +
-                                         "] != datastore-rank [" + std::to_string(gt_view_rank::value) + "]");
+                                         "] != datastore-rank [" + std::to_string(bindgen_view_rank::value) + "]");
         }
 
         fortran_array_adapter(const fortran_array_adapter &) = delete;
         fortran_array_adapter(fortran_array_adapter &&other) = default;
 
-        using gt_view_rank = std::integral_constant<size_t, Layout::unmasked_length>;
-        using gt_view_element_type = typename DataStore::data_t;
-        using gt_is_acc_present = bool_constant<true>;
+        using bindgen_view_rank = std::integral_constant<size_t, Layout::unmasked_length>;
+        using bindgen_view_element_type = typename DataStore::data_t;
+        using bindgen_is_acc_present = bool_constant<true>;
 
         friend void transform(DataStore &dest, const fortran_array_adapter &src) {
             adapter{const_cast<fortran_array_adapter &>(src), dest}.from_array();
@@ -103,6 +103,6 @@ namespace gridtools {
             std::vector<uint_t> m_cpp_strides;
         };
 
-        const gt_fortran_array_descriptor &m_descriptor;
+        const bindgen_fortran_array_descriptor &m_descriptor;
     };
 } // namespace gridtools

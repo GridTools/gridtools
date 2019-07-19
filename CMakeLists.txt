@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION 3.14.5)
 
 cmake_policy(SET CMP0048 NEW)
 file(STRINGS "version.txt" __GT_VERSION)
@@ -18,7 +18,7 @@ detect_cuda()
 detect_openmp()
 detect_mpi()
 
-include (flags)
+include(flags)
 
 if(POLICY CMP0060)
   # Policy to avoid cmake to substitute libraries with paths and extensions with -l<libname>
@@ -31,39 +31,37 @@ endif()
 # 3) testing methods
 # 4) build configurator (include path, compiler flags, etc.
 # ===============
-include (definitions)
+include(definitions)
 if (BUILD_TESTING)
-    include (testing)
+    include(testing)
 endif()
-include (bindings)
-include (components)
+include(components)
+
+include(FetchContent)
+FetchContent_Declare(
+  cpp_bindgen
+  GIT_REPOSITORY https://github.com/GridTools/cpp_bindgen.git
+  GIT_TAG        master
+)
+# Enable legacy mode for CPP_BINDGEN for users of GT 1.0
+# TODO remove in GT 2.0
+set(CPP_BINDGEN_GT_LEGACY ON)
+FetchContent_MakeAvailable(cpp_bindgen)
 
 # TODO this install targets are not finished on purpose.
 if( COMPONENT_COMMON )
-    install(TARGETS gridtools EXPORT GridToolstargets
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
-      INCLUDES DESTINATION include
-    )
-    install(EXPORT GridToolstargets
-      FILE GridToolsTargets.cmake
-      NAMESPACE gridtools::
-      DESTINATION ${INSTALL_CONFIGDIR}
-    )
-
     generate_target_for(NAME common)
     target_link_libraries(common INTERFACE gridtools)
 endif()
 
 if( COMPONENT_BOUNDARY_CONDITIONS )
     generate_target_for(NAME boundary_conditions)
-    target_link_libraries( boundary_conditions INTERFACE common )
+    target_link_libraries(boundary_conditions INTERFACE common)
 endif()
 
 if( COMPONENT_STENCIL_COMPOSITION )
     generate_target_for(NAME stencil_composition)
-    target_link_libraries( stencil_composition INTERFACE common )
+    target_link_libraries(stencil_composition INTERFACE common)
 endif()
 
 if( COMPONENT_GCL )
@@ -76,12 +74,12 @@ endif()
 
 if( COMPONENT_DISTRIBUTED_BOUNDARIES )
     generate_target_for(NAME distributed_boundaries)
-    target_link_libraries( distributed_boundaries INTERFACE boundary_conditions gcl )
+    target_link_libraries(distributed_boundaries INTERFACE boundary_conditions gcl)
 endif()
 
 if( COMPONENT_STORAGE )
     generate_target_for(NAME storage)
-    target_link_libraries( distributed_boundaries INTERFACE common )
+    target_link_libraries(distributed_boundaries INTERFACE common)
 endif()
 
 if( COMPONENT_INTERFACE )
@@ -90,10 +88,6 @@ endif()
 
 if( COMPONENT_TOOLS )
     generate_target_for(NAME tools)
-endif()
-
-if(COMPONENT_C_BINDINGS)
-    generate_target_for(NAME c_bindings)
 endif()
 
 # ===============
@@ -106,7 +100,7 @@ if(BUILD_TESTING)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)
-  
+
   add_subdirectory(docs_src/manuals/getting_started)
 endif()
 
@@ -131,4 +125,5 @@ if(GT_ENABLE_PYUTILS)
     add_subdirectory(pyutils)
 endif()
 
-include(export)
+# absolute path to avoid collision with "export" from other packages
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/export.cmake)

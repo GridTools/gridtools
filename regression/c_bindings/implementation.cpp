@@ -12,7 +12,7 @@
 #include <iostream>
 #include <typeinfo>
 
-#include <gridtools/c_bindings/export.hpp>
+#include <cpp_bindgen/export.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
@@ -42,10 +42,10 @@ namespace {
     generic_data_store_t<T> make_data_store(uint_t x, uint_t y, uint_t z, T *ptr) {
         return generic_data_store_t<T>(storage_info_t(x, y, z), ptr);
     }
-    GT_EXPORT_GENERIC_BINDING(4, generic_create_data_store, make_data_store, (double)(float));
-    GT_EXPORT_BINDING_4(create_data_store, make_data_store<float_type>);
+    BINDGEN_EXPORT_GENERIC_BINDING(4, generic_create_data_store, make_data_store, (double)(float));
+    BINDGEN_EXPORT_BINDING_4(create_data_store, make_data_store<float_type>);
 
-    GT_EXPORT_BINDING_WITH_SIGNATURE_1(sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));
+    BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_1(sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));
 
     using p_in = arg<0, data_store_t>;
     using p_out = arg<1, data_store_t>;
@@ -61,9 +61,9 @@ namespace {
             p_out{} = out,
             make_multistage(execute::forward(), make_stage<copy_functor>(p_in{}, p_out{})));
     }
-    GT_EXPORT_BINDING_2(create_copy_stencil, make_copy_stencil);
+    BINDGEN_EXPORT_BINDING_2(create_copy_stencil, make_copy_stencil);
 
     using stencil_t = decltype(make_copy_stencil(std::declval<data_store_t>(), std::declval<data_store_t>()));
 
-    GT_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
+    BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
 } // namespace

@@ -18,11 +18,11 @@ int main() {
     const int ny = 10;
     const int nz = 11;
 
-    gt_handle *grid_handle = make_grid(nx, ny, nz);
-    gt_handle *storage_info_handle = make_storage_info(nx, ny, nz);
-    gt_handle *in_handle = make_data_store(storage_info_handle);
-    gt_handle *out_handle = make_data_store(storage_info_handle);
-    gt_handle *computation_handle = make_copy_stencil(grid_handle);
+    bindgen_handle *grid_handle = make_grid(nx, ny, nz);
+    bindgen_handle *storage_info_handle = make_storage_info(nx, ny, nz);
+    bindgen_handle *in_handle = make_data_store(storage_info_handle);
+    bindgen_handle *out_handle = make_data_store(storage_info_handle);
+    bindgen_handle *computation_handle = make_copy_stencil(grid_handle);
     free(storage_info_handle);
     free(grid_handle);
 
@@ -44,10 +44,10 @@ int main() {
             }
 
     // in the C bindings, the fortran array descriptors need to be filled explicitly
-    gt_fortran_array_descriptor in_descriptor = {
-        .rank = 3, .type = gt_fk_Float, .dims = {nx, ny, nz}, .data = (void *)in_array};
-    gt_fortran_array_descriptor out_descriptor = {
-        .rank = 3, .type = gt_fk_Float, .dims = {nx, ny, nz}, .data = (void *)out_array};
+    bindgen_fortran_array_descriptor in_descriptor = {
+        .rank = 3, .type = bindgen_fk_Float, .dims = {nx, ny, nz}, .data = (void *)in_array};
+    bindgen_fortran_array_descriptor out_descriptor = {
+        .rank = 3, .type = bindgen_fk_Float, .dims = {nx, ny, nz}, .data = (void *)out_array};
 
     transform_f_to_c(in_handle, &in_descriptor);
     run_stencil(computation_handle, in_handle, out_handle);

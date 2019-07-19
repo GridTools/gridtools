@@ -1,5 +1,5 @@
 # This file drives compilation of all examples and is installed together with the example sources.
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@)
 
 project(GridTools-examples LANGUAGES CXX)
 
@@ -26,4 +26,3 @@ foreach(ex IN ITEMS @enabled_examples@)
     ExternalProject_Get_property(${ex}_example BINARY_DIR)
     add_test(NAME ${ex}_example COMMAND ctest WORKING_DIRECTORY ${BINARY_DIR})
 endforeach()
-

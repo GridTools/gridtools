@@ -8,13 +8,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/c_bindings/export.hpp>
+#include <cpp_bindgen/export.hpp>
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 
 namespace gt = gridtools;
 
-// In this example, we demonstrate how the c_bindings library can be used to export functions to C and Fortran. We are
+// In this example, we demonstrate how the cpp_bindgen library can be used to export functions to C and Fortran. We are
 // going to export the functions required to run a simple copy stencil (see also the commented example in
 // examples/stencil_composition/copy_stencil.cpp)
 
@@ -79,14 +79,14 @@ namespace {
     }
 
     // exports `make_grid_impl` (which needs 3 arguments) under the name `make_grid`
-    GT_EXPORT_BINDING_3(make_grid, make_grid_impl);
-    GT_EXPORT_BINDING_3(make_storage_info, make_storage_info_impl);
-    GT_EXPORT_BINDING_1(make_data_store, make_data_store_impl);
-    GT_EXPORT_BINDING_1(make_copy_stencil, make_copy_stencil_impl);
-    GT_EXPORT_BINDING_3(run_stencil, run_stencil_impl);
+    BINDGEN_EXPORT_BINDING_3(make_grid, make_grid_impl);
+    BINDGEN_EXPORT_BINDING_3(make_storage_info, make_storage_info_impl);
+    BINDGEN_EXPORT_BINDING_1(make_data_store, make_data_store_impl);
+    BINDGEN_EXPORT_BINDING_1(make_copy_stencil, make_copy_stencil_impl);
+    BINDGEN_EXPORT_BINDING_3(run_stencil, run_stencil_impl);
 
     // In order to generate the additional wrapper for Fortran array,
     // the *_WRAPPED_* versions need to be used
-    GT_EXPORT_BINDING_WRAPPED_2(transform_c_to_f, transform_c_to_f_impl);
-    GT_EXPORT_BINDING_WRAPPED_2(transform_f_to_c, transform_f_to_c_impl);
+    BINDGEN_EXPORT_BINDING_WRAPPED_2(transform_c_to_f, transform_c_to_f_impl);
+    BINDGEN_EXPORT_BINDING_WRAPPED_2(transform_f_to_c, transform_f_to_c_impl);
 } // namespace

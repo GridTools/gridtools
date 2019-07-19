@@ -5,28 +5,29 @@ include(CMakePackageConfigHelpers)
 
 # for install tree
 set(GRIDTOOLS_MODULE_PATH lib/cmake)
-set(GRIDTOOLS_SOURCES_PATH src)
 set(GRIDTOOLS_INCLUDE_PATH include)
+set(GT_CPP_BINDGEN_CONFIG_LOCATION "\${CMAKE_CURRENT_LIST_DIR}")
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake
-  PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_SOURCES_PATH GRIDTOOLS_INCLUDE_PATH
+  PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_INCLUDE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake
   COMPATIBILITY SameMajorVersion )
 # for build tree
 set(GRIDTOOLS_MODULE_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake)
-set(GRIDTOOLS_SOURCES_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src)
 set(GRIDTOOLS_INCLUDE_PATH ${CMAKE_SOURCE_DIR}/include)
+FetchContent_GetProperties(cpp_bindgen)
+set(GT_CPP_BINDGEN_CONFIG_LOCATION ${cpp_bindgen_BINARY_DIR})
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}/GridToolsConfig.cmake
-  PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_SOURCES_PATH GRIDTOOLS_INCLUDE_PATH
+  PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_INCLUDE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
   INSTALL_DESTINATION ${PROJECT_BINARY_DIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
-  COMPATIBILITY SameMinorVersion )
+  COMPATIBILITY SameMajorVersion )
 
-install(TARGETS gridtools EXPORT GridToolsTargets
+install(TARGETS gridtools cpp_bindgen_interface EXPORT GridToolsTargets #TODO remove cpp_bindgen_interface in GT 2.0
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
@@ -39,12 +40,12 @@ if (COMPONENT_GCL)
       RUNTIME DESTINATION bin
       INCLUDES DESTINATION include
     )
-    export(TARGETS gridtools gcl
+    export(TARGETS gridtools gcl cpp_bindgen_interface #TODO remove cpp_bindgen_interface in GT 2.0
         FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
         NAMESPACE GridTools::
     )
 else()
-    export(TARGETS gridtools
+    export(TARGETS gridtools cpp_bindgen_interface #TODO remove cpp_bindgen_interface in GT 2.0
         FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
         NAMESPACE GridTools::
     )
@@ -62,31 +63,13 @@ install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsCo
     "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake" COMPONENT dev)
 
-# TODO for a next CMake refactoring: move this to an appropriate location
-# Also consider using a separate directory for source files which are installed, e.g. src_public
-set(BINDINGS_SOURCE_DIR "\${GridTools_SOURCES_PATH}")
-set(BINDINGS_CMAKE_DIR "\${GridTools_MODULE_PATH}")
-configure_file(cmake/gt_bindings.cmake.in
-    ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake
-    @ONLY)
-
 set(CMAKE_SOURCES
-    "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake" # TODO remove in GT 2.0
     "${PROJECT_SOURCE_DIR}/cmake/fortran_helpers.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/workaround_mpi.cmake"
     "${PROJECT_SOURCE_DIR}/cmake/workaround_check_language.cmake"
-    "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake"
-    )
-set(CBINDINGS_SOURCES
-    "${PROJECT_SOURCE_DIR}/src/c_bindings/generator.cpp"
-    "${PROJECT_SOURCE_DIR}/src/c_bindings/generator_main.cpp"
-    "${PROJECT_SOURCE_DIR}/src/c_bindings/array_descriptor.f90"
-    "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.f90"
-    "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.cpp"
     )
 
 install(FILES ${CMAKE_SOURCES} DESTINATION "lib/cmake")
-install(FILES ${CBINDINGS_SOURCES} DESTINATION "src/c_bindings")
 
 file(COPY ${CMAKE_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
-file(COPY ${CBINDINGS_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src/c_bindings")
