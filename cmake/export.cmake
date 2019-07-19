@@ -11,7 +11,6 @@ configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake
   PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_INCLUDE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
   INSTALL_DESTINATION lib/cmake)
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 
   write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake
