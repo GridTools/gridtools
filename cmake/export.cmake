@@ -1,19 +1,21 @@
 # this registers the build-tree with a global CMake-registry
 export(PACKAGE GridTools)
 
-include(CMakePackageConfigHelpers)
-
 # for install tree
 set(GRIDTOOLS_MODULE_PATH lib/cmake)
+
+include(CMakePackageConfigHelpers)
 set(GRIDTOOLS_INCLUDE_PATH include)
 set(GT_CPP_BINDGEN_CONFIG_LOCATION "\${CMAKE_CURRENT_LIST_DIR}")
 configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake
   PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_INCLUDE_PATH GT_CPP_BINDGEN_CONFIG_LOCATION
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
+  INSTALL_DESTINATION lib/cmake)
+
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake
   COMPATIBILITY SameMajorVersion )
+
 # for build tree
 set(GRIDTOOLS_MODULE_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake)
 set(GRIDTOOLS_INCLUDE_PATH ${CMAKE_SOURCE_DIR}/include)
@@ -27,33 +29,17 @@ write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
   COMPATIBILITY SameMajorVersion )
 
-install(TARGETS gridtools cpp_bindgen_interface EXPORT GridToolsTargets #TODO remove cpp_bindgen_interface in GT 2.0
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
+install(TARGETS cpp_bindgen_interface EXPORT GridToolsTargets)  #TODO remove cpp_bindgen_interface in GT 2.0
+
+export(EXPORT GridToolsTargets
+    FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
+    NAMESPACE GridTools::
 )
-if (COMPONENT_GCL)
-    install(TARGETS gcl EXPORT GridToolsTargets
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
-      INCLUDES DESTINATION include
-    )
-    export(TARGETS gridtools gcl cpp_bindgen_interface #TODO remove cpp_bindgen_interface in GT 2.0
-        FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
-        NAMESPACE GridTools::
-    )
-else()
-    export(TARGETS gridtools cpp_bindgen_interface #TODO remove cpp_bindgen_interface in GT 2.0
-        FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
-        NAMESPACE GridTools::
-    )
-endif()
+
 install(EXPORT GridToolsTargets
   FILE GridToolsTargets.cmake
   NAMESPACE GridTools::
-  DESTINATION ${INSTALL_CONFIGDIR}
+  DESTINATION lib/cmake
 )
 
 install(DIRECTORY include/gridtools/ DESTINATION include/gridtools)
@@ -61,7 +47,7 @@ install(DIRECTORY include/gridtools/ DESTINATION include/gridtools)
 # Install the GridToolsConfig.cmake and GridToolsConfigVersion.cmake
 install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake"
     "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake"
-  DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake" COMPONENT dev)
+  DESTINATION "lib/cmake")
 
 set(CMAKE_SOURCES
     "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake" # TODO remove in GT 2.0
