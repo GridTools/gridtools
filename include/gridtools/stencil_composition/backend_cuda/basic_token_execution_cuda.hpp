@@ -43,7 +43,7 @@ namespace gridtools {
                 KCaches k_caches;
                 auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
                 tuple_util::device::for_each(
-                    [&](auto const &loop_interval) {
+                    [&](auto const &loop_interval) GT_FORCE_INLINE_LAMBDA {
                         for (int_t i = 0; i < loop_interval.count(); ++i) {
                             loop_interval(mixed_ptr, strides, validator);
                             k_caches.slide(execute::step<ExecutionType>);
@@ -64,7 +64,7 @@ namespace gridtools {
             GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start);
                 tuple_util::device::for_each(
-                    [&](auto const &loop_interval) {
+                    [&](auto const &loop_interval) GT_FORCE_INLINE_LAMBDA {
                         for (int_t i = 0; i < loop_interval.count(); ++i) {
                             loop_interval(ptr, strides, validator);
                             sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
@@ -84,7 +84,7 @@ namespace gridtools {
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start + (int_t)blockIdx.z * BlockSize);
                 int cur = -(int_t)blockIdx.z * BlockSize;
                 tuple_util::device::for_each(
-                    [&](auto const &loop_interval) {
+                    [&](auto const &loop_interval) GT_FORCE_INLINE_LAMBDA {
                         if (cur >= BlockSize)
                             return;
                         auto count = loop_interval.count();

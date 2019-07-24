@@ -22,14 +22,18 @@
 #include "hip_wrappers.hpp"
 #endif
 
-#if defined(__CUDACC__)
+#if defined(__NVCC__)
 #define GT_FORCE_INLINE __forceinline__
+#define GT_FORCE_INLINE_LAMBDA
 #elif defined(__GNUC__)
 #define GT_FORCE_INLINE inline __attribute__((always_inline))
+#define GT_FORCE_INLINE_LAMBDA __attribute__((always_inline))
 #elif defined(_MSC_VER)
 #define GT_FORCE_INLINE inline __forceinline
+#define GT_FORCE_INLINE_LAMBDA
 #else
 #define GT_FORCE_INLINE inline
+#define GT_FORCE_INLINE_LAMBDA
 #endif
 
 /**
