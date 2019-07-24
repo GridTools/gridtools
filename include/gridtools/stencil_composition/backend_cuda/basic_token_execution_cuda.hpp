@@ -90,12 +90,12 @@ namespace gridtools {
                         auto count = loop_interval.count();
                         int_t lim = math::min(cur + count, BlockSize) - math::max(cur, 0);
                         cur += count;
-#pragma unroll BlockSize
+#pragma unroll
                         for (int_t i = 0; i < BlockSize; ++i) {
-                            if (i >= lim)
-                                break;
-                            loop_interval(ptr, strides, validator);
-                            sid::shift(ptr, sid::get_stride<dim::k>(strides), integral_constant<int_t, 1>());
+                            if (i < lim) {
+                                loop_interval(ptr, strides, validator);
+                                sid::shift(ptr, sid::get_stride<dim::k>(strides), integral_constant<int_t, 1>());
+                            }
                         }
                     },
                     m_loop_intervals);

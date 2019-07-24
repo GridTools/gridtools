@@ -49,13 +49,13 @@ namespace gridtools {
 
 #pragma unroll
                     for (int i = 0; i < Count::value; ++i) {
-                        if (!bound_checker(k_pos))
-                            return;
-                        if (extent_validator())
-                            Sync()(*cache, *original);
-                        sid::shift(original, sid::get_stride_element<k_cache_original<Plh>, dim::k>(strides), Step());
-                        sid::shift(cache, sid::get_stride_element<Plh, dim::k>(strides), Step());
-                        k_pos += Step::value;
+                        if (bound_checker(k_pos)) {
+                            if (extent_validator())
+                                Sync()(*cache, *original);
+                            sid::shift(original, sid::get_stride_element<k_cache_original<Plh>, dim::k>(strides), Step());
+                            sid::shift(cache, sid::get_stride_element<Plh, dim::k>(strides), Step());
+                            k_pos += Step::value;
+                        }
                     }
                 }
             };
