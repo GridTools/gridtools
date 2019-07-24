@@ -143,7 +143,7 @@ namespace gridtools {
                   handle_masked_dims<LayoutArgs>::extend(dims_))...)) {}
 
         GT_FUNCTION
-        storage_info(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
+        storage_info(array<uint_t, ndims> const &dims, array<uint_t, ndims> const &strides)
             : m_total_lengths{dims}, m_strides(strides) {
 
             // We guess the padded lengths from the dimensions and the strides. Assume, that the strides are sorted,
@@ -159,27 +159,35 @@ namespace gridtools {
             //   dimension.
             // - Otherwise, we find the stride s in the sorted array and we look for the next larger stride l in the
             //   sorted array. The padded length is then set to l / s. Note that strides might appear several times.
-            auto sorted_strides = strides;
+            array<uint_t, ndims> sorted_strides;
+#pragma unroll
             for (uint_t i = 0; i < ndims; ++i)
-                for (uint_t j = i + 1; j < ndims; ++j)
-                    if (sorted_strides[i] > sorted_strides[j]) {
+                sorted_strides[i] = strides[i];
+
+#pragma unroll
+            for (uint_t i = 0; i < ndims; ++i)
+#pragma unroll
+                for (uint_t j = 0; j < ndims; ++j)
+                    if (j > i && sorted_strides[i] > sorted_strides[j]) {
                         auto tmp = sorted_strides[i];
                         sorted_strides[i] = sorted_strides[j];
                         sorted_strides[j] = tmp;
                     }
 
+#pragma unroll
             for (uint_t i = 0; i < ndims; ++i) {
                 if (strides[i] == sorted_strides[ndims - 1])
                     m_padded_lengths[i] = dims[i];
                 else if (strides[i] == 0) {
                     m_padded_lengths[i] = 0;
                 } else {
-                    int i_in_sorted_stride = ndims;
                     // take the last stride that matches the stride we are looking for
-                    for (int ii = 0; ii < ndims; ++ii)
+                    uint_t next_bigger_stride;
+#pragma unroll
+                    for (uint_t ii = 0; ii < ndims - 1; ++ii)
                         if (strides[i] == sorted_strides[ii])
-                            i_in_sorted_stride = ii;
-                    m_padded_lengths[i] = sorted_strides[i_in_sorted_stride + 1] / strides[i];
+                            next_bigger_stride = sorted_strides[ii + 1];
+                    m_padded_lengths[i] = next_bigger_stride / strides[i];
                 }
             }
         }
