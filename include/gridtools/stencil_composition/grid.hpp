@@ -19,6 +19,8 @@
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "axis.hpp"
+#include "execution_types.hpp"
+#include "extent.hpp"
 #include "interval.hpp"
 #include "level.hpp"
 
@@ -27,11 +29,11 @@ namespace gridtools {
         constexpr int_t real_offset(int_t val) { return val > 0 ? val - 1 : val; }
     } // namespace grid_impl_
 
-    template <class Axis>
+    template <class Interval>
     class grid {
-        GT_STATIC_ASSERT(is_interval<Axis>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_interval<Interval>::value, GT_INTERNAL_ERROR);
 
-        static constexpr size_t size = Axis::ToLevel::splitter - Axis::FromLevel::splitter + 1;
+        static constexpr size_t size = Interval::ToLevel::splitter - Interval::FromLevel::splitter + 1;
 
         int_t m_i_low_bound;
         int_t m_i_size;
@@ -40,7 +42,7 @@ namespace gridtools {
         int_t m_value_list[size];
 
       public:
-        using axis_type = Axis;
+        using interval_t = Interval;
 
         template <class Intervals = std::initializer_list<int_t>>
         grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j, Intervals const &intervals)
@@ -60,9 +62,30 @@ namespace gridtools {
 
         int_t j_low_bound() const { return m_j_low_bound; }
 
-        int_t i_size() const { return m_i_size; }
+        template <class Extent = extent<>>
+        int_t i_size(Extent = {}) const {
+            return m_i_size + Extent::iplus::value - Extent::iminus::value;
+        }
 
-        int_t j_size() const { return m_j_size; }
+        template <class Extent = extent<>>
+        int_t j_size(Extent = {}) const {
+            return m_j_size + Extent::jplus::value - Extent::jminus::value;
+        }
+
+        template <class From, class To, class Execution>
+        auto k_start(interval<From, To>, Execution) const {
+            return value_at<From>() - k_min();
+        }
+
+        template <class From, class To>
+        auto k_start(interval<From, To>, execute::backward) const {
+            return value_at<To>() - k_min();
+        }
+
+        template <class From = typename Interval::FromLevel, class To = typename Interval::ToLevel>
+        auto k_size(interval<From, To> = {}) const {
+            return count(From(), To());
+        }
 
         template <class Level, int_t Offset = grid_impl_::real_offset(Level::offset)>
         int_t value_at() const {
@@ -103,14 +126,14 @@ namespace gridtools {
             return {};
         }
 
-        integral_constant<int_t, grid_impl_::real_offset(Axis::FromLevel::offset)> k_min() const { return {}; }
+        integral_constant<int_t, grid_impl_::real_offset(Interval::FromLevel::offset)> k_min() const { return {}; }
 
         /**
          * The total length of the k dimension as defined by the axis.
          */
         int_t k_total_length() const {
             // the axis has to be one level bigger than the largest k interval
-            return value_at<typename Axis::ToLevel>() - k_min();
+            return value_at<typename Interval::ToLevel>() - k_min() + 1;
         }
     };
 

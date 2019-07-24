@@ -84,7 +84,12 @@ namespace gridtools {
 
         template <class... Extents>
         struct enclosing_extent : meta::lazy::combine<gridtools::enclosing_extent, meta::list<Extents...>> {};
+
     } // namespace lazy
+
+    template <class Extent>
+    using to_horizontal_extent =
+        extent<Extent::iminus::value, Extent::iplus::value, Extent::jminus::value, Extent::jplus::value>;
 
     /**
      * Metafunction taking two extents and yielding a extent which is the extension of one another

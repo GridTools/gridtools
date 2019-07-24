@@ -16,6 +16,7 @@
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
 #include "dim.hpp"
+#include "make_stage_matrix.hpp"
 #include "positional.hpp"
 #include "sid/sid_shift_origin.hpp"
 
@@ -30,14 +31,14 @@ namespace gridtools {
         }
 
         template <class Grid>
-        auto make_positionals(Grid const &grid, meta::list<dim::i, dim::j, dim::k>) {
+        auto make_positionals(Grid const &grid, std::true_type) {
             using positionals_t = tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
             return hymap::convert_to<hymap::keys, positionals_t>(
                 positionals_t{grid.i_low_bound(), grid.j_low_bound(), grid.k_min()});
         }
 
         template <class Grid>
-        tuple<> make_positionals(Grid &&, meta::list<>) {
+        tuple<> make_positionals(Grid &&, std::false_type) {
             return {};
         }
 
@@ -45,12 +46,11 @@ namespace gridtools {
         struct backend_entry_point_f {
             template <class Grid, class DataStores>
             void operator()(Grid const &grid, DataStores data_stores) const {
-                using positionals_t = meta::if_<NeedPositionals, meta::list<dim::i, dim::j, dim::k>, meta::list<>>;
                 gridtools_backend_entry_point(Backend(),
-                    Msses(),
+                    make_stage_matrices<Msses, NeedPositionals, typename Grid::interval_t, DataStores>(),
                     grid,
-                    shift_origin(grid, std::move(data_stores)),
-                    make_positionals(grid, positionals_t()));
+                    hymap::concat(
+                        shift_origin(grid, std::move(data_stores)), make_positionals(grid, NeedPositionals())));
             }
         };
     } // namespace backend_impl_

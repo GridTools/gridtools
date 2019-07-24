@@ -327,6 +327,20 @@ namespace gridtools {
                 template <class FlattenTypes, class Tuples>
                 using apply = from_types<meta::first<Tuples>, FlattenTypes>;
             };
+
+            template <template <class...> class Pred>
+            struct group_predicate_proxy_f {
+                template <class... TypesAndIndices>
+                using apply = Pred<meta::first<TypesAndIndices>...>;
+            };
+
+            template <class... TypesAndIndices>
+            using extract_indices = meta::list<meta::second<TypesAndIndices>...>;
+
+            template <template <class...> class Pred, class Types>
+            using group_indices = meta::group<group_predicate_proxy_f<Pred>::template apply,
+                extract_indices,
+                meta::zip<Types, meta::make_indices_for<Types>>>;
         } // namespace _impl
     }     // namespace tuple_util
 } // namespace gridtools
@@ -657,6 +671,48 @@ namespace gridtools {
                     }
                 };
 
+                template <class, class>
+                struct pop_back_impl_f;
+
+                template <template <class T, T...> class L, class Int, Int... Is, class Res>
+                struct pop_back_impl_f<L<Int, Is...>, Res> {
+                    template <class Tup>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
+                        return Res{GT_TARGET_NAMESPACE_NAME::get<Is>(wstd::forward<Tup>(tup))...};
+                    }
+                };
+
+                struct pop_back_f {
+                    template <class Tup,
+                        class Accessors = get_accessors<Tup>,
+                        class Res = from_types<Tup, meta::pop_front<Accessors>>>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
+                        return pop_back_impl_f<std::make_index_sequence<size<Accessors>::value - 1>, Res>()(
+                            wstd::forward<Tup>(tup));
+                    }
+                };
+
+                template <class, class>
+                struct pop_front_impl_f;
+
+                template <template <class T, T...> class L, class Int, Int... Is, class Res>
+                struct pop_front_impl_f<L<Int, Is...>, Res> {
+                    template <class Tup>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
+                        return Res{GT_TARGET_NAMESPACE_NAME::get<Is + 1>(wstd::forward<Tup>(tup))...};
+                    }
+                };
+
+                struct pop_front_f {
+                    template <class Tup,
+                        class Accessors = get_accessors<Tup>,
+                        class Res = from_types<Tup, meta::pop_front<Accessors>>>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
+                        return pop_front_impl_f<std::make_index_sequence<size<Accessors>::value - 1>, Res>()(
+                            wstd::forward<Tup>(tup));
+                    }
+                };
+
                 template <class Fun>
                 struct fold_f {
                     template <class S, class T>
@@ -887,6 +943,29 @@ namespace gridtools {
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
                         using generators_t = meta::transform<get_generator, meta::make_indices_for<Types>>;
                         return generate_f<generators_t, Res>{}(wstd::forward<Tup>(tup), m_val);
+                    }
+                };
+
+                template <class... Is>
+                struct group_generator_f {
+                    template <class Fun, class Tup>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(Fun const &fun, Tup &&tup) const {
+                        return fun(GT_TARGET_NAMESPACE_NAME::get<Is::value>(wstd::forward<Tup>(tup))...);
+                    }
+                };
+
+                template <template <class...> class Pred, class Fun>
+                struct group_f {
+                    Fun m_fun;
+
+                    template <class Tup>
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(Tup &&tup) const {
+                        using accessors_t = get_accessors<Tup>;
+                        using types_t = meta::group<Pred, get_fun_result<Fun>::template apply, accessors_t>;
+                        using res_t = from_types<Tup, types_t>;
+                        using indices_t = _impl::group_indices<Pred, accessors_t>;
+                        using generators_t = meta::transform<meta::rename<group_generator_f>::apply, indices_t>;
+                        return generate_f<generators_t, res_t>()(m_fun, wstd::forward<Tup>(tup));
                     }
                 };
             } // namespace detail
@@ -1245,6 +1324,16 @@ namespace gridtools {
             DEFINE_FUNCTOR_INSTANCE(push_front, detail::push_front_f);
 
             /**
+             * @brief Removes elements to a tuple from the front.
+             */
+            DEFINE_FUNCTOR_INSTANCE(pop_front, detail::pop_front_f);
+
+            /**
+             * @brief Removes elements to a tuple from the back.
+             */
+            DEFINE_FUNCTOR_INSTANCE(pop_back, detail::pop_back_f);
+
+            /**
              * @brief Left fold on tuple-like objects.
              *
              * This function accepts either two or three arguments. If three arguments are given, the second is the
@@ -1448,6 +1537,11 @@ namespace gridtools {
             template <size_t I, class Val, class Tup>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto insert(Val && val, Tup && tup) {
                 return insert<I>(wstd::forward<Val>(val))(wstd::forward<Tup>(tup));
+            }
+
+            template <template <class...> class Pred, class Fun, class Tup>
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto group(Fun && fun, Tup && tup) {
+                return detail::group_f<Pred, Fun>{wstd::forward<Fun>(fun)}(wstd::forward<Tup>(tup));
             }
         }
     } // namespace tuple_util

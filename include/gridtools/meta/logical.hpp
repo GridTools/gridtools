@@ -60,14 +60,16 @@ namespace gridtools {
         template <template <class...> class Pred, class List>
         using any_of = any<transform<Pred, List>>;
 
+        template <class...>
+        struct are_same;
+
+        template <>
+        struct are_same<> : std::true_type {};
+
+        template <class T, class... Ts>
+        struct are_same<T, Ts...> : std::is_same<list<Ts...>, repeat_c<GT_SIZEOF_3_DOTS(Ts), T>> {};
+
         template <class List>
-        struct all_are_same;
-
-        template <template <class...> class L>
-        struct all_are_same<L<>> : std::true_type {};
-
-        template <template <class...> class L, class T, class... Ts>
-        struct all_are_same<L<T, Ts...>> : std::is_same<list<Ts...>, repeat_c<GT_SIZEOF_3_DOTS(Ts), T>> {};
-
+        using all_are_same = rename<are_same, List>;
     } // namespace meta
 } // namespace gridtools

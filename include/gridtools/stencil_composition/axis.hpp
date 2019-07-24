@@ -59,7 +59,7 @@ namespace gridtools {
       public:
         using axis_interval_t =
             interval<level<0, _impl::add_offset(1, -ExtraOffsetsAroundFullInterval), LevelOffsetLimit>,
-                level<NIntervals, _impl::add_offset(1, ExtraOffsetsAroundFullInterval), LevelOffsetLimit>>;
+                level<NIntervals, _impl::add_offset(-1, ExtraOffsetsAroundFullInterval), LevelOffsetLimit>>;
 
         using full_interval = interval<level<0, 1, LevelOffsetLimit>, level<NIntervals, -1, LevelOffsetLimit>>;
 

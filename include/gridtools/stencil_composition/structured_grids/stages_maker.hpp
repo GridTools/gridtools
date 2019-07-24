@@ -26,7 +26,7 @@ namespace gridtools {
         template <class Functor, class Esf, class ExtentMap>
         struct stages_from_functor {
             using extent_t = get_esf_extent<Esf, ExtentMap>;
-            using type = meta::list<stage<Functor, extent_t, Esf>>;
+            using type = meta::list<stage_old<Functor, extent_t, Esf>>;
         };
         template <class Esf, class ExtentMap>
         struct stages_from_functor<void, Esf, ExtentMap> {
@@ -35,15 +35,16 @@ namespace gridtools {
 
         template <class Index, class ExtentMap>
         struct stages_from_esf_f {
-            template <class Esf>
-            using apply = typename stages_from_functor<bind_functor_with_interval<typename Esf::esf_function_t, Index>,
-                Esf,
-                ExtentMap>::type;
+            template <class Esf, class Functor = bind_functor_with_interval<typename Esf::esf_function_t, Index>>
+            using apply = typename stages_from_functor<Functor, Esf, ExtentMap>::type;
         };
 
-        template <class Esfs, class Index, class ExtentMap>
-        using stages_from_esfs =
-            meta::flatten<meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, Esfs>>;
+        template <class Mss, class ExtentMap = get_extent_map_from_mss<Mss>>
+        struct stages_maker {
+            using esfs_t = typename Mss::esf_sequence_t;
+            template <class Index>
+            using apply = meta::flatten<meta::transform<stages_from_esf_f<Index, ExtentMap>::template apply, esfs_t>>;
+        };
     } // namespace stages_maker_impl_
 
     /**
@@ -64,9 +65,5 @@ namespace gridtools {
      *
      *   TODO(anstaf): unit test!!!
      */
-    template <class Mss, class ExtentMap>
-    struct stages_maker {
-        template <class LevelIndex>
-        using apply = stages_maker_impl_::stages_from_esfs<typename Mss::esf_sequence_t, LevelIndex, ExtentMap>;
-    };
+    using stages_maker_impl_::stages_maker;
 } // namespace gridtools

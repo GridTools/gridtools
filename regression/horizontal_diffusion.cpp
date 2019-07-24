@@ -74,7 +74,7 @@ struct out_function {
 };
 
 using horizontal_diffusion = regression_fixture<2>;
-//
+
 TEST_F(horizontal_diffusion, test) {
     tmp_arg<0> p_lap;
     tmp_arg<1> p_flx;

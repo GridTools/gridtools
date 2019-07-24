@@ -17,24 +17,6 @@
 #include "stages_maker.hpp"
 
 namespace gridtools {
-
-    namespace mss_comonents_impl_ {
-        template <class Esf, class WArgs = esf_get_w_args_per_functor<Esf>>
-        using esf_produce_temporary = meta::any_of<is_tmp_arg, WArgs>;
-
-        template <class ExtentMap>
-        struct get_extent_f {
-            template <class Esf>
-            using apply = get_esf_extent<Esf, ExtentMap>;
-        };
-
-        template <class Esfs,
-            class ExtentMap,
-            class TmpEsfs = meta::filter<esf_produce_temporary, Esfs>,
-            class Extents = meta::transform<get_extent_f<ExtentMap>::template apply, TmpEsfs>>
-        using get_max_extent_for_tmp = meta::rename<enclosing_extent, Extents>;
-    } // namespace mss_comonents_impl_
-
     /**
      * @brief the mss components contains meta data associated to a mss descriptor.
      * All derived metadata is computed in this class
@@ -48,28 +30,8 @@ namespace gridtools {
 
         typedef typename MssDescriptor::execution_engine_t execution_engine_t;
 
-        /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
-            esf structs. Independent functors are listed one after the other.*/
-        using linear_esf_t = typename MssDescriptor::esf_sequence_t;
-
-        using extent_map_t = ExtentMap;
-
-        // For historical reasons the user provided axis interval is stripped by one level from the right to produce
-        // the interval that will be used for actual computation.
-        // TODO(anstaf): fix this ugly convention
-        using default_interval_t =
-            interval<typename Axis::FromLevel, index_to_level<typename level_to_index<typename Axis::ToLevel>::prior>>;
-
         // calculate loop intervals and order them according to the execution policy.
         using loop_intervals_t = order_loop_intervals<execution_engine_t,
-            make_loop_intervals<stages_maker<MssDescriptor, ExtentMap>::template apply, default_interval_t>>;
+            make_loop_intervals<stages_maker<MssDescriptor, ExtentMap>::template apply, Axis>>;
     };
-
-    template <typename T>
-    using is_mss_components = meta::is_instantiation_of<mss_components, T>;
-
-    template <class MssComponents>
-    using get_max_extent_for_tmp_from_mss_components =
-        mss_comonents_impl_::get_max_extent_for_tmp<typename MssComponents::linear_esf_t,
-            typename MssComponents::extent_map_t>;
 } // namespace gridtools

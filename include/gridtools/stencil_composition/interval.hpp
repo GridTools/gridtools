@@ -90,11 +90,8 @@ namespace gridtools {
      * @struct interval_from_index
      * Meta function returning the interval from level index
      */
-    template <class>
-    struct interval_from_index;
-
-    template <class TFromLevel, class TToLevel>
-    struct interval_from_index<interval<TFromLevel, TToLevel>> : level_to_index<TFromLevel> {};
+    template <class Index, class Level = index_to_level<Index>>
+    using interval_from_index = interval<Level, Level>;
 
     /**
      * @struct interval_to_index

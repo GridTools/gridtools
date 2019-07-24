@@ -33,10 +33,7 @@
 namespace gridtools {
     namespace computation_facade_impl_ {
         template <class Mss>
-        using get_esfs = typename Mss::esf_sequence_t;
-
-        template <class Mss>
-        using rw_args_from_mss = compute_readwrite_args<get_esfs<Mss>>;
+        using rw_args_from_mss = compute_readwrite_args<typename Mss::esf_sequence_t>;
 
         template <class Msses,
             class RwArgsLists = meta::transform<rw_args_from_mss, Msses>,
@@ -89,9 +86,7 @@ namespace gridtools {
 
             using free_placeholders_t = meta::filter<is_free, non_tmp_placeholders_t>;
 
-            using esfs_t = meta::flatten<meta::transform<get_esfs, MssDescriptors>>;
-
-            using extent_map_t = get_extent_map<esfs_t>;
+            using extent_map_t = get_extent_map_from_msses<MssDescriptors>;
 
             Meter m_meter;
 

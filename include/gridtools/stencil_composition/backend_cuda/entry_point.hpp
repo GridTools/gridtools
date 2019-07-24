@@ -36,7 +36,6 @@
 #include "../sid/concept.hpp"
 #include "../sid/sid_shift_origin.hpp"
 #include "../stages_maker.hpp"
-#include "basic_token_execution_cuda.hpp"
 #include "fill_flush.hpp"
 #include "fused_mss_loop_cuda.hpp"
 #include "ij_cache.hpp"
@@ -49,9 +48,6 @@
 
 namespace gridtools {
     namespace cuda {
-        template <class Mss>
-        using get_esfs = typename Mss::esf_sequence_t;
-
         template <class Mss>
         using get_caches = typename Mss::cache_sequence_t;
 
@@ -72,7 +68,7 @@ namespace gridtools {
         auto make_temporaries(Grid const &grid, Allocator &allocator) {
             using plhs_t = meta::filter<is_not_locally_cached_in_msses_f<Msses>::template apply,
                 meta::filter<is_tmp_arg, extract_placeholders_from_msses<Msses>>>;
-            using extent_map_t = get_extent_map<meta::flatten<meta::transform<get_esfs, Msses>>>;
+            using extent_map_t = get_extent_map_from_msses<Msses>;
             using extent_t = meta::rename<enclosing_extent,
                 meta::transform<lookup_extent_map_f<extent_map_t>::template apply, plhs_t>>;
             return tuple_util::transform(
@@ -179,14 +175,12 @@ namespace gridtools {
         template <class Stage>
         using get_esf = typename Stage::esf_t;
 
-        template <class Mss, class ExtentMap, class Grid>
+        template <class Mss, class Grid>
         auto make_loop_intervals(Grid const &grid) {
             using deref_t = deref_f<compute_readonly_args<typename Mss::esf_sequence_t>>;
-            using default_interval_t = interval<typename Grid::axis_type::FromLevel,
-                index_to_level<typename level_to_index<typename Grid::axis_type::ToLevel>::prior>>;
             using res_t = meta::rename<tuple,
                 order_loop_intervals<typename Mss::execution_engine_t,
-                    gridtools::make_loop_intervals<stages_maker<Mss, ExtentMap>::template apply, default_interval_t>>>;
+                    gridtools::make_loop_intervals<stages_maker<Mss>::template apply, typename Grid::interval_t>>>;
             return tuple_util::transform(
                 [&](auto interval) {
                     using interval_t = decltype(interval);
@@ -286,8 +280,7 @@ namespace gridtools {
 
         template <class Mss, class Grid, class DataStores, class Positionals>
         auto make_mss_kernel(Grid const &grid, DataStores &data_stores, Positionals const &positionals) {
-            using esfs_t = get_esfs<Mss>;
-            using extent_map_t = get_extent_map<esfs_t>;
+            using extent_map_t = get_extent_map_from_mss<Mss>;
 
             using caches_t = get_caches<Mss>;
             using ij_caches_t = meta::filter<is_ij_cache, caches_t>;
@@ -312,14 +305,12 @@ namespace gridtools {
                 make_bound_checkers<Mss>(data_stores),
                 positionals);
 
-            auto loop_intervals = add_fill_flush_stages<Mss>(make_loop_intervals<Mss, extent_map_t>(grid));
+            auto loop_intervals = add_fill_flush_stages<Mss>(make_loop_intervals<Mss>(grid));
 
-            auto k_loop = make_k_loop<Mss, DataStores>(grid, std::move(loop_intervals));
+            auto kernel_fun = make_kernel_fun<Mss, DataStores>(grid, composite, std::move(loop_intervals));
 
-            auto kernel_fun = make_kernel_fun(composite, std::move(k_loop));
-
-            using max_extent_t =
-                meta::rename<enclosing_extent, meta::transform<get_esf_extent_f<extent_map_t>::template apply, esfs_t>>;
+            using max_extent_t = meta::rename<enclosing_extent,
+                meta::transform<get_esf_extent_f<extent_map_t>::template apply, typename Mss::esf_sequence_t>>;
             return make_kernel<max_extent_t>(
                 typename Mss::execution_engine_t(), std::move(kernel_fun), shared_alloc.size());
         }

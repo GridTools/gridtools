@@ -36,7 +36,7 @@ namespace gridtools {
 
         namespace no_stages {
             using testee_t = testee<meta::always<list<>>::apply>;
-            static_assert(std::is_same<testee_t, list<loop_interval<from_t, to_t, list<>>>>{}, "");
+            static_assert(std::is_same<testee_t, list<>>{}, "");
         } // namespace no_stages
 
         namespace simple {
@@ -59,11 +59,9 @@ namespace gridtools {
 
             using testee_t = testee<stages_maker>;
 
-            using expected_t = list<loop_interval<lev<0, 1>, lev<0, 1>, list<>>,
-                loop_interval<lev<0, 2>, lev<1, -1>, list<stage1>>,
+            using expected_t = list<loop_interval<lev<0, 2>, lev<1, -1>, list<stage1>>,
                 loop_interval<lev<1, 1>, lev<2, -1>, list<stage1, stage2>>,
-                loop_interval<lev<2, 1>, lev<3, -2>, list<stage2>>,
-                loop_interval<lev<3, -1>, lev<3, -1>, list<>>>;
+                loop_interval<lev<2, 1>, lev<3, -2>, list<stage2>>>;
 
             static_assert(std::is_same<testee_t, expected_t>{}, "");
         } // namespace overlap

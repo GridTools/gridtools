@@ -81,13 +81,11 @@ namespace gridtools {
      *
      *   TODO(anstaf): unit test!!!
      */
-    template <class MssDescriptor, class ExtentMap>
-    struct stages_maker;
-
-    template <class ExecutionEngine, class Esfs, class Caches, class ExtentMap>
-    struct stages_maker<mss_descriptor<ExecutionEngine, Esfs, Caches>, ExtentMap> {
+    template <class Mss, class ExtentMap = get_extent_map_from_mss<Mss>>
+    struct stages_maker {
+        using esfs_t = typename Mss::esf_sequence_t;
         template <class LevelIndex>
         using apply = meta::flatten<
-            meta::transform<stages_maker_impl_::stages_from_esf_f<LevelIndex, ExtentMap>::template apply, Esfs>>;
+            meta::transform<stages_maker_impl_::stages_from_esf_f<LevelIndex, ExtentMap>::template apply, esfs_t>>;
     };
 } // namespace gridtools

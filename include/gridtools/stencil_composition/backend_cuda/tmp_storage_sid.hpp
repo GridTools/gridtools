@@ -43,8 +43,8 @@ namespace gridtools {
                 int_t k_size) {
                 return tuple_util::make<
                     hymap::keys<dim::i, dim::j, sid::blocked_dim<dim::i>, sid::blocked_dim<dim::j>, dim::k>::values>(
-                    i_block_size - typename Extent::iminus{} + typename Extent::iplus{},
-                    j_block_size - typename Extent::jminus{} + typename Extent::jplus{},
+                    i_block_size - typename Extent::iminus() + typename Extent::iplus(),
+                    j_block_size - typename Extent::jminus() + typename Extent::jplus(),
                     n_blocks_i,
                     n_blocks_j,
                     k_size);
@@ -64,8 +64,8 @@ namespace gridtools {
                 int_t k_size) {
                 return tuple_util::make<
                     hymap::keys<dim::i, dim::j, dim::c, sid::blocked_dim<dim::i>, sid::blocked_dim<dim::j>, dim::k>::
-                        values>(i_block_size - typename Extent::iminus{} + typename Extent::iplus{},
-                    j_block_size - typename Extent::jminus{} + typename Extent::jplus{},
+                        values>(i_block_size - typename Extent::iminus() + typename Extent::iplus(),
+                    j_block_size - typename Extent::jminus() + typename Extent::jplus(),
                     integral_constant<int_t, Plh::location_t::n_colors::value>{},
                     n_blocks_i,
                     n_blocks_j,

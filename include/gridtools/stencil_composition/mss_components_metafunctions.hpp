@@ -13,12 +13,13 @@
 
 #include "../common/defs.hpp"
 #include "../meta.hpp"
+#include "compute_extents_metafunctions.hpp"
 #include "esf_metafunctions.hpp"
 #include "mss.hpp"
 #include "mss_components.hpp"
 
 namespace gridtools {
-    namespace mss_comonents_metafunctions_impl_ {
+    namespace mss_components_metafunctions_impl_ {
         namespace lazy {
             template <class>
             struct mss_split_esfs;
@@ -33,28 +34,29 @@ namespace gridtools {
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(mss_split_esfs, class Mss, Mss);
 
-        template <class Msses>
-        struct split_mss_into_independent_esfs {
-            using mms_lists_t = meta::transform<mss_split_esfs, Msses>;
-            using type = meta::flatten<mms_lists_t>;
-        };
-
         template <class ExtentMap, class Axis>
         struct make_mms_components_f {
             template <class Mss>
             using apply = mss_components<Mss, ExtentMap, Axis>;
         };
 
-    } // namespace mss_comonents_metafunctions_impl_
+        template <class Axis>
+        struct make_mss_components_list_f {
+            template <class ExtentMap, class Msses>
+            using apply = meta::transform<make_mms_components_f<ExtentMap, Axis>::template apply, Msses>;
+        };
+    } // namespace mss_components_metafunctions_impl_
 
     /**
      * @brief metafunction that builds the array of mss components
      */
     template <class Msses,
-        class ExtentMap,
         class Axis,
-        class SplitMsses = typename mss_comonents_metafunctions_impl_::split_mss_into_independent_esfs<Msses>::type,
-        class Maker = mss_comonents_metafunctions_impl_::make_mms_components_f<ExtentMap, Axis>>
-    using build_mss_components_array = meta::transform<Maker::template apply, SplitMsses>;
+        class ExtentMaps = meta::transform<get_extent_map_from_mss, Msses>,
+        class SplitMssLists = meta::transform<mss_components_metafunctions_impl_::mss_split_esfs, Msses>>
+    using build_mss_components_array = meta::flatten<
+        meta::transform<mss_components_metafunctions_impl_::make_mss_components_list_f<Axis>::template apply,
+            ExtentMaps,
+            SplitMssLists>>;
 
 } // namespace gridtools

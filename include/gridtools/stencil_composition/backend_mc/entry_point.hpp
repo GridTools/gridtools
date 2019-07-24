@@ -37,9 +37,6 @@
 
 namespace gridtools {
     namespace mc {
-        template <class Mss>
-        using get_esfs = typename Mss::esf_sequence_t;
-
         namespace _impl {
             /**
              * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
@@ -77,7 +74,7 @@ namespace gridtools {
         template <class Msses, class Grid, class Allocator>
         auto make_temporaries(Grid const &grid, Allocator &allocator) {
             using plhs_t = meta::filter<is_tmp_arg, extract_placeholders_from_msses<Msses>>;
-            using extent_map_t = get_extent_map<meta::flatten<meta::transform<get_esfs, Msses>>>;
+            using extent_map_t = get_extent_map_from_msses<Msses>;
             execinfo_mc info(grid);
             return tuple_util::transform(
                 [&allocator,
@@ -203,9 +200,7 @@ namespace gridtools {
             auto data_stores =
                 hymap::concat(block(grid, std::move(external_data_stores)), make_temporaries<Msses>(grid, alloc));
 
-            using esfs_t = meta::flatten<meta::transform<get_esfs, Msses>>;
-            using extent_map_t = get_extent_map<esfs_t>;
-            using mss_components_array_t = build_mss_components_array<Msses, extent_map_t, typename Grid::axis_type>;
+            using mss_components_array_t = build_mss_components_array<Msses, typename Grid::interval_t>;
 
             run_loops<mss_components_array_t>(grid, std::move(data_stores), block(grid, positionals));
         }

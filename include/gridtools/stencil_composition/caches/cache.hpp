@@ -42,11 +42,12 @@ namespace gridtools {
          * @tparam Arg argument with parameter being cached
          * @tparam CacheIOPolicy IO policy for cache
          */
-        template <cache_type CacheType, class Arg, cache_io_policy cacheIOPolicy>
+        template <cache_type CacheType, class Arg, cache_io_policy CacheIOPolicy>
         struct cache_impl {
             GT_STATIC_ASSERT(is_plh<Arg>::value, GT_INTERNAL_ERROR);
             using arg_t = Arg;
             static constexpr cache_type cacheType = CacheType;
+            static constexpr cache_io_policy cacheIOPolicy = CacheIOPolicy;
         };
     } // namespace detail
 

@@ -258,6 +258,10 @@ namespace gridtools {
             EXPECT_EQ(push_front(std::make_tuple(1, 2), 3, 4), std::make_tuple(3, 4, 1, 2));
         }
 
+        TEST(pop_back, functional) { EXPECT_EQ(pop_back(std::make_tuple(1, 2, 3, 4)), std::make_tuple(1, 2, 3)); }
+
+        TEST(pop_front, functional) { EXPECT_EQ(pop_front(std::make_tuple(1, 2, 3, 4)), std::make_tuple(2, 3, 4)); }
+
         TEST(fold, functional) {
             auto f = [](int x, int y) { return x + y; };
             EXPECT_EQ(fold(f, std::make_tuple(1, 2, 3, 4, 5, 6)), 21);
@@ -347,6 +351,12 @@ namespace gridtools {
 
         TEST(insert, functional) {
             EXPECT_TRUE(insert<2>('a', make<std::tuple>(1, 2, 3)) == make<std::tuple>(1, 2, 'a', 3));
+        }
+
+        TEST(group, functional) {
+            auto testee =
+                group<meta::are_same>([](auto first, auto...) { return first; }, make<std::tuple>(1, 2, 3., 4., 5, 6.));
+            EXPECT_EQ(make<std::tuple>(1, 3., 5, 6.), testee);
         }
     } // namespace tuple_util
 } // namespace gridtools

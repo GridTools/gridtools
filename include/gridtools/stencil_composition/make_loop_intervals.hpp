@@ -33,6 +33,19 @@ namespace gridtools {
         template <class LoopLevel, class ToIndex, class FromIndex = meta::first<LoopLevel>>
         using make_loop_interval =
             loop_interval<index_to_level<FromIndex>, index_to_level<ToIndex>, meta::second<LoopLevel>>;
+
+        template <class T>
+        using has_stages = negation<meta::is_empty<meta::third<T>>>;
+
+        template <class T>
+        struct trim_front : meta::lazy::if_<meta::is_empty<meta::third<meta::first<T>>>, meta::pop_front<T>, T> {};
+        template <template <class...> class L>
+        struct trim_front<L<>> : meta::lazy::id<L<>> {};
+
+        template <class T>
+        struct trim_back : meta::lazy::if_<meta::is_empty<meta::third<meta::last<T>>>, meta::pop_back<T>, T> {};
+        template <template <class...> class L>
+        struct trim_back<L<>> : meta::lazy::id<L<>> {};
     } // namespace _impl
 
     namespace lazy {
@@ -66,13 +79,15 @@ namespace gridtools {
             using to_indices_t = meta::push_back<intermediate_to_indices_t, to_index_t>;
 
             // make loop intervals
-            using type = meta::transform<_impl::make_loop_interval, loop_levels_t, to_indices_t>;
+            using raw = meta::transform<_impl::make_loop_interval, loop_levels_t, to_indices_t>;
+
+            using type = typename _impl::trim_back<typename _impl::trim_front<raw>::type>::type;
         };
     } // namespace lazy
     /**
      * Calculate the loop intervals together with the stages that should be executed within each of them.
      *
-     * @tparam StageMaker - a meta calllback that gets stages that shuld be executed for the given level_index.
+     * @tparam StageMaker - a meta callback that gets stages that should be executed for the given level_index.
      *                      It should take level_index and return a type list of something. [In our design this
      *                      "something" is a list of list of Stages, but `make_loop_intervals` only uses the fact that
      *                      it is a type list] An empty list means that there is nothing to execute for the given level.

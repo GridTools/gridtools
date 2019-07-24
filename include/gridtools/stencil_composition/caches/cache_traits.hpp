@@ -89,4 +89,15 @@ namespace gridtools {
     } // namespace lazy
     GT_META_DELEGATE_TO_LAZY(cache_parameter, typename T, T);
 
+    namespace cache_traits_impl_ {
+        template <class Cache>
+        using make_cache_map_item = meta::list<typename Cache::arg_t,
+            std::integral_constant<cache_type, Cache::cacheType>,
+            std::integral_constant<cache_io_policy, Cache::cacheIOPolicy>>;
+
+        template <class Caches>
+        using make_cache_map = meta::transform<make_cache_map_item, Caches>;
+    } // namespace cache_traits_impl_
+    using cache_traits_impl_::make_cache_map;
+
 } // namespace gridtools

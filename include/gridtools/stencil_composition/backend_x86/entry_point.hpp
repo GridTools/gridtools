@@ -9,30 +9,27 @@
  */
 #pragma once
 
-#include <type_traits>
+#include <memory>
+#include <utility>
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/host_device.hpp"
+#include "../../common/integral_constant.hpp"
+#include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
-#include "../arg.hpp"
-#include "../compute_extents_metafunctions.hpp"
-#include "../esf_metafunctions.hpp"
-#include "../extent.hpp"
-#include "../extract_placeholders.hpp"
-#include "../grid.hpp"
-#include "../mss_components.hpp"
-#include "../mss_components_metafunctions.hpp"
+#include "../dim.hpp"
 #include "../sid/allocator.hpp"
 #include "../sid/block.hpp"
+#include "../sid/concept.hpp"
 #include "../sid/contiguous.hpp"
+#include "../sid/loop.hpp"
 #include "../sid/sid_shift_origin.hpp"
-#include "mss_loop_x86.hpp"
+#include "../stage_matrix.hpp"
 
 namespace gridtools {
     namespace x86 {
-        template <class Mss>
-        using get_esfs = typename Mss::esf_sequence_t;
-
         struct block_f {
             template <class T>
             auto operator()(T &&data_store) const {
@@ -42,43 +39,30 @@ namespace gridtools {
             }
         };
 
-        template <class DataStores>
-        auto block(DataStores &&data_stores) {
-            return tuple_util::transform(block_f(), std::move(data_stores));
-        }
-
-        template <class Plh, class Extent, class Grid>
-        auto tmp_sizes(Grid const &grid) {
-#ifndef GT_ICOSAHEDRAL_GRIDS
-            return tuple_util::make<hymap::keys<dim::k, dim::j, dim::i, dim::thread>::values>(grid.k_total_length(),
-                integral_constant<int_t, GT_DEFAULT_TILE_J + Extent::jplus::value - Extent::jminus::value>(),
-                integral_constant<int_t, GT_DEFAULT_TILE_I + Extent::iplus::value - Extent::iminus::value>(),
-                omp_get_max_threads());
-#else
-            return tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i, dim::thread>::values>(
-                integral_constant<int, Plh::location_t::n_colors::value>(),
-                grid.k_total_length(),
-                integral_constant<int_t, GT_DEFAULT_TILE_J + Extent::jplus::value - Extent::jminus::value>(),
-                integral_constant<int_t, GT_DEFAULT_TILE_I + Extent::iplus::value - Extent::iminus::value>(),
-                omp_get_max_threads());
-#endif
-        }
-
-        template <class Msses, class Grid, class Allocator>
+        template <class PlhMap, class Grid, class Allocator>
         auto make_temporaries(Grid const &grid, Allocator &allocator) {
-            using plhs_t = meta::filter<is_tmp_arg, extract_placeholders_from_msses<Msses>>;
-            using extent_map_t = get_extent_map<meta::flatten<meta::transform<get_esfs, Msses>>>;
+            using plhs_t = meta::transform<stage_matrix::get_plh, PlhMap>;
+
             return tuple_util::transform(
-                [&allocator, &grid](auto plh) {
-                    using plh_t = decltype(plh);
-                    using data_t = typename plh_t::data_t;
-                    using extent_t = lookup_extent_map<extent_map_t, plh_t>;
-                    return sid::shift_sid_origin(
-                        sid::make_contiguous<data_t, int_t, extent_t>(allocator, tmp_sizes<plh_t, extent_t>(grid)),
+                [&](auto info) {
+                    using info_t = decltype(info);
+                    using data_t = typename info_t::data_t;
+                    using extent_t = typename info_t::extent_t;
+
+                    auto sizes = tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i, dim::thread>::values>(
+                        typename info_t::num_colors_t(),
+                        grid.k_total_length(),
+                        integral_constant<int_t,
+                            GT_DEFAULT_TILE_J + extent_t::jplus::value - extent_t::jminus::value>(),
+                        integral_constant<int_t,
+                            GT_DEFAULT_TILE_I + extent_t::iplus::value - extent_t::iminus::value>(),
+                        omp_get_max_threads());
+
+                    return sid::shift_sid_origin(sid::make_contiguous<data_t, int_t, extent_t>(allocator, sizes),
                         hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -extent_t::iminus::value>,
                             integral_constant<int_t, -extent_t::jminus::value>>());
                 },
-                hymap::from_keys_values<plhs_t, plhs_t>());
+                hymap::from_keys_values<plhs_t, PlhMap>());
         }
 
         template <class DataStores>
@@ -95,68 +79,100 @@ namespace gridtools {
             return tuple_util::transform(at_key_f<Src>{src}, hymap::from_keys_values<Plhs, Plhs>());
         }
 
-        template <class Count, class Stages>
-        struct loop_interval {
-            Count m_count;
-            GT_FORCE_INLINE Count count() const { return m_count; }
+        template <class Size, class Funs>
+        struct cell_fun {
+            Size m_size;
             template <class Ptr, class Strides>
             GT_FORCE_INLINE void operator()(Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
-                for_each<Stages>([&](auto stage) { stage(ptr, strides); });
+                for_each<Funs>([&](auto fun) { fun(ptr, strides); });
             }
         };
 
         template <class Grid>
-        struct adapt_interval_f {
+        struct make_cell_fun_f {
             Grid const &m_grid;
-            template <class Interval>
-            auto operator()(Interval) const {
-                auto count = m_grid.count(meta::first<Interval>(), meta::second<Interval>());
-                return loop_interval<decltype(count), meta::third<Interval>>{count};
+            template <class Cell>
+            auto operator()(Cell) const {
+                auto size = m_grid.k_size(typename Cell::interval_t());
+                return cell_fun<decltype(size), typename Cell::funs_t>{size};
             }
         };
 
-        template <class MssComponents, class Grid>
-        auto make_loop_intervals(Grid const &grid) {
-            return tuple_util::transform(
-                adapt_interval_f<Grid>{grid}, meta::rename<tuple, typename MssComponents::loop_intervals_t>());
+        template <class Stage, class Grid>
+        auto make_cell_funs(Grid const &grid) {
+            return tuple_util::transform(make_cell_fun_f<Grid>{grid}, meta::rename<tuple, typename Stage::cells_t>());
         }
 
-        template <class MssComponentsList, class Grid, class DataStortes, class Positionals>
-        auto make_mss_loops(Grid const &grid, DataStortes &data_stores, Positionals positionals) {
-            return tuple_util::transform(
-                [&](auto mss_components) {
-                    using mss_components_t = decltype(mss_components);
-                    using extent_t = get_extent_from_loop_intervals<typename mss_components_t::loop_intervals_t>;
-                    using execution_t = typename mss_components_t::execution_engine_t;
-                    using plhs_t = extract_placeholders_from_mss<typename mss_components_t::mss_descriptor_t>;
+        template <class KStep, class CellFuns>
+        struct k_loop_f {
+            CellFuns m_cell_funs;
+            int_t m_shift_back;
 
-                    auto composite =
-                        hymap::concat(sid::composite::keys<>::values<>(), filter_map<plhs_t>(data_stores), positionals);
-                    auto loop_intervals = make_loop_intervals<mss_components_t>(grid);
+            template <class Ptr, class Strides>
+            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
+                tuple_util::for_each(
+                    [&ptr, &strides](auto fun) {
+                        for (int_t k = 0; k < fun.m_size; ++k) {
+                            fun(ptr, strides);
+                            sid::shift(ptr, sid::get_stride<dim::k>(strides), KStep());
+                        }
+                    },
+                    m_cell_funs);
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_shift_back);
+            }
+        };
 
-                    return make_mss_loop<extent_t>(grid.k_total_length(),
-                        execute::step<execution_t>,
-                        std::move(composite),
-                        std::move(loop_intervals));
-                },
-                MssComponentsList());
+        template <class KStep, class CellFuns>
+        k_loop_f<KStep, CellFuns> make_k_loop(KStep, CellFuns cell_funs, int_t shift_back) {
+            return {std::move(cell_funs), shift_back};
         }
 
-        template <class Grid, class Msses, class DataStores, class Positionals>
-        void gridtools_backend_entry_point(
-            backend, Msses, Grid const &grid, DataStores external_data_stores, Positionals positionals) {
+        template <class Stage, class Grid, class DataStortes>
+        auto make_stage_loop(Stage, Grid const &grid, DataStortes &data_stores) {
+            using extent_t = typename Stage::extent_t;
+            using execution_t = typename Stage::execution_t;
+            using interval_t = typename Stage::interval_t;
+
+            auto composite =
+                hymap::concat(sid::composite::keys<>::values<>(), filter_map<typename Stage::plhs_t>(data_stores));
+            using ptr_diff_t = sid::ptr_diff_type<decltype(composite)>;
+
+            auto strides = sid::get_strides(composite);
+            ptr_diff_t offset{};
+            sid::shift(offset, sid::get_stride<dim::i>(strides), typename extent_t::iminus());
+            sid::shift(offset, sid::get_stride<dim::j>(strides), typename extent_t::jminus());
+            sid::shift(offset, sid::get_stride<dim::k>(strides), grid.k_start(interval_t(), execution_t()));
+
+            auto step = execute::step<execution_t>;
+            auto shift_back = -grid.k_size(interval_t()) * step;
+            return [origin = sid::get_origin(composite) + offset,
+                       strides = std::move(strides),
+                       k_loop = make_k_loop(execute::step<execution_t>, make_cell_funs<Stage>(grid), shift_back)](
+                       int_t i_block, int_t j_block, int_t i_size, int_t j_size) {
+                ptr_diff_t offset{};
+                sid::shift(offset, sid::get_stride<dim::thread>(strides), omp_get_thread_num());
+                sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(strides), i_block);
+                sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), j_block);
+                auto ptr = origin() + offset;
+
+                auto i_loop = sid::make_loop<dim::i>(i_size + extent_t::iplus::value - extent_t::iminus::value);
+                auto j_loop = sid::make_loop<dim::j>(j_size + extent_t::jplus::value - extent_t::jminus::value);
+
+                i_loop(j_loop(k_loop))(ptr, strides);
+            };
+        }
+
+        template <class Spec, class Grid, class DataStores>
+        void gridtools_backend_entry_point(backend, Spec, Grid const &grid, DataStores external_data_stores) {
+            using stages_t = stage_matrix::make_split_view<Spec>;
+
             auto alloc = sid::make_cached_allocator(&std::make_unique<char[]>);
 
-            auto data_stores =
-                hymap::concat(block(std::move(external_data_stores)), make_temporaries<Msses>(grid, alloc));
+            auto data_stores = hymap::concat(tuple_util::transform(block_f(), std::move(external_data_stores)),
+                make_temporaries<typename stages_t::tmp_plh_map_t>(grid, alloc));
 
-            using esfs_t = meta::flatten<meta::transform<get_esfs, Msses>>;
-
-            using extent_map_t = get_extent_map<esfs_t>;
-
-            using mss_components_array_t = build_mss_components_array<Msses, extent_map_t, typename Grid::axis_type>;
-
-            auto mss_loops = make_mss_loops<mss_components_array_t>(grid, data_stores, block(positionals));
+            auto stage_loops = tuple_util::transform(
+                [&](auto stage) { return make_stage_loop(stage, grid, data_stores); }, meta::rename<tuple, stages_t>());
 
             int_t total_i = grid.i_size();
             int_t total_j = grid.j_size();
@@ -169,7 +185,7 @@ namespace gridtools {
                 for (int_t bj = 0; bj < NBJ; ++bj) {
                     int_t i_size = bi + 1 == NBI ? total_i - bi * GT_DEFAULT_TILE_I : GT_DEFAULT_TILE_I;
                     int_t j_size = bj + 1 == NBJ ? total_j - bj * GT_DEFAULT_TILE_J : GT_DEFAULT_TILE_J;
-                    tuple_util::for_each([=](auto &&fun) { fun(bi, bj, i_size, j_size); }, mss_loops);
+                    tuple_util::for_each([=](auto &&fun) { fun(bi, bj, i_size, j_size); }, stage_loops);
                 }
             }
         }

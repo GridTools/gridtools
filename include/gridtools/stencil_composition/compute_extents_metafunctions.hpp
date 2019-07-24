@@ -92,12 +92,24 @@ namespace gridtools {
         GT_META_DELEGATE_TO_LAZY(get_esf_extent, (class Esf, class ExtentMap), (Esf, ExtentMap));
         GT_META_DELEGATE_TO_LAZY(process_esf, (class Esf, class ExtentMap), (Esf, ExtentMap));
 
+        template <class Mss>
+        using get_esfs_from_mss = typename Mss::esf_sequence_t;
+
         template <class Esfs>
-        using get_extent_map = meta::rfold<process_esf, meta::list<>, Esfs>;
+        using get_extent_map_from_esfs = meta::rfold<process_esf, meta::list<>, Esfs>;
+
+        template <class Mss>
+        using get_extent_map_from_mss = get_extent_map_from_esfs<get_esfs_from_mss<Mss>>;
+
+        template <class Msses>
+        using get_extent_map_from_msses =
+            get_extent_map_from_esfs<meta::flatten<meta::transform<get_esfs_from_mss, Msses>>>;
+
     } // namespace compute_extents_metafunctions_impl_
 
     using compute_extents_metafunctions_impl_::get_esf_extent;
-    using compute_extents_metafunctions_impl_::get_extent_map;
+    using compute_extents_metafunctions_impl_::get_extent_map_from_mss;
+    using compute_extents_metafunctions_impl_::get_extent_map_from_msses;
     using compute_extents_metafunctions_impl_::lookup_extent_map;
     using compute_extents_metafunctions_impl_::lookup_extent_map_f;
 
