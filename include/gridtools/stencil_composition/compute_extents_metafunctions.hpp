@@ -84,8 +84,8 @@ namespace gridtools {
             template <class Esf, class ExtentMap>
             struct process_esf<Esf, ExtentMap, void> {
                 using esf_extent_t = typename get_esf_extent<Esf, ExtentMap>::type;
-                using in_arg_param_pairs_t = meta::filter<has_intent<intent::in>::apply, get_arg_param_pairs<Esf>>;
-                using new_items_t = meta::transform<make_item_f<esf_extent_t>::template apply, in_arg_param_pairs_t>;
+                using arg_param_pairs_t = get_arg_param_pairs<Esf>;
+                using new_items_t = meta::transform<make_item_f<esf_extent_t>::template apply, arg_param_pairs_t>;
                 using type = meta::lfold<meta::mp_insert, ExtentMap, new_items_t>;
             };
         } // namespace lazy

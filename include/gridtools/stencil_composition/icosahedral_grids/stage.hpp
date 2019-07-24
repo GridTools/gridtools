@@ -22,7 +22,6 @@
 #include "../arg.hpp"
 #include "../extent.hpp"
 #include "../has_apply.hpp"
-#include "../iterate_domain_fwd.hpp"
 #include "../location_type.hpp"
 #include "../sid/composite.hpp"
 #include "../sid/concept.hpp"
@@ -65,32 +64,6 @@ namespace gridtools {
     namespace stage_impl_ {
         template <class T>
         using functor_or_void = bool_constant<has_apply<T>::value || std::is_void<T>::value>;
-
-        template <class ItDomain, class Args, class LocationType, uint_t Color>
-        struct itdomain_evaluator {
-            GT_STATIC_ASSERT((is_iterate_domain<ItDomain>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
-
-            ItDomain const &m_it_domain;
-
-            template <class Accessor>
-            GT_FUNCTION decltype(auto) operator()(Accessor const &acc) const {
-                return apply_intent<Accessor::intent_v>(
-                    m_it_domain.template deref<meta::at_c<Args, Accessor::index_t::value>>(acc));
-            }
-
-            template <class ValueType, class LocationTypeT, class Reduction, class... Accessors>
-            GT_FUNCTION ValueType operator()(
-                on_neighbors<ValueType, LocationTypeT, Reduction, Accessors...> onneighbors) const {
-                constexpr auto offsets = connectivity<LocationType, LocationTypeT, Color>::offsets();
-                for (auto &&offset : offsets)
-                    onneighbors.m_value = onneighbors.m_function(
-                        apply_intent<intent::in>(
-                            m_it_domain.template deref<meta::at_c<Args, Accessors::index_t::value>>(offset))...,
-                        onneighbors.m_value);
-                return onneighbors.m_value;
-            }
-        };
 
         struct default_deref_f {
             template <class Arg, class T>
@@ -164,26 +137,6 @@ namespace gridtools {
         template <uint_t Color, class Functor = meta::at_c<Functors, Color>>
         struct contains_color : bool_constant<!std::is_void<Functor>::value> {};
 
-        template <uint_t Color, class ItDomain, std::enable_if_t<contains_color<Color>::value, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            using eval_t = stage_impl_::itdomain_evaluator<ItDomain, args_t, location_type, Color>;
-            using functor_t = meta::at_c<Functors, Color>;
-            eval_t eval{it_domain};
-            functor_t::apply(eval);
-        }
-
-        template <uint_t Color, class ItDomain, std::enable_if_t<!contains_color<Color>::value, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {}
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            host_device::for_each<meta::make_indices<n_colors>>([&](auto color) {
-                exec<decltype(color)::value>(it_domain);
-                it_domain.increment_c();
-            });
-            it_domain.increment_c(integral_constant<int_t, -(int_t)n_colors::value>{});
-        }
-
         template <uint_t Color, bool = contains_color<Color>::value>
         struct colored_stage {
             template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
@@ -207,17 +160,5 @@ namespace gridtools {
                 sid::shift(ptr, sid::get_stride<dim::c>(strides), integral_constant<int_t, 1>());
             });
         }
-    };
-
-    template <size_t Color>
-    struct stage_contains_color {
-        template <class Stage>
-        struct apply : Stage::template contains_color<Color> {};
-    };
-
-    template <size_t Color>
-    struct stage_group_contains_color {
-        template <class Stages>
-        using apply = meta::any_of<stage_contains_color<Color>::template apply, Stages>;
     };
 } // namespace gridtools

@@ -88,13 +88,13 @@ TEST_F(lap, weights) {
         p_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.edge_length_reciprocal),
         p_out_edges = out_edges,
         make_multistage(execute::forward(),
-            make_stage<div_prep_functor, topology_t, cells>(
+            make_stage<div_prep_functor, cells>(
                 p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights),
-            make_stage<curl_prep_functor, topology_t, vertices>(
+            make_stage<curl_prep_functor, vertices>(
                 p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation),
-            make_stage<div_functor_reduction_into_scalar, topology_t, cells>(p_in_edges, p_div_weights, p_div_on_cells),
-            make_stage<curl_functor_weights, topology_t, vertices>(p_in_edges, p_curl_weights, p_curl_on_vertices),
-            make_stage<lap_functor, topology_t, edges>(p_div_on_cells,
+            make_stage<div_functor_reduction_into_scalar, cells>(p_in_edges, p_div_weights, p_div_on_cells),
+            make_stage<curl_functor_weights, vertices>(p_in_edges, p_curl_weights, p_curl_on_vertices),
+            make_stage<lap_functor, edges>(p_div_on_cells,
                 p_dual_edge_length_reciprocal,
                 p_curl_on_vertices,
                 p_edge_length_reciprocal,
@@ -113,11 +113,11 @@ TEST_F(lap, flow_convention) {
         p_out_edges = out_edges,
         make_multistage(execute::forward(),
             define_caches(cache<cache_type::ij, cache_io_policy::local>(p_div_on_cells)),
-            make_stage<div_functor_flow_convention_connectivity, topology_t, cells>(
+            make_stage<div_functor_flow_convention_connectivity, cells>(
                 p_in_edges, p_edge_length, p_cell_area_reciprocal, p_div_on_cells),
-            make_stage<curl_functor_flow_convention, topology_t, vertices>(
+            make_stage<curl_functor_flow_convention, vertices>(
                 p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_curl_on_vertices),
-            make_stage<lap_functor, topology_t, edges>(p_div_on_cells,
+            make_stage<lap_functor, edges>(p_div_on_cells,
                 p_dual_edge_length_reciprocal,
                 p_curl_on_vertices,
                 p_edge_length_reciprocal,

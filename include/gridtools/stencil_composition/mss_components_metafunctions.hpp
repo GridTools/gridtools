@@ -33,15 +33,10 @@ namespace gridtools {
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(mss_split_esfs, class Mss, Mss);
 
-        template <bool Fuse, class Msses>
+        template <class Msses>
         struct split_mss_into_independent_esfs {
             using mms_lists_t = meta::transform<mss_split_esfs, Msses>;
             using type = meta::flatten<mms_lists_t>;
-        };
-
-        template <class Msses>
-        struct split_mss_into_independent_esfs<true, Msses> {
-            using type = Msses;
         };
 
         template <class ExtentMap, class Axis>
@@ -55,12 +50,10 @@ namespace gridtools {
     /**
      * @brief metafunction that builds the array of mss components
      */
-    template <bool Fuse,
-        class Msses,
+    template <class Msses,
         class ExtentMap,
         class Axis,
-        class SplitMsses =
-            typename mss_comonents_metafunctions_impl_::split_mss_into_independent_esfs<Fuse, Msses>::type,
+        class SplitMsses = typename mss_comonents_metafunctions_impl_::split_mss_into_independent_esfs<Msses>::type,
         class Maker = mss_comonents_metafunctions_impl_::make_mms_components_f<ExtentMap, Axis>>
     using build_mss_components_array = meta::transform<Maker::template apply, SplitMsses>;
 

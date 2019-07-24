@@ -33,7 +33,7 @@ namespace gridtools {
         // HACK allow implicit conversion from the from level to any interval starting with the from level
         // (due to this trick we can search all do method overloads starting at a given from position)
         interval() = default;
-        GT_FUNCTION interval(TFromLevel);
+        interval(TFromLevel);
 
         // check the parameters are of type level
         GT_STATIC_ASSERT(is_level<TFromLevel>::value, "check the first template parameter is of type level");
