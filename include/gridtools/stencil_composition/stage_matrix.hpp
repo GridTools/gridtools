@@ -11,8 +11,12 @@
 
 #include <type_traits>
 
+#include "../common/generic_metafunctions/for_each.hpp"
+#include "../common/host_device.hpp"
 #include "../meta.hpp"
+#include "execution_types.hpp"
 #include "interval.hpp"
+#include "sid/concept.hpp"
 
 namespace gridtools {
     namespace stage_matrix {
@@ -103,6 +107,28 @@ namespace gridtools {
         template <class... Maps>
         using merge_plh_maps = meta::mp_merge<meta::force<merge_plh_infos>::apply, Maps...>;
 
+        template <class Deref, class Ptr, class Strides>
+        struct run_f {
+            Ptr const &GT_RESTRICT m_ptr;
+            Strides const &GT_RESTRICT m_strides;
+
+            template <class Fun>
+            GT_FUNCTION void operator()(Fun fun) const {
+                fun.template operator()<Deref>(m_ptr, m_strides);
+            }
+        };
+
+        template <class Ptr, class Strides>
+        struct run_f<void, Ptr, Strides> {
+            Ptr const &GT_RESTRICT m_ptr;
+            Strides const &GT_RESTRICT m_strides;
+
+            template <class Fun>
+            GT_FUNCTION void operator()(Fun fun) const {
+                fun(m_ptr, m_strides);
+            }
+        };
+
         template <class Funs, class Interval, class PlhMap, class Extent, class Execution, class NeedSync>
         struct cell {
             using funs_t = Funs;
@@ -113,6 +139,27 @@ namespace gridtools {
             using need_sync_t = NeedSync;
 
             using plhs_t = meta::transform<get_plh, plh_map_t>;
+            using k_step_t = integral_constant<int_t, execute::is_backward<Execution>::value ? -1 : 1>;
+
+            static GT_FUNCTION Funs funs() { return {}; }
+            static GT_FUNCTION Interval interval() { return {}; }
+            static GT_FUNCTION PlhMap plh_map() { return {}; }
+            static GT_FUNCTION Extent extent() { return {}; }
+            static GT_FUNCTION Execution execution() { return {}; }
+            static GT_FUNCTION NeedSync need_sync() { return {}; }
+
+            static GT_FUNCTION plhs_t plhs() { return {}; }
+            static GT_FUNCTION k_step_t k_step() { return {}; }
+
+            template <class Deref = void, class Ptr, class Strides>
+            GT_FUNCTION void operator()(Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
+                host_device::for_each<Funs>(run_f<Deref, Ptr, Strides>{ptr, strides});
+            }
+
+            template <class Ptr, class Strides>
+            static GT_FUNCTION void inc_k(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), k_step());
+            }
         };
 
         template <class... Ts>
@@ -129,10 +176,6 @@ namespace gridtools {
 
         template <class First, class... NeedSyncs>
         struct can_fuse_need_syncs<First, NeedSyncs...> : conjunction<negation<NeedSyncs>...> {};
-
-        // TODO
-        template <class... PlhMaps>
-        struct caches_are_conflicting;
 
         template <class... Funs, class Interval, class... PlhMaps, class Extent, class Execution, class... NeedSync>
         struct can_fuse_stages<cell<Funs, Interval, PlhMaps, Extent, Execution, NeedSync>...>
@@ -224,6 +267,12 @@ namespace gridtools {
         template <class TransposedMatrix>
         using compress_interval_rows = trim_interval_rows<fuse_interval_rows<TransposedMatrix>>;
 
+        template <class Cells>
+        using compress_intervals = meta::trim<is_cell_empty, meta::group<can_fuse_intervals, fuse_intervals, Cells>>;
+
+        template <class Matrix>
+        using fuse_stage_rows = fuse_rows<can_fuse_stages, fuse_stages, Matrix>;
+
         template <class...>
         struct interval_info {};
 
@@ -235,6 +284,7 @@ namespace gridtools {
             class... NeedSync>
         struct interval_info<cell<Funs, Interval, PlhMaps, Extent, Execution, NeedSync>...> {
             using interval_t = Interval;
+
             using cells_t = meta::filter<meta::not_<is_cell_empty>::apply, interval_info>;
         };
 
@@ -266,31 +316,43 @@ namespace gridtools {
             using plh_map_t = typename cell_t::plh_map_t;
             using plhs_t = meta::transform<get_plh, plh_map_t>;
             using interval_t = concat_intervals<typename Cells::interval_t...>;
-            using cells_t =
-                meta::if_<execute::is_backward<execution_t>, meta::reverse<split_view_item>, split_view_item>;
+            using k_step_t = typename cell_t::k_step_t;
+
+            using cells_t = meta::rename<tuple,
+                meta::if_<execute::is_backward<execution_t>, meta::reverse<split_view_item>, split_view_item>>;
+
+            static GT_FUNCTION execution_t execution() { return {}; }
+            static GT_FUNCTION extent_t extent() { return {}; }
+            static GT_FUNCTION plh_map_t plh_map() { return {}; }
+            static GT_FUNCTION plhs_t plhs() { return {}; }
+            static GT_FUNCTION interval_t interval() { return {}; }
+            static GT_FUNCTION k_step_t k_step() { return {}; }
+
+            static GT_FUNCTION cells_t cells() { return {}; }
         };
 
         template <class... Items>
         struct split_view {
             using plh_map_t = merge_plh_maps<typename Items::plh_map_t...>;
+            using plhs_t = meta::transform<get_plh, plh_map_t>;
             using tmp_plh_map_t = meta::filter<get_is_tmp, plh_map_t>;
+            using tmp_plhs_t = meta::transform<get_plh, tmp_plh_map_t>;
+
+            static GT_FUNCTION hymap::from_keys_values<tmp_plhs_t, tmp_plh_map_t> tmp_plh_map() { return {}; }
         };
 
-        // TODO: fuse stage rows before transpose
         template <class Matrix>
         using make_fused_view_item = meta::rename<fused_view_item,
-            meta::transform<interval_info, compress_interval_rows<meta::transpose<Matrix>>>>;
+            meta::transform<interval_info, compress_interval_rows<meta::transpose<fuse_stage_rows<Matrix>>>>>;
 
         template <class Matrices>
         using fused_view = meta::transform<make_fused_view_item, Matrices>;
 
-        template <class RawCells,
-            class Cells = meta::trim<is_cell_empty, meta::group<can_fuse_intervals, fuse_intervals, RawCells>>>
-        using make_split_view_item = meta::rename<split_view_item, Cells>;
+        template <class Cells>
+        using make_split_view_item = meta::rename<split_view_item, compress_intervals<Cells>>;
 
-        // TODO: fuse stage rows before flatten
         template <class Matrices>
-        using make_split_view =
-            meta::rename<split_view, meta::transform<make_split_view_item, meta::flatten<Matrices>>>;
+        using make_split_view = meta::rename<split_view,
+            meta::transform<make_split_view_item, meta::flatten<meta::transform<fuse_stage_rows, Matrices>>>>;
     } // namespace stage_matrix
 } // namespace gridtools

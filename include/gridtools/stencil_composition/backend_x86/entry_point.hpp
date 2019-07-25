@@ -39,10 +39,8 @@ namespace gridtools {
             }
         };
 
-        template <class PlhMap, class Grid, class Allocator>
+        template <class Stages, class Grid, class Allocator>
         auto make_temporaries(Grid const &grid, Allocator &allocator) {
-            using plhs_t = meta::transform<stage_matrix::get_plh, PlhMap>;
-
             return tuple_util::transform(
                 [&](auto info) {
                     using info_t = decltype(info);
@@ -62,7 +60,32 @@ namespace gridtools {
                         hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -extent_t::iminus::value>,
                             integral_constant<int_t, -extent_t::jminus::value>>());
                 },
-                hymap::from_keys_values<plhs_t, PlhMap>());
+                Stages::tmp_plh_map());
+        }
+
+        template <class Stage, class Sizes, class ShiftBack>
+        struct k_loop_f {
+            Sizes m_sizes;
+            ShiftBack m_shift_back;
+
+            template <class Ptr, class Strides>
+            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
+                tuple_util::for_each(
+                    [&ptr, &strides](auto cell, auto size) {
+                        for (int_t k = 0; k < size; ++k) {
+                            cell(ptr, strides);
+                            cell.inc_k(ptr, strides);
+                        }
+                    },
+                    Stage::cells(),
+                    m_sizes);
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_shift_back);
+            }
+        };
+
+        template <class Stage, class Sizes, class ShiftBack>
+        k_loop_f<Stage, Sizes, ShiftBack> make_k_loop(Sizes sizes, ShiftBack shift_back) {
+            return {std::move(sizes), shift_back};
         }
 
         template <class DataStores>
@@ -74,80 +97,28 @@ namespace gridtools {
             }
         };
 
-        template <class Plhs, class Src>
-        auto filter_map(Src &src) {
-            return tuple_util::transform(at_key_f<Src>{src}, hymap::from_keys_values<Plhs, Plhs>());
-        }
-
-        template <class Size, class Funs>
-        struct cell_fun {
-            Size m_size;
-            template <class Ptr, class Strides>
-            GT_FORCE_INLINE void operator()(Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
-                for_each<Funs>([&](auto fun) { fun(ptr, strides); });
-            }
-        };
-
-        template <class Grid>
-        struct make_cell_fun_f {
-            Grid const &m_grid;
-            template <class Cell>
-            auto operator()(Cell) const {
-                auto size = m_grid.k_size(typename Cell::interval_t());
-                return cell_fun<decltype(size), typename Cell::funs_t>{size};
-            }
-        };
-
-        template <class Stage, class Grid>
-        auto make_cell_funs(Grid const &grid) {
-            return tuple_util::transform(make_cell_fun_f<Grid>{grid}, meta::rename<tuple, typename Stage::cells_t>());
-        }
-
-        template <class KStep, class CellFuns>
-        struct k_loop_f {
-            CellFuns m_cell_funs;
-            int_t m_shift_back;
-
-            template <class Ptr, class Strides>
-            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
-                tuple_util::for_each(
-                    [&ptr, &strides](auto fun) {
-                        for (int_t k = 0; k < fun.m_size; ++k) {
-                            fun(ptr, strides);
-                            sid::shift(ptr, sid::get_stride<dim::k>(strides), KStep());
-                        }
-                    },
-                    m_cell_funs);
-                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_shift_back);
-            }
-        };
-
-        template <class KStep, class CellFuns>
-        k_loop_f<KStep, CellFuns> make_k_loop(KStep, CellFuns cell_funs, int_t shift_back) {
-            return {std::move(cell_funs), shift_back};
-        }
-
-        template <class Stage, class Grid, class DataStortes>
-        auto make_stage_loop(Stage, Grid const &grid, DataStortes &data_stores) {
+        template <class Stage, class Grid, class DataStores>
+        auto make_stage_loop(Stage, Grid const &grid, DataStores &data_stores) {
             using extent_t = typename Stage::extent_t;
-            using execution_t = typename Stage::execution_t;
-            using interval_t = typename Stage::interval_t;
 
-            auto composite =
-                hymap::concat(sid::composite::keys<>::values<>(), filter_map<typename Stage::plhs_t>(data_stores));
+            using plhs_t = typename Stage::plhs_t;
+            auto composite = tuple_util::convert_to<meta::rename<sid::composite::keys, plhs_t>::template values>(
+                tuple_util::transform(at_key_f<DataStores>{data_stores}, plhs_t()));
             using ptr_diff_t = sid::ptr_diff_type<decltype(composite)>;
 
             auto strides = sid::get_strides(composite);
             ptr_diff_t offset{};
             sid::shift(offset, sid::get_stride<dim::i>(strides), typename extent_t::iminus());
             sid::shift(offset, sid::get_stride<dim::j>(strides), typename extent_t::jminus());
-            sid::shift(offset, sid::get_stride<dim::k>(strides), grid.k_start(interval_t(), execution_t()));
+            sid::shift(offset, sid::get_stride<dim::k>(strides), grid.k_start(Stage::interval(), Stage::execution()));
 
-            auto step = execute::step<execution_t>;
-            auto shift_back = -grid.k_size(interval_t()) * step;
+            auto shift_back = -grid.k_size(Stage::interval()) * Stage::k_step();
+            auto k_sizes =
+                tuple_util::transform([&](auto cell) { return grid.k_size(cell.interval()); }, Stage::cells());
+
             return [origin = sid::get_origin(composite) + offset,
                        strides = std::move(strides),
-                       k_loop = make_k_loop(execute::step<execution_t>, make_cell_funs<Stage>(grid), shift_back)](
+                       k_loop = make_k_loop<Stage>(std::move(k_sizes), shift_back)](
                        int_t i_block, int_t j_block, int_t i_size, int_t j_size) {
                 ptr_diff_t offset{};
                 sid::shift(offset, sid::get_stride<dim::thread>(strides), omp_get_thread_num());
@@ -169,7 +140,7 @@ namespace gridtools {
             auto alloc = sid::make_cached_allocator(&std::make_unique<char[]>);
 
             auto data_stores = hymap::concat(tuple_util::transform(block_f(), std::move(external_data_stores)),
-                make_temporaries<typename stages_t::tmp_plh_map_t>(grid, alloc));
+                make_temporaries<stages_t>(grid, alloc));
 
             auto stage_loops = tuple_util::transform(
                 [&](auto stage) { return make_stage_loop(stage, grid, data_stores); }, meta::rename<tuple, stages_t>());

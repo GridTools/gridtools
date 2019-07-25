@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple_util.hpp"
@@ -28,10 +29,8 @@
 
 namespace gridtools {
     namespace naive {
-        template <class PlhMap, class Grid, class Alloc>
+        template <class Stages, class Grid, class Alloc>
         auto make_temporaries(Grid const &grid, Alloc &alloc) {
-            using plhs_t = meta::transform<stage_matrix::get_plh, PlhMap>;
-
             return tuple_util::transform(
                 [&](auto info) {
                     using info_t = decltype(info);
@@ -50,7 +49,7 @@ namespace gridtools {
                     return sid::shift_sid_origin(
                         sid::make_contiguous<data_t, ptrdiff_t, stride_kind>(alloc, sizes), offsets_t());
                 },
-                hymap::from_keys_values<plhs_t, PlhMap>());
+                Stages::tmp_plh_map());
         }
 
         template <class Spec, class Grid, class DataStores>
@@ -59,31 +58,25 @@ namespace gridtools {
 
             auto alloc = sid::make_allocator(&std::make_unique<char[]>);
 
-            auto composite = hymap::concat(sid::composite::keys<>::values<>(),
-                std::move(data_stores),
-                make_temporaries<typename stages_t::tmp_plh_map_t>(grid, alloc));
+            auto composite = hymap::concat(
+                sid::composite::keys<>::values<>(), std::move(data_stores), make_temporaries<stages_t>(grid, alloc));
 
             auto origin = sid::get_origin(composite);
             auto strides = sid::get_strides(composite);
 
             for_each<stages_t>([&](auto stage) {
                 for_each<typename decltype(stage)::cells_t>([&](auto cell) {
-                    using cell_t = decltype(cell);
-                    using extent_t = typename cell_t::extent_t;
-                    using execution_t = typename cell_t::execution_t;
-                    using interval_t = typename cell_t::interval_t;
-                    auto i_loop = sid::make_loop<dim::i>(grid.i_size(extent_t()));
-                    auto j_loop = sid::make_loop<dim::j>(grid.j_size(extent_t()));
-                    auto k_loop = sid::make_loop<dim::k>(grid.k_size(interval_t()), execute::step<execution_t>);
+                    auto i_loop = sid::make_loop<dim::i>(grid.i_size(cell.extent()));
+                    auto j_loop = sid::make_loop<dim::j>(grid.j_size(cell.extent()));
+                    auto k_loop = sid::make_loop<dim::k>(grid.k_size(cell.interval()), cell.k_step());
 
                     auto ptr = origin();
+                    using extent_t = decltype(cell.extent());
                     sid::shift(ptr, sid::get_stride<dim::i>(strides), typename extent_t::iminus());
                     sid::shift(ptr, sid::get_stride<dim::j>(strides), typename extent_t::jminus());
-                    sid::shift(ptr, sid::get_stride<dim::k>(strides), grid.k_start(interval_t(), execution_t()));
+                    sid::shift(ptr, sid::get_stride<dim::k>(strides), grid.k_start(cell.interval(), cell.execution()));
 
-                    i_loop(j_loop(k_loop([](auto &ptr, auto const &strides) {
-                        for_each<typename cell_t::funs_t>([&](auto fun) { fun(ptr, strides); });
-                    })))(ptr, strides);
+                    i_loop(j_loop(k_loop(cell)))(ptr, strides);
                 });
             });
         }
