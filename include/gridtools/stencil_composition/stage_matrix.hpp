@@ -183,24 +183,6 @@ namespace gridtools {
 
         namespace lazy {
             template <class...>
-            struct concat_intervals;
-
-            template <class T>
-            struct concat_intervals<T> {
-                using type = T;
-            };
-            template <class From, class Level, class NextLevel, class To>
-            struct concat_intervals<interval<From, Level>, interval<NextLevel, To>> {
-                GT_STATIC_ASSERT(
-                    level_to_index<Level>::value + 1 == level_to_index<NextLevel>::value, GT_INTERNAL_ERROR);
-                using type = interval<From, To>;
-            };
-            template <class... Intervals>
-            struct concat_intervals {
-                using type = meta::combine<meta::force<concat_intervals>::apply, meta::list<Intervals...>>;
-            };
-
-            template <class...>
             struct fuse_intervals;
 
             template <class Funs,
@@ -212,12 +194,7 @@ namespace gridtools {
                 class NeedSync>
             struct fuse_intervals<cell<Funs, Interval, PlhMap, Extent, Execution, NeedSync>,
                 cell<Funs, Intervals, PlhMap, Extent, Execution, NeedSync>...> {
-                using type = cell<Funs,
-                    typename concat_intervals<Interval, Intervals...>::type,
-                    PlhMap,
-                    Extent,
-                    Execution,
-                    NeedSync>;
+                using type = cell<Funs, concat_intervals<Interval, Intervals...>, PlhMap, Extent, Execution, NeedSync>;
             };
 
             template <class...>
@@ -235,7 +212,6 @@ namespace gridtools {
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(fuse_intervals, class... Ts, Ts...);
         GT_META_DELEGATE_TO_LAZY(fuse_stages, class... Ts, Ts...);
-        GT_META_DELEGATE_TO_LAZY(concat_intervals, class... Ts, Ts...);
 
         template <class Cell>
         using is_cell_empty = meta::is_empty<typename Cell::funs_t>;
@@ -338,7 +314,10 @@ namespace gridtools {
             using tmp_plh_map_t = meta::filter<get_is_tmp, plh_map_t>;
             using tmp_plhs_t = meta::transform<get_plh, tmp_plh_map_t>;
 
+            using interval_t = enclosing_interval<typename Items::interval_t...>;
+
             static GT_FUNCTION hymap::from_keys_values<tmp_plhs_t, tmp_plh_map_t> tmp_plh_map() { return {}; }
+            static GT_FUNCTION interval_t interval() { return {}; }
         };
 
         template <class Matrix>

@@ -60,7 +60,7 @@ namespace gridtools {
             }
 
             template <class Stage, class Grid, class Composite, class KSizes>
-            auto make_loop(std::true_type, Grid &&, Composite composite, KSizes k_sizes) {
+            auto make_loop(std::true_type, Grid const &grid, Composite composite, KSizes k_sizes) {
                 using extent_t = typename Stage::extent_t;
                 using ptr_diff_t = sid::ptr_diff_type<Composite>;
                 auto strides = sid::get_strides(composite);
@@ -69,6 +69,7 @@ namespace gridtools {
                 sid::shift(offset, sid::get_stride<dim::j>(strides), typename extent_t::jminus());
                 return [origin = sid::get_origin(composite) + offset,
                            strides = std::move(strides),
+                           k_start = grid.k_start(Stage::interval()),
                            k_sizes = std::move(k_sizes)](execinfo_block_kparallel_mc const &info) {
                     ptr_diff_t offset{};
                     sid::shift(offset, sid::get_stride<dim::thread>(strides), omp_get_thread_num());
@@ -82,7 +83,7 @@ namespace gridtools {
 
                     for (int_t j = 0; j < j_count; ++j) {
                         using namespace literals;
-                        int_t cur = 0;
+                        int_t cur = k_start;
                         tuple_util::for_each(
                             [&ptr, &strides, &cur, k = info.k, i_size](auto cell, auto k_size) {
                                 if (k >= cur && k < cur + k_size)

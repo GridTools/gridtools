@@ -49,7 +49,7 @@ namespace gridtools {
 
                     auto sizes = tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i, dim::thread>::values>(
                         typename info_t::num_colors_t(),
-                        grid.k_total_length(),
+                        grid.k_size(),
                         integral_constant<int_t,
                             GT_DEFAULT_TILE_J + extent_t::jplus::value - extent_t::jminus::value>(),
                         integral_constant<int_t,

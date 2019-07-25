@@ -72,8 +72,10 @@ namespace gridtools {
             return m_j_size + Extent::jplus::value - Extent::jminus::value;
         }
 
-        template <class From, class To, class Execution>
-        auto k_start(interval<From, To>, Execution) const {
+        template <class From = typename Interval::FromLevel,
+            class To = typename Interval::ToLevel,
+            class Execution = execute::forward>
+        auto k_start(interval<From, To>, Execution = {}) const {
             return value_at<From>() - k_min();
         }
 
