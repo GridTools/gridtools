@@ -13,6 +13,9 @@
 
 #include "../common/generic_metafunctions/for_each.hpp"
 #include "../common/host_device.hpp"
+#include "../common/hymap.hpp"
+#include "../common/tuple.hpp"
+#include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "execution_types.hpp"
 #include "interval.hpp"
@@ -48,7 +51,21 @@ namespace gridtools {
             using cache_t = Cache;
             using cache_io_policy_t = CacheIoPolicy;
             using num_colors_t = NumColors;
+
+            static GT_FUNCTION plh_t plh() { return {}; }
+            static GT_FUNCTION is_tmp_t is_tmp() { return {}; }
+            static GT_FUNCTION extent_t extent() { return {}; }
+            static GT_FUNCTION cache_t cache() { return {}; }
+            static GT_FUNCTION cache_io_policy_t cache_io_policy() { return {}; }
+            static GT_FUNCTION num_colors_t num_colors() { return {}; }
+            static data_t data();
         };
+
+        template <class PlhMap, class Fun>
+        auto make_data_stores(PlhMap, Fun &&fun) {
+            return tuple_util::transform(
+                std::forward<Fun>(fun), hymap::from_keys_values<meta::transform<get_plh, PlhMap>, PlhMap>());
+        }
 
         template <class>
         struct merge_data_types_impl;
@@ -249,36 +266,58 @@ namespace gridtools {
         template <class Matrix>
         using fuse_stage_rows = fuse_rows<can_fuse_stages, fuse_stages, Matrix>;
 
-        template <class...>
-        struct interval_info {};
+        template <class... Ts>
+        struct interval_info;
 
-        template <class... Funs,
-            class Interval,
-            class... PlhMaps,
-            class... Extent,
-            class... Execution,
-            class... NeedSync>
+        template <class... Funs, class Interval, class... PlhMaps, class... Extent, class Execution, class... NeedSync>
         struct interval_info<cell<Funs, Interval, PlhMaps, Extent, Execution, NeedSync>...> {
             using interval_t = Interval;
+            using plh_map_t = merge_plh_maps<PlhMaps...>;
+            using extent_t = enclosing_extent<Extent...>;
+            using execution_t = Execution;
+            using plhs_t = meta::transform<get_plh, plh_map_t>;
+            using k_step_t = typename meta::first<interval_info>::k_step_t;
 
-            using cells_t = meta::filter<meta::not_<is_cell_empty>::apply, interval_info>;
+            using cells_t = meta::rename<tuple, meta::filter<meta::not_<is_cell_empty>::apply, interval_info>>;
+
+            static GT_FUNCTION execution_t execution() { return {}; }
+            static GT_FUNCTION extent_t extent() { return {}; }
+            static GT_FUNCTION plh_map_t plh_map() { return {}; }
+            static GT_FUNCTION plhs_t plhs() { return {}; }
+            static GT_FUNCTION interval_t interval() { return {}; }
+            static GT_FUNCTION k_step_t k_step() { return {}; }
+            static GT_FUNCTION cells_t cells() { return {}; }
         };
 
         template <class... IntervalInfos>
         class fused_view_item {
             GT_STATIC_ASSERT(sizeof...(IntervalInfos) > 0, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(
+                (conjunction<meta::is_instantiation_of<interval_info, IntervalInfos>...>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT(meta::are_same<typename meta::length<IntervalInfos>::type...>::value, GT_INTERNAL_ERROR);
 
-            using cells_t = meta::transform<meta::first, fused_view_item>;
+            using cells_t = meta::transform<meta::first, meta::list<IntervalInfos...>>;
             using cell_t = meta::first<cells_t>;
 
           public:
-            using caches_t = typename cell_t::caches_t;
             using execution_t = typename cell_t::execution_t;
             using extent_t = meta::rename<enclosing_extent, meta::transform<get_extent, cells_t>>;
-            //            using plhs_t = meta::dedup<meta::flatten<meta::transform<cell_plhs, cells_t>>>;
+            using plh_map_t = meta::rename<merge_plh_maps, meta::transform<get_plh_map, cells_t>>;
+            using plhs_t = meta::transform<get_plh, plh_map_t>;
             using interval_t = concat_intervals<typename IntervalInfos::interval_t...>;
-            using interval_infos_t = fused_view_item;
+            using k_step_t = typename cell_t::k_step_t;
+
+            using interval_infos_t = meta::rename<tuple,
+                meta::if_<execute::is_backward<execution_t>, meta::reverse<fused_view_item>, fused_view_item>>;
+
+            static GT_FUNCTION execution_t execution() { return {}; }
+            static GT_FUNCTION extent_t extent() { return {}; }
+            static GT_FUNCTION plh_map_t plh_map() { return {}; }
+            static GT_FUNCTION plhs_t plhs() { return {}; }
+            static GT_FUNCTION interval_t interval() { return {}; }
+            static GT_FUNCTION k_step_t k_step() { return {}; }
+
+            static GT_FUNCTION interval_infos_t interval_infos() { return {}; }
         };
 
         template <class... Cells>
@@ -308,7 +347,7 @@ namespace gridtools {
         };
 
         template <class... Items>
-        struct split_view {
+        struct aggregated_view {
             using plh_map_t = merge_plh_maps<typename Items::plh_map_t...>;
             using plhs_t = meta::transform<get_plh, plh_map_t>;
             using tmp_plh_map_t = meta::filter<get_is_tmp, plh_map_t>;
@@ -316,22 +355,23 @@ namespace gridtools {
 
             using interval_t = enclosing_interval<typename Items::interval_t...>;
 
-            static GT_FUNCTION hymap::from_keys_values<tmp_plhs_t, tmp_plh_map_t> tmp_plh_map() { return {}; }
+            static GT_FUNCTION tmp_plh_map_t tmp_plh_map() { return {}; }
             static GT_FUNCTION interval_t interval() { return {}; }
         };
 
         template <class Matrix>
         using make_fused_view_item = meta::rename<fused_view_item,
-            meta::transform<interval_info, compress_interval_rows<meta::transpose<fuse_stage_rows<Matrix>>>>>;
+            meta::transform<meta::rename<interval_info>::apply,
+                compress_interval_rows<meta::transpose<fuse_stage_rows<Matrix>>>>>;
 
         template <class Matrices>
-        using fused_view = meta::transform<make_fused_view_item, Matrices>;
+        using make_fused_view = meta::rename<aggregated_view, meta::transform<make_fused_view_item, Matrices>>;
 
         template <class Cells>
         using make_split_view_item = meta::rename<split_view_item, compress_intervals<Cells>>;
 
         template <class Matrices>
-        using make_split_view = meta::rename<split_view,
+        using make_split_view = meta::rename<aggregated_view,
             meta::transform<make_split_view_item, meta::flatten<meta::transform<fuse_stage_rows, Matrices>>>>;
     } // namespace stage_matrix
 } // namespace gridtools

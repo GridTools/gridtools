@@ -19,6 +19,7 @@
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "axis.hpp"
+#include "dim.hpp"
 #include "execution_types.hpp"
 #include "extent.hpp"
 #include "interval.hpp"
@@ -94,13 +95,13 @@ namespace gridtools {
         int_t j_start() const { return m_j_start; }
 
         template <class Extent = extent<>>
-        int_t i_size(Extent = {}) const {
-            return m_i_size + Extent::iplus::value - Extent::iminus::value;
+        int_t i_size(Extent extent = {}) const {
+            return extent.extend(dim::i(), m_i_size);
         }
 
         template <class Extent = extent<>>
-        int_t j_size(Extent = {}) const {
-            return m_j_size + Extent::jplus::value - Extent::jminus::value;
+        int_t j_size(Extent extent = {}) const {
+            return extent.extend(dim::j(), m_j_size);
         }
 
         template <class From = typename Interval::FromLevel,
@@ -117,7 +118,8 @@ namespace gridtools {
 
         template <class From = typename Interval::FromLevel, class To = typename Interval::ToLevel>
         auto k_size(interval<From, To> x = {}) const {
-            return integral_constant<int_t, 1>() + splitter_size(x) + offset(To()) - offset(From());
+            using namespace literals;
+            return 1_c + splitter_size(x) + offset(To()) - offset(From());
         }
     };
 

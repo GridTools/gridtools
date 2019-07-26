@@ -12,8 +12,10 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../meta.hpp"
+#include "../dim.hpp"
 
 namespace gridtools {
 
@@ -22,14 +24,25 @@ namespace gridtools {
      */
     template <int_t IMinus = 0, int_t IPlus = 0, int_t JMinus = 0, int_t JPlus = 0, int_t KMinus = 0, int_t KPlus = 0>
     struct extent {
-        using type = extent;
-
         using iminus = integral_constant<int_t, IMinus>;
         using iplus = integral_constant<int_t, IPlus>;
         using jminus = integral_constant<int_t, JMinus>;
         using jplus = integral_constant<int_t, JPlus>;
         using kminus = integral_constant<int_t, KMinus>;
         using kplus = integral_constant<int_t, KPlus>;
+
+        static GT_FUNCTION iminus minus(dim::i) { return {}; }
+        static GT_FUNCTION jminus minus(dim::j) { return {}; }
+        static GT_FUNCTION kminus minus(dim::k) { return {}; }
+
+        static GT_FUNCTION iplus plus(dim::i) { return {}; }
+        static GT_FUNCTION jplus plus(dim::j) { return {}; }
+        static GT_FUNCTION kplus plus(dim::k) { return {}; }
+
+        template <class Dim, class Size>
+        static GT_FUNCTION auto extend(Dim dim, Size size) {
+            return size - minus(dim) + plus(dim);
+        }
     };
 
     /**

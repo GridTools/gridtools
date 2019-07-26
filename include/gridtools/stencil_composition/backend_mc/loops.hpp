@@ -65,8 +65,8 @@ namespace gridtools {
                 using ptr_diff_t = sid::ptr_diff_type<Composite>;
                 auto strides = sid::get_strides(composite);
                 ptr_diff_t offset{};
-                sid::shift(offset, sid::get_stride<dim::i>(strides), typename extent_t::iminus());
-                sid::shift(offset, sid::get_stride<dim::j>(strides), typename extent_t::jminus());
+                sid::shift(offset, sid::get_stride<dim::i>(strides), extent_t::minus(dim::i()));
+                sid::shift(offset, sid::get_stride<dim::j>(strides), extent_t::minus(dim::j()));
                 return [origin = sid::get_origin(composite) + offset,
                            strides = std::move(strides),
                            k_start = grid.k_start(Stage::interval()),
@@ -78,8 +78,8 @@ namespace gridtools {
                     sid::shift(offset, sid::get_stride<dim::k>(strides), info.k);
                     auto ptr = origin() + offset;
 
-                    int_t j_count = info.j_block_size + extent_t::jplus::value - extent_t::jminus::value;
-                    int_t i_size = info.i_block_size + extent_t::iplus::value - extent_t::iminus::value;
+                    int_t j_count = extent_t::extend(dim::j(), info.j_block_size);
+                    int_t i_size = extent_t(dim::i(), info.i_block_size);
 
                     for (int_t j = 0; j < j_count; ++j) {
                         using namespace literals;
@@ -116,13 +116,12 @@ namespace gridtools {
             template <class Stage, class Grid, class Composite, class KSizes>
             auto make_loop(std::false_type, Grid const &grid, Composite composite, KSizes k_sizes) {
                 using extent_t = typename Stage::extent_t;
-                using execution_t = typename Stage::execution_t;
                 using ptr_diff_t = sid::ptr_diff_type<Composite>;
 
                 auto strides = sid::get_strides(composite);
                 ptr_diff_t offset{};
-                sid::shift(offset, sid::get_stride<dim::i>(strides), typename extent_t::iminus());
-                sid::shift(offset, sid::get_stride<dim::j>(strides), typename extent_t::jminus());
+                sid::shift(offset, sid::get_stride<dim::i>(strides), extent_t::minus(dim::i()));
+                sid::shift(offset, sid::get_stride<dim::j>(strides), extent_t::minus(dim::j()));
                 sid::shift(
                     offset, sid::get_stride<dim::k>(strides), grid.k_start(Stage::interval(), Stage::execution()));
 
@@ -136,8 +135,8 @@ namespace gridtools {
                     sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), info.j_block);
                     auto ptr = origin() + offset;
 
-                    int_t j_size = info.j_block_size + extent_t::jplus::value - extent_t::jminus::value;
-                    int_t i_size = info.i_block_size + extent_t::iplus::value - extent_t::iminus::value;
+                    int_t j_size = extent_t::extend(dim::j(), info.j_block_size);
+                    int_t i_size = extent_t::extend(dim::i(), info.i_block_size);
 
                     auto k_i_loops = make_k_i_loops(i_size, ptr, strides);
                     for (int_t j = 0; j < j_size; ++j) {

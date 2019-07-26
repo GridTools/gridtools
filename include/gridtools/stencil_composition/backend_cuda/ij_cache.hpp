@@ -13,7 +13,6 @@
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../meta.hpp"
-#include "../arg.hpp"
 #include "../dim.hpp"
 #include "../extent.hpp"
 #include "../sid/contiguous.hpp"
@@ -30,36 +29,22 @@ namespace gridtools {
                 return {};
             }
 
-            template <class Plh,
-                class IBlockSize,
-                class JBlockSize,
-                class Extent,
-                std::enable_if_t<Plh::location_t::n_colors::value == 1, int> = 0>
-            auto sizes(Plh, IBlockSize i_block_size, JBlockSize j_block_size, Extent) {
-                return tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
+            template <class NumColors, class IBlockSize, class JBlockSize, class Extent>
+            auto sizes(NumColors num_colors, IBlockSize i_block_size, JBlockSize j_block_size, Extent) {
+                return tuple_util::make<hymap::keys<dim::c, dim::i, dim::j>::values>(num_colors,
                     i_block_size - typename Extent::iminus{} + typename Extent::iplus{},
                     j_block_size - typename Extent::jminus{} + typename Extent::jplus{});
             }
 
-            template <class Plh,
-                class IBlockSize,
-                class JBlockSize,
-                class Extent,
-                std::enable_if_t<(Plh::location_t::n_colors::value > 1), int> = 0>
-            auto sizes(Plh, IBlockSize i_block_size, JBlockSize j_block_size, Extent) {
-                return tuple_util::make<hymap::keys<dim::i, dim::c, dim::j>::values>(
-                    i_block_size - typename Extent::iminus{} + typename Extent::iplus{},
-                    integral_constant<int_t, Plh::location_t::n_colors::value>{},
-                    j_block_size - typename Extent::jminus{} + typename Extent::jplus{});
-            }
-
-            template <class Plh, class BlockSizeI, class BlockSizeJ, class Extent>
-            auto make_ij_cache(
-                Plh plh, BlockSizeI block_size_i, BlockSizeJ block_size_j, Extent extent, shared_allocator &alloc) {
-                GT_STATIC_ASSERT(is_plh<Plh>::value, GT_INTERNAL_ERROR);
+            template <class T, class NumColors, class BlockSizeI, class BlockSizeJ, class Extent>
+            auto make_ij_cache(NumColors num_colors,
+                BlockSizeI block_size_i,
+                BlockSizeJ block_size_j,
+                Extent extent,
+                shared_allocator &alloc) {
                 GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-                return sid::shift_sid_origin(sid::make_contiguous<typename Plh::data_t, int_t>(
-                                                 alloc, sizes(plh, block_size_i, block_size_j, extent)),
+                return sid::shift_sid_origin(
+                    sid::make_contiguous<T, int_t>(alloc, sizes(num_colors, block_size_i, block_size_j, extent)),
                     origin_offset(extent));
             }
         } // namespace ij_cache_impl_

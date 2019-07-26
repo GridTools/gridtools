@@ -30,21 +30,6 @@
 
 #define GT_RESTRICT __restrict__
 
-#ifndef GT_DEFAULT_TILE_I
-#ifdef __CUDACC__
-#define GT_DEFAULT_TILE_I 32
-#else
-#define GT_DEFAULT_TILE_I 8
-#endif
-#endif
-#ifndef GT_DEFAULT_TILE_J
-#ifdef __CUDACC__
-#define GT_DEFAULT_TILE_J 8
-#else
-#define GT_DEFAULT_TILE_J 8
-#endif
-#endif
-
 // max limit of indices for metastorages, beyond indices are reserved for library
 #ifndef GT_META_STORAGE_INDEX_LIMIT
 #define GT_META_STORAGE_INDEX_LIMIT 1000
