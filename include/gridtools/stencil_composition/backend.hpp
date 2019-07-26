@@ -25,7 +25,7 @@ namespace gridtools {
         template <class Grid, class DataStores>
         auto shift_origin(Grid const &grid, DataStores data_stores) {
             return tuple_util::transform([offsets = tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(
-                                              grid.i_low_bound(), grid.j_low_bound(), grid.k_min())](
+                                              grid.i_start(), grid.j_start(), grid.k_start())](
                                              auto &src) { return sid::shift_sid_origin(std::ref(src), offsets); },
                 std::move(data_stores));
         }
@@ -34,7 +34,7 @@ namespace gridtools {
         auto make_positionals(Grid const &grid, std::true_type) {
             using positionals_t = tuple<positional<dim::i>, positional<dim::j>, positional<dim::k>>;
             return hymap::convert_to<hymap::keys, positionals_t>(
-                positionals_t{grid.i_low_bound(), grid.j_low_bound(), grid.k_min()});
+                positionals_t{grid.i_start(), grid.j_start(), grid.k_start()});
         }
 
         template <class Grid>

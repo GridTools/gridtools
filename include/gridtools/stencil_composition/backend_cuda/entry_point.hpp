@@ -75,7 +75,7 @@ namespace gridtools {
                 [&allocator,
                     n_blocks_i = (grid.i_size() + GT_DEFAULT_TILE_I - 1) / GT_DEFAULT_TILE_I,
                     n_blocks_j = (grid.j_size() + GT_DEFAULT_TILE_J - 1) / GT_DEFAULT_TILE_J,
-                    k_size = grid.k_total_length()](auto plh) {
+                    k_size = grid.k_size()](auto plh) {
                     return make_tmp_storage(plh,
                         integral_constant<int_t, GT_DEFAULT_TILE_I>(),
                         integral_constant<int_t, GT_DEFAULT_TILE_J>(),

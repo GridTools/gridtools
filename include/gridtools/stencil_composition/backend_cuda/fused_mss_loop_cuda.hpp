@@ -33,7 +33,7 @@ namespace gridtools {
 
             template <class Grid>
             auto start(execute::backward, Grid const &grid) {
-                return grid.k_total_length();
+                return grid.k_size();
             };
 
             template <class ExecutionType, class LoopIntervals, class KCaches>
