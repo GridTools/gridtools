@@ -92,34 +92,25 @@ namespace gridtools {
                 }
             };
 
-            template <class Plh, class DataStores, bool = has_key<DataStores, Plh>::value>
-            struct get_data_type {
-                using plhs_t = get_keys<DataStores>;
-                using index_t = meta::st_position<plhs_t, Plh>;
-                using data_store_t = std::decay_t<tuple_util::element<index_t::value, DataStores>>;
-                using type = sid::element_type<data_store_t>;
-            };
+            template <class PlhInfo, class Extent = typename PlhInfo::extent_t>
+            using make_storage_type = storage<typename PlhInfo::data_t, Extent::kminus::value, Extent::kplus::value>;
 
-            template <class Plh, class DataStores>
-            struct get_data_type<Plh, DataStores, false> {
-                using type = typename Plh::data_t;
-            };
+            template <class PlhInfo>
+            using is_k_cached =
+                std::is_same<typename PlhInfo::caches_t, meta::list<integral_constant<cache_type, cache_type::k>>>;
 
-            template <class Esfs, class DataStores>
-            struct storage_type_f {
-                template <class Plh, class Extent = extract_k_extent_for_cache<Plh, Esfs>>
-                using apply =
-                    storage<typename get_data_type<Plh, DataStores>::type, Extent::kminus::value, Extent::kplus::value>;
-            };
+            template <class Mss>
+            using has_k_caches = meta::any_of<is_k_cached, typename Mss::plh_map_t>;
 
             template <class Mss,
-                class DataStores,
-                class Plhs = meta::transform<cache_parameter, meta::filter<is_k_cache, typename Mss::cache_sequence_t>>,
-                class Storages =
-                    meta::transform<storage_type_f<typename Mss::esf_sequence_t, DataStores>::template apply, Plhs>>
-            using k_caches_type = k_caches<hymap::from_keys_values<Plhs, Storages>>;
+                class PlhMap = meta::filter<is_k_cached, typename Mss::plh_map_t>,
+                class Keys = meta::transform<meta::first, PlhMap>,
+                class Storages = meta::transform<make_storage_type, PlhMap>>
+            using k_caches_type = k_caches<hymap::from_keys_values<Keys, Storages>>;
         } // namespace k_cache_impl_
 
+        using k_cache_sid_t = k_cache_impl_::fake;
+        using k_cache_impl_::has_k_caches;
         using k_cache_impl_::k_caches_type;
         using k_cache_impl_::make_k_cached_sids;
     } // namespace cuda

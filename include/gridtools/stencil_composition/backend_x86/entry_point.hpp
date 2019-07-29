@@ -34,9 +34,10 @@ namespace gridtools {
         auto make_stage_loop(Stage, Grid const &grid, DataStores &data_stores) {
             using extent_t = typename Stage::extent_t;
 
-            using plhs_t = typename Stage::plhs_t;
-            auto composite = tuple_util::convert_to<meta::rename<sid::composite::keys, plhs_t>::template values>(
-                tuple_util::transform([&](auto plh) { return at_key<decltype(plh)>(data_stores); }, plhs_t()));
+            using plh_map_t = typename Stage::plh_map_t;
+            using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
+            auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
+                [&](auto info) { return at_key<decltype(info.plh())>(data_stores); }, Stage::plh_map()));
             using ptr_diff_t = sid::ptr_diff_type<decltype(composite)>;
 
             auto strides = sid::get_strides(composite);

@@ -25,15 +25,16 @@
 
 namespace gridtools {
     namespace make_stage_matrix_impl_ {
-        template <class Esf,
+        template <class EsfFunction,
+            class Keys,
             class LevelIndex,
-            class Functor = bind_functor_with_interval<typename Esf::esf_function_t, LevelIndex>>
+            class Functor = bind_functor_with_interval<EsfFunction, LevelIndex>>
         struct stage_funs {
-            using type = meta::list<stage<Functor, typename Esf::args_t>>;
+            using type = meta::list<stage<Functor, Keys>>;
         };
 
-        template <class Esf, class LevelIndex>
-        struct stage_funs<Esf, LevelIndex, void> {
+        template <class EsfFunction, class Keys, class LevelIndex>
+        struct stage_funs<EsfFunction, Keys, LevelIndex, void> {
             using type = meta::list<>;
         };
 
@@ -61,31 +62,30 @@ namespace gridtools {
         };
 
         template <class Dim>
-        using positional_plh_info = stage_matrix::
-            plh_info<positional<Dim>, std::false_type, int_t const, extent<>, void, void, integral_constant<uint_t, 1>>;
+        using positional_plh_info = stage_matrix::plh_info<meta::list<positional<Dim>>,
+            std::false_type,
+            int_t const,
+            integral_constant<int_t, 1>,
+            std::true_type,
+            extent<>,
+            meta::list<>>;
 
         template <class EsfExtent, class DataStores, class Mss>
         struct make_plh_info_f {
             using cache_map_t = make_cache_map<typename Mss::cache_sequence_t>;
 
-            template <class Plh,
-                class Accessor,
-                class IsConst = bool_constant<Accessor::intent_v == intent::in>,
-                class Data = typename get_data_type<Plh, DataStores>::type,
-                class CacheInfo = meta::mp_find<cache_map_t, Plh, meta::list<void, void, void>>>
-            using apply = stage_matrix::plh_info<Plh,
+            template <class Plh, class Accessor, class CacheInfo = lookup_cache_map<cache_map_t, Plh>>
+            using apply = stage_matrix::plh_info<meta::push_front<typename CacheInfo::cache_types_t, Plh>,
                 typename is_tmp_arg<Plh>::type,
-                meta::if_<IsConst, std::add_const_t<Data>, Data>,
+                typename get_data_type<Plh, DataStores>::type,
+                integral_constant<int_t, Plh::location_t::n_colors::value>,
+                bool_constant<Accessor::intent_v == intent::in>,
                 sum_extent<EsfExtent, typename Accessor::extent_t>,
-                meta::second<CacheInfo>,
-                meta::third<CacheInfo>,
-                integral_constant<int_t, Plh::location_t::n_colors::value>>;
+                typename CacheInfo::cache_io_policies_t>;
         };
 
         template <class Msses, class NeedPositionals, class DataStores, class Mss, class Esf, class NeedSync>
         struct make_cell_f {
-            using caches_t = typename Mss::cache_sequence_t;
-            using execution_t = typename Mss::execution_engine_t;
             using esf_extent_t = to_horizontal_extent<get_esf_extent<Esf, get_extent_map_from_msses<Msses>>>;
 
             using esf_plh_map_t = meta::transform<make_plh_info_f<esf_extent_t, DataStores, Mss>::template apply,
@@ -99,7 +99,9 @@ namespace gridtools {
                 esf_plh_map_t>;
 
             template <class LevelIndex>
-            using apply = stage_matrix::cell<typename stage_funs<Esf, LevelIndex>::type,
+            using apply = stage_matrix::cell<typename stage_funs<typename Esf::esf_function_t,
+                                                 meta::transform<meta::first, esf_plh_map_t>,
+                                                 LevelIndex>::type,
                 interval_from_index<LevelIndex>,
                 plh_map_t,
                 esf_extent_t,

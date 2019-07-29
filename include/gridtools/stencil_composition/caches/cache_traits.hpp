@@ -16,6 +16,7 @@
 
 #include <type_traits>
 
+#include "../../common/integral_constant.hpp"
 #include "../../meta/macros.hpp"
 #include "cache.hpp"
 
@@ -90,14 +91,40 @@ namespace gridtools {
     GT_META_DELEGATE_TO_LAZY(cache_parameter, typename T, T);
 
     namespace cache_traits_impl_ {
+        template <cache_io_policy>
+        struct make_cache_io_policies : meta::list<> {};
+
+        template <>
+        struct make_cache_io_policies<cache_io_policy::fill_and_flush>
+            : meta::list<integral_constant<cache_io_policy, cache_io_policy::fill>,
+                  integral_constant<cache_io_policy, cache_io_policy::flush>> {};
+        template <>
+        struct make_cache_io_policies<cache_io_policy::fill>
+            : meta::list<integral_constant<cache_io_policy, cache_io_policy::fill>> {};
+
+        template <>
+        struct make_cache_io_policies<cache_io_policy::flush>
+            : meta::list<integral_constant<cache_io_policy, cache_io_policy::flush>> {};
+
+        template <class Plh, class CacheTypes = meta::list<>, class CacheIOPolicies = meta::list<>>
+        struct cache_info {
+            using plh_t = Plh;
+            using cache_types_t = CacheTypes;
+            using cache_io_policies_t = CacheIOPolicies;
+        };
+
         template <class Cache>
-        using make_cache_map_item = meta::list<typename Cache::arg_t,
-            std::integral_constant<cache_type, Cache::cacheType>,
-            std::integral_constant<cache_io_policy, Cache::cacheIOPolicy>>;
+        using make_cache_map_item = cache_info<typename Cache::arg_t,
+            meta::list<integral_constant<cache_type, Cache::cacheType>>,
+            typename make_cache_io_policies<Cache::cacheIOPolicy>::type>;
 
         template <class Caches>
         using make_cache_map = meta::transform<make_cache_map_item, Caches>;
+
+        template <class Map, class Plh>
+        using lookup_cache_map = meta::mp_find<Map, Plh, cache_info<Plh>>;
     } // namespace cache_traits_impl_
+    using cache_traits_impl_::lookup_cache_map;
     using cache_traits_impl_::make_cache_map;
 
 } // namespace gridtools

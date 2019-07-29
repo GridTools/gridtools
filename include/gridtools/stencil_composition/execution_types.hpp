@@ -30,7 +30,7 @@ namespace gridtools {
         template <typename T>
         struct is_parallel : std::false_type {};
 
-        template <uint_t BlockSize>
+        template <int_t BlockSize>
         struct is_parallel<parallel_block<BlockSize>> : std::true_type {};
 
         template <typename T>

@@ -26,120 +26,106 @@
 namespace gridtools {
     namespace cuda {
         namespace fused_mss_loop_cuda_impl_ {
-            template <class ExecutionType, class Grid>
-            integral_constant<int_t, 0> start(ExecutionType, Grid &&) {
-                return {};
+            struct deref_f {
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+                template <class T>
+                GT_FUNCTION std::enable_if_t<is_texture_type<T>::value, T> operator()(T const *ptr) const {
+                    return __ldg(ptr);
+                }
+#endif
+                template <class Ptr>
+                GT_FUNCTION decltype(auto) operator()(Ptr ptr) const {
+                    return *ptr;
+                }
             };
 
-            template <class Grid>
-            auto start(execute::backward, Grid const &grid) {
-                return grid.k_size();
-            };
+            GT_FUNCTION_DEVICE void syncthreads(std::true_type) { __syncthreads(); }
+            GT_FUNCTION_DEVICE void syncthreads(std::false_type) {}
 
-            template <class ExecutionType, class LoopIntervals, class KCaches>
-            struct cached_k_loop_f {
-                LoopIntervals m_loop_intervals;
-                int_t m_start;
+            template <class Info, class Ptr, class Strides, class Validator>
+            GT_FUNCTION_DEVICE void exec_cells(Info,
+                Ptr &GT_RESTRICT ptr,
+                Strides const &GT_RESTRICT strides,
+                Validator const &GT_RESTRICT validator) {
+                device::for_each<typename Info::cells_t>([&](auto cell) {
+                    syncthreads(cell.need_sync());
+                    if (validator(cell.extent()))
+                        cell.template operator()<deref_f>(ptr, strides);
+                });
+            }
+
+            template <class Mss,
+                class Sizes,
+                class = typename has_k_caches<Mss>::type,
+                class = typename Mss::execution_t>
+            struct k_loop_f;
+
+            template <class Mss, class Sizes, class Execution>
+            struct k_loop_f<Mss, Sizes, std::true_type, Execution> {
+                Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
                 GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
-                    sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start);
-                    KCaches k_caches;
+                    k_caches_type<Mss> k_caches;
                     auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
                     tuple_util::device::for_each(
-                        [&](auto const &loop_interval) {
-                            for (int_t i = 0; i < loop_interval.count(); ++i) {
-                                loop_interval(mixed_ptr, strides, validator);
-                                k_caches.slide(execute::step<ExecutionType>);
-                                sid::shift(mixed_ptr.secondary(),
-                                    sid::get_stride<dim::k>(strides),
-                                    execute::step<ExecutionType>);
+                        [&](int_t size, auto info) {
+                            for (int_t i = 0; i < size; ++i) {
+                                exec_cells(info, mixed_ptr, strides, validator);
+                                k_caches.slide(info.k_step());
+                                info.inc_k(mixed_ptr.secondary(), strides);
                             }
                         },
-                        m_loop_intervals);
+                        m_sizes,
+                        Mss::interval_infos());
                 }
             };
 
-            template <class ExecutionType, class LoopIntervals>
-            struct k_loop_f {
-                LoopIntervals m_loop_intervals;
-                int_t m_start;
+            template <class Mss, class Sizes, class Execution>
+            struct k_loop_f<Mss, Sizes, std::false_type, Execution> {
+                Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
                 GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
-                    sid::shift(ptr, sid::get_stride<dim::k>(strides), m_start);
                     tuple_util::device::for_each(
-                        [&](auto const &loop_interval) {
-                            for (int_t i = 0; i < loop_interval.count(); ++i) {
-                                loop_interval(ptr, strides, validator);
-                                sid::shift(ptr, sid::get_stride<dim::k>(strides), execute::step<ExecutionType>);
+                        [&](int_t size, auto info) {
+                            for (int_t i = 0; i < size; ++i) {
+                                exec_cells(info, ptr, strides, validator);
+                                info.inc_k(ptr, strides);
                             }
                         },
-                        m_loop_intervals);
+                        m_sizes,
+                        Mss::interval_infos());
                 }
             };
 
-            template <int_t BlockSize, class LoopIntervals>
-            struct parallel_k_loop_f {
-                LoopIntervals m_loop_intervals;
+            template <class Mss, class Sizes, int_t BlockSize>
+            struct k_loop_f<Mss, Sizes, std::false_type, execute::parallel_block<BlockSize>> {
+                static_assert(std::is_same<Sizes, tuple<int>>::value, "fffffffq");
+                Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
                 GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
-                    sid::shift(ptr, sid::get_stride<dim::k>(strides), (int_t)blockIdx.z * BlockSize);
-                    int cur = -(int_t)blockIdx.z * BlockSize;
+                    int_t cur = -(int_t)blockIdx.z * BlockSize;
+                    sid::shift(ptr, sid::get_stride<dim::k>(strides), -cur);
                     tuple_util::device::for_each(
-                        [&](auto const &loop_interval) {
+                        [&](int_t size, auto info) {
                             if (cur >= BlockSize)
                                 return;
-                            auto count = loop_interval.count();
-                            int_t lim = math::min(cur + count, BlockSize) - math::max(cur, 0);
-                            cur += count;
+                            int_t lim = math::min(cur + size, BlockSize) - math::max(cur, 0);
+                            cur += size;
 #pragma unroll BlockSize
                             for (int_t i = 0; i < BlockSize; ++i) {
                                 if (i >= lim)
                                     break;
-                                loop_interval(ptr, strides, validator);
-                                sid::shift(ptr, sid::get_stride<dim::k>(strides), integral_constant<int_t, 1>());
+                                exec_cells(info, ptr, strides, validator);
+                                info.inc_k(ptr, strides);
                             }
                         },
-                        m_loop_intervals);
+                        m_sizes,
+                        Mss::interval_infos());
                 }
             };
-
-            template <class Mss,
-                class DataStores,
-                class Grid,
-                class LoopIntervals,
-                std::enable_if_t<meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value, int> = 0>
-            auto make_k_loop(Grid const &grid, LoopIntervals loop_intervals) {
-                using execution_t = typename Mss::execution_engine_t;
-                return cached_k_loop_f<execution_t, LoopIntervals, k_caches_type<Mss, DataStores>>{
-                    std::move(loop_intervals), start(execution_t(), grid)};
-            }
-
-            template <class Mss,
-                class /*DataStores*/,
-                class Grid,
-                class LoopIntervals,
-                std::enable_if_t<!meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value &&
-                                     !execute::is_parallel<typename Mss::execution_engine_t>::value,
-                    int> = 0>
-            auto make_k_loop(Grid const &grid, LoopIntervals loop_intervals) {
-                using execution_t = typename Mss::execution_engine_t;
-                return k_loop_f<typename Mss::execution_engine_t, LoopIntervals>{
-                    std::move(loop_intervals), start(execution_t(), grid)};
-            }
-
-            template <class Mss,
-                class /*DataStores*/,
-                class Grid,
-                class LoopIntervals,
-                std::enable_if_t<!meta::any_of<is_k_cache, typename Mss::cache_sequence_t>::value &&
-                                     execute::is_parallel<typename Mss::execution_engine_t>::value,
-                    int> = 0>
-            auto make_k_loop(Grid const &grid, LoopIntervals loop_intervals) {
-                return parallel_k_loop_f<Mss::execution_engine_t::block_size, LoopIntervals>{std::move(loop_intervals)};
-            }
 
             template <class Sid, class KLoop>
             struct kernel_f {
@@ -149,7 +135,7 @@ namespace gridtools {
 
                 template <class Validator>
                 GT_FUNCTION_DEVICE void operator()(int_t i_block, int_t j_block, Validator validator) const {
-                    sid::ptr_diff_type<Sid> offset = {};
+                    sid::ptr_diff_type<Sid> offset{};
                     sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(m_strides), blockIdx.x);
                     sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(m_strides), blockIdx.y);
                     sid::shift(offset, sid::get_stride<dim::i>(m_strides), i_block);
@@ -158,19 +144,20 @@ namespace gridtools {
                 }
             };
 
-            template <class Composite, class KLoop>
-            kernel_f<Composite, KLoop> make_kernel_fun_raw(Composite &composite, KLoop k_loop) {
-                return {sid::get_origin(composite), sid::get_strides(composite), std::move(k_loop)};
-            }
+            template <class Mss, class Grid, class Composite>
+            auto make_kernel_fun(Grid const &grid, Composite &composite) {
+                sid::ptr_diff_type<Composite> offset{};
+                auto strides = sid::get_strides(composite);
+                sid::shift(offset, sid::get_stride<dim::k>(strides), grid.k_start(Mss::interval(), Mss::execution()));
+                auto origin = sid::get_origin(composite) + offset;
+                auto k_sizes = stage_matrix::make_k_sizes(Mss::interval_infos(), grid);
+                using k_sizes_t = decltype(k_sizes);
+                using k_loop_t = k_loop_f<Mss, k_sizes_t>;
 
-            template <class Mss, class DataStores, class Grid, class Composite, class LoopIntervals>
-            auto make_kernel_fun(Grid const &grid, Composite &composite, LoopIntervals loop_intervals) {
-                return make_kernel_fun_raw(composite, make_k_loop<Mss, DataStores>(grid, std::move(loop_intervals)));
+                return kernel_f<Composite, k_loop_t>{
+                    sid::get_origin(composite) + offset, std::move(strides), {std::move(k_sizes)}};
             }
-
         } // namespace fused_mss_loop_cuda_impl_
-
         using fused_mss_loop_cuda_impl_::make_kernel_fun;
-
     } // namespace cuda
 } // namespace gridtools

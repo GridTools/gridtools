@@ -326,5 +326,45 @@ namespace gridtools {
         using fill_flush_impl_::add_fill_flush_stages;
         using fill_flush_impl_::k_cache_original;
         using fill_flush_impl_::make_bound_checkers;
-    } // namespace cuda
+
+        namespace fill_flush {
+            namespace impl_ {
+
+                // trim rows
+                // extract the list of fills and the list of flushes
+                // for each fill:
+                //   extract extent<minus, plus>
+                //   extract working interval
+                //   first level (length should be 1) fill all and it needs bounds checking for [minus, 0)
+                //   levels in the middle don't need checking
+                //   levels from [size - plus, size) need checking (those levels should be with lengths 1
+                //
+
+                //  --  minus  ?
+                //  --         ?
+                //  --  first  +
+                //  --         + ex
+                //  --  plus   +
+                //  --
+                //  ...
+                //  --  last   +
+                //  --         ? last - 1
+                //  --  plus   ? last
+                //   find the level where it mentioned first -> here insert sync_all
+                //   for all level until it is mentioned -> insert sync
+                //
+                template <class Matrix>
+                using transform_matrix = Matrix;
+
+                template <class Matrices>
+                using transform_spec = meta::transform<transform_matrix, Matrices>;
+            } // namespace impl_
+            using impl_::transform_spec;
+
+            template <class Spec, class DataStores>
+            auto transform_data_stores(Spec, DataStores data_stores) {
+                return data_stores;
+            }
+        } // namespace fill_flush
+    }     // namespace cuda
 } // namespace gridtools

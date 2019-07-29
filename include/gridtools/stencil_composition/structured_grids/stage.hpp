@@ -46,26 +46,23 @@
 namespace gridtools {
     namespace stage_impl_ {
         struct default_deref_f {
-            template <class Arg, class T>
+            template <class T>
             GT_FUNCTION decltype(auto) operator()(T ptr) const {
                 return *ptr;
             }
         };
 
-        template <class Ptr, class Strides, class Plhs, class Deref>
+        template <class Ptr, class Strides, class Keys, class Deref>
         struct evaluator {
             Ptr const &GT_RESTRICT m_ptr;
             Strides const &GT_RESTRICT m_strides;
 
-            template <class Plh>
-            using ref_type =
-                decltype(Deref().template operator()<Plh>(host_device::at_key<Plh>(std::declval<Ptr const &>())));
-
-            template <class Accessor, class Plh = meta::at_c<Plhs, Accessor::index_t::value>>
-            GT_FUNCTION apply_intent_t<Accessor::intent_v, ref_type<Plh>> operator()(Accessor acc) const {
-                auto ptr = host_device::at_key<Plh>(m_ptr);
-                sid::multi_shift<Plh>(ptr, m_strides, wstd::move(acc));
-                return Deref().template operator()<Plh>(ptr);
+            template <class Accessor>
+            GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
+                using key_t = meta::at_c<Keys, Accessor::index_t::value>;
+                auto ptr = host_device::at_key<key_t>(m_ptr);
+                sid::multi_shift<key_t>(ptr, m_strides, wstd::move(acc));
+                return apply_intent<Accessor::intent_v>(Deref()(ptr));
             }
 
             template <class Op, class... Ts>
@@ -78,41 +75,18 @@ namespace gridtools {
             GT_FUNCTION int_t k() const { return *host_device::at_key<positional<dim::k>>(m_ptr); }
         };
 
-        template <class Functor, class Plhs>
+        template <class Functor, class PlhMap>
         struct stage {
             GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
 
-            template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
+            template <class Deref = void, class Ptr, class Strides>
             GT_FUNCTION void operator()(Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
-                using eval_t = evaluator<Ptr, Strides, Plhs, Deref>;
+                using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
+                using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t>;
                 eval_t eval{ptr, strides};
                 Functor::template apply<eval_t &>(eval);
             }
         };
-
     } // namespace stage_impl_
-
     using stage_impl_::stage;
-
-    /**
-     *   A stage that is associated with an elementary functor.
-     */
-    template <class Functor, class Extent, class Esf>
-    struct stage_old {
-        GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
-
-        using esf_t = Esf;
-        using args_t = typename Esf::args_t;
-        using extent_t = Extent;
-
-        static GT_FUNCTION Extent extent() { return {}; }
-
-        template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
-        GT_FUNCTION void operator()(Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
-            stage_impl_::evaluator<Ptr, Strides, args_t, Deref> eval{ptr, strides};
-            Functor::apply(eval);
-        }
-    };
 } // namespace gridtools

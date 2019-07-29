@@ -28,11 +28,13 @@ namespace gridtools {
     using get_##property = typename T::property##_t
 
         DEFINE_GETTER(plh);
+        DEFINE_GETTER(key);
         DEFINE_GETTER(is_tmp);
+        DEFINE_GETTER(is_const);
         DEFINE_GETTER(data);
         DEFINE_GETTER(extent);
-        DEFINE_GETTER(cache);
-        DEFINE_GETTER(cache_io_policy);
+        DEFINE_GETTER(caches);
+        DEFINE_GETTER(cache_io_policies);
         DEFINE_GETTER(num_colors);
         DEFINE_GETTER(funs);
         DEFINE_GETTER(interval);
@@ -42,83 +44,80 @@ namespace gridtools {
 
 #undef DEFINE_GETTER
 
-        template <class Plh, class IsTmp, class Data, class Extent, class Cache, class CacheIoPolicy, class NumColors>
-        struct plh_info {
+        template <class Key,
+            class IsTmp,
+            class Data,
+            class NumColors,
+            class IsConst,
+            class Extent,
+            class CacheIoPolicies>
+        struct plh_info;
+
+        template <class Plh,
+            class... Caches,
+            class IsTmp,
+            class Data,
+            class NumColors,
+            class IsConst,
+            class Extent,
+            class... CacheIoPolicies>
+        struct plh_info<meta::list<Plh, Caches...>,
+            IsTmp,
+            Data,
+            NumColors,
+            IsConst,
+            Extent,
+            meta::list<CacheIoPolicies...>> {
+            using key_t = meta::list<Plh, Caches...>;
             using plh_t = Plh;
+            using caches_t = meta::list<Caches...>;
             using is_tmp_t = IsTmp;
             using data_t = Data;
-            using extent_t = Extent;
-            using cache_t = Cache;
-            using cache_io_policy_t = CacheIoPolicy;
             using num_colors_t = NumColors;
+            using is_const_t = IsConst;
+            using extent_t = Extent;
+            using cache_io_policies_t = meta::list<CacheIoPolicies...>;
 
+            static GT_FUNCTION key_t key() { return {}; }
             static GT_FUNCTION plh_t plh() { return {}; }
+            static GT_FUNCTION caches_t caches() { return {}; }
             static GT_FUNCTION is_tmp_t is_tmp() { return {}; }
-            static GT_FUNCTION extent_t extent() { return {}; }
-            static GT_FUNCTION cache_t cache() { return {}; }
-            static GT_FUNCTION cache_io_policy_t cache_io_policy() { return {}; }
-            static GT_FUNCTION num_colors_t num_colors() { return {}; }
             static data_t data();
+            static GT_FUNCTION num_colors_t num_colors() { return {}; }
+            static GT_FUNCTION is_const_t is_const() { return {}; }
+            static GT_FUNCTION extent_t extent() { return {}; }
+            static GT_FUNCTION cache_io_policies_t cache_io_policies() { return {}; }
         };
 
-        template <class PlhMap, class Fun>
+        template <template <class...> class GetKey = get_plh, class PlhMap, class Fun>
         auto make_data_stores(PlhMap, Fun &&fun) {
             return tuple_util::transform(
-                std::forward<Fun>(fun), hymap::from_keys_values<meta::transform<get_plh, PlhMap>, PlhMap>());
+                std::forward<Fun>(fun), hymap::from_keys_values<meta::transform<GetKey, PlhMap>, PlhMap>());
         }
 
-        template <class>
-        struct merge_data_types_impl;
-
-        template <class T>
-        struct merge_data_types_impl<meta::list<T>> {
-            using type = T;
-        };
-
-        template <class T>
-        struct merge_data_types_impl<meta::list<T, T const>> {
-            using type = T;
-        };
-
-        template <class T>
-        struct merge_data_types_impl<meta::list<T const, T>> {
-            using type = T;
-        };
-
-        template <class... Ts>
-        using merge_data_types = typename merge_data_types_impl<meta::dedup<meta::list<Ts...>>>::type;
-
-        template <class>
-        struct merge_caches_impl {
-            using type = void;
-        };
-
-        template <class T>
-        struct merge_caches_impl<meta::list<T>> {
-            using type = T;
-        };
-
-        template <class... Ts>
-        using merge_caches = typename merge_caches_impl<meta::dedup<meta::list<Ts...>>>::type;
+        template <class Items, class Grid>
+        auto make_k_sizes(Items, const Grid &grid) {
+            return tuple_util::transform([&](auto item) { return grid.k_size(item.interval()); }, Items());
+        }
 
         template <class...>
         struct merge_plh_infos;
 
-        template <class Plh,
+        template <class Key,
             class IsTmp,
-            class... Datas,
+            class Data,
+            class NumColors,
+            class... IsConsts,
             class... Extents,
-            class... Caches,
-            class... CacheIoPolicies,
-            class NumColors>
-        struct merge_plh_infos<plh_info<Plh, IsTmp, Datas, Extents, Caches, CacheIoPolicies, NumColors>...> {
-            using type = plh_info<Plh,
+            class... CacheIoPolicyLists>
+        struct merge_plh_infos<plh_info<Key, IsTmp, Data, NumColors, IsConsts, Extents, CacheIoPolicyLists>...> {
+            using type = plh_info<Key,
                 IsTmp,
-                merge_data_types<Datas...>,
+                Data,
+                NumColors,
+                conjunction<IsConsts...>,
                 enclosing_extent<Extents...>,
-                merge_caches<Caches...>,
-                merge_caches<CacheIoPolicies...>,
-                NumColors>;
+                meta::dedup<meta::concat<CacheIoPolicyLists...>>>;
         };
 
         template <class... Maps>
@@ -132,17 +131,6 @@ namespace gridtools {
             template <class Fun>
             GT_FUNCTION void operator()(Fun fun) const {
                 fun.template operator()<Deref>(m_ptr, m_strides);
-            }
-        };
-
-        template <class Ptr, class Strides>
-        struct run_f<void, Ptr, Strides> {
-            Ptr const &GT_RESTRICT m_ptr;
-            Strides const &GT_RESTRICT m_strides;
-
-            template <class Fun>
-            GT_FUNCTION void operator()(Fun fun) const {
-                fun(m_ptr, m_strides);
             }
         };
 
@@ -276,6 +264,7 @@ namespace gridtools {
             using extent_t = enclosing_extent<Extent...>;
             using execution_t = Execution;
             using plhs_t = meta::transform<get_plh, plh_map_t>;
+            using keys_t = meta::transform<get_key, plh_map_t>;
             using k_step_t = typename meta::first<interval_info>::k_step_t;
 
             using cells_t = meta::rename<tuple, meta::filter<meta::not_<is_cell_empty>::apply, interval_info>>;
@@ -287,6 +276,11 @@ namespace gridtools {
             static GT_FUNCTION interval_t interval() { return {}; }
             static GT_FUNCTION k_step_t k_step() { return {}; }
             static GT_FUNCTION cells_t cells() { return {}; }
+
+            template <class Ptr, class Strides>
+            static GT_FUNCTION void inc_k(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), k_step());
+            }
         };
 
         template <class... IntervalInfos>
@@ -296,16 +290,16 @@ namespace gridtools {
                 (conjunction<meta::is_instantiation_of<interval_info, IntervalInfos>...>::value), GT_INTERNAL_ERROR);
             GT_STATIC_ASSERT(meta::are_same<typename meta::length<IntervalInfos>::type...>::value, GT_INTERNAL_ERROR);
 
-            using cells_t = meta::transform<meta::first, meta::list<IntervalInfos...>>;
-            using cell_t = meta::first<cells_t>;
+            using item_t = meta::first<meta::list<IntervalInfos...>>;
 
           public:
-            using execution_t = typename cell_t::execution_t;
-            using extent_t = meta::rename<enclosing_extent, meta::transform<get_extent, cells_t>>;
-            using plh_map_t = meta::rename<merge_plh_maps, meta::transform<get_plh_map, cells_t>>;
+            using execution_t = typename item_t::execution_t;
+            using extent_t = typename item_t::extent_t;
+            using plh_map_t = typename item_t::plh_map_t;
             using plhs_t = meta::transform<get_plh, plh_map_t>;
+            using keys_t = meta::transform<get_key, plh_map_t>;
             using interval_t = concat_intervals<typename IntervalInfos::interval_t...>;
-            using k_step_t = typename cell_t::k_step_t;
+            using k_step_t = typename item_t::k_step_t;
 
             using interval_infos_t = meta::rename<tuple,
                 meta::if_<execute::is_backward<execution_t>, meta::reverse<fused_view_item>, fused_view_item>>;
@@ -350,6 +344,8 @@ namespace gridtools {
         struct aggregated_view {
             using plh_map_t = merge_plh_maps<typename Items::plh_map_t...>;
             using plhs_t = meta::transform<get_plh, plh_map_t>;
+            using keys_t = meta::transform<get_keys, plh_map_t>;
+
             using tmp_plh_map_t = meta::filter<get_is_tmp, plh_map_t>;
             using tmp_plhs_t = meta::transform<get_plh, tmp_plh_map_t>;
 

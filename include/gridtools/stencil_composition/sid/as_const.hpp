@@ -56,5 +56,27 @@ namespace gridtools {
         as_const_impl_::const_adapter<Src> as_const(SrcRef &&src) {
             return as_const_impl_::const_adapter<Src>{std::forward<SrcRef>(src)};
         }
+
+        template <class Src>
+        decltype(auto) add_const(std::false_type, Src &&src) {
+            return std::forward<Src>(src);
+        }
+
+        template <class SrcRef,
+            class Src = std::decay_t<SrcRef>,
+            class Ptr = sid::ptr_type<Src>,
+            std::enable_if_t<std::is_pointer<Ptr>::value && !std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
+        auto add_const(std::true_type, SrcRef &&src) {
+            return as_const(std::forward<SrcRef>(src));
+        }
+
+        template <class SrcRef,
+            class Src = std::decay_t<SrcRef>,
+            class Ptr = sid::ptr_type<Src>,
+            std::enable_if_t<!std::is_pointer<Ptr>::value || std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
+        auto add_const(std::true_type, SrcRef &&src) {
+            return std::forward<SrcRef>(src);
+        }
+
     } // namespace sid
 } // namespace gridtools

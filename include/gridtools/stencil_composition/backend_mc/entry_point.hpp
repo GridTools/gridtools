@@ -59,11 +59,11 @@ namespace gridtools {
                     using stage_t = decltype(stage);
                     auto k_sizes = tuple_util::transform(
                         [&](auto cell) { return grid.k_size(cell.interval()); }, stage_t::cells());
-                    using plhs_t = typename stage_t::plhs_t;
-                    auto composite =
-                        tuple_util::convert_to<meta::rename<sid::composite::keys, plhs_t>::template values>(
-                            tuple_util::transform(
-                                [&](auto plh) { return at_key<decltype(plh)>(data_stores); }, plhs_t()));
+
+                    using plh_map_t = typename stage_t::plh_map_t;
+                    using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
+                    auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
+                        [&](auto info) { return at_key<decltype(info.plh())>(data_stores); }, stage_t::plh_map()));
                     return make_loop<stage_t>(all_parrallel_t(), grid, std::move(composite), std::move(k_sizes));
                 },
                 meta::rename<tuple, stages_t>());
