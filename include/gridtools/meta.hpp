@@ -142,7 +142,7 @@
 #include "meta/mp_find.hpp"
 #include "meta/mp_insert.hpp"
 #include "meta/mp_inverse.hpp"
-#include "meta/mp_merge.hpp"
+#include "meta/mp_make.hpp"
 #include "meta/mp_remove.hpp"
 #include "meta/not.hpp"
 #include "meta/pop_back.hpp"

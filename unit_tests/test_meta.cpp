@@ -297,21 +297,16 @@ namespace gridtools {
             std::is_same<trim<std::is_void, f<void, void, int, int, void, int, void>>, f<int, int, void, int>>::value,
             "");
 
-        // mp_merge
-        static_assert(std::is_same<mp_merge<h>, list<>>::value, "");
-        static_assert(std::is_same<mp_merge<h, f<g<int, int *>>>, f<h<g<int, int *>>>>::value, "");
-        static_assert(std::is_same<mp_merge<h, f<g<int, int *>, g<void, void *>>>,
-                          f<h<g<int, int *>>, h<g<void, void *>>>>::value,
-            "");
-        static_assert(std::is_same<mp_merge<h, f<g<int, int *>>, f<g<void, void *>>>,
-                          f<h<g<int, int *>>, h<g<void, void *>>>>::value,
+        // mp_make
+        static_assert(std::is_same<mp_make<h, f<>>, f<>>::value, "");
+        static_assert(std::is_same<mp_make<h, f<g<int, int *>>>, f<h<g<int, int *>>>>::value, "");
+        static_assert(
+            std::is_same<mp_make<h, f<g<int, int *>, g<void, void *>>>, f<h<g<int, int *>>, h<g<void, void *>>>>::value,
             "");
         static_assert(
-            std::is_same<mp_merge<h, f<g<int, int *>>, f<g<int, int **>>>, f<h<g<int, int *>, g<int, int **>>>>::value,
-            "");
-        static_assert(
-            std::is_same<mp_merge<h, f<g<void, void *>, g<int, int *>>, f<g<int, int **>, g<double, double **>>>,
-                f<h<g<void, void *>>, h<g<int, int *>, g<int, int **>>, h<g<double, double **>>>>::value,
+            std::is_same<mp_make<h, f<g<int, int *>, g<int, int **>>>, f<h<g<int, int *>, g<int, int **>>>>::value, "");
+        static_assert(std::is_same<mp_make<h, f<g<void, void *>, g<int, int *>, g<int, int **>, g<double, double **>>>,
+                          f<h<g<void, void *>>, h<g<int, int *>, g<int, int **>>, h<g<double, double **>>>>::value,
             "");
     } // namespace meta
 } // namespace gridtools

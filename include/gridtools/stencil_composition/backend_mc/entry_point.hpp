@@ -37,7 +37,8 @@ namespace gridtools {
 
             execinfo_mc info(grid);
 
-            auto temporaries = stage_matrix::make_data_stores(stages_t::tmp_plh_map(),
+            using tmp_plh_map_t = stage_matrix::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
+            auto temporaries = stage_matrix::make_data_stores(tmp_plh_map_t(),
                 [&alloc,
                     block_size = make_pos3(
                         (size_t)info.i_block_size(), (size_t)info.j_block_size(), (size_t)grid.k_size())](auto info) {

@@ -12,7 +12,6 @@
 #include <memory>
 
 #include "../../common/defs.hpp"
-#include "../../common/functional.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
@@ -30,27 +29,26 @@
 namespace gridtools {
     namespace naive {
         template <class Spec, class Grid, class DataStores>
-        void gridtools_backend_entry_point(backend, Spec, Grid const &grid, DataStores data_stores) {
+        void gridtools_backend_entry_point(backend, Spec, Grid const &grid, DataStores external_data_stores) {
             auto alloc = sid::make_allocator(&std::make_unique<char[]>);
             using stages_t = stage_matrix::make_split_view<Spec>;
+            using tmp_plh_map_t = stage_matrix::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
+            auto temporaries = stage_matrix::make_data_stores(tmp_plh_map_t(), [&](auto info) {
+                auto extent = info.extent();
+                auto num_colors = info.num_colors();
+                auto offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
+                    -extent.minus(dim::i()), -extent.minus(dim::j()));
+                auto sizes = tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i>::values>(
+                    num_colors, grid.k_size(), grid.j_size(extent), grid.i_size(extent));
+                using stride_kind = meta::list<decltype(extent), decltype(num_colors)>;
+                return sid::shift_sid_origin(
+                    sid::make_contiguous<decltype(info.data()), ptrdiff_t, stride_kind>(alloc, sizes), offsets);
+            });
+            auto data_stores = hymap::concat(external_data_stores, temporaries);
             using plh_map_t = typename stages_t::plh_map_t;
             using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
             auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
-                overload(
-                    [&](std::true_type, auto info) {
-                        auto extent = info.extent();
-                        auto num_colors = info.num_colors();
-                        auto offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
-                            -extent.minus(dim::i()), -extent.minus(dim::j()));
-                        auto sizes = tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i>::values>(
-                            num_colors, grid.k_size(), grid.j_size(extent), grid.i_size(extent));
-                        using stride_kind = meta::list<decltype(extent), decltype(num_colors)>;
-                        return sid::shift_sid_origin(
-                            sid::make_contiguous<decltype(info.data()), ptrdiff_t, stride_kind>(alloc, sizes), offsets);
-                    },
-                    [&](std::false_type, auto info) { return at_key<decltype(info.plh())>(data_stores); }),
-                meta::transform<stage_matrix::get_is_tmp, plh_map_t>(),
-                plh_map_t()));
+                [&](auto info) { return at_key<decltype(info.plh())>(data_stores); }, plh_map_t()));
             auto origin = sid::get_origin(composite);
             auto strides = sid::get_strides(composite);
             for_each<stages_t>([&](auto stage) {

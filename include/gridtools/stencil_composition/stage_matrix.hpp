@@ -100,28 +100,57 @@ namespace gridtools {
             return tuple_util::transform([&](auto item) { return grid.k_size(item.interval()); }, Items());
         }
 
-        template <class...>
-        struct merge_plh_infos;
+        namespace lazy {
+            template <class...>
+            struct merge_plh_infos;
 
-        template <class Key,
-            class IsTmp,
-            class Data,
-            class NumColors,
-            class... IsConsts,
-            class... Extents,
-            class... CacheIoPolicyLists>
-        struct merge_plh_infos<plh_info<Key, IsTmp, Data, NumColors, IsConsts, Extents, CacheIoPolicyLists>...> {
-            using type = plh_info<Key,
+            template <class Key,
+                class IsTmp,
+                class Data,
+                class NumColors,
+                class... IsConsts,
+                class... Extents,
+                class... CacheIoPolicyLists>
+            struct merge_plh_infos<plh_info<Key, IsTmp, Data, NumColors, IsConsts, Extents, CacheIoPolicyLists>...> {
+                using type = plh_info<Key,
+                    IsTmp,
+                    Data,
+                    NumColors,
+                    conjunction<IsConsts...>,
+                    enclosing_extent<Extents...>,
+                    meta::dedup<meta::concat<CacheIoPolicyLists...>>>;
+            };
+
+            template <class...>
+            struct remove_caches_from_plh_info;
+
+            template <class Plh,
+                class... Caches,
+                class IsTmp,
+                class Data,
+                class NumColor,
+                class IsConst,
+                class Extent,
+                class... CacheIoPolicies>
+            struct remove_caches_from_plh_info<plh_info<meta::list<Plh, Caches...>,
                 IsTmp,
                 Data,
-                NumColors,
-                conjunction<IsConsts...>,
-                enclosing_extent<Extents...>,
-                meta::dedup<meta::concat<CacheIoPolicyLists...>>>;
-        };
+                NumColor,
+                IsConst,
+                Extent,
+                meta::list<CacheIoPolicies...>>> {
+                using type = plh_info<meta::list<Plh>, IsTmp, Data, NumColor, IsConst, Extent, meta::list<>>;
+            };
+        } // namespace lazy
+        GT_META_DELEGATE_TO_LAZY(merge_plh_infos, class... Ts, Ts...);
+        GT_META_DELEGATE_TO_LAZY(remove_caches_from_plh_info, class... Ts, Ts...);
 
         template <class... Maps>
-        using merge_plh_maps = meta::mp_merge<meta::force<merge_plh_infos>::apply, Maps...>;
+        using merge_plh_maps = meta::mp_make<merge_plh_infos, meta::concat<Maps...>>;
+
+        template <class Map>
+        using remove_caches_from_plh_map =
+            meta::mp_make<merge_plh_infos, meta::transform<remove_caches_from_plh_info, Map>>;
 
         template <class Deref, class Ptr, class Strides>
         struct run_f {

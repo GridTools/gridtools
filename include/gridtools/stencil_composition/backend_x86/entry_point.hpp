@@ -84,7 +84,8 @@ namespace gridtools {
 
             auto alloc = sid::make_cached_allocator(&std::make_unique<char[]>);
 
-            auto temporaries = stage_matrix::make_data_stores(stages_t::tmp_plh_map(), [&](auto info) {
+            using tmp_plh_map_t = stage_matrix::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
+            auto temporaries = stage_matrix::make_data_stores(tmp_plh_map_t(), [&](auto info) {
                 auto extent = info.extent();
                 auto num_colors = info.num_colors();
                 auto offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
