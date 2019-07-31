@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <gridtools/stencil_composition/structured_grids/accessor.hpp>
-#include <gridtools/stencil_composition/structured_grids/accessor_mixed.hpp>
 
 #include <gtest/gtest.h>
 
@@ -104,24 +103,4 @@ TEST(accessor, alternative2) {
     EXPECT_EQ(0, tuple_util::get<1>(first));
     EXPECT_EQ(8, tuple_util::get<2>(first));
     EXPECT_EQ(2, tuple_util::get<3>(first));
-}
-
-/**
- * @brief interface with aliases defined at compile-time
- * allows to split a single field in its different components, assigning an offset to each component.
- * The aforementioned offset is guaranteed to be treated as compile-time static constant value.
- */
-TEST(accessor, static_alias) {
-    // mixing compile time and runtime values
-    using t = dimension<15>;
-    using arg_t = accessor<0, intent::inout, extent<0, 4, 0, 0, -5>, 15>;
-    using alias_t = alias<arg_t, t, dimension<1>, dimension<7>>::set<-3, 4, 2>;
-
-    alias_t first(dimension<8>(23), dimension<3>(-5));
-
-    EXPECT_EQ(4, tuple_util::get<0>(first));
-    EXPECT_EQ(-5, tuple_util::get<2>(first));
-    EXPECT_EQ(2, tuple_util::get<6>(first));
-    EXPECT_EQ(23, tuple_util::get<7>(first));
-    EXPECT_EQ(-3, tuple_util::get<14>(first));
 }

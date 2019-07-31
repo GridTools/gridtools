@@ -11,7 +11,6 @@
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
 #include "./structured_grids/accessor.hpp"
-#include "./structured_grids/accessor_mixed.hpp"
 #else
 #include "./icosahedral_grids/accessor.hpp"
 #endif

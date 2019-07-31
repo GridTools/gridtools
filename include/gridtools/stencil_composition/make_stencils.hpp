@@ -14,7 +14,7 @@
 #include "../common/defs.hpp"
 #include "../meta.hpp"
 #include "caches/cache_traits.hpp"
-#include "esf_fwd.hpp"
+#include "esf.hpp"
 #include "mss.hpp"
 
 namespace gridtools {

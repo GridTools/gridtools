@@ -27,7 +27,6 @@
 #include "../sid/concept.hpp"
 #include "../sid/multi_shift.hpp"
 #include "dim.hpp"
-#include "esf.hpp"
 #include "icosahedral_topology.hpp"
 #include "on_neighbors.hpp"
 
@@ -62,40 +61,33 @@
 namespace gridtools {
 
     namespace stage_impl_ {
-        template <class T>
-        using functor_or_void = bool_constant<has_apply<T>::value || std::is_void<T>::value>;
-
         struct default_deref_f {
-            template <class Arg, class T>
-            GT_FUNCTION T &operator()(T *ptr) const {
+            template <class T>
+            GT_FUNCTION decltype(auto) operator()(T ptr) const {
                 return *ptr;
             }
         };
 
-        template <class Ptr, class Strides, class Args, class Deref, class LocationType, uint_t Color>
+        template <class Ptr, class Strides, class Keys, class Deref, class LocationType, int_t Color>
         struct evaluator {
             Ptr const &m_ptr;
             Strides const &m_strides;
 
-            template <class Arg>
-            using ref_type =
-                decltype(Deref{}.template operator()<Arg>(host_device::at_key<Arg>(std::declval<Ptr const &>())));
-
-            template <class Arg, class Offset>
-            GT_FUNCTION ref_type<Arg> get_ref(Offset const &offset) const {
-                auto ptr = host_device::at_key<Arg>(m_ptr);
-                sid::multi_shift<Arg>(ptr, m_strides, offset);
-                return Deref{}.template operator()<Arg>(ptr);
+            template <class Key, class Offset>
+            GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
+                auto ptr = host_device::at_key<Key>(m_ptr);
+                sid::multi_shift<Key>(ptr, m_strides, wstd::move(offset));
+                return Deref()(ptr);
             }
 
-            template <class Accessor, class Arg = meta::at_c<Args, Accessor::index_t::value>>
-            GT_FUNCTION apply_intent_t<Accessor::intent_v, ref_type<Arg>> operator()(Accessor const &acc) const {
-                return get_ref<Arg>(acc);
+            template <class Accessor>
+            GT_FUNCTION decltype(auto) operator()(Accessor const &acc) const {
+                return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(acc));
             }
 
-            template <class Accessor, class Offset, class Arg = meta::at_c<Args, Accessor::index_t::value>>
-            GT_FUNCTION apply_intent_t<intent::in, ref_type<Arg>> neighbor(Offset const &offset) const {
-                return get_ref<Arg>(offset);
+            template <class Accessor, class Offset>
+            GT_FUNCTION decltype(auto) neighbor(Offset const &offset) const {
+                return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(offset));
             }
 
             template <class ValueType, class LocationTypeT, class Reduction, class... Accessors>
@@ -106,59 +98,27 @@ namespace gridtools {
                     onneighbors.m_value = onneighbors.m_function(neighbor<Accessors>(offset)..., onneighbors.m_value);
                 return onneighbors.m_value;
             }
+
+            static constexpr int_t color = Color;
         };
 
-    } // namespace stage_impl_
+        template <class Functor, class PlhMap>
+        struct stage {
+            GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
+            using location_t = typename Functor::location;
+            using num_colors_t = typename location_t::n_colors;
 
-    /**
-     *   A stage that is produced from the icgrid esf_description data
-     *
-     * @tparam Functors - a list of elementary functors (with the intervals already bound). The position in the list
-     *                    corresponds to the color number. If a functor should not be executed for the given color,
-     *                    the correspondent element in the list is `void`
-     */
-    template <class Functors, class Extent, class Esf>
-    struct stage {
-        GT_STATIC_ASSERT((meta::all_of<stage_impl_::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_esf_descriptor<Esf>::value, GT_INTERNAL_ERROR);
-
-        using esf_t = Esf;
-        using location_type = typename Esf::location_type;
-        using n_colors = typename location_type::n_colors;
-        using args_t = typename Esf::args_t;
-
-        GT_STATIC_ASSERT(meta::length<Functors>::value == n_colors::value, GT_INTERNAL_ERROR);
-
-        using extent_t = Extent;
-
-        static GT_FUNCTION Extent extent() { return {}; }
-
-        template <uint_t Color, class Functor = meta::at_c<Functors, Color>>
-        struct contains_color : bool_constant<!std::is_void<Functor>::value> {};
-
-        template <uint_t Color, bool = contains_color<Color>::value>
-        struct colored_stage {
-            template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
-            GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
-                using eval_t = stage_impl_::evaluator<Ptr, Strides, args_t, Deref, location_type, Color>;
-                using functor_t = meta::at_c<Functors, Color>;
-                functor_t::template apply<eval_t const &>(eval_t{ptr, strides});
+            template <class Deref = void, class Ptr, class Strides>
+            GT_FUNCTION void operator()(Ptr ptr, Strides const &GT_RESTRICT strides) const {
+                using namespace literals;
+                using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
+                host_device::for_each<meta::make_indices<num_colors_t>>([&](auto color) {
+                    using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
+                    Functor::apply(eval_t{ptr, strides});
+                    sid::shift(ptr, sid::get_stride<dim::c>(strides), 1_c);
+                });
             }
         };
-
-        template <uint_t Color>
-        struct colored_stage<Color, false> {
-            template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
-            GT_FUNCTION void operator()(Ptr const &, Strides const &) const {}
-        };
-
-        template <class Deref = stage_impl_::default_deref_f, class Ptr, class Strides>
-        GT_FUNCTION void operator()(Ptr ptr, Strides const &strides) const {
-            host_device::for_each<meta::make_indices<n_colors>>([&](auto color) {
-                colored_stage<decltype(color)::value>{}.template operator()<Deref>(ptr, strides);
-                sid::shift(ptr, sid::get_stride<dim::c>(strides), integral_constant<int_t, 1>());
-            });
-        }
-    };
+    } // namespace stage_impl_
+    using stage_impl_::stage;
 } // namespace gridtools

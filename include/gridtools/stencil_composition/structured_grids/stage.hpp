@@ -35,13 +35,12 @@
 #include "../../meta.hpp"
 #include "../accessor_intent.hpp"
 #include "../arg.hpp"
-#include "../esf_fwd.hpp"
+#include "../dim.hpp"
 #include "../expressions/expr_base.hpp"
+#include "../extent.hpp"
 #include "../has_apply.hpp"
 #include "../positional.hpp"
 #include "../sid/multi_shift.hpp"
-#include "dim.hpp"
-#include "extent.hpp"
 
 namespace gridtools {
     namespace stage_impl_ {

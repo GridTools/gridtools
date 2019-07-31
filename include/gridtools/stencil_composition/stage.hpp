@@ -9,11 +9,8 @@
  */
 #pragma once
 
-#include <type_traits>
-
-namespace gridtools {
-
-    template <class>
-    struct is_esf_descriptor : std::false_type {};
-
-} // namespace gridtools
+#ifndef GT_ICOSAHEDRAL_GRIDS
+#include "./structured_grids/stage.hpp"
+#else
+#include "./icosahedral_grids/stage.hpp"
+#endif

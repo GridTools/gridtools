@@ -20,8 +20,8 @@
 #include "level.hpp"
 #include "mss.hpp"
 #include "positional.hpp"
+#include "stage.hpp"
 #include "stage_matrix.hpp"
-#include "structured_grids/stage.hpp"
 
 namespace gridtools {
     namespace make_stage_matrix_impl_ {
