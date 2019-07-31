@@ -125,7 +125,7 @@ namespace gridtools {
         };
         template <class... Intervals>
         struct concat_intervals {
-            using type = meta::combine<meta::force<concat_intervals>::apply, meta::list<Intervals...>>;
+            using type = meta::combine<meta::force<lazy::concat_intervals>::apply, meta::list<Intervals...>>;
         };
 
         template <class...>
@@ -143,7 +143,7 @@ namespace gridtools {
         };
         template <class... Intervals>
         struct enclosing_interval {
-            using type = meta::combine<meta::force<enclosing_interval>::apply, meta::list<Intervals...>>;
+            using type = meta::combine<meta::force<lazy::enclosing_interval>::apply, meta::list<Intervals...>>;
         };
     } // namespace lazy
     GT_META_DELEGATE_TO_LAZY(concat_intervals, class... Ts, Ts...);

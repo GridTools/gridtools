@@ -70,9 +70,14 @@ namespace gridtools {
                 return expressions::evaluation::value(*this, wstd::move(arg));
             }
 
-            GT_FUNCTION int_t i() const { return *host_device::at_key<positional<dim::i>>(m_ptr); }
-            GT_FUNCTION int_t j() const { return *host_device::at_key<positional<dim::j>>(m_ptr); }
-            GT_FUNCTION int_t k() const { return *host_device::at_key<positional<dim::k>>(m_ptr); }
+            template <class Dim>
+            GT_FUNCTION int_t pos() const {
+                return *host_device::at_key<meta::list<positional<Dim>>>(m_ptr);
+            }
+
+            GT_FUNCTION int_t i() const { return pos<dim::i>(); }
+            GT_FUNCTION int_t j() const { return pos<dim::j>(); }
+            GT_FUNCTION int_t k() const { return pos<dim::k>(); }
         };
 
         template <class Functor, class PlhMap>

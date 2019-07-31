@@ -101,7 +101,6 @@ namespace gridtools {
 
             template <class Mss, class Sizes, int_t BlockSize>
             struct k_loop_f<Mss, Sizes, std::false_type, execute::parallel_block<BlockSize>> {
-                static_assert(std::is_same<Sizes, tuple<int>>::value, "fffffffq");
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>

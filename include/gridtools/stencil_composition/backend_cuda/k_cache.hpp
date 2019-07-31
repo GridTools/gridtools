@@ -14,7 +14,6 @@
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../caches/cache_traits.hpp"
-#include "../caches/extract_extent_caches.hpp"
 #include "../dim.hpp"
 #include "../execution_types.hpp"
 #include "../sid/synthetic.hpp"
@@ -70,13 +69,6 @@ namespace gridtools {
 
             GT_STATIC_ASSERT(is_sid<fake>(), GT_INTERNAL_ERROR);
 
-            template <class Mss>
-            auto make_k_cached_sids() {
-                using plhs_t =
-                    meta::transform<cache_parameter, meta::filter<is_k_cache, typename Mss::cache_sequence_t>>;
-                return hymap::from_keys_values<plhs_t, meta::repeat<meta::length<plhs_t>, fake>>();
-            }
-
             template <class Storages>
             class k_caches {
                 Storages m_storages;
@@ -112,6 +104,5 @@ namespace gridtools {
         using k_cache_sid_t = k_cache_impl_::fake;
         using k_cache_impl_::has_k_caches;
         using k_cache_impl_::k_caches_type;
-        using k_cache_impl_::make_k_cached_sids;
     } // namespace cuda
 } // namespace gridtools

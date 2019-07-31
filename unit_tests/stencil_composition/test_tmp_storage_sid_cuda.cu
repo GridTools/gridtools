@@ -26,10 +26,6 @@ namespace gridtools {
         namespace {
             using namespace literals;
 
-            struct data_store {
-                using data_t = int;
-            };
-
             struct smoke_f {
                 template <class PtrHolder, class Strides>
                 __host__ __device__ bool operator()(PtrHolder const &holder, Strides const &strides) const {
@@ -44,7 +40,7 @@ namespace gridtools {
 
             TEST(tmp_cuda_storage, maker_with_device_allocator) {
                 cuda::simple_device_memory_allocator alloc;
-                auto testee = cuda::make_tmp_storage(tmp_arg<0, data_store>{}, 2_c, 2_c, extent<>{}, 1, 1, 2, alloc);
+                auto testee = cuda::make_tmp_storage<int>(1_c, 2_c, 2_c, extent<>{}, 1, 1, 2, alloc);
                 EXPECT_TRUE(exec(smoke_f{}, sid::get_origin(testee), sid::get_strides(testee)));
             }
         } // namespace

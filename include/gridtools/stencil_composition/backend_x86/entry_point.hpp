@@ -21,6 +21,7 @@
 #include "../../meta.hpp"
 #include "../dim.hpp"
 #include "../sid/allocator.hpp"
+#include "../sid/as_const.hpp"
 #include "../sid/block.hpp"
 #include "../sid/concept.hpp"
 #include "../sid/contiguous.hpp"
@@ -37,7 +38,8 @@ namespace gridtools {
             using plh_map_t = typename Stage::plh_map_t;
             using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
             auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
-                [&](auto info) { return at_key<decltype(info.plh())>(data_stores); }, Stage::plh_map()));
+                [&](auto info) { return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores)); },
+                Stage::plh_map()));
             using ptr_diff_t = sid::ptr_diff_type<decltype(composite)>;
 
             auto strides = sid::get_strides(composite);

@@ -17,7 +17,9 @@
 #include "../common/defs.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/host_device.hpp"
+#include "../common/hymap.hpp"
 #include "../common/integral_constant.hpp"
+#include "../common/tuple_util.hpp"
 #include "axis.hpp"
 #include "dim.hpp"
 #include "execution_types.hpp"
@@ -32,7 +34,7 @@ namespace gridtools {
         GT_STATIC_ASSERT(Interval::FromLevel::splitter == 0, GT_INTERNAL_ERROR);
 
         static constexpr int_t offset_limit = Interval::FromLevel::offset_limit;
-        static constexpr uint_t start_offset = Interval::FromLevel::offset;
+        static constexpr int_t start_offset = Interval::FromLevel::offset;
 
         int_t m_i_start;
         int_t m_i_size;
@@ -90,9 +92,9 @@ namespace gridtools {
             }
         }
 
-        int_t i_start() const { return m_i_start; }
-
-        int_t j_start() const { return m_j_start; }
+        auto origin() const {
+            return tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(m_i_start, m_j_start, offset());
+        }
 
         template <class Extent = extent<>>
         int_t i_size(Extent extent = {}) const {

@@ -31,7 +31,8 @@ namespace gridtools {
                         return m_impl();
                     }
 
-                    friend constexpr const_ptr_holder operator+(const_ptr_holder const &obj, ptrdiff_t offset) {
+                    friend constexpr GT_FUNCTION const_ptr_holder operator+(
+                        const_ptr_holder const &obj, sid::ptr_diff_type<Sid> offset) {
                         return {obj.m_impl + offset};
                     }
                 };

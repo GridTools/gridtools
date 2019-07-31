@@ -22,8 +22,9 @@ namespace gridtools {
     namespace cuda {
         namespace tmp_impl_ {
             template <class Extent>
-            hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -Extent::iminus::value>,
-                integral_constant<int_t, -Extent::jminus::value>>
+            hymap::keys<dim::i, dim::j, dim::k>::values<integral_constant<int_t, -Extent::iminus::value>,
+                integral_constant<int_t, -Extent::jminus::value>,
+                integral_constant<int_t, -Extent::kminus::value>>
             origin_offset(Extent) {
                 return {};
             }
@@ -38,12 +39,12 @@ namespace gridtools {
                 int_t k_size) {
                 return tuple_util::make<
                     hymap::keys<dim::i, dim::j, dim::c, sid::blocked_dim<dim::i>, sid::blocked_dim<dim::j>, dim::k>::
-                        values>(i_block_size - typename Extent::iminus() + typename Extent::iplus(),
-                    j_block_size - typename Extent::jminus() + typename Extent::jplus(),
+                        values>(Extent::extend(dim::i(), i_block_size),
+                    Extent::extend(dim::j(), j_block_size),
                     num_colors,
                     n_blocks_i,
                     n_blocks_j,
-                    k_size);
+                    Extent::extend(dim::k(), k_size));
             }
         } // namespace tmp_impl_
 

@@ -79,7 +79,7 @@ namespace gridtools {
                     auto ptr = origin() + offset;
 
                     int_t j_count = extent_t::extend(dim::j(), info.j_block_size);
-                    int_t i_size = extent_t(dim::i(), info.i_block_size);
+                    int_t i_size = extent_t::extend(dim::i(), info.i_block_size);
 
                     for (int_t j = 0; j < j_count; ++j) {
                         using namespace literals;

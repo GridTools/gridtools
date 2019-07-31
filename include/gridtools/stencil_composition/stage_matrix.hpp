@@ -219,16 +219,9 @@ namespace gridtools {
             template <class...>
             struct fuse_intervals;
 
-            template <class Funs,
-                class Interval,
-                class... Intervals,
-                class PlhMap,
-                class Extent,
-                class Execution,
-                class NeedSync>
-            struct fuse_intervals<cell<Funs, Interval, PlhMap, Extent, Execution, NeedSync>,
-                cell<Funs, Intervals, PlhMap, Extent, Execution, NeedSync>...> {
-                using type = cell<Funs, concat_intervals<Interval, Intervals...>, PlhMap, Extent, Execution, NeedSync>;
+            template <class Funs, class... Intervals, class PlhMap, class Extent, class Execution, class NeedSync>
+            struct fuse_intervals<cell<Funs, Intervals, PlhMap, Extent, Execution, NeedSync>...> {
+                using type = cell<Funs, concat_intervals<Intervals...>, PlhMap, Extent, Execution, NeedSync>;
             };
 
             template <class...>
@@ -323,8 +316,8 @@ namespace gridtools {
 
           public:
             using execution_t = typename item_t::execution_t;
-            using extent_t = typename item_t::extent_t;
-            using plh_map_t = typename item_t::plh_map_t;
+            using extent_t = enclosing_extent<typename IntervalInfos::extent_t...>;
+            using plh_map_t = merge_plh_maps<typename IntervalInfos::plh_map_t...>;
             using plhs_t = meta::transform<get_plh, plh_map_t>;
             using keys_t = meta::transform<get_key, plh_map_t>;
             using interval_t = concat_intervals<typename IntervalInfos::interval_t...>;
@@ -350,8 +343,8 @@ namespace gridtools {
 
           public:
             using execution_t = typename cell_t::execution_t;
-            using extent_t = typename cell_t::extent_t;
-            using plh_map_t = typename cell_t::plh_map_t;
+            using extent_t = enclosing_extent<typename Cells::extent_t...>;
+            using plh_map_t = merge_plh_maps<typename Cells::plh_map_t...>;
             using plhs_t = meta::transform<get_plh, plh_map_t>;
             using interval_t = concat_intervals<typename Cells::interval_t...>;
             using k_step_t = typename cell_t::k_step_t;
