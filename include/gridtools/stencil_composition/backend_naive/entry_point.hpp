@@ -19,6 +19,7 @@
 #include "../../meta.hpp"
 #include "../dim.hpp"
 #include "../sid/allocator.hpp"
+#include "../sid/as_const.hpp"
 #include "../sid/composite.hpp"
 #include "../sid/concept.hpp"
 #include "../sid/contiguous.hpp"
@@ -35,11 +36,12 @@ namespace gridtools {
             using tmp_plh_map_t = stage_matrix::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
             auto temporaries = stage_matrix::make_data_stores(tmp_plh_map_t(), [&](auto info) {
                 auto extent = info.extent();
+                auto interval = stages_t::interval();
                 auto num_colors = info.num_colors();
-                auto offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
-                    -extent.minus(dim::i()), -extent.minus(dim::j()));
+                auto offsets = tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(
+                    -extent.minus(dim::i()), -extent.minus(dim::j()), grid.k_start(interval) - extent.minus(dim::k()));
                 auto sizes = tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i>::values>(
-                    num_colors, grid.k_size(), grid.j_size(extent), grid.i_size(extent));
+                    num_colors, grid.k_size(interval, extent), grid.j_size(extent), grid.i_size(extent));
                 using stride_kind = meta::list<decltype(extent), decltype(num_colors)>;
                 return sid::shift_sid_origin(
                     sid::make_contiguous<decltype(info.data()), ptrdiff_t, stride_kind>(alloc, sizes), offsets);
@@ -48,7 +50,8 @@ namespace gridtools {
             using plh_map_t = typename stages_t::plh_map_t;
             using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
             auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
-                [&](auto info) { return at_key<decltype(info.plh())>(data_stores); }, plh_map_t()));
+                [&](auto info) { return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores)); },
+                plh_map_t()));
             auto origin = sid::get_origin(composite);
             auto strides = sid::get_strides(composite);
             for_each<stages_t>([&](auto stage) {

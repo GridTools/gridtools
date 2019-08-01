@@ -89,12 +89,13 @@ namespace gridtools {
             using tmp_plh_map_t = stage_matrix::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
             auto temporaries = stage_matrix::make_data_stores(tmp_plh_map_t(), [&](auto info) {
                 auto extent = info.extent();
+                auto interval = stages_t::interval();
                 auto num_colors = info.num_colors();
-                auto offsets = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
-                    -extent.minus(dim::i()), -extent.minus(dim::j()));
+                auto offsets = tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(
+                    -extent.minus(dim::i()), -extent.minus(dim::j()), grid.k_start(interval) - extent.minus(dim::k()));
                 auto sizes =
                     tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i, dim::thread>::values>(num_colors,
-                        grid.k_size(),
+                        grid.k_size(interval, extent),
                         extent.extend(dim::j(), j_block_size_t()),
                         extent.extend(dim::i(), i_block_size_t()),
                         omp_get_max_threads());

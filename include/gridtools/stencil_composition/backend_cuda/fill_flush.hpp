@@ -143,6 +143,7 @@ namespace gridtools {
                                 sync<PlhInfo>(cached, orig);
                             shift_orig<PlhInfo>(orig, strides, 1_c);
                             shift_cached<PlhInfo>(cached, strides, 1_c);
+                            ++k;
                         }
                     }
 

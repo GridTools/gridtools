@@ -118,10 +118,12 @@ namespace gridtools {
             return value_at(To());
         }
 
-        template <class From = typename Interval::FromLevel, class To = typename Interval::ToLevel>
-        auto k_size(interval<From, To> x = {}) const {
+        template <class From = typename Interval::FromLevel,
+            class To = typename Interval::ToLevel,
+            class Extent = extent<>>
+        auto k_size(interval<From, To> x = {}, Extent extent = {}) const {
             using namespace literals;
-            return 1_c + splitter_size(x) + offset(To()) - offset(From());
+            return extent.extend(dim::k(), 1_c + splitter_size(x) + offset(To()) - offset(From()));
         }
     };
 

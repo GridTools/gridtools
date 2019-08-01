@@ -17,6 +17,7 @@
 #include "../../meta.hpp"
 #include "../dim.hpp"
 #include "../pos3.hpp"
+#include "../sid/as_const.hpp"
 #include "../sid/block.hpp"
 #include "../sid/composite.hpp"
 #include "../sid/concept.hpp"
@@ -64,7 +65,10 @@ namespace gridtools {
                     using plh_map_t = typename stage_t::plh_map_t;
                     using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
                     auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
-                        [&](auto info) { return at_key<decltype(info.plh())>(data_stores); }, stage_t::plh_map()));
+                        [&](auto info) {
+                            return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores));
+                        },
+                        stage_t::plh_map()));
                     return make_loop<stage_t>(all_parrallel_t(), grid, std::move(composite), std::move(k_sizes));
                 },
                 meta::rename<tuple, stages_t>());
