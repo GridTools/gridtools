@@ -110,12 +110,11 @@ namespace gridtools {
 
             template <class Deref = void, class Ptr, class Strides>
             GT_FUNCTION void operator()(Ptr ptr, Strides const &GT_RESTRICT strides) const {
-                using namespace literals;
                 using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
                 host_device::for_each<meta::make_indices<num_colors_t>>([&](auto color) {
                     using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
                     Functor::apply(eval_t{ptr, strides});
-                    sid::shift(ptr, sid::get_stride<dim::c>(strides), 1_c);
+                    sid::shift(ptr, sid::get_stride<dim::c>(strides), integral_constant<int_t, 1>());
                 });
             }
         };
