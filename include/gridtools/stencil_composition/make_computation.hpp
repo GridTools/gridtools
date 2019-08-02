@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include <tuple>
 #include <utility>
 
 #include "../common/defs.hpp"
@@ -28,7 +27,7 @@ namespace gridtools {
 
     template <class Backend, bool IsStateful = GT_POSITIONAL_WHEN_DEBUGGING, class... Args>
     auto make_computation(Args... args) {
-        using msses_t = meta::filter<is_mss_descriptor, std::tuple<Args...>>;
+        using msses_t = meta::filter<is_mss_descriptor, meta::list<Args...>>;
         using entry_point_t = backend_entry_point_f<Backend, bool_constant<IsStateful>, msses_t>;
         return make_computation_facade<Backend, entry_point_t>(std::move(args)...);
     }

@@ -89,7 +89,7 @@ namespace gridtools {
             using esf_extent_t = to_horizontal_extent<get_esf_extent<Esf, get_extent_map_from_msses<Msses>>>;
 
             using esf_plh_map_t = meta::transform<make_plh_info_f<esf_extent_t, DataStores, Mss>::template apply,
-                typename Esf::args_t,
+                meta::rename<tuple, typename Esf::args_t>,
                 esf_param_list<Esf>>;
             using plh_map_t = meta::if_<NeedPositionals,
                 meta::push_back<esf_plh_map_t,

@@ -12,7 +12,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <tuple>
 #include <type_traits>
 #include <vector>
 
@@ -93,8 +92,7 @@ namespace gridtools {
         template <class ExpandFactor>
         struct expand_esf_f {
             template <class Esf>
-            using apply =
-                meta::transform<convert_esf<Esf>::template apply, meta::make_indices<ExpandFactor, std::tuple>>;
+            using apply = meta::transform<convert_esf<Esf>::template apply, meta::make_indices<ExpandFactor>>;
         };
 
         namespace lazy {
@@ -106,8 +104,7 @@ namespace gridtools {
                 using esfs_t = meta::flatten<meta::transform<expand_esf_f<ExpandFactor>::template apply, Esfs>>;
 
                 using indices_and_caches_t = meta::cartesian_product<meta::make_indices<ExpandFactor>, Caches>;
-                using caches_t =
-                    meta::rename<std::tuple, meta::dedup<meta::transform<convert_cache_f, indices_and_caches_t>>>;
+                using caches_t = meta::dedup<meta::transform<convert_cache_f, indices_and_caches_t>>;
 
                 using type = mss_descriptor<ExecutionEngine, esfs_t, caches_t>;
             };

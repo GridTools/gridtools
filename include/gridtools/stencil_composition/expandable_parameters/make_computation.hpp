@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <tuple>
 #include <utility>
 
 #include "../../meta.hpp"
@@ -29,7 +28,7 @@ namespace gridtools {
 
     template <class Backend, bool IsStateful = GT_POSITIONAL_WHEN_DEBUGGING, size_t N, class... Args>
     auto make_expandable_computation(expand_factor<N>, Args... args) {
-        using msses_t = meta::filter<is_mss_descriptor, std::tuple<Args...>>;
+        using msses_t = meta::filter<is_mss_descriptor, meta::list<Args...>>;
         using expandable_entry_point =
             expandable_entry_point_f<expand_factor<N>, Backend, bool_constant<IsStateful>, msses_t>;
         return make_computation_facade<Backend, expandable_entry_point>(std::move(args)...);
