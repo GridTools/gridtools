@@ -22,19 +22,20 @@
 #include <vector>
 
 #include "../common/defs.hpp"
+#include "../meta.hpp"
 #include "../storage/storage_facility.hpp"
 #include "location_type.hpp"
 
 namespace gridtools {
 
-    template <class Tag, class DataStore, class Location, bool Temporary>
+    template <class Tag, class DataStore, class Location>
     struct plh;
 
     template <class>
     struct is_plh : std::false_type {};
 
-    template <class Tag, class DataStore, class Location, bool Temporary>
-    struct is_plh<plh<Tag, DataStore, Location, Temporary>> : std::true_type {};
+    template <class Tag, class DataStore, class Location>
+    struct is_plh<plh<Tag, DataStore, Location>> : std::true_type {};
 
     /** @brief binding between the placeholder (\tparam Plh) and the storage (\tparam DataStore)*/
     template <class Plh, class DataStore>
@@ -59,15 +60,6 @@ namespace gridtools {
     template <class Plh, class DataStore>
     struct is_arg_storage_pair<arg_storage_pair<Plh, DataStore>> : std::true_type {};
 
-    template <class>
-    struct is_tmp_arg : std::false_type {};
-
-    template <class Tag, class DataStore, class Location>
-    struct is_tmp_arg<plh<Tag, DataStore, Location, true>> : std::true_type {};
-
-    template <class Plh, class DataStore>
-    struct is_tmp_arg<arg_storage_pair<Plh, DataStore>> : is_tmp_arg<Plh> {};
-
     /**
      * Type to create placeholders for data fields.
      *
@@ -78,15 +70,15 @@ namespace gridtools {
      * @tparam I Integer index (unique) of the data field to identify it
      * @tparam DataStoreType The type of the storage used to store data
      * @tparam LocationType the location type of the storage of the placeholder
-     * @tparam Temporary determines whether the placeholder holds a temporary or normal storage
      */
-    template <class Tag, class DataStore, class Location, bool Temporary>
+    template <class Tag, class DataStore, class Location>
     struct plh {
         GT_STATIC_ASSERT(
             is_location_type<Location>::value, "The third template argument of a placeholder must be a location_type");
         using data_store_t = DataStore;
         using location_t = Location;
         using tag_t = Tag;
+        using is_expandable_t = meta::is_instantiation_of<std::vector, DataStore>;
 
         template <class T>
         arg_storage_pair<plh, T> operator=(T &&arg) const {
@@ -94,48 +86,46 @@ namespace gridtools {
         }
     };
 
+    template <class Tag, class Data, class Location>
+    struct tmp_plh {
+        GT_STATIC_ASSERT(
+            is_location_type<Location>::value, "The third template argument of a placeholder must be a location_type");
+        using location_t = Location;
+        using tag_t = Tag;
+        using data_t = Data;
+        using is_expandable_t = meta::is_instantiation_of<std::vector, Data>;
+    };
+
+    template <class T>
+    using is_tmp_arg = meta::is_instantiation_of<tmp_plh, T>;
+
+    template <class Tag, class T, class Location>
+    struct is_plh<tmp_plh<Tag, T, Location>> : std::true_type {};
+
     namespace _impl {
-        // replace the storage_info ID contained in a given storage with the new value
-        template <unsigned Id, class DataStore>
-        struct tmp_data_store {
-            using type = DataStore;
-        };
-
-        template <unsigned Id, class Storage, class StorageInfo>
-        struct tmp_data_store<Id, data_store<Storage, StorageInfo>> {
-            using type = data_store<Storage,
-                storage_info<Id,
-                    typename StorageInfo::layout_t,
-                    typename StorageInfo::halo_t,
-                    typename StorageInfo::alignment_t>>;
-        };
-
-        template <unsigned Id, class DataStore>
-        struct tmp_data_store<Id, std::vector<DataStore>> {
-            using type = std::vector<typename tmp_data_store<Id, DataStore>::type>;
-        };
-
-        template <class Location>
-        struct tmp_storage_info_id;
-        template <int_t I, uint_t NColors>
-        struct tmp_storage_info_id<location_type<I, NColors>> : std::integral_constant<unsigned, -NColors> {};
-
         template <uint_t>
         struct arg_tag;
 
+        template <class DataStore, class = void>
+        struct tmp_data_type {
+            using type = DataStore;
+        };
+
+        template <class DataStore>
+        struct tmp_data_type<DataStore, void_t<typename DataStore::data_t>> {
+            using type = typename DataStore::data_t;
+        };
+
+        template <class DataStore>
+        struct tmp_data_type<std::vector<DataStore>> {
+            using type = std::vector<typename tmp_data_type<DataStore>::type>;
+        };
     } // namespace _impl
-    /** alias template that provides convenient tmp arg declaration.
-     *
-     *  Here we force tmp storages to share storage info type. To achieve this we substitute the storage info ID
-     *  to one that is in the reserved range (close to max unsigned).
-     *  TODO(anstaf): replace storage info IDs to tags to avoid having reserved range.
-     */
+
     template <uint_t I, class DataStore, class Location = enumtype::default_location_type>
-    using tmp_arg = plh<_impl::arg_tag<I>,
-        typename _impl::tmp_data_store<_impl::tmp_storage_info_id<Location>::value, DataStore>::type,
-        Location,
-        true>;
+    using tmp_arg = tmp_plh<_impl::arg_tag<I>, typename _impl::tmp_data_type<DataStore>::type, Location>;
 
     template <uint_t I, class DataStore, class LocationType = enumtype::default_location_type>
-    using arg = plh<_impl::arg_tag<I>, DataStore, LocationType, false>;
+    using arg = plh<_impl::arg_tag<I>, DataStore, LocationType>;
+
 } // namespace gridtools

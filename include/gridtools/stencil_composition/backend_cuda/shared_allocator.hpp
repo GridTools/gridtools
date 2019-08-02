@@ -33,7 +33,7 @@ namespace gridtools {
                     return reinterpret_cast<T *>(ij_cache_shm + m_offset);
                 }
 
-                friend lazy_alloc operator+(lazy_alloc l, ptrdiff_t r) {
+                friend GT_FUNCTION lazy_alloc operator+(lazy_alloc l, ptrdiff_t r) {
                     l.m_offset += r * sizeof(T);
                     return l;
                 }

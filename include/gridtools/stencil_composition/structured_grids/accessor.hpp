@@ -13,10 +13,9 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../meta/always.hpp"
 #include "../accessor_base.hpp"
 #include "../accessor_intent.hpp"
-#include "extent.hpp"
+#include "../extent.hpp"
 /**
    @file
 

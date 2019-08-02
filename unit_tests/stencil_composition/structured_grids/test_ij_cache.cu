@@ -36,7 +36,7 @@ namespace gridtools {
         TEST(sid_ij_cache, smoke) {
 
             shared_allocator allocator;
-            auto testee = make_ij_cache(tmp_arg<0, data_store<float_type>>{}, i_size, j_size, extent_t{}, allocator);
+            auto testee = make_ij_cache<float_type>(1_c, i_size, j_size, extent_t{}, allocator);
 
             using ij_cache_t = decltype(testee);
 
@@ -44,8 +44,8 @@ namespace gridtools {
             static_assert(std::is_same<sid::ptr_type<ij_cache_t>, float_type *>(), "");
             static_assert(std::is_same<sid::ptr_diff_type<ij_cache_t>, int_t>(), "");
 
-            using expected_kind = hymap::keys<dim::i, dim::j>::values<gridtools::integral_constant<int_t, 1>,
-                gridtools::integral_constant<int_t, 9>>;
+            using expected_kind = hymap::keys<dim::c, dim::i, dim::j>::
+                values<integral_constant<int_t, 1>, integral_constant<int_t, 1>, integral_constant<int_t, 9>>;
             static_assert(std::is_same<sid::strides_kind<ij_cache_t>, expected_kind>(), "");
             auto strides = sid::get_strides(testee);
             EXPECT_EQ(1, at_key<dim::i>(strides));
@@ -116,11 +116,11 @@ namespace gridtools {
 
         TEST(sid_ij_cache, sid) {
             shared_allocator allocator;
-            auto cache1 = make_ij_cache(tmp_arg<0, data_store<double>>{}, i_size, j_size, extent_t{}, allocator);
+            auto cache1 = make_ij_cache<double>(1_c, i_size, j_size, extent_t{}, allocator);
             auto strides1 = sid::get_strides(cache1);
             auto ptr1 = sid::get_origin(cache1);
 
-            auto cache2 = make_ij_cache(tmp_arg<0, data_store<int16_t>>{}, i_size, j_size, extent_t{}, allocator);
+            auto cache2 = make_ij_cache<int16_t>(1_c, i_size, j_size, extent_t{}, allocator);
             auto strides2 = sid::get_strides(cache2);
             auto ptr2 = sid::get_origin(cache2);
 

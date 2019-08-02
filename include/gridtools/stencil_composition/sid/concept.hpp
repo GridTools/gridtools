@@ -685,8 +685,8 @@ namespace gridtools {
         /**
          *  The type of the element of the SID
          */
-        template <class Sid, class Ref = reference_type<Sid>>
-        using element_type = std::decay_t<Ref>;
+        template <class Sid>
+        using element_type = std::remove_reference_t<reference_type<Sid>>;
 
         /**
          *  The const variation of the reference type

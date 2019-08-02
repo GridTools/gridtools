@@ -15,11 +15,11 @@
 
 using namespace gridtools;
 
-template <uint_t>
 struct functor_copy {
     using out = inout_accessor<0, enumtype::cells>;
     using in = in_accessor<1, enumtype::cells>;
     using param_list = make_param_list<out, in>;
+    using location = enumtype::cells;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -35,7 +35,7 @@ TEST_F(copy_stencil_icosahedral, test) {
     auto in = make_storage<cells>([](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; });
     auto out = make_storage<cells>();
     make_computation(
-        p_out = out, p_in = in, make_multistage(execute::parallel(), make_stage<functor_copy, cells>(p_out, p_in)))
+        p_out = out, p_in = in, make_multistage(execute::parallel(), make_stage<functor_copy>(p_out, p_in)))
         .run();
     verify(in, out);
 }

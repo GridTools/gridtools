@@ -24,6 +24,7 @@
 #include "accessor_intent.hpp"
 #include "extent.hpp"
 #include "is_accessor.hpp"
+#include "location_type.hpp"
 
 namespace gridtools {
     namespace accessor_base_impl_ {
@@ -117,6 +118,7 @@ namespace gridtools {
         using index_t = integral_constant<uint_t, Id>;
         static constexpr intent intent_v = Intent;
         using extent_t = Extent;
+        using location_t = enumtype::default_location_type;
 
         GT_FUNCTION constexpr accessor_base() : base_t({}) {}
 
@@ -164,6 +166,7 @@ namespace gridtools {
         using index_t = integral_constant<uint_t, Id>;
         static constexpr intent intent_v = Intent;
         using extent_t = Extent;
+        using location_t = enumtype::default_location_type;
 
         GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor_base);
 

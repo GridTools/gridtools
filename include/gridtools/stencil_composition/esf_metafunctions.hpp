@@ -13,15 +13,25 @@
 
 #include "../common/defs.hpp"
 #include "../meta.hpp"
+#include "../meta/macros.hpp"
 #include "accessor_intent.hpp"
-
-#ifndef GT_ICOSAHEDRAL_GRIDS
-#include "structured_grids/esf_metafunctions.hpp"
-#else
-#include "icosahedral_grids/esf_metafunctions.hpp"
-#endif
+#include "esf.hpp"
 
 namespace gridtools {
+
+    template <class Esf>
+    using esf_param_list = typename Esf::esf_function_t::param_list;
+
+    namespace lazy {
+        template <class Esf, class Args>
+        struct esf_replace_args;
+        template <class F, class OldArgs, class Extent, class NewArgs>
+        struct esf_replace_args<esf_descriptor<F, OldArgs, Extent>, NewArgs> {
+            using type = esf_descriptor<F, NewArgs, Extent>;
+        };
+    } // namespace lazy
+    GT_META_DELEGATE_TO_LAZY(esf_replace_args, (class Esf, class Args), (Esf, Args));
+
     namespace esf_metafunctions_impl_ {
         template <class Esf>
         using get_items = meta::zip<typename Esf::args_t, esf_param_list<Esf>>;
