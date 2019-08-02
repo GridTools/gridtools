@@ -82,21 +82,21 @@ namespace gridtools {
 
         template <class F>
         struct overloaded_f<F> : F {
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR overloaded_f(F f) : F(std::move(f)) {}
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR overloaded_f(F f) : F(wstd::move(f)) {}
             using F::operator();
         };
 
         template <class F, class... Fs>
         struct overloaded_f<F, Fs...> : F, overloaded_f<Fs...> {
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR overloaded_f(F f, Fs... fs)
-                : F(std::move(f)), overloaded_f<Fs...>(std::move(fs)...) {}
+                : F(wstd::move(f)), overloaded_f<Fs...>(wstd::move(fs)...) {}
             using F::operator();
             using overloaded_f<Fs...>::operator();
         };
 
         template <class... Funs>
         GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR overloaded_f<Funs...> overload(Funs... funs) {
-            return {std::move(funs)...};
+            return {wstd::move(funs)...};
         }
     }
     /** @} */

@@ -45,7 +45,7 @@ namespace gridtools {
            \param offset: the offset to be applied in the Coordinate direction
         */
         template <uint_t Coordinate>
-        GT_FUNCTION constexpr dimension<Coordinate> operator+(dimension<Coordinate>, int offset) {
+        GT_FUNCTION GT_CONSTEXPR dimension<Coordinate> operator+(dimension<Coordinate>, int offset) {
             return {offset};
         }
 
@@ -56,7 +56,7 @@ namespace gridtools {
            \param offset: the offset to be applied in the Coordinate direction
         */
         template <uint_t Coordinate>
-        GT_FUNCTION constexpr dimension<Coordinate> operator-(dimension<Coordinate>, int offset) {
+        GT_FUNCTION GT_CONSTEXPR dimension<Coordinate> operator-(dimension<Coordinate>, int offset) {
             return {-offset};
         }
     } // namespace expressions

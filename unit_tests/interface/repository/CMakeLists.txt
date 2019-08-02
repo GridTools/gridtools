@@ -6,7 +6,8 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         add_library( ${cpp_file}_OBJECTS OBJECT EXCLUDE_FROM_ALL ${cpp_file} )
         # ... but actually generate the preprocessed file
         target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS})
-        target_link_libraries( ${cpp_file}_OBJECTS common )
+        target_link_libraries( ${cpp_file}_OBJECTS gridtools )
+        target_link_libraries( ${cpp_file}_OBJECTS cpp_bindgen_interface )
 
         # add a target for the generated file
         add_custom_command( OUTPUT ${preprocessed_file_out}
@@ -24,10 +25,10 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
     endif()
 endmacro(generate_preprocessed_file)
 
-if (GT_ENABLE_BACKEND_X86)
+if(GT_ENABLE_BACKEND_X86)
     # generate a file where we can inspect the generated repository
-    set( GENERATED_REPOSITORY ${CMAKE_CURRENT_BINARY_DIR}/generated_repository.cpp )
-    generate_preprocessed_file( ${GENERATED_REPOSITORY} plain_repository_generator.cpp )
+    set(GENERATED_REPOSITORY ${CMAKE_CURRENT_BINARY_DIR}/generated_repository.cpp)
+    generate_preprocessed_file(${GENERATED_REPOSITORY} plain_repository_generator.cpp)
 
     # clean the preprocessed file from comments and from everything before our class starts
     add_custom_command(OUTPUT ${GENERATED_REPOSITORY}
@@ -38,8 +39,11 @@ if (GT_ENABLE_BACKEND_X86)
       APPEND
       )
 
+    ## clang tools
+    find_package(ClangTools)
+
     # format the generated file if we can
-    if( CLANG_FORMAT_FOUND )
+    if(CLANG_FORMAT_FOUND)
         add_custom_command(OUTPUT ${GENERATED_REPOSITORY}
             COMMAND ${CLANG_FORMAT_BIN} -i ${GENERATED_REPOSITORY}
             APPEND
@@ -51,6 +55,7 @@ if (GT_ENABLE_BACKEND_X86)
 
     add_executable( custom_test_generated_repository ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
     target_link_libraries(custom_test_generated_repository gtest_main GridToolsTestX86 )
+    target_link_libraries(custom_test_generated_repository cpp_bindgen_interface)
     gridtools_add_test(
         NAME custom_test_generated_repository
         COMMAND $<TARGET_FILE:custom_test_generated_repository>
@@ -70,7 +75,7 @@ else()
     set(prec double)
 endif()
 
-gt_add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
+bindgen_add_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
 target_link_libraries(repository_${prec} PUBLIC gridtools gtest)
 if(GT_SINGLE_PRECISION)
     target_compile_definitions(repository_${prec} PUBLIC GT_FLOAT_PRECISION=4)
@@ -83,7 +88,7 @@ if (CMAKE_Fortran_COMPILER_LOADED)
 
     add_library(repository_fortran_lib test_repository.f90)
     target_link_libraries(repository_fortran_lib repository_${prec}_fortran)
-    gt_enable_fortran_preprocessing_on_target(repository_fortran_lib)
+    bindgen_enable_fortran_preprocessing_on_target(repository_fortran_lib)
 
     if (GT_ENABLE_BACKEND_X86)
         add_custom_test(

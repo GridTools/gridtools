@@ -13,7 +13,6 @@
 #include <utility>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/const_ref.hpp"
 #include "../common/host_device.hpp"
 
 namespace gridtools {
@@ -26,8 +25,8 @@ namespace gridtools {
 
             T m_value;
 
-            constexpr GT_FUNCTION global_parameter operator()() const { return *this; }
-            constexpr GT_FUNCTION const_ref<T> operator*() const { return m_value; }
+            GT_CONSTEXPR GT_FUNCTION global_parameter operator()() const { return *this; }
+            GT_CONSTEXPR GT_FUNCTION T const &operator*() const { return m_value; }
 
             friend GT_FUNCTION global_parameter operator+(global_parameter obj, ptr_diff) { return obj; }
             friend global_parameter sid_get_origin(global_parameter const &obj) { return obj; }

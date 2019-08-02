@@ -12,7 +12,7 @@
 #include <iostream>
 #include <typeinfo>
 
-#include <gridtools/c_bindings/export.hpp>
+#include <cpp_bindgen/export.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
@@ -41,7 +41,7 @@ namespace {
 
 namespace gridtools {
     template <typename T, typename = std::enable_if_t<is_data_store<std::remove_const_t<T>>::value>>
-    T gt_make_fortran_array_view(gt_fortran_array_descriptor *descriptor, T *) {
+    T bindgen_make_fortran_array_view(bindgen_fortran_array_descriptor *descriptor, T *) {
         if (descriptor->rank != 3) {
             throw std::runtime_error("only 3-dimensional arrays are supported");
         }
@@ -49,19 +49,20 @@ namespace gridtools {
             reinterpret_cast<typename T::data_t *>(descriptor->data));
     }
     template <typename T, typename = std::enable_if_t<is_data_store<std::remove_const_t<T>>::value>>
-    gt_fortran_array_descriptor get_fortran_view_meta(T *) {
-        gt_fortran_array_descriptor descriptor;
-        descriptor.type = c_bindings::fortran_array_element_kind<typename T::data_t>::value;
+    bindgen_fortran_array_descriptor get_fortran_view_meta(T *) {
+        bindgen_fortran_array_descriptor descriptor;
+        descriptor.type = cpp_bindgen::fortran_array_element_kind<typename T::data_t>::value;
         descriptor.rank = 3;
         descriptor.is_acc_present = false;
         return descriptor;
     }
 
-    static_assert(c_bindings::is_fortran_array_bindable<generic_data_store_t<double>>::value, "");
-    static_assert(c_bindings::is_fortran_array_wrappable<generic_data_store_t<double>>::value, "");
+    static_assert(cpp_bindgen::is_fortran_array_bindable<generic_data_store_t<double>>::value, "");
+    static_assert(cpp_bindgen::is_fortran_array_wrappable<generic_data_store_t<double>>::value, "");
 } // namespace gridtools
 namespace {
-    GT_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED_1(sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));
+    BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED_1(
+        sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));
 
     using p_in = arg<0, data_store_t>;
     using p_out = arg<1, data_store_t>;
@@ -77,9 +78,9 @@ namespace {
             p_out{} = out,
             make_multistage(execute::forward(), make_stage<copy_functor>(p_in{}, p_out{})));
     }
-    GT_EXPORT_BINDING_WRAPPED_2(create_copy_stencil, make_copy_stencil);
+    BINDGEN_EXPORT_BINDING_WRAPPED_2(create_copy_stencil, make_copy_stencil);
 
     using stencil_t = decltype(make_copy_stencil(std::declval<data_store_t>(), std::declval<data_store_t>()));
 
-    GT_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
+    BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
 } // namespace

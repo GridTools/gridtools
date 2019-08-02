@@ -36,10 +36,10 @@ namespace gridtools {
         accessor(accessor const &) = default;
         accessor(accessor &&) = default;
 
-        GT_FUNCTION constexpr accessor(array<int_t, FieldDimensions> src) : base_t(std::move(src)) {}
+        GT_FUNCTION GT_CONSTEXPR accessor(array<int_t, FieldDimensions> src) : base_t(wstd::move(src)) {}
 
         template <uint_t J, uint_t... Js>
-        GT_FUNCTION constexpr accessor(dimension<J> src, dimension<Js>... srcs) : base_t(src, srcs...) {}
+        GT_FUNCTION GT_CONSTEXPR accessor(dimension<J> src, dimension<Js>... srcs) : base_t(src, srcs...) {}
     };
 
     template <uint_t ID, intent Intent, typename LocationType, typename Extent, uint_t FieldDimensions>
