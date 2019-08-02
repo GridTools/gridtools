@@ -8,7 +8,7 @@
 
 program main
     use iso_c_binding
-    use gt_handle
+    use bindgen_handle
     use copy_stencil_lib_mc
     implicit none
     integer, parameter :: i = 9, j = 10, k = 11
@@ -24,9 +24,9 @@ program main
     in_handle = make_data_store(storage_info_handle)
     out_handle = make_data_store(storage_info_handle)
     computation_handle = make_copy_stencil(grid_handle)
-    ! gt_handles need to be released explicitly
-    call gt_release(grid_handle)
-    call gt_release(storage_info_handle)
+    ! bindgen_handles need to be released explicitly
+    call bindgen_release(grid_handle)
+    call bindgen_release(storage_info_handle)
 
     ! transform data from Fortran to C layout
     call transform_f_to_c(in_handle, in_array)
@@ -40,10 +40,10 @@ program main
     if (any(in_array /= initial())) stop 1
     if (any(out_array /= initial())) stop 1
 
-    ! gt_handles need to be released explicitly
-    call gt_release(in_handle)
-    call gt_release(out_handle)
-    call gt_release(computation_handle)
+    ! bindgen_handles need to be released explicitly
+    call bindgen_release(in_handle)
+    call bindgen_release(out_handle)
+    call bindgen_release(computation_handle)
 
     print *, "It works!"
 

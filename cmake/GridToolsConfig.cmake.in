@@ -37,7 +37,12 @@ if (GRIDTOOLS_ENABLE_PERFORMANCE_METERS)
 endif()
 
 set_and_check(GridTools_MODULE_PATH @PACKAGE_GRIDTOOLS_MODULE_PATH@)
-set_and_check(GridTools_SOURCES_PATH @PACKAGE_GRIDTOOLS_SOURCES_PATH@)
 set_and_check(GridTools_INCLUDE_PATH @PACKAGE_GRIDTOOLS_INCLUDE_PATH@)
+
+# Remove with GT 2.0 (cpp_bindgen will be fully standalone)
+set(CPP_BINDGEN_GT_LEGACY ON CACHE BOOL "Enables the legacy mode for API compatibility with GridTools 1.x" FORCE)
+mark_as_advanced(CPP_BINDGEN_GT_LEGACY)
+find_dependency(cpp_bindgen
+    HINTS @GT_CPP_BINDGEN_CONFIG_LOCATION@)
 
 check_required_components(GridTools)

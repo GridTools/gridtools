@@ -8,7 +8,7 @@
 
 program main
     use iso_c_binding
-    use gt_handle
+    use bindgen_handle
     use implementation_wrapper
     implicit none
     integer, parameter :: i = 9, j = 10, k = 11
@@ -27,7 +27,7 @@ program main
     if (any(in /= initial())) stop 1
     if (any(out /= initial())) stop 1
 
-    call gt_release(stencil)
+    call bindgen_release(stencil)
 
     print *, "It works!"
 

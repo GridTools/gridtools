@@ -576,7 +576,7 @@ namespace gridtools {
                 !(has_dec_assignment<T, Decayed>::value &&
                     (is_integral_constant_of<Decayed, -1>::value || is_integral_constant_of<Offset, -1>::value))>
             shift(T &obj, Stride &&GT_RESTRICT stride, Offset offset) {
-                obj += std::forward<Stride>(stride) * offset;
+                obj += wstd::forward<Stride>(stride) * offset;
             }
 
             // END `shift` PART

@@ -358,7 +358,7 @@ namespace gridtools {
 #define DEFINE_FUNCTOR_INSTANCE(name, functor)                                    \
     template <class... Args>                                                      \
     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) name(Args &&... args) { \
-        return functor()(std::forward<Args>(args)...);                            \
+        return functor()(wstd::forward<Args>(args)...);                           \
     }                                                                             \
     static_assert(1, "")
 

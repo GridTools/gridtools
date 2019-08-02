@@ -23,7 +23,7 @@ make test
 ##### Requirements
 
 - Boost (1.65.1 or later)
-- CMake (3.12.4 or later)
+- CMake (3.14.5 or later)
 - CUDA Toolkit (9.0 or later, optional)
 
 ### Supported compilers

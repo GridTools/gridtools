@@ -6,7 +6,7 @@ module load daint-gpu
 module load cudatoolkit/9.2.148_3.19-6.0.7.1_2.1__g3d9acc8
 module rm PrgEnv-cray
 module rm CMake
-module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.12.4
+module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.14.5
 
 export BOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0
 export CUDATOOLKIT_HOME=$CUDA_PATH

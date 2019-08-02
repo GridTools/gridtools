@@ -77,12 +77,12 @@ if buildinfo:
             label = 'perftests_*'
         else:
             label = '(unittest_*|regression_*)'
-            
+
         if run_mpi_tests:
             mpi_label = 'mpitest_*'
         else:
             mpi_label = None
-            
+
         test.run(label, mpi_label, verbose_ctest)
         if build_examples:
             test.compile_examples(examples_build_dir)
