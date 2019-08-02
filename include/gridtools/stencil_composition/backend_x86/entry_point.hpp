@@ -31,6 +31,37 @@
 
 namespace gridtools {
     namespace x86 {
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1900
+        template <class DataStores>
+        struct make_sid_f {
+            DataStores &m_data_stores;
+            template <class PtrInfo>
+            auto operator()(PtrInfo) const {
+                return sid::add_const(PtrInfo::is_const(), at_key<decltype(PtrInfo::plh())>(m_data_stores));
+            }
+        };
+
+        template <class Stage, class Sizes, class ShiftBack>
+        struct k_loop_f {
+            Sizes m_sizes;
+            ShiftBack m_shift_back;
+
+            template <class Ptr, class Strides>
+            GT_FORCE_INLINE void operator()(Ptr &ptr, Strides const &strides) const {
+                tuple_util::for_each(
+                    [&ptr, &strides](auto cell, auto size) {
+                        for (int_t k = 0; k < size; ++k) {
+                            cell(ptr, strides);
+                            cell.inc_k(ptr, strides);
+                        }
+                    },
+                    Stage::cells(),
+                    m_sizes);
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), m_shift_back);
+            }
+        };
+#endif
+
         template <class Stage, class Grid, class DataStores>
         auto make_stage_loop(Stage, Grid const &grid, DataStores &data_stores) {
             using extent_t = typename Stage::extent_t;
@@ -38,7 +69,12 @@ namespace gridtools {
             using plh_map_t = typename Stage::plh_map_t;
             using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
             auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
-                [&](auto info) { return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores)); },
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1900
+                make_sid_f<decltype(data_stores)> { data_stores }
+#else
+                [&](auto info) { return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores)); }
+#endif
+                ,
                 Stage::plh_map()));
             using ptr_diff_t = sid::ptr_diff_type<decltype(composite)>;
 
@@ -51,6 +87,9 @@ namespace gridtools {
             auto shift_back = -grid.k_size(Stage::interval()) * Stage::k_step();
             auto k_sizes =
                 tuple_util::transform([&](auto cell) { return grid.k_size(cell.interval()); }, Stage::cells());
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1900
+            k_loop_f<Stage, decltype(k_sizes), decltype(shift_back)> k_loop{std::move(k_sizes), shift_back};
+#else
             auto k_loop = [k_sizes = std::move(k_sizes), shift_back](auto &ptr, auto const &strides) {
                 tuple_util::for_each(
                     [&ptr, &strides](auto cell, auto size) {
@@ -63,7 +102,7 @@ namespace gridtools {
                     k_sizes);
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), shift_back);
             };
-
+#endif
             return [origin = sid::get_origin(composite) + offset,
                        strides = std::move(strides),
                        k_loop = std::move(k_loop)](int_t i_block, int_t j_block, int_t i_size, int_t j_size) {
