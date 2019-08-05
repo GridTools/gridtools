@@ -39,6 +39,11 @@ namespace gridtools {
         GT_META_DELEGATE_TO_LAZY(remove_prefix, (template <class...> class Pred, class List), (Pred, List));
         GT_META_DELEGATE_TO_LAZY(remove_suffix, (template <class...> class Pred, class List), (Pred, List));
 
+        /**
+         *   Remove the prefix and the suffix of the type list that satisfy the given predicate.
+         *   I.e. all elements that satisfy the predicate are removed from the beginning and from the end by not removed
+         *   in the middle.
+         */
         template <template <class...> class Pred, class List>
         using trim = remove_suffix<Pred, remove_prefix<Pred, List>>;
     } // namespace meta
