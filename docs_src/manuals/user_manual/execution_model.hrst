@@ -21,7 +21,8 @@ where `order` is one of the `K` dimension execution orders: ``forward``, ``backw
 The parallel execution policy allows for tuning the degree of parallelism (in the CUDA backend), by selecting
 ``execute::parallel_block<vertical_block_size>``, where ``vertical_block_size`` describes the dimension of CUDA block
 in the vertical (a too high value e.g. each k-level in a separate CUDA-thread might result in a too low instruction level
-parallelism and therefore in non-optimal performance).
+parallelism and therefore in non-optimal performance). The default vertical bock size can be set by defining the macro
+`GT_DEFAULT_VERTICAL_BLOCK_SIZE`.
 
 .. note::
 
@@ -52,8 +53,7 @@ The execution model imposes restrictions on how accessors can be evaluated. The 
 
  1. Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
     a whole *multistage*
- 
+
  2. A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
     this field must not be read anymore with any non-zero offsets, except with k-offsets in case of
     non-parallel policy. For example, you must not access such a field with ``eval(field(-1, -1, -1))``.
-
