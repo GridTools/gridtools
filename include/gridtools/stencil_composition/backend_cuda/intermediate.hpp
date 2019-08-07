@@ -312,7 +312,6 @@ namespace gridtools {
 
             using plhs_t = extract_placeholders_from_mss<Mss>;
 
-            using k_cached_plhs_t = meta::filter<is_cached<k_caches_t>::template apply, plhs_t>;
             using ij_cached_plhs_t = meta::filter<is_cached<ij_caches_t>::template apply, plhs_t>;
 
             using non_cached_plhs_t = meta::filter<is_not_cached<caches_t>::template apply, plhs_t>;
