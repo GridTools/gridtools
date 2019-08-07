@@ -67,9 +67,9 @@ TEST(apply_gpu, configurtation) {
 
         gt::array<std::size_t, 3> res{67, 50, 3};
 
-        EXPECT_EQ(c.configuration[0], res[0]);
-        EXPECT_EQ(c.configuration[1], res[1]);
-        EXPECT_EQ(c.configuration[2], res[2]);
+        EXPECT_EQ(c.block_size()[0], res[0]);
+        EXPECT_EQ(c.block_size()[1], res[1]);
+        EXPECT_EQ(c.block_size()[2], res[2]);
 
         EXPECT_EQ(c.shape(0, 0, 0).start(0), 0);
         EXPECT_EQ(c.shape(0, 0, 0).start(1), 2);
@@ -114,9 +114,9 @@ TEST(apply_gpu, configurtation) {
 
         gt::array<std::size_t, 3> res{5, 3, 2};
 
-        EXPECT_EQ(c.configuration[0], res[0]);
-        EXPECT_EQ(c.configuration[1], res[1]);
-        EXPECT_EQ(c.configuration[2], res[2]);
+        EXPECT_EQ(c.block_size()[0], res[0]);
+        EXPECT_EQ(c.block_size()[1], res[1]);
+        EXPECT_EQ(c.block_size()[2], res[2]);
     }
 
     {
@@ -133,8 +133,8 @@ TEST(apply_gpu, configurtation) {
 
         gt::array<std::size_t, 3> res{3, 3, 1};
 
-        EXPECT_EQ(c.configuration[0], res[0]);
-        EXPECT_EQ(c.configuration[1], res[1]);
-        EXPECT_EQ(c.configuration[2], res[2]);
+        EXPECT_EQ(c.block_size()[0], res[0]);
+        EXPECT_EQ(c.block_size()[1], res[1]);
+        EXPECT_EQ(c.block_size()[2], res[2]);
     }
 }
