@@ -24,10 +24,4 @@ namespace gridtools {
 
     template <class Caches>
     using ij_cache_args = meta::transform<cache_parameter, ij_caches<Caches>>;
-
-    template <class Caches>
-    using k_caches = meta::filter<is_k_cache, Caches>;
-
-    template <class Caches>
-    using k_cache_args = meta::transform<cache_parameter, k_caches<Caches>>;
 } // namespace gridtools

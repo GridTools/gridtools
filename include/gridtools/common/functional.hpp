@@ -50,10 +50,6 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR T operator()(Args &&... args) const {
                 return {wstd::forward<Args>(args)...};
             }
-
-#ifndef BOOST_RESULT_OF_USE_DECLTYPE
-            using result_type = T;
-#endif
         };
 
         /// Do nothing.
@@ -61,10 +57,6 @@ namespace gridtools {
         struct noop {
             template <typename... Args>
             GT_TARGET GT_FORCE_INLINE void operator()(Args &&...) const {}
-
-#ifndef BOOST_RESULT_OF_USE_DECLTYPE
-            using result_type = void;
-#endif
         };
 
         /// Perfectly forward the argument.
@@ -74,15 +66,6 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Arg operator()(Arg &&arg) const {
                 return arg;
             }
-
-#ifndef BOOST_RESULT_OF_USE_DECLTYPE
-            template <typename>
-            struct result;
-            template <typename Arg>
-            struct result<identity(Arg &&)> {
-                using type = Arg;
-            };
-#endif
         };
 
         /// Copy the argument.
@@ -92,17 +75,30 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Arg operator()(Arg const &arg) const {
                 return arg;
             }
-#ifndef BOOST_RESULT_OF_USE_DECLTYPE
-            template <typename>
-            struct result;
-            template <typename Arg>
-            struct result<clone(Arg const &)> {
-                using type = Arg;
-            };
-#endif
         };
-    }
 
+        template <class...>
+        struct overloaded_f;
+
+        template <class F>
+        struct overloaded_f<F> : F {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR overloaded_f(F f) : F(wstd::move(f)) {}
+            using F::operator();
+        };
+
+        template <class F, class... Fs>
+        struct overloaded_f<F, Fs...> : F, overloaded_f<Fs...> {
+            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR overloaded_f(F f, Fs... fs)
+                : F(wstd::move(f)), overloaded_f<Fs...>(wstd::move(fs)...) {}
+            using F::operator();
+            using overloaded_f<Fs...>::operator();
+        };
+
+        template <class... Funs>
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR overloaded_f<Funs...> overload(Funs... funs) {
+            return {wstd::move(funs)...};
+        }
+    }
     /** @} */
     /** @} */
 } // namespace gridtools

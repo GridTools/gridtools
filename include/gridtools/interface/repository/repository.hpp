@@ -14,10 +14,9 @@
     "GRIDTOOLS ERROR=> For the repository you need to \"#define BOOST_PP_VARIADICS 1\" before the first include of any boost preprocessor file.")
 #endif
 
-#include "../../c_bindings/export.hpp"
 #include "../../common/boost_pp_generic_macros.hpp"
+#include "../../common/defs.hpp"
 #include "../fortran_array_adapter.hpp"
-#include "boost/preprocessor/seq.hpp"
 #include "boost/variant.hpp"
 #include "repository_macro_helpers.hpp"
 #include <boost/mpl/contains.hpp>
@@ -26,12 +25,10 @@
 #include <boost/preprocessor/list.hpp>
 #include <boost/preprocessor/selection/max.hpp>
 #include <boost/preprocessor/selection/min.hpp>
+#include <boost/preprocessor/seq.hpp>
 #include <boost/preprocessor/tuple.hpp>
-
-#ifndef GT_PARSE_PREPROCESSOR
-#include "../../common/defs.hpp"
+#include <cpp_bindgen/export.hpp>
 #include <unordered_map>
-#endif
 
 #ifndef GT_REPO_GETTER_PREFIX
 #define GT_REPO_GETTER_PREFIX
@@ -180,12 +177,12 @@
 #endif
 #define GT_REPO_get_binding_name(fortran_name, prefix, member_name) \
     BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(prefix, BOOST_PP_CAT(set_, fortran_name)), _), member_name)
-#define GT_REPO_make_binding_helper(repo_name, fortran_name, prefix, member_name, type)      \
-    void BOOST_PP_CAT(GT_REPO_get_binding_name(fortran_name, , member_name), _impl)(         \
-        repo_name & repo, gridtools::fortran_array_adapter<type> view) {                     \
-        transform(repo.BOOST_PP_CAT(GT_REPO_GETTER_PREFIX, member_name)(), view);            \
-    }                                                                                        \
-    GT_EXPORT_BINDING_WRAPPED_2(GT_REPO_get_binding_name(fortran_name, prefix, member_name), \
+#define GT_REPO_make_binding_helper(repo_name, fortran_name, prefix, member_name, type)           \
+    void BOOST_PP_CAT(GT_REPO_get_binding_name(fortran_name, , member_name), _impl)(              \
+        repo_name & repo, gridtools::fortran_array_adapter<type> view) {                          \
+        transform(repo.BOOST_PP_CAT(GT_REPO_GETTER_PREFIX, member_name)(), view);                 \
+    }                                                                                             \
+    BINDGEN_EXPORT_BINDING_WRAPPED_2(GT_REPO_get_binding_name(fortran_name, prefix, member_name), \
         BOOST_PP_CAT(GT_REPO_get_binding_name(fortran_name, , member_name), _impl));
 
 #define GT_REPO_make_binding(r, data, tuple)                     \

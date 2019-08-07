@@ -18,11 +18,11 @@
 
 using namespace gridtools;
 
-template <uint_t>
 struct test_on_vertices_functor {
     using in = in_accessor<0, enumtype::vertices, extent<-1, 1, -1, 1>>;
     using out = inout_accessor<1, enumtype::vertices>;
     using param_list = make_param_list<in, out>;
+    using location = enumtype::vertices;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -45,7 +45,7 @@ TEST_F(stencil_on_vertices, test) {
     auto out = make_storage<vertices>();
     make_computation(p_in = make_storage<vertices>(in),
         p_out = out,
-        make_multistage(execute::forward(), make_stage<test_on_vertices_functor, vertices>(p_in, p_out)))
+        make_multistage(execute::forward(), make_stage<test_on_vertices_functor>(p_in, p_out)))
         .run();
     verify(make_storage<vertices>(ref), out);
 }

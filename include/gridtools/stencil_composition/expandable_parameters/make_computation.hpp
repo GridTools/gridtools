@@ -10,14 +10,13 @@
 
 #pragma once
 
-#include <tuple>
 #include <utility>
 
 #include "../../meta.hpp"
 #include "../computation_facade.hpp"
 #include "../mss.hpp"
+#include "entry_point.hpp"
 #include "expand_factor.hpp"
-#include "intermediate_expand.hpp"
 
 namespace gridtools {
 
@@ -27,16 +26,12 @@ namespace gridtools {
 #define GT_POSITIONAL_WHEN_DEBUGGING false
 #endif
 
-    /// generator for intermediate_expand
-    ///
-    template <class Backend, bool IsStateful = GT_POSITIONAL_WHEN_DEBUGGING, class Grid, size_t N, class... Args>
-    auto make_expandable_computation(expand_factor<N> factor, Grid const &grid, Args... args) {
-        return make_computation_facade<Backend>(make_intermediate_expand(factor,
-                                                    Backend{},
-                                                    bool_constant<IsStateful>{},
-                                                    grid,
-                                                    meta::filter<is_mss_descriptor, std::tuple<Args...>>{}),
-            std::move(args)...);
+    template <class Backend, bool IsStateful = GT_POSITIONAL_WHEN_DEBUGGING, size_t N, class... Args>
+    auto make_expandable_computation(expand_factor<N>, Args... args) {
+        using msses_t = meta::filter<is_mss_descriptor, meta::list<Args...>>;
+        using expandable_entry_point =
+            expandable_entry_point_f<expand_factor<N>, Backend, bool_constant<IsStateful>, msses_t>;
+        return make_computation_facade<Backend, expandable_entry_point>(std::move(args)...);
     }
 
 #undef GT_POSITIONAL_WHEN_DEBUGGING

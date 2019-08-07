@@ -9,7 +9,7 @@ module load cray-libsci
 module load cudatoolkit/8.0.61
 module load mvapich2gdr_gnu/2.2_cuda_8.0
 module load gcc/5.4.0-2.26
-module load /users/jenkins/easybuild/kesch/modules/all/cmake/3.12.4
+module load /users/jenkins/easybuild/kesch/modules/all/cmake/3.14.5
 
 export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_67_0
 export CUDATOOLKIT_HOME=$CUDA_PATH

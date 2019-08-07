@@ -15,7 +15,6 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/integral_constant.hpp>
-#include <gridtools/stencil_composition/arg.hpp>
 #include <gridtools/stencil_composition/sid/allocator.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
 #include <gridtools/tools/backend_select.hpp>
@@ -44,12 +43,10 @@ namespace gridtools {
             TEST(tmp_cuda_storage_sid, write_in_blocks) {
                 using index_info = multiplet<5>;
 
-                constexpr tmp_arg<0, data_store<index_info>> plh = {};
-
                 auto alloc = sid::make_allocator(&std::make_unique<char[]>);
 
-                auto testee =
-                    make_tmp_storage(plh, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);
+                auto testee = make_tmp_storage<index_info>(
+                    1_c, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);
 
                 auto strides = sid::get_strides(testee);
                 auto origin = sid::get_origin(testee);
@@ -85,15 +82,14 @@ namespace gridtools {
             }
 
 #else
-            constexpr int_t ncolors = 2;
+            constexpr auto ncolors = 2_c;
             TEST(tmp_cuda_storage_sid_block, write_in_blocks) {
                 using index_info = multiplet<6>;
-                constexpr tmp_arg<0, data_store<index_info>, enumtype::cells> plh = {};
 
                 auto alloc = sid::make_allocator(&std::make_unique<char[]>);
 
-                auto testee =
-                    make_tmp_storage(plh, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);
+                auto testee = make_tmp_storage<index_info>(
+                    2_c, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);
 
                 auto strides = sid::get_strides(testee);
                 auto origin = sid::get_origin(testee);

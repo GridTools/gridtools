@@ -19,9 +19,9 @@
 
 namespace gridtools {
     namespace execute {
-        template <uint_t BlockSize>
+        template <int_t BlockSize>
         struct parallel_block {
-            static constexpr uint_t block_size = BlockSize;
+            static constexpr int_t block_size = BlockSize;
         };
         using parallel = parallel_block<GT_DEFAULT_VERTICAL_BLOCK_SIZE>;
         struct forward {};
@@ -30,7 +30,7 @@ namespace gridtools {
         template <typename T>
         struct is_parallel : std::false_type {};
 
-        template <uint_t BlockSize>
+        template <int_t BlockSize>
         struct is_parallel<parallel_block<BlockSize>> : std::true_type {};
 
         template <typename T>
@@ -47,12 +47,18 @@ namespace gridtools {
 
         template <typename T>
         constexpr integral_constant<int_t, is_backward<T>::value ? -1 : 1> step = {};
+
+        template <typename T>
+        struct block_size : integral_constant<int_t, 0> {};
+
+        template <int_t BlockSize>
+        struct block_size<parallel_block<BlockSize>> : integral_constant<int_t, BlockSize> {};
     } // namespace execute
 
     template <typename T>
     struct is_execution_engine : std::false_type {};
 
-    template <uint_t BlockSize>
+    template <int_t BlockSize>
     struct is_execution_engine<execute::parallel_block<BlockSize>> : std::true_type {};
 
     template <>

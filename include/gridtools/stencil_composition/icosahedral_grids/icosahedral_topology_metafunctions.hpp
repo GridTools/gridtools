@@ -21,7 +21,7 @@ namespace gridtools {
          * @brief Computes a unique identifier (to be used for metastorages) given a list of index values
          */
         template <uint_t Pos>
-        GT_FUNCTION constexpr long long compute_uuid_selector(int cnt) {
+        constexpr long long compute_uuid_selector(int cnt) {
             return 0;
         }
 
@@ -29,7 +29,7 @@ namespace gridtools {
          * @brief Computes a unique identifier (to be used for metastorages) given a list of index values
          */
         template <uint_t Pos, typename... Int>
-        GT_FUNCTION constexpr long long compute_uuid_selector(int cnt, int val0, Int... val) {
+        constexpr long long compute_uuid_selector(int cnt, int val0, Int... val) {
             return (cnt == 4)
                        ? 0
                        : ((val0 == 1)

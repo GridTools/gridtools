@@ -25,7 +25,7 @@ namespace gridtools {
 
                 template <class Dim, class Bound, std::enable_if_t<has_key<Offsets, Dim>::value, int> = 0>
                 auto operator()(Bound &&bound) const {
-                    return std::forward<Bound>(bound) + at_key<Dim>(m_offsets);
+                    return std::forward<Bound>(bound) - at_key<Dim>(m_offsets);
                 }
 
                 template <class Dim, class Bound, std::enable_if_t<!has_key<Offsets, Dim>::value, int> = 0>

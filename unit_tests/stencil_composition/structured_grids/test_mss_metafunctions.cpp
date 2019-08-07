@@ -46,10 +46,10 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
 
 #ifndef GT_DISABLE_CACHING
     static_assert(std::is_same<mss_t::cache_sequence_t,
-                      std::tuple<detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::local>,
+                      meta::list<detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::local>,
                           detail::cache_impl<cache_type::ij, p_out, cache_io_policy::local>>>::value,
         "ERROR\nLists do not match");
 #else
-    static_assert(std::is_same<mss_t::cache_sequence_t>::value, "ERROR\nList not empty");
+    static_assert(std::is_same<mss_t::cache_sequence_t, meta::list<>>::value, "ERROR\nList not empty");
 #endif
 }

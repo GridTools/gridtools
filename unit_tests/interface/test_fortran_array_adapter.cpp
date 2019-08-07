@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/c_bindings/fortran_array_view.hpp>
+#include <cpp_bindgen/fortran_array_view.hpp>
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
@@ -25,12 +25,12 @@ TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
     constexpr size_t z_size = 4;
     float_type fortran_array[z_size][y_size][x_size];
 
-    gt_fortran_array_descriptor descriptor;
+    bindgen_fortran_array_descriptor descriptor;
     descriptor.rank = 3;
     descriptor.dims[0] = x_size;
     descriptor.dims[1] = y_size;
     descriptor.dims[2] = z_size;
-    descriptor.type = std::is_same<float_type, float>::value ? gt_fk_Float : gt_fk_Double;
+    descriptor.type = std::is_same<float_type, float>::value ? bindgen_fk_Float : bindgen_fk_Double;
     descriptor.data = fortran_array;
     descriptor.is_acc_present = false;
 
@@ -60,12 +60,12 @@ TEST(FortranArrayAdapter, TransformDataStoreIntoAdapter) {
     constexpr size_t z_size = 4;
     float_type fortran_array[z_size][y_size][x_size];
 
-    gt_fortran_array_descriptor descriptor;
+    bindgen_fortran_array_descriptor descriptor;
     descriptor.rank = 3;
     descriptor.dims[0] = x_size;
     descriptor.dims[1] = y_size;
     descriptor.dims[2] = z_size;
-    descriptor.type = std::is_same<float_type, float>::value ? gt_fk_Float : gt_fk_Double;
+    descriptor.type = std::is_same<float_type, float>::value ? bindgen_fk_Float : bindgen_fk_Double;
     descriptor.data = fortran_array;
     descriptor.is_acc_present = false;
 

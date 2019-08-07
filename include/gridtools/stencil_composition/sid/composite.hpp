@@ -9,11 +9,12 @@
  */
 #pragma once
 
+#include <cassert>
+
 #include "../../common/binops.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
-#include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/tuple.hpp"

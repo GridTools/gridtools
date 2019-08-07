@@ -87,8 +87,8 @@ namespace gridtools {
         };
 
         template <class Res, class Offsets>
-        constexpr GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets offsets) {
-            return {std::move(offsets)};
+        GT_CONSTEXPR GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets offsets) {
+            return {wstd::move(offsets)};
         }
 
         template <class T>
@@ -121,8 +121,8 @@ namespace gridtools {
                                      !(Param::intent_v == intent::inout &&
                                          std::is_const<std::remove_reference_t<Arg>>::value),
                     int> = 0>
-            GT_FUNCTION constexpr local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
-                return {std::forward<Arg>(arg)};
+            GT_FUNCTION GT_CONSTEXPR local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
+                return {wstd::forward<Arg>(arg)};
             }
         };
 
@@ -142,8 +142,8 @@ namespace gridtools {
             }
         };
         template <class Eval, class Transforms>
-        constexpr GT_FUNCTION evaluator<Eval, Transforms> make_evaluator(Eval &eval, Transforms transforms) {
-            return {eval, std::move(transforms)};
+        GT_CONSTEXPR GT_FUNCTION evaluator<Eval, Transforms> make_evaluator(Eval &eval, Transforms transforms) {
+            return {eval, wstd::move(transforms)};
         }
 
         template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>

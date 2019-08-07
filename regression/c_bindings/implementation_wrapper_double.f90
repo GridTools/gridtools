@@ -5,9 +5,9 @@ implicit none
 
     type(c_ptr) function create_copy_stencil_impl(arg0, arg1) bind(c, name="create_copy_stencil")
       use iso_c_binding
-      use array_descriptor
-      type(gt_fortran_array_descriptor) :: arg0
-      type(gt_fortran_array_descriptor) :: arg1
+      use bindgen_array_descriptor
+      type(bindgen_fortran_array_descriptor) :: arg0
+      type(bindgen_fortran_array_descriptor) :: arg1
     end function
     subroutine run_stencil_impl(arg0) bind(c, name="run_stencil")
       use iso_c_binding
@@ -15,19 +15,19 @@ implicit none
     end subroutine
     subroutine sync_data_store_impl(arg0) bind(c, name="sync_data_store")
       use iso_c_binding
-      use array_descriptor
-      type(gt_fortran_array_descriptor) :: arg0
+      use bindgen_array_descriptor
+      type(bindgen_fortran_array_descriptor) :: arg0
     end subroutine
 
   end interface
 contains
     type(c_ptr) function create_copy_stencil(arg0, arg1)
       use iso_c_binding
-      use array_descriptor
+      use bindgen_array_descriptor
       real(c_double), dimension(:,:,:), target :: arg0
       real(c_double), dimension(:,:,:), target :: arg1
-      type(gt_fortran_array_descriptor) :: descriptor0
-      type(gt_fortran_array_descriptor) :: descriptor1
+      type(bindgen_fortran_array_descriptor) :: descriptor0
+      type(bindgen_fortran_array_descriptor) :: descriptor1
 
       descriptor0%rank = 3
       descriptor0%type = 6
@@ -51,9 +51,9 @@ contains
     end subroutine
     subroutine sync_data_store(arg0)
       use iso_c_binding
-      use array_descriptor
+      use bindgen_array_descriptor
       real(c_double), dimension(:,:,:), target :: arg0
-      type(gt_fortran_array_descriptor) :: descriptor0
+      type(bindgen_fortran_array_descriptor) :: descriptor0
 
       descriptor0%rank = 3
       descriptor0%type = 6

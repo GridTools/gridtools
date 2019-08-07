@@ -15,7 +15,6 @@
 #include <utility>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/const_ref.hpp"
 #include "../../common/host_device.hpp"
 
 #define GT_FILENAME <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
@@ -31,7 +30,7 @@ namespace gridtools {
             template <class T>
             struct simple_ptr_holder {
                 T m_val;
-                GT_TARGET GT_FORCE_INLINE constexpr const_ref<T> operator()() const { return m_val; }
+                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR T const &operator()() const { return m_val; }
             };
 
             template <class T>

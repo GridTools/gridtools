@@ -77,7 +77,7 @@ namespace gridtools {
         GT_FUNCTION void multi_shift(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Offsets offsets) {
             gridtools::host_device::for_each_type<get_keys<Offsets>>(
                 multi_shift_impl_::composite_strides_shift_f<Arg, Ptr, Strides, Offsets>{
-                    ptr, strides, std::move(offsets)});
+                    ptr, strides, wstd::move(offsets)});
         }
 
         template <class Arg,

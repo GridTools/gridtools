@@ -9,12 +9,10 @@
  */
 #pragma once
 
-#include <tuple>
-
 #include "../common/defs.hpp"
 #include "../meta.hpp"
 #include "caches/cache_traits.hpp"
-#include "esf_fwd.hpp"
+#include "esf.hpp"
 #include "mss.hpp"
 
 namespace gridtools {
@@ -29,7 +27,7 @@ namespace gridtools {
 
         GT_STATIC_ASSERT(conjunction<meta::is_list<Params>...>::value, "wrong make_multistage params.");
 
-        using params_t = meta::concat<std::tuple<>, Params...>;
+        using params_t = meta::concat<Params...>;
         using esfs_t = meta::filter<is_esf_descriptor, params_t>;
         using caches_t = meta::filter<is_cache, params_t>;
 
@@ -40,7 +38,7 @@ namespace gridtools {
             " * esf descriptors from make_stage(...) or make_independent(...)");
 
 #ifdef GT_DISABLE_CACHING
-        using effective_caches_t = std::tuple<>;
+        using effective_caches_t = meta::list<>;
 #else
         using effective_caches_t = caches_t;
 #endif

@@ -8,6 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+
+#include <type_traits>
+
 #include "..//common/defs.hpp"
 #include "../common/array.hpp"
 #include "../common/generic_metafunctions/accumulate.hpp"
@@ -16,7 +19,6 @@
 #include "../meta/type_traits.hpp"
 #include "interval.hpp"
 #include "level.hpp"
-#include <type_traits>
 
 namespace gridtools {
 
@@ -57,7 +59,7 @@ namespace gridtools {
       public:
         using axis_interval_t =
             interval<level<0, _impl::add_offset(1, -ExtraOffsetsAroundFullInterval), LevelOffsetLimit>,
-                level<NIntervals, _impl::add_offset(1, ExtraOffsetsAroundFullInterval), LevelOffsetLimit>>;
+                level<NIntervals, _impl::add_offset(-1, ExtraOffsetsAroundFullInterval), LevelOffsetLimit>>;
 
         using full_interval = interval<level<0, 1, LevelOffsetLimit>, level<NIntervals, -1, LevelOffsetLimit>>;
 

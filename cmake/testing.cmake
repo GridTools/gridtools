@@ -25,12 +25,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG        release-1.8.1
 )
-# TODO Replace the next 5 lines with `FetchContent_MakeAvailable(googletest)` once we upgrade to CMake 3.14+.
-FetchContent_GetProperties(googletest)
-if(NOT googletest_POPULATED)
-  FetchContent_Populate(googletest)
-  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-endif()
+FetchContent_MakeAvailable(googletest)
 
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
@@ -70,7 +65,7 @@ function (fetch_tests_helper target_arch filetype subfolder )
             endif()
             # create the test
             add_executable (${unit_test} ${test_source} )
-            target_link_libraries(${unit_test} GridToolsTest${target_arch_u} c_bindings_generator c_bindings_handle gtest gmock_main)
+            target_link_libraries(${unit_test} GridToolsTest${target_arch_u} cpp_bindgen_generator gtest gmock_main)
             if (target_arch_l MATCHES "cuda" AND GT_USE_CLANG_CUDA)
                 target_compile_options(${unit_test} PRIVATE ${CUDA_CLANG_OPTIONS})
             endif()

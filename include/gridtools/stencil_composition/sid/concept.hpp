@@ -576,7 +576,7 @@ namespace gridtools {
                 !(has_dec_assignment<T, Decayed>::value &&
                     (is_integral_constant_of<Decayed, -1>::value || is_integral_constant_of<Offset, -1>::value))>
             shift(T &obj, Stride &&GT_RESTRICT stride, Offset offset) {
-                obj += std::forward<Stride>(stride) * offset;
+                obj += wstd::forward<Stride>(stride) * offset;
             }
 
             // END `shift` PART
@@ -685,8 +685,8 @@ namespace gridtools {
         /**
          *  The type of the element of the SID
          */
-        template <class Sid, class Ref = reference_type<Sid>>
-        using element_type = std::decay_t<Ref>;
+        template <class Sid>
+        using element_type = std::remove_reference_t<reference_type<Sid>>;
 
         /**
          *  The const variation of the reference type

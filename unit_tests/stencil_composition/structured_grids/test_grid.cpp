@@ -13,35 +13,39 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/axis.hpp>
-
-constexpr int level_offset_limit = 3;
+#include <gridtools/stencil_composition/interval.hpp>
 
 using namespace gridtools;
 
-template <uint_t Splitter, int_t Offset>
-using level_t = level<Splitter, Offset, level_offset_limit>;
-
 TEST(test_grid, k_total_length) {
-    static constexpr int_t offset_from = -2;
-    static constexpr int_t offset_to = 2;
+    using axis_t = axis<1, axis_config::offset_limit<3>, axis_config::extra_offsets<2>>;
+    auto testee = make_grid(1, 1, axis_t{45});
 
-    int_t interval_len = 45;
-
-    using axis = interval<level_t<0, offset_from>, level_t<1, offset_to + 1>>;
-    grid<axis> testee(halo_descriptor{}, halo_descriptor{}, {interval_len});
-
-    EXPECT_EQ(interval_len - offset_from + offset_to, testee.k_total_length());
+    EXPECT_EQ(49, testee.k_size());
 }
 
+constexpr int level_offset_limit = 3;
+
+template <size_t N>
+using axis_type = axis<N, axis_config::offset_limit<level_offset_limit>>;
+
+template <uint_t Splitter, int_t Offset>
+using level_type = level<Splitter, Offset, level_offset_limit>;
+
 TEST(test_grid, make_grid_makes_splitters_and_values) {
-    halo_descriptor empty_{0, 0, 0, 0, 1};
+    using axis_t = axis<2, axis_config::offset_limit<level_offset_limit>>;
 
-    const int_t interval1_size = 5;
-    const int_t interval2_size = 10;
+    using interval1_t = interval<level_type<0, 1>, level_type<1, -1>>;
+    using interval2_t = interval<level_type<1, 1>, level_type<2, -1>>;
 
-    auto testee = make_grid(empty_, empty_, axis<2>{interval1_size, interval2_size});
+    auto testee = make_grid(1, 1, axis_type<2>{5, 10});
 
-    EXPECT_EQ(0, (testee.value_at<level_t<0, 1>>()));
-    EXPECT_EQ(interval1_size, (testee.value_at<level_t<1, 1>>()));
-    EXPECT_EQ(interval1_size + interval2_size, (testee.value_at<level_t<2, 1>>()));
+    EXPECT_EQ(0, testee.k_start());
+    EXPECT_EQ(15, testee.k_size());
+
+    EXPECT_EQ(0, testee.k_start(interval1_t()));
+    EXPECT_EQ(5, testee.k_size(interval1_t()));
+
+    EXPECT_EQ(5, testee.k_start(interval2_t()));
+    EXPECT_EQ(10, testee.k_size(interval2_t()));
 }

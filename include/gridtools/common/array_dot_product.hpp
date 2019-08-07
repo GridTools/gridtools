@@ -25,7 +25,7 @@ namespace gridtools {
 
     namespace _impl {
         template <typename T, typename U, size_t D, size_t... Is>
-        GT_FUNCTION constexpr auto dot_impl(
+        GT_FUNCTION GT_CONSTEXPR auto dot_impl(
             array<T, D> const &a, array<U, D> const &b, std::integer_sequence<size_t, Is...>) {
             return accumulate(plus_functor{}, (a[Is] * b[Is])...);
         }
@@ -47,7 +47,7 @@ namespace gridtools {
         typename U,
         size_t D,
         std::enable_if_t<std::is_arithmetic<T>::value and std::is_arithmetic<U>::value, T> = 0>
-    GT_FUNCTION constexpr T array_dot_product(array<T, D> const &a, array<U, D> const &b) {
+    GT_FUNCTION GT_CONSTEXPR T array_dot_product(array<T, D> const &a, array<U, D> const &b) {
         return _impl::dot_impl(a, b, std::make_integer_sequence<size_t, D>{});
     }
 

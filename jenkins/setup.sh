@@ -11,12 +11,12 @@ envfile=./jenkins/envs/${label}_$env.sh
 source /project/c14/jenkins/python-venvs/$label/bin/activate
 
 if [[ $label != "kesch" ]]; then
-    export SLURM_ACCOUNT=d75
-    export SBATCH_ACCOUNT=d75
+    export SLURM_ACCOUNT=c14
+    export SBATCH_ACCOUNT=c14
 fi
 
 # possibly delete old log files and create new log file
-find /tmp -maxdepth 1 -mtime +5 -name 'gridtools-jenkins-*.log' -execdir rm -f {} +
+find /tmp -maxdepth 1 -mtime +5 -name 'gridtools-jenkins-*.log' -execdir rm -f {} + 2>/dev/null
 logfile=$(mktemp -p /tmp gridtools-jenkins-XXXXX.log)
 chmod +r $logfile
 
