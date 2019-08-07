@@ -84,18 +84,17 @@ namespace gridtools {
                 std::move(data_stores));
         }
 
-        template <class... Funs>
-        struct multi_kernel {
+        template <class Is, class... Funs>
+        struct multi_kernel;
+
+        template <class... Funs, size_t... Is>
+        struct multi_kernel<std::index_sequence<Is...>, Funs...> {
             tuple<Funs...> m_funs;
 
             template <class Validator>
             GT_FUNCTION_DEVICE void operator()(int_t i_block, int_t j_block, Validator const &validator) const {
-                tuple_util::device::for_each(
-                    [&](auto fun) {
-                        __threadfence_block();
-                        fun(i_block, j_block, validator);
-                    },
-                    m_funs);
+                (void)(int[]){
+                    (__threadfence_block(), tuple_util::device::get<Is>(m_funs)(i_block, j_block, validator), 0)...};
             }
         };
 
@@ -105,7 +104,7 @@ namespace gridtools {
         }
 
         template <class... Funs>
-        multi_kernel<Funs...> make_multi_kernel(tuple<Funs...> tup) {
+        multi_kernel<std::index_sequence_for<Funs...>, Funs...> make_multi_kernel(tuple<Funs...> tup) {
             return {std::move(tup)};
         }
 
@@ -197,20 +196,20 @@ namespace gridtools {
             launch_msses(L<Msses...>(), grid, data_stores, std::move(fused_kernel));
         }
 
-        template <class Spec, class Grid, class DataStores>
-        void entry_point(Spec, Grid const &grid, DataStores external_data_stores) {
-            using msses_t = stage_matrix::make_fused_view<Spec>;
+        template <class Msses, class Grid, class DataStores>
+        void entry_point(Grid const &grid, DataStores external_data_stores) {
             auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char>);
             auto data_stores =
-                hymap::concat(block(std::move(external_data_stores)), make_temporaries<msses_t>(grid, cuda_alloc));
-            launch_msses(meta::rename<meta::list, msses_t>(), grid, data_stores);
+                hymap::concat(block(std::move(external_data_stores)), make_temporaries<Msses>(grid, cuda_alloc));
+            launch_msses(meta::rename<meta::list, Msses>(), grid, data_stores);
         }
 
         template <class Spec, class Grid, class DataStores>
         void gridtools_backend_entry_point(backend, Spec, Grid const &grid, DataStores data_stores) {
-            entry_point(fill_flush::transform_spec<Spec>(),
-                grid,
-                fill_flush::transform_data_stores(Spec(), std::move(data_stores)));
+            using new_spec_t = fill_flush::transform_spec<Spec>;
+            using msses_t = stage_matrix::make_fused_view<new_spec_t>;
+            entry_point<msses_t>(
+                grid, fill_flush::transform_data_stores<typename msses_t::plh_map_t>(std::move(data_stores)));
         }
     } // namespace cuda
 } // namespace gridtools

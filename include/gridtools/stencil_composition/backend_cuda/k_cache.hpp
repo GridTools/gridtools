@@ -62,10 +62,10 @@ namespace gridtools {
                 fake operator*() const;
             };
             fake sid_get_ptr_diff(fake);
-            fake sid_get_origin(fake) { return {}; }
+            inline fake sid_get_origin(fake) { return {}; }
             GT_FUNCTION void sid_shift(fake &, fake, int_t) {}
             GT_FUNCTION fake operator+(fake, fake) { return {}; }
-            hymap::keys<dim::k>::values<fake> sid_get_strides(fake) { return {}; }
+            inline hymap::keys<dim::k>::values<fake> sid_get_strides(fake) { return {}; }
 
             GT_STATIC_ASSERT(is_sid<fake>(), GT_INTERNAL_ERROR);
 
