@@ -32,7 +32,7 @@ namespace gridtools {
             template <class Ptr, class Strides, class Validator>
             GT_FUNCTION_DEVICE void operator()(
                 Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides, Validator const &validator) const {
-                device::for_each<Stages>([&](auto stage) { stage(ptr, strides, validator); });
+                device::for_each<Stages>([&](auto stage) GT_FORCE_INLINE_LAMBDA { stage(ptr, strides, validator); });
             }
         };
 
