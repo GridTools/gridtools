@@ -11,8 +11,8 @@ envfile=./jenkins/envs/${label}_$env.sh
 source /project/c14/jenkins/python-venvs/$label/bin/activate
 
 if [[ $label != "kesch" ]]; then
-    export SLURM_ACCOUNT=c14
-    export SBATCH_ACCOUNT=c14
+    export SLURM_ACCOUNT=d75
+    export SBATCH_ACCOUNT=d75
 fi
 
 # possibly delete old log files and create new log file
