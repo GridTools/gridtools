@@ -45,7 +45,8 @@ namespace gridtools {
     __device__ tuple<int, double> tuple_conversion_ctor(tuple<char, char> const &src) { return src; }
 
     TEST(tuple, tuple_conversion_ctor) {
-        tuple<int, double> testee = on_device::exec(GT_MAKE_CONSTANT(tuple_conversion_ctor), tuple<char, char>{'a', 'b'});
+        tuple<int, double> testee =
+            on_device::exec(GT_MAKE_CONSTANT(tuple_conversion_ctor), tuple<char, char>{'a', 'b'});
         EXPECT_EQ('a', tuple_util::host::get<0>(testee));
         EXPECT_EQ('b', tuple_util::host::get<1>(testee));
     }
