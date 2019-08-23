@@ -47,7 +47,7 @@ namespace gridtools {
                 Ptr &GT_RESTRICT ptr,
                 Strides const &GT_RESTRICT strides,
                 Validator const &GT_RESTRICT validator) {
-                device::for_each<typename Info::cells_t>([&](auto cell) {
+                device::for_each<typename Info::cells_t>([&](auto cell) GT_FORCE_INLINE_LAMBDA {
                     syncthreads(cell.need_sync());
                     if (validator(cell.extent()))
                         cell.template operator()<deref_f>(ptr, strides);
@@ -69,7 +69,7 @@ namespace gridtools {
                     k_caches_type<Mss> k_caches;
                     auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
                     tuple_util::device::for_each(
-                        [&](int_t size, auto info) {
+                        [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells(info, mixed_ptr, strides, validator);
                                 k_caches.slide(info.k_step());
@@ -108,12 +108,12 @@ namespace gridtools {
                     int_t cur = -(int_t)blockIdx.z * BlockSize;
                     sid::shift(ptr, sid::get_stride<dim::k>(strides), -cur);
                     tuple_util::device::for_each(
-                        [&](int_t size, auto info) {
+                        [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
                             if (cur >= BlockSize)
                                 return;
                             int_t lim = math::min(cur + size, BlockSize) - math::max(cur, 0);
                             cur += size;
-#pragma unroll BlockSize
+#pragma unroll
                             for (int_t i = 0; i < BlockSize; ++i) {
                                 if (i >= lim)
                                     break;

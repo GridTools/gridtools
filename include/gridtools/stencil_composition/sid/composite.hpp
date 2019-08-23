@@ -94,8 +94,8 @@ namespace gridtools {
                 GT_FUNCTION void composite_shift_impl(
                     ObjTup &GT_RESTRICT obj_tup, StrideTup &&GT_RESTRICT stride_tup, Offset offset) {
                     tuple_util::host_device::for_each(
-                        [offset](
-                            auto &obj, auto &&stride) { shift(obj, wstd::forward<decltype(stride)>(stride), offset); },
+                        [offset](auto &obj, auto &&stride)
+                            GT_FORCE_INLINE_LAMBDA { shift(obj, wstd::forward<decltype(stride)>(stride), offset); },
                         obj_tup,
                         wstd::forward<StrideTup>(stride_tup));
                 }
@@ -152,7 +152,7 @@ namespace gridtools {
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
                     GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
                         return tuple_util::host_device::transform(
-                            [](auto const &ptr) -> decltype(auto) { return *ptr; }, m_vals);
+                            [](auto const &ptr) GT_FORCE_INLINE_LAMBDA -> decltype(auto) { return *ptr; }, m_vals);
                     }
 
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
@@ -167,8 +167,8 @@ namespace gridtools {
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
 
                     GT_CONSTEXPR GT_FUNCTION auto operator()() const {
-                        return tuple_util::host_device::convert_to<composite_ptr>(
-                            tuple_util::host_device::transform([](auto const &obj) { return obj(); }, m_vals));
+                        return tuple_util::host_device::convert_to<composite_ptr>(tuple_util::host_device::transform(
+                            [](auto const &obj) GT_FORCE_INLINE_LAMBDA { return obj(); }, m_vals));
                     }
 
                     friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
