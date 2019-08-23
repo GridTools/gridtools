@@ -81,7 +81,7 @@ endif()
 
 if( COMPONENT_STORAGE )
     generate_target_for(NAME storage)
-    target_link_libraries( distributed_boundaries INTERFACE common )
+    target_link_libraries( storage INTERFACE common )
 endif()
 
 if( COMPONENT_INTERFACE )

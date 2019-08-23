@@ -2,6 +2,7 @@
 # For CUDA, the mpi compile options are non-empty, but the flags are invalid with nvcc, so we need
 # to pass them using -Xcompiler
 
+cmake_policy(SET CMP0057 NEW)
 function(_fix_mpi_flags)
     get_property(_languages GLOBAL PROPERTY ENABLED_LANGUAGES)
     if("CUDA" IN_LIST _languages)
