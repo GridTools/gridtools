@@ -54,7 +54,7 @@ The execution model imposes restrictions on how accessors can be evaluated. The 
  1. Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
     a whole *multistage*
     
-2. A stage may write to a field through an accessor, if its new value is independent of a read of the same through the same accessor.
+2. A stage may write to a field through an accessor, if its new value is independent of a read of the same accessor.
 
 3. A stage may write to a field through an accessor, where the new value depends on a read of the same accesor, if all reads (before or after) have zero offset (including later stages and multistages), except k-offsets in case of
     non-parallel policy. For example, you must not access such a field with ``eval(field(-1, -1, -1))``.
