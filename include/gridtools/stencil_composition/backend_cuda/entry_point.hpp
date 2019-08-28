@@ -116,7 +116,17 @@ namespace gridtools {
             return (nz + BlockSize - 1) / BlockSize;
         }
 
-        template <class MaxExtent, uint_t BlockSize, class... Funs>
+        struct dummy_info {
+            using extent_t = extent<>;
+        };
+
+        template <class PlhMap>
+        struct get_extent_f {
+            template <class Key>
+            using apply = typename meta::mp_find<PlhMap, Key, dummy_info>::extent_t;
+        };
+
+        template <class MaxExtent, class PlhMap, uint_t BlockSize, class... Funs>
         struct kernel {
             tuple<Funs...> m_funs;
             size_t m_shared_memory_size;
@@ -131,9 +141,18 @@ namespace gridtools {
                 return kernel;
             }
 
-            template <class Grid, class Fun>
-            kernel<MaxExtent, BlockSize, Funs..., Fun> launch_or_fuse(
-                Grid const &grid, kernel<MaxExtent, BlockSize, Fun> kernel) && {
+            template <class OtherPlhMap,
+                class Grid,
+                class Fun,
+                class OutKeys = meta::transform<stage_matrix::get_key,
+                    meta::filter<meta::not_<stage_matrix::get_is_const>::apply, PlhMap>>,
+                class Extents = meta::transform<get_extent_f<OtherPlhMap>::template apply, OutKeys>,
+                class Extent = meta::rename<enclosing_extent, Extents>,
+                std::enable_if_t<Extent::iminus::value == 0 && Extent::iplus::value == 0 &&
+                                     Extent::jminus::value == 0 && Extent::jplus::value == 0,
+                    int> = 0>
+            kernel<MaxExtent, stage_matrix::merge_plh_maps<PlhMap, OtherPlhMap>, BlockSize, Funs..., Fun>
+            launch_or_fuse(Grid const &grid, kernel<MaxExtent, OtherPlhMap, BlockSize, Fun> kernel) && {
                 return {tuple_util::push_back(std::move(m_funs), tuple_util::get<0>(std::move(kernel.m_funs))),
                     std::max(m_shared_memory_size, kernel.m_shared_memory_size)};
             }
@@ -173,6 +192,7 @@ namespace gridtools {
             auto kernel_fun = make_kernel_fun<Mss>(grid, composite);
 
             return kernel<typename Mss::extent_t,
+                typename Mss::plh_map_t,
                 execute::block_size<typename Mss::execution_t>::value,
                 decltype(kernel_fun)>{std::move(kernel_fun), shared_alloc.size()};
         }
