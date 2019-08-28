@@ -12,7 +12,6 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../common/cuda_type_traits.hpp"
 #include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/hymap.hpp"
@@ -93,8 +92,7 @@ namespace gridtools {
 
             template <class Validator>
             GT_FUNCTION_DEVICE void operator()(int_t i_block, int_t j_block, Validator const &validator) const {
-                (void)(int[]){
-                    (__threadfence_block(), tuple_util::device::get<Is>(m_funs)(i_block, j_block, validator), 0)...};
+                (void)(int[]){(tuple_util::device::get<Is>(m_funs)(i_block, j_block, validator), 0)...};
             }
         };
 
@@ -131,85 +129,85 @@ namespace gridtools {
                     make_multi_kernel(std::move(m_funs)),
                     m_shared_memory_size);
                 return kernel;
-
-                template <class Grid, class Fun>
-                kernel<MaxExtent, BlockSize, Funs..., Fun> launch_or_fuse(
-                    Grid const &grid, kernel<MaxExtent, BlockSize, Fun> kernel) && {
-                    return {tuple_util::push_back(std::move(m_funs), tuple_util::get<0>(std::move(kernel.m_funs))),
-                        std::max(m_shared_memory_size, kernel.m_shared_memory_size)};
-                }
-            };
-
-            struct no_kernel {
-                template <class Grid, class Kernel>
-                Kernel launch_or_fuse(Grid &&, Kernel kernel) && {
-                    return kernel;
-                }
-            };
-
-            template <class Mss, class Grid, class DataStores>
-            auto make_mss_kernel(Grid const &grid, DataStores &data_stores) {
-                shared_allocator shared_alloc;
-
-                using ij_caches_t = meta::list<integral_constant<cache_type, cache_type::ij>>;
-                using k_caches_t = meta::list<integral_constant<cache_type, cache_type::k>>;
-                using no_caches_t = meta::list<>;
-
-                using plh_map_t = typename Mss::plh_map_t;
-                using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
-
-                auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
-                    overload(
-                        [&](ij_caches_t, auto info) {
-                            return make_ij_cache<decltype(info.data())>(
-                                info.num_colors(), i_block_size_t(), j_block_size_t(), info.extent(), shared_alloc);
-                        },
-                        [](k_caches_t, auto) { return k_cache_sid_t(); },
-                        [&](no_caches_t, auto info) {
-                            return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores));
-                        }),
-                    meta::transform<stage_matrix::get_caches, plh_map_t>(),
-                    plh_map_t()));
-
-                auto kernel_fun = make_kernel_fun<Mss>(grid, composite);
-
-                return kernel<typename Mss::extent_t,
-                    execute::block_size<typename Mss::execution_t>::value,
-                    decltype(kernel_fun)>{std::move(kernel_fun), shared_alloc.size()};
             }
 
-            template <template <class...> class L, class Grid, class DataStores, class PrevKernel = no_kernel>
-            void launch_msses(L<>, Grid const &grid, DataStores &&, PrevKernel prev_kernel = {}) {
-                std::move(prev_kernel).launch_or_fuse(grid, no_kernel());
+            template <class Grid, class Fun>
+            kernel<MaxExtent, BlockSize, Funs..., Fun> launch_or_fuse(
+                Grid const &grid, kernel<MaxExtent, BlockSize, Fun> kernel) && {
+                return {tuple_util::push_back(std::move(m_funs), tuple_util::get<0>(std::move(kernel.m_funs))),
+                    std::max(m_shared_memory_size, kernel.m_shared_memory_size)};
             }
+        };
 
-            template <template <class...> class L,
-                class Mss,
-                class... Msses,
-                class Grid,
-                class DataStores,
-                class PrevKernel = no_kernel>
-            void launch_msses(
-                L<Mss, Msses...>, Grid const &grid, DataStores &data_stores, PrevKernel prev_kernel = {}) {
-                auto kernel = make_mss_kernel<Mss>(grid, data_stores);
-                auto fused_kernel = std::move(prev_kernel).launch_or_fuse(grid, std::move(kernel));
-                launch_msses(L<Msses...>(), grid, data_stores, std::move(fused_kernel));
+        struct no_kernel {
+            template <class Grid, class Kernel>
+            Kernel launch_or_fuse(Grid &&, Kernel kernel) && {
+                return kernel;
             }
+        };
 
-            template <class Msses, class Grid, class DataStores>
-            void entry_point(Grid const &grid, DataStores external_data_stores) {
-                auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char>);
-                auto data_stores =
-                    hymap::concat(block(std::move(external_data_stores)), make_temporaries<Msses>(grid, cuda_alloc));
-                launch_msses(meta::rename<meta::list, Msses>(), grid, data_stores);
-            }
+        template <class Mss, class Grid, class DataStores>
+        auto make_mss_kernel(Grid const &grid, DataStores &data_stores) {
+            shared_allocator shared_alloc;
 
-            template <class Spec, class Grid, class DataStores>
-            void gridtools_backend_entry_point(backend, Spec, Grid const &grid, DataStores data_stores) {
-                using new_spec_t = fill_flush::transform_spec<Spec>;
-                using msses_t = stage_matrix::make_fused_view<new_spec_t>;
-                entry_point<msses_t>(
-                    grid, fill_flush::transform_data_stores<typename msses_t::plh_map_t>(std::move(data_stores)));
-            }
-        } // namespace cuda
-    }     // namespace cuda
+            using ij_caches_t = meta::list<integral_constant<cache_type, cache_type::ij>>;
+            using k_caches_t = meta::list<integral_constant<cache_type, cache_type::k>>;
+            using no_caches_t = meta::list<>;
+
+            using plh_map_t = typename Mss::plh_map_t;
+            using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
+
+            auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
+                overload(
+                    [&](ij_caches_t, auto info) {
+                        return make_ij_cache<decltype(info.data())>(
+                            info.num_colors(), i_block_size_t(), j_block_size_t(), info.extent(), shared_alloc);
+                    },
+                    [](k_caches_t, auto) { return k_cache_sid_t(); },
+                    [&](no_caches_t, auto info) {
+                        return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores));
+                    }),
+                meta::transform<stage_matrix::get_caches, plh_map_t>(),
+                plh_map_t()));
+
+            auto kernel_fun = make_kernel_fun<Mss>(grid, composite);
+
+            return kernel<typename Mss::extent_t,
+                execute::block_size<typename Mss::execution_t>::value,
+                decltype(kernel_fun)>{std::move(kernel_fun), shared_alloc.size()};
+        }
+
+        template <template <class...> class L, class Grid, class DataStores, class PrevKernel = no_kernel>
+        void launch_msses(L<>, Grid const &grid, DataStores &&, PrevKernel prev_kernel = {}) {
+            std::move(prev_kernel).launch_or_fuse(grid, no_kernel());
+        }
+
+        template <template <class...> class L,
+            class Mss,
+            class... Msses,
+            class Grid,
+            class DataStores,
+            class PrevKernel = no_kernel>
+        void launch_msses(L<Mss, Msses...>, Grid const &grid, DataStores &data_stores, PrevKernel prev_kernel = {}) {
+            auto kernel = make_mss_kernel<Mss>(grid, data_stores);
+            auto fused_kernel = std::move(prev_kernel).launch_or_fuse(grid, std::move(kernel));
+            launch_msses(L<Msses...>(), grid, data_stores, std::move(fused_kernel));
+        }
+
+        template <class Msses, class Grid, class DataStores>
+        void entry_point(Grid const &grid, DataStores external_data_stores) {
+            auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char>);
+            auto data_stores =
+                hymap::concat(block(std::move(external_data_stores)), make_temporaries<Msses>(grid, cuda_alloc));
+            launch_msses(meta::rename<meta::list, Msses>(), grid, data_stores);
+        }
+
+        template <class Spec, class Grid, class DataStores>
+        void gridtools_backend_entry_point(backend, Spec, Grid const &grid, DataStores data_stores) {
+            using new_spec_t = fill_flush::transform_spec<Spec>;
+            using msses_t = stage_matrix::make_fused_view<new_spec_t>;
+            entry_point<msses_t>(
+                grid, fill_flush::transform_data_stores<typename msses_t::plh_map_t>(std::move(data_stores)));
+        }
+    } // namespace cuda
+} // namespace gridtools

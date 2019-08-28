@@ -26,19 +26,6 @@
 namespace gridtools {
     namespace cuda {
         namespace fused_mss_loop_cuda_impl_ {
-            struct deref_f {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
-                template <class T>
-                GT_FUNCTION std::enable_if_t<is_texture_type<T>::value, T> operator()(T const *ptr) const {
-                    return __ldg(ptr);
-                }
-#endif
-                template <class Ptr>
-                GT_FUNCTION decltype(auto) operator()(Ptr ptr) const {
-                    return *ptr;
-                }
-            };
-
             GT_FUNCTION_DEVICE void syncthreads(std::true_type) { __syncthreads(); }
             GT_FUNCTION_DEVICE void syncthreads(std::false_type) {}
 
@@ -47,7 +34,7 @@ namespace gridtools {
                 device::for_each<typename Info::cells_t>([&](auto cell) {
                     syncthreads(cell.need_sync());
                     if (validator(cell.extent()))
-                        cell.template operator()<deref_f>(ptr, strides);
+                        cell(ptr, strides);
                 });
             }
 

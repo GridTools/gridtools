@@ -152,17 +152,6 @@ namespace gridtools {
         using remove_caches_from_plh_map =
             meta::mp_make<merge_plh_infos, meta::transform<remove_caches_from_plh_info, Map>>;
 
-        template <class Deref, class Ptr, class Strides>
-        struct run_f {
-            Ptr const &m_ptr;
-            Strides const &m_strides;
-
-            template <class Fun>
-            GT_FUNCTION void operator()(Fun fun) const {
-                fun.template operator()<Deref>(m_ptr, m_strides);
-            }
-        };
-
         template <class Funs, class Interval, class PlhMap, class Extent, class Execution, class NeedSync>
         struct cell {
             using funs_t = Funs;
@@ -185,9 +174,9 @@ namespace gridtools {
             static GT_FUNCTION plhs_t plhs() { return {}; }
             static GT_FUNCTION k_step_t k_step() { return {}; }
 
-            template <class Deref = void, class Ptr, class Strides>
+            template <class Ptr, class Strides>
             GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
-                host_device::for_each<Funs>(run_f<Deref, Ptr, Strides>{ptr, strides});
+                host_device::for_each<Funs>([&](auto fun) { fun(ptr, strides); });
             }
 
             template <class Ptr, class Strides>
