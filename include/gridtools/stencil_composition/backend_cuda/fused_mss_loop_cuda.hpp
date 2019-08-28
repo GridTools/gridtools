@@ -43,10 +43,7 @@ namespace gridtools {
             GT_FUNCTION_DEVICE void syncthreads(std::false_type) {}
 
             template <class Info, class Ptr, class Strides, class Validator>
-            GT_FUNCTION_DEVICE void exec_cells(Info,
-                Ptr &GT_RESTRICT ptr,
-                Strides const &GT_RESTRICT strides,
-                Validator const &GT_RESTRICT validator) {
+            GT_FUNCTION_DEVICE void exec_cells(Info, Ptr &ptr, Strides const &strides, Validator const &validator) {
                 device::for_each<typename Info::cells_t>([&](auto cell) {
                     syncthreads(cell.need_sync());
                     if (validator(cell.extent()))

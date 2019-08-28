@@ -52,11 +52,9 @@ namespace gridtools {
         using halo_t = halo<HaloSize, HaloSize, 0>;
         using storage_info_t = storage_tr::storage_info_t<0, 3, halo_t>;
         using j_storage_info_t = storage_tr::special_storage_info_t<1, selector<0, 1, 0>>;
-        using scalar_storage_info_t = storage_tr::special_storage_info_t<2, selector<0, 0, 0>>;
 
         using storage_type = storage_tr::data_store_t<float_type, storage_info_t>;
         using j_storage_type = storage_tr::data_store_t<float_type, j_storage_info_t>;
-        using scalar_storage_type = storage_tr::data_store_t<float_type, scalar_storage_info_t>;
 
         template <uint_t I, typename T = storage_type>
         using arg = gridtools::arg<I, T>;

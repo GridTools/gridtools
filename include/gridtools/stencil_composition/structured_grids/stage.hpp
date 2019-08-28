@@ -53,8 +53,8 @@ namespace gridtools {
 
         template <class Ptr, class Strides, class Keys, class Deref>
         struct evaluator {
-            Ptr const &GT_RESTRICT m_ptr;
-            Strides const &GT_RESTRICT m_strides;
+            Ptr const &m_ptr;
+            Strides const &m_strides;
 
             template <class Accessor>
             GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
@@ -84,7 +84,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
 
             template <class Deref = void, class Ptr, class Strides>
-            GT_FUNCTION void operator()(Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
+            GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
                 using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
                 using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t>;
                 eval_t eval{ptr, strides};

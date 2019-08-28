@@ -91,8 +91,7 @@ namespace gridtools {
                 };
 
                 template <class ObjTup, class StrideTup, class Offset>
-                GT_FUNCTION void composite_shift_impl(
-                    ObjTup &GT_RESTRICT obj_tup, StrideTup &&GT_RESTRICT stride_tup, Offset offset) {
+                GT_FUNCTION void composite_shift_impl(ObjTup &obj_tup, StrideTup &&stride_tup, Offset offset) {
                     tuple_util::host_device::for_each(
                         [offset](
                             auto &obj, auto &&stride) { shift(obj, wstd::forward<decltype(stride)>(stride), offset); },
@@ -265,16 +264,15 @@ namespace gridtools {
                     };
 
                     template <class... PtrDiffs, class... Strides, class Offset>
-                    friend GT_FUNCTION void sid_shift(composite_entity<PtrDiffs...> &GT_RESTRICT ptr_diff,
-                        composite_entity<Strides...> const &GT_RESTRICT stride,
+                    friend GT_FUNCTION void sid_shift(composite_entity<PtrDiffs...> &ptr_diff,
+                        composite_entity<Strides...> const &stride,
                         Offset offset) {
                         impl_::composite_shift_impl(ptr_diff.m_vals, stride.m_vals, offset);
                     }
 
                     template <class... PtrDiffs, class... Strides, class Offset>
-                    friend GT_FUNCTION void sid_shift(composite_entity<PtrDiffs...> &GT_RESTRICT ptr_diff,
-                        composite_entity<Strides...> &&stride,
-                        Offset offset) {
+                    friend GT_FUNCTION void sid_shift(
+                        composite_entity<PtrDiffs...> &ptr_diff, composite_entity<Strides...> &&stride, Offset offset) {
                         impl_::composite_shift_impl(ptr_diff.m_vals, wstd::move(stride.m_vals), offset);
                     }
 

@@ -154,8 +154,8 @@ namespace gridtools {
 
         template <class Deref, class Ptr, class Strides>
         struct run_f {
-            Ptr const &GT_RESTRICT m_ptr;
-            Strides const &GT_RESTRICT m_strides;
+            Ptr const &m_ptr;
+            Strides const &m_strides;
 
             template <class Fun>
             GT_FUNCTION void operator()(Fun fun) const {
@@ -186,12 +186,12 @@ namespace gridtools {
             static GT_FUNCTION k_step_t k_step() { return {}; }
 
             template <class Deref = void, class Ptr, class Strides>
-            GT_FUNCTION void operator()(Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
+            GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
                 host_device::for_each<Funs>(run_f<Deref, Ptr, Strides>{ptr, strides});
             }
 
             template <class Ptr, class Strides>
-            static GT_FUNCTION void inc_k(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
+            static GT_FUNCTION void inc_k(Ptr &ptr, Strides const &strides) {
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), k_step());
             }
         };
@@ -300,7 +300,7 @@ namespace gridtools {
             static GT_FUNCTION cells_t cells() { return {}; }
 
             template <class Ptr, class Strides>
-            static GT_FUNCTION void inc_k(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
+            static GT_FUNCTION void inc_k(Ptr &ptr, Strides const &strides) {
                 sid::shift(ptr, sid::get_stride<dim::k>(strides), k_step());
             }
         };

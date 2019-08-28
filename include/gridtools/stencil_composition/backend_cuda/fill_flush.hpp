@@ -120,7 +120,7 @@ namespace gridtools {
                     using bound_key_t = meta::list<bound<typename PlhInfo::plh_t, Check>>;
 
                     template <class Deref = void, class Ptrs, class Strides>
-                    GT_FUNCTION void operator()(Ptrs const &GT_RESTRICT ptrs, Strides const &GT_RESTRICT strides) {
+                    GT_FUNCTION void operator()(Ptrs const &ptrs, Strides const &strides) {
                         using namespace literals;
                         auto orig = get_orig<PlhInfo>(ptrs);
                         auto cached = get_cached<PlhInfo>(ptrs);
@@ -168,7 +168,7 @@ namespace gridtools {
                 template <class PlhInfo, range Range>
                 struct sync_fun<PlhInfo, Range, check::none> {
                     template <class Deref = void, class Ptrs, class Strides>
-                    GT_FUNCTION void operator()(Ptrs const &GT_RESTRICT ptrs, Strides const &GT_RESTRICT strides) {
+                    GT_FUNCTION void operator()(Ptrs const &ptrs, Strides const &strides) {
                         auto orig = get_orig<PlhInfo>(ptrs);
                         auto cached = get_cached<PlhInfo>(ptrs);
                         using offset_t = meta::if_c<Range == range::minus,
@@ -185,7 +185,7 @@ namespace gridtools {
                 template <class PlhInfo>
                 struct sync_fun<PlhInfo, range::all, check::none> {
                     template <class Deref = void, class Ptrs, class Strides>
-                    GT_FUNCTION void operator()(Ptrs const &GT_RESTRICT ptrs, Strides const &GT_RESTRICT strides) {
+                    GT_FUNCTION void operator()(Ptrs const &ptrs, Strides const &strides) {
                         using namespace literals;
                         auto orig = get_orig<PlhInfo>(ptrs);
                         auto cached = get_cached<PlhInfo>(ptrs);

@@ -475,7 +475,7 @@ namespace gridtools {
                 std::enable_if_t<need_shift<T, std::decay_t<Stride>, Offset>::value &&
                                      !is_default_shiftable<T, std::decay_t<Stride>>::value,
                     int> = 0>
-            GT_FUNCTION decltype(auto) shift(T &obj, Stride &&GT_RESTRICT stride, Offset offset) {
+            GT_FUNCTION decltype(auto) shift(T &obj, Stride &&stride, Offset offset) {
                 return sid_shift(obj, wstd::forward<Stride>(stride), offset);
             }
 
@@ -526,7 +526,7 @@ namespace gridtools {
             GT_FUNCTION
                 std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                  !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
-                shift(T &obj, Stride const &GT_RESTRICT stride, Offset) {
+                shift(T &obj, Stride const &stride, Offset) {
                 obj += stride;
             }
 
@@ -538,7 +538,7 @@ namespace gridtools {
                 std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                  !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, -1>::value &&
                                  has_dec_assignment<T, Stride>::value>
-                shift(T &obj, Stride const &GT_RESTRICT stride, Offset) {
+                shift(T &obj, Stride const &stride, Offset) {
                 obj -= stride;
             }
 
@@ -575,7 +575,7 @@ namespace gridtools {
                 !(is_integral_constant_of<Decayed, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
                 !(has_dec_assignment<T, Decayed>::value &&
                     (is_integral_constant_of<Decayed, -1>::value || is_integral_constant_of<Offset, -1>::value))>
-            shift(T &obj, Stride &&GT_RESTRICT stride, Offset offset) {
+            shift(T &obj, Stride &&stride, Offset offset) {
                 obj += wstd::forward<Stride>(stride) * offset;
             }
 

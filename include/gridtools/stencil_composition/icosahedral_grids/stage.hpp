@@ -109,7 +109,7 @@ namespace gridtools {
             using num_colors_t = typename location_t::n_colors;
 
             template <class Deref = void, class Ptr, class Strides>
-            GT_FUNCTION void operator()(Ptr ptr, Strides const &GT_RESTRICT strides) const {
+            GT_FUNCTION void operator()(Ptr ptr, Strides const &strides) const {
                 using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
                 host_device::for_each<meta::make_indices<num_colors_t>>([&](auto color) {
                     using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
