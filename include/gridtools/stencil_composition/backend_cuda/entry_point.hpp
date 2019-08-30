@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "../../common/cuda_type_traits.hpp"
 #include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/hymap.hpp"
@@ -165,7 +166,7 @@ namespace gridtools {
             }
         };
 
-        template <class Mss, class Grid, class DataStores>
+        template <class Deref, class Mss, class Grid, class DataStores>
         auto make_mss_kernel(Grid const &grid, DataStores &data_stores) {
             shared_allocator shared_alloc;
 
@@ -189,7 +190,7 @@ namespace gridtools {
                 meta::transform<stage_matrix::get_caches, plh_map_t>(),
                 plh_map_t()));
 
-            auto kernel_fun = make_kernel_fun<Mss>(grid, composite);
+            auto kernel_fun = make_kernel_fun<Deref, Mss>(grid, composite);
 
             return kernel<typename Mss::extent_t,
                 typename Mss::plh_map_t,
@@ -197,29 +198,43 @@ namespace gridtools {
                 decltype(kernel_fun)>{std::move(kernel_fun), shared_alloc.size()};
         }
 
-        template <template <class...> class L, class Grid, class DataStores, class PrevKernel = no_kernel>
+        template <class Deref, template <class...> class L, class Grid, class DataStores, class PrevKernel = no_kernel>
         void launch_msses(L<>, Grid const &grid, DataStores &&, PrevKernel prev_kernel = {}) {
             std::move(prev_kernel).launch_or_fuse(grid, no_kernel());
         }
 
-        template <template <class...> class L,
+        template <class Deref,
+            template <class...> class L,
             class Mss,
             class... Msses,
             class Grid,
             class DataStores,
             class PrevKernel = no_kernel>
         void launch_msses(L<Mss, Msses...>, Grid const &grid, DataStores &data_stores, PrevKernel prev_kernel = {}) {
-            auto kernel = make_mss_kernel<Mss>(grid, data_stores);
+            auto kernel = make_mss_kernel<Deref, Mss>(grid, data_stores);
             auto fused_kernel = std::move(prev_kernel).launch_or_fuse(grid, std::move(kernel));
-            launch_msses(L<Msses...>(), grid, data_stores, std::move(fused_kernel));
+            launch_msses<Deref>(L<Msses...>(), grid, data_stores, std::move(fused_kernel));
         }
+
+        template <class PlhMap>
+        struct deref_f {
+            template <class Key, class T>
+            GT_FUNCTION std::enable_if_t<is_texture_type<T>::value && meta::find<PlhMap, Key>::is_const::value, T>
+            operator()(Key, T const *ptr) const {
+                return __ldg(ptr);
+            }
+            template <class Key, class Ptr>
+            GT_FUNCTION decltype(auto) operator()(Key, Ptr ptr) const {
+                return *ptr;
+            }
+        };
 
         template <class Msses, class Grid, class DataStores>
         void entry_point(Grid const &grid, DataStores external_data_stores) {
             auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char>);
             auto data_stores =
                 hymap::concat(block(std::move(external_data_stores)), make_temporaries<Msses>(grid, cuda_alloc));
-            launch_msses(meta::rename<meta::list, Msses>(), grid, data_stores);
+            launch_msses<deref_f<typename Msses::plh_map_t>>(meta::rename<meta::list, Msses>(), grid, data_stores);
         }
 
         template <class Spec, class Grid, class DataStores>

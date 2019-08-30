@@ -61,7 +61,14 @@
 namespace gridtools {
 
     namespace stage_impl_ {
-        template <class Ptr, class Strides, class Keys, class LocationType, int_t Color>
+        struct default_deref_f {
+            template <class Key, class T>
+            GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
+                return *ptr;
+            }
+        };
+
+        template <class Ptr, class Strides, class Keys, class Deref, class LocationType, int_t Color>
         struct evaluator {
             Ptr const &m_ptr;
             Strides const &m_strides;
@@ -70,7 +77,7 @@ namespace gridtools {
             GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
                 auto ptr = host_device::at_key<Key>(m_ptr);
                 sid::multi_shift<Key>(ptr, m_strides, wstd::move(offset));
-                return *ptr;
+                return Deref()(Key(), ptr);
             }
 
             template <class Accessor>
@@ -101,10 +108,11 @@ namespace gridtools {
             using location_t = typename Functor::location;
             using num_colors_t = typename location_t::n_colors;
 
-            template <class Ptr, class Strides>
+            template <class Deref = void, class Ptr, class Strides>
             GT_FUNCTION void operator()(Ptr ptr, Strides const &strides) const {
+                using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
                 host_device::for_each<meta::make_indices<num_colors_t>>([&](auto color) {
-                    using eval_t = evaluator<Ptr, Strides, PlhMap, location_t, decltype(color)::value>;
+                    using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
                     Functor::apply(eval_t{ptr, strides});
                     sid::shift(ptr, sid::get_stride<dim::c>(strides), integral_constant<int_t, 1>());
                 });

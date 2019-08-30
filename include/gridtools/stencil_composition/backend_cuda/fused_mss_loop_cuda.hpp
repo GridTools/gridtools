@@ -29,23 +29,24 @@ namespace gridtools {
             GT_FUNCTION_DEVICE void syncthreads(std::true_type) { __syncthreads(); }
             GT_FUNCTION_DEVICE void syncthreads(std::false_type) {}
 
-            template <class Info, class Ptr, class Strides, class Validator>
+            template <class Deref, class Info, class Ptr, class Strides, class Validator>
             GT_FUNCTION_DEVICE void exec_cells(Info, Ptr &ptr, Strides const &strides, Validator const &validator) {
                 device::for_each<typename Info::cells_t>([&](auto cell) {
                     syncthreads(cell.need_sync());
                     if (validator(cell.extent()))
-                        cell(ptr, strides);
+                        cell.template operator()<Deref>(ptr, strides);
                 });
             }
 
-            template <class Mss,
+            template <class Deref,
+                class Mss,
                 class Sizes,
                 class = typename has_k_caches<Mss>::type,
                 class = typename Mss::execution_t>
             struct k_loop_f;
 
-            template <class Mss, class Sizes, class Execution>
-            struct k_loop_f<Mss, Sizes, std::true_type, Execution> {
+            template <class Deref, class Mss, class Sizes, class Execution>
+            struct k_loop_f<Deref, Mss, Sizes, std::true_type, Execution> {
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
@@ -55,7 +56,7 @@ namespace gridtools {
                     tuple_util::device::for_each(
                         [&](int_t size, auto info) {
                             for (int_t i = 0; i < size; ++i) {
-                                exec_cells(info, mixed_ptr, strides, validator);
+                                exec_cells<Deref>(info, mixed_ptr, strides, validator);
                                 k_caches.slide(info.k_step());
                                 info.inc_k(mixed_ptr.secondary(), strides);
                             }
@@ -65,8 +66,8 @@ namespace gridtools {
                 }
             };
 
-            template <class Mss, class Sizes, class Execution>
-            struct k_loop_f<Mss, Sizes, std::false_type, Execution> {
+            template <class Deref, class Mss, class Sizes, class Execution>
+            struct k_loop_f<Deref, Mss, Sizes, std::false_type, Execution> {
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
@@ -74,7 +75,7 @@ namespace gridtools {
                     tuple_util::device::for_each(
                         [&](int_t size, auto info) {
                             for (int_t i = 0; i < size; ++i) {
-                                exec_cells(info, ptr, strides, validator);
+                                exec_cells<Deref>(info, ptr, strides, validator);
                                 info.inc_k(ptr, strides);
                             }
                         },
@@ -83,8 +84,8 @@ namespace gridtools {
                 }
             };
 
-            template <class Mss, class Sizes, int_t BlockSize>
-            struct k_loop_f<Mss, Sizes, std::false_type, execute::parallel_block<BlockSize>> {
+            template <class Deref, class Mss, class Sizes, int_t BlockSize>
+            struct k_loop_f<Deref, Mss, Sizes, std::false_type, execute::parallel_block<BlockSize>> {
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
@@ -101,7 +102,7 @@ namespace gridtools {
                             for (int_t i = 0; i < BlockSize; ++i) {
                                 if (i >= lim)
                                     break;
-                                exec_cells(info, ptr, strides, validator);
+                                exec_cells<Deref>(info, ptr, strides, validator);
                                 info.inc_k(ptr, strides);
                             }
                         },
@@ -127,7 +128,7 @@ namespace gridtools {
                 }
             };
 
-            template <class Mss, class Grid, class Composite>
+            template <class Deref, class Mss, class Grid, class Composite>
             auto make_kernel_fun(Grid const &grid, Composite &composite) {
                 sid::ptr_diff_type<Composite> offset{};
                 auto strides = sid::get_strides(composite);
@@ -135,7 +136,7 @@ namespace gridtools {
                 auto origin = sid::get_origin(composite) + offset;
                 auto k_sizes = stage_matrix::make_k_sizes(Mss::interval_infos(), grid);
                 using k_sizes_t = decltype(k_sizes);
-                using k_loop_t = k_loop_f<Mss, k_sizes_t>;
+                using k_loop_t = k_loop_f<Deref, Mss, k_sizes_t>;
 
                 return kernel_f<Composite, k_loop_t>{
                     sid::get_origin(composite) + offset, std::move(strides), {std::move(k_sizes)}};
