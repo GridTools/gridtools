@@ -33,7 +33,7 @@ namespace gridtools {
                 class DirtyPlhs = meta::second<State>,
                 class NeedSync = has_dirty_args<Esf, DirtyPlhs>,
                 class OutPlhs = esf_get_w_args_per_functor<Esf>,
-                class NewDirtys = meta::if_<NeedSync, meta::list<>, meta::dedup<meta::concat<DirtyPlhs, OutPlhs>>>>
+                class NewDirtys = meta::if_<NeedSync, OutPlhs, meta::dedup<meta::concat<DirtyPlhs, OutPlhs>>>>
             using folding_fun = meta::list<meta::push_back<meta::first<State>, NeedSync>, NewDirtys>;
         } // namespace need_sync_impl_
 
