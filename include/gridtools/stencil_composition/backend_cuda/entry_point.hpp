@@ -216,10 +216,10 @@ namespace gridtools {
             launch_msses<Deref>(L<Msses...>(), grid, data_stores, std::move(fused_kernel));
         }
 
-        template <class PlhMap>
+        template <class Keys>
         struct deref_f {
             template <class Key, class T>
-            GT_FUNCTION std::enable_if_t<is_texture_type<T>::value && meta::find<PlhMap, Key>::is_const::value, T>
+            GT_FUNCTION std::enable_if_t<is_texture_type<T>::value && meta::st_contains<Keys, Key>::value, T>
             operator()(Key, T const *ptr) const {
                 return __ldg(ptr);
             }
@@ -234,7 +234,9 @@ namespace gridtools {
             auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char>);
             auto data_stores =
                 hymap::concat(block(std::move(external_data_stores)), make_temporaries<Msses>(grid, cuda_alloc));
-            launch_msses<deref_f<typename Msses::plh_map_t>>(meta::rename<meta::list, Msses>(), grid, data_stores);
+            using const_keys_t = meta::transform<stage_matrix::get_key,
+                meta::filter<stage_matrix::get_is_const, typename Msses::plh_map_t>>;
+            launch_msses<deref_f<const_keys_t>>(meta::rename<meta::list, Msses>(), grid, data_stores);
         }
 
         template <class Spec, class Grid, class DataStores>
