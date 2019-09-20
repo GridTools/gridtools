@@ -16,7 +16,7 @@
 #include "../common/integral_constant.hpp"
 
 #ifndef GT_DEFAULT_VERTICAL_BLOCK_SIZE
-#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 20
+#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 1
 #endif
 
 namespace gridtools {

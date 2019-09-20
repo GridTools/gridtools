@@ -46,7 +46,7 @@
 
 namespace gridtools {
     namespace cuda {
-        using i_block_size_t = integral_constant<int_t, 32>;
+        using i_block_size_t = integral_constant<int_t, 64>;
         using j_block_size_t = integral_constant<int_t, 8>;
 
         template <class PlhInfo>

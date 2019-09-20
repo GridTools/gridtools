@@ -30,7 +30,8 @@ namespace gridtools {
             GT_FUNCTION_DEVICE void syncthreads(std::false_type) {}
 
             template <class Deref, class Info, class Ptr, class Strides, class Validator>
-            GT_FUNCTION_DEVICE void exec_cells(Info, Ptr &ptr, Strides const &strides, Validator const &validator) {
+            GT_FUNCTION_DEVICE void exec_cells(
+                Info, Ptr const &ptr, Strides const &strides, Validator const &validator) {
                 device::for_each<typename Info::cells_t>([&](auto cell) {
                     syncthreads(cell.need_sync());
                     if (validator(cell.extent()))
@@ -119,12 +120,12 @@ namespace gridtools {
 
                 template <class Validator>
                 GT_FUNCTION_DEVICE void operator()(int_t i_block, int_t j_block, Validator validator) const {
-                    sid::ptr_diff_type<Sid> offset{};
-                    sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(m_strides), blockIdx.x);
-                    sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(m_strides), blockIdx.y);
-                    sid::shift(offset, sid::get_stride<dim::i>(m_strides), i_block);
-                    sid::shift(offset, sid::get_stride<dim::j>(m_strides), j_block);
-                    k_loop(m_ptr_holder() + offset, m_strides, wstd::move(validator));
+                    auto ptr = m_ptr_holder();
+                    sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::i>>(m_strides), blockIdx.x);
+                    sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::j>>(m_strides), blockIdx.y);
+                    sid::shift(ptr, sid::get_stride<dim::i>(m_strides), i_block);
+                    sid::shift(ptr, sid::get_stride<dim::j>(m_strides), j_block);
+                    k_loop(wstd::move(ptr), m_strides, wstd::move(validator));
                 }
             };
 
