@@ -171,8 +171,11 @@ namespace gridtools {
                 uint_t xblocks = (i_size + BlockSizeI - 1) / BlockSizeI;
                 uint_t yblocks = (j_size + BlockSizeJ - 1) / BlockSizeJ;
 
-                launch({xblocks, yblocks, zblocks},
-                    {BlockSizeI, BlockSizeJ + halo_lines, 1},
+                dim3 blocks = {xblocks, yblocks, zblocks};
+                dim3 threads = {BlockSizeI, BlockSizeJ + halo_lines, 1};
+
+                launch(blocks,
+                    threads,
                     shared_memory_size,
                     wrapper<num_threads, BlockSizeI, BlockSizeJ, Extent, Fun>,
                     std::move(fun),
