@@ -3,7 +3,7 @@ add_library(gcl
     )
 target_link_libraries(gcl PUBLIC gridtools)
 if(GT_USE_MPI)
-    target_link_libraries(gcl PUBLIC MPI::MPI_CXX)
+    target_link_libraries(gcl PUBLIC MPI::MPI_C)
 endif()
 
 install(TARGETS gcl EXPORT GridToolsTargets
