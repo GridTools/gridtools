@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14.5)
 
 cmake_policy(SET CMP0048 NEW)
 file(STRINGS "version.txt" __GT_VERSION)
-project(GridTools VERSION ${__GT_VERSION} LANGUAGES CXX)
+project(GridTools VERSION ${__GT_VERSION} LANGUAGES CXX C)
 
 message( STATUS "[GridTools] (${__GT_VERSION})" )
 
