@@ -126,11 +126,6 @@ namespace gridtools {
                     fun(threadIdx.x, threadIdx.y, dummy_validator_f());
             }
 
-            template <size_t NumThreads, class Fun>
-            __global__ void __launch_bounds__(NumThreads) trivial_wrapper(Fun const fun) {
-                fun(threadIdx.x, threadIdx.y, dummy_validator_f());
-            }
-
             template <class Extent>
             constexpr bool is_empty_ij_extents() {
                 return Extent::iminus::value == 0 && Extent::iplus::value == 0 && Extent::jminus::value == 0 &&
@@ -199,17 +194,13 @@ namespace gridtools {
                 dim3 blocks = {xblocks, yblocks, zblocks};
                 dim3 threads = {BlockSizeI, BlockSizeJ, 1};
 
-                // TODO(anstaf): to investigate if this optimization has impact
-                if (i_size % BlockSizeI == 0 && j_size % BlockSizeJ == 0)
-                    launch(blocks, threads, shared_memory_size, trivial_wrapper<num_threads, Fun>, std::move(fun));
-                else
-                    launch(blocks,
-                        threads,
-                        shared_memory_size,
-                        zero_extent_wrapper<num_threads, BlockSizeI, BlockSizeJ, Fun>,
-                        std::move(fun),
-                        i_size,
-                        j_size);
+                launch(blocks,
+                    threads,
+                    shared_memory_size,
+                    zero_extent_wrapper<num_threads, BlockSizeI, BlockSizeJ, Fun>,
+                    std::move(fun),
+                    i_size,
+                    j_size);
             }
         } // namespace launch_kernel_impl_
 
