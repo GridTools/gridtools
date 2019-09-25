@@ -99,7 +99,7 @@ namespace gridtools {
                                 return;
                             int_t lim = math::min(cur + size, BlockSize) - math::max(cur, 0);
                             cur += size;
-#pragma unroll BlockSize
+#pragma unroll
                             for (int_t i = 0; i < BlockSize; ++i) {
                                 if (i >= lim)
                                     break;

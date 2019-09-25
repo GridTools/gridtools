@@ -48,6 +48,7 @@ namespace gridtools {
             }
         } // namespace tmp_impl_
 
+        // TODO(anstaf): do alignment and padding here.
         template <class Data, class NumColors, class BlockSizeI, class BlockSizeJ, class Extent, class Allocator>
         auto make_tmp_storage(NumColors num_colors,
             BlockSizeI block_size_i,

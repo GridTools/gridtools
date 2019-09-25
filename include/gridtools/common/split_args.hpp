@@ -23,7 +23,6 @@
 #include "../meta/type_traits.hpp"
 #include "../meta/zip.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/utility.hpp"
 
 namespace gridtools {
     namespace _impl {

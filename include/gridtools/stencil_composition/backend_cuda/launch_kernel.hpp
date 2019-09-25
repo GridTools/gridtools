@@ -17,7 +17,6 @@
 
 #include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
 #include "../dim.hpp"
 #include "../extent.hpp"
@@ -145,9 +144,8 @@ namespace gridtools {
                 kernel<<<blocks, threads, shared_memory_size>>>(std::move(args)...);
 #ifndef NDEBUG
                 GT_CUDA_CHECK(cudaDeviceSynchronize());
-#else
-                GT_CUDA_CHECK(cudaGetLastError());
 #endif
+                GT_CUDA_CHECK(cudaGetLastError());
             }
 
             template <class Extent,

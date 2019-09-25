@@ -14,7 +14,7 @@
  *  Hybrid Map (aka hymap) Concept Definition
  *  -----------------------------------------
  *  Hymap is a `tuple_like` (see tuple_util.hpp for definition) that additionally holds a type list of keys.
- *  This type list should be a set. The existense of it allows to use an alternative syntax for element accessor
+ *  This type list should be a set. The existence of it allows to use an alternative syntax for element accessor
  *  (in addition to `tuple_util::get`). Say you have a hymap `obj` that is a `tuple_like` of two elements and has
  *  keys `a` and `b`. To access the elements you can use: `at_key<a>(obj)` and `at_key<b>(obj)` which are semantically
  *  the same as `get<0>(obj)` and `get<1>(obj)`.
@@ -40,9 +40,8 @@
  *  This means that any `tuple_like` automatically models Hymap. And for the plain `tuple_like`'s you can use
  *  `at_key<integral_constant<int, N>>(obj)` instead of `tuple_util::get<N>(obj)`.
  *
- *  There are two default `hymap_from_keys_values`: is provided if for hymaps that are structured like:
- *     `SomeKeyTemplate<key_a, key_b, key_c>::values<val_a, val_b, val_c>`;
- *     It just uses `SomeKeyTemplate` with nested `values` to create a type.
+ *  `hymap_from_keys_values` has a default only for the for hymaps that are structured like:
+ *     `SomeKeyTemplate<key_a, key_b, key_c>::values<val_a, val_b, val_c>`
  *
  *  User API
  *  --------
@@ -51,8 +50,20 @@
  *
  *  Compile time:
  *  - `get_keys` metafunction. Usage: `get_keys<Hymap>`
- *  - `has_key` metafunction. Usage `has_key<Hymap, Key>`
- *  - `get_from_keys_values` metafunction.
+ *  - `has_key` metafunction. Usage: `has_key<Hymap, Key>`
+ *  - `get_from_keys_values` metafunction. It returns a meta class that serves as a meta constructor from <Keys, Values>
+ *     Usage:
+ *     ```
+ *     // Say Hymap class is hymap that maps <a, b> types to the values of <int, double>.
+ *     // And we want to construct another instantiation of that kind of Hymap (Hymap2) that
+ *     // maps <a, b, c> to <int*, int**, int**> values.
+ *
+ *     // First we extract meta ctor from Hymap using get_from_keys_values
+ *     using ctor = get_from_keys_values<Hymap>;
+ *
+ *     // Next we apply this meta ctor with desired types
+ *     using Hymap2 = ctor::template apply<list<a, b, c>, list<int*, int**, int***>>;
+ *     ```
  *
  *  TODO(anstaf): add usage examples here
  *
@@ -231,27 +242,20 @@ namespace gridtools {
     GT_TARGET_NAMESPACE {
         template <class Key,
             class Map,
-            class... Maps,
             class Decayed = std::decay_t<Map>,
             class I = meta::st_position<get_keys<Decayed>, Key>,
             std::enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map, Maps && ...) noexcept {
+        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map) noexcept {
             return tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map));
-        }
-
-        template <class Key>
-        GT_TARGET void at_key() {
-            GT_STATIC_ASSERT(sizeof(Key) != sizeof(Key), "wrong key");
         }
 
         template <class Key,
             class Map,
-            class... Maps,
             class Decayed = std::decay_t<Map>,
             class I = meta::st_position<get_keys<Decayed>, Key>,
             std::enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map, Maps && ... maps) noexcept {
-            return GT_TARGET_NAMESPACE_NAME::at_key<Key>(wstd::forward<Maps>(maps)...);
+        GT_TARGET void at_key(Map &&) noexcept {
+            GT_STATIC_ASSERT(sizeof(Key) != sizeof(Key), "wrong key");
         }
 
         template <class Key,

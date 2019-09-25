@@ -945,29 +945,6 @@ namespace gridtools {
                         return generate_f<generators_t, Res>{}(wstd::forward<Tup>(tup), m_val);
                     }
                 };
-
-                template <class... Is>
-                struct group_generator_f {
-                    template <class Fun, class Tup>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(Fun const &fun, Tup &&tup) const {
-                        return fun(GT_TARGET_NAMESPACE_NAME::get<Is::value>(wstd::forward<Tup>(tup))...);
-                    }
-                };
-
-                template <template <class...> class Pred, class Fun>
-                struct group_f {
-                    Fun m_fun;
-
-                    template <class Tup>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(Tup &&tup) const {
-                        using accessors_t = get_accessors<Tup>;
-                        using types_t = meta::group<Pred, get_fun_result<Fun>::template apply, accessors_t>;
-                        using res_t = from_types<Tup, types_t>;
-                        using indices_t = _impl::group_indices<Pred, accessors_t>;
-                        using generators_t = meta::transform<meta::rename<group_generator_f>::apply, indices_t>;
-                        return generate_f<generators_t, res_t>()(m_fun, wstd::forward<Tup>(tup));
-                    }
-                };
             } // namespace detail
 
             /**
@@ -1537,11 +1514,6 @@ namespace gridtools {
             template <size_t I, class Val, class Tup>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto insert(Val && val, Tup && tup) {
                 return insert<I>(wstd::forward<Val>(val))(wstd::forward<Tup>(tup));
-            }
-
-            template <template <class...> class Pred, class Fun, class Tup>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto group(Fun && fun, Tup && tup) {
-                return detail::group_f<Pred, Fun>{wstd::forward<Fun>(fun)}(wstd::forward<Tup>(tup));
             }
         }
     } // namespace tuple_util
