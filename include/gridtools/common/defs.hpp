@@ -11,6 +11,8 @@
 
 #include <type_traits>
 
+#include "integral_constant.hpp"
+
 /** \ingroup common
     @{
     \defgroup defs Common Definitions
@@ -21,6 +23,8 @@
    @file
    @brief global definitions
 */
+
+//################ Type aliases for GridTools ################
 
 #ifdef __CUDACC__
 #define GT_CONSTEXPR
@@ -47,13 +51,27 @@ namespace gridtools {
     /** \ingroup defs
         @{
     */
+    using int_t = int;
+    using uint_t = unsigned int;
+
+    template <int_t N>
+    using static_int = std::integral_constant<int_t, N>;
+    template <uint_t N>
+    using static_uint = std::integral_constant<uint_t, N>;
 
     namespace naive {
         struct backend {};
     } // namespace naive
 
     namespace cuda {
-        struct backend {};
+        template <class IBlockSize = integral_constant<int_t, 64>, class JBlockSize = integral_constant<int_t, 8>>
+        struct backend {
+            using i_block_size_t = IBlockSize;
+            using j_block_size_t = JBlockSize;
+
+            static constexpr i_block_size_t i_block_size() { return {}; }
+            static constexpr j_block_size_t j_block_size() { return {}; }
+        };
     } // namespace cuda
 
     namespace mc {
@@ -61,14 +79,21 @@ namespace gridtools {
     } // namespace mc
 
     namespace x86 {
-        struct backend {};
+        template <class IBlockSize = integral_constant<int_t, 8>, class JBlockSize = integral_constant<int_t, 8>>
+        struct backend {
+            using i_block_size_t = IBlockSize;
+            using j_block_size_t = JBlockSize;
+
+            static constexpr i_block_size_t i_block_size() { return {}; }
+            static constexpr j_block_size_t j_block_size() { return {}; }
+        };
     } // namespace x86
 
     /** tags specifying the backend to use */
     namespace backend {
-        using cuda = cuda::backend;
+        using cuda = cuda::backend<>;
         using mc = mc::backend;
-        using x86 = x86::backend;
+        using x86 = x86::backend<>;
         using naive = naive::backend;
     } // namespace backend
 
@@ -89,15 +114,6 @@ namespace gridtools {
 #else
 #define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name) class_name() = default
 #endif
-
-    //################ Type aliases for GridTools ################
-
-    using int_t = int;
-    using uint_t = unsigned int;
-    template <int_t N>
-    using static_int = std::integral_constant<int_t, N>;
-    template <uint_t N>
-    using static_uint = std::integral_constant<uint_t, N>;
 
     /** @} */
 

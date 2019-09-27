@@ -166,9 +166,9 @@ namespace gridtools {
         uint_t &d2() { return m_d2; }
         uint_t &d3() { return m_d3; }
 
-        template <class... Args>
+        template <class Backend = backend_t, class... Args>
         auto make_computation(Args &&... args) const {
-            return ::gridtools::make_computation<backend_t>(make_grid(), std::forward<Args>(args)...);
+            return ::gridtools::make_computation<Backend>(make_grid(), std::forward<Args>(args)...);
         }
 
         template <class Expected, class Actual>

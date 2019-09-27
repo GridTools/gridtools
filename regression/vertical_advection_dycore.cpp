@@ -173,7 +173,11 @@ struct vertical_advection_dycore : regression_fixture<3, axis_t> {
 };
 
 TEST_F(vertical_advection_dycore, test) {
-    auto comp = make_computation(p_utens_stage = utens_stage,
+    using modified_backend_t = meta::if_<std::is_same<backend_t, cuda::backend<>>,
+        cuda::backend<integral_constant<int_t, 256>, integral_constant<int_t, 1>>,
+        backend_t>;
+
+    auto comp = make_computation<modified_backend_t>(p_utens_stage = utens_stage,
         p_u_stage = make_storage(repo.u_stage),
         p_wcon = make_storage(repo.wcon),
         p_u_pos = make_storage(repo.u_pos),
