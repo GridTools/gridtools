@@ -15,6 +15,7 @@
 #include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
 #include "../common/halo_descriptor.hpp"
+#include "../common/integral_constant.hpp"
 #include "direction.hpp"
 #include "predicate.hpp"
 
@@ -25,6 +26,10 @@ namespace gridtools {
      */
 
     namespace _impl {
+        using ntx_t = integral_constant<int_t, 8>;
+        using nty_t = integral_constant<int_t, 32>;
+        using ntz_t = integral_constant<int_t, 1>;
+
         /// Since predicate is runtime evaluated possibly on host-only data, we need to evaluate it before passing it to
         /// the CUDA kernels
         struct precomputed_pred {
@@ -252,9 +257,9 @@ namespace gridtools {
         _impl::precomputed_pred const predicate,
         _impl::kernel_configuration const conf,
         DataViews const... data_views) {
-        const uint_t i = blockIdx.x * blockDim.x + threadIdx.x;
-        const uint_t j = blockIdx.y * blockDim.y + threadIdx.y;
-        const uint_t k = blockIdx.z * blockDim.z + threadIdx.z;
+        const uint_t i = blockIdx.x * _impl::ntx_t::value + threadIdx.x;
+        const uint_t j = blockIdx.y * _impl::nty_t::value + threadIdx.y;
+        const uint_t k = blockIdx.z * _impl::ntz_t::value + threadIdx.z;
 
         GT_RUN_BC_ON(minus_, minus_, minus_);
         GT_RUN_BC_ON(minus_, minus_, zero_);
@@ -323,8 +328,6 @@ namespace gridtools {
         _impl::kernel_configuration m_conf;
         BoundaryFunction const m_boundary_function;
         Predicate m_predicate;
-        static constexpr uint_t ntx = 8, nty = 32, ntz = 1;
-        const dim3 threads{ntx, nty, ntz};
 
       public:
         boundary_apply_gpu(HaloDescriptors const &hd, Predicate predicate = Predicate())
@@ -332,8 +335,7 @@ namespace gridtools {
               m_predicate(predicate) {}
 
         boundary_apply_gpu(HaloDescriptors const &hd, BoundaryFunction const &bf, Predicate predicate = Predicate())
-            : m_halo_descriptors(hd), m_conf{m_halo_descriptors}, m_boundary_function(bf), m_predicate(predicate),
-              threads(ntx, nty, ntz) {}
+            : m_halo_descriptors(hd), m_conf{m_halo_descriptors}, m_boundary_function(bf), m_predicate(predicate) {}
 
         /**
            @brief applies the boundary conditions looping on the halo region defined by the member parameter, in all
@@ -347,11 +349,12 @@ namespace gridtools {
             uint_t nx = block_size[0];
             uint_t ny = block_size[1];
             uint_t nz = block_size[2];
-            uint_t nbx = (nx == 0) ? (1) : ((nx + ntx - 1) / ntx);
-            uint_t nby = (ny == 0) ? (1) : ((ny + nty - 1) / nty);
-            uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);
+            uint_t nbx = (nx == 0) ? (1) : ((nx + _impl::ntx_t::value - 1) / _impl::ntx_t::value);
+            uint_t nby = (ny == 0) ? (1) : ((ny + _impl::nty_t::value - 1) / _impl::nty_t::value);
+            uint_t nbz = (nz == 0) ? (1) : ((nz + _impl::ntz_t::value - 1) / _impl::ntz_t::value);
             assert(nx > 0 || ny > 0 || nz > 0 && "all boundary extents are empty");
             dim3 blocks(nbx, nby, nbz);
+            dim3 threads(_impl::ntx_t::value, _impl::nty_t::value, _impl::ntz_t::value);
             loop_kernel<<<blocks, threads>>>(
                 m_boundary_function, _impl::precomputed_pred{m_predicate}, m_conf, data_field_views...);
 #ifndef NDEBUG
