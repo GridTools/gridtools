@@ -13,7 +13,6 @@
 #include <utility>
 
 #include "../meta/st_position.hpp"
-#include "../meta/type_traits.hpp"
 #include "tuple_util.hpp"
 
 namespace gridtools {
@@ -27,7 +26,7 @@ namespace gridtools {
             Res<Elems...> operator()(Src &&src) {
                 using src_t = std::decay_t<Src>;
                 return Res<Elems...>{
-                    tuple_util::get<meta::st_position<src_t, Elems>::value>(wstd::forward<Src>(src))...};
+                    tuple_util::get<meta::st_position<src_t, Elems>::value>(std::forward<Src>(src))...};
             }
         };
     } // namespace impl_
@@ -61,6 +60,6 @@ namespace gridtools {
 
     template <typename Res, typename Src>
     Res permute_to(Src &&src) {
-        return impl_::permute_to_impl<Res>{}(wstd::forward<Src>(src));
+        return impl_::permute_to_impl<Res>{}(std::forward<Src>(src));
     }
 } // namespace gridtools

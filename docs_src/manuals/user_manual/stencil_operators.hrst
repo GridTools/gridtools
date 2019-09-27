@@ -29,22 +29,13 @@ See the :ref:`stencil-operator-example` for a concrete usage of the syntax of th
 Accessor Type
 -------------
 
-There are two kinds of :term:`Accessors<Accessor>`:
-
-* Regular :term:`accessors<Accessor>` indicate an access to a regular :Term:`Data Store` of a :term:`Grid`.
-* Global accessors indicate that the data to be referred does not participate in the iteration
-  and always point to a same *read only* datum to be used in the operator, which is hold in a :term:`Global Parameter`.
+:term:`accessors<Accessor>` indicate an access to a :Term:`Data Store` of a :term:`Grid`.
 
 Accessors are defined as follows:
 
 .. code-block:: gridtools
 
-  // regular accessors
   using name = accessor<I, intent, [extent = extent<>, N]>;
-
-  // global accessor
-  using name = global_accessor<I>;
-
  
 where
 
@@ -54,8 +45,6 @@ where
 * ``I`` is an integral index. The indices of the :term:`Accessors<Accessor>` in a given stencil operators *must* be
   in the range from 0 to N - 1, where N is the number of :term:`Accessors<Accessor>` used by the stencil operator. No
   index can appear twice. If these rules are not followed the compilation fails.
-
-  For global accessors, the index is the only argument.
 
 * ``intent`` indicates the type of access the stencil operator makes to the data associated to the :term:`Accessor`.
   Possible values are
@@ -87,7 +76,7 @@ where
 
   .. code-block:: gridtools
 
-    using my_accessor = inout_accessor<I, extent<-1, 1, 0, 2>;
+    using my_accessor = inout_accessor<I, extent<-1, 1, 0, 2>>;
 
   This accessor guarantees that at most one element in negative and positive i-direction will be accessed (i.e. we will
   never access ``field(i + 2)``). Further, it guarantees that in j-direction, no elements in negative and at most two
@@ -101,7 +90,8 @@ where
    certain configuration this might lead to erroneous results. Extents bigger than the ones actually accessed by the
    implementation will potentially result in performance loss.
 
-* ``N`` identifies the number of dimensions of the :term:`Data Store`. By default this value is set to 3. 
+* ``N`` identifies the dimension of the offsets that are used with the given accessor. The default is calculated from
+  the `extent<>` parameter.
 
 ----------------
 Accessor Aliases

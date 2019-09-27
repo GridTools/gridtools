@@ -24,7 +24,6 @@ gridtools_keywords = ((
         'fill_and_flush',
         'flush',
         'forward',
-        'global_accessor',
         'global_parameter',
         'grid',
         'icosahedral_topology',

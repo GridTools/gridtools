@@ -214,6 +214,16 @@ namespace gridtools {
             EXPECT_EQ(90, acc);
         }
 
+        TEST(concat, functional) {
+            EXPECT_EQ(concat(std::make_tuple(1, 2), std::make_tuple(3, 4)), std::make_tuple(1, 2, 3, 4));
+        }
+
+        TEST(concat, mixed) { EXPECT_EQ(concat(std::tuple<>(), make<std::array>(3, 4)), std::make_tuple(3, 4)); }
+
+        TEST(concat, array) {
+            EXPECT_THAT(concat(make<std::array>(1, 2), make<std::array>(3, 4)), testing::ElementsAre(1, 2, 3, 4));
+        }
+
         TEST(flatten, functional) {
             EXPECT_EQ(
                 flatten(std::make_tuple(std::make_tuple(1, 2), std::make_tuple(3, 4))), std::make_tuple(1, 2, 3, 4));
@@ -247,6 +257,10 @@ namespace gridtools {
         TEST(push_front, functional) {
             EXPECT_EQ(push_front(std::make_tuple(1, 2), 3, 4), std::make_tuple(3, 4, 1, 2));
         }
+
+        TEST(pop_back, functional) { EXPECT_EQ(pop_back(std::make_tuple(1, 2, 3, 4)), std::make_tuple(1, 2, 3)); }
+
+        TEST(pop_front, functional) { EXPECT_EQ(pop_front(std::make_tuple(1, 2, 3, 4)), std::make_tuple(2, 3, 4)); }
 
         TEST(fold, functional) {
             auto f = [](int x, int y) { return x + y; };

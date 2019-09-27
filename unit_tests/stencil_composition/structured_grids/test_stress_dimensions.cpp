@@ -15,7 +15,6 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace execute;
 using namespace expressions;
 
 using layout_map_t = std::conditional_t<std::is_same<backend_t, backend::x86>::value,

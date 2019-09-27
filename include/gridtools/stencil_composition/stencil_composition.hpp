@@ -20,12 +20,26 @@
  *  The stuff that is needed only for definitions of the stencil functions should not be included here.
  */
 
+#include "../storage/sid.hpp"
 #include "accessor.hpp"
 #include "caches/define_caches.hpp"
 #include "computation.hpp"
 #include "esf.hpp"
+#include "expressions/expressions.hpp"
 #include "global_parameter.hpp"
 #include "grid.hpp"
 #include "make_computation.hpp"
+#include "make_param_list.hpp"
 #include "make_stage.hpp"
 #include "make_stencils.hpp"
+
+#include "backend_naive/entry_point.hpp"
+#include "backend_x86/entry_point.hpp"
+
+#ifndef GT_ICOSAHEDRAL_GRIDS
+#include "backend_mc/entry_point.hpp"
+#endif
+
+#ifdef __CUDACC__
+#include "backend_cuda/entry_point.hpp"
+#endif

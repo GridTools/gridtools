@@ -15,29 +15,11 @@ To create a :term:`Global Parameter` from a user-defined object, we pass the obj
 
 .. code-block:: gridtools
 
-   auto my_global_parameter = make_global_parameter<backend_t>(my_object);
+   auto my_global_parameter = make_global_parameter(my_object);
 
 Note that the object is read-only only during the execution of a computation, but can be modified
 in between executions with
 
 .. code-block:: gridtools
 
-   update_global_parameter<backend_t>(my_global_parameter, new_value);
-
-The :term:`Accessor` associated with a global parameter must be a global accessor
-
-.. code-block:: gridtools
-
-    using global_acc = global_accessor<0>;
-
-Calling ``eval`` on the global accessor returns the user defined data structure. Supposing that
-this data structure contains a user function called ``ordinal``, returning an integer, we can write
-in the do method
-
-.. code-block:: gridtools
-
-    auto ordinal_ = eval(global_boundary()).ordinal();
-
-.. note::
- All the member functions defined in the user-defined data structure must be labeled with ``GT_FUNCTION``, in order for
- them to be callable from devices.
+   update_global_parameter(my_global_parameter, new_value);

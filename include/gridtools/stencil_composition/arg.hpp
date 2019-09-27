@@ -22,54 +22,43 @@
 #include <vector>
 
 #include "../common/defs.hpp"
+#include "../meta.hpp"
 #include "../storage/storage_facility.hpp"
 #include "location_type.hpp"
 
 namespace gridtools {
 
-    template <class Tag, class DataStore, class Location, bool Temporary>
+    template <class Tag, class DataStore, class Location>
     struct plh;
 
-    template <typename T>
+    template <class>
     struct is_plh : std::false_type {};
 
-    template <class Tag, typename DataStore, typename Location, bool Temporary>
-    struct is_plh<plh<Tag, DataStore, Location, Temporary>> : std::true_type {};
+    template <class Tag, class DataStore, class Location>
+    struct is_plh<plh<Tag, DataStore, Location>> : std::true_type {};
 
-    /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam DataStoreType)*/
-    template <typename ArgType, typename DataStoreType>
+    /** @brief binding between the placeholder (\tparam Plh) and the storage (\tparam DataStore)*/
+    template <class Plh, class DataStore>
     struct arg_storage_pair {
 
-        GT_STATIC_ASSERT(is_plh<ArgType>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((std::is_same<typename ArgType::data_store_t, DataStoreType>::type::value),
+        GT_STATIC_ASSERT(is_plh<Plh>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((std::is_same<typename Plh::data_store_t, std::decay_t<DataStore>>::value),
             "DataStoreType type not compatible with placeholder storage type, when associating placeholder to actual "
             "data store");
 
-        arg_storage_pair() = default;
-        arg_storage_pair(const DataStoreType &val) : m_value{val} {}
-        arg_storage_pair(DataStoreType &&val) noexcept : m_value{wstd::move(val)} {}
-        ~arg_storage_pair() = default;
+        static constexpr Plh arg() { return {}; }
 
-        DataStoreType m_value;
+        DataStore m_value;
 
-        typedef ArgType arg_t;
-        typedef DataStoreType data_store_t;
+        using arg_t = Plh;
+        using data_store_t = std::remove_reference_t<DataStore>;
     };
 
     template <class>
     struct is_arg_storage_pair : std::false_type {};
 
-    template <typename ArgType, typename DataStoreType>
-    struct is_arg_storage_pair<arg_storage_pair<ArgType, DataStoreType>> : std::true_type {};
-
-    template <typename T>
-    struct is_tmp_arg : std::false_type {};
-
-    template <class Tag, typename DataStoreType, typename Location>
-    struct is_tmp_arg<plh<Tag, DataStoreType, Location, true>> : std::true_type {};
-
-    template <typename ArgType, typename DataStoreType>
-    struct is_tmp_arg<arg_storage_pair<ArgType, DataStoreType>> : is_tmp_arg<ArgType> {};
+    template <class Plh, class DataStore>
+    struct is_arg_storage_pair<arg_storage_pair<Plh, DataStore>> : std::true_type {};
 
     /**
      * Type to create placeholders for data fields.
@@ -81,74 +70,62 @@ namespace gridtools {
      * @tparam I Integer index (unique) of the data field to identify it
      * @tparam DataStoreType The type of the storage used to store data
      * @tparam LocationType the location type of the storage of the placeholder
-     * @tparam Temporary determines whether the placeholder holds a temporary or normal storage
      */
-    template <class Tag, typename DataStoreType, typename LocationType, bool Temporary>
+    template <class Tag, class DataStore, class Location>
     struct plh {
-        GT_STATIC_ASSERT((is_location_type<LocationType>::value),
-            "The third template argument of a placeholder must be a location_type");
-        typedef DataStoreType data_store_t;
+        GT_STATIC_ASSERT(
+            is_location_type<Location>::value, "The third template argument of a placeholder must be a location_type");
+        using data_store_t = DataStore;
+        using location_t = Location;
+        using tag_t = Tag;
+        using is_expandable_t = meta::is_instantiation_of<std::vector, DataStore>;
 
-        typedef LocationType location_t;
-        typedef plh type;
-
-        template <typename Arg>
-        arg_storage_pair<plh, DataStoreType> operator=(Arg &&arg) const {
-            return {wstd::forward<Arg>(arg)};
+        template <class T>
+        arg_storage_pair<plh, T> operator=(T &&arg) const {
+            return {std::forward<T>(arg)};
         }
     };
 
+    template <class Tag, class Data, class Location>
+    struct tmp_plh {
+        GT_STATIC_ASSERT(
+            is_location_type<Location>::value, "The third template argument of a placeholder must be a location_type");
+        using location_t = Location;
+        using tag_t = Tag;
+        using data_t = Data;
+        using is_expandable_t = meta::is_instantiation_of<std::vector, Data>;
+    };
+
+    template <class T>
+    using is_tmp_arg = meta::is_instantiation_of<tmp_plh, T>;
+
+    template <class Tag, class T, class Location>
+    struct is_plh<tmp_plh<Tag, T, Location>> : std::true_type {};
+
     namespace _impl {
-
-        // metafunction that replaces the ID of a storage_info type to the new value
-        template <unsigned Id, typename T>
-        struct tmp_storage_info;
-
-        template <template <unsigned, typename, typename, typename> class StorageInfo,
-            unsigned Id,
-            unsigned OldId,
-            typename Layout,
-            typename Halo,
-            typename Alignment>
-        struct tmp_storage_info<Id, StorageInfo<OldId, Layout, Halo, Alignment>> {
-            using type = StorageInfo<Id, Layout, Halo, Alignment>;
-        };
-
-        // replace the storage_info ID contained in a given storage with the new value
-        template <unsigned Id, typename T>
-        struct tmp_data_store;
-
-        template <unsigned Id, typename Storage, typename StorageInfo>
-        struct tmp_data_store<Id, data_store<Storage, StorageInfo>> {
-            using type = data_store<Storage, typename tmp_storage_info<Id, StorageInfo>::type>;
-        };
-
-        template <unsigned Id, typename DataStore>
-        struct tmp_data_store<Id, std::vector<DataStore>> {
-            using type = std::vector<typename tmp_data_store<Id, DataStore>::type>;
-        };
-
-        template <typename Location>
-        struct tmp_storage_info_id;
-        template <int_t I, uint_t NColors>
-        struct tmp_storage_info_id<location_type<I, NColors>> : std::integral_constant<unsigned, -NColors> {};
-
         template <uint_t>
         struct arg_tag;
 
-    } // namespace _impl
-    /** alias template that provides convenient tmp arg declaration.
-     *
-     *  Here we force tmp storages to share storage info type. To achieve this we substitute the storage info ID
-     *  to one that is in the reserved range (close to max unsigned).
-     *  TODO(anstaf): replace storage info IDs to tags to avoid having reserved range.
-     */
-    template <uint_t I, typename DataStoreType, typename Location = enumtype::default_location_type>
-    using tmp_arg = plh<_impl::arg_tag<I>,
-        typename _impl::tmp_data_store<_impl::tmp_storage_info_id<Location>::value, DataStoreType>::type,
-        Location,
-        true>;
+        template <class DataStore, class = void>
+        struct tmp_data_type {
+            using type = DataStore;
+        };
 
-    template <uint_t I, typename T, typename LocationType = enumtype::default_location_type>
-    using arg = plh<_impl::arg_tag<I>, T, LocationType, false>;
+        template <class DataStore>
+        struct tmp_data_type<DataStore, void_t<typename DataStore::data_t>> {
+            using type = typename DataStore::data_t;
+        };
+
+        template <class DataStore>
+        struct tmp_data_type<std::vector<DataStore>> {
+            using type = std::vector<typename tmp_data_type<DataStore>::type>;
+        };
+    } // namespace _impl
+
+    template <uint_t I, class DataStore, class Location = enumtype::default_location_type>
+    using tmp_arg = tmp_plh<_impl::arg_tag<I>, typename _impl::tmp_data_type<DataStore>::type, Location>;
+
+    template <uint_t I, class DataStore, class LocationType = enumtype::default_location_type>
+    using arg = plh<_impl::arg_tag<I>, DataStore, LocationType>;
+
 } // namespace gridtools

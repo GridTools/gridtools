@@ -115,21 +115,17 @@ typedef arg<8, storage_t> in1;
 typedef arg<9, storage_t> in2;
 typedef arg<10, storage_t> in3;
 
-typedef decltype(make_stage<functor0>(in0(), in1(), in2(), o0())) functor0__;
-typedef decltype(make_stage<functor1>(in3(), o1(), in0(), o0())) functor1__;
-typedef decltype(make_stage<functor2>(o0(), o1(), o2())) functor2__;
-typedef decltype(make_stage<functor3>(in1(), in2(), o3(), o2())) functor3__;
-typedef decltype(make_stage<functor4>(o0(), o1(), o3(), o4())) functor4__;
-typedef decltype(make_stage<functor5>(in3(), o4(), in0(), o5())) functor5__;
-typedef decltype(make_stage<functor6>(o6(), o5(), in1(), in2())) functor6__;
-
-template <class...>
-struct lst;
-
-using map_t = get_extent_map<lst<functor0__, functor1__, functor2__, functor3__, functor4__, functor5__, functor6__>>;
+using mss_t = decltype(make_multistage(execute::forward(),
+    make_stage<functor0>(in0(), in1(), in2(), o0()),
+    make_stage<functor1>(in3(), o1(), in0(), o0()),
+    make_stage<functor2>(o0(), o1(), o2()),
+    make_stage<functor3>(in1(), in2(), o3(), o2()),
+    make_stage<functor4>(o0(), o1(), o3(), o4()),
+    make_stage<functor5>(in3(), o4(), in0(), o5()),
+    make_stage<functor6>(o6(), o5(), in1(), in2())));
 
 template <class Arg, int_t... ExpectedExtentValues>
-using testee = std::is_same<lookup_extent_map<map_t, Arg>, extent<ExpectedExtentValues...>>;
+using testee = std::is_same<lookup_extent_map<get_extent_map_from_mss<mss_t>, Arg>, extent<ExpectedExtentValues...>>;
 
 static_assert(testee<o0, -5, 11, -10, 10, -5, 13>::value, "");
 static_assert(testee<o1, -5, 9, -10, 8, -3, 10>::value, "");

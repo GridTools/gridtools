@@ -22,34 +22,11 @@
    @brief global definitions
 */
 
-#ifdef __CUDA_ARCH__
+#ifdef __CUDACC__
 #define GT_CONSTEXPR
 #else
 #define GT_CONSTEXPR constexpr
 #endif
-
-#define GT_RESTRICT __restrict__
-
-#ifndef GT_DEFAULT_TILE_I
-#ifdef __CUDACC__
-#define GT_DEFAULT_TILE_I 32
-#else
-#define GT_DEFAULT_TILE_I 8
-#endif
-#endif
-#ifndef GT_DEFAULT_TILE_J
-#ifdef __CUDACC__
-#define GT_DEFAULT_TILE_J 8
-#else
-#define GT_DEFAULT_TILE_J 8
-#endif
-#endif
-
-// max limit of indices for metastorages, beyond indices are reserved for library
-#ifndef GT_META_STORAGE_INDEX_LIMIT
-#define GT_META_STORAGE_INDEX_LIMIT 1000
-#endif
-static const unsigned int metastorage_library_indices_limit = GT_META_STORAGE_INDEX_LIMIT;
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -62,15 +39,6 @@ namespace gridtools {
 } // namespace gridtools
 #endif
 
-// check boost::optional workaround for CUDA9.2
-#if (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2)
-#if (not defined(BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL) || \
-     not defined(BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE))
-#error \
-    "CUDA 9.2 has a problem with boost::optional, please define BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL and BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE prior to any include of boost/optional.hpp"
-#endif
-#endif
-
 /**
  * @brief Main namespace containing all the provided libraries and
  * functionalities
@@ -80,12 +48,28 @@ namespace gridtools {
         @{
     */
 
+    namespace naive {
+        struct backend {};
+    } // namespace naive
+
+    namespace cuda {
+        struct backend {};
+    } // namespace cuda
+
+    namespace mc {
+        struct backend {};
+    } // namespace mc
+
+    namespace x86 {
+        struct backend {};
+    } // namespace x86
+
     /** tags specifying the backend to use */
     namespace backend {
-        struct cuda {};
-        struct mc {};
-        struct x86 {};
-        struct naive {};
+        using cuda = cuda::backend;
+        using mc = mc::backend;
+        using x86 = x86::backend;
+        using naive = naive::backend;
     } // namespace backend
 
 #define GT_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")

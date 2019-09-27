@@ -43,7 +43,7 @@ namespace gridtools {
             : first(wstd::forward<U1>(t1_)), second(wstd::forward<U2>(t2_)) {}
 
         template <class U1, class U2, std::enable_if_t<!std::is_same<pair<U1, U2>, pair>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION pair(const pair<U1, U2> &p) : first(p.first), second(p.second) {}
+        GT_CONSTEXPR GT_FUNCTION pair(pair<U1, U2> const &p) : first(p.first), second(p.second) {}
 
         template <class U1, class U2, std::enable_if_t<!std::is_same<pair<U1, U2>, pair>::value, int> = 0>
         GT_CONSTEXPR GT_FUNCTION pair(pair<U1, U2> &&p) : first(wstd::move(p.first)), second(wstd::move(p.second)) {}
@@ -97,7 +97,7 @@ namespace gridtools {
     }
 
     template <typename T1, typename T2>
-    GT_CONSTEXPR GT_FUNCTION pair<T1, T2> make_pair(T1 t1_, T2 t2_) {
+    GT_CONSTEXPR GT_FUNCTION pair<T1, T2> make_pair(T1 const &t1_, T2 const &t2_) {
         return pair<T1, T2>(t1_, t2_);
     }
     /** @} */
@@ -133,7 +133,7 @@ namespace gridtools {
                 return p.first;
             }
             template <typename T1, typename T2>
-            static GT_CONSTEXPR GT_FUNCTION T1 &get(pair<T1, T2> &p) noexcept {
+            static GT_FUNCTION T1 &get(pair<T1, T2> &p) noexcept {
                 return p.first;
             }
             template <typename T1, typename T2>
@@ -148,7 +148,7 @@ namespace gridtools {
                 return p.second;
             }
             template <typename T1, typename T2>
-            static GT_CONSTEXPR GT_FUNCTION T2 &get(pair<T1, T2> &p) noexcept {
+            static GT_FUNCTION T2 &get(pair<T1, T2> &p) noexcept {
                 return p.second;
             }
             template <typename T1, typename T2>
@@ -176,7 +176,7 @@ namespace gridtools {
     } // namespace pair_impl_
 
     template <size_t I, class T1, class T2>
-    GT_CONSTEXPR GT_FUNCTION decltype(auto) get(pair<T1, T2> &p) noexcept {
+    GT_FUNCTION decltype(auto) get(pair<T1, T2> &p) noexcept {
         return pair_impl_::pair_get<I>::get(p);
     }
 

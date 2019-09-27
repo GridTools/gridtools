@@ -22,6 +22,10 @@ namespace gridtools {
             struct pop_front<L<T, Ts...>> {
                 using type = L<Ts...>;
             };
+            template <template <class...> class L>
+            struct pop_front<L<>> {
+                using type = L<>;
+            };
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(pop_front, class List, List);
     } // namespace meta

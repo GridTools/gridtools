@@ -30,8 +30,8 @@ namespace gridtools {
         };
 
         template <class Lhs, class Rhs>
-        GT_FUNCTION GT_CONSTEXPR auto operator*(Lhs lhs, Rhs rhs) -> decltype(make_expr(times_f{}, lhs, rhs)) {
-            return make_expr(times_f{}, lhs, rhs);
+        GT_FUNCTION GT_CONSTEXPR auto operator*(Lhs lhs, Rhs rhs) -> decltype(make_expr(times_f(), lhs, rhs)) {
+            return make_expr(times_f(), lhs, rhs);
         }
         /** @} */
         /** @} */

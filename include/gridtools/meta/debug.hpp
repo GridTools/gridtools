@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <boost/preprocessor.hpp>
+#include <boost/preprocessor/punctuation/remove_parens.hpp>
 
 /**
  *  This macro expands to the code snippet that generates a compiler error that refers to the type(s) `x`

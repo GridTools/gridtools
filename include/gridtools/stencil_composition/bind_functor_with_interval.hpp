@@ -80,9 +80,7 @@ namespace gridtools {
             : bool_constant<!std::is_void<typename find_interval<Functor, Index>::type>::value> {};
 
         template <class Functor, class Interval>
-        struct bound_functor {
-            using param_list = typename Functor::param_list;
-
+        struct bound_functor : Functor {
             template <class Eval>
             static GT_FUNCTION void apply(Eval &eval) {
                 Functor::template apply<Eval &>(eval, Interval{});

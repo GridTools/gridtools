@@ -158,7 +158,7 @@ struct vertical_advection_dycore : regression_fixture<3, axis_t> {
     arg<2> p_wcon;
     arg<3> p_u_pos;
     arg<4> p_utens;
-    arg<5, scalar_storage_type> p_dtr_stage;
+    arg<5, global_parameter<float_type>> p_dtr_stage;
     tmp_arg<0> p_acol;
     tmp_arg<1> p_bcol;
     tmp_arg<2> p_ccol;
@@ -178,7 +178,7 @@ TEST_F(vertical_advection_dycore, test) {
         p_wcon = make_storage(repo.wcon),
         p_u_pos = make_storage(repo.u_pos),
         p_utens = make_storage(repo.utens),
-        p_dtr_stage = make_storage<scalar_storage_type>(repo.dtr_stage),
+        p_dtr_stage = make_global_parameter((float_type)repo.dtr_stage),
         make_multistage(execute::forward(),
             define_caches(cache<cache_type::k, cache_io_policy::local>(p_acol),
                 cache<cache_type::k, cache_io_policy::local>(p_bcol),

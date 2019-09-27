@@ -12,7 +12,6 @@
 
 #include <memory>
 #include <type_traits>
-#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -20,8 +19,8 @@
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
+#include <gridtools/stencil_composition/sid/allocator.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
-#include <gridtools/stencil_composition/sid/simple_ptr_holder.hpp>
 
 namespace gridtools {
     namespace {
@@ -33,27 +32,10 @@ namespace gridtools {
         struct b;
         struct c;
 
-        struct allocator {
-            std::vector<std::shared_ptr<void>> m_ptrs;
-
-          public:
-            template <class T>
-            sid::simple_ptr_holder<T *> allocate(size_t num_elements) {
-                T *ptr = new T[num_elements];
-                m_ptrs.emplace_back(ptr, [](T *ptr) { delete[] ptr; });
-                return {ptr};
-            }
-        };
-
-        template <class Tag, class T = typename Tag::type>
-        sid::simple_ptr_holder<T *> allocate(allocator &alloc, Tag, size_t num_elements) {
-            return alloc.template allocate<T>(num_elements);
-        }
-
         using sid::property;
 
         TEST(contiguous, smoke) {
-            allocator alloc;
+            auto alloc = sid::make_allocator(&std::make_unique<char[]>);
             hymap::keys<a, b, c>::values<integral_constant<int_t, 2>, int, int> sizes = {2_c, 3, 4};
             auto testee = sid::make_contiguous<int>(alloc, sizes);
 

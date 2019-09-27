@@ -23,7 +23,6 @@
 #include "../meta/type_traits.hpp"
 #include "../meta/zip.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/utility.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -46,23 +45,23 @@ namespace gridtools {
 
             template <class Args, template <class...> class L, class... Is>
             auto get_part_helper(Args &&args, L<Is...> *) {
-                return std::forward_as_tuple(std::get<Is::value>(wstd::forward<Args>(args))...);
+                return std::forward_as_tuple(std::get<Is::value>(std::forward<Args>(args))...);
             }
 
             template <template <class...> class Pred, class Args>
             auto get_part(Args &&args) {
-                return get_part_helper(wstd::forward<Args>(args), (make_filtered_indicies<Pred, Args> *)(nullptr));
+                return get_part_helper(std::forward<Args>(args), (make_filtered_indicies<Pred, Args> *)(nullptr));
             }
 
             template <template <class...> class Pred, class Args>
             auto raw_split_args_tuple(Args &&args) {
-                return std::make_pair(get_part<Pred>(wstd::forward<Args>(args)),
-                    get_part<meta::not_<Pred>::template apply>(wstd::forward<Args>(args)));
+                return std::make_pair(get_part<Pred>(std::forward<Args>(args)),
+                    get_part<meta::not_<Pred>::template apply>(std::forward<Args>(args)));
             }
 
             template <template <class...> class Pred, class Args>
             auto split_args_tuple(Args &&args) {
-                return raw_split_args_tuple<apply_to_decayed<Pred>::template apply>(wstd::forward<Args>(args));
+                return raw_split_args_tuple<apply_to_decayed<Pred>::template apply>(std::forward<Args>(args));
             }
         } // namespace _split_args
     }     // namespace _impl
@@ -79,12 +78,12 @@ namespace gridtools {
      */
     template <template <class...> class Pred, class... Args>
     auto raw_split_args(Args &&... args) {
-        return raw_split_args_tuple<Pred>(std::forward_as_tuple(wstd::forward<Args>(args)...));
+        return raw_split_args_tuple<Pred>(std::forward_as_tuple(std::forward<Args>(args)...));
     }
 
     /// A handy variation of raw_split_args that applies predicate on decayed argument types.
     template <template <class...> class Pred, class... Args>
     auto split_args(Args &&... args) {
-        return split_args_tuple<Pred>(std::forward_as_tuple(wstd::forward<Args>(args)...));
+        return split_args_tuple<Pred>(std::forward_as_tuple(std::forward<Args>(args)...));
     }
 } // namespace gridtools

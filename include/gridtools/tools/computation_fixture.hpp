@@ -46,15 +46,15 @@ namespace gridtools {
             return {halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2};
         }
 
+        auto make_grid() const { return ::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}); }
+
 #ifndef GT_ICOSAHEDRAL_GRIDS
         using halo_t = halo<HaloSize, HaloSize, 0>;
         using storage_info_t = storage_tr::storage_info_t<0, 3, halo_t>;
         using j_storage_info_t = storage_tr::special_storage_info_t<1, selector<0, 1, 0>>;
-        using scalar_storage_info_t = storage_tr::special_storage_info_t<2, selector<0, 0, 0>>;
 
         using storage_type = storage_tr::data_store_t<float_type, storage_info_t>;
         using j_storage_type = storage_tr::data_store_t<float_type, j_storage_info_t>;
-        using scalar_storage_type = storage_tr::data_store_t<float_type, scalar_storage_info_t>;
 
         template <uint_t I, typename T = storage_type>
         using arg = gridtools::arg<I, T>;
@@ -84,11 +84,9 @@ namespace gridtools {
         static constexpr tmp_arg<8> p_tmp_8 = {};
         static constexpr tmp_arg<9> p_tmp_9 = {};
 
-        auto make_grid() const { return ::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}); }
-
         template <class Storage = storage_type, class T = typename Storage::data_t>
         Storage make_storage(T &&obj = {}) const {
-            return {{m_d1, m_d2, m_d3}, wstd::forward<T>(obj)};
+            return {{m_d1, m_d2, m_d3}, std::forward<T>(obj)};
         }
 
         template <class Storage = storage_type>
@@ -108,12 +106,10 @@ namespace gridtools {
         using edges = enumtype::edges;
         using vertices = enumtype::vertices;
 
-        using topology_t = icosahedral_topology<backend_t>;
-
         using halo_t = halo<HaloSize, 0, HaloSize, 0>;
 
         template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
-        using storage_info_t = topology_t::template meta_storage_t<Location, Halo, Selector>;
+        using storage_info_t = icosahedral_storage_info_type<backend_t, Location, Halo, Selector>;
 
         template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
         using storage_type = storage_tr::data_store_t<float_type, storage_info_t<Location, Selector, Halo>>;
@@ -133,7 +129,7 @@ namespace gridtools {
 
         template <class Location, class Storage = storage_type<Location>, class T = typename Storage::data_t>
         Storage make_storage(T &&obj = {}) const {
-            return {{m_d1, Location::n_colors::value, m_d2, m_d3}, wstd::forward<T>(obj)};
+            return {{m_d1, Location::n_colors::value, m_d2, m_d3}, std::forward<T>(obj)};
         }
 
         template <class Location, class Storage = storage_type<Location>>
@@ -143,18 +139,12 @@ namespace gridtools {
 
         template <class Location, class Storage = storage_type_4d<Location>, class T = typename Storage::data_t>
         Storage make_storage_4d(uint_t dim, T &&val = {}) {
-            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, wstd::forward<T>(val)};
+            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, std::forward<T>(val)};
         }
 
         template <class Location, class Storage = storage_type_4d<Location>>
         Storage make_storage_4d(uint_t dim, double val) {
             return {{d1(), Location::n_colors::value, d2(), d3(), dim}, (typename Storage::data_t)val};
-        }
-
-        topology_t topology() const { return {m_d1, m_d2, m_d3}; }
-
-        auto make_grid() const {
-            return ::gridtools::make_grid(topology(), i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3});
         }
 
       private:
@@ -178,7 +168,7 @@ namespace gridtools {
 
         template <class... Args>
         auto make_computation(Args &&... args) const {
-            return ::gridtools::make_computation<backend_t>(make_grid(), wstd::forward<Args>(args)...);
+            return ::gridtools::make_computation<backend_t>(make_grid(), std::forward<Args>(args)...);
         }
 
         template <class Expected, class Actual>

@@ -13,7 +13,6 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execute;
 
 struct functor1 {
     typedef accessor<0> in;
@@ -35,22 +34,22 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
     meta_data_t meta_(10, 10, 10);
     storage_t in(meta_, 1.0), out(meta_, 1.0);
 
-    typedef decltype(make_stage<functor1>(p_in(), p_buff())) esf1_t;
-    typedef decltype(make_stage<functor1>(p_buff(), p_out())) esf2_t;
+    typedef decltype(make_stage<functor1>(p_in(), p_buff())) esfs1_t;
+    typedef decltype(make_stage<functor1>(p_buff(), p_out())) esfs2_t;
 
     typedef decltype(make_multistage(execute::forward(),
         define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff(), p_out())),
-        esf1_t(), // esf_descriptor
-        esf2_t()  // esf_descriptor
+        esfs1_t(), // esf_descriptor
+        esfs2_t()  // esf_descriptor
         )) mss_t;
-    static_assert(std::is_same<mss_t::esf_sequence_t, std::tuple<esf1_t, esf2_t>>::value, "ERROR");
+    static_assert(std::is_same<mss_t::esf_sequence_t, meta::concat<esfs1_t, esfs2_t>>::value, "ERROR");
 
 #ifndef GT_DISABLE_CACHING
     static_assert(std::is_same<mss_t::cache_sequence_t,
-                      std::tuple<detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::local>,
+                      meta::list<detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::local>,
                           detail::cache_impl<cache_type::ij, p_out, cache_io_policy::local>>>::value,
         "ERROR\nLists do not match");
 #else
-    static_assert(std::is_same<mss_t::cache_sequence_t>::value, "ERROR\nList not empty");
+    static_assert(std::is_same<mss_t::cache_sequence_t, meta::list<>>::value, "ERROR\nList not empty");
 #endif
 }
