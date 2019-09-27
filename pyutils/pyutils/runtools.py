@@ -233,8 +233,11 @@ def sbatch_retry(commands, retries, *args, **kwargs):
         exitcodes = [exitcode for exitcode, *_ in outputs]
         if all(exitcode == 0 for exitcode in exitcodes):
             break
-        if statistics.mode(exitcodes) != 0:
-            raise RuntimeError('Majority of jobs has failed')
+        try:
+            if statistics.mode(exitcodes) != 0:
+                raise RuntimeError('Majority of jobs has failed')
+        except statistics.StatisticsError:
+            pass
 
         failed_commands = []
         failed_indices = []
