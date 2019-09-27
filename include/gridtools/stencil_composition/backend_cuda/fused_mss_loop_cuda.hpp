@@ -70,6 +70,9 @@ namespace gridtools {
                     auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
                     tuple_util::device::for_each(
                         [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
+#ifndef __NVCC__
+#pragma unroll 3
+#endif
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells(info, mixed_ptr, strides, validator);
                                 k_caches.slide(info.k_step());
@@ -89,6 +92,9 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
                     tuple_util::device::for_each(
                         [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
+#ifndef __NVCC__
+#pragma unroll 3
+#endif
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells(info, ptr, strides, validator);
                                 info.inc_k(ptr, strides);
