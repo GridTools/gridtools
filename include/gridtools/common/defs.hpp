@@ -26,14 +26,6 @@
 
 //################ Type aliases for GridTools ################
 
-using int_t = int;
-using uint_t = unsigned int;
-
-template <int_t N>
-using static_int = std::integral_constant<int_t, N>;
-template <uint_t N>
-using static_uint = std::integral_constant<uint_t, N>;
-
 #ifdef __CUDACC__
 #define GT_CONSTEXPR
 #else
@@ -59,6 +51,13 @@ namespace gridtools {
     /** \ingroup defs
         @{
     */
+    using int_t = int;
+    using uint_t = unsigned int;
+
+    template <int_t N>
+    using static_int = std::integral_constant<int_t, N>;
+    template <uint_t N>
+    using static_uint = std::integral_constant<uint_t, N>;
 
     namespace naive {
         struct backend {};
