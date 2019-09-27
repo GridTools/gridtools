@@ -88,7 +88,7 @@ namespace gridtools {
                 template <class Ptr, class Strides, class Validator>
                 GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
                     tuple_util::device::for_each(
-                        [&](int_t size, auto info) {
+                        [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells(info, ptr, strides, validator);
                                 info.inc_k(ptr, strides);
