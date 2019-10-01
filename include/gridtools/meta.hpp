@@ -129,7 +129,6 @@
 #include "meta/is_empty.hpp"
 #include "meta/is_instantiation_of.hpp"
 #include "meta/is_list.hpp"
-//#include "meta/is_meta_class.hpp"
 #include "meta/is_set.hpp"
 #include "meta/iseq_to_list.hpp"
 #include "meta/last.hpp"
