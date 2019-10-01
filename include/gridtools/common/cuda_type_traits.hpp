@@ -17,7 +17,9 @@
 
 #include "../meta/dedup.hpp"
 #include "../meta/list.hpp"
+#include "../meta/macros.hpp"
 #include "../meta/st_contains.hpp"
+#include "../meta/type_traits.hpp"
 
 namespace gridtools {
     namespace impl_ {
