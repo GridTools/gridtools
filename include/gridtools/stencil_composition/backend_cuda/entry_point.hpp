@@ -202,8 +202,7 @@ namespace gridtools {
 
         template <class Deref,
             class Backend,
-            template <class...>
-            class L,
+            template <class...> class L,
             class Grid,
             class DataStores,
             class PrevKernel = no_kernel>
@@ -213,8 +212,7 @@ namespace gridtools {
 
         template <class Deref,
             class Backend,
-            template <class...>
-            class L,
+            template <class...> class L,
             class Mss,
             class... Msses,
             class Grid,
