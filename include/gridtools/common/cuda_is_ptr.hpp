@@ -12,8 +12,8 @@
 
 #ifdef GT_USE_GPU
 
-#include "hip_wrappers.hpp"
 #include "../common/cuda_util.hpp"
+#include "hip_wrappers.hpp"
 
 namespace gridtools {
     /**
@@ -31,12 +31,7 @@ namespace gridtools {
 #else
             return ptrAttributes.type == cudaMemoryTypeDevice;
 #endif
-#ifdef __HIPCC__
-        // HIP sets a different error code than CUDA here
-        if (error != hipErrorUnknown)
-#else
         if (error != cudaErrorInvalidValue)
-#endif
             GT_CUDA_CHECK(error);
 
         cudaGetLastError(); // clear the error code
