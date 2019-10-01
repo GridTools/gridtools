@@ -362,7 +362,11 @@ namespace gridtools {
     }                                                                             \
     static_assert(1, "")
 
+#ifdef __NVCC__
+#define DEFINE_TEMPLATED_FUNCTOR_INSTANCE(name, functor) GT_DEVICE constexpr functor name = {}
+#else
 #define DEFINE_TEMPLATED_FUNCTOR_INSTANCE(name, functor) constexpr functor name = {}
+#endif
 
 #else
 
