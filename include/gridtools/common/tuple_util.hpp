@@ -362,7 +362,7 @@ namespace gridtools {
     }                                                                             \
     static_assert(1, "")
 
-#define DEFINE_TEMPLATED_FUNCTOR_INSTANCE(name, functor) GT_DEVICE constexpr functor name = {}
+#define DEFINE_TEMPLATED_FUNCTOR_INSTANCE(name, functor) constexpr functor name = {}
 
 #else
 
