@@ -32,6 +32,7 @@ namespace gt_assert_impl_ {
     if (!(cond))                      \
     gt_assert_impl_::throw_error(msg)
 #endif
+#include <cassert>
 #else // NVIDIA CUDA compilation or host-only compilation
 #ifdef __CUDACC__
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 200)
