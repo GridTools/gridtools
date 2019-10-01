@@ -24,7 +24,11 @@ template <typename View>
 __global__ void mul2(View s) {
     bool correct_dims = (s.template total_length<0>() == c_x) && (s.template total_length<1>() == c_y) &&
                         (s.template total_length<2>() == c_z);
+#ifdef __HIPCC__
+    bool correct_size = (s.padded_total_length() == 16 * c_y * c_z);
+#else
     bool correct_size = (s.padded_total_length() == 32 * c_y * c_z);
+#endif
     s(0, 0, 0) *= (2 * correct_dims * correct_size);
     s(1, 0, 0) *= (2 * correct_dims * correct_size);
 }
@@ -68,7 +72,11 @@ TEST(DataViewTest, Simple) {
 
     ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
 
+#ifdef __HIPCC__
+    ASSERT_TRUE(si.index(1, 0, 1) == c_y * 16 + 1);
+#else
     ASSERT_TRUE(si.index(1, 0, 1) == c_y * 32 + 1);
+#endif
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
     EXPECT_EQ(dv(1, 0, 0), 60);
