@@ -75,7 +75,7 @@ if(CUDA_AVAILABLE)
 
     target_include_directories(gridtools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_link_libraries(gridtools INTERFACE ${CUDA_CUDART_LIBRARY})
-  endif()
+endif()
 
 if(MPI_AVAILABLE)
     target_compile_definitions(gridtools INTERFACE GCL_MPI)
@@ -85,10 +85,6 @@ if(MPI_AVAILABLE)
 endif()
 
 add_library(GridToolsTest INTERFACE)
-# NOTE: The CUDA workaround can only be applied to the test because it cannot work
-# with generator expressions. Thus, this needs to be redone in the Config.cmake.in.
-include(workaround_cuda)
-_workaround_cuda(GridToolsTest)
 target_link_libraries(GridToolsTest INTERFACE gridtools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)

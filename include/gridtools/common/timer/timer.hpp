@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "../generic_metafunctions/utility.hpp"
 #include "../host_device.hpp"
 #include <cmath>
 #include <sstream>

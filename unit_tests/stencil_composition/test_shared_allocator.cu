@@ -90,10 +90,7 @@ namespace gridtools {
                 EXPECT_TRUE(result[0]);
                 EXPECT_TRUE(result[1]);
 
-#ifndef __HIPCC__
-                // HIP has a problem here https://github.com/ROCm-Developer-Tools/HIP/issues/1234
                 GT_CUDA_CHECK(cudaFree(result));
-#endif
             }
         } // namespace
     }     // namespace cuda

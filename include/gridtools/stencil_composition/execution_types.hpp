@@ -15,7 +15,9 @@
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 
+#ifndef GT_DEFAULT_VERTICAL_BLOCK_SIZE
 #define GT_DEFAULT_VERTICAL_BLOCK_SIZE 1
+#endif
 
 namespace gridtools {
     namespace execute {
@@ -46,7 +48,7 @@ namespace gridtools {
         struct is_backward<backward> : std::true_type {};
 
         template <typename T>
-        constexpr integral_constant<int_t, is_backward<T>::value ? -1 : 1> step = {};
+        GT_DEVICE constexpr integral_constant<int_t, is_backward<T>::value ? -1 : 1> step = {};
 
         template <typename T>
         struct block_size : integral_constant<int_t, 0> {};

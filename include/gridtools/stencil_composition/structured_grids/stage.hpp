@@ -45,23 +45,23 @@
 namespace gridtools {
     namespace stage_impl_ {
         struct default_deref_f {
-            template <class T>
-            GT_FUNCTION decltype(auto) operator()(T ptr) const {
+            template <class Key, class T>
+            GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
                 return *ptr;
             }
         };
 
         template <class Ptr, class Strides, class Keys, class Deref>
         struct evaluator {
-            Ptr const &GT_RESTRICT m_ptr;
-            Strides const &GT_RESTRICT m_strides;
+            Ptr const &m_ptr;
+            Strides const &m_strides;
 
             template <class Accessor>
             GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
                 using key_t = meta::at_c<Keys, Accessor::index_t::value>;
                 auto ptr = host_device::at_key<key_t>(m_ptr);
                 sid::multi_shift<key_t>(ptr, m_strides, wstd::move(acc));
-                return apply_intent<Accessor::intent_v>(Deref()(ptr));
+                return apply_intent<Accessor::intent_v>(Deref()(key_t(), ptr));
             }
 
             template <class Op, class... Ts>
@@ -84,7 +84,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
 
             template <class Deref = void, class Ptr, class Strides>
-            GT_FUNCTION void operator()(Ptr const &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
+            GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
                 using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
                 using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t>;
                 eval_t eval{ptr, strides};

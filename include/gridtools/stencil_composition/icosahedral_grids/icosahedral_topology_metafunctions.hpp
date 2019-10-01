@@ -15,7 +15,14 @@
 #include "../../common/host_device.hpp"
 #include "../../common/selector.hpp"
 
+// max limit of indices for metastorages, beyond indices are reserved for library
+#ifndef GT_META_STORAGE_INDEX_LIMIT
+#define GT_META_STORAGE_INDEX_LIMIT 1000
+#endif
+
 namespace gridtools {
+    static constexpr unsigned int metastorage_library_indices_limit = GT_META_STORAGE_INDEX_LIMIT;
+
     namespace impl {
         /**
          * @brief Computes a unique identifier (to be used for metastorages) given a list of index values

@@ -12,7 +12,7 @@
 
 #include <type_traits>
 
-#include <boost/preprocessor.hpp>
+#include <boost/preprocessor/punctuation/remove_parens.hpp>
 
 #define GT_META_DELEGATE_TO_LAZY(fun, signature, args) \
     template <BOOST_PP_REMOVE_PARENS(signature)>       \

@@ -120,7 +120,7 @@ namespace gridtools {
                     using bound_key_t = meta::list<bound<typename PlhInfo::plh_t, Check>>;
 
                     template <class Deref = void, class Ptrs, class Strides>
-                    GT_FUNCTION void operator()(Ptrs const &GT_RESTRICT ptrs, Strides const &GT_RESTRICT strides) {
+                    GT_FUNCTION void operator()(Ptrs const &ptrs, Strides const &strides) {
                         using namespace literals;
                         auto orig = get_orig<PlhInfo>(ptrs);
                         auto cached = get_cached<PlhInfo>(ptrs);
@@ -168,7 +168,7 @@ namespace gridtools {
                 template <class PlhInfo, range Range>
                 struct sync_fun<PlhInfo, Range, check::none> {
                     template <class Deref = void, class Ptrs, class Strides>
-                    GT_FUNCTION void operator()(Ptrs const &GT_RESTRICT ptrs, Strides const &GT_RESTRICT strides) {
+                    GT_FUNCTION void operator()(Ptrs const &ptrs, Strides const &strides) {
                         auto orig = get_orig<PlhInfo>(ptrs);
                         auto cached = get_cached<PlhInfo>(ptrs);
                         using offset_t = meta::if_c<Range == range::minus,
@@ -185,7 +185,7 @@ namespace gridtools {
                 template <class PlhInfo>
                 struct sync_fun<PlhInfo, range::all, check::none> {
                     template <class Deref = void, class Ptrs, class Strides>
-                    GT_FUNCTION void operator()(Ptrs const &GT_RESTRICT ptrs, Strides const &GT_RESTRICT strides) {
+                    GT_FUNCTION void operator()(Ptrs const &ptrs, Strides const &strides) {
                         using namespace literals;
                         auto orig = get_orig<PlhInfo>(ptrs);
                         auto cached = get_cached<PlhInfo>(ptrs);
@@ -321,11 +321,10 @@ namespace gridtools {
                     using apply = negation<has_key<DataStore, Plh>>;
                 };
 
-                template <class Spec, class DataStores>
-                auto transform_data_stores(Spec, DataStores data_stores) {
-                    using plh_map_t = typename stage_matrix::make_fused_view<transform_spec<Spec>>::plh_map_t;
+                template <class PlhMap, class DataStores>
+                auto transform_data_stores(DataStores data_stores) {
                     using non_tmp_phs_t = meta::transform<stage_matrix::get_plh,
-                        meta::filter<meta::not_<stage_matrix::get_is_tmp>::apply, plh_map_t>>;
+                        meta::filter<meta::not_<stage_matrix::get_is_tmp>::apply, PlhMap>>;
                     using plhs_t = meta::filter<is_missing_f<DataStores>::template apply, non_tmp_phs_t>;
                     auto extra = tuple_util::transform([&](auto plh) { return make_data_store(plh, data_stores); },
                         hymap::from_keys_values<plhs_t, plhs_t>());

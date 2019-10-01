@@ -21,17 +21,6 @@
 namespace gridtools {
     namespace cuda {
         namespace k_cache_impl_ {
-            template <class T>
-            struct ptr {
-                T *m_ptr;
-                GT_FUNCTION T &operator*() const { return *m_ptr; }
-            };
-
-            template <class T, class Stride>
-            GT_FUNCTION void sid_shift(ptr<T> &p, Stride &&, int_t offset) {
-                p.m_ptr += offset;
-            }
-
             template <class T, int_t Minus, int_t Plus>
             struct storage {
                 T m_values[Plus - Minus + 1];
@@ -54,7 +43,7 @@ namespace gridtools {
                         m_values[k] = m_values[k - 1];
                 }
 
-                GT_FUNCTION_DEVICE ptr<T> ptr() { return {m_values - Minus}; }
+                GT_FUNCTION_DEVICE T *ptr() { return m_values - Minus; }
             };
 
             struct fake {
@@ -62,10 +51,9 @@ namespace gridtools {
                 fake operator*() const;
             };
             fake sid_get_ptr_diff(fake);
-            fake sid_get_origin(fake) { return {}; }
-            GT_FUNCTION void sid_shift(fake &, fake, int_t) {}
+            inline fake sid_get_origin(fake) { return {}; }
             GT_FUNCTION fake operator+(fake, fake) { return {}; }
-            hymap::keys<dim::k>::values<fake> sid_get_strides(fake) { return {}; }
+            inline hymap::keys<dim::k>::values<integral_constant<int_t, 1>> sid_get_strides(fake) { return {}; }
 
             GT_STATIC_ASSERT(is_sid<fake>(), GT_INTERNAL_ERROR);
 

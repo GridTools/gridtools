@@ -13,7 +13,6 @@
 #include <cassert>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/utility.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
 #include "../common/integral_constant.hpp"

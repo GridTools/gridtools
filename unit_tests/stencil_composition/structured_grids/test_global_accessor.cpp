@@ -33,8 +33,8 @@ struct boundary {
 };
 
 struct functor1 {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef global_accessor<1> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
 
@@ -45,9 +45,9 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef accessor<1, intent::inout, extent<0, 0, 0, 0>> in;
-    typedef global_accessor<2> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> in;
+    typedef in_accessor<2> bd;
 
     typedef make_param_list<sol, in, bd> param_list;
 
@@ -58,8 +58,8 @@ struct functor2 {
 };
 
 struct functor_with_procedure_call {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef global_accessor<1> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
 
@@ -70,8 +70,8 @@ struct functor_with_procedure_call {
 };
 
 struct functor1_with_assignment {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef global_accessor<1> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
 
@@ -82,8 +82,8 @@ struct functor1_with_assignment {
 };
 
 struct functor_with_function_call {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef global_accessor<1> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
 

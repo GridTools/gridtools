@@ -117,10 +117,11 @@ namespace gridtools {
             };
         }
 
-        template <class Spec, class Grid, class DataStores>
-        void gridtools_backend_entry_point(backend, Spec, Grid const &grid, DataStores external_data_stores) {
-            using i_block_size_t = integral_constant<int_t, 8>;
-            using j_block_size_t = integral_constant<int_t, 8>;
+        template <class... Params, class Spec, class Grid, class DataStores>
+        void gridtools_backend_entry_point(
+            backend<Params...>, Spec, Grid const &grid, DataStores external_data_stores) {
+            using i_block_size_t = typename backend<Params...>::i_block_size_t;
+            using j_block_size_t = typename backend<Params...>::j_block_size_t;
             using stages_t = stage_matrix::make_split_view<Spec>;
 
             auto alloc = sid::make_cached_allocator(&std::make_unique<char[]>);

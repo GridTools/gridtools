@@ -48,13 +48,12 @@ using namespace expressions;
 
   Note that the fields phi and psi are passed through as global_parameters and taken in the stencil
   operator as global_accessors. This is the czse since the base functions do not change when the
-  iteration point moves, so their values are constant. This is a typical example of global_parameter/
-  global_accessor use.
+  iteration point moves, so their values are constant. This is a typical example of global_parameter use.
 */
 
 struct integration {
-    using phi_t = global_accessor<0>;
-    using psi_t = global_accessor<1>;
+    using phi_t = in_accessor<0>;
+    using psi_t = in_accessor<1>;
     using jac = in_accessor<2, extent<>, 4>;
     using f = in_accessor<3, extent<>, 6>;
     using result = inout_accessor<4, extent<>, 6>;

@@ -62,8 +62,8 @@ namespace gridtools {
 
     namespace stage_impl_ {
         struct default_deref_f {
-            template <class T>
-            GT_FUNCTION decltype(auto) operator()(T ptr) const {
+            template <class Key, class T>
+            GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
                 return *ptr;
             }
         };
@@ -77,7 +77,7 @@ namespace gridtools {
             GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
                 auto ptr = host_device::at_key<Key>(m_ptr);
                 sid::multi_shift<Key>(ptr, m_strides, wstd::move(offset));
-                return Deref()(ptr);
+                return Deref()(Key(), ptr);
             }
 
             template <class Accessor>
@@ -109,7 +109,7 @@ namespace gridtools {
             using num_colors_t = typename location_t::n_colors;
 
             template <class Deref = void, class Ptr, class Strides>
-            GT_FUNCTION void operator()(Ptr ptr, Strides const &GT_RESTRICT strides) const {
+            GT_FUNCTION void operator()(Ptr ptr, Strides const &strides) const {
                 using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
                 host_device::for_each<meta::make_indices<num_colors_t>>([&](auto color) {
                     using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;

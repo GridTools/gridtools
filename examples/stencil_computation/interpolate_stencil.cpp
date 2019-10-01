@@ -14,10 +14,10 @@
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 
 struct interpolate_stage {
-    using in1 = gridtools::accessor<0, gridtools::intent::in>;
-    using in2 = gridtools::accessor<1, gridtools::intent::in>;
-    using weight = gridtools::global_accessor<2>;
-    using out = gridtools::accessor<3, gridtools::intent::inout>;
+    using in1 = gridtools::in_accessor<0>;
+    using in2 = gridtools::in_accessor<1>;
+    using weight = gridtools::in_accessor<2>;
+    using out = gridtools::inout_accessor<3>;
 
     using param_list = gridtools::make_param_list<in1, in2, weight, out>;
 

@@ -12,8 +12,6 @@
 
 #include <type_traits>
 
-#include <boost/preprocessor.hpp>
-
 #include "host_device.hpp"
 
 namespace gridtools {

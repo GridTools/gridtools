@@ -17,7 +17,6 @@
 
 #include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
 #include "../dim.hpp"
 #include "../extent.hpp"
@@ -127,17 +126,82 @@ namespace gridtools {
                     fun(threadIdx.x, threadIdx.y, dummy_validator_f());
             }
 
-            template <size_t NumThreads, class Fun>
-            __global__ void __launch_bounds__(NumThreads) trivial_wrapper(Fun const fun) {
-                fun(threadIdx.x, threadIdx.y, dummy_validator_f());
-            }
-
             template <class Extent>
             constexpr bool is_empty_ij_extents() {
                 return Extent::iminus::value == 0 && Extent::iplus::value == 0 && Extent::jminus::value == 0 &&
                        Extent::jplus::value == 0;
             }
 
+            template <class Kernel, class... Args>
+            void launch(dim3 blocks, dim3 threads, size_t shared_memory_size, Kernel kernel, Args... args) {
+                GT_CUDA_CHECK(
+                    cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_memory_size));
+                kernel<<<blocks, threads, shared_memory_size>>>(std::move(args)...);
+#ifndef NDEBUG
+                GT_CUDA_CHECK(cudaDeviceSynchronize());
+#endif
+                GT_CUDA_CHECK(cudaGetLastError());
+            }
+
+            template <class Extent,
+                int_t BlockSizeI,
+                int_t BlockSizeJ,
+                class Fun,
+                std::enable_if_t<!is_empty_ij_extents<Extent>(), int> = 0>
+            GT_FORCE_INLINE void launch_kernel(
+                int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
+                GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(Extent::iminus::value <= 0, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(Extent::iplus::value >= 0, GT_INTERNAL_ERROR);
+
+                GT_STATIC_ASSERT(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
+
+                static constexpr auto halo_lines = Extent::jplus::value - Extent::jminus::value +
+                                                   (Extent::iminus::value < 0 ? 1 : 0) +
+                                                   (Extent::iplus::value > 0 ? 1 : 0);
+                static constexpr size_t num_threads = BlockSizeI * (BlockSizeJ + halo_lines);
+
+                uint_t xblocks = (i_size + BlockSizeI - 1) / BlockSizeI;
+                uint_t yblocks = (j_size + BlockSizeJ - 1) / BlockSizeJ;
+
+                dim3 blocks = {xblocks, yblocks, zblocks};
+                dim3 threads = {BlockSizeI, BlockSizeJ + halo_lines, 1};
+
+                launch(blocks,
+                    threads,
+                    shared_memory_size,
+                    wrapper<num_threads, BlockSizeI, BlockSizeJ, Extent, Fun>,
+                    std::move(fun),
+                    i_size,
+                    j_size);
+            }
+
+            template <class Extent,
+                int_t BlockSizeI,
+                int_t BlockSizeJ,
+                class Fun,
+                std::enable_if_t<is_empty_ij_extents<Extent>(), int> = 0>
+            GT_FORCE_INLINE void launch_kernel(
+                int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
+
+                GT_STATIC_ASSERT(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
+
+                static const size_t num_threads = BlockSizeI * BlockSizeJ;
+
+                uint_t xblocks = (i_size + BlockSizeI - 1) / BlockSizeI;
+                uint_t yblocks = (j_size + BlockSizeJ - 1) / BlockSizeJ;
+
+                dim3 blocks = {xblocks, yblocks, zblocks};
+                dim3 threads = {BlockSizeI, BlockSizeJ, 1};
+
+                launch(blocks,
+                    threads,
+                    shared_memory_size,
+                    zero_extent_wrapper<num_threads, BlockSizeI, BlockSizeJ, Fun>,
+                    std::move(fun),
+                    i_size,
+                    j_size);
+            }
         } // namespace launch_kernel_impl_
 
         /**
@@ -164,70 +228,6 @@ namespace gridtools {
          *  \param zblocks number of the blocks in k dimension
          *  \param shared_memory_size delegated to cuda
          */
-        template <class Extent,
-            int_t BlockSizeI,
-            int_t BlockSizeJ,
-            class Fun,
-            std::enable_if_t<!launch_kernel_impl_::is_empty_ij_extents<Extent>(), int> = 0>
-        GT_FORCE_INLINE void launch_kernel(
-            int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
-            GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(Extent::iminus::value <= 0, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(Extent::iplus::value >= 0, GT_INTERNAL_ERROR);
-
-            GT_STATIC_ASSERT(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
-
-            static constexpr auto halo_lines = Extent::jplus::value - Extent::jminus::value +
-                                               (Extent::iminus::value < 0 ? 1 : 0) + (Extent::iplus::value > 0 ? 1 : 0);
-            static const size_t num_threads = BlockSizeI * (BlockSizeJ + halo_lines);
-
-            uint_t xblocks = (i_size + BlockSizeI - 1) / BlockSizeI;
-            uint_t yblocks = (j_size + BlockSizeJ - 1) / BlockSizeJ;
-
-            dim3 blocks = {xblocks, yblocks, zblocks};
-            dim3 threads = {BlockSizeI, BlockSizeJ + halo_lines, 1};
-
-            launch_kernel_impl_::wrapper<num_threads, BlockSizeI, BlockSizeJ, Extent>
-                <<<blocks, threads, shared_memory_size>>>(std::move(fun), i_size, j_size);
-
-#ifndef NDEBUG
-            GT_CUDA_CHECK(cudaDeviceSynchronize());
-#else
-            GT_CUDA_CHECK(cudaGetLastError());
-#endif
-        }
-
-        template <class Extent,
-            int_t BlockSizeI,
-            int_t BlockSizeJ,
-            class Fun,
-            std::enable_if_t<launch_kernel_impl_::is_empty_ij_extents<Extent>(), int> = 0>
-        GT_FORCE_INLINE void launch_kernel(
-            int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
-
-            GT_STATIC_ASSERT(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
-
-            static const size_t num_threads = BlockSizeI * BlockSizeJ;
-
-            uint_t xblocks = (i_size + BlockSizeI - 1) / BlockSizeI;
-            uint_t yblocks = (j_size + BlockSizeJ - 1) / BlockSizeJ;
-
-            dim3 blocks = {xblocks, yblocks, zblocks};
-            dim3 threads = {BlockSizeI, BlockSizeJ, 1};
-
-            // TODO(anstaf): to investigate if this optimization has impact
-            if (i_size % BlockSizeI == 0 && j_size % BlockSizeJ == 0)
-                launch_kernel_impl_::trivial_wrapper<num_threads>
-                    <<<blocks, threads, shared_memory_size>>>(std::move(fun));
-            else
-                launch_kernel_impl_::zero_extent_wrapper<num_threads, BlockSizeI, BlockSizeJ>
-                    <<<blocks, threads, shared_memory_size>>>(std::move(fun), i_size, j_size);
-
-#ifndef NDEBUG
-            GT_CUDA_CHECK(cudaDeviceSynchronize());
-#else
-            GT_CUDA_CHECK(cudaGetLastError());
-#endif
-        }
+        using launch_kernel_impl_::launch_kernel;
     } // namespace cuda
 } // namespace gridtools

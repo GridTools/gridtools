@@ -66,6 +66,21 @@ namespace gridtools {
                 class... Ts>
             struct group<Pred, F, L<T, Ts...>> : group_helper<Pred, F, L<Ts...>, list<T>> {};
         } // namespace lazy
+
+        /**
+         *   Groups sequential elements of the input `List` that satisfy the given predicate `Pred` being applied to
+         *   the group by applying function `F` to the group.
+         *   Example: Say we have the list of non unique types. We want to convert input in a list of pairs where
+         *   the pair consists of the the type and the number of sequential as an integral constant:
+         *   ```
+         *   template <class... Ts>
+         *   using converter = meta::list<meta::first<meta::list<Ts...>, integral_constant<int, sizeof...(Ts)>>;
+         *
+         *   using src_t = ...
+         *
+         *   using result_t = meta::group<meta::are_same, converter, src_t>;
+         *   ```
+         */
         GT_META_DELEGATE_TO_LAZY(
             group, (template <class...> class Pred, template <class...> class F, class List), (Pred, F, List));
     } // namespace meta

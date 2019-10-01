@@ -64,9 +64,8 @@ namespace gridtools {
         GT_STATIC_ASSERT(esf_impl_::has_param_list<EsfFunction>::type::value,
             "The type param_list was not found in a user functor definition. All user functors must have a type alias "
             "called \'param_list\', which is an MPL vector containing the list of accessors defined in the functor "
-            "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
-            "using v2=global_accessor<1>; \n using v3=accessor<2>; \n using "
-            "param_list=make_param_list<v1, v3>;");
+            "Example: \n\n using v1=in_accessor<0>; \n\n using v2=inout_accessor<2>; \n using "
+            "param_list=make_param_list<v1, v2>;");
         GT_STATIC_ASSERT(esf_impl_::check_param_list<typename EsfFunction::param_list>::value,
             "The list of accessors in a user functor (i.e. the param_list type to be defined on each functor) does not "
             "have increasing index");
