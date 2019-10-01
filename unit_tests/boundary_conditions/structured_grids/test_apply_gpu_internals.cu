@@ -14,7 +14,7 @@
 namespace gt = gridtools;
 
 TEST(apply_gpu, shape) {
-    using shape = gt::_impl::kernel_configuration::shape_type;
+    using shape = gt::apply_gpu_impl_::kernel_configuration::shape_type;
 
     {
         shape x(3, 6, 7, 0, 0, 0);
@@ -49,7 +49,7 @@ TEST(apply_gpu, shape) {
 }
 
 TEST(apply_gpu, configurtation) {
-    using conf = gt::_impl::kernel_configuration;
+    using conf = gt::apply_gpu_impl_::kernel_configuration;
 
     gt::uint_t l = 1000;
 
@@ -67,9 +67,9 @@ TEST(apply_gpu, configurtation) {
 
         gt::array<std::size_t, 3> res{67, 50, 3};
 
-        EXPECT_EQ(c.block_size()[0], res[0]);
-        EXPECT_EQ(c.block_size()[1], res[1]);
-        EXPECT_EQ(c.block_size()[2], res[2]);
+        EXPECT_EQ(c.block_size().x, res[0]);
+        EXPECT_EQ(c.block_size().y, res[1]);
+        EXPECT_EQ(c.block_size().z, res[2]);
 
         EXPECT_EQ(c.shape(0, 0, 0).start(0), 0);
         EXPECT_EQ(c.shape(0, 0, 0).start(1), 2);
@@ -114,9 +114,9 @@ TEST(apply_gpu, configurtation) {
 
         gt::array<std::size_t, 3> res{5, 3, 2};
 
-        EXPECT_EQ(c.block_size()[0], res[0]);
-        EXPECT_EQ(c.block_size()[1], res[1]);
-        EXPECT_EQ(c.block_size()[2], res[2]);
+        EXPECT_EQ(c.block_size().x, res[0]);
+        EXPECT_EQ(c.block_size().y, res[1]);
+        EXPECT_EQ(c.block_size().z, res[2]);
     }
 
     {
@@ -133,8 +133,8 @@ TEST(apply_gpu, configurtation) {
 
         gt::array<std::size_t, 3> res{3, 3, 1};
 
-        EXPECT_EQ(c.block_size()[0], res[0]);
-        EXPECT_EQ(c.block_size()[1], res[1]);
-        EXPECT_EQ(c.block_size()[2], res[2]);
+        EXPECT_EQ(c.block_size().x, res[0]);
+        EXPECT_EQ(c.block_size().y, res[1]);
+        EXPECT_EQ(c.block_size().z, res[2]);
     }
 }

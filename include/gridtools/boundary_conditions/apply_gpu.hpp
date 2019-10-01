@@ -25,10 +25,10 @@ namespace gridtools {
      * @{
      */
 
-    namespace _impl {
-        using ntx_t = integral_constant<int_t, 8>;
-        using nty_t = integral_constant<int_t, 32>;
-        using ntz_t = integral_constant<int_t, 1>;
+    namespace apply_gpu_impl_ {
+        using threads_per_block_x_t = integral_constant<int_t, 8>;
+        using threads_per_block_y_t = integral_constant<int_t, 32>;
+        using threads_per_block_z_t = integral_constant<int_t, 1>;
 
         /// Since predicate is runtime evaluated possibly on host-only data, we need to evaluate it before passing it to
         /// the CUDA kernels
@@ -204,26 +204,38 @@ namespace gridtools {
                 }
             }
 
-            array<uint_t, 3> block_size() const {
-                array<uint_t, 3> b = {0};
+            dim3 block_size() const {
+                dim3 b(0, 0, 0);
                 for (int i = 0; i < 3; ++i) {
                     for (int j = 0; j < 3; ++j) {
                         for (int k = 0; k < 3; ++k) {
                             if (i != 1 or j != 1 or k != 1) {
-                                b[0] = std::max(b[0], sizes[i][j][k].max());
-                                b[1] = std::max(b[1], sizes[i][j][k].median());
-                                b[2] = std::max(b[2], sizes[i][j][k].min());
+                                b.x = std::max(b.x, (decltype(b.x))sizes[i][j][k].max());
+                                b.y = std::max(b.y, (decltype(b.y))sizes[i][j][k].median());
+                                b.z = std::max(b.z, (decltype(b.z))sizes[i][j][k].min());
                             }
                         }
                     }
                 }
+                assert((b.x > 0 || b.y > 0 || b.z > 0) && "all boundary extents are empty");
                 return b;
             }
+
+            dim3 blocks() const {
+                dim3 b = block_size();
+                dim3 t = threads_per_block();
+                return {b.x == 0 ? 1 : (b.x + t.x - 1) / t.x,
+                    b.y == 0 ? 1 : (b.y + t.y - 1) / t.y,
+                    b.z == 0 ? 1 : (b.z + t.z - 1) / t.z};
+            }
+
+            dim3 threads_per_block() const {
+                return {threads_per_block_x_t::value, threads_per_block_y_t::value, threads_per_block_z_t::value};
+            };
 
             GT_FUNCTION
             shape_type const &shape(uint_t i, uint_t j, uint_t k) const { return sizes[i][j][k]; }
         };
-    } // namespace _impl
 
 /** The following macro substitute the code to apply the boundary
     function to the boundary portion identified by a particular
@@ -244,61 +256,63 @@ namespace gridtools {
     }                                                                                                              \
     static_assert(true, " ")
 
-    GT_FUNCTION int thread_along_axis(int i, int j, int k, int axis) {
-        assert(axis >= 0 && axis < 3);
-        return axis == 0 ? i : axis == 1 ? j : k;
-    }
+        GT_FUNCTION int thread_along_axis(int i, int j, int k, int axis) {
+            assert(axis >= 0 && axis < 3);
+            return axis == 0 ? i : axis == 1 ? j : k;
+        }
 
-    /**
-       @brief kernel to appy boundary conditions to the data fields requested
-     */
-    template <typename BoundaryFunction, typename... DataViews>
-    __global__ void loop_kernel(BoundaryFunction const boundary_function,
-        _impl::precomputed_pred const predicate,
-        _impl::kernel_configuration const conf,
-        DataViews const... data_views) {
-        const uint_t i = blockIdx.x * _impl::ntx_t::value + threadIdx.x;
-        const uint_t j = blockIdx.y * _impl::nty_t::value + threadIdx.y;
-        const uint_t k = blockIdx.z * _impl::ntz_t::value + threadIdx.z;
+        /**
+           @brief kernel to appy boundary conditions to the data fields requested
+         */
+        template <typename BoundaryFunction, typename... DataViews>
+        __global__ void loop_kernel(BoundaryFunction const boundary_function,
+            apply_gpu_impl_::precomputed_pred const predicate,
+            apply_gpu_impl_::kernel_configuration const conf,
+            DataViews const... data_views) {
+            const uint_t i = blockIdx.x * apply_gpu_impl_::threads_per_block_x_t::value + threadIdx.x;
+            const uint_t j = blockIdx.y * apply_gpu_impl_::threads_per_block_y_t::value + threadIdx.y;
+            const uint_t k = blockIdx.z * apply_gpu_impl_::threads_per_block_z_t::value + threadIdx.z;
 
-        GT_RUN_BC_ON(minus_, minus_, minus_);
-        GT_RUN_BC_ON(minus_, minus_, zero_);
-        GT_RUN_BC_ON(minus_, minus_, plus_);
+            GT_RUN_BC_ON(minus_, minus_, minus_);
+            GT_RUN_BC_ON(minus_, minus_, zero_);
+            GT_RUN_BC_ON(minus_, minus_, plus_);
 
-        GT_RUN_BC_ON(minus_, zero_, minus_);
-        GT_RUN_BC_ON(minus_, zero_, zero_);
-        GT_RUN_BC_ON(minus_, zero_, plus_);
+            GT_RUN_BC_ON(minus_, zero_, minus_);
+            GT_RUN_BC_ON(minus_, zero_, zero_);
+            GT_RUN_BC_ON(minus_, zero_, plus_);
 
-        GT_RUN_BC_ON(minus_, plus_, minus_);
-        GT_RUN_BC_ON(minus_, plus_, zero_);
-        GT_RUN_BC_ON(minus_, plus_, plus_);
+            GT_RUN_BC_ON(minus_, plus_, minus_);
+            GT_RUN_BC_ON(minus_, plus_, zero_);
+            GT_RUN_BC_ON(minus_, plus_, plus_);
 
-        GT_RUN_BC_ON(zero_, minus_, minus_);
-        GT_RUN_BC_ON(zero_, minus_, zero_);
-        GT_RUN_BC_ON(zero_, minus_, plus_);
+            GT_RUN_BC_ON(zero_, minus_, minus_);
+            GT_RUN_BC_ON(zero_, minus_, zero_);
+            GT_RUN_BC_ON(zero_, minus_, plus_);
 
-        GT_RUN_BC_ON(zero_, zero_, minus_);
+            GT_RUN_BC_ON(zero_, zero_, minus_);
 
-        GT_RUN_BC_ON(zero_, zero_, plus_);
+            GT_RUN_BC_ON(zero_, zero_, plus_);
 
-        GT_RUN_BC_ON(zero_, plus_, minus_);
-        GT_RUN_BC_ON(zero_, plus_, zero_);
-        GT_RUN_BC_ON(zero_, plus_, plus_);
+            GT_RUN_BC_ON(zero_, plus_, minus_);
+            GT_RUN_BC_ON(zero_, plus_, zero_);
+            GT_RUN_BC_ON(zero_, plus_, plus_);
 
-        GT_RUN_BC_ON(plus_, minus_, minus_);
-        GT_RUN_BC_ON(plus_, minus_, zero_);
-        GT_RUN_BC_ON(plus_, minus_, plus_);
+            GT_RUN_BC_ON(plus_, minus_, minus_);
+            GT_RUN_BC_ON(plus_, minus_, zero_);
+            GT_RUN_BC_ON(plus_, minus_, plus_);
 
-        GT_RUN_BC_ON(plus_, zero_, minus_);
-        GT_RUN_BC_ON(plus_, zero_, zero_);
-        GT_RUN_BC_ON(plus_, zero_, plus_);
+            GT_RUN_BC_ON(plus_, zero_, minus_);
+            GT_RUN_BC_ON(plus_, zero_, zero_);
+            GT_RUN_BC_ON(plus_, zero_, plus_);
 
-        GT_RUN_BC_ON(plus_, plus_, minus_);
-        GT_RUN_BC_ON(plus_, plus_, zero_);
-        GT_RUN_BC_ON(plus_, plus_, plus_);
-    }
+            GT_RUN_BC_ON(plus_, plus_, minus_);
+            GT_RUN_BC_ON(plus_, plus_, zero_);
+            GT_RUN_BC_ON(plus_, plus_, plus_);
+        }
 
 #undef GT_RUN_BC_ON
+
+    } // namespace apply_gpu_impl_
 
     /**
        @brief definition of the functions which apply the boundary conditions (arbitrary functions having as argument
@@ -313,9 +327,9 @@ namespace gridtools {
        For this reason each boundary area dimensions will be sorted by decreasing sizes and then the permutation
        needed to map the threads to the coordinates to use in the user provided boundary operators are kept.
 
-       The shape information is kept in \ref _impl::kernel_configuration::shape class, while the kernel
+       The shape information is kept in \ref apply_gpu_impl_::kernel_configuration::shape class, while the kernel
        configuration and the collections of shapes to be accessed in the kernel are stored in the \ref
-       _impl::kernel_configuration class.
+       apply_gpu_impl_::kernel_configuration class.
 
        The kernel will then apply the user provided boundary functions in order to all the areas one after the other.
     */
@@ -325,7 +339,7 @@ namespace gridtools {
     struct boundary_apply_gpu {
       private:
         HaloDescriptors m_halo_descriptors;
-        _impl::kernel_configuration m_conf;
+        apply_gpu_impl_::kernel_configuration m_conf;
         BoundaryFunction const m_boundary_function;
         Predicate m_predicate;
 
@@ -345,18 +359,8 @@ namespace gridtools {
         */
         template <typename... DataFieldViews>
         void apply(DataFieldViews const &... data_field_views) const {
-            auto block_size = m_conf.block_size();
-            uint_t nx = block_size[0];
-            uint_t ny = block_size[1];
-            uint_t nz = block_size[2];
-            uint_t nbx = (nx == 0) ? (1) : ((nx + _impl::ntx_t::value - 1) / _impl::ntx_t::value);
-            uint_t nby = (ny == 0) ? (1) : ((ny + _impl::nty_t::value - 1) / _impl::nty_t::value);
-            uint_t nbz = (nz == 0) ? (1) : ((nz + _impl::ntz_t::value - 1) / _impl::ntz_t::value);
-            assert(nx > 0 || ny > 0 || nz > 0 && "all boundary extents are empty");
-            dim3 blocks(nbx, nby, nbz);
-            dim3 threads(_impl::ntx_t::value, _impl::nty_t::value, _impl::ntz_t::value);
-            loop_kernel<<<blocks, threads>>>(
-                m_boundary_function, _impl::precomputed_pred{m_predicate}, m_conf, data_field_views...);
+            apply_gpu_impl_::loop_kernel<<<m_conf.blocks(), m_conf.threads_per_block()>>>(
+                m_boundary_function, apply_gpu_impl_::precomputed_pred{m_predicate}, m_conf, data_field_views...);
 #ifndef NDEBUG
             GT_CUDA_CHECK(cudaDeviceSynchronize());
 #else
