@@ -352,13 +352,5 @@ namespace gridtools {
         TEST(insert, functional) {
             EXPECT_TRUE(insert<2>('a', make<std::tuple>(1, 2, 3)) == make<std::tuple>(1, 2, 'a', 3));
         }
-
-        TEST(group, functional) {
-            auto testee = group<meta::are_same>(
-                [](auto... args) { return make<std::array>(args...); }, make<std::tuple>(1, 2, 3., 4., 5, 6.));
-            EXPECT_EQ(make<std::tuple>(
-                          make<std::array>(1, 2), make<std::array>(3., 4.), make<std::array>(5), make<std::array>(6.)),
-                testee);
-        }
     } // namespace tuple_util
 } // namespace gridtools
