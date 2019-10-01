@@ -56,20 +56,25 @@ struct static_type_tests {
 template <>
 struct static_type_tests<backend::cuda> {
     using storage_traits_t = storage_traits<backend::cuda>;
+#ifdef __HIPCC__
+    using alignment_t = alignment<16>;
+#else
+    using alignment_t = alignment<32>;
+#endif
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
     typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
     GT_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
-    GT_STATIC_ASSERT((std::is_same<storage_info_ty,
-                         storage_info<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment<32>>>::type::value),
+    GT_STATIC_ASSERT(
+        (std::is_same<storage_info_ty, storage_info<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment_t>>::type::value),
         "storage info test failed");
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
     GT_STATIC_ASSERT((std::is_same<special_storage_info_ty,
-                         storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<32>>>::type::value),
+                         storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment_t>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
