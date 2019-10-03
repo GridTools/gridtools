@@ -71,33 +71,54 @@ TEST(apply_gpu, configurtation) {
         EXPECT_EQ(c.block_size().y, res[1]);
         EXPECT_EQ(c.block_size().z, res[2]);
 
-        EXPECT_EQ(c.shape(0, 0, 0).start(0), 0);
-        EXPECT_EQ(c.shape(0, 0, 0).start(1), 2);
-        EXPECT_EQ(c.shape(0, 0, 0).start(2), 2);
+        {
+            auto const &shape = c.shape(gt::direction<gt::minus_, gt::minus_, gt::minus_>{});
+            EXPECT_EQ(shape.start(0), 0);
+            EXPECT_EQ(shape.start(1), 2);
+            EXPECT_EQ(shape.start(2), 2);
+        }
 
-        EXPECT_EQ(c.shape(1, 0, 0).start(0), 1);
-        EXPECT_EQ(c.shape(1, 0, 0).start(1), 2);
-        EXPECT_EQ(c.shape(1, 0, 0).start(2), 2);
+        {
+            auto const &shape = c.shape(gt::direction<gt::zero_, gt::minus_, gt::minus_>{});
+            EXPECT_EQ(shape.start(0), 1);
+            EXPECT_EQ(shape.start(1), 2);
+            EXPECT_EQ(shape.start(2), 2);
+        }
 
-        EXPECT_EQ(c.shape(2, 0, 0).start(0), 68);
-        EXPECT_EQ(c.shape(2, 0, 0).start(1), 2);
-        EXPECT_EQ(c.shape(2, 0, 0).start(2), 2);
+        {
+            auto const &shape = c.shape(gt::direction<gt::plus_, gt::minus_, gt::minus_>{});
+            EXPECT_EQ(shape.start(0), 68);
+            EXPECT_EQ(shape.start(1), 2);
+            EXPECT_EQ(shape.start(2), 2);
+        }
 
-        EXPECT_EQ(c.shape(0, 1, 0).start(0), 0);
-        EXPECT_EQ(c.shape(0, 1, 0).start(1), 4);
-        EXPECT_EQ(c.shape(0, 1, 0).start(2), 2);
+        {
+            auto const &shape = c.shape(gt::direction<gt::minus_, gt::zero_, gt::minus_>{});
+            EXPECT_EQ(shape.start(0), 0);
+            EXPECT_EQ(shape.start(1), 4);
+            EXPECT_EQ(shape.start(2), 2);
+        }
 
-        EXPECT_EQ(c.shape(0, 2, 0).start(0), 0);
-        EXPECT_EQ(c.shape(0, 2, 0).start(1), 46);
-        EXPECT_EQ(c.shape(0, 2, 0).start(2), 2);
+        {
+            auto const &shape = c.shape(gt::direction<gt::minus_, gt::plus_, gt::minus_>{});
+            EXPECT_EQ(shape.start(0), 0);
+            EXPECT_EQ(shape.start(1), 46);
+            EXPECT_EQ(shape.start(2), 2);
+        }
 
-        EXPECT_EQ(c.shape(0, 0, 1).start(0), 0);
-        EXPECT_EQ(c.shape(0, 0, 1).start(1), 2);
-        EXPECT_EQ(c.shape(0, 0, 1).start(2), 5);
+        {
+            auto const &shape = c.shape(gt::direction<gt::minus_, gt::minus_, gt::zero_>{});
+            EXPECT_EQ(shape.start(0), 0);
+            EXPECT_EQ(shape.start(1), 2);
+            EXPECT_EQ(shape.start(2), 5);
+        }
 
-        EXPECT_EQ(c.shape(0, 0, 2).start(0), 0);
-        EXPECT_EQ(c.shape(0, 0, 2).start(1), 2);
-        EXPECT_EQ(c.shape(0, 0, 2).start(2), 55);
+        {
+            auto const &shape = c.shape(gt::direction<gt::minus_, gt::minus_, gt::plus_>{});
+            EXPECT_EQ(shape.start(0), 0);
+            EXPECT_EQ(shape.start(1), 2);
+            EXPECT_EQ(shape.start(2), 55);
+        }
     }
 
     {
