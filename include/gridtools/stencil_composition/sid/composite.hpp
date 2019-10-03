@@ -150,8 +150,13 @@ namespace gridtools {
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
                     GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
-                        return tuple_util::host_device::transform(
-                            [](auto const &ptr) GT_FORCE_INLINE_LAMBDA -> decltype(auto) { return *ptr; }, m_vals);
+                        return tuple_util::host_device::transform([](auto const &ptr)
+// Workaround for GCC 9 bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333
+#if defined(__clang__) || (__GNUC__ != 9 && __GNUC_MINOR__ > 2)
+                                                                      GT_FORCE_INLINE_LAMBDA
+#endif
+                            -> decltype(auto) { return *ptr; },
+                            m_vals);
                     }
 
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
