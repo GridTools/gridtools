@@ -14,8 +14,10 @@
 #include "../common/array.hpp"
 #include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
+#include "../common/generic_metafunctions/for_each.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/integral_constant.hpp"
+#include "../meta.hpp"
 #include "direction.hpp"
 #include "predicate.hpp"
 
@@ -26,69 +28,43 @@ namespace gridtools {
      */
 
     namespace apply_gpu_impl_ {
+        // Thread block size
         using threads_per_block_x_t = integral_constant<int_t, 8>;
         using threads_per_block_y_t = integral_constant<int_t, 32>;
         using threads_per_block_z_t = integral_constant<int_t, 1>;
+
+        // Compute list of all required directions
+        using minus_zero_plus_t =
+            meta::list<integral_constant<sign, minus_>, integral_constant<sign, zero_>, integral_constant<sign, plus_>>;
+        template <class L>
+        using list_to_direction = direction<meta::at_c<L, 0>::value, meta::at_c<L, 1>::value, meta::at_c<L, 2>::value>;
+        using is_not_center = meta::not_<meta::curry<std::is_same, direction<zero_, zero_, zero_>>::template apply>;
+        using directions_t = meta::filter<is_not_center::template apply,
+            meta::transform<list_to_direction,
+                meta::cartesian_product<minus_zero_plus_t, minus_zero_plus_t, minus_zero_plus_t>>>;
 
         /// Since predicate is runtime evaluated possibly on host-only data, we need to evaluate it before passing it to
         /// the CUDA kernels
         struct precomputed_pred {
             template <typename Predicate>
             precomputed_pred(Predicate const &p) {
-                init<minus_, minus_, minus_>(p);
-                init<minus_, minus_, zero_>(p);
-                init<minus_, minus_, plus_>(p);
-
-                init<minus_, zero_, minus_>(p);
-                init<minus_, zero_, zero_>(p);
-                init<minus_, zero_, plus_>(p);
-
-                init<minus_, plus_, minus_>(p);
-                init<minus_, plus_, zero_>(p);
-                init<minus_, plus_, plus_>(p);
-
-                init<zero_, minus_, minus_>(p);
-                init<zero_, minus_, zero_>(p);
-                init<zero_, minus_, plus_>(p);
-
-                init<zero_, zero_, minus_>(p);
-
-                init<zero_, zero_, plus_>(p);
-
-                init<zero_, plus_, minus_>(p);
-                init<zero_, plus_, zero_>(p);
-                init<zero_, plus_, plus_>(p);
-
-                init<plus_, minus_, minus_>(p);
-                init<plus_, minus_, zero_>(p);
-                init<plus_, minus_, plus_>(p);
-
-                init<plus_, zero_, minus_>(p);
-                init<plus_, zero_, zero_>(p);
-                init<plus_, zero_, plus_>(p);
-
-                init<plus_, plus_, minus_>(p);
-                init<plus_, plus_, zero_>(p);
-                init<plus_, plus_, plus_>(p);
+                for_each<directions_t>([this, &p](auto dir) {
+                    uint_t mask = 0x1 << direction_index(dir);
+                    m_values = (m_values & ~mask) | (p(dir) ? mask : 0);
+                });
             }
 
             precomputed_pred(precomputed_pred const &) = default;
 
-            template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
-            GT_FUNCTION bool operator()(direction<I, J, K>) const {
-                static constexpr uint_t index = direction_index<I, J, K>();
+            template <class Direction>
+            GT_FUNCTION bool operator()(Direction) const {
+                static constexpr uint_t index = direction_index(Direction());
                 return (m_values >> index) & 0x1;
             }
 
           private:
-            template <gridtools::sign I, gridtools::sign J, gridtools::sign K, class Predicate>
-            void init(Predicate const &p) {
-                static constexpr uint_t mask = 0x1 << direction_index<I, J, K>();
-                m_values = (m_values & ~mask) | (p(direction<I, J, K>{}) ? mask : 0);
-            }
-
             template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
-            GT_FUNCTION static constexpr uint_t direction_index() {
+            GT_FUNCTION static constexpr uint_t direction_index(direction<I, J, K>) {
                 constexpr int_t stride_i = 9;
                 constexpr int_t stride_j = 3;
                 constexpr int_t stride_k = 1;
@@ -236,28 +212,11 @@ namespace gridtools {
                 return {threads_per_block_x_t::value, threads_per_block_y_t::value, threads_per_block_z_t::value};
             };
 
-            GT_FUNCTION
-            shape_type const &shape(uint_t i, uint_t j, uint_t k) const { return sizes[i][j][k]; }
+            template <sign I, sign J, sign K>
+            GT_FUNCTION shape_type const &shape(direction<I, J, K>) const {
+                return sizes[I + 1][J + 1][K + 1];
+            }
         };
-
-/** The following macro substitute the code to apply the boundary
-    function to the boundary portion identified by a particular
-    direction. The thread ids should be permuted since the shape
-    of the boundary portion may be transposed w.r.t. the kernel
-    configuration.
- */
-#define GT_RUN_BC_ON(x, y, z)                                                                                      \
-    if (predicate(direction<x, y, z>())) {                                                                         \
-        auto const &shape = conf.shape(static_cast<int>(x) + 1, static_cast<int>(y) + 1, static_cast<int>(z) + 1); \
-        if ((i < shape.max()) && (j < shape.median()) && (k < shape.min())) {                                      \
-            boundary_function(direction<x, y, z>{},                                                                \
-                data_views...,                                                                                     \
-                thread_along_axis(i, j, k, shape.perm(0)) + shape.start(0),                                        \
-                thread_along_axis(i, j, k, shape.perm(1)) + shape.start(1),                                        \
-                thread_along_axis(i, j, k, shape.perm(2)) + shape.start(2));                                       \
-        }                                                                                                          \
-    }                                                                                                              \
-    static_assert(true, " ")
 
         GT_FUNCTION int thread_along_axis(int i, int j, int k, int axis) {
             assert(axis >= 0 && axis < 3);
@@ -276,41 +235,18 @@ namespace gridtools {
             const uint_t j = blockIdx.y * apply_gpu_impl_::threads_per_block_y_t::value + threadIdx.y;
             const uint_t k = blockIdx.z * apply_gpu_impl_::threads_per_block_z_t::value + threadIdx.z;
 
-            GT_RUN_BC_ON(minus_, minus_, minus_);
-            GT_RUN_BC_ON(minus_, minus_, zero_);
-            GT_RUN_BC_ON(minus_, minus_, plus_);
-
-            GT_RUN_BC_ON(minus_, zero_, minus_);
-            GT_RUN_BC_ON(minus_, zero_, zero_);
-            GT_RUN_BC_ON(minus_, zero_, plus_);
-
-            GT_RUN_BC_ON(minus_, plus_, minus_);
-            GT_RUN_BC_ON(minus_, plus_, zero_);
-            GT_RUN_BC_ON(minus_, plus_, plus_);
-
-            GT_RUN_BC_ON(zero_, minus_, minus_);
-            GT_RUN_BC_ON(zero_, minus_, zero_);
-            GT_RUN_BC_ON(zero_, minus_, plus_);
-
-            GT_RUN_BC_ON(zero_, zero_, minus_);
-
-            GT_RUN_BC_ON(zero_, zero_, plus_);
-
-            GT_RUN_BC_ON(zero_, plus_, minus_);
-            GT_RUN_BC_ON(zero_, plus_, zero_);
-            GT_RUN_BC_ON(zero_, plus_, plus_);
-
-            GT_RUN_BC_ON(plus_, minus_, minus_);
-            GT_RUN_BC_ON(plus_, minus_, zero_);
-            GT_RUN_BC_ON(plus_, minus_, plus_);
-
-            GT_RUN_BC_ON(plus_, zero_, minus_);
-            GT_RUN_BC_ON(plus_, zero_, zero_);
-            GT_RUN_BC_ON(plus_, zero_, plus_);
-
-            GT_RUN_BC_ON(plus_, plus_, minus_);
-            GT_RUN_BC_ON(plus_, plus_, zero_);
-            GT_RUN_BC_ON(plus_, plus_, plus_);
+            device::for_each<directions_t>([&](auto dir) {
+                if (predicate(dir)) {
+                    auto const &shape = conf.shape(dir);
+                    if ((i < shape.max()) && (j < shape.median()) && (k < shape.min())) {
+                        boundary_function(dir,
+                            data_views...,
+                            thread_along_axis(i, j, k, shape.perm(0)) + shape.start(0),
+                            thread_along_axis(i, j, k, shape.perm(1)) + shape.start(1),
+                            thread_along_axis(i, j, k, shape.perm(2)) + shape.start(2));
+                    }
+                }
+            });
         }
 
 #undef GT_RUN_BC_ON
