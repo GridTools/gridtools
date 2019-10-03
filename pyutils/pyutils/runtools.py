@@ -233,7 +233,7 @@ def sbatch_retry(commands, retries, *args, **kwargs):
         if successful == len(outputs):
             break
         if successful < len(outputs) // 2:
-                raise RuntimeError('Majority of jobs has failed')
+            raise RuntimeError('Majority of jobs has failed')
 
         failed_commands = []
         failed_indices = []
