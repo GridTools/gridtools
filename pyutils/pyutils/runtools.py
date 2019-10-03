@@ -4,7 +4,6 @@ import asyncio
 import io
 import os
 import re
-import statistics
 import subprocess
 import tempfile
 import time
@@ -230,14 +229,11 @@ def sbatch(commands, *args, **kwargs):
 def sbatch_retry(commands, retries, *args, **kwargs):
     outputs = _sbatch(commands, *args, **kwargs)
     for retry in range(retries):
-        exitcodes = [exitcode for exitcode, *_ in outputs]
-        if all(exitcode == 0 for exitcode in exitcodes):
+        successful = sum(exitcode == 0 for exitcode, *_ in outputs)
+        if successful == len(outputs):
             break
-        try:
-            if statistics.mode(exitcodes) != 0:
+        if successful < len(outputs) // 2:
                 raise RuntimeError('Majority of jobs has failed')
-        except statistics.StatisticsError:
-            pass
 
         failed_commands = []
         failed_indices = []
