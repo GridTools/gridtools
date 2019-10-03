@@ -89,7 +89,10 @@ namespace gridtools {
 
             template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
             GT_FUNCTION static constexpr uint_t direction_index() {
-                return (static_cast<int>(I) + 1) * 9 + (static_cast<int>(J) + 1) * 3 + (static_cast<int>(K) + 1);
+                constexpr int_t stride_i = 9;
+                constexpr int_t stride_j = 3;
+                constexpr int_t stride_k = 1;
+                return (I + 1) * stride_i + (J + 1) * stride_j + (K + 1) * stride_k;
             }
 
             GT_STATIC_ASSERT(sizeof(uint_t) >= 4, GT_INTERNAL_ERROR);
