@@ -12,10 +12,7 @@
 #include <memory>
 #include <vector>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
+#include "../../common/defs.hpp"
 #include "../../common/hugepage_alloc.hpp"
 #include "../../common/hymap.hpp"
 #include "../dim.hpp"
@@ -63,12 +60,7 @@ namespace gridtools {
                 // allocate one extra cache line to allow for offsetting the initial allocation
                 // to guarantee alignment of first element inside domain
                 constexpr std::size_t extra = (byte_alignment::value + sizeof(T) - 1) / sizeof(T);
-#ifdef _OPENMP
-                std::size_t max_threads = omp_get_max_threads();
-#else
-                constexpr std::size_t max_threads = 1;
-#endif
-                return bs.i * bs.j * bs.k * max_threads + extra;
+                return bs.i * bs.j * bs.k * omp_get_max_threads() + extra;
             }
 
             template <std::size_t, class>
