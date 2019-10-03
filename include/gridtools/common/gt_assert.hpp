@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+#include <cassert>
 #include <stdexcept>
 
 #include "hip_wrappers.hpp"
@@ -18,41 +19,21 @@
     @{
 */
 
-#if defined(__clang__) && defined(__CUDACC__) // Clang CUDA compilation
+#ifdef __CUDA_ARCH__ // device version of GT_ASSERT_OR_THROW
+#define GT_ASSERT_OR_THROW(cond, msg) assert(cond)
+#elif defined(__CUDACC__) && defined(__clang__) // Clang-CUDA host version
 namespace gt_assert_impl_ {
     __host__ inline void throw_error(const std::string &msg) { throw std::runtime_error(msg); }
 
     __device__ void throw_error(const char *);
 } // namespace gt_assert_impl_
-
-#ifdef __CUDA_ARCH__
-#define GT_ASSERT_OR_THROW(cond, msg) assert(cond)
-#else
 #define GT_ASSERT_OR_THROW(cond, msg) \
     if (!(cond))                      \
     gt_assert_impl_::throw_error(msg)
-#endif
-#include <cassert>
-#else // NVIDIA CUDA compilation or host-only compilation
-#ifdef __CUDACC__
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 200)
-// we take the cuda assert for arch greater than 2.x
-#include <assert.h>
-#else
-#undef assert
-#define assert(e)
-#endif
-#else
-#include <cassert>
-#endif
-
-#ifdef __CUDA_ARCH__
-#define GT_ASSERT_OR_THROW(cond, msg) assert(cond)
-#else
+#else // NVCC host/host-only version
 #define GT_ASSERT_OR_THROW(cond, msg) \
     if (!(cond))                      \
     throw std::runtime_error(msg)
-#endif
 #endif
 /** @} */
 /** @} */
