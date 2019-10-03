@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#ifdef GT_USE_GPU
 #ifdef GT_USE_HIP
 #include <hip/hip_runtime.h>
 
@@ -50,6 +51,11 @@
 #define __CUDA_ARCH__ 1
 #endif
 
+#ifndef __CUDACC__
+#define __CUDACC__
+#endif
+
 #else
 #include <cuda_runtime.h>
+#endif
 #endif
