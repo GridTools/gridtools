@@ -13,6 +13,7 @@
 #include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/hypercube_iterator.hpp"
+#include "../../common/integral_constant.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/make_array.hpp"
 #include "../../common/tuple_util.hpp"
@@ -24,6 +25,8 @@
 
 namespace gridtools {
     namespace impl {
+        using block_size_1d_t = integral_constant<int_t, 8>;
+
         template <typename DataType>
         __global__ void transform_cuda_loop_kernel(DataType *dst,
             DataType *src,
@@ -32,13 +35,13 @@ namespace gridtools {
             gridtools::array<gridtools::uint_t, GT_TRANSFORM_MAX_DIM> src_strides,
             gridtools::array<size_t, GT_TRANSFORM_MAX_DIM - 3> outer_dims) {
 
-            int i = blockIdx.x * blockDim.x + threadIdx.x;
+            int i = blockIdx.x * block_size_1d_t::value + threadIdx.x;
             if (i >= dims[0])
                 return;
-            int j = blockIdx.y * blockDim.y + threadIdx.y;
+            int j = blockIdx.y * block_size_1d_t::value + threadIdx.y;
             if (j >= dims[1])
                 return;
-            int k = blockIdx.z * blockDim.z + threadIdx.z;
+            int k = blockIdx.z * block_size_1d_t::value + threadIdx.z;
             if (k >= dims[2])
                 return;
 
@@ -67,16 +70,15 @@ namespace gridtools {
             const std::vector<uint_t> &dims,
             const std::vector<uint_t> &dst_strides,
             const std::vector<uint_t> &src_strides) {
-            int block_size_1d = 8;
 
             auto a_dims = impl::vector_to_dims_array<GT_TRANSFORM_MAX_DIM>(dims);
             gridtools::array<size_t, GT_TRANSFORM_MAX_DIM - 3> outer_dims;
             std::copy(a_dims.begin() + 3, a_dims.end(), outer_dims.begin());
 
-            dim3 grid_size((a_dims[0] + block_size_1d - 1) / block_size_1d,
-                (a_dims[1] + block_size_1d - 1) / block_size_1d,
-                (a_dims[2] + block_size_1d - 1) / block_size_1d);
-            dim3 block_size(block_size_1d, block_size_1d, block_size_1d);
+            dim3 grid_size((a_dims[0] + block_size_1d_t::value - 1) / block_size_1d_t::value,
+                (a_dims[1] + block_size_1d_t::value - 1) / block_size_1d_t::value,
+                (a_dims[2] + block_size_1d_t::value - 1) / block_size_1d_t::value);
+            dim3 block_size(block_size_1d_t::value, block_size_1d_t::value, block_size_1d_t::value);
 
             transform_cuda_loop_kernel<<<grid_size, block_size>>>(dst,
                 src,

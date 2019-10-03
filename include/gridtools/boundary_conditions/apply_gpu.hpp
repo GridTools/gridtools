@@ -9,10 +9,13 @@
  */
 #pragma once
 
+#include <cmath>
+
 #include "../common/array.hpp"
 #include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
 #include "../common/halo_descriptor.hpp"
+#include "../common/integral_constant.hpp"
 #include "direction.hpp"
 #include "predicate.hpp"
 
@@ -22,58 +25,79 @@ namespace gridtools {
      * @{
      */
 
-    namespace _impl {
+    namespace apply_gpu_impl_ {
+        using threads_per_block_x_t = integral_constant<int_t, 8>;
+        using threads_per_block_y_t = integral_constant<int_t, 32>;
+        using threads_per_block_z_t = integral_constant<int_t, 1>;
+
         /// Since predicate is runtime evaluated possibly on host-only data, we need to evaluate it before passing it to
         /// the CUDA kernels
         struct precomputed_pred {
-            array<array<array<bool, 3>, 3>, 3> m_values;
-
             template <typename Predicate>
             precomputed_pred(Predicate const &p) {
-                m_values[0][0][0] = p(direction<minus_, minus_, minus_>{});
-                m_values[0][0][1] = p(direction<minus_, minus_, zero_>{});
-                m_values[0][0][2] = p(direction<minus_, minus_, plus_>{});
+                init<minus_, minus_, minus_>(p);
+                init<minus_, minus_, zero_>(p);
+                init<minus_, minus_, plus_>(p);
 
-                m_values[0][1][0] = p(direction<minus_, zero_, minus_>{});
-                m_values[0][1][1] = p(direction<minus_, zero_, zero_>{});
-                m_values[0][1][2] = p(direction<minus_, zero_, plus_>{});
+                init<minus_, zero_, minus_>(p);
+                init<minus_, zero_, zero_>(p);
+                init<minus_, zero_, plus_>(p);
 
-                m_values[0][2][0] = p(direction<minus_, plus_, minus_>{});
-                m_values[0][2][1] = p(direction<minus_, plus_, zero_>{});
-                m_values[0][2][2] = p(direction<minus_, plus_, plus_>{});
+                init<minus_, plus_, minus_>(p);
+                init<minus_, plus_, zero_>(p);
+                init<minus_, plus_, plus_>(p);
 
-                m_values[1][0][0] = p(direction<zero_, minus_, minus_>{});
-                m_values[1][0][1] = p(direction<zero_, minus_, zero_>{});
-                m_values[1][0][2] = p(direction<zero_, minus_, plus_>{});
+                init<zero_, minus_, minus_>(p);
+                init<zero_, minus_, zero_>(p);
+                init<zero_, minus_, plus_>(p);
 
-                m_values[1][1][0] = p(direction<zero_, zero_, minus_>{});
+                init<zero_, zero_, minus_>(p);
 
-                m_values[1][1][2] = p(direction<zero_, zero_, plus_>{});
+                init<zero_, zero_, plus_>(p);
 
-                m_values[1][2][0] = p(direction<zero_, plus_, minus_>{});
-                m_values[1][2][1] = p(direction<zero_, plus_, zero_>{});
-                m_values[1][2][2] = p(direction<zero_, plus_, plus_>{});
+                init<zero_, plus_, minus_>(p);
+                init<zero_, plus_, zero_>(p);
+                init<zero_, plus_, plus_>(p);
 
-                m_values[2][0][0] = p(direction<plus_, minus_, minus_>{});
-                m_values[2][0][1] = p(direction<plus_, minus_, zero_>{});
-                m_values[2][0][2] = p(direction<plus_, minus_, plus_>{});
+                init<plus_, minus_, minus_>(p);
+                init<plus_, minus_, zero_>(p);
+                init<plus_, minus_, plus_>(p);
 
-                m_values[2][1][0] = p(direction<plus_, zero_, minus_>{});
-                m_values[2][1][1] = p(direction<plus_, zero_, zero_>{});
-                m_values[2][1][2] = p(direction<plus_, zero_, plus_>{});
+                init<plus_, zero_, minus_>(p);
+                init<plus_, zero_, zero_>(p);
+                init<plus_, zero_, plus_>(p);
 
-                m_values[2][2][0] = p(direction<plus_, plus_, minus_>{});
-                m_values[2][2][1] = p(direction<plus_, plus_, zero_>{});
-                m_values[2][2][2] = p(direction<plus_, plus_, plus_>{});
+                init<plus_, plus_, minus_>(p);
+                init<plus_, plus_, zero_>(p);
+                init<plus_, plus_, plus_>(p);
             }
 
-            GT_FUNCTION
             precomputed_pred(precomputed_pred const &) = default;
 
             template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
             GT_FUNCTION bool operator()(direction<I, J, K>) const {
-                return m_values[static_cast<int>(I) + 1][static_cast<int>(J) + 1][static_cast<int>(K) + 1];
+                static constexpr uint_t index = direction_index<I, J, K>();
+                return (m_values >> index) & 0x1;
             }
+
+          private:
+            template <gridtools::sign I, gridtools::sign J, gridtools::sign K, class Predicate>
+            void init(Predicate const &p) {
+                static constexpr uint_t mask = 0x1 << direction_index<I, J, K>();
+                m_values = (m_values & ~mask) | (p(direction<I, J, K>{}) ? mask : 0);
+            }
+
+            template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
+            GT_FUNCTION static constexpr uint_t direction_index() {
+                constexpr int_t stride_i = 9;
+                constexpr int_t stride_j = 3;
+                constexpr int_t stride_k = 1;
+                return (I + 1) * stride_i + (J + 1) * stride_j + (K + 1) * stride_k;
+            }
+
+            GT_STATIC_ASSERT(sizeof(uint_t) >= 4, GT_INTERNAL_ERROR);
+
+            uint_t m_values;
         };
 
         /** This class contains the information needed to identify
@@ -96,10 +120,8 @@ namespace gridtools {
                 array<uint_t, 3> m_start;
                 array<uint_t, 3> m_perm = {{0, 1, 2}};
 
-                GT_FUNCTION
                 shape_type() = default;
 
-                GT_FUNCTION
                 shape_type(uint_t x, uint_t y, uint_t z, uint_t s0, uint_t s1, uint_t s2)
                     : m_size{x, y, z}, m_sorted{m_size}, m_start{s0, s1, s2} {
                     array<uint_t, 3> forward_perm = {{0, 1, 2}};
@@ -148,7 +170,6 @@ namespace gridtools {
                 uint_t start(uint_t i) const { return m_start[i]; }
             };
 
-            array<uint_t, 3> configuration = {{0, 0, 0}};
             array<array<array<shape_type, 3>, 3>, 3> sizes;
 
             /** Kernel configuration takes the halo descriptors and
@@ -157,7 +178,6 @@ namespace gridtools {
                 operatior. These pieces are encoded into shapes that
                 are described above here.
              */
-            GT_FUNCTION
             kernel_configuration(array<halo_descriptor, 3> const &halos) {
 
                 array<array<uint_t, 3>, 3> segments;
@@ -185,24 +205,40 @@ namespace gridtools {
                         }
                     }
                 }
+            }
 
+            dim3 block_size() const {
+                dim3 b(0, 0, 0);
                 for (int i = 0; i < 3; ++i) {
                     for (int j = 0; j < 3; ++j) {
                         for (int k = 0; k < 3; ++k) {
                             if (i != 1 or j != 1 or k != 1) {
-                                configuration[0] = max(configuration[0], sizes[i][j][k].max());
-                                configuration[1] = max(configuration[1], sizes[i][j][k].median());
-                                configuration[2] = max(configuration[2], sizes[i][j][k].min());
+                                b.x = std::max(b.x, (decltype(b.x))sizes[i][j][k].max());
+                                b.y = std::max(b.y, (decltype(b.y))sizes[i][j][k].median());
+                                b.z = std::max(b.z, (decltype(b.z))sizes[i][j][k].min());
                             }
                         }
                     }
                 }
+                assert((b.x > 0 || b.y > 0 || b.z > 0) && "all boundary extents are empty");
+                return b;
             }
+
+            dim3 blocks() const {
+                dim3 b = block_size();
+                dim3 t = threads_per_block();
+                return {b.x == 0 ? 1 : (b.x + t.x - 1) / t.x,
+                    b.y == 0 ? 1 : (b.y + t.y - 1) / t.y,
+                    b.z == 0 ? 1 : (b.z + t.z - 1) / t.z};
+            }
+
+            dim3 threads_per_block() const {
+                return {threads_per_block_x_t::value, threads_per_block_y_t::value, threads_per_block_z_t::value};
+            };
 
             GT_FUNCTION
             shape_type const &shape(uint_t i, uint_t j, uint_t k) const { return sizes[i][j][k]; }
         };
-    } // namespace _impl
 
 /** The following macro substitute the code to apply the boundary
     function to the boundary portion identified by a particular
@@ -213,67 +249,73 @@ namespace gridtools {
 #define GT_RUN_BC_ON(x, y, z)                                                                                      \
     if (predicate(direction<x, y, z>())) {                                                                         \
         auto const &shape = conf.shape(static_cast<int>(x) + 1, static_cast<int>(y) + 1, static_cast<int>(z) + 1); \
-        if ((th[0] < shape.max()) && (th[1] < shape.median()) && (th[2] < shape.min())) {                          \
+        if ((i < shape.max()) && (j < shape.median()) && (k < shape.min())) {                                      \
             boundary_function(direction<x, y, z>{},                                                                \
                 data_views...,                                                                                     \
-                th[shape.perm(0)] + shape.start(0),                                                                \
-                th[shape.perm(1)] + shape.start(1),                                                                \
-                th[shape.perm(2)] + shape.start(2));                                                               \
+                thread_along_axis(i, j, k, shape.perm(0)) + shape.start(0),                                        \
+                thread_along_axis(i, j, k, shape.perm(1)) + shape.start(1),                                        \
+                thread_along_axis(i, j, k, shape.perm(2)) + shape.start(2));                                       \
         }                                                                                                          \
     }                                                                                                              \
     static_assert(true, " ")
 
-    /**
-       @brief kernel to appy boundary conditions to the data fields requested
-     */
-    template <typename BoundaryFunction, typename Halos, typename... DataViews>
-    __global__ void loop_kernel(BoundaryFunction const boundary_function,
-        _impl::precomputed_pred const predicate,
-        _impl::kernel_configuration const conf,
-        Halos const halos,
-        DataViews const... data_views) {
-        array<uint_t, 3> th{blockIdx.x * blockDim.x + threadIdx.x,
-            blockIdx.y * blockDim.y + threadIdx.y,
-            blockIdx.z * blockDim.z + threadIdx.z};
+        GT_FUNCTION int thread_along_axis(int i, int j, int k, int axis) {
+            assert(axis >= 0 && axis < 3);
+            return axis == 0 ? i : axis == 1 ? j : k;
+        }
 
-        GT_RUN_BC_ON(minus_, minus_, minus_);
-        GT_RUN_BC_ON(minus_, minus_, zero_);
-        GT_RUN_BC_ON(minus_, minus_, plus_);
+        /**
+           @brief kernel to appy boundary conditions to the data fields requested
+         */
+        template <typename BoundaryFunction, typename... DataViews>
+        __global__ void loop_kernel(BoundaryFunction const boundary_function,
+            apply_gpu_impl_::precomputed_pred const predicate,
+            apply_gpu_impl_::kernel_configuration const conf,
+            DataViews const... data_views) {
+            const uint_t i = blockIdx.x * apply_gpu_impl_::threads_per_block_x_t::value + threadIdx.x;
+            const uint_t j = blockIdx.y * apply_gpu_impl_::threads_per_block_y_t::value + threadIdx.y;
+            const uint_t k = blockIdx.z * apply_gpu_impl_::threads_per_block_z_t::value + threadIdx.z;
 
-        GT_RUN_BC_ON(minus_, zero_, minus_);
-        GT_RUN_BC_ON(minus_, zero_, zero_);
-        GT_RUN_BC_ON(minus_, zero_, plus_);
+            GT_RUN_BC_ON(minus_, minus_, minus_);
+            GT_RUN_BC_ON(minus_, minus_, zero_);
+            GT_RUN_BC_ON(minus_, minus_, plus_);
 
-        GT_RUN_BC_ON(minus_, plus_, minus_);
-        GT_RUN_BC_ON(minus_, plus_, zero_);
-        GT_RUN_BC_ON(minus_, plus_, plus_);
+            GT_RUN_BC_ON(minus_, zero_, minus_);
+            GT_RUN_BC_ON(minus_, zero_, zero_);
+            GT_RUN_BC_ON(minus_, zero_, plus_);
 
-        GT_RUN_BC_ON(zero_, minus_, minus_);
-        GT_RUN_BC_ON(zero_, minus_, zero_);
-        GT_RUN_BC_ON(zero_, minus_, plus_);
+            GT_RUN_BC_ON(minus_, plus_, minus_);
+            GT_RUN_BC_ON(minus_, plus_, zero_);
+            GT_RUN_BC_ON(minus_, plus_, plus_);
 
-        GT_RUN_BC_ON(zero_, zero_, minus_);
+            GT_RUN_BC_ON(zero_, minus_, minus_);
+            GT_RUN_BC_ON(zero_, minus_, zero_);
+            GT_RUN_BC_ON(zero_, minus_, plus_);
 
-        GT_RUN_BC_ON(zero_, zero_, plus_);
+            GT_RUN_BC_ON(zero_, zero_, minus_);
 
-        GT_RUN_BC_ON(zero_, plus_, minus_);
-        GT_RUN_BC_ON(zero_, plus_, zero_);
-        GT_RUN_BC_ON(zero_, plus_, plus_);
+            GT_RUN_BC_ON(zero_, zero_, plus_);
 
-        GT_RUN_BC_ON(plus_, minus_, minus_);
-        GT_RUN_BC_ON(plus_, minus_, zero_);
-        GT_RUN_BC_ON(plus_, minus_, plus_);
+            GT_RUN_BC_ON(zero_, plus_, minus_);
+            GT_RUN_BC_ON(zero_, plus_, zero_);
+            GT_RUN_BC_ON(zero_, plus_, plus_);
 
-        GT_RUN_BC_ON(plus_, zero_, minus_);
-        GT_RUN_BC_ON(plus_, zero_, zero_);
-        GT_RUN_BC_ON(plus_, zero_, plus_);
+            GT_RUN_BC_ON(plus_, minus_, minus_);
+            GT_RUN_BC_ON(plus_, minus_, zero_);
+            GT_RUN_BC_ON(plus_, minus_, plus_);
 
-        GT_RUN_BC_ON(plus_, plus_, minus_);
-        GT_RUN_BC_ON(plus_, plus_, zero_);
-        GT_RUN_BC_ON(plus_, plus_, plus_);
-    }
+            GT_RUN_BC_ON(plus_, zero_, minus_);
+            GT_RUN_BC_ON(plus_, zero_, zero_);
+            GT_RUN_BC_ON(plus_, zero_, plus_);
+
+            GT_RUN_BC_ON(plus_, plus_, minus_);
+            GT_RUN_BC_ON(plus_, plus_, zero_);
+            GT_RUN_BC_ON(plus_, plus_, plus_);
+        }
 
 #undef GT_RUN_BC_ON
+
+    } // namespace apply_gpu_impl_
 
     /**
        @brief definition of the functions which apply the boundary conditions (arbitrary functions having as argument
@@ -288,9 +330,9 @@ namespace gridtools {
        For this reason each boundary area dimensions will be sorted by decreasing sizes and then the permutation
        needed to map the threads to the coordinates to use in the user provided boundary operators are kept.
 
-       The shape information is kept in \ref _impl::kernel_configuration::shape class, while the kernel
+       The shape information is kept in \ref apply_gpu_impl_::kernel_configuration::shape class, while the kernel
        configuration and the collections of shapes to be accessed in the kernel are stored in the \ref
-       _impl::kernel_configuration class.
+       apply_gpu_impl_::kernel_configuration class.
 
        The kernel will then apply the user provided boundary functions in order to all the areas one after the other.
     */
@@ -300,11 +342,9 @@ namespace gridtools {
     struct boundary_apply_gpu {
       private:
         HaloDescriptors m_halo_descriptors;
-        _impl::kernel_configuration m_conf;
+        apply_gpu_impl_::kernel_configuration m_conf;
         BoundaryFunction const m_boundary_function;
         Predicate m_predicate;
-        static const uint_t ntx = 8, nty = 32, ntz = 1;
-        const dim3 threads{ntx, nty, ntz};
 
       public:
         boundary_apply_gpu(HaloDescriptors const &hd, Predicate predicate = Predicate())
@@ -312,8 +352,7 @@ namespace gridtools {
               m_predicate(predicate) {}
 
         boundary_apply_gpu(HaloDescriptors const &hd, BoundaryFunction const &bf, Predicate predicate = Predicate())
-            : m_halo_descriptors(hd), m_conf{m_halo_descriptors}, m_boundary_function(bf), m_predicate(predicate),
-              threads(ntx, nty, ntz) {}
+            : m_halo_descriptors(hd), m_conf{m_halo_descriptors}, m_boundary_function(bf), m_predicate(predicate) {}
 
         /**
            @brief applies the boundary conditions looping on the halo region defined by the member parameter, in all
@@ -323,19 +362,8 @@ namespace gridtools {
         */
         template <typename... DataFieldViews>
         void apply(DataFieldViews const &... data_field_views) const {
-            uint_t nx = m_conf.configuration[0];
-            uint_t ny = m_conf.configuration[1];
-            uint_t nz = m_conf.configuration[2];
-            uint_t nbx = (nx == 0) ? (1) : ((nx + ntx - 1) / ntx);
-            uint_t nby = (ny == 0) ? (1) : ((ny + nty - 1) / nty);
-            uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);
-            assert(nx > 0 || ny > 0 || nz > 0 && "all boundary extents are empty");
-            dim3 blocks(nbx, nby, nbz);
-            loop_kernel<<<blocks, threads>>>(m_boundary_function,
-                _impl::precomputed_pred{m_predicate},
-                m_conf,
-                m_halo_descriptors,
-                data_field_views...);
+            apply_gpu_impl_::loop_kernel<<<m_conf.blocks(), m_conf.threads_per_block()>>>(
+                m_boundary_function, apply_gpu_impl_::precomputed_pred{m_predicate}, m_conf, data_field_views...);
 #ifndef NDEBUG
             GT_CUDA_CHECK(cudaDeviceSynchronize());
 #else
