@@ -123,7 +123,6 @@ else()
            target_link_libraries(${srcfile}_cuda regression_main GridToolsTestCUDA)
            if(GT_USE_CLANG_CUDA)
                set_source_files_properties(${srcfile}.cu PROPERTIES LANGUAGE CXX)
-               target_compile_options(${srcfile}_cuda PRIVATE ${CUDA_CLANG_OPTIONS})
            endif()
 
            gridtools_add_test(

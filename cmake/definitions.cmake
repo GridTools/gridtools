@@ -48,14 +48,14 @@ if(CUDA_AVAILABLE)
         if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 9.0)
             message(FATAL_ERROR "CUDA 8.X or lower is not supported")
         endif()
-    endif()
 
-    # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
-    target_compile_options(gridtools INTERFACE
-        $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+        # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
+        target_compile_options(gridtools INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
-    if(${GT_CXX_STANDARD} STREQUAL "c++17")
-        message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
+        if(${GT_CXX_STANDARD} STREQUAL "c++17")
+            message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
+        endif()
     endif()
 
     if(NOT GT_USE_HIP)
@@ -65,12 +65,13 @@ if(CUDA_AVAILABLE)
 
     if(GT_USE_CLANG_CUDA)
         if(GT_USE_HIP)
-            set(CUDA_CLANG_OPTIONS -xhip --amdgpu-target=${GT_CUDA_ARCH} -D__CUDACC__)
+            set(cuda_clang_options_ -xhip --amdgpu-target=${GT_CUDA_ARCH})
         else()
-            get_filename_component(CUDA_BIN_DIR ${CMAKE_CUDA_COMPILER} DIRECTORY)
-            get_filename_component(CUDA_ROOT_DIR ${CUDA_BIN_DIR} DIRECTORY)
-            set(CUDA_CLANG_OPTIONS -xcuda --cuda-gpu-arch=${GT_CUDA_ARCH} --cuda-path=${CUDA_ROOT_DIR})
+            get_filename_component(cuda_bin_dir_ ${CMAKE_CUDA_COMPILER} DIRECTORY)
+            get_filename_component(cuda_root_dir_ ${cuda_bin_dir_} DIRECTORY)
+            set(cuda_clang_options_ -xcuda --cuda-gpu-arch=${GT_CUDA_ARCH} --cuda-path=${cuda_root_dir_})
         endif()
+        target_compile_options(gridtools INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${cuda_clang_options_}>)
     endif()
 
     target_include_directories(gridtools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})

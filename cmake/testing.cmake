@@ -65,7 +65,6 @@ function (fetch_tests_helper target_arch filetype subfolder )
             target_link_libraries(${unit_test} GridToolsTest${target_arch_u} cpp_bindgen_generator gtest gmock_main)
             if (target_arch_l MATCHES "cuda" AND GT_USE_CLANG_CUDA)
                 set_source_files_properties(${test_source} PROPERTIES LANGUAGE CXX)
-                target_compile_options(${unit_test} PRIVATE ${CUDA_CLANG_OPTIONS})
             endif()
 
             gridtools_add_test(
@@ -124,7 +123,6 @@ function(add_custom_test target_arch)
         target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
         if (target_arch_l MATCHES "cuda" AND GT_USE_CLANG_CUDA)
             set_source_files_properties(${___SOURCES} PROPERTIES LANGUAGE CXX)
-            target_compile_options(${unit_test} PRIVATE ${CUDA_CLANG_OPTIONS})
         endif()
         gridtools_add_test(
             NAME ${unit_test}
