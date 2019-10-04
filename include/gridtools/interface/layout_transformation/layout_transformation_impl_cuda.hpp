@@ -25,6 +25,7 @@
 
 namespace gridtools {
     namespace impl {
+        // compile-time block size due to HIP-Clang bug https://github.com/ROCm-Developer-Tools/HIP/issues/1283
         using block_size_1d_t = integral_constant<int_t, 8>;
 
         template <typename DataType>
