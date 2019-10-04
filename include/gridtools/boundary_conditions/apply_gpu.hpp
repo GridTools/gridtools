@@ -44,27 +44,30 @@ namespace gridtools {
                 meta::cartesian_product<minus_zero_plus_t, minus_zero_plus_t, minus_zero_plus_t>>>;
 
         /// Since predicate is runtime evaluated possibly on host-only data, we need to evaluate it before passing it to
-        /// the CUDA kernels
+        /// the CUDA kernels. The predicate is evaluated for each of the supported 26 directions on the host and results
+        /// are packed bitwise in a single 32bit integer that is copied to the device.
         struct precomputed_pred {
             template <typename Predicate>
-            precomputed_pred(Predicate const &p) {
+            precomputed_pred(Predicate const &p) : m_predicate_values(0) {
                 for_each<directions_t>([this, &p](auto dir) {
                     uint_t mask = 0x1 << direction_index(dir);
-                    m_values = (m_values & ~mask) | (p(dir) ? mask : 0);
+                    m_predicate_values = (m_predicate_values & ~mask) | (p(dir) ? mask : 0);
                 });
             }
 
             precomputed_pred(precomputed_pred const &) = default;
 
             template <class Direction>
-            GT_FUNCTION bool operator()(Direction) const {
+            GT_FUNCTION_DEVICE bool operator()(Direction) const {
                 static constexpr uint_t index = direction_index(Direction());
-                return (m_values >> index) & 0x1;
+                return (m_predicate_values >> index) & 0x1;
             }
 
           private:
+            /** Computation of the bit-index in `m_predicate_values` of the given direction. */
             template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
             GT_FUNCTION static constexpr uint_t direction_index(direction<I, J, K>) {
+                // computation of the bit-index of the given direction
                 constexpr int_t stride_i = 9;
                 constexpr int_t stride_j = 3;
                 constexpr int_t stride_k = 1;
@@ -73,7 +76,7 @@ namespace gridtools {
 
             GT_STATIC_ASSERT(sizeof(uint_t) >= 4, GT_INTERNAL_ERROR);
 
-            uint_t m_values;
+            uint_t m_predicate_values;
         };
 
         /** This class contains the information needed to identify
@@ -117,7 +120,7 @@ namespace gridtools {
                         }
                     }
                     // This loops computes the permutation needed later.
-                    // forward_perm tells in what poition the sorted size comes from,
+                    // forward_perm tells in what position the sorted size comes from,
                     // the final m_perm tells in which position a given size is going
                     // after the sorting. This is the information needed to map threads
                     // to dimensions, since threads will come from a sorted (by
@@ -200,15 +203,15 @@ namespace gridtools {
                 return b;
             }
 
-            dim3 blocks() const {
+            dim3 kernel_grid_size() const {
                 dim3 b = block_size();
-                dim3 t = threads_per_block();
+                dim3 t = kernel_thread_block_size();
                 return {b.x == 0 ? 1 : (b.x + t.x - 1) / t.x,
                     b.y == 0 ? 1 : (b.y + t.y - 1) / t.y,
                     b.z == 0 ? 1 : (b.z + t.z - 1) / t.z};
             }
 
-            dim3 threads_per_block() const {
+            dim3 kernel_thread_block_size() const {
                 return {threads_per_block_x_t::value, threads_per_block_y_t::value, threads_per_block_z_t::value};
             };
 
@@ -238,7 +241,7 @@ namespace gridtools {
             device::for_each<directions_t>([&](auto dir) {
                 if (predicate(dir)) {
                     auto const &shape = conf.shape(dir);
-                    if ((i < shape.max()) && (j < shape.median()) && (k < shape.min())) {
+                    if (i < shape.max() && j < shape.median() && k < shape.min()) {
                         boundary_function(dir,
                             data_views...,
                             thread_along_axis(i, j, k, shape.perm(0)) + shape.start(0),
@@ -280,7 +283,7 @@ namespace gridtools {
         HaloDescriptors m_halo_descriptors;
         apply_gpu_impl_::kernel_configuration m_conf;
         BoundaryFunction const m_boundary_function;
-        Predicate m_predicate;
+        apply_gpu_impl_::precomputed_pred m_predicate;
 
       public:
         boundary_apply_gpu(HaloDescriptors const &hd, Predicate predicate = Predicate())
@@ -298,12 +301,11 @@ namespace gridtools {
         */
         template <typename... DataFieldViews>
         void apply(DataFieldViews const &... data_field_views) const {
-            apply_gpu_impl_::loop_kernel<<<m_conf.blocks(), m_conf.threads_per_block()>>>(
-                m_boundary_function, apply_gpu_impl_::precomputed_pred{m_predicate}, m_conf, data_field_views...);
+            apply_gpu_impl_::loop_kernel<<<m_conf.kernel_grid_size(), m_conf.kernel_thread_block_size()>>>(
+                m_boundary_function, m_predicate, m_conf, data_field_views...);
+            GT_CUDA_CHECK(cudaGetLastError());
 #ifndef NDEBUG
             GT_CUDA_CHECK(cudaDeviceSynchronize());
-#else
-            GT_CUDA_CHECK(cudaGetLastError());
 #endif
         }
     };
