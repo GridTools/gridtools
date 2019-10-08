@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; GridTools 1.0.0 documentation</title>
+  <title>Getting Started &mdash; GridTools 1.1.0 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -230,7 +230,7 @@ the <span class="math notranslate nohighlight">\(ij\)</span>-plane and the <span
 in <a class="reference internal" href="#fig-getting-started-coordinates"><span class="std std-numref">Fig. 1</span></a>. Computation happens
 only within the calculation domain but values may be read from grid
 points in the boundary region.</p>
-<div class="figure align-center" id="id2">
+<div class="figure align-default" id="id2">
 <span id="fig-getting-started-coordinates"></span><a class="reference internal image-reference" href="../_images/coordinates.png"><img alt="../_images/coordinates.png" src="../_images/coordinates.png" style="width: 558.0px; height: 303.59999999999997px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">Coordinate system</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
@@ -320,7 +320,7 @@ access pattern.</p>
 <h3>Example: Naive 2D Laplacian<a class="headerlink" href="#example-naive-2d-laplacian" title="Permalink to this headline">¶</a></h3>
 <p>The simplest discretization of the 2D Laplacian is the finite difference
 five-point stencil as depicted in <a class="reference internal" href="#fig-getting-started-2dlap"><span class="std std-numref">Fig. 2</span></a>.</p>
-<div class="figure align-center" id="id3">
+<div class="figure align-default" id="id3">
 <span id="fig-getting-started-2dlap"></span><a class="reference internal image-reference" href="../_images/Laplacian2D.png"><img alt="../_images/Laplacian2D.png" src="../_images/Laplacian2D.png" style="width: 469.79999999999995px; height: 328.8px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">Access pattern of a 2D Laplacian</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
@@ -663,11 +663,11 @@ we won’t discuss them now in detail. In brief:</p>
 <li><p>A common pattern is to use the preprocessor flag <code class="docutils literal notranslate"><span class="pre">__CUDACC__</span></code> to distinguish between CPU and GPU code. We use this to set the <a class="reference internal" href="../glossary/glossary.html#term-backend"><span class="xref std std-term">Backend</span></a>.</p></li>
 </ul>
 <p>The code example can be compiled using the following simple CMake script (requires an installation of GridTools, see <a class="reference internal" href="../introduction/introduction.html#installation"><span class="std std-ref">Installation and Use</span></a>).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cmake_minimum_required</span><span class="p">(</span><span class="n">VERSION</span> <span class="mf">3.12</span><span class="o">.</span><span class="mi">4</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cmake_minimum_required</span><span class="p">(</span><span class="n">VERSION</span> <span class="mf">3.14</span><span class="o">.</span><span class="mi">5</span><span class="p">)</span>
 
 <span class="n">project</span><span class="p">(</span><span class="n">GridTools</span><span class="o">-</span><span class="n">laplacian</span> <span class="n">LANGUAGES</span> <span class="n">CXX</span><span class="p">)</span>
 
-<span class="n">find_package</span><span class="p">(</span><span class="n">GridTools</span> <span class="mf">0.22</span><span class="o">.</span><span class="mi">0</span> <span class="n">REQUIRED</span><span class="p">)</span>
+<span class="n">find_package</span><span class="p">(</span><span class="n">GridTools</span> <span class="mf">1.1</span><span class="o">.</span><span class="mi">0</span> <span class="n">REQUIRED</span><span class="p">)</span>
 
 <span class="n">add_executable</span><span class="p">(</span><span class="n">gt_laplacian</span> <span class="n">test_gt_laplacian</span><span class="o">.</span><span class="n">cpp</span><span class="p">)</span>
 <span class="n">target_link_libraries</span><span class="p">(</span><span class="n">gt_laplacian</span> <span class="n">GridTools</span><span class="p">::</span><span class="n">gridtools</span><span class="p">)</span>
