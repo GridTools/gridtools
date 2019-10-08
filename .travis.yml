@@ -1,6 +1,6 @@
 language: minimal
 
-services: 
+services:
   - docker
 
 env:
@@ -9,6 +9,7 @@ env:
   - compiler=gcc-9
   - compiler=clang-7
   - compiler=clang-8
+  - compiler=clang-9
   - compiler=cuda-10.1
 
 before_install:
