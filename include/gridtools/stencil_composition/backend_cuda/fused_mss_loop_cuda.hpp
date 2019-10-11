@@ -57,6 +57,7 @@ namespace gridtools {
                     tuple_util::device::for_each(
                         [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
 #ifdef __clang__
+// unroll factor estimated based on GT perftests on NVIDIA V100, AMD Mi50
 #pragma unroll 3
 #endif
                             for (int_t i = 0; i < size; ++i) {
@@ -79,6 +80,7 @@ namespace gridtools {
                     tuple_util::device::for_each(
                         [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
 #ifdef __clang__
+// unroll factor estimated based on GT perftests on NVIDIA V100, AMD Mi50
 #pragma unroll 3
 #endif
                             for (int_t i = 0; i < size; ++i) {
