@@ -55,10 +55,13 @@ namespace gridtools {
                     k_caches_type<Mss> k_caches;
                     auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
                     tuple_util::device::for_each(
-                        [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
-#ifdef __clang__
-// unroll factor estimated based on GT perftests on NVIDIA V100, AMD Mi50
+                        [&](const int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
+#ifdef __HIPCC__
+// unroll factor estimate based on GT perftests on AMD Mi50
 #pragma unroll 3
+#else
+// unroll factor estimate based on GT perftests on NVIDIA V100
+#pragma unroll 5
 #endif
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells<Deref>(info, mixed_ptr, strides, validator);
@@ -78,10 +81,13 @@ namespace gridtools {
                 template <class Ptr, class Strides, class Validator>
                 GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
                     tuple_util::device::for_each(
-                        [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
-#ifdef __clang__
-// unroll factor estimated based on GT perftests on NVIDIA V100, AMD Mi50
+                        [&](const int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
+#ifdef __HIPCC__
+// unroll factor estimate based on GT perftests on AMD Mi50
 #pragma unroll 3
+#else
+// unroll factor estimate based on GT perftests on NVIDIA V100
+#pragma unroll 5
 #endif
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells<Deref>(info, ptr, strides, validator);
