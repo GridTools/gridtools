@@ -19,17 +19,21 @@
 */
 
 #ifdef GT_USE_GPU
-#include <cuda_runtime.h>
+#include "hip_wrappers.hpp"
 #endif
 
-#if defined(__CUDACC__)
+#if defined(__NVCC__)
 #define GT_FORCE_INLINE __forceinline__
+#define GT_FORCE_INLINE_LAMBDA
 #elif defined(__GNUC__)
 #define GT_FORCE_INLINE inline __attribute__((always_inline))
+#define GT_FORCE_INLINE_LAMBDA __attribute__((always_inline))
 #elif defined(_MSC_VER)
 #define GT_FORCE_INLINE inline __forceinline
+#define GT_FORCE_INLINE_LAMBDA
 #else
 #define GT_FORCE_INLINE inline
+#define GT_FORCE_INLINE_LAMBDA
 #endif
 
 /**
@@ -52,8 +56,13 @@
 
 #ifdef __CUDACC__
 #define GT_HOST_DEVICE __host__ __device__
+#ifdef __NVCC__ // NVIDIA CUDA compilation
 #define GT_DEVICE __device__
 #define GT_HOST __host__
+#else // Clang CUDA compilation
+#define GT_DEVICE __device__ __host__
+#define GT_HOST __host__
+#endif
 #else
 #define GT_HOST_DEVICE
 #define GT_DEVICE

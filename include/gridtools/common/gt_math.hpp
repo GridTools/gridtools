@@ -113,7 +113,7 @@ namespace gridtools {
         }
 #endif
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) && defined(__NVCC__)
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
         GT_FUNCTION decltype(auto) fabs(double val) { return ::fabs(val); }
