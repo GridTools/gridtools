@@ -34,7 +34,12 @@ namespace gridtools {
     template <uint_t Id,
         typename Layout,
         typename Halo = zero_halo<Layout::masked_length>,
-        typename Alignment = alignment<32>>
+#ifdef __HIPCC__
+        typename Alignment = alignment<16>
+#else
+        typename Alignment = alignment<32>
+#endif
+        >
     using cuda_storage_info = storage_info<Id, Layout, Halo, Alignment>;
 
     namespace impl_ {

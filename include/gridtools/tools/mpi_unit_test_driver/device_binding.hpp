@@ -14,9 +14,8 @@
 
 #include <cstdlib>
 
-#include <cuda_runtime.h>
-
 #include "../../common/cuda_util.hpp"
+#include "../../common/hip_wrappers.hpp"
 
 namespace _impl {
     inline int get_local_rank() {
