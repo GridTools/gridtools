@@ -12,8 +12,7 @@
 #include <memory>
 #include <vector>
 
-#include <omp.h>
-
+#include "../../common/defs.hpp"
 #include "../../common/hugepage_alloc.hpp"
 #include "../../common/hymap.hpp"
 #include "../dim.hpp"

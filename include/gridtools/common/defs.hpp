@@ -26,7 +26,7 @@
 
 //################ Type aliases for GridTools ################
 
-#ifdef __CUDACC__
+#ifdef __NVCC__
 #define GT_CONSTEXPR
 #else
 #define GT_CONSTEXPR constexpr

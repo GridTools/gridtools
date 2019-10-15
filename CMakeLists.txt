@@ -45,7 +45,10 @@ FetchContent_Declare(
 # Enable legacy mode for CPP_BINDGEN for users of GT 1.0
 # TODO remove in GT 2.0
 set(CPP_BINDGEN_GT_LEGACY ON)
+set(build_testing_ ${BUILD_TESTING})
+set(BUILD_TESTING OFF)
 FetchContent_MakeAvailable(cpp_bindgen)
+set(BUILD_TESTING ${build_testing_})
 
 add_subdirectory(src)
 

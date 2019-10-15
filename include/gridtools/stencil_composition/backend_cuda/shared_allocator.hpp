@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "../../common/hip_wrappers.hpp"
+
 #ifndef __CUDACC__
 #error This is CUDA only header
 #endif

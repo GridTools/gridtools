@@ -32,7 +32,7 @@ namespace gridtools {
             template <class Deref, class Info, class Ptr, class Strides, class Validator>
             GT_FUNCTION_DEVICE void exec_cells(
                 Info, Ptr const &ptr, Strides const &strides, Validator const &validator) {
-                device::for_each<typename Info::cells_t>([&](auto cell) {
+                device::for_each<typename Info::cells_t>([&](auto cell) GT_FORCE_INLINE_LAMBDA {
                     syncthreads(cell.need_sync());
                     if (validator(cell.extent()))
                         cell.template operator()<Deref>(ptr, strides);
@@ -55,7 +55,14 @@ namespace gridtools {
                     k_caches_type<Mss> k_caches;
                     auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
                     tuple_util::device::for_each(
-                        [&](int_t size, auto info) {
+                        [&](const int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
+#ifdef __HIPCC__
+// unroll factor estimate based on GT perftests on AMD Mi50
+#pragma unroll 3
+#else
+// unroll factor estimate based on GT perftests on NVIDIA V100
+#pragma unroll 5
+#endif
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells<Deref>(info, mixed_ptr, strides, validator);
                                 k_caches.slide(info.k_step());
@@ -74,7 +81,14 @@ namespace gridtools {
                 template <class Ptr, class Strides, class Validator>
                 GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
                     tuple_util::device::for_each(
-                        [&](int_t size, auto info) {
+                        [&](const int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
+#ifdef __HIPCC__
+// unroll factor estimate based on GT perftests on AMD Mi50
+#pragma unroll 3
+#else
+// unroll factor estimate based on GT perftests on NVIDIA V100
+#pragma unroll 5
+#endif
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells<Deref>(info, ptr, strides, validator);
                                 info.inc_k(ptr, strides);
@@ -94,7 +108,7 @@ namespace gridtools {
                     int_t cur = -(int_t)blockIdx.z * BlockSize;
                     sid::shift(ptr, sid::get_stride<dim::k>(strides), -cur);
                     tuple_util::device::for_each(
-                        [&](int_t size, auto info) {
+                        [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
                             if (cur >= BlockSize)
                                 return;
                             int_t lim = math::min(cur + size, BlockSize) - math::max(cur, 0);
