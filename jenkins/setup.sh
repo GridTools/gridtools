@@ -15,7 +15,7 @@ if [[ $label != "kesch" ]]; then
     export SBATCH_ACCOUNT=d75
 fi
 
-if [[ ! -R build_examples ]] && [[ $env == "clang_nvcc" ]]; then
+if [[ ! -v build_examples ]] && [[ $env == "clang_nvcc" ]]; then
     build_examples=false
 fi
 
