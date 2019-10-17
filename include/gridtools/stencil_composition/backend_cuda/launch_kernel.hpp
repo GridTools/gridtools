@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include "../../common/hip_wrappers.hpp"
+
 #ifndef __CUDACC__
 #error This is CUDA only header
 #endif
@@ -134,8 +136,10 @@ namespace gridtools {
 
             template <class Kernel, class... Args>
             void launch(dim3 blocks, dim3 threads, size_t shared_memory_size, Kernel kernel, Args... args) {
+#ifndef __HIPCC__
                 GT_CUDA_CHECK(
                     cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_memory_size));
+#endif
                 kernel<<<blocks, threads, shared_memory_size>>>(std::move(args)...);
 #ifndef NDEBUG
                 GT_CUDA_CHECK(cudaDeviceSynchronize());

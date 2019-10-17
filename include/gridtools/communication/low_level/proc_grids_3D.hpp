@@ -181,7 +181,7 @@ namespace gridtools {
             int _coords[3];
 
             if (m_cyclic.value(0))
-                _coords[0] = (m_coordinates[0] + I) % m_dimensions[0];
+                _coords[0] = (m_coordinates[0] + I + m_dimensions[0]) % m_dimensions[0];
             else {
                 _coords[0] = m_coordinates[0] + I;
                 if (_coords[0] < 0 || _coords[0] >= m_dimensions[0])
@@ -189,7 +189,7 @@ namespace gridtools {
             }
 
             if (m_cyclic.value(1))
-                _coords[1] = (m_coordinates[1] + J) % m_dimensions[1];
+                _coords[1] = (m_coordinates[1] + J + m_dimensions[1]) % m_dimensions[1];
             else {
                 _coords[1] = m_coordinates[1] + J;
                 if (_coords[1] < 0 || _coords[1] >= m_dimensions[1])
@@ -197,7 +197,7 @@ namespace gridtools {
             }
 
             if (m_cyclic.value(2))
-                _coords[2] = (m_coordinates[2] + K) % m_dimensions[2];
+                _coords[2] = (m_coordinates[2] + K + m_dimensions[2]) % m_dimensions[2];
             else {
                 _coords[2] = m_coordinates[2] + K;
                 if (_coords[2] < 0 || _coords[2] >= m_dimensions[2])

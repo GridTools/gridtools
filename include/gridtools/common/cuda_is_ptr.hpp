@@ -12,9 +12,8 @@
 
 #ifdef GT_USE_GPU
 
-#include <cuda_runtime.h>
-
 #include "../common/cuda_util.hpp"
+#include "hip_wrappers.hpp"
 
 namespace gridtools {
     /**

@@ -93,8 +93,8 @@ namespace gridtools {
                 template <class ObjTup, class StrideTup, class Offset>
                 GT_FUNCTION void composite_shift_impl(ObjTup &obj_tup, StrideTup &&stride_tup, Offset offset) {
                     tuple_util::host_device::for_each(
-                        [offset](
-                            auto &obj, auto &&stride) { shift(obj, wstd::forward<decltype(stride)>(stride), offset); },
+                        [offset](auto &obj, auto &&stride)
+                            GT_FORCE_INLINE_LAMBDA { shift(obj, wstd::forward<decltype(stride)>(stride), offset); },
                         obj_tup,
                         wstd::forward<StrideTup>(stride_tup));
                 }
@@ -150,8 +150,13 @@ namespace gridtools {
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
                     GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
-                        return tuple_util::host_device::transform(
-                            [](auto const &ptr) -> decltype(auto) { return *ptr; }, m_vals);
+                        return tuple_util::host_device::transform([](auto const &ptr)
+// Workaround for GCC 9 bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333
+#if defined(__clang__) || (__GNUC__ != 9 && __GNUC_MINOR__ > 2)
+                                                                      GT_FORCE_INLINE_LAMBDA
+#endif
+                            -> decltype(auto) { return *ptr; },
+                            m_vals);
                     }
 
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
@@ -166,8 +171,8 @@ namespace gridtools {
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
 
                     GT_CONSTEXPR GT_FUNCTION auto operator()() const {
-                        return tuple_util::host_device::convert_to<composite_ptr>(
-                            tuple_util::host_device::transform([](auto const &obj) { return obj(); }, m_vals));
+                        return tuple_util::host_device::convert_to<composite_ptr>(tuple_util::host_device::transform(
+                            [](auto const &obj) GT_FORCE_INLINE_LAMBDA { return obj(); }, m_vals));
                     }
 
                     friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
@@ -332,7 +337,8 @@ namespace gridtools {
                     // Here the `SID` concept is modeled
 
                     friend ptr_holder_t sid_get_origin(values &obj) {
-                        return tuple_util::transform([](auto obj) { return get_origin(obj); }, obj.m_sids);
+                        return tuple_util::transform(
+                            [](auto obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids);
                     }
 
                     friend strides_t sid_get_strides(values const &obj) {

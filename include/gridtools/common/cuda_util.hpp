@@ -14,9 +14,8 @@
 #include <sstream>
 #include <type_traits>
 
-#include <cuda_runtime.h>
-
 #include "defs.hpp"
+#include "hip_wrappers.hpp"
 
 #define GT_CUDA_CHECK(expr)                                                                    \
     do {                                                                                       \
@@ -37,10 +36,15 @@ namespace gridtools {
                      << ")] in \"" << snippet << "\" function: " << fun << ", location: " << file << "(" << line << ")";
                 throw std::runtime_error(strm.str());
             }
+
+            template <class T>
+            struct cuda_free {
+                void operator()(T *ptr) const { cudaFree(ptr); }
+            };
         } // namespace _impl
 
         template <class T>
-        using unique_cuda_ptr = std::unique_ptr<T, std::integral_constant<decltype(&cudaFree), &cudaFree>>;
+        using unique_cuda_ptr = std::unique_ptr<T, _impl::cuda_free<T>>;
 
         template <class T>
         unique_cuda_ptr<T> cuda_malloc(size_t size = 1) {

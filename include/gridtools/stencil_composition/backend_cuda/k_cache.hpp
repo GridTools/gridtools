@@ -63,12 +63,14 @@ namespace gridtools {
 
               public:
                 GT_FUNCTION_DEVICE auto ptr() {
-                    return tuple_util::device::transform([](auto &storage) { return storage.ptr(); }, m_storages);
+                    return tuple_util::device::transform(
+                        [](auto &storage) GT_FORCE_INLINE_LAMBDA { return storage.ptr(); }, m_storages);
                 }
 
                 template <class Step>
                 GT_FUNCTION_DEVICE void slide(Step step) {
-                    tuple_util::device::for_each([step](auto &storage) { storage.slide(step); }, m_storages);
+                    tuple_util::device::for_each(
+                        [step](auto &storage) GT_FORCE_INLINE_LAMBDA { storage.slide(step); }, m_storages);
                 }
             };
 

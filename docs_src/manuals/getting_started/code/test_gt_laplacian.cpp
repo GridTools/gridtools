@@ -1,12 +1,10 @@
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/storage/storage_facility.hpp>
 
-#include <gridtools/stencil_composition/accessor.hpp>
-
 using namespace gridtools;
 using namespace gridtools::expressions;
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) || defined(__HIPCC__)
 using backend_t = backend::cuda;
 #else
 using backend_t = backend::mc;
