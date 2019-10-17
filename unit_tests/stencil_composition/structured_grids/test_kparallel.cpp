@@ -14,16 +14,8 @@
 #include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
-using gridtools::accessor;
-using gridtools::arg;
-using gridtools::extent;
-using gridtools::intent;
-using gridtools::level;
-using gridtools::storage_traits;
-using gridtools::tmp_arg;
-using gridtools::uint_t;
-
 namespace {
+    using namespace gridtools;
 
     template <typename Axis>
     struct parallel_functor {
@@ -70,18 +62,16 @@ void run_test() {
     storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
     storage_t out(storage_info, (double)1.5);
 
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
+    arg<0> p_in;
+    arg<1> p_out;
 
-    auto grid = gridtools::make_grid(d1, d2, Axis(d3_l, d3_u));
+    auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
 
-    auto comp = gridtools::make_computation<backend_t>(grid,
-        p_in() = in,
-        p_out() = out,
+    compute<backend_t>(grid,
+        p_in = in,
+        p_out = out,
         gridtools::make_multistage(
-            gridtools::execute::parallel(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
-
-    comp.run();
+            gridtools::execute::parallel(), gridtools::make_stage<parallel_functor<Axis>>(p_in, p_out)));
 
     in.sync();
     out.sync();
@@ -113,20 +103,18 @@ void run_test_with_temporary() {
     storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
     storage_t out(storage_info, (double)1.5);
 
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
-    typedef tmp_arg<2, storage_t> p_tmp;
+    arg<0> p_in;
+    arg<1> p_out;
+    tmp_arg<2, float_type> p_tmp;
 
-    auto grid = gridtools::make_grid(d1, d2, Axis(d3_l, d3_u));
+    auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
 
-    auto comp = gridtools::make_computation<backend_t>(grid,
-        p_in() = in,
-        p_out() = out,
-        gridtools::make_multistage(gridtools::execute::parallel(),
-            gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_tmp()),
-            gridtools::make_stage<parallel_functor<Axis>>(p_tmp(), p_out())));
-
-    comp.run();
+    compute<backend_t>(grid,
+        p_in = in,
+        p_out = out,
+        make_multistage(execute::parallel(),
+            make_stage<parallel_functor<Axis>>(p_in, p_tmp),
+            make_stage<parallel_functor<Axis>>(p_tmp, p_out)));
 
     in.sync();
     out.sync();
@@ -174,18 +162,15 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
     storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
     storage_t out(storage_info, (double)1.5);
 
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
+    arg<0> p_in;
+    arg<1> p_out;
 
-    auto grid = gridtools::make_grid(d1, d2, Axis(d3_1, d3_2, d3_3));
+    auto grid = make_grid(d1, d2, Axis(d3_1, d3_2, d3_3));
 
-    auto comp = gridtools::make_computation<backend_t>(grid,
-        p_in() = in,
-        p_out() = out,
-        gridtools::make_multistage(gridtools::execute::parallel(),
-            gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
-
-    comp.run();
+    compute<backend_t>(grid,
+        p_in = in,
+        p_out = out,
+        make_multistage(execute::parallel(), make_stage<parallel_functor_on_upper_interval<Axis>>(p_in, p_out)));
 
     in.sync();
     out.sync();

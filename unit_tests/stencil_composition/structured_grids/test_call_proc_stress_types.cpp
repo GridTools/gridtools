@@ -13,6 +13,7 @@
 #include <gridtools/meta/type_traits.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/stencil_composition/stencil_functions.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 #include "../../test_helper.hpp"
@@ -22,8 +23,8 @@
  */
 
 using namespace gridtools;
-using namespace gridtools::execute;
-using namespace gridtools::expressions;
+using namespace execute;
+using namespace expressions;
 
 namespace {
     // used to ensure that types are correctly passed between function calls (no implicit conversion)
@@ -36,17 +37,14 @@ namespace {
 
 class call_proc_stress_types : public testing::Test {
   protected:
-    using storage_info_t = gridtools::storage_traits<backend_t>::storage_info_t<0, 3>;
-    using data_store_in_t = gridtools::storage_traits<backend_t>::data_store_t<special_type<in_tag>, storage_info_t>;
-    using data_store_out_t = gridtools::storage_traits<backend_t>::data_store_t<special_type<out_tag>, storage_info_t>;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
+    using data_store_in_t = storage_traits<backend_t>::data_store_t<special_type<in_tag>, storage_info_t>;
+    using data_store_out_t = storage_traits<backend_t>::data_store_t<special_type<out_tag>, storage_info_t>;
 
-    gridtools::grid<gridtools::axis<1>::axis_interval_t> grid;
+    gridtools::grid<axis<1>::axis_interval_t> grid;
 
     data_store_in_t in;
     data_store_out_t out;
-
-    typedef arg<0, data_store_in_t> p_in;
-    typedef arg<1, data_store_out_t> p_out;
 
     call_proc_stress_types() : grid(make_grid(1, 1, 1)), in(storage_info_t{1, 1, 1}), out(storage_info_t{1, 1, 1}) {}
 };
@@ -107,10 +105,10 @@ namespace {
 } // namespace
 
 TEST_F(call_proc_stress_types, triple_nesting_with_type_switching) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
-        p_in{} = in,
-        p_out{} = out,
-        gridtools::make_multistage(execute::forward(),
-            gridtools::make_stage<triple_nesting_with_type_switching_first_stage>(p_out(), p_in())));
-    comp.run();
+    arg<0> p_in;
+    arg<1> p_out;
+    compute<backend_t>(grid,
+        p_in = in,
+        p_out = out,
+        make_multistage(execute::forward(), make_stage<triple_nesting_with_type_switching_first_stage>(p_out, p_in)));
 }

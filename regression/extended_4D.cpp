@@ -130,13 +130,6 @@ struct extended_4d : regression_fixture<> {
 };
 
 TEST_F(extended_4d, test) {
-    using global_par_storage_t = global_parameter<elemental>;
-    arg<0, global_par_storage_t> p_phi;
-    arg<1, global_par_storage_t> p_psi;
-    arg<2, storage_global_quad_t> p_jac;
-    arg<3, storage_t> p_f;
-    arg<4, storage_t> p_result;
-
     float_type phi = 10, psi = 11, f = 1.3;
     auto jac = [](int, int, int, int q) { return 1. + q; };
     auto ref = [=](int i, int j, int k, int, int, int) {
@@ -151,13 +144,18 @@ TEST_F(extended_4d, test) {
     };
     auto result = make_storage();
 
-    make_computation(p_phi = make_global_parameter(elemental{phi}),
+    arg<0> p_phi;
+    arg<1> p_psi;
+    arg<2> p_jac;
+    arg<3> p_f;
+    arg<4> p_result;
+
+    compute(p_phi = make_global_parameter(elemental{phi}),
         p_psi = make_global_parameter(elemental{psi}),
         p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
         p_f = make_storage(f),
         p_result = result,
-        make_multistage(execute::forward(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)))
-        .run();
+        make_multistage(execute::forward(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)));
 
     verify(make_storage(ref), result);
 }

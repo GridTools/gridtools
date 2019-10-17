@@ -27,7 +27,7 @@ namespace gridtools {
      */
     template <uint_t N>
     struct alignment {
-        GT_STATIC_ASSERT(N > 0, "Alignment value must be greater than 0");
+        static_assert(N > 0, "Alignment value must be greater than 0");
         static constexpr uint_t value = N;
     };
 

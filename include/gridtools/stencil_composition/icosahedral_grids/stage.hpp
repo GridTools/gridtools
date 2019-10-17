@@ -104,7 +104,7 @@ namespace gridtools {
 
         template <class Functor, class PlhMap>
         struct stage {
-            GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
+            static_assert(has_apply<Functor>::value, GT_INTERNAL_ERROR);
             using location_t = typename Functor::location;
             using num_colors_t = typename location_t::n_colors;
 

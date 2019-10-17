@@ -58,7 +58,7 @@ TEST_F(expandable_parameters_single_kernel, test) {
     std::vector<storage_type> in = {
         make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
 
-    make_computation(p_0 = out[0],
+    compute(p_0 = out[0],
         p_1 = out[1],
         p_2 = out[2],
         p_3 = out[3],
@@ -69,10 +69,9 @@ TEST_F(expandable_parameters_single_kernel, test) {
         p_8 = in[3],
         p_9 = in[4],
         make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)),
+            define_caches(cache<cache_type::ij>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)),
             make_stage<functor_single_kernel>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4, p_5, p_6, p_7, p_8, p_9),
-            make_stage<functor_single_kernel>(p_0, p_1, p_2, p_3, p_4, p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)))
-        .run();
+            make_stage<functor_single_kernel>(p_0, p_1, p_2, p_3, p_4, p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)));
 
     for (size_t i = 0; i != in.size(); ++i)
         verify(in[i], out[i]);

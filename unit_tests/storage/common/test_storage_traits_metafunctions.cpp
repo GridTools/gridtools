@@ -8,165 +8,77 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <gridtools/storage/common/storage_traits_metafunctions.hpp>
+
 #include "gtest/gtest.h"
 
 #include <type_traits>
 
-#include <gridtools/common/gt_assert.hpp>
-#include <gridtools/storage/common/storage_traits_metafunctions.hpp>
-
 using namespace gridtools;
 
-TEST(StorageTraitsMetafunctions, CudaLayout) {
-    // 3D
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<2, 1, 0>, selector<1, 0, 0>>::type,
-                         layout_map<0, -1, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<2, 1, 0>, selector<0, 1, 0>>::type,
-                         layout_map<-1, 0, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<2, 1, 0>, selector<0, 0, 1>>::type,
-                         layout_map<-1, -1, 0>>::type::value),
-        "");
+template <class Layout, class Selector, class Expected>
+constexpr bool testee = std::is_same<typename get_special_layout<Layout, Selector>::type, Expected>::value;
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<2, 1, 0>, selector<1, 1, 0>>::type,
-                         layout_map<1, 0, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<2, 1, 0>, selector<0, 1, 1>>::type,
-                         layout_map<-1, 1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<2, 1, 0>, selector<1, 0, 1>>::type,
-                         layout_map<1, -1, 0>>::type::value),
-        "");
+// 3D
+static_assert(testee<layout_map<2, 1, 0>, selector<1, 0, 0>, layout_map<0, -1, -1>>, "");
+static_assert(testee<layout_map<2, 1, 0>, selector<0, 1, 0>, layout_map<-1, 0, -1>>, "");
+static_assert(testee<layout_map<2, 1, 0>, selector<0, 0, 1>, layout_map<-1, -1, 0>>, "");
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<2, 1, 0>, selector<1, 1, 1>>::type,
-                         layout_map<2, 1, 0>>::type::value),
-        "");
+static_assert(testee<layout_map<2, 1, 0>, selector<1, 1, 0>, layout_map<1, 0, -1>>, "");
+static_assert(testee<layout_map<2, 1, 0>, selector<0, 1, 1>, layout_map<-1, 1, 0>>, "");
+static_assert(testee<layout_map<2, 1, 0>, selector<1, 0, 1>, layout_map<1, -1, 0>>, "");
 
-    // 4D
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<0, 0, 0, 1>>::type,
-                         layout_map<-1, -1, -1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<0, 0, 1, 0>>::type,
-                         layout_map<-1, -1, 0, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<0, 1, 0, 0>>::type,
-                         layout_map<-1, 0, -1, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<1, 0, 0, 0>>::type,
-                         layout_map<0, -1, -1, -1>>::type::value),
-        "");
+static_assert(testee<layout_map<2, 1, 0>, selector<1, 1, 1>, layout_map<2, 1, 0>>, "");
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<0, 0, 1, 1>>::type,
-                         layout_map<-1, -1, 1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<0, 1, 1, 0>>::type,
-                         layout_map<-1, 1, 0, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<1, 1, 0, 0>>::type,
-                         layout_map<1, 0, -1, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<1, 0, 0, 1>>::type,
-                         layout_map<1, -1, -1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<0, 1, 0, 1>>::type,
-                         layout_map<-1, 1, -1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<1, 0, 1, 0>>::type,
-                         layout_map<1, -1, 0, -1>>::type::value),
-        "");
+// 4D
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<0, 0, 0, 1>, layout_map<-1, -1, -1, 0>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<0, 0, 1, 0>, layout_map<-1, -1, 0, -1>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<0, 1, 0, 0>, layout_map<-1, 0, -1, -1>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<1, 0, 0, 0>, layout_map<0, -1, -1, -1>>, "");
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<0, 1, 1, 1>>::type,
-                         layout_map<-1, 2, 1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<1, 1, 1, 0>>::type,
-                         layout_map<2, 1, 0, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<1, 1, 0, 1>>::type,
-                         layout_map<2, 1, -1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<1, 0, 1, 1>>::type,
-                         layout_map<2, -1, 1, 0>>::type::value),
-        "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<0, 0, 1, 1>, layout_map<-1, -1, 1, 0>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<0, 1, 1, 0>, layout_map<-1, 1, 0, -1>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<1, 1, 0, 0>, layout_map<1, 0, -1, -1>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<1, 0, 0, 1>, layout_map<1, -1, -1, 0>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<0, 1, 0, 1>, layout_map<-1, 1, -1, 0>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<1, 0, 1, 0>, layout_map<1, -1, 0, -1>>, "");
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<3, 2, 1, 0>, selector<1, 1, 1, 1>>::type,
-                         layout_map<3, 2, 1, 0>>::type::value),
-        "");
-}
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<0, 1, 1, 1>, layout_map<-1, 2, 1, 0>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<1, 1, 1, 0>, layout_map<2, 1, 0, -1>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<1, 1, 0, 1>, layout_map<2, 1, -1, 0>>, "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<1, 0, 1, 1>, layout_map<2, -1, 1, 0>>, "");
 
-TEST(StorageTraitsMetafunctions, HostLayout) {
-    // 3D
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<0, 1, 2>, selector<1, 0, 0>>::type,
-                         layout_map<0, -1, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<0, 1, 2>, selector<0, 1, 0>>::type,
-                         layout_map<-1, 0, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<0, 1, 2>, selector<0, 0, 1>>::type,
-                         layout_map<-1, -1, 0>>::type::value),
-        "");
+static_assert(testee<layout_map<3, 2, 1, 0>, selector<1, 1, 1, 1>, layout_map<3, 2, 1, 0>>, "");
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<0, 1, 2>, selector<1, 1, 0>>::type,
-                         layout_map<0, 1, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<0, 1, 2>, selector<0, 1, 1>>::type,
-                         layout_map<-1, 0, 1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<0, 1, 2>, selector<1, 0, 1>>::type,
-                         layout_map<0, -1, 1>>::type::value),
-        "");
+// 3D
+static_assert(testee<layout_map<0, 1, 2>, selector<1, 0, 0>, layout_map<0, -1, -1>>, "");
+static_assert(testee<layout_map<0, 1, 2>, selector<0, 1, 0>, layout_map<-1, 0, -1>>, "");
+static_assert(testee<layout_map<0, 1, 2>, selector<0, 0, 1>, layout_map<-1, -1, 0>>, "");
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<0, 1, 2>, selector<1, 1, 1>>::type,
-                         layout_map<0, 1, 2>>::type::value),
-        "");
+static_assert(testee<layout_map<0, 1, 2>, selector<1, 1, 0>, layout_map<0, 1, -1>>, "");
+static_assert(testee<layout_map<0, 1, 2>, selector<0, 1, 1>, layout_map<-1, 0, 1>>, "");
+static_assert(testee<layout_map<0, 1, 2>, selector<1, 0, 1>, layout_map<0, -1, 1>>, "");
 
-    // 4D
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<0, 0, 0, 1>>::type,
-                         layout_map<-1, -1, -1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<0, 0, 1, 0>>::type,
-                         layout_map<-1, -1, 0, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<0, 1, 0, 0>>::type,
-                         layout_map<-1, 0, -1, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<1, 0, 0, 0>>::type,
-                         layout_map<0, -1, -1, -1>>::type::value),
-        "");
+static_assert(testee<layout_map<0, 1, 2>, selector<1, 1, 1>, layout_map<0, 1, 2>>, "");
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<0, 0, 1, 1>>::type,
-                         layout_map<-1, -1, 1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<0, 1, 1, 0>>::type,
-                         layout_map<-1, 0, 1, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<1, 1, 0, 0>>::type,
-                         layout_map<0, 1, -1, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<1, 0, 0, 1>>::type,
-                         layout_map<1, -1, -1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<0, 1, 0, 1>>::type,
-                         layout_map<-1, 1, -1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<1, 0, 1, 0>>::type,
-                         layout_map<0, -1, 1, -1>>::type::value),
-        "");
+// 4D
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<0, 0, 0, 1>, layout_map<-1, -1, -1, 0>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<0, 0, 1, 0>, layout_map<-1, -1, 0, -1>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<0, 1, 0, 0>, layout_map<-1, 0, -1, -1>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<1, 0, 0, 0>, layout_map<0, -1, -1, -1>>, "");
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<0, 1, 1, 1>>::type,
-                         layout_map<-1, 1, 2, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<1, 1, 1, 0>>::type,
-                         layout_map<0, 1, 2, -1>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<1, 1, 0, 1>>::type,
-                         layout_map<1, 2, -1, 0>>::type::value),
-        "");
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<1, 0, 1, 1>>::type,
-                         layout_map<1, -1, 2, 0>>::type::value),
-        "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<0, 0, 1, 1>, layout_map<-1, -1, 1, 0>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<0, 1, 1, 0>, layout_map<-1, 0, 1, -1>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<1, 1, 0, 0>, layout_map<0, 1, -1, -1>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<1, 0, 0, 1>, layout_map<1, -1, -1, 0>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<0, 1, 0, 1>, layout_map<-1, 1, -1, 0>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<1, 0, 1, 0>, layout_map<0, -1, 1, -1>>, "");
 
-    GT_STATIC_ASSERT((std::is_same<typename get_special_layout<layout_map<1, 2, 3, 0>, selector<1, 1, 1, 1>>::type,
-                         layout_map<1, 2, 3, 0>>::type::value),
-        "");
-}
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<0, 1, 1, 1>, layout_map<-1, 1, 2, 0>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<1, 1, 1, 0>, layout_map<0, 1, 2, -1>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<1, 1, 0, 1>, layout_map<1, 2, -1, 0>>, "");
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<1, 0, 1, 1>, layout_map<1, -1, 2, 0>>, "");
+
+static_assert(testee<layout_map<1, 2, 3, 0>, selector<1, 1, 1, 1>, layout_map<1, 2, 3, 0>>, "");
+
+TEST(dummy, dummy) {}

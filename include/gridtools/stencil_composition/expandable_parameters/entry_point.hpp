@@ -21,8 +21,7 @@
 #include "../../meta.hpp"
 #include "../arg.hpp"
 #include "../backend.hpp"
-#include "../caches/cache_definitions.hpp"
-#include "../caches/define_caches.hpp"
+#include "../caches/cache_traits.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../mss.hpp"
 #include "expand_factor.hpp"
@@ -71,9 +70,9 @@ namespace gridtools {
             template <class I, class Cache>
             struct convert_cache;
 
-            template <class I, cache_type CacheType, class Plh, cache_io_policy cacheIOPolicy>
-            struct convert_cache<I, detail::cache_impl<CacheType, Plh, cacheIOPolicy>> {
-                using type = detail::cache_impl<CacheType, typename convert_plh<I, Plh>::type, cacheIOPolicy>;
+            template <class I, class Plh, class... Params>
+            struct convert_cache<I, cache_info<Plh, Params...>> {
+                using type = cache_info<typename convert_plh<I, Plh>::type, Params...>;
             };
         }; // namespace lazy
         GT_META_DELEGATE_TO_LAZY(convert_plh, class... Ts, Ts...);
@@ -191,10 +190,10 @@ namespace gridtools {
             return tuple_util::generate<generators_t, res_t>(offset, data_store_map);
         }
 
-        template <class ExpandFactor, class Backend, class IsStateful, class Msses>
+        template <class ExpandFactor, class Backend, class Msses>
         struct expandable_entry_point_f {
             template <class Factor>
-            using converted_entry_point = backend_entry_point_f<Backend, IsStateful, convert_msses<Factor, Msses>>;
+            using converted_entry_point = backend_entry_point_f<Backend, convert_msses<Factor, Msses>>;
 
             template <class Grid, class DataStores>
             void operator()(Grid const &grid, DataStores data_stores) const {

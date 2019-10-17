@@ -17,7 +17,6 @@
 #include "../data_store.hpp"
 #include "../data_view.hpp"
 #include "mc_storage.hpp"
-#include "mc_storage_info.hpp"
 
 namespace gridtools {
 
@@ -71,7 +70,7 @@ namespace gridtools {
                          is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         bool>
     check_consistency(DataStore const &ds, DataView const &dv) {
-        GT_STATIC_ASSERT(is_data_view<DecayedDV>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_view type"));
+        static_assert(is_data_view<DecayedDV>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_view type"));
         return ds.valid() && advanced::get_raw_pointer_of(dv) == ds.get_storage_ptr()->get_cpu_ptr() &&
                ds.get_storage_info_ptr();
     }

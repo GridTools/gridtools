@@ -63,13 +63,15 @@ TEST_F(stencil_manual_fold, test) {
     auto weight_edges = make_storage_4d<cells>(3);
 
     arg<0, cells> p_in;
-    arg<1, cells, storage_type_4d<cells>> p_out;
+    arg<1, cells> p_out;
 
-    auto comp = make_computation(p_in = make_storage<cells>(in),
-        p_out = weight_edges,
-        make_multistage(execute::forward(), make_stage<test_on_edges_functor>(p_in, p_out)));
+    auto comp = [&] {
+        compute(p_in = make_storage<cells>(in),
+            p_out = weight_edges,
+            make_multistage(execute::forward(), make_stage<test_on_edges_functor>(p_in, p_out)));
+    };
 
-    comp.run();
+    comp();
     verify(make_storage_4d<cells>(3, ref), weight_edges);
 
     benchmark(comp);

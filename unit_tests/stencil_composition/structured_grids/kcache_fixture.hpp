@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using axis_t = gridtools::axis<3, gridtools::axis_config::offset_limit<3>, gridtools::axis_config::extra_offsets<1>>;

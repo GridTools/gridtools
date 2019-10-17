@@ -112,7 +112,7 @@ namespace gridtools {
                          is_storage_info<typename DataStore::storage_info_t>::value && is_data_store<DataStore>::value,
         bool>
     check_consistency(DataStore const &d, DataView const &v) {
-        GT_STATIC_ASSERT(is_data_view<DataView>::value, "Passed type is no data_view type");
+        static_assert(is_data_view<DataView>::value, "Passed type is no data_view type");
         // if the storage is not valid return false
         if (!d.valid())
             return false;

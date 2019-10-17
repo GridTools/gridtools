@@ -129,15 +129,15 @@ int main(int argc, char **argv) {
     storage_type coeff{sinfo, "coeff"};
 
     // Definition of placeholders. The order does not have any semantics
-    using p_lap = gt::tmp_arg<0, storage_type>; // This represent a
-                                                // temporary data (the
-                                                // library will take
-                                                // care of that and it
-                                                // is not observable
-                                                // by the user
-    using p_flx = gt::tmp_arg<1, storage_type>;
-    using p_fly = gt::tmp_arg<2, storage_type>;
-    using p_coeff = gt::arg<3, storage_type>; // This is a regular placeholder to some data
+    using p_lap = gt::tmp_arg<0, double>; // This represent a
+                                          // temporary data (the
+                                          // library will take
+                                          // care of that and it
+                                          // is not observable
+                                          // by the user
+    using p_flx = gt::tmp_arg<1, double>;
+    using p_fly = gt::tmp_arg<2, double>;
+    using p_coeff = gt::arg<3>; // This is a regular placeholder to some data
     using p_in = gt::arg<4, storage_type>;
     using p_out = gt::arg<5, storage_type>;
 
@@ -164,18 +164,16 @@ int main(int argc, char **argv) {
     // (iteration space), binding of the placeholders to the fields
     // that will not be modified during the computation, and then the
     // stencil structure
-    auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
-        p_coeff{} = coeff, // Binding data_stores that will not change during the application
+    gt::compute<backend_t>(grid,
+        p_coeff{} = coeff,
+        p_in{} = in,
+        p_out{} = out,
         gt::make_multistage(gt::execute::parallel{},
-            define_caches(gt::cache<gt::cache_type::ij, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
+            define_caches(gt::cache<gt::cache_type::ij>(p_lap{}, p_flx{}, p_fly{})),
             gt::make_stage<lap_function>(p_lap{}, p_in{}),
-            gt::make_independent(gt::make_stage<flx_function>(p_flx{}, p_in{}, p_lap{}),
-                gt::make_stage<fly_function>(p_fly{}, p_in{}, p_lap{})),
+            gt::make_stage<flx_function>(p_flx{}, p_in{}, p_lap{}),
+            gt::make_stage<fly_function>(p_fly{}, p_in{}, p_lap{}),
             gt::make_stage<out_function>(p_out{}, p_in{}, p_flx{}, p_fly{}, p_coeff{})));
-
-    // The execution happens here. Here we bind the placeholders to
-    // the data. This binding can change at every `run` invokation
-    horizontal_diffusion.run(p_in{} = in, p_out{} = out);
 
     out.sync();
 }

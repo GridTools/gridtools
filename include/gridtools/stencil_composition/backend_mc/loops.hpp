@@ -14,6 +14,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/omp.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
 #include "../dim.hpp"

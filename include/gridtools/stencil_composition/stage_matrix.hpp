@@ -307,10 +307,10 @@ namespace gridtools {
 
         template <class... IntervalInfos>
         class fused_view_item {
-            GT_STATIC_ASSERT(sizeof...(IntervalInfos) > 0, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(
-                (conjunction<meta::is_instantiation_of<interval_info, IntervalInfos>...>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(meta::are_same<typename meta::length<IntervalInfos>::type...>::value, GT_INTERNAL_ERROR);
+            static_assert(sizeof...(IntervalInfos) > 0, GT_INTERNAL_ERROR);
+            static_assert(
+                conjunction<meta::is_instantiation_of<interval_info, IntervalInfos>...>::value, GT_INTERNAL_ERROR);
+            static_assert(meta::are_same<typename meta::length<IntervalInfos>::type...>::value, GT_INTERNAL_ERROR);
 
             using item_t = meta::first<meta::list<IntervalInfos...>>;
 
@@ -338,7 +338,7 @@ namespace gridtools {
 
         template <class... Cells>
         class split_view_item {
-            GT_STATIC_ASSERT(sizeof...(Cells) > 0, GT_INTERNAL_ERROR);
+            static_assert(sizeof...(Cells) > 0, GT_INTERNAL_ERROR);
             using cell_t = meta::first<split_view_item>;
 
           public:

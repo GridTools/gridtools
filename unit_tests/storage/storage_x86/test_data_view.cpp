@@ -28,7 +28,7 @@ TEST(DataViewTest, Simple) {
     // create a rw view and fill with some data
     data_view<data_store_t> dv = make_host_view(ds);
     EXPECT_TRUE(dv.valid());
-    GT_STATIC_ASSERT(is_data_view<decltype(dv)>::value, "is_data_view check failed");
+    static_assert(is_data_view<decltype(dv)>::value, "");
     dv(0, 0, 0) = 50;
     dv(0, 0, 1) = 60;
 

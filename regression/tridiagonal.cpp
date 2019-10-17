@@ -89,14 +89,13 @@ TEST_F(tridiagonal, test) {
     arg<3> p_rhs;  // d
     arg<4> p_out;
 
-    make_computation(p_inf = make_storage(-1.),
+    compute(p_inf = make_storage(-1.),
         p_diag = make_storage(3.),
         p_sup = sup,
         p_rhs = rhs,
         p_out = out,
         make_multistage(execute::forward(), make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
-        make_multistage(execute::backward(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)))
-        .run();
+        make_multistage(execute::backward(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)));
 
     verify(make_storage(1.), out);
 }

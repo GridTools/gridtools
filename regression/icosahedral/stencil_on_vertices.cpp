@@ -43,9 +43,8 @@ TEST_F(stencil_on_vertices, test) {
     arg<0, vertices> p_in;
     arg<1, vertices> p_out;
     auto out = make_storage<vertices>();
-    make_computation(p_in = make_storage<vertices>(in),
+    compute(p_in = make_storage<vertices>(in),
         p_out = out,
-        make_multistage(execute::forward(), make_stage<test_on_vertices_functor>(p_in, p_out)))
-        .run();
+        make_multistage(execute::forward(), make_stage<test_on_vertices_functor>(p_in, p_out)));
     verify(make_storage<vertices>(ref), out);
 }

@@ -38,17 +38,16 @@ TEST_F(expandable_parameters, test) {
 
     arg<0, storages_t> p_out;
     arg<1, storages_t> p_in;
-    tmp_arg<2, storages_t> p_tmp;
+    tmp_arg<2, std::vector<float_type>> p_tmp;
 
-    gridtools::make_expandable_computation<backend_t>(expand_factor<2>(),
+    expandable_compute<backend_t>(expand_factor<2>(),
         make_grid(),
         p_out = out,
         p_in = in,
         make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp)),
+            define_caches(cache<cache_type::ij>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
-            make_stage<copy_functor>(p_out, p_tmp)))
-        .run();
+            make_stage<copy_functor>(p_out, p_tmp)));
     for (size_t i = 0; i != in.size(); ++i)
         verify(in[i], out[i]);
 }

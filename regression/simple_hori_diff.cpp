@@ -72,17 +72,18 @@ TEST_F(simple_hori_diff, test) {
 
     horizontal_diffusion_repository repo(d1(), d2(), d3());
 
-    auto comp = make_computation(p_coeff = make_storage(repo.coeff),
-        p_in = make_storage(repo.in),
-        p_out = out,
-        p_crlato = make_storage<j_storage_type>(repo.crlato),
-        p_crlatu = make_storage<j_storage_type>(repo.crlatu),
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_lap)),
-            make_stage<wlap_function>(p_lap, p_in, p_crlato, p_crlatu),
-            make_stage<divflux_function>(p_out, p_in, p_lap, p_crlato, p_coeff)));
-
-    comp.run();
+    auto comp = [&] {
+        compute(p_coeff = make_storage(repo.coeff),
+            p_in = make_storage(repo.in),
+            p_out = out,
+            p_crlato = make_storage<j_storage_type>(repo.crlato),
+            p_crlatu = make_storage<j_storage_type>(repo.crlatu),
+            make_multistage(execute::forward(),
+                define_caches(cache<cache_type::ij>(p_lap)),
+                make_stage<wlap_function>(p_lap, p_in, p_crlato, p_crlatu),
+                make_stage<divflux_function>(p_out, p_in, p_lap, p_crlato, p_coeff)));
+    };
+    comp();
     verify(make_storage(repo.out_simple), out);
     benchmark(comp);
 }

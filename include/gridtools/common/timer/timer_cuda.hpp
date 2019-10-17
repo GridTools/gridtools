@@ -9,20 +9,19 @@
  */
 #pragma once
 
-#include "../cuda_util.hpp"
-#include <cuda_runtime.h>
-#include <memory>
-#include <string>
+#if defined(GT_USE_GPU) && defined(GT_ENABLE_METERS)
 
-#include "timer.hpp"
+#include <type_traits>
+
+#include <cuda_runtime.h>
+
+#include "../cuda_util.hpp"
 
 namespace gridtools {
-
     /**
      * @class timer_cuda
      */
-    class timer_cuda : public timer<timer_cuda> // CRTP
-    {
+    class timer_cuda {
         using event_holder =
             std::unique_ptr<CUevent_st, std::integral_constant<decltype(&cudaEventDestroy), cudaEventDestroy>>;
 
@@ -36,10 +35,6 @@ namespace gridtools {
         event_holder m_stop = create_event();
 
       public:
-        timer_cuda(std::string name) : timer<timer_cuda>(name) {}
-
-        void set_impl(double) {}
-
         void start_impl() {
             // insert a start event
             GT_CUDA_CHECK(cudaEventRecord(m_start.get(), 0));
@@ -57,3 +52,13 @@ namespace gridtools {
         }
     };
 } // namespace gridtools
+
+#else
+
+#include "timer_dummy.hpp"
+
+namespace gridtools {
+    using timer_cuda = timer_dummy;
+}
+
+#endif

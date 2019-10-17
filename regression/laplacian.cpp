@@ -33,9 +33,6 @@ TEST_F(laplacian, test) {
         return 4 * in(i, j, k) - (in(i + 1, j, k) + in(i, j + 1, k) + in(i - 1, j, k) + in(i, j - 1, k));
     };
     auto out = make_storage(-7.3);
-
-    make_computation(p_0 = out, p_1 = make_storage(in), make_multistage(execute::forward(), make_stage<lap>(p_0, p_1)))
-        .run();
-
+    compute(p_0 = out, p_1 = make_storage(in), make_multistage(execute::forward(), make_stage<lap>(p_0, p_1)));
     verify(make_storage(ref), out);
 }

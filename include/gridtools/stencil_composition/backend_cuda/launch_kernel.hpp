@@ -49,7 +49,7 @@ namespace gridtools {
 
             template <class MaxExtent>
             struct extent_validator_f {
-                GT_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
+                static_assert(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
 
                 int_t m_i_lo;
                 int_t m_i_hi;
@@ -61,11 +61,11 @@ namespace gridtools {
 
                 template <class Extent = MaxExtent>
                 GT_FUNCTION_DEVICE bool operator()(Extent = {}) const {
-                    GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::iminus::value >= MaxExtent::iminus::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::iplus::value <= MaxExtent::iplus::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::jminus::value >= MaxExtent::jminus::value, GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(Extent::jplus::value <= MaxExtent::jplus::value, GT_INTERNAL_ERROR);
+                    static_assert(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+                    static_assert(Extent::iminus::value >= MaxExtent::iminus::value, GT_INTERNAL_ERROR);
+                    static_assert(Extent::iplus::value <= MaxExtent::iplus::value, GT_INTERNAL_ERROR);
+                    static_assert(Extent::jminus::value >= MaxExtent::jminus::value, GT_INTERNAL_ERROR);
+                    static_assert(Extent::jplus::value <= MaxExtent::jplus::value, GT_INTERNAL_ERROR);
 
                     return Extent::iminus::value <= m_i_lo && Extent::iplus::value > m_i_hi &&
                            Extent::jminus::value <= m_j_lo && Extent::jplus::value > m_j_hi;
@@ -75,7 +75,7 @@ namespace gridtools {
             struct dummy_validator_f {
                 template <class Extent = extent<>>
                 GT_FUNCTION_DEVICE bool operator()(Extent = {}) const {
-                    GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+                    static_assert(is_extent<Extent>::value, GT_INTERNAL_ERROR);
                     return true;
                 }
             };
@@ -96,7 +96,7 @@ namespace gridtools {
                     assert(Extent::iminus::value < 0);
                     static constexpr auto boundary = ceil(-Extent::iminus::value);
                     // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-                    GT_STATIC_ASSERT(jboundary_limit * boundary <= BlockSizeI, GT_INTERNAL_ERROR);
+                    static_assert(jboundary_limit * boundary <= BlockSizeI, GT_INTERNAL_ERROR);
 
                     i_block = -boundary + (int_t)threadIdx.x % boundary;
                     j_block = (int_t)threadIdx.x / boundary + Extent::jminus::value;
@@ -105,7 +105,7 @@ namespace gridtools {
                     assert(threadIdx.y < iminus_limit + 1);
                     static constexpr auto boundary = ceil(Extent::iplus::value);
                     // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-                    GT_STATIC_ASSERT(jboundary_limit * boundary <= BlockSizeI, GT_INTERNAL_ERROR);
+                    static_assert(jboundary_limit * boundary <= BlockSizeI, GT_INTERNAL_ERROR);
 
                     i_block = (int_t)threadIdx.x % boundary + BlockSizeI;
                     j_block = (int_t)threadIdx.x / boundary + Extent::jminus::value;
@@ -150,11 +150,11 @@ namespace gridtools {
                 std::enable_if_t<!is_empty_ij_extents<Extent>(), int> = 0>
             GT_FORCE_INLINE void launch_kernel(
                 int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
-                GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-                GT_STATIC_ASSERT(Extent::iminus::value <= 0, GT_INTERNAL_ERROR);
-                GT_STATIC_ASSERT(Extent::iplus::value >= 0, GT_INTERNAL_ERROR);
+                static_assert(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+                static_assert(Extent::iminus::value <= 0, GT_INTERNAL_ERROR);
+                static_assert(Extent::iplus::value >= 0, GT_INTERNAL_ERROR);
 
-                GT_STATIC_ASSERT(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
 
                 static constexpr auto halo_lines = Extent::jplus::value - Extent::jminus::value +
                                                    (Extent::iminus::value < 0 ? 1 : 0) +
@@ -184,7 +184,7 @@ namespace gridtools {
             GT_FORCE_INLINE void launch_kernel(
                 int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
 
-                GT_STATIC_ASSERT(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
+                static_assert(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
 
                 static const size_t num_threads = BlockSizeI * BlockSizeJ;
 

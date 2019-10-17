@@ -135,23 +135,16 @@ TEST_F(kcachef, local_forward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
-    typedef tmp_arg<2, storage_t> p_buff;
+    arg<0> p_in;
+    arg<1> p_out;
+    tmp_arg<2, float_type> p_buff;
 
-    // Definition of the physical dimensions of the problem.
-    // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon after
-    // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
-        p_in() = m_in,
-        p_out() = m_out,
-        gridtools::make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::local>(p_buff())),
-            gridtools::make_stage<shif_acc_forward>(p_in(), p_out(), p_buff())));
-
-    kcache_stencil.run();
+    compute<backend_t>(m_grid,
+        p_in = m_in,
+        p_out = m_out,
+        make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k>(p_buff)),
+            make_stage<shif_acc_forward>(p_in, p_out, p_buff)));
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -177,18 +170,16 @@ TEST_F(kcachef, local_backward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
-    typedef tmp_arg<2, storage_t> p_buff;
+    arg<0> p_in;
+    arg<1> p_out;
+    tmp_arg<2, float_type> p_buff;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
-        p_in() = m_in,
-        p_out() = m_out,
-        gridtools::make_multistage(execute::backward(),
-            define_caches(cache<cache_type::k, cache_io_policy::local>(p_buff())),
-            gridtools::make_stage<shif_acc_backward>(p_in(), p_out(), p_buff())));
-
-    kcache_stencil.run();
+    compute<backend_t>(m_grid,
+        p_in = m_in,
+        p_out = m_out,
+        make_multistage(execute::backward(),
+            define_caches(cache<cache_type::k>(p_buff)),
+            make_stage<shif_acc_backward>(p_in, p_out, p_buff)));
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -225,18 +216,16 @@ TEST_F(kcachef, biside_forward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
-    typedef tmp_arg<2, storage_t> p_buff;
+    arg<0> p_in;
+    arg<1> p_out;
+    tmp_arg<2, float_type> p_buff;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
-        p_in() = m_in,
-        p_out() = m_out,
-        gridtools::make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::local>(p_buff())),
-            gridtools::make_stage<biside_large_kcache_forward>(p_in(), p_out(), p_buff())));
-
-    kcache_stencil.run();
+    compute<backend_t>(m_grid,
+        p_in = m_in,
+        p_out = m_out,
+        make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k>(p_buff)),
+            make_stage<biside_large_kcache_forward>(p_in, p_out, p_buff)));
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -274,18 +263,16 @@ TEST_F(kcachef, biside_backward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
-    typedef tmp_arg<2, storage_t> p_buff;
+    arg<0> p_in;
+    arg<1> p_out;
+    tmp_arg<2, float_type> p_buff;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
-        p_in() = m_in,
-        p_out() = m_out,
-        gridtools::make_multistage(execute::backward(),
-            define_caches(cache<cache_type::k, cache_io_policy::local>(p_buff())),
-            gridtools::make_stage<biside_large_kcache_backward>(p_in(), p_out(), p_buff())));
-
-    kcache_stencil.run();
+    compute<backend_t>(m_grid,
+        p_in = m_in,
+        p_out = m_out,
+        make_multistage(execute::backward(),
+            define_caches(cache<cache_type::k>(p_buff)),
+            make_stage<biside_large_kcache_backward>(p_in, p_out, p_buff)));
 
     m_out.sync();
     m_out.reactivate_host_write_views();

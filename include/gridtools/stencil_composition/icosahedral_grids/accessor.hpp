@@ -29,7 +29,7 @@ namespace gridtools {
         using base_t = typename accessor::accessor_base;
 
       public:
-        GT_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
+        static_assert(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
         using location_t = LocationType;
 
         GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor);

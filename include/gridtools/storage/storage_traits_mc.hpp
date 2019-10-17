@@ -16,7 +16,6 @@
 #include "./common/halo.hpp"
 #include "./common/storage_traits_metafunctions.hpp"
 #include "./storage_mc/mc_storage.hpp"
-#include "./storage_mc/mc_storage_info.hpp"
 
 namespace gridtools {
     template <class Backend>
@@ -37,54 +36,12 @@ namespace gridtools {
     /** @brief storage traits for the Mic backend*/
     template <>
     struct storage_traits_from_id<backend::mc> {
+        static constexpr uint_t default_alignment = 8;
 
         template <typename ValueType>
-        struct select_storage {
-            using type = mc_storage<ValueType>;
-        };
+        using select_storage = mc_storage<ValueType>;
 
-        template <uint_t Id, uint_t Dims, typename Halo>
-        struct select_storage_info {
-            GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-            using layout = typename impl::layout_swap_mc<typename get_layout<Dims, false>::type>::type;
-            using type = mc_storage_info<Id, layout, Halo>;
-        };
-
-        template <uint_t Id, typename Layout, typename Halo>
-        struct select_custom_layout_storage_info {
-            GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-            GT_STATIC_ASSERT(is_layout_map<Layout>::value, "Given type is not a layout map type.");
-            using type = mc_storage_info<Id, Layout, Halo>;
-        };
-
-        template <uint_t Id, typename Selector, typename Halo>
-        struct select_special_storage_info {
-            GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-            GT_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
-            using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size(), false>::type>::type;
-            using type = mc_storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo>;
-        };
-
-        template <uint_t Id, uint_t Dims, typename Halo, typename Align>
-        struct select_storage_info_align {
-            GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-            using layout = typename impl::layout_swap_mc<typename get_layout<Dims, false>::type>::type;
-            using type = storage_info<Id, layout, Halo, Align>;
-        };
-
-        template <uint_t Id, typename Layout, typename Halo, typename Align>
-        struct select_custom_layout_storage_info_align {
-            GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-            GT_STATIC_ASSERT(is_layout_map<Layout>::value, "Given type is not a layout map type.");
-            using type = storage_info<Id, Layout, Halo, Align>;
-        };
-
-        template <uint_t Id, typename Selector, typename Halo, typename Align>
-        struct select_special_storage_info_align {
-            GT_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
-            GT_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
-            using layout = typename impl::layout_swap_mc<typename get_layout<Selector::size(), false>::type>::type;
-            using type = storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo, Align>;
-        };
+        template <uint_t Dims>
+        using select_layout = typename impl::layout_swap_mc<typename get_layout<Dims, false>::type>::type;
     };
 } // namespace gridtools

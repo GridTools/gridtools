@@ -58,8 +58,8 @@ int main(int argc, char **argv) {
     data_store_t out{meta_data_, -1.0, "out"};
 
     // Use the wrapped computation
-    interpolate_stencil my_stencil{grid, weight};
-    my_stencil.run({in1, in2}, {out});
+    auto my_stencil = make_interpolate_stencil(grid, weight);
+    my_stencil({in1, in2}, {out});
 
     out.sync();
     in1.sync();

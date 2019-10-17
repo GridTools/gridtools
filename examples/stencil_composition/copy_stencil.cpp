@@ -81,10 +81,6 @@ int main(int argc, char **argv) {
     // storage_info contains the information about sizes and layout of the storages to which it will be passed
     storage_info_t meta_data_{d1, d2, d3};
 
-    // Definition of placeholders. The order does not have any semantics.
-    using p_in = gt::arg<0, data_store_t>;
-    using p_out = gt::arg<1, data_store_t>;
-
     // Now we describe the iteration space. In this simple example the iteration space is just described by the full
     // grid (no particular care has to be taken to describe halo points).
     auto grid = gt::make_grid(d1, d2, d3);
@@ -92,12 +88,16 @@ int main(int argc, char **argv) {
     data_store_t in{meta_data_, [](int i, int j, int k) { return i + j + k; }, "in"};
     data_store_t out{meta_data_, -1.0, "out"};
 
-    // Setup the computation, which consists of just one stage.
-    auto copy = gt::make_computation<backend_t>(
-        grid, gt::make_multistage(gt::execute::parallel{}, gt::make_stage<copy_functor>(p_in{}, p_out{})));
+    // Definition of placeholders. The order does not have any semantics.
+    p_in = gt::arg<0> p_in;
+    p_out = gt::arg<1> p_out;
 
+    // Setup the computation, which consists of just one stage.
     // Execute the computation, binding the actual data (`in`, `out`) to the placeholders (`p_in`, `p_out`).
-    copy.run(p_in{} = in, p_out{} = out);
+    gt::compute<backend_t>(grid,
+        p_in = in,
+        p_out = out,
+        gt::make_multistage(gt::execute::parallel{}, gt::make_stage<copy_functor>(p_in, p_out)));
 
     // Synchronize the data between host and target (in case of CUDA, noop otherwise).
     out.sync();

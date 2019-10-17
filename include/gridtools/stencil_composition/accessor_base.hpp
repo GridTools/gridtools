@@ -138,7 +138,7 @@ namespace gridtools {
             : accessor_base(accessor_base_impl_::check_all_zeros(accessor_base_impl_::out_of_range_dim<Dim>(src),
                                 accessor_base_impl_::out_of_range_dim<Dim>(srcs)...),
                   accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...) {
-            GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value),
+            static_assert(meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value,
                 "all dimensions should be of different indicies");
         }
 #else
@@ -149,7 +149,7 @@ namespace gridtools {
         template <uint_t J, uint_t... Js>
         GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> src, dimension<Js>... srcs)
             : base_t({accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...}) {
-            GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value),
+            static_assert(meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value,
                 "all dimensions should be of different indicies");
         }
 #endif
@@ -161,7 +161,7 @@ namespace gridtools {
         GT_FUNCTION GT_CONSTEXPR accessor_base(accessor_base_impl_::check_all_zeros) {}
 
       public:
-        GT_STATIC_ASSERT((std::is_same<Extent, extent<>>::value), GT_INTERNAL_ERROR);
+        static_assert(std::is_same<Extent, extent<>>::value, GT_INTERNAL_ERROR);
 
         using index_t = integral_constant<uint_t, Id>;
         static constexpr intent intent_v = Intent;

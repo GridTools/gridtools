@@ -76,7 +76,7 @@ namespace gridtools {
 
         template <class Res, class Offsets>
         struct accessor_transform_f {
-            GT_STATIC_ASSERT(is_accessor<Res>::value, GT_INTERNAL_ERROR);
+            static_assert(is_accessor<Res>::value, GT_INTERNAL_ERROR);
 
             Offsets m_offsets;
 
@@ -190,14 +190,14 @@ namespace gridtools {
         int_t OffJ = 0,
         int_t OffK = 0>
     class call {
-        GT_STATIC_ASSERT(is_interval<Region>::value or std::is_void<Region>::value,
+        static_assert(is_interval<Region>::value or std::is_void<Region>::value,
             "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
             "the called stencil function");
 
         using params_t = typename Functor::param_list;
         using out_params_t = meta::filter<call_interfaces_impl_::is_out_param, params_t>;
 
-        GT_STATIC_ASSERT(meta::length<out_params_t>::value == 1,
+        static_assert(meta::length<out_params_t>::value == 1,
             "Trying to invoke stencil operator with more than one output as a function");
 
         using out_param_t = meta::first<out_params_t>;
@@ -251,7 +251,7 @@ namespace gridtools {
     template <class Functor, class Region = void, int_t OffI = 0, int_t OffJ = 0, int_t OffK = 0>
     struct call_proc {
 
-        GT_STATIC_ASSERT(is_interval<Region>::value or std::is_void<Region>::value,
+        static_assert(is_interval<Region>::value or std::is_void<Region>::value,
             "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
             "the called stencil function");
 

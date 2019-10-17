@@ -11,31 +11,40 @@
 #include "interpolate_stencil.hpp"
 
 #include <gridtools/stencil_composition/expressions/expressions.hpp>
+#include <gridtools/stencil_composition/global_parameter.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 
-struct interpolate_stage {
-    using in1 = gridtools::in_accessor<0>;
-    using in2 = gridtools::in_accessor<1>;
-    using weight = gridtools::in_accessor<2>;
-    using out = gridtools::inout_accessor<3>;
+namespace {
+    using namespace gridtools;
 
-    using param_list = gridtools::make_param_list<in1, in2, weight, out>;
+    struct interpolate_stage {
+        using in1 = in_accessor<0>;
+        using in2 = in_accessor<1>;
+        using weight = in_accessor<2>;
+        using out = inout_accessor<3>;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
-        using namespace gridtools::expressions;
+        using param_list = make_param_list<in1, in2, weight, out>;
 
-        eval(out()) = eval(weight() * in1() + (1. - weight()) * in2());
-    }
-};
+        template <class Eval>
+        GT_FUNCTION static void apply(Eval &&eval) {
+            using namespace expressions;
+            eval(out()) = eval(weight() * in1() + (1. - weight()) * in2());
+        }
+    };
+} // namespace
 
 // `make_computation` should never be called in a header, because the compilation overhead is very significant
-interpolate_stencil::interpolate_stencil(grid_t const &grid, double weight)
-    : m_stencil(gridtools::make_computation<backend_t>(grid,
-          p_weight() = gridtools::make_global_parameter(weight),
-          gridtools::make_multistage(gridtools::execute::parallel{},
-              gridtools::make_stage<interpolate_stage>(p_in1{}, p_in2(), p_weight(), p_out())))) {}
-
-void interpolate_stencil::run(inputs const &inputs, outputs const &outputs) {
-    m_stencil.run(p_in1() = inputs.in1, p_in2() = inputs.in2, p_out() = outputs.out);
+std::function<void(inputs const &, outputs const &)> make_interpolate_stencil(grid_t grid, double weight) {
+    return [grid = std::move(grid), weight](inputs const &in, outputs &out) {
+        arg<0> p_in1;
+        arg<1> p_in2;
+        arg<2> p_out;
+        arg<3> p_weight;
+        compute<backend_t>(grid,
+            p_weight = make_global_parameter(weight),
+            p_in1 = in.in1,
+            p_in2 = in.in2,
+            p_out = out.out,
+            make_multistage(execute::parallel(), make_stage<interpolate_stage>(p_in1, p_in2, p_weight, p_out)));
+    };
 }

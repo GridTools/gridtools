@@ -59,19 +59,19 @@ namespace gridtools {
      */
     template <class EsfFunction, class Args, class Extent = void>
     struct esf_descriptor {
-        GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value),
+        static_assert(meta::all_of<is_plh, Args>::value,
             "wrong types for the list of parameter placeholders check the make_stage syntax");
-        GT_STATIC_ASSERT(esf_impl_::has_param_list<EsfFunction>::type::value,
+        static_assert(esf_impl_::has_param_list<EsfFunction>::type::value,
             "The type param_list was not found in a user functor definition. All user functors must have a type alias "
             "called \'param_list\', which is an MPL vector containing the list of accessors defined in the functor "
             "Example: \n\n using v1=in_accessor<0>; \n\n using v2=inout_accessor<2>; \n using "
             "param_list=make_param_list<v1, v2>;");
-        GT_STATIC_ASSERT(esf_impl_::check_param_list<typename EsfFunction::param_list>::value,
+        static_assert(esf_impl_::check_param_list<typename EsfFunction::param_list>::value,
             "The list of accessors in a user functor (i.e. the param_list type to be defined on each functor) does not "
             "have increasing index");
-        GT_STATIC_ASSERT(meta::length<typename EsfFunction::param_list>::value == meta::length<Args>::value,
+        static_assert(meta::length<typename EsfFunction::param_list>::value == meta::length<Args>::value,
             "The number of actual arguments should match the number of parameters.");
-        GT_STATIC_ASSERT((esf_impl_::are_same_locations<Args, typename EsfFunction::param_list>::value),
+        static_assert(esf_impl_::are_same_locations<Args, typename EsfFunction::param_list>::value,
             "Location types of placeholders and accessors must match");
 
         using esf_function_t = EsfFunction;

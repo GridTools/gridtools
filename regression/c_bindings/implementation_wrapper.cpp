@@ -14,6 +14,7 @@
 
 #include <cpp_bindgen/export.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace {
@@ -64,23 +65,24 @@ namespace {
     BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED_1(
         sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));
 
-    using p_in = arg<0, data_store_t>;
-    using p_out = arg<1, data_store_t>;
-
     auto make_grid(data_store_t data_store) {
         auto dims = data_store.total_lengths();
         return gridtools::make_grid(dims[0], dims[1], dims[2]);
     }
 
     auto make_copy_stencil(data_store_t in, data_store_t out) {
-        return make_computation<backend_t>(make_grid(out),
-            p_in{} = in,
-            p_out{} = out,
-            make_multistage(execute::forward(), make_stage<copy_functor>(p_in{}, p_out{})));
+        return [=] {
+            arg<0> p_in;
+            arg<1> p_out;
+            compute<backend_t>(make_grid(out),
+                p_in = in,
+                p_out = out,
+                make_multistage(execute::forward(), make_stage<copy_functor>(p_in, p_out)));
+        };
     }
     BINDGEN_EXPORT_BINDING_WRAPPED_2(create_copy_stencil, make_copy_stencil);
 
     using stencil_t = decltype(make_copy_stencil(std::declval<data_store_t>(), std::declval<data_store_t>()));
 
-    BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
+    BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED_1(run_stencil, void(stencil_t const &), [](auto &&f) { f(); });
 } // namespace

@@ -322,26 +322,7 @@ Creating a complete stencil for horizontal diffusion looks as follows:
 
 where ``backend_t`` specifies the :term:`Backend` that will execute the computation.
 
-The details about dependencies between stages and multistages are described in :ref:`Execution-Model`. If two stages
-have no dependencies, they don't need to be synchronized. Thus, the user can make them independent. In case of the
-horizontal diffusion, the fluxes in x and y have no dependency on each other, thus, ``make_independent`` can be used:
-
-.. code-block:: gridtools
-
- auto horizontal_diffusion = make_computation<backend_t>(
-     grid,
-     make_multistage(
-         execute::forward(),
-         make_stage<lap_operator>(p_lap(), p_in()),
-         make_independent(
-             make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
-             make_stage<fly_operator>(p_fly(), p_in(), p_lap())),
-         make_stage<out_operator>(p_out(), p_in(), p_flx(), p_fly())
-     )
- );
-
-``make_independent`` does not have impact on the data-dependency analysis but, potentially, only on the execution
-schedule.
+The details about dependencies between stages and multistages are described in :ref:`Execution-Model`.
 
 A computation can also have several multistages. The general signature is as follows:
 
@@ -401,9 +382,8 @@ assign those fields to the respective placeholders directly in the
      make_multistage(
          execute::forward(),
          make_stage<lap_operator>(p_lap(), p_in()),
-         make_independent(
-             make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
-             make_stage<fly_operator>(p_fly(), p_in(), p_lap())),
+         make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
+         make_stage<fly_operator>(p_fly(), p_in(), p_lap()),
          make_stage<out_operator>(p_out(), p_in(), p_flx(), p_fly())
      )
  );

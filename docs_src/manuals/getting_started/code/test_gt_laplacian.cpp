@@ -45,20 +45,20 @@ int main() {
     data_store_t phi(info, -1., "phi");
     data_store_t lap(info, -1., "lap");
 
-    using arg_phi = arg<0, data_store_t>;
-    using arg_lap = arg<1, data_store_t>;
+    arg<0> arg_phi;
+    arg<1> arg_lap;
 
     int halo_size = 1;
     halo_descriptor boundary_i(halo_size, halo_size, halo_size, Ni - halo_size - 1, Ni);
     halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);
     auto my_grid = make_grid(boundary_i, boundary_j, Nk);
 
-    auto laplacian = make_computation<backend_t>(          //
-        my_grid,                                           //
-        make_multistage(                                   //
-            execute::parallel(),                           //
-            make_stage<lap_function>(arg_phi(), arg_lap()) //
-            ));                                            //
-
-    laplacian.run(arg_phi{} = phi, arg_lap{} = lap);
+    compute<backend_t>(                                //
+        my_grid,                                       //
+        arg_phi = phi,                                 //
+        arg_lap = lap,                                 //
+        make_multistage(                               //
+            execute::parallel(),                       //
+            make_stage<lap_function>(arg_phi, arg_lap) //
+            ));                                        //
 } // end marker

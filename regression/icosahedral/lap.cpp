@@ -55,12 +55,12 @@ struct lap : regression_fixture<2> {
 
     arg<0, edges> p_in_edges;
     arg<1, edges> p_out_edges;
-    arg<2, edges, edge_2d_storage_type> p_edge_length;
-    arg<3, edges, edge_2d_storage_type> p_edge_length_reciprocal;
-    arg<4, edges, edge_2d_storage_type> p_dual_edge_length;
-    arg<5, edges, edge_2d_storage_type> p_dual_edge_length_reciprocal;
-    arg<2, cells, cell_2d_storage_type> p_cell_area_reciprocal;
-    arg<3, vertices, vertex_2d_storage_type> p_dual_area_reciprocal;
+    arg<2, edges> p_edge_length;
+    arg<3, edges> p_edge_length_reciprocal;
+    arg<4, edges> p_dual_edge_length;
+    arg<5, edges> p_dual_edge_length_reciprocal;
+    arg<2, cells> p_cell_area_reciprocal;
+    arg<3, vertices> p_dual_area_reciprocal;
 
     tmp_arg<0, cells> p_div_on_cells;
     tmp_arg<1, vertices> p_curl_on_vertices;
@@ -72,12 +72,12 @@ TEST_F(lap, weights) {
     using edges_of_cells_storage_type = storage_type_4d<cells, selector<1, 1, 1, 0, 1>>;
     using edges_of_vertices_storage_type = storage_type_4d<vertices, selector<1, 1, 1, 0, 1>>;
 
-    arg<10, cells, edges_of_cells_storage_type> p_orientation_of_normal;
-    arg<11, cells, storage_type_4d<cells>> p_div_weights;
-    arg<12, vertices, storage_type_4d<vertices>> p_curl_weights;
-    arg<13, vertices, edges_of_vertices_storage_type> p_edge_orientation;
+    arg<10, cells> p_orientation_of_normal;
+    arg<11, cells> p_div_weights;
+    arg<12, vertices> p_curl_weights;
+    arg<13, vertices> p_edge_orientation;
 
-    make_computation(p_edge_length = make_storage<edges, edge_2d_storage_type>(repo.edge_length),
+    compute(p_edge_length = make_storage<edges, edge_2d_storage_type>(repo.edge_length),
         p_cell_area_reciprocal = make_storage<cells, cell_2d_storage_type>(repo.cell_area_reciprocal),
         p_orientation_of_normal = make_storage_4d<cells, edges_of_cells_storage_type>(3, repo.orientation_of_normal),
         p_div_weights = make_storage_4d<cells>(3),
@@ -99,12 +99,11 @@ TEST_F(lap, weights) {
                 p_dual_edge_length_reciprocal,
                 p_curl_on_vertices,
                 p_edge_length_reciprocal,
-                p_out_edges)))
-        .run();
+                p_out_edges)));
 }
 
 TEST_F(lap, flow_convention) {
-    make_computation(p_in_edges = make_storage<edges>(repo.u),
+    compute(p_in_edges = make_storage<edges>(repo.u),
         p_edge_length = make_storage<edges, edge_2d_storage_type>(repo.edge_length),
         p_cell_area_reciprocal = make_storage<cells, cell_2d_storage_type>(repo.cell_area_reciprocal),
         p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
@@ -113,7 +112,7 @@ TEST_F(lap, flow_convention) {
         p_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.edge_length_reciprocal),
         p_out_edges = out_edges,
         make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_div_on_cells)),
+            define_caches(cache<cache_type::ij>(p_div_on_cells)),
             make_stage<div_functor_flow_convention_connectivity>(
                 p_in_edges, p_edge_length, p_cell_area_reciprocal, p_div_on_cells),
             make_stage<curl_functor_flow_convention>(
@@ -122,6 +121,5 @@ TEST_F(lap, flow_convention) {
                 p_dual_edge_length_reciprocal,
                 p_curl_on_vertices,
                 p_edge_length_reciprocal,
-                p_out_edges)))
-        .run();
+                p_out_edges)));
 }

@@ -27,8 +27,8 @@ using layout_map_local_quad_t = std::conditional_t<std::is_same<backend_t, backe
     layout_map<-1, -1, -1, 3, 2, 1, 0>>;
 
 template <unsigned Id, typename Layout>
-using special_storage_info_t = typename storage_traits<
-    backend_t>::select_custom_layout_storage_info<Id, Layout, zero_halo<Layout::masked_length>>::type;
+using special_storage_info_t =
+    storage_traits<backend_t>::custom_layout_storage_info_t<Id, Layout, zero_halo<Layout::masked_length>>;
 
 using storage_info_t = special_storage_info_t<0, layout_map_t>;
 using storage_info_global_quad_t = special_storage_info_t<0, layout_map_global_quad_t>;
@@ -214,15 +214,7 @@ namespace assembly {
         }
     };
 
-    std::ostream &operator<<(std::ostream &s, integration const) { return s << "integration"; }
-
     bool test(uint_t d1, uint_t d2, uint_t d3) {
-
-        typedef arg<0, storage_local_quad_t> p_phi;
-        typedef arg<1, storage_local_quad_t> p_psi;
-        typedef arg<2, storage_global_quad_t> p_jac;
-        typedef arg<3, storage_type> p_f;
-        typedef arg<4, storage_type> p_result;
 
         uint_t nbQuadPt = 2; // referenceFE_Type::nbQuadPt;
         uint_t b1 = 2;
@@ -270,15 +262,19 @@ namespace assembly {
         halo_descriptor dj{1, 1, 1, d2 - 3, d2};
         auto grid = make_grid(di, dj, d3 - 1);
 
-        auto fe_comp = make_computation<backend_t>(grid,
-            p_phi() = phi,
-            p_psi() = psi,
-            p_jac() = jac,
-            p_f() = f,
-            p_result() = result,
-            make_multistage(execute::forward(), make_stage<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+        arg<0> p_phi;
+        arg<1> p_psi;
+        arg<2> p_jac;
+        arg<3> p_f;
+        arg<4> p_result;
 
-        fe_comp.run();
+        compute<backend_t>(grid,
+            p_phi = phi,
+            p_psi = psi,
+            p_jac = jac,
+            p_f = f,
+            p_result = result,
+            make_multistage(execute::forward(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)));
 
         return do_verification<storage_local_quad_t, storage_global_quad_t>(d1, d2, d3, result, grid);
     }

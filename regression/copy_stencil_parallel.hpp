@@ -17,6 +17,7 @@
 #include <gridtools/communication/low_level/proc_grids_3D.hpp>
 #include <gridtools/distributed_boundaries/grid_predicate.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
@@ -24,11 +25,6 @@
 
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel with boundary conditions*/
-
-using gridtools::accessor;
-using gridtools::arg;
-using gridtools::extent;
-using gridtools::level;
 
 using namespace gridtools;
 
@@ -57,11 +53,6 @@ namespace copy_stencil {
         }
     };
 
-    /*
-     * The following operators and structs are for debugging only
-     */
-    std::ostream &operator<<(std::ostream &s, copy_functor const) { return s << "copy_functor"; }
-
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
         //! [proc_grid_dims]
@@ -76,27 +67,22 @@ namespace copy_stencil {
         typedef storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
         typedef storage_traits<backend_t>::data_store_t<float_type, storage_info_t> storage_t;
 
-        typedef gridtools::halo_exchange_dynamic_ut<typename storage_info_t::layout_t,
-            gridtools::layout_map<0, 1, 2>,
+        typedef halo_exchange_dynamic_ut<typename storage_info_t::layout_t,
+            layout_map<0, 1, 2>,
             float_type,
 #ifdef __CUDACC__
-            gridtools::gcl_gpu>
+            gcl_gpu>
 #else
-            gridtools::gcl_cpu>
+            gcl_cpu>
 #endif
             pattern_type;
 
-        pattern_type he(gridtools::boollist<3>(false, false, false), CartComm);
+        pattern_type he(boollist<3>(false, false, false), CartComm);
 #ifdef GT_VERBOSE
         std::cout << "halo exchange ok" << std::endl;
 #endif
 
         /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-
-        // Definition of placeholders. The order of them reflect the order the user will deal with them
-        // especially the non-temporary ones, in the construction of the domain
-        typedef arg<0, storage_t> p_in;
-        typedef arg<1, storage_t> p_out;
 
         array<uint_t, 2> halo{1, 1};
 
@@ -138,38 +124,19 @@ namespace copy_stencil {
             {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
             d3);
 
-        auto copy = gridtools::make_computation<backend_t>(grid,
-            p_in{} = in,
-            p_out{} = out,
-            gridtools::make_multistage // mss_descriptor
-            (execute::forward(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
-#ifdef GT_VERBOSE
-        std::cout << "computation instantiated" << std::endl;
-#endif
+        arg<0> p_in;
+        arg<1> p_out;
+        compute<backend_t>(
+            grid, p_in = in, p_out = out, make_multistage(execute::forward(), make_stage<copy_functor>(p_in, p_out)));
 
-#ifdef GT_VERBOSE
-        std::cout << "computation steady" << std::endl;
-#endif
+        array<halo_descriptor, 3> halos;
+        halos[0] = halo_descriptor(halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]);
+        halos[1] = halo_descriptor(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
+        halos[2] = halo_descriptor(0, 0, 0, d3 - 1, d3);
 
-        copy.run();
-
-#ifdef GT_VERBOSE
-        std::cout << "computation run" << std::endl;
-#endif
-
-#ifdef GT_VERBOSE
-        std::cout << "computation finalized" << std::endl;
-#endif
-
-        gridtools::array<gridtools::halo_descriptor, 3> halos;
-        halos[0] = gridtools::halo_descriptor(halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]);
-        halos[1] = gridtools::halo_descriptor(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
-        halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
-
-        typename gridtools::
-            boundary<boundary_conditions, backend_t, typename gridtools::proc_grid_predicate<decltype(c_grid)>>(
-                halos, boundary_conditions(), gridtools::proc_grid_predicate<decltype(c_grid)>(c_grid))
-                .apply(in, out);
+        boundary<boundary_conditions, backend_t, proc_grid_predicate<decltype(c_grid)>>(
+            halos, boundary_conditions(), proc_grid_predicate<decltype(c_grid)>(c_grid))
+            .apply(in, out);
 
 #ifdef __CUDACC__
         auto inv = make_device_view(in);
@@ -212,15 +179,15 @@ namespace copy_stencil {
                     int K = k;
 
                     if (v_out_h(i, j, k) != (I + J + K)) {
-                        std::cout << gridtools::PID << " "
+                        std::cout << PID << " "
                                   << "i = " << i << ", j = " << j << ", k = " << k
                                   << "v_out_h(i, j, k) = " << v_out_h(i, j, k) << ", "
-                                  << "(I + J + K) = " << (i + j + k) * (gridtools::PID + 1) << "\n";
+                                  << "(I + J + K) = " << (i + j + k) * (PID + 1) << "\n";
                         return false;
                     }
                 }
 
-        std::cout << "(" << gridtools::PID << ") Completed\n";
+        std::cout << "(" << PID << ") Completed\n";
 
         return true;
     }

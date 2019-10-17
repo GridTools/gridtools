@@ -26,78 +26,78 @@ TEST(LayoutMap, SimpleLayout) {
     typedef layout_map<0, 1, 2> layout1;
 
     // test length
-    GT_STATIC_ASSERT(layout1::masked_length == 3, "layout_map length is wrong");
-    GT_STATIC_ASSERT(layout1::unmasked_length == 3, "layout_map length is wrong");
+    static_assert(layout1::masked_length == 3, "");
+    static_assert(layout1::unmasked_length == 3, "");
 
     // test find method
-    GT_STATIC_ASSERT(layout1::find<0>() == 0, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout1::find<1>() == 1, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout1::find<2>() == 2, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout1::find(0) == 0, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout1::find(1) == 1, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout1::find(2) == 2, "wrong result in layout_map find method");
+    static_assert(layout1::find<0>() == 0, "");
+    static_assert(layout1::find<1>() == 1, "");
+    static_assert(layout1::find<2>() == 2, "");
+    static_assert(layout1::find(0) == 0, "");
+    static_assert(layout1::find(1) == 1, "");
+    static_assert(layout1::find(2) == 2, "");
 
     // test at method
-    GT_STATIC_ASSERT(layout1::at<0>() == 0, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout1::at<1>() == 1, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout1::at<2>() == 2, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout1::at(0) == 0, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout1::at(1) == 1, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout1::at(2) == 2, "wrong result in layout_map at method");
+    static_assert(layout1::at<0>() == 0, "");
+    static_assert(layout1::at<1>() == 1, "");
+    static_assert(layout1::at<2>() == 2, "");
+    static_assert(layout1::at(0) == 0, "");
+    static_assert(layout1::at(1) == 1, "");
+    static_assert(layout1::at(2) == 2, "");
 }
 
 TEST(LayoutMap, ExtendedLayout) {
     typedef layout_map<3, 2, 1, 0> layout2;
 
     // test length
-    GT_STATIC_ASSERT(layout2::masked_length == 4, "layout_map length is wrong");
-    GT_STATIC_ASSERT(layout2::unmasked_length == 4, "layout_map length is wrong");
+    static_assert(layout2::masked_length == 4, "");
+    static_assert(layout2::unmasked_length == 4, "");
 
     // test find method
-    GT_STATIC_ASSERT(layout2::find<0>() == 3, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout2::find<1>() == 2, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout2::find<2>() == 1, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout2::find<3>() == 0, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout2::find(0) == 3, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout2::find(1) == 2, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout2::find(2) == 1, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout2::find(3) == 0, "wrong result in layout_map find method");
+    static_assert(layout2::find<0>() == 3, "");
+    static_assert(layout2::find<1>() == 2, "");
+    static_assert(layout2::find<2>() == 1, "");
+    static_assert(layout2::find<3>() == 0, "");
+    static_assert(layout2::find(0) == 3, "");
+    static_assert(layout2::find(1) == 2, "");
+    static_assert(layout2::find(2) == 1, "");
+    static_assert(layout2::find(3) == 0, "");
 
     // test at method
-    GT_STATIC_ASSERT(layout2::at<0>() == 3, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout2::at<1>() == 2, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout2::at<2>() == 1, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout2::at<3>() == 0, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout2::at(0) == 3, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout2::at(1) == 2, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout2::at(2) == 1, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout2::at(3) == 0, "wrong result in layout_map at method");
+    static_assert(layout2::at<0>() == 3, "");
+    static_assert(layout2::at<1>() == 2, "");
+    static_assert(layout2::at<2>() == 1, "");
+    static_assert(layout2::at<3>() == 0, "");
+    static_assert(layout2::at(0) == 3, "");
+    static_assert(layout2::at(1) == 2, "");
+    static_assert(layout2::at(2) == 1, "");
+    static_assert(layout2::at(3) == 0, "");
 }
 
 TEST(LayoutMap, MaskedLayout) {
     typedef layout_map<2, -1, 1, 0> layout3;
 
     // test length
-    GT_STATIC_ASSERT(layout3::masked_length == 4, "layout_map length is wrong");
-    GT_STATIC_ASSERT(layout3::unmasked_length == 3, "layout_map length is wrong");
+    static_assert(layout3::masked_length == 4, "");
+    static_assert(layout3::unmasked_length == 3, "");
 
     // test find method
-    GT_STATIC_ASSERT(layout3::find<0>() == 3, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout3::find<1>() == 2, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout3::find<2>() == 0, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout3::find(0) == 3, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout3::find(1) == 2, "wrong result in layout_map find method");
-    GT_STATIC_ASSERT(layout3::find(2) == 0, "wrong result in layout_map find method");
+    static_assert(layout3::find<0>() == 3, "");
+    static_assert(layout3::find<1>() == 2, "");
+    static_assert(layout3::find<2>() == 0, "");
+    static_assert(layout3::find(0) == 3, "");
+    static_assert(layout3::find(1) == 2, "");
+    static_assert(layout3::find(2) == 0, "");
 
     // test at method
-    GT_STATIC_ASSERT(layout3::at<0>() == 2, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout3::at<1>() == -1, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout3::at<2>() == 1, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout3::at<3>() == 0, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout3::at(0) == 2, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout3::at(1) == -1, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout3::at(2) == 1, "wrong result in layout_map at method");
-    GT_STATIC_ASSERT(layout3::at(3) == 0, "wrong result in layout_map at method");
+    static_assert(layout3::at<0>() == 2, "");
+    static_assert(layout3::at<1>() == -1, "");
+    static_assert(layout3::at<2>() == 1, "");
+    static_assert(layout3::at<3>() == 0, "");
+    static_assert(layout3::at(0) == 2, "");
+    static_assert(layout3::at(1) == -1, "");
+    static_assert(layout3::at(2) == 1, "");
+    static_assert(layout3::at(3) == 0, "");
 }
 
 TEST(LayoutMap, DefaultLayout) {
@@ -143,20 +143,6 @@ TEST(LayoutMap, Extender) {
     ASSERT_TYPE_EQ<layout_map<0, 1, 4, 3, -1, 2>, ext_special_layout_post_2>();
 }
 
-TEST(LayoutMap, max_value) {
-    {
-        using layout_map_t = layout_map<0, 1, 2, 3>;
-
-        GT_STATIC_ASSERT(layout_map_t::max() == 3, " ");
-    }
-    {
-        using layout_map_t = layout_map<0, 1, -1, 2>;
-
-        GT_STATIC_ASSERT(layout_map_t::max() == 2, " ");
-    }
-    {
-        using layout_map_t = layout_map<0, 1, -1, -1>;
-
-        GT_STATIC_ASSERT(layout_map_t::max() == 1, " ");
-    }
-}
+static_assert(layout_map<0, 1, 2, 3>::max() == 3, " ");
+static_assert(layout_map<0, 1, -1, 2>::max() == 2, " ");
+static_assert(layout_map<0, 1, -1, -1>::max() == 1, " ");

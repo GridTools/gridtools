@@ -12,6 +12,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/omp.hpp"
 
 namespace gridtools {
     namespace mc {

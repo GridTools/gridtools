@@ -113,19 +113,19 @@ namespace gridtools {
         struct getter {
             template <size_t I, typename T, size_t D>
             static GT_FUNCTION T &get(array<T, D> &arr) noexcept {
-                GT_STATIC_ASSERT(I < D, "index is out of bounds");
+                static_assert(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
 
             template <size_t I, typename T, size_t D>
             static GT_FUNCTION GT_CONSTEXPR const T &get(const array<T, D> &arr) noexcept {
-                GT_STATIC_ASSERT(I < D, "index is out of bounds");
+                static_assert(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
 
             template <size_t I, typename T, size_t D>
             static GT_FUNCTION GT_CONSTEXPR T &&get(array<T, D> &&arr) noexcept {
-                GT_STATIC_ASSERT(I < D, "index is out of bounds");
+                static_assert(I < D, "index is out of bounds");
                 return wstd::move(arr.m_array[I]);
             }
         };
@@ -184,19 +184,19 @@ namespace gridtools {
 
     template <size_t I, typename T, size_t D>
     GT_FUNCTION T &get(array<T, D> &arr) noexcept {
-        GT_STATIC_ASSERT(I < D, "index is out of bounds");
+        static_assert(I < D, "index is out of bounds");
         return arr.m_array[I];
     }
 
     template <size_t I, typename T, size_t D>
     GT_FUNCTION GT_CONSTEXPR const T &get(const array<T, D> &arr) noexcept {
-        GT_STATIC_ASSERT(I < D, "index is out of bounds");
+        static_assert(I < D, "index is out of bounds");
         return arr.m_array[I];
     }
 
     template <size_t I, typename T, size_t D>
     GT_FUNCTION GT_CONSTEXPR T &&get(array<T, D> &&arr) noexcept {
-        GT_STATIC_ASSERT(I < D, "index is out of bounds");
+        static_assert(I < D, "index is out of bounds");
         return wstd::move(get<I>(arr));
     }
 

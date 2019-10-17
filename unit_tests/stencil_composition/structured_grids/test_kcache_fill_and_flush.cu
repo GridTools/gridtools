@@ -83,15 +83,13 @@ TEST_F(kcachef, fill_and_flush_forward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
+    arg<0> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
-        p_in{} = m_in,
-        gridtools::make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
-            gridtools::make_stage<shift_acc_forward_fill_and_flush>(p_in())));
-
-    kcache_stencil.run();
+    compute<backend_t>(m_grid,
+        p_in = m_in,
+        make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
+            make_stage<shift_acc_forward_fill_and_flush>(p_in)));
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -115,15 +113,13 @@ TEST_F(kcachef, fill_and_flush_backward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
+    arg<0> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
-        p_in{} = m_in,
-        gridtools::make_multistage(execute::backward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
-            gridtools::make_stage<shift_acc_backward_fill_and_flush>(p_in())));
-
-    kcache_stencil.run();
+    compute<backend_t>(m_grid,
+        p_in = m_in,
+        make_multistage(execute::backward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
+            make_stage<shift_acc_backward_fill_and_flush>(p_in)));
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -146,15 +142,13 @@ TEST_F(kcachef, fill_copy_forward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
+    arg<0> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
-        p_in{} = m_in,
-        gridtools::make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
-            gridtools::make_stage<copy_fill>(p_in())));
-
-    kcache_stencil.run();
+    compute<backend_t>(m_grid,
+        p_in = m_in,
+        make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
+            make_stage<copy_fill>(p_in)));
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -177,15 +171,13 @@ TEST_F(kcachef, fill_scale_forward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
+    arg<0> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
-        p_in{} = m_in,
-        gridtools::make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
-            gridtools::make_stage<scale_fill>(p_in())));
-
-    kcache_stencil.run();
+    compute<backend_t>(m_grid,
+        p_in = m_in,
+        make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
+            make_stage<scale_fill>(p_in)));
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -224,15 +216,13 @@ TEST_F(kcachef, fill_copy_forward_with_extent) {
     m_in.sync();
     m_ref.sync();
 
-    typedef arg<0, storage_t> p_in;
+    arg<0> p_in;
 
-    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
-        p_in{} = m_in,
-        gridtools::make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill_and_flush>(p_in())),
-            gridtools::make_stage<do_nothing>(p_in())));
-
-    kcache_stencil.run();
+    compute<backend_t>(m_grid,
+        p_in = m_in,
+        make_multistage(execute::forward(),
+            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
+            make_stage<do_nothing>(p_in)));
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);

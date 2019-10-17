@@ -23,7 +23,6 @@
 
 #include "../common/defs.hpp"
 #include "../meta.hpp"
-#include "../storage/storage_facility.hpp"
 #include "location_type.hpp"
 
 namespace gridtools {
@@ -40,18 +39,8 @@ namespace gridtools {
     /** @brief binding between the placeholder (\tparam Plh) and the storage (\tparam DataStore)*/
     template <class Plh, class DataStore>
     struct arg_storage_pair {
-
-        GT_STATIC_ASSERT(is_plh<Plh>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((std::is_same<typename Plh::data_store_t, std::decay_t<DataStore>>::value),
-            "DataStoreType type not compatible with placeholder storage type, when associating placeholder to actual "
-            "data store");
-
-        static constexpr Plh arg() { return {}; }
-
+        static_assert(is_plh<Plh>::value, GT_INTERNAL_ERROR);
         DataStore m_value;
-
-        using arg_t = Plh;
-        using data_store_t = std::remove_reference_t<DataStore>;
     };
 
     template <class>
@@ -73,7 +62,7 @@ namespace gridtools {
      */
     template <class Tag, class DataStore, class Location>
     struct plh {
-        GT_STATIC_ASSERT(
+        static_assert(
             is_location_type<Location>::value, "The third template argument of a placeholder must be a location_type");
         using data_store_t = DataStore;
         using location_t = Location;
@@ -88,7 +77,7 @@ namespace gridtools {
 
     template <class Tag, class Data, class Location>
     struct tmp_plh {
-        GT_STATIC_ASSERT(
+        static_assert(
             is_location_type<Location>::value, "The third template argument of a placeholder must be a location_type");
         using location_t = Location;
         using tag_t = Tag;
@@ -105,27 +94,12 @@ namespace gridtools {
     namespace _impl {
         template <uint_t>
         struct arg_tag;
-
-        template <class DataStore, class = void>
-        struct tmp_data_type {
-            using type = DataStore;
-        };
-
-        template <class DataStore>
-        struct tmp_data_type<DataStore, void_t<typename DataStore::data_t>> {
-            using type = typename DataStore::data_t;
-        };
-
-        template <class DataStore>
-        struct tmp_data_type<std::vector<DataStore>> {
-            using type = std::vector<typename tmp_data_type<DataStore>::type>;
-        };
     } // namespace _impl
 
-    template <uint_t I, class DataStore, class Location = enumtype::default_location_type>
-    using tmp_arg = tmp_plh<_impl::arg_tag<I>, typename _impl::tmp_data_type<DataStore>::type, Location>;
+    template <uint_t I, class T, class Location = enumtype::default_location_type>
+    using tmp_arg = tmp_plh<_impl::arg_tag<I>, T, Location>;
 
-    template <uint_t I, class DataStore, class LocationType = enumtype::default_location_type>
-    using arg = plh<_impl::arg_tag<I>, DataStore, LocationType>;
+    template <uint_t I, class DataStore = void, class Location = enumtype::default_location_type>
+    using arg = plh<_impl::arg_tag<I>, DataStore, Location>;
 
 } // namespace gridtools

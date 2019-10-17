@@ -12,10 +12,9 @@
 #include <memory>
 #include <vector>
 
-#include <omp.h>
-
 #include "../../common/hugepage_alloc.hpp"
 #include "../../common/hymap.hpp"
+#include "../../common/omp.hpp"
 #include "../dim.hpp"
 #include "../pos3.hpp"
 #include "../sid/allocator.hpp"

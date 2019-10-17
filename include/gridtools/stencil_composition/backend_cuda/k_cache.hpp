@@ -55,7 +55,7 @@ namespace gridtools {
             GT_FUNCTION fake operator+(fake, fake) { return {}; }
             inline hymap::keys<dim::k>::values<integral_constant<int_t, 1>> sid_get_strides(fake) { return {}; }
 
-            GT_STATIC_ASSERT(is_sid<fake>(), GT_INTERNAL_ERROR);
+            static_assert(is_sid<fake>(), GT_INTERNAL_ERROR);
 
             template <class Storages>
             class k_caches {
@@ -76,8 +76,7 @@ namespace gridtools {
             using make_storage_type = storage<typename PlhInfo::data_t, Extent::kminus::value, Extent::kplus::value>;
 
             template <class PlhInfo>
-            using is_k_cached =
-                std::is_same<typename PlhInfo::caches_t, meta::list<integral_constant<cache_type, cache_type::k>>>;
+            using is_k_cached = std::is_same<typename PlhInfo::caches_t, meta::list<cache_type::k>>;
 
             template <class Mss>
             using has_k_caches = meta::any_of<is_k_cached, typename Mss::plh_map_t>;

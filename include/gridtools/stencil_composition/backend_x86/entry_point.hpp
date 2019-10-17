@@ -16,6 +16,7 @@
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/integral_constant.hpp"
+#include "../../common/omp.hpp"
 #include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"

@@ -92,16 +92,16 @@ int main() {
     using storage_type = storage_tr::data_store_t<double, storage_info_t>;
 
     // Definition of the actual data fields that are used for input/output, instantiated using the storage_info
-    auto out = storage_type{storage_info_t{d1, d2, d3}};
-    auto sup = storage_type{storage_info_t{d1, d2, d3}, 1.};
-    auto rhs = storage_type{storage_info_t{d1, d2, d3}, [](int, int, int k) { return k == 0 ? 4. : k == 5 ? 2. : 3.; }};
+    auto out = storage_type{{d1, d2, d3}};
+    auto sup = storage_type{{d1, d2, d3}, 1.};
+    auto rhs = storage_type{{d1, d2, d3}, [](int, int, int k) { return k == 0 ? 4. : k == 5 ? 2. : 3.; }};
 
     // Definition of placeholders. The order does not have any semantics
-    gt::arg<0, storage_type> p_inf;
-    gt::arg<1, storage_type> p_diag;
-    gt::arg<2, storage_type> p_sup;
-    gt::arg<3, storage_type> p_rhs;
-    gt::arg<4, storage_type> p_out;
+    gt::arg<0> p_inf;
+    gt::arg<1> p_diag;
+    gt::arg<2> p_sup;
+    gt::arg<3> p_rhs;
+    gt::arg<4> p_out;
 
     // Now we describe the itaration space. The first two dimensions
     // are described with a tuple of values (minus, plus, begin, end,
@@ -127,7 +127,7 @@ int main() {
     // (iteration space), binding of the placeholders to the fields
     // that will not be modified during the computation, and then the
     // stencil structure
-    auto trid_solve = gt::make_computation<backend_t>(grid,
+    compute<backend_t>(grid,
         p_inf = storage_type{storage_info_t{d1, d2, d3}, -1.},
         p_diag = storage_type{storage_info_t{d1, d2, d3}, 3.},
         p_sup = sup,
@@ -136,9 +136,6 @@ int main() {
         gt::make_multistage(gt::execute::forward(), gt::make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
         gt::make_multistage(
             gt::execute::backward(), gt::make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)));
-
-    // Executing the computation
-    trid_solve.run();
 
     out.sync();
     // In this simple example the solution is known and we can easily

@@ -25,8 +25,7 @@ struct expandable_parameters : computation_fixture<> {
 
     template <class... Args>
     void run_computation(Args &&... args) const {
-        gridtools::make_expandable_computation<backend_t>(expand_factor<2>(), make_grid(), std::forward<Args>(args)...)
-            .run();
+        gridtools::expandable_compute<backend_t>(expand_factor<2>(), make_grid(), std::forward<Args>(args)...);
     }
 
     void verify(storages_t const &expected, storages_t const &actual) const {
@@ -155,7 +154,7 @@ TEST_F(expandable_parameters, caches) {
     run_computation(p_in = in,
         p_out = out,
         make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp)),
+            define_caches(cache<cache_type::ij>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
             make_stage<copy_functor>(p_out, p_tmp)));
     verify({in, in, in, in, in}, out);

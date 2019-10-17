@@ -67,12 +67,11 @@ TEST_F(stencil_fused, test) {
 
     auto out = make_storage<cells>();
 
-    make_computation(p_in = make_storage<edges>(in),
+    compute(p_in = make_storage<edges>(in),
         p_out = out,
         make_multistage(execute::forward(),
             make_stage<test_on_edges_functor>(p_in, p_tmp),
-            make_stage<test_on_cells_functor>(p_tmp, p_out)))
-        .run();
+            make_stage<test_on_cells_functor>(p_tmp, p_out)));
 
     verify(make_storage<cells>(ref), out);
 }

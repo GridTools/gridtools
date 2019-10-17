@@ -21,7 +21,7 @@ namespace gridtools {
 
         template <class T>
         struct global_parameter {
-            GT_STATIC_ASSERT(std::is_trivially_copyable<T>(), "global parameter should be trivially copyable");
+            static_assert(std::is_trivially_copyable<T>(), "global parameter should be trivially copyable");
 
             T m_value;
 
@@ -34,10 +34,9 @@ namespace gridtools {
         };
     } // namespace global_parameter_impl_
 
-    template <class U, class T = U>
-    using global_parameter = global_parameter_impl_::global_parameter<T>;
+    using global_parameter_impl_::global_parameter;
 
-    template <class = void, class T>
+    template <class T>
     global_parameter<T> make_global_parameter(T val) {
         return {std::move(val)};
     }

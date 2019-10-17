@@ -43,10 +43,12 @@ TEST_F(stencil_on_neighcell_of_edges, test) {
     arg<0, cells> p_in;
     arg<1, edges> p_out;
     auto out = make_storage<edges>();
-    auto comp = make_computation(p_in = make_storage<cells>(in),
-        p_out = out,
-        make_multistage(execute::forward(), make_stage<test_on_cells_functor>(p_in, p_out)));
-    comp.run();
+    auto comp = [&] {
+        compute(p_in = make_storage<cells>(in),
+            p_out = out,
+            make_multistage(execute::forward(), make_stage<test_on_cells_functor>(p_in, p_out)));
+    };
+    comp();
     verify(make_storage<edges>(ref), out);
     benchmark(comp);
 }

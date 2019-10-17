@@ -145,16 +145,15 @@
 /*
  * @brief assert that all data_stores are present in the sequence of data_store types
  */
-#define GT_REPO_is_valid_data_store_type(r, data, tuple)                                                      \
-    GT_STATIC_ASSERT(                                                                                         \
-        (boost::mpl::contains<data_store_type_vector, GT_REPO_data_stores_get_typename(tuple)>::type::value), \
+#define GT_REPO_is_valid_data_store_type(r, data, tuple)                                                              \
+    static_assert(boost::mpl::contains<data_store_type_vector, GT_REPO_data_stores_get_typename(tuple)>::type::value, \
         "At least one of the types in the data_store sequence is not defined in the sequence of data_store types.");
 
 /*
  * @brief assert that all types which are passed in the sequence of data_store types are actually data_stores
  */
-#define GT_REPO_is_data_store(r, data, data_store_type_tuple)                                                         \
-    GT_STATIC_ASSERT((gridtools::is_data_store<GT_REPO_data_store_types_get_typename(data_store_type_tuple)>::value), \
+#define GT_REPO_is_data_store(r, data, data_store_type_tuple)                                                    \
+    static_assert(gridtools::is_data_store<GT_REPO_data_store_types_get_typename(data_store_type_tuple)>::value, \
         "At least one of the arguments passed to the repository as data_store type is not a data_store");
 
 /*

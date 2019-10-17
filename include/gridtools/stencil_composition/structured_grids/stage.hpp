@@ -81,7 +81,7 @@ namespace gridtools {
 
         template <class Functor, class PlhMap>
         struct stage {
-            GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
+            static_assert(has_apply<Functor>::value, GT_INTERNAL_ERROR);
 
             template <class Deref = void, class Ptr, class Strides>
             GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {

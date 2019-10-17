@@ -177,24 +177,24 @@ TEST_F(vertical_advection_dycore, test) {
         cuda::backend<integral_constant<int_t, 256>, integral_constant<int_t, 1>>,
         backend_t>;
 
-    auto comp = make_computation<modified_backend_t>(p_utens_stage = utens_stage,
-        p_u_stage = make_storage(repo.u_stage),
-        p_wcon = make_storage(repo.wcon),
-        p_u_pos = make_storage(repo.u_pos),
-        p_utens = make_storage(repo.utens),
-        p_dtr_stage = make_global_parameter((float_type)repo.dtr_stage),
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::local>(p_acol),
-                cache<cache_type::k, cache_io_policy::local>(p_bcol),
-                cache<cache_type::k, cache_io_policy::flush>(p_ccol),
-                cache<cache_type::k, cache_io_policy::flush>(p_dcol),
-                cache<cache_type::k, cache_io_policy::fill>(p_u_stage)),
-            make_stage<u_forward_function>(
-                p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
-        make_multistage(execute::backward(),
-            define_caches(cache<cache_type::k, cache_io_policy::local>(p_data_col)),
-            make_stage<u_backward_function>(p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col)));
-    comp.run();
+    auto comp = [&] {
+        compute<modified_backend_t>(p_utens_stage = utens_stage,
+            p_u_stage = make_storage(repo.u_stage),
+            p_wcon = make_storage(repo.wcon),
+            p_u_pos = make_storage(repo.u_pos),
+            p_utens = make_storage(repo.utens),
+            p_dtr_stage = make_global_parameter((float_type)repo.dtr_stage),
+            make_multistage(execute::forward(),
+                define_caches(cache<cache_type::k>(p_acol, p_bcol),
+                    cache<cache_type::k, cache_io_policy::flush>(p_ccol, p_dcol),
+                    cache<cache_type::k, cache_io_policy::fill>(p_u_stage)),
+                make_stage<u_forward_function>(
+                    p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
+            make_multistage(execute::backward(),
+                define_caches(cache<cache_type::k>(p_data_col)),
+                make_stage<u_backward_function>(p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col)));
+    };
+    comp();
     verify_utens_stage();
     benchmark(comp);
 }

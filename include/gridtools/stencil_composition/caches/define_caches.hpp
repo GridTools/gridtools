@@ -9,20 +9,25 @@
  */
 #pragma once
 
-#include "../../common/defs.hpp"
 #include "../../meta.hpp"
+#include "../arg.hpp"
+#include "cache_definitions.hpp"
 #include "cache_traits.hpp"
 
 namespace gridtools {
 
+    template <class Type, class... IOPolicies, class... Plhs>
+    cache_map<cache_info<Plhs, meta::list<Type>, meta::list<IOPolicies...>>...> cache(Plhs...) {
+        static_assert(conjunction<is_plh<Plhs>...>::value, "argument passed to cache is not of the right arg<> type");
+        return {};
+    }
+
     /**
      * function that captures the list of caches provided by the user for a stencil
      */
-    template <class... CacheSequences>
-    meta::concat<CacheSequences...> define_caches(CacheSequences...) {
-        // the call to define_caches might gets a variadic list of cache sequences as input
-        // (e.g., define_caches(cache<IJ, local>(p_flx(), p_fly()), cache<K, fill>(p_in())); ).
-        GT_STATIC_ASSERT((conjunction<meta::all_of<is_cache, CacheSequences>...>::value),
+    template <class... CacheMaps>
+    meta::concat<CacheMaps...> define_caches(CacheMaps...) {
+        static_assert(conjunction<meta::is_instantiation_of<cache_map, CacheMaps>...>::value,
             "Error: did not provide a sequence of caches to define_caches syntax");
         return {};
     }

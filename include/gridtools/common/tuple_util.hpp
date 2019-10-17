@@ -601,7 +601,7 @@ namespace gridtools {
 
                     template <class Tup>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(Tup &&tup) const {
-                        GT_STATIC_ASSERT(size<Tup>::value != 0, "can not flatten empty tuple");
+                        static_assert(size<Tup>::value != 0, "can not flatten empty tuple");
                         using accessors_t = meta::transform<get_accessors, get_accessors<Tup>>;
                         using res_t = typename ResultMaker::template apply<meta::flatten<accessors_t>, to_types<Tup>>;
                         using generators_t = meta::flatten<
@@ -882,7 +882,7 @@ namespace gridtools {
                         class InnerTuples = meta::transform<get_inner_tuple_f<Tup>::template apply, Types>,
                         class Res = from_types<First, InnerTuples>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
-                        GT_STATIC_ASSERT(tuple_util::size<std::decay_t<Tup>>::value,
+                        static_assert(tuple_util::size<std::decay_t<Tup>>::value,
                             "tuple_util::transpose input should not be empty");
                         using inner_indices_t = meta::make_indices_for<to_types<First>>;
                         using generators_t = meta::transform<get_generator, inner_indices_t>;

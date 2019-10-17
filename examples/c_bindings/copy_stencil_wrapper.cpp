@@ -7,18 +7,18 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include <functional>
 
 #include <cpp_bindgen/export.hpp>
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-
-namespace gt = gridtools;
 
 // In this example, we demonstrate how the cpp_bindgen library can be used to export functions to C and Fortran. We are
 // going to export the functions required to run a simple copy stencil (see also the commented example in
 // examples/stencil_composition/copy_stencil.cpp)
 
 namespace {
+    namespace gt = gridtools;
 
     using axis_t = gt::axis<1>::axis_interval_t;
     using grid_t = gt::grid<axis_t>;
@@ -44,17 +44,20 @@ namespace {
         }
     };
 
-    using p_in = gt::arg<0, data_store_t>;
-    using p_out = gt::arg<1, data_store_t>;
-
     // The following are wrapper functions which will be exported to C/Fortran
     grid_t make_grid_impl(int nx, int ny, int nz) { return {gt::make_grid(nx, ny, nz)}; }
     storage_info_t make_storage_info_impl(int nx, int ny, int nz) { return {nx, ny, nz}; }
     data_store_t make_data_store_impl(storage_info_t storage_info) { return {storage_info}; }
 
-    gt::computation<p_in, p_out> make_copy_stencil_impl(const grid_t &grid) {
-        return gt::make_computation<backend_t>(
-            grid, gt::make_multistage(gt::execute::parallel(), gt::make_stage<copy_functor>(p_in{}, p_out{})));
+    std::function<void(data_store_t, data_store_t)> make_copy_stencil_impl(const grid_t &grid) {
+        return [grid](data_store_t in, data_store_t out) {
+            gt::arg<0> p_in;
+            gt::arg<1> p_out;
+            compute<backend_t>(grid,
+                p_in = in,
+                p_out = out,
+                gt::make_multistage(gt::execute::parallel(), gt::make_stage<copy_functor>(p_in, p_out)));
+        };
     }
 
     // Note that fortran_array_adapters are "fortran array wrappable".
@@ -69,9 +72,8 @@ namespace {
 
     // That means that in the generated Fortran code, a wrapper is created that takes a Fortran array, and converts
     // it into the fortran array wrappable type.
-    void run_stencil_impl(gt::computation<p_in, p_out> &computation, data_store_t in, data_store_t out) {
-
-        computation.run(p_in() = in, p_out() = out);
+    void run_stencil_impl(std::function<void(data_store_t, data_store_t)> const &f, data_store_t in, data_store_t out) {
+        f(in, out);
 
 #ifdef __CUDACC__
         cudaDeviceSynchronize();

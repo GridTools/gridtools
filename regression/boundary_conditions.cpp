@@ -8,8 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "generic_benchmark.hpp"
-
 #include <gridtools/boundary_conditions/boundary.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
@@ -71,7 +69,7 @@ namespace {
 
     template <typename Src, typename Dst>
     void apply_boundary(array<halo_descriptor, 3> const &halos, Src &src, Dst &dst) {
-        gridtools::make_boundary<backend_t>(halos, direction_bc_input{factor}).apply(src, dst);
+        gridtools::make_boundary<gcl_arch_t>(halos, direction_bc_input{factor}).apply(src, dst);
     }
     template <typename Src, typename Dst>
     void verify_result(array<halo_descriptor, 3> const &halos, Src &src, Dst &dst) {
@@ -149,5 +147,5 @@ TEST_F(distributed_boundary, test) {
     apply_boundary(halos, src, dst);
     verify_result(halos, src, dst);
 
-    benchmark(generic_benchmark<backend_t>{[&]() { apply_boundary(halos, src, dst); }});
+    benchmark([&] { apply_boundary(halos, src, dst); });
 }

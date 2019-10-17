@@ -63,9 +63,9 @@ namespace gridtools {
 
         template <class Functor, class Index, class FromIndex = typename find_from_index<Functor, Index>::type>
         struct find_interval {
-            GT_STATIC_ASSERT(FromIndex::value <= Index::value, GT_INTERNAL_ERROR);
+            static_assert(FromIndex::value <= Index::value, GT_INTERNAL_ERROR);
             using to_index_t = typename find_to_index<Functor, FromIndex>::type;
-            GT_STATIC_ASSERT(FromIndex::value <= to_index_t::value, GT_INTERNAL_ERROR);
+            static_assert(FromIndex::value <= to_index_t::value, GT_INTERNAL_ERROR);
             using type =
                 std::conditional_t<(to_index_t::value < Index::value), void, make_interval<FromIndex, to_index_t>>;
         };
@@ -91,13 +91,13 @@ namespace gridtools {
     namespace lazy {
         template <class Functor, class Index, class = void>
         struct bind_functor_with_interval {
-            GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            static_assert(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = void;
         };
 
         template <class Index>
         struct bind_functor_with_interval<void, Index, void> {
-            GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            static_assert(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = void;
         };
 
@@ -105,7 +105,7 @@ namespace gridtools {
         struct bind_functor_with_interval<Functor,
             Index,
             std::enable_if_t<_impl::is_interval_overload_defined<Functor, Index>::value>> {
-            GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            static_assert(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = _impl::bound_functor<Functor, typename _impl::find_interval<Functor, Index>::type>;
         };
 
@@ -114,7 +114,7 @@ namespace gridtools {
             Index,
             std::enable_if_t<!_impl::is_interval_overload_defined<Functor, Index>::value &&
                              has_apply<Functor>::value>> {
-            GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            static_assert(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = Functor;
         };
     } // namespace lazy

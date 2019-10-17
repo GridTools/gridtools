@@ -21,7 +21,6 @@ gridtools_keywords = ((
         'expand_factor',
         'extent',
         'fill',
-        'fill_and_flush',
         'flush',
         'forward',
         'global_parameter',
@@ -31,7 +30,6 @@ gridtools_keywords = ((
         'intent',
         'layout_map',
         'level',
-        'local',
         'parallel',
         'storage_traits',
         'vertices',
@@ -56,19 +54,16 @@ gridtools_namespace = ((
 gridtools_functions = ((
 	'define_caches',
 	'make_computation',
-	'make_positional_computation',
 	'make_expandable_computation',
-	'make_expandable_positional_computation',
 	'make_global_parameter',
 	'update_global_parameter',
 	'make_host_view',
 	'make_target_view',
 	'make_multistage',
 	'make_stage',
-        'make_independent'
-        'boundary',
-        'halo_exchange_dynamic_ut',
-        'halo_exchange_generic',
+    'boundary',
+    'halo_exchange_dynamic_ut',
+    'halo_exchange_generic',
 ))
 
 gridtools_macros = ((

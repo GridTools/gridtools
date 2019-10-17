@@ -99,9 +99,9 @@ namespace gridtools {
                 using blocked_strides_map_t = meta::transform<block, block_map_t>;
 
                 using blocked_dims_t = meta::transform<meta::first, blocked_strides_map_t>;
-                GT_STATIC_ASSERT(
-                    (meta::is_empty<meta::filter<meta::curry<meta::st_contains, strides_dims_t>::template apply,
-                            blocked_dims_t>>::value),
+                static_assert(
+                    meta::is_empty<meta::filter<meta::curry<meta::st_contains, strides_dims_t>::template apply,
+                        blocked_dims_t>>::value,
                     GT_INTERNAL_ERROR_MSG("tried to block already blocked dimension"));
 
                 using strides_t =

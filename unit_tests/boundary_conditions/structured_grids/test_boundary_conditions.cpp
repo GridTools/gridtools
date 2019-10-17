@@ -18,7 +18,7 @@
 #include <gridtools/boundary_conditions/value.hpp>
 #include <gridtools/boundary_conditions/zero.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;

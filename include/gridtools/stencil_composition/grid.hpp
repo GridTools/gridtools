@@ -30,8 +30,8 @@
 namespace gridtools {
     template <class Interval>
     class grid {
-        GT_STATIC_ASSERT(is_interval<Interval>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(Interval::FromLevel::splitter == 0, GT_INTERNAL_ERROR);
+        static_assert(is_interval<Interval>::value, GT_INTERNAL_ERROR);
+        static_assert(Interval::FromLevel::splitter == 0, GT_INTERNAL_ERROR);
 
         static constexpr int_t offset_limit = Interval::FromLevel::offset_limit;
         static constexpr int_t start_offset = Interval::FromLevel::offset;

@@ -11,7 +11,6 @@
 
 #include "../common/defs.hpp"
 #include "../meta.hpp"
-#include "backend_cuda/need_sync.hpp"
 #include "bind_functor_with_interval.hpp"
 #include "caches/cache_traits.hpp"
 #include "compute_extents_metafunctions.hpp"
@@ -19,6 +18,7 @@
 #include "interval.hpp"
 #include "level.hpp"
 #include "mss.hpp"
+#include "need_sync.hpp"
 #include "positional.hpp"
 #include "stage.hpp"
 #include "stage_matrix.hpp"
@@ -72,9 +72,9 @@ namespace gridtools {
 
         template <class EsfExtent, class DataStores, class Mss>
         struct make_plh_info_f {
-            using cache_map_t = make_cache_map<typename Mss::cache_sequence_t>;
-
-            template <class Plh, class Accessor, class CacheInfo = lookup_cache_map<cache_map_t, Plh>>
+            template <class Plh,
+                class Accessor,
+                class CacheInfo = meta::mp_find<typename Mss::cache_map_t, Plh, cache_info<Plh>>>
             using apply = stage_matrix::plh_info<meta::push_front<typename CacheInfo::cache_types_t, Plh>,
                 typename is_tmp_arg<Plh>::type,
                 typename get_data_type<Plh, DataStores>::type,
@@ -84,23 +84,17 @@ namespace gridtools {
                 typename CacheInfo::cache_io_policies_t>;
         };
 
-        template <class Msses, class NeedPositionals, class DataStores, class Mss, class Esf, class NeedSync>
+        template <class Msses, class DataStores, class Mss, class Esf, class NeedSync>
         struct make_cell_f {
             using esf_extent_t = to_horizontal_extent<get_esf_extent<Esf, get_extent_map_from_msses<Msses>>>;
 
-            using esf_plh_map_t = meta::transform<make_plh_info_f<esf_extent_t, DataStores, Mss>::template apply,
+            using plh_map_t = meta::transform<make_plh_info_f<esf_extent_t, DataStores, Mss>::template apply,
                 meta::rename<tuple, typename Esf::args_t>,
                 esf_param_list<Esf>>;
-            using plh_map_t = meta::if_<NeedPositionals,
-                meta::push_back<esf_plh_map_t,
-                    positional_plh_info<dim::i>,
-                    positional_plh_info<dim::j>,
-                    positional_plh_info<dim::k>>,
-                esf_plh_map_t>;
 
             template <class LevelIndex>
             using apply = stage_matrix::cell<typename stage_funs<typename Esf::esf_function_t,
-                                                 meta::transform<meta::first, esf_plh_map_t>,
+                                                 meta::transform<meta::first, plh_map_t>,
                                                  LevelIndex>::type,
                 interval_from_index<LevelIndex>,
                 plh_map_t,
@@ -109,26 +103,24 @@ namespace gridtools {
                 NeedSync>;
         };
 
-        template <class Msses, class NeedPoistionals, class Interval, class DataStores, class Mss>
+        template <class Msses, class Interval, class DataStores, class Mss>
         struct make_esf_row_f {
             template <class Esf, class NeedSync>
-            using apply =
-                meta::transform<make_cell_f<Msses, NeedPoistionals, DataStores, Mss, Esf, NeedSync>::template apply,
-                    make_level_indices<Interval>>;
+            using apply = meta::transform<make_cell_f<Msses, DataStores, Mss, Esf, NeedSync>::template apply,
+                make_level_indices<Interval>>;
         };
 
-        template <class Msses, class NeedPoistionals, class Interval, class DataStores>
+        template <class Msses, class Interval, class DataStores>
         struct make_mss_matrix_f {
             template <class Mss, class Esfs = typename Mss::esf_sequence_t>
-            using apply =
-                meta::transform<make_esf_row_f<Msses, NeedPoistionals, Interval, DataStores, Mss>::template apply,
-                    Esfs,
-                    cuda::need_sync<Esfs, typename Mss::cache_sequence_t>>;
+            using apply = meta::transform<make_esf_row_f<Msses, Interval, DataStores, Mss>::template apply,
+                Esfs,
+                need_sync<Esfs, typename Mss::cache_map_t>>;
         };
 
-        template <class Msses, class NeedPoistionals, class Interval, class DataStores>
+        template <class Msses, class Interval, class DataStores>
         using make_stage_matrices =
-            meta::transform<make_mss_matrix_f<Msses, NeedPoistionals, Interval, DataStores>::template apply, Msses>;
+            meta::transform<make_mss_matrix_f<Msses, Interval, DataStores>::template apply, Msses>;
     } // namespace make_stage_matrix_impl_
     using make_stage_matrix_impl_::make_stage_matrices;
 } // namespace gridtools

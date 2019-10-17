@@ -28,7 +28,7 @@ namespace gridtools {
         class delegate {
             Sid m_impl;
 
-            GT_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
+            static_assert(is_sid<Sid>::value, GT_INTERNAL_ERROR);
 
             friend ptr_holder_type<Sid> sid_get_origin(delegate &obj) { return get_origin(obj.m_impl); }
             friend strides_type<Sid> sid_get_strides(delegate const &obj) { return get_strides(obj.m_impl); }

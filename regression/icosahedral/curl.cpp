@@ -23,8 +23,8 @@ struct curl : regression_fixture<2> {
     operators_repository repo = {d1(), d2()};
 
     arg<0, edges> p_in_edges;
-    arg<1, vertices, vertex_2d_storage_type> p_dual_area_reciprocal;
-    arg<2, edges, edge_2d_storage_type> p_dual_edge_length;
+    arg<1, vertices> p_dual_area_reciprocal;
+    arg<2, edges> p_dual_edge_length;
     arg<3, vertices> p_out_vertices;
 
     storage_type<vertices> out_vertices = make_storage<vertices>();
@@ -38,10 +38,10 @@ struct curl : regression_fixture<2> {
 TEST_F(curl, weights) {
     using edges_of_vertices_storage_type = storage_type_4d<vertices, selector<1, 1, 1, 0, 1>>;
 
-    arg<10, vertices, storage_type_4d<vertices>> p_curl_weights;
-    arg<11, vertices, edges_of_vertices_storage_type> p_edge_orientation;
+    arg<10, vertices> p_curl_weights;
+    arg<11, vertices> p_edge_orientation;
 
-    make_computation(p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
+    compute(p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
         p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
         p_curl_weights = make_storage_4d<vertices>(6),
         p_edge_orientation = make_storage_4d<vertices, edges_of_vertices_storage_type>(6, repo.edge_orientation),
@@ -50,17 +50,15 @@ TEST_F(curl, weights) {
         make_multistage(execute::forward(),
             make_stage<curl_prep_functor>(
                 p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation),
-            make_stage<curl_functor_weights>(p_in_edges, p_curl_weights, p_out_vertices)))
-        .run();
+            make_stage<curl_functor_weights>(p_in_edges, p_curl_weights, p_out_vertices)));
 }
 
 TEST_F(curl, flow_convention) {
-    make_computation(p_in_edges = make_storage<edges>(repo.u),
+    compute(p_in_edges = make_storage<edges>(repo.u),
         p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
         p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
         p_out_vertices = out_vertices,
         make_multistage(execute::parallel(),
             make_stage<curl_functor_flow_convention>(
-                p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_out_vertices)))
-        .run();
+                p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_out_vertices)));
 }

@@ -13,7 +13,6 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 
@@ -100,20 +99,17 @@ struct functor6 {
     GT_FUNCTION static void apply(Evaluation);
 };
 
-typedef gridtools::storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
-typedef gridtools::storage_traits<backend_t>::data_store_t<float_type, storage_info_t> storage_t;
-
-typedef arg<0, storage_t> o0;
-typedef arg<1, storage_t> o1;
-typedef arg<2, storage_t> o2;
-typedef arg<3, storage_t> o3;
-typedef arg<4, storage_t> o4;
-typedef arg<5, storage_t> o5;
-typedef arg<6, storage_t> o6;
-typedef arg<7, storage_t> in0;
-typedef arg<8, storage_t> in1;
-typedef arg<9, storage_t> in2;
-typedef arg<10, storage_t> in3;
+typedef arg<0> o0;
+typedef arg<1> o1;
+typedef arg<2> o2;
+typedef arg<3> o3;
+typedef arg<4> o4;
+typedef arg<5> o5;
+typedef arg<6> o6;
+typedef arg<7> in0;
+typedef arg<8> in1;
+typedef arg<9> in2;
+typedef arg<10> in3;
 
 using mss_t = decltype(make_multistage(execute::forward(),
     make_stage<functor0>(in0(), in1(), in2(), o0()),

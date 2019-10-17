@@ -42,7 +42,7 @@ namespace gridtools {
                 BlockSizeJ block_size_j,
                 Extent extent,
                 shared_allocator &alloc) {
-                GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+                static_assert(is_extent<Extent>::value, GT_INTERNAL_ERROR);
                 return sid::shift_sid_origin(
                     sid::make_contiguous<T, int_t>(alloc, sizes(num_colors, block_size_i, block_size_j, extent)),
                     origin_offset(extent));

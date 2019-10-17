@@ -44,38 +44,34 @@ namespace gridtools {
      * @tparam T used target (e.g., Cuda or Host)
      */
     template <class Backend>
-    struct storage_traits : gridtools::storage_traits_from_id<Backend> {
-      private:
+    class storage_traits {
         template <typename ValueType>
-        using storage_t = typename gridtools::storage_traits_from_id<Backend>::template select_storage<ValueType>::type;
+        using storage_type = typename storage_traits_from_id<Backend>::template select_storage<ValueType>;
+
+        template <uint_t Dims>
+        using layout_type = typename storage_traits_from_id<Backend>::template select_layout<Dims>;
+
+        using default_alignment_t = alignment<storage_traits_from_id<Backend>::default_alignment>;
 
       public:
-        template <uint_t Id, uint_t Dims, typename Halo = zero_halo<Dims>>
-        using storage_info_t =
-            typename gridtools::storage_traits_from_id<Backend>::template select_storage_info<Id, Dims, Halo>::type;
+        template <uint_t Id, uint_t Dims, typename Halo = zero_halo<Dims>, typename Align = default_alignment_t>
+        using storage_info_t = storage_info<Id, layout_type<Dims>, Halo, Align>;
 
-        template <uint_t Id, typename LayoutMap, typename Halo = zero_halo<LayoutMap::masked_length>>
-        using custom_layout_storage_info_t = typename gridtools::storage_traits_from_id<
-            Backend>::template select_custom_layout_storage_info<Id, LayoutMap, Halo>::type;
+        template <uint_t Id,
+            typename Layout,
+            typename Halo = zero_halo<Layout::masked_length>,
+            typename Align = default_alignment_t>
+        using custom_layout_storage_info_t = storage_info<Id, Layout, Halo, Align>;
 
-        template <uint_t Id, typename Selector, typename Halo = zero_halo<Selector::size()>>
-        using special_storage_info_t = typename gridtools::storage_traits_from_id<
-            Backend>::template select_special_storage_info<Id, Selector, Halo>::type;
+        template <uint_t Id,
+            typename Selector,
+            typename Halo = zero_halo<Selector::size()>,
+            typename Align = default_alignment_t>
+        using special_storage_info_t =
+            storage_info<Id, typename get_special_layout<layout_type<Selector::size()>, Selector>::type, Halo, Align>;
 
         template <typename ValueType, typename StorageInfo>
-        using data_store_t = data_store<storage_t<ValueType>, StorageInfo>;
-
-        template <uint_t Id, uint_t Dims, typename Halo, typename Align>
-        using storage_info_align_t = typename gridtools::storage_traits_from_id<
-            Backend>::template select_storage_info_align<Id, Dims, Halo, Align>::type;
-
-        template <uint_t Id, typename LayoutMap, typename Halo, typename Align>
-        using custom_layout_storage_info_align_t = typename gridtools::storage_traits_from_id<
-            Backend>::template select_custom_layout_storage_info_align<Id, LayoutMap, Halo, Align>::type;
-
-        template <uint_t Id, typename Selector, typename Halo, typename Align>
-        using special_storage_info_align_t = typename gridtools::storage_traits_from_id<
-            Backend>::template select_special_storage_info_align<Id, Selector, Halo, Align>::type;
+        using data_store_t = data_store<storage_type<ValueType>, StorageInfo>;
     };
 
     /**

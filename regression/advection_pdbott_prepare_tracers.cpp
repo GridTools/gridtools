@@ -47,14 +47,16 @@ TEST_F(advection_pdbott_prepare_tracers, test) {
         in.push_back(make_storage(1. * i));
     }
 
-    auto comp = gridtools::make_expandable_computation<backend_t>(expand_factor<2>(),
-        make_grid(),
-        p_out = out,
-        p_in = in,
-        p_rho = make_storage(1.1),
-        make_multistage(execute::parallel(), make_stage<prepare_tracers>(p_out, p_in, p_rho)));
+    auto comp = [&] {
+        expandable_compute<backend_t>(expand_factor<2>(),
+            make_grid(),
+            p_out = out,
+            p_in = in,
+            p_rho = make_storage(1.1),
+            make_multistage(execute::parallel(), make_stage<prepare_tracers>(p_out, p_in, p_rho)));
+    };
 
-    comp.run();
+    comp();
     for (size_t i = 0; i != out.size(); ++i)
         verify(make_storage([i](int_t, int_t, int_t) { return 1.1 * i; }), out[i]);
 

@@ -9,7 +9,10 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../../common/array.hpp"
+#include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
@@ -26,11 +29,11 @@
 namespace gridtools {
 
     // static triple dispatch
-    template <typename Location1>
+    template <class From>
     struct from {
-        template <typename Location2>
+        template <class To>
         struct to {
-            template <typename Color>
+            template <uint_t Color>
             struct with_color;
         };
     };
@@ -79,7 +82,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::cells>::to<enumtype::cells>::with_color<static_uint<1>> {
+    struct from<enumtype::cells>::to<enumtype::cells>::with_color<1> {
         /*
          * neighbors order
          *
@@ -100,7 +103,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::cells>::to<enumtype::cells>::with_color<static_uint<0>> {
+    struct from<enumtype::cells>::to<enumtype::cells>::with_color<0> {
         /*
          * neighbors order
          *
@@ -120,7 +123,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::vertices>::to<enumtype::vertices>::with_color<static_uint<0>> {
+    struct from<enumtype::vertices>::to<enumtype::vertices>::with_color<0> {
         /*
          * neighbors order
          *
@@ -145,7 +148,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::edges>::to<enumtype::edges>::with_color<static_uint<0>> {
+    struct from<enumtype::edges>::to<enumtype::edges>::with_color<0> {
         /*
          * neighbors order
          *
@@ -167,7 +170,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::edges>::to<enumtype::edges>::with_color<static_uint<1>> {
+    struct from<enumtype::edges>::to<enumtype::edges>::with_color<1> {
         /*
          * neighbors order
          *
@@ -191,7 +194,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::edges>::to<enumtype::edges>::with_color<static_uint<2>> {
+    struct from<enumtype::edges>::to<enumtype::edges>::with_color<2> {
         /*
          * neighbors order
          *
@@ -213,7 +216,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::cells>::to<enumtype::edges>::with_color<static_uint<1>> {
+    struct from<enumtype::cells>::to<enumtype::edges>::with_color<1> {
         /*
          * neighbors order
          *
@@ -232,7 +235,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::cells>::to<enumtype::edges>::with_color<static_uint<0>> {
+    struct from<enumtype::cells>::to<enumtype::edges>::with_color<0> {
         /*
          * neighbors order
          *
@@ -252,7 +255,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::cells>::to<enumtype::vertices>::with_color<static_uint<0>> {
+    struct from<enumtype::cells>::to<enumtype::vertices>::with_color<0> {
         /*
          * neighbors order
          *
@@ -273,7 +276,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::cells>::to<enumtype::vertices>::with_color<static_uint<1>> {
+    struct from<enumtype::cells>::to<enumtype::vertices>::with_color<1> {
         /*
          * neighbors order
          *
@@ -294,7 +297,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::edges>::to<enumtype::cells>::with_color<static_uint<0>> {
+    struct from<enumtype::edges>::to<enumtype::cells>::with_color<0> {
         /*
          * neighbors order
          *
@@ -313,7 +316,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::edges>::to<enumtype::cells>::with_color<static_uint<1>> {
+    struct from<enumtype::edges>::to<enumtype::cells>::with_color<1> {
         /*
          * neighbors order
          *
@@ -335,7 +338,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::edges>::to<enumtype::cells>::with_color<static_uint<2>> {
+    struct from<enumtype::edges>::to<enumtype::cells>::with_color<2> {
         /*
          * neighbors order
          *
@@ -354,7 +357,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::edges>::to<enumtype::vertices>::with_color<static_uint<0>> {
+    struct from<enumtype::edges>::to<enumtype::vertices>::with_color<0> {
         /*
          * neighbors order
          *
@@ -375,7 +378,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::edges>::to<enumtype::vertices>::with_color<static_uint<1>> {
+    struct from<enumtype::edges>::to<enumtype::vertices>::with_color<1> {
         /*
          * neighbors order
          *
@@ -397,7 +400,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::edges>::to<enumtype::vertices>::with_color<static_uint<2>> {
+    struct from<enumtype::edges>::to<enumtype::vertices>::with_color<2> {
         /*
          * neighbors order
          *
@@ -418,7 +421,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::vertices>::to<enumtype::cells>::with_color<static_uint<0>> {
+    struct from<enumtype::vertices>::to<enumtype::cells>::with_color<0> {
         /*
          * neighbors order
          *
@@ -442,7 +445,7 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from<enumtype::vertices>::to<enumtype::edges>::with_color<static_uint<0>> {
+    struct from<enumtype::vertices>::to<enumtype::edges>::with_color<0> {
         /*
          * neighbors order
          *
@@ -466,12 +469,12 @@ namespace gridtools {
     template <typename SrcLocation, typename DestLocation, uint_t Color>
     struct connectivity {
 
-        GT_STATIC_ASSERT((is_location_type<SrcLocation>::value), "Error: unknown src location type");
-        GT_STATIC_ASSERT((is_location_type<DestLocation>::value), "Error: unknown dst location type");
-        GT_STATIC_ASSERT(Color < SrcLocation::n_colors::value, "Error: Color index beyond color length");
+        static_assert(is_location_type<SrcLocation>::value, "Error: unknown src location type");
+        static_assert(is_location_type<DestLocation>::value, "Error: unknown dst location type");
+        static_assert(Color < SrcLocation::n_colors::value, "Error: Color index beyond color length");
 
         GT_FUNCTION constexpr static auto offsets() {
-            return from<SrcLocation>::template to<DestLocation>::template with_color<static_uint<Color>>::offsets();
+            return from<SrcLocation>::template to<DestLocation>::template with_color<Color>::offsets();
         }
     };
 

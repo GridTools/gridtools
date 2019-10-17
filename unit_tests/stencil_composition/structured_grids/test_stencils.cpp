@@ -35,23 +35,22 @@ namespace gridtools {
 
             template <class SrcLayout, class DstLayout = layout_map<0, 1, 2>, class Expected>
             void do_test(Expected const &expected) {
-                using meta_dst_t = typename storage_tr::
-                    select_custom_layout_storage_info<0, DstLayout, zero_halo<DstLayout::masked_length>>::type;
-                using meta_src_t = typename storage_tr::
-                    select_custom_layout_storage_info<0, SrcLayout, zero_halo<SrcLayout::masked_length>>::type;
+                using meta_dst_t =
+                    storage_tr::custom_layout_storage_info_t<0, DstLayout, zero_halo<DstLayout::masked_length>>;
+                using meta_src_t =
+                    storage_tr::custom_layout_storage_info_t<0, SrcLayout, zero_halo<SrcLayout::masked_length>>;
 
                 using dst_storage_t = storage_tr::data_store_t<float_type, meta_dst_t>;
                 using src_storage_t = storage_tr::data_store_t<float_type, meta_src_t>;
 
-                arg<0, src_storage_t> p_in;
-                arg<1, dst_storage_t> p_out;
+                arg<0> p_in;
+                arg<1> p_out;
 
                 auto in = [](int i, int j, int k) { return i + j + k; };
                 auto out = make_storage<dst_storage_t>();
-                make_computation(p_in = make_storage<src_storage_t>(in),
+                compute(p_in = make_storage<src_storage_t>(in),
                     p_out = out,
-                    make_multistage(execute::forward(), make_stage<copy_functor>(p_in, p_out)))
-                    .run();
+                    make_multistage(execute::forward(), make_stage<copy_functor>(p_in, p_out)));
                 verify(make_storage<dst_storage_t>(expected), out);
             }
         };

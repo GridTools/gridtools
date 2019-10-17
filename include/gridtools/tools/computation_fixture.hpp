@@ -56,10 +56,7 @@ namespace gridtools {
         using storage_type = storage_tr::data_store_t<float_type, storage_info_t>;
         using j_storage_type = storage_tr::data_store_t<float_type, j_storage_info_t>;
 
-        template <uint_t I, typename T = storage_type>
-        using arg = gridtools::arg<I, T>;
-
-        template <uint_t I, typename T = storage_type>
+        template <uint_t I, typename T = float_type>
         using tmp_arg = gridtools::tmp_arg<I, T>;
 
         static constexpr arg<0> p_0 = {};
@@ -121,10 +118,10 @@ namespace gridtools {
         template <class Location, class Selector = selector<1, 1, 1, 1, 1>>
         using storage_type_4d = storage_type<Location, Selector, halo<halo_size, 0, halo_size, 0, 0>>;
 
-        template <uint_t I, class Location, class Storage = storage_type<Location>>
-        using arg = gridtools::arg<I, Storage, Location>;
+        template <uint_t I, class Location>
+        using arg = gridtools::arg<I, void, Location>;
 
-        template <uint_t I, class Location, typename Storage = storage_type<Location>>
+        template <uint_t I, class Location, typename Storage = float_type>
         using tmp_arg = gridtools::tmp_arg<I, Storage, Location>;
 
         template <class Location, class Storage = storage_type<Location>, class T = typename Storage::data_t>
@@ -167,8 +164,8 @@ namespace gridtools {
         uint_t &d3() { return m_d3; }
 
         template <class Backend = backend_t, class... Args>
-        auto make_computation(Args &&... args) const {
-            return ::gridtools::make_computation<Backend>(make_grid(), std::forward<Args>(args)...);
+        auto compute(Args &&... args) const {
+            return ::gridtools::compute<Backend>(make_grid(), std::forward<Args>(args)...);
         }
 
         template <class Expected, class Actual>
@@ -180,8 +177,7 @@ namespace gridtools {
 
 #define GT_DEFINE_COMPUTATION_FIXTURE_PLH(I)                                    \
     template <size_t HaloSize, class Axis>                                      \
-    constexpr typename computation_fixture<HaloSize, Axis>::template arg<I>     \
-        computation_fixture<HaloSize, Axis>::p_##I;                             \
+    constexpr arg<I> computation_fixture<HaloSize, Axis>::p_##I;                \
     template <size_t HaloSize, class Axis>                                      \
     constexpr typename computation_fixture<HaloSize, Axis>::template tmp_arg<I> \
         computation_fixture<HaloSize, Axis>::p_tmp_##I

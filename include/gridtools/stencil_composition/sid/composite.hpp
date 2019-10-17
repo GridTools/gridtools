@@ -80,9 +80,9 @@ namespace gridtools {
                 struct item_generator<L<Key, PrimaryIndex, SecondaryIndices...>> {
                     template <class Args, class Res = tuple_util::element<PrimaryIndex::value, Args>>
                     decltype(auto) operator()(Args const &args) const noexcept {
-                        GT_STATIC_ASSERT(
-                            (conjunction<
-                                std::is_same<tuple_util::element<SecondaryIndices::value, Args>, Res>...>::value),
+                        static_assert(
+                            conjunction<
+                                std::is_same<tuple_util::element<SecondaryIndices::value, Args>, Res>...>::value,
                             GT_INTERNAL_ERROR);
                         assert((are_secondaries_equal_to_primary<SecondaryIndices...>(
                             tuple_util::get<PrimaryIndex::value>(args), args)));
@@ -144,7 +144,7 @@ namespace gridtools {
 
                 template <class... Ptrs>
                 struct composite_ptr {
-                    GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Ptrs), GT_INTERNAL_ERROR);
+                    static_assert(sizeof...(Keys) == sizeof...(Ptrs), GT_INTERNAL_ERROR);
 
                     typename hymap::keys<Keys...>::template values<Ptrs...> m_vals;
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
@@ -159,7 +159,7 @@ namespace gridtools {
 
                 template <class... PtrHolders>
                 struct composite_ptr_holder {
-                    GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(PtrHolders), GT_INTERNAL_ERROR);
+                    static_assert(sizeof...(Keys) == sizeof...(PtrHolders), GT_INTERNAL_ERROR);
 
                     typename hymap::keys<Keys...>::template values<PtrHolders...> m_vals;
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
@@ -213,7 +213,7 @@ namespace gridtools {
 
                     template <class... Ts>
                     struct composite_entity {
-                        GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Ts), GT_INTERNAL_ERROR);
+                        static_assert(sizeof...(Keys) == sizeof...(Ts), GT_INTERNAL_ERROR);
 
                         template <class I>
                         using get_compressed_type = meta::at<meta::list<Ts...>, I>;
@@ -225,7 +225,7 @@ namespace gridtools {
                         template <template <class...> class L, class... Args>
                         composite_entity(impl_::ctor_tag, L<Args...> &&tup) noexcept
                             : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {
-                            GT_STATIC_ASSERT(sizeof...(Args) == sizeof...(Keys), GT_INTERNAL_ERROR);
+                            static_assert(sizeof...(Args) == sizeof...(Keys), GT_INTERNAL_ERROR);
                         }
 
                         GT_DECLARE_DEFAULT_EMPTY_CTOR(composite_entity);
@@ -287,8 +287,8 @@ namespace gridtools {
               public:
                 template <class... Sids>
                 class values {
-                    GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
-                    GT_STATIC_ASSERT(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
+                    static_assert(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
+                    static_assert(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 
                     typename hymap::keys<Keys...>::template values<Sids...> m_sids;
 

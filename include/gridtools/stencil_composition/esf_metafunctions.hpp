@@ -46,8 +46,8 @@ namespace gridtools {
             template <class Item>
             struct get_out_arg : meta::lazy::first<Item> {
                 using extent_t = typename meta::lazy::second<Item>::type::extent_t;
-                GT_STATIC_ASSERT(extent_t::iminus::value == 0 && extent_t::iplus::value == 0 &&
-                                     extent_t::jminus::value == 0 && extent_t::jplus::value == 0,
+                static_assert(extent_t::iminus::value == 0 && extent_t::iplus::value == 0 &&
+                                  extent_t::jminus::value == 0 && extent_t::jplus::value == 0,
                     "Horizontal extents of the outputs of ESFs are not all empty. All outputs must have empty "
                     "(horizontal) extents");
             };

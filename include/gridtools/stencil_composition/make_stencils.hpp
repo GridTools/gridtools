@@ -16,41 +16,25 @@
 #include "mss.hpp"
 
 namespace gridtools {
-    /**
-     *  Function to create a Multistage Stencil that can then be executed
-     */
-    template <class ExecutionEngine, class... Params>
-    constexpr auto make_multistage(ExecutionEngine, Params...) {
-        GT_STATIC_ASSERT(is_execution_engine<ExecutionEngine>::value,
+    template <class ExecutionEngine, class... CacheItems, class... Esfs>
+    constexpr auto make_multistage(ExecutionEngine, cache_map<CacheItems...>, Esfs...) {
+        static_assert(is_execution_engine<ExecutionEngine>::value,
             "The first argument passed to make_multistage must be the execution engine (e.g. execute::forward(), "
             "execute::backward(), execute::parallel()");
+        static_assert(conjunction<is_esf_descriptor<Esfs>...>::value, "wrong make_multistage params.");
 
-        GT_STATIC_ASSERT(conjunction<meta::is_list<Params>...>::value, "wrong make_multistage params.");
-
-        using params_t = meta::concat<Params...>;
-        using esfs_t = meta::filter<is_esf_descriptor, params_t>;
-        using caches_t = meta::filter<is_cache, params_t>;
-
-        GT_STATIC_ASSERT(meta::length<esfs_t>::value + meta::length<caches_t>::value == meta::length<params_t>::value,
-            "wrong set of mss parameters passed to make_multistage construct.\n"
-            "Check that arguments passed are either :\n"
-            " * caches from define_caches(...) construct or\n"
-            " * esf descriptors from make_stage(...) or make_independent(...)");
-
-#ifdef GT_DISABLE_CACHING
-        using effective_caches_t = meta::list<>;
-#else
-        using effective_caches_t = caches_t;
+        return mss_descriptor<ExecutionEngine,
+            meta::list<Esfs...>,
+            meta::list<
+#ifndef GT_DISABLE_CACHING
+                CacheItems...
 #endif
-        return mss_descriptor<ExecutionEngine, esfs_t, effective_caches_t>{};
+                >>{};
     }
 
-    // Deprecated.
-    template <class... EsfTups>
-    constexpr meta::concat<EsfTups...> make_independent(EsfTups...) {
-        GT_STATIC_ASSERT((conjunction<meta::all_of<is_esf_descriptor, EsfTups>...>::value),
-            "make_independent arguments should be results of make_stage.");
-        return {};
+    template <class ExecutionEngine, class... Esfs>
+    constexpr auto make_multistage(ExecutionEngine ee, Esfs... esfs) {
+        return make_multistage(ee, cache_map<>(), esfs...);
     }
 
 } // namespace gridtools

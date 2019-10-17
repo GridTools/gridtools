@@ -27,8 +27,8 @@ namespace gridtools {
     template <typename Reduction, typename ValueType, typename... Accessors>
     GT_CONSTEXPR GT_FUNCTION on_neighbors<ValueType, enumtype::edges, Reduction, Accessors...> on_edges(
         Reduction function, ValueType initial, Accessors...) {
-        GT_STATIC_ASSERT(conjunction<is_accessor<Accessors>...>::value, "'on_edges' arguments should be accessors");
-        GT_STATIC_ASSERT((conjunction<std::is_same<typename Accessors::location_t, enumtype::edges>...>::value),
+        static_assert(conjunction<is_accessor<Accessors>...>::value, "'on_edges' arguments should be accessors");
+        static_assert(conjunction<std::is_same<typename Accessors::location_t, enumtype::edges>...>::value,
             "'on_edges' arguments should be accessors with the 'edges' location type.");
         return {function, initial};
     }
@@ -36,8 +36,8 @@ namespace gridtools {
     template <typename Reduction, typename ValueType, typename... Accessors>
     GT_CONSTEXPR GT_FUNCTION on_neighbors<ValueType, enumtype::cells, Reduction, Accessors...> on_cells(
         Reduction function, ValueType initial, Accessors...) {
-        GT_STATIC_ASSERT(conjunction<is_accessor<Accessors>...>::value, "'on_cells' arguments should be accessors");
-        GT_STATIC_ASSERT((conjunction<std::is_same<typename Accessors::location_t, enumtype::cells>...>::value),
+        static_assert(conjunction<is_accessor<Accessors>...>::value, "'on_cells' arguments should be accessors");
+        static_assert(conjunction<std::is_same<typename Accessors::location_t, enumtype::cells>...>::value,
             "'on_cells' arguments should be accessors with the 'cells' location type.");
         return {function, initial};
     }
@@ -45,8 +45,8 @@ namespace gridtools {
     template <typename Reduction, typename ValueType, typename... Accessors>
     GT_CONSTEXPR GT_FUNCTION on_neighbors<ValueType, enumtype::vertices, Reduction, Accessors...> on_vertices(
         Reduction function, ValueType initial, Accessors...) {
-        GT_STATIC_ASSERT(conjunction<is_accessor<Accessors>...>::value, "'on_vertices' arguments should be accessors");
-        GT_STATIC_ASSERT((conjunction<std::is_same<typename Accessors::location_t, enumtype::vertices>...>::value),
+        static_assert(conjunction<is_accessor<Accessors>...>::value, "'on_vertices' arguments should be accessors");
+        static_assert(conjunction<std::is_same<typename Accessors::location_t, enumtype::vertices>...>::value,
             "'on_vertices' arguments should be accessors with the 'vertices' location type.");
         return {function, initial};
     }

@@ -8,8 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "generic_benchmark.hpp"
-
 #include <gridtools/interface/layout_transformation/layout_transformation.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
@@ -50,8 +48,7 @@ namespace {
 
 struct layout_transformation : regression_fixture<2> {
     template <int_t Id, typename Layout, typename Alignment>
-    using storage_info_t =
-        typename storage_tr::select_custom_layout_storage_info_align<Id, Layout, halo<0, 0, 0>, Alignment>::type;
+    using storage_info_t = storage_info<Id, Layout, halo<0, 0, 0>, Alignment>;
     template <int_t Id, typename Layout, typename Alignment>
     using storage_t = storage_tr::data_store_t<float_type, storage_info_t<Id, Layout, Alignment>>;
 };
@@ -67,5 +64,5 @@ TEST_F(layout_transformation, ijk_to_kji) {
     transform(src, dst);
     verify_result(src, dst);
 
-    benchmark(generic_benchmark<backend_t>{[&]() { transform(src, dst); }});
+    benchmark([&] { transform(src, dst); });
 }

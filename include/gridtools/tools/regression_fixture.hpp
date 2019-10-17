@@ -13,7 +13,9 @@
 #include <utility>
 
 #include "../common/defs.hpp"
+#include "../common/timer/timer.hpp"
 #include "../stencil_composition/axis.hpp"
+#include "backend_select.hpp"
 #include "computation_fixture.hpp"
 #include "regression_fixture_impl.hpp"
 
@@ -35,15 +37,17 @@ namespace gridtools {
                 return;
             // we run a first time the stencil, since if there is data allocation before by other codes, the first run
             // of the stencil is very slow (we dont know why). The flusher should make sure we flush the cache
-            comp.run();
-            comp.reset_meter();
+            comp();
+            timer<timer_impl_t> timer = {"NoName"};
             for (size_t i = 0; i != s_steps; ++i) {
 #ifndef __CUDACC__
                 flush_cache();
 #endif
-                comp.run();
+                timer.start();
+                comp();
+                timer.pause();
             }
-            std::cout << comp.print_meter() << std::endl;
+            std::cout << timer.to_string() << std::endl;
         }
     };
 } // namespace gridtools

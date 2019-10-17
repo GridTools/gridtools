@@ -49,8 +49,7 @@ namespace gridtools {
     class base_fixture : public computation_fixture<1> {
         template <class Fun, size_t... Is, class... Storages>
         void run_computation_impl(std::index_sequence<Is...>, Storages... storages) const {
-            make_computation(make_multistage(execute::forward(), make_stage<Fun>(arg<Is>()...)))
-                .run((arg<Is>() = storages)...);
+            compute((arg<Is>() = storages)..., make_multistage(execute::forward(), make_stage<Fun>(arg<Is>()...)));
         }
 
       public:

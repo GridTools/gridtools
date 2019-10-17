@@ -61,17 +61,15 @@ TEST_F(kcachef, flush_forward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
+    arg<0> p_in;
+    arg<1> p_out;
 
-    auto kcache_stencil = make_computation<backend_t>(m_grid,
-        p_out() = m_out,
-        p_in() = m_in,
+    compute<backend_t>(m_grid,
+        p_out = m_out,
+        p_in = m_in,
         make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
-            make_stage<shift_acc_forward_flush>(p_in(), p_out())));
-
-    kcache_stencil.run();
+            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out)),
+            make_stage<shift_acc_forward_flush>(p_in, p_out)));
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -99,17 +97,15 @@ TEST_F(kcachef, flush_backward) {
         }
     }
 
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
+    arg<0> p_in;
+    arg<1> p_out;
 
-    auto kcache_stencil = make_computation<backend_t>(m_grid,
-        p_out() = m_out,
-        p_in() = m_in,
+    compute<backend_t>(m_grid,
+        p_out = m_out,
+        p_in = m_in,
         make_multistage(execute::backward(),
-            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
-            make_stage<shift_acc_backward_flush>(p_in(), p_out())));
-
-    kcache_stencil.run();
+            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out)),
+            make_stage<shift_acc_backward_flush>(p_in, p_out)));
 
     m_out.sync();
     m_out.reactivate_host_write_views();

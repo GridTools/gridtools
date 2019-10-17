@@ -169,24 +169,20 @@ namespace gridtools {
         auto make_mss_kernel(Grid const &grid, DataStores &data_stores) {
             shared_allocator shared_alloc;
 
-            using ij_caches_t = meta::list<integral_constant<cache_type, cache_type::ij>>;
-            using k_caches_t = meta::list<integral_constant<cache_type, cache_type::k>>;
-            using no_caches_t = meta::list<>;
-
             using plh_map_t = typename Mss::plh_map_t;
             using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
 
             auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
                 overload(
-                    [&](ij_caches_t, auto info) {
+                    [&](meta::list<cache_type::ij>, auto info) {
                         return make_ij_cache<decltype(info.data())>(info.num_colors(),
                             Backend::i_block_size(),
                             Backend::j_block_size(),
                             info.extent(),
                             shared_alloc);
                     },
-                    [](k_caches_t, auto) { return k_cache_sid_t(); },
-                    [&](no_caches_t, auto info) {
+                    [](meta::list<cache_type::k>, auto) { return k_cache_sid_t(); },
+                    [&](meta::list<>, auto info) {
                         return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores));
                     }),
                 meta::transform<stage_matrix::get_caches, plh_map_t>(),

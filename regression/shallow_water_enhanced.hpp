@@ -12,6 +12,7 @@
 // [includes]
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <gridtools/communication/halo_exchange.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
@@ -229,20 +230,6 @@ namespace shallow_water {
         typedef storage_traits<backend_t>::data_store_t<float_type, storage_info_t> sol_type;
         //! [storage_type]
 
-        // Definition of placeholders. The order of them reflects the order in which the user will deal with them
-        // especially the non-temporary ones, in the construction of the domain
-        //! [args]
-        tmp_arg<0, sol_type> p_hx;
-        tmp_arg<1, sol_type> p_ux;
-        tmp_arg<2, sol_type> p_vx;
-        tmp_arg<3, sol_type> p_hy;
-        tmp_arg<4, sol_type> p_uy;
-        tmp_arg<5, sol_type> p_vy;
-
-        arg<0, sol_type> p_h;
-        arg<1, sol_type> p_u;
-        arg<2, sol_type> p_v;
-
         //! [proc_grid_dims]
         MPI_Comm CartComm;
         array<int, 3> dimensions{0, 0, 1};
@@ -324,18 +311,6 @@ namespace shallow_water {
             d3);
         //! [grid]
 
-        //! [computation]
-        auto shallow_water_stencil = make_computation<backend_t>(grid,
-            p_h = h,
-            p_u = u,
-            p_v = v,
-            make_multistage // mss_descriptor
-            (execute::forward(),
-                make_independent(make_stage<flux_x>(p_hx, p_ux, p_vx, p_h, p_u, p_v),
-                    make_stage<flux_y>(p_hy, p_uy, p_vy, p_h, p_u, p_v)),
-                make_stage<final_step>(p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v)));
-        //! [computation]
-
         // the following might be runtime value
         uint_t total_time = t;
 
@@ -395,8 +370,28 @@ namespace shallow_water {
 #endif
 #endif
 
+            // Definition of placeholders.
+            //! [args]
+            tmp_arg<0, float_type> p_hx;
+            tmp_arg<1, float_type> p_ux;
+            tmp_arg<2, float_type> p_vx;
+            tmp_arg<3, float_type> p_hy;
+            tmp_arg<4, float_type> p_uy;
+            tmp_arg<5, float_type> p_vy;
+
+            arg<0, sol_type> p_h;
+            arg<1, sol_type> p_u;
+            arg<2, sol_type> p_v;
+
             //! [run]
-            shallow_water_stencil.run();
+            compute<backend_t>(grid,
+                p_h = h,
+                p_u = u,
+                p_v = v,
+                make_multistage(execute::forward(),
+                    make_stage<flux_x>(p_hx, p_ux, p_vx, p_h, p_u, p_v),
+                    make_stage<flux_y>(p_hy, p_uy, p_vy, p_h, p_u, p_v),
+                    make_stage<final_step>(p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v)));
             //! [run]
         }
 

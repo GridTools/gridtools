@@ -35,11 +35,9 @@ namespace gridtools {
     struct handle_masked_dims {
         template <typename Dim>
         GT_FUNCTION static constexpr uint_t extend(Dim d) {
-            GT_STATIC_ASSERT(
-                std::is_integral<Dim>::value, GT_INTERNAL_ERROR_MSG("Dimensions has to be integral type."));
-            return error_or_return((d > 0),
-                ((LayoutArg == -1) ? 1 : d),
-                "Tried to instantiate storage info with zero or negative dimensions");
+            static_assert(std::is_integral<Dim>::value, GT_INTERNAL_ERROR_MSG("Dimensions has to be integral type."));
+            return error_or_return(
+                d > 0, LayoutArg == -1 ? 1 : d, "Tried to instantiate storage info with zero or negative dimensions");
         }
     };
 
@@ -52,8 +50,8 @@ namespace gridtools {
      */
     template <typename Alignment, int_t MaxLayoutV, int LayoutArg, typename Int>
     GT_FUNCTION constexpr uint_t pad_dimensions(Int dimension) {
-        GT_STATIC_ASSERT(is_alignment<Alignment>::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));
-        return ((Alignment::value > 1) && (LayoutArg == MaxLayoutV))
+        static_assert(is_alignment<Alignment>::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));
+        return Alignment::value > 1 && LayoutArg == MaxLayoutV
                    ? (dimension + Alignment::value - 1) / Alignment::value * Alignment::value
                    : dimension;
     }

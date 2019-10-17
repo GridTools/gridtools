@@ -28,7 +28,7 @@ namespace gridtools {
     */
     template <uint_t Coordinate>
     struct dimension {
-        GT_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
+        static_assert(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
 
         GT_FUNCTION constexpr dimension(int_t value = 0) : value(value) {}
 

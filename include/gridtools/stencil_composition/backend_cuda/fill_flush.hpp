@@ -32,14 +32,13 @@ namespace gridtools {
                 using plh_map_from_cells =
                     meta::rename<stage_matrix::merge_plh_maps, meta::transform<stage_matrix::get_plh_map, Cells>>;
 
-                template <cache_io_policy Policy>
+                template <class Policy>
                 struct has_policy_f {
                     template <class PlhInfo>
-                    using apply = meta::st_contains<typename PlhInfo::cache_io_policies_t,
-                        integral_constant<cache_io_policy, Policy>>;
+                    using apply = meta::st_contains<typename PlhInfo::cache_io_policies_t, Policy>;
                 };
 
-                template <cache_io_policy Policy>
+                template <class Policy>
                 struct replace_policy_f {
                     template <class PlhInfo>
                     using apply = stage_matrix::plh_info<typename PlhInfo::key_t,
@@ -48,10 +47,10 @@ namespace gridtools {
                         typename PlhInfo::num_colors_t,
                         typename PlhInfo::is_const_t,
                         typename PlhInfo::extent_t,
-                        meta::list<integral_constant<cache_io_policy, Policy>>>;
+                        meta::list<Policy>>;
                 };
 
-                template <cache_io_policy Policy, class PlhMap>
+                template <class Policy, class PlhMap>
                 using filter_policy = meta::transform<replace_policy_f<Policy>::template apply,
                     meta::filter<has_policy_f<Policy>::template apply, PlhMap>>;
 
@@ -89,7 +88,8 @@ namespace gridtools {
                 template <class PlhInfo,
                     class Cached,
                     class Orig,
-                    std::enable_if_t<meta::first<typename PlhInfo::cache_io_policies_t>::value == cache_io_policy::fill,
+                    std::enable_if_t<
+                        std::is_same<typename PlhInfo::cache_io_policies_t, meta::list<cache_io_policy::fill>>::value,
                         int> = 0>
                 GT_FUNCTION void sync(Cached cached, Orig orig) {
                     *cached = *orig;
@@ -98,8 +98,8 @@ namespace gridtools {
                 template <class PlhInfo,
                     class Cached,
                     class Orig,
-                    std::enable_if_t<meta::first<typename PlhInfo::cache_io_policies_t>::value ==
-                                         cache_io_policy::flush,
+                    std::enable_if_t<
+                        std::is_same<typename PlhInfo::cache_io_policies_t, meta::list<cache_io_policy::flush>>::value,
                         int> = 0>
                 GT_FUNCTION void sync(Cached cached, Orig orig) {
                     *orig = *cached;
@@ -218,7 +218,7 @@ namespace gridtools {
                 template <class PlhInfo, class Execution, class FirstInterval, class LastInterval, class CurInterval>
                 struct make_sync_fun {
                     static constexpr bool is_fill =
-                        meta::first<typename PlhInfo::cache_io_policies_t>::value == cache_io_policy::fill;
+                        std::is_same<typename PlhInfo::cache_io_policies_t, meta::list<cache_io_policy::fill>>::value;
                     static constexpr bool is_first = std::is_same<FirstInterval, CurInterval>::value;
                     static constexpr bool is_last = std::is_same<LastInterval, CurInterval>::value;
                     static constexpr int_t minus = PlhInfo::extent_t::kminus::value;
@@ -270,7 +270,7 @@ namespace gridtools {
 
                 template <class Matrix>
                 struct transform_matrix<Matrix> {
-                    GT_STATIC_ASSERT(meta::length<Matrix>::value > 0, GT_INTERNAL_ERROR);
+                    static_assert(meta::length<Matrix>::value > 0, GT_INTERNAL_ERROR);
 
                     using plh_map_t =
                         meta::rename<stage_matrix::merge_plh_maps, meta::transform<plh_map_from_cells, Matrix>>;
@@ -281,7 +281,7 @@ namespace gridtools {
                     using trimmed_matrix_t = meta::transpose<stage_matrix::trim_interval_rows<meta::transpose<Matrix>>>;
 
                     using first_stage_cells_t = meta::first<trimmed_matrix_t>;
-                    GT_STATIC_ASSERT(meta::length<first_stage_cells_t>::value > 0, GT_INTERNAL_ERROR);
+                    static_assert(meta::length<first_stage_cells_t>::value > 0, GT_INTERNAL_ERROR);
 
                     using execution_t = typename meta::first<first_stage_cells_t>::execution_t;
 

@@ -12,6 +12,7 @@
 #include <gridtools/meta/type_traits.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/stencil_composition/stencil_functions.hpp>
+#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 #include "../../test_helper.hpp"
@@ -21,8 +22,8 @@
  */
 
 using namespace gridtools;
-using namespace gridtools::execute;
-using namespace gridtools::expressions;
+using namespace execute;
+using namespace expressions;
 
 namespace {
     // used to ensure that types are correctly passed between function calls (no implicit conversion)
@@ -36,20 +37,20 @@ namespace {
 
 class call_stress_types : public testing::Test {
   protected:
-    using storage_info_t = gridtools::storage_traits<backend_t>::storage_info_t<0, 3>;
-    using data_store_in1_t = gridtools::storage_traits<backend_t>::data_store_t<special_type<in1_tag>, storage_info_t>;
-    using data_store_in2_t = gridtools::storage_traits<backend_t>::data_store_t<special_type<in2_tag>, storage_info_t>;
-    using data_store_out_t = gridtools::storage_traits<backend_t>::data_store_t<special_type<out_tag>, storage_info_t>;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
+    using data_store_in1_t = storage_traits<backend_t>::data_store_t<special_type<in1_tag>, storage_info_t>;
+    using data_store_in2_t = storage_traits<backend_t>::data_store_t<special_type<in2_tag>, storage_info_t>;
+    using data_store_out_t = storage_traits<backend_t>::data_store_t<special_type<out_tag>, storage_info_t>;
 
-    gridtools::grid<gridtools::axis<1>::axis_interval_t> grid;
+    gridtools::grid<axis<1>::axis_interval_t> grid;
 
     data_store_in1_t in1;
     data_store_in2_t in2;
     data_store_out_t out;
 
-    typedef arg<0, data_store_in1_t> p_in1;
-    typedef arg<1, data_store_in2_t> p_in2;
-    typedef arg<2, data_store_out_t> p_out;
+    typedef arg<0> p_in1;
+    typedef arg<1> p_in2;
+    typedef arg<2> p_out;
 
     call_stress_types()
         : grid(make_grid(1, 1, 1)), in1(storage_info_t{1, 1, 1}), in2(storage_info_t{1, 1, 1}),
@@ -91,12 +92,10 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, simple_force_return_type) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
+    compute<backend_t>(grid,
         p_in1{} = in1,
         p_out{} = out,
-        gridtools::make_multistage(
-            execute::forward(), gridtools::make_stage<simple_caller_with_forced_return_type>(p_in1(), p_out())));
-    comp.run();
+        make_multistage(execute::forward(), make_stage<simple_caller_with_forced_return_type>(p_in1(), p_out())));
 }
 
 namespace {
@@ -131,12 +130,10 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, simple_deduced_return_type) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
+    compute<backend_t>(grid,
         p_in1{} = in1,
         p_out{} = out,
-        gridtools::make_multistage(
-            execute::forward(), gridtools::make_stage<simple_caller_with_deduced_return_type>(p_in1(), p_out())));
-    comp.run();
+        make_multistage(execute::forward(), make_stage<simple_caller_with_deduced_return_type>(p_in1(), p_out())));
 }
 
 namespace {
@@ -217,13 +214,12 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, triple_nesting_with_type_switching) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
+    compute<backend_t>(grid,
         p_in1{} = in1,
         p_in2{} = in2,
         p_out{} = out,
-        gridtools::make_multistage(execute::forward(),
-            gridtools::make_stage<triple_nesting_with_type_switching_first_stage>(p_in1(), p_out(), p_in2())));
-    comp.run();
+        make_multistage(
+            execute::forward(), make_stage<triple_nesting_with_type_switching_first_stage>(p_in1(), p_out(), p_in2())));
 }
 
 namespace {
@@ -277,12 +273,10 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, triple_nesting_with_type_switching_and_call_proc) {
-    auto comp = gridtools::make_computation<backend_t>(grid,
+    compute<backend_t>(grid,
         p_in1{} = in1,
         p_in2{} = in2,
         p_out{} = out,
-        gridtools::make_multistage(execute::forward(),
-            gridtools::make_stage<triple_nesting_with_type_switching_and_call_proc_first_stage>(
-                p_in1(), p_out(), p_in2())));
-    comp.run();
+        make_multistage(execute::forward(),
+            make_stage<triple_nesting_with_type_switching_and_call_proc_first_stage>(p_in1(), p_out(), p_in2())));
 }

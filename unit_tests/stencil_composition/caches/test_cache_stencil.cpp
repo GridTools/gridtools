@@ -44,13 +44,12 @@ namespace gridtools {
         };
 
         TEST_F(cache_stencil, ij_cache) {
-            make_computation(p_0 = make_storage(in),
+            compute(p_0 = make_storage(in),
                 p_1 = out,
                 make_multistage(execute::parallel(),
-                    define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp_0)),
+                    define_caches(cache<cache_type::ij>(p_tmp_0)),
                     make_stage<functor1>(p_0, p_tmp_0),
-                    make_stage<functor1>(p_tmp_0, p_1)))
-                .run();
+                    make_stage<functor1>(p_tmp_0, p_1)));
 
             expected = in;
         }
@@ -68,13 +67,12 @@ namespace gridtools {
         };
 
         TEST_F(cache_stencil, ij_cache_offset) {
-            make_computation(p_0 = make_storage(in),
+            compute(p_0 = make_storage(in),
                 p_1 = out,
                 make_multistage(execute::parallel(),
-                    define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp_0)),
+                    define_caches(cache<cache_type::ij>(p_tmp_0)),
                     make_stage<functor1>(p_0, p_tmp_0),
-                    make_stage<functor2>(p_tmp_0, p_1)))
-                .run();
+                    make_stage<functor2>(p_tmp_0, p_1)));
 
             expected = [this](int i, int j, int k) {
                 return (in(i - 1, j, k) + in(i + 1, j, k) + in(i, j - 1, k) + in(i, j + 1, k)) / (float_type)4.0;
@@ -93,16 +91,14 @@ namespace gridtools {
         };
 
         TEST_F(cache_stencil, multi_cache) {
-            make_computation(p_0 = make_storage(in),
+            compute(p_0 = make_storage(in),
                 p_1 = out,
                 make_multistage(execute::parallel(),
-                    define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp_0, p_tmp_1),
-                        cache<cache_type::ij, cache_io_policy::local>(p_tmp_2)),
+                    define_caches(cache<cache_type::ij>(p_tmp_0, p_tmp_1), cache<cache_type::ij>(p_tmp_2)),
                     make_stage<functor3>(p_0, p_tmp_0),
                     make_stage<functor3>(p_tmp_0, p_tmp_1),
                     make_stage<functor3>(p_tmp_1, p_tmp_2),
-                    make_stage<functor3>(p_tmp_2, p_1)))
-                .run();
+                    make_stage<functor3>(p_tmp_2, p_1)));
 
             expected = [this](int i, int j, int k) { return in(i, j, k) + 4; };
         }

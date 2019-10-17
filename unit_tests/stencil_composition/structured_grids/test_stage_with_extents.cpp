@@ -29,15 +29,16 @@ namespace gridtools {
         };
 
         TEST_F(stage_with_extents, smoke) {
-            auto comp = make_computation(make_multistage(execute::forward(),
-                make_stage_with_extent<stage, extent<-5, 5>>(p_0, p_1),
-                make_stage_with_extent<stage, extent<-3, 3>>(p_1, p_2),
-                make_stage<stage>(p_2, p_3)));
+            auto mss = make_multistage(execute::forward(),
+                make_stage<stage, extent<-5, 5>>(p_0, p_1),
+                make_stage<stage, extent<-3, 3>>(p_1, p_2),
+                make_stage<stage>(p_2, p_3));
+            using mss_t = decltype(mss);
 
-            using extent_0 = decltype(comp.get_arg_extent(p_0));
-            using extent_1 = decltype(comp.get_arg_extent(p_1));
-            using extent_2 = decltype(comp.get_arg_extent(p_2));
-            using extent_3 = decltype(comp.get_arg_extent(p_3));
+            using extent_0 = decltype(get_arg_extent<mss_t>(p_0));
+            using extent_1 = decltype(get_arg_extent<mss_t>(p_1));
+            using extent_2 = decltype(get_arg_extent<mss_t>(p_2));
+            using extent_3 = decltype(get_arg_extent<mss_t>(p_3));
 
             static_assert(std::is_same<extent_0, extent<-6, 6>>(), "");
             static_assert(std::is_same<extent_1, extent<-5, 5>>(), "");
