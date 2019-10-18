@@ -17,6 +17,7 @@ async def _run_async(command, **kwargs):
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT,
         env=env.env,
+        limit=2**28,
         **kwargs)
     buffer = io.StringIO()
 
