@@ -39,16 +39,11 @@ namespace gridtools {
                 });
             }
 
-            template <class Deref,
-                class Mss,
-                class Sizes,
-                int_t BlockSize,
-                class = typename has_k_caches<Mss>::type,
-                class = typename Mss::execution_t>
+            template <class Deref, class Mss, class Sizes, int_t BlockSize, class = typename has_k_caches<Mss>::type>
             struct k_loop_f;
 
-            template <class Deref, class Mss, class Sizes, int_t BlockSize, class Execution>
-            struct k_loop_f<Deref, Mss, Sizes, BlockSize, std::true_type, Execution> {
+            template <class Deref, class Mss, class Sizes>
+            struct k_loop_f<Deref, Mss, Sizes, 0, std::true_type> {
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
@@ -75,8 +70,8 @@ namespace gridtools {
                 }
             };
 
-            template <class Deref, class Mss, class Sizes, int_t BlockSize, class Execution>
-            struct k_loop_f<Deref, Mss, Sizes, BlockSize, std::false_type, Execution> {
+            template <class Deref, class Mss, class Sizes>
+            struct k_loop_f<Deref, Mss, Sizes, 0, std::false_type> {
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
@@ -101,7 +96,7 @@ namespace gridtools {
             };
 
             template <class Deref, class Mss, class Sizes, int_t BlockSize>
-            struct k_loop_f<Deref, Mss, Sizes, BlockSize, std::false_type, execute::parallel> {
+            struct k_loop_f<Deref, Mss, Sizes, BlockSize, std::false_type> {
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>

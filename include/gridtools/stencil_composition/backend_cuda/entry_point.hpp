@@ -192,12 +192,13 @@ namespace gridtools {
                 meta::transform<stage_matrix::get_caches, plh_map_t>(),
                 plh_map_t()));
 
-            auto kernel_fun = make_kernel_fun<Deref, Mss, Backend::k_block_size()>(grid, composite);
+            constexpr int_t k_block_size =
+                execute::is_parallel<typename Mss::execution_t>{} ? Backend::k_block_size() : 0;
 
-            return kernel<typename Mss::extent_t,
-                typename Mss::plh_map_t,
-                (execute::is_parallel<typename Mss::execution_t>{} ? Backend::k_block_size() : 0),
-                decltype(kernel_fun)>{std::move(kernel_fun), shared_alloc.size()};
+            auto kernel_fun = make_kernel_fun<Deref, Mss, k_block_size>(grid, composite);
+
+            return kernel<typename Mss::extent_t, typename Mss::plh_map_t, k_block_size, decltype(kernel_fun)>{
+                std::move(kernel_fun), shared_alloc.size()};
         }
 
         template <class Deref,
