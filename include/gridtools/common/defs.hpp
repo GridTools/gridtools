@@ -64,13 +64,17 @@ namespace gridtools {
     } // namespace naive
 
     namespace cuda {
-        template <class IBlockSize = integral_constant<int_t, 64>, class JBlockSize = integral_constant<int_t, 8>>
+        template <class IBlockSize = integral_constant<int_t, 64>,
+            class JBlockSize = integral_constant<int_t, 8>,
+            class KBlockSize = integral_constant<int_t, 1>>
         struct backend {
             using i_block_size_t = IBlockSize;
             using j_block_size_t = JBlockSize;
+            using k_block_size_t = KBlockSize;
 
             static constexpr i_block_size_t i_block_size() { return {}; }
             static constexpr j_block_size_t j_block_size() { return {}; }
+            static constexpr k_block_size_t k_block_size() { return {}; }
         };
     } // namespace cuda
 

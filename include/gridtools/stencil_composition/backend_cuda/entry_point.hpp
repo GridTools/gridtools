@@ -125,7 +125,7 @@ namespace gridtools {
             using apply = typename meta::mp_find<PlhMap, Key, dummy_info>::extent_t;
         };
 
-        template <class MaxExtent, class PlhMap, uint_t BlockSize, class... Funs>
+        template <class MaxExtent, class PlhMap, class... Funs>
         struct kernel {
             tuple<Funs...> m_funs;
             size_t m_shared_memory_size;
@@ -134,7 +134,7 @@ namespace gridtools {
             Kernel launch_or_fuse(Backend, Grid const &grid, Kernel kernel) && {
                 launch_kernel<MaxExtent, Backend::i_block_size_t::value, Backend::j_block_size_t::value>(grid.i_size(),
                     grid.j_size(),
-                    blocks_required_z<BlockSize>(grid.k_size()),
+                    blocks_required_z<Backend::k_block_size_t::value>(grid.k_size()),
                     make_multi_kernel(std::move(m_funs)),
                     m_shared_memory_size);
                 return kernel;
@@ -151,8 +151,8 @@ namespace gridtools {
                 std::enable_if_t<Extent::iminus::value == 0 && Extent::iplus::value == 0 &&
                                      Extent::jminus::value == 0 && Extent::jplus::value == 0,
                     int> = 0>
-            kernel<MaxExtent, stage_matrix::merge_plh_maps<PlhMap, OtherPlhMap>, BlockSize, Funs..., Fun>
-            launch_or_fuse(Backend, Grid const &grid, kernel<MaxExtent, OtherPlhMap, BlockSize, Fun> kernel) && {
+            kernel<MaxExtent, stage_matrix::merge_plh_maps<PlhMap, OtherPlhMap>, Funs..., Fun> launch_or_fuse(
+                Backend, Grid const &grid, kernel<MaxExtent, OtherPlhMap, Fun> kernel) && {
                 return {tuple_util::push_back(std::move(m_funs), tuple_util::get<0>(std::move(kernel.m_funs))),
                     std::max(m_shared_memory_size, kernel.m_shared_memory_size)};
             }
@@ -192,12 +192,10 @@ namespace gridtools {
                 meta::transform<stage_matrix::get_caches, plh_map_t>(),
                 plh_map_t()));
 
-            auto kernel_fun = make_kernel_fun<Deref, Mss>(grid, composite);
+            auto kernel_fun = make_kernel_fun<Deref, Mss, Backend::k_block_size()>(grid, composite);
 
-            return kernel<typename Mss::extent_t,
-                typename Mss::plh_map_t,
-                execute::block_size<typename Mss::execution_t>::value,
-                decltype(kernel_fun)>{std::move(kernel_fun), shared_alloc.size()};
+            return kernel<typename Mss::extent_t, typename Mss::plh_map_t, decltype(kernel_fun)>{
+                std::move(kernel_fun), shared_alloc.size()};
         }
 
         template <class Deref,
