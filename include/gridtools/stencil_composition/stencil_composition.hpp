@@ -22,15 +22,13 @@
 
 #include "../storage/sid.hpp"
 #include "accessor.hpp"
-#include "caches/define_caches.hpp"
 #include "esf.hpp"
 #include "expressions/expressions.hpp"
 #include "global_parameter.hpp"
 #include "grid.hpp"
-#include "make_computation.hpp"
 #include "make_param_list.hpp"
-#include "make_stage.hpp"
-#include "make_stencils.hpp"
+
+#include "frontend/run.hpp"
 
 #include "backend_naive/entry_point.hpp"
 #include "backend_x86/entry_point.hpp"

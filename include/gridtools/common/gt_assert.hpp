@@ -21,7 +21,7 @@
 
 #ifdef __CUDA_ARCH__ // device version of GT_ASSERT_OR_THROW
 #define GT_ASSERT_OR_THROW(cond, msg) assert(cond)
-#elif defined(__CUDACC__) && defined(__clang__) // Clang-CUDA host version
+#elif defined(__CUDACC__) && defined(__clang__) && !defined(__APPLE_CC__) // Clang-CUDA host version
 namespace gt_assert_impl_ {
     __host__ inline void throw_error(const std::string &msg) { throw std::runtime_error(msg); }
 

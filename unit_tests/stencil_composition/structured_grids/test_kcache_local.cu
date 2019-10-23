@@ -135,16 +135,15 @@ TEST_F(kcachef, local_forward) {
         }
     }
 
-    arg<0> p_in;
-    arg<1> p_out;
-    tmp_arg<2, float_type> p_buff;
-
-    compute<backend_t>(m_grid,
-        p_in = m_in,
-        p_out = m_out,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k>(p_buff)),
-            make_stage<shif_acc_forward>(p_in, p_out, p_buff)));
+    run(
+        [](auto in, auto out) {
+            GT_DECLARE_TMP(float_type, tmp);
+            return execute_forward().k_cached(tmp).stage(shif_acc_forward(), in, out, tmp);
+        },
+        backend_t(),
+        m_grid,
+        m_in,
+        m_out);
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -170,16 +169,15 @@ TEST_F(kcachef, local_backward) {
         }
     }
 
-    arg<0> p_in;
-    arg<1> p_out;
-    tmp_arg<2, float_type> p_buff;
-
-    compute<backend_t>(m_grid,
-        p_in = m_in,
-        p_out = m_out,
-        make_multistage(execute::backward(),
-            define_caches(cache<cache_type::k>(p_buff)),
-            make_stage<shif_acc_backward>(p_in, p_out, p_buff)));
+    run(
+        [](auto in, auto out) {
+            GT_DECLARE_TMP(float_type, tmp);
+            return execute_backward().k_cached(tmp).stage(shif_acc_forward(), in, out, tmp);
+        },
+        backend_t(),
+        m_grid,
+        m_in,
+        m_out);
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -216,16 +214,15 @@ TEST_F(kcachef, biside_forward) {
         }
     }
 
-    arg<0> p_in;
-    arg<1> p_out;
-    tmp_arg<2, float_type> p_buff;
-
-    compute<backend_t>(m_grid,
-        p_in = m_in,
-        p_out = m_out,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k>(p_buff)),
-            make_stage<biside_large_kcache_forward>(p_in, p_out, p_buff)));
+    run(
+        [](auto in, auto out) {
+            GT_DECLARE_TMP(float_type, tmp);
+            return execute_forward().k_cached(tmp).stage(biside_large_kcache_forward(), in, out, tmp);
+        },
+        backend_t(),
+        m_grid,
+        m_in,
+        m_out);
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -263,19 +260,15 @@ TEST_F(kcachef, biside_backward) {
         }
     }
 
-    arg<0> p_in;
-    arg<1> p_out;
-    tmp_arg<2, float_type> p_buff;
-
-    compute<backend_t>(m_grid,
-        p_in = m_in,
-        p_out = m_out,
-        make_multistage(execute::backward(),
-            define_caches(cache<cache_type::k>(p_buff)),
-            make_stage<biside_large_kcache_backward>(p_in, p_out, p_buff)));
-
-    m_out.sync();
-    m_out.reactivate_host_write_views();
+    run(
+        [](auto in, auto out) {
+            GT_DECLARE_TMP(float_type, tmp);
+            return execute_backward().k_cached(tmp).stage(biside_large_kcache_forward(), in, out, tmp);
+        },
+        backend_t(),
+        m_grid,
+        m_in,
+        m_out);
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);

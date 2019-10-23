@@ -41,9 +41,6 @@ struct not_aligned {
 TEST_F(alignment_test, test) {
     using bool_storage = storage_tr::data_store_t<bool, storage_info_t>;
     auto out = make_storage<bool_storage>();
-    compute(p_0 = make_storage(),
-        p_1 = out,
-        p_2 = positional<dim::i>(),
-        make_multistage(execute::forward(), make_stage<not_aligned>(p_0, p_1, p_2)));
+    easy_run(not_aligned(), backend_t(), make_grid(), make_storage(), out, positional<dim::i>());
     verify(make_storage<bool_storage>(false), out);
 }

@@ -97,11 +97,12 @@ struct test_expressions : computation_fixture<> {
 
 TEST_F(test_expressions, integration_test) {
     auto out = make_storage();
-    compute(p_0 = make_global_parameter<float_type>(2),
-        p_1 = make_global_parameter<float_type>(3),
-        p_2 = out,
-        p_3 = positional<dim::i>(),
+    easy_run(test_functor(),
+        backend_t(),
         make_grid(),
-        make_multistage(execute::forward(), make_stage<test_functor>(p_0, p_1, p_2, p_3)));
+        make_global_parameter<float_type>(2),
+        make_global_parameter<float_type>(3),
+        out,
+        positional<dim::i>());
     verify(make_storage(0.), out);
 }

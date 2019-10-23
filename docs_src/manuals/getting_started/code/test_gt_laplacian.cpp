@@ -43,20 +43,14 @@ int main() {
     data_store_t phi(info, -1., "phi");
     data_store_t lap(info, -1., "lap");
 
-    arg<0> arg_phi;
-    arg<1> arg_lap;
-
     int halo_size = 1;
     halo_descriptor boundary_i(halo_size, halo_size, halo_size, Ni - halo_size - 1, Ni);
     halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);
     auto my_grid = make_grid(boundary_i, boundary_j, Nk);
 
-    compute<backend_t>(                                //
-        my_grid,                                       //
-        arg_phi = phi,                                 //
-        arg_lap = lap,                                 //
-        make_multistage(                               //
-            execute::parallel(),                       //
-            make_stage<lap_function>(arg_phi, arg_lap) //
-            ));                                        //
+    run([](auto phi, auto lap) { return execute_parallel().stage(lap_function(), phi, lap); },
+        backend_t(),
+        my_grid,
+        phi,
+        lap);
 } // end marker

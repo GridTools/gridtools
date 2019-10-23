@@ -369,29 +369,20 @@ namespace shallow_water {
             myfile << "#####################################################" << std::endl;
 #endif
 #endif
-
-            // Definition of placeholders.
-            //! [args]
-            tmp_arg<0, float_type> p_hx;
-            tmp_arg<1, float_type> p_ux;
-            tmp_arg<2, float_type> p_vx;
-            tmp_arg<3, float_type> p_hy;
-            tmp_arg<4, float_type> p_uy;
-            tmp_arg<5, float_type> p_vy;
-
-            arg<0, sol_type> p_h;
-            arg<1, sol_type> p_u;
-            arg<2, sol_type> p_v;
-
             //! [run]
-            compute<backend_t>(grid,
-                p_h = h,
-                p_u = u,
-                p_v = v,
-                make_multistage(execute::forward(),
-                    make_stage<flux_x>(p_hx, p_ux, p_vx, p_h, p_u, p_v),
-                    make_stage<flux_y>(p_hy, p_uy, p_vy, p_h, p_u, p_v),
-                    make_stage<final_step>(p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v)));
+            run(
+                [](auto h, auto u, auto v) {
+                    GT_DECLARE_TMP(float_type, hx, ux, vx, hy, uy, vy);
+                    return execute_parallel()
+                        .stage(flux_x(), hx, ux, vx, h, u, v)
+                        .stage(flux_y(), hy, uy, vy, h, u, v)
+                        .stage(final_step(), hx, ux, vx, hy, uy, vy, h, u, v);
+                },
+                backend_t(),
+                grid,
+                h,
+                u,
+                v);
             //! [run]
         }
 

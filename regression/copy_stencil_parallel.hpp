@@ -124,10 +124,7 @@ namespace copy_stencil {
             {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
             d3);
 
-        arg<0> p_in;
-        arg<1> p_out;
-        compute<backend_t>(
-            grid, p_in = in, p_out = out, make_multistage(execute::forward(), make_stage<copy_functor>(p_in, p_out)));
+        easy_run(copy_functor(), backend_t(), grid, in, out);
 
         array<halo_descriptor, 3> halos;
         halos[0] = halo_descriptor(halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]);

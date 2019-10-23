@@ -262,19 +262,7 @@ namespace assembly {
         halo_descriptor dj{1, 1, 1, d2 - 3, d2};
         auto grid = make_grid(di, dj, d3 - 1);
 
-        arg<0> p_phi;
-        arg<1> p_psi;
-        arg<2> p_jac;
-        arg<3> p_f;
-        arg<4> p_result;
-
-        compute<backend_t>(grid,
-            p_phi = phi,
-            p_psi = psi,
-            p_jac = jac,
-            p_f = f,
-            p_result = result,
-            make_multistage(execute::forward(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)));
+        easy_run(integration(), backend_t(), grid, phi, psi, jac, f, result);
 
         return do_verification<storage_local_quad_t, storage_global_quad_t>(d1, d2, d3, result, grid);
     }

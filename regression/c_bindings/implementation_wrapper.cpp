@@ -18,12 +18,11 @@
 #include <gridtools/tools/backend_select.hpp>
 
 namespace {
-
     using namespace gridtools;
 
     struct copy_functor {
-        using in = accessor<0, intent::in, extent<>, 3>;
-        using out = accessor<1, intent::inout, extent<>, 3>;
+        using in = in_accessor<0>;
+        using out = inout_accessor<1>;
         using param_list = make_param_list<in, out>;
 
         template <typename Evaluation>
@@ -71,14 +70,7 @@ namespace {
     }
 
     auto make_copy_stencil(data_store_t in, data_store_t out) {
-        return [=] {
-            arg<0> p_in;
-            arg<1> p_out;
-            compute<backend_t>(make_grid(out),
-                p_in = in,
-                p_out = out,
-                make_multistage(execute::forward(), make_stage<copy_functor>(p_in, p_out)));
-        };
+        return [=] { easy_run(copy_functor(), backend_t(), make_grid(out), in, out); };
     }
     BINDGEN_EXPORT_BINDING_WRAPPED_2(create_copy_stencil, make_copy_stencil);
 

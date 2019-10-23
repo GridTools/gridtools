@@ -13,7 +13,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/expandable_parameters/make_computation.hpp>
+#include <gridtools/stencil_composition/expandable_parameters/run.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/computation_fixture.hpp>
 
@@ -37,15 +37,15 @@ namespace gridtools {
         using storages_t = std::vector<storage_type>;
 
         std::function<void(storages_t, storages_t)> comp = [grid = make_grid()](storages_t in, storages_t out) {
-            arg<0, storages_t> p_in;
-            arg<1, storages_t> p_out;
-            tmp_arg<2, std::vector<float_type>> p_tmp;
-            expandable_compute<backend_t>(expand_factor<2>(),
+            expandable_run<2>(
+                [](auto in, auto out) {
+                    GT_DECLARE_EXPANDABLE_TMP(float_type, tmp);
+                    return execute_parallel().stage(test_functor(), in, tmp).stage(test_functor(), tmp, out);
+                },
+                backend_t(),
                 grid,
-                p_in = in,
-                p_out = out,
-                make_multistage(
-                    execute::forward(), make_stage<test_functor>(p_in, p_tmp), make_stage<test_functor>(p_tmp, p_out)));
+                in,
+                out);
         };
 
         auto do_test = [&](int n) {

@@ -85,19 +85,12 @@ struct out_function {
 using horizontal_diffusion_fused = regression_fixture<2>;
 
 TEST_F(horizontal_diffusion_fused, test) {
-    arg<0> p_coeff;
-    arg<1> p_in;
-    arg<2> p_out;
-
     auto out = make_storage();
 
     horizontal_diffusion_repository repo(d1(), d2(), d3());
 
-    auto comp = [&] {
-        compute(p_in = make_storage(repo.in),
-            p_out = out,
-            p_coeff = make_storage(repo.coeff),
-            make_multistage(execute::parallel(), make_stage<out_function>(p_out, p_in, p_coeff)));
+    auto comp = [grid = make_grid(), &out, in = make_storage(repo.in), coeff = make_storage(repo.coeff)] {
+        easy_run(out_function(), backend_t(), grid, out, in, coeff);
     };
 
     comp();

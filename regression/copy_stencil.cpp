@@ -32,9 +32,7 @@ using copy_stencil = regression_fixture<>;
 TEST_F(copy_stencil, test) {
     auto in = make_storage([](int i, int j, int k) { return i + j + k; });
     auto out = make_storage(-1.);
-    auto comp = [&] {
-        compute(p_0 = in, p_1 = out, make_multistage(execute::parallel(), make_stage<copy_functor>(p_0, p_1)));
-    };
+    auto comp = [&, grid = make_grid()] { easy_run(copy_functor(), backend_t(), grid, in, out); };
     comp();
     verify(in, out);
     benchmark(comp);

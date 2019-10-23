@@ -161,24 +161,26 @@ namespace gridtools {
             using storage_type2 = storage_tr::data_store_t<type2, storage_info_t>;
             using storage_type3 = storage_tr::data_store_t<type3, storage_info_t>;
 
-            tmp_arg<0, type1> p_temp;
-
             template <call_type CallType>
             void do_test() {
                 auto in = [](int i, int j, int k) -> type1 { return {i, j, k}; };
-                auto field1 = make_storage<storage_type1>(in);
                 auto field2 = make_storage<storage_type2>();
                 auto field3 = make_storage<storage_type3>();
 
                 using fun1 = function1<CallType>;
 
-                compute(p_1 = make_storage<storage_type1>(in),
-                    p_2 = field2,
-                    p_3 = field3,
-                    make_multistage(
-                        execute::forward(), make_stage<fun1>(p_temp, p_1), make_stage<function2>(p_2, p_1, p_temp)),
-                    make_multistage(
-                        execute::backward(), make_stage<fun1>(p_temp, p_1), make_stage<function3>(p_3, p_temp, p_1)));
+                run(
+                    [](auto field1, auto field2, auto field3) {
+                        GT_DECLARE_TMP(type1, temp);
+                        return multi_pass(
+                            execute_forward().stage(fun1(), temp, field1).stage(function2(), field2, field1, temp),
+                            execute_backward().stage(fun1(), temp, field1).stage(function3(), field3, temp, field1));
+                    },
+                    backend_t(),
+                    make_grid(),
+                    make_storage<storage_type1>(in),
+                    field2,
+                    field3);
 
                 verify(make_storage<storage_type2>([&in](int i, int j, int k) {
                     auto f1 = in(i, j, k);

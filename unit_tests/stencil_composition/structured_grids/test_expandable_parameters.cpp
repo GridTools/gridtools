@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/expandable_parameters/make_computation.hpp>
+#include <gridtools/stencil_composition/expandable_parameters/run.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/stencil_composition/stencil_functions.hpp>
 #include <gridtools/tools/computation_fixture.hpp>
@@ -23,9 +23,9 @@ struct expandable_parameters : computation_fixture<> {
     expandable_parameters() : computation_fixture<>(13, 9, 7) {}
     using storages_t = std::vector<storage_type>;
 
-    template <class... Args>
-    void run_computation(Args &&... args) const {
-        gridtools::expandable_compute<backend_t>(expand_factor<2>(), make_grid(), std::forward<Args>(args)...);
+    template <class Comp, class... Args>
+    void run_computation(Comp comp, Args &&... args) const {
+        expandable_run<2>(comp, backend_t(), make_grid(), std::forward<Args>(args)...);
     }
 
     void verify(storages_t const &expected, storages_t const &actual) const {
@@ -42,10 +42,8 @@ struct expandable_parameters_copy : expandable_parameters {
 
     template <class Functor>
     void run_computation() {
-        arg<0, storages_t> p_out;
-        arg<1, storages_t> p_in;
         expandable_parameters::run_computation(
-            p_in = in, p_out = out, make_multistage(execute::forward(), make_stage<Functor>(p_out, p_in)));
+            [](auto out, auto in) { return execute_parallel().stage(Functor(), out, in); }, out, in);
     }
 
     ~expandable_parameters_copy() { verify(in, out); }
@@ -139,23 +137,19 @@ TEST_F(expandable_parameters, call_shift) {
     };
 
     storages_t actual = {in(14), in(15), in(16), in(17), in(18)};
-    arg<0, storages_t> plh;
-    run_computation(plh = actual, make_multistage(execute::forward(), make_stage<call_shift_functor>(plh)));
+    run_computation([](auto x) { return execute_parallel().stage(call_shift_functor(), x); }, actual);
     verify({expected(14), expected(15), expected(16), expected(17), expected(18)}, actual);
 }
 
 TEST_F(expandable_parameters, caches) {
     storages_t out = {make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
     auto in = make_storage(42.);
-
-    arg<0, storages_t> p_out;
-    arg<1> p_in;
-    tmp_arg<1> p_tmp;
-    run_computation(p_in = in,
-        p_out = out,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij>(p_tmp)),
-            make_stage<copy_functor>(p_tmp, p_in),
-            make_stage<copy_functor>(p_out, p_tmp)));
+    run_computation(
+        [](auto in, auto out) {
+            GT_DECLARE_TMP(float_type, tmp);
+            return execute_parallel().ij_cached(tmp).stage(copy_functor(), tmp, in).stage(copy_functor(), out, tmp);
+        },
+        in,
+        out);
     verify({in, in, in, in, in}, out);
 }

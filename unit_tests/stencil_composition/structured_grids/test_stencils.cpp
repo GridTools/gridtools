@@ -43,14 +43,9 @@ namespace gridtools {
                 using dst_storage_t = storage_tr::data_store_t<float_type, meta_dst_t>;
                 using src_storage_t = storage_tr::data_store_t<float_type, meta_src_t>;
 
-                arg<0> p_in;
-                arg<1> p_out;
-
                 auto in = [](int i, int j, int k) { return i + j + k; };
                 auto out = make_storage<dst_storage_t>();
-                compute(p_in = make_storage<src_storage_t>(in),
-                    p_out = out,
-                    make_multistage(execute::forward(), make_stage<copy_functor>(p_in, p_out)));
+                easy_run(copy_functor(), backend_t(), make_grid(), make_storage<src_storage_t>(in), out);
                 verify(make_storage<dst_storage_t>(expected), out);
             }
         };

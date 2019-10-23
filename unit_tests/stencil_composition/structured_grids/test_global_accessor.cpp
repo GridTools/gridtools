@@ -107,9 +107,6 @@ class global_accessor_single_stage : public ::testing::Test {
     boundary bd;
     global_parameter<boundary> bd_;
 
-    using p_sol = arg<0>;
-    using p_bd = arg<1>;
-
     halo_descriptor di;
     halo_descriptor dj;
 
@@ -118,12 +115,7 @@ class global_accessor_single_stage : public ::testing::Test {
 
 TEST_F(global_accessor_single_stage, boundary_conditions) {
     /*****RUN 1 WITH bd int_value set to 20****/
-    auto bc_eval = [&] {
-        compute<backend_t>(coords_bc,
-            p_sol() = sol_,
-            p_bd() = bd_,
-            make_multistage(execute::forward(), make_stage<functor1>(p_sol(), p_bd())));
-    };
+    auto bc_eval = [&] { easy_run(functor1(), backend_t(), coords_bc, sol_, bd_); };
     bc_eval();
     // fetch data and check
     sol_.clone_from_device();
@@ -180,10 +172,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
 }
 
 TEST_F(global_accessor_single_stage, with_procedure_call) {
-    compute<backend_t>(coords_bc,
-        p_sol() = sol_,
-        p_bd() = bd_,
-        make_multistage(execute::forward(), make_stage<functor_with_procedure_call>(p_sol(), p_bd())));
+    easy_run(functor_with_procedure_call(), backend_t(), coords_bc, sol_, bd_);
 
     sol_.clone_from_device();
     auto solv = make_host_view(sol_);
@@ -202,10 +191,7 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
 }
 
 TEST_F(global_accessor_single_stage, with_function_call) {
-    compute<backend_t>(coords_bc,
-        p_sol() = sol_,
-        p_bd() = bd_,
-        make_multistage(execute::forward(), make_stage<functor_with_function_call>(p_sol(), p_bd())));
+    easy_run(functor_with_function_call(), backend_t(), coords_bc, sol_, bd_);
 
     sol_.clone_from_device();
     auto solv = make_host_view(sol_);
@@ -239,19 +225,17 @@ TEST(test_global_accessor, multiple_stages) {
     halo_descriptor dj = halo_descriptor(1, 0, 1, 1, 2);
     auto coords_bc = make_grid(di, dj, 2);
 
-    typedef arg<0> p_sol;
-    typedef arg<1> p_tmp;
-    typedef arg<2> p_bd;
-
     /*****RUN 1 WITH bd int_value set to 20****/
     auto bc_eval = [&] {
-        compute<backend_t>(coords_bc,
-            p_sol() = sol_,
-            p_tmp() = tmp_,
-            p_bd() = bd_,
-            make_multistage(execute::forward(),
-                make_stage<functor1>(p_tmp(), p_bd()),
-                make_stage<functor2>(p_sol(), p_tmp(), p_bd())));
+        run(
+            [](auto sol, auto tmp, auto bd) {
+                return execute_parallel().stage(functor1(), tmp, bd).stage(functor2(), sol, tmp, bd);
+            },
+            backend_t(),
+            coords_bc,
+            sol_,
+            tmp_,
+            bd_);
     };
 
     bc_eval();

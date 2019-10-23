@@ -170,27 +170,24 @@ struct out_function {
 };
 
 struct horizontal_diffusion_functions : regression_fixture<2> {
-    tmp_arg<0> p_flx;
-    tmp_arg<1> p_fly;
-    arg<1> p_coeff;
-    arg<2> p_in;
-    arg<3> p_out;
-
     template <variation Variation>
     void do_test() {
         auto out = make_storage();
-
         horizontal_diffusion_repository repo(d1(), d2(), d3());
-
-        compute(p_in = make_storage(repo.in),
-            p_out = out,
-            p_coeff = make_storage(repo.coeff),
-            make_multistage(execute::forward(),
-                define_caches(cache<cache_type::ij>(p_flx, p_fly)),
-                make_stage<flx_function<Variation>>(p_flx, p_in),
-                make_stage<fly_function<Variation>>(p_fly, p_in),
-                make_stage<out_function>(p_out, p_in, p_flx, p_fly, p_coeff)));
-
+        run(
+            [](auto coeff, auto in, auto out) {
+                GT_DECLARE_TMP(float_type, flx, fly);
+                return execute_parallel()
+                    .ij_cached(flx, fly)
+                    .stage(flx_function<Variation>(), flx, in)
+                    .stage(fly_function<Variation>(), fly, in)
+                    .stage(out_function(), out, in, flx, fly, coeff);
+            },
+            backend_t(),
+            make_grid(),
+            make_storage(repo.coeff),
+            make_storage(repo.in),
+            out);
         verify(make_storage(repo.out), out);
     }
 };

@@ -33,13 +33,15 @@ struct fixture : computation_fixture<> {
 
 TEST_F(fixture, run) {
     std::function<void(storage_type, storage_type)> comp = [&](storage_type in, storage_type out) {
-        arg<0> p_in;
-        arg<1> p_out;
-        tmp_arg<2, float_type> p_tmp;
-        compute<backend_t>(p_in = in,
-            p_out = out,
-            make_multistage(
-                execute::forward(), make_stage<test_functor>(p_in, p_tmp), make_stage<test_functor>(p_tmp, p_out)));
+        run(
+            [](auto in, auto out) {
+                GT_DECLARE_TMP(float_type, tmp);
+                return execute_parallel().stage(test_functor(), in, tmp).stage(test_functor(), tmp, out);
+            },
+            backend_t(),
+            make_grid(),
+            in,
+            out);
     };
 
     auto do_test = [&](int n) {

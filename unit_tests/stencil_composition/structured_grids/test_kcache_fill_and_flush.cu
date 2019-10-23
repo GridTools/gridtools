@@ -83,13 +83,15 @@ TEST_F(kcachef, fill_and_flush_forward) {
         }
     }
 
-    arg<0> p_in;
-
-    compute<backend_t>(m_grid,
-        p_in = m_in,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
-            make_stage<shift_acc_forward_fill_and_flush>(p_in)));
+    run(
+        [](auto in) {
+            return execute_forward()
+                .k_cached(cache_io_policy::fill(), cache_io_policy::flush(), in)
+                .stage(shift_acc_forward_fill_and_flush(), in);
+        },
+        backend_t(),
+        m_grid,
+        m_in);
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -113,13 +115,15 @@ TEST_F(kcachef, fill_and_flush_backward) {
         }
     }
 
-    arg<0> p_in;
-
-    compute<backend_t>(m_grid,
-        p_in = m_in,
-        make_multistage(execute::backward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
-            make_stage<shift_acc_backward_fill_and_flush>(p_in)));
+    run(
+        [](auto in) {
+            return execute_backward()
+                .k_cached(cache_io_policy::fill(), cache_io_policy::flush(), in)
+                .stage(shift_acc_forward_fill_and_flush(), in);
+        },
+        backend_t(),
+        m_grid,
+        m_in);
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -142,13 +146,15 @@ TEST_F(kcachef, fill_copy_forward) {
         }
     }
 
-    arg<0> p_in;
-
-    compute<backend_t>(m_grid,
-        p_in = m_in,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
-            make_stage<copy_fill>(p_in)));
+    run(
+        [](auto in) {
+            return execute_forward()
+                .k_cached(cache_io_policy::fill(), cache_io_policy::flush(), in)
+                .stage(copy_fill(), in);
+        },
+        backend_t(),
+        m_grid,
+        m_in);
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -171,13 +177,15 @@ TEST_F(kcachef, fill_scale_forward) {
         }
     }
 
-    arg<0> p_in;
-
-    compute<backend_t>(m_grid,
-        p_in = m_in,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
-            make_stage<scale_fill>(p_in)));
+    run(
+        [](auto in) {
+            return execute_forward()
+                .k_cached(cache_io_policy::fill(), cache_io_policy::flush(), in)
+                .stage(scale_fill(), in);
+        },
+        backend_t(),
+        m_grid,
+        m_in);
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -216,13 +224,15 @@ TEST_F(kcachef, fill_copy_forward_with_extent) {
     m_in.sync();
     m_ref.sync();
 
-    arg<0> p_in;
-
-    compute<backend_t>(m_grid,
-        p_in = m_in,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill, cache_io_policy::flush>(p_in)),
-            make_stage<do_nothing>(p_in)));
+    run(
+        [](auto in) {
+            return execute_forward()
+                .k_cached(cache_io_policy::fill(), cache_io_policy::flush(), in)
+                .stage(do_nothing(), in);
+        },
+        backend_t(),
+        m_grid,
+        m_in);
 
 #if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);

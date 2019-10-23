@@ -12,8 +12,6 @@
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/storage/storage_facility.hpp>
-#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 
@@ -37,92 +35,91 @@ struct stage2 {
     GT_FUNCTION static void apply(Eval &&) {}
 };
 
-template <class Plh, class Expected, class Mss>
-constexpr bool test_extent(Mss) {
-    return std::is_same<decltype(get_arg_extent<Mss>(Plh())), Expected>::value;
+template <class Arg, int... Is, class Spec>
+constexpr bool test_extent(Spec spec) {
+    return std::is_same<decltype(get_arg_extent(spec, Arg())), extent<Is...>>::value;
 }
 
-template <class Plh, class Mss>
-constexpr bool test_intent(Mss, intent expected) {
-    return decltype(get_arg_intent<Mss>(Plh()))::value == expected;
+template <class Plh, class Spec>
+constexpr bool test_intent(Spec spec, intent expected) {
+    return decltype(get_arg_intent(spec, Plh()))::value == expected;
 }
 
-using p_in1 = arg<0>;
-using p_in2 = arg<1>;
-using p_tmp1 = arg<2>;
-using p_tmp2 = arg<3>;
-using p_tmp3 = arg<4>;
-using p_out = arg<5>;
+struct a {};
+struct b {};
+struct c {};
+struct d {};
+struct e {};
+struct f {};
 
-constexpr auto mss0 = make_multistage(execute::forward(), make_stage<stage1>(p_in1(), p_in2(), p_out()));
+constexpr auto mss0 = execute_parallel().stage(stage1(), a(), b(), c());
 
-static_assert(test_extent<p_in1, extent<0, 1, -1, 0, 0, 1>>(mss0), "");
-static_assert(test_extent<p_in2, extent<0, 1, -1, 0, -1, 1>>(mss0), "");
-static_assert(test_extent<p_out, extent<>>(mss0), "");
+static_assert(test_extent<a, 0, 1, -1, 0, 0, 1>(mss0), "");
+static_assert(test_extent<b, 0, 1, -1, 0, -1, 1>(mss0), "");
+static_assert(test_extent<c>(mss0), "");
 
-static_assert(test_intent<p_in1>(mss0, intent::in), "");
-static_assert(test_intent<p_in2>(mss0, intent::in), "");
-static_assert(test_intent<p_out>(mss0, intent::inout), "");
+static_assert(test_intent<a>(mss0, intent::in), "");
+static_assert(test_intent<b>(mss0, intent::in), "");
+static_assert(test_intent<c>(mss0, intent::inout), "");
 
-constexpr auto mss1 = make_multistage(
-    execute::forward(), make_stage<stage1>(p_in1(), p_in2(), p_tmp1()), make_stage<stage2>(p_in1(), p_tmp1(), p_out()));
+constexpr auto mss1 = execute_parallel().stage(stage1(), a(), b(), c()).stage(stage2(), a(), c(), d());
 
-static_assert(test_extent<p_in1, extent<-1, 2, -2, 1, -1, 2>>(mss1), "");
-static_assert(test_extent<p_in2, extent<-1, 2, -2, 0, -2, 2>>(mss1), "");
-static_assert(test_extent<p_tmp1, extent<-1, 1, -1, 0, -1, 1>>(mss1), "");
-static_assert(test_extent<p_out, extent<>>(mss1), "");
+static_assert(test_extent<a, -1, 2, -2, 1, -1, 2>(mss1), "");
+static_assert(test_extent<b, -1, 2, -2, 0, -2, 2>(mss1), "");
+static_assert(test_extent<c, -1, 1, -1, 0, -1, 1>(mss1), "");
+static_assert(test_extent<d>(mss1), "");
 
-static_assert(test_intent<p_in1>(mss1, intent::in), "");
-static_assert(test_intent<p_in2>(mss1, intent::in), "");
-static_assert(test_intent<p_tmp1>(mss1, intent::inout), "");
-static_assert(test_intent<p_out>(mss1, intent::inout), "");
+static_assert(test_intent<a>(mss1, intent::in), "");
+static_assert(test_intent<b>(mss1, intent::in), "");
+static_assert(test_intent<c>(mss1, intent::inout), "");
+static_assert(test_intent<d>(mss1, intent::inout), "");
 
-constexpr auto mss2 = make_multistage(execute::forward(),
-    make_stage<stage1>(p_in1(), p_in2(), p_tmp1()),
-    make_stage<stage1>(p_in1(), p_tmp1(), p_tmp2()),
-    make_stage<stage2>(p_in2(), p_tmp1(), p_tmp3()),
-    make_stage<stage2>(p_tmp2(), p_tmp3(), p_out()));
+constexpr auto mss2 = execute_parallel()
+                          .stage(stage1(), a(), b(), c())
+                          .stage(stage1(), a(), c(), d())
+                          .stage(stage2(), b(), c(), e())
+                          .stage(stage2(), d(), e(), f());
 
 // after last stage:
-//   p_out:  {0, 0, 0, 0, 0, 0}
-//   p_tmp3: {-1, 1, -1, 0, -1, 1}
-//   p_tmp2: {-1, 0, 0, 1, -1, 0}
+//   f:  {0, 0, 0, 0, 0, 0}
+//   e: {-1, 1, -1, 0, -1, 1}
+//   d: {-1, 0, 0, 1, -1, 0}
 //
-// after second independent stage:
-//   p_out:  {0, 0, 0, 0, 0, 0}
-//   p_tmp3: {-1, 1, -1, 0, -1, 1}
-//   p_tmp2: {-1, 0, 0, 1, -1, 0}
-//   p_tmp1: {-2, 2, -2, 0, -2, 2}
-//   p_in2:  {-2, 1, -1, 1, -2, 1}
+// after third stage:
+//   f:  {0, 0, 0, 0, 0, 0}
+//   e: {-1, 1, -1, 0, -1, 1}
+//   d: {-1, 0, 0, 1, -1, 0}
+//   c: {-2, 2, -2, 0, -2, 2}
+//   b:  {-2, 1, -1, 1, -2, 1}
 //
-// after first independent stage:
-//   p_out:  {0, 0, 0, 0, 0, 0}
-//   p_tmp3: {-1, 1, -1, 0, -1, 1}
-//   p_tmp2: {-1, 0, 0, 1, -1, 0}
-//   p_tmp1: {-2, 2, -2, 1, -2, 2}
-//   p_in2:  {-2, 1, -1, 1, -2, 1}
-//   p_in1:  {-1, 1, -1, 1, -1, 1}
+// after second stage:
+//   f:  {0, 0, 0, 0, 0, 0}
+//   e: {-1, 1, -1, 0, -1, 1}
+//   d: {-1, 0, 0, 1, -1, 0}
+//   c {-2, 2, -2, 1, -2, 2}
+//   b:  {-2, 1, -1, 1, -2, 1}
+//   a:  {-1, 1, -1, 1, -1, 1}
 //
-// after first stage
-//   p_out:  {0, 0, 0, 0, 0, 0}
-//   p_tmp3: {-1, 1, -1, 0, -1, 1}
-//   p_tmp2: {-1, 0, 0, 1, -1, 0}
-//   p_tmp1: {-2, 2, -2, 1, -2, 2}
-//   p_in2:  {-2, 3, -3, 1, -3, 3}
-//   p_in1:  {-2, 3, -3, 1, -2, 3}
+// after first stage:
+//   f:  {0, 0, 0, 0, 0, 0}
+//   e: {-1, 1, -1, 0, -1, 1}
+//   d: {-1, 0, 0, 1, -1, 0}
+//   c: {-2, 2, -2, 1, -2, 2}
+//   b:  {-2, 3, -3, 1, -3, 3}
+//   a:  {-2, 3, -3, 1, -2, 3}
 
-static_assert(test_extent<p_in1, extent<-2, 3, -3, 1, -2, 3>>(mss2), "");
-static_assert(test_extent<p_in2, extent<-2, 3, -3, 1, -3, 3>>(mss2), "");
-static_assert(test_extent<p_tmp1, extent<-2, 2, -2, 1, -2, 2>>(mss2), "");
-static_assert(test_extent<p_tmp2, extent<-1, 0, 0, 1, -1, 0>>(mss2), "");
-static_assert(test_extent<p_tmp3, extent<-1, 1, -1, 0, -1, 1>>(mss2), "");
-static_assert(test_extent<p_out, extent<>>(mss2), "");
+static_assert(test_extent<a, -2, 3, -3, 1, -2, 3>(mss2), "");
+static_assert(test_extent<b, -2, 3, -3, 1, -3, 3>(mss2), "");
+static_assert(test_extent<c, -2, 2, -2, 1, -2, 2>(mss2), "");
+static_assert(test_extent<d, -1, 0, 0, 1, -1, 0>(mss2), "");
+static_assert(test_extent<e, -1, 1, -1, 0, -1, 1>(mss2), "");
+static_assert(test_extent<f>(mss2), "");
 
-static_assert(test_intent<p_in1>(mss2, intent::in), "");
-static_assert(test_intent<p_in2>(mss2, intent::in), "");
-static_assert(test_intent<p_tmp1>(mss2, intent::inout), "");
-static_assert(test_intent<p_tmp2>(mss2, intent::inout), "");
-static_assert(test_intent<p_tmp3>(mss2, intent::inout), "");
-static_assert(test_intent<p_out>(mss2, intent::inout), "");
+static_assert(test_intent<a>(mss2, intent::in), "");
+static_assert(test_intent<b>(mss2, intent::in), "");
+static_assert(test_intent<c>(mss2, intent::inout), "");
+static_assert(test_intent<d>(mss2, intent::inout), "");
+static_assert(test_intent<e>(mss2, intent::inout), "");
+static_assert(test_intent<f>(mss2, intent::inout), "");
 
 TEST(dummy, dummy) {}

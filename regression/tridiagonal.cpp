@@ -78,24 +78,18 @@ using tridiagonal = regression_fixture<>;
 
 TEST_F(tridiagonal, test) {
     d3() = 6;
-
     auto out = make_storage();
-    auto sup = make_storage(1.);
-    auto rhs = make_storage([](int_t, int_t, int_t k) { return k == 0 ? 4. : k == 5 ? 2. : 3.; });
-
-    arg<0> p_inf;  // a
-    arg<1> p_diag; // b
-    arg<2> p_sup;  // c
-    arg<3> p_rhs;  // d
-    arg<4> p_out;
-
-    compute(p_inf = make_storage(-1.),
-        p_diag = make_storage(3.),
-        p_sup = sup,
-        p_rhs = rhs,
-        p_out = out,
-        make_multistage(execute::forward(), make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
-        make_multistage(execute::backward(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)));
-
+    run(
+        [](auto inf, auto diag, auto sup, auto rhs, auto out) {
+            return multi_pass(execute_forward().stage(forward_thomas(), out, inf, diag, sup, rhs),
+                execute_backward().stage(backward_thomas(), out, inf, diag, sup, rhs));
+        },
+        backend_t(),
+        make_grid(),
+        make_storage(-1.),
+        make_storage(3.),
+        make_storage(1.),
+        make_storage([](int_t, int_t, int_t k) { return k == 0 ? 4. : k == 5 ? 2. : 3.; }),
+        out);
     verify(make_storage(1.), out);
 }

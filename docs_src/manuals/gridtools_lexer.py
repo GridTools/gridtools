@@ -18,7 +18,6 @@ gridtools_keywords = ((
         'edges',
         'enumtype',
         'execute',
-        'expand_factor',
         'extent',
         'fill',
         'flush',

@@ -84,15 +84,14 @@ TEST_F(kcachef, fill_forward) {
         }
     }
 
-    arg<0> p_in;
-    arg<1> p_out;
-
-    compute<backend_t>(m_grid,
-        p_out = m_out,
-        p_in = m_in,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill>(p_in)),
-            make_stage<shift_acc_forward_fill>(p_in, p_out)));
+    run(
+        [](auto in, auto out) {
+            return execute_forward().k_cached(cache_io_policy::fill(), in).stage(shift_acc_forward_fill(), in, out);
+        },
+        backend_t(),
+        m_grid,
+        m_in,
+        m_out);
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -119,15 +118,14 @@ TEST_F(kcachef, fill_backward) {
         }
     }
 
-    arg<0> p_in;
-    arg<1> p_out;
-
-    compute<backend_t>(m_grid,
-        p_out = m_out,
-        p_in = m_in,
-        gridtools::make_multistage(execute::backward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill>(p_in)),
-            gridtools::make_stage<shift_acc_backward_fill>(p_in, p_out)));
+    run(
+        [](auto in, auto out) {
+            return execute_backward().k_cached(cache_io_policy::fill(), in).stage(shift_acc_forward_fill(), in, out);
+        },
+        backend_t(),
+        m_grid,
+        m_in,
+        m_out);
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -152,15 +150,12 @@ TEST_F(kcachef, fill_copy_forward) {
         }
     }
 
-    arg<0> p_in;
-    arg<1> p_out;
-
-    compute<backend_t>(m_grid,
-        p_out = m_out,
-        p_in = m_in,
-        gridtools::make_multistage(execute::forward(),
-            define_caches(cache<cache_type::k, cache_io_policy::fill>(p_in)),
-            gridtools::make_stage<copy_fill>(p_in, p_out)));
+    run([](auto in,
+            auto out) { return execute_forward().k_cached(cache_io_policy::fill(), in).stage(copy_fill(), in, out); },
+        backend_t(),
+        m_grid,
+        m_in,
+        m_out);
 
     m_out.sync();
     m_out.reactivate_host_write_views();

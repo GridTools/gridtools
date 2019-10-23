@@ -13,6 +13,8 @@
 
 #include <type_traits>
 
+#include "../cuda_util.hpp"
+
 namespace gridtools {
     /**
      * @class timer_cuda
@@ -28,9 +30,9 @@ namespace gridtools {
         using event_holder = std::unique_ptr<cudaEvent_t, destroy_event>;
 
         static event_holder create_event() {
-            auto event = std::make_unique<cudaEvent_t> event;
+            auto event = std::make_unique<cudaEvent_t>();
             GT_CUDA_CHECK(cudaEventCreate(event.get()));
-            return event_holder{event.relese()};
+            return event_holder{event.release()};
         }
 
         event_holder m_start = create_event();

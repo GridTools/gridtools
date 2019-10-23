@@ -19,7 +19,6 @@
 #include "../common/selector.hpp"
 #include "../stencil_composition/axis.hpp"
 #include "../stencil_composition/grid.hpp"
-#include "../stencil_composition/make_computation.hpp"
 #include "../storage/common/halo.hpp"
 #include "../storage/storage_facility.hpp"
 #include "backend_select.hpp"
@@ -55,31 +54,6 @@ namespace gridtools {
 
         using storage_type = storage_tr::data_store_t<float_type, storage_info_t>;
         using j_storage_type = storage_tr::data_store_t<float_type, j_storage_info_t>;
-
-        template <uint_t I, typename T = float_type>
-        using tmp_arg = gridtools::tmp_arg<I, T>;
-
-        static constexpr arg<0> p_0 = {};
-        static constexpr arg<1> p_1 = {};
-        static constexpr arg<2> p_2 = {};
-        static constexpr arg<3> p_3 = {};
-        static constexpr arg<4> p_4 = {};
-        static constexpr arg<5> p_5 = {};
-        static constexpr arg<6> p_6 = {};
-        static constexpr arg<7> p_7 = {};
-        static constexpr arg<8> p_8 = {};
-        static constexpr arg<9> p_9 = {};
-
-        static constexpr tmp_arg<0> p_tmp_0 = {};
-        static constexpr tmp_arg<1> p_tmp_1 = {};
-        static constexpr tmp_arg<2> p_tmp_2 = {};
-        static constexpr tmp_arg<3> p_tmp_3 = {};
-        static constexpr tmp_arg<4> p_tmp_4 = {};
-        static constexpr tmp_arg<5> p_tmp_5 = {};
-        static constexpr tmp_arg<6> p_tmp_6 = {};
-        static constexpr tmp_arg<7> p_tmp_7 = {};
-        static constexpr tmp_arg<8> p_tmp_8 = {};
-        static constexpr tmp_arg<9> p_tmp_9 = {};
 
         template <class Storage = storage_type, class T = typename Storage::data_t>
         Storage make_storage(T &&obj = {}) const {
@@ -163,38 +137,10 @@ namespace gridtools {
         uint_t &d2() { return m_d2; }
         uint_t &d3() { return m_d3; }
 
-        template <class Backend = backend_t, class... Args>
-        auto compute(Args &&... args) const {
-            return ::gridtools::compute<Backend>(make_grid(), std::forward<Args>(args)...);
-        }
-
         template <class Expected, class Actual>
         void verify(
             Expected const &expected, Actual const &actual, double precision = default_precision<float_type>()) const {
             EXPECT_TRUE(verifier{precision}.verify(make_grid(), expected, actual, halos<Expected>()));
         }
     };
-
-#define GT_DEFINE_COMPUTATION_FIXTURE_PLH(I)                                    \
-    template <size_t HaloSize, class Axis>                                      \
-    constexpr arg<I> computation_fixture<HaloSize, Axis>::p_##I;                \
-    template <size_t HaloSize, class Axis>                                      \
-    constexpr typename computation_fixture<HaloSize, Axis>::template tmp_arg<I> \
-        computation_fixture<HaloSize, Axis>::p_tmp_##I
-
-#ifndef GT_ICOSAHEDRAL_GRIDS
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(0);
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(1);
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(2);
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(3);
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(4);
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(5);
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(6);
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(7);
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(8);
-    GT_DEFINE_COMPUTATION_FIXTURE_PLH(9);
-#endif
-
-#undef GT_DEFINE_COMPUTATION_FIXTURE_PLH
-
 } // namespace gridtools

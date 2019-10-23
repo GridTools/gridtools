@@ -105,10 +105,5 @@ namespace {
 } // namespace
 
 TEST_F(call_proc_stress_types, triple_nesting_with_type_switching) {
-    arg<0> p_in;
-    arg<1> p_out;
-    compute<backend_t>(grid,
-        p_in = in,
-        p_out = out,
-        make_multistage(execute::forward(), make_stage<triple_nesting_with_type_switching_first_stage>(p_out, p_in)));
+    easy_run(triple_nesting_with_type_switching_first_stage(), backend_t(), grid, out, in);
 }

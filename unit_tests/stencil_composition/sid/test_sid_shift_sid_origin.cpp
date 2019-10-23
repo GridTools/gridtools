@@ -12,7 +12,6 @@
 
 #include <gtest/gtest.h>
 
-#include <functional>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
@@ -48,7 +47,7 @@ namespace gridtools {
             double data[3][5][7];
 
             auto offset = tuple_util::make<tuple>(1_c, 2);
-            auto testee = sid::shift_sid_origin(std::ref(data), offset);
+            auto testee = sid::shift_sid_origin(data, offset);
 
             static_assert(is_sid<decltype(testee)>(), "");
 

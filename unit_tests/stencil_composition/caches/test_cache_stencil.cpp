@@ -44,13 +44,15 @@ namespace gridtools {
         };
 
         TEST_F(cache_stencil, ij_cache) {
-            compute(p_0 = make_storage(in),
-                p_1 = out,
-                make_multistage(execute::parallel(),
-                    define_caches(cache<cache_type::ij>(p_tmp_0)),
-                    make_stage<functor1>(p_0, p_tmp_0),
-                    make_stage<functor1>(p_tmp_0, p_1)));
-
+            run(
+                [](auto in, auto out) {
+                    GT_DECLARE_TMP(float_type, tmp);
+                    return execute_parallel().ij_cached(tmp).stage(functor1(), in, tmp).stage(functor1(), tmp, out);
+                },
+                backend_t(),
+                make_grid(),
+                make_storage(in),
+                out);
             expected = in;
         }
 
@@ -67,12 +69,15 @@ namespace gridtools {
         };
 
         TEST_F(cache_stencil, ij_cache_offset) {
-            compute(p_0 = make_storage(in),
-                p_1 = out,
-                make_multistage(execute::parallel(),
-                    define_caches(cache<cache_type::ij>(p_tmp_0)),
-                    make_stage<functor1>(p_0, p_tmp_0),
-                    make_stage<functor2>(p_tmp_0, p_1)));
+            run(
+                [](auto in, auto out) {
+                    GT_DECLARE_TMP(float_type, tmp);
+                    return execute_parallel().ij_cached(tmp).stage(functor1(), in, tmp).stage(functor2(), tmp, out);
+                },
+                backend_t(),
+                make_grid(),
+                make_storage(in),
+                out);
 
             expected = [this](int i, int j, int k) {
                 return (in(i - 1, j, k) + in(i + 1, j, k) + in(i, j - 1, k) + in(i, j + 1, k)) / (float_type)4.0;
@@ -91,14 +96,20 @@ namespace gridtools {
         };
 
         TEST_F(cache_stencil, multi_cache) {
-            compute(p_0 = make_storage(in),
-                p_1 = out,
-                make_multistage(execute::parallel(),
-                    define_caches(cache<cache_type::ij>(p_tmp_0, p_tmp_1), cache<cache_type::ij>(p_tmp_2)),
-                    make_stage<functor3>(p_0, p_tmp_0),
-                    make_stage<functor3>(p_tmp_0, p_tmp_1),
-                    make_stage<functor3>(p_tmp_1, p_tmp_2),
-                    make_stage<functor3>(p_tmp_2, p_1)));
+            run(
+                [](auto in, auto out) {
+                    GT_DECLARE_TMP(float_type, tmp0, tmp1, tmp2);
+                    return execute_parallel()
+                        .ij_cached(tmp0, tmp1)
+                        .stage(functor3(), in, tmp0)
+                        .stage(functor3(), tmp0, tmp1)
+                        .stage(functor3(), tmp1, tmp2)
+                        .stage(functor3(), tmp2, out);
+                },
+                backend_t(),
+                make_grid(),
+                make_storage(in),
+                out);
 
             expected = [this](int i, int j, int k) { return in(i, j, k) + 4; };
         }

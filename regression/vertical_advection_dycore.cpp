@@ -152,49 +152,37 @@ struct u_backward_function {
     }
 };
 
-struct vertical_advection_dycore : regression_fixture<3, axis_t> {
-    arg<0> p_utens_stage;
-    arg<1> p_u_stage;
-    arg<2> p_wcon;
-    arg<3> p_u_pos;
-    arg<4> p_utens;
-    arg<5, global_parameter<float_type>> p_dtr_stage;
-    tmp_arg<0> p_acol;
-    tmp_arg<1> p_bcol;
-    tmp_arg<2> p_ccol;
-    tmp_arg<3> p_dcol;
-    tmp_arg<4> p_data_col;
-
-    vertical_advection_repository repo{d1(), d2(), d3()};
-
-    storage_type utens_stage = make_storage(repo.utens_stage_in);
-
-    void verify_utens_stage() { verify(make_storage(repo.utens_stage_out), utens_stage); }
+const auto vertical_advection = [](auto utens_stage, auto u_stage, auto wcon, auto u_pos, auto utens, auto dtr_stage) {
+    GT_DECLARE_TMP(float_type, acol, bcol, ccol, dcol, data_col);
+    return multi_pass(
+        execute_forward()
+            .k_cached(acol, bcol)
+            .k_cached(cache_io_policy::flush(), ccol, dcol)
+            .k_cached(cache_io_policy::fill(), u_stage)
+            .stage(u_forward_function(), utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol),
+        execute_backward().k_cached(data_col).stage(
+            u_backward_function(), utens_stage, u_pos, dtr_stage, ccol, dcol, data_col));
 };
 
-TEST_F(vertical_advection_dycore, test) {
-    using modified_backend_t = meta::if_<std::is_same<backend_t, cuda::backend<>>,
-        cuda::backend<integral_constant<int_t, 256>, integral_constant<int_t, 1>>,
-        backend_t>;
+using modified_backend_t = meta::if_<std::is_same<backend_t, cuda::backend<>>,
+    cuda::backend<integral_constant<int_t, 256>, integral_constant<int_t, 1>>,
+    backend_t>;
 
-    auto comp = [&] {
-        compute<modified_backend_t>(p_utens_stage = utens_stage,
-            p_u_stage = make_storage(repo.u_stage),
-            p_wcon = make_storage(repo.wcon),
-            p_u_pos = make_storage(repo.u_pos),
-            p_utens = make_storage(repo.utens),
-            p_dtr_stage = make_global_parameter((float_type)repo.dtr_stage),
-            make_multistage(execute::forward(),
-                define_caches(cache<cache_type::k>(p_acol, p_bcol),
-                    cache<cache_type::k, cache_io_policy::flush>(p_ccol, p_dcol),
-                    cache<cache_type::k, cache_io_policy::fill>(p_u_stage)),
-                make_stage<u_forward_function>(
-                    p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
-            make_multistage(execute::backward(),
-                define_caches(cache<cache_type::k>(p_data_col)),
-                make_stage<u_backward_function>(p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col)));
+using vertical_advection_dycore = regression_fixture<3, axis_t>;
+
+TEST_F(vertical_advection_dycore, test) {
+    vertical_advection_repository repo{d1(), d2(), d3()};
+    storage_type utens_stage = make_storage(repo.utens_stage_in);
+    auto comp = [grid = make_grid(),
+                    &utens_stage,
+                    u_stage = make_storage(repo.u_stage),
+                    wcon = make_storage(repo.wcon),
+                    u_pos = make_storage(repo.u_pos),
+                    utens = make_storage(repo.utens),
+                    dtr_stage = make_global_parameter((float_type)repo.dtr_stage)] {
+        run(vertical_advection, modified_backend_t(), grid, utens_stage, u_stage, wcon, u_pos, utens, dtr_stage);
     };
     comp();
-    verify_utens_stage();
+    verify(make_storage(repo.utens_stage_out), utens_stage);
     benchmark(comp);
 }

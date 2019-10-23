@@ -99,26 +99,29 @@ struct functor6 {
     GT_FUNCTION static void apply(Evaluation);
 };
 
-typedef arg<0> o0;
-typedef arg<1> o1;
-typedef arg<2> o2;
-typedef arg<3> o3;
-typedef arg<4> o4;
-typedef arg<5> o5;
-typedef arg<6> o6;
-typedef arg<7> in0;
-typedef arg<8> in1;
-typedef arg<9> in2;
-typedef arg<10> in3;
+template <int>
+struct p {};
 
-using mss_t = decltype(make_multistage(execute::forward(),
-    make_stage<functor0>(in0(), in1(), in2(), o0()),
-    make_stage<functor1>(in3(), o1(), in0(), o0()),
-    make_stage<functor2>(o0(), o1(), o2()),
-    make_stage<functor3>(in1(), in2(), o3(), o2()),
-    make_stage<functor4>(o0(), o1(), o3(), o4()),
-    make_stage<functor5>(in3(), o4(), in0(), o5()),
-    make_stage<functor6>(o6(), o5(), in1(), in2())));
+typedef p<0> o0;
+typedef p<1> o1;
+typedef p<2> o2;
+typedef p<3> o3;
+typedef p<4> o4;
+typedef p<5> o5;
+typedef p<6> o6;
+typedef p<7> in0;
+typedef p<8> in1;
+typedef p<9> in2;
+typedef p<10> in3;
+
+using mss_t = meta::first<decltype(execute_parallel()
+                                       .stage(functor0(), in0(), in1(), in2(), o0())
+                                       .stage(functor1(), in3(), o1(), in0(), o0())
+                                       .stage(functor2(), o0(), o1(), o2())
+                                       .stage(functor3(), in1(), in2(), o3(), o2())
+                                       .stage(functor4(), o0(), o1(), o3(), o4())
+                                       .stage(functor5(), in3(), o4(), in0(), o5())
+                                       .stage(functor6(), o6(), o5(), in1(), in2()))>;
 
 template <class Arg, int_t... ExpectedExtentValues>
 using testee = std::is_same<lookup_extent_map<get_extent_map_from_mss<mss_t>, Arg>, extent<ExpectedExtentValues...>>;

@@ -48,10 +48,6 @@ class call_stress_types : public testing::Test {
     data_store_in2_t in2;
     data_store_out_t out;
 
-    typedef arg<0> p_in1;
-    typedef arg<1> p_in2;
-    typedef arg<2> p_out;
-
     call_stress_types()
         : grid(make_grid(1, 1, 1)), in1(storage_info_t{1, 1, 1}), in2(storage_info_t{1, 1, 1}),
           out(storage_info_t{1, 1, 1}) {}
@@ -92,10 +88,7 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, simple_force_return_type) {
-    compute<backend_t>(grid,
-        p_in1{} = in1,
-        p_out{} = out,
-        make_multistage(execute::forward(), make_stage<simple_caller_with_forced_return_type>(p_in1(), p_out())));
+    easy_run(simple_caller_with_forced_return_type(), backend_t(), grid, in1, out);
 }
 
 namespace {
@@ -130,10 +123,7 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, simple_deduced_return_type) {
-    compute<backend_t>(grid,
-        p_in1{} = in1,
-        p_out{} = out,
-        make_multistage(execute::forward(), make_stage<simple_caller_with_deduced_return_type>(p_in1(), p_out())));
+    easy_run(simple_caller_with_deduced_return_type(), backend_t(), grid, in1, out);
 }
 
 namespace {
@@ -214,12 +204,7 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, triple_nesting_with_type_switching) {
-    compute<backend_t>(grid,
-        p_in1{} = in1,
-        p_in2{} = in2,
-        p_out{} = out,
-        make_multistage(
-            execute::forward(), make_stage<triple_nesting_with_type_switching_first_stage>(p_in1(), p_out(), p_in2())));
+    easy_run(triple_nesting_with_type_switching_first_stage(), backend_t(), grid, in1, out, in2);
 }
 
 namespace {
@@ -273,10 +258,5 @@ namespace {
 } // namespace
 
 TEST_F(call_stress_types, triple_nesting_with_type_switching_and_call_proc) {
-    compute<backend_t>(grid,
-        p_in1{} = in1,
-        p_in2{} = in2,
-        p_out{} = out,
-        make_multistage(execute::forward(),
-            make_stage<triple_nesting_with_type_switching_and_call_proc_first_stage>(p_in1(), p_out(), p_in2())));
+    easy_run(triple_nesting_with_type_switching_and_call_proc_first_stage(), backend_t(), grid, in1, out, in2);
 }

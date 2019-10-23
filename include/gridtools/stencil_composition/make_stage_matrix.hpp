@@ -61,14 +61,15 @@ namespace gridtools {
             using type = typename Plh::data_t;
         };
 
-        template <class Dim>
-        using positional_plh_info = stage_matrix::plh_info<meta::list<positional<Dim>>,
-            std::false_type,
-            int_t const,
-            integral_constant<int_t, 1>,
-            std::true_type,
-            extent<>,
-            meta::list<>>;
+        template <class Plh, bool = is_tmp_arg<Plh>::value>
+        struct get_num_colors {
+            using type = void;
+        };
+
+        template <class Plh>
+        struct get_num_colors<Plh, true> {
+            using type = typename Plh::num_colors_t;
+        };
 
         template <class EsfExtent, class DataStores, class Mss>
         struct make_plh_info_f {
@@ -78,7 +79,7 @@ namespace gridtools {
             using apply = stage_matrix::plh_info<meta::push_front<typename CacheInfo::cache_types_t, Plh>,
                 typename is_tmp_arg<Plh>::type,
                 typename get_data_type<Plh, DataStores>::type,
-                integral_constant<int_t, Plh::location_t::n_colors::value>,
+                typename get_num_colors<Plh>::type,
                 bool_constant<Accessor::intent_v == intent::in>,
                 sum_extent<EsfExtent, typename Accessor::extent_t>,
                 typename CacheInfo::cache_io_policies_t>;

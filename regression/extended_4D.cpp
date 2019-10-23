@@ -143,19 +143,13 @@ TEST_F(extended_4d, test) {
         return res;
     };
     auto result = make_storage();
-
-    arg<0> p_phi;
-    arg<1> p_psi;
-    arg<2> p_jac;
-    arg<3> p_f;
-    arg<4> p_result;
-
-    compute(p_phi = make_global_parameter(elemental{phi}),
-        p_psi = make_global_parameter(elemental{psi}),
-        p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
-        p_f = make_storage(f),
-        p_result = result,
-        make_multistage(execute::forward(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)));
-
+    easy_run(integration(),
+        backend_t(),
+        make_grid(),
+        make_global_parameter(elemental{phi}),
+        make_global_parameter(elemental{psi}),
+        storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
+        make_storage(f),
+        result);
     verify(make_storage(ref), result);
 }

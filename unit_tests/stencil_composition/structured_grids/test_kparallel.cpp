@@ -62,16 +62,9 @@ void run_test() {
     storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
     storage_t out(storage_info, (double)1.5);
 
-    arg<0> p_in;
-    arg<1> p_out;
-
     auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
 
-    compute<backend_t>(grid,
-        p_in = in,
-        p_out = out,
-        gridtools::make_multistage(
-            gridtools::execute::parallel(), gridtools::make_stage<parallel_functor<Axis>>(p_in, p_out)));
+    easy_run(parallel_functor<Axis>(), backend_t(), grid, in, out);
 
     in.sync();
     out.sync();
@@ -103,18 +96,19 @@ void run_test_with_temporary() {
     storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
     storage_t out(storage_info, (double)1.5);
 
-    arg<0> p_in;
-    arg<1> p_out;
-    tmp_arg<2, float_type> p_tmp;
-
     auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
 
-    compute<backend_t>(grid,
-        p_in = in,
-        p_out = out,
-        make_multistage(execute::parallel(),
-            make_stage<parallel_functor<Axis>>(p_in, p_tmp),
-            make_stage<parallel_functor<Axis>>(p_tmp, p_out)));
+    run(
+        [](auto in, auto out) {
+            GT_DECLARE_TMP(float_type, tmp);
+            return execute_parallel()
+                .stage(parallel_functor<Axis>(), in, tmp)
+                .stage(parallel_functor<Axis>(), tmp, out);
+        },
+        backend_t(),
+        grid,
+        in,
+        out);
 
     in.sync();
     out.sync();
@@ -130,9 +124,7 @@ void run_test_with_temporary() {
         }
 }
 
-TEST(structured_grid, kparallel) { //
-    run_test<gridtools::axis<2>>();
-}
+TEST(structured_grid, kparallel) { run_test<gridtools::axis<2>>(); }
 
 TEST(structured_grid, kparallel_with_extentoffsets_around_interval) {
     run_test<gridtools::axis<2, gridtools::axis_config::offset_limit<5>, gridtools::axis_config::extra_offsets<3>>>();
@@ -162,15 +154,9 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
     storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
     storage_t out(storage_info, (double)1.5);
 
-    arg<0> p_in;
-    arg<1> p_out;
-
     auto grid = make_grid(d1, d2, Axis(d3_1, d3_2, d3_3));
 
-    compute<backend_t>(grid,
-        p_in = in,
-        p_out = out,
-        make_multistage(execute::parallel(), make_stage<parallel_functor_on_upper_interval<Axis>>(p_in, p_out)));
+    easy_run(parallel_functor_on_upper_interval<Axis>(), backend_t(), grid, in, out);
 
     in.sync();
     out.sync();

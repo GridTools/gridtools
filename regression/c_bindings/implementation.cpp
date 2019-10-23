@@ -54,14 +54,7 @@ namespace {
     }
 
     auto make_copy_stencil(data_store_t const &in, data_store_t const &out) {
-        return [=] {
-            arg<0> p_in;
-            arg<1> p_out;
-            compute<backend_t>(make_grid(out),
-                p_in = in,
-                p_out = out,
-                make_multistage(execute::forward(), make_stage<copy_functor>(p_in, p_out)));
-        };
+        return [=] { easy_run(copy_functor(), backend_t(), make_grid(out), in, out); };
     }
     BINDGEN_EXPORT_BINDING_2(create_copy_stencil, make_copy_stencil);
 

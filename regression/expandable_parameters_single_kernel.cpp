@@ -58,20 +58,26 @@ TEST_F(expandable_parameters_single_kernel, test) {
     std::vector<storage_type> in = {
         make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
 
-    compute(p_0 = out[0],
-        p_1 = out[1],
-        p_2 = out[2],
-        p_3 = out[3],
-        p_4 = out[4],
-        p_5 = in[0],
-        p_6 = in[1],
-        p_7 = in[2],
-        p_8 = in[3],
-        p_9 = in[4],
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)),
-            make_stage<functor_single_kernel>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4, p_5, p_6, p_7, p_8, p_9),
-            make_stage<functor_single_kernel>(p_0, p_1, p_2, p_3, p_4, p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)));
+    run(
+        [](auto out0, auto out1, auto out2, auto out3, auto out4, auto in0, auto in1, auto in2, auto in3, auto in4) {
+            GT_DECLARE_TMP(float_type, tmp0, tmp1, tmp2, tmp3, tmp4);
+            return execute_parallel()
+                .ij_cached(tmp0, tmp1, tmp2, tmp3, tmp4)
+                .stage(functor_single_kernel(), tmp0, tmp1, tmp2, tmp3, tmp4, in0, in1, in2, in3, in4)
+                .stage(functor_single_kernel(), out0, out1, out2, out3, out4, tmp0, tmp1, tmp2, tmp3, tmp4);
+        },
+        backend_t(),
+        make_grid(),
+        out[0],
+        out[1],
+        out[2],
+        out[3],
+        out[4],
+        in[0],
+        in[1],
+        in[2],
+        in[3],
+        in[4]);
 
     for (size_t i = 0; i != in.size(); ++i)
         verify(in[i], out[i]);
