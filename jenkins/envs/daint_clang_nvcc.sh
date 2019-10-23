@@ -5,8 +5,7 @@ source $(dirname "$BASH_SOURCE")/daint.sh
 module load PrgEnv-gnu
 module swap gcc/7.3.0
 
-module use /project/csstaff/fthaler/install/daint/spack/share/spack/modules/cray-cnl6-haswell
-module load llvm-9.0.0-gcc-7.3.0-3lmdwud
+module load /project/csstaff/fthaler/install/daint/spack/share/spack/modules/cray-cnl6-haswell/llvm-9.0.0-gcc-7.3.0-3lmdwud
 
 export CXX=$(which clang++)
 export CC=$(which clang)
