@@ -3,7 +3,8 @@
 source $(dirname "$BASH_SOURCE")/tave.sh
 
 module load PrgEnv-intel
-module load gcc
+module swap intel/18.0.2.199
+module load gcc/7.3.0
 
 export CXX=$(which icpc)
 export CC=$(which icc)
