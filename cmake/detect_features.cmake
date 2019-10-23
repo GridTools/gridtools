@@ -31,7 +31,7 @@ endmacro(detect_cuda)
 
 macro(detect_openmp)
     if (NOT DEFINED GT_ENABLE_BACKEND_X86 AND NOT DEFINED GT_ENABLE_BACKEND_MC AND NOT DEFINED GT_ENABLE_BACKEND_NAIVE)
-        if (GT_CUDA_COMPILATION_TYPE MATCHES "Clang-CUDA")
+        if (GT_CUDA_COMPILATION_TYPE STREQUAL "Clang-CUDA")
             # Disable OpenMP due to bug https://bugs.llvm.org/show_bug.cgi?id=42061
             set (OPENMP_AVAILABLE OFF)
             message (STATUS "OpenMP not avaiable with Clang CUDA")
@@ -47,7 +47,7 @@ macro(detect_openmp)
         endif ()
 
     elseif (GT_ENABLE_BACKEND_X86 OR GT_ENABLE_BACKEND_MC OR GT_ENABLE_BACKEND_NAIVE)
-        if (GT_CUDA_COMPILATION_TYPE MATCHES "Clang-CUDA")
+        if (GT_CUDA_COMPILATION_TYPE STREQUAL "Clang-CUDA")
             message (FATAL_ERROR "OpenMP backends can not be used in combination with Clang CUDA/HIP due to bug https://bugs.llvm.org/show_bug.cgi?id=42061")
         endif ()
         find_package( OpenMP REQUIRED COMPONENTS CXX)
