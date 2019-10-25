@@ -22,8 +22,8 @@ namespace {
         auto src_v = gridtools::make_target_view(src);
         auto dst_v = gridtools::make_target_view(dst);
 
-        storage_info_rt si_src = make_storage_info_rt(*src.get_storage_info_ptr());
-        storage_info_rt si_dst = make_storage_info_rt(*dst.get_storage_info_ptr());
+        storage_info_rt si_src = make_storage_info_rt(src.info());
+        storage_info_rt si_dst = make_storage_info_rt(dst.info());
 
         gridtools::interface::transform(
             dst_v.data(), src_v.data(), si_src.total_lengths(), si_dst.strides(), si_src.strides());

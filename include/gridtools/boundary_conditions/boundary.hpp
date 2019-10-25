@@ -11,11 +11,8 @@
 
 #include "../common/hip_wrappers.hpp"
 #ifdef __CUDACC__
-#include "../storage/storage_cuda/data_view_helpers.hpp"
 #include "./apply_gpu.hpp"
 #endif
-#include "../storage/storage_host/data_view_helpers.hpp"
-#include "../storage/storage_mc/data_view_helpers.hpp"
 #include "./apply.hpp"
 
 #include "../communication/low_level/gcl_arch.hpp"

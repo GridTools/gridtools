@@ -24,24 +24,6 @@ namespace gridtools {
      * @{
      */
 
-    /*
-     * @brief The cuda storage info implementation.
-     * @tparam Id unique ID that should be shared among all storage infos with the same dimensionality.
-     * @tparam Layout information about the memory layout
-     * @tparam Halo information about the halo sizes (by default no halo is set)
-     * @tparam Alignment information about the alignment (cuda_storage_info is aligned to 32 by default)
-     */
-    template <uint_t Id,
-        typename Layout,
-        typename Halo = zero_halo<Layout::masked_length>,
-#ifdef __HIPCC__
-        typename Alignment = alignment<16>
-#else
-        typename Alignment = alignment<32>
-#endif
-        >
-    using cuda_storage_info = storage_info<Id, Layout, Halo, Alignment>;
-
     namespace impl_ {
         /*
          * @brief Allocates cuda_storage_info on device. Note that the pointer is released from the unique_ptr and

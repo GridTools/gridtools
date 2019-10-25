@@ -7,28 +7,32 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#pragma once
 
-#if (!defined(BOOST_PP_VARIADICS) || (BOOST_PP_VARIADICS < 1))
-// defining BOOST_PP_VARIADICS 1 here might be too late, therefore we leave it to the user
-#error \
-    "GRIDTOOLS ERROR=> For the repository you need to \"#define BOOST_PP_VARIADICS 1\" before the first include of any boost preprocessor file.")
-#endif
+#include <unordered_map>
 
-#include "../../common/boost_pp_generic_macros.hpp"
-#include "../../common/defs.hpp"
-#include "../fortran_array_adapter.hpp"
-#include "boost/variant.hpp"
-#include "repository_macro_helpers.hpp"
 #include <boost/mpl/contains.hpp>
 #include <boost/mpl/vector.hpp>
+#include <boost/preprocessor/config/config.hpp>
 #include <boost/preprocessor/control/expr_if.hpp>
 #include <boost/preprocessor/list.hpp>
 #include <boost/preprocessor/selection/max.hpp>
 #include <boost/preprocessor/selection/min.hpp>
 #include <boost/preprocessor/seq.hpp>
 #include <boost/preprocessor/tuple.hpp>
+#include <boost/variant.hpp>
 #include <cpp_bindgen/export.hpp>
-#include <unordered_map>
+
+#include "../../common/boost_pp_generic_macros.hpp"
+#include "../../common/defs.hpp"
+#include "../fortran_array_adapter.hpp"
+#include "repository_macro_helpers.hpp"
+
+#if !BOOST_PP_VARIADICS
+// defining BOOST_PP_VARIADICS 1 here might be too late, therefore we leave it to the user
+#error \
+    "GRIDTOOLS ERROR=> For the repository you need to \"#define BOOST_PP_VARIADICS 1\" before the first include of any boost preprocessor file.")
+#endif
 
 #ifndef GT_REPO_GETTER_PREFIX
 #define GT_REPO_GETTER_PREFIX
@@ -274,3 +278,5 @@
  */
 #define GT_MAKE_REPOSITORY_BINDINGS(name, fortran_name, prefix, data_stores_seq) \
     GT_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, prefix, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))
+
+namespace repositoty_impl_ {}

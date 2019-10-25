@@ -15,8 +15,8 @@
 
 TEST(StorageHostTest, Simple) {
     // create two storages
-    gridtools::host_storage<int> s1(2);
-    gridtools::host_storage<int> s2(2);
+    gridtools::host_storage<int> s1(2, 0, gridtools::alignment<1>());
+    gridtools::host_storage<int> s2(2, 0, gridtools::alignment<1>());
     // test the is_storage check
     static_assert(gridtools::is_storage<decltype(s1)>::value, "");
     static_assert(!gridtools::is_storage<int>::value, "");
@@ -30,11 +30,4 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s1.get_cpu_ptr()[0], 10);
     EXPECT_EQ(s2.get_cpu_ptr()[1], 200);
     EXPECT_EQ(s2.get_cpu_ptr()[0], 100);
-    // swap storages
-    s1.swap(s2);
-    // check if changes are there
-    EXPECT_EQ(s2.get_cpu_ptr()[1], 20);
-    EXPECT_EQ(s2.get_cpu_ptr()[0], 10);
-    EXPECT_EQ(s1.get_cpu_ptr()[1], 200);
-    EXPECT_EQ(s1.get_cpu_ptr()[0], 100);
 }

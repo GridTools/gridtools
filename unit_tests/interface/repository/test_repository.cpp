@@ -8,12 +8,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <boost/variant/apply_visitor.hpp>
-#include <gtest/gtest.h>
-
 #include "exported_repository.hpp"
+#include <boost/variant/apply_visitor.hpp>
 #include <gridtools/interface/repository/repository.hpp>
 #include <gridtools/storage/storage_facility.hpp>
+#include <gtest/gtest.h>
 
 #define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)
@@ -28,43 +27,32 @@ class simple_repository : public ::testing::Test {
 };
 
 TEST_F(simple_repository, access_fields) {
-    ASSERT_EQ("u", repo.u().name());
-    ASSERT_EQ(10, repo.u().total_length<0>());
-    ASSERT_EQ(11, repo.crlat().total_length<0>());
+    EXPECT_EQ("u", repo.u().name());
+    EXPECT_EQ(10, repo.u().total_length<0>());
+    EXPECT_EQ(11, repo.crlat().total_length<0>());
 }
 
 TEST_F(simple_repository, assign_to_auto_from_map) {
     // needs a cast
-    auto u = boost::get<IJKDataStore>(repo.data_stores()["u"]);
+    auto &&u = boost::get<IJKDataStore>(repo.data_stores().at("u"));
     ASSERT_EQ(10, u.total_length<0>());
 }
 
 #ifdef GT_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
 TEST_F(simple_repository, assign_to_type_from_map) {
     // no cast needed
-    IJKDataStore u = repo.data_stores()["u"];
+    IJKDataStore u = repo.data_stores().at("u");
     ASSERT_EQ(10, u.total_length<0>());
 }
 #endif
 
 TEST_F(simple_repository, access_wrong_type_from_map) {
-    ASSERT_THROW(boost::get<IJDataStore>(repo.data_stores()["u"]), boost::bad_get);
+    ASSERT_THROW(boost::get<IJDataStore>(repo.data_stores().at("u")), boost::bad_get);
 }
 
-class DemonstrateIterationOverMap : public boost::static_visitor<> {
-  public:
-    std::vector<std::string> names = {"u", "v", "crlat"};
-    template <typename T>
-    void operator()(T &t) const {
-        ASSERT_TRUE(std::find(std::begin(names), std::end(names), t.name()) != std::end(names));
-    }
-};
-
 TEST_F(simple_repository, iterate_map_with_visitor) {
-    for (auto &elem : repo.data_stores()) {
-        // can iterate without manual cast
-        boost::apply_visitor(DemonstrateIterationOverMap(), elem.second);
-    }
+    for (auto &&elem : repo.data_stores())
+        boost::apply_visitor([&](auto &&x) { EXPECT_EQ(elem.first, x.name()); }, elem.second);
 }
 
 #define MY_FIELDTYPES (IJKDataStore)

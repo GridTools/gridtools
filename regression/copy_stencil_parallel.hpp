@@ -135,16 +135,12 @@ namespace copy_stencil {
             halos, boundary_conditions(), proc_grid_predicate<decltype(c_grid)>(c_grid))
             .apply(in, out);
 
-#ifdef __CUDACC__
-        auto inv = make_device_view(in);
-        auto outv = make_device_view(out);
-#else
-        auto inv = make_host_view(in);
-        auto outv = make_host_view(out);
-#endif
+        auto inv = make_target_view(in);
+        auto outv = make_target_view(out);
+
         std::vector<float_type *> vec(2);
-        vec[0] = advanced::get_raw_pointer_of(inv);
-        vec[1] = advanced::get_raw_pointer_of(outv);
+        vec[0] = advanced_get_raw_pointer_of(inv);
+        vec[1] = advanced_get_raw_pointer_of(outv);
 
         he.pack(vec);
 

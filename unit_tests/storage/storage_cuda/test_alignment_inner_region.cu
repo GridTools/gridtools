@@ -38,7 +38,7 @@ void run() {
     info i(23, 34, 12);
     store s(i);
 
-    auto view = gt::make_device_view(s);
+    auto view = gt::make_target_view(s);
 
     ValueType *res;
 

@@ -17,6 +17,7 @@
 
 #include "../boundary_conditions/boundary.hpp"
 #include "../common/halo_descriptor.hpp"
+#include "../storage/data_store.hpp"
 
 namespace gridtools {
     namespace _impl {

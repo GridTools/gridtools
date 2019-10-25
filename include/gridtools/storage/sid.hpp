@@ -118,12 +118,11 @@ namespace gridtools {
             static impl_t const &impl();
 
             friend ptr_holder<typename Storage::data_t> sid_get_origin(host_adapter const &obj) {
-                auto &&storage_ptr = obj.m_impl.get_storage_ptr();
-                assert(storage_ptr);
-                if (storage_ptr->host_needs_update_impl())
-                    storage_ptr->sync();
-                storage_ptr->reactivate_host_write_views();
-                return {storage_ptr->get_cpu_ptr()};
+                auto &&storage = obj.m_impl.storage();
+                if (storage.host_needs_update())
+                    storage.sync();
+                storage.reactivate_host_write_views();
+                return {storage.get_cpu_ptr()};
             }
             friend decltype(sid_get_strides(impl())) sid_get_strides(host_adapter const &obj) {
                 return sid_get_strides(obj.m_impl);
@@ -183,12 +182,11 @@ namespace gridtools {
     template <class Storage, class StorageInfo>
     storage_sid_impl_::ptr_holder<typename Storage::data_t> sid_get_origin(
         data_store<Storage, StorageInfo> const &obj) {
-        auto &&storage_ptr = obj.get_storage_ptr();
-        assert(storage_ptr);
-        if (storage_ptr->device_needs_update_impl())
-            storage_ptr->sync();
-        storage_ptr->reactivate_target_write_views();
-        return {storage_ptr->get_target_ptr()};
+        auto &&storage = obj.storage();
+        if (storage.device_needs_update())
+            storage.sync();
+        storage.reactivate_target_write_views();
+        return {storage.get_target_ptr()};
     }
 
     template <class Storage, class StorageInfo>

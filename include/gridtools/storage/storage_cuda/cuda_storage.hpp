@@ -16,9 +16,11 @@
 
 #include "../../common/cuda_util.hpp"
 #include "../../common/gt_assert.hpp"
-#include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
+#include "../data_view.hpp"
 #include "../storage_host/host_storage.hpp"
+#include "cuda_storage_info.hpp"
+#include "state_machine.hpp"
 
 namespace gridtools {
     /** \ingroup storage
@@ -38,169 +40,209 @@ namespace gridtools {
      * gridtools pattern and we clearly want to avoid virtual
      * methods, etc.
      */
-    template <typename DataType>
-    struct cuda_storage : storage_interface<cuda_storage<DataType>> {
-        typedef DataType data_t;
-        typedef state_machine state_machine_t;
 
-      private:
-        cuda_util::unique_cuda_ptr<DataType> m_gpu_ptr_holder;
-        std::unique_ptr<DataType[]> m_cpu_ptr_holder;
+    namespace cuda_storage_impl_ {
+        template <typename DataType>
+        class cuda_storage : public storage_interface<cuda_storage<DataType>> {
+          private:
+            cuda_util::unique_cuda_ptr<DataType> m_gpu_ptr_holder;
+            std::unique_ptr<DataType[]> m_cpu_ptr_holder;
 
-        DataType *m_gpu_ptr;
-        DataType *m_cpu_ptr;
-        state_machine m_state;
-        uint_t m_size;
+            DataType *m_gpu_ptr;
+            DataType *m_cpu_ptr;
+            state_machine m_state;
+            uint_t m_size;
 
-      public:
-        /*
-         * @brief cuda_storage constructor. Just allocates enough memory on Host and Device.
-         * @param size defines the size of the storage and the allocated space.
-         */
-        template <uint_t Align = 1>
-        cuda_storage(uint_t size, uint_t offset_to_align = 0u, alignment<Align> = alignment<1u>{})
-            : m_gpu_ptr_holder(cuda_util::cuda_malloc<DataType>(size + Align - 1)),
-              m_cpu_ptr_holder(new DataType[size]), m_cpu_ptr(m_cpu_ptr_holder.get()), m_state{}, m_size{size} {
-            DataType *allocated_ptr = m_gpu_ptr_holder.get();
-            auto delta =
-                (reinterpret_cast<std::uintptr_t>(allocated_ptr + offset_to_align) % (Align * sizeof(DataType))) /
-                sizeof(DataType);
-            m_gpu_ptr = delta == 0 ? allocated_ptr : allocated_ptr + Align - delta;
-        }
+          public:
+            using data_t = DataType;
 
-        /*
-         * @brief cuda_storage constructor. Does not allocate memory on both sides but uses one external pointer.
-         * Reason for having this is to support externally allocated memory (e.g., from Fortran or Python).
-         * Allocates memory either on Host or Device.
-         * @param size defines the size of the storage and the allocated space.
-         * @param external_ptr a pointer to the external data
-         * @param own ownership information (external CPU pointer, or external GPU pointer)
-         */
-        explicit cuda_storage(uint_t size, DataType *external_ptr, ownership own)
-            : m_gpu_ptr_holder(own != ownership::external_gpu ? cuda_util::cuda_malloc<DataType>(size)
-                                                              : cuda_util::unique_cuda_ptr<DataType>()),
-              m_cpu_ptr_holder(own == ownership::external_cpu ? nullptr : new DataType[size]),
-              m_gpu_ptr(own == ownership::external_gpu ? external_ptr : m_gpu_ptr_holder.get()),
-              m_cpu_ptr(own == ownership::external_cpu ? external_ptr : m_cpu_ptr_holder.get()),
-              m_state{own != ownership::external_cpu, own != ownership::external_gpu}, m_size{size} {
-            assert(external_ptr);
-        }
-
-        /*
-         * @brief swap implementation for cuda_storage
-         */
-        void swap_impl(cuda_storage &other) {
-            using std::swap;
-            swap(m_gpu_ptr_holder, other.m_gpu_ptr_holder);
-            swap(m_cpu_ptr_holder, other.m_cpu_ptr_holder);
-            swap(m_gpu_ptr, other.m_gpu_ptr);
-            swap(m_cpu_ptr, other.m_cpu_ptr);
-            swap(m_state, other.m_state);
-            swap(m_size, other.m_size);
-        }
-
-        /*
-         * @brief retrieve the device data pointer.
-         * @return device pointer
-         */
-        DataType *get_gpu_ptr() const {
-            GT_ASSERT_OR_THROW(m_gpu_ptr, "This storage has never been initialized.");
-            return m_gpu_ptr;
-        }
-
-        DataType *get_target_ptr() const {
-            GT_ASSERT_OR_THROW(m_gpu_ptr, "This storage has never been initialized.");
-            return m_gpu_ptr;
-        }
-
-        /*
-         * @brief retrieve the host data pointer.
-         * @return host pointer
-         */
-        DataType *get_cpu_ptr() const {
-            GT_ASSERT_OR_THROW(m_cpu_ptr, "This storage has never been initialized.");
-            return m_cpu_ptr;
-        }
-
-        /*
-         * @brief clone_to_device implementation for cuda_storage.
-         */
-        void clone_to_device_impl() {
-            GT_ASSERT_OR_THROW(m_cpu_ptr, "CPU pointer seems not initialized.");
-            GT_ASSERT_OR_THROW(m_gpu_ptr, "GPU pointer seems not initialized.");
-
-            GT_CUDA_CHECK(cudaMemcpy(m_gpu_ptr, m_cpu_ptr, m_size * sizeof(DataType), cudaMemcpyHostToDevice));
-            m_state = {};
-        }
-
-        /*
-         * @brief clone_from_device implementation for cuda_storage.
-         */
-        void clone_from_device_impl() {
-            GT_CUDA_CHECK(cudaMemcpy(m_cpu_ptr, m_gpu_ptr, m_size * sizeof(DataType), cudaMemcpyDeviceToHost));
-            m_state = {};
-        }
-
-        /*
-         * @brief synchronization implementation for cuda_storage.
-         */
-        void sync_impl() {
-            // check if we can avoid syncing (in case neither host or device needs an update)
-            if (!m_state.m_hnu && !m_state.m_dnu)
-                return;
-            // invalid state occurs when both host and device would need an update.
-            GT_ASSERT_OR_THROW((m_state.m_hnu ^ m_state.m_dnu), "invalid state detected.");
-            // sync
-            if (m_state.m_hnu) { // if host needs update clone the data from the device
-                this->clone_from_device();
-            } else if (m_state.m_dnu) { // if device needs update clone the data to the device
-                this->clone_to_device();
+            /*
+             * @brief cuda_storage constructor. Just allocates enough memory on Host and Device.
+             * @param size defines the size of the storage and the allocated space.
+             */
+            template <uint_t Align>
+            cuda_storage(uint_t size, uint_t offset_to_align, alignment<Align>)
+                : m_gpu_ptr_holder(cuda_util::cuda_malloc<DataType>(size + Align - 1)),
+                  m_cpu_ptr_holder(new DataType[size]), m_cpu_ptr(m_cpu_ptr_holder.get()), m_size{size} {
+                DataType *allocated_ptr = m_gpu_ptr_holder.get();
+                auto delta =
+                    (reinterpret_cast<std::uintptr_t>(allocated_ptr + offset_to_align) % (Align * sizeof(DataType))) /
+                    sizeof(DataType);
+                m_gpu_ptr = delta == 0 ? allocated_ptr : allocated_ptr + Align - delta;
             }
+
+            /*
+             * @brief cuda_storage constructor. Does not allocate memory on both sides but uses one external pointer.
+             * Reason for having this is to support externally allocated memory (e.g., from Fortran or Python).
+             * Allocates memory either on Host or Device.
+             * @param size defines the size of the storage and the allocated space.
+             * @param external_ptr a pointer to the external data
+             * @param own ownership information (external CPU pointer, or external GPU pointer)
+             */
+            cuda_storage(uint_t size, DataType *external_ptr, ownership own)
+                : m_gpu_ptr_holder(own != ownership::external_gpu ? cuda_util::cuda_malloc<DataType>(size)
+                                                                  : cuda_util::unique_cuda_ptr<DataType>()),
+                  m_cpu_ptr_holder(own == ownership::external_cpu ? nullptr : new DataType[size]),
+                  m_gpu_ptr(own == ownership::external_gpu ? external_ptr : m_gpu_ptr_holder.get()),
+                  m_cpu_ptr(own == ownership::external_cpu ? external_ptr : m_cpu_ptr_holder.get()), m_size(size) {
+                if (own == ownership::external_cpu)
+                    m_state.touch_host();
+                else
+                    m_state.touch_device();
+                assert(external_ptr);
+            }
+
+            /*
+             * @brief retrieve the device data pointer.
+             * @return device pointer
+             */
+            DataType *get_target_ptr_impl() const { return m_gpu_ptr; }
+
+            /*
+             * @brief retrieve the host data pointer.
+             * @return host pointer
+             */
+            DataType *get_cpu_ptr_impl() const { return m_cpu_ptr; }
+
+            /*
+             * @brief clone_to_device implementation for cuda_storage.
+             */
+            void clone_to_device_impl() {
+                GT_CUDA_CHECK(cudaMemcpy(m_gpu_ptr, m_cpu_ptr, m_size * sizeof(DataType), cudaMemcpyHostToDevice));
+                m_state = {};
+            }
+
+            /*
+             * @brief clone_from_device implementation for cuda_storage.
+             */
+            void clone_from_device_impl() {
+                if (m_state.host_needs_update())
+                    GT_CUDA_CHECK(cudaMemcpy(m_cpu_ptr, m_gpu_ptr, m_size * sizeof(DataType), cudaMemcpyDeviceToHost));
+                m_state = {};
+            }
+
+            /*
+             * @brief synchronization implementation for cuda_storage.
+             */
+            void sync_impl() {
+                if (m_state.host_needs_update())
+                    clone_from_device_impl();
+                else if (m_state.device_needs_update())
+                    clone_to_device_impl();
+            }
+
+            /*
+             * @brief device_needs_update implementation for cuda_storage.
+             */
+            bool device_needs_update_impl() const { return m_state.device_needs_update(); }
+
+            /*
+             * @brief host_needs_update implementation for cuda_storage.
+             */
+            bool host_needs_update_impl() const { return m_state.host_needs_update(); }
+
+            /*
+             * @brief reactivate_target_write_views implementation for cuda_storage.
+             */
+            void reactivate_target_write_views_impl() { m_state.touch_device(); }
+
+            /*
+             * @brief reactivate_host_write_views implementation for cuda_storage.
+             */
+            void reactivate_host_write_views_impl() { m_state.touch_host(); }
+
+            state_machine &state() { return m_state; }
+            state_machine const &state() const { return m_state; }
+        };
+
+        template <class T, class Mode, class Type, class Info>
+        host_view<typename Type::type, Info> make_host_view_impl(
+            Mode mode, Type, cuda_storage<T> const &storage, Info const &info) {
+            storage.state().touch_host(mode);
+            return {storage.get_cpu_ptr(), &info};
         }
 
-        /*
-         * @brief device_needs_update implementation for cuda_storage.
-         */
-        bool device_needs_update_impl() const { return m_state.m_dnu; }
-
-        /*
-         * @brief host_needs_update implementation for cuda_storage.
-         */
-        bool host_needs_update_impl() const { return m_state.m_hnu; }
-
-        /*
-         * @brief reactivate_target_write_views implementation for cuda_storage.
-         */
-        void reactivate_target_write_views_impl() {
-            GT_ASSERT_OR_THROW(!m_state.m_dnu, "host views are in write mode");
-            m_state.m_hnu = true;
+        template <class T, class Info, class U>
+        bool check_consistency_impl(cuda_storage<T> const &storage, host_view<U, Info> const &view) {
+            return view.data() == storage.get_cpu_ptr() && storage.state().device_needs_update();
         }
 
-        /*
-         * @brief reactivate_host_write_views implementation for cuda_storage.
-         */
-        void reactivate_host_write_views_impl() {
-            GT_ASSERT_OR_THROW(!m_state.m_hnu, "device views are in write mode");
-            m_state.m_dnu = true;
+        template <class T, class Info, class U>
+        bool check_consistency_impl(cuda_storage<T> const &storage, host_view<U const, Info> const &view) {
+            return view.data() == storage.get_cpu_ptr() && !storage.state().host_needs_update();
         }
 
-        /*
-         * @brief get_state_machine_ptr implementation for cuda_storage.
-         */
-        state_machine *get_state_machine_ptr_impl() { return &m_state; }
+        template <class T, class StorageInfo>
+        struct device_view {
+            T *m_ptr;
+            StorageInfo const *m_info;
 
-        /*
-         * @brief valid implementation for cuda_storage.
-         */
-        bool valid_impl() const { return m_cpu_ptr && m_gpu_ptr; }
-    };
+            using storage_info_t = StorageInfo;
+            using data_t = T;
 
-    // simple metafunction to check if a type is a cuda storage
-    template <typename T>
-    struct is_cuda_storage : std::false_type {};
+            GT_FUNCTION_DEVICE StorageInfo const &storage_info() const { return *m_info; }
 
-    template <typename T>
-    struct is_cuda_storage<cuda_storage<T>> : std::true_type {};
+            GT_FUNCTION_DEVICE T *data() const { return m_ptr; }
+
+            template <typename... Coords>
+            GT_FUNCTION_DEVICE T &operator()(Coords... c) const {
+                static_assert(conjunction<is_all_integral_or_enum<Coords...>>::value,
+                    GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
+                return m_ptr[m_info->index(c...)];
+            }
+
+            GT_FUNCTION_DEVICE T &operator()(array<int, StorageInfo::ndims> const &arr) const {
+                return m_ptr[m_info->index(arr)];
+            }
+
+            GT_FUNCTION_DEVICE GT_CONSTEXPR auto padded_total_length() const { return m_info->padded_total_length(); }
+            template <uint_t Dim>
+            GT_FUNCTION_DEVICE GT_CONSTEXPR auto length() const {
+                return m_info->template length<Dim>();
+            }
+            template <uint_t Dim>
+            GT_FUNCTION_DEVICE GT_CONSTEXPR auto total_length() const {
+                return m_info->template total_length<Dim>();
+            }
+            template <uint_t Dim>
+            GT_FUNCTION_DEVICE GT_CONSTEXPR auto total_begin() const {
+                return m_info->template total_begin<Dim>();
+            }
+            template <uint_t Dim>
+            GT_FUNCTION_DEVICE GT_CONSTEXPR auto begin() const {
+                return m_info->template begin<Dim>();
+            }
+            template <uint_t Dim>
+            GT_FUNCTION_DEVICE GT_CONSTEXPR auto total_end() const {
+                return m_info->template total_end<Dim>();
+            }
+            template <uint_t Dim>
+            GT_FUNCTION_DEVICE GT_CONSTEXPR auto end() const {
+                return m_info->template end<Dim>();
+            }
+            friend T *advanced_get_raw_pointer_of(device_view const &src) { return src.m_ptr; }
+        };
+
+        template <class T, class StorageInfo, class U>
+        bool check_consistency_impl(cuda_storage<T> &storage, device_view<U, StorageInfo> const &view) {
+            return advanced_get_raw_pointer_of(view) == storage.get_target_ptr() && storage.state().host_needs_update();
+        }
+
+        template <class T, class StorageInfo, class U>
+        bool check_consistency_impl(cuda_storage<T> &storage, device_view<U const, StorageInfo> const &view) {
+            return advanced_get_raw_pointer_of(view) == storage.get_target_ptr() &&
+                   !storage.state().device_needs_update();
+        }
+
+        template <class T, class Mode, class Type, class Info>
+        device_view<typename Type::type, Info> make_target_view_impl(
+            Mode mode, Type, cuda_storage<T> &storage, Info const &info) {
+            storage.state().touch_device(mode);
+            return {storage.get_target_ptr(), get_gpu_storage_info_ptr(info)};
+        }
+    } // namespace cuda_storage_impl_
+
+    using cuda_storage_impl_::cuda_storage;
 
     /**
      * @}

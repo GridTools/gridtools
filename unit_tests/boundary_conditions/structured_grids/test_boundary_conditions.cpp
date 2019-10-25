@@ -228,7 +228,7 @@ bool predicate() {
 
     in.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
+    auto indv = make_target_view(in);
     gridtools::boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(indv);
 #else
     gridtools::boundary_apply<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(inv);
@@ -332,7 +332,7 @@ bool twosurfaces() {
 
     in.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
+    auto indv = make_target_view(in);
     gridtools::boundary_apply_gpu<bc_two>(halos, bc_two()).apply(indv);
 #else
     gridtools::boundary_apply<bc_two>(halos, bc_two()).apply(inv);
@@ -436,7 +436,7 @@ bool usingzero_1() {
 
     in.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
+    auto indv = make_target_view(in);
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(indv);
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(inv);
@@ -543,8 +543,8 @@ bool usingzero_2() {
     in.sync();
     out.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    auto outdv = make_device_view(out);
+    auto indv = make_target_view(in);
+    auto outdv = make_target_view(out);
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(indv, outdv);
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(inv, outv);
@@ -673,8 +673,8 @@ bool usingzero_3_empty_halos() {
     in.sync();
     out.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    auto outdv = make_device_view(out);
+    auto indv = make_target_view(in);
+    auto outdv = make_target_view(out);
     gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(indv, outdv);
 #else
     gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(inv, outv);
@@ -751,8 +751,8 @@ bool usingvalue_2() {
     in.sync();
     out.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    auto outdv = make_device_view(out);
+    auto indv = make_target_view(in);
+    auto outdv = make_target_view(out);
     gridtools::boundary_apply_gpu<gridtools::value_boundary<int_t>>(halos, gridtools::value_boundary<int_t>(101))
         .apply(indv, outdv);
 #else
@@ -895,9 +895,9 @@ bool usingcopy_3() {
     one.sync();
     two.sync();
 #ifdef __CUDACC__
-    auto srcdv = make_device_view(src);
-    auto onedv = make_device_view(one);
-    auto twodv = make_device_view(two);
+    auto srcdv = make_target_view(src);
+    auto onedv = make_target_view(one);
+    auto twodv = make_target_view(two);
     gridtools::boundary_apply_gpu<gridtools::copy_boundary>(halos).apply(onedv, twodv, srcdv);
 #else
     gridtools::boundary_apply<gridtools::copy_boundary>(halos).apply(onev, twov, srcv);

@@ -48,8 +48,7 @@ using firsttwo = axis_t::get_interval<0>;
 using fullminustwolast = midbody::modify<-2, 0>;
 using fullminustwofirst = midbody::modify<0, 2>;
 
-class kcachef : public ::testing::Test {
-  protected:
+struct kcachef : testing::Test {
     typedef gridtools::storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
     typedef gridtools::storage_traits<backend_t>::data_store_t<float_type, storage_info_t> storage_t;
 
@@ -61,7 +60,8 @@ class kcachef : public ::testing::Test {
 
     storage_info_t m_meta;
     storage_t m_in, m_out, m_ref;
-    gridtools::data_view<storage_t, gridtools::access_mode::read_write> m_inv, m_outv, m_refv;
+    using host_view_t = decltype(make_host_view(m_in));
+    host_view_t m_inv, m_outv, m_refv;
 
     kcachef()
         : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2},

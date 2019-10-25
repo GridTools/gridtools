@@ -38,8 +38,8 @@ __global__ void check_s2(int *s) {
 
 TEST(StorageHostTest, Simple) {
     // create two storages
-    gridtools::cuda_storage<int> s1(2);
-    gridtools::cuda_storage<int> s2(2);
+    gridtools::cuda_storage<int> s1(2, 0, gridtools::alignment<32>());
+    gridtools::cuda_storage<int> s2(2, 0, gridtools::alignment<32>());
     // test the is_storage check
     static_assert(gridtools::is_storage<decltype(s1)>::value, "");
     static_assert(!gridtools::is_storage<int>::value, "");
@@ -58,8 +58,8 @@ TEST(StorageHostTest, Simple) {
     s1.clone_to_device();
     s2.clone_to_device();
     // assert if the values were not copied correctly and reset values
-    check_s1<<<1, 1>>>(s1.get_gpu_ptr());
-    check_s2<<<1, 1>>>(s2.get_gpu_ptr());
+    check_s1<<<1, 1>>>(s1.get_target_ptr());
+    check_s2<<<1, 1>>>(s2.get_target_ptr());
     // clone_back
     s1.clone_from_device();
     s2.clone_from_device();
@@ -68,12 +68,4 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s1.get_cpu_ptr()[0], 30);
     EXPECT_EQ(s2.get_cpu_ptr()[1], 400);
     EXPECT_EQ(s2.get_cpu_ptr()[0], 300);
-
-    // swap the storages
-    s1.swap(s2);
-    // check if changes are there
-    EXPECT_EQ(s2.get_cpu_ptr()[1], 40);
-    EXPECT_EQ(s2.get_cpu_ptr()[0], 30);
-    EXPECT_EQ(s1.get_cpu_ptr()[1], 400);
-    EXPECT_EQ(s1.get_cpu_ptr()[0], 300);
 }

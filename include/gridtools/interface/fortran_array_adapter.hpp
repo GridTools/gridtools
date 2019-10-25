@@ -46,18 +46,14 @@ namespace gridtools {
             using ElementType = typename DataStore::data_t;
 
             ElementType *get_ptr_to_first_element(DataStore &data_store) {
-                auto si = *data_store.get_storage_info_ptr();
+                auto &&si = data_store.info();
                 auto view = make_target_view(data_store);
-                return &view.data()[si.index(gridtools::array<int, DataStore::storage_info_t::ndims>{})];
+                return &view.data()[si.index(array<int, DataStore::storage_info_t::ndims>())];
             }
 
           public:
             adapter(fortran_array_adapter &view, DataStore &data_store) {
-
-                if (!data_store.valid())
-                    throw std::runtime_error("Invalid data_store");
-
-                storage_info_rt si = make_storage_info_rt(*data_store.get_storage_info_ptr());
+                storage_info_rt si = make_storage_info_rt(data_store.info());
                 m_dims = si.total_lengths();
                 m_cpp_strides = si.strides();
                 m_fortran_pointer = static_cast<ElementType *>(view.m_descriptor.data);

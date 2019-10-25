@@ -29,21 +29,21 @@ TEST(Storage, Swap) {
     data_store_t ds2(s2, "ds2");
 
     auto name1 = ds1.name();
-    auto ptr1 = ds1.get_storage_ptr();
-    auto iptr1 = ds1.get_storage_info_ptr();
+    auto ptr1 = &ds1.storage();
+    auto iptr1 = &ds1.info();
 
     auto name2 = ds2.name();
-    auto ptr2 = ds2.get_storage_ptr();
-    auto iptr2 = ds2.get_storage_info_ptr();
+    auto ptr2 = &ds2.storage();
+    auto iptr2 = &ds2.info();
 
     using std::swap;
     swap(ds1, ds2);
 
     EXPECT_EQ(name1, ds2.name());
-    EXPECT_EQ(ptr1, ds2.get_storage_ptr());
-    EXPECT_EQ(iptr1, ds2.get_storage_info_ptr());
+    EXPECT_EQ(ptr1, &ds2.storage());
+    EXPECT_EQ(iptr1, &ds2.info());
 
     EXPECT_EQ(name2, ds1.name());
-    EXPECT_EQ(ptr2, ds1.get_storage_ptr());
-    EXPECT_EQ(iptr2, ds1.get_storage_info_ptr());
+    EXPECT_EQ(ptr2, &ds1.storage());
+    EXPECT_EQ(iptr2, &ds1.info());
 }
