@@ -14,50 +14,18 @@
 #include <utility>
 
 #include "../../common/array.hpp"
-#include "../../common/array_dot_product.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/error.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
-#include "../../common/generic_metafunctions/binary_ops.hpp"
-#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/layout_map.hpp"
-#include "../../meta/type_traits.hpp"
 #include "alignment.hpp"
 #include "halo.hpp"
-#include "storage_info_metafunctions.hpp"
 
 namespace gridtools {
 
     /** \ingroup storage
      * @{
      */
-
-    namespace impl_ {
-
-        /**
-         * @brief Internal helper function to check if two given storage infos contain the same information.
-         * The function performs checks on all dimensions. This function is the base case.
-         * @return true if the dimension, stride, size, initial_offset, etc. is equal, otherwise false
-         */
-        template <uint_t N, typename StorageInfo>
-        GT_FUNCTION std::enable_if_t<N == 0, bool> equality_check(StorageInfo a, StorageInfo b) {
-            return (a.template total_length<N>() == b.template total_length<N>()) &&
-                   (a.template stride<N>() == b.template stride<N>()) && (a.length() == b.length()) &&
-                   (a.total_length() == b.total_length()) && (a.padded_total_length() == b.padded_total_length());
-        }
-
-        /**
-         * @brief Internal helper function to check if two given storage infos contain the same information.
-         * The function performs checks on all dimensions. This function is the step case.
-         * @return true if the dimension, stride, size, initial_offset, etc. is equal, otherwise false
-         */
-        template <uint_t N, typename StorageInfo>
-        GT_FUNCTION std::enable_if_t<N != 0, bool> equality_check(StorageInfo a, StorageInfo b) {
-            return (a.template total_length<N>() == b.template total_length<N>()) &&
-                   (a.template stride<N>() == b.template stride<N>()) && equality_check<N - 1>(a, b);
-        }
-    } // namespace impl_
 
     /**
      * @brief The storage info interface. This class contains methods that should be implemented by all storage_info
@@ -68,259 +36,96 @@ namespace gridtools {
      * @tparam Alignment information about the alignment
      */
     template <uint_t Id,
-        typename Layout,
-        typename Halo = zero_halo<Layout::masked_length>,
-        typename Alignment = alignment<1>>
+        class Layout,
+        class Halo = zero_halo<Layout::masked_length>,
+        class Alignment = alignment<1>,
+        class Dims = std::make_index_sequence<Layout::masked_length>>
     struct storage_info;
 
-    template <uint_t Id, int... LayoutArgs, uint_t... Halos, typename Align>
-    struct storage_info<Id, layout_map<LayoutArgs...>, halo<Halos...>, Align> {
-        using layout_t = layout_map<LayoutArgs...>;
-        using halo_t = halo<Halos...>;
-        using alignment_t = Align;
-        static const int max_layout_v = layout_t::max();
-
-        static_assert((sizeof...(Halos) == layout_t::masked_length),
+    template <uint_t Id, int... LayoutArgs, uint_t... Halos, uint_t Align, size_t... Dims>
+    struct storage_info<Id, layout_map<LayoutArgs...>, halo<Halos...>, alignment<Align>, std::index_sequence<Dims...>> {
+        static_assert(sizeof...(Halos) == sizeof...(LayoutArgs),
             GT_INTERNAL_ERROR_MSG("Halo size does not match number of dimensions"));
-        static_assert(is_alignment<Align>::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type"));
 
-        static constexpr uint_t ndims = layout_t::masked_length;
+        using layout_t = layout_map<LayoutArgs...>;
+        using alignment_t = alignment<Align>;
+
+        static constexpr uint_t ndims = sizeof...(LayoutArgs);
 
       private:
-        using this_t = storage_info<Id, layout_map<LayoutArgs...>, halo<Halos...>, Align>;
-        array<uint_t, ndims> m_total_lengths;
-        array<uint_t, ndims> m_padded_lengths;
-        array<uint_t, ndims> m_strides;
+        template <size_t>
+        using index_type = uint_t;
+        using array_t = array<uint_t, ndims>;
 
-        /*
-            When computing the size of a storage, either length,
-            total_length, or padded_total_length, we need to multiply
-            the dimensions for those dimensions that are not
-            associated to a -1 (masked-dimension).
+        static constexpr int max_layout_arg = constexpr_max(LayoutArgs...);
 
-            In addition when computing the size of the inner region, we need to
-            remove the halos from the sizes.
-         */
-        template <uint_t... Idxs, typename Array, typename Halo = zero_halo<ndims>>
-        GT_FUNCTION static constexpr uint_t multiply_if_layout(
-            std::integer_sequence<uint_t, Idxs...>, Array const &array, Halo h = zero_halo<ndims>{}) {
-            return accumulate(
-                multiplies(), ((layout_t::template at<Idxs>() >= 0) ? array[Idxs] - 2 * h.at(Idxs) : 1)...);
+        array_t m_lengths;
+        array_t m_strides;
+        uint_t m_length = accumulate(logical_and(), true, m_lengths[Dims]...) ? index((m_lengths[Dims] - 1)...) + 1 : 0;
+
+        static GT_FUNCTION GT_CONSTEXPR uint_t make_padded_length(int layout_arg, uint_t length) {
+            if (layout_arg == -1)
+                return 1;
+            if (layout_arg == max_layout_arg)
+                return (length + Align - 1) / Align * Align;
+            return length;
         }
 
-        template <uint_t... Seq, typename... Ints>
-        GT_FUNCTION GT_CONSTEXPR int offset(std::integer_sequence<uint_t, Seq...>, Ints... idx) const {
-            return accumulate(plus_functor(), (idx * m_strides[Seq])...);
+        static GT_FUNCTION GT_CONSTEXPR uint_t make_stride(int layout_arg, array_t const &padded_lengths) {
+            if (layout_arg == -1)
+                return 0;
+            uint_t res = 1;
+            for (int i = max_layout_arg; i != layout_arg; --i)
+                res *= padded_lengths[layout_t::find(i)];
+            return res;
         }
 
-        template <int... Inds>
-        GT_FUNCTION GT_CONSTEXPR int first_index_impl(std::integer_sequence<int, Inds...>) const {
-            return index(halo_t::template at<Inds>()...);
+        GT_FUNCTION GT_CONSTEXPR bool is_stride_valid(int layout_arg, int dim) const {
+            if (m_lengths[dim] == 0)
+                return true;
+            auto stride = m_strides[dim];
+            if (layout_arg == -1)
+                return stride == 0;
+            if (layout_arg == max_layout_arg)
+                return stride == 1 || stride % Align == 0;
+            auto next_dim = layout_t::find(layout_arg + 1);
+            if (stride % Align)
+                return false;
+            auto next_stride = m_strides[next_dim];
+            if (stride % next_stride)
+                return false;
+            return m_lengths[next_dim] <= stride / next_stride;
         }
 
-        template <uint_t... Ints, typename... Coords>
-        GT_FUNCTION GT_CONSTEXPR bool check_bounds(std::integer_sequence<uint_t, Ints...>, Coords... coords) const {
-            return accumulate(logical_and(),
-                true,
-                ((layout_t::template at<Ints>() < 0) or (((int)coords >= 0) and (coords < m_total_lengths[Ints])))...);
-        }
+        GT_FUNCTION GT_CONSTEXPR storage_info(std::true_type, array_t const &lengths, array_t padded_lengths)
+            : storage_info(lengths, {make_stride(LayoutArgs, padded_lengths)...}) {}
 
       public:
         constexpr static uint_t id = Id;
+
+        storage_info() = default;
 
         /**
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
          */
-        template <typename... Dims,
-            std::enable_if_t<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int> = 0>
-        GT_FUNCTION constexpr storage_info(Dims... dims_)
-            : m_total_lengths{static_cast<uint_t>(dims_)...},
-              m_padded_lengths{pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
-                  handle_masked_dims<LayoutArgs>::extend(dims_))...},
-              m_strides(get_strides<layout_t>::get_stride_array(pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
-                  handle_masked_dims<LayoutArgs>::extend(dims_))...)) {}
+        GT_FUNCTION GT_CONSTEXPR storage_info(index_type<Dims>... lengths)
+            : storage_info(std::true_type(), {lengths...}, {make_padded_length(LayoutArgs, lengths)...}) {}
 
-        GT_FUNCTION
-        storage_info(array<uint_t, ndims> const &dims, array<uint_t, ndims> const &strides)
-            : m_total_lengths{dims}, m_strides(strides) {
-
-            // We guess the padded lengths from the dimensions and the strides. Assume, that the strides are sorted,
-            // e.g., [1, 16, 256], and the dimensions are [5, 9, 9]. For the largest stride (256), we assume that
-            // padding = dimension (e.g. in this example the j-padding is 5). For all others we can calculate the
-            // padding from the strides (e.g. in this example, the i-padding is 256 / 16 = 16, and the k-padding is 16 /
-            // 1 = 16). Note that there might be strides which are set to 0 (masked dimensions).
-            //
-            // We first create a sorted copy of this array. We then loop over the unsorted array and set the padded
-            // length for each entry as follows:
-            // - If the stride is masked, the padded length is 0.
-            // - If the stride is the maximum stride (i.e., 256 in the example above), the padding is derived from the
-            //   dimension.
-            // - Otherwise, we find the stride s in the sorted array and we look for the next larger stride l in the
-            //   sorted array. The padded length is then set to l / s. Note that strides might appear several times.
-            array<uint_t, ndims> sorted_strides;
-#pragma unroll
-            for (uint_t i = 0; i < ndims; ++i)
-                sorted_strides[i] = strides[i];
-
-#pragma unroll
-            for (uint_t i = 0; i < ndims; ++i)
-#pragma unroll
-                for (uint_t j = 0; j < ndims; ++j)
-                    if (j > i && sorted_strides[i] > sorted_strides[j]) {
-                        auto tmp = sorted_strides[i];
-                        sorted_strides[i] = sorted_strides[j];
-                        sorted_strides[j] = tmp;
-                    }
-
-#pragma unroll
-            for (uint_t i = 0; i < ndims; ++i) {
-                if (strides[i] == sorted_strides[ndims - 1])
-                    m_padded_lengths[i] = dims[i];
-                else if (strides[i] == 0) {
-                    m_padded_lengths[i] = 0;
-                } else {
-                    // take the last stride that matches the stride we are looking for
-                    uint_t next_bigger_stride;
-#pragma unroll
-                    for (uint_t ii = 0; ii < ndims - 1; ++ii)
-                        if (strides[i] == sorted_strides[ii])
-                            next_bigger_stride = sorted_strides[ii + 1];
-                    m_padded_lengths[i] = next_bigger_stride / strides[i];
-                }
-            }
-        }
-
-        /**
-         * @brief storage info copy constructor.
-         */
-        storage_info(storage_info const &other) = default;
-
-        /**
-         * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
-         * @return total size including dimensions, halos, initial_offset, padding, and initial_offset
-         */
-        GT_FUNCTION GT_CONSTEXPR uint_t padded_total_length() const {
-            return multiply_if_layout(std::make_integer_sequence<uint_t, ndims>{}, m_padded_lengths);
-        }
-
-        /**
-         * @brief member function to retrieve the number of domain elements
-         * (dimensions, halos, no initial_offset, no padding).
-         * @return number of domain elements
-         */
-        GT_FUNCTION GT_CONSTEXPR uint_t total_length() const {
-            return multiply_if_layout(std::make_integer_sequence<uint_t, ndims>{}, m_total_lengths);
-        }
-
-        /**
-         * @brief member function to retrieve the number of inner domain elements
-         * (dimensions, no halos, no initial_offset, no padding).
-         * @return number of inner domain elements
-         */
-        GT_FUNCTION GT_CONSTEXPR uint_t length() const {
-            return multiply_if_layout(std::make_integer_sequence<uint_t, ndims>{}, m_total_lengths, halo_t{});
+        GT_FUNCTION GT_CONSTEXPR storage_info(array_t const &lengths, array_t const &strides)
+            : m_lengths(lengths), m_strides(strides) {
+            assert(accumulate(logical_and(), true, is_stride_valid(LayoutArgs, Dims)...));
         }
 
         /**
          * @brief Returns the array of total_lengths, the lengths including the halo points (the outer region)
          */
-        GT_FUNCTION GT_CONSTEXPR array<uint_t, ndims> const &total_lengths() const { return m_total_lengths; }
-
-        /*
-         * @brief Returns the length of a dimension including the halo points (the outer region)
-         *
-         * \tparam Dim The index of the dimension
-         */
-        template <uint_t Dim>
-        GT_FUNCTION GT_CONSTEXPR int total_length() const {
-            static_assert(Dim < ndims, GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
-            return m_total_lengths[Dim];
-        }
-
-        /**
-         * @brief Returns the length of a dimension including the halo points (the outer region) and padding.
-         *
-         * \tparam Dim The index of the dimension
-         */
-        template <uint_t Dim>
-        GT_FUNCTION GT_CONSTEXPR uint_t padded_length() const {
-            return m_padded_lengths[Dim];
-        }
-
-        /**
-         * @brief Returns the array of padded_lengths, the lengths including the halo points (the outer region) and
-         * padding.
-         */
-        GT_FUNCTION GT_CONSTEXPR array<uint_t, ndims> const &padded_lengths() const { return m_padded_lengths; }
-
-        /**
-         * @brief Returns the length of a dimension excluding the halo points (only the inner region)
-         *
-         * \tparam Dim The index of the dimension
-         */
-        template <uint_t Dim>
-        GT_FUNCTION GT_CONSTEXPR uint_t length() const {
-            return m_total_lengths[Dim] - 2 * halo_t::template at<Dim>();
-        }
-
-        /**
-         * @brief Returns the index of the first element in the specified dimension when iterating in the whole outer
-         * region
-         *
-         * \tparam Dim The index of the dimension
-         */
-        template <uint_t Dim>
-        GT_FUNCTION GT_CONSTEXPR uint_t total_begin() const {
-            return 0;
-        }
-
-        /**
-         * @brief Returns the index of the last element in the specified dimension when iterating in the whole outer
-         * region
-         *
-         * \tparam Dim The index of the dimension
-         */
-        template <uint_t Dim>
-        GT_FUNCTION GT_CONSTEXPR uint_t total_end() const {
-            return total_length<Dim>() - 1;
-        }
-
-        /**
-         * @brief Returns the index of the first element in the specified dimension when iterating in the inner region
-         *
-         * \tparam Dim The index of the dimension
-         */
-        template <uint_t Dim>
-        GT_FUNCTION GT_CONSTEXPR uint_t begin() const {
-            return halo_t::template at<Dim>();
-        }
-
-        /**
-         * @brief Returns the index of the last element in the specified dimension when iterating in the inner region
-         *
-         * \tparam Dim The index of the dimension
-         */
-        template <uint_t Dim>
-        GT_FUNCTION GT_CONSTEXPR uint_t end() const {
-            return begin<Dim>() + length<Dim>() - 1;
-        }
-
-        /**
-         * @brief member function to retrieve the (aligned) stride (e.g., I, J, or K)
-         * @tparam Coord queried coordinate
-         * @return aligned stride size
-         */
-        template <uint_t Dim>
-        GT_FUNCTION GT_CONSTEXPR uint_t stride() const {
-            static_assert(Dim < ndims, GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info stride call."));
-            return get<Dim>(m_strides);
-        }
+        GT_FUNCTION GT_CONSTEXPR auto const &lengths() const { return m_lengths; }
 
         /**
          * @brief return the array of (aligned) strides, see stride() for details.
          */
-        GT_FUNCTION GT_CONSTEXPR array<uint_t, ndims> const &strides() const { return m_strides; }
+        GT_FUNCTION GT_CONSTEXPR auto const &strides() const { return m_strides; }
 
         /**
          * @brief member function to retrieve an offset (or index) when given offsets in I,J,K, etc.
@@ -329,16 +134,9 @@ namespace gridtools {
          * @return index
          */
 
-        template <typename... Ints,
-            std::enable_if_t<sizeof...(Ints) == ndims && is_all_integral_or_enum<Ints...>::value, int> = 0>
-        GT_FUNCTION GT_CONSTEXPR int index(Ints... idx) const {
-#ifdef NDEBUG
-            return offset(std::make_integer_sequence<uint_t, ndims>{}, idx...);
-#else
-            return error_or_return(check_bounds(std::make_integer_sequence<uint_t, ndims>{}, idx...),
-                offset(std::make_integer_sequence<uint_t, ndims>{}, idx...),
-                "Storage out of bounds access");
-#endif
+        GT_FUNCTION GT_CONSTEXPR auto index(index_type<Dims>... indices) const {
+            assert(accumulate(logical_and(), true, (indices < m_lengths[Dims])...));
+            return accumulate(plus_functor(), 0, indices * m_strides[Dims]...);
         }
 
         /**
@@ -347,31 +145,35 @@ namespace gridtools {
          * @param offsets given offset array
          * @return index
          */
-        GT_FUNCTION GT_CONSTEXPR int index(gridtools::array<int, ndims> const &offsets) const {
-            return array_dot_product(offsets, m_strides);
+        GT_FUNCTION GT_CONSTEXPR auto index(array<int, ndims> const &indices) const { return index(indices[Dims]...); }
+
+        GT_FUNCTION GT_CONSTEXPR array_t indices(uint_t index) const {
+            return {(LayoutArgs == -1 ? m_lengths[Dims] - 1
+                                      : LayoutArgs ? index % m_strides[layout_t::find(LayoutArgs - 1)] / m_strides[Dims]
+                                                   : index / m_strides[Dims])...};
         }
 
-        GT_FUNCTION GT_CONSTEXPR int first_index_of_inner_region() const {
-            return first_index_impl(std::make_integer_sequence<int, ndims>{});
-        }
+        GT_FUNCTION GT_CONSTEXPR auto length() const { return m_length; }
 
         /**
          * @brief function to check for equality of two given storage_infos
          * @param rhs right hand side storage info instance
          * @return true if the storage infos are equal, false otherwise
          */
-        GT_FUNCTION bool operator==(storage_info const &rhs) const {
-            return impl_::equality_check<ndims - 1>(*this, rhs);
+        friend GT_FUNCTION GT_CONSTEXPR bool operator==(storage_info const &lhs, storage_info const &rhs) {
+            return lhs.m_lengths == rhs.m_lengths && lhs.m_strides == rhs.m_strides;
         }
 
-        GT_FUNCTION bool operator!=(storage_info const &rhs) const { return !operator==(rhs); }
+        friend GT_FUNCTION GT_CONSTEXPR bool operator!=(storage_info const &lhs, storage_info const &rhs) {
+            return !(lhs == rhs);
+        }
     };
 
-    template <typename T>
+    template <class>
     struct is_storage_info : std::false_type {};
 
-    template <uint_t Id, typename Layout, typename Halo, typename Alignment>
-    struct is_storage_info<storage_info<Id, Layout, Halo, Alignment>> : std::true_type {};
+    template <uint_t Id, class Layout, class Halo, class Alignment, class Indices>
+    struct is_storage_info<storage_info<Id, Layout, Halo, Alignment, Indices>> : std::true_type {};
 
     /**
      * @}

@@ -107,7 +107,7 @@ namespace gridtools {
         }
 
         /** @brief Get the maximum element value in the layout map. */
-        GT_FUNCTION static constexpr int max() { return constexpr_max(Args...); }
+        static constexpr auto max() { return constexpr_max(Args...); }
     };
 
     template <typename T>

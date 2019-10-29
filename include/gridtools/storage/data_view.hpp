@@ -28,42 +28,17 @@ namespace gridtools {
 
             T *data() const { return m_ptr; }
 
-            StorageInfo const &storage_info() const { return *m_info; }
+            StorageInfo const &info() const { return *m_info; }
 
             template <typename... Coords>
             T &operator()(Coords... c) const {
-                static_assert(conjunction<is_all_integral_or_enum<Coords...>>::value,
-                    GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
                 return m_ptr[m_info->index(c...)];
             }
 
             T &operator()(array<int, StorageInfo::ndims> const &arr) const { return m_ptr[m_info->index(arr)]; }
 
-            constexpr auto padded_total_length() const { return m_info->padded_total_length(); }
-            template <uint_t Dim>
-            constexpr auto length() const {
-                return m_info->template length<Dim>();
-            }
-            template <uint_t Dim>
-            constexpr auto total_length() const {
-                return m_info->template total_length<Dim>();
-            }
-            template <uint_t Dim>
-            constexpr auto total_begin() const {
-                return m_info->template total_begin<Dim>();
-            }
-            template <uint_t Dim>
-            constexpr auto begin() const {
-                return m_info->template begin<Dim>();
-            }
-            template <uint_t Dim>
-            constexpr auto total_end() const {
-                return m_info->template total_end<Dim>();
-            }
-            template <uint_t Dim>
-            constexpr auto end() const {
-                return m_info->template end<Dim>();
-            }
+            constexpr auto length() const { return m_info->length(); }
+            constexpr decltype(auto) lengths() const { return m_info->lengths(); }
 
             friend T *advanced_get_raw_pointer_of(host_view const &src) { return src.m_ptr; }
         };

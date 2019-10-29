@@ -11,9 +11,9 @@ using storage_view_t = decltype(make_host_view(std::declval<data_store_t>()));
 
 // lap-begin
 void laplacian(storage_view_t &lap, storage_view_t &in, int boundary_size) {
-    int Ni = in.total_length<0>();
-    int Nj = in.total_length<1>();
-    int Nk = in.total_length<2>();
+    int Ni = in.lengths()[0];
+    int Nj = in.lengths()[1];
+    int Nk = in.lengths()[2];
     for (int i = boundary_size; i < Ni - boundary_size; ++i) {
         for (int j = boundary_size; j < Nj - boundary_size; ++j) {
             for (int k = boundary_size; k < Nk - boundary_size; ++k) {
@@ -31,9 +31,9 @@ void naive_smoothing(storage_view_t &out, storage_view_t &in, double alpha, int 
     int lap_boundary = 1;
     int full_boundary = 2;
 
-    int Ni = in.total_length<0>();
-    int Nj = in.total_length<1>();
-    int Nk = in.total_length<2>();
+    int Ni = in.lengths()[0];
+    int Nj = in.lengths()[1];
+    int Nk = in.lengths()[2];
 
     // Instantiate temporary fields
     storage_info_t info(Ni, Nj, Nk);

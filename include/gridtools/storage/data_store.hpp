@@ -19,10 +19,13 @@
 #include <utility>
 
 #include "../common/gt_assert.hpp"
+#include "../common/layout_map.hpp"
 #include "../meta/type_traits.hpp"
-#include "./common/definitions.hpp"
-#include "./common/storage_info.hpp"
-#include "./common/storage_interface.hpp"
+#include "common/alignment.hpp"
+#include "common/definitions.hpp"
+#include "common/halo.hpp"
+#include "common/storage_info.hpp"
+#include "common/storage_interface.hpp"
 
 namespace gridtools {
 
@@ -39,14 +42,10 @@ namespace gridtools {
             Fun const &m_fun;
             StorageInfo const &m_info;
 
-            template <size_t Dim>
-            int index_from_offset(int offset) const {
-                auto stride = m_info.template stride<Dim>();
-                return stride ? offset / stride % m_info.template padded_length<Dim>()
-                              : m_info.template total_length<Dim>() - 1;
+            decltype(auto) operator()(int i) const {
+                auto indices = m_info.indices(i);
+                return m_fun(indices[Is]...);
             }
-
-            decltype(auto) operator()(int offset) const { return m_fun(index_from_offset<Is>(offset)...); }
         };
     } // namespace data_store_impl_
 
@@ -57,35 +56,38 @@ namespace gridtools {
      * @tparam Storage storage type that should be used (e.g., cuda_storage)
      * @tparam StorageInfo storage info type that should be used (e.g., cuda_storage_info)
      */
-    template <typename Storage, typename StorageInfo>
-    class data_store {
+    template <class Storage, class StorageInfo>
+    class data_store;
+
+    template <typename Storage, uint_t Id, int... LayoutArgs, uint_t... Halos, uint_t Align, class Indices>
+    class data_store<Storage, storage_info<Id, layout_map<LayoutArgs...>, halo<Halos...>, alignment<Align>, Indices>> {
+      public:
+        using storage_info_t = storage_info<Id, layout_map<LayoutArgs...>, halo<Halos...>, alignment<Align>, Indices>;
+
+      private:
         static_assert(is_storage<Storage>::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage type"));
-        static_assert(
-            is_storage_info<StorageInfo>::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage_info type"));
         static_assert(std::is_trivially_copyable<typename Storage::data_t>::value,
             "data_store only supports trivially copyable types.");
 
         struct impl {
-            StorageInfo m_storage_info;
+            storage_info_t m_storage_info;
             Storage m_storage;
             std::string m_name;
 
-            impl(StorageInfo const &info, std::string name)
-                : m_storage_info(info), m_storage(info.padded_total_length(),
-                                            info.first_index_of_inner_region(),
-                                            typename StorageInfo::alignment_t()),
+            impl(storage_info_t const &info, std::string name)
+                : m_storage_info(info), m_storage(info.length(), info.index(Halos...), alignment<Align>()),
                   m_name(std::move(name)) {}
 
-            impl(StorageInfo const &info, typename Storage::data_t *ptr, ownership own, std::string name)
-                : m_storage_info(info), m_storage(info.padded_total_length(), ptr, own), m_name(std::move(name)) {}
+            impl(storage_info_t const &info, typename Storage::data_t *ptr, ownership own, std::string name)
+                : m_storage_info(info), m_storage(info.length(), ptr, own), m_name(std::move(name)) {}
         };
 
         std::shared_ptr<impl> m_impl;
 
         template <class Initializer>
-        data_store(std::true_type, StorageInfo const &info, Initializer &&initializer, std::string name)
+        data_store(std::true_type, storage_info_t const &info, Initializer &&initializer, std::string name)
             : data_store(info, std::move(name)) {
-            int length = info.padded_total_length();
+            int length = info.length();
             auto *dst = storage().get_cpu_ptr();
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -97,10 +99,9 @@ namespace gridtools {
 
       public:
         using data_t = typename Storage::data_t;
-        using storage_info_t = StorageInfo;
         using storage_t = Storage;
 
-        data_store(StorageInfo const &info) : data_store(info, "") {}
+        data_store(storage_info_t const &info) : data_store(info, "") {}
 
         // binary ctors
 
@@ -109,9 +110,21 @@ namespace gridtools {
          * @param info storage_info instance
          * @param name Human readable name for the data_store
          */
-        data_store(StorageInfo const &info, std::string name) : m_impl(std::make_shared<impl>(info, std::move(name))) {}
+        data_store(storage_info_t const &info, std::string name)
+            : m_impl(std::make_shared<impl>(info, std::move(name))) {}
 
-        data_store(StorageInfo const &info, data_t initializer) : data_store(info, initializer, "") {}
+        data_store(storage_info_t const &info, data_t initializer) : data_store(info, initializer, "") {}
+
+        template <class Initializer,
+            std::enable_if_t<!std::is_convertible<Initializer &&, data_t>::value &&
+                                 !std::is_convertible<Initializer &&, data_t *>::value &&
+                                 !std::is_convertible<Initializer &&, std::string>::value,
+                int> = 0>
+        data_store(storage_info_t const &info, Initializer &&initializer)
+            : data_store(info, std::forward<Initializer>(initializer), "") {}
+
+        template <class T, std::enable_if_t<std::is_same<data_t *, T>::value, int> = 0>
+        data_store(storage_info_t const &info, T ptr) : data_store(info, ptr, ownership::external_cpu, "") {}
 
         // trinary ctors
 
@@ -122,19 +135,8 @@ namespace gridtools {
          * @param initializer initialization value
          * @param name Human readable name for the data_store
          */
-        data_store(StorageInfo const &info, data_t initializer, std::string name)
+        data_store(storage_info_t const &info, data_t initializer, std::string name)
             : data_store(std::true_type(), info, [initializer](int) { return initializer; }, std::move(name)) {}
-
-        template <class Initializer,
-            std::enable_if_t<!std::is_convertible<Initializer &&, data_t>::value &&
-                                 !std::is_convertible<Initializer &&, data_t *>::value &&
-                                 !std::is_convertible<Initializer &&, std::string>::value,
-                int> = 0>
-        data_store(StorageInfo const &info, Initializer &&initializer)
-            : data_store(info, std::forward<Initializer>(initializer), "") {}
-
-        template <class T, std::enable_if_t<std::is_same<data_t *, T>::value, int> = 0>
-        data_store(StorageInfo const &info, T ptr) : data_store(info, ptr, ownership::external_cpu, "") {}
 
         /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
@@ -144,18 +146,14 @@ namespace gridtools {
          * @param initializer initialization lambda
          * @param name Human readable name for the data_store
          */
-        template <class Initializer,
-            std::enable_if_t<!std::is_convertible<Initializer, data_t>::value &&
-                                 !std::is_convertible<Initializer, data_t *>::value &&
-                                 !std::is_convertible<Initializer, std::string>::value,
-                int> = 0>
-        data_store(StorageInfo const &info, Initializer &&initializer, std::string name)
+        template <class Initializer, std::enable_if_t<!std::is_convertible<Initializer, data_t>::value, int> = 0>
+        data_store(storage_info_t const &info, Initializer &&initializer, std::string name)
             : data_store(std::true_type(),
                   info,
-                  data_store_impl_::initializer_adapter_f<Initializer, StorageInfo>{initializer, info},
+                  data_store_impl_::initializer_adapter_f<Initializer, storage_info_t>{initializer, info},
                   std::move(name)) {}
 
-        data_store(StorageInfo const &info, data_t *ptr, ownership own) : data_store(info, ptr, own, "") {}
+        data_store(storage_info_t const &info, data_t *ptr, ownership own) : data_store(info, ptr, own, "") {}
 
         // ctor from four args
 
@@ -168,7 +166,7 @@ namespace gridtools {
          * @param own ownership information
          * @param name Human readable name for the data_store
          */
-        data_store(StorageInfo const &info, data_t *ptr, ownership own, std::string name)
+        data_store(storage_info_t const &info, data_t *ptr, ownership own, std::string name)
             : m_impl(std::make_shared<impl>(info, ptr, own, std::move(name))) {}
 
         void swap(data_store &other) {
@@ -185,32 +183,20 @@ namespace gridtools {
          * @return size of dimension (including halos but not padding)
          */
         template <int Dim>
-        auto total_length() const {
-            return info().template total_length<Dim>();
+        auto length() const {
+            return info().template length<Dim>();
         }
 
         /**
          * @brief member function to retrieve the total size (dimensions, halos, padding).
          * @return total size
          */
-        auto padded_total_length() const { return info().padded_total_length(); }
-
-        /**
-         * @brief member function to retrieve the inner domain size + halo (dimensions, halos).
-         * @return inner domain size + halo
-         */
-        auto total_length() const { return info().total_length(); }
-
-        /**
-         * @brief member function to retrieve the inner domain size (dimensions, no halos).
-         * @return inner domain size
-         */
         auto length() const { return info().length(); }
 
         /**
          * @brief forward total_lengths() from storage_info
          */
-        decltype(auto) total_lengths() const { return info().total_lengths(); }
+        decltype(auto) lengths() const { return info().lengths(); }
 
         /**
          * @brief forward strides() from storage_info
@@ -221,7 +207,7 @@ namespace gridtools {
          * @brief retrieve the underlying storage_info instance
          * @return storage_info instance
          */
-        StorageInfo const &info() const {
+        storage_info_t const &info() const {
             assert(m_impl);
             return m_impl->m_storage_info;
         }

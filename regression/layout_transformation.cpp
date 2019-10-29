@@ -26,7 +26,7 @@ namespace {
         storage_info_rt si_dst = make_storage_info_rt(dst.info());
 
         gridtools::interface::transform(
-            dst_v.data(), src_v.data(), si_src.total_lengths(), si_dst.strides(), si_src.strides());
+            dst_v.data(), src_v.data(), si_src.lengths(), si_dst.strides(), si_src.strides());
     }
     template <typename Src, typename Dst>
     void verify_result(Src &src, Dst &dst) {
@@ -36,9 +36,10 @@ namespace {
         auto src_v = gridtools::make_host_view<access_mode::read_only>(src);
         auto dst_v = gridtools::make_host_view<access_mode::read_only>(dst);
 
-        for (int i = 0; i < src.template total_length<0>(); ++i)
-            for (int j = 0; j < src.template total_length<1>(); ++j)
-                for (int k = 0; k < src.template total_length<2>(); ++k)
+        auto &&lengths = src.lengths();
+        for (int i = 0; i < lengths[0]; ++i)
+            for (int j = 0; j < lengths[1]; ++j)
+                for (int k = 0; k < lengths[2]; ++k)
                     EXPECT_EQ(src_v(i, j, k), dst_v(i, j, k));
 
         src.sync();

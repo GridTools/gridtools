@@ -10,9 +10,12 @@
 
 #include "exported_repository.hpp"
 #include <boost/variant/apply_visitor.hpp>
+#include <gmock/gmock.h>
 #include <gridtools/interface/repository/repository.hpp>
 #include <gridtools/storage/storage_facility.hpp>
 #include <gtest/gtest.h>
+
+using testing::ElementsAre;
 
 #define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)
@@ -28,21 +31,21 @@ class simple_repository : public ::testing::Test {
 
 TEST_F(simple_repository, access_fields) {
     EXPECT_EQ("u", repo.u().name());
-    EXPECT_EQ(10, repo.u().total_length<0>());
-    EXPECT_EQ(11, repo.crlat().total_length<0>());
+    EXPECT_EQ(10, repo.u().lengths()[0]);
+    EXPECT_EQ(11, repo.crlat().lengths()[0]);
 }
 
 TEST_F(simple_repository, assign_to_auto_from_map) {
     // needs a cast
     auto &&u = boost::get<IJKDataStore>(repo.data_stores().at("u"));
-    ASSERT_EQ(10, u.total_length<0>());
+    EXPECT_EQ(10, u.lengths()[0]);
 }
 
 #ifdef GT_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
 TEST_F(simple_repository, assign_to_type_from_map) {
     // no cast needed
     IJKDataStore u = repo.data_stores().at("u");
-    ASSERT_EQ(10, u.total_length<0>());
+    EXPECT_EQ(10, u.lengths()[0]);
 }
 #endif
 
@@ -77,7 +80,7 @@ class my_extended_repo : public my_repository {
 TEST(extended_repo, inherited_functions) {
     my_extended_repo repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22, 33));
 
-    ASSERT_EQ(10, repo.u().total_length<0>());
+    EXPECT_EQ(10, repo.u().lengths()[0]);
 }
 
 using IJKWStorageInfo = typename gridtools::storage_traits<gridtools::backend::x86>::storage_info_t<2, 3>;
@@ -103,19 +106,10 @@ TEST(repository_with_dims, constructor) {
 
     my_repository3 repo(Ni, Nj, Nk, Nk_plus1);
 
-    ASSERT_EQ(Ni, repo.u().total_length<0>());
-    ASSERT_EQ(Nj, repo.u().total_length<1>());
-    ASSERT_EQ(Nk, repo.u().total_length<2>());
-
-    ASSERT_EQ(Ni, repo.w().total_length<0>());
-    ASSERT_EQ(Nj, repo.w().total_length<1>());
-    ASSERT_EQ(Nk_plus1, repo.w().total_length<2>());
-
-    ASSERT_EQ(Ni, repo.crlat().total_length<0>());
-    ASSERT_EQ(Nj, repo.crlat().total_length<1>());
-
-    ASSERT_EQ(Ni, repo.ikfield().total_length<0>());
-    ASSERT_EQ(Nk, repo.ikfield().total_length<2>());
+    EXPECT_THAT(repo.u().lengths(), ElementsAre(Ni, Nj, Nk));
+    EXPECT_THAT(repo.w().lengths(), ElementsAre(Ni, Nj, Nk_plus1));
+    EXPECT_THAT(repo.crlat().lengths(), ElementsAre(Ni, Nj, Nk));
+    EXPECT_THAT(repo.ikfield().lengths(), ElementsAre(Ni, Ni, Nk));
 }
 
 #undef GT_REPO_GETTER_PREFIX
@@ -133,11 +127,6 @@ TEST(repository_with_custom_getter_prefix, constructor) {
 
     my_repository4 repo(IJKStorageInfo(Ni, Nj, Nk));
 
-    ASSERT_EQ(Ni, repo.get_u().total_length<0>());
-    ASSERT_EQ(Nj, repo.get_u().total_length<1>());
-    ASSERT_EQ(Nk, repo.get_u().total_length<2>());
-
-    ASSERT_EQ(Ni, repo.get_v().total_length<0>());
-    ASSERT_EQ(Nj, repo.get_v().total_length<1>());
-    ASSERT_EQ(Nk, repo.get_v().total_length<2>());
+    EXPECT_THAT(repo.get_u().lengths(), ElementsAre(Ni, Nj, Nk));
+    EXPECT_THAT(repo.get_v().lengths(), ElementsAre(Ni, Nj, Nk));
 }

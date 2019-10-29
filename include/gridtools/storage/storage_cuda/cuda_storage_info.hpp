@@ -7,15 +7,11 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
 #pragma once
 
-#include <cassert>
-#include <type_traits>
 #include <utility>
 
 #include "../../common/cuda_util.hpp"
-#include "../../common/gt_assert.hpp"
 #include "../common/storage_info.hpp"
 
 namespace gridtools {
@@ -42,9 +38,9 @@ namespace gridtools {
      * to a kernel.
      * @return a storage info device pointer
      */
-    template <uint_t Id, typename Layout, typename Halo, typename Alignment>
-    storage_info<Id, Layout, Halo, Alignment> *get_gpu_storage_info_ptr(
-        storage_info<Id, Layout, Halo, Alignment> const &src) {
+    template <uint_t Id, typename Layout, typename Halo, typename Alignment, typename Indices>
+    storage_info<Id, Layout, Halo, Alignment, Indices> *get_gpu_storage_info_ptr(
+        storage_info<Id, Layout, Halo, Alignment, Indices> const &src) {
         thread_local static auto cache = impl_::make_storage_info_ptr_cache(src);
         if (cache.first != src)
             cache = impl_::make_storage_info_ptr_cache(src);

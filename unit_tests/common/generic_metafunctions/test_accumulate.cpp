@@ -13,7 +13,6 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
-#include <gridtools/common/generic_metafunctions/binary_ops.hpp>
 
 using namespace gridtools;
 

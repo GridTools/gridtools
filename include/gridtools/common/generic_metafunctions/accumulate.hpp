@@ -8,15 +8,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
-#include "../defs.hpp"
-#include "binary_ops.hpp"
+
 #include <algorithm>
 
-/**@file
-   @brief Implementation of a compile-time accumulator and constexpr max and min functions
+#include "../host_device.hpp"
 
-   The accumulator allows to perform operations on static const value to
-   be passed as template argument.
+/**@file
+   @brief Implementation of a compile-time accumulator
+
+   The accumulator allows to perform operations on static const value to be passed as template argument.
 */
 namespace gridtools {
 
@@ -27,48 +27,51 @@ namespace gridtools {
         \defgroup accumulate Accumulate
         @{
     */
-    /*
-     * find/replace constexpr_max(...) -> max({...}) once we are c++14
-     */
 
     template <typename... Ts>
-    GT_FUNCTION constexpr std::common_type_t<Ts...> constexpr_max(Ts... vals) {
+    constexpr auto constexpr_max(Ts const &... vals) {
         return std::max({vals...});
     }
     template <typename... Ts>
-    GT_FUNCTION constexpr std::common_type_t<Ts...> constexpr_min(Ts... vals) {
+    constexpr auto constexpr_min(Ts const &... vals) {
         return std::min({vals...});
     }
 
     /**@brief operation to be used inside the accumulator*/
     struct multiplies {
-        GT_FUNCTION
-        constexpr multiplies() {}
-        template <typename T1, typename T2>
-        GT_FUNCTION constexpr T1 operator()(const T1 &x, const T2 &y) const {
+        template <typename T, typename U>
+        GT_FUNCTION constexpr auto operator()(T const &x, U const &y) const {
             return x * y;
         }
     };
 
     /**@brief operation to be used inside the accumulator*/
     struct plus_functor {
-        GT_FUNCTION
-        constexpr plus_functor() {}
-        template <class T>
-        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
+        template <typename T, typename U>
+        GT_FUNCTION constexpr auto operator()(T const &x, U const &y) const {
             return x + y;
         }
     };
 
+    /**@brief operation to be used inside the accumulator*/
+    struct logical_and {
+        GT_FUNCTION constexpr bool operator()(bool x, bool y) const { return x && y; }
+    };
+
+    /**@brief operation to be used inside the accumulator*/
+    struct logical_or {
+        GT_FUNCTION constexpr bool operator()(bool x, bool y) const { return x || y; }
+    };
+
     /**@brief accumulator recursive implementation*/
     template <typename Operator, typename First, typename... Args>
-    GT_FUNCTION static constexpr First accumulate(Operator op, First first, Args... args) {
+    GT_FUNCTION static constexpr auto accumulate(Operator op, First const &first, Args const &... args) {
         return op(first, accumulate(op, args...));
     }
 
     /**@brief specialization to stop the recursion*/
     template <typename Operator, typename First>
-    GT_FUNCTION static constexpr First accumulate(Operator, First first) {
+    GT_FUNCTION static constexpr auto accumulate(Operator, First const &first) {
         return first;
     }
 

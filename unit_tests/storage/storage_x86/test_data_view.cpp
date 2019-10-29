@@ -8,13 +8,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../../tools/multiplet.hpp"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/storage/common/storage_info.hpp>
 #include <gridtools/storage/data_store.hpp>
 #include <gridtools/storage/data_view.hpp>
 #include <gridtools/storage/storage_host/host_storage.hpp>
+
+#include "../../tools/multiplet.hpp"
 
 using namespace gridtools;
 
@@ -30,31 +32,7 @@ TEST(DataViewTest, Simple) {
     dv(0, 0, 1) = 60;
 
     // check if interface works
-    ASSERT_TRUE((si.length<0>() == dv.length<0>()));
-    ASSERT_TRUE((si.length<1>() == dv.length<1>()));
-    ASSERT_TRUE((si.length<2>() == dv.length<2>()));
-
-    ASSERT_TRUE((si.total_length<0>() == dv.total_length<0>()));
-    ASSERT_TRUE((si.total_length<1>() == dv.total_length<1>()));
-    ASSERT_TRUE((si.total_length<2>() == dv.total_length<2>()));
-
-    ASSERT_TRUE((si.begin<0>() == dv.begin<0>()));
-    ASSERT_TRUE((si.begin<1>() == dv.begin<1>()));
-    ASSERT_TRUE((si.begin<2>() == dv.begin<2>()));
-
-    ASSERT_TRUE((si.total_begin<0>() == dv.total_begin<0>()));
-    ASSERT_TRUE((si.total_begin<1>() == dv.total_begin<1>()));
-    ASSERT_TRUE((si.total_begin<2>() == dv.total_begin<2>()));
-
-    ASSERT_TRUE((si.end<0>() == dv.end<0>()));
-    ASSERT_TRUE((si.end<1>() == dv.end<1>()));
-    ASSERT_TRUE((si.end<2>() == dv.end<2>()));
-
-    ASSERT_TRUE((si.total_end<0>() == dv.total_end<0>()));
-    ASSERT_TRUE((si.total_end<1>() == dv.total_end<1>()));
-    ASSERT_TRUE((si.total_end<2>() == dv.total_end<2>()));
-
-    ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
+    EXPECT_TRUE(si.lengths() == dv.lengths());
 
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
@@ -62,17 +40,7 @@ TEST(DataViewTest, Simple) {
     // check if the user protections are working
     EXPECT_EQ(si.index(1, 0, 0), 1);
 
-    std::cout << "Execute death tests.\n";
-
-// this checks are only performed in debug mode
-#ifndef NDEBUG
-    EXPECT_THROW(si.index(0, 0, 7), std::runtime_error);
-    EXPECT_THROW(si.index(0, 5, 0), std::runtime_error);
-    EXPECT_THROW(si.index(3, 0, 0), std::runtime_error);
-    EXPECT_THROW(si.index(5, 5, 5), std::runtime_error);
-#endif
-
-    ASSERT_TRUE(si.index(1, 0, 1) == 16);
+    EXPECT_EQ(si.index(1, 0, 1), 16);
     // create a ro view
     auto dvro = make_host_view<access_mode::read_only>(ds);
     // check if data is the same
@@ -115,19 +83,9 @@ TEST(DataViewTest, Looping) {
     data_store_t ds(si, [](int i, int j, int k) { return triplet{i, j, k}; }, "ds");
     auto view = make_host_view<access_mode::read_write>(ds);
 
-    for (int i = view.begin<0>(); i <= view.end<0>(); ++i) {
-        for (int j = view.begin<1>(); j <= view.end<1>(); ++j) {
-            for (int k = view.begin<2>(); k <= view.end<2>(); ++k) {
+    auto &&lengths = view.lengths();
+    for (int i = 0; i < lengths[0]; ++i)
+        for (int j = 0; j < lengths[1]; ++j)
+            for (int k = 0; k < lengths[2]; ++k)
                 EXPECT_EQ(view(i, j, k), (triplet{i, j, k}));
-            }
-        }
-    }
-
-    for (int i = view.total_begin<0>(); i <= view.total_end<0>(); ++i) {
-        for (int j = view.total_begin<1>(); j <= view.total_end<1>(); ++j) {
-            for (int k = view.total_begin<2>(); k <= view.total_end<2>(); ++k) {
-                EXPECT_EQ(view(i, j, k), (triplet{i, j, k}));
-            }
-        }
-    }
 }

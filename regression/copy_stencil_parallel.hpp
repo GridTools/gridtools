@@ -109,8 +109,8 @@ namespace copy_stencil {
 
         storage_t in(storage_info,
             [&storage_info, pi, pj](int i, int j, int k) {
-                int I = i + storage_info.total_length<0>() * pi;
-                int J = j + storage_info.total_length<1>() * pj;
+                int I = i + storage_info.lengths()[0] * pi;
+                int J = j + storage_info.lengths()[1] * pj;
                 int K = k;
                 return I + J + K;
             },
@@ -167,8 +167,8 @@ namespace copy_stencil {
         for (uint_t i = halo[0]; i < d1 - halo[0]; ++i)
             for (uint_t j = halo[1]; j < d2 - halo[1]; ++j)
                 for (uint_t k = 1; k < d3; ++k) {
-                    int I = i + storage_info.total_length<0>() * pi;
-                    int J = j + storage_info.total_length<1>() * pj;
+                    int I = i + storage_info.lengths()[0] * pi;
+                    int J = j + storage_info.lengths()[1] * pj;
                     int K = k;
 
                     if (v_out_h(i, j, k) != (I + J + K)) {

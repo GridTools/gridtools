@@ -180,14 +180,12 @@ namespace gridtools {
             using storage_info_t = StorageInfo;
             using data_t = T;
 
-            GT_FUNCTION_DEVICE StorageInfo const &storage_info() const { return *m_info; }
+            GT_FUNCTION_DEVICE StorageInfo const &info() const { return *m_info; }
 
             GT_FUNCTION_DEVICE T *data() const { return m_ptr; }
 
-            template <typename... Coords>
+            template <class... Coords>
             GT_FUNCTION_DEVICE T &operator()(Coords... c) const {
-                static_assert(conjunction<is_all_integral_or_enum<Coords...>>::value,
-                    GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
                 return m_ptr[m_info->index(c...)];
             }
 
@@ -195,31 +193,10 @@ namespace gridtools {
                 return m_ptr[m_info->index(arr)];
             }
 
-            GT_FUNCTION_DEVICE GT_CONSTEXPR auto padded_total_length() const { return m_info->padded_total_length(); }
-            template <uint_t Dim>
-            GT_FUNCTION_DEVICE GT_CONSTEXPR auto length() const {
-                return m_info->template length<Dim>();
-            }
-            template <uint_t Dim>
-            GT_FUNCTION_DEVICE GT_CONSTEXPR auto total_length() const {
-                return m_info->template total_length<Dim>();
-            }
-            template <uint_t Dim>
-            GT_FUNCTION_DEVICE GT_CONSTEXPR auto total_begin() const {
-                return m_info->template total_begin<Dim>();
-            }
-            template <uint_t Dim>
-            GT_FUNCTION_DEVICE GT_CONSTEXPR auto begin() const {
-                return m_info->template begin<Dim>();
-            }
-            template <uint_t Dim>
-            GT_FUNCTION_DEVICE GT_CONSTEXPR auto total_end() const {
-                return m_info->template total_end<Dim>();
-            }
-            template <uint_t Dim>
-            GT_FUNCTION_DEVICE GT_CONSTEXPR auto end() const {
-                return m_info->template end<Dim>();
-            }
+            GT_FUNCTION_DEVICE GT_CONSTEXPR auto length() const { return m_info->length(); }
+
+            GT_FUNCTION_DEVICE GT_CONSTEXPR decltype(auto) lengths() const { return m_info->lengths(); }
+
             friend T *advanced_get_raw_pointer_of(device_view const &src) { return src.m_ptr; }
         };
 

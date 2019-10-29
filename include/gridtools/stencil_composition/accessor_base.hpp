@@ -15,8 +15,8 @@
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/dimension.hpp"
-#include "../common/error.hpp"
 #include "../common/functional.hpp"
+#include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
@@ -51,21 +51,6 @@ namespace gridtools {
         template <class... Ts>
         using are_ints = conjunction<std::is_convertible<Ts, int_t>...>;
 
-        struct check_all_zeros {
-            struct ctor_tag {};
-
-            GT_FUNCTION GT_CONSTEXPR check_all_zeros(ctor_tag) {}
-
-            template <class... Ts>
-            GT_FUNCTION GT_CONSTEXPR check_all_zeros(ctor_tag, int_t val, Ts... vals)
-                : check_all_zeros(
-                      error_or_return(val == 0, ctor_tag(), "unexpected non zero accessor offset"), vals...) {}
-
-            template <class... Ts, std::enable_if_t<are_ints<Ts...>::value, int> = 0>
-            GT_FUNCTION GT_CONSTEXPR check_all_zeros(Ts... vals)
-                : check_all_zeros(ctor_tag(), static_cast<int_t>(vals)...) {}
-        };
-
         template <size_t Dim, uint_t I, std::enable_if_t<(I > Dim), int> = 0>
         GT_FUNCTION GT_CONSTEXPR int_t out_of_range_dim(dimension<I> obj) {
             return obj.value;
@@ -75,6 +60,7 @@ namespace gridtools {
         GT_FUNCTION GT_CONSTEXPR int_t out_of_range_dim(dimension<I>) {
             return 0;
         }
+
     } // namespace accessor_base_impl_
 
     /**
@@ -110,10 +96,6 @@ namespace gridtools {
     class accessor_base<Id, Intent, Extent, Dim, std::index_sequence<Is...>> : public array<int_t, Dim> {
         using base_t = array<int_t, Dim>;
 
-        template <class... Ts>
-        GT_FUNCTION GT_CONSTEXPR accessor_base(accessor_base_impl_::check_all_zeros, Ts... offsets)
-            : base_t({offsets...}) {}
-
       public:
         using index_t = integral_constant<uint_t, Id>;
         static constexpr intent intent_v = Intent;
@@ -128,38 +110,24 @@ namespace gridtools {
             std::enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(Ts... offsets) : base_t({offsets...}) {}
 
-#ifndef NDEBUG
         template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts... zeros)
-            : accessor_base(accessor_base_impl_::check_all_zeros(zeros...), offsets...) {}
-
-        template <uint_t J, uint_t... Js>
-        GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> src, dimension<Js>... srcs)
-            : accessor_base(accessor_base_impl_::check_all_zeros(accessor_base_impl_::out_of_range_dim<Dim>(src),
-                                accessor_base_impl_::out_of_range_dim<Dim>(srcs)...),
-                  accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...) {
-            static_assert(meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value,
-                "all dimensions should be of different indicies");
+            : base_t({offsets...}) {
+            assert(accumulate(logical_and(), true, (zeros == 0)...));
         }
-#else
-        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
-        GT_FUNCTION GT_CONSTEXPR accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts...)
-            : base_t({offsets...}) {}
 
         template <uint_t J, uint_t... Js>
         GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> src, dimension<Js>... srcs)
             : base_t({accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...}) {
             static_assert(meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value,
                 "all dimensions should be of different indicies");
+            assert(accessor_base_impl_::out_of_range_dim<Dim>(src) == 0);
+            assert(accumulate(logical_and(), true, (accessor_base_impl_::out_of_range_dim<Dim>(srcs) == 0)...));
         }
-#endif
     };
 
     template <uint_t Id, class Extent, intent Intent>
     class accessor_base<Id, Intent, Extent, 0, std::index_sequence<>> : public tuple<> {
-        template <class... Ts>
-        GT_FUNCTION GT_CONSTEXPR accessor_base(accessor_base_impl_::check_all_zeros) {}
-
       public:
         static_assert(std::is_same<Extent, extent<>>::value, GT_INTERNAL_ERROR);
 
@@ -170,21 +138,16 @@ namespace gridtools {
 
         GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor_base);
 
-#ifndef NDEBUG
         template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
-        GT_FUNCTION GT_CONSTEXPR accessor_base(Ts... zeros)
-            : accessor_base(accessor_base_impl_::check_all_zeros(zeros...)) {}
+        GT_FUNCTION GT_CONSTEXPR accessor_base(Ts... zeros) {
+            assert(accumulate(logical_and(), true, (zeros == 0)...));
+        }
 
         template <uint_t J, uint_t... Js>
-        GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> zero, dimension<Js>... zeros)
-            : accessor_base(accessor_base_impl_::check_all_zeros(zero.value, zeros.value...)) {}
-#else
-        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
-        GT_FUNCTION GT_CONSTEXPR accessor_base(Ts...) {}
-
-        template <uint_t J, uint_t... Js>
-        GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> zero, dimension<Js>... zeros) {}
-#endif
+        GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> zero, dimension<Js>... zeros) {
+            assert(zero.value == 0);
+            assert(accumulate(logical_and(), true, (zeros.value == 0)...));
+        }
     };
 
     template <uint_t ID, intent Intent, typename Extent, size_t Number>

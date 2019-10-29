@@ -9,8 +9,9 @@
  */
 #pragma once
 
+#include <cassert>
+
 #include "defs.hpp"
-#include "error.hpp"
 #include "host_device.hpp"
 
 namespace gridtools {
@@ -77,7 +78,8 @@ namespace gridtools {
     struct get_index_of_element_in_pack_functor<0> {
         template <typename First, typename... Dims>
         GT_FUNCTION static constexpr uint_t apply(uint_t Index, First needle, Dims... d) {
-            return error_or_return((get_value_from_pack(Index, d...) == needle), Index, "Element not found");
+            assert(get_value_from_pack(Index, d...) == needle);
+            return Index;
         }
     };
 

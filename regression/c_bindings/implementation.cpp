@@ -49,7 +49,7 @@ namespace {
     BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_1(sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));
 
     auto make_grid(data_store_t data_store) {
-        auto dims = data_store.total_lengths();
+        auto dims = data_store.lengths();
         return gridtools::make_grid(dims[0], dims[1], dims[2]);
     }
 

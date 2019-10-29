@@ -139,9 +139,10 @@ TEST_F(distributed_boundary, test) {
     auto src = make_storage([](int i, int j, int k) { return i + j + k; });
     auto dst = make_storage(0.f);
 
-    halo_descriptor di{halo_size, halo_size, halo_size, d1() - halo_size - 1, (unsigned)src.info().padded_length<0>()};
-    halo_descriptor dj{halo_size, halo_size, halo_size, d2() - halo_size - 1, (unsigned)src.info().padded_length<1>()};
-    halo_descriptor dk{halo_size, halo_size, halo_size, d3() - halo_size - 1, (unsigned)src.info().padded_length<2>()};
+    auto lengths = src.info().lengths();
+    halo_descriptor di{halo_size, halo_size, halo_size, d1() - halo_size - 1, lengths[0]};
+    halo_descriptor dj{halo_size, halo_size, halo_size, d2() - halo_size - 1, lengths[1]};
+    halo_descriptor dk{halo_size, halo_size, halo_size, d3() - halo_size - 1, lengths[2]};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
     apply_boundary(halos, src, dst);

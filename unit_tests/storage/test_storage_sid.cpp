@@ -53,7 +53,7 @@ namespace gridtools {
             EXPECT_EQ(advanced_get_raw_pointer_of(make_target_view(testee)), sid::get_origin(testee)());
 
             auto strides = sid::get_strides(testee);
-            auto expected_strides = testee.strides();
+            auto &&expected_strides = testee.strides();
 
             EXPECT_EQ(expected_strides[0], get<0>(strides));
             EXPECT_EQ(expected_strides[1], get<1>(strides));
@@ -61,15 +61,15 @@ namespace gridtools {
             EXPECT_EQ(expected_strides[3], get<3>(strides));
 
             auto lower_bounds = sid::get_lower_bounds(testee);
-            EXPECT_EQ(0, (at_key<dim<0>>(lower_bounds)));
-            EXPECT_EQ(0, (at_key<dim<2>>(lower_bounds)));
-            EXPECT_EQ(0, (at_key<dim<3>>(lower_bounds)));
+            EXPECT_EQ(0, at_key<dim<0>>(lower_bounds));
+            EXPECT_EQ(0, at_key<dim<2>>(lower_bounds));
+            EXPECT_EQ(0, at_key<dim<3>>(lower_bounds));
 
-            auto info = testee.info();
+            auto &&lengths = testee.lengths();
             auto upper_bounds = sid::get_upper_bounds(testee);
-            EXPECT_EQ(info.padded_length<0>(), (at_key<dim<0>>(upper_bounds)));
-            EXPECT_EQ(info.padded_length<2>(), (at_key<dim<2>>(upper_bounds)));
-            EXPECT_EQ(info.padded_length<3>(), (at_key<dim<3>>(upper_bounds)));
+            EXPECT_EQ(lengths[0], at_key<dim<0>>(upper_bounds));
+            EXPECT_EQ(lengths[2], at_key<dim<2>>(upper_bounds));
+            EXPECT_EQ(lengths[3], at_key<dim<3>>(upper_bounds));
         }
 
         TEST(storage_sid, regression_strides_of_small_storage) {
@@ -112,11 +112,11 @@ namespace gridtools {
             EXPECT_EQ(0, (at_key<dim<2>>(lower_bounds)));
             EXPECT_EQ(0, (at_key<dim<3>>(lower_bounds)));
 
-            auto info = data.info();
+            auto &&lengths = data.lengths();
             auto upper_bounds = sid::get_upper_bounds(testee);
-            EXPECT_EQ(info.padded_length<0>(), (at_key<dim<0>>(upper_bounds)));
-            EXPECT_EQ(info.padded_length<2>(), (at_key<dim<2>>(upper_bounds)));
-            EXPECT_EQ(info.padded_length<3>(), (at_key<dim<3>>(upper_bounds)));
+            EXPECT_EQ(lengths[0], at_key<dim<0>>(upper_bounds));
+            EXPECT_EQ(lengths[2], at_key<dim<2>>(upper_bounds));
+            EXPECT_EQ(lengths[3], at_key<dim<3>>(upper_bounds));
         }
 
         TEST(storage_sid, scalar) {

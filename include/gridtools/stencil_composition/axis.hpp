@@ -11,8 +11,8 @@
 
 #include <type_traits>
 
-#include "..//common/defs.hpp"
 #include "../common/array.hpp"
+#include "../common/defs.hpp"
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../common/variadic_pack_metafunctions.hpp"

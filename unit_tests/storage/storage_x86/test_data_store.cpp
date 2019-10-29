@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <gridtools/common/gt_assert.hpp>
@@ -16,6 +17,7 @@
 #include <gridtools/storage/storage_host/host_storage.hpp>
 
 using namespace gridtools;
+using testing::ElementsAre;
 
 typedef storage_info<0, layout_map<0, 1, 2>> storage_info_t;
 typedef storage_info<0, layout_map<0, 1, 2>, halo<2, 1, 0>> storage_info_halo_t;
@@ -26,44 +28,17 @@ TEST(DataStoreTest, Simple) {
     storage_info_halo_t si_halo(7, 5, 3);
     storage_info_halo_aligned_t si_halo_al(7, 5, 3);
     // check sizes, strides, and alignment
-    ASSERT_EQ(si.padded_length<0>(), 3);
-    ASSERT_EQ(si.padded_length<1>(), 3);
-    ASSERT_EQ(si.padded_length<2>(), 3);
-    ASSERT_EQ(si.total_length<0>(), 3);
-    ASSERT_EQ(si.total_length<1>(), 3);
-    ASSERT_EQ(si.total_length<2>(), 3);
-    ASSERT_EQ(si.length<0>(), 3);
-    ASSERT_EQ(si.length<1>(), 3);
-    ASSERT_EQ(si.length<2>(), 3);
-    ASSERT_EQ(si.stride<0>(), 9);
-    ASSERT_EQ(si.stride<1>(), 3);
-    ASSERT_EQ(si.stride<2>(), 1);
+    EXPECT_THAT(si.lengths(), ElementsAre(3, 3, 3));
+    EXPECT_THAT(si.strides(), ElementsAre(9, 3, 1));
 
-    ASSERT_EQ(si_halo.template padded_length<0>(), 7);
-    ASSERT_EQ(si_halo.template padded_length<1>(), 5);
-    ASSERT_EQ(si_halo.template padded_length<2>(), 3);
-    ASSERT_EQ(si_halo.template total_length<0>(), 7);
-    ASSERT_EQ(si_halo.template total_length<1>(), 5);
-    ASSERT_EQ(si_halo.template total_length<2>(), 3);
-    ASSERT_EQ(si_halo.template length<0>(), 3);
-    ASSERT_EQ(si_halo.template length<1>(), 3);
-    ASSERT_EQ(si_halo.template length<2>(), 3);
-    ASSERT_EQ(si_halo.template stride<0>(), 15);
-    ASSERT_EQ(si_halo.template stride<1>(), 3);
-    ASSERT_EQ(si_halo.template stride<2>(), 1);
+    EXPECT_THAT(si_halo.lengths(), ElementsAre(7, 5, 3));
+    EXPECT_THAT(si_halo.strides(), ElementsAre(15, 3, 1));
 
-    ASSERT_EQ(si_halo_al.template padded_length<0>(), 7);
-    ASSERT_EQ(si_halo_al.template padded_length<1>(), 5);
-    ASSERT_EQ(si_halo_al.template padded_length<2>(), 16);
-    ASSERT_EQ(si_halo_al.template total_length<0>(), 7);
-    ASSERT_EQ(si_halo.template total_length<1>(), 5);
-    ASSERT_EQ(si_halo.template total_length<2>(), 3);
-    ASSERT_EQ(si_halo.template length<0>(), 3);
-    ASSERT_EQ(si_halo.template length<1>(), 3);
-    ASSERT_EQ(si_halo.template length<2>(), 3);
-    ASSERT_EQ(si_halo_al.template stride<0>(), 80);
-    ASSERT_EQ(si_halo_al.template stride<1>(), 16);
-    ASSERT_EQ(si_halo_al.template stride<2>(), 1);
+    EXPECT_THAT(si_halo.lengths(), ElementsAre(7, 5, 3));
+    EXPECT_THAT(si_halo.strides(), ElementsAre(15, 3, 1));
+
+    EXPECT_THAT(si_halo_al.lengths(), ElementsAre(7, 5, 3));
+    EXPECT_THAT(si_halo_al.strides(), ElementsAre(80, 16, 1));
 
     // create a copy of a data_store and check equivalence
     data_store<host_storage<double>, storage_info_t> datast(si, 5.3);
@@ -135,18 +110,11 @@ TEST(DataStoreTest, Naming) {
     EXPECT_EQ(ds3.name(), "value init. storage");
 }
 
-TEST(DataStoreTest, InvalidSize) {
-    EXPECT_THROW(storage_info_t(128, 128, 0), std::runtime_error);
-    EXPECT_THROW(storage_info_t(-128, 128, 80), std::runtime_error);
-}
-
 TEST(DataStoreTest, DimAndSizeInterface) {
     storage_info_t si(128, 128, 80);
     data_store<host_storage<double>, storage_info_t> ds(si, 3.1415);
-    EXPECT_EQ(ds.padded_total_length(), si.padded_total_length());
-    EXPECT_EQ(ds.total_length<0>(), si.total_length<0>());
-    EXPECT_EQ(ds.total_length<1>(), si.total_length<1>());
-    EXPECT_EQ(ds.total_length<2>(), si.total_length<2>());
+    EXPECT_EQ(ds.length(), si.length());
+    EXPECT_TRUE(ds.lengths() == si.lengths());
 }
 
 TEST(DataStoreTest, ExternalPointer) {

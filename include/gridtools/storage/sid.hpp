@@ -170,7 +170,7 @@ namespace gridtools {
 
             template <class StorageInfo>
             int_t operator()(StorageInfo const &info) const {
-                return info.template padded_length<Dim::value>();
+                return info.lengths()[Dim::value];
             }
         };
 
