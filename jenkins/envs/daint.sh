@@ -3,7 +3,7 @@
 source $(dirname "$BASH_SOURCE")/base.sh
 
 module load daint-gpu
-module load cudatoolkit/9.2.148_3.19-6.0.7.1_2.1__g3d9acc8
+module load cudatoolkit/10.1.105_3.27-7.0.1.1_4.1__ga311ce7
 module rm PrgEnv-cray
 module rm CMake
 module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.14.5
