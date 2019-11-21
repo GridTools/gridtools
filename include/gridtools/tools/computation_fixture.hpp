@@ -19,8 +19,7 @@
 #include "../common/selector.hpp"
 #include "../stencil_composition/axis.hpp"
 #include "../stencil_composition/grid.hpp"
-#include "../storage/common/halo.hpp"
-#include "../storage/storage_facility.hpp"
+#include "../storage/builder.hpp"
 #include "backend_select.hpp"
 #include "verifier.hpp"
 
@@ -31,12 +30,11 @@ namespace gridtools {
         uint_t m_d2;
         uint_t m_d3;
 
-        template <class StorageType>
-        using halos_t = array<array<uint_t, 2>, StorageType::storage_info_t::layout_t::masked_length>;
+        template <class DataStorage>
+        using halos_t = array<array<size_t, 2>, DataStorage::ndims>;
 
       public:
         static constexpr uint_t halo_size = HaloSize;
-        using storage_tr = storage_traits<backend_t>;
 
         halo_descriptor i_halo_descriptor() const {
             return {halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1};
@@ -48,21 +46,33 @@ namespace gridtools {
         auto make_grid() const { return ::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}); }
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
-        using halo_t = halo<HaloSize, HaloSize, 0>;
-        using storage_info_t = storage_tr::storage_info_t<0, 3, halo_t>;
-        using j_storage_info_t = storage_tr::special_storage_info_t<1, selector<0, 1, 0>>;
 
-        using storage_type = storage_tr::data_store_t<float_type, storage_info_t>;
-        using j_storage_type = storage_tr::data_store_t<float_type, j_storage_info_t>;
-
-        template <class Storage = storage_type, class T = typename Storage::data_t>
-        Storage make_storage(T &&obj = {}) const {
-            return {{m_d1, m_d2, m_d3}, std::forward<T>(obj)};
+        template <class T = float_type>
+        auto builder() const {
+            return storage::builder<storage_traits_t>.dimensions(m_d1, m_d2, m_d3).halos(HaloSize, HaloSize, 0).template type<T>();
         }
 
-        template <class Storage = storage_type>
-        Storage make_storage(double val) const {
-            return {{m_d1, m_d2, m_d3}, (typename Storage::data_t)val};
+        template <class T = float_type, class U, std::enable_if_t<!std::is_convertible<U const &, T>::value, int> = 0>
+        auto make_storage(U const &arg) const {
+            return builder<T>().initializer(arg).build();
+        }
+
+        template <class T = float_type, class U, std::enable_if_t<std::is_convertible<U const &, T>::value, int> = 0>
+        auto make_storage(U const &arg) const {
+            return builder<T>().value(arg).build();
+        }
+
+        template <class T = float_type>
+        auto make_storage() const {
+            return builder<T>().build();
+        }
+
+        using storage_type =
+            decltype(storage::builder<storage_traits_t>.dimensions(0, 0, 0).template type<float_type>()());
+
+        template <class T = float_type, class U>
+        auto make_const_storage(U const &arg) const {
+            return make_storage<T const>(arg);
         }
 
       private:
@@ -140,7 +150,8 @@ namespace gridtools {
         template <class Expected, class Actual>
         void verify(
             Expected const &expected, Actual const &actual, double precision = default_precision<float_type>()) const {
-            EXPECT_TRUE(verifier{precision}.verify(make_grid(), expected, actual, halos<Expected>()));
+            EXPECT_TRUE(
+                gridtools::verify_data_store(expected, actual, halos<typename Actual::element_type>(), precision));
         }
     };
 } // namespace gridtools

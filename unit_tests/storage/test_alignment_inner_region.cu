@@ -8,4 +8,4 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "shallow_water_enhanced.cpp"
+#include "test_alignment_inner_region.cpp"

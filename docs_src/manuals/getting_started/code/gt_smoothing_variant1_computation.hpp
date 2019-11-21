@@ -1,7 +1,7 @@
-data_store_t phi(info);
-data_store_t phi_new(info);
-data_store_t lap(info);
-data_store_t laplap(info);
+auto phi = make_storage();
+auto phi_new = make_storage();
+auto lap = make_storage();
+auto laplap = make_storage();
 
 halo_descriptor boundary_i(halo_size, halo_size, halo_size, Ni - halo_size - 1, Ni);
 halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);

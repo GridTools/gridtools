@@ -7,269 +7,258 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
 #pragma once
 
-#include <array>
-#include <cassert>
-#include <functional>
 #include <memory>
 #include <string>
 #include <type_traits>
-#include <utility>
 
-#include "../common/gt_assert.hpp"
+#include "../common/array.hpp"
+#include "../common/defs.hpp"
 #include "../common/layout_map.hpp"
-#include "../meta/type_traits.hpp"
-#include "common/alignment.hpp"
-#include "common/definitions.hpp"
-#include "common/halo.hpp"
-#include "common/storage_info.hpp"
-#include "common/storage_interface.hpp"
+#include "data_view.hpp"
+#include "storage_info.hpp"
+#include "traits.hpp"
 
 namespace gridtools {
+    namespace storage {
 
-    /** \ingroup storage
-     * @{
-     */
+        struct uninitialized {};
 
-    namespace data_store_impl_ {
-        template <class Fun, class StorageInfo, class = std::make_index_sequence<StorageInfo::ndims>>
-        struct initializer_adapter_f;
+        namespace data_store_impl_ {
 
-        template <class Fun, class StorageInfo, size_t... Is>
-        struct initializer_adapter_f<Fun, StorageInfo, std::index_sequence<Is...>> {
-            Fun const &m_fun;
-            StorageInfo const &m_info;
-
-            decltype(auto) operator()(int i) const {
-                auto indices = m_info.indices(i);
-                return m_fun(indices[Is]...);
+            inline constexpr int gcd(size_t a, size_t b) {
+                if (b == 0)
+                    return a;
+                return gcd(b, a % b);
             }
+
+            template <class Traits, class T, size_t N, class Id>
+            class base {
+                static constexpr size_t byte_alignment = traits::alignment<Traits>;
+                static_assert(byte_alignment > 0, GT_INTERNAL_ERROR);
+
+                static constexpr size_t alignment = byte_alignment / gcd(sizeof(T), byte_alignment);
+
+                using mutable_data_t = std::remove_const_t<T>;
+
+                std::string m_name;
+                storage_info<N> m_info;
+                traits::target_ptr_type<Traits, mutable_data_t> m_target_ptr_holder;
+                mutable_data_t *m_target_ptr;
+
+              public:
+                using storage_info_t = storage_info<N>;
+                using layout_t = traits::layout_type<Traits, N>;
+                using data_t = T;
+                static constexpr size_t ndims = N;
+
+                using kind_t = meta::list<layout_t,
+                    meta::if_c<(layout_t::unmasked_length > 0), Id, void>,
+                    meta::if_c<(layout_t::unmasked_length > 1), std::integral_constant<size_t, alignment>, void>>;
+
+                std::string const &name() const { return m_name; }
+                storage_info_t const &info() const { return m_info; }
+                decltype(auto) lengths() const { return m_info.lengths(); }
+                decltype(auto) strides() const { return m_info.strides(); }
+                auto length() const { return m_info.length(); }
+
+              protected:
+                base(std::string name, array<uint_t, N> const &lengths, array<int, N> const &halos)
+                    : m_name(std::move(name)), m_info(layout_t(), alignment, lengths),
+                      m_target_ptr_holder(traits::allocate<Traits, mutable_data_t>(m_info.length() + alignment)) {
+                    auto offset_to_align = m_info.index(halos);
+                    auto byte_offset = offset_to_align * sizeof(T);
+                    auto address_to_align = reinterpret_cast<std::uintptr_t>(m_target_ptr_holder.get()) + byte_offset;
+                    m_target_ptr = reinterpret_cast<mutable_data_t *>(
+                        (address_to_align + byte_alignment - 1) / byte_alignment * byte_alignment - byte_offset);
+                }
+
+                auto raw_target_ptr() const { return m_target_ptr; }
+            };
+
+            template <class Traits,
+                class T,
+                size_t N,
+                class Id,
+                bool = std::is_const<T>::value,
+                bool = traits::is_host_referenceable<Traits>>
+            class data_store_impl;
+
+            template <class Traits, class T, size_t N, class Id>
+            class data_store_impl<Traits, T, N, Id, false, false> : public base<Traits, T, N, Id> {
+                enum state { synced, invalid_host, invalid_target };
+                state m_state;
+                std::unique_ptr<T[]> m_host_ptr;
+
+                void update_target() {
+                    if (m_state != invalid_target)
+                        return;
+                    traits::update_target<Traits>(this->raw_target_ptr(), m_host_ptr.get(), this->info().length());
+                    m_state = synced;
+                }
+
+                void update_host() {
+                    if (m_state != invalid_host)
+                        return;
+                    traits::update_host<Traits>(m_host_ptr.get(), this->raw_target_ptr(), this->info().length());
+                    m_state = synced;
+                }
+
+              public:
+                data_store_impl(std::string name,
+                    array<uint_t, N> const &lengths,
+                    array<int, N> const &halos,
+                    uninitialized const &)
+                    : data_store_impl::base(std::move(name), lengths, halos), m_state(synced),
+                      m_host_ptr(std::make_unique<T[]>(this->info().length())) {}
+
+                template <class Initializer>
+                data_store_impl(std::string name,
+                    array<uint_t, N> const &lengths,
+                    array<int, N> const &halos,
+                    Initializer const &initializer)
+                    : data_store_impl::base(std::move(name), lengths, halos), m_state(invalid_target) {
+                    initializer(m_host_ptr.get(), typename data_store_impl::layout_t(), this->info());
+                }
+
+                T *get_target_ptr() {
+                    update_target();
+                    m_state = invalid_host;
+                    return this->raw_target_ptr();
+                }
+
+                T const *get_const_target_ptr() {
+                    update_target();
+                    return this->raw_target_ptr();
+                }
+
+                T *get_host_ptr() {
+                    update_host();
+                    m_state = invalid_target;
+                    return m_host_ptr.get();
+                }
+
+                T const *get_const_host_ptr() {
+                    update_host();
+                    return m_host_ptr.get();
+                }
+
+                auto host_view() { return make_host_view(get_host_ptr(), this->info()); }
+                auto const_host_view() { return make_host_view(get_const_host_ptr(), this->info()); }
+
+                auto target_view() {
+                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
+                        get_target_ptr(), this->info());
+                }
+                auto const_target_view() {
+                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
+                        get_const_target_ptr(), this->info());
+                }
+            };
+
+            template <class Traits, class T, size_t N, class Id>
+            class data_store_impl<Traits, T, N, Id, false, true> : public base<Traits, T, N, Id> {
+              public:
+                data_store_impl(std::string name,
+                    array<uint_t, N> const &lengths,
+                    array<int, N> const &halos,
+                    uninitialized const &)
+                    : data_store_impl::base(std::move(name), lengths, halos) {}
+
+                template <class Initializer>
+                data_store_impl(std::string name,
+                    array<uint_t, N> const &lengths,
+                    array<int, N> const &halos,
+                    Initializer const &initializer)
+                    : data_store_impl::base(std::move(name), lengths, halos) {
+                    initializer(this->raw_target_ptr(), typename data_store_impl::layout_t(), this->info());
+                }
+
+                T *get_target_ptr() const { return this->raw_target_ptr(); }
+                T const *get_const_target_ptr() const { return this->raw_target_ptr(); }
+
+                auto target_view() const {
+                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
+                        get_target_ptr(), this->info());
+                }
+                auto const_target_view() const {
+                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
+                        get_const_target_ptr(), this->info());
+                }
+
+                T *get_host_ptr() { return get_target_ptr(); }
+                T const *get_const_host_ptr() { return get_const_target_ptr(); }
+                auto host_view() const { return target_view(); }
+                auto const_host_view() const { return const_target_view(); }
+            };
+
+            template <class Traits, class T, size_t N, class Id, bool IsHostRefrenceable>
+            class data_store_impl<Traits, T const, N, Id, true, IsHostRefrenceable>
+                : public base<Traits, T const, N, Id> {
+
+                template <class>
+                static constexpr bool is_host_refrenceable = IsHostRefrenceable;
+
+                template <class Initializer, std::enable_if_t<!is_host_refrenceable<Initializer>, int> = 0>
+                void init(Initializer const &initializer) {
+                    auto host_ptr = std::make_unique<T[]>(this->info().length());
+                    initializer(host_ptr.get(), typename data_store_impl::layout_t(), this->info());
+                    traits::update_target<Traits>(this->raw_target_ptr(), host_ptr.get(), this->info().length());
+                }
+
+                template <class Initializer, std::enable_if_t<is_host_refrenceable<Initializer>, int> = 0>
+                void init(Initializer const &initializer) {
+                    initializer(this->raw_target_ptr(), typename data_store_impl::layout_t(), this->info());
+                }
+
+              public:
+                data_store_impl(std::string name,
+                    array<uint_t, N> const &lengths,
+                    array<int, N> const &halos,
+                    uninitialized const &) = delete;
+
+                template <class Initializer>
+                data_store_impl(std::string name,
+                    array<uint_t, N> const &lengths,
+                    array<int, N> const &halos,
+                    Initializer const &initializer)
+                    : base<Traits, T const, N, Id>(std::move(name), lengths, halos) {
+                    init(initializer);
+                }
+                T const *get_target_ptr() const { return this->raw_target_ptr(); }
+                auto target_view() const {
+                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
+                        get_target_ptr(), this->info());
+                }
+                auto get_const_target_ptr() const { return get_target_ptr(); }
+                auto const_target_view() const { return target_view(); }
+            };
+        } // namespace data_store_impl_
+
+        template <class Traits, class T, size_t N, class Id>
+        struct data_store : data_store_impl_::data_store_impl<Traits, T, N, Id> {
+            using data_store_impl_::data_store_impl<Traits, T, N, Id>::data_store_impl;
         };
-    } // namespace data_store_impl_
 
-    /** \ingroup storage
-     * @brief data_store implementation. This struct wraps storage and storage information in one class.
-     * It can be copied and passed around without replicating the data. Automatic cleanup is provided when
-     * the last data_store that points to the data is destroyed.
-     * @tparam Storage storage type that should be used (e.g., cuda_storage)
-     * @tparam StorageInfo storage info type that should be used (e.g., cuda_storage_info)
-     */
-    template <class Storage, class StorageInfo>
-    class data_store;
+        template <class>
+        struct is_data_store : std::false_type {};
 
-    template <typename Storage, uint_t Id, int... LayoutArgs, uint_t... Halos, uint_t Align, class Indices>
-    class data_store<Storage, storage_info<Id, layout_map<LayoutArgs...>, halo<Halos...>, alignment<Align>, Indices>> {
-      public:
-        using storage_info_t = storage_info<Id, layout_map<LayoutArgs...>, halo<Halos...>, alignment<Align>, Indices>;
+        template <class Traits, class T, size_t N, class Id>
+        struct is_data_store<data_store<Traits, T, N, Id>> : std::true_type {};
 
-      private:
-        static_assert(is_storage<Storage>::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage type"));
-        static_assert(std::is_trivially_copyable<typename Storage::data_t>::value,
-            "data_store only supports trivially copyable types.");
+        template <class>
+        struct is_data_store_ptr : std::false_type {};
 
-        struct impl {
-            storage_info_t m_storage_info;
-            Storage m_storage;
-            std::string m_name;
+        template <class Traits, class T, size_t N, class Id>
+        struct is_data_store_ptr<std::shared_ptr<data_store<Traits, T, N, Id>>> : std::true_type {};
 
-            impl(storage_info_t const &info, std::string name)
-                : m_storage_info(info), m_storage(info.length(), info.index(Halos...), alignment<Align>()),
-                  m_name(std::move(name)) {}
-
-            impl(storage_info_t const &info, typename Storage::data_t *ptr, ownership own, std::string name)
-                : m_storage_info(info), m_storage(info.length(), ptr, own), m_name(std::move(name)) {}
-        };
-
-        std::shared_ptr<impl> m_impl;
-
-        template <class Initializer>
-        data_store(std::true_type, storage_info_t const &info, Initializer &&initializer, std::string name)
-            : data_store(info, std::move(name)) {
-            int length = info.length();
-            auto *dst = storage().get_cpu_ptr();
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-            for (int i = 0; i < length; ++i)
-                dst[i] = initializer(i);
-            storage().clone_to_device();
+        template <class Traits, class T, class Id, size_t N, class Initializer>
+        auto make_data_store(std::string name,
+            array<uint_t, N> const &lengths,
+            array<int, N> const &halos,
+            Initializer const &initializer) {
+            return std::make_shared<data_store<Traits, T, N, Id>>(std::move(name), lengths, halos, initializer);
         }
-
-      public:
-        using data_t = typename Storage::data_t;
-        using storage_t = Storage;
-
-        data_store(storage_info_t const &info) : data_store(info, "") {}
-
-        // binary ctors
-
-        /**
-         * @brief data_store constructor. This constructor triggers an allocation of the required space.
-         * @param info storage_info instance
-         * @param name Human readable name for the data_store
-         */
-        data_store(storage_info_t const &info, std::string name)
-            : m_impl(std::make_shared<impl>(info, std::move(name))) {}
-
-        data_store(storage_info_t const &info, data_t initializer) : data_store(info, initializer, "") {}
-
-        template <class Initializer,
-            std::enable_if_t<!std::is_convertible<Initializer &&, data_t>::value &&
-                                 !std::is_convertible<Initializer &&, data_t *>::value &&
-                                 !std::is_convertible<Initializer &&, std::string>::value,
-                int> = 0>
-        data_store(storage_info_t const &info, Initializer &&initializer)
-            : data_store(info, std::forward<Initializer>(initializer), "") {}
-
-        template <class T, std::enable_if_t<std::is_same<data_t *, T>::value, int> = 0>
-        data_store(storage_info_t const &info, T ptr) : data_store(info, ptr, ownership::external_cpu, "") {}
-
-        // trinary ctors
-
-        /**
-         * @brief data_store constructor. This constructor triggers an allocation of the required space.
-         * Additionally the data is initialized to the given value.
-         * @param info storage info instance
-         * @param initializer initialization value
-         * @param name Human readable name for the data_store
-         */
-        data_store(storage_info_t const &info, data_t initializer, std::string name)
-            : data_store(std::true_type(), info, [initializer](int) { return initializer; }, std::move(name)) {}
-
-        /**
-         * @brief data_store constructor. This constructor triggers an allocation of the required space.
-         * Additionally the data is initialized with the given value. Current i, j, k, etc. is passed
-         * to the lambda.
-         * @param info storage info instance
-         * @param initializer initialization lambda
-         * @param name Human readable name for the data_store
-         */
-        template <class Initializer, std::enable_if_t<!std::is_convertible<Initializer, data_t>::value, int> = 0>
-        data_store(storage_info_t const &info, Initializer &&initializer, std::string name)
-            : data_store(std::true_type(),
-                  info,
-                  data_store_impl_::initializer_adapter_f<Initializer, storage_info_t>{initializer, info},
-                  std::move(name)) {}
-
-        data_store(storage_info_t const &info, data_t *ptr, ownership own) : data_store(info, ptr, own, "") {}
-
-        // ctor from four args
-
-        /**
-         * @brief data_store constructor. This constructor triggers an allocation of the required space.
-         * Either the host or the device pointer is external. This means the storage does not own
-         * both sides. This is used when external data sources are used (e.g., Fortran or Python).
-         * @param info storage info instance
-         * @param external_ptr the external pointer
-         * @param own ownership information
-         * @param name Human readable name for the data_store
-         */
-        data_store(storage_info_t const &info, data_t *ptr, ownership own, std::string name)
-            : m_impl(std::make_shared<impl>(info, ptr, own, std::move(name))) {}
-
-        void swap(data_store &other) {
-            using std::swap;
-            swap(m_impl, other.m_impl);
-        }
-
-        friend void swap(data_store &a, data_store &b) { a.swap(b); };
-
-        /**
-         * @brief function to retrieve the size of a dimension (e.g., I, J, or K).
-         *
-         * @tparam Coord queried coordinate
-         * @return size of dimension (including halos but not padding)
-         */
-        template <int Dim>
-        auto length() const {
-            return info().template length<Dim>();
-        }
-
-        /**
-         * @brief member function to retrieve the total size (dimensions, halos, padding).
-         * @return total size
-         */
-        auto length() const { return info().length(); }
-
-        /**
-         * @brief forward total_lengths() from storage_info
-         */
-        decltype(auto) lengths() const { return info().lengths(); }
-
-        /**
-         * @brief forward strides() from storage_info
-         */
-        decltype(auto) strides() const { return info().strides(); }
-
-        /**
-         * @brief retrieve the underlying storage_info instance
-         * @return storage_info instance
-         */
-        storage_info_t const &info() const {
-            assert(m_impl);
-            return m_impl->m_storage_info;
-        }
-
-        /**
-         * @brief retrieve a reference to the underlying storage instance.
-         */
-        Storage &storage() const {
-            assert(m_impl);
-            return m_impl->m_storage;
-        }
-
-        /**
-         * @brief clone underlying storage to device
-         */
-        void clone_to_device() const { storage().clone_to_device(); }
-
-        /**
-         * @brief clone underlying storage from device
-         */
-        void clone_from_device() const { storage().clone_from_device(); }
-
-        /**
-         * @brief synchronize underlying storage
-         */
-        void sync() const { storage().sync(); }
-
-        /**
-         * @brief reactivate all device read write views to storage
-         */
-        void reactivate_target_write_views() const { storage().reactivate_target_write_views(); }
-
-        /**
-         * @brief reactivate all host read write views to storage
-         */
-        void reactivate_host_write_views() const { storage().reactivate_host_write_views(); }
-
-        bool device_needs_update() const { return storage().device_needs_update_impl(); }
-
-        bool host_needs_update() const { return storage().host_needs_update_impl(); }
-
-        /**
-         * @brief retrieve the name of the storage
-         * @return name of the data_store
-         */
-        std::string const &name() const {
-            assert(m_impl);
-            return m_impl->m_name;
-        }
-
-        friend bool operator==(const data_store &lhs, const data_store &rhs) { return lhs.m_impl == rhs.m_impl; }
-        friend bool operator!=(const data_store &lhs, const data_store &rhs) { return !(lhs == rhs); }
-    }; // namespace gridtools
-
-    /// @brief simple metafunction to check if a type is a data_store
-    template <typename T>
-    struct is_data_store : std::false_type {};
-
-    template <typename S, typename SI>
-    struct is_data_store<data_store<S, SI>> : std::true_type {};
-
-    /**
-     * @}
-     */
+    } // namespace storage
 } // namespace gridtools

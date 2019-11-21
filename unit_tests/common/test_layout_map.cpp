@@ -30,17 +30,11 @@ TEST(LayoutMap, SimpleLayout) {
     static_assert(layout1::unmasked_length == 3, "");
 
     // test find method
-    static_assert(layout1::find<0>() == 0, "");
-    static_assert(layout1::find<1>() == 1, "");
-    static_assert(layout1::find<2>() == 2, "");
     static_assert(layout1::find(0) == 0, "");
     static_assert(layout1::find(1) == 1, "");
     static_assert(layout1::find(2) == 2, "");
 
     // test at method
-    static_assert(layout1::at<0>() == 0, "");
-    static_assert(layout1::at<1>() == 1, "");
-    static_assert(layout1::at<2>() == 2, "");
     static_assert(layout1::at(0) == 0, "");
     static_assert(layout1::at(1) == 1, "");
     static_assert(layout1::at(2) == 2, "");
@@ -54,20 +48,12 @@ TEST(LayoutMap, ExtendedLayout) {
     static_assert(layout2::unmasked_length == 4, "");
 
     // test find method
-    static_assert(layout2::find<0>() == 3, "");
-    static_assert(layout2::find<1>() == 2, "");
-    static_assert(layout2::find<2>() == 1, "");
-    static_assert(layout2::find<3>() == 0, "");
     static_assert(layout2::find(0) == 3, "");
     static_assert(layout2::find(1) == 2, "");
     static_assert(layout2::find(2) == 1, "");
     static_assert(layout2::find(3) == 0, "");
 
     // test at method
-    static_assert(layout2::at<0>() == 3, "");
-    static_assert(layout2::at<1>() == 2, "");
-    static_assert(layout2::at<2>() == 1, "");
-    static_assert(layout2::at<3>() == 0, "");
     static_assert(layout2::at(0) == 3, "");
     static_assert(layout2::at(1) == 2, "");
     static_assert(layout2::at(2) == 1, "");
@@ -82,18 +68,11 @@ TEST(LayoutMap, MaskedLayout) {
     static_assert(layout3::unmasked_length == 3, "");
 
     // test find method
-    static_assert(layout3::find<0>() == 3, "");
-    static_assert(layout3::find<1>() == 2, "");
-    static_assert(layout3::find<2>() == 0, "");
     static_assert(layout3::find(0) == 3, "");
     static_assert(layout3::find(1) == 2, "");
     static_assert(layout3::find(2) == 0, "");
 
     // test at method
-    static_assert(layout3::at<0>() == 2, "");
-    static_assert(layout3::at<1>() == -1, "");
-    static_assert(layout3::at<2>() == 1, "");
-    static_assert(layout3::at<3>() == 0, "");
     static_assert(layout3::at(0) == 2, "");
     static_assert(layout3::at(1) == -1, "");
     static_assert(layout3::at(2) == 1, "");
@@ -142,7 +121,3 @@ TEST(LayoutMap, Extender) {
     typedef typename extend_layout_map<special_layout, 2, insert_location::pre>::type ext_special_layout_post_2;
     ASSERT_TYPE_EQ<layout_map<0, 1, 4, 3, -1, 2>, ext_special_layout_post_2>();
 }
-
-static_assert(layout_map<0, 1, 2, 3>::max() == 3, " ");
-static_assert(layout_map<0, 1, -1, 2>::max() == 2, " ");
-static_assert(layout_map<0, 1, -1, -1>::max() == 1, " ");

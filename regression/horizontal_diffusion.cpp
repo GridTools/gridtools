@@ -73,29 +73,25 @@ struct out_function {
     }
 };
 
+const auto spec = [](auto in, auto coeff, auto out) {
+    GT_DECLARE_TMP(float_type, lap, flx, fly);
+    return execute_parallel()
+        .ij_cached(lap, flx, fly)
+        .stage(lap_function(), lap, in)
+        .stage(flx_function(), flx, in, lap)
+        .stage(fly_function(), fly, in, lap)
+        .stage(out_function(), out, in, flx, fly, coeff);
+};
+
 using horizontal_diffusion = regression_fixture<2>;
 
 TEST_F(horizontal_diffusion, test) {
     horizontal_diffusion_repository repo(d1(), d2(), d3());
     auto out = make_storage();
-    auto comp = [grid = make_grid(), in = make_storage(repo.in), coeff = make_storage(repo.coeff), &out] {
-        run(
-            [](auto in, auto coeff, auto out) {
-                GT_DECLARE_TMP(float_type, lap, flx, fly);
-                return execute_parallel()
-                    .ij_cached(lap, flx, fly)
-                    .stage(lap_function(), lap, in)
-                    .stage(flx_function(), flx, in, lap)
-                    .stage(fly_function(), fly, in, lap)
-                    .stage(out_function(), out, in, flx, fly, coeff);
-            },
-            backend_t(),
-            grid,
-            in,
-            coeff,
-            out);
+    auto comp = [grid = make_grid(), in = make_const_storage(repo.in), coeff = make_const_storage(repo.coeff), &out] {
+        run(spec, backend_t(), grid, in, coeff, out);
     };
     comp();
-    verify(make_storage(repo.out), out);
+    verify(repo.out, out);
     benchmark(comp);
 }

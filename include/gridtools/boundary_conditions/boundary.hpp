@@ -66,7 +66,7 @@ namespace gridtools {
 
         template <typename... DataFields>
         void apply(DataFields &... data_fields) const {
-            bc_apply.apply(make_target_view(data_fields)...);
+            bc_apply.apply(data_fields->target_view()...);
         }
     };
 

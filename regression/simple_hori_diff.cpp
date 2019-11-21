@@ -69,19 +69,18 @@ const auto hori_diff = [](auto coeff, auto in, auto out, auto crlato, auto crlat
 using simple_hori_diff = regression_fixture<2>;
 
 TEST_F(simple_hori_diff, test) {
-    auto out = make_storage();
-
+    const auto j_builder = builder().selector<0, 1, 0>();
     horizontal_diffusion_repository repo(d1(), d2(), d3());
-
+    auto out = make_storage();
     auto comp = [grid = make_grid(),
                     coeff = make_storage(repo.coeff),
                     in = make_storage(repo.in),
                     &out,
-                    crlato = make_storage<j_storage_type>(repo.crlato),
-                    crlatu = make_storage<j_storage_type>(repo.crlatu)] {
+                    crlato = j_builder.initializer(repo.crlato)(),
+                    crlatu = j_builder.initializer(repo.crlatu)()] {
         run(hori_diff, backend_t(), grid, coeff, in, out, crlato, crlatu);
     };
     comp();
-    verify(make_storage(repo.out_simple), out);
+    verify(repo.out_simple, out);
     benchmark(comp);
 }

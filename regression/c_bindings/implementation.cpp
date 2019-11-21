@@ -8,57 +8,55 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <functional>
-#include <iostream>
-#include <typeinfo>
-
 #include <cpp_bindgen/export.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/storage/builder.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace {
-
     using namespace gridtools;
 
     struct copy_functor {
-        using in = accessor<0, intent::in, extent<>, 3>;
-        using out = accessor<1, intent::inout, extent<>, 3>;
+        using in = in_accessor<0>;
+        using out = inout_accessor<1>;
         using param_list = make_param_list<in, out>;
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval) {
-            eval(out{}) = eval(in{});
+        template <class Eval>
+        GT_FUNCTION static void apply(Eval &&eval) {
+            eval(out()) = eval(in());
         }
     };
 
-    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
-
-    template <class T>
-    using generic_data_store_t = storage_traits<backend_t>::data_store_t<T, storage_info_t>;
-
-    using data_store_t = generic_data_store_t<float_type>;
-
-    template <class T>
-    generic_data_store_t<T> make_data_store(uint_t x, uint_t y, uint_t z, T *ptr) {
-        return generic_data_store_t<T>(storage_info_t(x, y, z), ptr);
+    auto make_data_store(uint_t x, uint_t y, uint_t z) {
+        return storage::builder<storage_traits_t>.template type<float_type>().dimensions(x, y, z)();
     }
-    BINDGEN_EXPORT_GENERIC_BINDING(4, generic_create_data_store, make_data_store, (double)(float));
-    BINDGEN_EXPORT_BINDING_4(create_data_store, make_data_store<float_type>);
+    BINDGEN_EXPORT_BINDING_3(create_data_store, make_data_store);
 
-    BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_1(sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));
+    using data_store_t = decltype(make_data_store(0, 0, 0));
 
-    auto make_grid(data_store_t data_store) {
-        auto dims = data_store.lengths();
-        return gridtools::make_grid(dims[0], dims[1], dims[2]);
+    void run(data_store_t const &in, data_store_t const &out) {
+        auto lengths = out->lengths();
+        easy_run(copy_functor(), backend_t(), make_grid(lengths[0], lengths[1], lengths[2]), in, out);
     }
+    BINDGEN_EXPORT_BINDING_2(run_copy_stencil, run);
 
-    auto make_copy_stencil(data_store_t const &in, data_store_t const &out) {
-        return [=] { easy_run(copy_functor(), backend_t(), make_grid(out), in, out); };
+    void copy_to(data_store_t const &dst, float_type const *src) {
+        auto lengths = dst->lengths();
+        auto view = dst->host_view();
+        for (int i = 0; i < lengths[0]; ++i)
+            for (int j = 0; j < lengths[1]; ++j)
+                for (int k = 0; k < lengths[2]; ++k)
+                    view(i, j, k) = *(src++);
     }
-    BINDGEN_EXPORT_BINDING_2(create_copy_stencil, make_copy_stencil);
+    BINDGEN_EXPORT_BINDING_2(copy_to_data_store, copy_to);
 
-    using stencil_t = decltype(make_copy_stencil(std::declval<data_store_t>(), std::declval<data_store_t>()));
-
-    BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(stencil_t const &), [](auto &&f) { f(); });
+    void copy_from(data_store_t const &src, float_type *dst) {
+        auto lengths = src->lengths();
+        auto view = src->const_host_view();
+        for (int i = 0; i < lengths[0]; ++i)
+            for (int j = 0; j < lengths[1]; ++j)
+                for (int k = 0; k < lengths[2]; ++k)
+                    *(dst++) = view(i, j, k);
+    }
+    BINDGEN_EXPORT_BINDING_2(copy_from_data_store, copy_from);
 } // namespace

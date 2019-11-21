@@ -31,8 +31,8 @@ namespace gridtools {
     struct comm_traits {
         using proc_layout = layout_map<0, 1, 2>;
         using comm_arch_type = Arch;
-        using data_layout = typename StorageType::storage_info_t::layout_t;
-        using value_type = typename StorageType::data_t;
+        using data_layout = typename StorageType::element_type::layout_t;
+        using value_type = typename StorageType::element_type::data_t;
     };
 
     /** @} */

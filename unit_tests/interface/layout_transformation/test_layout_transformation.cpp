@@ -9,6 +9,7 @@
  */
 
 #include <gridtools/common/array.hpp>
+#include <gridtools/common/hypercube_iterator.hpp>
 #include <gridtools/interface/layout_transformation/layout_transformation.hpp>
 #include <gtest/gtest.h>
 
@@ -179,21 +180,4 @@ TEST(layout_transformation, 1D_layout_with_stride2) {
 
     delete[] src;
     delete[] dst;
-}
-
-TEST(layout_transformation, one_dimension_too_many) {
-    std::vector<uint_t> dims(GT_TRANSFORM_MAX_DIM + 1);
-    std::vector<uint_t> src_strides(GT_TRANSFORM_MAX_DIM + 1);
-    std::vector<uint_t> dst_strides(GT_TRANSFORM_MAX_DIM + 1);
-
-    Index src_index(dims, src_strides);
-    double *src = new double;
-
-    Index dst_index(dims, dst_strides);
-    double *dst = new double;
-
-    ASSERT_ANY_THROW(gridtools::interface::transform(dst, src, dims, dst_strides, src_strides));
-
-    delete src;
-    delete dst;
 }

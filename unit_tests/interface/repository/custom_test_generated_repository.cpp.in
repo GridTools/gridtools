@@ -8,24 +8,23 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <boost/variant/apply_visitor.hpp>
 #include <gtest/gtest.h>
 
-#include <gridtools/interface/repository/repository.hpp>
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/storage/builder.hpp>
 #include <gridtools/tools/backend_select.hpp>
+#include <gridtools/interface/repository.hpp>
 
 using namespace gridtools;
 
-using IJKStorageInfo = typename storage_traits<backend::x86>::storage_info_t<0, 3>;
-using IJKDataStore = typename storage_traits<backend::x86>::data_store_t<float_type, IJKStorageInfo>;
-using IJStorageInfo = typename storage_traits<backend::x86>::storage_info_t<1, 2>;
-using IJDataStore = typename storage_traits<backend::x86>::data_store_t<float_type, IJStorageInfo>;
+const auto builder = storage::builder<storage_traits_t>.type<float_type>();
+
+auto ijk_builder(int i, int j, int k) { return builder.dimensions(i, j, k); }
+auto ij_builder(int i, int j, int) { return builder.dimensions(i, j); }
 
 // We include a repository file which is generated from preprocessor output
 #include "@GENERATED_REPOSITORY@"
 
 TEST(generated_repository, simple_tests) {
     my_repository repo(3, 4, 5);
-    ASSERT_EQ(3, repo.u().total_length<0>());
+    EXPECT_EQ(3, repo.u->lengths()[0]);
 }

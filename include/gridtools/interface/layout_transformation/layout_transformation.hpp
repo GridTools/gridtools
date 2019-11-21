@@ -10,29 +10,29 @@
 
 #pragma once
 
-#include <vector>
+#include <cassert>
 
-#include "../../common/cuda_is_ptr.hpp"
-#include "../../common/defs.hpp"
 #include "layout_transformation_impl_omp.hpp"
 
 #ifdef __CUDACC__
 
+#include "../../common/cuda_is_ptr.hpp"
 #include "layout_transformation_impl_cuda.hpp"
 
 namespace gridtools {
     namespace interface {
-        template <typename DataType>
-        void transform(DataType *dst,
-            DataType *src,
-            const std::vector<uint_t> &dims,
-            const std::vector<uint_t> &dst_strides,
-            const std::vector<uint_t> &src_strides) {
-            bool use_cuda = is_gpu_ptr(dst);
-            if (use_cuda != is_gpu_ptr(src))
-                throw std::runtime_error("transform(): source and destination pointers need to be from the same memory "
-                                         "space (both host or both gpu pointers)");
-            if (use_cuda)
+        template <class T, class Dims, class DstStrides, class SrcSrides>
+        void transform(T *dst,
+            T const *__restrict__ src,
+            Dims const &dims,
+            DstStrides const &dst_strides,
+            SrcSrides const &src_strides) {
+            assert(dst);
+            assert(src);
+            assert(dims.size() == dst_strides.size());
+            assert(src_strides.size() == dst_strides.size());
+            assert(is_gpu_ptr(dst) == is_gpu_ptr(src));
+            if (is_gpu_ptr(dst))
                 impl::transform_cuda_loop(dst, src, dims, dst_strides, src_strides);
             else
                 impl::transform_openmp_loop(dst, src, dims, dst_strides, src_strides);
@@ -44,14 +44,16 @@ namespace gridtools {
 
 namespace gridtools {
     namespace interface {
-        template <typename DataType>
-        void transform(DataType *dst,
-            DataType *src,
-            const std::vector<uint_t> &dims,
-            const std::vector<uint_t> &dst_strides,
-            const std::vector<uint_t> &src_strides) {
-            if (is_gpu_ptr(dst) || is_gpu_ptr(src))
-                throw std::runtime_error("transform(): source and destination pointers need to be in the host space");
+        template <class T, class Dims, class DstStrides, class SrcSrides>
+        void transform(T *dst,
+            T const *__restrict__ src,
+            Dims const &dims,
+            DstStrides const &dst_strides,
+            SrcSrides const &src_strides) {
+            assert(dst);
+            assert(src);
+            assert(dims.size() == dst_strides.size());
+            assert(src_strides.size() == dst_strides.size());
             impl::transform_openmp_loop(dst, src, dims, dst_strides, src_strides);
         }
     } // namespace interface

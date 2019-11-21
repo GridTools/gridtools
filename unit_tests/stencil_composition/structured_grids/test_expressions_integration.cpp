@@ -104,5 +104,5 @@ TEST_F(test_expressions, integration_test) {
         make_global_parameter<float_type>(3),
         out,
         positional<dim::i>());
-    verify(make_storage(0.), out);
+    verify(0, out);
 }

@@ -183,6 +183,6 @@ TEST_F(vertical_advection_dycore, test) {
         run(vertical_advection, modified_backend_t(), grid, utens_stage, u_stage, wcon, u_pos, utens, dtr_stage);
     };
     comp();
-    verify(make_storage(repo.utens_stage_out), utens_stage);
+    verify(repo.utens_stage_out, utens_stage);
     benchmark(comp);
 }

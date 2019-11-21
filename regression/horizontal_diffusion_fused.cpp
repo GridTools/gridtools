@@ -94,6 +94,6 @@ TEST_F(horizontal_diffusion_fused, test) {
     };
 
     comp();
-    verify(make_storage(repo.out), out);
+    verify(repo.out, out);
     benchmark(comp);
 }

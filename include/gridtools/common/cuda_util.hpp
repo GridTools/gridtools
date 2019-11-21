@@ -37,19 +37,26 @@ namespace gridtools {
                 throw std::runtime_error(strm.str());
             }
 
-            template <class T>
             struct cuda_free {
-                void operator()(T *ptr) const { cudaFree(ptr); }
+                void operator()(void *ptr) const { cudaFree(ptr); }
             };
+
         } // namespace _impl
 
         template <class T>
-        using unique_cuda_ptr = std::unique_ptr<T, _impl::cuda_free<T>>;
+        using unique_cuda_ptr = std::unique_ptr<T, _impl::cuda_free>;
 
-        template <class T>
-        unique_cuda_ptr<T> cuda_malloc(size_t size = 1) {
+        template <class Arr, class T = std::remove_extent_t<Arr>>
+        unique_cuda_ptr<Arr> cuda_malloc(size_t size) {
             T *ptr;
             GT_CUDA_CHECK(cudaMalloc(&ptr, size * sizeof(T)));
+            return unique_cuda_ptr<Arr>{ptr};
+        }
+
+        template <class T, std::enable_if_t<!std::is_array<T>::value, int> = 0>
+        unique_cuda_ptr<T> cuda_malloc() {
+            T *ptr;
+            GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T)));
             return unique_cuda_ptr<T>{ptr};
         }
 

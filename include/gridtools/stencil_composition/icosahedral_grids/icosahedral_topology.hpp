@@ -13,14 +13,11 @@
 
 #include "../../common/array.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../meta/iseq_to_list.hpp"
 #include "../../meta/list_to_iseq.hpp"
 #include "../../meta/take.hpp"
-#include "../../storage/common/halo.hpp"
-#include "../../storage/storage_facility.hpp"
 #include "../location_type.hpp"
 #include "position_offset_type.hpp"
 

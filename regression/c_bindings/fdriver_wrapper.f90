@@ -18,16 +18,10 @@ program main
 
     in = initial()
 
-    stencil = create_copy_stencil(in, out)
-
-    call run_stencil(stencil)
-    call sync_data_store(in)
-    call sync_data_store(out)
+    call run_copy_functor(in, out)
 
     if (any(in /= initial())) stop 1
     if (any(out /= initial())) stop 1
-
-    call bindgen_release(stencil)
 
     print *, "It works!"
 

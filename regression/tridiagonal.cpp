@@ -86,10 +86,10 @@ TEST_F(tridiagonal, test) {
         },
         backend_t(),
         make_grid(),
-        make_storage(-1.),
-        make_storage(3.),
-        make_storage(1.),
-        make_storage([](int_t, int_t, int_t k) { return k == 0 ? 4. : k == 5 ? 2. : 3.; }),
+        make_storage(-1),
+        make_storage(3),
+        make_storage(1),
+        make_storage([](int, int, int k) { return k == 0 ? 4 : k == 5 ? 2 : 3; }),
         out);
-    verify(make_storage(1.), out);
+    verify(1, out);
 }

@@ -238,7 +238,7 @@ namespace gridtools {
 
         template <class Msses, class Backend, class Grid, class DataStores>
         void entry_point(Backend be, Grid const &grid, DataStores external_data_stores) {
-            auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char>);
+            auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char[]>);
             auto data_stores = hymap::concat(
                 cuda::block(be, std::move(external_data_stores)), make_temporaries<Msses>(be, grid, cuda_alloc));
             using const_keys_t = meta::transform<stage_matrix::get_key,

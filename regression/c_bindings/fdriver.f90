@@ -13,22 +13,20 @@ program main
     implicit none
     integer, parameter :: i = 9, j = 10, k = 11
     real(GT_FLOAT_PRECISION), dimension(i, j, k) :: in, out
-    type(c_ptr) in_handle, out_handle, stencil
+    type(c_ptr) in_handle, out_handle
 
     in = initial()
 
-    in_handle = generic_create_data_store(i, j, k, in(:,1,1))
-    out_handle = generic_create_data_store(i, j, k, out(:,1,1))
-    stencil = create_copy_stencil(in_handle, out_handle)
+    in_handle = create_data_store(i, j, k)
+    out_handle = create_data_store(i, j, k)
 
-    call run_stencil(stencil)
-    call sync_data_store(in_handle)
-    call sync_data_store(out_handle)
+    call copy_to_data_store(in_handle, in(:,1,1))
+    call run_copy_stencil(in_handle, out_handle)
+    call copy_from_data_store(out_handle, out(:,1,1))
 
     if (any(in /= initial())) stop 1
     if (any(out /= initial())) stop 1
 
-    call bindgen_release(stencil)
     call bindgen_release(out_handle)
     call bindgen_release(in_handle)
 

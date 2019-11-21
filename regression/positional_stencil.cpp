@@ -34,5 +34,5 @@ TEST_F(positional_stencil, test) {
     auto out = make_storage();
     easy_run(
         functor(), backend_t(), make_grid(), out, positional<dim::i>(), positional<dim::j>(), positional<dim::k>());
-    verify(make_storage([](int i, int j, int k) { return i + j + k; }), out);
+    verify([](int i, int j, int k) { return i + j + k; }, out);
 }

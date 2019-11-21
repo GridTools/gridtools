@@ -20,7 +20,7 @@ namespace gridtools {
 
             template <size_t I, class Sizes>
             struct stride_type {
-                using type = decltype(tuple_util::element<I - 1, Sizes>{} * typename stride_type<I - 1, Sizes>::type{});
+                using type = decltype(tuple_util::element<I - 1, Sizes>() * typename stride_type<I - 1, Sizes>::type());
             };
 
             template <class Sizes>

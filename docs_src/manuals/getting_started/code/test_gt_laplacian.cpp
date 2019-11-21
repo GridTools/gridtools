@@ -1,21 +1,22 @@
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/storage/builder.hpp>
 
 using namespace gridtools;
 using namespace gridtools::expressions;
 
 #if defined(__CUDACC__) || defined(__HIPCC__)
+#include <gridtools/storage/cuda.hpp>
 using backend_t = backend::cuda;
+using storage_traits_t = storage::cuda;
 #else
+#include <gridtools/storage/mc.hpp>
 using backend_t = backend::mc;
+using storage_traits_t = storage::mc;
 #endif
 
-using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3, halo<1, 1, 0>>;
-using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
-
-constexpr static gridtools::dimension<1> i;
-constexpr static gridtools::dimension<2> j;
-constexpr static gridtools::dimension<3> k;
+constexpr dimension<1> i;
+constexpr dimension<2> j;
+constexpr dimension<3> k;
 
 struct lap_function {
     using in = in_accessor<0, extent<-1, 1, -1, 1>>;
@@ -38,10 +39,10 @@ int main() {
     uint_t Nj = 12;
     uint_t Nk = 20;
 
-    storage_info_t info(Ni, Nj, Nk);
+    auto builder = storage::builder<storage_traits_t>.type<double>().dimensions(Ni, Nj, Nk).halos(1, 1, 0).value(-1);
 
-    data_store_t phi(info, -1., "phi");
-    data_store_t lap(info, -1., "lap");
+    auto phi = builder.name("phi")();
+    auto lap = builder.name("lap")();
 
     int halo_size = 1;
     halo_descriptor boundary_i(halo_size, halo_size, halo_size, Ni - halo_size - 1, Ni);
@@ -53,4 +54,4 @@ int main() {
         my_grid,
         phi,
         lap);
-} // end marker
+}

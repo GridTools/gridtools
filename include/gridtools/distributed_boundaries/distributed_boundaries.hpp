@@ -243,7 +243,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, std::integer_sequence<uint_t, Ids...>) {
-            m_he.pack(advanced_get_raw_pointer_of(make_target_view(std::get<Ids>(stores)))...);
+            m_he.pack(std::get<Ids>(stores)->get_target_ptr()...);
         }
 
         template <typename Stores>
@@ -251,7 +251,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_unpack(Stores const &stores, std::integer_sequence<uint_t, Ids...>) {
-            m_he.unpack(advanced_get_raw_pointer_of(make_target_view(std::get<Ids>(stores)))...);
+            m_he.unpack(std::get<Ids>(stores)->get_target_ptr()...);
         }
 
         template <typename Stores>

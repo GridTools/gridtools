@@ -38,10 +38,10 @@ TEST_F(advection_pdbott_prepare_tracers, test) {
 
     for (size_t i = 0; i < 11; ++i) {
         out.push_back(make_storage());
-        in.push_back(make_storage(1. * i));
+        in.push_back(make_storage(i));
     }
 
-    auto comp = [grid = make_grid(), &in, &out, rho = make_storage(1.1)] {
+    auto comp = [grid = make_grid(), &in, &out, rho = make_const_storage(1.1)] {
         expandable_run<2>(
             [](auto out, auto in, auto rho) { return execute_parallel().stage(prepare_tracers(), out, in, rho); },
             backend_t(),
@@ -53,7 +53,7 @@ TEST_F(advection_pdbott_prepare_tracers, test) {
 
     comp();
     for (size_t i = 0; i != out.size(); ++i)
-        verify(make_storage([i](int_t, int_t, int_t) { return 1.1 * i; }), out[i]);
+        verify([i](int, int, int) { return 1.1 * i; }, out[i]);
 
     benchmark(comp);
 }

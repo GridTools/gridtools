@@ -188,7 +188,7 @@ struct horizontal_diffusion_functions : regression_fixture<2> {
             make_storage(repo.coeff),
             make_storage(repo.in),
             out);
-        verify(make_storage(repo.out), out);
+        verify(repo.out, out);
     }
 };
 

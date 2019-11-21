@@ -54,9 +54,9 @@ using expandable_parameters_single_kernel = regression_fixture<>;
 
 TEST_F(expandable_parameters_single_kernel, test) {
     std::vector<storage_type> out = {
-        make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
+        make_storage(1), make_storage(2), make_storage(3), make_storage(4), make_storage(5)};
     std::vector<storage_type> in = {
-        make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
+        make_storage(-1), make_storage(-2), make_storage(-3), make_storage(-4), make_storage(-5)};
 
     run(
         [](auto out0, auto out1, auto out2, auto out3, auto out4, auto in0, auto in1, auto in2, auto in3, auto in4) {

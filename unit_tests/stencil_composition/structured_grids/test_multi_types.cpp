@@ -7,8 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <iostream>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/stencil_composition.hpp>
@@ -157,15 +155,11 @@ namespace gridtools {
         struct multitypes : computation_fixture<> {
             multitypes() : computation_fixture<>(4, 5, 6) {}
 
-            using storage_type1 = storage_tr::data_store_t<type1, storage_info_t>;
-            using storage_type2 = storage_tr::data_store_t<type2, storage_info_t>;
-            using storage_type3 = storage_tr::data_store_t<type3, storage_info_t>;
-
             template <call_type CallType>
             void do_test() {
                 auto in = [](int i, int j, int k) -> type1 { return {i, j, k}; };
-                auto field2 = make_storage<storage_type2>();
-                auto field3 = make_storage<storage_type3>();
+                auto field2 = make_storage<type2>();
+                auto field3 = make_storage<type3>();
 
                 using fun1 = function1<CallType>;
 
@@ -178,18 +172,19 @@ namespace gridtools {
                     },
                     backend_t(),
                     make_grid(),
-                    make_storage<storage_type1>(in),
+                    make_storage<type1>(in),
                     field2,
                     field3);
 
-                verify(make_storage<storage_type2>([&in](int i, int j, int k) {
-                    auto f1 = in(i, j, k);
-                    type2 res = {2. * (f1.i + f1.j + 1)};
-                    return res;
-                }),
+                verify(
+                    [&in](int i, int j, int k) {
+                        auto f1 = in(i, j, k);
+                        type2 res = {2. * (f1.i + f1.j + 1)};
+                        return res;
+                    },
                     field2);
 
-                verify(make_storage<storage_type3>([](int, int, int) -> type3 { return {2}; }), field3);
+                verify(type3{2}, field3);
             }
         };
 

@@ -131,30 +131,6 @@ namespace gridtools {
             using type = typename collect_indices<0, std::index_sequence<>, InputTuple>::type;
         };
 
-        template <typename T>
-        constexpr bool data_store_or_placeholder(
-            std::enable_if_t<(is_data_store<T>::value or (std::is_placeholder<T>::value > 0)), void *> = nullptr) {
-            return true;
-        }
-
-        template <typename T>
-        constexpr bool data_store_or_placeholder(
-            std::enable_if_t<not(is_data_store<T>::value or (std::is_placeholder<T>::value > 0)), void *> = nullptr) {
-            return false;
-        }
-
-        constexpr bool _and() { return true; }
-
-        template <typename First, typename... Bs>
-        constexpr bool _and(First f, Bs... bs) {
-            return f and _and(bs...);
-        }
-
-        template <typename... Stores>
-        constexpr bool data_stores_or_placeholders() {
-            return _and(data_store_or_placeholder<Stores>()...);
-        }
-
         template <typename T, typename VOID = void>
         struct contains_placeholders : std::false_type {};
 
@@ -283,7 +259,8 @@ namespace gridtools {
 
         // Concept checking on BCApply is not ready yet.
         // Check that the stores... are either data stores or placeholders
-        static_assert(_impl::data_stores_or_placeholders<std::decay_t<DataStores>...>(),
+        static_assert(conjunction<bool_constant<storage::is_data_store_ptr<typename std::decay_t<DataStores>>::value or
+                                                std::is_placeholder<std::decay_t<DataStores>>::value>...>::value,
             "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
         return {bc_apply, std::forward_as_tuple(stores...)};
     }

@@ -46,3 +46,15 @@ using gcl_arch_t = gridtools::gcl_gpu;
 #else
 using gcl_arch_t = gridtools::gcl_cpu;
 #endif
+
+// storage
+#if defined(GT_BACKEND_CUDA)
+#include "../storage/cuda.hpp"
+using storage_traits_t = gridtools::storage::cuda;
+#elif defined(GT_BACKEND_X86) || defined(GT_BACKEND_NAIVE)
+#include "../storage/x86.hpp"
+using storage_traits_t = gridtools::storage::x86;
+#elif defined(GT_BACKEND_MC)
+#include "../storage/mc.hpp"
+using storage_traits_t = gridtools::storage::mc;
+#endif

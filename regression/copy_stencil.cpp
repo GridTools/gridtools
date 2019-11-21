@@ -30,9 +30,11 @@ struct copy_functor {
 using copy_stencil = regression_fixture<>;
 
 TEST_F(copy_stencil, test) {
-    auto in = make_storage([](int i, int j, int k) { return i + j + k; });
-    auto out = make_storage(-1.);
-    auto comp = [&, grid = make_grid()] { easy_run(copy_functor(), backend_t(), grid, in, out); };
+    auto in = [](int i, int j, int k) { return i + j + k; };
+    auto out = make_storage<float_type volatile>();
+    auto comp = [&, grid = make_grid()] {
+        easy_run(copy_functor(), backend_t(), grid, make_storage<float_type const volatile>(in), out);
+    };
     comp();
     verify(in, out);
     benchmark(comp);

@@ -11,40 +11,40 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/storage/builder.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
-namespace {
-    using namespace gridtools;
+using namespace gridtools;
 
-    template <typename Axis>
-    struct parallel_functor {
-        typedef accessor<0> in;
-        typedef accessor<1, intent::inout> out;
-        typedef gridtools::make_param_list<in, out> param_list;
+template <typename Axis>
+struct parallel_functor {
+    typedef accessor<0> in;
+    typedef accessor<1, intent::inout> out;
+    typedef gridtools::make_param_list<in, out> param_list;
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<0>) {
-            eval(out()) = eval(in());
-        }
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
-            eval(out()) = 2 * eval(in());
-        }
-    };
+    template <typename Evaluation>
+    GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<0>) {
+        eval(out()) = eval(in());
+    }
+    template <typename Evaluation>
+    GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
+        eval(out()) = 2 * eval(in());
+    }
+};
 
-    template <typename Axis>
-    struct parallel_functor_on_upper_interval {
-        typedef accessor<0> in;
-        typedef accessor<1, intent::inout> out;
-        typedef gridtools::make_param_list<in, out> param_list;
+template <typename Axis>
+struct parallel_functor_on_upper_interval {
+    typedef accessor<0> in;
+    typedef accessor<1, intent::inout> out;
+    typedef gridtools::make_param_list<in, out> param_list;
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
-            eval(out()) = eval(in());
-        }
-    };
-} // namespace
+    template <typename Evaluation>
+    GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
+        eval(out()) = eval(in());
+    }
+};
+
+const auto builder = storage::builder<storage_traits_t>.type<double>();
 
 template <typename Axis>
 void run_test() {
@@ -54,23 +54,17 @@ void run_test() {
     constexpr uint_t d3_l = 14;
     constexpr uint_t d3_u = 16;
 
-    using storage_info_t = storage_traits<backend_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
+    auto builder = ::builder.dimensions(d1, d2, d3_l + d3_u);
 
-    storage_info_t storage_info(d1, d2, d3_l + d3_u);
-
-    storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
-    storage_t out(storage_info, (double)1.5);
+    auto in = builder.initializer([](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); })();
+    auto out = builder.value(1.5)();
 
     auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
 
     easy_run(parallel_functor<Axis>(), backend_t(), grid, in, out);
 
-    in.sync();
-    out.sync();
-
-    auto outv = make_host_view(out);
-    auto inv = make_host_view(in);
+    auto outv = out->host_view();
+    auto inv = in->host_view();
     for (int i = 0; i < d1; ++i)
         for (int j = 0; j < d2; ++j) {
             for (int k = 0; k < d3_l; ++k)
@@ -88,13 +82,10 @@ void run_test_with_temporary() {
     constexpr uint_t d3_l = 14;
     constexpr uint_t d3_u = 16;
 
-    using storage_info_t = typename storage_traits<backend_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
+    auto builder = ::builder.dimensions(d1, d2, d3_l + d3_u);
 
-    storage_info_t storage_info(d1, d2, d3_l + d3_u);
-
-    storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
-    storage_t out(storage_info, (double)1.5);
+    auto in = builder.initializer([](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); })();
+    auto out = builder.value(1.5)();
 
     auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
 
@@ -110,11 +101,8 @@ void run_test_with_temporary() {
         in,
         out);
 
-    in.sync();
-    out.sync();
-
-    auto outv = make_host_view(out);
-    auto inv = make_host_view(in);
+    auto outv = out->host_view();
+    auto inv = in->host_view();
     for (int i = 0; i < d1; ++i)
         for (int j = 0; j < d2; ++j) {
             for (int k = 0; k < d3_l; ++k)
@@ -146,23 +134,17 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
     constexpr uint_t d3_2 = 16;
     constexpr uint_t d3_3 = 18;
 
-    using storage_info_t = typename storage_traits<backend_t>::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
+    auto builder = ::builder.dimensions(d1, d2, d3_1 + d3_2 + d3_3);
 
-    storage_info_t storage_info(d1, d2, d3_1 + d3_2 + d3_3);
-
-    storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
-    storage_t out(storage_info, (double)1.5);
+    auto in = builder.initializer([](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); })();
+    auto out = builder.value(1.5)();
 
     auto grid = make_grid(d1, d2, Axis(d3_1, d3_2, d3_3));
 
     easy_run(parallel_functor_on_upper_interval<Axis>(), backend_t(), grid, in, out);
 
-    in.sync();
-    out.sync();
-
-    auto outv = make_host_view(out);
-    auto inv = make_host_view(in);
+    auto outv = out->host_view();
+    auto inv = in->host_view();
     for (int i = 0; i < d1; ++i)
         for (int j = 0; j < d2; ++j) {
             for (int k = 0; k < d3_1; ++k)

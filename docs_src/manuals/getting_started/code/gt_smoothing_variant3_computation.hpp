@@ -1,5 +1,5 @@
-data_store_t phi(info);
-data_store_t phi_new(info);
+auto phi = make_storage();
+auto phi_new = make_storage();
 
 halo_descriptor boundary_i(halo_size, halo_size, halo_size, Ni - halo_size - 1, Ni);
 halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);

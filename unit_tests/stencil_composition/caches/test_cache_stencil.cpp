@@ -21,7 +21,7 @@ namespace gridtools {
         struct cache_stencil : computation_fixture<1> {
             cache_stencil() : computation_fixture<1>(128, 128, 30) {}
 
-            ~cache_stencil() { verify(make_storage(expected), out); }
+            ~cache_stencil() { verify(expected, out); }
 
             using fun_t = std::function<float_type(int, int, int)>;
 

@@ -26,7 +26,7 @@ namespace gridtools {
             run_computation<Fun>(make_storage(input), out);
             if (!expected)
                 expected = input;
-            verify(make_storage(expected), out);
+            verify(expected, out);
         }
     };
 

@@ -17,7 +17,8 @@
 #include <gridtools/communication/low_level/proc_grids_3D.hpp>
 #include <gridtools/distributed_boundaries/grid_predicate.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/traits.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
@@ -64,25 +65,12 @@ namespace copy_stencil {
 
         MPI_Cart_create(MPI_COMM_WORLD, 3, &dimensions[0], period, false, &CartComm);
 
-        typedef storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
-        typedef storage_traits<backend_t>::data_store_t<float_type, storage_info_t> storage_t;
-
-        typedef halo_exchange_dynamic_ut<typename storage_info_t::layout_t,
+        using pattern_type = halo_exchange_dynamic_ut<storage::traits::layout_type<storage_traits_t, 3>,
             layout_map<0, 1, 2>,
             float_type,
-#ifdef __CUDACC__
-            gcl_gpu>
-#else
-            gcl_cpu>
-#endif
-            pattern_type;
+            gcl_arch_t>;
 
         pattern_type he(boollist<3>(false, false, false), CartComm);
-#ifdef GT_VERBOSE
-        std::cout << "halo exchange ok" << std::endl;
-#endif
-
-        /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 
         array<uint_t, 2> halo{1, 1};
 
@@ -96,26 +84,25 @@ namespace copy_stencil {
 
         he.setup(3);
 
-#ifdef GT_VERBOSE
-        std::cout << "halo set up" << std::endl;
-#endif
-
         auto c_grid = he.comm();
         int pi, pj, pk;
         c_grid.coords(pi, pj, pk);
         assert(pk == 0);
 
-        storage_info_t storage_info(d1 + 2 * halo[0], d2 + 2 * halo[1], d3);
+        size_t x = d1 + 2 * halo[0];
+        size_t y = d2 + 2 * halo[1];
 
-        storage_t in(storage_info,
-            [&storage_info, pi, pj](int i, int j, int k) {
-                int I = i + storage_info.lengths()[0] * pi;
-                int J = j + storage_info.lengths()[1] * pj;
-                int K = k;
-                return I + J + K;
-            },
-            "in");
-        storage_t out(storage_info, -2.2222222, "out");
+        auto builder = storage::builder<storage_traits_t>.type<float_type>().dimensions(x, y, d3);
+
+        auto input = [&](int i, int j, int k) {
+            int I = i + x * pi;
+            int J = j + y * pj;
+            int K = k;
+            return I + J + K;
+        };
+
+        auto in = builder.initializer(input)();
+        auto out = builder.value(-2.2222222)();
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -135,43 +122,20 @@ namespace copy_stencil {
             halos, boundary_conditions(), proc_grid_predicate<decltype(c_grid)>(c_grid))
             .apply(in, out);
 
-        auto inv = make_target_view(in);
-        auto outv = make_target_view(out);
-
-        std::vector<float_type *> vec(2);
-        vec[0] = advanced_get_raw_pointer_of(inv);
-        vec[1] = advanced_get_raw_pointer_of(outv);
+        std::vector<float_type *> vec = {in->get_target_ptr(), out->get_target_ptr()};
 
         he.pack(vec);
-
-#ifdef GT_VERBOSE
-        std::cout << "copy packed " << std::endl;
-#endif
-
         he.exchange();
-
-#ifdef GT_VERBOSE
-        std::cout << "copy exchanged" << std::endl;
-#endif
         he.unpack(vec);
-
-#ifdef GT_VERBOSE
-        std::cout << "copy unpacked" << std::endl;
-#endif
 
         MPI_Barrier(GCL_WORLD);
 
-        out.sync();
-        auto v_out_h = make_host_view<access_mode::read_only>(out);
+        auto v_out_h = out->const_host_view();
 
         for (uint_t i = halo[0]; i < d1 - halo[0]; ++i)
             for (uint_t j = halo[1]; j < d2 - halo[1]; ++j)
                 for (uint_t k = 1; k < d3; ++k) {
-                    int I = i + storage_info.lengths()[0] * pi;
-                    int J = j + storage_info.lengths()[1] * pj;
-                    int K = k;
-
-                    if (v_out_h(i, j, k) != (I + J + K)) {
+                    if (v_out_h(i, j, k) != input(i, j, k)) {
                         std::cout << PID << " "
                                   << "i = " << i << ", j = " << j << ", k = " << k
                                   << "v_out_h(i, j, k) = " << v_out_h(i, j, k) << ", "

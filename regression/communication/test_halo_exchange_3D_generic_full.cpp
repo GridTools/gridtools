@@ -11,7 +11,6 @@
 #include <fstream>
 #include <gridtools/common/boollist.hpp>
 #include <gridtools/communication/halo_exchange.hpp>
-#include <gridtools/storage/storage_facility.hpp>
 #include <iostream>
 #include <mpi.h>
 #include <sstream>

@@ -1,32 +1,29 @@
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/storage/builder.hpp>
 #include <iostream>
 
 using namespace gridtools;
 
 #ifdef __CUDACC__
-using backend_t = backend::cuda;
+#include <gridtools/storage/cuda.hpp>
+using storage_traits_t = storage::cuda;
 #else
-using backend_t = backend::mc;
+#include <gridtools/storage/mc.hpp>
+using storage_traits_t = storage::mc;
 #endif
-
-using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
-using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
 int main() {
     uint_t Ni = 10;
     uint_t Nj = 12;
     uint_t Nk = 20;
 
-    storage_info_t info(Ni, Nj, Nk);
+    const auto builder = storage::builder<storage_traits_t>.type<double>().dimensions(Ni, Nj, Nk);
 
-    data_store_t phi(info, -1., "phi");
-    data_store_t lap(info, -1., "lap");
+    auto phi = builder.name("phi").value(-1).build();
+    auto lap = builder.name("lap").value(-1).build();
 
-    std::cout << phi.name() << "\n";
+    std::cout << phi->name() << "\n";
 
-    auto phi_view = make_host_view(phi);
+    auto phi_view = phi->host_view();
     phi_view(1, 2, 3) = 3.1415;
     std::cout << "phi_view(1, 2, 3) = " << phi_view(1, 2, 3) << std::endl;
-
-    phi.sync();
 } // end

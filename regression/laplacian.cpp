@@ -34,5 +34,5 @@ TEST_F(laplacian, test) {
     };
     auto out = make_storage();
     easy_run(lap(), backend_t(), make_grid(), out, make_storage(in));
-    verify(make_storage(ref), out);
+    verify(ref, out);
 }

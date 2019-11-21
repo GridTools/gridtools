@@ -14,7 +14,6 @@
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/accumulate.hpp"
-#include "../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../common/variadic_pack_metafunctions.hpp"
 #include "../meta/type_traits.hpp"
 #include "interval.hpp"

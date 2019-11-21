@@ -9,16 +9,14 @@
  */
 #pragma once
 
-#include "../storage/common/storage_info_rt.hpp"
+#include "../storage/data_store.hpp"
 #include "./layout_transformation/layout_transformation.hpp"
 #include <cpp_bindgen/fortran_array_view.hpp>
 
 namespace gridtools {
-    template <class DataStore,
-        class StorageInfo = typename DataStore::storage_info_t,
-        class Layout = typename DataStore::storage_info_t::layout_t>
+    template <class DataStore>
     class fortran_array_adapter {
-        static_assert(is_data_store<std::remove_const_t<DataStore>>::value, "");
+        static_assert(storage::is_data_store<DataStore>::value, "");
 
       public:
         fortran_array_adapter(const bindgen_fortran_array_descriptor &descriptor) : m_descriptor(descriptor) {
@@ -27,76 +25,64 @@ namespace gridtools {
                                          "] != datastore-rank [" + std::to_string(bindgen_view_rank::value) + "]");
         }
 
-        fortran_array_adapter(const fortran_array_adapter &) = delete;
-        fortran_array_adapter(fortran_array_adapter &&other) = default;
-
-        using bindgen_view_rank = std::integral_constant<size_t, Layout::unmasked_length>;
+        using bindgen_view_rank = std::integral_constant<size_t, DataStore::layout_t::unmasked_length>;
         using bindgen_view_element_type = typename DataStore::data_t;
         using bindgen_is_acc_present = bool_constant<true>;
 
-        friend void transform(DataStore &dest, const fortran_array_adapter &src) {
-            adapter{const_cast<fortran_array_adapter &>(src), dest}.from_array();
+        friend void transform(std::shared_ptr<DataStore> const &dest, fortran_array_adapter const &src) {
+            adapter{const_cast<fortran_array_adapter &>(src), *dest}.from_array();
         }
-        friend void transform(fortran_array_adapter &dest, const DataStore &src) {
-            adapter{dest, const_cast<DataStore &>(src)}.to_array();
+        friend void transform(fortran_array_adapter &dest, std::shared_ptr<DataStore> const &src) {
+            adapter{dest, *src}.to_array();
         }
 
       private:
         class adapter {
             using ElementType = typename DataStore::data_t;
 
-            ElementType *get_ptr_to_first_element(DataStore &data_store) {
-                auto &&si = data_store.info();
-                auto view = make_target_view(data_store);
-                return &view.data()[si.index(array<int, DataStore::storage_info_t::ndims>())];
-            }
-
           public:
-            adapter(fortran_array_adapter &view, DataStore &data_store) {
-                storage_info_rt si = make_storage_info_rt(data_store.info());
-                m_dims = si.lengths();
-                m_cpp_strides = si.strides();
-                m_fortran_pointer = static_cast<ElementType *>(view.m_descriptor.data);
-                m_cpp_pointer = get_ptr_to_first_element(data_store);
-
-                if (!m_fortran_pointer)
-                    throw std::runtime_error("No array to assigned to fortran_array_adapter");
+            adapter(fortran_array_adapter &view, DataStore &data_store)
+                : m_fortran_pointer(static_cast<ElementType *>(view.m_descriptor.data)),
+                  m_cpp_pointer(data_store.get_target_ptr()), m_lengths(data_store.lengths()),
+                  m_cpp_strides(data_store.strides()) {
+                assert(m_fortran_pointer);
 
                 // verify dimensions of fortran array
-                for (uint_t c_dim = 0, fortran_dim = 0; c_dim < Layout::masked_length; ++c_dim) {
-                    if (Layout::at(c_dim) >= 0) {
-                        if (view.m_descriptor.dims[fortran_dim] != (int)m_dims[c_dim])
+                for (uint_t c_dim = 0, fortran_dim = 0; c_dim < DataStore::layout_t::masked_length; ++c_dim)
+                    if (m_cpp_strides[c_dim] != 0) {
+                        if (view.m_descriptor.dims[fortran_dim] != m_lengths[c_dim])
                             throw std::runtime_error("dimensions do not match (descriptor [" +
                                                      std::to_string(view.m_descriptor.dims[fortran_dim]) +
-                                                     "] != data_store [" + std::to_string(m_dims[c_dim]) + "])");
+                                                     "] != data_store [" + std::to_string(m_lengths[c_dim]) + "])");
                         ++fortran_dim;
                     }
-                }
 
                 uint_t current_stride = 1;
-                for (uint_t i = 0; i < Layout::masked_length; ++i) {
-                    if (Layout::at(i) >= 0) {
-                        m_fortran_strides.push_back(current_stride);
-                        current_stride *= m_dims[i];
+                for (uint_t i = 0; i < m_fortran_strides.size(); ++i)
+                    if (m_cpp_strides[i] != 0) {
+                        m_fortran_strides[i] = current_stride;
+                        current_stride *= m_lengths[i];
                     } else {
-                        m_fortran_strides.push_back(0);
+                        m_fortran_strides[i] = 0;
                     }
-                }
             }
 
             void from_array() const {
-                interface::transform(m_cpp_pointer, m_fortran_pointer, m_dims, m_cpp_strides, m_fortran_strides);
+                interface::transform(m_cpp_pointer, m_fortran_pointer, m_lengths, m_cpp_strides, m_fortran_strides);
             }
             void to_array() const {
-                interface::transform(m_fortran_pointer, m_cpp_pointer, m_dims, m_fortran_strides, m_cpp_strides);
+                interface::transform(m_fortran_pointer, m_cpp_pointer, m_lengths, m_fortran_strides, m_cpp_strides);
             }
 
           private:
+            using lengths_t = std::decay_t<decltype(std::declval<DataStore const &>().lengths())>;
+            using strides_t = std::decay_t<decltype(std::declval<DataStore const &>().strides())>;
+
             ElementType *m_fortran_pointer;
             ElementType *m_cpp_pointer;
-            std::vector<uint_t> m_dims;
-            std::vector<uint_t> m_fortran_strides;
-            std::vector<uint_t> m_cpp_strides;
+            lengths_t m_lengths;
+            strides_t m_fortran_strides;
+            strides_t m_cpp_strides;
         };
 
         const bindgen_fortran_array_descriptor &m_descriptor;

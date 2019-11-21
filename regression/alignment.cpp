@@ -12,6 +12,7 @@
 
 #include <gridtools/stencil_composition/positional.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/storage/traits.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 /**
@@ -32,15 +33,13 @@ struct not_aligned {
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
         auto *ptr = &eval(acc());
-        constexpr auto alignment = sizeof(decltype(*ptr)) * alignment_test::storage_info_t::alignment_t::value;
-        constexpr auto halo_size = alignment_test::halo_size;
-        eval(out()) = eval(i_pos()) == halo_size && reinterpret_cast<ptrdiff_t>(ptr) % alignment;
+        eval(out()) = eval(i_pos()) == alignment_test::halo_size &&
+                      reinterpret_cast<ptrdiff_t>(ptr) % storage::traits::alignment<storage_traits_t>;
     }
 };
 
 TEST_F(alignment_test, test) {
-    using bool_storage = storage_tr::data_store_t<bool, storage_info_t>;
-    auto out = make_storage<bool_storage>();
+    auto out = make_storage<bool>();
     easy_run(not_aligned(), backend_t(), make_grid(), make_storage(), out, positional<dim::i>());
-    verify(make_storage<bool_storage>(false), out);
+    verify(false, out);
 }

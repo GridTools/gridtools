@@ -31,11 +31,6 @@ namespace gridtools {
     template <bool... Bitmask>
     using selector = std::integer_sequence<bool, Bitmask...>;
 
-    template <typename T>
-    struct is_selector : std::false_type {};
-
-    template <bool... Bitmask>
-    struct is_selector<selector<Bitmask...>> : std::true_type {};
     /** @} */
     /** @} */
 } // namespace gridtools

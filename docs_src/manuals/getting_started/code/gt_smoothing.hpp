@@ -2,21 +2,22 @@
 
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/stencil_composition/stencil_functions.hpp>
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/storage/builder.hpp>
 
 using namespace gridtools;
 using namespace gridtools::expressions;
 
 #ifdef __CUDACC__
+#include <gridtools/storage/cuda.hpp>
 using backend_t = backend::cuda;
+using storage_traits_t = storage::cuda;
 #else
+#include <gridtools/storage/mc.hpp>
 using backend_t = backend::mc;
+using storage_traits_t = storage::mc;
 #endif
 
 static constexpr unsigned halo_size = 2;
-
-using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3, halo<halo_size, halo_size, 0>>;
-using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
 
 constexpr static gridtools::dimension<1> i;
 constexpr static gridtools::dimension<2> j;
@@ -54,7 +55,7 @@ int main() {
     uint_t Nk = 20;
     uint_t kmax = 12;
 
-    storage_info_t info(Ni, Nj, Nk);
+    const auto make_storage = storage::builder<storage_traits_t>.dimensions(Ni, Nj, Nk).type<double>();
 
 #if defined(VARIANT1)
 #include "gt_smoothing_variant1_computation.hpp"
