@@ -83,7 +83,7 @@ namespace gridtools {
                 Impl m_impl;
 
                 cached_ptr_t operator()(size_t size) const {
-                    static std::map<size_t, stack_t> stack_map;
+                    static thread_local std::map<size_t, stack_t> stack_map;
                     auto &stack = stack_map[size];
                     ptr_t ptr;
                     if (stack.empty()) {
