@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
+#include <gridtools/stencil_composition/backend/cuda/tmp_storage_sid.hpp>
 
 #include <gtest/gtest.h>
 

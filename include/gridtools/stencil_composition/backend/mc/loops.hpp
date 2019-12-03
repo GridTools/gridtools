@@ -12,13 +12,13 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/for_each.hpp"
-#include "../../common/omp.hpp"
-#include "../../common/tuple_util.hpp"
-#include "../../meta.hpp"
-#include "../dim.hpp"
-#include "../sid/concept.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/omp.hpp"
+#include "../../../common/tuple_util.hpp"
+#include "../../../meta.hpp"
+#include "../../dim.hpp"
+#include "../../sid/concept.hpp"
 #include "execinfo_mc.hpp"
 
 namespace gridtools {

@@ -164,9 +164,11 @@ const auto vertical_advection = [](auto utens_stage, auto u_stage, auto wcon, au
             u_backward_function(), utens_stage, u_pos, dtr_stage, ccol, dcol, data_col));
 };
 
-using modified_backend_t = meta::if_<std::is_same<backend_t, cuda::backend<>>,
-    cuda::backend<integral_constant<int_t, 256>, integral_constant<int_t, 1>>,
-    backend_t>;
+#if defined(GT_BACKEND_CUDA)
+using modified_backend_t = cuda::backend<integral_constant<int_t, 256>, integral_constant<int_t, 1>>;
+#else
+using modified_backend_t = backend_t;
+#endif
 
 using vertical_advection_dycore = regression_fixture<3, axis_t>;
 

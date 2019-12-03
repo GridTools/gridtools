@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "../../common/hip_wrappers.hpp"
+#include "../../../common/hip_wrappers.hpp"
 
 #ifndef __CUDACC__
 #error This is CUDA only header
@@ -17,8 +17,8 @@
 
 #include <cstdlib>
 
-#include "../../common/defs.hpp"
-#include "../../common/host_device.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/host_device.hpp"
 
 namespace gridtools {
     namespace cuda {

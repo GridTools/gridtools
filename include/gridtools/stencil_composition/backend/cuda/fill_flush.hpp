@@ -14,15 +14,16 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../common/defs.hpp"
-#include "../../common/host_device.hpp"
-#include "../../common/hymap.hpp"
-#include "../../common/integral_constant.hpp"
-#include "../dim.hpp"
-#include "../global_parameter.hpp"
-#include "../positional.hpp"
-#include "../sid/concept.hpp"
-#include "../stage_matrix.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/host_device.hpp"
+#include "../../../common/hymap.hpp"
+#include "../../../common/integral_constant.hpp"
+#include "../../caches/cache_definitions.hpp"
+#include "../../dim.hpp"
+#include "../../global_parameter.hpp"
+#include "../../positional.hpp"
+#include "../../sid/concept.hpp"
+#include "../../stage_matrix.hpp"
 
 namespace gridtools {
     namespace cuda {

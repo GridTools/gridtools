@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/backend_cuda/ij_cache.hpp>
+#include <gridtools/stencil_composition/backend/cuda/ij_cache.hpp>
 
 #include <gtest/gtest.h>
 

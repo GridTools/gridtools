@@ -48,9 +48,9 @@ namespace gridtools {
 
                 using data_t = T;
 
-                GT_FUNCTION_DEVICE decltype(auto) info() const { return *m_info; }
+                GT_FUNCTION_DEVICE auto const &info() const { return *m_info; }
 
-                GT_FUNCTION_DEVICE auto data() const { return m_ptr; }
+                GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }
 
                 template <class... Args>
                 GT_FUNCTION_DEVICE auto operator()(Args &&... args) const
@@ -64,7 +64,7 @@ namespace gridtools {
 
                 GT_FUNCTION_DEVICE GT_CONSTEXPR auto length() const { return m_info->length(); }
 
-                GT_FUNCTION_DEVICE GT_CONSTEXPR decltype(auto) lengths() const { return m_info->lengths(); }
+                GT_FUNCTION_DEVICE GT_CONSTEXPR auto const &lengths() const { return m_info->lengths(); }
             };
 
             template <size_t N>

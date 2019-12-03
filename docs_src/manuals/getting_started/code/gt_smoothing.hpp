@@ -8,12 +8,14 @@ using namespace gridtools;
 using namespace gridtools::expressions;
 
 #ifdef __CUDACC__
+#include <gridtools/stencil_composition/backend/cuda.hpp>
 #include <gridtools/storage/cuda.hpp>
-using backend_t = backend::cuda;
+using backend_t = cuda::backend<>;
 using storage_traits_t = storage::cuda;
 #else
+#include <gridtools/stencil_composition/backend/mc.hpp>
 #include <gridtools/storage/mc.hpp>
-using backend_t = backend::mc;
+using backend_t = mc::backend;
 using storage_traits_t = storage::mc;
 #endif
 

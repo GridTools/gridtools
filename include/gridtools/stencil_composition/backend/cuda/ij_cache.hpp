@@ -9,14 +9,14 @@
  */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../../common/hymap.hpp"
-#include "../../common/integral_constant.hpp"
-#include "../../meta.hpp"
-#include "../dim.hpp"
-#include "../extent.hpp"
-#include "../sid/contiguous.hpp"
-#include "../sid/sid_shift_origin.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/hymap.hpp"
+#include "../../../common/integral_constant.hpp"
+#include "../../../meta.hpp"
+#include "../../dim.hpp"
+#include "../../extent.hpp"
+#include "../../sid/contiguous.hpp"
+#include "../../sid/sid_shift_origin.hpp"
 #include "shared_allocator.hpp"
 
 namespace gridtools {

@@ -9,14 +9,14 @@
  */
 #pragma once
 
-#include "../../common/hymap.hpp"
-#include "../../common/integral_constant.hpp"
-#include "../../common/tuple_util.hpp"
-#include "../dim.hpp"
-#include "../extent.hpp"
-#include "../sid/blocked_dim.hpp"
-#include "../sid/contiguous.hpp"
-#include "../sid/sid_shift_origin.hpp"
+#include "../../../common/hymap.hpp"
+#include "../../../common/integral_constant.hpp"
+#include "../../../common/tuple_util.hpp"
+#include "../../dim.hpp"
+#include "../../extent.hpp"
+#include "../../sid/blocked_dim.hpp"
+#include "../../sid/contiguous.hpp"
+#include "../../sid/sid_shift_origin.hpp"
 
 namespace gridtools {
     namespace cuda {

@@ -9,55 +9,16 @@
  */
 #pragma once
 
-#include "integral_constant.hpp"
+namespace gridtools {
+    using int_t = int;
+    using uint_t = unsigned int;
+} // namespace gridtools
 
 #ifdef __NVCC__
 #define GT_CONSTEXPR
 #else
 #define GT_CONSTEXPR constexpr
 #endif
-
-namespace gridtools {
-    using int_t = int;
-    using uint_t = unsigned int;
-
-    namespace naive {
-        struct backend {};
-    } // namespace naive
-
-    namespace cuda {
-        template <class IBlockSize = integral_constant<int_t, 64>, class JBlockSize = integral_constant<int_t, 8>>
-        struct backend {
-            using i_block_size_t = IBlockSize;
-            using j_block_size_t = JBlockSize;
-
-            static constexpr i_block_size_t i_block_size() { return {}; }
-            static constexpr j_block_size_t j_block_size() { return {}; }
-        };
-    } // namespace cuda
-
-    namespace mc {
-        struct backend {};
-    } // namespace mc
-
-    namespace x86 {
-        template <class IBlockSize = integral_constant<int_t, 8>, class JBlockSize = integral_constant<int_t, 8>>
-        struct backend {
-            using i_block_size_t = IBlockSize;
-            using j_block_size_t = JBlockSize;
-
-            static constexpr i_block_size_t i_block_size() { return {}; }
-            static constexpr j_block_size_t j_block_size() { return {}; }
-        };
-    } // namespace x86
-
-    /** tags specifying the backend to use */
-    namespace backend {
-        using cuda = cuda::backend<>;
-        using mc = mc::backend;
-        using x86 = x86::backend<>;
-        using naive = naive::backend;
-    } // namespace backend
 
 #define GT_INTERNAL_ERROR                                                                                       \
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
@@ -72,4 +33,3 @@ namespace gridtools {
 #else
 #define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name) class_name() = default
 #endif
-} // namespace gridtools

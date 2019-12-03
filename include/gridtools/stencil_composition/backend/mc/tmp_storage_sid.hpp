@@ -12,15 +12,15 @@
 #include <memory>
 #include <vector>
 
-#include "../../common/hugepage_alloc.hpp"
-#include "../../common/hymap.hpp"
-#include "../../common/omp.hpp"
-#include "../dim.hpp"
-#include "../pos3.hpp"
-#include "../sid/allocator.hpp"
-#include "../sid/concept.hpp"
-#include "../sid/simple_ptr_holder.hpp"
-#include "../sid/synthetic.hpp"
+#include "../../../common/hugepage_alloc.hpp"
+#include "../../../common/hymap.hpp"
+#include "../../../common/omp.hpp"
+#include "../../dim.hpp"
+#include "../../pos3.hpp"
+#include "../../sid/allocator.hpp"
+#include "../../sid/concept.hpp"
+#include "../../sid/simple_ptr_holder.hpp"
+#include "../../sid/synthetic.hpp"
 
 namespace gridtools {
     namespace mc {

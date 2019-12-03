@@ -57,9 +57,9 @@ namespace gridtools {
                     meta::if_c<(layout_t::unmasked_length > 1), std::integral_constant<size_t, alignment>, void>>;
 
                 decltype(auto) name() const { return m_name; }
-                decltype(auto) info() const { return m_info; }
-                decltype(auto) lengths() const { return m_info.lengths(); }
-                decltype(auto) strides() const { return m_info.strides(); }
+                auto const &info() const { return m_info; }
+                auto const &lengths() const { return m_info.lengths(); }
+                auto const &strides() const { return m_info.strides(); }
                 auto length() const { return m_info.length(); }
 
               protected:

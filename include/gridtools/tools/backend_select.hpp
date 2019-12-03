@@ -21,13 +21,21 @@ using float_type = double;
 
 // stencil composition backend
 #ifdef GT_BACKEND_X86
-using backend_t = gridtools::backend::x86;
+#include "../stencil_composition/backend/x86.hpp"
+using backend_t = gridtools::x86::backend<>;
 #elif defined(GT_BACKEND_NAIVE)
-using backend_t = gridtools::backend::naive;
+#include "../stencil_composition/backend/naive.hpp"
+using backend_t = gridtools::naive::backend;
 #elif defined(GT_BACKEND_MC)
-using backend_t = gridtools::backend::mc;
+#ifndef GT_ICOSAHEDRAL_GRIDS
+#include "../stencil_composition/backend/mc.hpp"
+using backend_t = gridtools::mc::backend;
+#endif
 #elif defined(GT_BACKEND_CUDA)
-using backend_t = gridtools::backend::cuda;
+#ifdef __CUDACC__
+#include "../stencil_composition/backend/cuda.hpp"
+using backend_t = gridtools::cuda::backend<>;
+#endif
 #endif
 
 // default timer implementation

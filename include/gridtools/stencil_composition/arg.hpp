@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "../common/integral_constant.hpp"
 #include "../meta.hpp"
 
 namespace gridtools {

@@ -9,14 +9,14 @@
  */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../../common/host_device.hpp"
-#include "../../common/hymap.hpp"
-#include "../../common/integral_constant.hpp"
-#include "../caches/cache_traits.hpp"
-#include "../dim.hpp"
-#include "../execution_types.hpp"
-#include "../sid/synthetic.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/host_device.hpp"
+#include "../../../common/hymap.hpp"
+#include "../../../common/integral_constant.hpp"
+#include "../../caches/cache_traits.hpp"
+#include "../../dim.hpp"
+#include "../../execution_types.hpp"
+#include "../../sid/synthetic.hpp"
 
 namespace gridtools {
     namespace cuda {

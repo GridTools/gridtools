@@ -29,14 +29,3 @@
 #include "make_param_list.hpp"
 
 #include "frontend/run.hpp"
-
-#include "backend_naive/entry_point.hpp"
-#include "backend_x86/entry_point.hpp"
-
-#ifndef GT_ICOSAHEDRAL_GRIDS
-#include "backend_mc/entry_point.hpp"
-#endif
-
-#ifdef __CUDACC__
-#include "backend_cuda/entry_point.hpp"
-#endif

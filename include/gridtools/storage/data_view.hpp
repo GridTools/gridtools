@@ -23,10 +23,10 @@ namespace gridtools {
 
             using data_t = T;
 
-            constexpr decltype(auto) info() const { return *m_info; }
+            constexpr auto const &info() const { return *m_info; }
             constexpr auto length() const { return m_info->length(); }
-            constexpr decltype(auto) lengths() const { return m_info->lengths(); }
-            auto data() const { return m_ptr; }
+            constexpr auto const &lengths() const { return m_info->lengths(); }
+            auto *data() const { return m_ptr; }
 
             template <class... Args>
             auto operator()(Args &&... args) const -> decltype(m_ptr[m_info->index(std::forward<Args>(args)...)]) {

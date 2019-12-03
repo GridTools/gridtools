@@ -18,6 +18,7 @@
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "execution_types.hpp"
+#include "extent.hpp"
 #include "interval.hpp"
 #include "sid/concept.hpp"
 
