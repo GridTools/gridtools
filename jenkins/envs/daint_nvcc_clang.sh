@@ -2,7 +2,7 @@
 
 source $(dirname "$BASH_SOURCE")/daint.sh
 
-module load /users/vogtha/modules/compilers/clang/5.0.0rc2
+module load /users/vogtha/modules/compilers/clang/7.0.1
 
 export CXX=$(which clang++)
 export CC=$(which clang)
