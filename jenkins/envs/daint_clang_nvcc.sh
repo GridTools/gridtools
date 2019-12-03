@@ -8,6 +8,9 @@ export FC=$(which ftn)
 
 export CTEST_PARALLEL_LEVEL=1
 
+export CXXFLAGS='-fno-cray-gpu -fno-cray-mallopt -fno-cray'
+export CFLAGS='-fno-cray-gpu -fno-cray-mallopt -fno-cray'
+
 export GTCMAKE_GT_CUDA_COMPILATION_TYPE='Clang-CUDA'
 export GTCMAKE_CMAKE_CXX_FLAGS_RELEASE='-Ofast -DNDEBUG'
 
