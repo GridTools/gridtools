@@ -17,7 +17,7 @@
 #include "../common/defs.hpp"
 #include "../common/layout_map.hpp"
 #include "data_view.hpp"
-#include "storage_info.hpp"
+#include "info.hpp"
 #include "traits.hpp"
 
 namespace gridtools {
@@ -43,12 +43,11 @@ namespace gridtools {
                 using mutable_data_t = std::remove_const_t<T>;
 
                 std::string m_name;
-                storage_info<N> m_info;
+                storage::info<N> m_info;
                 traits::target_ptr_type<Traits, mutable_data_t> m_target_ptr_holder;
                 mutable_data_t *m_target_ptr;
 
               public:
-                using storage_info_t = storage_info<N>;
                 using layout_t = traits::layout_type<Traits, N>;
                 using data_t = T;
                 static constexpr size_t ndims = N;
@@ -57,8 +56,8 @@ namespace gridtools {
                     meta::if_c<(layout_t::unmasked_length > 0), Id, void>,
                     meta::if_c<(layout_t::unmasked_length > 1), std::integral_constant<size_t, alignment>, void>>;
 
-                std::string const &name() const { return m_name; }
-                storage_info_t const &info() const { return m_info; }
+                decltype(auto) name() const { return m_name; }
+                decltype(auto) info() const { return m_info; }
                 decltype(auto) lengths() const { return m_info.lengths(); }
                 decltype(auto) strides() const { return m_info.strides(); }
                 auto length() const { return m_info.length(); }

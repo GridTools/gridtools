@@ -18,7 +18,7 @@
 #include "../common/hip_wrappers.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
-#include "storage_info.hpp"
+#include "info.hpp"
 
 namespace gridtools {
     namespace storage {
@@ -44,12 +44,11 @@ namespace gridtools {
             template <class T, size_t N>
             struct target_view {
                 T *m_ptr;
-                storage_info<N> const *m_info;
+                storage::info<N> const *m_info;
 
-                using storage_info_t = storage_info<N>;
                 using data_t = T;
 
-                GT_FUNCTION_DEVICE storage_info_t const &info() const { return *m_info; }
+                GT_FUNCTION_DEVICE decltype(auto) info() const { return *m_info; }
 
                 GT_FUNCTION_DEVICE auto data() const { return m_ptr; }
 
@@ -69,12 +68,12 @@ namespace gridtools {
             };
 
             template <size_t N>
-            auto make_cache(storage_info<N> const &info) {
+            auto make_cache(info<N> const &info) {
                 return std::make_pair(info, cuda_util::make_clone(info).release());
             }
 
             template <class Kind, size_t N>
-            auto *get_info_ptr(Kind, storage_info<N> const &src) {
+            auto *get_info_ptr(Kind, info<N> const &src) {
                 thread_local static auto cache = make_cache(src);
                 if (cache.first != src)
                     cache = make_cache(src);
@@ -104,17 +103,23 @@ namespace gridtools {
 
             template <class T>
             friend void storage_update_target(cuda, T *dst, T const *src, size_t size) {
-                GT_CUDA_CHECK(cudaMemcpy(dst, src, size * sizeof(T), cudaMemcpyHostToDevice));
+                GT_CUDA_CHECK(cudaMemcpy(const_cast<std::remove_volatile_t<T> *>(dst),
+                    const_cast<std::remove_volatile_t<T> *>(src),
+                    size * sizeof(T),
+                    cudaMemcpyHostToDevice));
             }
 
             template <class T>
             friend void storage_update_host(cuda, T *dst, T const *src, size_t size) {
-                GT_CUDA_CHECK(cudaMemcpy(dst, src, size * sizeof(T), cudaMemcpyDeviceToHost));
+                GT_CUDA_CHECK(cudaMemcpy(const_cast<std::remove_volatile_t<T> *>(dst),
+                    const_cast<std::remove_volatile_t<T> *>(src),
+                    size * sizeof(T),
+                    cudaMemcpyDeviceToHost));
             }
 
             template <class T, class Kind, size_t N>
             friend cuda_impl_::target_view<T, N> storage_make_target_view(
-                cuda, Kind kind, T *ptr, storage_info<N> const &info) {
+                cuda, Kind kind, T *ptr, info<N> const &info) {
                 return {ptr, cuda_impl_::get_info_ptr(kind, info)};
             }
         };

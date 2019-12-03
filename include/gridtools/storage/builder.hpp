@@ -37,7 +37,7 @@ namespace gridtools {
 
             template <class Fun, class T, class Layout, size_t N, size_t... Is>
             void initializer_impl(
-                Fun const &fun, T *dst, Layout layout, storage_info<N> const &info, std::index_sequence<Is...>) {
+                Fun const &fun, T *dst, Layout layout, info<N> const &info, std::index_sequence<Is...>) {
                 int length = info.length();
 #pragma omp parallel for
                 for (int i = 0; i < length; ++i) {

@@ -22,7 +22,7 @@
 
 namespace gridtools {
     namespace storage {
-        namespace storage_info_impl_ {
+        namespace info_impl_ {
             template <class Layout>
             GT_CONSTEXPR uint_t make_padded_length(Layout, int layout_arg, uint_t align, uint_t length) {
                 if (layout_arg == -1)
@@ -96,20 +96,20 @@ namespace gridtools {
 
                 GT_FUNCTION GT_CONSTEXPR auto length() const { return m_length; }
             };
-        } // namespace storage_info_impl_
+        } // namespace info_impl_
 
         template <size_t N>
-        struct storage_info : storage_info_impl_::base<std::make_index_sequence<N>> {
-            using storage_info_impl_::base<std::make_index_sequence<N>>::base;
+        struct info : info_impl_::base<std::make_index_sequence<N>> {
+            using info_impl_::base<std::make_index_sequence<N>>::base;
         };
 
         template <size_t N>
-        GT_FUNCTION GT_CONSTEXPR bool operator==(storage_info<N> const &lhs, storage_info<N> const &rhs) {
+        GT_FUNCTION GT_CONSTEXPR bool operator==(info<N> const &lhs, info<N> const &rhs) {
             return lhs.lengths() == rhs.lengths() && lhs.strides() == rhs.strides();
         }
 
         template <size_t N>
-        GT_FUNCTION GT_CONSTEXPR bool operator!=(storage_info<N> const &lhs, storage_info<N> const &rhs) {
+        GT_FUNCTION GT_CONSTEXPR bool operator!=(info<N> const &lhs, info<N> const &rhs) {
             return !(lhs == rhs);
         }
     } // namespace storage

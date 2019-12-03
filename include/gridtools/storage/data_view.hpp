@@ -12,19 +12,18 @@
 #include <utility>
 
 #include "../common/array.hpp"
-#include "storage_info.hpp"
+#include "info.hpp"
 
 namespace gridtools {
     namespace storage {
         template <class T, size_t N>
         struct host_view {
             T *m_ptr;
-            storage_info<N> const *m_info;
+            storage::info<N> const *m_info;
 
-            using storage_info_t = storage_info<N>;
             using data_t = T;
 
-            constexpr storage_info_t const &info() const { return *m_info; }
+            constexpr decltype(auto) info() const { return *m_info; }
             constexpr auto length() const { return m_info->length(); }
             constexpr decltype(auto) lengths() const { return m_info->lengths(); }
             auto data() const { return m_ptr; }
@@ -38,7 +37,7 @@ namespace gridtools {
         };
 
         template <class T, size_t N>
-        host_view<T, N> make_host_view(T *ptr, storage_info<N> const &info) {
+        host_view<T, N> make_host_view(T *ptr, info<N> const &info) {
             return {ptr, &info};
         }
     } // namespace storage

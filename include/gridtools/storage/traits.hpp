@@ -53,12 +53,12 @@ namespace gridtools {
                 class Kind,
                 size_t N,
                 std::enable_if_t<is_host_referenceable<Traits>, int> = 0>
-            auto storage_make_target_view(Traits, Kind kind, T *ptr, storage_info<N> const &info) {
+            auto storage_make_target_view(Traits, Kind kind, T *ptr, info<N> const &info) {
                 return make_host_view(ptr, info);
             }
 
             template <class Traits, class Kind, class T, size_t N>
-            auto make_target_view(T *ptr, storage_info<N> const &info) {
+            auto make_target_view(T *ptr, info<N> const &info) {
                 return storage_make_target_view(Traits(), Kind(), ptr, info);
             }
         } // namespace traits

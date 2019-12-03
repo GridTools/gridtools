@@ -32,8 +32,11 @@ namespace gridtools {
                 using type = layout_map<N - 1 - Dim0, N - 1 - Dim2, N - 1 - Dim1, (N - 1 - Dims)...>;
             };
 
-            class deleter {
-                void operator()(void *p) const { hugepage_free(p); }
+            struct deleter {
+                template <class T>
+                void operator()(T *p) const {
+                    hugepage_free(const_cast<std::remove_cv_t<T> *>(p));
+                }
             };
         } // namespace mc_impl_
 
@@ -49,8 +52,7 @@ namespace gridtools {
 
             template <class LazyType, class T = typename LazyType::type>
             friend auto storage_allocate(mc, LazyType, size_t size) {
-                return std::unique_ptr<T[], GT_INTEGRAL_CONSTANT_FROM_VALUE(&hugepage_free)>(
-                    static_cast<T *>(hugepage_alloc(size * sizeof(T))));
+                return std::unique_ptr<T[], mc_impl_::deleter>(static_cast<T *>(hugepage_alloc(size * sizeof(T))));
             }
         };
     } // namespace storage
