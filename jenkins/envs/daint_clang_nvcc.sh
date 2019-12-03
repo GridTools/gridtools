@@ -2,17 +2,11 @@
 
 source $(dirname "$BASH_SOURCE")/daint.sh
 
-module load PrgEnv-gnu
-module swap gcc/7.3.0
-
-module load /project/csstaff/fthaler/install/daint/spack/share/spack/modules/cray-cnl6-haswell/llvm-9.0.0-gcc-7.3.0-3lmdwud
+module load gcc/7.3.0
 
 export CXX=$(which clang++)
 export CC=$(which clang)
 export FC=$(which gfortran)
-
-export CXXFLAGS='--gcc-toolchain=/opt/gcc/7.3.0/snos/'
-export CFLAGS='--gcc-toolchain=/opt/gcc/7.3.0/snos/'
 
 export CTEST_PARALLEL_LEVEL=1
 
