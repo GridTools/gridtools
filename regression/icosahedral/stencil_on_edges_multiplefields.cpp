@@ -35,11 +35,11 @@ struct test_on_edges_functor {
 using stencil_on_edges_multiplefields = regression_fixture<1>;
 
 TEST_F(stencil_on_edges_multiplefields, test) {
-    auto in1 = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
-    auto in2 = [](int_t i, int_t c, int_t j, int_t k) { return i / 2 + c + j / 2 + k / 2; };
-    auto ref = [=](int_t i, int_t c, int_t j, int_t k) {
+    auto in1 = [](int_t i, int_t j, int_t k, int_t c) { return i + j + k + c; };
+    auto in2 = [](int_t i, int_t j, int_t k, int_t c) { return i / 2 + j / 2 + k / 2 + c; };
+    auto ref = [=](int_t i, int_t j, int_t k, int_t c) {
         float_type res = 0;
-        for (auto &&item : neighbours_of<edges, edges>(i, c, j, k))
+        for (auto &&item : neighbours_of<edges, edges>(i, j, k, c))
             res += item.call(in1) + .1 * item.call(in2);
         return res;
     };

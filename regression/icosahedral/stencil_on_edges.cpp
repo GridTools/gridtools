@@ -35,10 +35,10 @@ struct test_on_edges_functor {
 using stencil_on_edges = regression_fixture<1>;
 
 TEST_F(stencil_on_edges, test) {
-    auto in = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
-    auto ref = [&](int_t i, int_t c, int_t j, int_t k) {
+    auto in = [](int_t i, int_t j, int_t k, int_t c) { return i + j + k + c; };
+    auto ref = [&](int_t i, int_t j, int_t k, int_t c) {
         float_type res = 0;
-        for (auto &&item : neighbours_of<edges, edges>(i, c, j, k))
+        for (auto &&item : neighbours_of<edges, edges>(i, j, k, c))
             res += item.call(in);
         return res;
     };

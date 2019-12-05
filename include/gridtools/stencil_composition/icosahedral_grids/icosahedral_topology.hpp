@@ -94,8 +94,13 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<3> offsets() { return {{{1, -1, 0, 0}, {0, -1, 0, 0}, {0, -1, 1, 0}}}; }
-        // extent<0, 1, 0, 1>
+        constexpr static position_offsets_type<3> offsets() {
+            return {{
+                {+1, +0, 0, -1}, //
+                {+0, +0, 0, -1}, //
+                {+0, +1, 0, -1}  //
+            }};
+        }
     };
 
     template <>
@@ -115,11 +120,14 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<3> offsets() { return {{{-1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, -1, 0}}}; }
-        // extent<-1, 0, -1, 0>
+        constexpr static position_offsets_type<3> offsets() {
+            return {{
+                {-1, +0, 0, +1}, //
+                {+0, +0, 0, +1}, //
+                {+0, -1, 0, +1}  //
+            }};
+        }
     };
-
-    // cells -> cells : extent <-1, 1, -1, 1>
 
     template <>
     template <>
@@ -142,7 +150,14 @@ namespace gridtools {
          */
         GT_FUNCTION
         constexpr static position_offsets_type<6> offsets() {
-            return {{{0, 0, -1, 0}, {-1, 0, 0, 0}, {-1, 0, 1, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}, {1, 0, -1, 0}}};
+            return {{
+                {+0, -1, 0, +0}, //
+                {-1, +0, 0, +0}, //
+                {-1, +1, 0, +0}, //
+                {+0, +1, 0, +0}, //
+                {+1, +0, 0, +0}, //
+                {+1, -1, 0, +0}  //
+            }};
         }
     };
 
@@ -166,7 +181,12 @@ namespace gridtools {
          */
         GT_FUNCTION
         constexpr static position_offsets_type<4> offsets() {
-            return {{{0, 2, -1, 0}, {0, 1, 0, 0}, {0, 2, 0, 0}, {1, 1, -1, 0}}};
+            return {{
+                {+0, -1, 0, +2}, //
+                {+0, +0, 0, +1}, //
+                {+0, +0, 0, +2}, //
+                {+1, -1, 0, +1}  //
+            }};
         }
     };
 
@@ -190,7 +210,12 @@ namespace gridtools {
          */
         GT_FUNCTION
         constexpr static position_offsets_type<4> offsets() {
-            return {{{-1, 1, 0, 0}, {-1, -1, 1, 0}, {0, 1, 0, 0}, {0, -1, 0, 0}}};
+            return {{
+                {-1, +0, 0, +1}, //
+                {-1, +1, 0, -1}, //
+                {+0, +0, 0, +1}, //
+                {+0, +0, 0, -1}  //
+            }};
         }
     };
 
@@ -212,7 +237,12 @@ namespace gridtools {
          */
         GT_FUNCTION
         constexpr static position_offsets_type<4> offsets() {
-            return {{{0, -2, 0, 0}, {0, -1, 0, 0}, {0, -2, 1, 0}, {1, -1, 0, 0}}};
+            return {{
+                {+0, +0, 0, -2}, //
+                {+0, +0, 0, -1}, //
+                {+0, +1, 0, -2}, //
+                {+1, +0, 0, -1}  //
+            }};
         }
     };
 
@@ -232,7 +262,13 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<3> offsets() { return {{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, -1, 1, 0}}}; }
+        constexpr static position_offsets_type<3> offsets() {
+            return {{
+                {+1, +0, 0, +0}, //
+                {+0, +0, 0, +1}, //
+                {+0, +1, 0, -1}  //
+            }};
+        }
     };
 
     template <>
@@ -252,7 +288,13 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<3> offsets() { return {{{0, 1, 0, 0}, {0, 2, 0, 0}, {0, 0, 0, 0}}}; }
+        constexpr static position_offsets_type<3> offsets() {
+            return {{
+                {+0, +0, 0, +1}, //
+                {+0, +0, 0, +2}, //
+                {+0, +0, 0, +0}  //
+            }};
+        }
     };
 
     template <>
@@ -273,7 +315,13 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<3> offsets() { return {{{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 1, 0}}}; }
+        constexpr static position_offsets_type<3> offsets() {
+            return {{
+                {+1, +0, 0, +0}, //
+                {+0, +0, 0, +0}, //
+                {+0, +1, 0, +0}  //
+            }};
+        }
     };
 
     template <>
@@ -294,7 +342,13 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<3> offsets() { return {{{0, -1, 1, 0}, {1, -1, 1, 0}, {1, -1, 0, 0}}}; }
+        constexpr static position_offsets_type<3> offsets() {
+            return {{
+                {+0, +1, 0, -1}, //
+                {+1, +1, 0, -1}, //
+                {+1, +0, 0, -1}  //
+            }};
+        }
     };
 
     template <>
@@ -313,7 +367,12 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<2> offsets() { return {{{0, 1, -1, 0}, {0, 0, 0, 0}}}; }
+        constexpr static position_offsets_type<2> offsets() {
+            return {{
+                {+0, -1, 0, +1}, //
+                {+0, +0, 0, +0}  //
+            }};
+        }
     };
 
     template <>
@@ -335,7 +394,12 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<2> offsets() { return {{{-1, 0, 0, 0}, {0, -1, 0, 0}}}; }
+        constexpr static position_offsets_type<2> offsets() {
+            return {{
+                {-1, +0, 0, +0}, //
+                {+0, +0, 0, -1}  //
+            }};
+        }
     };
 
     template <>
@@ -354,7 +418,12 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<2> offsets() { return {{{0, -1, 0, 0}, {0, -2, 0, 0}}}; }
+        constexpr static position_offsets_type<2> offsets() {
+            return {{
+                {+0, +0, 0, -1}, //
+                {+0, +0, 0, -2}  //
+            }};
+        }
     };
 
     template <>
@@ -375,7 +444,12 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<2> offsets() { return {{{1, 0, 0, 0}, {0, 0, 0, 0}}}; }
+        constexpr static position_offsets_type<2> offsets() {
+            return {{
+                {+1, +0, 0, +0}, //
+                {+0, +0, 0, +0}  //
+            }};
+        }
     };
 
     template <>
@@ -397,7 +471,12 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<2> offsets() { return {{{0, -1, 0, 0}, {0, -1, 1, 0}}}; }
+        constexpr static position_offsets_type<2> offsets() {
+            return {{
+                {+0, +0, 0, -1}, //
+                {+0, +1, 0, -1}  //
+            }};
+        }
     };
 
     template <>
@@ -418,7 +497,12 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static position_offsets_type<2> offsets() { return {{{0, -2, 1, 0}, {1, -2, 0, 0}}}; }
+        constexpr static position_offsets_type<2> offsets() {
+            return {{
+                {+0, +1, 0, -2}, //
+                {+1, +0, 0, -2}  //
+            }};
+        }
     };
 
     template <>
@@ -441,7 +525,14 @@ namespace gridtools {
          */
         GT_FUNCTION
         constexpr static position_offsets_type<6> offsets() {
-            return {{{-1, 1, -1, 0}, {-1, 0, 0, 0}, {-1, 1, 0, 0}, {0, 0, 0, 0}, {0, 1, -1, 0}, {0, 0, -1, 0}}};
+            return {{
+                {-1, -1, 0, +1}, //
+                {-1, +0, 0, +0}, //
+                {-1, +0, 0, +1}, //
+                {+0, +0, 0, +0}, //
+                {+0, -1, 0, +1}, //
+                {+0, -1, 0, +0}  //
+            }};
         }
     };
 
@@ -465,7 +556,14 @@ namespace gridtools {
          */
         GT_FUNCTION
         constexpr static position_offsets_type<6> offsets() {
-            return {{{0, 1, -1, 0}, {-1, 0, 0, 0}, {-1, 2, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 0}, {0, 2, -1, 0}}};
+            return {{
+                {+0, -1, 0, +1}, //
+                {-1, +0, 0, +0}, //
+                {-1, +0, 0, +2}, //
+                {+0, +0, 0, +1}, //
+                {+0, +0, 0, +0}, //
+                {+0, -1, 0, +2}  //
+            }};
         }
     };
 

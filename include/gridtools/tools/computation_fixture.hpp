@@ -71,6 +71,11 @@ namespace gridtools {
         template <class DataStorage>
         using halos_t = array<array<size_t, 2>, DataStorage::ndims>;
 
+        template <class Storage>
+        static halos_t<Storage> halos() {
+            return {{{halo_size, halo_size}, {halo_size, halo_size}}};
+        }
+
       public:
         static constexpr uint_t halo_size = HaloSize;
 
@@ -82,6 +87,24 @@ namespace gridtools {
         }
 
         auto make_grid() const { return ::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}); }
+
+        /// Fixture constructor takes the dimensions of the computation
+        computation_fixture(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
+
+        uint_t d1() const { return m_d1; }
+        uint_t d2() const { return m_d2; }
+        uint_t d3() const { return m_d3; }
+
+        uint_t &d1() { return m_d1; }
+        uint_t &d2() { return m_d2; }
+        uint_t &d3() { return m_d3; }
+
+        template <class Expected, class Actual>
+        void verify(
+            Expected const &expected, Actual const &actual, double precision = default_precision<float_type>()) const {
+            EXPECT_TRUE(
+                gridtools::verify_data_store(expected, actual, halos<typename Actual::element_type>(), precision));
+        }
 
 #ifndef GT_ICOSAHEDRAL_GRIDS
 
@@ -115,14 +138,6 @@ namespace gridtools {
         auto make_const_storage(U const &arg) const {
             return make_storage<T const>(arg);
         }
-
-      private:
-        template <class Storage>
-        static halos_t<Storage> halos() {
-            return {{ {halo_size, halo_size}, { halo_size, halo_size } }};
-        }
-
-      public:
 #else
         using cells = enumtype::cells;
         using edges = enumtype::edges;
@@ -130,18 +145,11 @@ namespace gridtools {
 
         template <class Location, class T = float_type>
         auto builder() const {
-            auto res = storage::builder<storage_traits_t>                           //
-                           .dimensions(m_d1, Location::n_colors::value, m_d2, m_d3) //
-                           .halos(HaloSize, 0, HaloSize, 0)                         //
-                           .template type<T>()                                      //
-                           .template id<Location::value>();
-#if defined(GT_BACKEND_CUDA)
-            return res.template layout<3, 2, 1, 0>();
-#elif defined(GT_BACKEND_X86)
-            return res.template layout<0, 3, 1, 2>();
-#elif defined(GT_BACKEND_NAIVE)
-            return res.template layout<0, 1, 2, 3>();
-#endif
+            return storage::builder<storage_traits_t>                    //
+                .dimensions(m_d1, m_d2, m_d3, Location::n_colors::value) //
+                .halos(HaloSize, HaloSize, 0, 0)                         //
+                .template type<T>()                                      //
+                .template id<Location::value>();
         }
 
         template <class Location, class T = float_type>
@@ -166,7 +174,6 @@ namespace gridtools {
         }
 
         /*
-                using halo_t = halo<HaloSize, 0, HaloSize, 0>;
 
                 template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
                 using storage_info_t = icosahedral_storage_info_type<backend_t, Location, Halo, Selector>;
@@ -207,31 +214,6 @@ namespace gridtools {
                     return {{d1(), Location::n_colors::value, d2(), d3(), dim}, (typename Storage::data_t)val};
                 }
         */
-
-      private:
-        template <class Storage>
-        static halos_t<Storage> halos() {
-            return {{{halo_size, halo_size}, {}, {halo_size, halo_size}}};
-        }
-
-      public:
 #endif
-        /// Fixture constructor takes the dimensions of the computation
-        computation_fixture(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
-
-        uint_t d1() const { return m_d1; }
-        uint_t d2() const { return m_d2; }
-        uint_t d3() const { return m_d3; }
-
-        uint_t &d1() { return m_d1; }
-        uint_t &d2() { return m_d2; }
-        uint_t &d3() { return m_d3; }
-
-        template <class Expected, class Actual>
-        void verify(
-            Expected const &expected, Actual const &actual, double precision = default_precision<float_type>()) const {
-            EXPECT_TRUE(
-                gridtools::verify_data_store(expected, actual, halos<typename Actual::element_type>(), precision));
-        }
     };
 } // namespace gridtools

@@ -54,18 +54,18 @@ const auto spec = [](auto in, auto out) {
 using stencil_fused = regression_fixture<2>;
 
 TEST_F(stencil_fused, test) {
-    auto in = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
+    auto in = [](int_t i, int_t j, int_t k, int_t c) { return i + j + k + c; };
 
-    auto tmp = [&](int_t i, int_t c, int_t j, int_t k) {
+    auto tmp = [&](int_t i, int_t j, int_t k, int_t c) {
         float_type res{};
-        for (auto &&item : neighbours_of<cells, edges>(i, c, j, k))
+        for (auto &&item : neighbours_of<cells, edges>(i, j, k, c))
             res += item.call(in);
         return res;
     };
 
-    auto ref = [&](int_t i, int_t c, int_t j, int_t k) {
+    auto ref = [&](int_t i, int_t j, int_t k, int_t c) {
         float_type res{};
-        for (auto &&item : neighbours_of<cells, cells>(i, c, j, k))
+        for (auto &&item : neighbours_of<cells, cells>(i, j, k, c))
             res += item.call(tmp);
         return res;
     };

@@ -22,10 +22,10 @@
 namespace gridtools {
     namespace _impl {
         struct neighbour {
-            int_t i, c, j, k;
+            int_t i, j, k, c;
             template <class Fun>
             auto call(Fun &&fun) const {
-                return std::forward<Fun>(fun)(i, c, j, k);
+                return std::forward<Fun>(fun)(i, j, k, c);
             }
         };
 
@@ -50,12 +50,12 @@ namespace gridtools {
     } // namespace _impl
 
     template <class FromLocation, class ToLocation>
-    std::vector<_impl::neighbour> neighbours_of(int_t i, int_t c, int_t j, int_t k) {
+    std::vector<_impl::neighbour> neighbours_of(int_t i, int_t j, int_t k, int_t c) {
         assert(c >= 0);
         assert(c < FromLocation::n_colors::value);
         std::vector<_impl::neighbour> res;
         for (auto &item : _impl::get_offsets<FromLocation, ToLocation>(c))
-            res.push_back({i + item[0], c + item[1], j + item[2], k + item[3]});
+            res.push_back({i + item[0], j + item[1], k + item[2], c + item[3]});
         return res;
     };
 } // namespace gridtools

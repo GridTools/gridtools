@@ -39,10 +39,10 @@ struct test_on_edges_functor {
 using stencil_manual_fold = regression_fixture<1>;
 
 TEST_F(stencil_manual_fold, test) {
-    auto in = [](int_t i, int_t c, int_t j, int_t k) { return 1. + i + c + j + k; };
-    auto ref = [&](int_t i, int_t c, int_t j, int_t k) -> weight_edges_t {
+    auto in = [](int_t i, int_t j, int_t k, int_t c) { return 1. + i + j + k + c; };
+    auto ref = [&](int_t i, int_t j, int_t k, int_t c) -> weight_edges_t {
         auto val = [&](int e) -> float_type {
-            return neighbours_of<cells, cells>(i, c, j, k)[e].call(in) / in(i, c, j, k);
+            return neighbours_of<cells, cells>(i, j, k, c)[e].call(in) / in(i, j, k, c);
         };
         return {val(0), val(1), val(2)};
     };
