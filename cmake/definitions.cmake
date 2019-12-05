@@ -17,7 +17,7 @@ add_library(GridTools::gridtools ALIAS gridtools)
 target_compile_features(gridtools INTERFACE cxx_std_14)
 target_include_directories(gridtools
     INTERFACE
-      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
+      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
     )
 install(TARGETS gridtools EXPORT GridToolsTargets
