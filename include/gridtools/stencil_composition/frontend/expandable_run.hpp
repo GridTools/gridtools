@@ -13,10 +13,6 @@
 #include <type_traits>
 #include <vector>
 
-#include <boost/preprocessor/punctuation/remove_parens.hpp>
-#include <boost/preprocessor/seq/for_each.hpp>
-#include <boost/preprocessor/variadic/to_seq.hpp>
-
 #include "../../meta.hpp"
 #include "run.hpp"
 
@@ -163,14 +159,6 @@ namespace gridtools {
             run_impl<Factor>(comp, be, grid, std::index_sequence_for<Fields...>(), std::forward<Fields>(fields)...);
         }
     } // namespace expandalble_frontend_impl_
+    using expandalble_frontend_impl_::expandable;
     using expandalble_frontend_impl_::expandable_run;
 } // namespace gridtools
-
-#define GT_INTERNAL_DECLARE_EXPANDABLE_TMP(r, type, name)                \
-    constexpr ::gridtools::expandalble_frontend_impl_::expandable<       \
-        ::gridtools::tmp_arg<__COUNTER__, BOOST_PP_REMOVE_PARENS(type)>> \
-        name = {};
-
-#define GT_DECLARE_EXPANDABLE_TMP(type, ...)                                                               \
-    BOOST_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_EXPANDABLE_TMP, type, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
-    static_assert(1, "")

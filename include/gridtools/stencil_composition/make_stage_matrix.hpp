@@ -50,6 +50,12 @@ namespace gridtools {
         using make_level_indices = meta::transform<make_level_index_f<From>::template apply,
             meta::make_indices_c<To::value - From::value + 1>>;
 
+        template <class T, class = void>
+        struct is_tmp_arg : std::false_type {};
+
+        template <class T>
+        struct is_tmp_arg<T, void_t<typename T::tmp_tag>> : std::true_type {};
+
         template <class Plh, class DataStores, bool = is_tmp_arg<Plh>::value>
         struct get_data_type {
             using sid_t = decltype(at_key<Plh>(std::declval<DataStores>()));

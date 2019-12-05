@@ -12,14 +12,8 @@
 
 #include <utility>
 
-#include <boost/preprocessor/punctuation/remove_parens.hpp>
-#include <boost/preprocessor/seq/for_each.hpp>
-#include <boost/preprocessor/tuple/elem.hpp>
-#include <boost/preprocessor/variadic/to_seq.hpp>
-
 #include "../../common/hymap.hpp"
 #include "../../meta.hpp"
-#include "../arg.hpp"
 #include "../backend.hpp"
 #include "../caches/cache_traits.hpp"
 #include "../compute_extents_metafunctions.hpp"
@@ -172,28 +166,4 @@ namespace gridtools {
     using frontend_impl_::get_arg_intent;
     using frontend_impl_::multi_pass;
     using frontend_impl_::run;
-
-    template <size_t, class NumColors, class Data>
-    struct colored_tmp_arg {
-        using data_t = Data;
-        using num_colors_t = NumColors;
-        using tmp_tag = std::true_type;
-    };
 } // namespace gridtools
-
-#define GT_INTERNAL_DECLARE_TMP(r, type, name) \
-    constexpr ::gridtools::tmp_arg<__COUNTER__, BOOST_PP_REMOVE_PARENS(type)> name = {};
-
-#define GT_DECLARE_TMP(type, ...)                                                               \
-    BOOST_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_TMP, type, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
-    static_assert(1, "")
-
-#define GT_INTERNAL_DECLARE_COLORED_TMP(r, type_location, name)                              \
-    constexpr ::gridtools::colored_tmp_arg<__COUNTER__,                                      \
-        typename BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(2, 1, type_location))::n_colors, \
-        BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(2, 0, type_location))>                    \
-        name = {};
-
-#define GT_DECLARE_COLORED_TMP(type, location, ...)                                                                 \
-    BOOST_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_COLORED_TMP, (type, location), BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
-    static_assert(1, "")

@@ -12,11 +12,13 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/meta/type_traits.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/meta.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil_composition/global_parameter.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 using namespace expressions;
 
 /**

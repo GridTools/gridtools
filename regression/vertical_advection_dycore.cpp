@@ -10,7 +10,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil_composition/global_parameter.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include "vertical_advection_defs.hpp"
@@ -21,6 +22,7 @@
   */
 
 using namespace gridtools;
+using namespace cartesian;
 
 // This is the definition of the special regions in the "vertical" direction
 using axis_t = axis<1, axis_config::offset_limit<3>>;

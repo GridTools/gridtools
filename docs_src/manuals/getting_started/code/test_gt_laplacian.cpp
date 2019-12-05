@@ -1,8 +1,9 @@
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/sid.hpp>
 
 using namespace gridtools;
-using namespace gridtools::expressions;
+using namespace cartesian;
 
 #if defined(__CUDACC__) || defined(__HIPCC__)
 #include <gridtools/stencil_composition/backend/cuda.hpp>

@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 
 namespace ico_operators {
 
     using namespace gridtools;
-    using namespace enumtype;
+    using namespace icosahedral;
 
     struct div_prep_functor {
         using edge_length = in_accessor<0, edges, extent<-1, 1, -1, 1>>;

@@ -23,9 +23,7 @@
 #include <type_traits>
 
 #include "../meta.hpp"
-#include "arg.hpp"
 #include "extent.hpp"
-#include "location_type.hpp"
 
 /**
    @file

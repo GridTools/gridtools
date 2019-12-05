@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include "div_functors.hpp"
@@ -25,7 +25,7 @@ struct div : regression_fixture<2> {
 
 TEST_F(div, reduction_into_scalar) {
     auto spec = [](auto in_edges, auto edge_length, auto cell_area_reciprocal, auto out) {
-        GT_DECLARE_COLORED_TMP((array<float_type, 3>), cells, weights);
+        GT_DECLARE_ICO_TMP((array<float_type, 3>), cells, weights);
         return execute_parallel()
             .ij_cached(weights)
             .stage(div_prep_functor(), edge_length, cell_area_reciprocal, weights)

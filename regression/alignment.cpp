@@ -10,8 +10,8 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/stencil_composition/positional.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/storage/traits.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
@@ -21,6 +21,7 @@
 */
 
 using namespace gridtools;
+using namespace cartesian;
 
 using alignment_test = regression_fixture<2>;
 

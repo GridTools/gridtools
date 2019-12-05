@@ -19,7 +19,6 @@
 #include "../../../common/integral_constant.hpp"
 #include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
-#include "../../arg.hpp"
 #include "../../caches/cache_traits.hpp"
 #include "../../compute_extents_metafunctions.hpp"
 #include "../../dim.hpp"

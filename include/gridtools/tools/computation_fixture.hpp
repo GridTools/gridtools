@@ -17,9 +17,9 @@
 #include "../common/defs.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/selector.hpp"
-#include "../stencil_composition/axis.hpp"
-#include "../stencil_composition/grid.hpp"
+#include "../stencil_composition/frontend.hpp"
 #include "../storage/builder.hpp"
+#include "../storage/sid.hpp"
 #include "backend_select.hpp"
 #include "verifier.hpp"
 
@@ -139,16 +139,12 @@ namespace gridtools {
             return make_storage<T const>(arg);
         }
 #else
-        using cells = enumtype::cells;
-        using edges = enumtype::edges;
-        using vertices = enumtype::vertices;
-
         template <class Location, class T = float_type>
         auto builder() const {
-            return storage::builder<storage_traits_t>                    //
-                .dimensions(m_d1, m_d2, m_d3, Location::n_colors::value) //
-                .halos(HaloSize, HaloSize, 0, 0)                         //
-                .template type<T>()                                      //
+            return storage::builder<storage_traits_t>          //
+                .dimensions(m_d1, m_d2, m_d3, Location::value) //
+                .halos(HaloSize, HaloSize, 0, 0)               //
+                .template type<T>()                            //
                 .template id<Location::value>();
         }
 

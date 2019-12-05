@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include "curl_functors.hpp"
@@ -28,7 +28,7 @@ const double curl::precision;
 
 TEST_F(curl, weights) {
     auto spec = [](auto reciprocal, auto edge_length, auto in_edges, auto out) {
-        GT_DECLARE_COLORED_TMP((array<float_type, 6>), vertices, weights);
+        GT_DECLARE_ICO_TMP((array<float_type, 6>), vertices, weights);
         return execute_parallel()
             .ij_cached(weights)
             .stage(curl_prep_functor(), reciprocal, edge_length, weights)

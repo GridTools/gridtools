@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include "curl_functors.hpp"
@@ -21,14 +21,14 @@ using namespace gridtools;
 using namespace ico_operators;
 
 struct lap_functor {
-    typedef in_accessor<0, enumtype::cells, extent<-1, 1, -1, 1>> in_cells;
-    typedef in_accessor<1, enumtype::edges> dual_edge_length_reciprocal;
-    typedef in_accessor<2, enumtype::vertices, extent<-1, 1, -1, 1>> in_vertices;
-    typedef in_accessor<3, enumtype::edges> edge_length_reciprocal;
-    typedef inout_accessor<4, enumtype::edges> out_edges;
+    typedef in_accessor<0, cells, extent<-1, 1, -1, 1>> in_cells;
+    typedef in_accessor<1, edges> dual_edge_length_reciprocal;
+    typedef in_accessor<2, vertices, extent<-1, 1, -1, 1>> in_vertices;
+    typedef in_accessor<3, edges> edge_length_reciprocal;
+    typedef inout_accessor<4, edges> out_edges;
     using param_list =
         make_param_list<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>;
-    using location = enumtype::edges;
+    using location = edges;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
@@ -59,10 +59,10 @@ TEST_F(lap, weights) {
                     auto dual_edge_length_reciprocal,
                     auto edge_length_reciprocal,
                     auto out) {
-        GT_DECLARE_COLORED_TMP(float_type, cells, div_on_cells);
-        GT_DECLARE_COLORED_TMP(float_type, vertices, curl_on_vertices);
-        GT_DECLARE_COLORED_TMP((array<float_type, 3>), cells, div_weights);
-        GT_DECLARE_COLORED_TMP((array<float_type, 6>), vertices, curl_weights);
+        GT_DECLARE_ICO_TMP(float_type, cells, div_on_cells);
+        GT_DECLARE_ICO_TMP(float_type, vertices, curl_on_vertices);
+        GT_DECLARE_ICO_TMP((array<float_type, 3>), cells, div_weights);
+        GT_DECLARE_ICO_TMP((array<float_type, 6>), vertices, curl_weights);
         return execute_parallel()
             .ij_cached(div_on_cells, curl_on_vertices, div_weights, curl_weights)
             .stage(div_prep_functor(), edge_length, cell_area_reciprocal, div_weights)
@@ -100,8 +100,8 @@ TEST_F(lap, flow_convention) {
                     auto dual_edge_length_reciprocal,
                     auto edge_length_reciprocal,
                     auto out) {
-        GT_DECLARE_COLORED_TMP(float_type, cells, div_on_cells);
-        GT_DECLARE_COLORED_TMP(float_type, vertices, curl_on_vertices);
+        GT_DECLARE_ICO_TMP(float_type, cells, div_on_cells);
+        GT_DECLARE_ICO_TMP(float_type, vertices, curl_on_vertices);
         return execute_parallel()
             .ij_cached(div_on_cells, curl_on_vertices)
             .stage(

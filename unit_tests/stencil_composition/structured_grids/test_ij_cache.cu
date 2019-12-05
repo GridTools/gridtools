@@ -13,7 +13,6 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/integral_constant.hpp>
-#include <gridtools/stencil_composition/arg.hpp>
 #include <gridtools/stencil_composition/extent.hpp>
 #include <gridtools/stencil_composition/sid/concept.hpp>
 #include <gridtools/tools/backend_select.hpp>
@@ -27,11 +26,6 @@ namespace gridtools {
         constexpr auto i_size = 3_c;
         constexpr auto j_size = 8_c;
         using extent_t = extent<-5, 1, -3, 1>;
-
-        template <class T>
-        struct data_store {
-            using data_t = T;
-        };
 
         TEST(sid_ij_cache, smoke) {
 

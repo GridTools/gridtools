@@ -14,7 +14,6 @@
 
 #include <gridtools/common/cuda_util.hpp>
 #include <gridtools/common/integral_constant.hpp>
-#include <gridtools/stencil_composition/arg.hpp>
 #include <gridtools/stencil_composition/dim.hpp>
 #include <gridtools/stencil_composition/extent.hpp>
 #include <gridtools/stencil_composition/sid/allocator.hpp>

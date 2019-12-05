@@ -9,13 +9,13 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/tools/computation_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
-using axis_t = gridtools::axis<3, gridtools::axis_config::offset_limit<3>, gridtools::axis_config::extra_offsets<1>>;
+using axis_t = axis<3, axis_config::offset_limit<3>, axis_config::extra_offsets<1>>;
 using kfull = axis_t::full_interval;
 
 double in(int i, int j, int k) { return i + j + k + 1; };
@@ -23,7 +23,7 @@ double in(int i, int j, int k) { return i + j + k + 1; };
 struct test_kcache_fill : computation_fixture<0, axis_t> {
     test_kcache_fill() : test_kcache_fill::computation_fixture(6, 6, 10) {}
 
-    auto make_grid() const { return ::gridtools::make_grid(d1(), d2(), axis_t(2, d3() - 4, 2)); }
+    auto make_grid() const { return ::make_grid(d1(), d2(), axis_t(2, d3() - 4, 2)); }
 };
 
 struct shift_acc_forward_fill {

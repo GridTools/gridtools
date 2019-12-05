@@ -9,8 +9,14 @@
  */
 #pragma once
 
-#ifndef GT_ICOSAHEDRAL_GRIDS
-#include "./structured_grids/stage.hpp"
-#else
-#include "./icosahedral_grids/stage.hpp"
-#endif
+namespace gridtools {
+    namespace stage_impl_ {
+        template <class>
+        struct meta_stage;
+
+        template <template <class...> class L, class... Ts>
+        struct meta_stage<L<Ts...>> : decltype(get_stage(std::declval<Ts>()...)) {};
+    } // namespace stage_impl_
+    template <class Functor, class PlhMap>
+    using stage = typename stage_impl_::meta_stage<typename Functor::param_list>::template apply<Functor, PlhMap>;
+} // namespace gridtools

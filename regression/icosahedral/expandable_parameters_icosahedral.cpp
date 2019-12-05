@@ -9,17 +9,17 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/frontend/expandable_run.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace icosahedral;
 
 struct functor_copy {
-    using out = inout_accessor<0, enumtype::cells>;
-    using in = in_accessor<1, enumtype::cells>;
+    using out = inout_accessor<0, cells>;
+    using in = in_accessor<1, cells>;
     using param_list = make_param_list<out, in>;
-    using location = enumtype::cells;
+    using location = cells;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {

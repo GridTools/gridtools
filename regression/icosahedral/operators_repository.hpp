@@ -15,14 +15,14 @@
 #include <functional>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/location_type.hpp>
+#include <gridtools/stencil_composition/frontend/icosahedral/location_type.hpp>
 
 #include "neighbours_of.hpp"
 
 class operators_repository {
-    using cells = gridtools::enumtype::cells;
-    using edges = gridtools::enumtype::edges;
-    using vertices = gridtools::enumtype::vertices;
+    using cells = gridtools::icosahedral::cells;
+    using edges = gridtools::icosahedral::edges;
+    using vertices = gridtools::icosahedral::vertices;
     using uint_t = gridtools::uint_t;
 
     using fun_t = std::function<double(int, int, int, int)>;
@@ -31,9 +31,9 @@ class operators_repository {
 
     const double PI = std::atan(1) * 4;
 
-    template <class LocationType>
+    template <class Location>
     double x(int i, int c) const {
-        return (i + c * 1. / LocationType::n_colors::value) / m_d1;
+        return (i + c * 1. / Location::value) / m_d1;
     }
 
     double y(int j) const { return j * 1. / m_d2; }

@@ -10,19 +10,19 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/binops.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include "neighbours_of.hpp"
 
 using namespace gridtools;
+using namespace icosahedral;
 
 struct test_on_edges_functor {
-    using in = in_accessor<0, enumtype::edges, extent<0, 1, 0, 1>>;
-    using out = inout_accessor<1, enumtype::cells>;
+    using in = in_accessor<0, edges, extent<0, 1, 0, 1>>;
+    using out = inout_accessor<1, cells>;
     using param_list = make_param_list<in, out>;
-    using location = enumtype::cells;
+    using location = cells;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
@@ -33,10 +33,10 @@ struct test_on_edges_functor {
 };
 
 struct test_on_cells_functor {
-    using in = in_accessor<0, enumtype::cells, extent<-1, 1, -1, 1>>;
-    using out = inout_accessor<1, enumtype::cells>;
+    using in = in_accessor<0, cells, extent<-1, 1, -1, 1>>;
+    using out = inout_accessor<1, cells>;
     using param_list = make_param_list<in, out>;
-    using location = enumtype::cells;
+    using location = cells;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
@@ -47,7 +47,7 @@ struct test_on_cells_functor {
 };
 
 const auto spec = [](auto in, auto out) {
-    GT_DECLARE_COLORED_TMP(float_type, enumtype::cells, tmp);
+    GT_DECLARE_ICO_TMP(float_type, cells, tmp);
     return execute_parallel().stage(test_on_edges_functor(), in, tmp).stage(test_on_cells_functor(), tmp, out);
 };
 

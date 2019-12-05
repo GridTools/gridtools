@@ -10,8 +10,15 @@
 
 #pragma once
 
-#ifndef GT_ICOSAHEDRAL_GRIDS
-#include "./structured_grids/dim.hpp"
-#else
-#include "./icosahedral_grids/dim.hpp"
-#endif
+#include "../common/integral_constant.hpp"
+
+namespace gridtools {
+    namespace dim {
+        using i = integral_constant<int, 0>;
+        using j = integral_constant<int, 1>;
+        using k = integral_constant<int, 2>;
+        using c = integral_constant<int, 3>;
+
+        struct thread;
+    } // namespace dim
+} // namespace gridtools

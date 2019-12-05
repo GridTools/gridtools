@@ -9,21 +9,22 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include "neighbours_of.hpp"
 
 using namespace gridtools;
+using namespace icosahedral;
 
 template <int Color>
 using sign = integral_constant<int, Color == 0 ? -1 : 1>;
 
 struct on_cells_color_functor {
-    using in = in_accessor<0, enumtype::cells, extent<1, -1, 1, -1>>;
-    using out = inout_accessor<1, enumtype::cells>;
+    using in = in_accessor<0, cells, extent<1, -1, 1, -1>>;
+    using out = inout_accessor<1, cells>;
     using param_list = make_param_list<in, out>;
-    using location = enumtype::cells;
+    using location = cells;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {

@@ -11,10 +11,11 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct functor_single_kernel {
     using parameters1_out = inout_accessor<0>;

@@ -7,15 +7,16 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/stencil_composition/structured_grids/accessor.hpp>
+#include <gridtools/stencil_composition/frontend/cartesian/accessor.hpp>
 
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/tuple_util.hpp>
-#include <gridtools/stencil_composition/expressions/expressions.hpp>
+#include <gridtools/stencil_composition/frontend/cartesian/expressions.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 using namespace expressions;
 
 static_assert(is_accessor<accessor<6, intent::inout, extent<3, 4, 4, 5>>>::value, "");
@@ -38,33 +39,15 @@ TEST(accessor, smoke) {
 TEST(accessor, zero_accessor) {
     using testee_t = accessor<0>;
     static_assert(tuple_util::size<testee_t>::value == 0, "");
-    EXPECT_NO_THROW((testee_t{0, 0, 0, 0}));
-    EXPECT_NO_THROW(testee_t{dimension<3>{}});
-
-#ifndef NDEBUG
-    EXPECT_THROW(testee_t{1}, std::runtime_error);
-    EXPECT_THROW((testee_t{0, 0, 1, 0, 0, 0}), std::runtime_error);
-    EXPECT_THROW(testee_t{dimension<3>{4}}, std::runtime_error);
-#else
-    EXPECT_NO_THROW(testee_t{1});
-    EXPECT_NO_THROW((testee_t{0, 0, 1, 0, 0, 0}));
-    EXPECT_NO_THROW(testee_t{dimension<3>{4}});
-#endif
+    testee_t{0, 0, 0, 0};
+    testee_t{dimension<3>{}};
 }
 
 TEST(accessor, extra_args) {
     using testee_t = accessor<0, intent::inout, extent<-1, 1>>;
     static_assert(tuple_util::size<testee_t>::value == 1, "");
-    EXPECT_NO_THROW((testee_t{1, 0}));
-    EXPECT_NO_THROW(testee_t{dimension<2>{0}});
-
-#ifndef NDEBUG
-    EXPECT_THROW((testee_t{0, 1}), std::runtime_error);
-    EXPECT_THROW(testee_t{dimension<2>{1}}, std::runtime_error);
-#else
-    EXPECT_NO_THROW((testee_t{0, 1}));
-    EXPECT_NO_THROW(testee_t{dimension<2>{1}});
-#endif
+    testee_t{1, 0};
+    testee_t{dimension<2>{0}};
 }
 
 TEST(accessor, array) {

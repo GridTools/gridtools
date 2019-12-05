@@ -10,19 +10,19 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/binops.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include "neighbours_of.hpp"
 
 using namespace gridtools;
+using namespace icosahedral;
 
 struct test_on_vertices_functor {
-    using in = in_accessor<0, enumtype::vertices, extent<-1, 1, -1, 1>>;
-    using out = inout_accessor<1, enumtype::vertices>;
+    using in = in_accessor<0, vertices, extent<-1, 1, -1, 1>>;
+    using out = inout_accessor<1, vertices>;
     using param_list = make_param_list<in, out>;
-    using location = enumtype::vertices;
+    using location = vertices;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {

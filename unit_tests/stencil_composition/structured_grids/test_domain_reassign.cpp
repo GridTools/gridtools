@@ -11,10 +11,11 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/tools/computation_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct test_functor {
     using in = in_accessor<0>;

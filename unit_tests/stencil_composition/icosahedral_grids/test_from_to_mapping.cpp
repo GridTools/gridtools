@@ -9,10 +9,10 @@
  */
 #include "gtest/gtest.h"
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace icosahedral;
 
 // The purpose of this set of tests is to guarantee that the offsets methods of the different specializations
 // provided by the connectivity tables in from<>::to<>::with_color return a constexpr array

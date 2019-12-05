@@ -1,11 +1,11 @@
 #pragma once
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/sid.hpp>
 
 using namespace gridtools;
-using namespace gridtools::expressions;
+using namespace cartesian;
 
 #ifdef __CUDACC__
 #include <gridtools/stencil_composition/backend/cuda.hpp>
@@ -21,9 +21,9 @@ using storage_traits_t = storage::mc;
 
 static constexpr unsigned halo_size = 2;
 
-constexpr static gridtools::dimension<1> i;
-constexpr static gridtools::dimension<2> j;
-constexpr static gridtools::dimension<3> k;
+constexpr static dimension<1> i;
+constexpr static dimension<2> j;
+constexpr static dimension<3> k;
 
 using axis_t = axis<2>;
 using lower_domain = axis_t::get_interval<0>;

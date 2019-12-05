@@ -12,9 +12,10 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct functor0 {
     typedef accessor<0, intent::in, extent<0, 0, -1, 3, -2, 0>> in0;

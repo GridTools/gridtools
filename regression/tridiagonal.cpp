@@ -9,7 +9,7 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 /*
@@ -27,6 +27,7 @@
  */
 
 using namespace gridtools;
+using namespace cartesian;
 using namespace expressions;
 
 // This is the definition of the special regions in the "vertical" direction

@@ -12,12 +12,12 @@
 
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/interface/fortran_array_view.hpp>
-#include <gridtools/stencil_composition/sid/concept.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace cartesian;
 
     struct copy_functor {
         using in = in_accessor<0>;

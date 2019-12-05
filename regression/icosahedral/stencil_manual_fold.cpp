@@ -11,21 +11,21 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 #include "neighbours_of.hpp"
 
 using namespace gridtools;
-using namespace expressions;
+using namespace icosahedral;
 
 using weight_edges_t = array<float_type, 3>;
 
 struct test_on_edges_functor {
-    using cell_area = in_accessor<0, enumtype::cells, extent<-1, 1, -1, 1>>;
-    using weight_edges = inout_accessor<1, enumtype::cells>;
+    using cell_area = in_accessor<0, cells, extent<-1, 1, -1, 1>>;
+    using weight_edges = inout_accessor<1, cells>;
     using param_list = make_param_list<cell_area, weight_edges>;
-    using location = enumtype::cells;
+    using location = cells;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {

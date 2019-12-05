@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
 
 namespace ico_operators {
 
     using namespace gridtools;
-    using namespace enumtype;
+    using namespace icosahedral;
 
     struct curl_prep_functor {
         using dual_area_reciprocal = in_accessor<0, vertices>;

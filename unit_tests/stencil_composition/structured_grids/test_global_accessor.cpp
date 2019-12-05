@@ -10,12 +10,14 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil_composition/global_parameter.hpp>
 #include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/sid.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 const auto make_storage = storage::builder<storage_traits_t>.type<float_type>().dimensions(10, 10, 10).value(2);
 

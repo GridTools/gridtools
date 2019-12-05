@@ -9,8 +9,7 @@
  */
 #pragma once
 
-#ifndef GT_ICOSAHEDRAL_GRIDS
-#include "./structured_grids/accessor.hpp"
-#else
-#include "./icosahedral_grids/accessor.hpp"
-#endif
+#include "icosahedral/accessor.hpp"
+#include "icosahedral/location_type.hpp"
+#include "icosahedral/stage.hpp"
+#include "icosahedral/tmp_arg.hpp"

@@ -8,11 +8,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "gtest/gtest.h"
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 
 using namespace gridtools;
-using namespace gridtools::execute;
-using namespace gridtools::expressions;
+using namespace cartesian;
+using namespace expressions;
 
 /*
  * Mocking accessor and iterate domain

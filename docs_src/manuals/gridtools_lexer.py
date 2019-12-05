@@ -16,7 +16,6 @@ gridtools_keywords = ((
         'data_store',
         'dimension',
         'edges',
-        'enumtype',
         'execute',
         'extent',
         'fill',
@@ -47,7 +46,6 @@ gridtools_keywords = ((
 gridtools_namespace = ((
 	'cache_io_policy',
 	'cache_type',
-	'enumtype',
 ))
 
 gridtools_functions = ((

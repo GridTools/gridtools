@@ -10,11 +10,13 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/sid.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 template <typename Axis>
 struct parallel_functor {

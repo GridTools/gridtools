@@ -16,8 +16,9 @@
 #include <gridtools/communication/halo_exchange.hpp>
 #include <gridtools/communication/low_level/proc_grids_3D.hpp>
 #include <gridtools/distributed_boundaries/grid_predicate.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/sid.hpp>
 #include <gridtools/storage/traits.hpp>
 #include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
@@ -28,6 +29,7 @@
     @brief This file shows an implementation of the "copy" stencil in parallel with boundary conditions*/
 
 using namespace gridtools;
+using namespace cartesian;
 
 namespace copy_stencil {
     // These are the stencil operators that compose the multistage stencil in this test

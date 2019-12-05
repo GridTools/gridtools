@@ -10,14 +10,12 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/frontend/expandable_run.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/tools/computation_fixture.hpp>
 
 using namespace gridtools;
-using namespace gridtools::execute;
-using namespace gridtools::expressions;
+using namespace cartesian;
+using namespace expressions;
 
 struct expandable_parameters : computation_fixture<> {
     expandable_parameters() : computation_fixture<>(13, 9, 7) {}

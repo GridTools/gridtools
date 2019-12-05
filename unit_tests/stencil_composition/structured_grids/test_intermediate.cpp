@@ -10,10 +10,10 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct stage1 {
     using in1 = in_accessor<0, extent<0, 1, -1, 0, 0, 1>>;

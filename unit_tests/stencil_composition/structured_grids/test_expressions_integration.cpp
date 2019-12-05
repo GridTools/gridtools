@@ -15,10 +15,12 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil_composition/global_parameter.hpp>
 #include <gridtools/tools/computation_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct test_functor {
     using val2 = in_accessor<0>;

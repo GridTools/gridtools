@@ -9,9 +9,7 @@
  */
 #pragma once
 
-#include <type_traits>
-
-namespace gridtools {
-    template <typename T>
-    struct is_accessor : std::false_type {};
-} // namespace gridtools
+#include "frontend/expandable_run.hpp"
+#include "frontend/make_param_list.hpp"
+#include "frontend/run.hpp"
+#include "grid.hpp"
