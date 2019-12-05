@@ -19,9 +19,6 @@
 #include "../../meta/list_to_iseq.hpp"
 #include "../../meta/take.hpp"
 #include "../location_type.hpp"
-#include "position_offset_type.hpp"
-
-#include "icosahedral_topology_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -34,6 +31,9 @@ namespace gridtools {
             struct with_color;
         };
     };
+
+    template <size_t N>
+    using position_offsets_type = array<array<int_t, 4>, N> const;
 
     /**
      * Following specializations provide all information about the connectivity of the icosahedral/ocahedral grid
@@ -95,6 +95,7 @@ namespace gridtools {
          */
         GT_FUNCTION
         constexpr static position_offsets_type<3> offsets() { return {{{1, -1, 0, 0}, {0, -1, 0, 0}, {0, -1, 1, 0}}}; }
+        // extent<0, 1, 0, 1>
     };
 
     template <>
@@ -115,7 +116,10 @@ namespace gridtools {
          */
         GT_FUNCTION
         constexpr static position_offsets_type<3> offsets() { return {{{-1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, -1, 0}}}; }
+        // extent<-1, 0, -1, 0>
     };
+
+    // cells -> cells : extent <-1, 1, -1, 1>
 
     template <>
     template <>
@@ -141,6 +145,8 @@ namespace gridtools {
             return {{{0, 0, -1, 0}, {-1, 0, 0, 0}, {-1, 0, 1, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}, {1, 0, -1, 0}}};
         }
     };
+
+    // vertices -> vertices : extent<-1, 1, -1, 1>
 
     template <>
     template <>
@@ -474,39 +480,4 @@ namespace gridtools {
             return from<SrcLocation>::template to<DestLocation>::template with_color<Color>::offsets();
         }
     };
-
-    namespace _impl {
-        template <class>
-        struct default_layout;
-        template <>
-        struct default_layout<backend::cuda> {
-            using type = layout_map<3, 2, 1, 0>;
-        };
-        template <>
-        struct default_layout<backend::x86> {
-            using type = layout_map<0, 3, 1, 2>;
-        };
-        template <>
-        struct default_layout<backend::naive> {
-            using type = layout_map<0, 1, 2, 3>;
-        };
-
-        template <std::size_t N, class DimSelector>
-        using shorten_selector = meta::list_to_iseq<meta::take_c<N, meta::iseq_to_list<DimSelector>>>;
-
-        template <class Backend,
-            class Selector,
-            class Layout = typename default_layout<Backend>::type,
-            class Selector4D = shorten_selector<4, Selector>,
-            class FilteredLayout = typename get_special_layout<Layout, Selector4D>::type>
-        using select_layout = typename std::conditional_t<(Selector::size() > 4),
-            extend_layout_map<FilteredLayout, Selector::size() - 4>,
-            meta::lazy::id<FilteredLayout>>::type;
-    } // namespace _impl
-
-    template <class Backend, class Location, class Halo, class Selector>
-    using icosahedral_storage_info_type = typename storage_traits<Backend>::template custom_layout_storage_info_t<
-        impl::compute_uuid<Location::value, Selector>::value,
-        _impl::select_layout<Backend, Selector>,
-        Halo>;
 } // namespace gridtools

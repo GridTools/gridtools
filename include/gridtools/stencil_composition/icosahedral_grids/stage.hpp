@@ -28,7 +28,6 @@
 #include "../sid/multi_shift.hpp"
 #include "dim.hpp"
 #include "icosahedral_topology.hpp"
-#include "on_neighbors.hpp"
 
 /**
  *   @file
@@ -81,8 +80,8 @@ namespace gridtools {
             }
 
             template <class Accessor>
-            GT_FUNCTION decltype(auto) operator()(Accessor const &acc) const {
-                return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(acc));
+            GT_FUNCTION decltype(auto) operator()(Accessor) const {
+                return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(tuple<>()));
             }
 
             template <class Accessor, class Offset>
@@ -90,16 +89,18 @@ namespace gridtools {
                 return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(offset));
             }
 
-            template <class ValueType, class LocationTypeT, class Reduction, class... Accessors>
-            GT_FUNCTION ValueType operator()(
-                on_neighbors<ValueType, LocationTypeT, Reduction, Accessors...> onneighbors) const {
-                static constexpr auto offsets = connectivity<LocationType, LocationTypeT, Color>::offsets();
-                for (auto &&offset : offsets)
-                    onneighbors.m_value = onneighbors.m_function(neighbor<Accessors>(offset)..., onneighbors.m_value);
-                return onneighbors.m_value;
-            }
-
             static constexpr int_t color = Color;
+
+            template <class Fun, class Accessor, class... Accessors>
+            GT_FUNCTION void for_neighbors(Fun &&fun, Accessor, Accessors...) const {
+                static_assert(
+                    conjunction<std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>::value,
+                    "All accessors should be of the same location");
+                static constexpr auto offsets =
+                    connectivity<LocationType, typename Accessor::location_t, Color>::offsets();
+                for (auto &&offset : offsets)
+                    fun(neighbor<Accessor>(offset), neighbor<Accessors>(offset)...);
+            }
         };
 
         template <class Functor, class PlhMap>

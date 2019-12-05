@@ -9,7 +9,7 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/expandable_parameters/run.hpp>
+#include <gridtools/stencil_composition/frontend/expandable_run.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
@@ -21,37 +21,30 @@ struct functor_copy {
     using param_list = make_param_list<out, in>;
     using location = enumtype::cells;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out{}) = eval(in{});
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
+        eval(out()) = eval(in());
     }
 };
 
 using expandable_parameters_icosahedral = regression_fixture<>;
 
 TEST_F(expandable_parameters_icosahedral, test) {
-    using storages_t = std::vector<storage_type<cells>>;
-    storages_t in = {make_storage<cells>(10.),
-        make_storage<cells>(20.),
-        make_storage<cells>(30.),
-        make_storage<cells>(40.),
-        make_storage<cells>(50.)};
-    storages_t out = {make_storage<cells>(1.),
-        make_storage<cells>(2.),
-        make_storage<cells>(3.),
-        make_storage<cells>(4.),
-        make_storage<cells>(5.)};
-
-    arg<0, cells, storages_t> p_out;
-    arg<1, cells, storages_t> p_in;
-
-    gridtools::make_expandable_computation<backend_t>(expand_factor<2>(),
+    using storages_t = std::vector<decltype(make_storage<cells>())>;
+    storages_t out = {make_storage<cells>(),
+        make_storage<cells>(),
+        make_storage<cells>(),
+        make_storage<cells>(),
+        make_storage<cells>()};
+    expandable_run<2>([](auto out, auto in) { return execute_parallel().stage(functor_copy(), out, in); },
+        backend_t(),
         make_grid(),
-        p_out = out,
-        p_in = in,
-        make_multistage(execute::forward(), make_stage<functor_copy>(p_out, p_in)))
-        .run();
-
-    for (size_t i = 0; i != in.size(); ++i)
-        verify(in[i], out[i]);
+        out,
+        storages_t{make_storage<cells>(10),
+            make_storage<cells>(20),
+            make_storage<cells>(30),
+            make_storage<cells>(40),
+            make_storage<cells>(50)});
+    for (size_t i = 0; i != out.size(); ++i)
+        verify((i + 1) * 10, out[i]);
 }

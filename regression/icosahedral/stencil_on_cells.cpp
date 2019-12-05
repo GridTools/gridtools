@@ -25,7 +25,9 @@ struct test_on_cells_functor {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return lhs + rhs; }, 0., in{}));
+        float_type res = 0;
+        eval.for_neighbors([&](auto in) { res += in; }, in());
+        eval(out()) = res;
     }
 };
 
@@ -39,15 +41,9 @@ TEST_F(stencil_on_cells, test) {
             res += item.call(in);
         return res;
     };
-    arg<0, cells> p_in;
-    arg<1, cells> p_out;
     auto out = make_storage<cells>();
-    auto comp = [&] {
-        compute(p_in = make_storage<cells>(in),
-            p_out = out,
-            make_multistage(execute::forward(), make_stage<test_on_cells_functor>(p_in, p_out)));
-    };
+    auto comp = [&] { easy_run(test_on_cells_functor(), backend_t(), make_grid(), make_storage<cells>(in), out); };
     comp();
-    verify(make_storage<cells>(ref), out);
+    verify(ref, out);
     benchmark(comp);
 }

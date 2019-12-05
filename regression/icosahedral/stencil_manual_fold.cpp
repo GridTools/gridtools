@@ -8,22 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-/*
- * This example demonstrates how to retrieve the connectivity information of the
- * icosahedral/octahedral grid in the user functor. This is useful for example when
- * we need to operate on fields with a double location, for which the on_cells, on_edges
- * syntax has limitations, as it requires make use of the eval object, which is not
- * resolved in the lambdas passed to the on_cells syntax.
- * The example shown here computes a value for each edge of a cells. Therefore the primary
- * location type of the output field is cells, however we do not store a scalar value, but
- * a value per edge of each cell (i.e. 3 values).
- * The storage is therefore a 5 dimensional field with indices (i, c, j, k, edge_number)
- * where the last has the range [0,2]
- *
- */
-
 #include <gtest/gtest.h>
 
+#include <gridtools/common/array.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
@@ -32,24 +19,20 @@
 using namespace gridtools;
 using namespace expressions;
 
+using weight_edges_t = array<float_type, 3>;
+
 struct test_on_edges_functor {
-    using cell_area = in_accessor<0, enumtype::cells, extent<1>>;
-    using weight_edges = inout_accessor<1, enumtype::cells, 5>;
+    using cell_area = in_accessor<0, enumtype::cells, extent<-1, 1, -1, 1>>;
+    using weight_edges = inout_accessor<1, enumtype::cells>;
     using param_list = make_param_list<cell_area, weight_edges>;
     using location = enumtype::cells;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
-        constexpr dimension<5> edge = {};
-
-        // retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).
-        constexpr auto neighbors_offsets = connectivity<enumtype::cells, enumtype::cells, Evaluation::color>::offsets();
-        uint_t e = 0;
-        // loop over all neighbours. Each iterator (neighbor_offset) is a position offset, i.e. an array with length 4
-        for (auto neighbor_offset : neighbors_offsets) {
-            eval(weight_edges(edge + e)) = eval(cell_area(neighbor_offset)) / eval(cell_area());
-            e++;
-        }
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
+        auto &&out = eval(weight_edges());
+        auto focus = eval(cell_area());
+        int i = 0;
+        eval.for_neighbors([&](auto neighbor) { out[i++] = neighbor / focus; }, cell_area());
     }
 };
 
@@ -57,22 +40,15 @@ using stencil_manual_fold = regression_fixture<1>;
 
 TEST_F(stencil_manual_fold, test) {
     auto in = [](int_t i, int_t c, int_t j, int_t k) { return 1. + i + c + j + k; };
-    auto ref = [&](int_t i, int_t c, int_t j, int_t k, int_t e) {
-        return neighbours_of<cells, cells>(i, c, j, k)[e].call(in) / in(i, c, j, k);
+    auto ref = [&](int_t i, int_t c, int_t j, int_t k) -> weight_edges_t {
+        auto val = [&](int e) -> float_type {
+            return neighbours_of<cells, cells>(i, c, j, k)[e].call(in) / in(i, c, j, k);
+        };
+        return {val(0), val(1), val(2)};
     };
-    auto weight_edges = make_storage_4d<cells>(3);
-
-    arg<0, cells> p_in;
-    arg<1, cells> p_out;
-
-    auto comp = [&] {
-        compute(p_in = make_storage<cells>(in),
-            p_out = weight_edges,
-            make_multistage(execute::forward(), make_stage<test_on_edges_functor>(p_in, p_out)));
-    };
-
+    auto out = make_storage<cells, weight_edges_t>();
+    auto comp = [&] { easy_run(test_on_edges_functor(), backend_t(), make_grid(), make_storage<cells>(in), out); };
     comp();
-    verify(make_storage_4d<cells>(3, ref), weight_edges);
-
+    verify(ref, out);
     benchmark(comp);
 }

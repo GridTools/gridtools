@@ -23,17 +23,15 @@ struct functor_copy {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out{}) = eval(in{});
+        eval(out()) = eval(in());
     }
 };
 
 using copy_stencil_icosahedral = regression_fixture<>;
 
 TEST_F(copy_stencil_icosahedral, test) {
-    arg<0, cells> p_out;
-    arg<1, cells> p_in;
-    auto in = make_storage<cells>([](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; });
+    auto in = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
     auto out = make_storage<cells>();
-    compute(p_out = out, p_in = in, make_multistage(execute::parallel(), make_stage<functor_copy>(p_out, p_in)));
+    easy_run(functor_copy(), backend_t(), make_grid(), out, make_storage<cells>(in));
     verify(in, out);
 }

@@ -9,8 +9,6 @@
  */
 #pragma once
 
-#include "../common/defs.hpp"
-
 #if GT_FLOAT_PRECISION == 4
 using float_type = float;
 #elif GT_FLOAT_PRECISION == 8

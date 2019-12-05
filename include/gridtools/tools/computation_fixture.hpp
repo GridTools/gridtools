@@ -24,6 +24,44 @@
 #include "verifier.hpp"
 
 namespace gridtools {
+
+    /*
+    namespace _impl {
+        template <class>
+        struct default_layout;
+        template <>
+        struct default_layout<backend::cuda> {
+            using type = layout_map<3, 2, 1, 0>;
+        };
+        template <>
+        struct default_layout<backend::x86> {
+            using type = layout_map<0, 3, 1, 2>;
+        };
+        template <>
+        struct default_layout<backend::naive> {
+            using type = layout_map<0, 1, 2, 3>;
+        };
+
+        template <std::size_t N, class DimSelector>
+        using shorten_selector = meta::list_to_iseq<meta::take_c<N, meta::iseq_to_list<DimSelector>>>;
+
+        template <class Backend,
+                class Selector,
+                class Layout = typename default_layout<Backend>::type,
+                class Selector4D = shorten_selector<4, Selector>,
+                class FilteredLayout = typename get_special_layout<Layout, Selector4D>::type>
+        using select_layout = typename std::conditional_t<(Selector::size() > 4),
+                extend_layout_map<FilteredLayout, Selector::size() - 4>,
+                meta::lazy::id<FilteredLayout>>::type;
+    } // namespace _impl
+
+    template <class Backend, class Location, class Halo, class Selector>
+    using icosahedral_storage_info_type = typename storage_traits<Backend>::template custom_layout_storage_info_t<
+            impl::compute_uuid<Location::value, Selector>::value,
+            _impl::select_layout<Backend, Selector>,
+            Halo>;
+*/
+
     template <size_t HaloSize = 0, class Axis = axis<1>>
     class computation_fixture : virtual public ::testing::Test {
         uint_t m_d1;
@@ -49,7 +87,10 @@ namespace gridtools {
 
         template <class T = float_type>
         auto builder() const {
-            return storage::builder<storage_traits_t>.dimensions(m_d1, m_d2, m_d3).halos(HaloSize, HaloSize, 0).template type<T>();
+            return storage::builder<storage_traits_t> //
+                .dimensions(m_d1, m_d2, m_d3)         //
+                .halos(HaloSize, HaloSize, 0)         //
+                .template type<T>();
         }
 
         template <class T = float_type, class U, std::enable_if_t<!std::is_convertible<U const &, T>::value, int> = 0>
@@ -87,46 +128,85 @@ namespace gridtools {
         using edges = enumtype::edges;
         using vertices = enumtype::vertices;
 
-        using halo_t = halo<HaloSize, 0, HaloSize, 0>;
-
-        template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
-        using storage_info_t = icosahedral_storage_info_type<backend_t, Location, Halo, Selector>;
-
-        template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
-        using storage_type = storage_tr::data_store_t<float_type, storage_info_t<Location, Selector, Halo>>;
-
-        using edge_2d_storage_type = storage_type<edges, selector<1, 1, 1, 0>>;
-        using cell_2d_storage_type = storage_type<cells, selector<1, 1, 1, 0>>;
-        using vertex_2d_storage_type = storage_type<vertices, selector<1, 1, 1, 0>>;
-
-        template <class Location, class Selector = selector<1, 1, 1, 1, 1>>
-        using storage_type_4d = storage_type<Location, Selector, halo<halo_size, 0, halo_size, 0, 0>>;
-
-        template <uint_t I, class Location>
-        using arg = gridtools::arg<I, void, Location>;
-
-        template <uint_t I, class Location, typename Storage = float_type>
-        using tmp_arg = gridtools::tmp_arg<I, Storage, Location>;
-
-        template <class Location, class Storage = storage_type<Location>, class T = typename Storage::data_t>
-        Storage make_storage(T &&obj = {}) const {
-            return {{m_d1, Location::n_colors::value, m_d2, m_d3}, std::forward<T>(obj)};
+        template <class Location, class T = float_type>
+        auto builder() const {
+            auto res = storage::builder<storage_traits_t>                           //
+                           .dimensions(m_d1, Location::n_colors::value, m_d2, m_d3) //
+                           .halos(HaloSize, 0, HaloSize, 0)                         //
+                           .template type<T>()                                      //
+                           .template id<Location::value>();
+#if defined(GT_BACKEND_CUDA)
+            return res.template layout<3, 2, 1, 0>();
+#elif defined(GT_BACKEND_X86)
+            return res.template layout<0, 3, 1, 2>();
+#elif defined(GT_BACKEND_NAIVE)
+            return res.template layout<0, 1, 2, 3>();
+#endif
         }
 
-        template <class Location, class Storage = storage_type<Location>>
-        Storage make_storage(double val) const {
-            return {{m_d1, Location::n_colors::value, m_d2, m_d3}, (typename Storage::data_t)val};
+        template <class Location, class T = float_type>
+        auto make_storage() const {
+            return builder<Location, T>().build();
         }
 
-        template <class Location, class Storage = storage_type_4d<Location>, class T = typename Storage::data_t>
-        Storage make_storage_4d(uint_t dim, T &&val = {}) {
-            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, std::forward<T>(val)};
+        template <class Location,
+            class T = float_type,
+            class U,
+            std::enable_if_t<!std::is_convertible<U const &, T>::value, int> = 0>
+        auto make_storage(U const &arg) const {
+            return builder<Location, T>().initializer(arg).build();
         }
 
-        template <class Location, class Storage = storage_type_4d<Location>>
-        Storage make_storage_4d(uint_t dim, double val) {
-            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, (typename Storage::data_t)val};
+        template <class Location,
+            class T = float_type,
+            class U,
+            std::enable_if_t<std::is_convertible<U const &, T>::value, int> = 0>
+        auto make_storage(U const &arg) const {
+            return builder<Location, T>().value(arg).build();
         }
+
+        /*
+                using halo_t = halo<HaloSize, 0, HaloSize, 0>;
+
+                template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
+                using storage_info_t = icosahedral_storage_info_type<backend_t, Location, Halo, Selector>;
+
+                template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
+                using storage_type = storage_tr::data_store_t<float_type, storage_info_t<Location, Selector, Halo>>;
+
+                using edge_2d_storage_type = storage_type<edges, selector<1, 1, 1, 0>>;
+                using cell_2d_storage_type = storage_type<cells, selector<1, 1, 1, 0>>;
+                using vertex_2d_storage_type = storage_type<vertices, selector<1, 1, 1, 0>>;
+
+                template <class Location, class Selector = selector<1, 1, 1, 1, 1>>
+                using storage_type_4d = storage_type<Location, Selector, halo<halo_size, 0, halo_size, 0, 0>>;
+
+                template <uint_t I, class Location>
+                using arg = gridtools::arg<I, void, Location>;
+
+                template <uint_t I, class Location, typename Storage = float_type>
+                using tmp_arg = gridtools::tmp_arg<I, Storage, Location>;
+
+                template <class Location, class Storage = storage_type<Location>, class T = typename Storage::data_t>
+                Storage make_storage(T &&obj = {}) const {
+                    return {{m_d1, Location::n_colors::value, m_d2, m_d3}, std::forward<T>(obj)};
+                }
+
+                template <class Location, class Storage = storage_type<Location>>
+                Storage make_storage(double val) const {
+                    return {{m_d1, Location::n_colors::value, m_d2, m_d3}, (typename Storage::data_t)val};
+                }
+
+                template <class Location, class Storage = storage_type_4d<Location>, class T = typename Storage::data_t>
+                Storage make_storage_4d(uint_t dim, T &&val = {}) {
+                    return {{d1(), Location::n_colors::value, d2(), d3(), dim}, std::forward<T>(val)};
+                }
+
+                template <class Location, class Storage = storage_type_4d<Location>>
+                Storage make_storage_4d(uint_t dim, double val) {
+                    return {{d1(), Location::n_colors::value, d2(), d3(), dim}, (typename Storage::data_t)val};
+                }
+        */
 
       private:
         template <class Storage>

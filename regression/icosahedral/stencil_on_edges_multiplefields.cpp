@@ -7,13 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-/*
- * This shows an example on how to use on_edges syntax with multiple input fields
- * (with location type edge) that are needed in the reduction over the edges of a cell
- * An typical operator that needs this functionality is the divergence where we need
- * sum_reduce(edges) {sign_edge * lengh_edge}
- * The sign of the edge indicates whether flows go inward or outward (with respect the center of the cell).
- */
 
 #include <gtest/gtest.h>
 
@@ -31,13 +24,11 @@ struct test_on_edges_functor {
     using param_list = make_param_list<in1, in2, out>;
     using location = enumtype::edges;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out{}) = eval(
-            on_edges([](float_type in1, float_type in2, float_type res) { return in1 + in2 * float_type{.1} + res; },
-                float_type{},
-                in1{},
-                in2{}));
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
+        float_type res = 0;
+        eval.for_neighbors([&](auto in1, auto in2) { res += in1 + in2 * float_type(.1); }, in1(), in2());
+        eval(out()) = res;
     }
 };
 
@@ -47,22 +38,17 @@ TEST_F(stencil_on_edges_multiplefields, test) {
     auto in1 = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
     auto in2 = [](int_t i, int_t c, int_t j, int_t k) { return i / 2 + c + j / 2 + k / 2; };
     auto ref = [=](int_t i, int_t c, int_t j, int_t k) {
-        float_type res{};
+        float_type res = 0;
         for (auto &&item : neighbours_of<edges, edges>(i, c, j, k))
             res += item.call(in1) + .1 * item.call(in2);
         return res;
     };
-    arg<0, edges> p_in1;
-    arg<1, edges> p_in2;
-    arg<2, edges> p_out;
     auto out = make_storage<edges>();
     auto comp = [&] {
-        compute(p_in1 = make_storage<edges>(in1),
-            p_in2 = make_storage<edges>(in2),
-            p_out = out,
-            make_multistage(execute::forward(), make_stage<test_on_edges_functor>(p_in1, p_in2, p_out)));
+        easy_run(
+            test_on_edges_functor(), backend_t(), make_grid(), make_storage<edges>(in1), make_storage<edges>(in2), out);
     };
     comp();
-    verify(make_storage<edges>(ref), out);
+    verify(ref, out);
     benchmark(comp);
 }

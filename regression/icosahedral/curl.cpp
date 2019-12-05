@@ -21,44 +21,38 @@ using namespace ico_operators;
 
 struct curl : regression_fixture<2> {
     operators_repository repo = {d1(), d2()};
-
-    arg<0, edges> p_in_edges;
-    arg<1, vertices> p_dual_area_reciprocal;
-    arg<2, edges> p_dual_edge_length;
-    arg<3, vertices> p_out_vertices;
-
-    storage_type<vertices> out_vertices = make_storage<vertices>();
-
-    ~curl() {
-        constexpr double precision = GT_FLOAT_PRECISION == 4 ? 1e-4 : 1e-9;
-        verify(make_storage<vertices>(repo.curl_u), out_vertices, precision);
-    }
+    static constexpr double precision = GT_FLOAT_PRECISION == 4 ? 1e-4 : 1e-9;
 };
 
+const double curl::precision;
+
 TEST_F(curl, weights) {
-    using edges_of_vertices_storage_type = storage_type_4d<vertices, selector<1, 1, 1, 0, 1>>;
-
-    arg<10, vertices> p_curl_weights;
-    arg<11, vertices> p_edge_orientation;
-
-    compute(p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
-        p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
-        p_curl_weights = make_storage_4d<vertices>(6),
-        p_edge_orientation = make_storage_4d<vertices, edges_of_vertices_storage_type>(6, repo.edge_orientation),
-        p_in_edges = make_storage<edges>(repo.u),
-        p_out_vertices = out_vertices,
-        make_multistage(execute::forward(),
-            make_stage<curl_prep_functor>(
-                p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation),
-            make_stage<curl_functor_weights>(p_in_edges, p_curl_weights, p_out_vertices)));
+    auto spec = [](auto reciprocal, auto edge_length, auto in_edges, auto out) {
+        GT_DECLARE_COLORED_TMP((array<float_type, 6>), vertices, weights);
+        return execute_parallel()
+            .ij_cached(weights)
+            .stage(curl_prep_functor(), reciprocal, edge_length, weights)
+            .stage(curl_functor_weights(), in_edges, weights, out);
+    };
+    auto out = make_storage<vertices>();
+    run(spec,
+        backend_t(),
+        make_grid(),
+        make_storage<vertices>(repo.dual_area_reciprocal),
+        make_storage<edges>(repo.dual_edge_length),
+        make_storage<edges>(repo.u),
+        out);
+    verify(repo.curl_u, out, precision);
 }
 
 TEST_F(curl, flow_convention) {
-    compute(p_in_edges = make_storage<edges>(repo.u),
-        p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
-        p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
-        p_out_vertices = out_vertices,
-        make_multistage(execute::parallel(),
-            make_stage<curl_functor_flow_convention>(
-                p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_out_vertices)));
+    auto out = make_storage<vertices>();
+    easy_run(curl_functor_flow_convention(),
+        backend_t(),
+        make_grid(),
+        make_storage<edges>(repo.u),
+        make_storage<vertices>(repo.dual_area_reciprocal),
+        make_storage<edges>(repo.dual_edge_length),
+        out);
+    verify(repo.curl_u, out, precision);
 }

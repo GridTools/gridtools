@@ -7,14 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-/*
- * This example demonstrates how to code operators that are specialized for
- * one color. Like that we can implement different equations for downward
- * and upward triangles.
- * The example is making use of the syntax make_cesf
- *
- */
-
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/stencil_composition.hpp>
@@ -24,18 +16,20 @@
 
 using namespace gridtools;
 
+template <int Color>
+using sign = integral_constant<int, Color == 0 ? -1 : 1>;
+
 struct on_cells_color_functor {
     using in = in_accessor<0, enumtype::cells, extent<1, -1, 1, -1>>;
     using out = inout_accessor<1, enumtype::cells>;
     using param_list = make_param_list<in, out>;
     using location = enumtype::cells;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation &&eval) {
-        if (Evaluation::color == 0)
-            eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return rhs - lhs; }, float_type{}, in()));
-        else
-            eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return lhs + rhs; }, float_type{}, in()));
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
+        float_type res = 0;
+        eval.for_neighbors([&](auto in) { res += sign<Eval::color>::value * in; }, in());
+        eval(out()) = res;
     }
 };
 
@@ -52,11 +46,7 @@ TEST_F(stencil_on_cells, with_color) {
                 res += item.call(in);
         return res;
     };
-    arg<0, cells> p_in;
-    arg<1, cells> p_out;
     auto out = make_storage<cells>();
-    compute(p_in = make_storage<cells>(in),
-        p_out = out,
-        make_multistage(execute::forward(), make_stage<on_cells_color_functor>(p_in, p_out)));
-    verify(make_storage<cells>(ref), out);
+    easy_run(on_cells_color_functor(), backend_t(), make_grid(), make_storage<cells>(in), out);
+    verify(ref, out);
 }

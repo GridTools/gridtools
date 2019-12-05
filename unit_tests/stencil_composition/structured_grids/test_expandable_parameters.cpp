@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/expandable_parameters/run.hpp>
+#include <gridtools/stencil_composition/frontend/expandable_run.hpp>
 #include <gridtools/stencil_composition/stencil_composition.hpp>
 #include <gridtools/stencil_composition/stencil_functions.hpp>
 #include <gridtools/tools/computation_fixture.hpp>

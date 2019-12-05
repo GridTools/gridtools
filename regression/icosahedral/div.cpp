@@ -21,40 +21,35 @@ using namespace ico_operators;
 
 struct div : regression_fixture<2> {
     operators_repository repo = {d1(), d2()};
-
-    storage_type<cells> out_cells = make_storage<cells>();
-
-    arg<0, edges> p_in_edges;
-    arg<1, edges> p_edge_length;
-    arg<2, cells> p_cell_area_reciprocal;
-    arg<3, cells> p_out_cells;
-
-    ~div() { verify(make_storage<cells>(repo.div_u), out_cells); }
 };
 
 TEST_F(div, reduction_into_scalar) {
-    using edges_of_cells_storage_type = storage_type_4d<cells, selector<1, 1, 1, 0, 1>>;
-
-    arg<10, cells> p_div_weights;
-    arg<11, cells> p_orientation_of_normal;
-
-    compute(p_in_edges = make_storage<edges>(repo.u),
-        p_edge_length = make_storage<edges, edge_2d_storage_type>(repo.edge_length),
-        p_cell_area_reciprocal = make_storage<cells, cell_2d_storage_type>(repo.cell_area_reciprocal),
-        p_orientation_of_normal = make_storage_4d<cells, edges_of_cells_storage_type>(3, repo.orientation_of_normal),
-        p_div_weights = make_storage_4d<cells>(3),
-        p_out_cells = out_cells,
-        make_multistage(execute::forward(),
-            make_stage<div_prep_functor>(p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights),
-            make_stage<div_functor_reduction_into_scalar>(p_in_edges, p_div_weights, p_out_cells)));
+    auto spec = [](auto in_edges, auto edge_length, auto cell_area_reciprocal, auto out) {
+        GT_DECLARE_COLORED_TMP((array<float_type, 3>), cells, weights);
+        return execute_parallel()
+            .ij_cached(weights)
+            .stage(div_prep_functor(), edge_length, cell_area_reciprocal, weights)
+            .stage(div_functor_reduction_into_scalar(), in_edges, weights, out);
+    };
+    auto out = make_storage<cells>();
+    run(spec,
+        backend_t(),
+        make_grid(),
+        make_storage<edges>(repo.u),
+        make_storage<edges>(repo.edge_length),
+        make_storage<cells>(repo.cell_area_reciprocal),
+        out);
+    verify(repo.div_u, out);
 }
 
 TEST_F(div, flow_convention) {
-    compute(p_in_edges = make_storage<edges>(repo.u),
-        p_edge_length = make_storage<edges, edge_2d_storage_type>(repo.edge_length),
-        p_cell_area_reciprocal = make_storage<cells, cell_2d_storage_type>(repo.cell_area_reciprocal),
-        p_out_cells = out_cells,
-        make_multistage(execute::forward(),
-            make_stage<div_functor_flow_convention_connectivity>(
-                p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells)));
+    auto out = make_storage<cells>();
+    easy_run(div_functor_flow_convention_connectivity(),
+        backend_t(),
+        make_grid(),
+        make_storage<edges>(repo.u),
+        make_storage<edges>(repo.edge_length),
+        make_storage<cells>(repo.cell_area_reciprocal),
+        out);
+    verify(repo.div_u, out);
 }
