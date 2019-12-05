@@ -41,7 +41,7 @@ namespace gridtools {
             EXPECT_EQ(&data[0][0][0], sid::get_origin(src)());
             EXPECT_EQ(&data[1][2][0], sid::get_origin(testee)());
 
-            EXPECT_EQ(4, tu::get<0>(sid::get_upper_bounds(testee)));
+            EXPECT_EQ(2, tu::get<0>(sid::get_upper_bounds(testee)));
         }
 
         TEST(shift_sid_origin, c_array) {
@@ -55,13 +55,13 @@ namespace gridtools {
             EXPECT_EQ(&data[1][2][0], sid::get_origin(testee)());
 
             auto lower_bounds = sid::get_lower_bounds(testee);
-            EXPECT_EQ(1, tu::get<0>(lower_bounds));
-            EXPECT_EQ(2, tu::get<1>(lower_bounds));
+            EXPECT_EQ(-1, tu::get<0>(lower_bounds));
+            EXPECT_EQ(-2, tu::get<1>(lower_bounds));
             EXPECT_EQ(0, tu::get<2>(lower_bounds));
 
             auto upper_bounds = sid::get_upper_bounds(testee);
-            EXPECT_EQ(4, tu::get<0>(upper_bounds));
-            EXPECT_EQ(7, tu::get<1>(upper_bounds));
+            EXPECT_EQ(2, tu::get<0>(upper_bounds));
+            EXPECT_EQ(3, tu::get<1>(upper_bounds));
             EXPECT_EQ(7, tu::get<2>(upper_bounds));
         }
     } // namespace

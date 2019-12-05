@@ -13,12 +13,9 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/host_device.hpp"
-#include "../../meta/always.hpp"
 #include "../accessor_base.hpp"
 #include "../accessor_intent.hpp"
-#include "../is_accessor.hpp"
-#include "extent.hpp"
+#include "../extent.hpp"
 /**
    @file
 
@@ -68,38 +65,19 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template <uint_t ID,
+    template <uint_t Id,
         intent Intent = intent::in,
         typename Extent = extent<>,
         size_t Number = accessor_impl_::minimal_dim<Extent>::value>
-    struct accessor : accessor_base<Number> {
-        using index_t = static_uint<ID>;
-        static constexpr intent intent_v = Intent;
-        using extent_t = Extent;
-
-        GT_STATIC_ASSERT(Number >= accessor_impl_::minimal_dim<Extent>::value,
-            "Accessor dimension should be big enough to fit any offset from requested extent.");
-
-        /**inheriting all constructors from accessor_base*/
-        using accessor_base<Number>::accessor_base;
-    };
-
-    template <uint_t ID, intent Intent, typename Extent, size_t Number>
-    meta::repeat_c<Number, int_t> tuple_to_types(accessor<ID, Intent, Extent, Number> const &);
-
-    template <uint_t ID, intent Intent, typename Extent, size_t Number>
-    meta::always<accessor<ID, Intent, Extent, Number>> tuple_from_types(accessor<ID, Intent, Extent, Number> const &);
+    using accessor = accessor_base<Id, Intent, Extent, Number>;
 
     template <uint_t ID, typename Extent = extent<>, size_t Number = accessor_impl_::minimal_dim<Extent>::value>
     using in_accessor = accessor<ID, intent::in, Extent, Number>;
 
     template <uint_t ID>
-    using global_accessor = accessor<ID, intent::in, extent<>, 0>;
+    using global_accessor[[deprecated]] = in_accessor<ID>;
 
     template <uint_t ID, typename Extent = extent<>, size_t Number = accessor_impl_::minimal_dim<Extent>::value>
     using inout_accessor = accessor<ID, intent::inout, Extent, Number>;
-
-    template <uint_t ID, intent Intent, typename Extent, size_t Number>
-    struct is_accessor<accessor<ID, Intent, Extent, Number>> : std::true_type {};
 
 } // namespace gridtools

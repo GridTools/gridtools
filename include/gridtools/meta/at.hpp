@@ -14,6 +14,7 @@
 #include <type_traits>
 
 #include "first.hpp"
+#include "length.hpp"
 #include "macros.hpp"
 #include "make_indices.hpp"
 #include "mp_find.hpp"
@@ -47,5 +48,8 @@ namespace gridtools {
         using at = typename lazy::at_c<List, N::value>::type;
         template <class List, std::size_t N>
         using at_c = typename lazy::at_c<List, N>::type;
+
+        template <class List>
+        using last = at_c<List, length<List>::value - 1>;
     } // namespace meta
 } // namespace gridtools

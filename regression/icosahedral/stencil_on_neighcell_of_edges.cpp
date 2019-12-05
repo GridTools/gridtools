@@ -18,11 +18,11 @@
 
 using namespace gridtools;
 
-template <uint_t>
 struct test_on_cells_functor {
     using in = in_accessor<0, enumtype::cells, extent<1, -1, 1, -1>>;
     using out = inout_accessor<1, enumtype::edges>;
     using param_list = make_param_list<in, out>;
+    using location = enumtype::edges;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -45,7 +45,7 @@ TEST_F(stencil_on_neighcell_of_edges, test) {
     auto out = make_storage<edges>();
     auto comp = make_computation(p_in = make_storage<cells>(in),
         p_out = out,
-        make_multistage(execute::forward(), make_stage<test_on_cells_functor, topology_t, edges>(p_in, p_out)));
+        make_multistage(execute::forward(), make_stage<test_on_cells_functor>(p_in, p_out)));
     comp.run();
     verify(make_storage<edges>(ref), out);
     benchmark(comp);

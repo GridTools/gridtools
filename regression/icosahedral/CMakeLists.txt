@@ -70,6 +70,9 @@ if(GT_ENABLE_BACKEND_CUDA)
     foreach(srcfile IN LISTS SOURCES)
         add_executable( ${srcfile}_cuda ${srcfile}.cu  )
         target_link_libraries(${srcfile}_cuda regression_main GridToolsTestCUDA)
+        if (GT_CUDA_COMPILATION_TYPE MATCHES "Clang-CUDA" OR GT_CUDA_COMPILATION_TYPE MATCHES "HIPCC-AMDGPU")
+            set_source_files_properties(${srcfile}.cu PROPERTIES LANGUAGE CXX)
+        endif()
 
         gridtools_add_test(
             NAME tests.${srcfile}_cuda_77_48_61

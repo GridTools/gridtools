@@ -13,16 +13,25 @@
 
 #include "../common/defs.hpp"
 #include "../meta.hpp"
+#include "../meta/macros.hpp"
 #include "accessor_intent.hpp"
-#include "independent_esf.hpp"
-
-#ifndef GT_ICOSAHEDRAL_GRIDS
-#include "structured_grids/esf_metafunctions.hpp"
-#else
-#include "icosahedral_grids/esf_metafunctions.hpp"
-#endif
+#include "esf.hpp"
 
 namespace gridtools {
+
+    template <class Esf>
+    using esf_param_list = typename Esf::esf_function_t::param_list;
+
+    namespace lazy {
+        template <class Esf, class Args>
+        struct esf_replace_args;
+        template <class F, class OldArgs, class Extent, class NewArgs>
+        struct esf_replace_args<esf_descriptor<F, OldArgs, Extent>, NewArgs> {
+            using type = esf_descriptor<F, NewArgs, Extent>;
+        };
+    } // namespace lazy
+    GT_META_DELEGATE_TO_LAZY(esf_replace_args, (class Esf, class Args), (Esf, Args));
+
     namespace esf_metafunctions_impl_ {
         template <class Esf>
         using get_items = meta::zip<typename Esf::args_t, esf_param_list<Esf>>;
@@ -34,15 +43,6 @@ namespace gridtools {
         };
 
         namespace lazy {
-            template <class Esf>
-            struct tuple_from_esf {
-                using type = std::tuple<Esf>;
-            };
-            template <class Esfs>
-            struct tuple_from_esf<independent_esf<Esfs>> {
-                using type = Esfs;
-            };
-
             template <class Item>
             struct get_out_arg : meta::lazy::first<Item> {
                 using extent_t = typename meta::lazy::second<Item>::type::extent_t;
@@ -52,7 +52,6 @@ namespace gridtools {
                     "(horizontal) extents");
             };
         } // namespace lazy
-        GT_META_DELEGATE_TO_LAZY(tuple_from_esf, class Esf, Esf);
         GT_META_DELEGATE_TO_LAZY(get_out_arg, class Item, Item);
     } // namespace esf_metafunctions_impl_
 
@@ -74,7 +73,12 @@ namespace gridtools {
         class AllRwArgs = meta::transform<meta::first, AllRwItems>>
     using compute_readwrite_args = meta::dedup<AllRwArgs>;
 
-    // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
-    template <class Esfs, class EsfLists = meta::transform<esf_metafunctions_impl_::tuple_from_esf, Esfs>>
-    using unwrap_independent = meta::flatten<EsfLists>;
+    template <class Esfs,
+        class ItemLists = meta::transform<esf_metafunctions_impl_::get_items, Esfs>,
+        class AllItems = meta::flatten<ItemLists>,
+        class AllRwItems = meta::filter<esf_metafunctions_impl_::has_intent<intent::inout>::apply, AllItems>,
+        class RwArgs = meta::dedup<meta::transform<meta::first, AllRwItems>>,
+        class Args = meta::dedup<meta::transform<meta::first, AllItems>>>
+    using compute_readonly_args =
+        meta::transform<meta::not_<meta::curry<meta::st_contains, RwArgs>::template apply>::template apply, Args>;
 } // namespace gridtools

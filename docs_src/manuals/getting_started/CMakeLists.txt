@@ -10,6 +10,12 @@ if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
         add_executable(${test_name} ${ARG_SOURCE})
         target_link_libraries(${test_name} GridToolsTest)
 
+        if(${ARG_SOURCE} MATCHES "\.cu$" AND
+                (GT_CUDA_COMPILATION_TYPE STREQUAL "Clang-CUDA" OR
+                 GT_CUDA_COMPILATION_TYPE STREQUAL "HIPCC-AMDGPU"))
+            set_source_files_properties(${ARG_SOURCE} PROPERTIES LANGUAGE CXX)
+        endif()
+
         gridtools_add_test(
             NAME ${test_name}
             COMMAND $<TARGET_FILE:${test_name}>

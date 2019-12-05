@@ -150,9 +150,7 @@ TEST(structured_grid, kparallel_with_extentoffsets_around_interval) {
     run_test<gridtools::axis<2, gridtools::axis_config::offset_limit<5>, gridtools::axis_config::extra_offsets<3>>>();
 }
 
-TEST(structured_grid, kparallel_with_temporary) { //
-    run_test_with_temporary<gridtools::axis<2>>();
-}
+TEST(structured_grid, kparallel_with_temporary) { run_test_with_temporary<gridtools::axis<2>>(); }
 
 TEST(structured_grid, kparallel_with_extentoffsets_around_interval_and_temporary) {
     run_test_with_temporary<

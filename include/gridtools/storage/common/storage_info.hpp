@@ -102,7 +102,7 @@ namespace gridtools {
             remove the halos from the sizes.
          */
         template <uint_t... Idxs, typename Array, typename Halo = zero_halo<ndims>>
-        GT_FUNCTION static GT_CONSTEXPR uint_t multiply_if_layout(
+        GT_FUNCTION static constexpr uint_t multiply_if_layout(
             std::integer_sequence<uint_t, Idxs...>, Array const &array, Halo h = zero_halo<ndims>{}) {
             return accumulate(
                 multiplies(), ((layout_t::template at<Idxs>() >= 0) ? array[Idxs] - 2 * h.at(Idxs) : 1)...);
@@ -134,7 +134,7 @@ namespace gridtools {
          */
         template <typename... Dims,
             std::enable_if_t<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int> = 0>
-        GT_FUNCTION GT_CONSTEXPR storage_info(Dims... dims_)
+        GT_FUNCTION constexpr storage_info(Dims... dims_)
             : m_total_lengths{static_cast<uint_t>(dims_)...},
               m_padded_lengths{pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
                   handle_masked_dims<LayoutArgs>::extend(dims_))...},
@@ -142,7 +142,7 @@ namespace gridtools {
                   handle_masked_dims<LayoutArgs>::extend(dims_))...)) {}
 
         GT_FUNCTION
-        storage_info(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
+        storage_info(array<uint_t, ndims> const &dims, array<uint_t, ndims> const &strides)
             : m_total_lengths{dims}, m_strides(strides) {
 
             // We guess the padded lengths from the dimensions and the strides. Assume, that the strides are sorted,
@@ -158,27 +158,35 @@ namespace gridtools {
             //   dimension.
             // - Otherwise, we find the stride s in the sorted array and we look for the next larger stride l in the
             //   sorted array. The padded length is then set to l / s. Note that strides might appear several times.
-            auto sorted_strides = strides;
+            array<uint_t, ndims> sorted_strides;
+#pragma unroll
             for (uint_t i = 0; i < ndims; ++i)
-                for (uint_t j = i + 1; j < ndims; ++j)
-                    if (sorted_strides[i] > sorted_strides[j]) {
+                sorted_strides[i] = strides[i];
+
+#pragma unroll
+            for (uint_t i = 0; i < ndims; ++i)
+#pragma unroll
+                for (uint_t j = 0; j < ndims; ++j)
+                    if (j > i && sorted_strides[i] > sorted_strides[j]) {
                         auto tmp = sorted_strides[i];
                         sorted_strides[i] = sorted_strides[j];
                         sorted_strides[j] = tmp;
                     }
 
+#pragma unroll
             for (uint_t i = 0; i < ndims; ++i) {
                 if (strides[i] == sorted_strides[ndims - 1])
                     m_padded_lengths[i] = dims[i];
                 else if (strides[i] == 0) {
                     m_padded_lengths[i] = 0;
                 } else {
-                    int i_in_sorted_stride = ndims;
                     // take the last stride that matches the stride we are looking for
-                    for (int ii = 0; ii < ndims; ++ii)
+                    uint_t next_bigger_stride;
+#pragma unroll
+                    for (uint_t ii = 0; ii < ndims - 1; ++ii)
                         if (strides[i] == sorted_strides[ii])
-                            i_in_sorted_stride = ii;
-                    m_padded_lengths[i] = sorted_strides[i_in_sorted_stride + 1] / strides[i];
+                            next_bigger_stride = sorted_strides[ii + 1];
+                    m_padded_lengths[i] = next_bigger_stride / strides[i];
                 }
             }
         }
@@ -186,7 +194,7 @@ namespace gridtools {
         /**
          * @brief storage info copy constructor.
          */
-        GT_CONSTEXPR storage_info(storage_info const &other) = default;
+        storage_info(storage_info const &other) = default;
 
         /**
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
@@ -217,7 +225,7 @@ namespace gridtools {
         /**
          * @brief Returns the array of total_lengths, the lengths including the halo points (the outer region)
          */
-        GT_FUNCTION GT_CONSTEXPR const array<uint_t, ndims> &total_lengths() const { return m_total_lengths; }
+        GT_FUNCTION GT_CONSTEXPR array<uint_t, ndims> const &total_lengths() const { return m_total_lengths; }
 
         /*
          * @brief Returns the length of a dimension including the halo points (the outer region)
@@ -245,7 +253,7 @@ namespace gridtools {
          * @brief Returns the array of padded_lengths, the lengths including the halo points (the outer region) and
          * padding.
          */
-        GT_FUNCTION GT_CONSTEXPR const array<uint_t, ndims> &padded_lengths() const { return m_padded_lengths; }
+        GT_FUNCTION GT_CONSTEXPR array<uint_t, ndims> const &padded_lengths() const { return m_padded_lengths; }
 
         /**
          * @brief Returns the length of a dimension excluding the halo points (only the inner region)
@@ -313,7 +321,7 @@ namespace gridtools {
         /**
          * @brief return the array of (aligned) strides, see stride() for details.
          */
-        GT_FUNCTION GT_CONSTEXPR const array<uint_t, ndims> &strides() const { return m_strides; }
+        GT_FUNCTION GT_CONSTEXPR array<uint_t, ndims> const &strides() const { return m_strides; }
 
         /**
          * @brief member function to retrieve an offset (or index) when given offsets in I,J,K, etc.
@@ -353,9 +361,11 @@ namespace gridtools {
          * @param rhs right hand side storage info instance
          * @return true if the storage infos are equal, false otherwise
          */
-        GT_FUNCTION bool operator==(this_t const &rhs) const { return impl_::equality_check<ndims - 1>(*this, rhs); }
+        GT_FUNCTION bool operator==(storage_info const &rhs) const {
+            return impl_::equality_check<ndims - 1>(*this, rhs);
+        }
 
-        GT_FUNCTION bool operator!=(this_t const &rhs) const { return !operator==(rhs); }
+        GT_FUNCTION bool operator!=(storage_info const &rhs) const { return !operator==(rhs); }
     };
 
     template <typename T>

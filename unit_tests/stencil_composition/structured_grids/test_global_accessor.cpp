@@ -16,7 +16,6 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execute;
 
 using storage_traits_t = storage_traits<backend_t>;
 using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
@@ -34,8 +33,8 @@ struct boundary {
 };
 
 struct functor1 {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef global_accessor<1> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
 
@@ -46,9 +45,9 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef accessor<1, intent::inout, extent<0, 0, 0, 0>> in;
-    typedef global_accessor<2> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> in;
+    typedef in_accessor<2> bd;
 
     typedef make_param_list<sol, in, bd> param_list;
 
@@ -59,8 +58,8 @@ struct functor2 {
 };
 
 struct functor_with_procedure_call {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef global_accessor<1> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
 
@@ -71,8 +70,8 @@ struct functor_with_procedure_call {
 };
 
 struct functor1_with_assignment {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef global_accessor<1> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
 
@@ -83,8 +82,8 @@ struct functor1_with_assignment {
 };
 
 struct functor_with_function_call {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
-    typedef global_accessor<1> bd;
+    typedef inout_accessor<0> sol;
+    typedef in_accessor<1> bd;
 
     typedef make_param_list<sol, bd> param_list;
 
@@ -97,7 +96,7 @@ struct functor_with_function_call {
 class global_accessor_single_stage : public ::testing::Test {
   public:
     global_accessor_single_stage()
-        : sinfo(10, 10, 10), sol_(sinfo, 2.), bd(20), bd_(make_global_parameter<backend_t>(bd)), di(1, 0, 1, 9, 10),
+        : sinfo(10, 10, 10), sol_(sinfo, 2.), bd(20), bd_(make_global_parameter(bd)), di(1, 0, 1, 9, 10),
           dj(1, 0, 1, 1, 2), coords_bc(make_grid(di, dj, 2)) {}
 
     void check(data_store_t, float_type) {}
@@ -106,7 +105,7 @@ class global_accessor_single_stage : public ::testing::Test {
     storage_info_t sinfo;
     data_store_t sol_;
     boundary bd;
-    global_parameter<backend_t, boundary> bd_;
+    global_parameter<boundary> bd_;
 
     using p_sol = arg<0, data_store_t>;
     using p_bd = arg<1, decltype(bd_)>;
@@ -144,7 +143,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
     // get the configuration object from the gpu
     // modify configuration object (boundary)
     bd.int_value = 30;
-    update_global_parameter(bd_, bd);
+    bd_ = make_global_parameter(bd);
 
     // get the storage object from the gpu
     // modify storage object
@@ -237,7 +236,7 @@ TEST(test_global_accessor, multiple_stages) {
 
     boundary bd(20);
 
-    auto bd_ = make_global_parameter<backend_t>(bd);
+    auto bd_ = make_global_parameter(bd);
 
     halo_descriptor di = halo_descriptor(1, 0, 1, 9, 10);
     halo_descriptor dj = halo_descriptor(1, 0, 1, 1, 2);
@@ -274,7 +273,7 @@ TEST(test_global_accessor, multiple_stages) {
     // get the configuration object from the gpu
     // modify configuration object (boundary)
     bd.int_value = 30;
-    update_global_parameter(bd_, bd);
+    bd_ = make_global_parameter(bd);
 
     tmp_.sync();
     auto tmpv = make_host_view(tmp_);

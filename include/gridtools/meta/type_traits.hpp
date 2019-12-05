@@ -24,7 +24,7 @@ namespace gridtools {
     using bool_constant = std::integral_constant<bool, V>;
 
     template <class T>
-    struct negation : bool_constant<!bool(T::value)> {};
+    using negation = bool_constant<!bool(T::value)>;
 
     template <class...>
     struct conjunction : std::true_type {};

@@ -32,18 +32,18 @@
 using namespace gridtools;
 using namespace expressions;
 
-template <uint_t Color>
 struct test_on_edges_functor {
     using cell_area = in_accessor<0, enumtype::cells, extent<1>>;
     using weight_edges = inout_accessor<1, enumtype::cells, 5>;
     using param_list = make_param_list<cell_area, weight_edges>;
+    using location = enumtype::cells;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
         constexpr dimension<5> edge = {};
 
         // retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).
-        constexpr auto neighbors_offsets = connectivity<enumtype::cells, enumtype::cells, Color>::offsets();
+        constexpr auto neighbors_offsets = connectivity<enumtype::cells, enumtype::cells, Evaluation::color>::offsets();
         uint_t e = 0;
         // loop over all neighbours. Each iterator (neighbor_offset) is a position offset, i.e. an array with length 4
         for (auto neighbor_offset : neighbors_offsets) {
@@ -67,7 +67,7 @@ TEST_F(stencil_manual_fold, test) {
 
     auto comp = make_computation(p_in = make_storage<cells>(in),
         p_out = weight_edges,
-        make_multistage(execute::forward(), make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_out)));
+        make_multistage(execute::forward(), make_stage<test_on_edges_functor>(p_in, p_out)));
 
     comp.run();
     verify(make_storage_4d<cells>(3, ref), weight_edges);

@@ -12,7 +12,6 @@
 #include "../meta.hpp"
 #include "esf_metafunctions.hpp"
 #include "mss.hpp"
-#include "mss_metafunctions.hpp"
 
 /** @file
     This file implements the metafunctions to perform data dependency analysis on a multi-stage computation (MSS).
@@ -85,19 +84,38 @@ namespace gridtools {
             template <class Esf, class ExtentMap>
             struct process_esf<Esf, ExtentMap, void> {
                 using esf_extent_t = typename get_esf_extent<Esf, ExtentMap>::type;
-                using in_arg_param_pairs_t = meta::filter<has_intent<intent::in>::apply, get_arg_param_pairs<Esf>>;
-                using new_items_t = meta::transform<make_item_f<esf_extent_t>::template apply, in_arg_param_pairs_t>;
+                using arg_param_pairs_t = get_arg_param_pairs<Esf>;
+                using new_items_t = meta::transform<make_item_f<esf_extent_t>::template apply, arg_param_pairs_t>;
                 using type = meta::lfold<meta::mp_insert, ExtentMap, new_items_t>;
             };
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(get_esf_extent, (class Esf, class ExtentMap), (Esf, ExtentMap));
         GT_META_DELEGATE_TO_LAZY(process_esf, (class Esf, class ExtentMap), (Esf, ExtentMap));
 
+        template <class Mss>
+        using get_esfs_from_mss = typename Mss::esf_sequence_t;
+
         template <class Esfs>
-        using get_extent_map = meta::rfold<process_esf, meta::list<>, Esfs>;
+        using get_extent_map_from_esfs = meta::rfold<process_esf, meta::list<>, Esfs>;
+
+        template <class Mss>
+        using get_extent_map_from_mss = get_extent_map_from_esfs<get_esfs_from_mss<Mss>>;
+
+        template <class Msses>
+        using get_extent_map_from_msses =
+            get_extent_map_from_esfs<meta::flatten<meta::transform<get_esfs_from_mss, Msses>>>;
+
     } // namespace compute_extents_metafunctions_impl_
 
     using compute_extents_metafunctions_impl_::get_esf_extent;
-    using compute_extents_metafunctions_impl_::get_extent_map;
+    using compute_extents_metafunctions_impl_::get_extent_map_from_mss;
+    using compute_extents_metafunctions_impl_::get_extent_map_from_msses;
     using compute_extents_metafunctions_impl_::lookup_extent_map;
+    using compute_extents_metafunctions_impl_::lookup_extent_map_f;
+
+    template <class ExtentMap>
+    struct get_esf_extent_f {
+        template <class Esf>
+        using apply = get_esf_extent<Esf, ExtentMap>;
+    };
 } // namespace gridtools

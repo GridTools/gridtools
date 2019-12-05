@@ -33,7 +33,7 @@ typedef decltype(define_caches(cache<cache_type::ij, cache_io_policy::fill>(arg0
     cache<cache_type::k, cache_io_policy::local>(arg2_t()))) cache_sequence_t;
 
 static_assert(std::is_same<cache_sequence_t,
-                  std::tuple<detail::cache_impl<cache_type::ij, arg0_t, cache_io_policy::fill>,
+                  meta::list<detail::cache_impl<cache_type::ij, arg0_t, cache_io_policy::fill>,
                       detail::cache_impl<cache_type::k, arg2_t, cache_io_policy::local>>>::value,
     "");
 
@@ -42,17 +42,17 @@ typedef decltype(cache<cache_type::ij, cache_io_policy::fill>(arg0_t(), arg1_t()
 typedef decltype(cache<cache_type::ij, cache_io_policy::fill>(arg0_t())) caches_ret_sequence_1_t;
 
 static_assert(std::is_same<caches_ret_sequence_4_t,
-                  std::tuple<detail::cache_impl<cache_type::k, arg0_t, cache_io_policy::flush>,
+                  meta::list<detail::cache_impl<cache_type::k, arg0_t, cache_io_policy::flush>,
                       detail::cache_impl<cache_type::k, arg1_t, cache_io_policy::flush>>>::value,
     "");
 
 static_assert(std::is_same<caches_ret_sequence_3_t,
-                  std::tuple<detail::cache_impl<cache_type::ij, arg0_t, cache_io_policy::fill>,
+                  meta::list<detail::cache_impl<cache_type::ij, arg0_t, cache_io_policy::fill>,
                       detail::cache_impl<cache_type::ij, arg1_t, cache_io_policy::fill>,
                       detail::cache_impl<cache_type::ij, arg2_t, cache_io_policy::fill>>>::value,
     "");
 static_assert(std::is_same<caches_ret_sequence_1_t,
-                  std::tuple<detail::cache_impl<cache_type::ij, arg0_t, cache_io_policy::fill>>>::value,
+                  meta::list<detail::cache_impl<cache_type::ij, arg0_t, cache_io_policy::fill>>>::value,
     "");
 
 TEST(dummy, dummy) {}

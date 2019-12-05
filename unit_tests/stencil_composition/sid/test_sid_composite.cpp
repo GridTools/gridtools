@@ -31,6 +31,8 @@ namespace gridtools {
         struct c;
         struct d;
 
+        TEST(composite, empty) { sid::composite::keys<>::values<>(); }
+
         TEST(composite, deref) {
             double const src = 42;
             double dst = 0;

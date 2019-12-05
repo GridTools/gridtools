@@ -13,7 +13,6 @@
 #include <cassert>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/utility.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
 #include "../common/integral_constant.hpp"
@@ -104,11 +103,11 @@ namespace gridtools {
             T *m_val;
             GT_FUNCTION GT_CONSTEXPR T *operator()() const { return m_val; }
 
-            friend GT_FORCE_INLINE GT_CONSTEXPR ptr_holder operator+(ptr_holder obj, int_t arg) {
+            friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, int_t arg) {
                 return {obj.m_val + arg};
             }
 
-            friend GT_FORCE_INLINE GT_CONSTEXPR ptr_holder operator+(ptr_holder obj, empty_ptr_diff) { return obj; }
+            friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, empty_ptr_diff) { return obj; }
         };
 
         template <class Storage, class StorageInfo>
@@ -139,7 +138,7 @@ namespace gridtools {
             friend decltype(sid_get_ptr_diff(impl())) sid_get_ptr_diff(host_adapter const &) { return {}; }
 
           public:
-            host_adapter(data_store<Storage, StorageInfo> obj) : m_impl(wstd::move(obj)) {}
+            host_adapter(data_store<Storage, StorageInfo> obj) : m_impl(std::move(obj)) {}
         };
 
         template <class Src>
@@ -223,6 +222,6 @@ namespace gridtools {
      */
     template <class Storage, class StorageInfo>
     storage_sid_impl_::host_adapter<Storage, StorageInfo> as_host(data_store<Storage, StorageInfo> obj) {
-        return {wstd::move(obj)};
+        return {std::move(obj)};
     }
 } // namespace gridtools

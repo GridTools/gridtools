@@ -31,13 +31,13 @@ namespace gridtools {
     };
 #else
 #ifdef GT_USE_GPU
-    template <>
-    struct timer_traits<backend::cuda> {
+    template <class... Params>
+    struct timer_traits<cuda::backend<Params...>> {
         using timer_type = timer_cuda;
     };
 #endif
-    template <>
-    struct timer_traits<backend::x86> {
+    template <class... Params>
+    struct timer_traits<x86::backend<Params...>> {
         using timer_type = timer_omp;
     };
     template <>

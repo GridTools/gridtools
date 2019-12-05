@@ -15,6 +15,10 @@ if [[ $label != "kesch" ]]; then
     export SBATCH_ACCOUNT=d75
 fi
 
+if [[ ! -v build_examples ]] && [[ $env == "clang_nvcc" ]]; then
+    build_examples=false
+fi
+
 # possibly delete old log files and create new log file
 find /tmp -maxdepth 1 -mtime +5 -name 'gridtools-jenkins-*.log' -execdir rm -f {} + 2>/dev/null
 logfile=$(mktemp -p /tmp gridtools-jenkins-XXXXX.log)

@@ -32,7 +32,7 @@ struct interpolate_stencil {
   private:
     using p_in1 = gridtools::arg<0, data_store_t>;
     using p_in2 = gridtools::arg<1, data_store_t>;
-    using p_weight = gridtools::arg<2, gridtools::global_parameter<backend_t, double>>;
+    using p_weight = gridtools::arg<2, gridtools::global_parameter<double>>;
     using p_out = gridtools::arg<3, data_store_t>;
 
     // the wrapped computation is stored in a `gridtools::computation`, which is type erasued. Compilation of
