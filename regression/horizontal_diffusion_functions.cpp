@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 #include "horizontal_diffusion_repository.hpp"
 
@@ -173,7 +173,7 @@ struct horizontal_diffusion_functions : regression_fixture<2> {
     template <variation Variation>
     void do_test() {
         auto out = make_storage();
-        horizontal_diffusion_repository repo(d1(), d2(), d3());
+        horizontal_diffusion_repository repo(d(0), d(1), d(2));
         run(
             [](auto coeff, auto in, auto out) {
                 GT_DECLARE_TMP(float_type, flx, fly);

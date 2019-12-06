@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/tools/computation_fixture.hpp>
+#include <gridtools/tools/cartesian_fixture.hpp>
 
 using namespace gridtools;
 using namespace cartesian;
@@ -21,9 +21,7 @@ using kfull = axis_t::full_interval;
 double in(int i, int j, int k) { return i + j + k + 1; };
 
 struct test_kcache_local : computation_fixture<0, axis_t> {
-    test_kcache_local() : test_kcache_local::computation_fixture(6, 6, 10) {}
-
-    auto make_grid() const { return ::gridtools::make_grid(d1(), d2(), axis_t(2, d3() - 4, 2)); }
+    test_kcache_local() : test_kcache_local::computation_fixture(6, 6, 2, 6, 2) {}
 };
 
 struct shift_acc_forward {
@@ -55,10 +53,10 @@ TEST_F(test_kcache_local, forward) {
     run(spec, backend_t(), make_grid(), make_storage(in), out);
     auto ref = make_storage();
     auto refv = ref->host_view();
-    for (int i = 0; i < d1(); ++i)
-        for (int j = 0; j < d2(); ++j) {
+    for (int i = 0; i < d(0); ++i)
+        for (int j = 0; j < d(1); ++j) {
             refv(i, j, 0) = in(i, j, 0);
-            for (int k = 1; k < d3(); ++k) {
+            for (int k = 1; k < 10; ++k) {
                 refv(i, j, k) = refv(i, j, k - 1) + in(i, j, k);
             }
         }
@@ -94,10 +92,10 @@ TEST_F(test_kcache_local, backward) {
     run(spec, backend_t(), make_grid(), make_storage(in), out);
     auto ref = make_storage();
     auto refv = ref->host_view();
-    for (int i = 0; i < d1(); ++i)
-        for (int j = 0; j < d2(); ++j) {
-            refv(i, j, d3() - 1) = in(i, j, d3() - 1);
-            for (int k = d3() - 2; k >= 0; --k) {
+    for (int i = 0; i < d(0); ++i)
+        for (int j = 0; j < d(1); ++j) {
+            refv(i, j, 9) = in(i, j, 9);
+            for (int k = 8; k >= 0; --k) {
                 refv(i, j, k) = refv(i, j, k + 1) + in(i, j, k);
             }
         }
@@ -147,15 +145,15 @@ TEST_F(test_kcache_local, biside_forward) {
     auto refv = ref->host_view();
     auto buff = make_storage();
     auto buffv = buff->host_view();
-    for (int i = 0; i < d1(); ++i)
-        for (int_t j = 0; j < d2(); ++j) {
+    for (int i = 0; i < d(0); ++i)
+        for (int_t j = 0; j < d(1); ++j) {
             buffv(i, j, 0) = in(i, j, 0);
             buffv(i, j, 1) = in(i, j, 0) / 2;
             refv(i, j, 0) = in(i, j, 0);
             buffv(i, j, 2) = in(i, j, 1) / 2;
             refv(i, j, 1) = buffv(i, j, 1) + buffv(i, j, 0) / 4;
-            for (int k = 2; k < d3(); ++k) {
-                if (k != d3() - 1)
+            for (int k = 2; k < 10; ++k) {
+                if (k != 9)
                     buffv(i, j, k + 1) = in(i, j, k) / 2;
                 refv(i, j, k) = buffv(i, j, k) + buffv(i, j, k - 1) / 4 + .12 * buffv(i, j, k - 2);
             }
@@ -206,14 +204,14 @@ TEST_F(test_kcache_local, biside_backward) {
     auto refv = ref->host_view();
     auto buff = make_storage();
     auto buffv = buff->host_view();
-    for (int i = 0; i < d1(); ++i)
-        for (int j = 0; j < d2(); ++j) {
-            buffv(i, j, d3() - 1) = in(i, j, d3() - 1);
-            buffv(i, j, d3() - 2) = in(i, j, d3() - 1) / 2;
-            refv(i, j, d3() - 1) = in(i, j, d3() - 1);
-            buffv(i, j, d3() - 3) = in(i, j, d3() - 2) / 2;
-            refv(i, j, d3() - 2) = buffv(i, j, d3() - 2) + buffv(i, j, d3() - 1) / 4;
-            for (int_t k = d3() - 3; k >= 0; --k) {
+    for (int i = 0; i < d(0); ++i)
+        for (int j = 0; j < d(1); ++j) {
+            buffv(i, j, 9) = in(i, j, 9);
+            buffv(i, j, 8) = in(i, j, 9) / 2;
+            refv(i, j, 9) = in(i, j, 9);
+            buffv(i, j, 7) = in(i, j, 8) / 2;
+            refv(i, j, 8) = buffv(i, j, 8) + buffv(i, j, 9) / 4;
+            for (int_t k = 7; k >= 0; --k) {
                 if (k != 0)
                     buffv(i, j, k - 1) = in(i, j, k) / 2;
                 refv(i, j, k) = buffv(i, j, k) + buffv(i, j, k + 1) / 4 + .12 * buffv(i, j, k + 2);

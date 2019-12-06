@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 #include "horizontal_diffusion_repository.hpp"
 
@@ -87,7 +87,7 @@ const auto spec = [](auto in, auto coeff, auto out) {
 using horizontal_diffusion = regression_fixture<2>;
 
 TEST_F(horizontal_diffusion, test) {
-    horizontal_diffusion_repository repo(d1(), d2(), d3());
+    horizontal_diffusion_repository repo(d(1), d(2), d(3));
     auto out = make_storage();
     auto comp = [grid = make_grid(), in = make_const_storage(repo.in), coeff = make_const_storage(repo.coeff), &out] {
         run(spec, backend_t(), grid, in, coeff, out);

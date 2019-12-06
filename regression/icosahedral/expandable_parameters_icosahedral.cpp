@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/icosahedral.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/icosahedral_regression_fixture.hpp>
 
 using namespace gridtools;
 using namespace icosahedral;

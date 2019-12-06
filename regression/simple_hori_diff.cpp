@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 #include "horizontal_diffusion_repository.hpp"
 
@@ -71,7 +71,7 @@ using simple_hori_diff = regression_fixture<2>;
 
 TEST_F(simple_hori_diff, test) {
     const auto j_builder = builder().selector<0, 1, 0>();
-    horizontal_diffusion_repository repo(d1(), d2(), d3());
+    horizontal_diffusion_repository repo(d(0), d(1), d(2));
     auto out = make_storage();
     auto comp = [grid = make_grid(),
                     coeff = make_storage(repo.coeff),

@@ -10,7 +10,8 @@
 
 #include <gridtools/boundary_conditions/boundary.hpp>
 #include <gridtools/tools/backend_select.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
+#include <gridtools/tools/grid_fixture.hpp>
 
 #include <gtest/gtest.h>
 
@@ -127,16 +128,18 @@ namespace {
     }
 } // namespace
 
-struct distributed_boundary : regression_fixture<3> {};
+constexpr auto halo_size = 3;
+
+struct distributed_boundary : cartesian::regression_fixture<halo_size> {};
 
 TEST_F(distributed_boundary, test) {
     auto src = make_storage([](int i, int j, int k) { return i + j + k; });
     auto dst = make_storage(0);
 
-    auto lengths = src->info().lengths();
-    halo_descriptor di{halo_size, halo_size, halo_size, d1() - halo_size - 1, lengths[0]};
-    halo_descriptor dj{halo_size, halo_size, halo_size, d2() - halo_size - 1, lengths[1]};
-    halo_descriptor dk{halo_size, halo_size, halo_size, d3() - halo_size - 1, lengths[2]};
+    auto &&lengths = src->info().lengths();
+    halo_descriptor di{halo_size, halo_size, halo_size, lengths[0] - halo_size - 1, lengths[0]};
+    halo_descriptor dj{halo_size, halo_size, halo_size, lengths[1] - halo_size - 1, lengths[1]};
+    halo_descriptor dk{halo_size, halo_size, halo_size, lengths[2] - halo_size - 1, lengths[2]};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
     apply_boundary(halos, src, dst);

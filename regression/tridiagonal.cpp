@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 /*
   @file This file shows an implementation of the Thomas algorithm, done using stencil operations.
@@ -78,7 +78,7 @@ struct backward_thomas {
 using tridiagonal = regression_fixture<>;
 
 TEST_F(tridiagonal, test) {
-    d3() = 6;
+    d(2) = 6;
     auto out = make_storage();
     run(
         [](auto inf, auto diag, auto sup, auto rhs, auto out) {

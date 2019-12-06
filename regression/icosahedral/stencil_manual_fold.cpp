@@ -12,7 +12,7 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/stencil_composition/icosahedral.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/icosahedral_regression_fixture.hpp>
 
 #include "neighbours_of.hpp"
 

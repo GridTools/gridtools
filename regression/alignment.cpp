@@ -13,7 +13,7 @@
 #include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/stencil_composition/positional.hpp>
 #include <gridtools/storage/traits.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 /**
   @file
@@ -23,7 +23,9 @@
 using namespace gridtools;
 using namespace cartesian;
 
-using alignment_test = regression_fixture<2>;
+constexpr auto halo = 2;
+
+using alignment_test = regression_fixture<halo>;
 
 struct not_aligned {
     using acc = inout_accessor<0>;
@@ -34,8 +36,8 @@ struct not_aligned {
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
         auto *ptr = &eval(acc());
-        eval(out()) = eval(i_pos()) == alignment_test::halo_size &&
-                      reinterpret_cast<ptrdiff_t>(ptr) % storage::traits::alignment<storage_traits_t>;
+        eval(out()) =
+            eval(i_pos()) == halo && reinterpret_cast<ptrdiff_t>(ptr) % storage::traits::alignment<storage_traits_t>;
     }
 };
 

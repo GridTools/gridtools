@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/tools/computation_fixture.hpp>
+#include <gridtools/tools/cartesian_fixture.hpp>
 
 using namespace gridtools;
 using namespace cartesian;
@@ -21,9 +21,7 @@ using kfull = axis_t::full_interval;
 double in(int i, int j, int k) { return i + j + k + 1; };
 
 struct test_kcache_fill : computation_fixture<0, axis_t> {
-    test_kcache_fill() : test_kcache_fill::computation_fixture(6, 6, 10) {}
-
-    auto make_grid() const { return ::make_grid(d1(), d2(), axis_t(2, d3() - 4, 2)); }
+    test_kcache_fill() : test_kcache_fill::computation_fixture(6, 6, 2, 6, 2) {}
 };
 
 struct shift_acc_forward_fill {
@@ -55,12 +53,12 @@ TEST_F(test_kcache_fill, forward) {
     run(spec, backend_t(), make_grid(), make_storage(in), out);
     auto ref = make_storage();
     auto refv = ref->host_view();
-    for (int i = 0; i < d1(); ++i) {
-        for (int j = 0; j < d2(); ++j) {
+    for (int i = 0; i < d(0); ++i) {
+        for (int j = 0; j < d(1); ++j) {
             refv(i, j, 0) = in(i, j, 0) + in(i, j, 1);
-            for (int k = 1; k < d3() - 1; ++k)
+            for (int k = 1; k < k_size() - 1; ++k)
                 refv(i, j, k) = in(i, j, k - 1) + in(i, j, k) + in(i, j, k + 1);
-            refv(i, j, d3() - 1) = in(i, j, d3() - 1) + in(i, j, d3() - 2);
+            refv(i, j, k_size() - 1) = in(i, j, k_size() - 1) + in(i, j, k_size() - 2);
         }
     }
     verify(ref, out);
@@ -95,10 +93,10 @@ TEST_F(test_kcache_fill, backward) {
     run(spec, backend_t(), make_grid(), make_storage(in), out);
     auto ref = make_storage();
     auto refv = ref->host_view();
-    for (int i = 0; i < d1(); ++i) {
-        for (int j = 0; j < d2(); ++j) {
-            refv(i, j, d3() - 1) = in(i, j, d3() - 1) + in(i, j, d3() - 2);
-            for (int_t k = d3() - 2; k >= 1; --k)
+    for (int i = 0; i < d(0); ++i) {
+        for (int j = 0; j < d(1); ++j) {
+            refv(i, j, k_size() - 1) = in(i, j, k_size() - 1) + in(i, j, k_size() - 2);
+            for (int_t k = k_size() - 2; k >= 1; --k)
                 refv(i, j, k) = in(i, j, k + 1) + in(i, j, k) + in(i, j, k - 1);
             refv(i, j, 0) = in(i, j, 1) + in(i, j, 0);
         }

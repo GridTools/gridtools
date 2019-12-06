@@ -56,6 +56,8 @@ namespace gridtools {
         };
 
       public:
+        static constexpr size_t n_intervals = NIntervals;
+
         using axis_interval_t =
             interval<level<0, _impl::add_offset(1, -ExtraOffsetsAroundFullInterval), LevelOffsetLimit>,
                 level<NIntervals, _impl::add_offset(-1, ExtraOffsetsAroundFullInterval), LevelOffsetLimit>>;

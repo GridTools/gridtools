@@ -11,7 +11,7 @@
 
 #include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/stencil_composition/positional.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 using namespace gridtools;
 using namespace cartesian;

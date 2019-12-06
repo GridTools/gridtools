@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/tools/computation_fixture.hpp>
+#include <gridtools/tools/grid_fixture.hpp>
 
 #include "test_call_interfaces.hpp"
 
@@ -180,7 +180,7 @@ namespace gridtools {
 
         TEST_F(call_interface, call_to_copy_functor_default_interval_from_smaller_interval) {
             do_test<call_copy_functor_default_interval_from_smaller_interval>(
-                [this](int i, int j, int k) { return k > 0 && k < d3() - 1 ? input(i, j, k) : 0; });
+                [this](int i, int j, int k) { return k > 0 && k < k_size() - 1 ? input(i, j, k) : 0; });
         }
 
         struct call_copy_functor_default_interval_with_offset_in_k {

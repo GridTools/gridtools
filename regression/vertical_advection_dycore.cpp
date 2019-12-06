@@ -12,7 +12,7 @@
 
 #include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/stencil_composition/global_parameter.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 #include "vertical_advection_defs.hpp"
 #include "vertical_advection_repository.hpp"
@@ -175,7 +175,7 @@ using modified_backend_t = backend_t;
 using vertical_advection_dycore = regression_fixture<3, axis_t>;
 
 TEST_F(vertical_advection_dycore, test) {
-    vertical_advection_repository repo{d1(), d2(), d3()};
+    vertical_advection_repository repo{d(0), d(1), d(2)};
     storage_type utens_stage = make_storage(repo.utens_stage_in);
     auto comp = [grid = make_grid(),
                     &utens_stage,

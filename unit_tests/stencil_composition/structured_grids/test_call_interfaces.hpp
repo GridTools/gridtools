@@ -10,7 +10,7 @@
 #pragma once
 
 #include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/tools/computation_fixture.hpp>
+#include <gridtools/tools/cartesian_fixture.hpp>
 
 namespace gridtools {
     namespace cartesian {

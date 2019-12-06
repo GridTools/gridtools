@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/icosahedral.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/icosahedral_regression_fixture.hpp>
 
 #include "div_functors.hpp"
 #include "operators_repository.hpp"
@@ -20,7 +20,7 @@ using namespace gridtools;
 using namespace ico_operators;
 
 struct div : regression_fixture<2> {
-    operators_repository repo = {d1(), d2()};
+    operators_repository repo = {d(0), d(1)};
 };
 
 TEST_F(div, reduction_into_scalar) {

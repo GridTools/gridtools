@@ -10,7 +10,7 @@
 
 #include <gridtools/interface/layout_transformation/layout_transformation.hpp>
 #include <gridtools/tools/backend_select.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 #include <gtest/gtest.h>
 
@@ -28,16 +28,16 @@ void verify_result(Src &src, Dst &dst) {
                 EXPECT_EQ(src_v(i, j, k), dst_v(i, j, k));
 }
 
-using layout_transformation = regression_fixture<>;
+using layout_transformation = cartesian::regression_fixture<>;
 
 TEST_F(layout_transformation, ijk_to_kji) {
     auto src = builder().layout<0, 1, 2>().initializer([](int i, int j, int k) { return i + j + k; })();
     auto dst = builder().layout<2, 1, 0>()();
-    auto transform = [&] {
+    auto testee = [&] {
         interface::transform(
             dst->get_target_ptr(), src->get_target_ptr(), src->lengths(), dst->strides(), src->strides());
     };
-    transform();
+    testee();
     verify_result(src, dst);
-    benchmark(transform);
+    benchmark(testee);
 }

@@ -15,7 +15,7 @@
 #include <gridtools/meta.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/stencil_composition/global_parameter.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 using namespace gridtools;
 using namespace cartesian;
@@ -111,14 +111,14 @@ TEST_F(extended_4d, test) {
     auto jac = [](int, int, int, int q) { return 1 + q; };
     const auto const_builder = storage::builder<storage_traits_t>.type<float_type const>();
 
-    auto result = storage::builder<storage_traits_t>.type<float_type>().dimensions(d1(), d2(), d3(), b1, b2, b3)();
+    auto result = storage::builder<storage_traits_t>.type<float_type>().dimensions(d(0), d(1), d(2), b1, b2, b3)();
     easy_run(integration(),
         backend_t(),
         make_grid(),
         make_global_parameter(elemental{phi}),
         make_global_parameter(elemental{psi}),
-        const_builder.dimensions(d1(), d2(), d3(), nbQuadPt).initializer(jac).build(),
-        const_builder.dimensions(d1(), d2(), d3(), b1, b2, b3).value(f).build(),
+        const_builder.dimensions(d(0), d(1), d(2), nbQuadPt).initializer(jac).build(),
+        const_builder.dimensions(d(0), d(1), d(2), b1, b2, b3).value(f).build(),
         result);
     verify([=](int i, int j, int k, int, int, int) { return (jac(i, j, k, 0) + jac(i, j, k, 1)) * phi * psi * f; },
         result);

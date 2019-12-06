@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil_composition/icosahedral.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/icosahedral_regression_fixture.hpp>
 
 #include "curl_functors.hpp"
 #include "div_functors.hpp"
@@ -47,7 +47,7 @@ struct lap_functor {
 };
 
 struct lap : regression_fixture<2> {
-    operators_repository repo = {d1(), d2()};
+    operators_repository repo = {d(0), d(1)};
 };
 
 TEST_F(lap, weights) {

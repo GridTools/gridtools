@@ -12,23 +12,21 @@
 #include <iostream>
 #include <utility>
 
-#include "../common/defs.hpp"
 #include "../common/timer/timer.hpp"
 #include "../stencil_composition/axis.hpp"
 #include "backend_select.hpp"
-#include "computation_fixture.hpp"
+#include "grid_fixture.hpp"
 #include "regression_fixture_impl.hpp"
 
 namespace gridtools {
-    template <size_t HaloSize = 0, class Axis = axis<1>>
-    class regression_fixture : public computation_fixture<HaloSize, Axis>, _impl::regression_fixture_base {
-      public:
-        regression_fixture() : computation_fixture<HaloSize, Axis>(s_d1, s_d2, s_d3) {}
+    template <class Fixture>
+    struct regression_fixture_templ : Fixture, private _impl::regression_fixture_base {
+        regression_fixture_templ() : Fixture(s_d1, s_d2, s_d3) {}
 
         template <class... Args>
         void verify(Args &&... args) const {
             if (s_needs_verification)
-                computation_fixture<HaloSize, Axis>::verify(std::forward<Args>(args)...);
+                Fixture::verify(std::forward<Args>(args)...);
         }
 
         template <class Comp>

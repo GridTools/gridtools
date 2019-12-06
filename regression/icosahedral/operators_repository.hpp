@@ -23,11 +23,10 @@ class operators_repository {
     using cells = gridtools::icosahedral::cells;
     using edges = gridtools::icosahedral::edges;
     using vertices = gridtools::icosahedral::vertices;
-    using uint_t = gridtools::uint_t;
 
     using fun_t = std::function<double(int, int, int, int)>;
 
-    uint_t m_d1, m_d2;
+    size_t m_d1, m_d2;
 
     const double PI = std::atan(1) * 4;
 
@@ -104,5 +103,5 @@ class operators_repository {
         return grad_n - grad_tau;
     };
 
-    operators_repository(uint_t d1, uint_t d2) : m_d1(d1), m_d2(d2) {}
+    operators_repository(size_t d1, size_t d2) : m_d1(d1), m_d2(d2) {}
 };
