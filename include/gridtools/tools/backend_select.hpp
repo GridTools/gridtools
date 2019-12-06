@@ -25,10 +25,8 @@ using backend_t = gridtools::x86::backend<>;
 #include "../stencil_composition/backend/naive.hpp"
 using backend_t = gridtools::naive::backend;
 #elif defined(GT_BACKEND_MC)
-#ifndef GT_ICOSAHEDRAL_GRIDS
 #include "../stencil_composition/backend/mc.hpp"
 using backend_t = gridtools::mc::backend;
-#endif
 #elif defined(GT_BACKEND_CUDA)
 #ifdef __CUDACC__
 #include "../stencil_composition/backend/cuda.hpp"

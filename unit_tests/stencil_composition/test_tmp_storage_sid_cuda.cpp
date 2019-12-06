@@ -34,12 +34,6 @@ namespace gridtools {
             int_t n_blocks_j = 12;
             int_t k_size = 13;
 
-            template <class T>
-            struct data_store {
-                using data_t = T;
-            };
-
-#ifndef GT_ICOSAHEDRAL_GRIDS
             TEST(tmp_cuda_storage_sid, write_in_blocks) {
                 using index_info = multiplet<5>;
 
@@ -81,7 +75,6 @@ namespace gridtools {
                                 }
             }
 
-#else
             constexpr auto ncolors = 2_c;
             TEST(tmp_cuda_storage_sid_block, write_in_blocks) {
                 using index_info = multiplet<6>;
@@ -128,7 +121,6 @@ namespace gridtools {
                                         EXPECT_EQ((index_info{i, j, c, bi, bj, k}), *ptr);
                                     }
             }
-#endif
         } // namespace
     }     // namespace cuda
 } // namespace gridtools
