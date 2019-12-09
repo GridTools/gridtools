@@ -100,10 +100,7 @@ namespace gridtools {
             }
         };
 
-        template <int_t Size = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
-        constexpr empty_spec<execute::parallel_block<Size>> execute_parallel() {
-            return {};
-        }
+        constexpr empty_spec<execute::parallel> execute_parallel() { return {}; }
         constexpr empty_spec<execute::forward> execute_forward() { return {}; }
         constexpr empty_spec<execute::backward> execute_backward() { return {}; }
 

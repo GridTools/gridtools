@@ -39,15 +39,11 @@ namespace gridtools {
                 });
             }
 
-            template <class Deref,
-                class Mss,
-                class Sizes,
-                class = typename has_k_caches<Mss>::type,
-                class = typename Mss::execution_t>
+            template <class Deref, class Mss, class Sizes, int_t BlockSize, class = typename has_k_caches<Mss>::type>
             struct k_loop_f;
 
-            template <class Deref, class Mss, class Sizes, class Execution>
-            struct k_loop_f<Deref, Mss, Sizes, std::true_type, Execution> {
+            template <class Deref, class Mss, class Sizes>
+            struct k_loop_f<Deref, Mss, Sizes, 0, std::true_type> {
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
@@ -74,8 +70,8 @@ namespace gridtools {
                 }
             };
 
-            template <class Deref, class Mss, class Sizes, class Execution>
-            struct k_loop_f<Deref, Mss, Sizes, std::false_type, Execution> {
+            template <class Deref, class Mss, class Sizes>
+            struct k_loop_f<Deref, Mss, Sizes, 0, std::false_type> {
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
@@ -100,7 +96,7 @@ namespace gridtools {
             };
 
             template <class Deref, class Mss, class Sizes, int_t BlockSize>
-            struct k_loop_f<Deref, Mss, Sizes, std::false_type, execute::parallel_block<BlockSize>> {
+            struct k_loop_f<Deref, Mss, Sizes, BlockSize, std::false_type> {
                 Sizes m_sizes;
 
                 template <class Ptr, class Strides, class Validator>
@@ -143,7 +139,7 @@ namespace gridtools {
                 }
             };
 
-            template <class Deref, class Mss, class Grid, class Composite>
+            template <class Deref, class Mss, int_t KBlockSize, class Grid, class Composite>
             auto make_kernel_fun(Grid const &grid, Composite &composite) {
                 sid::ptr_diff_type<Composite> offset{};
                 auto strides = sid::get_strides(composite);
@@ -151,7 +147,7 @@ namespace gridtools {
                 auto origin = sid::get_origin(composite) + offset;
                 auto k_sizes = stage_matrix::make_k_sizes(Mss::interval_infos(), grid);
                 using k_sizes_t = decltype(k_sizes);
-                using k_loop_t = k_loop_f<Deref, Mss, k_sizes_t>;
+                using k_loop_t = k_loop_f<Deref, Mss, k_sizes_t, KBlockSize>;
 
                 return kernel_f<Composite, k_loop_t>{
                     sid::get_origin(composite) + offset, std::move(strides), {std::move(k_sizes)}};

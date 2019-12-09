@@ -11,8 +11,8 @@ if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
         target_link_libraries(${test_name} GridToolsTest)
 
         if(${ARG_SOURCE} MATCHES "\.cu$" AND
-                (GT_CUDA_COMPILATION_TYPE MATCHES "Clang-CUDA" OR
-                 GT_CUDA_COMPILATION_TYPE MATCHES "HIPCC-AMDGPU"))
+                (GT_CUDA_COMPILATION_TYPE STREQUAL "Clang-CUDA" OR
+                 GT_CUDA_COMPILATION_TYPE STREQUAL "HIPCC-AMDGPU"))
             set_source_files_properties(${ARG_SOURCE} PROPERTIES LANGUAGE CXX)
         endif()
 
@@ -45,7 +45,7 @@ if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
         SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/code
         CMAKE_ARGS
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-            -DGridTools_DIR=${CMAKE_BINARY_DIR} # relies on the GridToolsConfig.cmake in the build directory (the one used for export(package))
+            -DGridTools_DIR=${PROJECT_BINARY_DIR} # relies on the GridToolsConfig.cmake in the build directory (the one used for export(package))
         INSTALL_COMMAND ""
     )
 endif()

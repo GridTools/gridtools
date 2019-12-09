@@ -146,7 +146,9 @@ namespace gridtools {
             }
         };
 
-        template <class IBlockSize = integral_constant<int_t, 64>, class JBlockSize = integral_constant<int_t, 8>>
+        template <class IBlockSize = integral_constant<int_t, 64>,
+            class JBlockSize = integral_constant<int_t, 8>,
+            class KBlockSize = integral_constant<int_t, 1>>
         struct backend {
             using i_block_size_t = IBlockSize;
             using j_block_size_t = JBlockSize;
@@ -203,7 +205,10 @@ namespace gridtools {
                     meta::transform<stage_matrix::get_caches, plh_map_t>(),
                     plh_map_t()));
 
-                auto kernel_fun = make_kernel_fun<Deref, Mss>(grid, composite);
+                constexpr int_t k_block_size =
+                    execute::is_parallel<typename Mss::execution_t>{} ? KBlockSize::value : 0;
+
+                auto kernel_fun = make_kernel_fun<Deref, Mss, k_block_size>(grid, composite);
 
                 return kernel<typename Mss::extent_t,
                     typename Mss::plh_map_t,
