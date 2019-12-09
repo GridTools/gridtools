@@ -38,7 +38,7 @@ namespace gridtools {
         auto &d(size_t i) { return m_dims[i]; }
         auto const &d(size_t i) const { return m_dims[i]; }
 
-        auto k_size() const { return make_grid().k_size(); }
+        auto k_size() const { return make_grid().k_size(typename Axis::full_interval()); }
 
         auto make_grid() const {
             auto halo_desc = [](auto d) { return halo_descriptor(Halo, Halo, Halo, d - Halo - 1, d); };

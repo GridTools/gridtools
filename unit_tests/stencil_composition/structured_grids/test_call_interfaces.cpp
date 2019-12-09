@@ -21,7 +21,7 @@ namespace gridtools {
 
             template <class Fun>
             void do_test(fun_t expected = {}) const {
-                storage_type out = make_storage();
+                storage_type out = make_storage(0);
                 run_computation<Fun>(make_storage(input), out);
                 if (!expected)
                     expected = input;

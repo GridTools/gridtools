@@ -135,7 +135,7 @@ TEST_F(expandable_parameters, call_shift) {
     };
 
     storages_t actual = {in(14), in(15), in(16), in(17), in(18)};
-    run_computation([](auto x) { return execute_parallel().stage(call_shift_functor(), x); }, actual);
+    run_computation([](auto x) { return execute_forward().stage(call_shift_functor(), x); }, actual);
     verify({expected(14), expected(15), expected(16), expected(17), expected(18)}, actual);
 }
 

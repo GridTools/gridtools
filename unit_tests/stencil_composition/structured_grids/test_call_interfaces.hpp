@@ -41,8 +41,8 @@ namespace gridtools {
             typedef in_accessor<0, extent<>, 3> in;
             typedef inout_accessor<1, extent<>, 3> out;
             typedef make_param_list<in, out> param_list;
-            template <typename Evaluation>
-            GT_FUNCTION static void apply(Evaluation &eval) {
+            template <class Eval>
+            GT_FUNCTION static void apply(Eval &&eval) {
                 eval(out()) = eval(in());
             }
         };

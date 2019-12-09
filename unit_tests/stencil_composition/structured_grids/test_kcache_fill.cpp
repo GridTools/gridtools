@@ -111,7 +111,7 @@ struct copy_fill {
     using param_list = make_param_list<in, out>;
 
     template <class Eval>
-    GT_FUNCTION static void apply(Eval &&eval) {
+    GT_FUNCTION static void apply(Eval &&eval, kfull) {
         eval(out()) = eval(in());
     }
 };
