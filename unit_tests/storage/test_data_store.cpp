@@ -19,6 +19,12 @@ using testing::ElementsAre;
 
 const auto builder = storage::builder<storage_traits_t>.type<float_type>();
 
+#if GT_FLOAT_PRECISION == 4
+#define EXPECT_FLOAT_TYPE_EQ(l, r) EXPECT_FLOAT_EQ(l, r)
+#else
+#define EXPECT_FLOAT_TYPE_EQ(l, r) EXPECT_DOUBLE_EQ(l, r)
+#endif
+
 TEST(DataStoreTest, Simple) {
     auto ds = builder.dimensions(3, 3, 3).value(5.3).build();
     auto &&info = ds->info();
@@ -27,14 +33,14 @@ TEST(DataStoreTest, Simple) {
 
     auto view = ds->host_view();
 
-    EXPECT_EQ(view(0, 0, 0), 5.3);
-    EXPECT_EQ(view(1, 1, 1), 5.3);
+    EXPECT_FLOAT_TYPE_EQ(view(0, 0, 0), 5.3);
+    EXPECT_FLOAT_TYPE_EQ(view(1, 1, 1), 5.3);
 
     view(0, 0, 0) = 100;
     view(1, 1, 1) = 200;
 
-    EXPECT_EQ(view(0, 0, 0), 100);
-    EXPECT_EQ(view(1, 1, 1), 200);
+    EXPECT_FLOAT_TYPE_EQ(view(0, 0, 0), 100);
+    EXPECT_FLOAT_TYPE_EQ(view(1, 1, 1), 200);
 }
 
 TEST(DataStoreTest, Initializer) {
@@ -44,7 +50,7 @@ TEST(DataStoreTest, Initializer) {
     for (uint_t i = 0; i < lengths[0]; ++i)
         for (uint_t j = 0; j < lengths[1]; ++j)
             for (uint_t k = 0; k < lengths[2]; ++k)
-                EXPECT_EQ(view(i, j, k), 3.1415);
+                EXPECT_FLOAT_TYPE_EQ(view(i, j, k), 3.1415);
 }
 
 TEST(DataStoreTest, LambdaInitializer) {
@@ -54,7 +60,7 @@ TEST(DataStoreTest, LambdaInitializer) {
     for (uint_t i = 0; i < lengths[0]; ++i)
         for (uint_t j = 0; j < lengths[1]; ++j)
             for (uint_t k = 0; k < lengths[2]; ++k)
-                EXPECT_EQ(view(i, j, k), i + j + k);
+                EXPECT_FLOAT_TYPE_EQ(view(i, j, k), i + j + k);
 }
 
 TEST(DataStoreTest, Naming) {

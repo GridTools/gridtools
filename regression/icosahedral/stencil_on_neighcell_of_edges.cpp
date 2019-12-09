@@ -44,6 +44,7 @@ TEST_F(stencil_on_neighcell_of_edges, test) {
     };
     auto out = make_storage<edges>();
     auto comp = [&] { easy_run(test_on_cells_functor(), backend_t(), make_grid(), make_storage<cells>(in), out); };
+    comp();
     verify(ref, out);
     benchmark(comp);
 }
