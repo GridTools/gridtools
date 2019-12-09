@@ -12,8 +12,8 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
-#include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
+#include "../meta/type_traits.hpp"
 
 namespace gridtools {
     namespace execute {
@@ -21,38 +21,19 @@ namespace gridtools {
         struct forward {};
         struct backward {};
 
-        template <typename T>
-        struct is_parallel : std::false_type {};
+        template <class T>
+        using is_parallel = std::is_same<T, parallel>;
 
-        template <>
-        struct is_parallel<parallel> : std::true_type {};
+        template <class T>
+        using is_forward = std::is_same<T, forward>;
 
-        template <typename T>
-        struct is_forward : std::false_type {};
+        template <class T>
+        using is_backward = std::is_same<T, backward>;
 
-        template <>
-        struct is_forward<forward> : std::true_type {};
-
-        template <typename T>
-        struct is_backward : std::false_type {};
-
-        template <>
-        struct is_backward<backward> : std::true_type {};
-
-        template <typename T>
+        template <class T>
         constexpr integral_constant<int_t, is_backward<T>::value ? -1 : 1> step = {};
+
+        template <class T>
+        using is_execution_engine = disjunction<is_parallel<T>, is_backward<T>, is_forward<T>>;
     } // namespace execute
-
-    template <typename T>
-    struct is_execution_engine : std::false_type {};
-
-    template <>
-    struct is_execution_engine<execute::parallel> : std::true_type {};
-
-    template <>
-    struct is_execution_engine<execute::forward> : std::true_type {};
-
-    template <>
-    struct is_execution_engine<execute::backward> : std::true_type {};
-
 } // namespace gridtools
