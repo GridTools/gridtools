@@ -112,10 +112,4 @@ namespace gridtools {
     using compute_extents_metafunctions_impl_::get_extent_map_from_msses;
     using compute_extents_metafunctions_impl_::lookup_extent_map;
     using compute_extents_metafunctions_impl_::lookup_extent_map_f;
-
-    template <class ExtentMap>
-    struct get_esf_extent_f {
-        template <class Esf>
-        using apply = get_esf_extent<Esf, ExtentMap>;
-    };
 } // namespace gridtools

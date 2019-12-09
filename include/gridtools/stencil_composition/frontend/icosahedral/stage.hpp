@@ -98,10 +98,8 @@ namespace gridtools {
                         conjunction<
                             std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>::value,
                         "All accessors should be of the same location");
-                    static constexpr auto offsets =
-                        connectivity<LocationType, typename Accessor::location_t, Color>::offsets();
-                    for (auto &&offset : offsets)
-                        fun(neighbor<Accessor>(offset), neighbor<Accessors>(offset)...);
+                    host_device::for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
+                        [&](auto offset) { fun(neighbor<Accessor>(offset), neighbor<Accessors>(offset)...); });
                 }
             };
 

@@ -16,6 +16,8 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
+#include <gridtools/common/generic_metafunctions/for_each.hpp>
+#include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil_composition/frontend/icosahedral/connectivity.hpp>
 #include <gridtools/stencil_composition/frontend/icosahedral/location_type.hpp>
 
@@ -43,8 +45,12 @@ namespace gridtools {
             if (c > C) {
                 return get_offsets<FromLocation, ToLocation>(c, std::integral_constant<uint_t, C + 1>{});
             }
-            auto offsets = icosahedral::connectivity<FromLocation, ToLocation, C>::offsets();
-            return std::vector<array<int_t, 4>>(offsets.begin(), offsets.end());
+            std::vector<array<int_t, 4>> res;
+            for_each<icosahedral::neighbor_offsets<FromLocation, ToLocation, C>>([&](auto src) {
+                using tuple_util::get;
+                res.push_back({get<0>(src), get<1>(src), get<2>(src), get<3>(src)});
+            });
+            return res;
         }
     } // namespace _impl
 

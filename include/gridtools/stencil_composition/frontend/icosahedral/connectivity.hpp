@@ -9,75 +9,75 @@
  */
 #pragma once
 
-#include <type_traits>
-
-#include "../../../common/array.hpp"
-#include "../../../common/defs.hpp"
+#include "../../../common/integral_constant.hpp"
+#include "../../../common/tuple.hpp"
+#include "../../../meta.hpp"
+#include "../../extent.hpp"
 #include "location_type.hpp"
 
 namespace gridtools {
     namespace icosahedral {
+        namespace connectivity_impl_ {
+            template <int I, int J, int C>
+            using e = tuple<integral_constant<int, I>,
+                integral_constant<int, J>,
+                integral_constant<int, 0>,
+                integral_constant<int, C>>;
 
-        // static triple dispatch
-        template <class From>
-        struct from {
-            template <class To>
-            struct to {
-                template <uint_t Color>
-                struct with_color;
+            template <class...>
+            struct l {
+                using type = l;
             };
-        };
 
-        template <size_t N>
-        using position_offsets_type = array<array<int_t, 4>, N> const;
+            template <class From, class To, int Color>
+            struct offsets;
 
-        /**
-         * Following specializations provide all information about the connectivity of the icosahedral/ocahedral grid
-         * While ordering is arbitrary up to some extent, if must respect some rules that user expect, and that conform
-         * part of an API. Rules are the following:
-         *   1. Flow variables on edges by convention are outward on downward cells (color 0) and inward on upward cells
-         * (color 1)
-         *      as depicted below
-         @verbatim
-                  ^
-                  |                   /\
-             _____|____              /  \
-             \        /             /    \
-              \      /             /      \
-          <----\    /---->        /-->  <--\
-                \  /             /     ^    \
-                 \/             /______|_____\
-         @endverbatim
-         *   2. Neighbor edges of a cell must follow the same convention than neighbor cells of a cell. I.e. the
-         following
-         *
-         @verbatim
-                 /\
-                1  2
-               /_0__\
-           imposes
-              ____________
-              \    /\    /
-               \1 /  \2 /
-                \/____\/
-                 \  0 /
-                  \  /
-                   \/
-         @endverbatim
-         *
-         *   3. Cell neighbours of an edge, in the order 0 -> 1 follow the direction of the flow (N_t) on edges defined
-         in
-         * 1.
-         *      This fixes the order of cell neighbors of an edge
-         *
-         *   4. Vertex neighbors of an edge, in the order 0 -> 1 defines a vector N_l which is perpendicular to N_t.
-         *      This fixes the order of vertex neighbors of an edge
-         *
-         */
-        template <>
-        template <>
-        template <>
-        struct from<cells>::to<cells>::with_color<1> {
+            /**
+             * Following specializations provide all information about the connectivity of the icosahedral/ocahedral
+             grid
+             * While ordering is arbitrary up to some extent, if must respect some rules that user expect, and that
+             conform
+             * part of an API. Rules are the following:
+             *   1. Flow variables on edges by convention are outward on downward cells (color 0) and inward on upward
+             cells
+             * (color 1)
+             *      as depicted below
+             @verbatim
+                      ^
+                      |                   /\
+                 _____|____              /  \
+                 \        /             /    \
+                  \      /             /      \
+              <----\    /---->        /-->  <--\
+                    \  /             /     ^    \
+                     \/             /______|_____\
+             @endverbatim
+             *   2. Neighbor edges of a cell must follow the same convention than neighbor cells of a cell. I.e. the
+             following
+             *
+             @verbatim
+                     /\
+                    1  2
+                   /_0__\
+               imposes
+                  ____________
+                  \    /\    /
+                   \1 /  \2 /
+                    \/____\/
+                     \  0 /
+                      \  /
+                       \/
+             @endverbatim
+             *
+             *   3. Cell neighbours of an edge, in the order 0 -> 1 follow the direction of the flow (N_t) on edges
+             defined in
+             * 1.
+             *      This fixes the order of cell neighbors of an edge
+             *
+             *   4. Vertex neighbors of an edge, in the order 0 -> 1 defines a vector N_l which is perpendicular to N_t.
+             *      This fixes the order of vertex neighbors of an edge
+             *
+             */
             /*
              * neighbors order
              *
@@ -91,20 +91,9 @@ namespace gridtools {
                     \/
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<3> offsets() {
-                return {{
-                    {+1, +0, 0, -1}, //
-                    {+0, +0, 0, -1}, //
-                    {+0, +1, 0, -1}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<cells, cells, 1> : l<e<1, 0, -1>, e<1, 0, -1>, e<0, 1, -1>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<cells>::to<cells>::with_color<0> {
             /*
              * neighbors order
              *
@@ -117,20 +106,9 @@ namespace gridtools {
                 /____\/____\
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<3> offsets() {
-                return {{
-                    {-1, +0, 0, +1}, //
-                    {+0, +0, 0, +1}, //
-                    {+0, -1, 0, +1}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<cells, cells, 0> : l<e<-1, 0, 1>, e<0, 0, 1>, e<0, -1, 1>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<vertices>::to<vertices>::with_color<0> {
             /*
              * neighbors order
              *
@@ -146,23 +124,10 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<6> offsets() {
-                return {{
-                    {+0, -1, 0, +0}, //
-                    {-1, +0, 0, +0}, //
-                    {-1, +1, 0, +0}, //
-                    {+0, +1, 0, +0}, //
-                    {+1, +0, 0, +0}, //
-                    {+1, -1, 0, +0}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<vertices, vertices, 0>
+                : l<e<0, -1, 0>, e<-1, 0, 0>, e<-1, 1, 0>, e<0, 1, 0>, e<1, 0, 0>, e<1, -1, 0>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<edges>::to<edges>::with_color<0> {
             /*
              * neighbors order
              *
@@ -175,21 +140,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<4> offsets() {
-                return {{
-                    {+0, -1, 0, +2}, //
-                    {+0, +0, 0, +1}, //
-                    {+0, +0, 0, +2}, //
-                    {+1, -1, 0, +1}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<edges, edges, 0> : l<e<0, -1, 2>, e<0, 0, 1>, e<0, 0, 2>, e<1, -1, 1>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<edges>::to<edges>::with_color<1> {
             /*
              * neighbors order
              *
@@ -204,21 +157,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<4> offsets() {
-                return {{
-                    {-1, +0, 0, +1}, //
-                    {-1, +1, 0, -1}, //
-                    {+0, +0, 0, +1}, //
-                    {+0, +0, 0, -1}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<edges, edges, 1> : l<e<-1, 0, 1>, e<-1, 1, -1>, e<0, 0, 1>, e<0, 0, -1>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<edges>::to<edges>::with_color<2> {
             /*
              * neighbors order
              *
@@ -231,21 +172,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<4> offsets() {
-                return {{
-                    {+0, +0, 0, -2}, //
-                    {+0, +0, 0, -1}, //
-                    {+0, +1, 0, -2}, //
-                    {+1, +0, 0, -1}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<edges, edges, 2> : l<e<0, 0, -2>, e<0, 0, -1>, e<0, 1, -2>, e<1, 0, -1>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<cells>::to<edges>::with_color<1> {
             /*
              * neighbors order
              *
@@ -257,20 +186,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<3> offsets() {
-                return {{
-                    {+1, +0, 0, +0}, //
-                    {+0, +0, 0, +1}, //
-                    {+0, +1, 0, -1}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<cells, edges, 1> : l<e<1, 0, 0>, e<0, 0, 1>, e<0, 1, -1>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<cells>::to<edges>::with_color<0> {
             /*
              * neighbors order
              *
@@ -283,20 +201,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<3> offsets() {
-                return {{
-                    {+0, +0, 0, +1}, //
-                    {+0, +0, 0, +2}, //
-                    {+0, +0, 0, +0}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<cells, edges, 0> : l<e<0, 0, 1>, e<0, 0, 2>, e<0, 0, 0>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<cells>::to<vertices>::with_color<0> {
             /*
              * neighbors order
              *
@@ -310,20 +217,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<3> offsets() {
-                return {{
-                    {+1, +0, 0, +0}, //
-                    {+0, +0, 0, +0}, //
-                    {+0, +1, 0, +0}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<cells, vertices, 0> : l<e<1, 0, 0>, e<0, 0, 0>, e<0, 1, 0>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<cells>::to<vertices>::with_color<1> {
             /*
              * neighbors order
              *
@@ -337,20 +233,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<3> offsets() {
-                return {{
-                    {+0, +1, 0, -1}, //
-                    {+1, +1, 0, -1}, //
-                    {+1, +0, 0, -1}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<cells, vertices, 1> : l<e<0, 1, -1>, e<1, 1, -1>, e<1, 0, -1>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<edges>::to<cells>::with_color<0> {
             /*
              * neighbors order
              *
@@ -362,19 +247,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<2> offsets() {
-                return {{
-                    {+0, -1, 0, +1}, //
-                    {+0, +0, 0, +0}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<edges, cells, 0> : l<e<0, -1, 1>, e<0, 0, 0>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<edges>::to<cells>::with_color<1> {
             /*
              * neighbors order
              *
@@ -389,19 +264,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<2> offsets() {
-                return {{
-                    {-1, +0, 0, +0}, //
-                    {+0, +0, 0, -1}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<edges, cells, 1> : l<e<-1, 0, 0>, e<0, 0, -1>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<edges>::to<cells>::with_color<2> {
             /*
              * neighbors order
              *
@@ -413,19 +278,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<2> offsets() {
-                return {{
-                    {+0, +0, 0, -1}, //
-                    {+0, +0, 0, -2}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<edges, cells, 2> : l<e<0, 0, -1>, e<0, 0, -2>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<edges>::to<vertices>::with_color<0> {
             /*
              * neighbors order
              *
@@ -439,19 +294,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<2> offsets() {
-                return {{
-                    {+1, +0, 0, +0}, //
-                    {+0, +0, 0, +0}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<edges, vertices, 0> : l<e<1, 0, 0>, e<0, 0, 0>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<edges>::to<vertices>::with_color<1> {
             /*
              * neighbors order
              *
@@ -466,19 +311,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<2> offsets() {
-                return {{
-                    {+0, +0, 0, -1}, //
-                    {+0, +1, 0, -1}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<edges, vertices, 1> : l<e<0, 0, -1>, e<0, 1, -1>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<edges>::to<vertices>::with_color<2> {
             /*
              * neighbors order
              *
@@ -492,19 +327,9 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<2> offsets() {
-                return {{
-                    {+0, +1, 0, -2}, //
-                    {+1, +0, 0, -2}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<edges, vertices, 2> : l<e<0, 1, -2>, e<1, 0, -2>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<vertices>::to<cells>::with_color<0> {
             /*
              * neighbors order
              *
@@ -519,23 +344,10 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<6> offsets() {
-                return {{
-                    {-1, -1, 0, +1}, //
-                    {-1, +0, 0, +0}, //
-                    {-1, +0, 0, +1}, //
-                    {+0, +0, 0, +0}, //
-                    {+0, -1, 0, +1}, //
-                    {+0, -1, 0, +0}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<vertices, cells, 0>
+                : l<e<-1, -1, 1>, e<-1, 0, 0>, e<-1, 0, 1>, e<0, 0, 0>, e<0, -1, 1>, e<0, -1, 0>> {};
 
-        template <>
-        template <>
-        template <>
-        struct from<vertices>::to<edges>::with_color<0> {
             /*
              * neighbors order
              *
@@ -550,29 +362,36 @@ namespace gridtools {
 
              @endverbatim
              */
-            GT_FUNCTION
-            constexpr static position_offsets_type<6> offsets() {
-                return {{
-                    {+0, -1, 0, +1}, //
-                    {-1, +0, 0, +0}, //
-                    {-1, +0, 0, +2}, //
-                    {+0, +0, 0, +1}, //
-                    {+0, +0, 0, +0}, //
-                    {+0, -1, 0, +2}  //
-                }};
-            }
-        };
+            template <>
+            struct offsets<vertices, edges, 0>
+                : l<e<0, -1, 1>, e<-1, 0, 0>, e<-1, 0, 2>, e<0, 0, 1>, e<0, 0, 0>, e<0, -1, 2>> {};
 
-        template <typename SrcLocation, typename DestLocation, uint_t Color>
-        struct connectivity {
+            template <class From, class To, int Color>
+            using neighbor_offsets = typename offsets<From, To, Color>::type;
 
-            static_assert(is_location_type<SrcLocation>::value, "Error: unknown src location type");
-            static_assert(is_location_type<DestLocation>::value, "Error: unknown dst location type");
-            static_assert(Color < SrcLocation::value, "Error: Color index beyond color length");
+            template <class>
+            struct offset_to_extent;
 
-            GT_FUNCTION constexpr static auto offsets() {
-                return from<SrcLocation>::template to<DestLocation>::template with_color<Color>::offsets();
-            }
-        };
+            template <int I, int J, int C>
+            struct offset_to_extent<e<I, J, C>> {
+                using type = extent<I, I, J, J>;
+            };
+
+            template <class From, class To, class = std::make_integer_sequence<int, From::value>>
+            struct lazy_neighbors_extent;
+
+            template <class From, class To, int... Colors>
+            struct lazy_neighbors_extent<From, To, std::integer_sequence<int, Colors...>> {
+                using type = meta::rename<enclosing_extent,
+                    meta::concat<
+                        meta::transform<meta::force<offset_to_extent>::apply, neighbor_offsets<From, To, Colors>>...>>;
+            };
+
+            template <class From, class To>
+            using neighbors_extent = typename lazy_neighbors_extent<From, To>::type;
+        } // namespace connectivity_impl_
+        using connectivity_impl_::neighbor_offsets;
+        using connectivity_impl_::neighbors_extent;
+
     } // namespace icosahedral
 } // namespace gridtools
