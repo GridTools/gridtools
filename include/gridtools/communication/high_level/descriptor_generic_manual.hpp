@@ -474,9 +474,9 @@ namespace gridtools {
                         if (ii != 0 || jj != 0 || kk != 0) {
                             typedef typename layout_transform<data_layout, proc_layout_abs>::type map_type;
 
-                            const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                            const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                            const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                            const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                            const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                            const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
 
                             if (base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1) {
                                 send_size[translate()(ii, jj, kk)] =
@@ -559,9 +559,9 @@ namespace gridtools {
                 int ii = 1;
                 int jj = 0;
                 int kk = 0;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[0].reset_minus();
@@ -571,9 +571,9 @@ namespace gridtools {
                 int ii = -1;
                 int jj = 0;
                 int kk = 0;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[0].reset_plus();
@@ -583,9 +583,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 1;
                 int kk = 0;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[1].reset_minus();
@@ -595,9 +595,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = -1;
                 int kk = 0;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[1].reset_plus();
@@ -607,9 +607,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 0;
                 int kk = 1;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[2].reset_minus();
@@ -619,9 +619,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 0;
                 int kk = -1;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[2].reset_plus();
@@ -636,9 +636,9 @@ namespace gridtools {
             for (int ii = -1; ii <= 1; ++ii)
                 for (int jj = -1; jj <= 1; ++jj)
                     for (int kk = -1; kk <= 1; ++kk) {
-                        const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                        const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                        const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                        const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                        const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                        const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                             if (ii != 0 || jj != 0 || kk != 0) {
                                 prefix_send_size[0 + translate()(ii, jj, kk)] = 0;
@@ -716,9 +716,9 @@ namespace gridtools {
                 int ii = 1;
                 int jj = 0;
                 int kk = 0;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[0].reset_plus();
@@ -728,9 +728,9 @@ namespace gridtools {
                 int ii = -1;
                 int jj = 0;
                 int kk = 0;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[0].reset_minus();
@@ -740,9 +740,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 1;
                 int kk = 0;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[1].reset_plus();
@@ -752,9 +752,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = -1;
                 int kk = 0;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[1].reset_minus();
@@ -764,9 +764,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 0;
                 int kk = 1;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[2].reset_plus();
@@ -776,9 +776,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 0;
                 int kk = -1;
-                const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
                         fields[l].halos[2].reset_minus();
@@ -788,9 +788,9 @@ namespace gridtools {
             for (int ii = -1; ii <= 1; ++ii)
                 for (int jj = -1; jj <= 1; ++jj)
                     for (int kk = -1; kk <= 1; ++kk) {
-                        const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
-                        const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
-                        const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
+                        const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                        const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                        const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
                         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                             if (ii != 0 || jj != 0 || kk != 0) {
                                 prefix_recv_size[0 + translate()(ii, jj, kk)] = 0;

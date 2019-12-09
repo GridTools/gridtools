@@ -91,7 +91,7 @@ namespace gridtools {
             using apply = typename meta::mp_find<PlhMap, Key, dummy_info>::extent_t;
         };
 
-        template <class MaxExtent, class PlhMap, uint_t BlockSize, class... Funs>
+        template <class MaxExtent, class PlhMap, int_t BlockSize, class... Funs>
         struct kernel {
             tuple<Funs...> m_funs;
             size_t m_shared_memory_size;
@@ -210,10 +210,8 @@ namespace gridtools {
 
                 auto kernel_fun = make_kernel_fun<Deref, Mss, k_block_size>(grid, composite);
 
-                return kernel<typename Mss::extent_t,
-                    typename Mss::plh_map_t,
-                    execute::block_size<typename Mss::execution_t>::value,
-                    decltype(kernel_fun)>{std::move(kernel_fun), shared_alloc.size()};
+                return kernel<typename Mss::extent_t, typename Mss::plh_map_t, k_block_size, decltype(kernel_fun)>{
+                    std::move(kernel_fun), shared_alloc.size()};
             }
 
             template <class Deref,

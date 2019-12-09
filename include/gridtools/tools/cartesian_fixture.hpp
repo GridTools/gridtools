@@ -20,7 +20,7 @@ namespace gridtools {
     namespace cartesian {
         template <size_t Halo = 0, class Axis = axis<1>>
         struct computation_fixture : grid_fixture<Halo, Axis> {
-            using computation_fixture::grid_fixture::grid_fixture;
+            using grid_fixture<Halo, Axis>::grid_fixture;
 
             template <class T = float_type>
             auto builder() const {
