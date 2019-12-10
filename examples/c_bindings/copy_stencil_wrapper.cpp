@@ -7,88 +7,78 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <functional>
-
-#include <cpp_bindgen/export.hpp>
-#include <gridtools/interface/fortran_array_adapter.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-
 // In this example, we demonstrate how the cpp_bindgen library can be used to export functions to C and Fortran. We are
 // going to export the functions required to run a simple copy stencil (see also the commented example in
 // examples/stencil_composition/copy_stencil.cpp)
 
-namespace {
-    namespace gt = gridtools;
+#include <cassert>
+#include <functional>
 
-    using axis_t = gt::axis<1>::axis_interval_t;
-    using grid_t = gt::grid<axis_t>;
+#include <cpp_bindgen/export.hpp>
+
+#include <gridtools/interface/fortran_array_adapter.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/sid.hpp>
 
 #ifdef __CUDACC__
-    using backend_t = gt::backend::cuda;
+#include <gridtools/stencil_composition/backend/cuda.hpp>
+#include <gridtools/storage/cuda.hpp>
+using backend_t = gridtools::cuda::backend<>;
+using storage_traits_t = gridtools::storage::cuda;
 #else
-    using backend_t = gt::backend::mc;
+#include <gridtools/stencil_composition/backend/mc.hpp>
+#include <gridtools/storage/mc.hpp>
+using backend_t = gridtools::mc::backend;
+using storage_traits_t = gridtools::storage::mc;
 #endif
 
-    using storage_traits_t = gt::storage_traits<backend_t>;
-    using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
-    using data_store_t = storage_traits_t::data_store_t<float, storage_info_t>;
+namespace {
+    using namespace gridtools;
+    using namespace cartesian;
 
     struct copy_functor {
-        using in = gt::in_accessor<0>;
-        using out = gt::inout_accessor<1>;
-        using param_list = gt::make_param_list<in, out>;
+        using in = in_accessor<0>;
+        using out = inout_accessor<1>;
+        using param_list = make_param_list<in, out>;
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval) {
-            eval(out{}) = eval(in{});
+        template <class Eval>
+        GT_FUNCTION static void apply(Eval &&eval) {
+            eval(out()) = eval(in());
         }
     };
 
-    // The following are wrapper functions which will be exported to C/Fortran
-    grid_t make_grid_impl(int nx, int ny, int nz) { return {gt::make_grid(nx, ny, nz)}; }
-    storage_info_t make_storage_info_impl(int nx, int ny, int nz) { return {nx, ny, nz}; }
-    data_store_t make_data_store_impl(storage_info_t storage_info) { return {storage_info}; }
-
-    std::function<void(data_store_t, data_store_t)> make_copy_stencil_impl(const grid_t &grid) {
-        return [grid](data_store_t in, data_store_t out) {
-            gt::arg<0> p_in;
-            gt::arg<1> p_out;
-            compute<backend_t>(grid,
-                p_in = in,
-                p_out = out,
-                gt::make_multistage(gt::execute::parallel(), gt::make_stage<copy_functor>(p_in, p_out)));
-        };
+    auto make_data_store_impl(int x, int y, int z) {
+        return storage::builder<storage_traits_t>.type<float>().dimensions(x, y, z).build();
     }
+    BINDGEN_EXPORT_BINDING_3(make_data_store, make_data_store_impl);
 
-    // Note that fortran_array_adapters are "fortran array wrappable".
-    static_assert(gt::c_bindings::is_fortran_array_wrappable<gt::fortran_array_adapter<data_store_t>>::value, "");
+    using data_store_ptr_t = decltype(make_data_store_impl(0, 0, 0));
+    using data_store_t = typename data_store_ptr_t::element_type;
 
-    void transform_f_to_c_impl(data_store_t data_store, gt::fortran_array_adapter<data_store_t> descriptor) {
-        transform(data_store, descriptor);
-    }
-    void transform_c_to_f_impl(gt::fortran_array_adapter<data_store_t> descriptor, data_store_t data_store) {
-        transform(descriptor, data_store);
-    }
-
-    // That means that in the generated Fortran code, a wrapper is created that takes a Fortran array, and converts
-    // it into the fortran array wrappable type.
-    void run_stencil_impl(std::function<void(data_store_t, data_store_t)> const &f, data_store_t in, data_store_t out) {
-        f(in, out);
-
+    void run_copy_stencil_impl(data_store_ptr_t in, data_store_ptr_t out) {
+        assert(in->lengths() == out->lengths());
+        auto &&lengths = out->lengths();
+        auto grid = make_grid(lengths[0], lengths[1], lengths[2]);
+        easy_run(copy_functor(), backend_t(), grid, in, out);
 #ifdef __CUDACC__
         cudaDeviceSynchronize();
 #endif
     }
+    BINDGEN_EXPORT_BINDING_2(run_copy_stencil, run_copy_stencil_impl);
 
-    // exports `make_grid_impl` (which needs 3 arguments) under the name `make_grid`
-    BINDGEN_EXPORT_BINDING_3(make_grid, make_grid_impl);
-    BINDGEN_EXPORT_BINDING_3(make_storage_info, make_storage_info_impl);
-    BINDGEN_EXPORT_BINDING_1(make_data_store, make_data_store_impl);
-    BINDGEN_EXPORT_BINDING_1(make_copy_stencil, make_copy_stencil_impl);
-    BINDGEN_EXPORT_BINDING_3(run_stencil, run_stencil_impl);
+    // Note that fortran_array_adapters are "fortran array wrappable".
+    static_assert(c_bindings::is_fortran_array_wrappable<fortran_array_adapter<data_store_t>>::value, "");
 
-    // In order to generate the additional wrapper for Fortran array,
-    // the *_WRAPPED_* versions need to be used
-    BINDGEN_EXPORT_BINDING_WRAPPED_2(transform_c_to_f, transform_c_to_f_impl);
+    void transform_f_to_c_impl(data_store_ptr_t data_store, fortran_array_adapter<data_store_t> descriptor) {
+        transform(data_store, descriptor);
+    }
+    // In order to generate the additional wrapper for Fortran array, the *_WRAPPED_* versions need to be used
     BINDGEN_EXPORT_BINDING_WRAPPED_2(transform_f_to_c, transform_f_to_c_impl);
+
+    void transform_c_to_f_impl(fortran_array_adapter<data_store_t> descriptor, data_store_ptr_t data_store) {
+        transform(descriptor, data_store);
+    }
+    // In order to generate the additional wrapper for Fortran array, the *_WRAPPED_* versions need to be used
+    BINDGEN_EXPORT_BINDING_WRAPPED_2(transform_c_to_f, transform_c_to_f_impl);
 } // namespace
