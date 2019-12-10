@@ -19,7 +19,6 @@ using storage_traits_t = storage::mc;
 
 constexpr dimension<1> i;
 constexpr dimension<2> j;
-constexpr dimension<3> k;
 
 struct lap_function {
     using in = in_accessor<0, extent<-1, 1, -1, 1>>;
@@ -28,12 +27,9 @@ struct lap_function {
     using param_list = make_param_list<in, lap>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation const &eval) {
-        eval(lap(i, j, k)) = -4. * eval(in(i, j, k)) //
-                             + eval(in(i + 1, j, k)) //
-                             + eval(in(i, j + 1, k)) //
-                             + eval(in(i - 1, j, k)) //
-                             + eval(in(i, j - 1, k));
+    GT_FUNCTION static void apply(Evaluation &&eval) {
+        eval(lap(i, j)) =
+            -4 * eval(in(i, j)) + eval(in(i + 1, j)) + eval(in(i, j + 1)) + eval(in(i - 1, j)) + eval(in(i, j - 1));
     }
 };
 
@@ -52,9 +48,5 @@ int main() {
     halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);
     auto my_grid = make_grid(boundary_i, boundary_j, Nk);
 
-    run([](auto phi, auto lap) { return execute_parallel().stage(lap_function(), phi, lap); },
-        backend_t(),
-        my_grid,
-        phi,
-        lap);
+    easy_run(lap_function(), backend_t(), my_grid, phi, lap);
 }
