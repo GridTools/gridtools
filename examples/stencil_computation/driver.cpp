@@ -2,35 +2,28 @@
 
 #include <iostream>
 
-bool verify(double weight, data_store_t const &in1, data_store_t const &in2, data_store_t const &out) {
-    auto in1_v = gridtools::make_host_view<gridtools::access_mode::read_only>(in1);
-    auto in2_v = gridtools::make_host_view<gridtools::access_mode::read_only>(in2);
-    auto out_v = gridtools::make_host_view<gridtools::access_mode::read_only>(out);
+bool verify(double weight, inputs in, outputs out) {
+    auto in1_v = in.in1->const_host_view();
+    auto in2_v = in.in2->const_host_view();
+    auto out_v = out.out->const_host_view();
 
     // check consistency
-    assert(in1_v.length<0>() == out_v.length<0>());
-    assert(in1_v.length<1>() == out_v.length<1>());
-    assert(in1_v.length<2>() == out_v.length<2>());
-    assert(in2_v.length<0>() == out_v.length<0>());
-    assert(in2_v.length<1>() == out_v.length<1>());
-    assert(in2_v.length<2>() == out_v.length<2>());
+    assert(in1_v.lengths() == out_v.lengths());
+    assert(in2_v.lengths() == out_v.lengths());
 
-    bool success = true;
-    for (int k = in1_v.total_begin<2>(); k <= in1_v.total_end<2>(); ++k) {
-        for (int i = in1_v.total_begin<0>(); i <= in1_v.total_end<0>(); ++i) {
-            for (int j = in1_v.total_begin<1>(); j <= in1_v.total_end<1>(); ++j) {
+    auto &&len = out_v.lengths();
+    for (int k = 0; k < len[2]; ++k)
+        for (int i = 0; i < len[0]; ++i)
+            for (int j = 0; j < len[1]; ++j)
                 if (weight * in1_v(i, j, k) + (1.0 - weight) * in2_v(i, j, k) - out_v(i, j, k) > 1e-8) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
+                    std::cerr << "error in " << i << ", " << j << ", " << k << ": "
                               << "expected = " << weight * in1_v(i, j, k) + (1.0 - weight) * in2_v(i, j, k)
                               << ", out = " << out_v(i, j, k) << ", diff = "
                               << weight * in1_v(i, j, k) + (1.0 - weight) * in2_v(i, j, k) - out_v(i, j, k)
                               << std::endl;
-                    success = false;
+                    return false;
                 }
-            }
-        }
-    }
-    return success;
+    return true;
 }
 int main(int argc, char **argv) {
     unsigned int d1, d2, d3;
@@ -45,33 +38,24 @@ int main(int argc, char **argv) {
         d3 = atoi(argv[3]);
     }
 
-    // storage_info contains the information about sizes and layout of the storages to which it will be passed
-    storage_info_t meta_data_{d1, d2, d3};
+    // Add dimensions to the storage builder
+    const auto storage_builder = gridtools::storage::builder<storage_traits_t>.dimensions(d1, d2, d3).type<double>();
 
     // Now we describe the iteration space. In this simple example the iteration space is just described by the full
     // grid (no particular care has to be taken to describe halo points).
     auto grid = gridtools::make_grid(d1, d2, d3);
 
     // Create some data stores
-    data_store_t in1{meta_data_, [](int i, int j, int k) { return i + j + k; }, "in"};
-    data_store_t in2{meta_data_, [](int i, int j, int k) { return 4 * i + 2 * j + k; }, "in"};
-    data_store_t out{meta_data_, -1.0, "out"};
+    inputs in = {storage_builder.initializer([](int i, int j, int k) { return i + j + k; }).build(),
+        storage_builder.initializer([](int i, int j, int k) { return 4 * i + 2 * j + k; }).build()};
+    outputs out = {storage_builder.build()};
 
     // Use the wrapped computation
-    auto my_stencil = make_interpolate_stencil(grid, weight);
-    my_stencil({in1, in2}, {out});
+    make_interpolate_stencil(grid, weight)(in, out);
 
-    out.sync();
-    in1.sync();
-    in2.sync();
-
-    bool success = verify(weight, in1, in2, out);
-
-    if (success) {
-        std::cout << "Successful\n";
-    } else {
-        std::cout << "Failed\n";
+    if (!verify(weight, in, out)) {
+        std::cerr << "Failure" << std::endl;
+        return 1;
     }
-
-    return !success;
+    std::cout << "Success" << std::endl;
 };
