@@ -25,8 +25,8 @@ namespace gridtools {
     struct storage_traits_from_id;
 
     /** @brief storage traits for the Host backend*/
-    template <>
-    struct storage_traits_from_id<backend::x86> {
+    template <class IBlockSize, class JBlockSize>
+    struct storage_traits_from_id<x86::backend<IBlockSize, JBlockSize>> {
 
         template <typename ValueType>
         struct select_storage {
