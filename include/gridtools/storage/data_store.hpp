@@ -14,6 +14,7 @@
 #include <type_traits>
 
 #include "../common/array.hpp"
+#include "../common/array_addons.hpp"
 #include "../common/defs.hpp"
 #include "../common/layout_map.hpp"
 #include "data_view.hpp"
@@ -117,7 +118,8 @@ namespace gridtools {
                     array<uint_t, N> const &lengths,
                     array<int, N> const &halos,
                     Initializer const &initializer)
-                    : data_store_impl::base(std::move(name), lengths, halos), m_state(invalid_target) {
+                    : data_store_impl::base(std::move(name), lengths, halos), m_state(invalid_target),
+                      m_host_ptr(std::make_unique<T[]>(this->info().length())) {
                     initializer(m_host_ptr.get(), typename data_store_impl::layout_t(), this->info());
                 }
 
