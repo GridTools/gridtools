@@ -120,63 +120,60 @@ namespace gridtools {
         }
 
         template <class IBlockSize = integral_constant<int_t, 8>, class JBlockSize = integral_constant<int_t, 8>>
-        struct backend {
-            template <class Spec, class Grid, class DataStores>
-            friend void gridtools_backend_entry_point(
-                backend, Spec, Grid const &grid, DataStores external_data_stores) {
-                using stages_t = stage_matrix::make_split_view<Spec>;
+        struct backend {};
 
-                auto alloc = sid::make_cached_allocator(&std::make_unique<char[]>);
+        template <class IBlockSize, class JBlockSize, class Spec, class Grid, class DataStores>
+        void gridtools_backend_entry_point(
+            backend<IBlockSize, JBlockSize>, Spec, Grid const &grid, DataStores external_data_stores) {
+            using stages_t = stage_matrix::make_split_view<Spec>;
 
-                using tmp_plh_map_t = stage_matrix::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
-                auto temporaries = stage_matrix::make_data_stores(tmp_plh_map_t(), [&](auto info) {
-                    auto extent = info.extent();
-                    auto interval = stages_t::interval();
-                    auto num_colors = info.num_colors();
-                    auto offsets =
-                        tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(-extent.minus(dim::i()),
-                            -extent.minus(dim::j()),
-                            -grid.k_start(interval) - extent.minus(dim::k()));
-                    auto sizes =
-                        tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i, dim::thread>::values>(num_colors,
-                            grid.k_size(interval, extent),
-                            extent.extend(dim::j(), JBlockSize()),
-                            extent.extend(dim::i(), IBlockSize()),
-                            omp_get_max_threads());
+            auto alloc = sid::make_cached_allocator(&std::make_unique<char[]>);
 
-                    using stride_kind = meta::list<decltype(extent), decltype(num_colors)>;
-                    return sid::shift_sid_origin(
-                        sid::make_contiguous<decltype(info.data()), int_t, stride_kind>(alloc, sizes), offsets);
-                });
+            using tmp_plh_map_t = stage_matrix::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
+            auto temporaries = stage_matrix::make_data_stores(tmp_plh_map_t(), [&grid, &alloc](auto info) {
+                auto extent = info.extent();
+                auto interval = stages_t::interval();
+                auto num_colors = info.num_colors();
+                auto offsets = tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(
+                    -extent.minus(dim::i()), -extent.minus(dim::j()), -grid.k_start(interval) - extent.minus(dim::k()));
+                auto sizes =
+                    tuple_util::make<hymap::keys<dim::c, dim::k, dim::j, dim::i, dim::thread>::values>(num_colors,
+                        grid.k_size(interval, extent),
+                        extent.extend(dim::j(), JBlockSize()),
+                        extent.extend(dim::i(), IBlockSize()),
+                        omp_get_max_threads());
 
-                auto blocked_external_data_stores = tuple_util::transform(
-                    [&](auto &&data_store) {
-                        return sid::block(std::forward<decltype(data_store)>(data_store),
-                            hymap::keys<dim::i, dim::j>::values<IBlockSize, JBlockSize>());
-                    },
-                    std::move(external_data_stores));
+                using stride_kind = meta::list<decltype(extent), decltype(num_colors)>;
+                return sid::shift_sid_origin(
+                    sid::make_contiguous<decltype(info.data()), int_t, stride_kind>(alloc, sizes), offsets);
+            });
 
-                auto data_stores = hymap::concat(std::move(blocked_external_data_stores), std::move(temporaries));
+            auto blocked_external_data_stores = tuple_util::transform(
+                [&](auto &&data_store) {
+                    return sid::block(std::forward<decltype(data_store)>(data_store),
+                        hymap::keys<dim::i, dim::j>::values<IBlockSize, JBlockSize>());
+                },
+                std::move(external_data_stores));
 
-                auto stage_loops =
-                    tuple_util::transform([&](auto stage) { return make_stage_loop(stage, grid, data_stores); },
-                        meta::rename<tuple, stages_t>());
+            auto data_stores = hymap::concat(std::move(blocked_external_data_stores), std::move(temporaries));
 
-                int_t total_i = grid.i_size();
-                int_t total_j = grid.j_size();
+            auto stage_loops = tuple_util::transform(
+                [&](auto stage) { return make_stage_loop(stage, grid, data_stores); }, meta::rename<tuple, stages_t>());
 
-                int_t NBI = (total_i + IBlockSize::value - 1) / IBlockSize::value;
-                int_t NBJ = (total_j + JBlockSize::value - 1) / JBlockSize::value;
+            int_t total_i = grid.i_size();
+            int_t total_j = grid.j_size();
+
+            int_t NBI = (total_i + IBlockSize::value - 1) / IBlockSize::value;
+            int_t NBJ = (total_j + JBlockSize::value - 1) / JBlockSize::value;
 
 #pragma omp parallel for collapse(2)
-                for (int_t bi = 0; bi < NBI; ++bi) {
-                    for (int_t bj = 0; bj < NBJ; ++bj) {
-                        int_t i_size = bi + 1 == NBI ? total_i - bi * IBlockSize::value : IBlockSize::value;
-                        int_t j_size = bj + 1 == NBJ ? total_j - bj * JBlockSize::value : JBlockSize::value;
-                        tuple_util::for_each([=](auto &&fun) { fun(bi, bj, i_size, j_size); }, stage_loops);
-                    }
+            for (int_t bi = 0; bi < NBI; ++bi) {
+                for (int_t bj = 0; bj < NBJ; ++bj) {
+                    int_t i_size = bi + 1 == NBI ? total_i - bi * IBlockSize::value : IBlockSize::value;
+                    int_t j_size = bj + 1 == NBJ ? total_j - bj * JBlockSize::value : JBlockSize::value;
+                    tuple_util::for_each([=](auto &&fun) { fun(bi, bj, i_size, j_size); }, stage_loops);
                 }
             }
-        };
+        }
     } // namespace x86
 } // namespace gridtools

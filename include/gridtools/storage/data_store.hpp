@@ -197,16 +197,16 @@ namespace gridtools {
                 : public base<Traits, T const, N, Id> {
 
                 template <class>
-                static constexpr bool is_host_refrenceable = IsHostRefrenceable;
+                struct is_host_refrenceable : bool_constant<IsHostRefrenceable> {};
 
-                template <class Initializer, std::enable_if_t<!is_host_refrenceable<Initializer>, int> = 0>
+                template <class Initializer, std::enable_if_t<!is_host_refrenceable<Initializer>::value, int> = 0>
                 void init(Initializer const &initializer) {
                     auto host_ptr = std::make_unique<T[]>(this->info().length());
                     initializer(host_ptr.get(), typename data_store_impl::layout_t(), this->info());
                     traits::update_target<Traits>(this->raw_target_ptr(), host_ptr.get(), this->info().length());
                 }
 
-                template <class Initializer, std::enable_if_t<is_host_refrenceable<Initializer>, int> = 0>
+                template <class Initializer, std::enable_if_t<is_host_refrenceable<Initializer>::value, int> = 0>
                 void init(Initializer const &initializer) {
                     initializer(this->raw_target_ptr(), typename data_store_impl::layout_t(), this->info());
                 }
