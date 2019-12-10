@@ -115,17 +115,3 @@ TEST(layout_transformation, 4D_reverse_layout_cuda) {
     GT_CUDA_CHECK(cudaFree(d_src));
     GT_CUDA_CHECK(cudaFree(d_dst));
 }
-
-TEST(layout_transformation, mixing_host_and_device_ptr) {
-    double *d_src;
-    GT_CUDA_CHECK(cudaMalloc(&d_src, sizeof(double)));
-
-    double *dst = new double;
-
-    // mixing host pointer + device pointer
-    ASSERT_ANY_THROW(gridtools::interface::transform(
-        dst, d_src, std::vector<uint_t>(), std::vector<uint_t>(), std::vector<uint_t>()));
-
-    delete dst;
-    GT_CUDA_CHECK(cudaFree(d_src));
-}
