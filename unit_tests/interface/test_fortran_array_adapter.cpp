@@ -13,9 +13,10 @@
 #include <cpp_bindgen/fortran_array_view.hpp>
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/x86.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
-const auto builder = gridtools::storage::builder<storage_traits_t>.type<float_type>();
+const auto builder = gridtools::storage::builder<gridtools::storage::x86>.type<float_type>();
 
 TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
     constexpr size_t x_size = 6;
