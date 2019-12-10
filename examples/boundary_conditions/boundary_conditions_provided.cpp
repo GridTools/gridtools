@@ -8,8 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-/** @file This file contains several examples of using boundary
-    conditions classes provided by GridTools itself.
+/** @file This file contains several examples of using boundary conditions classes provided by GridTools itself.
 
     They are:
 
@@ -25,21 +24,26 @@
     We are using helper functions to show how to use them and a simple
     code to check correctness.
  */
+#include <iostream>
 
 #include <gridtools/boundary_conditions/boundary.hpp>
 #include <gridtools/boundary_conditions/copy.hpp>
 #include <gridtools/boundary_conditions/value.hpp>
 #include <gridtools/boundary_conditions/zero.hpp>
-#include <gridtools/storage/storage_facility.hpp>
-#include <iostream>
-
-namespace gt = gridtools;
+#include <gridtools/communication/low_level/gcl_arch.hpp>
+#include <gridtools/storage/builder.hpp>
 
 #ifdef __CUDACC__
-using backend_t = gt::backend::cuda;
+#include <gridtools/storage/cuda.hpp>
+using storage_traits_t = gridtools::storage::cuda;
+using gcl_arch_t = gridtools::gcl_gpu;
 #else
-using backend_t = gt::backend::mc;
+#include <gridtools/storage/mc.hpp>
+using storage_traits_t = gridtools::storage::mc;
+using gcl_arch_t = gridtools::gcl_cpu;
 #endif
+
+namespace gt = gridtools;
 
 int main(int argc, char **argv) {
     if (argc != 4) {
@@ -56,18 +60,14 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    using storage_info_t = gt::storage_traits<backend_t>::storage_info_t<0, 3, gt::halo<1, 1, 1>>;
-    using storage_t = gt::storage_traits<backend_t>::data_store_t<int, storage_info_t>;
-
     // Definition of the actual data fields that are used for input/output
-    storage_info_t storage_info(d1, d2, d3);
-    storage_t in_s(storage_info, [](int i, int j, int k) { return i + j + k; }, "in");
-    storage_t out_s(storage_info, 0, "out");
+    auto storage_builder = gt::storage::builder<storage_traits_t>.type<int>().dimensions(d1, d2, d3).halos(1, 1, 1);
 
-    /* Defintion of the boundaries of the storage. We use
-       halo_descriptor, that are used also in the current
-       communication library. We plan to use a better structure in the
-       future. The halo descriptor contains 5 numbers:
+    auto in_s = storage_builder.name("in").initializer([](int i, int j, int k) { return i + j + k; }).build();
+    auto out_s = storage_builder.name("in").value(0).build();
+
+    /* Defintion of the boundaries of the storage. We use halo_descriptor, that are used also in the current
+       communication library. We plan to use a better structure in the future. The halo descriptor contains 5 numbers:
        - The halo in the minus direction
        - The halo in the plus direction
        - The begin of the inner region
@@ -83,27 +83,11 @@ int main(int argc, char **argv) {
 
     bool error = false;
     {
-        // sync the data stores if needed
-        in_s.sync();
-        out_s.sync();
-
-        gt::boundary<gt::copy_boundary, backend_t>(halos, gt::copy_boundary{}).apply(out_s, in_s);
-
-        // sync the data stores if needed
-        in_s.sync();
-        out_s.sync();
+        gt::boundary<gt::copy_boundary, gcl_arch_t>(halos, gt::copy_boundary{}).apply(out_s, in_s);
 
         // making the views to access and check correctness
-        auto in = make_host_view(in_s);
-        auto out = make_host_view(out_s);
-
-        assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
-        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
-
-        // reactivate views and check consistency
-        out_s.reactivate_host_write_views();
-        assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
-        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+        auto in = in_s->const_host_view();
+        auto out = out_s->const_host_view();
 
         for (int i = 0; i < d1; ++i) {
             for (int j = 0; j < d2; ++j) {
@@ -122,22 +106,10 @@ int main(int argc, char **argv) {
     }
 
     {
-        // sync the data stores if needed
-        out_s.sync();
-
-        gt::boundary<gt::zero_boundary, backend_t>(halos, gt::zero_boundary{}).apply(out_s);
-
-        // sync the data stores if needed
-        out_s.sync();
+        gt::boundary<gt::zero_boundary, gcl_arch_t>(halos, gt::zero_boundary{}).apply(out_s);
 
         // making the views to access and check correctness
-        auto out = make_host_view(out_s);
-
-        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
-
-        // reactivate views and check consistency
-        out_s.reactivate_host_write_views();
-        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+        auto out = out_s->const_host_view();
 
         for (int i = 0; i < d1; ++i) {
             for (int j = 0; j < d2; ++j) {
@@ -154,22 +126,10 @@ int main(int argc, char **argv) {
     }
 
     {
-        // sync the data stores if needed
-        out_s.sync();
-
-        gt::boundary<gt::value_boundary<int>, backend_t>(halos, gt::value_boundary<int>{42}).apply(out_s);
-
-        // sync the data stores if needed
-        out_s.sync();
+        gt::boundary<gt::value_boundary<int>, gcl_arch_t>(halos, gt::value_boundary<int>{42}).apply(out_s);
 
         // making the views to access and check correctness
-        auto out = make_host_view(out_s);
-
-        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
-
-        // reactivate views and check consistency
-        out_s.reactivate_host_write_views();
-        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+        auto out = out_s->const_host_view();
 
         for (int i = 0; i < d1; ++i) {
             for (int j = 0; j < d2; ++j) {

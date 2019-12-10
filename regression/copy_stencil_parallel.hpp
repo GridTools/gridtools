@@ -120,7 +120,7 @@ namespace copy_stencil {
         halos[1] = halo_descriptor(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
         halos[2] = halo_descriptor(0, 0, 0, d3 - 1, d3);
 
-        boundary<boundary_conditions, backend_t, proc_grid_predicate<decltype(c_grid)>>(
+        boundary<boundary_conditions, gcl_arch_t, proc_grid_predicate<decltype(c_grid)>>(
             halos, boundary_conditions(), proc_grid_predicate<decltype(c_grid)>(c_grid))
             .apply(in, out);
 

@@ -71,7 +71,7 @@ bool basic() {
     halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    boundary<bc_basic, backend_t>(halos, bc_basic()).apply(in);
+    boundary<bc_basic, gcl_arch_t>(halos, bc_basic()).apply(in);
 
     auto inv = in->host_view();
 
