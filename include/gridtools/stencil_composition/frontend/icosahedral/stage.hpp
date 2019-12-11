@@ -85,9 +85,9 @@ namespace gridtools {
                 }
 
                 template <class Accessor, class Offset>
-                GT_FUNCTION decltype(auto) neighbor(Offset const &offset) const {
+                GT_FUNCTION decltype(auto) neighbor(Accessor, Offset offset) const {
                     return apply_intent<Accessor::intent_v>(
-                        get_ref<meta::at_c<Keys, Accessor::index_t::value>>(offset));
+                        get_ref<meta::at_c<Keys, Accessor::index_t::value>>(wstd::move(offset)));
                 }
 
                 static constexpr int_t color = Color;
@@ -99,7 +99,7 @@ namespace gridtools {
                             std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>::value,
                         "All accessors should be of the same location");
                     host_device::for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
-                        [&](auto offset) { fun(neighbor<Accessor>(offset), neighbor<Accessors>(offset)...); });
+                        [&](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });
                 }
             };
 
