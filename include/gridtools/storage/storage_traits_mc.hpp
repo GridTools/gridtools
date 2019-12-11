@@ -36,7 +36,7 @@ namespace gridtools {
 
     /** @brief storage traits for the Mic backend*/
     template <>
-    struct storage_traits_from_id<backend::mc> {
+    struct storage_traits_from_id<mc::backend> {
 
         template <typename ValueType>
         struct select_storage {
