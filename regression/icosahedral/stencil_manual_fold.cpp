@@ -29,7 +29,7 @@ struct test_on_edges_functor {
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
-        auto &&out = eval(weight_edges()) = 0;
+        auto &&out = eval(weight_edges());
         auto focus = eval(cell_area());
         int i = 0;
         eval.for_neighbors([&](auto neighbor) { out[i++] = neighbor / focus; }, cell_area());
