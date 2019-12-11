@@ -48,13 +48,13 @@ namespace {
         }
     };
 
-    auto make_data_store_impl(int x, int y, int z) {
+    using data_store_ptr_t = decltype(storage::builder<storage_traits_t>.type<float>().dimensions(0, 0, 0).build());
+    using data_store_t = typename data_store_ptr_t::element_type;
+
+    data_store_ptr_t make_data_store_impl(int x, int y, int z) {
         return storage::builder<storage_traits_t>.type<float>().dimensions(x, y, z).build();
     }
     BINDGEN_EXPORT_BINDING_3(make_data_store, make_data_store_impl);
-
-    using data_store_ptr_t = decltype(make_data_store_impl(0, 0, 0));
-    using data_store_t = typename data_store_ptr_t::element_type;
 
     void run_copy_stencil_impl(data_store_ptr_t in, data_store_ptr_t out) {
         assert(in->lengths() == out->lengths());
