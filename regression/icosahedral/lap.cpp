@@ -63,8 +63,9 @@ TEST_F(lap, weights) {
         GT_DECLARE_ICO_TMP(float_type, vertices, curl_on_vertices);
         GT_DECLARE_ICO_TMP((array<float_type, 3>), cells, div_weights);
         GT_DECLARE_ICO_TMP((array<float_type, 6>), vertices, curl_weights);
+        // sorry, curl_weights doesn't fit the ij_cache on daint gpu :(
         return execute_parallel()
-            .ij_cached(div_on_cells, curl_on_vertices, div_weights, curl_weights)
+            .ij_cached(div_on_cells, curl_on_vertices, div_weights /*, curl_weights*/)
             .stage(div_prep_functor(), edge_length, cell_area_reciprocal, div_weights)
             .stage(curl_prep_functor(), dual_area_reciprocal, dual_edge_length, curl_weights)
             .stage(div_functor_reduction_into_scalar(), in_edges, div_weights, div_on_cells)
