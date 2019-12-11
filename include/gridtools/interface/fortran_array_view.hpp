@@ -74,5 +74,7 @@ namespace gridtools {
             }
         };
     } // namespace fortran_array_view_impl_
+
+    // Models both gridtools SID concept and bindgen FortranArrayView concept
     using fortran_array_view_impl_::fortran_array_view;
 } // namespace gridtools

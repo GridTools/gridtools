@@ -26,8 +26,8 @@ int main() {
     // Fortran layout). This is the layout that is expected by the bindings we have
     // written.
     float *in_array, *out_array;
-    cudaMallocManaged(&in_array, nx * ny * nz * sizeof(float), cudaMemAttachGlobal);
-    cudaMallocManaged(&out_array, nx * ny * nz * sizeof(float), cudaMemAttachGlobal);
+    cudaMallocManaged((void **)&in_array, nx * ny * nz * sizeof(float), cudaMemAttachGlobal);
+    cudaMallocManaged((void **)&out_array, nx * ny * nz * sizeof(float), cudaMemAttachGlobal);
 
     // fill some inputs
     float n1 = 0;

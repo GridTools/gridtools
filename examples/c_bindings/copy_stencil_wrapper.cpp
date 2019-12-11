@@ -48,15 +48,14 @@ namespace {
         }
     };
 
-    using data_store_ptr_t = decltype(storage::builder<storage_traits_t>.type<float>().dimensions(0, 0, 0).build());
-    using data_store_t = typename data_store_ptr_t::element_type;
+    using data_store_t = decltype(storage::builder<storage_traits_t>.type<float>().dimensions(0, 0, 0).build());
 
-    data_store_ptr_t make_data_store_impl(int x, int y, int z) {
+    auto make_data_store_impl(int x, int y, int z) {
         return storage::builder<storage_traits_t>.type<float>().dimensions(x, y, z).build();
     }
     BINDGEN_EXPORT_BINDING_3(make_data_store, make_data_store_impl);
 
-    void run_copy_stencil_impl(data_store_ptr_t in, data_store_ptr_t out) {
+    void run_copy_stencil_impl(data_store_t in, data_store_t out) {
         assert(in->lengths() == out->lengths());
         auto &&lengths = out->lengths();
         auto grid = make_grid(lengths[0], lengths[1], lengths[2]);
@@ -67,18 +66,17 @@ namespace {
     }
     BINDGEN_EXPORT_BINDING_2(run_copy_stencil, run_copy_stencil_impl);
 
-    // Note that fortran_array_adapters are "fortran array wrappable".
-    static_assert(c_bindings::is_fortran_array_wrappable<fortran_array_adapter<data_store_t>>::value, "");
-
-    void transform_f_to_c_impl(data_store_ptr_t data_store, fortran_array_adapter<data_store_t> descriptor) {
-        transform(data_store, descriptor);
+    template <class D>
+    void transform_f_to_c_impl(D c, fortran_array_adapter<D> f) {
+        f.transform_to(c);
     }
     // In order to generate the additional wrapper for Fortran array, the *_WRAPPED_* versions need to be used
-    BINDGEN_EXPORT_BINDING_WRAPPED_2(transform_f_to_c, transform_f_to_c_impl);
+    BINDGEN_EXPORT_BINDING_WRAPPED_2(transform_f_to_c, transform_f_to_c_impl<data_store_t>);
 
-    void transform_c_to_f_impl(fortran_array_adapter<data_store_t> descriptor, data_store_ptr_t data_store) {
-        transform(descriptor, data_store);
+    template <class D>
+    void transform_c_to_f_impl(fortran_array_adapter<D> f, D c) {
+        f.transform_from(c);
     }
     // In order to generate the additional wrapper for Fortran array, the *_WRAPPED_* versions need to be used
-    BINDGEN_EXPORT_BINDING_WRAPPED_2(transform_c_to_f, transform_c_to_f_impl);
+    BINDGEN_EXPORT_BINDING_WRAPPED_2(transform_c_to_f, transform_c_to_f_impl<data_store_t>);
 } // namespace

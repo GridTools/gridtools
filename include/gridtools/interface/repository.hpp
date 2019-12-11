@@ -49,8 +49,8 @@ namespace repository_impl_ {
     };
 
     template <class Repo, class T, T const Repo::*Field>
-    void set_field(Repo const &repo, ::gridtools::fortran_array_adapter<typename T::element_type> view) {
-        transform(repo.*Field, view);
+    void set_field(Repo const &repo, ::gridtools::fortran_array_adapter<T> view) {
+        view.transform_to(repo.*Field);
     }
 } // namespace repository_impl_
 

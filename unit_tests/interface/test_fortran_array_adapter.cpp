@@ -35,7 +35,7 @@ TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
 
     auto data_store = builder.dimensions(x_size, y_size, z_size)();
 
-    gridtools::fortran_array_adapter<decltype(data_store)::element_type> fortran_array_adapter{descriptor};
+    ;
 
     int i = 0;
     for (size_t z = 0; z < z_size; ++z)
@@ -44,7 +44,7 @@ TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
                 fortran_array[z][y][x] = i;
 
     // transform adapter into data_store
-    transform(data_store, fortran_array_adapter);
+    gridtools::fortran_array_adapter<decltype(data_store)>{descriptor}.transform_to(data_store);
 
     i = 0;
     auto view = data_store->host_view();
@@ -71,8 +71,6 @@ TEST(FortranArrayAdapter, TransformDataStoreIntoAdapter) {
 
     auto data_store = builder.dimensions(x_size, y_size, z_size)();
 
-    gridtools::fortran_array_adapter<decltype(data_store)::element_type> fortran_array_adapter{descriptor};
-
     auto view = data_store->host_view();
 
     int i = 0;
@@ -82,7 +80,7 @@ TEST(FortranArrayAdapter, TransformDataStoreIntoAdapter) {
                 view(x, y, z) = i;
 
     // transform data_store into adapter
-    transform(fortran_array_adapter, data_store);
+    gridtools::fortran_array_adapter<decltype(data_store)>{descriptor}.transform_from(data_store);
 
     i = 0;
     for (size_t z = 0; z < z_size; ++z)
