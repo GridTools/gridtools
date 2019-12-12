@@ -113,8 +113,8 @@ int main(int argc, char **argv) {
 
     // Definition of the actual data fields that are used for input/output
     auto in = storage_builder.type<double const>().value(42).build();
-    auto coeff = storage_builder.type<double const volatile>().value(42).build();
-    auto out = storage_builder.type<double volatile>().build();
+    auto coeff = storage_builder.type<double const>().value(42).build();
+    auto out = storage_builder.type<double>().build();
 
     // Here we specify the stencil composition of the computation.
     auto spec = [](auto coeff, auto in, auto out) {

@@ -64,10 +64,10 @@ int main(int argc, char **argv) {
     auto f = [](int i, int j, int k) { return i + j + k; };
 
     // Build input storage
-    auto in = storage_builder.initializer(f).type<const volatile double>().build();
+    auto in = storage_builder.initializer(f).type<const double>().build();
 
     // Build the storage to collect the result
-    auto out = storage_builder.type<volatile double>().build();
+    auto out = storage_builder.type<double>().build();
 
     // Now we describe the iteration space. In this simple example the iteration space is just described by the full
     // grid (no particular care has to be taken to describe halo points).
