@@ -21,10 +21,11 @@ using namespace ico_operators;
 
 struct curl : regression_fixture<2> {
     operators_repository repo = {d(0), d(1)};
-    static constexpr double precision = GT_FLOAT_PRECISION == 4 ? 1e-4 : 1e-9;
 };
 
-const double curl::precision;
+const auto eq = [](auto lhs, auto rhs) {
+    return expect_with_threshold(lhs, rhs, GT_FLOAT_PRECISION == 4 ? 1e-4 : 1e-9);
+};
 
 TEST_F(curl, weights) {
     auto spec = [](auto reciprocal, auto edge_length, auto in_edges, auto out) {
@@ -42,7 +43,7 @@ TEST_F(curl, weights) {
         make_storage<edges>(repo.dual_edge_length),
         make_storage<edges>(repo.u),
         out);
-    verify(repo.curl_u, out, precision);
+    verify(repo.curl_u, out, eq);
 }
 
 TEST_F(curl, flow_convention) {
@@ -54,5 +55,5 @@ TEST_F(curl, flow_convention) {
         make_storage<vertices>(repo.dual_area_reciprocal),
         make_storage<edges>(repo.dual_edge_length),
         out);
-    verify(repo.curl_u, out, precision);
+    verify(repo.curl_u, out, eq);
 }

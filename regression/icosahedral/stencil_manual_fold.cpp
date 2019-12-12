@@ -49,6 +49,11 @@ TEST_F(stencil_manual_fold, test) {
     auto out = make_storage<cells, weight_edges_t>();
     auto comp = [&] { easy_run(test_on_edges_functor(), backend_t(), make_grid(), make_storage<cells>(in), out); };
     comp();
-    verify(ref, out);
+    verify(ref, out, [](auto lhs, auto rhs) {
+        for (size_t i = 0; i != rhs.size(); ++i)
+            if (!expect_with_threshold(lhs[i], rhs[i]))
+                return false;
+        return true;
+    });
     benchmark(comp);
 }

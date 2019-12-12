@@ -45,11 +45,10 @@ namespace gridtools {
             return ::gridtools::make_grid(halo_desc(m_dims[0]), halo_desc(m_dims[1]), Axis(m_dims[2 + Is]...));
         }
 
-        template <class Expected, class Actual>
-        void verify(
-            Expected const &expected, Actual const &actual, double precision = default_precision<float_type>()) const {
+        template <class Expected, class Actual, class EqualTo = default_equal_to<typename Actual::element_type>>
+        void verify(Expected const &expected, Actual const &actual, EqualTo equal_to = {}) const {
             std::array<std::array<size_t, 2>, Actual::element_type::ndims> halos = {{{Halo, Halo}, {Halo, Halo}}};
-            EXPECT_TRUE(verify_data_store(expected, actual, halos, precision));
+            EXPECT_TRUE(verify_data_store(expected, actual, halos, equal_to));
         }
     };
 } // namespace gridtools

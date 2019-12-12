@@ -74,12 +74,25 @@ namespace gridtools {
         struct is_view_compatible<F, N, void_t<decltype(apply(std::declval<F const &>(), array<size_t, N>{}))>>
             : std::true_type {};
 
-        template <class Expected, class DataStore, class Halos>
+        struct float_equal_to {
+            template <class T>
+            bool operator()(T lhs, T rhs) const {
+                return expect_with_threshold(lhs, rhs);
+            }
+        };
+
+        template <class DataStore>
+        using default_equal_to =
+            meta::if_<std::is_floating_point<typename DataStore::data_t>, float_equal_to, std::equal_to<>>;
+
+        template <class Expected, class DataStore, class Halos, class EqualTo = default_equal_to<DataStore>>
         std::enable_if_t<storage::is_data_store<DataStore>::value &&
                              is_view_compatible<Expected, DataStore::ndims>::value,
             bool>
-        verify_data_store(
-            Expected const &expected, std::shared_ptr<DataStore> const &actual, Halos const &halos, double precision) {
+        verify_data_store(Expected const &expected,
+            std::shared_ptr<DataStore> const &actual,
+            Halos const &halos,
+            EqualTo equal_to = {}) {
             array<array<size_t, 2>, DataStore::ndims> bounds;
             auto &&lengths = actual->lengths();
             for (size_t i = 0; i < bounds.size(); ++i)
@@ -90,7 +103,7 @@ namespace gridtools {
             for (auto &&pos : make_hypercube_view(bounds)) {
                 auto a = apply(view, pos);
                 decltype(a) e = apply(expected, pos);
-                if (expect_with_threshold(e, a, precision))
+                if (equal_to(e, a))
                     continue;
                 if (err_count < err_lim)
                     std::cout << "Error in position " << pos << " ; expected : " << e << " ; actual : " << a << "\n";
@@ -102,38 +115,21 @@ namespace gridtools {
             return err_count == 0;
         }
 
-        template <class DataStore, class Halos>
+        template <class DataStore, class Halos, class EqualTo = default_equal_to<DataStore>>
         std::enable_if_t<storage::is_data_store_ptr<DataStore>::value, bool> verify_data_store(
-            DataStore const &expected, DataStore const &actual, Halos const &halos, double precision) {
-            return verify_data_store(expected->const_host_view(), actual, halos, precision);
+            DataStore const &expected, DataStore const &actual, Halos const &halos, EqualTo equal_to = {}) {
+            return verify_data_store(expected->const_host_view(), actual, halos, equal_to);
         }
 
-        template <class T, class DataStore, class Halos>
+        template <class T, class DataStore, class Halos, class EqualTo = default_equal_to<DataStore>>
         std::enable_if_t<storage::is_data_store<DataStore>::value &&
                              std::is_convertible<T, typename DataStore::data_t>::value,
             bool>
         verify_data_store(
-            T const &expected, std::shared_ptr<DataStore> const &actual, Halos const &halos, double precision) {
-            return verify_data_store([=](auto &&...) { return expected; }, actual, halos, precision);
-        }
-
-        template <class Expected, class DataStore, class Halos>
-        bool verify_data_store(Expected const &expected, DataStore const &actual, Halos const &halos) {
-            return verify_data_store(expected, actual, halos, default_precision<DataStore::element_type::data_t>());
-        }
-
-        template <class Expected, class DataStore>
-        bool verify_data_store(Expected const &expected, DataStore const &actual, double const &precision) {
-            return verify(expected, actual, array<array<size_t, 2>, DataStore::element_type::ndims>{}, precision);
-        }
-
-        template <class Expected, class DataStore>
-        bool verify_data_store(Expected const &expected, DataStore const &actual) {
-            return verify(expected,
-                actual,
-                array<array<size_t, 2>, DataStore::element_type::ndims>{},
-                default_precision<DataStore::data_t>());
+            T const &expected, std::shared_ptr<DataStore> const &actual, Halos const &halos, EqualTo equal_to = {}) {
+            return verify_data_store([=](auto &&...) { return expected; }, actual, halos, equal_to);
         }
     } // namespace verify_impl_
+    using verify_impl_::default_equal_to;
     using verify_impl_::verify_data_store;
 } // namespace gridtools
