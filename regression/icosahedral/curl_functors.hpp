@@ -19,7 +19,7 @@ namespace ico_operators {
 
     struct curl_prep_functor {
         using dual_area_reciprocal = in_accessor<0, vertices>;
-        using dual_edge_length = in_accessor<1, edges, extent<-1, 1, -1, 1>>;
+        using dual_edge_length = in_accessor<1, edges, extent<-1, 0, -1, 0>>;
         using weights = inout_accessor<2, vertices>;
 
         using param_list = make_param_list<dual_area_reciprocal, dual_edge_length, weights>;
@@ -40,7 +40,7 @@ namespace ico_operators {
     };
 
     struct curl_functor_weights {
-        using in_edges = in_accessor<0, edges, extent<-1, 1, -1, 1>>;
+        using in_edges = in_accessor<0, edges, extent<-1, 0, -1, 0>>;
         using weights = in_accessor<1, vertices>;
         using out_vertices = inout_accessor<2, vertices>;
 
@@ -49,23 +49,17 @@ namespace ico_operators {
 
         template <class Eval>
         GT_FUNCTION static void apply(Eval &&eval) {
-            float_type t = 0;
+            auto &&out = eval(out_vertices()) = 0;
             auto &&w = eval(weights());
             int e = 0;
-            eval.for_neighbors(
-                [&](auto in) {
-                    t += in * w[e];
-                    ++e;
-                },
-                in_edges());
-            eval(out_vertices()) = t;
+            eval.for_neighbors([&](auto in) { out += in * w[e++]; }, in_edges());
         }
     };
 
     struct curl_functor_flow_convention {
-        using in_edges = in_accessor<0, edges, extent<-1, 1, -1, 1>>;
+        using in_edges = in_accessor<0, edges, extent<-1, 0, -1, 0>>;
         using dual_area_reciprocal = in_accessor<1, vertices>;
-        using dual_edge_length = in_accessor<2, edges, extent<-1, 1, -1, 1>>;
+        using dual_edge_length = in_accessor<2, edges, extent<-1, 0, -1, 0>>;
         using out_vertices = inout_accessor<3, vertices>;
 
         using param_list = make_param_list<in_edges, dual_area_reciprocal, dual_edge_length, out_vertices>;

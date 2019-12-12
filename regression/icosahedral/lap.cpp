@@ -21,9 +21,9 @@ using namespace gridtools;
 using namespace ico_operators;
 
 struct lap_functor {
-    typedef in_accessor<0, cells, extent<-1, 1, -1, 1>> in_cells;
+    typedef in_accessor<0, cells, extent<-1, 0, -1, 0>> in_cells;
     typedef in_accessor<1, edges> dual_edge_length_reciprocal;
-    typedef in_accessor<2, vertices, extent<-1, 1, -1, 1>> in_vertices;
+    typedef in_accessor<2, vertices, extent<0, 1, 0, 1>> in_vertices;
     typedef in_accessor<3, edges> edge_length_reciprocal;
     typedef inout_accessor<4, edges> out_edges;
     using param_list =

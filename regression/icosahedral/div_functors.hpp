@@ -18,7 +18,7 @@ namespace ico_operators {
     using namespace icosahedral;
 
     struct div_prep_functor {
-        using edge_length = in_accessor<0, edges, extent<-1, 1, -1, 1>>;
+        using edge_length = in_accessor<0, edges, extent<0, 1, 0, 1>>;
         using cell_area_reciprocal = in_accessor<1, cells>;
         using weights = inout_accessor<2, cells>;
 
@@ -35,7 +35,7 @@ namespace ico_operators {
     };
 
     struct div_functor_reduction_into_scalar {
-        using in_edges = in_accessor<0, edges, extent<-1, 1, -1, 1>>;
+        using in_edges = in_accessor<0, edges, extent<0, 1, 0, 1>>;
         using weights = in_accessor<1, cells>;
         using out_cells = inout_accessor<2, cells>;
 
@@ -44,7 +44,7 @@ namespace ico_operators {
 
         template <class Eval>
         GT_FUNCTION static void apply(Eval &&eval) {
-            auto &&out = eval(out_cells());
+            auto &&out = eval(out_cells()) = 0;
             auto &&w = eval(weights());
             int e = 0;
             eval.for_neighbors([&](auto in) { out += in * w[e++]; }, in_edges());
@@ -52,8 +52,8 @@ namespace ico_operators {
     };
 
     struct div_functor_flow_convention_connectivity {
-        using in_edges = in_accessor<0, edges, extent<-1, 1, -1, 1>>;
-        using edge_length = in_accessor<1, edges, extent<-1, 1, -1, 1>>;
+        using in_edges = in_accessor<0, edges, extent<0, 1, 0, 1>>;
+        using edge_length = in_accessor<1, edges, extent<0, 1, 0, 1>>;
         using cell_area_reciprocal = in_accessor<2, cells>;
         using out_cells = inout_accessor<3, cells>;
 
