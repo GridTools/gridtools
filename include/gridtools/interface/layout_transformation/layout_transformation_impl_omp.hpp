@@ -11,31 +11,26 @@
 #pragma once
 
 #include <cassert>
-#include <cstddef>
+#include <utility>
+
+#include "../../common/hypercube_iterator.hpp"
+#include "../../common/tuple_util.hpp"
 
 namespace gridtools {
     namespace impl {
         template <class T, class Dims, class DstStrides, class SrcSrides>
-        void transform_openmp_loop(T *dst,
-            T const *__restrict__ src,
-            Dims const &dims,
-            DstStrides const &dst_strides,
-            SrcSrides const &src_strides) {
+        void transform_openmp_loop(
+            T *dst, T const *__restrict__ src, Dims dims, DstStrides dst_strides, SrcSrides src_strides) {
 
-            size_t dims_size = dims.size();
-
-            auto nth_dim = [&dims](int n) -> int { return n < dims.size() ? dims[n] : 1; };
-            auto nth_stride = [](int n, auto const &strides) -> int { return n < strides.size() ? strides[n] : 0; };
-
-            auto omp_loop = [size_i = nth_dim(0),
-                                size_j = nth_dim(1),
-                                size_k = nth_dim(2),
-                                src_stride_i = nth_stride(0, src_strides),
-                                src_stride_j = nth_stride(1, src_strides),
-                                src_stride_k = nth_stride(2, src_strides),
-                                dst_stride_i = nth_stride(0, dst_strides),
-                                dst_stride_j = nth_stride(1, dst_strides),
-                                dst_stride_k = nth_stride(2, dst_strides)](T *dst, T const *__restrict__ src) {
+            auto omp_loop = [size_i = tuple_util::get<0>(dims),
+                                size_j = tuple_util::get<1>(dims),
+                                size_k = tuple_util::get<2>(dims),
+                                src_stride_i = tuple_util::get<0>(src_strides),
+                                src_stride_j = tuple_util::get<1>(src_strides),
+                                src_stride_k = tuple_util::get<2>(src_strides),
+                                dst_stride_i = tuple_util::get<0>(dst_strides),
+                                dst_stride_j = tuple_util::get<1>(dst_strides),
+                                dst_stride_k = tuple_util::get<2>(dst_strides)](T *dst, T const *__restrict__ src) {
 #pragma omp parallel for collapse(3)
                 for (int i = 0; i < size_i; ++i)
                     for (int j = 0; j < size_j; ++j)
@@ -44,21 +39,17 @@ namespace gridtools {
                                 src[src_stride_i * i + src_stride_j * j + src_stride_k * k];
             };
 
-            size_t outer_total_size = 1;
-            for (size_t d = 3; d < dims_size; ++d)
-                outer_total_size *= dims[d];
-
-            auto offset = [dims_size, &dims](size_t index, auto const &strides) {
+            auto offset = [](auto const &index, auto const &strides) {
                 size_t res = 0;
-                for (size_t d = 3; d < dims_size; ++d) {
-                    res += index % dims[d] * strides[d];
-                    index /= dims[d];
-                }
+                tuple_util::for_each([&res](auto i, auto stride) { res += i * stride; }, index, strides);
                 return res;
             };
 
-            for (size_t index = 0; index != outer_total_size; ++index)
-                omp_loop(dst + offset(index, dst_strides), src + offset(index, src_strides));
+            auto &&extra_src_strides = tuple_util::drop_front<3>(std::move(src_strides));
+            auto &&extra_dst_strides = tuple_util::drop_front<3>(std::move(dst_strides));
+
+            for (auto i : make_hypercube_view(tuple_util::drop_front<3>(dims)))
+                omp_loop(dst + offset(i, extra_dst_strides), src + offset(i, extra_src_strides));
         }
     } // namespace impl
 } // namespace gridtools
