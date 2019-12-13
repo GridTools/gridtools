@@ -37,7 +37,7 @@ namespace gridtools {
                 auto &&e = m_hyper_cube.end();
                 for (auto &&i = m_hyper_cube.begin(); i != e; ++i) {
                     T *d = dst;
-                    T const *__restrict__ s = dst;
+                    T const *__restrict__ s = src;
                     tuple_util::device::for_each(
                         [&](auto i, auto d_stride, auto s_stride) {
                             d += i * d_stride;
