@@ -17,7 +17,6 @@
 #include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
 #include "../../dim.hpp"
-#include "../../pos3.hpp"
 #include "../../sid/as_const.hpp"
 #include "../../sid/block.hpp"
 #include "../../sid/composite.hpp"
@@ -25,6 +24,7 @@
 #include "../../stage_matrix.hpp"
 #include "execinfo_mc.hpp"
 #include "loops.hpp"
+#include "pos3.hpp"
 #include "tmp_storage_sid.hpp"
 
 namespace gridtools {

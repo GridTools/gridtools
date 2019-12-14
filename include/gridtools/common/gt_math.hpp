@@ -124,16 +124,7 @@ namespace gridtools {
         GT_FUNCTION decltype(auto) fabs(Value val) {
             return ::fabs((double)val);
         }
-#ifndef __CUDA_ARCH__
         GT_FUNCTION_HOST decltype(auto) fabs(long double val) { return std::fabs(val); }
-#else
-        // long double not supported in device code
-        template <typename ErrorTrigger = double>
-        GT_FUNCTION_DEVICE double fabs(long double val) {
-            static_assert(sizeof(ErrorTrigger) == 0, "long double is not supported in device code");
-            return 0.;
-        }
-#endif
 #else
         using std::fabs;
 #endif
@@ -157,42 +148,33 @@ namespace gridtools {
 #endif
 
 #ifdef __CUDA_ARCH__
-        /**
-         * Function computing the exponential
-         */
-        GT_FUNCTION float exp(const float x) { return ::expf(x); }
+        GT_FUNCTION_DEVICE float exp(float x) { return ::expf(x); }
 
-        GT_FUNCTION double exp(const double x) { return ::exp(x); }
+        GT_FUNCTION_DEVICE double exp(double x) { return ::exp(x); }
 #else
         using std::exp;
 #endif
 
 #ifdef __CUDA_ARCH__
-        /**
-         * Function computing the log function
-         */
-        GT_FUNCTION float log(const float x) { return ::logf(x); }
+        GT_FUNCTION_DEVICE float log(float x) { return ::logf(x); }
 
-        GT_FUNCTION double log(const double x) { return ::log(x); }
+        GT_FUNCTION_DEVICE double log(double x) { return ::log(x); }
 #else
         using std::log;
 #endif
 
 #ifdef __CUDA_ARCH__
-        /**
-         * Function computing the power function
-         */
-        GT_FUNCTION float pow(const float x, const float y) { return ::powf(x, y); }
+        GT_FUNCTION_DEVICE float pow(float x, float y) { return ::powf(x, y); }
 
-        GT_FUNCTION double pow(const double x, const double y) { return ::pow(x, y); }
+        GT_FUNCTION_DEVICE double pow(double x, double y) { return ::pow(x, y); }
 #else
         using std::pow;
 #endif
 
 #ifdef __CUDA_ARCH__
-        GT_FUNCTION float sqrt(const float x) { return ::sqrtf(x); }
+        GT_FUNCTION_DEVICE float sqrt(float x) { return ::sqrtf(x); }
 
-        GT_FUNCTION double sqrt(const double x) { return ::sqrt(x); }
+        GT_FUNCTION_DEVICE double sqrt(double x) { return ::sqrt(x); }
 #else
         using std::sqrt;
 #endif
@@ -204,7 +186,7 @@ namespace gridtools {
 
         GT_FUNCTION decltype(auto) fmod(double x, double y) { return ::fmod(x, y); }
 
-        GT_FORCE_INLINE decltype(auto) fmod(long double x, long double y) { return std::fmod(x, y); }
+        GT_FUNCTION_HOST decltype(auto) fmod(long double x, long double y) { return std::fmod(x, y); }
 #else
         using std::fmod;
 #endif
@@ -214,14 +196,12 @@ namespace gridtools {
         // auto return type to ensure that we do not accidentally cast
         GT_FUNCTION decltype(auto) trunc(float val) { return ::truncf(val); }
 
-        GT_FUNCTION decltype(auto) trunc(double val) { return ::trunc(val); }
-
-        template <typename Value>
+        template <class Value, std::enable_if_t<std::is_convertible<Value, double>::value, int> = 0>
         GT_FUNCTION decltype(auto) trunc(Value val) {
-            return ::trunc((double)val);
+            return ::trunc(val);
         }
 
-        GT_FORCE_INLINE decltype(auto) trunc(long double val) { return std::trunc(val); }
+        GT_FUNCTION_HOST decltype(auto) trunc(long double val) { return std::trunc(val); }
 #else
         using std::trunc;
 #endif

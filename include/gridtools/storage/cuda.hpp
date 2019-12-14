@@ -46,8 +46,6 @@ namespace gridtools {
                 T *m_ptr;
                 storage::info<N> const *m_info;
 
-                using data_t = T;
-
                 GT_FUNCTION_DEVICE auto const &info() const { return *m_info; }
 
                 GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }

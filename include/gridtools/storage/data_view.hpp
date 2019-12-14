@@ -21,8 +21,6 @@ namespace gridtools {
             T *m_ptr;
             storage::info<N> const *m_info;
 
-            using data_t = T;
-
             constexpr auto const &info() const { return *m_info; }
             constexpr auto length() const { return m_info->length(); }
             constexpr auto const &lengths() const { return m_info->lengths(); }

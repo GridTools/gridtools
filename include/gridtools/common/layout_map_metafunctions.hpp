@@ -14,7 +14,6 @@
 
 #include "generic_metafunctions/accumulate.hpp"
 #include "layout_map.hpp"
-#include "selector.hpp"
 
 namespace gridtools {
     /** \ingroup common

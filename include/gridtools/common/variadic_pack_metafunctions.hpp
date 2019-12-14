@@ -114,7 +114,7 @@ namespace gridtools {
      */
     template <typename First, typename Second, typename... Rest>
     GT_FUNCTION constexpr bool is_continuous(First first, Second second, Rest... rest) {
-        return (first + 1 == second) ? (true && is_continuous(second, rest...)) : false;
+        return first + 1 == second && is_continuous(second, rest...);
     }
     /** @} */
     /** @} */

@@ -13,6 +13,7 @@
 @brief Implementation of an array class
 */
 #include <algorithm>
+#include <cassert>
 #include <iterator>
 #include <type_traits>
 #include <utility>
@@ -22,7 +23,6 @@
 #include "../meta/repeat.hpp"
 #include "defs.hpp"
 #include "generic_metafunctions/utility.hpp"
-#include "gt_assert.hpp"
 #include "host_device.hpp"
 
 namespace gridtools {

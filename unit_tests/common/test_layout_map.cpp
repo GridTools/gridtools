@@ -8,19 +8,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
-#include <gridtools/common/gt_assert.hpp>
 #include <gridtools/common/layout_map.hpp>
 #include <gridtools/common/layout_map_metafunctions.hpp>
 
 #include "../test_helper.hpp"
-using namespace gridtools;
 
-template <typename T>
-constexpr uint_t get_length() {
-    return T::masked_length;
-}
+using namespace gridtools;
 
 TEST(LayoutMap, SimpleLayout) {
     typedef layout_map<0, 1, 2> layout1;

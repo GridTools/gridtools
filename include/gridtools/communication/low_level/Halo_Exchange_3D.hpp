@@ -14,7 +14,6 @@
 #endif
 
 #include "../../common/defs.hpp"
-#include "../../common/gt_assert.hpp"
 #include "../GCL.hpp"
 #include "has_communicator.hpp"
 #include "translate.hpp"

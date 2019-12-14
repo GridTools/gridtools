@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "direction.hpp"

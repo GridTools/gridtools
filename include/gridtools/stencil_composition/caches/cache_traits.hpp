@@ -17,9 +17,6 @@
 #include "../../meta.hpp"
 
 namespace gridtools {
-    template <class...>
-    struct cache_map {};
-
     template <class Plh, class CacheTypes = meta::list<>, class CacheIOPolicies = meta::list<>>
     struct cache_info {
         using plh_t = Plh;

@@ -11,7 +11,6 @@
 
 #include <cassert>
 
-#include "../../common/binops.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
@@ -117,6 +116,13 @@ namespace gridtools {
                 };
 
                 struct ctor_tag {};
+
+                struct sum {
+                    template <class Lhs, class Rhs>
+                    GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs &&lhs, Rhs &&rhs) const {
+                        return wstd::forward<Lhs>(lhs) + wstd::forward<Rhs>(rhs);
+                    }
+                };
             } // namespace impl_
 
             /**
@@ -244,13 +250,13 @@ namespace gridtools {
                         template <class... Ptrs>
                         friend GT_CONSTEXPR GT_FUNCTION composite_ptr<Ptrs...> operator+(
                             composite_ptr<Ptrs...> const &lhs, composite_entity const &rhs) {
-                            return tuple_util::host_device::transform(binop::sum{}, lhs, rhs);
+                            return tuple_util::host_device::transform(impl_::sum{}, lhs, rhs);
                         }
 
                         template <class... PtrHolders>
                         friend composite_ptr_holder<PtrHolders...> operator+(
                             composite_ptr_holder<PtrHolders...> const &lhs, composite_entity const &rhs) {
-                            return tuple_util::transform(binop::sum{}, lhs, rhs);
+                            return tuple_util::transform(impl_::sum{}, lhs, rhs);
                         }
 
                         template <class... Ptrs, class Offset>

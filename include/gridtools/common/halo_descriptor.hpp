@@ -9,10 +9,11 @@
  */
 #pragma once
 
+#include <cassert>
 #include <string>
 
-#include "array.hpp"
-#include "gt_assert.hpp"
+#include "defs.hpp"
+#include "host_device.hpp"
 
 /**
 @file
@@ -40,8 +41,7 @@ namespace gridtools {
         structure, assuming the first index of pad0 is fixed to 0, and
         they are minus, begin, end, plus, and total_length.
     */
-    struct halo_descriptor {
-      private:
+    class halo_descriptor {
         uint_t m_minus;        // halo on the minus direction
         uint_t m_plus;         // halo on the plus direction
         uint_t m_begin;        // index of the first element of the active region
@@ -49,18 +49,17 @@ namespace gridtools {
         uint_t m_total_length; // minus+plus+(end-begin+1)+pads
 
       public:
-        /** Default constructors: all parameters to zero. Used to be able
-            to have vectors of halo descriptors with initialized values
-            that are subsequently copy constructed (since this is a POD
-            structure it can be copied without an explicit copy
-            constructor.
+        /**
+         * Default constructors: all parameters to zero. Used to be able to have vectors of halo descriptors with
+         * initialized values that are subsequently copy constructed (since this is a POD structure it can be copied
+         * without an explicit copy constructor.
          */
-        GT_FUNCTION halo_descriptor() : halo_descriptor(0, 0, 0, 0, 1){};
+        GT_FUNCTION halo_descriptor() : halo_descriptor(0, 0, 0, 0, 1) {}
 
         /**
          * @brief simple ctor without halos and padding
          */
-        GT_FUNCTION halo_descriptor(uint_t size) : halo_descriptor(0, 0, 0, size - 1, size){};
+        GT_FUNCTION halo_descriptor(uint_t size) : halo_descriptor(0, 0, 0, size - 1, size) {}
 
         /** Main constructors where the five integers are passed.
           \code
@@ -78,15 +77,10 @@ namespace gridtools {
          */
         GT_FUNCTION halo_descriptor(uint_t m, uint_t p, uint_t b, uint_t e, uint_t l)
             : m_minus(m), m_plus(p), m_begin(b), m_end(e), m_total_length(l) {
-            GT_ASSERT_OR_THROW((m_minus + m_plus + (m_end - m_begin + 1) <= m_total_length),
-                "Invalid halo_descriptor: compute range (length) plus halos exceed total length." + std::to_string(m) +
-                    ", " + std::to_string(p) + ", " + std::to_string(b) + ", " + std::to_string(e) + ", " +
-                    std::to_string(l));
-            GT_ASSERT_OR_THROW(
-                (m_begin <= m_end), "Invalid halo_descriptor: the compute range is empty (end <= begin).");
-            GT_ASSERT_OR_THROW(
-                (m_plus <= m_total_length - m_end - 1), "Invalid halo_descriptor: end of compute domain inside halo.");
-            GT_ASSERT_OR_THROW((m_begin >= m_minus), "Invalid halo_descriptor: begin of compute domain inside halo.");
+            assert(m_minus + m_plus + (m_end - m_begin + 1) <= m_total_length);
+            assert(m_begin <= m_end);
+            assert(m_plus <= m_total_length - m_end - 1);
+            assert(m_begin >= m_minus);
         }
 
         /**

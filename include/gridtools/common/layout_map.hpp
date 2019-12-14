@@ -21,7 +21,6 @@
 #include "../meta/type_traits.hpp"
 #include "defs.hpp"
 #include "generic_metafunctions/accumulate.hpp"
-#include "gt_assert.hpp"
 #include "variadic_pack_metafunctions.hpp"
 
 namespace gridtools {
@@ -43,8 +42,7 @@ namespace gridtools {
     }     // namespace _impl
 
     template <int... Args>
-    struct layout_map {
-      private:
+    class layout_map {
         /* list of all arguments */
         using args = meta::list<std::integral_constant<int, Args>...>;
 

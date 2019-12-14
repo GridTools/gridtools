@@ -38,14 +38,6 @@ namespace gridtools {
     }
 
     /**@brief operation to be used inside the accumulator*/
-    struct multiplies {
-        template <typename T, typename U>
-        GT_FUNCTION constexpr auto operator()(T const &x, U const &y) const {
-            return x * y;
-        }
-    };
-
-    /**@brief operation to be used inside the accumulator*/
     struct plus_functor {
         template <typename T, typename U>
         GT_FUNCTION constexpr auto operator()(T const &x, U const &y) const {

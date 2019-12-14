@@ -10,12 +10,12 @@
 
 #pragma once
 
+#include <cassert>
 #include <type_traits>
 #include <utility>
 
 #include "../../common/defs.hpp"
 #include "../../common/functional.hpp"
-#include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple.hpp"

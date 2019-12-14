@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "binops.hpp"
 #include "defs.hpp"
 #include "integral_constant.hpp"
 #include "tuple_util.hpp"
@@ -54,7 +53,7 @@ namespace gridtools {
 
         template <class Sizes>
         auto total_size(Sizes const &sizes) {
-            return tuple_util::fold(binop::prod{}, sizes);
+            return tuple_util::fold([](auto l, auto r) { return l * r; }, sizes);
         }
     } // namespace stride_util
 } // namespace gridtools

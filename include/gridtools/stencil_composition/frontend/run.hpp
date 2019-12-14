@@ -46,24 +46,15 @@ namespace gridtools {
         };
 
         template <class ExecutionType, class... Caches>
-        struct empty_spec : spec<mss_descriptor<ExecutionType, meta::list<>, cache_map<Caches...>>> {
-            template <class... CacheIOPolicies, class CacheType, class... Args>
-            constexpr empty_spec<ExecutionType,
-                Caches...,
-                cache_info<Args, meta::list<CacheType>, meta::list<CacheIOPolicies...>>...>
-            cached(CacheType, Args...) const {
+        struct empty_spec : spec<mss_descriptor<ExecutionType, meta::list<>, meta::list<Caches...>>> {
+            template <class... Args>
+            constexpr empty_spec<ExecutionType, Caches..., cache_info<Args, meta::list<cache_type::ij>>...> ij_cached(
+                Args...) const {
                 return {};
             }
             template <class... Args>
-            constexpr empty_spec<ExecutionType,
-                Caches...,
-                cache_info<Args, meta::list<cache_type::ij>, meta::list<>>...>
-            ij_cached(Args...) const {
-                return {};
-            }
-            template <class... Args>
-            constexpr empty_spec<ExecutionType, Caches..., cache_info<Args, meta::list<cache_type::k>, meta::list<>>...>
-            k_cached(Args...) const {
+            constexpr empty_spec<ExecutionType, Caches..., cache_info<Args, meta::list<cache_type::k>>...> k_cached(
+                Args...) const {
                 return {};
             }
             template <class... Args>

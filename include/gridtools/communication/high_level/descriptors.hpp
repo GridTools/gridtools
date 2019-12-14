@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../../common/array.hpp"
-#include "../../common/gt_assert.hpp"
 #include "../../common/make_array.hpp"
 #include "../low_level/Halo_Exchange_3D.hpp"
 #include "../low_level/proc_grids_3D.hpp"
@@ -29,7 +28,7 @@
 namespace gridtools {
 
     /** \class empty_field_no_dt
-        Class containint the information about a data field (grid).
+        Class containins the information about a data field (grid).
         It doe not contains any reference to actual data of the field,
         it only describes the fields though the halo descriptions.
         The number of dimensions as a template argument and the size of the
