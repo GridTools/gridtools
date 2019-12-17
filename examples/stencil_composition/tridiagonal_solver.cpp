@@ -112,7 +112,7 @@ int main() {
 
     // Here we make the computation, specifying the backend, the grid (iteration space), binding of the spec arguments
     // to the fields
-    run(spec, backend_t(), grid, gt::make_global_parameter(-1), gt::make_global_parameter(3), sup, rhs, out);
+    gt::run(spec, backend_t(), grid, gt::make_global_parameter(-1), gt::make_global_parameter(3), sup, rhs, out);
 
     // In this simple example the solution is known and we can easily check it.
     auto view = out->const_host_view();

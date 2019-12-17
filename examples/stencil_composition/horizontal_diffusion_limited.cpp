@@ -143,5 +143,5 @@ int main(int argc, char **argv) {
 
     // Here we perform the computation, specifying the backend, the gird (iteration space), binding spec arguments to
     // the data fields
-    run(spec, backend_t(), grid, coeff, in, out);
+    gt::run(spec, backend_t(), grid, coeff, in, out);
 }
