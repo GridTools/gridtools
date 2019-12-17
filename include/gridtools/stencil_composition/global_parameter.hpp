@@ -40,9 +40,4 @@ namespace gridtools {
     global_parameter<T> make_global_parameter(T val) {
         return {std::move(val)};
     }
-
-    template <class T>
-    void update_global_parameter(global_parameter<T> &dst, T src) {
-        dst = {std::move(src)};
-    }
 } // namespace gridtools
