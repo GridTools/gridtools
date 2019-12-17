@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include <gridtools/stencil_composition/grid.hpp>
+#include <gridtools/stencil_composition/frontend/make_grid.hpp>
 #include <gridtools/storage/builder.hpp>
 
 #ifdef __CUDACC__
