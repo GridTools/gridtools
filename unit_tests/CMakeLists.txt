@@ -10,3 +10,7 @@ add_subdirectory(distributed_boundaries)
 add_subdirectory(stencil_composition)
 add_subdirectory(storage)
 add_subdirectory(interface)
+
+fetch_x86_tests(sid LABELS unittest_x86)
+fetch_gpu_tests(sid LABELS unittest_cuda)
+

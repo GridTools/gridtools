@@ -79,7 +79,7 @@ namespace gridtools {
         template <class Esf>
         struct convert_esf {
             template <class I>
-            using apply = esf_replace_args<Esf,
+            using apply = core::esf_replace_args<Esf,
                 meta::transform<meta::curry<convert_plh, I>::template apply, typename Esf::args_t>>;
         };
 
@@ -93,8 +93,8 @@ namespace gridtools {
         struct convert_cache;
 
         template <class I, class Plh, class... Params>
-        struct convert_cache<I, cache_info<Plh, Params...>> {
-            using type = cache_info<convert_plh<I, Plh>, Params...>;
+        struct convert_cache<I, core::cache_info<Plh, Params...>> {
+            using type = core::cache_info<convert_plh<I, Plh>, Params...>;
         };
 
         template <class IndexAndCache>
@@ -104,13 +104,13 @@ namespace gridtools {
         struct convert_mss;
 
         template <class Factor, class ExecutionType, class Esfs, class Caches>
-        struct convert_mss<Factor, mss_descriptor<ExecutionType, Esfs, Caches>> {
+        struct convert_mss<Factor, core::mss_descriptor<ExecutionType, Esfs, Caches>> {
             using esfs_t = meta::flatten<meta::transform<expand_esf_f<Factor>::template apply, Esfs>>;
 
             using indices_and_caches_t = meta::cartesian_product<meta::make_indices<Factor>, Caches>;
             using caches_t = meta::dedup<meta::transform<convert_cache_f, indices_and_caches_t>>;
 
-            using type = mss_descriptor<ExecutionType, esfs_t, caches_t>;
+            using type = core::mss_descriptor<ExecutionType, esfs_t, caches_t>;
         };
 
         template <class Factor, class Spec>
@@ -139,7 +139,7 @@ namespace gridtools {
 
         template <size_t Factor, class Spec, class Backend, size_t... Is, class Grid, class... Fields>
         void expanded_run(Grid const &grid, size_t offset, const Fields &... fields) {
-            backend_entry_point_f<Backend, expand_spec<std::integral_constant<size_t, Factor>, Spec>>()(
+            core::backend_entry_point_f<Backend, expand_spec<std::integral_constant<size_t, Factor>, Spec>>()(
                 grid, make_data_store_map<Factor, Is...>(offset, fields...));
         }
 

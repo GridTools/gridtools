@@ -105,7 +105,7 @@ class global_accessor_single_stage : public ::testing::Test {
     halo_descriptor di;
     halo_descriptor dj;
 
-    grid<axis<1>::axis_interval_t> coords_bc;
+    decltype(make_grid(halo_descriptor(), halo_descriptor(), 0)) coords_bc;
 };
 
 TEST_F(global_accessor_single_stage, boundary_conditions) {

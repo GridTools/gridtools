@@ -14,12 +14,13 @@
 
 #include "../../common/hymap.hpp"
 #include "../../meta.hpp"
-#include "../backend.hpp"
-#include "../caches/cache_traits.hpp"
-#include "../compute_extents_metafunctions.hpp"
-#include "../esf.hpp"
-#include "../execution_types.hpp"
-#include "../mss.hpp"
+#include "../common/caches.hpp"
+#include "../core/backend.hpp"
+#include "../core/cache_info.hpp"
+#include "../core/compute_extents_metafunctions.hpp"
+#include "../core/esf.hpp"
+#include "../core/execution_types.hpp"
+#include "../core/mss.hpp"
 
 namespace gridtools {
     namespace frontend_impl_ {
@@ -27,18 +28,18 @@ namespace gridtools {
         struct spec {};
 
         template <class ExecutionType, class Esfs, class Caches>
-        struct spec<mss_descriptor<ExecutionType, Esfs, Caches>> {
+        struct spec<core::mss_descriptor<ExecutionType, Esfs, Caches>> {
             template <class F, class... Args>
-            constexpr spec<mss_descriptor<ExecutionType,
-                meta::push_back<Esfs, esf_descriptor<F, meta::list<Args...>, void>>,
+            constexpr spec<core::mss_descriptor<ExecutionType,
+                meta::push_back<Esfs, core::esf_descriptor<F, meta::list<Args...>, void>>,
                 Caches>>
             stage(F, Args...) const {
                 return {};
             }
 
             template <class Extent, class F, class... Args>
-            constexpr spec<mss_descriptor<ExecutionType,
-                meta::push_back<Esfs, esf_descriptor<F, meta::list<Args...>, Extent>>,
+            constexpr spec<core::mss_descriptor<ExecutionType,
+                meta::push_back<Esfs, core::esf_descriptor<F, meta::list<Args...>, Extent>>,
                 Caches>>
             stage_with_extent(Extent, F, Args...) const {
                 return {};
@@ -46,35 +47,35 @@ namespace gridtools {
         };
 
         template <class ExecutionType, class... Caches>
-        struct empty_spec : spec<mss_descriptor<ExecutionType, meta::list<>, meta::list<Caches...>>> {
+        struct empty_spec : spec<core::mss_descriptor<ExecutionType, meta::list<>, meta::list<Caches...>>> {
             template <class... Args>
-            constexpr empty_spec<ExecutionType, Caches..., cache_info<Args, meta::list<cache_type::ij>>...> ij_cached(
-                Args...) const {
+            constexpr empty_spec<ExecutionType, Caches..., core::cache_info<Args, meta::list<cache_type::ij>>...>
+            ij_cached(Args...) const {
                 return {};
             }
             template <class... Args>
-            constexpr empty_spec<ExecutionType, Caches..., cache_info<Args, meta::list<cache_type::k>>...> k_cached(
-                Args...) const {
+            constexpr empty_spec<ExecutionType, Caches..., core::cache_info<Args, meta::list<cache_type::k>>...>
+            k_cached(Args...) const {
                 return {};
             }
             template <class... Args>
             constexpr empty_spec<ExecutionType,
                 Caches...,
-                cache_info<Args, meta::list<cache_type::k>, meta::list<cache_io_policy::flush>>...>
+                core::cache_info<Args, meta::list<cache_type::k>, meta::list<cache_io_policy::flush>>...>
             k_cached(cache_io_policy::flush, Args...) const {
                 return {};
             }
             template <class... Args>
             constexpr empty_spec<ExecutionType,
                 Caches...,
-                cache_info<Args, meta::list<cache_type::k>, meta::list<cache_io_policy::fill>>...>
+                core::cache_info<Args, meta::list<cache_type::k>, meta::list<cache_io_policy::fill>>...>
             k_cached(cache_io_policy::fill, Args...) const {
                 return {};
             }
             template <class... Args>
             constexpr empty_spec<ExecutionType,
                 Caches...,
-                cache_info<Args,
+                core::cache_info<Args,
                     meta::list<cache_type::k>,
                     meta::list<cache_io_policy::fill, cache_io_policy::flush>>...>
             k_cached(cache_io_policy::fill, cache_io_policy::flush, Args...) const {
@@ -83,7 +84,7 @@ namespace gridtools {
             template <class... Args>
             constexpr empty_spec<ExecutionType,
                 Caches...,
-                cache_info<Args,
+                core::cache_info<Args,
                     meta::list<cache_type::k>,
                     meta::list<cache_io_policy::fill, cache_io_policy::flush>>...>
             k_cached(cache_io_policy::flush, cache_io_policy::fill, Args...) const {
@@ -91,9 +92,9 @@ namespace gridtools {
             }
         };
 
-        constexpr empty_spec<execute::parallel> execute_parallel() { return {}; }
-        constexpr empty_spec<execute::forward> execute_forward() { return {}; }
-        constexpr empty_spec<execute::backward> execute_backward() { return {}; }
+        constexpr empty_spec<core::parallel> execute_parallel() { return {}; }
+        constexpr empty_spec<core::forward> execute_forward() { return {}; }
+        constexpr empty_spec<core::backward> execute_backward() { return {}; }
 
         template <class... Msses>
         constexpr spec<Msses...> multi_pass(spec<Msses>...) {
@@ -106,7 +107,7 @@ namespace gridtools {
         template <class Comp, class Backend, class Grid, class... Fields, size_t... Is>
         void run_impl(Comp comp, Backend, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields) {
             using spec_t = decltype(comp(arg<Is>()...));
-            using entry_point_t = backend_entry_point_f<Backend, spec_t>;
+            using entry_point_t = core::backend_entry_point_f<Backend, spec_t>;
             using data_store_map_t = typename hymap::keys<arg<Is>...>::template values<Fields &...>;
             entry_point_t()(grid, data_store_map_t{fields...});
         }
@@ -125,13 +126,13 @@ namespace gridtools {
         }
 
         template <class... Msses, class Arg>
-        constexpr lookup_extent_map<get_extent_map_from_msses<spec<Msses...>>, Arg> get_arg_extent(
+        constexpr core::lookup_extent_map<core::get_extent_map_from_msses<spec<Msses...>>, Arg> get_arg_extent(
             spec<Msses...>, Arg) {
             return {};
         }
 
         template <class Mss>
-        using rw_args_from_mss = compute_readwrite_args<typename Mss::esf_sequence_t>;
+        using rw_args_from_mss = core::compute_readwrite_args<typename Mss::esf_sequence_t>;
 
         template <class Msses,
             class RwArgsLists = meta::transform<rw_args_from_mss, Msses>,

@@ -16,12 +16,12 @@
 #include "../../../common/integral_constant.hpp"
 #include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
-#include "../../dim.hpp"
-#include "../../sid/as_const.hpp"
-#include "../../sid/block.hpp"
-#include "../../sid/composite.hpp"
-#include "../../sid/concept.hpp"
-#include "../../stage_matrix.hpp"
+#include "../../../sid/as_const.hpp"
+#include "../../../sid/block.hpp"
+#include "../../../sid/composite.hpp"
+#include "../../../sid/concept.hpp"
+#include "../../be_api.hpp"
+#include "../../common/dim.hpp"
 #include "execinfo_mc.hpp"
 #include "loops.hpp"
 #include "pos3.hpp"
@@ -54,16 +54,16 @@ namespace gridtools {
             template <class Spec, class Grid, class DataStores>
             friend void gridtools_backend_entry_point(
                 backend, Spec, Grid const &grid, DataStores external_data_stores) {
-                using stages_t = stage_matrix::make_split_view<Spec>;
-                using all_parrallel_t = typename meta::all_of<execute::is_parallel,
-                    meta::transform<stage_matrix::get_execution, stages_t>>::type;
+                using stages_t = be_api::make_split_view<Spec>;
+                using all_parrallel_t =
+                    typename meta::all_of<be_api::is_parallel, meta::transform<be_api::get_execution, stages_t>>::type;
 
                 tmp_allocator_mc alloc;
 
                 execinfo_mc info(grid);
 
-                using tmp_plh_map_t = stage_matrix::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
-                auto temporaries = stage_matrix::make_data_stores(tmp_plh_map_t(),
+                using tmp_plh_map_t = be_api::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
+                auto temporaries = be_api::make_data_stores(tmp_plh_map_t(),
                     [&alloc,
                         block_size =
                             make_pos3((size_t)info.i_block_size(), (size_t)info.j_block_size(), (size_t)grid.k_size())](

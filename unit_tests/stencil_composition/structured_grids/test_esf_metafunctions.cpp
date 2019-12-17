@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/compute_extents_metafunctions.hpp>
+#include <gridtools/stencil_composition/core/compute_extents_metafunctions.hpp>
 
 #include <gtest/gtest.h>
 
@@ -16,12 +16,13 @@
 
 using namespace gridtools;
 using namespace cartesian;
+using namespace core;
 
 struct functor0 {
-    typedef accessor<0, intent::in, extent<0, 0, -1, 3, -2, 0>> in0;
-    typedef accessor<1, intent::in, extent<-1, 1, 0, 2, -1, 2>> in1;
-    typedef accessor<2, intent::in, extent<-3, 3, -1, 2, 0, 1>> in2;
-    typedef accessor<3, intent::inout> out;
+    typedef in_accessor<0, extent<0, 0, -1, 3, -2, 0>> in0;
+    typedef in_accessor<1, extent<-1, 1, 0, 2, -1, 2>> in1;
+    typedef in_accessor<2, extent<-3, 3, -1, 2, 0, 1>> in2;
+    typedef inout_accessor<3> out;
 
     typedef make_param_list<in0, in1, in2, out> param_list;
 
@@ -30,10 +31,10 @@ struct functor0 {
 };
 
 struct functor1 {
-    typedef accessor<0, intent::in, extent<0, 1, -1, 2, 0, 0>> in0;
-    typedef accessor<1, intent::inout> out;
-    typedef accessor<2, intent::in, extent<-3, 0, -3, 0, 0, 2>> in2;
-    typedef accessor<3, intent::in, extent<0, 2, 0, 2, -2, 3>> in3;
+    typedef in_accessor<0, extent<0, 1, -1, 2, 0, 0>> in0;
+    typedef inout_accessor<1> out;
+    typedef in_accessor<2, extent<-3, 0, -3, 0, 0, 2>> in2;
+    typedef in_accessor<3, extent<0, 2, 0, 2, -2, 3>> in3;
 
     typedef make_param_list<in0, out, in2, in3> param_list;
 
@@ -42,9 +43,9 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, intent::in, extent<-3, 3, -1, 0, -2, 1>> in0;
-    typedef accessor<1, intent::in, extent<-3, 1, -2, 1, 0, 2>> in1;
-    typedef accessor<2, intent::inout> out;
+    typedef in_accessor<0, extent<-3, 3, -1, 0, -2, 1>> in0;
+    typedef in_accessor<1, extent<-3, 1, -2, 1, 0, 2>> in1;
+    typedef inout_accessor<2> out;
 
     typedef make_param_list<in0, in1, out> param_list;
 
@@ -53,10 +54,10 @@ struct functor2 {
 };
 
 struct functor3 {
-    typedef accessor<0, intent::in, extent<0, 3, 0, 1, -2, 0>> in0;
-    typedef accessor<1, intent::in, extent<-2, 3, 0, 2, -3, 1>> in1;
-    typedef accessor<2, intent::inout> out;
-    typedef accessor<3, intent::in, extent<-1, 3, -3, 0, -3, 2>> in3;
+    typedef in_accessor<0, extent<0, 3, 0, 1, -2, 0>> in0;
+    typedef in_accessor<1, extent<-2, 3, 0, 2, -3, 1>> in1;
+    typedef inout_accessor<2> out;
+    typedef in_accessor<3, extent<-1, 3, -3, 0, -3, 2>> in3;
 
     typedef make_param_list<in0, in1, out, in3> param_list;
 
@@ -65,10 +66,10 @@ struct functor3 {
 };
 
 struct functor4 {
-    typedef accessor<0, intent::in, extent<0, 3, -2, 1, -3, 2>> in0;
-    typedef accessor<1, intent::in, extent<-2, 3, 0, 3, -3, 2>> in1;
-    typedef accessor<2, intent::in, extent<-1, 1, 0, 3, 0, 3>> in2;
-    typedef accessor<3, intent::inout> out;
+    typedef in_accessor<0, extent<0, 3, -2, 1, -3, 2>> in0;
+    typedef in_accessor<1, extent<-2, 3, 0, 3, -3, 2>> in1;
+    typedef in_accessor<2, extent<-1, 1, 0, 3, 0, 3>> in2;
+    typedef inout_accessor<3> out;
 
     typedef make_param_list<in0, in1, in2, out> param_list;
 
@@ -77,10 +78,10 @@ struct functor4 {
 };
 
 struct functor5 {
-    typedef accessor<0, intent::in, extent<-3, 1, -1, 2, -1, 1>> in0;
-    typedef accessor<1, intent::in, extent<0, 1, -2, 2, 0, 3>> in1;
-    typedef accessor<2, intent::in, extent<0, 2, 0, 3, -1, 2>> in2;
-    typedef accessor<3, intent::inout> out;
+    typedef in_accessor<0, extent<-3, 1, -1, 2, -1, 1>> in0;
+    typedef in_accessor<1, extent<0, 1, -2, 2, 0, 3>> in1;
+    typedef in_accessor<2, extent<0, 2, 0, 3, -1, 2>> in2;
+    typedef inout_accessor<3> out;
 
     typedef make_param_list<in0, in1, in2, out> param_list;
 
@@ -89,10 +90,10 @@ struct functor5 {
 };
 
 struct functor6 {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in, extent<0, 3, -3, 2, 0, 0>> in1;
-    typedef accessor<2, intent::in, extent<-3, 2, 0, 2, -1, 2>> in2;
-    typedef accessor<3, intent::in, extent<-1, 0, -1, 0, -1, 3>> in3;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1, extent<0, 3, -3, 2, 0, 0>> in1;
+    typedef in_accessor<2, extent<-3, 2, 0, 2, -1, 2>> in2;
+    typedef in_accessor<3, extent<-1, 0, -1, 0, -1, 3>> in3;
 
     typedef make_param_list<out, in1, in2, in3> param_list;
 

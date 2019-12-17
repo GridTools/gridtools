@@ -20,8 +20,8 @@ using namespace cartesian;
 
 template <typename Axis>
 struct parallel_functor {
-    typedef accessor<0> in;
-    typedef accessor<1, intent::inout> out;
+    typedef in_accessor<0> in;
+    typedef inout_accessor<1> out;
     typedef gridtools::make_param_list<in, out> param_list;
 
     template <typename Evaluation>
@@ -36,8 +36,8 @@ struct parallel_functor {
 
 template <typename Axis>
 struct parallel_functor_on_upper_interval {
-    typedef accessor<0> in;
-    typedef accessor<1, intent::inout> out;
+    typedef in_accessor<0> in;
+    typedef inout_accessor<1> out;
     typedef gridtools::make_param_list<in, out> param_list;
 
     template <typename Evaluation>
@@ -130,11 +130,11 @@ TEST(structured_grid, kparallel_with_extentoffsets_around_interval_and_temporary
 TEST(structured_grid, kparallel_with_unused_intervals) {
     using Axis = gridtools::axis<3>;
 
-    constexpr uint_t d1 = 7;
-    constexpr uint_t d2 = 8;
-    constexpr uint_t d3_1 = 14;
-    constexpr uint_t d3_2 = 16;
-    constexpr uint_t d3_3 = 18;
+    constexpr int_t d1 = 7;
+    constexpr int_t d2 = 8;
+    constexpr int_t d3_1 = 14;
+    constexpr int_t d3_2 = 16;
+    constexpr int_t d3_3 = 18;
 
     auto builder = ::builder.dimensions(d1, d2, d3_1 + d3_2 + d3_3);
 

@@ -48,8 +48,8 @@ struct expandable_parameters_copy : expandable_parameters {
 };
 
 struct copy_functor {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -62,8 +62,8 @@ struct copy_functor {
 TEST_F(expandable_parameters_copy, copy) { run_computation<copy_functor>(); }
 
 struct copy_functor_with_expression {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -77,8 +77,8 @@ struct copy_functor_with_expression {
 TEST_F(expandable_parameters_copy, copy_with_expression) { run_computation<copy_functor_with_expression>(); }
 
 struct call_proc_copy_functor {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -91,8 +91,8 @@ struct call_proc_copy_functor {
 TEST_F(expandable_parameters_copy, call_proc_copy) { run_computation<call_proc_copy_functor>(); }
 
 struct call_copy_functor {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -105,7 +105,7 @@ struct call_copy_functor {
 TEST_F(expandable_parameters_copy, call_copy) { run_computation<call_copy_functor>(); }
 
 struct shift_functor {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef inout_accessor<0, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef make_param_list<out> param_list;
 
@@ -116,7 +116,7 @@ struct shift_functor {
 };
 
 struct call_shift_functor {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef inout_accessor<0, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef make_param_list<out> param_list;
 

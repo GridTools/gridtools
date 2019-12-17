@@ -18,13 +18,13 @@
 #include "../../../common/hymap.hpp"
 #include "../../../common/integral_constant.hpp"
 #include "../../../meta.hpp"
-#include "../../accessor_intent.hpp"
-#include "../../dim.hpp"
-#include "../../extent.hpp"
-#include "../../has_apply.hpp"
-#include "../../sid/composite.hpp"
-#include "../../sid/concept.hpp"
-#include "../../sid/multi_shift.hpp"
+#include "../../../sid/composite.hpp"
+#include "../../../sid/concept.hpp"
+#include "../../../sid/multi_shift.hpp"
+#include "../../common/dim.hpp"
+#include "../../common/extent.hpp"
+#include "../../common/intent.hpp"
+#include "../../core/has_apply.hpp"
 #include "connectivity.hpp"
 #include "location_type.hpp"
 
@@ -105,7 +105,7 @@ namespace gridtools {
 
             template <class Functor, class PlhMap>
             struct stage {
-                static_assert(has_apply<Functor>::value, GT_INTERNAL_ERROR);
+                static_assert(core::has_apply<Functor>::value, GT_INTERNAL_ERROR);
                 using location_t = typename Functor::location;
 
                 template <class Deref = void, class Ptr, class Strides>

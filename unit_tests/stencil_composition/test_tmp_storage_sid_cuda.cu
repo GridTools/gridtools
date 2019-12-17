@@ -14,10 +14,10 @@
 
 #include <gridtools/common/cuda_util.hpp>
 #include <gridtools/common/integral_constant.hpp>
-#include <gridtools/stencil_composition/dim.hpp>
-#include <gridtools/stencil_composition/extent.hpp>
-#include <gridtools/stencil_composition/sid/allocator.hpp>
-#include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/sid/allocator.hpp>
+#include <gridtools/sid/concept.hpp>
+#include <gridtools/stencil_composition/common/dim.hpp>
+#include <gridtools/stencil_composition/common/extent.hpp>
 
 #include "../cuda_test_helper.hpp"
 

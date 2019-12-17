@@ -13,7 +13,6 @@
 #include <utility>
 
 #include "../common/timer/timer.hpp"
-#include "../stencil_composition/axis.hpp"
 #include "backend_select.hpp"
 #include "grid_fixture.hpp"
 #include "regression_fixture_impl.hpp"

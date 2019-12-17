@@ -12,11 +12,11 @@
 #include "../../../common/hymap.hpp"
 #include "../../../common/integral_constant.hpp"
 #include "../../../common/tuple_util.hpp"
-#include "../../dim.hpp"
-#include "../../extent.hpp"
-#include "../../sid/blocked_dim.hpp"
-#include "../../sid/contiguous.hpp"
-#include "../../sid/sid_shift_origin.hpp"
+#include "../../../sid/blocked_dim.hpp"
+#include "../../../sid/contiguous.hpp"
+#include "../../../sid/sid_shift_origin.hpp"
+#include "../../common/dim.hpp"
+#include "../../common/extent.hpp"
 
 namespace gridtools {
     namespace cuda {

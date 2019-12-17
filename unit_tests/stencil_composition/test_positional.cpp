@@ -12,8 +12,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/dim.hpp>
-#include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/sid/concept.hpp>
 
 namespace gridtools {
     namespace {

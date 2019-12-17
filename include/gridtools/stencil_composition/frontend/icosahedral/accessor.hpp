@@ -12,8 +12,8 @@
 #include <type_traits>
 
 #include "../../../common/defs.hpp"
-#include "../../accessor_intent.hpp"
-#include "../../extent.hpp"
+#include "../../common/extent.hpp"
+#include "../../common/intent.hpp"
 #include "location_type.hpp"
 
 namespace gridtools {

@@ -11,9 +11,10 @@
 #include "../test_helper.hpp"
 #include "gtest/gtest.h"
 
-#include <gridtools/stencil_composition/level.hpp>
+#include <gridtools/stencil_composition/core/level.hpp>
 
 using namespace gridtools;
+using namespace core;
 
 TEST(test_level, level_to_index) {
     ASSERT_TYPE_EQ<typename level_to_index<level<0, -2, 2>>::type, level_index<0, 2>>();

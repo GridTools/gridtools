@@ -17,15 +17,15 @@
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
-#include "../dim.hpp"
-#include "../sid/allocator.hpp"
-#include "../sid/as_const.hpp"
-#include "../sid/composite.hpp"
-#include "../sid/concept.hpp"
-#include "../sid/contiguous.hpp"
-#include "../sid/loop.hpp"
-#include "../sid/sid_shift_origin.hpp"
-#include "../stage_matrix.hpp"
+#include "../../sid/allocator.hpp"
+#include "../../sid/as_const.hpp"
+#include "../../sid/composite.hpp"
+#include "../../sid/concept.hpp"
+#include "../../sid/contiguous.hpp"
+#include "../../sid/loop.hpp"
+#include "../../sid/sid_shift_origin.hpp"
+#include "../be_api.hpp"
+#include "../common/dim.hpp"
 
 namespace gridtools {
     namespace naive {
@@ -34,9 +34,9 @@ namespace gridtools {
             friend void gridtools_backend_entry_point(
                 backend, Spec, Grid const &grid, DataStores external_data_stores) {
                 auto alloc = sid::make_allocator(&std::make_unique<char[]>);
-                using stages_t = stage_matrix::make_split_view<Spec>;
-                using tmp_plh_map_t = stage_matrix::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
-                auto temporaries = stage_matrix::make_data_stores(tmp_plh_map_t(), [&](auto info) {
+                using stages_t = be_api::make_split_view<Spec>;
+                using tmp_plh_map_t = be_api::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
+                auto temporaries = be_api::make_data_stores(tmp_plh_map_t(), [&](auto info) {
                     auto extent = info.extent();
                     auto interval = stages_t::interval();
                     auto num_colors = info.num_colors();

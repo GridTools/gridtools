@@ -19,14 +19,14 @@ using namespace gridtools;
 using namespace cartesian;
 using namespace expressions;
 
-static_assert(is_accessor<accessor<6, intent::inout, extent<3, 4, 4, 5>>>::value, "");
-static_assert(is_accessor<accessor<2, intent::in>>::value, "");
+static_assert(is_accessor<inout_accessor<6, extent<3, 4, 4, 5>>>::value, "");
+static_assert(is_accessor<in_accessor<2>>::value, "");
 static_assert(!is_accessor<int>::value, "");
 static_assert(!is_accessor<double &>::value, "");
 static_assert(!is_accessor<double const &>::value, "");
 
 TEST(accessor, smoke) {
-    using testee_t = accessor<0, intent::inout, extent<0, 3, 0, 2, -1, 0>>;
+    using testee_t = inout_accessor<0, extent<0, 3, 0, 2, -1, 0>>;
     static_assert(tuple_util::size<testee_t>::value == 3, "");
 
     testee_t testee{3, 2, -1};
@@ -44,14 +44,14 @@ TEST(accessor, zero_accessor) {
 }
 
 TEST(accessor, extra_args) {
-    using testee_t = accessor<0, intent::inout, extent<-1, 1>>;
+    using testee_t = inout_accessor<0, extent<-1, 1>>;
     static_assert(tuple_util::size<testee_t>::value == 1, "");
     testee_t{1, 0};
     testee_t{dimension<2>{0}};
 }
 
 TEST(accessor, array) {
-    accessor<0, intent::inout, extent<0, 3, 0, 2, -1, 0>> first(array<int_t, 3>{3, 2, -1});
+    inout_accessor<0, extent<0, 3, 0, 2, -1, 0>> first(array<int_t, 3>{3, 2, -1});
 
     EXPECT_EQ(3, tuple_util::get<0>(first));
     EXPECT_EQ(2, tuple_util::get<1>(first));
@@ -62,7 +62,7 @@ TEST(accessor, array) {
  * @brief interface with out-of-order optional arguments
  */
 TEST(accessor, alternative1) {
-    accessor<0, intent::inout, extent<0, 0, 0, 0>, 6> first(dimension<6>(-6), dimension<4>(12));
+    inout_accessor<0, extent<>, 6> first(dimension<6>(-6), dimension<4>(12));
 
     EXPECT_EQ(0, tuple_util::get<0>(first));
     EXPECT_EQ(0, tuple_util::get<1>(first));
@@ -80,7 +80,7 @@ TEST(accessor, alternative2) {
     constexpr dimension<2> j;
 
     constexpr dimension<4> t;
-    accessor<0, intent::inout, extent<-5, 0, 0, 0, 0, 8>, 4> first(i - 5, j, dimension<3>(8), t + 2);
+    inout_accessor<0, extent<-5, 0, 0, 0, 0, 8>, 4> first(i - 5, j, dimension<3>(8), t + 2);
 
     EXPECT_EQ(-5, tuple_util::get<0>(first));
     EXPECT_EQ(0, tuple_util::get<1>(first));

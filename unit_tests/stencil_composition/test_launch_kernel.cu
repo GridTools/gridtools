@@ -16,7 +16,7 @@
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/host_device.hpp>
 #include <gridtools/meta.hpp>
-#include <gridtools/stencil_composition/extent.hpp>
+#include <gridtools/stencil_composition/common/extent.hpp>
 
 namespace gridtools {
     namespace cuda {

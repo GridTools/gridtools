@@ -13,27 +13,25 @@
 #include "../../../common/hymap.hpp"
 #include "../../../common/integral_constant.hpp"
 #include "../../../meta.hpp"
-#include "../../dim.hpp"
-#include "../../extent.hpp"
-#include "../../sid/contiguous.hpp"
-#include "../../sid/sid_shift_origin.hpp"
+#include "../../../sid/contiguous.hpp"
+#include "../../../sid/sid_shift_origin.hpp"
+#include "../../common/dim.hpp"
+#include "../../common/extent.hpp"
 #include "shared_allocator.hpp"
 
 namespace gridtools {
     namespace cuda {
         namespace ij_cache_impl_ {
             template <class Extent>
-            hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, -Extent::iminus::value>,
-                integral_constant<int_t, -Extent::jminus::value>>
-            origin_offset(Extent) {
-                return {};
+            auto origin_offset(Extent) {
+                return tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
+                    -Extent::minus(dim::i()), -Extent::minus(dim::j()));
             }
 
             template <class NumColors, class IBlockSize, class JBlockSize, class Extent>
             auto sizes(NumColors num_colors, IBlockSize i_block_size, JBlockSize j_block_size, Extent) {
-                return tuple_util::make<hymap::keys<dim::c, dim::i, dim::j>::values>(num_colors,
-                    i_block_size - typename Extent::iminus{} + typename Extent::iplus{},
-                    j_block_size - typename Extent::jminus{} + typename Extent::jplus{});
+                return tuple_util::make<hymap::keys<dim::c, dim::i, dim::j>::values>(
+                    num_colors, Extent::extend(dim::i(), i_block_size), Extent::extend(dim::j(), j_block_size));
             }
 
             template <class T, class NumColors, class BlockSizeI, class BlockSizeJ, class Extent>

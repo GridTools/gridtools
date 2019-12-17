@@ -16,8 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "../common/halo_descriptor.hpp"
-#include "../stencil_composition/axis.hpp"
-#include "../stencil_composition/grid.hpp"
+#include "../stencil_composition/frontend/axis.hpp"
+#include "../stencil_composition/frontend/make_grid.hpp"
 #include "backend_select.hpp"
 #include "verifier.hpp"
 

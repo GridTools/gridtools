@@ -21,8 +21,8 @@
 #include "../../../common/integral_constant.hpp"
 #include "../../../common/tuple.hpp"
 #include "../../../meta.hpp"
-#include "../../accessor_intent.hpp"
-#include "../../extent.hpp"
+#include "../../common/extent.hpp"
+#include "../../common/intent.hpp"
 #include "dimension.hpp"
 
 /**

@@ -14,10 +14,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/integral_constant.hpp>
-#include <gridtools/stencil_composition/sid/allocator.hpp>
-#include <gridtools/stencil_composition/sid/concept.hpp>
-#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/sid/allocator.hpp>
+#include <gridtools/sid/concept.hpp>
 
 #include "../tools/multiplet.hpp"
 

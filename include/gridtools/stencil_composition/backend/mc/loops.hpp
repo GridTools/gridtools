@@ -17,8 +17,8 @@
 #include "../../../common/omp.hpp"
 #include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
-#include "../../dim.hpp"
-#include "../../sid/concept.hpp"
+#include "../../../sid/concept.hpp"
+#include "../../common/dim.hpp"
 #include "execinfo_mc.hpp"
 
 namespace gridtools {

@@ -33,11 +33,10 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../../meta.hpp"
-#include "../../accessor_intent.hpp"
-#include "../../dim.hpp"
-#include "../../extent.hpp"
-#include "../../has_apply.hpp"
-#include "../../sid/multi_shift.hpp"
+#include "../../../sid/multi_shift.hpp"
+#include "../../common/extent.hpp"
+#include "../../common/intent.hpp"
+#include "../../core/has_apply.hpp"
 #include "expressions/expr_base.hpp"
 
 namespace gridtools {
@@ -71,7 +70,7 @@ namespace gridtools {
 
             template <class Functor, class PlhMap>
             struct stage {
-                static_assert(has_apply<Functor>::value, GT_INTERNAL_ERROR);
+                static_assert(core::has_apply<Functor>::value, GT_INTERNAL_ERROR);
 
                 template <class Deref = void, class Ptr, class Strides>
                 GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {

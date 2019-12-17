@@ -12,7 +12,7 @@
 #include "../../../common/integral_constant.hpp"
 #include "../../../common/tuple.hpp"
 #include "../../../meta.hpp"
-#include "../../extent.hpp"
+#include "../../common/extent.hpp"
 #include "location_type.hpp"
 
 namespace gridtools {

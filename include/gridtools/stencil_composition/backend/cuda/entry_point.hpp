@@ -19,27 +19,21 @@
 #include "../../../common/integral_constant.hpp"
 #include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
-#include "../../caches/cache_traits.hpp"
-#include "../../compute_extents_metafunctions.hpp"
-#include "../../dim.hpp"
-#include "../../esf_metafunctions.hpp"
-#include "../../extent.hpp"
-#include "../../extract_placeholders.hpp"
-#include "../../grid.hpp"
-#include "../../mss.hpp"
-#include "../../positional.hpp"
-#include "../../sid/allocator.hpp"
-#include "../../sid/as_const.hpp"
-#include "../../sid/block.hpp"
-#include "../../sid/composite.hpp"
-#include "../../sid/concept.hpp"
-#include "../../sid/sid_shift_origin.hpp"
-#include "../../stage_matrix.hpp"
+#include "../../../sid/allocator.hpp"
+#include "../../../sid/as_const.hpp"
+#include "../../../sid/block.hpp"
+#include "../../../sid/composite.hpp"
+#include "../../../sid/concept.hpp"
+#include "../../../sid/sid_shift_origin.hpp"
+#include "../../be_api.hpp"
+#include "../../common/caches.hpp"
+#include "../../common/dim.hpp"
+#include "../../common/extent.hpp"
 #include "fill_flush.hpp"
-#include "fused_mss_loop_cuda.hpp"
 #include "ij_cache.hpp"
 #include "k_cache.hpp"
 #include "launch_kernel.hpp"
+#include "make_kernel_fun.hpp"
 #include "shared_allocator.hpp"
 #include "tmp_storage_sid.hpp"
 
@@ -110,15 +104,15 @@ namespace gridtools {
                 class Backend,
                 class Grid,
                 class Fun,
-                class OutKeys = meta::transform<stage_matrix::get_key,
-                    meta::filter<meta::not_<stage_matrix::get_is_const>::apply, PlhMap>>,
+                class OutKeys =
+                    meta::transform<be_api::get_key, meta::filter<meta::not_<be_api::get_is_const>::apply, PlhMap>>,
                 class Extents = meta::transform<get_extent_f<OtherPlhMap>::template apply, OutKeys>,
                 class Extent = meta::rename<enclosing_extent, Extents>,
                 std::enable_if_t<Extent::iminus::value == 0 && Extent::iplus::value == 0 &&
                                      Extent::jminus::value == 0 && Extent::jplus::value == 0,
                     int> = 0>
-            kernel<MaxExtent, stage_matrix::merge_plh_maps<PlhMap, OtherPlhMap>, BlockSize, Funs..., Fun>
-            launch_or_fuse(Backend, Grid const &grid, kernel<MaxExtent, OtherPlhMap, BlockSize, Fun> kernel) && {
+            kernel<MaxExtent, be_api::merge_plh_maps<PlhMap, OtherPlhMap>, BlockSize, Funs..., Fun> launch_or_fuse(
+                Backend, Grid const &grid, kernel<MaxExtent, OtherPlhMap, BlockSize, Fun> kernel) && {
                 return {tuple_util::push_back(std::move(m_funs), tuple_util::get<0>(std::move(kernel.m_funs))),
                     std::max(m_shared_memory_size, kernel.m_shared_memory_size)};
             }
@@ -156,7 +150,7 @@ namespace gridtools {
             template <class Msses, class Grid, class Allocator>
             static auto make_temporaries(Grid const &grid, Allocator &allocator) {
                 using plh_map_t = meta::filter<is_not_cached, typename Msses::tmp_plh_map_t>;
-                using extent_t = meta::rename<enclosing_extent, meta::transform<stage_matrix::get_extent, plh_map_t>>;
+                using extent_t = meta::rename<enclosing_extent, meta::transform<be_api::get_extent, plh_map_t>>;
                 return tuple_util::transform(
                     [&allocator,
                         n_blocks_i = (grid.i_size() + IBlockSize() - 1) / IBlockSize(),
@@ -172,7 +166,7 @@ namespace gridtools {
                             k_size,
                             allocator);
                     },
-                    hymap::from_keys_values<meta::transform<stage_matrix::get_plh, plh_map_t>, plh_map_t>());
+                    hymap::from_keys_values<meta::transform<be_api::get_plh, plh_map_t>, plh_map_t>());
             }
 
             template <class DataStoreMap>
@@ -202,11 +196,10 @@ namespace gridtools {
                         [&](meta::list<>, auto info) {
                             return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores));
                         }),
-                    meta::transform<stage_matrix::get_caches, plh_map_t>(),
+                    meta::transform<be_api::get_caches, plh_map_t>(),
                     plh_map_t()));
 
-                constexpr int_t k_block_size =
-                    execute::is_parallel<typename Mss::execution_t>{} ? KBlockSize::value : 0;
+                constexpr int_t k_block_size = be_api::is_parallel<typename Mss::execution_t>{} ? KBlockSize::value : 0;
 
                 auto kernel_fun = make_kernel_fun<Deref, Mss, k_block_size>(grid, composite);
 
@@ -242,15 +235,15 @@ namespace gridtools {
                 auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char[]>);
                 auto data_stores = hymap::concat(backend::block(std::move(external_data_stores)),
                     backend::make_temporaries<Msses>(grid, cuda_alloc));
-                using const_keys_t = meta::transform<stage_matrix::get_key,
-                    meta::filter<stage_matrix::get_is_const, typename Msses::plh_map_t>>;
+                using const_keys_t =
+                    meta::transform<be_api::get_key, meta::filter<be_api::get_is_const, typename Msses::plh_map_t>>;
                 launch_msses<deref_f<const_keys_t>>(meta::rename<meta::list, Msses>(), grid, data_stores);
             }
 
             template <class Spec, class Grid, class DataStores>
             friend void gridtools_backend_entry_point(backend, Spec, Grid const &grid, DataStores data_stores) {
                 using new_spec_t = fill_flush::transform_spec<Spec>;
-                using msses_t = stage_matrix::make_fused_view<new_spec_t>;
+                using msses_t = be_api::make_fused_view<new_spec_t>;
                 backend::entry_point<msses_t>(
                     grid, fill_flush::transform_data_stores<typename msses_t::plh_map_t>(std::move(data_stores)));
             }

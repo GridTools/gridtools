@@ -16,7 +16,7 @@
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
-#include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/sid/concept.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/tools/backend_select.hpp>
 

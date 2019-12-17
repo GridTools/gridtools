@@ -18,12 +18,12 @@
 #include "../../../common/host_device.hpp"
 #include "../../../common/hymap.hpp"
 #include "../../../common/integral_constant.hpp"
-#include "../../caches/cache_definitions.hpp"
-#include "../../dim.hpp"
+#include "../../../sid/concept.hpp"
+#include "../../be_api.hpp"
+#include "../../common/caches.hpp"
+#include "../../common/dim.hpp"
 #include "../../global_parameter.hpp"
 #include "../../positional.hpp"
-#include "../../sid/concept.hpp"
-#include "../../stage_matrix.hpp"
 
 namespace gridtools {
     namespace cuda {
@@ -31,7 +31,7 @@ namespace gridtools {
             namespace impl_ {
                 template <class Cells>
                 using plh_map_from_cells =
-                    meta::rename<stage_matrix::merge_plh_maps, meta::transform<stage_matrix::get_plh_map, Cells>>;
+                    meta::rename<be_api::merge_plh_maps, meta::transform<be_api::get_plh_map, Cells>>;
 
                 template <class Policy>
                 struct has_policy_f {
@@ -42,7 +42,7 @@ namespace gridtools {
                 template <class Policy>
                 struct replace_policy_f {
                     template <class PlhInfo>
-                    using apply = stage_matrix::plh_info<typename PlhInfo::key_t,
+                    using apply = be_api::plh_info<typename PlhInfo::key_t,
                         typename PlhInfo::is_tmp_t,
                         typename PlhInfo::data_t,
                         typename PlhInfo::num_colors_t,
@@ -149,15 +149,15 @@ namespace gridtools {
                     }
 
                     using plh_map_t = tuple<PlhInfo,
-                        stage_matrix::remove_caches_from_plh_info<PlhInfo>,
-                        stage_matrix::plh_info<pos_key_t,
+                        be_api::remove_caches_from_plh_info<PlhInfo>,
+                        be_api::plh_info<pos_key_t,
                             std::false_type,
                             int_t const,
                             integral_constant<int_t, 0>,
                             std::true_type,
                             extent<>,
                             meta::list<>>,
-                        stage_matrix::plh_info<bound_key_t,
+                        be_api::plh_info<bound_key_t,
                             std::false_type,
                             int_t const,
                             integral_constant<int_t, 0>,
@@ -180,7 +180,7 @@ namespace gridtools {
                         sync<PlhInfo>(cached, orig);
                     }
 
-                    using plh_map_t = tuple<PlhInfo, stage_matrix::remove_caches_from_plh_info<PlhInfo>>;
+                    using plh_map_t = tuple<PlhInfo, be_api::remove_caches_from_plh_info<PlhInfo>>;
                 };
 
                 template <class PlhInfo>
@@ -203,7 +203,7 @@ namespace gridtools {
                         }
                     }
 
-                    using plh_map_t = tuple<PlhInfo, stage_matrix::remove_caches_from_plh_info<PlhInfo>>;
+                    using plh_map_t = tuple<PlhInfo, be_api::remove_caches_from_plh_info<PlhInfo>>;
                 };
 
                 template <class FromLevel, class ToLevel, int_t Lim>
@@ -212,8 +212,8 @@ namespace gridtools {
                 constexpr int_t real_offset(int_t x) { return x > 0 ? x - 1 : x; }
 
                 template <uint_t Splitter, int_t OffsetLimit, int_t FromOffset, int_t ToOffset, int_t Lim>
-                struct levels_are_close<level<Splitter, FromOffset, OffsetLimit>,
-                    level<Splitter, ToOffset, OffsetLimit>,
+                struct levels_are_close<be_api::level<Splitter, FromOffset, OffsetLimit>,
+                    be_api::level<Splitter, ToOffset, OffsetLimit>,
                     Lim> : bool_constant<(real_offset(ToOffset) - real_offset(FromOffset) < Lim)> {};
 
                 template <class PlhInfo, class Execution, class FirstInterval, class LastInterval, class CurInterval>
@@ -229,7 +229,7 @@ namespace gridtools {
                         -minus>::value;
                     static constexpr bool close_to_last =
                         levels_are_close<typename CurInterval::FromLevel, typename LastInterval::ToLevel, plus>::value;
-                    static constexpr bool is_forward = !execute::is_backward<Execution>::value;
+                    static constexpr bool is_forward = !be_api::is_backward<Execution>::value;
 
                     static constexpr bool sync_all = is_forward == is_fill ? is_first : is_last;
 
@@ -250,7 +250,7 @@ namespace gridtools {
                     template <class Interval,
                         class Fun =
                             typename make_sync_fun<PlhInfo, Execution, FirstInterval, LastInterval, Interval>::type>
-                    using apply = stage_matrix::cell<meta::list<Fun>,
+                    using apply = be_api::cell<meta::list<Fun>,
                         Interval,
                         typename Fun::plh_map_t,
                         to_horizontal_extent<typename PlhInfo::extent_t>,
@@ -273,20 +273,19 @@ namespace gridtools {
                 struct transform_matrix<Matrix> {
                     static_assert(meta::length<Matrix>::value > 0, GT_INTERNAL_ERROR);
 
-                    using plh_map_t =
-                        meta::rename<stage_matrix::merge_plh_maps, meta::transform<plh_map_from_cells, Matrix>>;
+                    using plh_map_t = meta::rename<be_api::merge_plh_maps, meta::transform<plh_map_from_cells, Matrix>>;
 
                     using fill_map_t = filter_policy<cache_io_policy::fill, plh_map_t>;
                     using flush_map_t = filter_policy<cache_io_policy::flush, plh_map_t>;
 
-                    using trimmed_matrix_t = meta::transpose<stage_matrix::trim_interval_rows<meta::transpose<Matrix>>>;
+                    using trimmed_matrix_t = meta::transpose<be_api::trim_interval_rows<meta::transpose<Matrix>>>;
 
                     using first_stage_cells_t = meta::first<trimmed_matrix_t>;
                     static_assert(meta::length<first_stage_cells_t>::value > 0, GT_INTERNAL_ERROR);
 
                     using execution_t = typename meta::first<first_stage_cells_t>::execution_t;
 
-                    using intervals_t = meta::transform<stage_matrix::get_interval, first_stage_cells_t>;
+                    using intervals_t = meta::transform<be_api::get_interval, first_stage_cells_t>;
 
                     using type = meta::concat<
                         meta::transform<make_stage_f<intervals_t, execution_t>::template apply, fill_map_t>,
@@ -324,8 +323,8 @@ namespace gridtools {
 
                 template <class PlhMap, class DataStores>
                 auto transform_data_stores(DataStores data_stores) {
-                    using non_tmp_phs_t = meta::transform<stage_matrix::get_plh,
-                        meta::filter<meta::not_<stage_matrix::get_is_tmp>::apply, PlhMap>>;
+                    using non_tmp_phs_t =
+                        meta::transform<be_api::get_plh, meta::filter<meta::not_<be_api::get_is_tmp>::apply, PlhMap>>;
                     using plhs_t = meta::filter<is_missing_f<DataStores>::template apply, non_tmp_phs_t>;
                     auto extra = tuple_util::transform([&](auto plh) { return make_data_store(plh, data_stores); },
                         hymap::from_keys_values<plhs_t, plhs_t>());

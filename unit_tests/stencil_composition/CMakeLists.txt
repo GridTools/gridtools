@@ -6,10 +6,6 @@ if(NOT GT_TESTS_ICOSAHEDRAL_GRID)
     fetch_mc_tests(. LABELS unittest_mc)
 endif()
 
-fetch_x86_tests(sid LABELS unittest_x86)
-fetch_naive_tests(sid LABELS unittest_naive)
-fetch_gpu_tests(sid LABELS unittest_cuda)
-
 # collect the grid specific test cases
 if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
     # collect the cache redcution and conditionals tests.

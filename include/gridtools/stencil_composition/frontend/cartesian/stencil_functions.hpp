@@ -16,8 +16,8 @@
 #include "../../../common/tuple.hpp"
 #include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
-#include "../../dim.hpp"
-#include "../../interval.hpp"
+#include "../../common/dim.hpp"
+#include "../../core/interval.hpp"
 #include "accessor.hpp"
 #include "expressions/expr_base.hpp"
 
@@ -186,7 +186,7 @@ namespace gridtools {
             int_t OffJ = 0,
             int_t OffK = 0>
         class call {
-            static_assert(is_interval<Region>::value or std::is_void<Region>::value,
+            static_assert(core::is_interval<Region>::value or std::is_void<Region>::value,
                 "Region should be a valid interval tag or void (default interval) to select the apply specialization "
                 "in "
                 "the called stencil function");
@@ -247,7 +247,7 @@ namespace gridtools {
         template <class Functor, class Region = void, int_t OffI = 0, int_t OffJ = 0, int_t OffK = 0>
         struct call_proc {
 
-            static_assert(is_interval<Region>::value or std::is_void<Region>::value,
+            static_assert(core::is_interval<Region>::value or std::is_void<Region>::value,
                 "Region should be a valid interval tag or void (default interval) to select the apply specialization "
                 "in "
                 "the called stencil function");

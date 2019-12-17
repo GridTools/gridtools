@@ -9,7 +9,11 @@
  */
 #pragma once
 
+#include "common/caches.hpp"
+#include "common/extent.hpp"
+#include "common/intent.hpp"
+#include "frontend/axis.hpp"
 #include "frontend/expandable_run.hpp"
+#include "frontend/make_grid.hpp"
 #include "frontend/make_param_list.hpp"
 #include "frontend/run.hpp"
-#include "grid.hpp"
