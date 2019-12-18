@@ -136,7 +136,7 @@ class buider_type {
     auto layout() const;
     template <bool...>
     auto selector() const;
-    auto name(std::string) const
+    auto name(std::string) const;
     auto dimensions(unsigned...) const;
     auto halos(unsigned...) const;
     template <class Fun>
