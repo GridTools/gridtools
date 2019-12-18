@@ -19,13 +19,11 @@ namespace gridtools {
     namespace storage {
         namespace x86_impl_ {
             /**
-             * @brief metafunction used to retrieve a layout_map with n-dimensions
-             * that can be used in combination with the host backend (k-first order).
-             * E.g., make_layout< 5> will return following type: layout_map< 2, 3, 4, 0, 1 >.
-             * This means the k-dimension (value: 4) is coalesced in memory, followed
-             * by the j-dimension (value: 3), followed by the i-dimension (value: 2), followed
-             * by the fifth dimension (value: 1), etc. The reason for having k as innermost
-             * is because of the gridtools execution model. The CPU backend will give best
+             * @brief metafunction used to retrieve a layout_map with n-dimensions that can be used in combination with
+             * the host backend (k-first order). E.g., make_layout<5> will return following type: layout_map<2,3,4,0,1>.
+             * This means the k-dimension (value: 4) is coalesced in memory, followed by the j-dimension (value: 3),
+             * followed by the i-dimension (value: 2), followed by the fifth dimension (value: 1), etc. The reason for
+             * having k as innermost is because of the gridtools execution model. The CPU backend will give best
              * performance (in most cases) when using the provided layout.
              */
             template <size_t N, class = std::make_index_sequence<N>>
