@@ -168,21 +168,23 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
     the unique set of dimension sizes. Note the difference -- `data_store::kind_t` represents unique `strides`
     set but `id` represents unique size set. Example:
     ```C++
-    // We have to different sizes that we use in our computation. Hence we prepare use two partially specified
-    // builders.  
+    // We have two different sizes that we use in our computation.
+    // Hence we prepare two partially specified builders.  
     auto const builder_a = builder<cuda>.id<0>.dimensions(3, 4, 5);
     auto const builder_b = builder<cuda>.id<1>.dimensions(5, 6, 7);
     
-    // We use our builders to make some data_stores
+    // We use our builders to make some data_stores.
     auto a_0 = builder_a.type<double>().build();
     auto a_1 = builder_a.type<double>().build();
     auto a_2 = builder_a.type<float>().halo(1, 1, 0).build();
     auto b_0 = builder_a.type<double>().build();
 
     // kind_t aliases of a_0 and a_1 are the same.
-    // kind_t aliases of a_0 and b_0 are different because id property is different.
-    // kind_t aliases of a_0 and a_2 are different. Even though id property is the same. This is because types are
-    // different.
+    // kind_t aliases of a_0 and b_0 are different.
+    //   Because id property is different.
+    // kind_t aliases of a_0 and a_2 are different.
+    //   Even though id property is the same.
+    //   This is because types are different.
     ```
     At a moment `id`/`kind_t` matters if data stores are used in the context of gridtools stencil computation.
     Otherwise there is no need to set `id`. Note also that setting `id` can be skipped if only one set
