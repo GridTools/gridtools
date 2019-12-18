@@ -1,7 +1,5 @@
-#Storage Library
-
-It provides the way to represent multidimensional typed contiguous memory allocations with arbitrary layout and
-alignment. The library is headers only. All entities are defined in the `gridtools::storage` namespace.
+Storage Library provides the way to represent multidimensional typed contiguous memory allocations with arbitrary
+layout and alignment. The library is headers only. All entities are defined in the `gridtools::storage` namespace.
 
 ## Data Store
 
@@ -42,13 +40,15 @@ class data_store {
     // Supplementary object that holds lengths and strides. 
     storage::info<ndims> const& info() const;
 
-    // Request the target view. If the target and host spaces are different necessary synchronization is performed
+    // Request the target view.
+    // If the target and host spaces are different necessary synchronization is performed
     // and the host counterpart is marked as dirty.  
     auto target_view();
     // Const version doesn't mark host counterpart as dirty. Synchronization takes place. 
     auto const_target_view();
 
-    // Raw ptr alternatives for target_view/const_target_view. Synchronization behaviour is the same.
+    // Raw ptr alternatives for target_view/const_target_view.
+    // Synchronization behaviour is the same.
     data_t *get_target_ptr();
     data_t const *get_const_target_ptr();
 
@@ -136,7 +136,7 @@ class buider_type {
     auto layout() const;
     template <bool...>
     auto selector() const;
-    auto name(std::string value) const
+    auto name(std::string) const
     auto dimensions(unsigned...) const;
     auto halos(unsigned...) const;
     template <class Fun>
@@ -222,8 +222,8 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
      3D looping. `target` and `host` spaces are same.
    - [cuda](cuda.hpp). Tailored for GPU. `target` and `host` spaces are different.
    
- Each traits resides in its own header. Note that the `builder.hpp` doesn't include specific traits headers.
- To use particular trait the user should include correspondent header.
+ Each traits resides in its own header. Note that the [builder.hpp](builder.hpp) doesn't include specific
+ traits headers.  To use a particular trait the user should include the correspondent header.
  
  ### Defining Custom Traits
  
