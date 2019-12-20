@@ -22,7 +22,7 @@
  *  NVCC bug workaround: sizeof... works incorrectly within template alias context.
  */
 #if defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 10 || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ < 2))
+    (__CUDACC_VER_MAJOR__ < 10 || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ < 3))
 
 namespace gridtools {
     namespace meta {
