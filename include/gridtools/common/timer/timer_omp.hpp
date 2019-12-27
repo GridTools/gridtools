@@ -9,8 +9,6 @@
  */
 #pragma once
 
-#ifdef GT_ENABLE_METERS
-
 #include "../omp.hpp"
 
 namespace gridtools {
@@ -25,13 +23,3 @@ namespace gridtools {
         double pause_impl() { return omp_get_wtime() - m_startTime; }
     };
 } // namespace gridtools
-
-#else
-
-#include "timer_dummy.hpp"
-
-namespace gridtools {
-    using timer_omp = timer_dummy;
-}
-
-#endif

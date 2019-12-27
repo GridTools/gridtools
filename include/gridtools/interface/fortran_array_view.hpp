@@ -16,22 +16,12 @@
 
 #include <cpp_bindgen/array_descriptor.h>
 
-#include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/stride_util.hpp"
+#include "../sid/simple_ptr_holder.hpp"
 
 namespace gridtools {
     namespace fortran_array_view_impl_ {
-
-        template <class T>
-        struct ptr_holder {
-            T *m_val;
-            GT_FORCE_INLINE constexpr T *operator()() const { return m_val; }
-            friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, ptrdiff_t arg) {
-                return {obj.m_val + arg};
-            }
-        };
-
         struct default_kind {};
 
         template <class T, size_t Rank, class Kind = default_kind>
@@ -45,7 +35,7 @@ namespace gridtools {
 
             bindgen_fortran_array_descriptor const &m_desc;
 
-            friend ptr_holder<T> sid_get_origin(fortran_array_view const &obj) {
+            friend sid::simple_ptr_holder<T> sid_get_origin(fortran_array_view const &obj) {
                 return {static_cast<T *>(obj.m_desc.data)};
             }
             friend strides_t sid_get_strides(fortran_array_view const &obj) {

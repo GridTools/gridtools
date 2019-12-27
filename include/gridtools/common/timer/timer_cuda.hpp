@@ -9,11 +9,10 @@
  */
 #pragma once
 
-#if defined(GT_USE_GPU) && defined(GT_ENABLE_METERS)
-
 #include <type_traits>
 
 #include "../cuda_util.hpp"
+#include "../hip_wrappers.hpp"
 
 namespace gridtools {
     /**
@@ -54,13 +53,3 @@ namespace gridtools {
         }
     };
 } // namespace gridtools
-
-#else
-
-#include "timer_dummy.hpp"
-
-namespace gridtools {
-    using timer_cuda = timer_dummy;
-}
-
-#endif

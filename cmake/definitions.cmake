@@ -159,11 +159,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     target_compile_options(GridToolsTest INTERFACE -diag-disable=15518,15552)
 endif()
 
-## performance meters ##
-if(GT_ENABLE_PERFORMANCE_METERS)
-    target_compile_definitions(GridToolsTest INTERFACE GT_ENABLE_METERS)
-endif()
-
 ## precision ##
 if(GT_SINGLE_PRECISION)
     target_compile_definitions(GridToolsTest INTERFACE GT_FLOAT_PRECISION=4)
@@ -171,12 +166,6 @@ if(GT_SINGLE_PRECISION)
 else()
     target_compile_definitions(GridToolsTest INTERFACE GT_FLOAT_PRECISION=8)
    message(STATUS "Compile tests in double precision")
-endif()
-
-## caching ##
-if(NOT GT_TESTS_ENABLE_CACHING)
-    # TODO this should be exposed to find_package (GT_ENABLE_CACHING)
-    target_compile_definitions(GridToolsTest INTERFACE GT_DISABLE_CACHING)
 endif()
 
 # add a target to generate API documentation with Doxygen

@@ -23,14 +23,8 @@ CMAKE_DEPENDENT_OPTION(
     GT_CUDA_PTX_GENERATION "Compile regression tests to intermediate representation"
     OFF "BUILD_TESTING" OFF)
 CMAKE_DEPENDENT_OPTION(
-    GT_ENABLE_PERFORMANCE_METERS "If on, meters will be reported for each stencil"
-    OFF "BUILD_TESTING" OFF)
-CMAKE_DEPENDENT_OPTION(
     GT_SINGLE_PRECISION "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)"
     OFF "BUILD_TESTING" OFF)
-CMAKE_DEPENDENT_OPTION(
-    GT_TESTS_ENABLE_CACHING "Enable caches in stencil composition for tests"
-    ON "BUILD_TESTING" ON)
 CMAKE_DEPENDENT_OPTION(
     GT_TREAT_WARNINGS_AS_ERROR "Treat warnings as errors"
     OFF "BUILD_TESTING" OFF)

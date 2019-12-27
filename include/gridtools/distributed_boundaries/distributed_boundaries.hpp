@@ -243,7 +243,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, std::integer_sequence<uint_t, Ids...>) {
-            m_he.pack(std::get<Ids>(stores)->get_target_ptr()...);
+            m_he.pack(std::get<Ids>(stores)->get_const_target_ptr()...);
         }
 
         template <typename Stores>
