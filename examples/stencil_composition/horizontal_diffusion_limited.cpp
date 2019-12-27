@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     // described in this example.
     auto grid = gt::make_grid(di, dj, d3);
 
-    // Here we perform the computation, specifying the backend, the gird (iteration space), binding spec arguments to
+    // Here we perform the computation, specifying the backend, the grid (iteration space), binding spec arguments to
     // the data fields
     gt::run(spec, backend_t(), grid, coeff, in, out);
 }
