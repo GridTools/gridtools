@@ -19,11 +19,11 @@ using backend_t = mc::backend;
 using storage_traits_t = storage::mc;
 #endif
 
-static constexpr unsigned halo_size = 2;
+constexpr unsigned halo = 2;
 
-constexpr static dimension<1> i;
-constexpr static dimension<2> j;
-constexpr static dimension<3> k;
+constexpr dimension<1> i;
+constexpr dimension<2> j;
+constexpr dimension<3> k;
 
 using axis_t = axis<2>;
 using lower_domain = axis_t::get_interval<0>;
@@ -57,7 +57,10 @@ int main() {
     uint_t Nk = 20;
     uint_t kmax = 12;
 
-    const auto make_storage = storage::builder<storage_traits_t>.dimensions(Ni, Nj, Nk).type<double>();
+    auto const make_storage = storage::builder<storage_traits_t> //
+                                  .dimensions(Ni, Nj, Nk)        //
+                                  .halos(halo, halo, 0)          //
+                                  .type<double>();               //
 
 #if defined(VARIANT1)
 #include "gt_smoothing_variant1_computation.hpp"

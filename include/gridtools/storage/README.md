@@ -149,6 +149,7 @@ class buider_type {
 template <class Traits>
 constexpr builder_type</* Implementation defined parameters. */> builder = {};
 ```
+
 ### Constrains on Builder Setters
   
   - `type` and `dimensions` should be set before calling `build`
@@ -214,10 +215,11 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
          .name("my tuned ds for specific use case")
          .build(); 
      ```
- ## Traits
+ 
+## Traits
  
  Builder API needs a traits type to instantiate the `builder` object. In order to be used in this context
- this type should model `Storage Traits Concept`. The library is coming with three predefined traits:
+ this type should model `Storage Traits Concept`. The library comes with three predefined traits:
    - [x86](x86.hpp). Layout is chosen to benefit from data locality while doing 3D loop.
      `malloc` allocation. No alignment. `target` and `host` spaces are same. 
    - [mc](mc.hpp).  Huge page allocation. `8 bytes` alignment. Layout is tailored to utilize vectorization while

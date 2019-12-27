@@ -28,8 +28,11 @@ struct lap_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &&eval) {
-        eval(lap(i, j)) =
-            -4 * eval(in(i, j)) + eval(in(i + 1, j)) + eval(in(i, j + 1)) + eval(in(i - 1, j)) + eval(in(i, j - 1));
+        eval(lap(i, j)) = -4 * eval(in(i, j))   //
+                          + eval(in(i + 1, j))  //
+                          + eval(in(i, j + 1))  //
+                          + eval(in(i - 1, j))  //
+                          + eval(in(i, j - 1)); //
     }
 };
 
@@ -37,16 +40,19 @@ int main() {
     uint_t Ni = 10;
     uint_t Nj = 12;
     uint_t Nk = 20;
+    int halo = 1;
 
-    auto builder = storage::builder<storage_traits_t>.type<double>().dimensions(Ni, Nj, Nk).halos(1, 1, 0).value(-1);
+    auto builder = storage::builder<storage_traits_t> //
+                       .type<double>()                //
+                       .dimensions(Ni, Nj, Nk)        //
+                       .halos(halo, halo, 0);         //
 
-    auto phi = builder.name("phi")();
-    auto lap = builder.name("lap")();
+    auto phi = builder();
+    auto lap = builder();
 
-    int halo_size = 1;
-    halo_descriptor boundary_i(halo_size, halo_size, halo_size, Ni - halo_size - 1, Ni);
-    halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);
-    auto my_grid = make_grid(boundary_i, boundary_j, Nk);
+    halo_descriptor boundary_i(halo, halo, halo, Ni - halo - 1, Ni);
+    halo_descriptor boundary_j(halo, halo, halo, Nj - halo - 1, Nj);
+    auto grid = make_grid(boundary_i, boundary_j, Nk);
 
-    easy_run(lap_function(), backend_t(), my_grid, phi, lap);
+    easy_run(lap_function(), backend_t(), grid, phi, lap);
 }
