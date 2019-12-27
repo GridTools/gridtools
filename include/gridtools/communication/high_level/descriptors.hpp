@@ -28,7 +28,7 @@
 namespace gridtools {
 
     /** \class empty_field_no_dt
-        Class containins the information about a data field (grid).
+        Class contains the information about a data field (grid).
         It doe not contains any reference to actual data of the field,
         it only describes the fields though the halo descriptions.
         The number of dimensions as a template argument and the size of the
