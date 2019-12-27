@@ -138,7 +138,7 @@ namespace repository_impl_ {
  * @param fields BOOST_PP sequence of tuples of the form (data_store_type_name, field_name)
  *
  * All data store builder generators must be the functions with exactly the same arguments.
- * The constructor of generated type accepts the same arguments that the builder generators are.
+ * The constructor of generated type accepts the same arguments as the builder generators.
  *
  * Say there are functions ijk_builder(int, int) and ij_builder(int, int).
  * For the macro invocation `GT_DEFINE_REPOSITORY(repo, (ijk ijk_builder)(ij ij_builder), (ijk u)(ijk v)(ij crlat))`
