@@ -27,7 +27,7 @@ namespace gridtools {
         template <class T, size_t Rank, class Kind = default_kind>
         class fortran_array_view {
             static_assert(
-                std::is_arithmetic<T>::value, "fortran_array_view should be instantiated with arithmentic type");
+                std::is_arithmetic<T>::value, "fortran_array_view should be instantiated with arithmetic type");
 
             using upper_bounds_t = std::array<ptrdiff_t, Rank>;
             using lower_bounds_t = std::array<integral_constant<ptrdiff_t, 0>, Rank>;
