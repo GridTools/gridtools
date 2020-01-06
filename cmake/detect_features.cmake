@@ -39,6 +39,7 @@ macro(detect_openmp)
     endif()
 
     option( GT_ENABLE_OPENMP "Enable OpenMP backends" ${_find_openmp} )
+    mark_as_advanced(GT_ENABLE_OPENMP)
 
     if (NOT GT_ENABLE_OPENMP)
         set (OPENMP_AVAILABLE OFF)
