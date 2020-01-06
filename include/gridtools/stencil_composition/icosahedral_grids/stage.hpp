@@ -15,14 +15,18 @@
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../meta.hpp"
 #include "../accessor_intent.hpp"
 #include "../arg.hpp"
 #include "../extent.hpp"
 #include "../has_apply.hpp"
-#include "../iterate_domain_fwd.hpp"
 #include "../location_type.hpp"
+#include "../sid/composite.hpp"
+#include "../sid/concept.hpp"
+#include "../sid/multi_shift.hpp"
+#include "dim.hpp"
 #include "icosahedral_topology.hpp"
 #include "on_neighbors.hpp"
 
@@ -56,126 +60,64 @@
 
 namespace gridtools {
 
-    namespace impl_ {
-        template <class T>
-        using functor_or_void = bool_constant<has_apply<T>::value || std::is_void<T>::value>;
+    namespace stage_impl_ {
+        struct default_deref_f {
+            template <class Key, class T>
+            GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
+                return *ptr;
+            }
+        };
 
-        template <class ItDomain, class Args, class LocationType, uint_t Color>
+        template <class Ptr, class Strides, class Keys, class Deref, class LocationType, int_t Color>
         struct evaluator {
-            GT_STATIC_ASSERT((is_iterate_domain<ItDomain>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+            Ptr const &m_ptr;
+            Strides const &m_strides;
 
-            ItDomain const &m_it_domain;
+            template <class Key, class Offset>
+            GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
+                auto ptr = host_device::at_key<Key>(m_ptr);
+                sid::multi_shift<Key>(ptr, m_strides, wstd::move(offset));
+                return Deref()(Key(), ptr);
+            }
 
             template <class Accessor>
             GT_FUNCTION decltype(auto) operator()(Accessor const &acc) const {
-                return apply_intent<Accessor::intent_v>(
-                    m_it_domain.template deref<meta::at_c<Args, Accessor::index_t::value>>(acc));
+                return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(acc));
+            }
+
+            template <class Accessor, class Offset>
+            GT_FUNCTION decltype(auto) neighbor(Offset const &offset) const {
+                return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(offset));
             }
 
             template <class ValueType, class LocationTypeT, class Reduction, class... Accessors>
             GT_FUNCTION ValueType operator()(
                 on_neighbors<ValueType, LocationTypeT, Reduction, Accessors...> onneighbors) const {
-                constexpr auto offsets = connectivity<LocationType, LocationTypeT, Color>::offsets();
+                static constexpr auto offsets = connectivity<LocationType, LocationTypeT, Color>::offsets();
                 for (auto &&offset : offsets)
-                    onneighbors.m_value = onneighbors.m_function(
-                        apply_intent<intent::in>(
-                            m_it_domain.template deref<meta::at_c<Args, Accessors::index_t::value>>(offset))...,
-                        onneighbors.m_value);
+                    onneighbors.m_value = onneighbors.m_function(neighbor<Accessors>(offset)..., onneighbors.m_value);
                 return onneighbors.m_value;
             }
+
+            static constexpr int_t color = Color;
         };
-    } // namespace impl_
 
-    /**
-     *   A stage that is produced from the icgrid esf_description data
-     *
-     * @tparam Functors - a list of elementary functors (with the intervals already bound). The position in the list
-     *                    corresponds to the color number. If a functor should not be executed for the given color,
-     *                    the correspondent element in the list is `void`
-     */
-    template <class Functors, class Extent, class Args, class LocationType>
-    struct stage {
-        GT_STATIC_ASSERT((meta::all_of<impl_::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
+        template <class Functor, class PlhMap>
+        struct stage {
+            GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
+            using location_t = typename Functor::location;
+            using num_colors_t = typename location_t::n_colors;
 
-        using extent_t = Extent;
-        using n_colors = typename LocationType::n_colors;
-
-        template <uint_t Color, class Functor = meta::at_c<Functors, Color>>
-        struct contains_color : bool_constant<!std::is_void<Functor>::value> {};
-
-        template <uint_t Color, class ItDomain, std::enable_if_t<contains_color<Color>::value, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            using eval_t = impl_::evaluator<ItDomain, Args, LocationType, Color>;
-            using functor_t = meta::at_c<Functors, Color>;
-            eval_t eval{it_domain};
-            functor_t::apply(eval);
-        }
-
-        template <uint_t Color, class ItDomain, std::enable_if_t<!contains_color<Color>::value, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {}
-
-        template <class ItDomain>
-        struct exec_for_color_f {
-            ItDomain &m_domain;
-            template <class Color>
-            GT_FUNCTION void operator()() const {
-                exec<Color::value>(m_domain);
-                m_domain.increment_c();
+            template <class Deref = void, class Ptr, class Strides>
+            GT_FUNCTION void operator()(Ptr ptr, Strides const &strides) const {
+                using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
+                host_device::for_each<meta::make_indices<num_colors_t>>([&](auto color) {
+                    using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
+                    Functor::apply(eval_t{ptr, strides});
+                    sid::shift(ptr, sid::get_stride<dim::c>(strides), integral_constant<int_t, 1>());
+                });
             }
         };
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            static constexpr int_t n_colors = LocationType::n_colors::value;
-            host_device::for_each_type<meta::make_indices_c<n_colors>>(exec_for_color_f<ItDomain>{it_domain});
-            it_domain.increment_c(integral_constant<int_t, -n_colors>{});
-        }
-    };
-
-    template <class Stage, class... Stages>
-    struct compound_stage {
-        using extent_t = typename Stage::extent_t;
-        using n_colors = typename Stage::n_colors;
-
-        GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::n_colors, n_colors>...>::value), GT_INTERNAL_ERROR);
-
-        template <uint_t Color>
-        struct contains_color : disjunction<typename Stage::template contains_color<Color>,
-                                    typename Stages::template contains_color<Color>...> {};
-
-        template <uint_t Color, class ItDomain, std::enable_if_t<contains_color<Color>::value, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            Stage::template exec<Color>(it_domain);
-            (void)(int[]){((void)Stages::template exec<Color>(it_domain), 0)...};
-        }
-
-        template <uint_t Color, class ItDomain, std::enable_if_t<!contains_color<Color>::value, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {}
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
-            Stage::exec(it_domain);
-            (void)(int[]){((void)Stages::exec(it_domain), 0)...};
-        }
-    };
-
-    template <size_t Color>
-    struct stage_contains_color {
-        template <class Stage>
-        struct apply : Stage::template contains_color<Color> {};
-    };
-
-    template <size_t Color>
-    struct stage_group_contains_color {
-        template <class Stages>
-        using apply = meta::any_of<stage_contains_color<Color>::template apply, Stages>;
-    };
+    } // namespace stage_impl_
+    using stage_impl_::stage;
 } // namespace gridtools

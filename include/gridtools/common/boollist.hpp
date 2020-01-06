@@ -48,7 +48,8 @@ namespace gridtools {
       public:
         GT_CONSTEXPR GT_FUNCTION uint_t const &size() const { return m_size; }
 
-        GT_CONSTEXPR GT_FUNCTION bool const &value(uint_t const &id) const { return m_value[id]; }
+        GT_CONSTEXPR GT_FUNCTION bool value(uint_t const &id) const { return m_value[id]; }
+
         GT_CONSTEXPR GT_FUNCTION array<bool, I> const &value() const { return m_value; }
 
         GT_FUNCTION boollist(bool v0) : m_value{v0} {}

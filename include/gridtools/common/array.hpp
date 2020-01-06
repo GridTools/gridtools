@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
+#include <utility>
 
 #include "../meta/id.hpp"
 #include "../meta/macros.hpp"
@@ -111,7 +112,7 @@ namespace gridtools {
 
         struct getter {
             template <size_t I, typename T, size_t D>
-            static GT_FUNCTION GT_CONSTEXPR T &get(array<T, D> &arr) noexcept {
+            static GT_FUNCTION T &get(array<T, D> &arr) noexcept {
                 GT_STATIC_ASSERT(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
@@ -142,6 +143,7 @@ namespace gridtools {
     // in case we need a constexpr version we need to implement a recursive one for c++11
     template <typename T, typename U, size_t D>
     GT_CONSTEXPR GT_FUNCTION bool operator==(gridtools::array<T, D> const &a, gridtools::array<U, D> const &b) {
+#pragma unroll
         for (size_t i = 0; i < D; ++i) {
             if (a[i] != b[i])
                 return false;
@@ -181,7 +183,7 @@ namespace gridtools {
     };
 
     template <size_t I, typename T, size_t D>
-    GT_FUNCTION GT_CONSTEXPR T &get(array<T, D> &arr) noexcept {
+    GT_FUNCTION T &get(array<T, D> &arr) noexcept {
         GT_STATIC_ASSERT(I < D, "index is out of bounds");
         return arr.m_array[I];
     }

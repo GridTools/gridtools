@@ -18,7 +18,6 @@ namespace ico_operators {
     using namespace enumtype;
     using namespace expressions;
 
-    template <uint_t Color>
     struct div_prep_functor {
         using edge_length = in_accessor<0, edges, extent<0, 1, 0, 1>>;
         using cell_area_reciprocal = in_accessor<1, cells>;
@@ -26,11 +25,12 @@ namespace ico_operators {
         using weights = inout_accessor<3, cells, 5>;
 
         using param_list = make_param_list<edge_length, cell_area_reciprocal, orientation_of_normal, weights>;
+        using location = cells;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {
             constexpr dimension<5> edge;
-            constexpr auto neighbors_offsets = connectivity<cells, edges, Color>::offsets();
+            constexpr auto neighbors_offsets = connectivity<cells, edges, Evaluation::color>::offsets();
             int_t e = 0;
             for (auto neighbor_offset : neighbors_offsets) {
                 eval(weights(edge + e)) = eval(orientation_of_normal(edge + e)) * eval(edge_length(neighbor_offset)) *
@@ -40,17 +40,17 @@ namespace ico_operators {
         }
     };
 
-    template <uint_t Color>
     struct div_functor_reduction_into_scalar {
         using in_edges = in_accessor<0, edges, extent<0, 1, 0, 1>>;
         using weights = in_accessor<1, cells, extent<>, 5>;
         using out_cells = inout_accessor<2, cells>;
 
         using param_list = make_param_list<in_edges, weights, out_cells>;
+        using location = cells;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {
-            constexpr auto neighbors_offsets = connectivity<cells, edges, Color>::offsets();
+            constexpr auto neighbors_offsets = connectivity<cells, edges, Evaluation::color>::offsets();
             constexpr dimension<5> edge;
 
             double t = 0;
@@ -63,7 +63,6 @@ namespace ico_operators {
         }
     };
 
-    template <uint_t Color>
     struct div_functor_flow_convention_connectivity {
         using in_edges = in_accessor<0, edges, extent<0, 1, 0, 1>>;
         using edge_length = in_accessor<1, edges, extent<0, 1, 0, 1>>;
@@ -71,15 +70,16 @@ namespace ico_operators {
         using out_cells = inout_accessor<3, cells>;
 
         using param_list = make_param_list<in_edges, edge_length, cell_area_reciprocal, out_cells>;
+        using location = cells;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {
-            constexpr auto neighbors_offsets = connectivity<cells, edges, Color>::offsets();
+            constexpr auto neighbors_offsets = connectivity<cells, edges, Evaluation::color>::offsets();
             double t = 0;
             for (auto neighbor_offset : neighbors_offsets)
                 t += eval(in_edges(neighbor_offset)) * eval(edge_length(neighbor_offset));
 
-            if (Color == 0)
+            if (Evaluation::color == 0)
                 eval(out_cells()) = t * eval(cell_area_reciprocal());
             else
                 eval(out_cells()) = -t * eval(cell_area_reciprocal());

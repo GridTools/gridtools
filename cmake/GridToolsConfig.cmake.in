@@ -7,13 +7,13 @@ message(STATUS "GridTools version @GridTools_VERSION@ found at ${GRIDTOOLS_CONFI
 include(CMakeFindDependencyMacro)
 find_dependency(Boost @REQUIRED_BOOST_VERSION@)
 
-if (@GT_USE_MPI@)
+if(@GT_USE_MPI@)
     find_dependency(MPI COMPONENTS CXX)
     include("@PACKAGE_GRIDTOOLS_MODULE_PATH@/workaround_mpi.cmake")
     _fix_mpi_flags()
 endif()
 
-if (@OPENMP_AVAILABLE@)
+if(@OPENMP_AVAILABLE@)
     find_dependency(OpenMP COMPONENTS CXX)
 endif()
 
@@ -24,15 +24,11 @@ set(GRIDTOOLS_HAS_BACKEND_MC @GT_ENABLE_BACKEND_MC@)
 set(GRIDTOOLS_HAS_BACKEND_X86 @GT_ENABLE_BACKEND_X86@)
 set(GRIDTOOLS_HAS_BACKEND_NAIVE @GT_ENABLE_BACKEND_NAIVE@)
 
-# CUDA workaround
-if(${CMAKE_CUDA_COMPILER_LOADED})
-    if (${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "9.2" AND ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "10.1")
-        target_compile_definitions(GridTools::gridtools INTERFACE BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL)
-        target_compile_definitions(GridTools::gridtools INTERFACE BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE)
-    endif()
+if(@CUDA_AVAILABLE@)
+    set(GRIDTOOLS_CUDA_COMPILATION_TYPE "@GT_CUDA_COMPILATION_TYPE@")
 endif()
 
-if (GRIDTOOLS_ENABLE_PERFORMANCE_METERS)
+if(GRIDTOOLS_ENABLE_PERFORMANCE_METERS)
     target_compile_definitions(GridTools::gridtools INTERFACE GT_ENABLE_METERS)
 endif()
 

@@ -9,78 +9,47 @@
  */
 #pragma once
 
-#include <tuple>
-
 #include "../common/defs.hpp"
-#include "../meta/flatten.hpp"
-#include "../meta/list.hpp"
-#include "../meta/macros.hpp"
-#include "../meta/type_traits.hpp"
-#include "independent_esf.hpp"
+#include "../meta.hpp"
+#include "caches/cache_traits.hpp"
+#include "esf.hpp"
 #include "mss.hpp"
-#include "mss_metafunctions.hpp"
 
 namespace gridtools {
-    namespace _impl {
-        template <class Esf>
-        struct tuple_from_esf {
-            using type = std::tuple<Esf>;
-        };
-        template <class Esfs>
-        struct tuple_from_esf<independent_esf<Esfs>> {
-            using type = Esfs;
-        };
-
-        template <class... Esfs>
-        using tuple_from_esfs = meta::flatten<meta::list<std::tuple<>, typename tuple_from_esf<Esfs>::type...>>;
-
-        template <typename ExecutionEngine, typename... MssParameters>
-        struct check_make_multistage_args : std::true_type {
-            GT_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value),
-                "The first argument passed to make_multistage must be the execution engine (e.g. execute::forward(), "
-                "execute::backward(), execute::parallel()");
-            GT_STATIC_ASSERT(conjunction<is_mss_parameter<MssParameters>...>::value,
-                "wrong set of mss parameters passed to make_multistage construct.\n"
-                "Check that arguments passed are either :\n"
-                " * caches from define_caches(...) construct or\n"
-                " * esf descriptors from make_stage(...) or make_independent(...)");
-        };
-    } // namespace _impl
-
-    /*!
-       \brief Function to create a Multistage Stencil that can then be executed
-       \param esf{i}  i-th Elementary Stencil Function created with ::gridtools::make_stage or a list specified as
-       independent ESF created with ::gridtools::make_independent
-
-       Use this function to create a multi-stage stencil computation
+    /**
+     *  Function to create a Multistage Stencil that can then be executed
      */
-    template <typename ExecutionEngine,
-        typename... MssParameters,
-        // Check argument types before mss_descriptor is instantiated to get nicer error messages
-        bool ArgsOk = _impl::check_make_multistage_args<ExecutionEngine, MssParameters...>::value>
-    mss_descriptor<ExecutionEngine,
-        extract_mss_esfs<MssParameters...>,
-        typename extract_mss_caches<MssParameters...>::type>
-    make_multistage(ExecutionEngine, MssParameters...) {
-        return {};
+    template <class ExecutionEngine, class... Params>
+    constexpr auto make_multistage(ExecutionEngine, Params...) {
+        GT_STATIC_ASSERT(is_execution_engine<ExecutionEngine>::value,
+            "The first argument passed to make_multistage must be the execution engine (e.g. execute::forward(), "
+            "execute::backward(), execute::parallel()");
+
+        GT_STATIC_ASSERT(conjunction<meta::is_list<Params>...>::value, "wrong make_multistage params.");
+
+        using params_t = meta::concat<Params...>;
+        using esfs_t = meta::filter<is_esf_descriptor, params_t>;
+        using caches_t = meta::filter<is_cache, params_t>;
+
+        GT_STATIC_ASSERT(meta::length<esfs_t>::value + meta::length<caches_t>::value == meta::length<params_t>::value,
+            "wrong set of mss parameters passed to make_multistage construct.\n"
+            "Check that arguments passed are either :\n"
+            " * caches from define_caches(...) construct or\n"
+            " * esf descriptors from make_stage(...) or make_independent(...)");
+
+#ifdef GT_DISABLE_CACHING
+        using effective_caches_t = meta::list<>;
+#else
+        using effective_caches_t = caches_t;
+#endif
+        return mss_descriptor<ExecutionEngine, esfs_t, effective_caches_t>{};
     }
 
-    /*!
-       \brief Function to create a list of independent Elementary Stencil Functions
-
-       \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as
-       independent
-
-       Function to create a list of independent Elementary Stencil Functions. This is used to let the library compute
-       tight bounds on blocks to be used by backends
-
-       _impl::tuple_from_esfs is used here to flatten the Esfs within independent_esf. It ensures that nested
-       make_independent calls produces a single independent_esf
-       for example:
-       make_independent(make_independent(f1, f2), f3) will produce independent_esf<tuple<f1, f2, f3>>
-     */
-    template <class Esf1, class Esf2, class... Esfs>
-    independent_esf<_impl::tuple_from_esfs<Esf1, Esf2, Esfs...>> make_independent(Esf1, Esf2, Esfs...) {
+    // Deprecated.
+    template <class... EsfTups>
+    constexpr meta::concat<EsfTups...> make_independent(EsfTups...) {
+        GT_STATIC_ASSERT((conjunction<meta::all_of<is_esf_descriptor, EsfTups>...>::value),
+            "make_independent arguments should be results of make_stage.");
         return {};
     }
 

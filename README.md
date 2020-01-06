@@ -1,6 +1,7 @@
 <a href="https://GridTools.github.io/gridtools"><img src="docs/_static/logo.svg"/></a>
 <br/><br/>
 <a target="_blank" href="https://opensource.org/licenses/BSD-3-Clause">![License: BSD][BSD.License]</a>
+<a target="_blank" href="https://gridtools-slack.herokuapp.com"><img src="https://gridtools-slack.herokuapp.com/badge.svg"></a>
 
 The GridTools framework is a set of libraries and utilities to develop performance portable applications in the area of weather and climate. To achieve the goal of performance portability, the user-code is written in a generic form which is then optimized for a given architecture at compile-time. The core of GridTools is the stencil composition module which implements a DSL embedded in C++ for stencils and stencil-like patterns. Further, GridTools provides modules for halo exchanges, boundary conditions, data management and bindings to C and Fortran.
 
@@ -32,8 +33,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 | Compiler | Backend | Tested on |
 | --- | --- | --- |
-| NVCC 9.2 with GNU 5.3 | cuda | Piz Daint |
-| NVCC 9.2 with Clang 3.8.1 | cuda | Piz Daint |
+| NVCC 10.1 with GNU 6.2 | cuda | Piz Daint |
 | GNU 7.3.0 | x86, mc | Piz Daint |
 | Clang 7.0.1 | x86, mc | Piz Daint |
 

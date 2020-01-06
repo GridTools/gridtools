@@ -18,9 +18,13 @@
 #include "../common/error.hpp"
 #include "../common/functional.hpp"
 #include "../common/host_device.hpp"
+#include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
-#include "../common/tuple_util.hpp"
 #include "../meta.hpp"
+#include "accessor_intent.hpp"
+#include "extent.hpp"
+#include "is_accessor.hpp"
+#include "location_type.hpp"
 
 namespace gridtools {
     namespace accessor_base_impl_ {
@@ -44,16 +48,22 @@ namespace gridtools {
             using type = int_t;
         };
 
-        class check_all_zeros {
-            bool m_dummy;
+        template <class... Ts>
+        using are_ints = conjunction<std::is_convertible<Ts, int_t>...>;
 
-          public:
+        struct check_all_zeros {
+            struct ctor_tag {};
+
+            GT_FUNCTION GT_CONSTEXPR check_all_zeros(ctor_tag) {}
+
             template <class... Ts>
+            GT_FUNCTION GT_CONSTEXPR check_all_zeros(ctor_tag, int_t val, Ts... vals)
+                : check_all_zeros(
+                      error_or_return(val == 0, ctor_tag(), "unexpected non zero accessor offset"), vals...) {}
+
+            template <class... Ts, std::enable_if_t<are_ints<Ts...>::value, int> = 0>
             GT_FUNCTION GT_CONSTEXPR check_all_zeros(Ts... vals)
-                : m_dummy{error_or_return(tuple_util::host_device::all_of(
-                                              host_device::identity{}, array<bool, sizeof...(Ts)>{{(vals == 0)...}}),
-                      false,
-                      "unexpected non zero accessor offset")} {}
+                : check_all_zeros(ctor_tag(), static_cast<int_t>(vals)...) {}
         };
 
         template <size_t Dim, uint_t I, std::enable_if_t<(I > Dim), int> = 0>
@@ -93,82 +103,97 @@ namespace gridtools {
      *  TODO(anstaf) : check offsets against extent
      */
 
-    template <size_t Dim, class = std::make_index_sequence<Dim>>
+    template <uint_t Id, intent Intent, class Extent, size_t Dim, class = std::make_index_sequence<Dim>>
     class accessor_base;
 
-    template <size_t Dim, size_t... Is>
-    class accessor_base<Dim, std::index_sequence<Is...>> : public array<int_t, Dim> {
+    template <uint_t Id, intent Intent, class Extent, size_t Dim, size_t... Is>
+    class accessor_base<Id, Intent, Extent, Dim, std::index_sequence<Is...>> : public array<int_t, Dim> {
         using base_t = array<int_t, Dim>;
 
         template <class... Ts>
         GT_FUNCTION GT_CONSTEXPR accessor_base(accessor_base_impl_::check_all_zeros, Ts... offsets)
-            : base_t{{offsets...}} {}
+            : base_t({offsets...}) {}
 
       public:
-        GT_FUNCTION GT_CONSTEXPR accessor_base() : base_t{{}} {}
+        using index_t = integral_constant<uint_t, Id>;
+        static constexpr intent intent_v = Intent;
+        using extent_t = Extent;
+        using location_t = enumtype::default_location_type;
+
+        GT_FUNCTION GT_CONSTEXPR accessor_base() : base_t({}) {}
+
+        GT_FUNCTION GT_CONSTEXPR accessor_base(base_t src) : base_t(wstd::move(src)) {}
 
         template <class... Ts,
             std::enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
-        GT_FUNCTION GT_CONSTEXPR accessor_base(Ts... offsets) : base_t{{offsets...}} {}
-
-        GT_FUNCTION GT_CONSTEXPR accessor_base(base_t const &src) : base_t{src} {}
+        GT_FUNCTION GT_CONSTEXPR accessor_base(Ts... offsets) : base_t({offsets...}) {}
 
 #ifndef NDEBUG
-        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts... zeros)
-            : accessor_base{accessor_base_impl_::check_all_zeros{zeros...}, offsets...} {}
+            : accessor_base(accessor_base_impl_::check_all_zeros(zeros...), offsets...) {}
 
         template <uint_t J, uint_t... Js>
         GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> src, dimension<Js>... srcs)
-            : accessor_base{accessor_base_impl_::check_all_zeros{accessor_base_impl_::out_of_range_dim<Dim>(src),
-                                accessor_base_impl_::out_of_range_dim<Dim>(srcs)...},
-                  accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...} {
+            : accessor_base(accessor_base_impl_::check_all_zeros(accessor_base_impl_::out_of_range_dim<Dim>(src),
+                                accessor_base_impl_::out_of_range_dim<Dim>(srcs)...),
+                  accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...) {
             GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value),
                 "all dimensions should be of different indicies");
         }
 #else
-        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(typename accessor_base_impl_::just_int<Is>::type... offsets, Ts...)
-            : base_t{{offsets...}} {}
+            : base_t({offsets...}) {}
 
         template <uint_t J, uint_t... Js>
         GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> src, dimension<Js>... srcs)
-            : base_t{{accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...}} {
+            : base_t({accessor_base_impl_::pick_dimension<Is + 1>(src, srcs...)...}) {
             GT_STATIC_ASSERT((meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value),
                 "all dimensions should be of different indicies");
         }
 #endif
     };
 
-    template <>
-    class accessor_base<0, std::index_sequence<>> : public tuple<> {
+    template <uint_t Id, class Extent, intent Intent>
+    class accessor_base<Id, Intent, Extent, 0, std::index_sequence<>> : public tuple<> {
         template <class... Ts>
         GT_FUNCTION GT_CONSTEXPR accessor_base(accessor_base_impl_::check_all_zeros) {}
 
       public:
+        GT_STATIC_ASSERT((std::is_same<Extent, extent<>>::value), GT_INTERNAL_ERROR);
+
+        using index_t = integral_constant<uint_t, Id>;
+        static constexpr intent intent_v = Intent;
+        using extent_t = Extent;
+        using location_t = enumtype::default_location_type;
+
         GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor_base);
 
-        GT_FUNCTION GT_CONSTEXPR accessor_base(array<int_t, 0> const &) {}
-
 #ifndef NDEBUG
-        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(Ts... zeros)
-            : accessor_base{accessor_base_impl_::check_all_zeros {
-                  zeros...
-              }} {}
+            : accessor_base(accessor_base_impl_::check_all_zeros(zeros...)) {}
 
         template <uint_t J, uint_t... Js>
         GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> zero, dimension<Js>... zeros)
-            : accessor_base{accessor_base_impl_::check_all_zeros {
-                  zero.value,
-                  zeros.value...
-              }} {}
+            : accessor_base(accessor_base_impl_::check_all_zeros(zero.value, zeros.value...)) {}
 #else
-        template <class... Ts, std::enable_if_t<conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
+        template <class... Ts, std::enable_if_t<accessor_base_impl_::are_ints<Ts...>::value, int> = 0>
         GT_FUNCTION GT_CONSTEXPR accessor_base(Ts...) {}
 
         template <uint_t J, uint_t... Js>
         GT_FUNCTION GT_CONSTEXPR accessor_base(dimension<J> zero, dimension<Js>... zeros) {}
 #endif
     };
+
+    template <uint_t ID, intent Intent, typename Extent, size_t Number>
+    meta::repeat_c<Number, int_t> tuple_to_types(accessor_base<ID, Intent, Extent, Number> const &);
+
+    template <uint_t ID, intent Intent, typename Extent, size_t Number>
+    meta::always<accessor_base<ID, Intent, Extent, Number>> tuple_from_types(
+        accessor_base<ID, Intent, Extent, Number> const &);
+
+    template <uint_t ID, intent Intent, typename Extent, size_t Number, class Seq>
+    struct is_accessor<accessor_base<ID, Intent, Extent, Number, Seq>> : std::true_type {};
 } // namespace gridtools

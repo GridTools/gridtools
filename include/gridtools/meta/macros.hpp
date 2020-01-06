@@ -12,7 +12,7 @@
 
 #include <type_traits>
 
-#include <boost/preprocessor.hpp>
+#include <boost/preprocessor/punctuation/remove_parens.hpp>
 
 #define GT_META_DELEGATE_TO_LAZY(fun, signature, args) \
     template <BOOST_PP_REMOVE_PARENS(signature)>       \
@@ -22,7 +22,7 @@
  *  NVCC bug workaround: sizeof... works incorrectly within template alias context.
  */
 #if defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 10 || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ < 2))
+    (__CUDACC_VER_MAJOR__ < 10 || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ < 3))
 
 namespace gridtools {
     namespace meta {

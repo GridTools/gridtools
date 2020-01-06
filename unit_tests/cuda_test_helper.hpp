@@ -44,12 +44,13 @@ namespace gridtools {
         __global__ void kernel(Res *res, Fun fun, Args... args) {
             *res = fun(args...);
         }
-        template <class Fun, class... Args, class Res = std::decay_t<std::result_of_t<Fun(Args...)>>>
-        Res exec_with_shared_memory(size_t shm_size, Fun fun, Args... args) {
+        template <class Fun, class... Args>
+        auto exec_with_shared_memory(size_t shm_size, Fun fun, Args... args) {
             static_assert(!std::is_pointer<Fun>::value, "");
             static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");
-            static_assert(std::is_trivially_copyable<Res>::value, "");
-            auto res = cuda_util::cuda_malloc<Res>();
+            using res_t = std::decay_t<decltype(fun(args...))>;
+            static_assert(std::is_trivially_copyable<res_t>::value, "");
+            auto res = cuda_util::cuda_malloc<res_t>();
             kernel<<<1, 1, shm_size>>>(res.get(), fun, args...);
             GT_CUDA_CHECK(cudaDeviceSynchronize());
             return cuda_util::from_clone(res);

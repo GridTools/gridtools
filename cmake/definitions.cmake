@@ -17,7 +17,7 @@ add_library(GridTools::gridtools ALIAS gridtools)
 target_compile_features(gridtools INTERFACE cxx_std_14)
 target_include_directories(gridtools
     INTERFACE
-      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
+      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
     )
 install(TARGETS gridtools EXPORT GridToolsTargets
@@ -41,21 +41,34 @@ endif()
 target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
 if(CUDA_AVAILABLE)
     target_compile_definitions(gridtools INTERFACE GT_USE_GPU)
-    if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 9.0)
-        message(FATAL_ERROR "CUDA 8.X or lower is not supported")
+    if(GT_CUDA_COMPILATION_TYPE STREQUAL "NVCC-CUDA")
+        if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 9.0)
+            message(FATAL_ERROR "CUDA 8.X or lower is not supported")
+        endif()
+
+        # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
+        target_compile_options(gridtools INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+
+        if(${GT_CXX_STANDARD} STREQUAL "c++17")
+            message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
+        endif()
+    elseif(GT_CUDA_COMPILATION_TYPE STREQUAL "Clang-CUDA")
+        get_filename_component(cuda_bin_dir_ ${CMAKE_CUDA_COMPILER} DIRECTORY)
+        get_filename_component(cuda_root_dir_ ${cuda_bin_dir_} DIRECTORY)
+        set(clang_cuda_options_ -xcuda --cuda-gpu-arch=${GT_CUDA_ARCH} --cuda-path=${cuda_root_dir_})
+        target_compile_options(gridtools INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${clang_cuda_options_}>)
+    elseif(GT_CUDA_COMPILATION_TYPE STREQUAL "HIPCC-AMDGPU")
+        set(hipcc_options_ -xhip --amdgpu-target=${GT_CUDA_ARCH})
+        target_compile_options(gridtools INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${hipcc_options_}>)
+        target_compile_definitions(gridtools INTERFACE GT_USE_HIP)
     endif()
 
-    # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
-    target_compile_options(gridtools INTERFACE
-        $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
-
-    if(${GT_CXX_STANDARD} STREQUAL "c++17")
-      message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
+    if(GT_CUDA_COMPILATION_TYPE MATCHES ".*CUDA")
+        target_include_directories( gridtools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
+        target_link_libraries( gridtools INTERFACE ${CUDA_CUDART_LIBRARY} )
     endif()
-
-    target_include_directories(gridtools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    target_link_libraries(gridtools INTERFACE ${CUDA_CUDART_LIBRARY})
-  endif()
+endif()
 
 if(MPI_AVAILABLE)
     target_compile_definitions(gridtools INTERFACE GCL_MPI)
@@ -65,10 +78,6 @@ if(MPI_AVAILABLE)
 endif()
 
 add_library(GridToolsTest INTERFACE)
-# NOTE: The CUDA workaround can only be applied to the test because it cannot work
-# with generator expressions. Thus, this needs to be redone in the Config.cmake.in.
-include(workaround_cuda)
-_workaround_cuda(GridToolsTest)
 target_link_libraries(GridToolsTest INTERFACE gridtools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
@@ -129,9 +138,7 @@ if(GT_ENABLE_BACKEND_CUDA)
             $<$<COMPILE_LANGUAGE:CUDA>:-Werror=deprecated-declarations>)
     endif()
 
-    # suppress because of boost::fusion::vector ctor
-    target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
-    if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL 9.2)
+    if (GT_CUDA_COMPILATION_TYPE STREQUAL "NVCC-CUDA" AND CMAKE_CUDA_COMPILER_VERSION VERSION_LESS_EQUAL 9.2)
         # suppress because of warnings in GTest
         target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=177>)
     endif()
@@ -172,7 +179,7 @@ endif()
 ## caching ##
 if(NOT GT_TESTS_ENABLE_CACHING)
     # TODO this should be exposed to find_package (GT_ENABLE_CACHING)
-    target_compile_definitions(GridToolsTest GT_DISABLE_CACHING)
+    target_compile_definitions(GridToolsTest INTERFACE GT_DISABLE_CACHING)
 endif()
 
 # add a target to generate API documentation with Doxygen

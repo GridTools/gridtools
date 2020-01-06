@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>User Manual &mdash; GridTools 1.0.0 documentation</title>
+  <title>User Manual &mdash; GridTools 1.1.0 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0
+                1.1
               </div>
             
           
@@ -123,6 +123,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#composition-of-stencils">Composition of Stencils</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#selecting-the-backend">Selecting the Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#type-erasure">Type-erasure</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#advanced-functionality">Advanced Functionality</a><ul>
@@ -150,8 +151,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#halo-exchanges">Halo Exchanges</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id17">Introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id18">Preliminaries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id18">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id19">Preliminaries</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#processor-grid">Processor Grid</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#layout-map">Layout Map</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#halo-descriptor">Halo Descriptor</a></li>
@@ -269,32 +270,32 @@ backend, with no halos and identifier <cite>0</cite> as follows:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/storage/storage_traits_cuda.hpp&gt;</span><span class="cp"></span>
 <span class="k">namespace</span> <span class="n">gt</span> <span class="o">=</span> <span class="n">gridtools</span><span class="p">;</span>
 <span class="k">using</span> <span class="n">backend_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="n">backend</span><span class="o">::</span><span class="n">cuda</span><span class="p">;</span> <span class="c1">// or gt::backend::mc or gt::backend::x86</span>
-<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;::</span><span class="n">select_storage_info</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="mi">3</span> <span class="cm">/* dims */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;::</span><span class="n">storage_info_t</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="mi">3</span> <span class="cm">/* dims */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 <span class="n">storage_info_t</span> <span class="n">si</span><span class="p">{</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">};</span>
 </pre></div>
 </div>
-<p>Be aware that the identifier used in <cite>select_storage_info</cite> must uniquely determine the type of the storage info and the
+<p>Be aware that the identifier used in <cite>storage_info_t</cite> must uniquely determine the type of the storage info and the
 actual instantiation with sizes.</p>
 <p>The traits class has several ways how a storage info type can be inferred:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">select_storage_info&lt;Id,</span> <span class="pre">Dims,</span> <span class="pre">gt::halo&lt;...&gt;&gt;</span></code> returns the default storage info for a certain backend.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">select_custom_layout_storage_info&lt;Id,</span> <span class="pre">gt::layout&lt;...&gt;,</span> <span class="pre">gt::halo&lt;...&gt;&gt;</span></code> lets you specify the exact layout map (see
+<li><p><code class="docutils literal notranslate"><span class="pre">storage_info_t&lt;Id,</span> <span class="pre">Dims,</span> <span class="pre">gt::halo&lt;...&gt;&gt;</span></code> returns the default storage info for a certain backend.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">custom_layout_storage_info_t&lt;Id,</span> <span class="pre">gt::layout&lt;...&gt;,</span> <span class="pre">gt::halo&lt;...&gt;&gt;</span></code> lets you specify the exact layout map (see
 below) of the storage. Keep in mind that the default layout should have best performance on the target architecture.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">select_special_storage_info&lt;Id,</span> <span class="pre">gt::selector&lt;...&gt;,</span> <span class="pre">gt::halo&lt;...&gt;&gt;</span></code> lets you select a default storage info
+<li><p><code class="docutils literal notranslate"><span class="pre">special_storage_info_t&lt;Id,</span> <span class="pre">gt::selector&lt;...&gt;,</span> <span class="pre">gt::halo&lt;...&gt;&gt;</span></code> lets you select a default storage info
 for a certain backend, but you can mask certain dimensions. For example <code class="docutils literal notranslate"><span class="pre">gt::selector&lt;0,</span> <span class="pre">0,</span> <span class="pre">1&gt;</span></code> will result in a
 three-dimensional storage where all dimensions except in k-direction are masked. The layout will be optimized for the
 chosen backend.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">select_storage_info_align&lt;Id,</span> <span class="pre">Dims,</span> <span class="pre">gt::halo&lt;...&gt;,</span> <span class="pre">Alignment&gt;</span></code> lets you select a default storage info for a
+<li><p><code class="docutils literal notranslate"><span class="pre">storage_info_align_t&lt;Id,</span> <span class="pre">Dims,</span> <span class="pre">gt::halo&lt;...&gt;,</span> <span class="pre">Alignment&gt;</span></code> lets you select a default storage info for a
 certain backend, but with a non-default alignment requirement.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">select_custom_layout_storage_info_align&lt;Id,</span> <span class="pre">gt::layout&lt;...&gt;,</span> <span class="pre">gt::halo&lt;...&gt;,</span> <span class="pre">Alignment&gt;</span></code> lets you specify
+<li><p><code class="docutils literal notranslate"><span class="pre">custom_layout_storage_info_align_t&lt;Id,</span> <span class="pre">gt::layout&lt;...&gt;,</span> <span class="pre">gt::halo&lt;...&gt;,</span> <span class="pre">Alignment&gt;</span></code> lets you specify
 the exact layout of the storage and the alignment requirement.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">select_special_storage_info_align&lt;Id,</span> <span class="pre">gt::selector&lt;...&gt;,</span> <span class="pre">gt::halo&lt;...&gt;,</span> <span class="pre">Alignment&gt;</span></code> lets you mask certain
+<li><p><code class="docutils literal notranslate"><span class="pre">special_storage_info_align_t&lt;Id,</span> <span class="pre">gt::selector&lt;...&gt;,</span> <span class="pre">gt::halo&lt;...&gt;,</span> <span class="pre">Alignment&gt;</span></code> lets you mask certain
 dimensions and you can specify the alignment requirement.</p></li>
 </ul>
 <p><a class="reference internal" href="#fig-storage-info"><span class="std std-numref">Fig. 3</span></a> shows a depiction of the <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> compile-time data.</p>
-<div class="figure align-center" id="id22">
+<div class="figure align-default" id="id24">
 <span id="fig-storage-info"></span><a class="reference internal image-reference" href="../_images/storage_info.png"><img alt="../_images/storage_info.png" src="../_images/storage_info.png" style="width: 238.79999999999998px; height: 157.79999999999998px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">Storage info and associated compile-time data.</span><a class="headerlink" href="#id22" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">Storage info and associated compile-time data.</span><a class="headerlink" href="#id24" title="Permalink to this image">¶</a></p>
 </div>
 <ul>
 <li><p><strong>Id</strong>: A unique identifier for the storage info type</p>
@@ -322,7 +323,7 @@ represents a I-K-plane) and the I-dimension is unit stride.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/storage/storage_traits_cuda.hpp&gt;</span><span class="cp"></span>
 <span class="k">namespace</span> <span class="n">gt</span> <span class="o">=</span> <span class="n">gridtools</span><span class="p">;</span>
 <span class="k">using</span> <span class="n">backend_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="n">backend</span><span class="o">::</span><span class="n">cuda</span><span class="p">;</span>
-<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;::</span><span class="n">select_custom_layout_storage_info</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">layout</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;::</span><span class="n">custom_layout_storage_info_t</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">layout</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 <span class="n">storage_info_t</span> <span class="n">si</span><span class="p">{</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">};</span>
 </pre></div>
 </div>
@@ -333,7 +334,7 @@ storage which is masked in <code class="docutils literal notranslate"><span clas
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/storage/storage_traits_cuda.hpp&gt;</span><span class="cp"></span>
 <span class="k">namespace</span> <span class="n">gt</span> <span class="o">=</span> <span class="n">gridtools</span><span class="p">;</span>
 <span class="k">using</span> <span class="n">backend_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="n">backend</span><span class="o">::</span><span class="n">cuda</span><span class="p">;</span>
-<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;::</span><span class="n">select_special_storage_info</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">selector</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;::</span><span class="n">special_storage_info_t</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">selector</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 <span class="n">storage_info_t</span> <span class="n">si</span><span class="p">{</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">};</span>
 </pre></div>
 </div>
@@ -357,7 +358,7 @@ be aligned.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/storage/storage_traits_cuda.hpp&gt;</span><span class="cp"></span>
 <span class="k">namespace</span> <span class="n">gt</span> <span class="o">=</span> <span class="n">gridtools</span><span class="p">;</span>
 <span class="k">using</span> <span class="n">backend_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="n">backend</span><span class="o">::</span><span class="n">cuda</span><span class="p">;</span>
-<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;::</span><span class="n">select_storage_info</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="mi">3</span> <span class="cm">/* dims */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="n">gt</span><span class="o">::</span><span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;::</span><span class="n">storage_info_t</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="mi">3</span> <span class="cm">/* dims */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 <span class="n">storage_info_t</span> <span class="n">si</span><span class="p">{</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">};</span>
 </pre></div>
 </div>
@@ -366,23 +367,23 @@ be aligned.</p>
 <p>A visual representation of the storage info is given in <a class="reference internal" href="#fig-storage-info-example"><span class="std std-numref">Fig. 4</span></a>. The allocated memory starts
 at the bottom. The allocation starts with some padding (due to the alignment requirements). The compute domain (yellow)
 is surrounded by a halo region (green).</p>
-<div class="figure align-center" id="id23">
+<div class="figure align-default" id="id25">
 <span id="fig-storage-info-example"></span><a class="reference internal image-reference" href="../_images/storage_info_example.png"><img alt="../_images/storage_info_example.png" src="../_images/storage_info_example.png" style="width: 524.0px; height: 246.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Example storage info.</span><a class="headerlink" href="#id23" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Example storage info.</span><a class="headerlink" href="#id25" title="Permalink to this image">¶</a></p>
 </div>
 <p><strong>Interface</strong>: A <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> object provides methods for querying the meta data.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points in dimension
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">total_length()</span> <span class="pre">const</span></code>: retrieve the total number of data points in dimension
 <code class="docutils literal notranslate"><span class="pre">D</span></code> dimensions</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;int</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">int</span> <span class="pre">stride()</span> <span class="pre">const</span></code>: retrieve the stride in dimension <code class="docutils literal notranslate"><span class="pre">D</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;int</span> <span class="pre">D&gt;</span> <span class="pre">int</span> <span class="pre">stride()</span> <span class="pre">const</span></code>: retrieve the stride in dimension <code class="docutils literal notranslate"><span class="pre">D</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">array&lt;uint_t,</span> <span class="pre">ndims&gt;</span> <span class="pre">&amp;total_lengths()</span> <span class="pre">const</span></code>: return the array of total number of data points in each
 direction</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">array&lt;uint_t,</span> <span class="pre">ndims&gt;</span> <span class="pre">&amp;strides()</span> <span class="pre">const</span></code>: return the array of (aligned) strides.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">begin()</span> <span class="pre">const</span></code>: retrieve the position of the first non halo point in dimension <cite>D</cite></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">end()</span> <span class="pre">const</span></code>: retrieve the position of the last non halo point in dimension <cite>D</cite></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">total_begin()</span> <span class="pre">const</span></code>: retrieve the position of the first point (can also be a
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">begin()</span> <span class="pre">const</span></code>: retrieve the position of the first non halo point in dimension <cite>D</cite></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">end()</span> <span class="pre">const</span></code>: retrieve the position of the last non halo point in dimension <cite>D</cite></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">total_begin()</span> <span class="pre">const</span></code>: retrieve the position of the first point (can also be a
 halo point) in dimension <code class="docutils literal notranslate"><span class="pre">D</span></code> (always <code class="docutils literal notranslate"><span class="pre">0</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">constexpr</span> <span class="pre">uint_t</span> <span class="pre">total_end()</span> <span class="pre">const</span></code>: retrieve the position of the last point (can also be a
+<li><p><code class="docutils literal notranslate"><span class="pre">template</span> <span class="pre">&lt;uint_t</span> <span class="pre">D&gt;</span> <span class="pre">uint_t</span> <span class="pre">total_end()</span> <span class="pre">const</span></code>: retrieve the position of the last point (can also be a
 halo point) in dimension <code class="docutils literal notranslate"><span class="pre">D</span></code></p></li>
 </ul>
 </div>
@@ -395,12 +396,12 @@ purpose of the <code class="docutils literal notranslate"><span class="pre">data
 and original and copy will point to the same data.</p>
 <p>When a data store is used on an accelerator, it has two copies of the data, one copy resides in the memory of the host
 system, and a second copy resides in the memory of the accelerator (target system).</p>
-<div class="figure align-center" id="id24">
+<div class="figure align-default" id="id26">
 <span id="fig-data-store"></span><a class="reference internal image-reference" href="../_images/data_store.png"><img alt="../_images/data_store.png" src="../_images/data_store.png" style="width: 348.8px; height: 360.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text"><a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> and associated compile-time data.</span><a class="headerlink" href="#id24" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text"><a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> and associated compile-time data.</span><a class="headerlink" href="#id26" title="Permalink to this image">¶</a></p>
 </div>
 <p>The type of a <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> combines a <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> type and the underlying type. Given a <code class="docutils literal notranslate"><span class="pre">storage_info_t</span></code>,
-the proper type for the data store can be retrieved using <code class="docutils literal notranslate"><span class="pre">storage_traits&lt;Backend&gt;::select_storage</span></code>:</p>
+the proper type for the data store can be retrieved using <code class="docutils literal notranslate"><span class="pre">storage_traits&lt;Backend&gt;::data_store_t</span></code>:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">data_store_t</span> <span class="o">=</span> <span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">Backend</span><span class="o">&gt;::</span><span class="n">data_store_t</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span> <span class="n">storage_info_t</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -409,7 +410,7 @@ Following codes snippets show how <a class="reference internal" href="../glossar
 the memory management is done externally or not. If it is done externally the <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> won’t allocate nor
 deallocate the memory. The standard use-case is to use managed <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Stores</span></a>. The <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a>
 can be initialized with a value or a lambda and can optionally be named by passing an additional string.</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend</span><span class="o">::</span><span class="n">mc</span><span class="o">&gt;::</span><span class="n">select_storage_info</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="mi">2</span> <span class="cm">/* dims */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend</span><span class="o">::</span><span class="n">mc</span><span class="o">&gt;::</span><span class="n">storage_info_t</span><span class="o">&lt;</span><span class="mi">0</span> <span class="cm">/* id */</span><span class="p">,</span> <span class="mi">2</span> <span class="cm">/* dims */</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 <span class="k">using</span> <span class="n">data_store_t</span> <span class="o">=</span> <span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend</span><span class="o">::</span><span class="n">mc</span><span class="o">&gt;::</span><span class="n">data_store_t</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span> <span class="n">storage_info_t</span><span class="o">&gt;</span><span class="p">;</span>
 
 <span class="n">storage_info_t</span> <span class="nf">si</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="c1">// 4 data points + 2 halo points in I, 3 data points and 0 halo points in J</span>
@@ -506,7 +507,7 @@ memory space (e.g., GPU). If target and host share the memory space, host and ta
 <span class="p">}</span>
 <span class="p">...</span>
 <span class="c1">// instantiate a data_store</span>
-<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend</span><span class="o">::</span><span class="n">cuda</span><span class="o">&gt;::</span><span class="n">select_storage_info</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
+<span class="k">using</span> <span class="n">storage_info_t</span> <span class="o">=</span> <span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend</span><span class="o">::</span><span class="n">cuda</span><span class="o">&gt;::</span><span class="n">storage_info_t</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">gt</span><span class="o">::</span><span class="n">halo</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 <span class="k">using</span> <span class="n">data_store_t</span> <span class="o">=</span> <span class="k">storage_traits</span><span class="o">&lt;</span><span class="n">backend</span><span class="o">::</span><span class="n">mc</span><span class="o">&gt;::</span><span class="n">data_store_t</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span> <span class="n">storage_info_t</span><span class="o">&gt;</span><span class="p">;</span>
 
 <span class="n">storage_info_t</span> <span class="nf">si</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">);</span>
@@ -581,18 +582,9 @@ they are inlined.</p></li>
 <p>See the <a class="reference internal" href="#stencil-operator-example"><span class="std std-ref">Example</span></a> for a concrete usage of the syntax of the stencil operators.</p>
 <div class="section" id="accessor-type">
 <h3>Accessor Type<a class="headerlink" href="#accessor-type" title="Permalink to this headline">¶</a></h3>
-<p>There are two kinds of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a>:</p>
-<ul class="simple">
-<li><p>Regular <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">accessors</span></a> indicate an access to a regular <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> of a <a class="reference internal" href="../glossary/glossary.html#term-grid"><span class="xref std std-term">Grid</span></a>.</p></li>
-<li><p>Global accessors indicate that the data to be referred does not participate in the iteration
-and always point to a same <em>read only</em> datum to be used in the operator, which is hold in a <a class="reference internal" href="../glossary/glossary.html#term-global-parameter"><span class="xref std std-term">Global Parameter</span></a>.</p></li>
-</ul>
+<p><a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">accessors</span></a> indicate an access to a <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a> of a <a class="reference internal" href="../glossary/glossary.html#term-grid"><span class="xref std std-term">Grid</span></a>.</p>
 <p>Accessors are defined as follows:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="c1">// regular accessors</span>
-<span class="k">using</span> <span class="n">name</span> <span class="o">=</span> <span class="k">accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="k">intent</span><span class="p">,</span> <span class="p">[</span><span class="k">extent</span> <span class="o">=</span> <span class="k">extent</span><span class="o">&lt;&gt;</span><span class="p">,</span> <span class="n">N</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-
-<span class="c1">// global accessor</span>
-<span class="k">using</span> <span class="n">name</span> <span class="o">=</span> <span class="k">global_accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">name</span> <span class="o">=</span> <span class="k">accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="k">intent</span><span class="p">,</span> <span class="p">[</span><span class="k">extent</span> <span class="o">=</span> <span class="k">extent</span><span class="o">&lt;&gt;</span><span class="p">,</span> <span class="n">N</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>where</p>
@@ -601,9 +593,7 @@ and always point to a same <em>read only</em> datum to be used in the operator, 
 operator. The name of an accessor is only used within the stencil.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">I</span></code> is an integral index. The indices of the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> in a given stencil operators <em>must</em> be
 in the range from 0 to N - 1, where N is the number of <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessors</span></a> used by the stencil operator. No
-index can appear twice. If these rules are not followed the compilation fails.</p>
-<p>For global accessors, the index is the only argument.</p>
-</li>
+index can appear twice. If these rules are not followed the compilation fails.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">intent</span></code> indicates the type of access the stencil operator makes to the data associated to the <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a>.
 Possible values are</p>
 <ol class="arabic simple">
@@ -627,7 +617,7 @@ pair must be non-positive and indicates the maximum offset in the direction of <
 direction*). The second number must be non-negative and indicates the maximum offset in the direction of
 <em>increasing</em> indices (also called plus direction*). Numbers can be ommitted and default to zero.</p>
 <p>Example:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">my_accessor</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">my_accessor</span> <span class="o">=</span> <span class="k">inout_accessor</span><span class="o">&lt;</span><span class="n">I</span><span class="p">,</span> <span class="k">extent</span><span class="o">&lt;-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>This accessor guarantees that at most one element in negative and positive i-direction will be accessed (i.e. we will
@@ -641,7 +631,8 @@ certain configuration this might lead to erroneous results. Extents bigger than 
 implementation will potentially result in performance loss.</p>
 </div>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">N</span></code> identifies the number of dimensions of the <a class="reference internal" href="../glossary/glossary.html#term-data-store"><span class="xref std std-term">Data Store</span></a>. By default this value is set to 3.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">N</span></code> identifies the dimension of the offsets that are used with the given accessor. The default is calculated from
+the <cite>extent&lt;&gt;</cite> parameter.</p></li>
 </ul>
 </div>
 <div class="section" id="accessor-aliases">
@@ -764,7 +755,7 @@ into a field, it must not access this field with non-zero horizontal offset.</p>
 </div>
 <div class="section" id="expressions">
 <h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
-<div class="admonition-todo admonition" id="index-0">
+<div class="admonition-todo admonition" id="id7">
 <p class="admonition-title">Todo</p>
 <p>Should we remove the expressions namespace? Why should we forbid this functionality in certain cases?</p>
 </div>
@@ -784,7 +775,7 @@ have some negative impact on compilation time.</p>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">expressions</span></code>-namespace has overloads for common operations on accessors, namely <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>,
 <code class="docutils literal notranslate"><span class="pre">pow&lt;&gt;</span></code>. Using those operations with accessors creates an expression that can be evaluated using <code class="docutils literal notranslate"><span class="pre">eval</span></code>. An
-extensive example of its usage, demonstrating its effectiveness, can be found in the <a class="reference external" href="https://github.com/eth-cscs/gridtools/blob/master/regression/shallow_water_enhanced.hpp">shallow water implementation</a>.</p>
+extensive example of its usage, demonstrating its effectiveness, can be found in the <a class="reference external" href="https://github.com/GridTools/gridtools/blob/master/regression/shallow_water_enhanced.hpp">shallow water implementation</a>.</p>
 <p>Note that those expressions can also be used to lazily evaluate expressions. This provides a way to reuse expressions in
 your code:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">namespace</span> <span class="n">expressions</span><span class="p">;</span>
@@ -801,7 +792,7 @@ your code:</p>
 </div>
 </div>
 <div class="section" id="execution-model">
-<span id="id7"></span><h2>Execution Model<a class="headerlink" href="#execution-model" title="Permalink to this headline">¶</a></h2>
+<span id="id8"></span><h2>Execution Model<a class="headerlink" href="#execution-model" title="Permalink to this headline">¶</a></h2>
 <p>Stencil operations are executed in a three dimensional <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration space</span></a>. The first two dimensions of the
 iteration space, usually referred to as <cite>I</cite> and <cite>J</cite> dimensions identify the horizontal dimension. There is no
 prescription on in what order stencil operators in different points of the same <cite>IJ</cite> plane will be executed. Stencil
@@ -819,7 +810,8 @@ where <cite>order</cite> is one of the <cite>K</cite> dimension execution orders
 <p>The parallel execution policy allows for tuning the degree of parallelism (in the CUDA backend), by selecting
 <code class="docutils literal notranslate"><span class="pre">execute::parallel_block&lt;vertical_block_size&gt;</span></code>, where <code class="docutils literal notranslate"><span class="pre">vertical_block_size</span></code> describes the dimension of CUDA block
 in the vertical (a too high value e.g. each k-level in a separate CUDA-thread might result in a too low instruction level
-parallelism and therefore in non-optimal performance).</p>
+parallelism and therefore in non-optimal performance). The default vertical bock size can be set by defining the macro
+<code class="docutils literal notranslate"><span class="pre">GT_DEFAULT_VERTICAL_BLOCK_SIZE</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The option to specify the vertical block size will most likely be moved to the backend in the future,
@@ -855,7 +847,7 @@ non-parallel policy. For example, you must not access such a field with <code cl
 </div>
 </div>
 <div class="section" id="stencil-composition">
-<span id="id8"></span><h2>Stencil Composition<a class="headerlink" href="#stencil-composition" title="Permalink to this headline">¶</a></h2>
+<span id="id9"></span><h2>Stencil Composition<a class="headerlink" href="#stencil-composition" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="preparing-arguments-storage-placeholders">
 <span id="placeholders"></span><h3>Preparing Arguments: Storage Placeholders<a class="headerlink" href="#preparing-arguments-storage-placeholders" title="Permalink to this headline">¶</a></h3>
 <p>To allow naming arguments, that are passed to stencil computations, at compile
@@ -905,7 +897,7 @@ we cover how to define the <a class="reference internal" href="../glossary/gloss
 <p><cite>GridTools</cite> offers a set of functions which ease the construction of the <code class="docutils literal notranslate"><span class="pre">grid</span></code>:</p>
 <dl class="function">
 <dt id="_CPPv49make_gridiii">
-<span id="_CPPv39make_gridiii"></span><span id="_CPPv29make_gridiii"></span><span id="make_grid__i.i.i"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>int <em>size_i</em>, int <em>size_j</em>, int <em>size_k</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_gridiii" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv39make_gridiii"></span><span id="_CPPv29make_gridiii"></span><span id="make_grid__i.i.i"></span>grid <code class="sig-name descname">make_grid</code><span class="sig-paren">(</span>int <em>size_i</em>, int <em>size_j</em>, int <em>size_k</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_gridiii" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The simplest <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> will iterate the cube defined by the <a class="reference internal" href="../glossary/glossary.html#term-vertical-interval"><span class="xref std std-term">Vertical Intervals</span></a> <code class="docutils literal notranslate"><span class="pre">[0,</span>
 <span class="pre">size_i-1]</span></code>, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_j-1]</span></code>, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">size_k-1]</span></code>. This function must only be used if all stages used within the
 computation have zero extents.</p>
@@ -913,7 +905,7 @@ computation have zero extents.</p>
 
 <dl class="function">
 <dt id="_CPPv49make_grid15halo_descriptor15halo_descriptori">
-<span id="_CPPv39make_grid15halo_descriptor15halo_descriptori"></span><span id="_CPPv29make_grid15halo_descriptor15halo_descriptori"></span><span id="make_grid__halo_descriptor.halo_descriptor.i"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>halo_descriptor <em>halo_i</em>, halo_descriptor <em>halo_j</em>, int <em>size_z</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_grid15halo_descriptor15halo_descriptori" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv39make_grid15halo_descriptor15halo_descriptori"></span><span id="_CPPv29make_grid15halo_descriptor15halo_descriptori"></span><span id="make_grid__halo_descriptor.halo_descriptor.i"></span>grid <code class="sig-name descname">make_grid</code><span class="sig-paren">(</span>halo_descriptor <em>halo_i</em>, halo_descriptor <em>halo_j</em>, int <em>size_z</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_grid15halo_descriptor15halo_descriptori" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>For finer control of the iteration space a <a class="reference internal" href="../glossary/glossary.html#term-halo-descriptor"><span class="xref std std-term">Halo Descriptor</span></a> can be passed for the horizontal directions (<code class="docutils literal notranslate"><span class="pre">I</span></code>
 and <code class="docutils literal notranslate"><span class="pre">J</span></code>).  The 3rd and 4th argument of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> define the start and the endpoint of the
 <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. Note that the minus (first argument) and plus (second argument) of the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code>
@@ -932,14 +924,14 @@ computation is required not to access data outside of <code class="docutils lite
 
 <dl class="function">
 <dt id="_CPPv49make_gridii4Axis">
-<span id="_CPPv39make_gridii4Axis"></span><span id="_CPPv29make_gridii4Axis"></span><span id="make_grid__i.i.Axis"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>int <em>size_i</em>, int <em>size_j</em>, Axis <em>axis</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_gridii4Axis" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv39make_gridii4Axis"></span><span id="_CPPv29make_gridii4Axis"></span><span id="make_grid__i.i.Axis"></span>grid <code class="sig-name descname">make_grid</code><span class="sig-paren">(</span>int <em>size_i</em>, int <em>size_j</em>, Axis <em>axis</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_gridii4Axis" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The vertical axis needs to be passed to the grid when using several vertical regions. The axis can be constructed by
 passing it the size of each of the vertical regions. Details follow in the coming sections.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="_CPPv49make_grid15halo_descriptor15halo_descriptor4Axis">
-<span id="_CPPv39make_grid15halo_descriptor15halo_descriptor4Axis"></span><span id="_CPPv29make_grid15halo_descriptor15halo_descriptor4Axis"></span><span id="make_grid__halo_descriptor.halo_descriptor.Axis"></span>grid <code class="descname">make_grid</code><span class="sig-paren">(</span>halo_descriptor <em>halo_i</em>, halo_descriptor <em>halo_j</em>, Axis <em>axis</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_grid15halo_descriptor15halo_descriptor4Axis" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv39make_grid15halo_descriptor15halo_descriptor4Axis"></span><span id="_CPPv29make_grid15halo_descriptor15halo_descriptor4Axis"></span><span id="make_grid__halo_descriptor.halo_descriptor.Axis"></span>grid <code class="sig-name descname">make_grid</code><span class="sig-paren">(</span>halo_descriptor <em>halo_i</em>, halo_descriptor <em>halo_j</em>, Axis <em>axis</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49make_grid15halo_descriptor15halo_descriptor4Axis" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>See explanations in other functions.</p>
 </dd></dl>
 
@@ -1010,7 +1002,7 @@ beginning of the Interval and extended (<code class="docutils literal notranslat
 <span class="n">axis_t</span> <span class="nf">my_axis</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span> <span class="c1">// iteration space spans 5 + 10 levels</span>
 
 <span class="k">using</span> <span class="n">first_interval</span> <span class="o">=</span> <span class="n">axis_t</span><span class="o">::</span><span class="n">get_interval</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>         <span class="c1">// interval [0, 4]</span>
-<span class="k">using</span> <span class="n">second_interval</span> <span class="o">=</span> <span class="n">axis_t</span><span class="o">::</span><span class="n">get_interval1</span><span class="o">&gt;</span><span class="p">;</span>         <span class="c1">// [5, 14]</span>
+<span class="k">using</span> <span class="n">second_interval</span> <span class="o">=</span> <span class="n">axis_t</span><span class="o">::</span><span class="n">get_interval</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>        <span class="c1">// [5, 14]</span>
 <span class="k">using</span> <span class="n">full_interval</span> <span class="o">=</span> <span class="n">my_axis_t</span><span class="o">::</span><span class="n">full_interval</span><span class="p">;</span>         <span class="c1">// [0, 14]</span>
 
 <span class="k">using</span> <span class="n">first_level_only_interval</span> <span class="o">=</span> <span class="n">full_interval</span><span class="o">::</span><span class="n">first_level</span><span class="p">;</span> <span class="c1">// [0]</span>
@@ -1040,7 +1032,7 @@ described in the <a class="reference internal" href="#vertical-regions-advanced"
 </div>
 </div>
 <div class="section" id="composition-of-stencils">
-<span id="id9"></span><h3>Composition of Stencils<a class="headerlink" href="#composition-of-stencils" title="Permalink to this headline">¶</a></h3>
+<span id="id10"></span><h3>Composition of Stencils<a class="headerlink" href="#composition-of-stencils" title="Permalink to this headline">¶</a></h3>
 <p>The main component of <cite>GridTools</cite> provide the capability of composing different <a class="reference internal" href="../glossary/glossary.html#term-stage"><span class="xref std std-term">Stages</span></a>. A stage is the
 application of a single <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a> to an <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. The ability to fuse multiple stages
 allows the <cite>GridTools</cite> library to improve the memory locality of the computation by taking advantage of the produce consumer
@@ -1221,11 +1213,21 @@ for a given <code class="docutils literal notranslate"><span class="pre">backend
 </div>
 <p>for modern CPUs or Xeon Phis.</p>
 </div>
+<div class="section" id="type-erasure">
+<h3>Type-erasure<a class="headerlink" href="#type-erasure" title="Permalink to this headline">¶</a></h3>
+<p>The result of <code class="docutils literal notranslate"><span class="pre">make_computation</span></code> can be assigned to a <code class="docutils literal notranslate"><span class="pre">gridtools::computation</span></code>. The parameters of <code class="docutils literal notranslate"><span class="pre">computation</span></code>
+are the placeholders that will be assigned at runtime, i.e., when calling the <code class="docutils literal notranslate"><span class="pre">run</span></code>-method of the computation.</p>
+<p>You should use objects of type <code class="docutils literal notranslate"><span class="pre">computation</span></code> in your headers in order to reduce compilation times, and assign the
+return values of <code class="docutils literal notranslate"><span class="pre">make_computation</span></code> in only one compilation unit. The <code class="docutils literal notranslate"><span class="pre">computation</span></code> object is type erased; the
+expensive methods are compiled only when the result of <code class="docutils literal notranslate"><span class="pre">make_computation</span></code> is assigned to the computation.</p>
+<p>An example of this pattern can be found in the examples: <a class="reference external" href="https://github.com/GridTools/gridtools/blob/master/examples/stencil_computation/interpolate_stencil.cpp">Stencil definition</a>, <a class="reference external" href="https://github.com/GridTools/gridtools/blob/master/examples/stencil_computation/interpolate_stencil.hpp">Header
+with a computation</a>, <a class="reference external" href="https://github.com/GridTools/gridtools/blob/master/examples/stencil_computation/driver.cpp">Driver</a> .</p>
+</div>
 </div>
 <div class="section" id="advanced-functionality">
 <h2>Advanced Functionality<a class="headerlink" href="#advanced-functionality" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="stencil-functions">
-<span id="id10"></span><h3>Stencil Functions<a class="headerlink" href="#stencil-functions" title="Permalink to this headline">¶</a></h3>
+<span id="id11"></span><h3>Stencil Functions<a class="headerlink" href="#stencil-functions" title="Permalink to this headline">¶</a></h3>
 <p>Stencil functions offer the possibility to call <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operators</span></a> from other <a class="reference internal" href="../glossary/glossary.html#term-stencil-operator"><span class="xref std std-term">Stencil Operators</span></a>.
 To use stencil functions the header</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/stencil_composition/stencil_functions.hpp&gt;</span><span class="cp"></span>
@@ -1354,12 +1356,12 @@ observed due to saturation of available resources</p>
 <p>where <code class="docutils literal notranslate"><span class="pre">p_args...</span></code> is a list of placeholders for which the specified caching
 should be used.
 Full examples on <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> usages can be found in the source code in the
-<a class="reference external" href="https://github.com/eth-cscs/gridtools/blob/master/gt_examples/stencil_composition/horizontal_diffusion_limited.cpp">horizontal diffusion</a>
+<a class="reference external" href="https://github.com/GridTools/gridtools/blob/master/gt_examples/stencil_composition/horizontal_diffusion_limited.cpp">horizontal diffusion</a>
 and
-<a class="reference external" href="https://github.com/eth-cscs/gridtools/blob/master/regression/vertical_advection_dycore.cpp">vertical advection</a>.</p>
+<a class="reference external" href="https://github.com/GridTools/gridtools/blob/master/regression/vertical_advection_dycore.cpp">vertical advection</a>.</p>
 <p>We now describe the details of each element of the <code class="docutils literal notranslate"><span class="pre">cache</span></code> constructs.</p>
 <div class="section" id="cache-type">
-<span id="id11"></span><h4>Cache Type<a class="headerlink" href="#cache-type" title="Permalink to this headline">¶</a></h4>
+<span id="id12"></span><h4>Cache Type<a class="headerlink" href="#cache-type" title="Permalink to this headline">¶</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">cache_type</span></code> describes the type of access pattern present in our stencil for the field being cached. It’s
 value can be one of the following (where we indicate the basic mean of implementation on the GPUs, so that the user can understand the amount of resources involved):</p>
 <ol class="arabic simple">
@@ -1372,7 +1374,7 @@ offsets in i or j direction.</p></li>
 </ol>
 </div>
 <div class="section" id="cache-policy">
-<span id="id12"></span><h4>Cache Policy<a class="headerlink" href="#cache-policy" title="Permalink to this headline">¶</a></h4>
+<span id="id13"></span><h4>Cache Policy<a class="headerlink" href="#cache-policy" title="Permalink to this headline">¶</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">cache_policy</span></code> specifies a synchronization policy between the data in the <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> and the data in main memory. A scratch-pad can be used
 in order to allocate temporary computations that do not require data persistency across multiple stencils. However often the data that is
 being cached is already present in main memory fields. In this case, the <a class="reference internal" href="../glossary/glossary.html#term-software-managed-cache"><span class="xref std std-term">Software-Managed Caches</span></a> of <cite>GridTools</cite> gives the possibility
@@ -1389,16 +1391,16 @@ multi-stage. Local caches are only meaningful in connection with temporary argum
 <div><p><a class="reference internal" href="#fig-kcache-ex"><span class="std std-numref">Fig. 6</span></a> graphically depicts an example of all the ordered operations that are executed when a <code class="docutils literal notranslate"><span class="pre">fill_and_flush</span></code>
 <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> is used in a forward vertical loop.</p>
 </div></blockquote>
-<div class="figure align-center" id="id25">
+<div class="figure align-default" id="id27">
 <span id="fig-kcache-ex"></span><a class="reference internal image-reference" href="../_images/kcache_ex.png"><img alt="../_images/kcache_ex.png" src="../_images/kcache_ex.png" style="width: 759.5px; height: 420.5px;" /></a>
 <p class="caption"><span class="caption-number">Fig. 6 </span><span class="caption-text">Representation of an implementation for a <code class="docutils literal notranslate"><span class="pre">cache&lt;cache_type::k,</span> <span class="pre">cache_io_policy::fill_and_flush&gt;</span></code> that is used within a
 stencil with <a class="reference internal" href="../glossary/glossary.html#term-extent"><span class="xref std std-term">Extent</span></a> <code class="docutils literal notranslate"><span class="pre">&lt;-2,</span> <span class="pre">1&gt;</span></code> in the vertical dimension and implemented as a ring-buffer with 4 levels (in order to allocate all possible offsetted accesses). The three operations
-are triggered automatically by the library for a <cite>fill_and_flush</cite> <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> when the vertical loop transition from level 9 to level 10.</span><a class="headerlink" href="#id25" title="Permalink to this image">¶</a></p>
+are triggered automatically by the library for a <cite>fill_and_flush</cite> <a class="reference internal" href="../glossary/glossary.html#term-cache"><span class="xref std std-term">Cache</span></a> when the vertical loop transition from level 9 to level 10.</span><a class="headerlink" href="#id27" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 </div>
 <div class="section" id="expandable-parameters">
-<span id="id13"></span><h3>Expandable Parameters<a class="headerlink" href="#expandable-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="id14"></span><h3>Expandable Parameters<a class="headerlink" href="#expandable-parameters" title="Permalink to this headline">¶</a></h3>
 <p>Expandable parameters implement a “single stencil multiple storages” pattern.
 They are useful when we have a vector of storages which have the same
 storage info, and we want to perform the same operation with all of them
@@ -1447,33 +1449,18 @@ a constant scalar parameter that you want to pass to the functor, or a user defi
 various configuration options.</p>
 <p>The API allows the user to define an arbitrary object to act as a <a class="reference internal" href="../glossary/glossary.html#term-global-parameter"><span class="xref std std-term">Global Parameter</span></a> as long as it is trivially copyable.
 To create a <a class="reference internal" href="../glossary/glossary.html#term-global-parameter"><span class="xref std std-term">Global Parameter</span></a> from a user-defined object, we pass the object to <code class="docutils literal notranslate"><span class="pre">make_global_parameter()</span></code></p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">my_global_parameter</span> <span class="o">=</span> <span class="nl">make_global_parameter</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">my_object</span><span class="p">);</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">my_global_parameter</span> <span class="o">=</span> <span class="nl">make_global_parameter</span><span class="p">(</span><span class="n">my_object</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Note that the object is read-only only during the execution of a computation, but can be modified
 in between executions with</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="nl">update_global_parameter</span><span class="o">&lt;</span><span class="n">backend_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">my_global_parameter</span><span class="p">,</span> <span class="n">new_value</span><span class="p">);</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="nl">update_global_parameter</span><span class="p">(</span><span class="n">my_global_parameter</span><span class="p">,</span> <span class="n">new_value</span><span class="p">);</span>
 </pre></div>
-</div>
-<p>The <a class="reference internal" href="../glossary/glossary.html#term-accessor"><span class="xref std std-term">Accessor</span></a> associated with a global parameter must be a global accessor</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">global_acc</span> <span class="o">=</span> <span class="k">global_accessor</span><span class="o">&lt;</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">;</span>
-</pre></div>
-</div>
-<p>Calling <code class="docutils literal notranslate"><span class="pre">eval</span></code> on the global accessor returns the user defined data structure. Supposing that
-this data structure contains a user function called <code class="docutils literal notranslate"><span class="pre">ordinal</span></code>, returning an integer, we can write
-in the do method</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">ordinal_</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">global_boundary</span><span class="p">()).</span><span class="n">ordinal</span><span class="p">();</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>All the member functions defined in the user-defined data structure must be labeled with <code class="docutils literal notranslate"><span class="pre">GT_FUNCTION</span></code>, in order for
-them to be callable from devices.</p>
 </div>
 </div>
 </div>
 <div class="section" id="boundary-conditions">
-<span id="id14"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<span id="id15"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="introduction">
 <h3>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h3>
 <p>The boundary condition module in <cite>GridTools</cite> is designed following the
@@ -1602,7 +1589,7 @@ application and the rest should have their <a class="reference internal" href=".
 neighbors.</p>
 </div>
 <div class="section" id="provided-boundary-conditions">
-<span id="id15"></span><h3>Provided Boundary Conditions<a class="headerlink" href="#provided-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+<span id="id16"></span><h3>Provided Boundary Conditions<a class="headerlink" href="#provided-boundary-conditions" title="Permalink to this headline">¶</a></h3>
 <p><cite>GridTools</cite> provides few boundary application classes for some common cases. They are</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">copy_boundary</span></code> to copy the boundary of the last field of the argument list of <cite>apply</cite> into the other ones;</p></li>
@@ -1612,9 +1599,9 @@ neighbors.</p>
 </div>
 </div>
 <div class="section" id="halo-exchanges">
-<span id="id16"></span><h2>Halo Exchanges<a class="headerlink" href="#halo-exchanges" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id17">
-<h3>Introduction<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<span id="id17"></span><h2>Halo Exchanges<a class="headerlink" href="#halo-exchanges" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id18">
+<h3>Introduction<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <p>The communication module in <cite>GridTools</cite> is dubbed <a class="reference internal" href="../glossary/glossary.html#term-gcl"><span class="xref std std-term">GCL</span></a>. It’s a low level
 halo-update interface for 3D fields that takes 3D arrays of some
 types, and the descriptions of the halos, and perform the exchanges in
@@ -1629,8 +1616,8 @@ dimensions and other grids.</p>
 <p>We first start with some preliminaries and then discuss the main
 interfaces.</p>
 </div>
-<div class="section" id="id18">
-<h3>Preliminaries<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id19">
+<h3>Preliminaries<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="processor-grid">
 <h4>Processor Grid<a class="headerlink" href="#processor-grid" title="Permalink to this headline">¶</a></h4>
 <p>The processor grid is a concept that describe a 3D lattice of
@@ -1675,9 +1662,9 @@ to) the first dimension in the computing grid. Let’s consider a 2x1
 process grid, and the first dimension of the data being the rows (i)
 and the second the column (j). In this case we are assuming a
 distribution like in <a class="reference internal" href="#fig-dist1"><span class="std std-numref">Fig. 7</span></a>.</p>
-<div class="figure align-center" id="id26">
+<div class="figure align-default" id="id28">
 <span id="fig-dist1"></span><a class="reference internal image-reference" href="../_images/dist1.png"><img alt="../_images/dist1.png" src="../_images/dist1.png" style="width: 624.4000000000001px; height: 405.20000000000005px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 7 </span><span class="caption-text">Example data distribution among two processes.</span><a class="headerlink" href="#id26" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 7 </span><span class="caption-text">Example data distribution among two processes.</span><a class="headerlink" href="#id28" title="Permalink to this image">¶</a></p>
 </div>
 <p>In this case the map between data and the processor grid is:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">layout_map</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span> <span class="c1">// The 3rd dimension stride is 1</span>
@@ -1688,9 +1675,9 @@ distribution like in <a class="reference internal" href="#fig-dist1"><span class
 </pre></div>
 </div>
 <p>for this map, would imply a layout/distribution like the following <a class="reference internal" href="#fig-dist2"><span class="std std-numref">Fig. 8</span></a>.</p>
-<div class="figure align-center" id="id27">
+<div class="figure align-default" id="id29">
 <span id="fig-dist2"></span><a class="reference internal image-reference" href="../_images/dist2.png"><img alt="../_images/dist2.png" src="../_images/dist2.png" style="width: 447.6px; height: 464.0px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 8 </span><span class="caption-text">Example data distribution among two processes.</span><a class="headerlink" href="#id27" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 8 </span><span class="caption-text">Example data distribution among two processes.</span><a class="headerlink" href="#id29" title="Permalink to this image">¶</a></p>
 </div>
 <p>Where the second dimension in the data correspond to the fist
 dimension in the processor grid. Again, the data coordinates
@@ -1698,7 +1685,7 @@ ordering is the one the user choose to be the logical order in the
 application, not the increasing stride order.</p>
 </div>
 <div class="section" id="halo-descriptor">
-<span id="id19"></span><h4>Halo Descriptor<a class="headerlink" href="#halo-descriptor" title="Permalink to this headline">¶</a></h4>
+<span id="id20"></span><h4>Halo Descriptor<a class="headerlink" href="#halo-descriptor" title="Permalink to this headline">¶</a></h4>
 <p>Given  a  dimension of  the  data  (array), the  communication  module
 requires the user to describe it using the <code class="docutils literal notranslate"><span class="pre">halo_descriptor</span></code> class,
 which takes five integers. This class identifies the data that needs
@@ -1719,18 +1706,18 @@ the name of arguments should be self-explanatory:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">halo_descriptor</span><span class="p">(</span><span class="n">uint_t</span> <span class="n">minus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">plus</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">begin</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">end</span><span class="p">,</span> <span class="n">uint_t</span> <span class="n">total_length</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="admonition-todo admonition" id="index-1">
+<div class="admonition-todo admonition" id="id21">
 <p class="admonition-title">Todo</p>
 <p>annotate example with minus plus begin and end</p>
 </div>
-<div class="figure align-center" id="id28">
+<div class="figure align-default" id="id30">
 <span id="fig-halo-descriptor"></span><a class="reference internal image-reference" href="../_images/halo_descriptor.png"><img alt="../_images/halo_descriptor.png" src="../_images/halo_descriptor.png" style="width: 480.5px; height: 284.5px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">Example halo descriptor with one halo point on the left and two on the right.</span><a class="headerlink" href="#id28" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">Example halo descriptor with one halo point on the left and two on the right.</span><a class="headerlink" href="#id30" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 </div>
 <div class="section" id="gcl-communication-module">
-<span id="id20"></span><h3>GCL Communication Module<a class="headerlink" href="#gcl-communication-module" title="Permalink to this headline">¶</a></h3>
+<span id="id22"></span><h3>GCL Communication Module<a class="headerlink" href="#gcl-communication-module" title="Permalink to this headline">¶</a></h3>
 <p>Now we are ready to describe the <a class="reference internal" href="../glossary/glossary.html#term-halo-exchange"><span class="xref std std-term">Halo Exchange</span></a> patterns objects. The first one is <code class="docutils literal notranslate"><span class="pre">halo_exchange_dynamic_ut</span></code>. The <code class="docutils literal notranslate"><span class="pre">ut</span></code> suffix stands for <code class="docutils literal notranslate"><span class="pre">uniform</span> <span class="pre">types</span></code>, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The domain decomposition goes up to three dimensions and the data to be exchanged contained in 3 dimensional arrays (lower dimensions can be handled by setting the missing dimensions to 1). Being designed for three dimensional data, the layout maps have three elements (refer to :numref:storage-info for more information).</p>
 <p>The type of the object is defined as in this example:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="n">pattern_type</span> <span class="o">=</span> <span class="nl">halo_exchange_dynamic_ut</span><span class="o">&lt;</span><span class="k">layout_map</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">,</span>
@@ -1837,7 +1824,7 @@ fields have the same type).</p>
 </div>
 </div>
 <div class="section" id="distributed-boundary-conditions">
-<span id="id21"></span><h2>Distributed Boundary Conditions<a class="headerlink" href="#distributed-boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<span id="id23"></span><h2>Distributed Boundary Conditions<a class="headerlink" href="#distributed-boundary-conditions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="design-principles">
 <h3>Design Principles:<a class="headerlink" href="#design-principles" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
@@ -1929,26 +1916,32 @@ fields have the same type).</p>
 <div class="section" id="interfacing-to-other-programming-languages">
 <h2>Interfacing to other programming languages<a class="headerlink" href="#interfacing-to-other-programming-languages" title="Permalink to this headline">¶</a></h2>
 <p><cite>GridTools</cite> provides an easy macro interface to generate bindings to C and Fortran.</p>
+<p>To make the cpp_bindgen library available the recommended way is to use CMake’s FetchContent as follows</p>
+<div class="highlight-CMake notranslate"><div class="highlight"><pre><span></span><span class="nb">include</span><span class="p">(</span><span class="s">FetchContent</span><span class="p">)</span>
+<span class="nb">FetchContent_Declare</span><span class="p">(</span>
+  <span class="s">cpp_bindgen</span>
+  <span class="s">GIT_REPOSITORY</span> <span class="s">https://github.com/GridTools/cpp_bindgen.git</span>
+  <span class="s">GIT_TAG</span>        <span class="s">master</span> <span class="c"># consider replacing master by a tagged version</span>
+<span class="p">)</span>
+<span class="nb">FetchContent_MakeAvailable</span><span class="p">(</span><span class="s">cpp_bindgen</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Suppose, the user wants to export the function <code class="docutils literal notranslate"><span class="pre">add_impl</span></code>.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">add_impl</span><span class="p">(</span><span class="kt">int</span> <span class="n">l</span><span class="p">,</span> <span class="kt">int</span> <span class="n">r</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">return</span> <span class="n">l</span> <span class="o">+</span> <span class="n">r</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The macros <code class="docutils literal notranslate"><span class="pre">GT_EXPORT_*</span></code> provide ways to generate bindings to functions. The different
+<p>The macros <code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_*</span></code> provide ways to generate bindings to functions. The different
 flavours of this macro are explained below. The macro generates a wrapper around the function
 <code class="docutils literal notranslate"><span class="pre">add_impl</span></code> which is called <code class="docutils literal notranslate"><span class="pre">add</span></code> and registers the function to be exported.</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/c_bindings/export.hpp&gt;</span><span class="cp"></span>
-<span class="n">GT_EXPORT_BINDING_2</span><span class="p">(</span><span class="n">add</span><span class="p">,</span> <span class="n">add_impl</span><span class="p">);</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;cpp_bindgen/export.hpp&gt;</span><span class="cp"></span>
+<span class="n">BINDGEN_EXPORT_BINDING_2</span><span class="p">(</span><span class="n">add</span><span class="p">,</span> <span class="n">add_impl</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>The user can generate a C header and a Fortran module that matches this header by
-adding a call to <code class="docutils literal notranslate"><span class="pre">gt_add_bindings_library</span></code> in his CMake project:</p>
-<div class="highlight-CMake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">GridTools</span> <span class="s">REQUIRED</span><span class="p">)</span>
-<span class="nb">list</span><span class="p">(</span><span class="s">APPEND</span> <span class="s">CMAKE_MODULE_PATH</span> <span class="s2">&quot;${GridTools_MODULE_PATH}&quot;</span><span class="p">)</span>
-
-<span class="nb">include</span><span class="p">(</span><span class="s">gt_bindings</span><span class="p">)</span>
-<span class="nb">gt_add_bindings_library</span><span class="p">(</span><span class="s">add_lib</span> <span class="s">SOURCES</span> <span class="s">add.cpp</span><span class="p">)</span>
+adding a call to <code class="docutils literal notranslate"><span class="pre">bindgen_add_library</span></code> in his CMake project:</p>
+<div class="highlight-CMake notranslate"><div class="highlight"><pre><span></span><span class="nb">bindgen_add_library</span><span class="p">(</span><span class="s">add_lib</span> <span class="s">SOURCES</span> <span class="s">add.cpp</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This will generate a library <code class="docutils literal notranslate"><span class="pre">add_lib</span></code> which contains the exported symbol <code class="docutils literal notranslate"><span class="pre">add</span></code>,
@@ -1975,29 +1968,29 @@ and Fortran.</p>
 <div class="section" id="exporting-functions-with-no-array-type-arguments">
 <h3>Exporting functions with no array-type arguments<a class="headerlink" href="#exporting-functions-with-no-array-type-arguments" title="Permalink to this headline">¶</a></h3>
 <p>There exist various flavours of these macros. Functions which are non-templated or fully-specialized
-can be exported with <code class="docutils literal notranslate"><span class="pre">GT_EXPORT_BINDING</span></code>, for example:</p>
+can be exported with <code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_BINDING</span></code>, for example:</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">add_impl</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="mi">0</span><span class="p">;</span> <span class="p">}</span>
-<span class="n">GT_EXPORT_BINDING_2</span><span class="p">(</span><span class="n">add</span><span class="p">,</span> <span class="n">add_impl</span><span class="p">);</span>
+<span class="n">BINDGEN_EXPORT_BINDING_2</span><span class="p">(</span><span class="n">add</span><span class="p">,</span> <span class="n">add_impl</span><span class="p">);</span>
 
 <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">T</span><span class="o">&gt;</span>
 <span class="n">T</span> <span class="n">add_impl</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="p">{};</span> <span class="p">}</span>
-<span class="n">GT_EXPORT_BINDING</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">add_impl</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span><span class="p">);</span>
+<span class="n">BINDGEN_EXPORT_BINDING</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">add_impl</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>All functions exist in two flavours: Either you can pass the number of arguments as part of the name
-of the macro (<code class="docutils literal notranslate"><span class="pre">GT_EXPORT_BINDING_2</span></code> stands for two arguments), or you can pass it as a first argument
-to the generic <code class="docutils literal notranslate"><span class="pre">GT_EXPORT_BINDING</span></code>. The first flavours exist for up to 9 arguments.</p>
-<p>Note that <code class="docutils literal notranslate"><span class="pre">GT_EXPORT_BINDING_X</span></code> requires a name and a function pointer as its arguments.
+of the macro (<code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_BINDING_2</span></code> stands for two arguments), or you can pass it as a first argument
+to the generic <code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_BINDING</span></code>. The first flavours exist for up to 9 arguments.</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_BINDING_X</span></code> requires a name and a function pointer as its arguments.
 A lambda cannot be passed as function pointer; thus, the type of the arguments cannot be
-deduced. In such cases, the functions can be exported with <code class="docutils literal notranslate"><span class="pre">GT_EXPORT_BINDING_WITH_SIGNATURE_X</span></code>,
+deduced. In such cases, the functions can be exported with <code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_X</span></code>,
 which additionally takes the function type as an argument:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">GT_EXPORT_BINDING_WITH_SIGNATURE_2</span><span class="p">(</span><span class="n">add</span><span class="p">,</span> <span class="kt">int</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">),</span> <span class="p">[](</span><span class="kt">int</span> <span class="n">l</span><span class="p">,</span> <span class="kt">int</span> <span class="n">r</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">l</span> <span class="o">+</span> <span class="n">r</span><span class="p">;</span> <span class="p">});</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_2</span><span class="p">(</span><span class="n">add</span><span class="p">,</span> <span class="kt">int</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">),</span> <span class="p">[](</span><span class="kt">int</span> <span class="n">l</span><span class="p">,</span> <span class="kt">int</span> <span class="n">r</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">l</span> <span class="o">+</span> <span class="n">r</span><span class="p">;</span> <span class="p">});</span>
 </pre></div>
 </div>
 <p>Templated functions can be exported for a given set of specializations using
-<code class="docutils literal notranslate"><span class="pre">GT_EXPORT_GENERIC_BINDING_X</span></code>. In addition to the function name and the function pointer, it takes a list of
+<code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_GENERIC_BINDING_X</span></code>. In addition to the function name and the function pointer, it takes a list of
 overloads for which the bindings are generated:</p>
-<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">GT_EXPORT_GENERIC_BINDING</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">add_impl</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">)(</span><span class="kt">double</span><span class="p">,</span> <span class="kt">int</span><span class="p">));</span>
+<div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">BINDGEN_EXPORT_GENERIC_BINDING</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">add_impl</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="p">)(</span><span class="kt">double</span><span class="p">,</span> <span class="kt">int</span><span class="p">));</span>
 </pre></div>
 </div>
 <p>In the generated Fortran module, generic bindings will produce an interface combining the different
@@ -2025,42 +2018,42 @@ overloads:</p>
 <p>Only a limited set of types can be passed from Fortran / C through the C bindings interface to C++,
 namely integral and floating point types, booleans and pointers to those types.</p>
 <p>Array references, <cite>GridTools</cite> storages, and any type that is <cite>fortran_array_bindable</cite>
-appear as <code class="docutils literal notranslate"><span class="pre">gt_fortran_array_descriptor</span></code> in the C bindings. This structure allows
+appear as <code class="docutils literal notranslate"><span class="pre">bindgen_fortran_array_descriptor</span></code> in the C bindings. This structure allows
 the user to describe the data that needs to be passed to C++.</p>
 <p>It is possible to write bindings to functions that accept or return other types.
-During the generation process, they are replaced with pointers to the type <code class="docutils literal notranslate"><span class="pre">gt_handle</span></code>.</p>
+During the generation process, they are replaced with pointers to the type <code class="docutils literal notranslate"><span class="pre">bindgen_handle</span></code>.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">make_vector_impl</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="p">{};</span> <span class="p">}</span>
 <span class="kt">void</span> <span class="n">use_vector_impl</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">)</span> <span class="p">{}</span>
-<span class="n">GT_EXPORT_BINDING_0</span><span class="p">(</span><span class="n">make_vector</span><span class="p">,</span> <span class="n">make_vector_impl</span><span class="p">);</span>
-<span class="n">GT_EXPORT_BINDING_1</span><span class="p">(</span><span class="n">use_vector</span><span class="p">,</span> <span class="n">use_vector_impl</span><span class="p">);</span>
+<span class="n">BINDGEN_EXPORT_BINDING_0</span><span class="p">(</span><span class="n">make_vector</span><span class="p">,</span> <span class="n">make_vector_impl</span><span class="p">);</span>
+<span class="n">BINDGEN_EXPORT_BINDING_1</span><span class="p">(</span><span class="n">use_vector</span><span class="p">,</span> <span class="n">use_vector_impl</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>The code above will generate the following signatures in the C-header:</p>
-<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">gt_handle</span><span class="o">*</span> <span class="nf">make_vector</span><span class="p">();</span>
-<span class="kt">void</span> <span class="nf">use_vector</span><span class="p">(</span><span class="n">gt_handle</span><span class="o">*</span><span class="p">);</span>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">bindgen_handle</span><span class="o">*</span> <span class="nf">make_vector</span><span class="p">();</span>
+<span class="kt">void</span> <span class="nf">use_vector</span><span class="p">(</span><span class="n">bindgen_handle</span><span class="o">*</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>The user needs to make sure that the types that stand behind <code class="docutils literal notranslate"><span class="pre">gt_handle</span></code> match, otherwise
+<p>The user needs to make sure that the types that stand behind <code class="docutils literal notranslate"><span class="pre">bindgen_handle</span></code> match, otherwise
 an exception will be thrown.</p>
 </div>
 <div class="section" id="exporting-functions-with-array-type-arguments-to-fortran">
 <h3>Exporting functions with array-type arguments to Fortran<a class="headerlink" href="#exporting-functions-with-array-type-arguments-to-fortran" title="Permalink to this headline">¶</a></h3>
 <p>Special macros exist to export function that take array-like arguments to Fortran. While the normal
-macros export such arguments as <code class="docutils literal notranslate"><span class="pre">gt_fortran_array_descriptor</span></code>, the “wrapped” macros create
+macros export such arguments as <code class="docutils literal notranslate"><span class="pre">bindgen_fortran_array_descriptor</span></code>, the “wrapped” macros create
 additional wrappers around the functions that fill the structures themselves.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">dummy_impl</span><span class="p">(</span><span class="kt">int</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">a</span><span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> <span class="p">{}</span>
-<span class="n">GT_EXPORT_BINDING_WRAPPED_1</span><span class="p">(</span><span class="n">dummy</span><span class="p">,</span> <span class="n">dummy_impl</span><span class="p">);</span>
+<span class="n">BINDGEN_EXPORT_BINDING_WRAPPED_1</span><span class="p">(</span><span class="n">dummy</span><span class="p">,</span> <span class="n">dummy_impl</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>The function <code class="docutils literal notranslate"><span class="pre">dummy_impl</span></code> is taking a reference to an array. When exporting this function with
-<code class="docutils literal notranslate"><span class="pre">GT_EXPORT_BINDING_WRAPPED_X</span></code>, an additional wrapper is generated in the Fortran bindings:</p>
+<code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_BINDING_WRAPPED_X</span></code>, an additional wrapper is generated in the Fortran bindings:</p>
 <div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">module </span><span class="n">add_lib</span>
 <span class="k">implicit none</span>
 <span class="k">  interface</span>
 <span class="k">    subroutine </span><span class="n">dummy_impl</span><span class="p">(</span><span class="n">arg0</span><span class="p">)</span> <span class="k">bind</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;dummy&quot;</span><span class="p">)</span>
       <span class="k">use </span><span class="nb">iso_c_binding</span>
 <span class="nb">      </span><span class="k">use </span><span class="n">array_descriptor</span>
-      <span class="k">type</span><span class="p">(</span><span class="n">gt_fortran_array_descriptor</span><span class="p">)</span> <span class="kd">::</span> <span class="n">arg0</span>
+      <span class="k">type</span><span class="p">(</span><span class="n">bindgen_fortran_array_descriptor</span><span class="p">)</span> <span class="kd">::</span> <span class="n">arg0</span>
     <span class="k">end subroutine</span>
 <span class="k">  end interface</span>
 <span class="k">contains</span>
@@ -2068,7 +2061,7 @@ additional wrappers around the functions that fill the structures themselves.</p
       <span class="k">use </span><span class="nb">iso_c_binding</span>
 <span class="nb">      </span><span class="k">use </span><span class="n">array_descriptor</span>
       <span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">target</span> <span class="kd">::</span> <span class="n">arg0</span>
-      <span class="k">type</span><span class="p">(</span><span class="n">gt_fortran_array_descriptor</span><span class="p">)</span> <span class="kd">::</span> <span class="n">descriptor0</span>
+      <span class="k">type</span><span class="p">(</span><span class="n">bindgen_fortran_array_descriptor</span><span class="p">)</span> <span class="kd">::</span> <span class="n">descriptor0</span>
 
       <span class="n">descriptor0</span><span class="p">%</span><span class="n">rank</span> <span class="o">=</span> <span class="mi">2</span>
       <span class="n">descriptor0</span><span class="p">%</span><span class="k">type</span> <span class="o">=</span> <span class="mi">1</span>
@@ -2087,8 +2080,8 @@ additional wrappers around the functions that fill the structures themselves.</p
 </pre></div>
 </div>
 <p>The bindings will take care that the rank matches and it will infer the size of the array automatically.</p>
-<p>All additional macros behave as mentioned above, namely <code class="docutils literal notranslate"><span class="pre">GT_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">GT_EXPORT_BINDING_GENERIC_WRAPPED</span></code>.</p>
+<p>All additional macros behave as mentioned above, namely <code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">BINDGEN_EXPORT_BINDING_GENERIC_WRAPPED</span></code>.</p>
 <p>Data types need to be <cite>fortran_array_wrappable</cite> in order to be compatible with these macros. Natively, only
 C arrays and <code class="docutils literal notranslate"><span class="pre">fortran_array_adapter</span></code> are <cite>fortran_array_wrappable</cite>. The latter is an adapter between
 Fortran arrays and <cite>GridTools</cite> storages, such that the user can pass a Fortran array to a C++ function,
@@ -2106,13 +2099,13 @@ which then can be transformed into a <cite>GridTools</cite> storage.</p>
 
     <span class="n">transform</span><span class="p">(</span><span class="n">inout</span><span class="p">,</span> <span class="n">data_store</span><span class="p">);</span>
 <span class="p">}</span>
-<span class="n">GT_EXPORT_BINDING_WRAPPED_1</span><span class="p">(</span><span class="n">modify_array</span><span class="p">,</span> <span class="n">modify_array_impl</span><span class="p">)</span>
+<span class="n">BINDGEN_EXPORT_BINDING_WRAPPED_1</span><span class="p">(</span><span class="n">modify_array</span><span class="p">,</span> <span class="n">modify_array_impl</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="cmake-usage">
 <h3>CMake usage<a class="headerlink" href="#cmake-usage" title="Permalink to this headline">¶</a></h3>
-<p>A call to <code class="docutils literal notranslate"><span class="pre">gt_add_bindings_library</span></code> generates the libraries and the headers. By default,
+<p>A call to <code class="docutils literal notranslate"><span class="pre">bindgen_add_library</span></code> generates the libraries and the headers. By default,
 the C header file and the Fortran file is written directly into the source tree. This choice was
 taken to improve building in cross-build environments, because the process cannot rely
 on generated binaries being executable on the host system. The output folder can be overwritten

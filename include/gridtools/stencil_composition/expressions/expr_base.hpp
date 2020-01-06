@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../is_accessor.hpp"
@@ -59,23 +60,23 @@ namespace gridtools {
 
         namespace evaluation {
             template <class Eval, class Arg, std::enable_if_t<std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION GT_CONSTEXPR Arg apply_eval(Eval &, Arg arg) {
+            GT_FUNCTION GT_CONSTEXPR Arg apply_eval(Eval &&, Arg arg) {
                 return arg;
             }
 
             template <class Eval, class Arg, std::enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
-            GT_FUNCTION GT_CONSTEXPR decltype(auto) apply_eval(Eval &eval, Arg const &arg) {
-                return eval(arg);
+            GT_FUNCTION GT_CONSTEXPR decltype(auto) apply_eval(Eval &&eval, Arg arg) {
+                return wstd::forward<Eval>(eval)(wstd::move(arg));
             }
 
             template <class Eval, class Op, class Arg>
-            GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Arg> const &arg) {
-                return Op{}(eval(arg.m_arg));
+            GT_FUNCTION GT_CONSTEXPR auto value(Eval &&eval, expr<Op, Arg> arg) {
+                return Op()(wstd::forward<Eval>(eval)(wstd::move(arg.m_arg)));
             }
 
             template <class Eval, class Op, class Lhs, class Rhs>
-            GT_FUNCTION GT_CONSTEXPR auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg) {
-                return Op{}(apply_eval(eval, arg.m_lhs), apply_eval(eval, arg.m_rhs));
+            GT_FUNCTION GT_CONSTEXPR auto value(Eval &&eval, expr<Op, Lhs, Rhs> arg) {
+                return Op()(apply_eval(eval, wstd::move(arg.m_lhs)), apply_eval(eval, wstd::move(arg.m_rhs)));
             }
         } // namespace evaluation
     }     // namespace expressions

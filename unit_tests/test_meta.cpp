@@ -22,6 +22,8 @@ namespace gridtools {
         struct f;
         template <class...>
         struct g;
+        template <class...>
+        struct h;
 
         // is_list
         static_assert(!is_list<int>{}, "");
@@ -35,14 +37,6 @@ namespace gridtools {
         static_assert(!has_type<g<>>{}, "");
         static_assert(has_type<lazy::id<void>>{}, "");
         static_assert(has_type<std::is_void<int>>{}, "");
-
-        // is_meta_class
-        static_assert(!is_meta_class<int>{}, "");
-        static_assert(!is_meta_class<f<int>>{}, "");
-        static_assert(!is_meta_class<std::is_void<int>>{}, "");
-        static_assert(is_meta_class<always<int>>{}, "");
-        static_assert(is_meta_class<curry<f>>{}, "");
-        static_assert(is_meta_class<ctor<f<>>>{}, "");
 
         // length
         static_assert(length<list<>>::value == 0, "");
@@ -265,12 +259,12 @@ namespace gridtools {
 
         // void_t (CWG 1558 https://wg21.cmeerw.net/cwg/issue1558)
         namespace defect_cwg_1558 {
-            template <class, class = gridtools::void_t<>>
+            template <class, class = void_t<>>
             struct has_type_member : std::false_type {};
 
             // specialization recognizes types that do have a nested ::type member:
             template <class T>
-            struct has_type_member<T, gridtools::void_t<typename T::type>> : std::true_type {};
+            struct has_type_member<T, void_t<typename T::type>> : std::true_type {};
 
             struct X {
                 using type = void;
@@ -280,6 +274,32 @@ namespace gridtools {
             static_assert(has_type_member<X>::value, "");
         } // namespace defect_cwg_1558
 
+        // group
+        static_assert(std::is_same<group<are_same, g, f<>>, f<>>::value, "");
+        static_assert(std::is_same<group<are_same, g, f<int>>, f<g<int>>>::value, "");
+        static_assert(std::is_same<group<are_same, g, f<int, int, int, double, void, void, int, int>>,
+                          f<g<int, int, int>, g<double>, g<void, void>, g<int, int>>>::value,
+            "");
+
+        // trim
+        static_assert(std::is_same<trim<std::is_void, f<int, void, int>>, f<int, void, int>>::value, "");
+        static_assert(std::is_same<trim<std::is_void, f<>>, f<>>::value, "");
+        static_assert(std::is_same<trim<std::is_void, f<void, void>>, f<>>::value, "");
+        static_assert(
+            std::is_same<trim<std::is_void, f<void, void, int, int, void, int, void>>, f<int, int, void, int>>::value,
+            "");
+
+        // mp_make
+        static_assert(std::is_same<mp_make<h, f<>>, f<>>::value, "");
+        static_assert(std::is_same<mp_make<h, f<g<int, int *>>>, f<h<g<int, int *>>>>::value, "");
+        static_assert(
+            std::is_same<mp_make<h, f<g<int, int *>, g<void, void *>>>, f<h<g<int, int *>>, h<g<void, void *>>>>::value,
+            "");
+        static_assert(
+            std::is_same<mp_make<h, f<g<int, int *>, g<int, int **>>>, f<h<g<int, int *>, g<int, int **>>>>::value, "");
+        static_assert(std::is_same<mp_make<h, f<g<void, void *>, g<int, int *>, g<int, int **>, g<double, double **>>>,
+                          f<h<g<void, void *>>, h<g<int, int *>, g<int, int **>>, h<g<double, double **>>>>::value,
+            "");
     } // namespace meta
 } // namespace gridtools
 

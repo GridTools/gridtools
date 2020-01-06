@@ -34,7 +34,7 @@ namespace gridtools {
                 T m_val;
             };
             template <class T>
-            GT_CONSTEXPR T sid_get_origin(mixin<property::origin, T> const &obj) noexcept {
+            T sid_get_origin(mixin<property::origin, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
@@ -43,7 +43,7 @@ namespace gridtools {
                 T m_val;
             };
             template <class T>
-            GT_CONSTEXPR T sid_get_strides(mixin<property::strides, T> const &obj) noexcept {
+            T sid_get_strides(mixin<property::strides, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
@@ -52,7 +52,7 @@ namespace gridtools {
                 T m_val;
             };
             template <class T>
-            GT_CONSTEXPR T sid_get_lower_bounds(mixin<property::lower_bounds, T> const &obj) noexcept {
+            T sid_get_lower_bounds(mixin<property::lower_bounds, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
@@ -61,7 +61,7 @@ namespace gridtools {
                 T m_val;
             };
             template <class T>
-            GT_CONSTEXPR T sid_get_upper_bounds(mixin<property::upper_bounds, T> const &obj) noexcept {
+            T sid_get_upper_bounds(mixin<property::upper_bounds, T> const &obj) noexcept {
                 return obj.m_val;
             }
 
@@ -87,7 +87,7 @@ namespace gridtools {
                 unique_mixin &operator=(unique_mixin &&) = default;
 
                 template <class U>
-                GT_CONSTEXPR unique_mixin(U &&obj) noexcept : mixin<Property, T>{wstd::forward<U>(obj)} {}
+                constexpr unique_mixin(U &&obj) noexcept : mixin<Property, T>{std::forward<U>(obj)} {}
             };
 
             template <class...>
@@ -96,13 +96,13 @@ namespace gridtools {
             template <>
             struct synthetic<> {
                 template <property Property, class T>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, T>> set() const &&noexcept {
+                constexpr synthetic<unique_mixin<Property, T>> set() const &&noexcept {
                     return synthetic{};
                 }
 
                 template <property Property, class T>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, std::decay_t<T>>> set(T &&val) const &&noexcept {
-                    return {wstd::forward<T>(val), synthetic{}};
+                constexpr synthetic<unique_mixin<Property, std::decay_t<T>>> set(T &&val) const &&noexcept {
+                    return {std::forward<T>(val), synthetic{}};
                 }
             };
 
@@ -111,22 +111,22 @@ namespace gridtools {
 
                 GT_DECLARE_DEFAULT_EMPTY_CTOR(synthetic);
 
-                GT_CONSTEXPR synthetic(synthetic<Mixins...> const &&src) noexcept : Mixins(wstd::move(src))... {}
+                constexpr synthetic(synthetic<Mixins...> const &&src) noexcept : Mixins(std::move(src))... {}
 
                 template <class T>
-                GT_CONSTEXPR synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
-                    : Mixin{wstd::forward<T>(val)}, Mixins(wstd::move(src))... {}
+                constexpr synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
+                    : Mixin{std::forward<T>(val)}, Mixins(std::move(src))... {}
 
                 template <property Property, class T>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, T>, Mixin, Mixins...> set(
+                constexpr synthetic<unique_mixin<Property, T>, Mixin, Mixins...> set(
                     meta::lazy::id<T> = {}, property_constant<Property> = {}) const &&noexcept {
-                    return {wstd::move(*this)};
+                    return {std::move(*this)};
                 }
 
                 template <property Property, class T>
-                GT_CONSTEXPR synthetic<unique_mixin<Property, std::decay_t<T>>, Mixin, Mixins...> set(
+                constexpr synthetic<unique_mixin<Property, std::decay_t<T>>, Mixin, Mixins...> set(
                     T &&val, property_constant<Property> = {}) const &&noexcept {
-                    return {wstd::forward<T>(val), wstd::move(*this)};
+                    return {std::forward<T>(val), std::move(*this)};
                 }
             };
         } // namespace synthetic_impl_
@@ -167,6 +167,6 @@ namespace gridtools {
          *
          *  TODO(anstaf): remove this feature after CUDA8 drop.
          */
-        GT_CONSTEXPR synthetic_impl_::synthetic<> synthetic() { return {}; }
+        constexpr synthetic_impl_::synthetic<> synthetic() { return {}; }
     } // namespace sid
 } // namespace gridtools

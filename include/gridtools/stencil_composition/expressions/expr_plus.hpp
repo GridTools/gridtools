@@ -33,13 +33,13 @@ namespace gridtools {
         };
 
         template <class Lhs, class Rhs>
-        GT_FUNCTION GT_CONSTEXPR auto operator+(Lhs lhs, Rhs rhs) -> decltype(make_expr(plus_f{}, Lhs{}, Rhs{})) {
-            return make_expr(plus_f{}, lhs, rhs);
+        GT_FUNCTION GT_CONSTEXPR auto operator+(Lhs lhs, Rhs rhs) -> decltype(make_expr(plus_f(), Lhs(), Rhs())) {
+            return make_expr(plus_f(), lhs, rhs);
         }
 
         template <class Arg>
-        GT_FUNCTION GT_CONSTEXPR auto operator+(Arg arg) -> decltype(make_expr(plus_f{}, Arg{})) {
-            return make_expr(plus_f{}, arg);
+        GT_FUNCTION GT_CONSTEXPR auto operator+(Arg arg) -> decltype(make_expr(plus_f(), Arg())) {
+            return make_expr(plus_f(), arg);
         }
         /** @} */
         /** @} */

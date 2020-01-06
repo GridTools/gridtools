@@ -22,9 +22,10 @@ const int c_x = 3 /* < 32 for this test */, c_y = 5, c_z = 7;
 
 template <typename View>
 __global__ void mul2(View s) {
+    using storage_info_t = typename View::storage_info_t;
     bool correct_dims = (s.template total_length<0>() == c_x) && (s.template total_length<1>() == c_y) &&
                         (s.template total_length<2>() == c_z);
-    bool correct_size = (s.padded_total_length() == 32 * c_y * c_z);
+    bool correct_size = (s.padded_total_length() == storage_info_t::alignment_t::value * c_y * c_z);
     s(0, 0, 0) *= (2 * correct_dims * correct_size);
     s(1, 0, 0) *= (2 * correct_dims * correct_size);
 }
@@ -33,7 +34,7 @@ TEST(DataViewTest, Simple) {
     typedef cuda_storage_info<0, layout_map<2, 1, 0>> storage_info_t;
     typedef data_store<cuda_storage<double>, storage_info_t> data_store_t;
     // create and allocate a data_store
-    GT_CONSTEXPR storage_info_t si(c_x, c_y, c_z);
+    constexpr storage_info_t si(c_x, c_y, c_z);
     data_store_t ds(si);
     // create a rw view and fill with some data
     data_view<data_store_t> dv = make_host_view(ds);
@@ -68,7 +69,7 @@ TEST(DataViewTest, Simple) {
 
     ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
 
-    ASSERT_TRUE(si.index(1, 0, 1) == c_y * 32 + 1);
+    ASSERT_TRUE(si.index(1, 0, 1) == c_y * storage_info_t::alignment_t::value + 1);
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
     EXPECT_EQ(dv(1, 0, 0), 60);

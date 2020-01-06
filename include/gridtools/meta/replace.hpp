@@ -13,7 +13,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include <boost/preprocessor.hpp>
+#include <boost/preprocessor/punctuation/remove_parens.hpp>
 
 #include "always.hpp"
 #include "curry.hpp"

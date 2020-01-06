@@ -9,8 +9,6 @@
  */
 #pragma once
 
-#include "../common/host_device.hpp"
-
 namespace gridtools {
     template <class T>
     struct pos3 {
@@ -18,7 +16,7 @@ namespace gridtools {
     };
 
     template <class T>
-    GT_FUNCTION constexpr pos3<T> make_pos3(T const &i, T const &j, T const &k) {
+    constexpr pos3<T> make_pos3(T i, T j, T k) {
         return {i, j, k};
     }
 } // namespace gridtools

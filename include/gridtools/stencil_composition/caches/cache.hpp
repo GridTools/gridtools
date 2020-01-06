@@ -15,11 +15,10 @@
 
 #pragma once
 
-#include <tuple>
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../meta/type_traits.hpp"
+#include "../../meta.hpp"
 #include "../arg.hpp"
 #include "../interval.hpp"
 #include "../location_type.hpp"
@@ -42,11 +41,12 @@ namespace gridtools {
          * @tparam Arg argument with parameter being cached
          * @tparam CacheIOPolicy IO policy for cache
          */
-        template <cache_type CacheType, class Arg, cache_io_policy cacheIOPolicy>
+        template <cache_type CacheType, class Arg, cache_io_policy CacheIOPolicy>
         struct cache_impl {
             GT_STATIC_ASSERT(is_plh<Arg>::value, GT_INTERNAL_ERROR);
             using arg_t = Arg;
             static constexpr cache_type cacheType = CacheType;
+            static constexpr cache_io_policy cacheIOPolicy = CacheIOPolicy;
         };
     } // namespace detail
 
@@ -64,7 +64,7 @@ namespace gridtools {
      *	@return tuple of caches
      */
     template <cache_type cacheType, cache_io_policy cacheIOPolicy, class... Args>
-    std::tuple<detail::cache_impl<cacheType, Args, cacheIOPolicy>...> cache(Args...) {
+    meta::list<detail::cache_impl<cacheType, Args, cacheIOPolicy>...> cache(Args...) {
         GT_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
         GT_STATIC_ASSERT(
             conjunction<is_plh<Args>...>::value, "argument passed to cache is not of the right arg<> type");

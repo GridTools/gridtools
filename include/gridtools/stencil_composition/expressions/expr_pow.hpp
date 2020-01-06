@@ -30,8 +30,8 @@ namespace gridtools {
         };
 
         template <int I, class Arg>
-        GT_FUNCTION GT_CONSTEXPR auto pow(Arg arg) -> decltype(make_expr(pow_f<I>{}, Arg{})) {
-            return make_expr(pow_f<I>{}, arg);
+        GT_FUNCTION GT_CONSTEXPR auto pow(Arg arg) -> decltype(make_expr(pow_f<I>(), Arg())) {
+            return make_expr(pow_f<I>(), arg);
         }
         /** @} */
         /** @} */

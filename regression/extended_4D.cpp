@@ -48,13 +48,12 @@ using namespace expressions;
 
   Note that the fields phi and psi are passed through as global_parameters and taken in the stencil
   operator as global_accessors. This is the czse since the base functions do not change when the
-  iteration point moves, so their values are constant. This is a typical example of global_parameter/
-  global_accessor use.
+  iteration point moves, so their values are constant. This is a typical example of global_parameter use.
 */
 
 struct integration {
-    using phi_t = global_accessor<0>;
-    using psi_t = global_accessor<1>;
+    using phi_t = in_accessor<0>;
+    using psi_t = in_accessor<1>;
     using jac = in_accessor<2, extent<>, 4>;
     using f = in_accessor<3, extent<>, 6>;
     using result = inout_accessor<4, extent<>, 6>;
@@ -131,7 +130,7 @@ struct extended_4d : regression_fixture<> {
 };
 
 TEST_F(extended_4d, test) {
-    using global_par_storage_t = global_parameter<backend_t, elemental>;
+    using global_par_storage_t = global_parameter<elemental>;
     arg<0, global_par_storage_t> p_phi;
     arg<1, global_par_storage_t> p_psi;
     arg<2, storage_global_quad_t> p_jac;
@@ -152,8 +151,8 @@ TEST_F(extended_4d, test) {
     };
     auto result = make_storage();
 
-    make_computation(p_phi = make_global_parameter<backend_t>(elemental{phi}),
-        p_psi = make_global_parameter<backend_t>(elemental{psi}),
+    make_computation(p_phi = make_global_parameter(elemental{phi}),
+        p_psi = make_global_parameter(elemental{psi}),
         p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
         p_f = make_storage(f),
         p_result = result,

@@ -32,75 +32,65 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
-#include "../../meta/at.hpp"
-#include "../../meta/logical.hpp"
-#include "../../meta/macros.hpp"
-#include "../../meta/type_traits.hpp"
+#include "../../meta.hpp"
 #include "../accessor_intent.hpp"
 #include "../arg.hpp"
+#include "../dim.hpp"
 #include "../expressions/expr_base.hpp"
+#include "../extent.hpp"
 #include "../has_apply.hpp"
-#include "../iterate_domain_fwd.hpp"
-#include "extent.hpp"
+#include "../positional.hpp"
+#include "../sid/multi_shift.hpp"
 
 namespace gridtools {
+    namespace stage_impl_ {
+        struct default_deref_f {
+            template <class Key, class T>
+            GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
+                return *ptr;
+            }
+        };
 
-    namespace impl_ {
-        template <class ItDomain, class Args>
+        template <class Ptr, class Strides, class Keys, class Deref>
         struct evaluator {
-            GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
-
-            ItDomain const &m_it_domain;
+            Ptr const &m_ptr;
+            Strides const &m_strides;
 
             template <class Accessor>
-            GT_FUNCTION decltype(auto) operator()(Accessor const &arg) const {
-                return apply_intent<Accessor::intent_v>(
-                    m_it_domain.template deref<meta::at_c<Args, Accessor::index_t::value>>(arg));
+            GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
+                using key_t = meta::at_c<Keys, Accessor::index_t::value>;
+                auto ptr = host_device::at_key<key_t>(m_ptr);
+                sid::multi_shift<key_t>(ptr, m_strides, wstd::move(acc));
+                return apply_intent<Accessor::intent_v>(Deref()(key_t(), ptr));
             }
 
             template <class Op, class... Ts>
-            GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const {
-                return expressions::evaluation::value(*this, arg);
+            GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const {
+                return expressions::evaluation::value(*this, wstd::move(arg));
             }
 
-            GT_FUNCTION int_t i() const { return m_it_domain.i(); }
-            GT_FUNCTION int_t j() const { return m_it_domain.j(); }
-            GT_FUNCTION int_t k() const { return m_it_domain.k(); }
+            template <class Dim>
+            GT_FUNCTION int_t pos() const {
+                return *host_device::at_key<meta::list<positional<Dim>>>(m_ptr);
+            }
+
+            GT_FUNCTION int_t i() const { return pos<dim::i>(); }
+            GT_FUNCTION int_t j() const { return pos<dim::j>(); }
+            GT_FUNCTION int_t k() const { return pos<dim::k>(); }
         };
-    } // namespace impl_
 
-    /**
-     *   A stage that is associated with an elementary functor.
-     */
-    template <class Functor, class Extent, class Args>
-    struct regular_stage {
-        GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+        template <class Functor, class PlhMap>
+        struct stage {
+            GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
 
-        using extent_t = Extent;
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain const &it_domain) {
-            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
-            impl_::evaluator<ItDomain, Args> eval{it_domain};
-            Functor::apply(eval);
-        }
-    };
-
-    template <class Stage, class... Stages>
-    struct compound_stage {
-        using extent_t = typename Stage::extent_t;
-
-        GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain const &it_domain) {
-            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
-            Stage::exec(it_domain);
-            (void)(int[]){((void)Stages::exec(it_domain), 0)...};
-        }
-    };
+            template <class Deref = void, class Ptr, class Strides>
+            GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
+                using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
+                using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t>;
+                eval_t eval{ptr, strides};
+                Functor::template apply<eval_t &>(eval);
+            }
+        };
+    } // namespace stage_impl_
+    using stage_impl_::stage;
 } // namespace gridtools

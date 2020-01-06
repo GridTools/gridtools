@@ -27,9 +27,12 @@ namespace gridtools {
                 struct const_ptr_holder {
                     sid::ptr_holder_type<Sid> m_impl;
 
-                    GT_CONSTEXPR GT_FUNCTION sid::element_type<Sid> const *operator()() const { return m_impl(); }
+                    GT_CONSTEXPR GT_FUNCTION std::add_const_t<sid::element_type<Sid>> *operator()() const {
+                        return m_impl();
+                    }
 
-                    friend GT_CONSTEXPR const_ptr_holder operator+(const_ptr_holder const &obj, ptrdiff_t offset) {
+                    friend GT_CONSTEXPR GT_FUNCTION const_ptr_holder operator+(
+                        const_ptr_holder const &obj, sid::ptr_diff_type<Sid> offset) {
                         return {obj.m_impl + offset};
                     }
                 };
@@ -52,7 +55,29 @@ namespace gridtools {
             class Src = std::decay_t<SrcRef>,
             std::enable_if_t<std::is_pointer<sid::ptr_type<Src>>::value, int> = 0>
         as_const_impl_::const_adapter<Src> as_const(SrcRef &&src) {
-            return as_const_impl_::const_adapter<Src>{wstd::forward<SrcRef>(src)};
+            return as_const_impl_::const_adapter<Src>{std::forward<SrcRef>(src)};
         }
+
+        template <class Src>
+        decltype(auto) add_const(std::false_type, Src &&src) {
+            return std::forward<Src>(src);
+        }
+
+        template <class SrcRef,
+            class Src = std::decay_t<SrcRef>,
+            class Ptr = sid::ptr_type<Src>,
+            std::enable_if_t<std::is_pointer<Ptr>::value && !std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
+        auto add_const(std::true_type, SrcRef &&src) {
+            return as_const(std::forward<SrcRef>(src));
+        }
+
+        template <class SrcRef,
+            class Src = std::decay_t<SrcRef>,
+            class Ptr = sid::ptr_type<Src>,
+            std::enable_if_t<!std::is_pointer<Ptr>::value || std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
+        auto add_const(std::true_type, SrcRef &&src) {
+            return std::forward<SrcRef>(src);
+        }
+
     } // namespace sid
 } // namespace gridtools

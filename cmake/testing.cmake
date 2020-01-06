@@ -63,6 +63,11 @@ function (fetch_tests_helper target_arch filetype subfolder )
             # create the test
             add_executable (${unit_test} ${test_source} )
             target_link_libraries(${unit_test} GridToolsTest${target_arch_u} cpp_bindgen_generator gtest gmock_main)
+            if (target_arch_l STREQUAL "cuda" AND
+                    (GT_CUDA_COMPILATION_TYPE STREQUAL "Clang-CUDA" OR
+                     GT_CUDA_COMPILATION_TYPE STREQUAL "HIPCC-AMDGPU"))
+                set_source_files_properties(${test_source} PROPERTIES LANGUAGE CXX)
+            endif()
 
             gridtools_add_test(
                 NAME ${unit_test}
@@ -118,6 +123,11 @@ function(add_custom_test target_arch)
         add_executable (${unit_test} ${___SOURCES})
         target_link_libraries(${unit_test} gmock gtest_main GridToolsTest${target_arch_u})
         target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        if (target_arch_l STREQUAL "cuda" AND
+                (GT_CUDA_COMPILATION_TYPE STREQUAL "Clang-CUDA" OR
+                 GT_CUDA_COMPILATION_TYPE STREQUAL "HIPCC-AMDGPU"))
+            set_source_files_properties(${___SOURCES} PROPERTIES LANGUAGE CXX)
+        endif()
         gridtools_add_test(
             NAME ${unit_test}
             COMMAND $<TARGET_FILE:${unit_test}>

@@ -8,6 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+
+#include "../common/hip_wrappers.hpp"
 #ifdef __CUDACC__
 #include "../storage/storage_cuda/data_view_helpers.hpp"
 #include "./apply_gpu.hpp"

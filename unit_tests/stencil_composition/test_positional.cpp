@@ -17,38 +17,33 @@
 
 namespace gridtools {
     namespace {
+        struct d;
+        using testee_t = positional<d>;
+
+        static_assert(is_sid<testee_t>(), "");
+
         TEST(positional, smoke) {
-            positional testee{1, 2, 3};
+            testee_t testee{1};
 
             auto ptr = sid::get_origin(testee)();
 
-            EXPECT_EQ((*ptr).i, 1);
-            EXPECT_EQ((*ptr).j, 2);
-            EXPECT_EQ((*ptr).k, 3);
+            EXPECT_EQ(*ptr, 1);
 
             auto strides = sid::get_strides(testee);
 
-            sid::shift(ptr, sid::get_stride<dim::i>(strides), -34);
-            sid::shift(ptr, sid::get_stride<dim::j>(strides), 8);
-            sid::shift(ptr, sid::get_stride<dim::k>(strides), 11);
+            sid::shift(ptr, sid::get_stride<d>(strides), -34);
 
-            EXPECT_EQ((*ptr).i, -33);
-            EXPECT_EQ((*ptr).j, 10);
-            EXPECT_EQ((*ptr).k, 14);
+            EXPECT_EQ(*ptr, -33);
 
-            using diff_t = sid::ptr_diff_type<positional>;
+            using diff_t = sid::ptr_diff_type<testee_t>;
 
             diff_t diff{};
 
-            sid::shift(diff, sid::get_stride<dim::i>(strides), -34);
-            sid::shift(diff, sid::get_stride<dim::j>(strides), 8);
-            sid::shift(diff, sid::get_stride<dim::k>(strides), 11);
+            sid::shift(diff, sid::get_stride<d>(strides), -34);
 
             ptr = sid::get_origin(testee)() + diff;
 
-            EXPECT_EQ((*ptr).i, -33);
-            EXPECT_EQ((*ptr).j, 10);
-            EXPECT_EQ((*ptr).k, 14);
+            EXPECT_EQ(*ptr, -33);
         }
     } // namespace
 } // namespace gridtools

@@ -8,14 +8,17 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+
+#include <type_traits>
+
 #include "..//common/defs.hpp"
 #include "../common/array.hpp"
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../common/variadic_pack_metafunctions.hpp"
+#include "../meta/type_traits.hpp"
 #include "interval.hpp"
 #include "level.hpp"
-#include <type_traits>
 
 namespace gridtools {
 
@@ -43,13 +46,12 @@ namespace gridtools {
     class axis<NIntervals,
         axis_config::offset_limit<LevelOffsetLimit>,
         axis_config::extra_offsets<ExtraOffsetsAroundFullInterval>> {
-      private:
         template <size_t... IntervalIDs>
         struct interval_impl {
-            GT_STATIC_ASSERT((is_continuous(IntervalIDs...)), "Intervals must be continuous.");
+            GT_STATIC_ASSERT(is_continuous(IntervalIDs...), "Intervals must be continuous.");
             static constexpr size_t min_id = constexpr_min(IntervalIDs...);
             static constexpr size_t max_id = constexpr_max(IntervalIDs...);
-            GT_STATIC_ASSERT((max_id < NIntervals), "Interval ID out of bounds for this axis.");
+            GT_STATIC_ASSERT(max_id < NIntervals, "Interval ID out of bounds for this axis.");
 
             using type = interval<level<min_id, 1, LevelOffsetLimit>, level<max_id + 1, -1, LevelOffsetLimit>>;
         };
@@ -57,24 +59,23 @@ namespace gridtools {
       public:
         using axis_interval_t =
             interval<level<0, _impl::add_offset(1, -ExtraOffsetsAroundFullInterval), LevelOffsetLimit>,
-                level<NIntervals, _impl::add_offset(1, ExtraOffsetsAroundFullInterval), LevelOffsetLimit>>;
+                level<NIntervals, _impl::add_offset(-1, ExtraOffsetsAroundFullInterval), LevelOffsetLimit>>;
 
         using full_interval = interval<level<0, 1, LevelOffsetLimit>, level<NIntervals, -1, LevelOffsetLimit>>;
 
         template <typename... IntervalSizes,
-            std::enable_if_t<sizeof...(IntervalSizes) == NIntervals && is_all_integral<IntervalSizes...>::value, int> =
-                0>
-        axis(IntervalSizes... interval_sizes) : interval_sizes_{interval_sizes...} {}
+            std::enable_if_t<sizeof...(IntervalSizes) == NIntervals &&
+                                 conjunction<std::is_convertible<IntervalSizes, int_t>...>::value,
+                int> = 0>
+        axis(IntervalSizes... interval_sizes) : interval_sizes_{static_cast<int_t>(interval_sizes)...} {}
 
-        uint_t interval_size(const uint_t index) const { return interval_sizes_[index]; }
-        const array<uint_t, NIntervals> &interval_sizes() const { return interval_sizes_; };
+        int_t interval_size(size_t index) const { return interval_sizes_[index]; }
+        const array<int_t, NIntervals> &interval_sizes() const { return interval_sizes_; };
 
         template <size_t... IntervalIDs>
         using get_interval = typename interval_impl<IntervalIDs...>::type;
 
-        static constexpr int_t level_offset_limit = LevelOffsetLimit;
-
       private:
-        array<uint_t, NIntervals> interval_sizes_;
+        array<int_t, NIntervals> interval_sizes_;
     };
 } // namespace gridtools
