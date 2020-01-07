@@ -83,7 +83,7 @@ namespace gridtools {
             GT_ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
-        storage_info_t const &storage_info() const {
+        GT_FUNCTION storage_info_t const &storage_info() const {
             GT_CHECK_MEMORY_SPACE(m_device_view);
             return *m_storage_info;
         }
