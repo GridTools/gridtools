@@ -17,6 +17,7 @@ if(@OPENMP_AVAILABLE@)
     find_dependency(OpenMP COMPONENTS CXX)
 endif()
 
+# Only load targets, if GridTools was not already included with a add_subdirectory/FetchContent
 if(NOT @PROJECT_NAME@_BINARY_DIR AND NOT TARGET GridTools::gridtools)
     include("${GRIDTOOLS_CONFIG_CMAKE_DIR}/GridToolsTargets.cmake" )
 endif()

@@ -59,6 +59,3 @@ set(CMAKE_SOURCES
 install(FILES ${CMAKE_SOURCES} DESTINATION "lib/cmake")
 
 file(COPY ${CMAKE_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
-
-# Export variable to notify super-builds that we are in the build-tree
-set( ${PROJECT_NAME}_TARGETS_EXPORTED TRUE CACHE STRING "" )
