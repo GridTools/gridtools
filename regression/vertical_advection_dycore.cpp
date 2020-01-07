@@ -38,8 +38,8 @@ class u_forward_function {
     using ccol = inout_accessor<6, extent<0, 0, 0, 0, -1, 0>>;
     using dcol = inout_accessor<7, extent<0, 0, 0, 0, -1, 0>>;
 
-    template <class Eval>
-    GT_FUNCTION static float_type compute_d_column(Eval &&eval, float_type correction) {
+    template <class Eval, class T>
+    GT_FUNCTION static auto compute_d_column(Eval &&eval, T correction) {
         return eval(dtr_stage()) * eval(u_pos()) + eval(utens()) + eval(utens_stage()) + correction;
     }
 
@@ -48,16 +48,16 @@ class u_forward_function {
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval, full_t::modify<1, -1>) {
-        float_type gav = -float_type{.25} * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
-        float_type gcv = float_type{.25} * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
-        float_type as = gav * BET_M;
-        float_type cs = gcv * BET_M;
-        float_type a = gav * BET_P;
-        float_type c = gcv * BET_P;
-        float_type b = eval(dtr_stage()) - a - c;
-        float_type correction =
+        auto gav = -float_type{.25} * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+        auto gcv = float_type{.25} * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+        auto as = gav * BET_M;
+        auto cs = gcv * BET_M;
+        auto a = gav * BET_P;
+        auto c = gcv * BET_P;
+        auto b = eval(dtr_stage()) - a - c;
+        auto correction =
             -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
-        float_type divided = float_type{1} / (b - (eval(ccol(0, 0, -1)) * a));
+        auto divided = 1. / (b - (eval(ccol(0, 0, -1)) * a));
 
         eval(ccol()) = c * divided;
         eval(dcol()) = (compute_d_column(eval, correction) - eval(dcol(0, 0, -1)) * a) * divided;
@@ -65,22 +65,22 @@ class u_forward_function {
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval, full_t::last_level) {
-        float_type gav = -float_type{.25} * (eval(wcon(1, 0, 0)) + eval(wcon()));
-        float_type as = gav * BET_M;
-        float_type a = gav * BET_P;
-        float_type b = eval(dtr_stage()) - a;
-        float_type correction = -as * (eval(u_stage(0, 0, -1)) - eval(u_stage()));
+        auto gav = -float_type{.25} * (eval(wcon(1, 0, 0)) + eval(wcon()));
+        auto as = gav * BET_M;
+        auto a = gav * BET_P;
+        auto b = eval(dtr_stage()) - a;
+        auto correction = -as * (eval(u_stage(0, 0, -1)) - eval(u_stage()));
 
         eval(dcol()) = (compute_d_column(eval, correction) - eval(dcol(0, 0, -1)) * a) / (b - eval(ccol(0, 0, -1)) * a);
     }
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval, full_t::first_level) {
-        float_type gcv = float_type{.25} * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
-        float_type cs = gcv * BET_M;
-        float_type c = gcv * BET_P;
-        float_type b = eval(dtr_stage()) - c;
-        float_type correction = -cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+        auto gcv = float_type{.25} * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+        auto cs = gcv * BET_M;
+        auto c = gcv * BET_P;
+        auto b = eval(dtr_stage()) - c;
+        auto correction = -cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
 
         eval(ccol()) = c / b;
         eval(dcol()) = compute_d_column(eval, correction) / b;
@@ -100,16 +100,15 @@ class u_backward_function {
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval, full_t::modify<0, -1> interval) {
-        float_type data = eval(dcol()) - eval(ccol()) * eval(data_col(0, 0, 1));
+        auto data = eval(dcol()) - eval(ccol()) * eval(data_col(0, 0, 1));
         eval(utens_stage()) = eval(dtr_stage()) * (data - eval(u_pos()));
         eval(data_col()) = data;
     }
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval, full_t::last_level interval) {
-        float_type data = eval(dcol());
-        eval(utens_stage()) = eval(dtr_stage()) * (data - eval(u_pos()));
-        eval(data_col()) = data;
+        eval(utens_stage()) = eval(dtr_stage()) * (eval(dcol()) - eval(u_pos()));
+        eval(data_col()) = eval(dcol());
     }
 };
 
