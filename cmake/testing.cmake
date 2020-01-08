@@ -17,6 +17,13 @@ target_link_libraries( GridToolsTest INTERFACE Threads::Threads)
 include(workaround_threads)
 _fix_threads_flags()
 
+# The gtest library needs to be built as static library to avoid RPATH issues,
+# so make sure that the variable BUILD_SHARED_LIBS=OFF and restored back afterwards.
+if( BUILD_SHARED_LIBS )
+    set( _restore_BUILD_SHARED_LIBS ON )
+    set( BUILD_SHARED_LIBS OFF )
+endif()
+
 include(FetchContent)
 option(INSTALL_GTEST OFF) #TODO replace with set(INSTALL_GTEST OFF) with CMake >= 3.13
 mark_as_advanced(INSTALL_GTEST)
@@ -26,6 +33,10 @@ FetchContent_Declare(
   GIT_TAG        release-1.8.1
 )
 FetchContent_MakeAvailable(googletest)
+
+if( _restore_BUILD_SHARED_LIBS )
+  set( BUILD_SHARED_LIBS ON )
+endif()
 
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
