@@ -3,6 +3,8 @@
 # to pass them using -Xcompiler
 
 function(_fix_mpi_flags)
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0057 NEW) # Allow "IN_LIST" inside if() statement
     get_property(_languages GLOBAL PROPERTY ENABLED_LANGUAGES)
     if("CUDA" IN_LIST _languages)
         foreach (_LANG IN ITEMS C CXX Fortran)
@@ -22,5 +24,6 @@ function(_fix_mpi_flags)
             endif()
         endforeach()
     endif()
+    cmake_policy(POP)
 endfunction()
 
