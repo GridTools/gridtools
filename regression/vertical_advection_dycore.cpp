@@ -38,9 +38,9 @@ class u_forward_function {
     using ccol = inout_accessor<6, extent<0, 0, 0, 0, -1, 0>>;
     using dcol = inout_accessor<7, extent<0, 0, 0, 0, -1, 0>>;
 
-    template <class Eval, class T>
-    GT_FUNCTION static auto compute_d_column(Eval &&eval, T correction) {
-        return eval(dtr_stage()) * eval(u_pos()) + eval(utens()) + eval(utens_stage()) + correction;
+    template <class Eval>
+    GT_FUNCTION static auto compute_d(Eval &&eval) {
+        return eval(dtr_stage()) * eval(u_pos()) + eval(utens()) + eval(utens_stage());
     }
 
   public:
@@ -57,10 +57,11 @@ class u_forward_function {
         auto b = eval(dtr_stage()) - a - c;
         auto correction =
             -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
-        auto divided = 1. / (b - (eval(ccol(0, 0, -1)) * a));
+        auto d = compute_d(eval) + correction;
+        auto divided = float_type{1} / (b - eval(ccol(0, 0, -1)) * a);
 
         eval(ccol()) = c * divided;
-        eval(dcol()) = (compute_d_column(eval, correction) - eval(dcol(0, 0, -1)) * a) * divided;
+        eval(dcol()) = (d - eval(dcol(0, 0, -1)) * a) * divided;
     }
 
     template <class Eval>
@@ -70,8 +71,10 @@ class u_forward_function {
         auto a = gav * BET_P;
         auto b = eval(dtr_stage()) - a;
         auto correction = -as * (eval(u_stage(0, 0, -1)) - eval(u_stage()));
+        auto d = compute_d(eval) + correction;
+        auto divided = float_type{1} / (b - eval(ccol(0, 0, -1)) * a);
 
-        eval(dcol()) = (compute_d_column(eval, correction) - eval(dcol(0, 0, -1)) * a) / (b - eval(ccol(0, 0, -1)) * a);
+        eval(dcol()) = (d - eval(dcol(0, 0, -1)) * a) * divided;
     }
 
     template <class Eval>
@@ -81,9 +84,11 @@ class u_forward_function {
         auto c = gcv * BET_P;
         auto b = eval(dtr_stage()) - c;
         auto correction = -cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+        auto d = compute_d(eval) + correction;
+        auto divided = float_type{1} / b;
 
-        eval(ccol()) = c / b;
-        eval(dcol()) = compute_d_column(eval, correction) / b;
+        eval(ccol()) = c * divided;
+        eval(dcol()) = d * divided;
     }
 };
 
