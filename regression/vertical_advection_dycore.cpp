@@ -99,14 +99,14 @@ class u_backward_function {
     using param_list = make_param_list<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col>;
 
     template <class Eval>
-    GT_FUNCTION static void apply(Eval &&eval, full_t::modify<0, -1> interval) {
+    GT_FUNCTION static void apply(Eval &&eval, full_t::modify<0, -1>) {
         auto data = eval(dcol()) - eval(ccol()) * eval(data_col(0, 0, 1));
         eval(utens_stage()) = eval(dtr_stage()) * (data - eval(u_pos()));
         eval(data_col()) = data;
     }
 
     template <class Eval>
-    GT_FUNCTION static void apply(Eval &&eval, full_t::last_level interval) {
+    GT_FUNCTION static void apply(Eval &&eval, full_t::last_level) {
         eval(utens_stage()) = eval(dtr_stage()) * (eval(dcol()) - eval(u_pos()));
         eval(data_col()) = eval(dcol());
     }
