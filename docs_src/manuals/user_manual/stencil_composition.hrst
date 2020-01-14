@@ -266,9 +266,9 @@ and the :term:`Extents<Extent>` at which each data field will be accessed. This
 information is then passed to the architecture specific backend for the
 execution.
 
-^^^^^^^^^^^^
-Multi passes
-^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
+Multi-Pass Computations
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Stencil composition specification allows also to combine several passes with different execution orders
 in a single computation. This is very useful for implementing computations that require two vertical swipes,
