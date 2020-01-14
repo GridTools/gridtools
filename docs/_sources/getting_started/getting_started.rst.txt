@@ -372,7 +372,7 @@ We can not use ``easy_run`` API because now we should compose computation from t
 we use full featured ``run`` API. It requires stencil composition specification as a first parameter. That specification
 is provided in a form of generic lambda. Its arguments represent the storages that are used in computation.
 The expression that is returned describes how the stencils should be composed. It is where |GT| EDSL is used.
-``execute_parallel()`` here means that each :math`k`-level can be executed in parallel. ``stage`` clause represents
+``execute_parallel()`` here means that each :math:`k`-level can be executed in parallel. ``stage`` clause represents
 a call to the stencil with the given arguments.
 
 In this version we needed to explicitly allocate the temporary fields
