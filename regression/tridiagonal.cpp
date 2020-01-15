@@ -58,11 +58,9 @@ struct forward_thomas {
 
 struct backward_thomas {
     using out = inout_accessor<0, extent<0, 0, 0, 0, 0, 1>>;
-    using inf = in_accessor<1>;    // a
-    using diag = in_accessor<2>;   // b
-    using sup = inout_accessor<3>; // c
-    using rhs = inout_accessor<4>; // d
-    using param_list = make_param_list<out, inf, diag, sup, rhs>;
+    using sup = in_accessor<1>; // c
+    using rhs = in_accessor<2>; // d
+    using param_list = make_param_list<out, sup, rhs>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<0, -1>) {
@@ -83,7 +81,7 @@ TEST_F(tridiagonal, test) {
     run(
         [](auto inf, auto diag, auto sup, auto rhs, auto out) {
             return multi_pass(execute_forward().stage(forward_thomas(), out, inf, diag, sup, rhs),
-                execute_backward().stage(backward_thomas(), out, inf, diag, sup, rhs));
+                execute_backward().stage(backward_thomas(), out, sup, rhs));
         },
         backend_t(),
         make_grid(),
