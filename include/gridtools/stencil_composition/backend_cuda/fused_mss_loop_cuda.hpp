@@ -60,8 +60,7 @@ namespace gridtools {
 // unroll factor estimate based on GT perftests on AMD Mi50
 #pragma unroll 3
 #else
-// unroll factor estimate based on GT perftests on NVIDIA V100
-#pragma unroll 5
+// unroll factor estimate based on COSMO dycore performance on NVIDIA V100: no unrolling
 #endif
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells<Deref>(info, mixed_ptr, strides, validator);
@@ -86,8 +85,7 @@ namespace gridtools {
 // unroll factor estimate based on GT perftests on AMD Mi50
 #pragma unroll 3
 #else
-// unroll factor estimate based on GT perftests on NVIDIA V100
-#pragma unroll 5
+// unroll factor estimate based on COSMO dycore performance on NVIDIA V100: no unrolling
 #endif
                             for (int_t i = 0; i < size; ++i) {
                                 exec_cells<Deref>(info, ptr, strides, validator);
