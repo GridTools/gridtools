@@ -44,7 +44,7 @@ TEST_F(div, reduction_into_scalar) {
 
 TEST_F(div, flow_convention) {
     auto out = make_storage<cells>();
-    easy_run(div_functor_flow_convention_connectivity(),
+    run_single_stage(div_functor_flow_convention_connectivity(),
         backend_t(),
         make_grid(),
         make_storage<edges>(repo.u),

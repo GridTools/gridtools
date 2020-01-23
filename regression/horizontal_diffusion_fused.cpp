@@ -90,7 +90,7 @@ TEST_F(horizontal_diffusion_fused, test) {
     horizontal_diffusion_repository repo(d(0), d(1), d(2));
 
     auto comp = [grid = make_grid(), &out, in = make_storage(repo.in), coeff = make_storage(repo.coeff)] {
-        easy_run(out_function(), backend_t(), grid, out, in, coeff);
+        run_single_stage(out_function(), backend_t(), grid, out, in, coeff);
     };
 
     comp();

@@ -16,7 +16,7 @@
 #include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../sid/sid_shift_origin.hpp"
-#include "make_stage_matrix.hpp"
+#include "convert_fe_to_be_spec.hpp"
 
 namespace gridtools {
     namespace core {
@@ -34,7 +34,7 @@ namespace gridtools {
                 template <class Grid, class DataStores>
                 void operator()(Grid const &grid, DataStores data_stores) const {
                     gridtools_backend_entry_point(Backend(),
-                        make_stage_matrices<Spec, typename Grid::interval_t, DataStores>(),
+                        convert_fe_to_be_spec<Spec, typename Grid::interval_t, DataStores>(),
                         grid,
                         shift_origin(grid, std::move(data_stores)));
                 }

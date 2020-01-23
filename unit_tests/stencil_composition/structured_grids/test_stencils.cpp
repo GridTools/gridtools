@@ -43,7 +43,7 @@ namespace gridtools {
                 template <int... Srcs, int... Dsts, class Expected>
                 void do_test(l_type<Srcs...>, l_type<Dsts...>, Expected const &expected) {
                     auto out = builder().layout<Dsts...>()();
-                    easy_run(copy_functor(),
+                    run_single_stage(copy_functor(),
                         backend_t(),
                         make_grid(),
                         builder().layout<Srcs...>().initializer([](int i, int j, int k) { return i + j + k; })(),

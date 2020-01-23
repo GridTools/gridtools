@@ -25,7 +25,7 @@ using namespace cartesian;
 
 template <class Fun, class... Args>
 void do_test() {
-    easy_run(Fun(),
+    run_single_stage(Fun(),
         backend_t(),
         make_grid(1, 1, 1),
         storage::builder<storage_traits_t>.dimensions(1, 1, 1).template type<Args>()()...);

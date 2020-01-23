@@ -42,9 +42,10 @@ namespace {
     };
 } // namespace
 
-// `easy_run` should never be called in a header, because the compilation overhead is very significant
+// `run_single_stage` should never be called in a header, because the compilation overhead is very significant
 std::function<void(inputs, outputs)> make_interpolate_stencil(grid_t grid, double weight) {
     return [grid = std::move(grid), weight](inputs in, outputs out) {
-        easy_run(interpolate_stage(), backend_t(), grid, in.in1, in.in2, make_global_parameter(weight), out.out);
+        run_single_stage(
+            interpolate_stage(), backend_t(), grid, in.in1, in.in2, make_global_parameter(weight), out.out);
     };
 }

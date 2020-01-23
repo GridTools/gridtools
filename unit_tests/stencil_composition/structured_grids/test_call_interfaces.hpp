@@ -52,7 +52,7 @@ namespace gridtools {
 
             template <class Fun, class... Storages>
             void run_computation(Storages &&... storages) const {
-                easy_run(Fun(), backend_t(), make_grid(), std::forward<Storages>(storages)...);
+                run_single_stage(Fun(), backend_t(), make_grid(), std::forward<Storages>(storages)...);
             }
 
             using fun_t = std::function<double(int, int, int)>;

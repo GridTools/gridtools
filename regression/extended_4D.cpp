@@ -112,7 +112,7 @@ TEST_F(extended_4d, test) {
     const auto const_builder = storage::builder<storage_traits_t>.type<float_type const>();
 
     auto result = storage::builder<storage_traits_t>.type<float_type>().dimensions(d(0), d(1), d(2), b1, b2, b3)();
-    easy_run(integration(),
+    run_single_stage(integration(),
         backend_t(),
         make_grid(),
         make_global_parameter(elemental{phi}),

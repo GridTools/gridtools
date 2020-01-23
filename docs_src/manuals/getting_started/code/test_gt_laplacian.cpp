@@ -54,5 +54,5 @@ int main() {
     halo_descriptor boundary_j(halo, halo, halo, Nj - halo - 1, Nj);
     auto grid = make_grid(boundary_i, boundary_j, Nk);
 
-    easy_run(lap_function(), backend_t(), grid, phi, lap);
+    run_single_stage(lap_function(), backend_t(), grid, phi, lap);
 }

@@ -48,7 +48,7 @@ namespace gridtools {
                 return {};
             }
 
-            friend integral_constant<size_t, 8> storage_alignment(mc) { return {}; }
+            friend integral_constant<size_t, 64> storage_alignment(mc) { return {}; }
 
             template <class LazyType, class T = typename LazyType::type>
             friend auto storage_allocate(mc, LazyType, size_t size) {

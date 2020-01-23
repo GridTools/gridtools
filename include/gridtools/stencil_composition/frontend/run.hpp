@@ -118,7 +118,7 @@ namespace gridtools {
         }
 
         template <class F, class Backend, class Grid, class... Fields>
-        void easy_run(F, Backend be, Grid const &grid, Fields &&... fields) {
+        void run_single_stage(F, Backend be, Grid const &grid, Fields &&... fields) {
             return run([](auto... args) { return execute_parallel().stage(F(), args...); },
                 be,
                 grid,
@@ -147,7 +147,6 @@ namespace gridtools {
             return {};
         }
     } // namespace frontend_impl_
-    using frontend_impl_::easy_run;
     using frontend_impl_::execute_backward;
     using frontend_impl_::execute_forward;
     using frontend_impl_::execute_parallel;
@@ -155,4 +154,5 @@ namespace gridtools {
     using frontend_impl_::get_arg_intent;
     using frontend_impl_::multi_pass;
     using frontend_impl_::run;
+    using frontend_impl_::run_single_stage;
 } // namespace gridtools

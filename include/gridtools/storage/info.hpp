@@ -24,7 +24,7 @@ namespace gridtools {
     namespace storage {
         namespace info_impl_ {
             template <class Layout>
-            GT_CONSTEXPR uint_t make_padded_length(Layout, int layout_arg, uint_t align, uint_t length) {
+            constexpr uint_t make_padded_length(Layout, int layout_arg, uint_t align, uint_t length) {
                 if (layout_arg == -1)
                     return 1;
                 if (layout_arg == Layout::max_arg && layout_arg != 0)
@@ -33,7 +33,7 @@ namespace gridtools {
             }
 
             template <class Layout, class Array>
-            GT_CONSTEXPR uint_t make_stride(Layout, int layout_arg, Array const &padded_lengths) {
+            constexpr uint_t make_stride(Layout, int layout_arg, Array const &padded_lengths) {
                 if (layout_arg == -1)
                     return 0;
                 uint_t res = 1;
@@ -43,7 +43,7 @@ namespace gridtools {
             }
 
             template <int... Dims, int... LayoutArgs, class Array>
-            GT_CONSTEXPR Array make_strides(layout_map<LayoutArgs...> layout, uint_t align, Array const &lengths) {
+            constexpr Array make_strides(layout_map<LayoutArgs...> layout, uint_t align, Array const &lengths) {
                 assert(align > 0);
                 Array padded_lengths = {make_padded_length(layout, LayoutArgs, align, lengths[Dims])...};
                 return {make_stride(layout, LayoutArgs, padded_lengths)...};
@@ -69,7 +69,7 @@ namespace gridtools {
                 constexpr base() : m_lengths{}, m_strides{}, m_length(0) {}
 
                 template <int... LayoutArgs>
-                GT_CONSTEXPR base(layout_map<LayoutArgs...> layout, uint_t align, array_t const &lengths)
+                constexpr base(layout_map<LayoutArgs...> layout, uint_t align, array_t const &lengths)
                     : m_lengths(lengths), m_strides(make_strides<Dims...>(layout, align, m_lengths)),
                       m_length(accumulate(logical_and(), true, m_lengths[Dims]...) ? index((m_lengths[Dims] - 1)...) + 1
                                                                                    : 0) {}

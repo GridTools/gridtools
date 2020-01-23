@@ -48,6 +48,6 @@ TEST_F(stencil_on_cells, with_color) {
         return res;
     };
     auto out = make_storage<cells>();
-    easy_run(on_cells_color_functor(), backend_t(), make_grid(), make_storage<cells>(in), out);
+    run_single_stage(on_cells_color_functor(), backend_t(), make_grid(), make_storage<cells>(in), out);
     verify(ref, out);
 }

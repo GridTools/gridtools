@@ -42,7 +42,7 @@ gridtools_functions = ((
     'execute_parallel',
     'multi_pass',
     'run',
-    'easy_run',
+    'run_single_stage',
     'expandable_run',
 	'make_global_parameter',
     'boundary',

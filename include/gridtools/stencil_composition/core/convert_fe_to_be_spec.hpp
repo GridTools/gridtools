@@ -23,7 +23,7 @@
 
 namespace gridtools {
     namespace core {
-        namespace make_stage_matrix_impl_ {
+        namespace convert_fe_to_be_spec_impl_ {
             template <class EsfFunction,
                 class Keys,
                 class LevelIndex,
@@ -125,9 +125,9 @@ namespace gridtools {
             };
 
             template <class Msses, class Interval, class DataStores>
-            using make_stage_matrices =
+            using convert_fe_to_be_spec =
                 meta::transform<make_mss_matrix_f<Msses, Interval, DataStores>::template apply, Msses>;
-        } // namespace make_stage_matrix_impl_
-        using make_stage_matrix_impl_::make_stage_matrices;
+        } // namespace convert_fe_to_be_spec_impl_
+        using convert_fe_to_be_spec_impl_::convert_fe_to_be_spec;
     } // namespace core
 } // namespace gridtools

@@ -86,11 +86,7 @@ namespace gridtools {
                 return {};
             }
 
-#ifdef __HIPCC__
-            friend integral_constant<size_t, 16> storage_alignment(cuda) { return {}; }
-#else
-            friend integral_constant<size_t, 32> storage_alignment(cuda) { return {}; }
-#endif
+            friend integral_constant<size_t, 128> storage_alignment(cuda) { return {}; }
 
             template <class LazyType, class T = typename LazyType::type>
             friend auto storage_allocate(cuda, LazyType, size_t size) {

@@ -42,6 +42,6 @@ TEST_F(stencil_on_neighedge_of_cells, Test) {
         return res;
     };
     auto out = make_storage<cells>();
-    easy_run(test_on_edges_functor(), backend_t(), make_grid(), make_storage<edges>(in), out);
+    run_single_stage(test_on_edges_functor(), backend_t(), make_grid(), make_storage<edges>(in), out);
     verify(ref, out);
 }

@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     auto grid = gt::make_grid(d1, d2, d3);
 
     // Execute the computation
-    gt::easy_run(copy_functor(), backend_t(), grid, in, out);
+    gt::run_single_stage(copy_functor(), backend_t(), grid, in, out);
 
     // Compare the result
     auto view = out->const_host_view();

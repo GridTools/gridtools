@@ -33,7 +33,7 @@ namespace {
     template <class T>
     void run_copy_functor_impl(fortran_array_view<T, 3> in, fortran_array_view<T, 3> out) {
         auto &&size = sid::get_upper_bounds(out);
-        easy_run(copy_functor(),
+        run_single_stage(copy_functor(),
             backend_t(),
             make_grid(at_key<dim::i>(size), at_key<dim::j>(size), at_key<dim::k>(size)),
             in,

@@ -34,6 +34,6 @@ TEST_F(laplacian, test) {
         return 4 * in(i, j, k) - (in(i + 1, j, k) + in(i, j + 1, k) + in(i - 1, j, k) + in(i, j - 1, k));
     };
     auto out = make_storage();
-    easy_run(lap(), backend_t(), make_grid(), out, make_storage(in));
+    run_single_stage(lap(), backend_t(), make_grid(), out, make_storage(in));
     verify(ref, out);
 }

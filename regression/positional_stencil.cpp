@@ -33,7 +33,7 @@ using positional_stencil = regression_fixture<>;
 
 TEST_F(positional_stencil, test) {
     auto out = make_storage();
-    easy_run(
+    run_single_stage(
         functor(), backend_t(), make_grid(), out, positional<dim::i>(), positional<dim::j>(), positional<dim::k>());
     verify([](int i, int j, int k) { return i + j + k; }, out);
 }

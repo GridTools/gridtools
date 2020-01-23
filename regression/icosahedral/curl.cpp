@@ -48,7 +48,7 @@ TEST_F(curl, weights) {
 
 TEST_F(curl, flow_convention) {
     auto out = make_storage<vertices>();
-    easy_run(curl_functor_flow_convention(),
+    run_single_stage(curl_functor_flow_convention(),
         backend_t(),
         make_grid(),
         make_storage<edges>(repo.u),

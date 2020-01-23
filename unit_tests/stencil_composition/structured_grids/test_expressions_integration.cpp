@@ -100,7 +100,7 @@ struct test_expressions : computation_fixture<> {
 
 TEST_F(test_expressions, integration_test) {
     auto out = make_storage();
-    easy_run(test_functor(),
+    run_single_stage(test_functor(),
         backend_t(),
         make_grid(),
         make_global_parameter<float_type>(2),

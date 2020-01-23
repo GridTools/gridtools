@@ -46,7 +46,7 @@ TEST_F(stencil_on_edges_multiplefields, test) {
     };
     auto out = make_storage<edges>();
     auto comp = [&] {
-        easy_run(
+        run_single_stage(
             test_on_edges_functor(), backend_t(), make_grid(), make_storage<edges>(in1), make_storage<edges>(in2), out);
     };
     comp();

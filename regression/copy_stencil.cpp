@@ -34,7 +34,7 @@ TEST_F(copy_stencil, test) {
     auto in = [](int i, int j, int k) { return i + j + k; };
     auto out = make_storage();
     auto comp = [&out, grid = make_grid(), in = make_storage<float_type const>(in)] {
-        easy_run(copy_functor(), backend_t(), grid, in, out);
+        run_single_stage(copy_functor(), backend_t(), grid, in, out);
     };
     comp();
     verify(in, out);

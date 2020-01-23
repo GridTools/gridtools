@@ -59,7 +59,7 @@ namespace {
         assert(in->lengths() == out->lengths());
         auto &&lengths = out->lengths();
         auto grid = make_grid(lengths[0], lengths[1], lengths[2]);
-        easy_run(copy_functor(), backend_t(), grid, in, out);
+        run_single_stage(copy_functor(), backend_t(), grid, in, out);
 #ifdef __CUDACC__
         cudaDeviceSynchronize();
 #endif

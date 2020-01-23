@@ -111,7 +111,7 @@ class global_accessor_single_stage : public ::testing::Test {
 TEST_F(global_accessor_single_stage, boundary_conditions) {
     auto sol = make_storage();
     /*****RUN 1 WITH bd int_value set to 20****/
-    auto bc_eval = [&] { easy_run(functor1(), backend_t(), coords_bc, sol, bd_); };
+    auto bc_eval = [&] { run_single_stage(functor1(), backend_t(), coords_bc, sol, bd_); };
     bc_eval();
     // fetch data and check
     auto solv = sol->host_view();
@@ -165,7 +165,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
 
 TEST_F(global_accessor_single_stage, with_procedure_call) {
     auto sol = make_storage();
-    easy_run(functor_with_procedure_call(), backend_t(), coords_bc, sol, bd_);
+    run_single_stage(functor_with_procedure_call(), backend_t(), coords_bc, sol, bd_);
 
     auto solv = sol->host_view();
     for (int i = 0; i < 10; ++i) {
@@ -184,7 +184,7 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
 
 TEST_F(global_accessor_single_stage, with_function_call) {
     auto sol = make_storage();
-    easy_run(functor_with_function_call(), backend_t(), coords_bc, sol, bd_);
+    run_single_stage(functor_with_function_call(), backend_t(), coords_bc, sol, bd_);
 
     auto solv = sol->host_view();
     for (int i = 0; i < 10; ++i) {

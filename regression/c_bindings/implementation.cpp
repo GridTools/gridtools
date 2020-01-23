@@ -38,7 +38,7 @@ namespace {
 
     void run(data_store_t const &in, data_store_t const &out) {
         auto lengths = out->lengths();
-        easy_run(copy_functor(), backend_t(), make_grid(lengths[0], lengths[1], lengths[2]), in, out);
+        run_single_stage(copy_functor(), backend_t(), make_grid(lengths[0], lengths[1], lengths[2]), in, out);
     }
     BINDGEN_EXPORT_BINDING_2(run_copy_stencil, run);
 

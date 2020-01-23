@@ -63,7 +63,7 @@ void run_test() {
 
     auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
 
-    easy_run(parallel_functor<Axis>(), backend_t(), grid, in, out);
+    run_single_stage(parallel_functor<Axis>(), backend_t(), grid, in, out);
 
     auto outv = out->host_view();
     auto inv = in->host_view();
@@ -143,7 +143,7 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
 
     auto grid = make_grid(d1, d2, Axis(d3_1, d3_2, d3_3));
 
-    easy_run(parallel_functor_on_upper_interval<Axis>(), backend_t(), grid, in, out);
+    run_single_stage(parallel_functor_on_upper_interval<Axis>(), backend_t(), grid, in, out);
 
     auto outv = out->host_view();
     auto inv = in->host_view();

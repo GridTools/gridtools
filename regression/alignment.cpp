@@ -43,6 +43,6 @@ struct not_aligned {
 
 TEST_F(alignment_test, test) {
     auto out = make_storage<bool>();
-    easy_run(not_aligned(), backend_t(), make_grid(), make_storage(), out, positional<dim::i>());
+    run_single_stage(not_aligned(), backend_t(), make_grid(), make_storage(), out, positional<dim::i>());
     verify(false, out);
 }

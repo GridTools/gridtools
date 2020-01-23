@@ -43,6 +43,6 @@ TEST_F(stencil_on_vertices, test) {
         return res;
     };
     auto out = make_storage<vertices>();
-    easy_run(test_on_vertices_functor(), backend_t(), make_grid(), make_storage<vertices>(in), out);
+    run_single_stage(test_on_vertices_functor(), backend_t(), make_grid(), make_storage<vertices>(in), out);
     verify(ref, out);
 }
