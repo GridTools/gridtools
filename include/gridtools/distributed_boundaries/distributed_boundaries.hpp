@@ -20,8 +20,6 @@
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/timer/timer.hpp"
-#include "../common/timer/timer_cuda.hpp"
-#include "../common/timer/timer_omp.hpp"
 #include "../communication/low_level/gcl_arch.hpp"
 #ifdef GCL_MPI
 #include "../communication/GCL.hpp"
@@ -90,8 +88,7 @@ namespace gridtools {
             typename CTraits::comm_arch_type>;
 
       private:
-        using performance_meter_t = timer<
-            std::conditional_t<std::is_same<typename CTraits::comm_arch_type, gcl_gpu>::value, timer_cuda, timer_omp>>;
+        using performance_meter_t = timer<typename CTraits::timer_impl_t>;
 
         array<halo_descriptor, 3> m_halos;
         array<int_t, 3> m_sizes;

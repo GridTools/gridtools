@@ -27,10 +27,11 @@ namespace gridtools {
     /** \ingroup Distributed-Boundaries
      * @{ */
 
-    template <typename StorageType, typename Arch>
+    template <typename StorageType, typename Arch, typename TimerImpl>
     struct comm_traits {
         using proc_layout = layout_map<0, 1, 2>;
         using comm_arch_type = Arch;
+        using timer_impl_t = TimerImpl;
         using data_layout = typename StorageType::element_type::layout_t;
         using value_type = typename StorageType::element_type::data_t;
     };

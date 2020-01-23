@@ -56,7 +56,7 @@ struct flx_function {
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
         auto res = eval(lap(1, 0)) - eval(lap(0, 0));
-        eval(out()) = res  * (eval(in(1, 0)) - eval(in(0, 0)) > 0 ? 0 : res;
+        eval(out()) = res * (eval(in(1, 0)) - eval(in(0, 0))) > 0 ? 0 : res;
     }
 };
 

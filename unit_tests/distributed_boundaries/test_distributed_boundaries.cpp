@@ -82,7 +82,7 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     const auto builder = storage::builder<storage_traits_t>.type<triplet>().halos(2, 2, 0).dimensions(d1, d2, d3);
     using storage_type = decltype(builder());
 
-    using cabc_t = distributed_boundaries<comm_traits<storage_type, gcl_arch_t>>;
+    using cabc_t = distributed_boundaries<comm_traits<storage_type, gcl_arch_t, timer_impl_t>>;
 
     halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
     halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
@@ -286,7 +286,7 @@ TEST(DistributedBoundaries, Test) {
     const auto builder = storage::builder<storage_traits_t>.type<triplet>().halos(2, 2, 0).dimensions(d1, d2, d3);
     using storage_type = decltype(builder());
 
-    using cabc_t = distributed_boundaries<comm_traits<storage_type, gcl_arch_t>>;
+    using cabc_t = distributed_boundaries<comm_traits<storage_type, gcl_arch_t, timer_impl_t>>;
 
     halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
     halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};

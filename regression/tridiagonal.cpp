@@ -35,13 +35,11 @@ using axis_t = axis<1>;
 using full_t = axis_t::full_interval;
 
 struct forward_thomas {
-    // four vectors: output, and the 3 diagonals
-    using out = inout_accessor<0>;
-    using inf = in_accessor<1>;                               // a
-    using diag = in_accessor<2>;                              // b
-    using sup = inout_accessor<3, extent<0, 0, 0, 0, -1, 0>>; // c
-    using rhs = inout_accessor<4, extent<0, 0, 0, 0, -1, 0>>; // d
-    using param_list = make_param_list<out, inf, diag, sup, rhs>;
+    using inf = in_accessor<0>;                               // a
+    using diag = in_accessor<1>;                              // b
+    using sup = inout_accessor<2, extent<0, 0, 0, 0, -1, 0>>; // c
+    using rhs = inout_accessor<3, extent<0, 0, 0, 0, -1, 0>>; // d
+    using param_list = make_param_list<inf, diag, sup, rhs>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, 0>) {
@@ -80,7 +78,7 @@ TEST_F(tridiagonal, test) {
     auto out = make_storage();
     run(
         [](auto inf, auto diag, auto sup, auto rhs, auto out) {
-            return multi_pass(execute_forward().stage(forward_thomas(), out, inf, diag, sup, rhs),
+            return multi_pass(execute_forward().stage(forward_thomas(), inf, diag, sup, rhs),
                 execute_backward().stage(backward_thomas(), out, sup, rhs));
         },
         backend_t(),
