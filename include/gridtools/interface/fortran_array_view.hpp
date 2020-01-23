@@ -35,7 +35,7 @@ namespace gridtools {
 
             bindgen_fortran_array_descriptor const &m_desc;
 
-            friend sid::simple_ptr_holder<T> sid_get_origin(fortran_array_view const &obj) {
+            friend sid::simple_ptr_holder<T *> sid_get_origin(fortran_array_view const &obj) {
                 return {static_cast<T *>(obj.m_desc.data)};
             }
             friend strides_t sid_get_strides(fortran_array_view const &obj) {
