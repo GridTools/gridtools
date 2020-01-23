@@ -222,7 +222,7 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
  this type should model `Storage Traits Concept`. The library comes with three predefined traits:
    - [x86](x86.hpp). Layout is chosen to benefit from data locality while doing 3D loop.
      `malloc` allocation. No alignment. `target` and `host` spaces are same. 
-   - [mc](mc.hpp).  Huge page allocation. `8 bytes` alignment. Layout is tailored to utilize vectorization while
+   - [mc](mc.hpp).  Huge page allocation. `64 bytes` alignment. Layout is tailored to utilize vectorization while
      3D looping. `target` and `host` spaces are same.
    - [cuda](cuda.hpp). Tailored for GPU. `target` and `host` spaces are different.
    
