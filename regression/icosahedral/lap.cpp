@@ -10,8 +10,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/tools/icosahedral_regression_fixture.hpp>
 
 #include "curl_functors.hpp"
 #include "div_functors.hpp"
@@ -21,107 +21,111 @@ using namespace gridtools;
 using namespace ico_operators;
 
 struct lap_functor {
-    typedef in_accessor<0, enumtype::cells, extent<-1, 0, -1, 0>> in_cells;
-    typedef in_accessor<1, enumtype::edges> dual_edge_length_reciprocal;
-    typedef in_accessor<2, enumtype::vertices, extent<0, 1, 0, 1>> in_vertices;
-    typedef in_accessor<3, enumtype::edges> edge_length_reciprocal;
-    typedef inout_accessor<4, enumtype::edges> out_edges;
+    typedef in_accessor<0, cells, extent<-1, 0, -1, 0>> in_cells;
+    typedef in_accessor<1, edges> dual_edge_length_reciprocal;
+    typedef in_accessor<2, vertices, extent<0, 1, 0, 1>> in_vertices;
+    typedef in_accessor<3, edges> edge_length_reciprocal;
+    typedef inout_accessor<4, edges> out_edges;
     using param_list =
         make_param_list<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>;
-    using location = enumtype::edges;
+    using location = edges;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
-        constexpr auto neighbors_offsets_cell =
-            connectivity<enumtype::edges, enumtype::cells, Evaluation::color>::offsets();
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
+        float_type grad_n = 0;
+        int e = 0;
+        eval.for_neighbors([&](auto in) { grad_n += (e++ ? 1 : -1) * in; }, in_cells());
+        grad_n *= eval(dual_edge_length_reciprocal());
 
-        float_type grad_n{(eval(in_cells(neighbors_offsets_cell[1])) - eval(in_cells(neighbors_offsets_cell[0]))) *
-                          eval(dual_edge_length_reciprocal())};
-
-        constexpr auto neighbors_offsets_vertex =
-            connectivity<enumtype::edges, enumtype::vertices, Evaluation::color>::offsets();
-        float_type grad_tau{
-            (eval(in_vertices(neighbors_offsets_vertex[1])) - eval(in_vertices(neighbors_offsets_vertex[0]))) *
-            eval(edge_length_reciprocal())};
+        float_type grad_tau = 0;
+        e = 0;
+        eval.for_neighbors([&](auto in) { grad_tau += (e++ ? 1 : -1) * in; }, in_vertices());
+        grad_tau *= eval(edge_length_reciprocal());
 
         eval(out_edges()) = grad_n - grad_tau;
     }
 };
 
 struct lap : regression_fixture<2> {
-    operators_repository repo = {d1(), d2()};
-
-    storage_type<edges> out_edges = make_storage<edges>();
-
-    arg<0, edges> p_in_edges;
-    arg<1, edges> p_out_edges;
-    arg<2, edges, edge_2d_storage_type> p_edge_length;
-    arg<3, edges, edge_2d_storage_type> p_edge_length_reciprocal;
-    arg<4, edges, edge_2d_storage_type> p_dual_edge_length;
-    arg<5, edges, edge_2d_storage_type> p_dual_edge_length_reciprocal;
-    arg<2, cells, cell_2d_storage_type> p_cell_area_reciprocal;
-    arg<3, vertices, vertex_2d_storage_type> p_dual_area_reciprocal;
-
-    tmp_arg<0, cells> p_div_on_cells;
-    tmp_arg<1, vertices> p_curl_on_vertices;
-
-    ~lap() { verify(make_storage<edges>(repo.lap), out_edges); }
+    operators_repository repo = {d(0), d(1)};
 };
 
 TEST_F(lap, weights) {
-    using edges_of_cells_storage_type = storage_type_4d<cells, selector<1, 1, 1, 0, 1>>;
-    using edges_of_vertices_storage_type = storage_type_4d<vertices, selector<1, 1, 1, 0, 1>>;
-
-    arg<10, cells, edges_of_cells_storage_type> p_orientation_of_normal;
-    arg<11, cells, storage_type_4d<cells>> p_div_weights;
-    arg<12, vertices, storage_type_4d<vertices>> p_curl_weights;
-    arg<13, vertices, edges_of_vertices_storage_type> p_edge_orientation;
-
-    make_computation(p_edge_length = make_storage<edges, edge_2d_storage_type>(repo.edge_length),
-        p_cell_area_reciprocal = make_storage<cells, cell_2d_storage_type>(repo.cell_area_reciprocal),
-        p_orientation_of_normal = make_storage_4d<cells, edges_of_cells_storage_type>(3, repo.orientation_of_normal),
-        p_div_weights = make_storage_4d<cells>(3),
-        p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
-        p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
-        p_curl_weights = make_storage_4d<vertices>(6),
-        p_edge_orientation = make_storage_4d<vertices, edges_of_vertices_storage_type>(6, repo.edge_orientation),
-        p_in_edges = make_storage<edges>(repo.u),
-        p_dual_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length_reciprocal),
-        p_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.edge_length_reciprocal),
-        p_out_edges = out_edges,
-        make_multistage(execute::forward(),
-            make_stage<div_prep_functor>(p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights),
-            make_stage<curl_prep_functor>(
-                p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation),
-            make_stage<div_functor_reduction_into_scalar>(p_in_edges, p_div_weights, p_div_on_cells),
-            make_stage<curl_functor_weights>(p_in_edges, p_curl_weights, p_curl_on_vertices),
-            make_stage<lap_functor>(p_div_on_cells,
-                p_dual_edge_length_reciprocal,
-                p_curl_on_vertices,
-                p_edge_length_reciprocal,
-                p_out_edges)))
-        .run();
+    auto spec = [](auto edge_length,
+                    auto cell_area_reciprocal,
+                    auto dual_area_reciprocal,
+                    auto dual_edge_length,
+                    auto in_edges,
+                    auto dual_edge_length_reciprocal,
+                    auto edge_length_reciprocal,
+                    auto out) {
+        GT_DECLARE_ICO_TMP(float_type, cells, div_on_cells);
+        GT_DECLARE_ICO_TMP(float_type, vertices, curl_on_vertices);
+        GT_DECLARE_ICO_TMP((array<float_type, 3>), cells, div_weights);
+        GT_DECLARE_ICO_TMP((array<float_type, 6>), vertices, curl_weights);
+        // sorry, curl_weights doesn't fit the ij_cache on daint gpu :(
+        return execute_parallel()
+            .ij_cached(div_on_cells, curl_on_vertices, div_weights /*, curl_weights*/)
+            .stage(div_prep_functor(), edge_length, cell_area_reciprocal, div_weights)
+            .stage(curl_prep_functor(), dual_area_reciprocal, dual_edge_length, curl_weights)
+            .stage(div_functor_reduction_into_scalar(), in_edges, div_weights, div_on_cells)
+            .stage(curl_functor_weights(), in_edges, curl_weights, curl_on_vertices)
+            .stage(lap_functor(),
+                div_on_cells,
+                dual_edge_length_reciprocal,
+                curl_on_vertices,
+                edge_length_reciprocal,
+                out);
+    };
+    auto out = make_storage<edges>();
+    run(spec,
+        backend_t(),
+        make_grid(),
+        make_storage<edges>(repo.edge_length),
+        make_storage<cells>(repo.cell_area_reciprocal),
+        make_storage<vertices>(repo.dual_area_reciprocal),
+        make_storage<edges>(repo.dual_edge_length),
+        make_storage<edges>(repo.u),
+        make_storage<edges>(repo.dual_edge_length_reciprocal),
+        make_storage<edges>(repo.edge_length_reciprocal),
+        out);
+    verify(make_storage<edges>(repo.lap), out);
 }
 
 TEST_F(lap, flow_convention) {
-    make_computation(p_in_edges = make_storage<edges>(repo.u),
-        p_edge_length = make_storage<edges, edge_2d_storage_type>(repo.edge_length),
-        p_cell_area_reciprocal = make_storage<cells, cell_2d_storage_type>(repo.cell_area_reciprocal),
-        p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
-        p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
-        p_dual_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length_reciprocal),
-        p_edge_length_reciprocal = make_storage<edges, edge_2d_storage_type>(repo.edge_length_reciprocal),
-        p_out_edges = out_edges,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_div_on_cells)),
-            make_stage<div_functor_flow_convention_connectivity>(
-                p_in_edges, p_edge_length, p_cell_area_reciprocal, p_div_on_cells),
-            make_stage<curl_functor_flow_convention>(
-                p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_curl_on_vertices),
-            make_stage<lap_functor>(p_div_on_cells,
-                p_dual_edge_length_reciprocal,
-                p_curl_on_vertices,
-                p_edge_length_reciprocal,
-                p_out_edges)))
-        .run();
+    auto spec = [](auto in_edges,
+                    auto edge_length,
+                    auto cell_area_reciprocal,
+                    auto dual_area_reciprocal,
+                    auto dual_edge_length,
+                    auto dual_edge_length_reciprocal,
+                    auto edge_length_reciprocal,
+                    auto out) {
+        GT_DECLARE_ICO_TMP(float_type, cells, div_on_cells);
+        GT_DECLARE_ICO_TMP(float_type, vertices, curl_on_vertices);
+        return execute_parallel()
+            .ij_cached(div_on_cells, curl_on_vertices)
+            .stage(
+                div_functor_flow_convention_connectivity(), in_edges, edge_length, cell_area_reciprocal, div_on_cells)
+            .stage(curl_functor_flow_convention(), in_edges, dual_area_reciprocal, dual_edge_length, curl_on_vertices)
+            .stage(lap_functor(),
+                div_on_cells,
+                dual_edge_length_reciprocal,
+                curl_on_vertices,
+                edge_length_reciprocal,
+                out);
+    };
+    auto out = make_storage<edges>();
+    run(spec,
+        backend_t(),
+        make_grid(),
+        make_storage<edges>(repo.u),
+        make_storage<edges>(repo.edge_length),
+        make_storage<cells>(repo.cell_area_reciprocal),
+        make_storage<vertices>(repo.dual_area_reciprocal),
+        make_storage<edges>(repo.dual_edge_length),
+        make_storage<edges>(repo.dual_edge_length_reciprocal),
+        make_storage<edges>(repo.edge_length_reciprocal),
+        out);
+    verify(make_storage<edges>(repo.lap), out);
 }

@@ -9,18 +9,23 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil_composition/positional.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct functor {
     using out = inout_accessor<0>;
-    using param_list = make_param_list<out>;
+    using i_pos = in_accessor<1>;
+    using j_pos = in_accessor<2>;
+    using k_pos = in_accessor<3>;
+    using param_list = make_param_list<out, i_pos, j_pos, k_pos>;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out()) = eval.i() + eval.j() + eval.k();
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
+        eval(out()) = eval(i_pos()) + eval(j_pos()) + eval(k_pos());
     }
 };
 
@@ -28,10 +33,7 @@ using positional_stencil = regression_fixture<>;
 
 TEST_F(positional_stencil, test) {
     auto out = make_storage();
-
-    make_positional_computation<backend_t>(
-        make_grid(), p_0 = out, make_multistage(execute::forward(), make_stage<functor>(p_0)))
-        .run();
-
-    verify(make_storage([](int i, int j, int k) { return i + j + k; }), out);
+    run_single_stage(
+        functor(), backend_t(), make_grid(), out, positional<dim::i>(), positional<dim::j>(), positional<dim::k>());
+    verify([](int i, int j, int k) { return i + j + k; }, out);
 }

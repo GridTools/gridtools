@@ -27,12 +27,10 @@ The optimal value for ``expand_factor`` might need to be tuned for different bac
 
 .. code-block:: gridtools
 
- auto comp_ = make_expandable_computation<backend_t>(
-        expand_factor<4>,
-        domain_,
-        grid_,
-        make_multistage(execute::forward(), make_stage<functor>(p())));
- comp.run(p() = list);
+ auto const spec = [](auto s) {
+   return execute_parallel().stage(functor(), s);
+ };
+ expandable_run<4>(spec, backend_t(), grid, s);
 
 The vector of
 storages is then partitioned into chunks of ``expand_factor`` size (with a remainder). Each
@@ -41,8 +39,8 @@ instantiated. The remainder elements are then processed one by one.
 
 Summing up, the only differences with respect to the case without expandable parameters are:
 
-* ``make_expandable_computation`` has to be used instead of ``make_computation``
-* an ``expand_factor`` has to be passed to the ``make_expandable_computation``, defining the size of the chunks of
+* ``expandable_run`` has to be used instead of ``run``
+* an ``expand_factor`` has to be passed to the ``expandable_run``, defining the size of the chunks of
 * expandable parameters should be unrolled in each computation.
 * a ``std::vector`` of storage pointers has to be used instead of a single storage.
 

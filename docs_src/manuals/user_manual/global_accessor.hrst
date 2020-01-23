@@ -1,14 +1,8 @@
 .. _global-accessor:
 
--------------------------------
-Global Parameters and Accessors
--------------------------------
-
-Global accessors are accessing read-only data which is independent of the current :term:`Iteration Point`.
-For this reason, intent, :term:`Extents<Extent>` and offsets cannot be specified for a global accessor.
-Here the term `global` means that the data is the same for the whole :term:`Iteration Space`. An example can be
-a constant scalar parameter that you want to pass to the functor, or a user defined struct containing
-various configuration options.
+-----------------
+Global Parameters
+-----------------
 
 The API allows the user to define an arbitrary object to act as a :term:`Global Parameter` as long as it is trivially copyable.
 To create a :term:`Global Parameter` from a user-defined object, we pass the object to ``make_global_parameter()``
@@ -16,10 +10,3 @@ To create a :term:`Global Parameter` from a user-defined object, we pass the obj
 .. code-block:: gridtools
 
    auto my_global_parameter = make_global_parameter(my_object);
-
-Note that the object is read-only only during the execution of a computation, but can be modified
-in between executions with
-
-.. code-block:: gridtools
-
-   update_global_parameter(my_global_parameter, new_value);

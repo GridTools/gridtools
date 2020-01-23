@@ -12,11 +12,11 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/expandable_parameters/make_computation.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct prepare_tracers {
     using data = inout_accessor<0>;
@@ -34,29 +34,26 @@ struct prepare_tracers {
 using advection_pdbott_prepare_tracers = regression_fixture<>;
 
 TEST_F(advection_pdbott_prepare_tracers, test) {
-    using storages_t = std::vector<storage_type>;
-
-    arg<0, storages_t> p_out;
-    arg<1, storages_t> p_in;
-    arg<2, storage_type> p_rho;
-
-    storages_t in, out;
+    std::vector<storage_type> in, out;
 
     for (size_t i = 0; i < 11; ++i) {
         out.push_back(make_storage());
-        in.push_back(make_storage(1. * i));
+        in.push_back(make_storage(i));
     }
 
-    auto comp = gridtools::make_expandable_computation<backend_t>(expand_factor<2>(),
-        make_grid(),
-        p_out = out,
-        p_in = in,
-        p_rho = make_storage(1.1),
-        make_multistage(execute::parallel(), make_stage<prepare_tracers>(p_out, p_in, p_rho)));
+    auto comp = [grid = make_grid(), &in, &out, rho = make_const_storage(1.1)] {
+        expandable_run<2>(
+            [](auto out, auto in, auto rho) { return execute_parallel().stage(prepare_tracers(), out, in, rho); },
+            backend_t(),
+            grid,
+            out,
+            in,
+            rho);
+    };
 
-    comp.run();
+    comp();
     for (size_t i = 0; i != out.size(); ++i)
-        verify(make_storage([i](int_t, int_t, int_t) { return 1.1 * i; }), out[i]);
+        verify([i](int, int, int) { return 1.1 * i; }, out[i]);
 
     benchmark(comp);
 }

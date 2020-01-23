@@ -13,7 +13,6 @@
 #include <gridtools/common/boollist.hpp>
 #include <gridtools/communication/all_to_all_halo.hpp>
 #include <gridtools/communication/low_level/proc_grids_3D.hpp>
-#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 #include <iostream>
 #include <sstream>

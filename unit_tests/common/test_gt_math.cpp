@@ -29,15 +29,14 @@ bool GT_FUNCTION test_exp(Value val, Value result) {
     return expect_with_threshold(math::exp(val), result);
 }
 
-bool GT_FUNCTION test_fabs() {
-    GT_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0f)), float>::value), "Should return float.");
-    GT_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0)), double>::value), "Should return double.");
+static_assert(std::is_same<decltype(math::fabs(4.0f)), float>::value, "");
+static_assert(std::is_same<decltype(math::fabs(4.0)), double>::value, "");
 #ifndef __CUDA_ARCH__
-    GT_STATIC_ASSERT(
-        (std::is_same<decltype(math::fabs((long double)4)), long double>::value), "Should return long double.");
+static_assert(std::is_same<decltype(math::fabs((long double)4)), long double>::value, "");
 #endif
-    GT_STATIC_ASSERT((std::is_same<decltype(math::fabs((int)4)), double>::value), "Should return double.");
+static_assert(std::is_same<decltype(math::fabs((int)4)), double>::value, "");
 
+bool GT_FUNCTION test_fabs() {
     if (!expect_with_threshold(math::fabs(5.6), 5.6, 1e-14))
         return false;
     else if (!expect_with_threshold(math::fabs(-5.6), 5.6, 1e-14))
@@ -54,20 +53,19 @@ bool GT_FUNCTION test_fabs() {
         return true;
 }
 
-GT_FUNCTION bool test_abs() {
-    // float overloads
-    GT_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0f)), float>::value), "Should return float.");
-    GT_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0)), double>::value), "Should return double.");
+static_assert(std::is_same<decltype(math::abs(4.0f)), float>::value, "");
+static_assert(std::is_same<decltype(math::abs(4.0)), double>::value, "");
 #ifndef __CUDA_ARCH__
-    GT_STATIC_ASSERT(
-        (std::is_same<decltype(math::abs((long double)4)), long double>::value), "Should return long double.");
+static_assert(std::is_same<decltype(math::abs((long double)4)), long double>::value, "");
 #endif
 
-    // int overloads
-    GT_STATIC_ASSERT((std::is_same<decltype(math::abs((int)4)), int>::value), "Should return int.");
-    GT_STATIC_ASSERT((std::is_same<decltype(math::abs((long)4)), long>::value), "Should return long.");
-    GT_STATIC_ASSERT((std::is_same<decltype(math::abs((long long)4)), long long>::value), "Should return long long.");
+// int overloads
+static_assert(std::is_same<decltype(math::abs((int)4)), int>::value, "");
+static_assert(std::is_same<decltype(math::abs((long)4)), long>::value, "");
+static_assert(std::is_same<decltype(math::abs((long long)4)), long long>::value, "");
 
+GT_FUNCTION bool test_abs() {
+    // float overloads
     if (math::abs(5.6) != 5.6)
         return false;
     else if (math::abs(-5.6) != 5.6)
@@ -156,5 +154,4 @@ namespace {
         EXPECT_DOUBLE_EQ(math::trunc(3.7), std::trunc(3.7));
         EXPECT_DOUBLE_EQ(math::trunc(3.7l), std::trunc(3.7l));
     }
-
 } // namespace

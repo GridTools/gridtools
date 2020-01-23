@@ -10,16 +10,16 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions.hpp>
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil_composition/global_parameter.hpp>
+#include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/sid.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
-using storage_traits_t = storage_traits<backend_t>;
-using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
-using data_store_t = storage_traits_t::data_store_t<float_type, storage_info_t>;
+const auto make_storage = storage::builder<storage_traits_t>.type<float_type>().dimensions(10, 10, 10).value(2);
 
 struct boundary {
 
@@ -96,37 +96,25 @@ struct functor_with_function_call {
 class global_accessor_single_stage : public ::testing::Test {
   public:
     global_accessor_single_stage()
-        : sinfo(10, 10, 10), sol_(sinfo, 2.), bd(20), bd_(make_global_parameter(bd)), di(1, 0, 1, 9, 10),
-          dj(1, 0, 1, 1, 2), coords_bc(make_grid(di, dj, 2)) {}
+        : bd(20), bd_(make_global_parameter(bd)), di(1, 0, 1, 9, 10), dj(1, 0, 1, 1, 2),
+          coords_bc(make_grid(di, dj, 2)) {}
 
-    void check(data_store_t, float_type) {}
-
-  protected:
-    storage_info_t sinfo;
-    data_store_t sol_;
     boundary bd;
     global_parameter<boundary> bd_;
-
-    using p_sol = arg<0, data_store_t>;
-    using p_bd = arg<1, decltype(bd_)>;
 
     halo_descriptor di;
     halo_descriptor dj;
 
-    grid<axis<1>::axis_interval_t> coords_bc;
+    decltype(make_grid(halo_descriptor(), halo_descriptor(), 0)) coords_bc;
 };
 
 TEST_F(global_accessor_single_stage, boundary_conditions) {
+    auto sol = make_storage();
     /*****RUN 1 WITH bd int_value set to 20****/
-    auto bc_eval = make_computation<backend_t>(coords_bc,
-        p_sol() = sol_,
-        p_bd() = bd_,
-        make_multistage(execute::forward(), make_stage<functor1>(p_sol(), p_bd())));
-
-    bc_eval.run();
+    auto bc_eval = [&] { run_single_stage(functor1(), backend_t(), coords_bc, sol, bd_); };
+    bc_eval();
     // fetch data and check
-    sol_.clone_from_device();
-    auto solv = make_host_view(sol_);
+    auto solv = sol->host_view();
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
             for (int k = 0; k < 10; ++k) {
@@ -135,7 +123,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
                     value += 10.;
                     value += 20;
                 }
-                ASSERT_TRUE((solv(i, j, k) == value));
+                EXPECT_EQ(value, solv(i, j, k));
             }
         }
     }
@@ -155,13 +143,10 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
         }
     }
 
-    sol_.clone_to_device();
-
     // run again and finalize
-    bc_eval.run();
+    bc_eval();
 
-    sol_.clone_from_device();
-    sol_.reactivate_host_write_views();
+    solv = sol->host_view();
 
     // check result of second run
     for (int i = 0; i < 10; ++i) {
@@ -172,22 +157,17 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
                     value += 10.;
                     value += 30;
                 }
-                ASSERT_TRUE((solv(i, j, k) == value));
+                EXPECT_EQ(value, solv(i, j, k));
             }
         }
     }
 }
 
 TEST_F(global_accessor_single_stage, with_procedure_call) {
-    auto bc_eval = make_computation<backend_t>(coords_bc,
-        p_sol() = sol_,
-        p_bd() = bd_,
-        make_multistage(execute::forward(), make_stage<functor_with_procedure_call>(p_sol(), p_bd())));
+    auto sol = make_storage();
+    run_single_stage(functor_with_procedure_call(), backend_t(), coords_bc, sol, bd_);
 
-    bc_eval.run();
-
-    sol_.clone_from_device();
-    auto solv = make_host_view(sol_);
+    auto solv = sol->host_view();
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
             for (int k = 0; k < 10; ++k) {
@@ -196,31 +176,26 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
                     value += 10.;
                     value += 20;
                 }
-                ASSERT_EQ(value, solv(i, j, k));
+                EXPECT_EQ(value, solv(i, j, k));
             }
         }
     }
 }
 
 TEST_F(global_accessor_single_stage, with_function_call) {
-    auto bc_eval = make_computation<backend_t>(coords_bc,
-        p_sol() = sol_,
-        p_bd() = bd_,
-        make_multistage(execute::forward(), make_stage<functor_with_function_call>(p_sol(), p_bd())));
+    auto sol = make_storage();
+    run_single_stage(functor_with_function_call(), backend_t(), coords_bc, sol, bd_);
 
-    bc_eval.run();
-
-    sol_.clone_from_device();
-    auto solv = make_host_view(sol_);
+    auto solv = sol->host_view();
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
             for (int k = 0; k < 10; ++k) {
                 if (i > 0 && j == 1 && k < 2) {
                     double value = 10.;
                     value += 20;
-                    ASSERT_EQ(value, solv(i, j, k));
+                    EXPECT_EQ(value, solv(i, j, k));
                 } else
-                    ASSERT_EQ(2.0, solv(i, j, k));
+                    EXPECT_EQ(2, solv(i, j, k));
             }
         }
     }
@@ -230,9 +205,8 @@ TEST_F(global_accessor_single_stage, with_function_call) {
 // stages, where global placeholders need to be remapped to local accessor
 // of the various user functors
 TEST(test_global_accessor, multiple_stages) {
-    storage_info_t sinfo(10, 10, 10);
-    data_store_t sol_(sinfo, 2.);
-    data_store_t tmp_(sinfo, 2.);
+    auto sol = make_storage();
+    auto tmp = make_storage();
 
     boundary bd(20);
 
@@ -242,22 +216,22 @@ TEST(test_global_accessor, multiple_stages) {
     halo_descriptor dj = halo_descriptor(1, 0, 1, 1, 2);
     auto coords_bc = make_grid(di, dj, 2);
 
-    typedef arg<0, data_store_t> p_sol;
-    typedef arg<1, data_store_t> p_tmp;
-    typedef arg<2, decltype(bd_)> p_bd;
-
     /*****RUN 1 WITH bd int_value set to 20****/
-    auto bc_eval = make_computation<backend_t>(coords_bc,
-        p_sol() = sol_,
-        p_tmp() = tmp_,
-        p_bd() = bd_,
-        make_multistage(
-            execute::forward(), make_stage<functor1>(p_tmp(), p_bd()), make_stage<functor2>(p_sol(), p_tmp(), p_bd())));
+    auto bc_eval = [&] {
+        run(
+            [](auto sol, auto tmp, auto bd) {
+                return execute_parallel().stage(functor1(), tmp, bd).stage(functor2(), sol, tmp, bd);
+            },
+            backend_t(),
+            coords_bc,
+            sol,
+            tmp,
+            bd_);
+    };
 
-    bc_eval.run();
+    bc_eval();
     // fetch data and check
-    sol_.clone_from_device();
-    auto solv = make_host_view(sol_);
+    auto solv = sol->host_view();
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
             for (int k = 0; k < 10; ++k) {
@@ -265,7 +239,7 @@ TEST(test_global_accessor, multiple_stages) {
                 if (i > 0 && j == 1 && k < 2) {
                     value += 52.;
                 }
-                ASSERT_TRUE(solv(i, j, k) == value);
+                EXPECT_EQ(value, solv(i, j, k));
             }
         }
     }
@@ -275,8 +249,7 @@ TEST(test_global_accessor, multiple_stages) {
     bd.int_value = 30;
     bd_ = make_global_parameter(bd);
 
-    tmp_.sync();
-    auto tmpv = make_host_view(tmp_);
+    auto tmpv = tmp->host_view();
 
     // get the storage object from the gpu
     // modify storage object
@@ -289,13 +262,10 @@ TEST(test_global_accessor, multiple_stages) {
         }
     }
 
-    sol_.clone_to_device();
-    tmp_.clone_to_device();
+    // run again
+    bc_eval();
 
-    // run again and finalize
-    bc_eval.run();
-    sol_.clone_from_device();
-    sol_.reactivate_host_write_views();
+    solv = sol->host_view();
 
     // check result of second run
     for (int i = 0; i < 10; ++i) {
@@ -305,7 +275,7 @@ TEST(test_global_accessor, multiple_stages) {
                 if (i > 0 && j == 1 && k < 2) {
                     value += 72.;
                 }
-                ASSERT_TRUE((solv(i, j, k) == value));
+                EXPECT_EQ(value, solv(i, j, k));
             }
         }
     }

@@ -172,7 +172,7 @@ namespace gridtools {
         struct keys {
             template <class... Vals>
             struct values {
-                GT_STATIC_ASSERT(sizeof...(Vals) == sizeof...(Keys), "invalid hymap");
+                static_assert(sizeof...(Vals) == sizeof...(Keys), "invalid hymap");
 
                 tuple<Vals...> m_vals;
 
@@ -255,7 +255,7 @@ namespace gridtools {
             class I = meta::st_position<get_keys<Decayed>, Key>,
             std::enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
         GT_TARGET void at_key(Map &&) noexcept {
-            GT_STATIC_ASSERT(sizeof(Key) != sizeof(Key), "wrong key");
+            static_assert(sizeof(Key) != sizeof(Key), "wrong key");
         }
 
         template <class Key,
@@ -310,7 +310,7 @@ namespace gridtools {
             // Precondition: keys should not overlap.
             template <class... Maps>
             GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto concat(Maps... maps) {
-                GT_STATIC_ASSERT(meta::is_set_fast<meta::concat<get_keys<Maps>...>>::value, GT_INTERNAL_ERROR);
+                static_assert(meta::is_set_fast<meta::concat<get_keys<Maps>...>>::value, GT_INTERNAL_ERROR);
                 return tuple_util::concat_ex<hymap_impl_::concat_result_maker_f>(wstd::move(maps)...);
             }
 

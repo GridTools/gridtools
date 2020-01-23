@@ -10,23 +10,20 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/expandable_parameters/make_computation.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions.hpp>
-#include <gridtools/tools/computation_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/tools/cartesian_fixture.hpp>
 
 using namespace gridtools;
-using namespace gridtools::execute;
-using namespace gridtools::expressions;
+using namespace cartesian;
+using namespace expressions;
 
 struct expandable_parameters : computation_fixture<> {
     expandable_parameters() : computation_fixture<>(13, 9, 7) {}
     using storages_t = std::vector<storage_type>;
 
-    template <class... Args>
-    void run_computation(Args &&... args) const {
-        gridtools::make_expandable_computation<backend_t>(expand_factor<2>(), make_grid(), std::forward<Args>(args)...)
-            .run();
+    template <class Comp, class... Args>
+    void run_computation(Comp comp, Args &&... args) const {
+        expandable_run<2>(comp, backend_t(), make_grid(), std::forward<Args>(args)...);
     }
 
     void verify(storages_t const &expected, storages_t const &actual) const {
@@ -43,18 +40,16 @@ struct expandable_parameters_copy : expandable_parameters {
 
     template <class Functor>
     void run_computation() {
-        arg<0, storages_t> p_out;
-        arg<1, storages_t> p_in;
         expandable_parameters::run_computation(
-            p_in = in, p_out = out, make_multistage(execute::forward(), make_stage<Functor>(p_out, p_in)));
+            [](auto out, auto in) { return execute_parallel().stage(Functor(), out, in); }, out, in);
     }
 
     ~expandable_parameters_copy() { verify(in, out); }
 };
 
 struct copy_functor {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -67,8 +62,8 @@ struct copy_functor {
 TEST_F(expandable_parameters_copy, copy) { run_computation<copy_functor>(); }
 
 struct copy_functor_with_expression {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -82,8 +77,8 @@ struct copy_functor_with_expression {
 TEST_F(expandable_parameters_copy, copy_with_expression) { run_computation<copy_functor_with_expression>(); }
 
 struct call_proc_copy_functor {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -96,8 +91,8 @@ struct call_proc_copy_functor {
 TEST_F(expandable_parameters_copy, call_proc_copy) { run_computation<call_proc_copy_functor>(); }
 
 struct call_copy_functor {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in> in;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1> in;
 
     typedef make_param_list<out, in> param_list;
 
@@ -110,7 +105,7 @@ struct call_copy_functor {
 TEST_F(expandable_parameters_copy, call_copy) { run_computation<call_copy_functor>(); }
 
 struct shift_functor {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef inout_accessor<0, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef make_param_list<out> param_list;
 
@@ -121,7 +116,7 @@ struct shift_functor {
 };
 
 struct call_shift_functor {
-    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef inout_accessor<0, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef make_param_list<out> param_list;
 
@@ -140,23 +135,19 @@ TEST_F(expandable_parameters, call_shift) {
     };
 
     storages_t actual = {in(14), in(15), in(16), in(17), in(18)};
-    arg<0, storages_t> plh;
-    run_computation(plh = actual, make_multistage(execute::forward(), make_stage<call_shift_functor>(plh)));
+    run_computation([](auto x) { return execute_forward().stage(call_shift_functor(), x); }, actual);
     verify({expected(14), expected(15), expected(16), expected(17), expected(18)}, actual);
 }
 
 TEST_F(expandable_parameters, caches) {
     storages_t out = {make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
     auto in = make_storage(42.);
-
-    arg<0, storages_t> p_out;
-    arg<1> p_in;
-    tmp_arg<1> p_tmp;
-    run_computation(p_in = in,
-        p_out = out,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp)),
-            make_stage<copy_functor>(p_tmp, p_in),
-            make_stage<copy_functor>(p_out, p_tmp)));
+    run_computation(
+        [](auto in, auto out) {
+            GT_DECLARE_TMP(float_type, tmp);
+            return execute_parallel().ij_cached(tmp).stage(copy_functor(), tmp, in).stage(copy_functor(), out, tmp);
+        },
+        in,
+        out);
     verify({in, in, in, in, in}, out);
 }

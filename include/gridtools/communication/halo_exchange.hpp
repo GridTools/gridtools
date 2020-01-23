@@ -236,8 +236,8 @@ namespace gridtools {
         struct proc_map<layout, 2> {
             static std::vector<int> map() {
                 std::vector<int> m(2);
-                m[0] = layout::template at<0>();
-                m[1] = layout::template at<1>();
+                m[0] = layout::at(0);
+                m[1] = layout::at(1);
                 return m;
             }
         };
@@ -246,9 +246,9 @@ namespace gridtools {
         struct proc_map<layout, 3> {
             static std::vector<int> map() {
                 std::vector<int> m(3);
-                m[0] = layout::template at<0>();
-                m[1] = layout::template at<1>();
-                m[2] = layout::template at<2>();
+                m[0] = layout::at(0);
+                m[1] = layout::at(1);
+                m[2] = layout::at(2);
                 return m;
             }
         };
@@ -312,14 +312,12 @@ namespace gridtools {
         */
         template <int DI>
         void add_halo(int minus, int plus, int begin, int end, int t_len) {
-
-            hd.halo.add_halo(layout_map::template at<DI>(), minus, plus, begin, end, t_len);
+            hd.halo.add_halo(layout_map::at(DI), minus, plus, begin, end, t_len);
         }
 
         template <int DI>
         void add_halo(halo_descriptor const &halo) {
-
-            hd.halo.add_halo(layout_map::template at<DI>(), halo);
+            hd.halo.add_halo(layout_map::at(DI), halo);
         }
 
         /**

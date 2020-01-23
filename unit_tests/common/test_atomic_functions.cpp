@@ -11,7 +11,6 @@
 #include "gtest/gtest.h"
 #include <cstdlib>
 #include <gridtools/common/atomic_functions.hpp>
-#include <gridtools/common/defs.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 template <typename T>
@@ -29,7 +28,7 @@ void TestAtomicAdd() {
     for (int cnt = 0; cnt < size; ++cnt) {
         gridtools::atomic_add(sum, field[cnt]);
     }
-    ASSERT_TRUE(gridtools::expect_with_threshold(sumRef, sum));
+    EXPECT_TRUE(gridtools::expect_with_threshold(sumRef, sum));
 }
 
 template <typename T>
@@ -47,7 +46,7 @@ void TestAtomicSub() {
     for (int cnt = 0; cnt < size; ++cnt) {
         gridtools::atomic_sub(sum, field[cnt]);
     }
-    ASSERT_TRUE(gridtools::expect_with_threshold(sumRef, sum));
+    EXPECT_TRUE(gridtools::expect_with_threshold(sumRef, sum));
 }
 
 template <typename T>
@@ -65,7 +64,7 @@ void TestAtomicMin() {
     for (int cnt = 0; cnt < size; ++cnt) {
         gridtools::atomic_min(min, field[cnt]);
     }
-    ASSERT_EQ(minRef, min);
+    EXPECT_EQ(minRef, min);
 }
 
 template <typename T>
@@ -83,7 +82,7 @@ void TestAtomicMax() {
     for (int cnt = 0; cnt < size; ++cnt) {
         gridtools::atomic_max(max, field[cnt]);
     }
-    ASSERT_EQ(maxRef, max);
+    EXPECT_EQ(maxRef, max);
 }
 
 TEST(AtomicFunctionsUnittest, add) {

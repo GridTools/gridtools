@@ -34,7 +34,7 @@ if(GT_ENABLE_BACKEND_X86)
     add_custom_command(OUTPUT ${GENERATED_REPOSITORY}
       # remove all lines starting with '#'
       # remove everything before "class my_repository"
-      COMMAND sed "/^#/d" ${GENERATED_REPOSITORY} | awk "/class my_repository/,0" > ${GENERATED_REPOSITORY}_tmp
+      COMMAND sed "/^#/d" ${GENERATED_REPOSITORY} | awk "/namespace my_repository_impl_/,0" > ${GENERATED_REPOSITORY}_tmp
       COMMAND cp ${GENERATED_REPOSITORY}_tmp ${GENERATED_REPOSITORY}
       APPEND
       )

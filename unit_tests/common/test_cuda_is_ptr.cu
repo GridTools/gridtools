@@ -32,7 +32,7 @@ TEST(test_is_gpu_ptr, cuda_ptr_is_cuda_ptr) {
 }
 
 TEST(test_is_gpu_ptr, cuda_ptr_inner_region_are_cuda_ptr) {
-    auto testee = cuda_malloc<double>(2);
+    auto testee = cuda_malloc<double[]>(2);
     EXPECT_TRUE(is_gpu_ptr(testee.get() + 1));
     EXPECT_EQ(cudaSuccess, cudaGetLastError());
 }

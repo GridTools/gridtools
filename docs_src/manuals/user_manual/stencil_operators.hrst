@@ -93,39 +93,6 @@ where
 * ``N`` identifies the dimension of the offsets that are used with the given accessor. The default is calculated from
   the `extent<>` parameter.
 
-----------------
-Accessor Aliases
-----------------
-
-An :term:`Accessor` alias is a regular :term:`Accessor` which has an offset predefiend at compile-time.  For instance,
-we might have a 4-dimensional :term:`Data Store`, where the last dimension refers to the 3 component u, v, w of a vector
-field, e.g. the wind-speed. This vector field is accessed via an :term:`Accessor` called ``vel``
-
-.. code-block:: gridtools
-
- using vel = in_accessor<0, extent<>, 4>;
-
-For convenience we can introduce an alias to the ``w`` component
-
-.. code-block:: gridtools
-
- using w = alias<vel, dimension<4>>::set<2>;
-
-The line above sets the fourth offset at compile-time to the value 2, so that we have the following equivalency:
-
-.. code-block:: gridtools
-
- w() == vel(0, 0, 0, 2)
-
-This allows to considerably lighten the notation in complicated expressions.  Note that you can still access the other
-dimensions with an offset, by using the alias, for example:
-
-.. code-block:: gridtools
-
- dimension<1> i;
- dimension<4> q;
- w(i + 1) == vel(i + 1, q + 2)
-
 --------------
 Parameter list
 --------------

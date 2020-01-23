@@ -9,8 +9,8 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 /*
   @file This file shows an implementation of the Thomas algorithm, done using stencil operations.
@@ -27,6 +27,7 @@
  */
 
 using namespace gridtools;
+using namespace cartesian;
 using namespace expressions;
 
 // This is the definition of the special regions in the "vertical" direction
@@ -34,13 +35,11 @@ using axis_t = axis<1>;
 using full_t = axis_t::full_interval;
 
 struct forward_thomas {
-    // four vectors: output, and the 3 diagonals
-    using out = inout_accessor<0>;
-    using inf = in_accessor<1>;                               // a
-    using diag = in_accessor<2>;                              // b
-    using sup = inout_accessor<3, extent<0, 0, 0, 0, -1, 0>>; // c
-    using rhs = inout_accessor<4, extent<0, 0, 0, 0, -1, 0>>; // d
-    using param_list = make_param_list<out, inf, diag, sup, rhs>;
+    using inf = in_accessor<0>;                               // a
+    using diag = in_accessor<1>;                              // b
+    using sup = inout_accessor<2, extent<0, 0, 0, 0, -1, 0>>; // c
+    using rhs = inout_accessor<3, extent<0, 0, 0, 0, -1, 0>>; // d
+    using param_list = make_param_list<inf, diag, sup, rhs>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, 0>) {
@@ -57,11 +56,9 @@ struct forward_thomas {
 
 struct backward_thomas {
     using out = inout_accessor<0, extent<0, 0, 0, 0, 0, 1>>;
-    using inf = in_accessor<1>;    // a
-    using diag = in_accessor<2>;   // b
-    using sup = inout_accessor<3>; // c
-    using rhs = inout_accessor<4>; // d
-    using param_list = make_param_list<out, inf, diag, sup, rhs>;
+    using sup = in_accessor<1>; // c
+    using rhs = in_accessor<2>; // d
+    using param_list = make_param_list<out, sup, rhs>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<0, -1>) {
@@ -77,26 +74,19 @@ struct backward_thomas {
 using tridiagonal = regression_fixture<>;
 
 TEST_F(tridiagonal, test) {
-    d3() = 6;
-
+    d(2) = 6;
     auto out = make_storage();
-    auto sup = make_storage(1.);
-    auto rhs = make_storage([](int_t, int_t, int_t k) { return k == 0 ? 4. : k == 5 ? 2. : 3.; });
-
-    arg<0> p_inf;  // a
-    arg<1> p_diag; // b
-    arg<2> p_sup;  // c
-    arg<3> p_rhs;  // d
-    arg<4> p_out;
-
-    make_computation(p_inf = make_storage(-1.),
-        p_diag = make_storage(3.),
-        p_sup = sup,
-        p_rhs = rhs,
-        p_out = out,
-        make_multistage(execute::forward(), make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
-        make_multistage(execute::backward(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)))
-        .run();
-
-    verify(make_storage(1.), out);
+    run(
+        [](auto inf, auto diag, auto sup, auto rhs, auto out) {
+            return multi_pass(execute_forward().stage(forward_thomas(), inf, diag, sup, rhs),
+                execute_backward().stage(backward_thomas(), out, sup, rhs));
+        },
+        backend_t(),
+        make_grid(),
+        make_storage(-1),
+        make_storage(3),
+        make_storage(1),
+        make_storage([](int, int, int k) { return k == 0 ? 4 : k == 5 ? 2 : 3; }),
+        out);
+    verify(1, out);
 }

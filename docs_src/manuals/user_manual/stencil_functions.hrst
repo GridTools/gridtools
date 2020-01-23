@@ -5,13 +5,6 @@ Stencil Functions
 -----------------
 
 Stencil functions offer the possibility to call :term:`Stencil Operators<Stencil Operator>` from other :term:`Stencil Operators<Stencil Operator>`.
-To use stencil functions the header
-
-.. code-block:: gridtools
-
-   #include <gridtools/stencil_composition/stencil_functions.hpp>
-
-needs to be included.
 Two variants are available: functional calls which return a value and procedural calls with side-effect on the given arguments (:term:`Accessors<Accessor>`).
 
 ^^^^^^^^^^^^^^^^^^^^^^^^

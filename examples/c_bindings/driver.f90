@@ -19,19 +19,13 @@ program main
     in_array = initial()
     out_array(:, :, :) = 0
 
-    grid_handle = make_grid(i, j, k)
-    storage_info_handle = make_storage_info(i, j, k)
-    in_handle = make_data_store(storage_info_handle)
-    out_handle = make_data_store(storage_info_handle)
-    computation_handle = make_copy_stencil(grid_handle)
-    ! bindgen_handles need to be released explicitly
-    call bindgen_release(grid_handle)
-    call bindgen_release(storage_info_handle)
+    in_handle = make_data_store(i, j, k)
+    out_handle = make_data_store(i, j, k)
 
     ! transform data from Fortran to C layout
     call transform_f_to_c(in_handle, in_array)
 
-    call run_stencil(computation_handle, in_handle, out_handle)
+    call run_copy_stencil(in_handle, out_handle)
 
     ! transform data from C layout to Fortran layout
     call transform_c_to_f(out_array, out_handle)
@@ -43,7 +37,6 @@ program main
     ! bindgen_handles need to be released explicitly
     call bindgen_release(in_handle)
     call bindgen_release(out_handle)
-    call bindgen_release(computation_handle)
 
     print *, "It works!"
 

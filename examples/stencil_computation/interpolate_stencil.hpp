@@ -1,41 +1,28 @@
 #pragma once
 
-#include <gridtools/stencil_composition/computation.hpp>
-#include <gridtools/stencil_composition/global_parameter.hpp>
-#include <gridtools/stencil_composition/grid.hpp>
+#include <functional>
 
-#ifdef USE_GPU
-using backend_t = gridtools::backend::cuda;
+#include <gridtools/stencil_composition/frontend/make_grid.hpp>
+#include <gridtools/storage/builder.hpp>
+
+#ifdef __CUDACC__
+#include <gridtools/storage/cuda.hpp>
+using storage_traits_t = gridtools::storage::cuda;
 #else
-using backend_t = gridtools::backend::mc;
+#include <gridtools/storage/mc.hpp>
+using storage_traits_t = gridtools::storage::mc;
 #endif
 
-using storage_info_t = gridtools::storage_traits<backend_t>::storage_info_t<0, 3>;
-using data_store_t = gridtools::storage_traits<backend_t>::data_store_t<double, storage_info_t>;
+using data_store_t = decltype(gridtools::storage::builder<storage_traits_t>.dimensions(0, 0, 0).type<double>().build());
 
 using grid_t = decltype(gridtools::make_grid(0, 0, 0));
 
-struct interpolate_stencil {
-  public:
-    interpolate_stencil(grid_t const &grid, double weight);
-
-    struct inputs {
-        data_store_t in1;
-        data_store_t in2;
-    };
-    struct outputs {
-        data_store_t out;
-    };
-
-    void run(inputs const &inputs, outputs const &outputs);
-
-  private:
-    using p_in1 = gridtools::arg<0, data_store_t>;
-    using p_in2 = gridtools::arg<1, data_store_t>;
-    using p_weight = gridtools::arg<2, gridtools::global_parameter<double>>;
-    using p_out = gridtools::arg<3, data_store_t>;
-
-    // the wrapped computation is stored in a `gridtools::computation`, which is type erasued. Compilation of
-    // `computation` is much less than `make_computation`.
-    gridtools::computation<p_in1, p_in2, p_out> m_stencil;
+struct inputs {
+    data_store_t in1;
+    data_store_t in2;
 };
+struct outputs {
+    data_store_t out;
+};
+
+std::function<void(inputs, outputs)> make_interpolate_stencil(grid_t grid, double weight);

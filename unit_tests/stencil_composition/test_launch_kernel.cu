@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/backend_cuda/launch_kernel.hpp>
+#include <gridtools/stencil_composition/backend/cuda/launch_kernel.hpp>
 
 #include <gtest/gtest.h>
 
@@ -16,7 +16,7 @@
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/host_device.hpp>
 #include <gridtools/meta.hpp>
-#include <gridtools/stencil_composition/extent.hpp>
+#include <gridtools/stencil_composition/common/extent.hpp>
 
 namespace gridtools {
     namespace cuda {

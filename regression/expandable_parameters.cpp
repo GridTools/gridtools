@@ -11,11 +11,11 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/expandable_parameters/make_computation.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct copy_functor {
     using parameters_out = inout_accessor<0>;
@@ -36,19 +36,16 @@ TEST_F(expandable_parameters, test) {
     storages_t out = {make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
     storages_t in = {make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
 
-    arg<0, storages_t> p_out;
-    arg<1, storages_t> p_in;
-    tmp_arg<2, storages_t> p_tmp;
-
-    gridtools::make_expandable_computation<backend_t>(expand_factor<2>(),
+    expandable_run<2>(
+        [](auto in, auto out) {
+            GT_DECLARE_EXPANDABLE_TMP(float_type, tmp);
+            return execute_parallel().ij_cached(tmp).stage(copy_functor(), tmp, in).stage(copy_functor(), out, tmp);
+        },
+        backend_t(),
         make_grid(),
-        p_out = out,
-        p_in = in,
-        make_multistage(execute::forward(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_tmp)),
-            make_stage<copy_functor>(p_tmp, p_in),
-            make_stage<copy_functor>(p_out, p_tmp)))
-        .run();
+        in,
+        out);
+
     for (size_t i = 0; i != in.size(); ++i)
         verify(in[i], out[i]);
 }

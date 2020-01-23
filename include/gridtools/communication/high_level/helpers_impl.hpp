@@ -110,9 +110,9 @@ namespace gridtools {
                                     hm->halo.recv_buffer_size(make_array(ii, jj, kk)) * mf);
 
                                 typedef typename translate_P::map_type map_type;
-                                const int ii_P = make_array(ii, jj, kk)[map_type::template at<0>()];
-                                const int jj_P = make_array(ii, jj, kk)[map_type::template at<1>()];
-                                const int kk_P = make_array(ii, jj, kk)[map_type::template at<2>()];
+                                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
+                                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
+                                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
 
                                 hm->m_haloexch.register_send_to_buffer(&(hm->send_buffer[translate()(ii, jj, kk)][0]),
                                     hm->halo.send_buffer_size(make_array(ii, jj, kk)) * sizeof(Datatype) * mf,

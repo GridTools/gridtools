@@ -7,199 +7,193 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <iostream>
-
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions.hpp>
-#include <gridtools/tools/computation_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/tools/cartesian_fixture.hpp>
 
 namespace gridtools {
-    namespace {
-        struct type1 {
-            int i, j, k;
+    namespace cartesian {
+        namespace {
+            struct type1 {
+                int i, j, k;
 
-            GT_FUNCTION type1() : i(0), j(0), k(0) {}
-            GT_FUNCTION type1(int i, int j, int k) : i(i), j(j), k(k) {}
-        };
+                GT_FUNCTION type1() : i(0), j(0), k(0) {}
+                GT_FUNCTION type1(int i, int j, int k) : i(i), j(j), k(k) {}
+            };
 
-        struct type4 {
-            float x, y, z;
+            struct type4 {
+                float x, y, z;
 
-            GT_FUNCTION type4() : x(0.), y(0.), z(0.) {}
-            GT_FUNCTION type4(double i, double j, double k) : x(i), y(j), z(k) {}
+                GT_FUNCTION type4() : x(0.), y(0.), z(0.) {}
+                GT_FUNCTION type4(double i, double j, double k) : x(i), y(j), z(k) {}
 
-            GT_FUNCTION type4 &operator=(type1 const &a) {
-                x = a.i;
-                y = a.j;
-                z = a.k;
-                return *this;
+                GT_FUNCTION type4 &operator=(type1 const &a) {
+                    x = a.i;
+                    y = a.j;
+                    z = a.k;
+                    return *this;
+                }
+            };
+
+            struct type2 {
+                double xy;
+                GT_FUNCTION type2 &operator=(type4 x) {
+                    xy = x.x + x.y;
+                    return *this;
+                }
+                friend std::ostream &operator<<(std::ostream &strm, type2 obj) {
+                    return strm << "{ xy: " << obj.xy << " }";
+                }
+                friend GT_FUNCTION bool operator==(type2 lhs, type2 rhs) { return lhs.xy == rhs.xy; }
+            };
+
+            struct type3 {
+                double yz;
+
+                GT_FUNCTION type3 &operator=(type4 x) {
+                    yz = x.y + x.z;
+                    return *this;
+                }
+                friend std::ostream &operator<<(std::ostream &strm, type3 obj) {
+                    return strm << "{ yz: " << obj.yz << " }";
+                }
+                friend GT_FUNCTION bool operator==(type3 lhs, type3 rhs) { return lhs.yz == rhs.yz; }
+            };
+
+            GT_FUNCTION type4 operator+(type4 a, type1 b) {
+                return {a.x + double(b.i), a.y + double(b.j), a.z + double(b.k)};
             }
-        };
 
-        struct type2 {
-            double xy;
-            GT_FUNCTION type2 &operator=(type4 x) {
-                xy = x.x + x.y;
-                return *this;
+            GT_FUNCTION type4 operator-(type4 a, type1 b) {
+                return {a.x - double(b.i), a.y - double(b.j), a.z - double(b.k)};
             }
-            friend std::ostream &operator<<(std::ostream &strm, type2 obj) {
-                return strm << "{ xy: " << obj.xy << " }";
+
+            GT_FUNCTION type4 operator+(type1 a, type4 b) {
+                return {a.i + double(b.x), a.j + double(b.y), a.k + double(b.z)};
             }
-            friend GT_FUNCTION bool operator==(type2 lhs, type2 rhs) { return lhs.xy == rhs.xy; }
-        };
 
-        struct type3 {
-            double yz;
-
-            GT_FUNCTION type3 &operator=(type4 x) {
-                yz = x.y + x.z;
-                return *this;
+            GT_FUNCTION type4 operator-(type1 a, type4 b) {
+                return {a.i - double(b.x), a.j - double(b.y), a.k - double(b.z)};
             }
-            friend std::ostream &operator<<(std::ostream &strm, type3 obj) {
-                return strm << "{ yz: " << obj.yz << " }";
+
+            GT_FUNCTION type4 operator+(type1 a, type1 b) {
+                return {a.i + double(b.i), a.j + double(b.j), a.k + double(b.k)};
             }
-            friend GT_FUNCTION bool operator==(type3 lhs, type3 rhs) { return lhs.yz == rhs.yz; }
-        };
 
-        GT_FUNCTION type4 operator+(type4 a, type1 b) {
-            return {a.x + double(b.i), a.y + double(b.j), a.z + double(b.k)};
-        }
-
-        GT_FUNCTION type4 operator-(type4 a, type1 b) {
-            return {a.x - double(b.i), a.y - double(b.j), a.z - double(b.k)};
-        }
-
-        GT_FUNCTION type4 operator+(type1 a, type4 b) {
-            return {a.i + double(b.x), a.j + double(b.y), a.k + double(b.z)};
-        }
-
-        GT_FUNCTION type4 operator-(type1 a, type4 b) {
-            return {a.i - double(b.x), a.j - double(b.y), a.k - double(b.z)};
-        }
-
-        GT_FUNCTION type4 operator+(type1 a, type1 b) {
-            return {a.i + double(b.i), a.j + double(b.j), a.k + double(b.k)};
-        }
-
-        GT_FUNCTION type4 operator-(type1 a, type1 b) {
-            return {a.i - double(b.i), a.j - double(b.j), a.k - double(b.k)};
-        }
-
-        struct function0 {
-            using in = in_accessor<0>;
-            using out = inout_accessor<1>;
-
-            using param_list = make_param_list<in, out>;
-
-            template <typename Evaluation>
-            GT_FUNCTION static void apply(Evaluation &eval) {
-                eval(out()).i = eval(in()).i + 1;
-                eval(out()).j = eval(in()).j + 1;
-                eval(out()).k = eval(in()).k + 1;
+            GT_FUNCTION type4 operator-(type1 a, type1 b) {
+                return {a.i - double(b.i), a.j - double(b.j), a.k - double(b.k)};
             }
-        };
 
-        enum class call_type { function, procedure };
+            struct function0 {
+                using in = in_accessor<0>;
+                using out = inout_accessor<1>;
 
-        template <call_type Type, class Eval, class T, std::enable_if_t<Type == call_type::function, int> = 0>
-        GT_FUNCTION auto call_function0(Eval &eval, T obj) {
-            return call<function0>::with(eval, obj);
-        };
+                using param_list = make_param_list<in, out>;
 
-        template <call_type Type, class Eval, class T, std::enable_if_t<Type == call_type::procedure, int> = 0>
-        GT_FUNCTION type1 call_function0(Eval &eval, T obj) {
-            type1 res;
-            call_proc<function0>::with(eval, obj, res);
-            return res;
-        }
+                template <typename Evaluation>
+                GT_FUNCTION static void apply(Evaluation &eval) {
+                    eval(out()).i = eval(in()).i + 1;
+                    eval(out()).j = eval(in()).j + 1;
+                    eval(out()).k = eval(in()).k + 1;
+                }
+            };
 
-        template <call_type CallType>
-        struct function1 {
-            using out = inout_accessor<0>;
-            using in = in_accessor<1>;
+            enum class call_type { function, procedure };
 
-            using param_list = make_param_list<out, in>;
+            template <call_type Type, class Eval, class T, std::enable_if_t<Type == call_type::function, int> = 0>
+            GT_FUNCTION auto call_function0(Eval &eval, T obj) {
+                return call<function0>::with(eval, obj);
+            };
 
-            template <typename Evaluation>
-            GT_FUNCTION static void apply(Evaluation &eval) {
-                eval(out()) = call_function0<CallType>(eval, in());
+            template <call_type Type, class Eval, class T, std::enable_if_t<Type == call_type::procedure, int> = 0>
+            GT_FUNCTION type1 call_function0(Eval &eval, T obj) {
+                type1 res;
+                call_proc<function0>::with(eval, obj, res);
+                return res;
             }
-        };
-
-        struct function2 {
-            using out = inout_accessor<0>;
-            using in = in_accessor<1>;
-            using temp = in_accessor<2>;
-
-            using param_list = make_param_list<out, in, temp>;
-
-            template <typename Evaluation>
-            GT_FUNCTION static void apply(Evaluation &eval) {
-                eval(out()) = eval(temp()) + eval(in());
-            }
-        };
-
-        struct function3 {
-            using out = inout_accessor<0>;
-            using temp = in_accessor<1>;
-            using in = in_accessor<2>;
-
-            using param_list = make_param_list<out, temp, in>;
-
-            template <typename Evaluation>
-            GT_FUNCTION static void apply(Evaluation &eval) {
-                eval(out()) = eval(temp()) - eval(in());
-            }
-        };
-
-        struct multitypes : computation_fixture<> {
-            multitypes() : computation_fixture<>(4, 5, 6) {}
-
-            using storage_type1 = storage_tr::data_store_t<type1, storage_info_t>;
-            using storage_type2 = storage_tr::data_store_t<type2, storage_info_t>;
-            using storage_type3 = storage_tr::data_store_t<type3, storage_info_t>;
-
-            arg<1, storage_type1> p_field1;
-            arg<2, storage_type2> p_field2;
-            arg<3, storage_type3> p_field3;
-            tmp_arg<0, storage_type1> p_temp;
 
             template <call_type CallType>
-            void do_test() {
-                auto in = [](int i, int j, int k) -> type1 { return {i, j, k}; };
-                auto field1 = make_storage<storage_type1>(in);
-                auto field2 = make_storage<storage_type2>();
-                auto field3 = make_storage<storage_type3>();
+            struct function1 {
+                using out = inout_accessor<0>;
+                using in = in_accessor<1>;
 
-                using fun1 = function1<CallType>;
+                using param_list = make_param_list<out, in>;
 
-                make_computation(p_field1 = make_storage<storage_type1>(in),
-                    p_field2 = field2,
-                    p_field3 = field3,
-                    make_multistage(execute::forward(),
-                        make_stage<fun1>(p_temp, p_field1),
-                        make_stage<function2>(p_field2, p_field1, p_temp)),
-                    make_multistage(execute::backward(),
-                        make_stage<fun1>(p_temp, p_field1),
-                        make_stage<function3>(p_field3, p_temp, p_field1)))
-                    .run();
+                template <typename Evaluation>
+                GT_FUNCTION static void apply(Evaluation &eval) {
+                    eval(out()) = call_function0<CallType>(eval, in());
+                }
+            };
 
-                verify(make_storage<storage_type2>([&in](int i, int j, int k) {
-                    auto f1 = in(i, j, k);
-                    type2 res = {2. * (f1.i + f1.j + 1)};
-                    return res;
-                }),
-                    field2);
+            struct function2 {
+                using out = inout_accessor<0>;
+                using in = in_accessor<1>;
+                using temp = in_accessor<2>;
 
-                verify(make_storage<storage_type3>([](int, int, int) -> type3 { return {2}; }), field3);
-            }
-        };
+                using param_list = make_param_list<out, in, temp>;
 
-        TEST_F(multitypes, function) { do_test<call_type::function>(); }
+                template <typename Evaluation>
+                GT_FUNCTION static void apply(Evaluation &eval) {
+                    eval(out()) = eval(temp()) + eval(in());
+                }
+            };
 
-        TEST_F(multitypes, procedure) { do_test<call_type::procedure>(); }
+            struct function3 {
+                using out = inout_accessor<0>;
+                using temp = in_accessor<1>;
+                using in = in_accessor<2>;
 
-    } // namespace
+                using param_list = make_param_list<out, temp, in>;
+
+                template <typename Evaluation>
+                GT_FUNCTION static void apply(Evaluation &eval) {
+                    eval(out()) = eval(temp()) - eval(in());
+                }
+            };
+
+            struct multitypes : computation_fixture<> {
+                multitypes() : computation_fixture<>(4, 5, 6) {}
+
+                template <call_type CallType>
+                void do_test() {
+                    auto in = [](int i, int j, int k) -> type1 { return {i, j, k}; };
+                    auto field2 = make_storage<type2>();
+                    auto field3 = make_storage<type3>();
+
+                    using fun1 = function1<CallType>;
+
+                    run(
+                        [](auto field1, auto field2, auto field3) {
+                            GT_DECLARE_TMP(type1, temp);
+                            return multi_pass(
+                                execute_forward().stage(fun1(), temp, field1).stage(function2(), field2, field1, temp),
+                                execute_backward()
+                                    .stage(fun1(), temp, field1)
+                                    .stage(function3(), field3, temp, field1));
+                        },
+                        backend_t(),
+                        make_grid(),
+                        make_storage<type1>(in),
+                        field2,
+                        field3);
+
+                    verify(
+                        [&in](int i, int j, int k) {
+                            auto f1 = in(i, j, k);
+                            type2 res = {2. * (f1.i + f1.j + 1)};
+                            return res;
+                        },
+                        field2);
+
+                    verify(type3{2}, field3);
+                }
+            };
+
+            TEST_F(multitypes, function) { do_test<call_type::function>(); }
+
+            TEST_F(multitypes, procedure) { do_test<call_type::procedure>(); }
+
+        } // namespace
+    }     // namespace cartesian
 } // namespace gridtools

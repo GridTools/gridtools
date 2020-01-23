@@ -82,9 +82,8 @@ namespace gridtools {
         template <typename LayoutMap>
         GT_FUNCTION boollist<LayoutMap::masked_length> permute(
             std::enable_if_t<LayoutMap::masked_length == 3> * = 0) const {
-            return boollist<LayoutMap::masked_length>(m_value[LayoutMap::template find<0>()],
-                m_value[LayoutMap::template find<1>()],
-                m_value[LayoutMap::template find<2>()]);
+            return boollist<LayoutMap::masked_length>(
+                m_value[LayoutMap::find(0)], m_value[LayoutMap::find(1)], m_value[LayoutMap::find(2)]);
         }
     };
     /** @} */

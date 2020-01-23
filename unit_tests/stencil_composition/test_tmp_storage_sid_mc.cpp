@@ -8,13 +8,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <gridtools/stencil_composition/backend/mc/tmp_storage_sid.hpp>
+
 #include <gtest/gtest.h>
 
-#include <omp.h>
-
-#include <gridtools/stencil_composition/backend_mc/tmp_storage_sid.hpp>
-#include <gridtools/stencil_composition/extent.hpp>
-#include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/common/omp.hpp>
+#include <gridtools/sid/concept.hpp>
+#include <gridtools/stencil_composition/common/extent.hpp>
 
 using namespace gridtools;
 using namespace gridtools::literals;

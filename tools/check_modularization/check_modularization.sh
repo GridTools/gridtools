@@ -33,7 +33,6 @@ are_independent "stencil_composition" "communication"
 are_independent "stencil_composition" "interface"
 no_dependency "stencil_composition" "tools"
 
-are_independent "boundary_conditions" "communication" #maybe they can have a dependency later?
 are_independent "boundary_conditions" "tools"
 are_independent "boundary_conditions" "interface"
 

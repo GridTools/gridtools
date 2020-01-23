@@ -10,42 +10,39 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/binops.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/tools/icosahedral_regression_fixture.hpp>
 
 #include "neighbours_of.hpp"
 
 using namespace gridtools;
+using namespace icosahedral;
 
 struct test_on_vertices_functor {
-    using in = in_accessor<0, enumtype::vertices, extent<-1, 1, -1, 1>>;
-    using out = inout_accessor<1, enumtype::vertices>;
+    using in = in_accessor<0, vertices, extent<-1, 1, -1, 1>>;
+    using out = inout_accessor<1, vertices>;
     using param_list = make_param_list<in, out>;
-    using location = enumtype::vertices;
+    using location = vertices;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out{}) = eval(on_vertices(binop::sum{}, float_type{}, in{}));
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
+        float_type res = 0;
+        eval.for_neighbors([&res](auto in) { res += in; }, in());
+        eval(out()) = res;
     }
 };
 
 using stencil_on_vertices = regression_fixture<1>;
 
 TEST_F(stencil_on_vertices, test) {
-    auto in = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
-    auto ref = [&](int_t i, int_t c, int_t j, int_t k) {
+    auto in = [](int_t i, int_t j, int_t k, int_t c) { return i + j + k + c; };
+    auto ref = [&](int_t i, int_t j, int_t k, int_t c) {
         float_type res = {};
-        for (auto &&item : neighbours_of<vertices, vertices>(i, c, j, k))
+        for (auto &&item : neighbours_of<vertices, vertices>(i, j, k, c))
             res += item.call(in);
         return res;
     };
-    arg<0, vertices> p_in;
-    arg<1, vertices> p_out;
     auto out = make_storage<vertices>();
-    make_computation(p_in = make_storage<vertices>(in),
-        p_out = out,
-        make_multistage(execute::forward(), make_stage<test_on_vertices_functor>(p_in, p_out)))
-        .run();
-    verify(make_storage<vertices>(ref), out);
+    run_single_stage(test_on_vertices_functor(), backend_t(), make_grid(), make_storage<vertices>(in), out);
+    verify(ref, out);
 }

@@ -12,13 +12,13 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 #include "horizontal_diffusion_repository.hpp"
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct lap_function {
     using out = inout_accessor<0>;
@@ -85,20 +85,15 @@ struct out_function {
 using horizontal_diffusion_fused = regression_fixture<2>;
 
 TEST_F(horizontal_diffusion_fused, test) {
-    arg<0> p_coeff;
-    arg<1> p_in;
-    arg<2> p_out;
-
     auto out = make_storage();
 
-    horizontal_diffusion_repository repo(d1(), d2(), d3());
+    horizontal_diffusion_repository repo(d(0), d(1), d(2));
 
-    auto comp = make_computation(p_in = make_storage(repo.in),
-        p_out = out,
-        p_coeff = make_storage(repo.coeff),
-        make_multistage(execute::parallel(), make_stage<out_function>(p_out, p_in, p_coeff)));
+    auto comp = [grid = make_grid(), &out, in = make_storage(repo.in), coeff = make_storage(repo.coeff)] {
+        run_single_stage(out_function(), backend_t(), grid, out, in, coeff);
+    };
 
-    comp.run();
-    verify(make_storage(repo.out), out);
+    comp();
+    verify(repo.out, out);
     benchmark(comp);
 }

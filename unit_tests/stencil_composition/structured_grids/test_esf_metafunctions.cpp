@@ -8,20 +8,21 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/compute_extents_metafunctions.hpp>
+#include <gridtools/stencil_composition/core/compute_extents_metafunctions.hpp>
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
+using namespace core;
 
 struct functor0 {
-    typedef accessor<0, intent::in, extent<0, 0, -1, 3, -2, 0>> in0;
-    typedef accessor<1, intent::in, extent<-1, 1, 0, 2, -1, 2>> in1;
-    typedef accessor<2, intent::in, extent<-3, 3, -1, 2, 0, 1>> in2;
-    typedef accessor<3, intent::inout> out;
+    typedef in_accessor<0, extent<0, 0, -1, 3, -2, 0>> in0;
+    typedef in_accessor<1, extent<-1, 1, 0, 2, -1, 2>> in1;
+    typedef in_accessor<2, extent<-3, 3, -1, 2, 0, 1>> in2;
+    typedef inout_accessor<3> out;
 
     typedef make_param_list<in0, in1, in2, out> param_list;
 
@@ -30,10 +31,10 @@ struct functor0 {
 };
 
 struct functor1 {
-    typedef accessor<0, intent::in, extent<0, 1, -1, 2, 0, 0>> in0;
-    typedef accessor<1, intent::inout> out;
-    typedef accessor<2, intent::in, extent<-3, 0, -3, 0, 0, 2>> in2;
-    typedef accessor<3, intent::in, extent<0, 2, 0, 2, -2, 3>> in3;
+    typedef in_accessor<0, extent<0, 1, -1, 2, 0, 0>> in0;
+    typedef inout_accessor<1> out;
+    typedef in_accessor<2, extent<-3, 0, -3, 0, 0, 2>> in2;
+    typedef in_accessor<3, extent<0, 2, 0, 2, -2, 3>> in3;
 
     typedef make_param_list<in0, out, in2, in3> param_list;
 
@@ -42,9 +43,9 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, intent::in, extent<-3, 3, -1, 0, -2, 1>> in0;
-    typedef accessor<1, intent::in, extent<-3, 1, -2, 1, 0, 2>> in1;
-    typedef accessor<2, intent::inout> out;
+    typedef in_accessor<0, extent<-3, 3, -1, 0, -2, 1>> in0;
+    typedef in_accessor<1, extent<-3, 1, -2, 1, 0, 2>> in1;
+    typedef inout_accessor<2> out;
 
     typedef make_param_list<in0, in1, out> param_list;
 
@@ -53,10 +54,10 @@ struct functor2 {
 };
 
 struct functor3 {
-    typedef accessor<0, intent::in, extent<0, 3, 0, 1, -2, 0>> in0;
-    typedef accessor<1, intent::in, extent<-2, 3, 0, 2, -3, 1>> in1;
-    typedef accessor<2, intent::inout> out;
-    typedef accessor<3, intent::in, extent<-1, 3, -3, 0, -3, 2>> in3;
+    typedef in_accessor<0, extent<0, 3, 0, 1, -2, 0>> in0;
+    typedef in_accessor<1, extent<-2, 3, 0, 2, -3, 1>> in1;
+    typedef inout_accessor<2> out;
+    typedef in_accessor<3, extent<-1, 3, -3, 0, -3, 2>> in3;
 
     typedef make_param_list<in0, in1, out, in3> param_list;
 
@@ -65,10 +66,10 @@ struct functor3 {
 };
 
 struct functor4 {
-    typedef accessor<0, intent::in, extent<0, 3, -2, 1, -3, 2>> in0;
-    typedef accessor<1, intent::in, extent<-2, 3, 0, 3, -3, 2>> in1;
-    typedef accessor<2, intent::in, extent<-1, 1, 0, 3, 0, 3>> in2;
-    typedef accessor<3, intent::inout> out;
+    typedef in_accessor<0, extent<0, 3, -2, 1, -3, 2>> in0;
+    typedef in_accessor<1, extent<-2, 3, 0, 3, -3, 2>> in1;
+    typedef in_accessor<2, extent<-1, 1, 0, 3, 0, 3>> in2;
+    typedef inout_accessor<3> out;
 
     typedef make_param_list<in0, in1, in2, out> param_list;
 
@@ -77,10 +78,10 @@ struct functor4 {
 };
 
 struct functor5 {
-    typedef accessor<0, intent::in, extent<-3, 1, -1, 2, -1, 1>> in0;
-    typedef accessor<1, intent::in, extent<0, 1, -2, 2, 0, 3>> in1;
-    typedef accessor<2, intent::in, extent<0, 2, 0, 3, -1, 2>> in2;
-    typedef accessor<3, intent::inout> out;
+    typedef in_accessor<0, extent<-3, 1, -1, 2, -1, 1>> in0;
+    typedef in_accessor<1, extent<0, 1, -2, 2, 0, 3>> in1;
+    typedef in_accessor<2, extent<0, 2, 0, 3, -1, 2>> in2;
+    typedef inout_accessor<3> out;
 
     typedef make_param_list<in0, in1, in2, out> param_list;
 
@@ -89,10 +90,10 @@ struct functor5 {
 };
 
 struct functor6 {
-    typedef accessor<0, intent::inout> out;
-    typedef accessor<1, intent::in, extent<0, 3, -3, 2, 0, 0>> in1;
-    typedef accessor<2, intent::in, extent<-3, 2, 0, 2, -1, 2>> in2;
-    typedef accessor<3, intent::in, extent<-1, 0, -1, 0, -1, 3>> in3;
+    typedef inout_accessor<0> out;
+    typedef in_accessor<1, extent<0, 3, -3, 2, 0, 0>> in1;
+    typedef in_accessor<2, extent<-3, 2, 0, 2, -1, 2>> in2;
+    typedef in_accessor<3, extent<-1, 0, -1, 0, -1, 3>> in3;
 
     typedef make_param_list<out, in1, in2, in3> param_list;
 
@@ -100,29 +101,29 @@ struct functor6 {
     GT_FUNCTION static void apply(Evaluation);
 };
 
-typedef gridtools::storage_traits<backend_t>::storage_info_t<0, 3> storage_info_t;
-typedef gridtools::storage_traits<backend_t>::data_store_t<float_type, storage_info_t> storage_t;
+template <int>
+struct p {};
 
-typedef arg<0, storage_t> o0;
-typedef arg<1, storage_t> o1;
-typedef arg<2, storage_t> o2;
-typedef arg<3, storage_t> o3;
-typedef arg<4, storage_t> o4;
-typedef arg<5, storage_t> o5;
-typedef arg<6, storage_t> o6;
-typedef arg<7, storage_t> in0;
-typedef arg<8, storage_t> in1;
-typedef arg<9, storage_t> in2;
-typedef arg<10, storage_t> in3;
+typedef p<0> o0;
+typedef p<1> o1;
+typedef p<2> o2;
+typedef p<3> o3;
+typedef p<4> o4;
+typedef p<5> o5;
+typedef p<6> o6;
+typedef p<7> in0;
+typedef p<8> in1;
+typedef p<9> in2;
+typedef p<10> in3;
 
-using mss_t = decltype(make_multistage(execute::forward(),
-    make_stage<functor0>(in0(), in1(), in2(), o0()),
-    make_stage<functor1>(in3(), o1(), in0(), o0()),
-    make_stage<functor2>(o0(), o1(), o2()),
-    make_stage<functor3>(in1(), in2(), o3(), o2()),
-    make_stage<functor4>(o0(), o1(), o3(), o4()),
-    make_stage<functor5>(in3(), o4(), in0(), o5()),
-    make_stage<functor6>(o6(), o5(), in1(), in2())));
+using mss_t = meta::first<decltype(execute_parallel()
+                                       .stage(functor0(), in0(), in1(), in2(), o0())
+                                       .stage(functor1(), in3(), o1(), in0(), o0())
+                                       .stage(functor2(), o0(), o1(), o2())
+                                       .stage(functor3(), in1(), in2(), o3(), o2())
+                                       .stage(functor4(), o0(), o1(), o3(), o4())
+                                       .stage(functor5(), in3(), o4(), in0(), o5())
+                                       .stage(functor6(), o6(), o5(), in1(), in2()))>;
 
 template <class Arg, int_t... ExpectedExtentValues>
 using testee = std::is_same<lookup_extent_map<get_extent_map_from_mss<mss_t>, Arg>, extent<ExpectedExtentValues...>>;

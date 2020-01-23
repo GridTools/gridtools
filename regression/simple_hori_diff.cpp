@@ -10,8 +10,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 #include "horizontal_diffusion_repository.hpp"
 
@@ -21,6 +21,7 @@
  */
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct wlap_function {
     using out = inout_accessor<0>;
@@ -58,31 +59,29 @@ struct divflux_function {
     }
 };
 
+const auto hori_diff = [](auto coeff, auto in, auto out, auto crlato, auto crlatu) {
+    GT_DECLARE_TMP(float_type, lap);
+    return execute_parallel()
+        .ij_cached(lap)
+        .stage(wlap_function(), lap, in, crlato, crlatu)
+        .stage(divflux_function(), out, in, lap, crlato, coeff);
+};
+
 using simple_hori_diff = regression_fixture<2>;
 
 TEST_F(simple_hori_diff, test) {
-    tmp_arg<0> p_lap;
-    arg<1> p_coeff;
-    arg<2> p_in;
-    arg<3> p_out;
-    arg<4, j_storage_type> p_crlato;
-    arg<5, j_storage_type> p_crlatu;
-
+    const auto j_builder = builder().selector<0, 1, 0>();
+    horizontal_diffusion_repository repo(d(0), d(1), d(2));
     auto out = make_storage();
-
-    horizontal_diffusion_repository repo(d1(), d2(), d3());
-
-    auto comp = make_computation(p_coeff = make_storage(repo.coeff),
-        p_in = make_storage(repo.in),
-        p_out = out,
-        p_crlato = make_storage<j_storage_type>(repo.crlato),
-        p_crlatu = make_storage<j_storage_type>(repo.crlatu),
-        make_multistage(execute::parallel(),
-            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_lap)),
-            make_stage<wlap_function>(p_lap, p_in, p_crlato, p_crlatu),
-            make_stage<divflux_function>(p_out, p_in, p_lap, p_crlato, p_coeff)));
-
-    comp.run();
-    verify(make_storage(repo.out_simple), out);
+    auto comp = [grid = make_grid(),
+                    coeff = make_storage(repo.coeff),
+                    in = make_storage(repo.in),
+                    &out,
+                    crlato = j_builder.initializer(repo.crlato)(),
+                    crlatu = j_builder.initializer(repo.crlatu)()] {
+        run(hori_diff, backend_t(), grid, coeff, in, out, crlato, crlatu);
+    };
+    comp();
+    verify(repo.out_simple, out);
     benchmark(comp);
 }

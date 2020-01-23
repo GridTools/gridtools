@@ -9,7 +9,6 @@
  */
 #pragma once
 
-#include "binops.hpp"
 #include "defs.hpp"
 #include "integral_constant.hpp"
 #include "tuple_util.hpp"
@@ -20,7 +19,7 @@ namespace gridtools {
 
             template <size_t I, class Sizes>
             struct stride_type {
-                using type = decltype(tuple_util::element<I - 1, Sizes>{} * typename stride_type<I - 1, Sizes>::type{});
+                using type = decltype(tuple_util::element<I - 1, Sizes>() * typename stride_type<I - 1, Sizes>::type());
             };
 
             template <class Sizes>
@@ -54,7 +53,7 @@ namespace gridtools {
 
         template <class Sizes>
         auto total_size(Sizes const &sizes) {
-            return tuple_util::fold(binop::prod{}, sizes);
+            return tuple_util::fold([](auto l, auto r) { return l * r; }, sizes);
         }
     } // namespace stride_util
 } // namespace gridtools

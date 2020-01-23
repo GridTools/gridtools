@@ -12,11 +12,13 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/meta/type_traits.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/meta.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil_composition/global_parameter.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 using namespace expressions;
 
 /**
@@ -52,112 +54,72 @@ using namespace expressions;
 */
 
 struct integration {
-    using phi_t = in_accessor<0>;
-    using psi_t = in_accessor<1>;
+    using phi_fun = in_accessor<0>;
+    using psi_fun = in_accessor<1>;
     using jac = in_accessor<2, extent<>, 4>;
     using f = in_accessor<3, extent<>, 6>;
     using result = inout_accessor<4, extent<>, 6>;
 
-    using param_list = make_param_list<phi_t, psi_t, jac, f, result>;
+    using param_list = make_param_list<phi_fun, psi_fun, jac, f, result>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        dimension<1> i;
-        dimension<2> j;
-        dimension<3> k;
         dimension<4> di;
         dimension<5> dj;
         dimension<6> dk;
         dimension<4> qp;
-        // projection of f on a (e.g.) P1 FE space:
-        // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
-        // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
-        for (int_t I = 0; I < 2; ++I)
-            for (int_t J = 0; J < 2; ++J)
-                for (int_t K = 0; K < 2; ++K) {
-                    for (int_t q = 0; q < 2; ++q) {
-                        auto coef = [&eval, I, J, K, q](int a, int b, int c) {
-                            return eval(phi_t{})(I, J, K, q) * eval(psi_t{})(a, b, c, q);
-                        };
-                        eval(result(di + I, dj + J, dk + K)) +=
-                            eval(coef(0, 0, 0) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
-                                 coef(0, 0, 0) * jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +
-                                 coef(1, 0, 0) * jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk} +
-                                 coef(1, 0, 0) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk + 1} +
-                                 coef(1, 1, 0) * jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk} +
-                                 coef(1, 0, 1) * jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk + 1} +
-                                 coef(0, 1, 1) * jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk + 1} +
-                                 coef(1, 1, 1) * jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk + 1}) /
-                            8;
+        auto psi = eval(psi_fun());
+        auto phi = eval(phi_fun());
+        using float_type = std::decay_t<decltype(eval(result()))>;
+        for (int I = 0; I < 2; ++I)
+            for (int J = 0; J < 2; ++J)
+                for (int K = 0; K < 2; ++K) {
+                    float_type res = 0;
+                    for (int q = 0; q < 2; ++q) {
+                        float_type sum = 0;
+                        for (int a = 0; a < 2; ++a)
+                            for (int b = 0; b < 2; ++b)
+                                for (int c = 0; c < 2; ++c)
+                                    sum += eval(psi(a, b, c, q) * f(di + a, dj + b, dk + c));
+                        res += eval(phi(I, J, K, q) * jac(qp + q) * sum);
                     }
+                    eval(result(di + I, dj + J, dk + K)) = res / 8;
                 }
     }
 };
 
-struct extended_4d : regression_fixture<> {
-    using layout_map_t = std::conditional_t<std::is_same<backend_t, backend::x86>::value,
-        layout_map<3, 4, 5, 0, 1, 2>,
-        layout_map<5, 4, 3, 2, 1, 0>>;
-    using layout_map_quad_t = std::
-        conditional_t<std::is_same<backend_t, backend::x86>::value, layout_map<1, 2, 3, 0>, layout_map<3, 2, 1, 0>>;
+using extended_4d = regression_fixture<>;
 
-    template <unsigned Id, typename Layout>
-    using special_storage_info_t = storage_tr::custom_layout_storage_info_t<Id, Layout>;
+/**
+ * this is a user-defined class which will be used from within the user functor
+ * by calling its  operator(). It can represent in this case values which are local to the elements
+ * e.g. values of the basis functions in the quad points.
+ */
+struct elemental {
+    GT_FUNCTION double operator()(int, int, int, int) const { return m_val; }
 
-    using storage_t = storage_tr::data_store_t<float_type, special_storage_info_t<0, layout_map_t>>;
-    using storage_global_quad_t = storage_tr::data_store_t<float_type, special_storage_info_t<1, layout_map_quad_t>>;
+    double m_val;
+};
 
+TEST_F(extended_4d, test) {
     static constexpr uint_t nbQuadPt = 2;
     static constexpr uint_t b1 = 2;
     static constexpr uint_t b2 = 2;
     static constexpr uint_t b3 = 2;
 
-    template <class T = float_type>
-    storage_t make_storage(T &&obj = {}) {
-        return {{d1(), d2(), d3(), b1, b2, b3}, std::forward<T>(obj)};
-    }
-
-    /**
-     * this is a user-defined class which will be used from within the user functor
-     * by calling its  operator(). It can represent in this case values which are local to the elements
-     * e.g. values of the basis functions in the quad points.
-     */
-    struct elemental {
-        GT_FUNCTION double operator()(int, int, int, int) const { return m_val; }
-
-        double m_val;
-    };
-};
-
-TEST_F(extended_4d, test) {
-    using global_par_storage_t = global_parameter<elemental>;
-    arg<0, global_par_storage_t> p_phi;
-    arg<1, global_par_storage_t> p_psi;
-    arg<2, storage_global_quad_t> p_jac;
-    arg<3, storage_t> p_f;
-    arg<4, storage_t> p_result;
-
     float_type phi = 10, psi = 11, f = 1.3;
-    auto jac = [](int, int, int, int q) { return 1. + q; };
-    auto ref = [=](int i, int j, int k, int, int, int) {
-        float_type res = 0;
-        for (int q = 0; q < 2; ++q)
-            res += (phi * psi * jac(i, j, k, q) * f + phi * psi * jac(i, j, k, q) * f +
-                       phi * psi * jac(i, j, k, q) * f + phi * psi * jac(i, j, k, q) * f +
-                       phi * psi * jac(i, j, k, q) * f + phi * psi * jac(i, j, k, q) * f +
-                       phi * psi * jac(i, j, k, q) * f + phi * psi * jac(i, j, k, q) * f) /
-                   8;
-        return res;
-    };
-    auto result = make_storage();
+    auto jac = [](int, int, int, int q) { return 1 + q; };
+    const auto const_builder = storage::builder<storage_traits_t>.type<float_type const>();
 
-    make_computation(p_phi = make_global_parameter(elemental{phi}),
-        p_psi = make_global_parameter(elemental{psi}),
-        p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
-        p_f = make_storage(f),
-        p_result = result,
-        make_multistage(execute::forward(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)))
-        .run();
-
-    verify(make_storage(ref), result);
+    auto result = storage::builder<storage_traits_t>.type<float_type>().dimensions(d(0), d(1), d(2), b1, b2, b3)();
+    run_single_stage(integration(),
+        backend_t(),
+        make_grid(),
+        make_global_parameter(elemental{phi}),
+        make_global_parameter(elemental{psi}),
+        const_builder.dimensions(d(0), d(1), d(2), nbQuadPt).initializer(jac).build(),
+        const_builder.dimensions(d(0), d(1), d(2), b1, b2, b3).value(f).build(),
+        result);
+    verify([=](int i, int j, int k, int, int, int) { return (jac(i, j, k, 0) + jac(i, j, k, 1)) * phi * psi * f; },
+        result);
 }
