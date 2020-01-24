@@ -10,8 +10,6 @@
 
 #include <gridtools/stencil_composition/core/compute_extents_metafunctions.hpp>
 
-#include <gtest/gtest.h>
-
 #include <gridtools/stencil_composition/cartesian.hpp>
 
 using namespace gridtools;
@@ -139,5 +137,3 @@ static_assert(testee<in0, -8, 11, -13, 13, -7, 13>::value, "");
 static_assert(testee<in1, -6, 12, -10, 12, -6, 15>::value, "");
 static_assert(testee<in2, -8, 14, -11, 12, -5, 14>::value, "");
 static_assert(testee<in3, -5, 10, -11, 10, -3, 10>::value, "");
-
-TEST(dummy, dummy) {}

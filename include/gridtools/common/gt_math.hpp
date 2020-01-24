@@ -50,38 +50,6 @@ namespace gridtools {
     }
 
     namespace math {
-
-#if defined(__INTEL_COMPILER) && (__INTEL_COMPILER <= 1800)
-        // Intel compiler produces wrong optimized code in some rare cases in stencil functors when using const
-        // references as return types, so we return value types instead of references for arithmetic types
-
-        namespace impl_ {
-            template <typename Value>
-            using minmax_return_type = std::conditional_t<std::is_arithmetic<Value>::value, Value, Value const &>;
-        }
-
-        template <typename Value>
-        GT_FUNCTION GT_CONSTEXPR impl_::minmax_return_type<Value> max(Value const &val0) {
-            return val0;
-        }
-
-        template <typename Value, typename... OtherValues>
-        GT_FUNCTION GT_CONSTEXPR impl_::minmax_return_type<Value> max(
-            Value const &val0, Value const &val1, OtherValues const &... vals) {
-            return val0 > max(val1, vals...) ? val0 : max(val1, vals...);
-        }
-
-        template <typename Value>
-        GT_FUNCTION GT_CONSTEXPR impl_::minmax_return_type<Value> min(Value const &val0) {
-            return val0;
-        }
-
-        template <typename Value, typename... OtherValues>
-        GT_FUNCTION GT_CONSTEXPR impl_::minmax_return_type<Value> min(
-            Value const &val0, Value const &val1, OtherValues const &... vals) {
-            return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
-        }
-#else
         template <typename Value>
         GT_FUNCTION GT_CONSTEXPR Value const &max(Value const &val0) {
             return val0;
@@ -111,7 +79,6 @@ namespace gridtools {
         GT_FUNCTION GT_CONSTEXPR Value const &min(Value const &val0, Value const &val1, OtherValues const &... vals) {
             return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
         }
-#endif
 
 #if defined(__CUDACC__) && defined(__NVCC__)
         // providing the same overload pattern as the std library

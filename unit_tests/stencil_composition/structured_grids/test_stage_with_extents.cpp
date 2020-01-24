@@ -8,8 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gtest/gtest.h>
-
 #include <gridtools/stencil_composition/cartesian.hpp>
 
 namespace gridtools {
@@ -41,8 +39,6 @@ namespace gridtools {
             static_assert(testee<b, -5, 5>, "");
             static_assert(testee<c, -3, 3>, "");
             static_assert(testee<d>, "");
-
-            TEST(dummy, dummy) {}
         } // namespace
     }     // namespace cartesian
 } // namespace gridtools

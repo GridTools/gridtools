@@ -10,8 +10,6 @@
 
 #include <gridtools/common/integral_constant.hpp>
 
-#include <gtest/gtest.h>
-
 namespace gridtools {
     namespace {
         using namespace literals;
@@ -24,10 +22,8 @@ namespace gridtools {
         static_assert(0100_c == 0100, "");
         static_assert(0xDEAD_c == 0xDEAD, "");
 
-        static_assert(literals_impl_::parser<'1', '\'', '2'>::value == 12, "");
+        static_assert(1'000_c == 1000, "");
 
         static_assert(2_c + 3_c == 5_c, "");
-
-        TEST(integral_constant, dummy) {}
     } // namespace
 } // namespace gridtools

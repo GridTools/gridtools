@@ -9,8 +9,6 @@
  */
 #include <type_traits>
 
-#include <gtest/gtest.h>
-
 #include <gridtools/meta.hpp>
 #include <gridtools/stencil_composition/icosahedral.hpp>
 
@@ -55,5 +53,3 @@ static_assert(std::is_same<neighbors_extent<edges, vertices>, extent<0, 1, 0, 1>
 static_assert(std::is_same<neighbors_extent<vertices, cells>, extent<-1, 0, -1, 0>>::value, "");
 static_assert(std::is_same<neighbors_extent<vertices, edges>, extent<-1, 0, -1, 0>>::value, "");
 static_assert(std::is_same<neighbors_extent<vertices, vertices>, extent<-1, 1, -1, 1>>::value, "");
-
-TEST(dummy, dummy) {}
