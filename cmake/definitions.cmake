@@ -27,8 +27,6 @@ install(TARGETS gridtools EXPORT GridToolsTargets
   INCLUDES DESTINATION include
 )
 target_link_libraries(gridtools INTERFACE cpp_bindgen_interface)
-include(workaround_icc)
-_workaround_icc(gridtools)
 
 set(REQUIRED_BOOST_VERSION 1.58)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)

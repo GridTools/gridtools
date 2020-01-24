@@ -8,8 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gtest/gtest.h>
-
 #include <gridtools/meta/type_traits.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
@@ -80,5 +78,3 @@ struct triple_nesting_with_type_switching_first_stage {
 };
 
 void dummy() { do_test<triple_nesting_with_type_switching_first_stage, out_tag, in_tag>(); }
-
-TEST(dummy, dummy) {}

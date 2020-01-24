@@ -14,8 +14,6 @@
 #include <type_traits>
 #include <utility>
 
-#include <gtest/gtest.h>
-
 namespace gridtools {
     namespace meta {
         template <class...>
@@ -302,5 +300,3 @@ namespace gridtools {
             "");
     } // namespace meta
 } // namespace gridtools
-
-TEST(dummy, dummy) {}

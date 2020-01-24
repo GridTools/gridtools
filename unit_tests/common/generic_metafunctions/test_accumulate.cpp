@@ -9,8 +9,6 @@
  */
 #include <gridtools/common/generic_metafunctions/accumulate.hpp>
 
-#include "gtest/gtest.h"
-
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
 
@@ -33,5 +31,3 @@ static_assert(check_or(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3}), ""
 static_assert(check_or(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3}), "");
 static_assert(check_or(array<uint_t, 4>{3, 4, 5, 6}, array<int_t, 2>{-2, 3}, 7), "");
 static_assert(!check_or(-2, 3, 7), "");
-
-TEST(dummy, dummy) {}

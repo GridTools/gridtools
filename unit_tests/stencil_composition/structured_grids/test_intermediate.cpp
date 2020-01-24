@@ -8,8 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gtest/gtest.h>
-
 #include <gridtools/stencil_composition/cartesian.hpp>
 
 using namespace gridtools;
@@ -121,5 +119,3 @@ static_assert(test_intent<c>(mss2, intent::inout), "");
 static_assert(test_intent<d>(mss2, intent::inout), "");
 static_assert(test_intent<e>(mss2, intent::inout), "");
 static_assert(test_intent<f>(mss2, intent::inout), "");
-
-TEST(dummy, dummy) {}

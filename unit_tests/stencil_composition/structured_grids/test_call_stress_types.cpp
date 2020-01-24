@@ -7,8 +7,6 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gtest/gtest.h>
-
 #include <gridtools/meta/type_traits.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
@@ -183,5 +181,3 @@ struct triple_nesting_with_type_switching_and_call_proc_first_stage {
     }
     void dummy() { do_test<triple_nesting_with_type_switching_and_call_proc_first_stage, in1_tag, out_tag, in2_tag>(); }
 };
-
-TEST(dummy, dummy) {}

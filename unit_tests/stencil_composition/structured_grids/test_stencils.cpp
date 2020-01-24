@@ -100,8 +100,6 @@ namespace gridtools {
                 do_test(l<2, 1, 0>, l<2, 0, 1>, [](int i, int j, int k) { return i + j + k; });
             }
 
-// icc hangs here in debug mode
-#if !defined(NDEBUG) && (!defined(__INTEL_COMPILER) || __INTEL_COMPILER >= 1900)
             TEST_F(stencils, copies2DijDst) {
                 do_test(l<1, 0, -1>, l<2, 0, 1>, [](int i, int j, int) { return i + j + k_max; });
             }
@@ -129,7 +127,6 @@ namespace gridtools {
             TEST_F(stencils, copies2DScalarDst) {
                 do_test(l<-1, -1, -1>, l<2, 0, 1>, [](int, int, int) { return i_max + j_max + k_max; });
             }
-#endif
         } // namespace
     }     // namespace cartesian
 } // namespace gridtools

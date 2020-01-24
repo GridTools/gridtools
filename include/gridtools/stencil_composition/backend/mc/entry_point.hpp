@@ -29,27 +29,6 @@
 
 namespace gridtools {
     namespace mc {
-#if defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1900
-        template <class Grid>
-        struct make_size_f {
-            Grid const &m_grid;
-
-            template <class Cell>
-            auto operator()(Cell) const {
-                return m_grid.k_size(Cell::interval());
-            }
-        };
-
-        template <class DataStores>
-        struct make_sid_f {
-            DataStores &m_data_stores;
-            template <class PtrInfo>
-            auto operator()(PtrInfo) const {
-                return sid::add_const(PtrInfo::is_const(), at_key<decltype(PtrInfo::plh())>(m_data_stores));
-            }
-        };
-#endif
-
         struct backend {
             template <class Spec, class Grid, class DataStores>
             friend void gridtools_backend_entry_point(
@@ -86,25 +65,14 @@ namespace gridtools {
                     [&](auto stage) {
                         using stage_t = decltype(stage);
                         auto k_sizes = tuple_util::transform(
-#if defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1900
-                            make_size_f<Grid> { grid }
-#else
-                            [&](auto cell) { return grid.k_size(cell.interval()); }
-#endif
-                            ,
-                            stage_t::cells());
+                            [&](auto cell) { return grid.k_size(cell.interval()); }, stage_t::cells());
 
                         using plh_map_t = typename stage_t::plh_map_t;
                         using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
                         auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
-#if defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1900
-                            make_sid_f<decltype(data_stores)> { data_stores }
-#else
                             [&](auto info) {
                                 return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores));
-                            }
-#endif
-                            ,
+                            },
                             stage_t::plh_map()));
                         return make_loop<stage_t>(all_parrallel_t(), grid, std::move(composite), std::move(k_sizes));
                     },

@@ -31,9 +31,7 @@ namespace gridtools {
 //   Maybe we have to re-run tests with different combinations of pragmas on different compilers,
 //   the current set of pragmas is at the border of legality for the present code, so maybe we can find a better option.
 #pragma ivdep
-#ifndef __INTEL_COMPILER
 #pragma omp simd
-#endif
 #endif
                 for (int_t i = 0; i < size; ++i) {
                     using namespace literals;
