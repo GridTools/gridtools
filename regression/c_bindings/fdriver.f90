@@ -11,12 +11,15 @@ program main
     use bindgen_handle
     use implementation
     implicit none
+
     integer, parameter :: i = 9, j = 10, k = 11
     real(GT_FLOAT_PRECISION), dimension(i, j, k) :: in, out
     type(c_ptr) in_handle, out_handle, stencil
-
+    
     in = initial()
 
+!$acc data copy(in, out)
+    
     in_handle = generic_create_data_store(i, j, k, in(:,1,1))
     out_handle = generic_create_data_store(i, j, k, out(:,1,1))
     stencil = create_copy_stencil(in_handle, out_handle)
@@ -25,6 +28,8 @@ program main
     call sync_data_store(in_handle)
     call sync_data_store(out_handle)
 
+!$acc end data
+    
     if (any(in /= initial())) stop 1
     if (any(out /= initial())) stop 1
 
