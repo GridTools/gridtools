@@ -40,9 +40,9 @@ include(FetchContent)
 FetchContent_Declare(
     cpp_bindgen
     GIT_REPOSITORY https://github.com/GridTools/cpp_bindgen.git
-    GIT_TAG        v1.0.0
+    GIT_TAG        v1.0.1
     )
-# Enable legacy mode for CPP_BINDGEN for users of GT 1.0
+# Enable legacy mode for CPP_BINDGEN for users of GT 1.x
 # TODO remove in GT 2.0
 set(CPP_BINDGEN_GT_LEGACY ON)
 set(build_testing_ ${BUILD_TESTING})
