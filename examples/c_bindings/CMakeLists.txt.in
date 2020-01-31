@@ -73,7 +73,7 @@ if (CMAKE_CUDA_COMPILER)
         if (CMAKE_Fortran_COMPILER_LOADED)
             if(CMAKE_Fortran_COMPILER_ID MATCHES "PGI")
                 # FindOpenACC seems to be broken for modern versions of PGI, we assume PGI has OpenACC...
-                set(OpenACC_Fortran_FLAGS "-acc")
+                set(OpenACC_Fortran_FLAGS -acc)
                 set(OpenACC_Fortran_FOUND ON)
             else()
                 find_package(OpenACC)
