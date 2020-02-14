@@ -133,50 +133,6 @@ the following set of instructions:
   cmake ..
   make -j4
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Enabling Clang-CUDA and AMD GPU Support (Experimental)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Besides NVCC-based compilation for NVIDIA GPUs, |GT| additionally supports Clang-based compilation for NVIDIA and AMD GPUs.
-Due to a bug in Clang (https://bugs.llvm.org/show_bug.cgi?id=42061), this is only possible when not using OpenMP.
-As all non-GPU backends of GridTools currently require OpenMP, they have to be disabled.
-Then, Clang-based CUDA compilation can be activated by setting the CMake-variable ``GT_CUDA_COMPILATION_TYPE`` to ``Clang-CUDA``
-and setting Clang as the main C++ compiler. A fully working command for configuring GridTools could look like this:
-
-.. code-block:: shell
-
- export CXX=/path/to/clang++
- cmake -DGT_ENABLE_BACKEND_CUDA=ON \
-     -DGT_CUDA_COMPILATION_TYPE=Clang-CUDA \
-     -DGT_ENABLE_BACKEND_MC=OFF \
-     -DGT_ENABLE_BACKEND_X86=OFF \
-     -DGT_ENABLE_BACKEND_NAIVE=OFF \
-     -DCMAKE_INSTALL_PREFIX=/usr/local \
-     ..
-
-Further, GridTools can also be compiled for AMD GPUs using AMD’s HIP. But due to limitations of AMD’s current HCC compiler,
-the Clang-based HIP version has to be used, which is not yet officially distributed in the current HIP releases
-(but will be the successor of HCC-based HIP). Compilation of a Clang-based HIP compiler is relatively straightforward and
-documented in the `official HIP repository <https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md#hip-clang>`_.
-Otherwise, the configuration is similar to the one for Clang-CUDA. Just set ``GT_CUDA_COMPILATION_TYPE`` to ``HIPCC_AMDGPU``
-and the C++ compiler to HIPCC. For example:
-
-.. code-block:: shell
-
- export CXX=/path/to/hipcc
- cmake -DGT_ENABLE_BACKEND_CUDA=ON \
-     -DGT_CUDA_COMPILATION_TYPE=HIPCC-AMDGPU \
-     -DGT_ENABLE_BACKEND_MC=OFF \
-     -DGT_ENABLE_BACKEND_X86=OFF \
-     -DGT_ENABLE_BACKEND_NAIVE=OFF \
-     -DCMAKE_INSTALL_PREFIX=/usr/local \
-     ..
-
-.. note::
-
- The backend used for the AMD GPUs is also named “CUDA” for historical reasons as internally the same backend (with minor changes)
- is compiled for AMD and NVIDIA GPUs.
-
 
 ^^^^^^^^^^^^^^^
 Using GridTools
