@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; GridTools 1.1.0 documentation</title>
+  <title>Getting Started &mdash; GridTools 2.0.0 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.1
+                2.0
               </div>
             
           
@@ -370,7 +370,7 @@ only) they can be passed by type, i.e. at compile-time, and therefore
 allow for compile-time optimizations.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="k">using</span> <span class="k">namespace</span> <span class="n">gridtools</span><span class="o">::</span><span class="n">expressions</span><span class="p">;</span>
 
-<span class="cp">#ifdef __CUDACC__</span>
+<span class="cp">#if defined(__CUDACC__) || defined(__HIPCC__)</span>
 <span class="k">using</span> <span class="n">backend_t</span> <span class="o">=</span> <span class="n">backend</span><span class="o">::</span><span class="n">cuda</span><span class="p">;</span>
 <span class="cp">#else</span>
 <span class="k">using</span> <span class="n">backend_t</span> <span class="o">=</span> <span class="n">backend</span><span class="o">::</span><span class="n">mc</span><span class="p">;</span>
@@ -588,17 +588,13 @@ executed. The <a class="reference internal" href="../glossary/glossary.html#term
 59
 60
 61
-62
-63
-64</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/stencil_composition/stencil_composition.hpp&gt;</span><span class="cp"></span>
+62</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;gridtools/stencil_composition/stencil_composition.hpp&gt;</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&lt;gridtools/storage/storage_facility.hpp&gt;</span><span class="cp"></span>
-
-<span class="cp">#include</span> <span class="cpf">&lt;gridtools/stencil_composition/accessor.hpp&gt;</span><span class="cp"></span>
 
 <span class="k">using</span> <span class="k">namespace</span> <span class="n">gridtools</span><span class="p">;</span>
 <span class="k">using</span> <span class="k">namespace</span> <span class="n">gridtools</span><span class="o">::</span><span class="n">expressions</span><span class="p">;</span>
 
-<span class="cp">#ifdef __CUDACC__</span>
+<span class="cp">#if defined(__CUDACC__) || defined(__HIPCC__)</span>
 <span class="k">using</span> <span class="n">backend_t</span> <span class="o">=</span> <span class="n">backend</span><span class="o">::</span><span class="n">cuda</span><span class="p">;</span>
 <span class="cp">#else</span>
 <span class="k">using</span> <span class="n">backend_t</span> <span class="o">=</span> <span class="n">backend</span><span class="o">::</span><span class="n">mc</span><span class="p">;</span>
@@ -667,7 +663,10 @@ we won’t discuss them now in detail. In brief:</p>
 
 <span class="n">project</span><span class="p">(</span><span class="n">GridTools</span><span class="o">-</span><span class="n">laplacian</span> <span class="n">LANGUAGES</span> <span class="n">CXX</span><span class="p">)</span>
 
-<span class="n">find_package</span><span class="p">(</span><span class="n">GridTools</span> <span class="mf">1.1</span><span class="o">.</span><span class="mi">0</span> <span class="n">REQUIRED</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="n">CMAKE_CXX_STANDARD</span> <span class="mi">14</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="n">CMAKE_CXX_EXTENSIONS</span> <span class="n">OFF</span><span class="p">)</span>
+
+<span class="n">find_package</span><span class="p">(</span><span class="n">GridTools</span> <span class="mf">2.0</span><span class="o">.</span><span class="mi">0</span> <span class="n">REQUIRED</span><span class="p">)</span>
 
 <span class="n">add_executable</span><span class="p">(</span><span class="n">gt_laplacian</span> <span class="n">test_gt_laplacian</span><span class="o">.</span><span class="n">cpp</span><span class="p">)</span>
 <span class="n">target_link_libraries</span><span class="p">(</span><span class="n">gt_laplacian</span> <span class="n">GridTools</span><span class="p">::</span><span class="n">gridtools</span><span class="p">)</span>
