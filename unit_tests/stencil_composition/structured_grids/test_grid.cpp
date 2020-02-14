@@ -8,12 +8,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/grid.hpp>
+#include <gridtools/stencil_composition/frontend/make_grid.hpp>
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/axis.hpp>
-#include <gridtools/stencil_composition/interval.hpp>
+#include <gridtools/stencil_composition/core/interval.hpp>
+#include <gridtools/stencil_composition/frontend/axis.hpp>
 
 using namespace gridtools;
 
@@ -30,13 +30,13 @@ template <size_t N>
 using axis_type = axis<N, axis_config::offset_limit<level_offset_limit>>;
 
 template <uint_t Splitter, int_t Offset>
-using level_type = level<Splitter, Offset, level_offset_limit>;
+using level_type = core::level<Splitter, Offset, level_offset_limit>;
 
 TEST(test_grid, make_grid_makes_splitters_and_values) {
     using axis_t = axis<2, axis_config::offset_limit<level_offset_limit>>;
 
-    using interval1_t = interval<level_type<0, 1>, level_type<1, -1>>;
-    using interval2_t = interval<level_type<1, 1>, level_type<2, -1>>;
+    using interval1_t = core::interval<level_type<0, 1>, level_type<1, -1>>;
+    using interval2_t = core::interval<level_type<1, 1>, level_type<2, -1>>;
 
     auto testee = make_grid(1, 1, axis_type<2>{5, 10});
 

@@ -13,8 +13,8 @@
 #include "gtest/gtest.h"
 #include <gridtools/boundary_conditions/zero.hpp>
 #include <gridtools/distributed_boundaries/bound_bc.hpp>
-#include <gridtools/storage/data_store.hpp>
-#include <gridtools/storage/storage_host/host_storage.hpp>
+#include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/x86.hpp>
 
 using namespace std::placeholders;
 namespace gt = gridtools;
@@ -27,18 +27,6 @@ TEST(DistributedBoundaries, SelectElement) {
     EXPECT_EQ(gt::_impl::select_element<1>(sub, all, gt::_impl::Plc{}), 2);
     EXPECT_EQ(gt::_impl::select_element<2>(sub, all, gt::_impl::NotPlc{}), 3);
     EXPECT_EQ(gt::_impl::select_element<3>(sub, all, gt::_impl::Plc{}), 4);
-}
-
-TEST(DistributedBoundaries, DataStoreOrPlc) {
-    typedef gt::storage_info<0, gt::layout_map<0, 1, 2>> storage_info_t;
-    using ds = gt::data_store<gt::host_storage<double>, storage_info_t>;
-
-    EXPECT_EQ((gt::_impl::data_stores_or_placeholders<decltype(_1), decltype(_2)>()), true);
-    EXPECT_EQ((gt::_impl::data_stores_or_placeholders<ds, ds>()), true);
-    EXPECT_EQ((gt::_impl::data_stores_or_placeholders<decltype(_1), ds, decltype(_2), ds>()), true);
-    EXPECT_EQ((gt::_impl::data_stores_or_placeholders<decltype(_1), int, decltype(_2)>()), false);
-    EXPECT_EQ((gt::_impl::data_stores_or_placeholders<ds, int, ds>()), false);
-    EXPECT_EQ((gt::_impl::data_stores_or_placeholders<decltype(_1), ds, int, decltype(_2), ds>()), false);
 }
 
 TEST(DistributedBoundaries, CollectIndices) {
@@ -97,12 +85,13 @@ TEST(DistributedBoundaries, ContainsPlaceholders) {
 }
 
 TEST(DistributedBoundaries, BoundBC) {
-    typedef gt::storage_info<0, gt::layout_map<0, 1, 2>> storage_info_t;
-    using ds = gt::data_store<gt::host_storage<double>, storage_info_t>;
+    const auto builder = gt::storage::builder<gt::storage::x86>.type<double>().dimensions(3, 3, 3);
 
-    ds a(storage_info_t{3, 3, 3}, "a");
-    ds b(storage_info_t{3, 3, 3}, "b");
-    ds c(storage_info_t{3, 3, 3}, "c");
+    auto a = builder.name("a")();
+    auto b = builder.name("b")();
+    auto c = builder.name("c")();
+
+    using ds = decltype(a);
 
     gt::bound_bc<gt::zero_boundary, std::tuple<ds, ds, ds>, std::index_sequence<1>> bbc{
         gt::zero_boundary{}, std::make_tuple(a, b, c)};

@@ -74,7 +74,7 @@ namespace gridtools {
                 return (I + 1) * stride_i + (J + 1) * stride_j + (K + 1) * stride_k;
             }
 
-            GT_STATIC_ASSERT(sizeof(uint_t) >= 4, GT_INTERNAL_ERROR);
+            static_assert(sizeof(uint_t) >= 4, GT_INTERNAL_ERROR);
 
             uint_t m_predicate_values;
         };

@@ -3,62 +3,6 @@
 Stencil Composition
 ========================
 
-.. _placeholders:
-
-------------------------------------------
-Preparing Arguments: Storage Placeholders
-------------------------------------------
-
-To allow naming arguments, that are passed to stencil computations, at compile
-time, |GT| uses `storage placeholders`. The storage placeholders are pairs of
-an integer identifier and a storage type (a |GT| :term:`Data Store` type).
-
-For example
-
-.. code-block:: gridtools
-
- using p_in = arg<0, data_store_t>;
- using p_out = arg<1, data_store_t>;
-
-defines two placeholders named `p_in` and `p_out`. Note that the identifier,
-that is, the first argument passed to `arg`, must be unique in the computation using it.
-
-A second placeholder type for temporary data exists that can be defined in
-exactly the same way:
-
-.. code-block:: gridtools
-
- using p_tmp = tmp_arg<2, data_store_t>
-
-The difference between temporary and non-temporary placeholders is that while non-temporary placeholders are bound with
-a user-allocated data-store, this is not needed for temporary placeholders.  |GT| takes care to allocate a suitable
-storage for those placeholders. The storage duration of a temporary starts with the first stage of the first multistage,
-and ends with the last stage of the last multistage.
-
-.. note::
-
- If you define multiple placeholders with the same ID, they can not be distinguished by |GT| even if they have different
- names or storage types!  `arg` and `tmp_arg` arguments can have the same identifiers, and still represent different
- placeholders.
-
-The placeholders can be used as arguments to certain |GT| functions. There are two use cases: first, they define, which
-stages are called with which arguments, e.g., in
-
-.. code-block:: gridtools
-
- auto stage = make_stage<some_stage>(p_in(), p_tmp(), p_out());
-
-they define that during execution the stage ``some_stage`` will be called with the fields bound to the placeholders at
-that point (see further below for documentation of the `make_stage` function). The second use case is binding run-time
-values to previously declared arguments, e.g.,
-
-.. code-block:: gridtools
-
- computation.run(p_in() = input_data, p_out() = output_data);
-
-runs a computation on `input_data` and `output_data`. Storages must only be assigned to `arg` placeholders, all data for
-the `tmp_arg` arguments is managed by |GT|.
-
 .. _defining_iteration_space:
 
 ---------------------------------------------------
@@ -71,13 +15,13 @@ we cover how to define the :term:`Iteration Space` with the ``grid`` object.
 
 |GT| offers a set of functions which ease the construction of the ``grid``:
 
-.. cpp:function:: grid make_grid(int size_i, int size_j, int size_k)
+.. cpp:function:: auto make_grid(int size_i, int size_j, int size_k)
 
    The simplest :term:`Iteration Space` will iterate the cube defined by the :term:`Vertical Intervals<Vertical Interval>` ``[0,
    size_i-1]``, ``[0, size_j-1]``, ``[0, size_k-1]``. This function must only be used if all stages used within the
    computation have zero extents.
 
-.. cpp:function:: grid make_grid(halo_descriptor halo_i, halo_descriptor halo_j, int size_z)
+.. cpp:function:: auto make_grid(halo_descriptor halo_i, halo_descriptor halo_j, int size_z)
 
    For finer control of the iteration space a :term:`Halo Descriptor` can be passed for the horizontal directions (``I``
    and ``J``).  The 3rd and 4th argument of the ``halo_descriptor`` define the start and the endpoint of the
@@ -95,12 +39,12 @@ we cover how to define the :term:`Iteration Space` with the ``grid`` object.
    This example will create a grid. The iteration space in ``i`` and ``j`` will be ``[10, 20]`` (including ``20``!). The
    computation is required not to access data outside of ``[7, 23]``. The iteration space in ``k`` is ``[0, 9]``.
 
-.. cpp:function:: grid make_grid(int size_i, int size_j, Axis axis)
+.. cpp:function:: auto make_grid(int size_i, int size_j, Axis axis)
 
    The vertical axis needs to be passed to the grid when using several vertical regions. The axis can be constructed by
    passing it the size of each of the vertical regions. Details follow in the coming sections.
 
-.. cpp:function:: grid make_grid(halo_descriptor halo_i, halo_descriptor halo_j, Axis axis)
+.. cpp:function:: auto make_grid(halo_descriptor halo_i, halo_descriptor halo_j, Axis axis)
 
    See explanations in other functions.
 
@@ -225,18 +169,82 @@ The ``axis`` type has an additional template parameter to change a default restr
 - ``offset_limit`` defines how many levels around each vertical region can be addressed by specialized
   ``Apply``-methods. Increasing this value could have negative implications on compile-time.
 
+----------------------------
+**run** : Computation Driver
+----------------------------
 
-.. _composition_of_stencils:
+|GT| provides ``gridtools::run`` function that executes stencil computation. It has the following signature:
 
------------------------
-Composition of Stencils
------------------------
+.. cpp:function:: void run(specification, backend, grid, fields ...)
+
+The types of parameters are not specified for the reason: None of the types that ``run`` accepts are part of the public API.
+Parameters have the following meaning:
+
+  * **specification** describes the stencil composition. Even thought technically it is a callable object it it never
+    got called. It is better to think about this parameter as a micro script that is written in |GT| provided domain
+    specific language embedded into C++.
+  * **backend** specifies the :term:`Backend` that is used to execute the computation.
+  * **grid** defines the computation space
+  * **fields ...** -- the actual data stores on which computation is performed. The number of the fields is defined by
+    ``specification`` parameter. Field types should model SID concept.
+
+---------------------------------
+Stencil Composition Specification
+---------------------------------
+
+Informally the first parameter of the ``run`` should be a generic lambda function, where its arguments represents
+the fields that participate in the computation. Please mind the terminology. The specification arguments are not fields.
+They just represent them. They serve as place holders. The only thing you can do with those arguments is passing them to
+the |GT| syntax constructs described below.
+
+The temporary fields (that are managed by |GT|) should be declared with the lambda by using ``GT_DECLARE_TMP``.
+It accepts the type of the element as a first parameter. Other parameters are the names of the temporaries.
+
+The specification (this generic lambda) returns a single C++ expression split by dots into |GT| syntax clauses.
+The first clause always specifies an execution model. The next goes zero or more clauses describing software caches. Other
+clauses correspond to computation stages.
+
+The following example demonstrates how to create a specification for a diffusion operator.
+
+.. code-block:: gridtools
+
+ auto const spec = [](auto in, auto coeff, auto out) {
+     GT_DECLARE_TMP(double, lap, flx, fly);
+     return execute_parallel()
+         .ij_cached(lap, flx, fly)
+         .stage(lap_function(), lap, in)
+         .stage(flx_function(), flx, in, lap)
+         .stage(fly_function(), fly, in, lap)
+         .stage(out_function(), out, in, flx, fly, coeff);
+ };
+
+This specification can be executed as follows:
+
+.. code-block:: gridtools
+
+ run(spec, backend_t(), grid, in, coeff, out);
+
+
+^^^^^^^^^^^^^^^^^^^^^^^
+The Notion of a Stage
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The main component of |GT| provide the capability of composing different :term:`Stages<Stage>`. A stage is the
 application of a single :term:`Stencil Operator` to an :term:`Iteration Space`. The ability to fuse multiple stages
 allows the |GT| library to improve the memory locality of the computation by taking advantage of the produce consumer
 relations.
 
+A stage is specified by indicating a :term:`Stencil Operator` and some
+:term:`Placeholders<Placeholder>` to its arguments. The placeholders are
+either parameters of the specification lambda function or temporary placeholders declared by ``GT_DECLARE_TMP``.
+The syntax is the following:
+
+.. code-block:: gridtools
+
+ ... .stage(operator(), plc0, plc1, ...) ...
+
+Where the `operator` is the stencil operator of the stage and the `plc0`,
+`plc1`, … are the placeholders. The number and the intent of the placeholders depend on the :term:`Stencil Operator`.
 
 .. note ::
 
@@ -244,10 +252,6 @@ relations.
  once. Failing to do so will end up in undefined behavior. We plan to
  introduce compile time checks to catch the violation of this
  condition.
-
-The result of a composition is a :term:`Multi-Stage`.
-For reason of uniformity, a Multi-Stage with a singe :term:`Stage`, is still called a multi-stage, since the
-composition is generally assumed to take a list of stages, even if the stage is just one.
 
 .. note::
 
@@ -257,169 +261,32 @@ composition is generally assumed to take a list of stages, even if the stage is 
  composed (see below), then |GT| may not be the right solution
  for you.
 
-|GT| allows multi-stage computations to be composed. The final composition, with the addition of a :term:`Grid` is
-simply called a |GT| :term:`Computation`.
-
-Initially we need to specify the stages. A stage is specified by
-indicating a :term:`Stencil Operator` and some
-:term:`Placeholders<Placeholder>` to its arguments. The placeholders are
-aliases to the actual arguments and are used to compute the data
-dependencies of the computation independently of the actual data
-fields that will be accessed by the computation. The syntax for
-specifying a stage uses a helper function called `make_stage`:
-
-.. code-block:: gridtools
-
- auto stage = make_stage<operator>(plc0(), plc1(), ...);
-
-Where the `operator` is the stencil operator of the stage and the `plc0`,
-`plc1`, … are the placeholders. The number and the intent of the placeholders
-depend on the :term:`Stencil Operator`.
-
-A :term:`Multi-Stage` is a concatenation of stages, plus the indication of
-the :term:`Vertical Execution Order` to be used for all the stages.
-
-The following example demonstrates how to create a multistage for a diffusion operator.
-
-.. code-block:: gridtools
-
- auto multi_stage = make_multistage(
-     execute::forward(),
-     make_stage<lap_operator>(p_lap(), p_in()),
-     make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
-     make_stage<fly_operator>(p_fly(), p_in(), p_lap()),
-     make_stage<out_operator>(p_out(), p_in(), p_flx(), p_fly())
- );
-
-.. note::
-
- It is not possible to make a :term:`Multi-Stage` with stages of different
- :term:`Vertical Execution Orders<Vertical Execution Order>`.
-
 The data-dependence analysis of |GT| will determine the data flow
 and the :term:`Extents<Extent>` at which each data field will be accessed. This
 information is then passed to the architecture specific backend for the
 execution.
 
-Before the computation can be executed, a :term:`Grid`, specifying
-the :term:`Iteration Space`, must be provided.
+^^^^^^^^^^^^^^^^^^^^^^^
+Multi-Pass Computations
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Creating a complete stencil for horizontal diffusion looks as follows:
-
-.. code-block:: gridtools
-
- auto horizontal_diffusion = make_computation<backend_t>(
-     grid,
-     make_multistage(
-         execute::forward(),
-         make_stage<lap_operator>(p_lap(), p_in()),
-         make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
-         make_stage<fly_operator>(p_fly(), p_in(), p_lap()),
-         make_stage<out_operator>(p_out(), p_in(), p_flx(), p_fly())
-     )
- );
-
-
-where ``backend_t`` specifies the :term:`Backend` that will execute the computation.
-
-The details about dependencies between stages and multistages are described in :ref:`Execution-Model`. If two stages
-have no dependencies, they don't need to be synchronized. Thus, the user can make them independent. In case of the
-horizontal diffusion, the fluxes in x and y have no dependency on each other, thus, ``make_independent`` can be used:
+Stencil composition specification allows also to combine several passes with different execution orders
+in a single computation. This is very useful for implementing computations that require two vertical swipes,
+one ascending and one descending, but has to be used with care. Before explaining the rules for using
+this feature, we provide a simple example of the syntax in the vertical advection example:
 
 .. code-block:: gridtools
 
- auto horizontal_diffusion = make_computation<backend_t>(
-     grid,
-     make_multistage(
-         execute::forward(),
-         make_stage<lap_operator>(p_lap(), p_in()),
-         make_independent(
-             make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
-             make_stage<fly_operator>(p_fly(), p_in(), p_lap())),
-         make_stage<out_operator>(p_out(), p_in(), p_flx(), p_fly())
-     )
- );
-
-``make_independent`` does not have impact on the data-dependency analysis but, potentially, only on the execution
-schedule.
-
-A computation can also have several multistages. The general signature is as follows:
-
-.. code-block:: gridtools
-
- make_computation<backend_t>(grid, multi_stage0, other_multi_stages...);
-
-A computation can incorporate multiple multi-stage computations and they
-may have different execution policies. This is very useful for implementing
-computations that require two vertical swipes, one ascending and one
-descending, but has to be used with care. Before explaining the rules for using
-this feature, we provide a simple example of the syntax in the vertical
-advection example:
-
-.. code-block:: gridtools
-
- auto vertical_advection = make_computation<backend_t>(
-     grid,
-     make_multistage(
-         execute::forward(),
-         make_stage<forward_op>(p_utens_stage(), p_wcon()),
-     ),
-     make_multistage(
-         execute::backward(),
-         make_stage<backward_op>(p_utens_stage(), p_u_pos())
-     )
- );
+ auto const vertical_advection = [](auto utens_stage, auto wcon, auto u_pos) {
+    return multi_pass(
+        execute_forward().stage(forward_op(), utens_stage, wcon),
+        execute_backward().stage(backward_op(), utens_stage, u_pos)
+        );
+ };
 
 This option is particularly useful on multi-core machines with caches, since
 the backend there can actively pass information between the two stages thus
 improving substantially the performance.
-
-To execute a given :term:`Multi-Stage`, the
-`run` method has to be called. Data has to be assigned to each non-temporary
-:term:`Placeholder`.
-
-.. code-block:: gridtools
-
- horizontal_diffusion.run(p_out() = out_data, p_in() = in_data);
-
-.. note::
-
- No data can be assigned to temporary fields (i.e., `tmp_arg`
- :term:`Placeholders<Placeholder>`). Storage for all temporary arguments is
- managed by |GT|.
-
-In case that the stencil is always run on the same data fields, you can also
-assign those fields to the respective placeholders directly in the
-``make_computation`` call, i.e. at definition time instead of run time, e.g.:
-
-.. code-block:: gridtools
-
- auto horizontal_diffusion = make_computation<backend_t>(
-     grid,
-     p_out() = out_data, // data assignment happens here
-     p_in() = in_data, // and here
-     make_multistage(
-         execute::forward(),
-         make_stage<lap_operator>(p_lap(), p_in()),
-         make_independent(
-             make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
-             make_stage<fly_operator>(p_fly(), p_in(), p_lap())),
-         make_stage<out_operator>(p_out(), p_in(), p_flx(), p_fly())
-     )
- );
-
- horizontal_diffusion.run() // no data has to be specified here
-
-You can mix the two patterns, that is, assign data to some placeholders at
-definition time and to some at run time. But each placeholder needs exactly one
-data assignment, either inside ``make_computation`` or inside the ``run``
-method. It is therefore not possible to override definition-time assignments
-present in ``make_computation`` at run time in the ``run`` method.
-
-There are other details that pertain :term:`Placeholders<Placeholder>`,
-:term:`Grid` and also other |GT|
-constructs that can greatly improve performance of the computations, especially
-:term:`Software-Managed Caches<Software-Managed Cache>`.
 
 .. _backend-selection:
 
@@ -431,37 +298,20 @@ One of the key concepts of |GT| is portability between different target architec
 Stencil operators are written and composed in an architecture-independent way and then instantiated
 for a given ``backend``. The ``backend`` is a tag type with with the following possible values:
 
-- ``backend::cuda``: a GPU-enabled backend for NVIDIA GPUs
-- ``backend::mc``: a backend for modern CPUs with long vector-length.
-- ``backend::x86``: a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future.
+- ``cuda::backend<>``: a GPU-enabled backend for NVIDIA GPUs
+- ``mc::backend``: a backend for modern CPUs with long vector-length.
+- ``x86::backend<>``: a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future.
 
 Currently we recommend one of the following two backends for optimal performance
 
 .. code-block:: gridtools
 
-   using backend_t = backend::cuda;
+   using backend_t = cuda::backend<>;
    
 for GPUs or 
 
 .. code-block:: gridtools
 
-   using backend_t = backend::mc;
+   using backend_t = mc::backend;
 
 for modern CPUs or Xeon Phis.
-
-------------
-Type-erasure
-------------
-
-The result of ``make_computation`` can be assigned to a ``gridtools::computation``. The parameters of ``computation``
-are the placeholders that will be assigned at runtime, i.e., when calling the ``run``-method of the computation.
-
-You should use objects of type ``computation`` in your headers in order to reduce compilation times, and assign the
-return values of ``make_computation`` in only one compilation unit. The ``computation`` object is type erased; the
-expensive methods are compiled only when the result of ``make_computation`` is assigned to the computation.
-
-An example of this pattern can be found in the examples: `Stencil definition
-<https://github.com/GridTools/gridtools/blob/master/examples/stencil_computation/interpolate_stencil.cpp>`_, `Header
-with a computation
-<https://github.com/GridTools/gridtools/blob/master/examples/stencil_computation/interpolate_stencil.hpp>`_, `Driver
-<https://github.com/GridTools/gridtools/blob/master/examples/stencil_computation/driver.cpp>`_ .

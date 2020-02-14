@@ -19,13 +19,8 @@ int main() {
     const int ny = 10;
     const int nz = 11;
 
-    bindgen_handle *grid_handle = make_grid(nx, ny, nz);
-    bindgen_handle *storage_info_handle = make_storage_info(nx, ny, nz);
-    bindgen_handle *in_handle = make_data_store(storage_info_handle);
-    bindgen_handle *out_handle = make_data_store(storage_info_handle);
-    bindgen_handle *computation_handle = make_copy_stencil(grid_handle);
-    free(storage_info_handle);
-    free(grid_handle);
+    bindgen_handle *in_handle = make_data_store(nx, ny, nz);
+    bindgen_handle *out_handle = make_data_store(nx, ny, nz);
 
     // Note that the order of the indices array here is k, j, i (which is the internal
     // Fortran layout). This is the layout that is expected by the bindings we have
@@ -47,12 +42,12 @@ int main() {
 
     // in the C bindings, the fortran array descriptors need to be filled explicitly
     bindgen_fortran_array_descriptor in_descriptor = {
-        .rank = 3, .type = bindgen_fk_Float, .dims = {nx, ny, nz}, .data = (void *)in_array};
+        .rank = 3, .type = bindgen_fk_Float, .dims = {nx, ny, nz}, .data = in_array};
     bindgen_fortran_array_descriptor out_descriptor = {
-        .rank = 3, .type = bindgen_fk_Float, .dims = {nx, ny, nz}, .data = (void *)out_array};
+        .rank = 3, .type = bindgen_fk_Float, .dims = {nx, ny, nz}, .data = out_array};
 
     transform_f_to_c(in_handle, &in_descriptor);
-    run_stencil(computation_handle, in_handle, out_handle);
+    run_copy_stencil(in_handle, out_handle);
     transform_c_to_f(&out_descriptor, out_handle);
 
     // now, the output can be verified
@@ -71,9 +66,6 @@ int main() {
     cudaFree(in_array);
     cudaFree(out_array);
 
-    free(in_handle);
-    free(out_handle);
-    free(computation_handle);
-
-    return 0;
+    bindgen_release(in_handle);
+    bindgen_release(out_handle);
 }

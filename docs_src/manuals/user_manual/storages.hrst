@@ -1,371 +1,374 @@
 .. _storage-module:
 
-Storage Module
-================================
+Storage Library
+===============
 
-The storage module is one of the main modules in |GT|. The main target of this module is to provide proper means to access,
-view, and modify data. The detail of the hardware is hidden to the user, but the user is responsible for indicating what
-storage is needed. Different :term:`Backends<Backend>` are available for different kinds of storages, see
-:ref:`backend-selection`. Following subsections will explain the different basic elements that are used in the storage
-module.
+Storage Library provides the way to represent multidimensional typed contiguous memory allocations with arbitrary
+layout and alignment. The library is headers only. All entities are defined in the ``gridtools::storage`` namespace.
 
-The storage has the notion of ``halo``. This in turns allows the user of the storage to distinguish between the compute
-domain and the full domain, where the latter includes the halos. The halo is symmetric in the storage class, that is,
-the number of halo points at the two ends of a dimension is the same. Different dimensions may have different numbers of
-halo points. The main reason for including halos in the storage is to enforce the alignment of the storage in the inner
-region to improve the performance of stencil operations.
-
-.. _storage-info:
-
-------------------
-Storage Info
-------------------
-
-The storage info can be seen as a meta data object that keeps information about a storage. This information is alignment,
-data layout in memory, halo areas, dimensionality, size of the storage, etc.  The object must be created before storage
-can be allocated. The storage info object can be shared among different storages, if they have the same meta data. The
-right storage info type can be retrieved with ``storage_traits<Backend>``. The supported backends are described
-in :term:`Backends<Backend>`.
-
-As an example, we can retrieve the default three-dimensional storage info type with size 10 x 10 x 10 for the CUDA
-backend, with no halos and identifier `0` as follows:
-
-.. code-block:: gridtools
-
- #include <gridtools/storage/storage_traits_cuda.hpp>
- namespace gt = gridtools;
- using backend_t = gt::backend::cuda; // or gt::backend::mc or gt::backend::x86
- using storage_info_t = gt::storage_traits<backend_t>::storage_info_t<0 /* id */, 3 /* dims */, gt::halo<0, 0, 0>>;
- storage_info_t si{10, 10, 10};
-
-Be aware that the identifier used in `storage_info_t` must uniquely determine the type of the storage info and the
-actual instantiation with sizes.
-
-The traits class has several ways how a storage info type can be inferred:
-
-* ``storage_info_t<Id, Dims, gt::halo<...>>`` returns the default storage info for a certain backend.
-* ``custom_layout_storage_info_t<Id, gt::layout<...>, gt::halo<...>>`` lets you specify the exact layout map (see
-  below) of the storage. Keep in mind that the default layout should have best performance on the target architecture.
-* ``special_storage_info_t<Id, gt::selector<...>, gt::halo<...>>`` lets you select a default storage info
-  for a certain backend, but you can mask certain dimensions. For example ``gt::selector<0, 0, 1>`` will result in a
-  three-dimensional storage where all dimensions except in k-direction are masked. The layout will be optimized for the
-  chosen backend.
-* ``storage_info_align_t<Id, Dims, gt::halo<...>, Alignment>`` lets you select a default storage info for a
-  certain backend, but with a non-default alignment requirement.
-* ``custom_layout_storage_info_align_t<Id, gt::layout<...>, gt::halo<...>, Alignment>`` lets you specify
-  the exact layout of the storage and the alignment requirement.
-* ``special_storage_info_align_t<Id, gt::selector<...>, gt::halo<...>, Alignment>`` lets you mask certain
-  dimensions and you can specify the alignment requirement.
-
-:numref:`fig_storage_info` shows a depiction of the ``storage_info`` compile-time data.
-
-.. _fig_storage_info:
-.. figure:: figures/storage_info.png
-   :scale: 60 %
-
-   Storage info and associated compile-time data.
-
-* **Id**: A unique identifier for the storage info type
-
-  .. note::
-
-    For each ``storage_info`` type you should use only one instantiation. The mapping between a storage and the run-time
-    information in the `storage_info` has to be done at compile time via the index. Thus |GT| cannot distinguish the
-    storages by the run-time sizes passed to the `storage_info`. If you want to instantiate multiple `storage_info` with
-    the same halo, alignment, layout but with different dimensionality you must use a different ID.
-
-
-* **Layout Map:** Information about the memory layout. The ``layout_map`` template takes a permutation of the value from
-  ``0`` to ``N - 1``, where ``N`` is the number of dimensions of the storage. The values indicate the order of the
-  dimensions by decreasing strides. For instance a C array ``X[i][j][k]`` layout would be equivalent to ``layout_map<0,
-  1, 2>``. The dimension with stride 1 has the highest indexi, so in this case, the k-stride is unit stride. A Fortran
-  style array ``X[i][j][k]`` layout would be equivalent to ``layout_map<2, 1, 0>``, meaning that the i-stride is
-  unit-stride (thus, the first index of the ``layout_map`` is 2).
-
-  There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked
-  dimensions are ignored. For instance a ``storage_info`` with ``layout_map<1, -1, 0>`` describes a 3-dimensional
-  storage, where the i-stride is unit stride and the j dimension is masked. In this case the storage is allocated as a
-  two-dimensional array, but it behaves as a three-dimensional array. Accessing the array at ``(i, j, k)`` always returns
-  the element at ``(i, 0, k)``. This kind of storage can be used two implement oriented planes in stencils.
-
-  The following example creates a storage info for the cuda backend. It has a masked dimension in ``J`` (i.e., it
-  represents a I-K-plane) and the I-dimension is unit stride.
-
-  .. code-block:: gridtools
-
-     #include <gridtools/storage/storage_traits_cuda.hpp>
-     namespace gt = gridtools;
-     using backend_t = gt::backend::cuda;
-     using storage_info_t = gt::storage_traits<backend_t>::custom_layout_storage_info_t<0 /* id */, gt::layout<1, -1, 0>, gt::halo<0, 0, 0>>;
-     storage_info_t si{10, 10, 10};
-
-* **Selector:** Selectors in the storage traits allow to mask dimensions, but automatically have the optimal layout for
-  the chosen backend. Dimensions in the `selector` that are set to `0` will be masked. For example, we can create a
-  storage which is masked in ``J`` (again a I-K-plane), whose layout is optimal for the cuda backend:
-
-  .. code-block:: gridtools
-
-     #include <gridtools/storage/storage_traits_cuda.hpp>
-     namespace gt = gridtools;
-     using backend_t = gt::backend::cuda;
-     using storage_info_t = gt::storage_traits<backend_t>::special_storage_info_t<0 /* id */, gt::selector<1, 0, 1>, gt::halo<0, 0, 0>>;
-     storage_info_t si{10, 10, 10};
-
-* **Alignment:** Information about the alignment in terms of number of elements. There is the possibility to provide
-  information about how the data points should be aligned in memory. The alignment is enforced to the first elements in
-  the compute domain of the dimension with stride one. This provides a huge performance gain for some architectures (e.g.,
-  GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data
-  points of the stride-one dimension in memory. The legacy x86 :term:`Backend` uses no alignment (``alignment<1>``) by
-  default. The CUDA :term:`Backend` uses a default alignment of 32 data elements (``alignment<32>``), the MC
-  :term:`Backend` defaults to ``alignment<8>``.
-
-* **Halo:** The halo information has to be passed as type information to the storage info. The reason for this is that
-  the proper alignment can only be computed with given halo information. The storage info object provides aligned data
-  points (non-halo points) for the stride 1 dimension. The halo information is given as follows: ``halo<Sizes...>``
-  where sizes is the halo size at both ends of the corresponding dimension, in terms of element sizes. E.g., ``halo<2,
-  4, 0>`` is a halo of size 2 in direction I+ and I-, halo of size 4 in direction J+ and J-, and no halo in K.
-
-  Note that the size passed to the constructor of the storage info is including the halo. The following example will
-  create a storage info with halos 1 in i-direction and halos 0 in j-direction. The allocated storage is 10 x 10 x 10,
-  but the compute domain is only 8 x 10 x 10. The element (1, 0, 0) is the first element of the compute domain and will
-  be aligned.
-
-  .. code-block:: gridtools
-
-     #include <gridtools/storage/storage_traits_cuda.hpp>
-     namespace gt = gridtools;
-     using backend_t = gt::backend::cuda;
-     using storage_info_t = gt::storage_traits<backend_t>::storage_info_t<0 /* id */, 3 /* dims */, gt::halo<1, 0, 0>>;
-     storage_info_t si{10, 10, 10};
-
-A visual representation of the storage info is given in :numref:`fig_storage_info_example`. The allocated memory starts
-at the bottom. The allocation starts with some padding (due to the alignment requirements). The compute domain (yellow)
-is surrounded by a halo region (green).
-
-.. _fig_storage_info_example:
-.. figure::  figures/storage_info_example.png
-   :scale: 100 %
-
-   Example storage info.
-
-**Interface**: A ``storage_info`` object provides methods for querying the meta data.
-
-* ``template <uint_t D> uint_t total_length() const``: retrieve the total number of data points in dimension
-  ``D`` dimensions
-* ``template <int D> int stride() const``: retrieve the stride in dimension ``D``
-* ``const array<uint_t, ndims> &total_lengths() const``: return the array of total number of data points in each
-  direction
-* ``const array<uint_t, ndims> &strides() const``: return the array of (aligned) strides.
-* ``template <uint_t D> uint_t begin() const``: retrieve the position of the first non halo point in dimension `D`
-* ``template <uint_t D> uint_t end() const``: retrieve the position of the last non halo point in dimension `D`
-* ``template <uint_t D> uint_t total_begin() const``: retrieve the position of the first point (can also be a
-  halo point) in dimension ``D`` (always ``0``)
-* ``template <uint_t D> uint_t total_end() const``: retrieve the position of the last point (can also be a
-  halo point) in dimension ``D``
-
-.. _data-store:
-
----------------
+----------
 Data Store
----------------
+----------
 
-Once the ``storage_info`` object is created a ``data_store`` can be created. A ``data_store`` is keeping together the
-``storage_info`` object, a data type and the actual memory allocation (see also :numref:`fig_data_store`). The main
-purpose of the ``data_store`` is to provide means for synchronizing, keeping consistency, and cleaning up memory. A
-``data_store`` does a shallow copy when being copied, which means that the underlying allocated storage is not copied
-and original and copy will point to the same data.
+The key entity of the library. Represents :math:`N`-d array.
 
-When a data store is used on an accelerator, it has two copies of the data, one copy resides in the memory of the host
-system, and a second copy resides in the memory of the accelerator (target system).
+  * Data store has no user facing constructors. To create it one should use Builder API.
+  * The access to the actual data is indirect. Data store has methods to request a view. The view provides data access
+    via overloaded call operator.
+  * Data store is aware of memory spaces. It distinguish between ``target`` and ``host`` data access. Views are
+    requested with ``target_view()``/``target_const_view()``/``host_view()``/``host_const_view()`` methods. If ``target`` and
+    ``host`` spaces are different and the data store holds non constant data, data store performs automatic memory
+    synchronization if needed. It is assumed that the target memory space access is used for doing computations
+    and host access is used for filling, dumping and verifying the data.
 
-.. _fig_data_store:
-.. figure:: figures/data_store.png
-   :scale: 80 %
-
-   :term:`Data Store` and associated compile-time data.
-
-The type of a :term:`Data Store` combines a ``storage_info`` type and the underlying type. Given a ``storage_info_t``,
-the proper type for the data store can be retrieved using ``storage_traits<Backend>::data_store_t``:
+^^^^^^^^^^^^^^^^^^^
+Data Store Synopsis
+^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: gridtools
 
-    using data_store_t = storage_traits<Backend>::data_store_t<double, storage_info_t>; 
+ template</* Implementation defined parameters */>
+ class data_store {
+   public:
+     static constexpr size_t ndims; /* Dimensionality */
+     using layout_t = /* Instantiation of gridtools::layout_map. */;
+     using data_t = /* Type of the element. */;
+     // The following invariant is held: for any data_store instancies that have
+     // the same kind_t the strides are also the same.
+     using kind_t = /* A type that identifies the strides set. */;
 
+     // Data store arbitrary label. Mainly for debugging.
+     std::string const &name() const;
+     // The sizes of the data store in each dimension.
+     array<unsigned, ndims> const &lengths() const;
+     // The strides of the data store in each dimension.
+     array<unsigned, ndims> const &strides() const;
+     // 1D length of the data store expressed in number of elements.
+     // Namely it is a pointer difference between the last and the first element minus one.
+     unsigned length() const;
 
-**Example**:
-Following codes snippets show how :term:`Data Stores<Data Store>` can be created. At first the user has to identify if
-the memory management is done externally or not. If it is done externally the :term:`Data Store` won't allocate nor
-deallocate the memory. The standard use-case is to use managed :term:`Data Stores<Data Store>`. The :term:`Data Store`
-can be initialized with a value or a lambda and can optionally be named by passing an additional string.
+     // Supplementary object that holds lengths and strides.
+     storage::info<ndims> const &info() const;
 
-.. code-block:: gridtools
+     // Request the target view.
+     // If the target and host spaces are different necessary synchronization is performed
+     // and the host counterpart is marked as dirty.
+     auto target_view();
+     // Const version doesn't mark host counterpart as dirty. Synchronization takes place.
+     auto const_target_view();
 
-    using storage_info_t = storage_traits<backend::mc>::storage_info_t<0 /* id */, 2 /* dims */, gt::halo<1, 0>>;
-    using data_store_t = storage_traits<backend::mc>::data_store_t<double, storage_info_t>;
+     // Raw ptr alternatives for target_view/const_target_view.
+     // Synchronization behaviour is the same.
+     data_t *get_target_ptr();
+     data_t const *get_const_target_ptr();
 
-    storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
+     // Host access methods variations. They only exist if !std::is_const<data_t>::value.
+     auto host_view();
+     auto host_const_view();
+     data_t *get_host_ptr();
+     data_t const *get_const_host_ptr();
+ };
 
-    // standard use cases
-    data_store_t ds1(si); // create a data store without a name (will allocate memory internally)
-    data_store_t ds2(si, "ds2"); // create a data store with a name (will allocate memory internally)
-    data_store_t ds3(si, 1.0, "ds3"); // create a named and value initialized data store
-    data_store_t ds4(si, [](int i, int j) { return i+j; }, "ds4"); // create a named and lambda initialized data store
+^^^^^^^^^^^^^^^^^^
+Data View Synopsis
+^^^^^^^^^^^^^^^^^^
 
-    // copying a data store
-    ds2 = ds1; // ds2 will deallocate the previously allocated memory and will point to the same data as ds1.
-
-    // external pointer use case
-    extern double* external_ptr;
-    data_store_t ds_ext(si, external_ptr); // create a data store that is not managing the memory
-
-
-**Interface**:
-The ``data_store`` object provides methods for performing following things:
-
-* ``void reset()``: reset the data_store. maybe deallocates memory.
-* ``bool valid() const``: check if underlying storage info and storage is valid.
-* ``const array<uint_t, ndims> &total_lengths() const``: return the array of total number of data points in each
-  direction
-* ``const array<uint_t, ndims> &strides() const``: return the array of (aligned) strides.
-* ``void sync() const``: synchronize the copies on the host and the target.
-* ``reactivate_target_write_views``: re-enables read-write device views (see `Data View`_)
-* ``reactivate_host_write_views``: re-enabled read-write host views (see `Data View`_)
-* ``std::string const &name() const``: retrieve the name of the storage.
-
-.. note::
-
- The :term:`Data Store` cannot be used to modify or access the data.
- In order to do so we use the view concept, which is explained next.
-
-.. _data-view:
-
---------------
-Data View
---------------
-
-The view is a lightweight object to access and modify the data stored in a ``data_store``.  Views can be generated for
-both host and target. Views can be created in read only or in read-write mode. The read-only views can be beneficial
-because they don't trigger synchronizations with the device. These functions are used to create views:
+Data view is a supplemental struct that is returned form data store access methods. The distinctive property:
+data view is a POD. Hence it can be passed to the target device by copying the memory. For the cuda data stores
+all data view methods are declared as device only.
 
 .. code-block:: gridtools
 
-    auto host_view = make_host_view(data_store);
-    auto host_view_ro = make_host_view<access_mode::read_only>(data_store);
-    auto target_view = make_target_view(data_store);
-    auto target_view_ro = make_target_view<access_mode::read_only>(data_store);
+ template <class T, size_t N>
+ struct some_view {
+     // POD members here
 
-A read-write view requests exclusive ownership on the data store, meaning that a read-write view on the host puts the
-data store in a state such that no view (neither read-only nor read-write) can be created or used on target.
+     // The meta info methods are the same as for data_store.
+     array<unsigned, N> const &lengths() const;
+     array<unsigned, N> const &strides() const;
+     unsigned length() const;
+     storage::info<N> const &info() const;
 
-.. code-block:: gridtools
+     // raw access
+     T *data() const;
+     // multi dimensional indexed access
+     T &operator()(int... /*number of arguments equals to N*/ ) const;
+     // variation with array as an argument
+     T &operator()(array<int, N> const &) const;
+ };
 
-    auto host_view = make_host_view(data_store);
-    // creating another host view is ok (read-write and read-only)
-    auto host_view_ro = make_host_view<access_mode::read_only>(data_store);
-    auto another_host_view = make_host_view(data_store);
+.. note:: On data store synchronization behaviour
 
-    // creating any target view will fail without sync
-    // FAILS: auto target_view = make_target_view<access_mode::read_only>(data_store);
-    data_store.sync();
+ If target and host spaces are different and the data is mutable, data store manages both target and host allocations.
+ Internally it keeps also the a flag that can be either ``clean``, ``dirty target`` or ``dirty host``.
+ When the view is requested, data store performs the memory transfer if the correspondent allocation is marked as dirty.
+ The counterpart allocation is marked as dirty if non constant view is requested. Otherwise the flag is set to clean.
+ Each new view request potentially invalidates the previously created views.
+ That is why the best practice is to limit the scope of view objects as much as possible to avoid dealing with the stale
+ data. Here are some illustrations:
 
-    // now a target view can be created
-    auto target_view = make_target_view(data_store);
+ .. code-block:: gridtools
 
-A read-only view has mutual ownership on the data store: a read-only view on host can only be created and used if no
-read-write view exists on target. Read-only views can co-exist on host and target. When a read-only view exists on host,
-and a read-write view is created on target, you can safely use the read-write view, but the read-only view cannot be
-used until the data store is synchronized.
+  template <class View>
+  __global__ void kernel(View view) { view(0) = view(1) = OxDEADBEEF; }
 
-.. code-block:: gridtools
+  ...
 
-    // read_only views can co-exist on host and target
-    auto host_view_ro = make_host_view<access_mode::read_only>(data_store);
-    auto target_view_ro = make_target_view<access_mode::read_only>(data_store);
+  // host and target allocations are made here. The state is set to clean
+  auto ds = builder<cuda>.type<int>().dimensions(2)();
 
-    // creating a read-write view will invalidate the host view
-    auto host_view_ro = make_host_view(data_store);
-    // host_views cannot be created or used again until sync is called
-    data_store.sync();
+  // no memory transfer because of the clean state
+  // the state becomes dirty_target
+  auto host_view = ds->host_view();
+  // the use of the host view
+  host_view(0) = host_view(1) = 42;
 
-    // now we can create and use host views again
-    auto another_host_view_ro = make_host_view<access_mode::read_only>(data_store);
+  // memory transfer to the target space because the state is dirty_target
+  // the state becomes dirty_host
+  // host_view becomes stale at this point
+  auto target_view = ds->target_view();
 
-In order to end a view, the data store must be synchronized explicity by calling ``data_store.sync();``. The destructor
-of a view will not end the view. Note that synchronizing a data store will re-enable read-only views, but it will not
-re-enable read-write views. Those can be reenabled by calling ``data_store.reactivate_host_write_views()`` (which will
-invalidate read-only views on target) and ``data_store.reactivate_target_write_views()`` (which will invalidate
-read-only views on host). Note that the 
+  // the use of the target view
+  kernel<<<1,1>>>(target_view);
 
-**Example**:
+  // memory transfer to the host space because the state is dirty_host
+  // the state becomes clean
+  // both host_view and target_view are stale at this point
+  auto host_view_2 = ds->const_host_view();
+  // the use of the second host view
+  assert(host_view_2(0) == OxDEADBEEF);
+  assert(host_view_2(1) == OxDEADBEEF);
 
-Following example shows the instantiation of a ``data_store`` and a corresponding host and target view.  The host view
-can be used when the data is modified on a host. Target views can be accessed from the target only, if it has a separate
-memory space (e.g., GPU). If target and host share the memory space, host and target views are identical.
+ We can refactor this to exclude the possibility of using state data:
 
-.. code-block:: gridtools
+ .. code-block:: gridtools
 
-    ...
-    template <typename View>
-    __global__ void kernel(View s) {
-        s(0, 0) = s(0, 10); // set (0, 0) to 3.1415
-    }
-    ...
-    // instantiate a data_store
-    using storage_info_t = storage_traits<backend::cuda>::storage_info_t<0, 2, gt::halo<0, 0>>;
-    using data_store_t = storage_traits<backend::mc>::data_store_t<double, storage_info_t>;
+  {
+      auto v = ds->host_view();
+      v(0) = v(1) = 42;
+  }
 
-    storage_info_t si(20, 20);
-    data_store_t ds(si);
+  kernel<<<1,1>>>(ds->target_view());
 
-    // create a view to ds (data_store)
-    auto host_view = make_host_view(ds); // read write view
-    // set (0, 10) to 3.1415
-    host_view(0, 10) = 3.1415;
-    // synchronize the data store
-    ds.sync();
+  {
+      auto v = ds->const_host_view();
+      assert(v(0) == OxDEADBEEF);
+      assert(v(1) == OxDEADBEEF);
+  }
 
-    // create a target view
-    auto device_view_ds = make_target_view(ds); // read write view
-    // call kernel
-    kernel<<<1, 1>>>(device_view_ds);
-    // synchronize the data store
-    ds.sync();
+-----------
+Builder API
+-----------
 
-    // reactivate the host view
-    ds.reactivate_host_write_views();
-    // expect (0, 0) == (0, 10)
-    EXPECT_EQ(host_view(0, 10), host_view(0, 0));
-
-
-**Interface**:
-
-The ``data_view`` construction can be created with ``make_host_view`` and ``make_target_view``:
+The builder design pattern is used for data store construction. The API is defined in the `gridtools/storage/builder.hpp`
+Here a single user facing symbol is defined -- `storage::builder`.
+It is a value template parametrized by ``Traits`` (see below).
+The idea is that the user takes a builder with the desired traits, customize it with requested properties and finally
+calls ``build()`` method (or alternatively overloaded call operator) to produce ``std::shared_ptr`` to a data store.
+For example:
 
 .. code-block:: gridtools
 
-   #include <gridtools/storages/data_store.hpp>
-   auto view1 = make_host_view<Access>(data_store);
-   auto view2 = make_target_view<Access>(data_store);
+ auto ds = storage::builder<storage::cuda>
+         .type<double>()
+         .name("my special data")
+         .dimensions(132, 132, 80)
+         .halos(2, 2, 0)
+         .selector<1, 1, 0>()
+         .value(42)
+         .build();
 
-Access is either ``access_mode::read_only`` or ``access_mode::read_write`` ``storage/common/definitions.hpp``. ``view1``
-can be used by a host thread to access data, ``view2`` is a view that can be used from the target system to access data.
+ assert(ds->const_host_view()(1, 2, 3) == 42);
 
-The ``data_view`` object has the following public API:
 
-* ``const array<uint_t, ndims> &total_lengths() const``: return the array of total number of data points in each
-  direction
-* ``const array<uint_t, ndims> &strides() const``: return the array of (aligned) strides.
-* ``template <typename... Coords> data_t& operator()(Coords... c) const``: used to access elements. E.g., ``view(0, 0,
-  2)`` will return the third element.
-
-At any point, the consistency of a view with a data store can be checked with
+One can also use partially specified builder to produce several data stores:
 
 .. code-block:: gridtools
 
-   auto view = make_host_view<Access>(data_store);
-   check_consistency(data_store, view);
+ auto const my_builder = storage::builder<storage::cuda>.dimensions(10, 10, 10);
+ auto foo = my_builder.type<int>().name("foo")();
+ auto bar = my_builder.type<tuple<int, double>>()();
+ auto baz = my_builder
+          .type<double const>
+          .initialize([](int i, int j, int k){ return i + j + k; })
+          .build();
 
-The function ``bool check_consistency(DataStore const&, DataView const&)`` returns true, if the given view can be used
-to access and modify the data. If it returns false, the user needs to call ``data_store.sync()`` or reactivate write
-functions
+This API implements an advanced variation of the builder design pattern. Unlike classic builder, the setters don't
+return a reference `*this` but the new instance of potentially different class is returned. Because of that the improper
+usage of builder is caught in compile time:
+
+.. code-block:: gridtools
+
+ // compilation failure: dimensions should be set
+ auto bad0 = builder<mc>.type<double>().build();
+
+ // compilation failure: value and initialize setters are mutually exclusive
+ auto bad1 = builder<mc>
+           .type<int>()
+           .dimensions(10)
+           .value(42)
+           .initialize([](int i) { return i;})
+           .build();
+
+^^^^^^^^^^^^^^^^
+Builder Synopsis
+^^^^^^^^^^^^^^^^
+
+.. code-block:: gridtools
+
+ template </* Implementation defined parameters. */>
+ class buider_type {
+   public:
+     template <class>
+     auto type() const;
+     template <int>
+     auto id() const;
+     template <int...>
+     auto layout() const;
+     template <bool...>
+     auto selector() const;
+     auto name(std::string) const;
+     auto dimensions(unsigned...) const;
+     auto halos(unsigned...) const;
+     template <class Fun>
+     auto initializer(Fun) const;
+     template <class T>
+     auto value(T) const;
+     auto build() const;
+     auto operator()() const { return build(); }
+ };
+ template <class Traits>
+ constexpr builder_type</* Implementation defined parameters. */> builder = {};
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Constrains on Builder Setters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  * ``type`` and ``dimensions`` should be set before calling ``build``
+  * any property could be set at most once
+  * ``layout`` and ``selector`` properties are mutually exclusive
+  * ``value`` and ``initializer`` properties are mutually exclusive
+  * the template arity of ``layout``/``selector`` equals ``dimension`` arity
+  * ``halos`` arity equals ``dimension`` arity
+  * ``initializer`` argument is callable with ``int`` 's, has ``dimension`` arity
+    and its return type is convertible to ``type`` argument
+  * ``value`` argument type is convertible to `type` argument.
+  * if ``type`` argument is ``const``, ``value`` or ``initializer`` should be set
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Notes on Builder Setters Semantics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  * **id:** The use case of setting ``id`` is to ensure the invariant for ``data_store::kind_t``. It should identify
+    the unique set of dimension sizes. Note the difference -- ``data_store::kind_t`` represents unique ``strides``
+    set but ``id`` represents unique size set. Example:
+
+    .. code-block:: gridtools
+
+     // We have two different sizes that we use in our computation.
+     // Hence we prepare two partially specified builders.
+     auto const builder_a = builder<cuda>.id<0>.dimensions(3, 4, 5);
+     auto const builder_b = builder<cuda>.id<1>.dimensions(5, 6, 7);
+
+     // We use our builders to make some data_stores.
+     auto a_0 = builder_a.type<double>().build();
+     auto a_1 = builder_a.type<double>().build();
+     auto a_2 = builder_a.type<float>().halos(1, 1, 0).build();
+     auto b_0 = builder_a.type<double>().build();
+
+     // kind_t aliases of a_0 and a_1 are the same.
+     // kind_t aliases of a_0 and b_0 are different.
+     //   Because id property is different.
+     // kind_t aliases of a_0 and a_2 are different.
+     //   Even though id property is the same.
+     //   This is because types are different.
+
+    At a moment ``id``/``kind_t`` matters if data stores are used in the context of |GT| stencil computation.
+    Otherwise there is no need to set ``id``. Note also that setting ``id`` can be skipped if only one set
+    of dimension sizes is used even in |GT| stencil computation context.
+  * **halos:** The memory alignment is controlled by specifying ``Traits`` (the template parameter of the builder).
+    By default each first element of the innermost dimension is aligned. ``halos`` allows to explicitly specify
+    the index of element that should be aligned. Together with chosen element, all elements that share its
+    innermost index will be aligned as well.
+  * **selector:** allows to mask out any dimension or several. Example:
+
+    .. code-block:: gridtools
+
+     auto ds = builder<mc>.type<int>().selector<1,0>().dimensions(10, 10).value(-1);
+     auto view = ds->host_view();
+     // even though the second dimension is masked out
+     // we can used indices in the defined range
+     assert(ds->lengths()[1], 10);
+     assert(view(0, 0) == -1);
+     assert(view(0, 9) == -1);
+     // but elements that differs only by the masked out index refer to the same data
+     assert(&view(0, 1) == &view(0, 9));
+
+  * **layout:** By default the data layout is controlled by ``Traits``. However it is overridable with
+    the ``layout`` setter. Example:
+
+    .. code-block:: gridtools
+
+     auto ds0 = builder<cuda>
+         .type<int>()
+         .layout<0, 2, 4, 1, 3>()
+         .dimensions(10, 10, 10, 10, 10)
+         .name("my tuned storage for the specific use case")
+         .build();
+
+     The template parameters of ``layout`` are a permutation of the value from ``0`` to ``N - 1``, where ``N``
+     is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides.
+     For instance a C array ``X[i][j][k]`` layout would be equivalent to ``.layout<0,1,2>()``.
+     The dimension with stride 1 has the highest index, so in this case, the k-stride is a unit stride. A Fortran style
+     array ``X[i][j][k]`` layout would be equivalent to ``.layout<2,1,0>()``, meaning that the i-stride is a unit-stride
+     (thus, the first index of the ``layout`` is 2).
+
+     There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but
+     the masked dimensions are ignored. For instance ``.layout_map<1,-1,0>()`` describes a 3-dimensional storage, where
+     the i-stride is a unit stride and the j dimension is masked. In this case the storage is allocated as a
+     two-dimensional array, but it behaves as a three-dimensional array. Accessing the array at ``(i, j, k)`` always
+     returns the element at ``(i, 0, k)``. This kind of storage can be used two implement oriented planes in stencils.
+
+------
+Traits
+------
+
+Builder API needs a traits type to instantiate the ``builder`` object. In order to be used in this context
+this type should model ``Storage Traits Concept``. The library comes with three predefined traits:
+
+   * **x86:** Layout is chosen to benefit from data locality while doing 3D loop.
+     ``malloc`` allocation. No alignment. ``target`` and ``host`` spaces are the same.
+   * **mc:** Huge page allocation. 8 bytes alignment. Layout is tailored to utilize vectorization while
+     3D looping. ``target`` and ``host`` spaces are the same.
+   * **cuda:** Tailored for GPU. ``target`` and ``host`` spaces are different.
+
+Each traits resides in its own header. Note that `builder.hpp` doesn't include any specific traits headers.
+To use a particular trait the user should include the correspondent header.
+
+^^^^^^^^^^^^^^^^^^^^^^
+Defining Custom Traits
+^^^^^^^^^^^^^^^^^^^^^^
+
+To use their own traits users should provide a type that models ``Storage Traits Concept``. There is no need
+to place a custom traits within |GT| source tree. The concept is ``ADL`` based. The easyest way to go
+is to copy any of predefined traits and modify it. Skipping some details the concept is defined as follows:
+
+   * traits must specify if the ``target`` and ``host`` memory spaces are the same by providing
+     ``storage_is_host_referenceable`` ADL based overload function.
+   * traits must specify alignment in bytes by defining ``storage_alignment`` function.
+   * ``storage_allocate`` function must be defined to say the library how to target memory is allocated.
+   * ``storage_layout`` function is needed to define meta function form the number of dimensions to layout_map.
+   * if ``target`` and ``host`` memory spaces are different:
+
+        * ``storage_update_target`` function is needed to define how to move the data from host to target.
+        * ``storage_update_host`` function is needed to define how to move the data from target to host.
+        * ``storage_make_target_view`` function is needed to define a target view.
+
+----------------------
+SID Concept Adaptation
+----------------------
+
+Stencil Composition Library doesn't use Storage Library directly.
+Instead ``SID Concept`` is used to specify the requirements on input/output fields.
+``Data store`` models ``SID`` if ``gridtools/storage/sid.hpp`` header is included.
 

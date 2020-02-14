@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "../common/defs.hpp"
 #include "../common/layout_map.hpp"
 #include "../communication/GCL.hpp"
 #ifdef GCL_MPI
@@ -28,23 +27,13 @@ namespace gridtools {
     /** \ingroup Distributed-Boundaries
      * @{ */
 
-    template <typename StorageType, typename Arch>
+    template <typename StorageType, typename Arch, typename TimerImpl>
     struct comm_traits {
-        template <typename GCLArch, typename = void>
-        struct compute_arch_of {
-            using type = backend::x86;
-        };
-
-        template <typename T>
-        struct compute_arch_of<gcl_gpu, T> {
-            using type = backend::cuda;
-        };
-
-        using proc_layout = gridtools::layout_map<0, 1, 2>;
+        using proc_layout = layout_map<0, 1, 2>;
         using comm_arch_type = Arch;
-        using compute_arch = typename compute_arch_of<comm_arch_type>::type;
-        using data_layout = typename StorageType::storage_info_t::layout_t;
-        using value_type = typename StorageType::data_t;
+        using timer_impl_t = TimerImpl;
+        using data_layout = typename StorageType::element_type::layout_t;
+        using value_type = typename StorageType::element_type::data_t;
     };
 
     /** @} */

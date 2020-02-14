@@ -8,11 +8,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <gridtools/stencil_composition/frontend/axis.hpp>
+
+#include <gtest/gtest.h>
+
 #include "../test_helper.hpp"
-#include "gtest/gtest.h"
-#include <gridtools/stencil_composition/axis.hpp>
 
 using namespace gridtools;
+using namespace core;
 
 constexpr int level_offset_limit = 2;
 

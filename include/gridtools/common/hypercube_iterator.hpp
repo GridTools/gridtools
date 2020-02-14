@@ -93,8 +93,8 @@ namespace gridtools {
     template <typename Container,
         size_t D = tuple_size<std::decay_t<Container>>::value,
         std::enable_if_t<D == 0, int> = 0>
-    GT_FUNCTION array<array<size_t, 0>, 0> make_hypercube_view(Container &&) {
-        return {};
+    GT_FUNCTION array<array<size_t, 0>, 1> make_hypercube_view(Container &&) {
+        return {{}};
     }
 
     /**

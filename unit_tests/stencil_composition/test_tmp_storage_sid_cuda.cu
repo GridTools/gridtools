@@ -8,16 +8,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
+#include <gridtools/stencil_composition/backend/cuda/tmp_storage_sid.hpp>
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/cuda_util.hpp>
 #include <gridtools/common/integral_constant.hpp>
-#include <gridtools/stencil_composition/arg.hpp>
-#include <gridtools/stencil_composition/backend_cuda/simple_device_memory_allocator.hpp>
-#include <gridtools/stencil_composition/dim.hpp>
-#include <gridtools/stencil_composition/extent.hpp>
-#include <gridtools/stencil_composition/sid/concept.hpp>
+#include <gridtools/sid/allocator.hpp>
+#include <gridtools/sid/concept.hpp>
+#include <gridtools/stencil_composition/common/dim.hpp>
+#include <gridtools/stencil_composition/common/extent.hpp>
 
 #include "../cuda_test_helper.hpp"
 
@@ -39,7 +39,7 @@ namespace gridtools {
             };
 
             TEST(tmp_cuda_storage, maker_with_device_allocator) {
-                cuda::simple_device_memory_allocator alloc;
+                sid::device::allocator<GT_INTEGRAL_CONSTANT_FROM_VALUE(&cuda_util::cuda_malloc<char[]>)> alloc;
                 auto testee = cuda::make_tmp_storage<int>(1_c, 2_c, 2_c, extent<>{}, 1, 1, 2, alloc);
                 EXPECT_TRUE(exec(smoke_f{}, sid::get_origin(testee), sid::get_strides(testee)));
             }

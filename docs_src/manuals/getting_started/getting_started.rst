@@ -85,78 +85,70 @@ following capabilities:
 
 -   synchronization between CPU memory and a device (e.g. a CUDA capable GPU)
 
-^^^^^^^
-Backend
-^^^^^^^
+^^^^^^^^^^^^^^
+Storage Traits
+^^^^^^^^^^^^^^
 
-Since the storages (and other things later) depend on the architecture
-(e.g. CPU or GPU) our first step is to define the *backend* type which
-typically looks like 
+Since the storages depend on the architecture (e.g. CPU or GPU) our first step
+is to define the *storage traits* type which typically looks like
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :start-after: #ifdef __CUDACC__
    :end-before: #else
 
-for the CUDA :term:`Backend` or
+for the CUDA :term:`Storage Traits` or
  
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :start-after: #else
    :end-before: #endif
 
-for the CPU :term:`Backend`.
+for the CPU :term:`Storage Traits`.
  
-^^^^^^^^^^^^^^^^
-The Storage Type
-^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
+Building Storages
+^^^^^^^^^^^^^^^^^
 
 For efficient memory accesses the index ordering might depend on the target architecture, therefore the
-memory layout will be implicitly decided by target via the storage traits as follows.
+memory layout will be implicitly decided by storage traits.
 
-For each storage type we need to define the data type of the data we want to
-store in the field, e.g. ``double``, and a ``storage_info`` type which will hold
-information about size, alignment, strides etc. When creating the ``storage_info`` via the storage
-traits we need to provide a unique identifier and the number of dimensions for the storage (typically 3).
+|GT| storage classes don't have user facing constructors. The builder design pattern is used instead.
+The library provides ``storage::builder`` object template that is instantiated by storage traits.
+To create a storage we need to supply the builder with the desired storage properties by chaining
+the setters methods and finally call ``build()`` method which returns ``std::shared_ptr``
+of a newly created storage. The builder also provides overloaded call operator which is a synonym of ``build()``
+There are two required properties that need to be set:
+the type of element, eg ``.type<double>()``, and the sizes for each dimension, eg ``.dimensions(10, 12, 20)``.
+Other properties are optional.
 
-.. literalinclude:: code/test_gt_storage.cpp
-   :language: gridtools
-   :start-after: #endif
-   :end-before: int main() {
-
-At run-time a ``storage_info`` is
-initialized with the sizes of the field. Then a field can be
-instantiated with the ``info`` object. 
+If we need several storages that share some properties, we can construct partially specified builder with
+the shared properties set and to reuse it while building concrete storages.
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :start-after: int main() {
-   :end-before: std::cout << phi.name() << "\n";
+   :end-at: auto lap
    :dedent: 4
-
-The first argument, the ``info``
-object, is mandatory, while the other arguments are optional: a name and an initial value for
-the field.
-
 
 .. note::
 
-   For each ``storage_info`` type it is recommended to use only one instantiation. The mapping between a storage and the  
-   run-time information in the ``storage_info`` has to be done at compile time via the index. Thus |GT| cannot 
-   distinguish the storages by the run-time sizes passed to the ``storage_info``. Using ``data_store`` s with same
-   ``storage_info`` type but different run-time sizes in the same computation is undefined behaviour.
+   It is recommended to use ``id`` property each time ``dimensions`` property is set. At least if the storage
+   is used in the context of |GT| stencil computation. ``id`` should identify the unique set of dimension sizes.
+   This is because stencil computation engine assumes that the storages that have the same ``id`` have the same
+   sizes. However if the only one set of dimensions is used ``id`` property could be skipped.
 
 We can now
 
 -   retrieve the name of the field,
 -   create a view and read and write values in the field using the parenthesis syntax,
--   synchronize data between device and host (in CUDA mode).
+-   query the lengths of each dimension.
 
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
-   :start-after: data_store_t lap(info, -1., "lap");
-   :end-before: } // end
+   :start-after: auto lap =
+   :end-before: }
    :dedent: 4
 
 --------
@@ -221,7 +213,7 @@ allow for compile-time optimizations.
 
 .. literalinclude:: code/test_gt_laplacian.cpp
    :language: gridtools
-   :start-after: using namespace gridtools;
+   :start-at: constexpr dimension<1>
    :end-before: int main() {
 
 In addition to the ``apply``-method, the functor contains ``accessor`` s. These
@@ -271,16 +263,14 @@ the run-time data in the ``data_store``.
 Calling the Stencil
 ^^^^^^^^^^^^^^^^^^^
 
-In the naive implementation, the call to the
-``laplacian`` is as simple as
+In the naive implementation, the call to the ``laplacian`` is as simple as
 
 .. code-block:: gridtools
 
    int boundary_size = 1;
    laplacian( lap, phi, boundary_size );
 
-since it contains already all the information: the update-logic *and*
-the loop-logic.
+since it contains already all the information: the update-logic *and* the loop-logic.
 
 The |GT| stencil, does not contain any
 information about the loop-logic, i.e. about the domain where we want to apply the stencil operation,
@@ -292,13 +282,11 @@ For our example this looks as follows
 .. literalinclude:: code/test_gt_laplacian.cpp
    :language: gridtools
    :start-after: int main() {
-   :end-before: } // end marker
+   :end-before: }
    :dedent: 4 
    :linenos:
 
-In line 10 and 11 we define placeholders for the fields.
-
-In lines 13-16 we setup the physical dimension of the problem.
+In lines 14-16 we setup the physical dimension of the problem.
 First we define which points on the :math:`i` and the :math:`j`-axis belong
 to the computational domain and which points belong to the boundary (or
 a padding region). For now it is enough to know that these lines define
@@ -306,20 +294,10 @@ a region with a boundary of size 1 surrounding the :math:`ij`-plane. In the
 next lines the layers in :math:`k` are defined. In this case we have only one
 interval. We will discuss the details later.
 
-In lines 18-23 we create the stencil object.
-We pass the grid (the information about the loop bounds) and a so-called multistage. The multistage
-contains a single stage, our Laplacian functor.
-
-In more complex codes we can combine multiple :math:`k`-independent stages in
-a multi_stage. If we have a :math:`k`-dependency we have to split the computation
-into multiple multi_stages.
-
-The statement ``execute<parallel>`` defines that all `ij`-layers can be calculated independently.
-Other execution modes are ``forward`` and ``backward``. For performance reason ``parallel`` should be used
-whenever possible.
-
-In the last line the stencil is
-executed. The :term:`Data Stores<Data Store>` ``phi`` and ``lap`` are bound to its placeholders.
+In line 18 we execute the stencil computation. In our example only one stencil participates.
+Hence we can use ``run_single_stage`` simplified API. We pass the stencil, the backend object, the grid
+(the information about the loop bounds) and the storages on which the computation needs to be executed.
+The number and the order of of storage arguments should match stencil accessors.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Full GridTools Laplacian
@@ -334,7 +312,7 @@ The full working example looks as follows:
 There are some points which we did not discuss so far. For a first look at |GT| these can be considered fixed patterns and 
 we won't discuss them now in detail. In brief:
 
-- In order to use the :math:`(i,j,k)` syntax we need to define the symbols to point to the respective dimensions.
+- In order to use the :math:`(i,j)` syntax we need to define the symbols to point to the respective dimensions.
 - A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code. We use this to set the :term:`Backend`.
 
 The code example can be compiled using the following simple CMake script (requires an installation of GridTools, see :ref:`installation`).
@@ -379,7 +357,7 @@ The :term:`Vertical Intervals<Vertical Interval>` are defined as
 
 .. literalinclude:: code/gt_smoothing.hpp
    :language: gridtools
-   :start-after: constexpr static gridtools::dimension<3> k;
+   :start-after: dimension<2>
    :end-before: struct lap_function {
    
 The first line defines an axis with 2 :term:`Vertical Intervals<Vertical Interval>`. From this axis retrieve the :term:`Vertical Intervals<Vertical Interval>`
@@ -389,6 +367,13 @@ Then we can assemble the computation
 
 .. literalinclude:: code/gt_smoothing_variant1_computation.hpp
    :language: gridtools
+
+We can not use ``run_single_stage`` API because now we should compose computation from three stencil calls. To achieve that
+we use full featured ``run`` API. It requires stencil composition specification as a first parameter. That specification
+is provided in a form of generic lambda. Its arguments represent the storages that are used in computation.
+The expression that is returned describes how the stencils should be composed. It is where |GT| EDSL is used.
+``execute_parallel()`` here means that each :math`k`-level can be executed in parallel. ``stage`` clause represents
+a call to the stencil with the given arguments.
 
 In this version we needed to explicitly allocate the temporary fields
 ``lap`` and ``laplap``. In the next section we will learn about
@@ -409,17 +394,14 @@ fields.
    access them from outside of the computation. Therefore, sometimes it might be
    necessary to replace a temporary by a normal storage for debugging.
 
-To use temporary storages we don't need to change the functors or the
-``make_computation``. We just have to replace the type the ``arg`` by a ``tmp_arg``. We don't need the explicit
-instantiations any more and don't have to bind the ``tmp_arg`` to storages. The new code looks as follows
+To use temporary storages we exclude the correspondent fields from the arguments of our ``spec`` and declare them as
+a temporaries within the `spec` lambda using ``GT_DECLARE_TMP`` macro. We don't need the explicit
+instantiations any more and don't have pass them to the ``run``. The new code looks as follows
 
 .. literalinclude:: code/gt_smoothing_variant2_computation.hpp
    :language: gridtools
 
-The temporary
-storages are allocated in the call to ``make_computation`` and freed in the destructor of the computation. 
-Besides 
-the simplifications in the code (no explicit storage needed), the
+Besides the simplifications in the code (no explicit storage needed), the
 concept of temporaries allows |GT| to apply optimization. While normal storages
 have a fixed size, temporaries can have block-private :term:`Halos<Halo>` which are used for redundant computation.
 
@@ -449,8 +431,7 @@ calls will allow us do the computation on the fly and will allow us to get rid o
    faster one.
 
 In the following we will remove only one of the temporaries. Instead of calling the Laplacian twice from the 
-``make_computation``, we will move one of the calls into the smoothing functor. The new smoothing functor looks as 
-follows
+``spec``, we will move one of the calls into the smoothing functor. The new smoothing functor looks as follows
 
 .. literalinclude:: code/gt_smoothing_variant3_operator.hpp
    :language: gridtools
@@ -460,7 +441,7 @@ input arguments for the functor. The functor in the call is required to have exa
 be the return value of the call. Note that ``smoothing_function_3`` still needs to specify the extents explicitly;
 for functor calls they cannot be inferred automatically.
 
-One of the ``make_stage<lap_function>`` was now moved inside of the functor, therefore the new call to ``make_computation`` is just
+One of the ``stage(lap_function(), ...)`` was now moved inside of the functor, therefore the new spec is just:
 
 .. literalinclude:: code/gt_smoothing_variant3_computation.hpp
    :language: gridtools

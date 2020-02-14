@@ -14,7 +14,6 @@
 #endif
 
 #include "../../common/defs.hpp"
-#include "../../common/gt_assert.hpp"
 #include "../GCL.hpp"
 #include "has_communicator.hpp"
 #include "translate.hpp"
@@ -465,12 +464,12 @@ namespace gridtools {
         */
         template <int I, int J, int K>
         void register_send_to_buffer(void *p, int s) {
-            GT_STATIC_ASSERT(I >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(I <= 1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(J >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(J <= 1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(K >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(K <= 1, GT_INTERNAL_ERROR);
+            static_assert(I >= -1, GT_INTERNAL_ERROR);
+            static_assert(I <= 1, GT_INTERNAL_ERROR);
+            static_assert(J >= -1, GT_INTERNAL_ERROR);
+            static_assert(J <= 1, GT_INTERNAL_ERROR);
+            static_assert(K >= -1, GT_INTERNAL_ERROR);
+            static_assert(K <= 1, GT_INTERNAL_ERROR);
 
             register_send_to_buffer(p, s, I, J, K);
         }
@@ -529,12 +528,12 @@ namespace gridtools {
         */
         template <int I, int J, int K>
         void register_receive_from_buffer(void *p, int s) {
-            GT_STATIC_ASSERT(I >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(I <= 1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(J >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(J <= 1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(K >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(K <= 1, GT_INTERNAL_ERROR);
+            static_assert(I >= -1, GT_INTERNAL_ERROR);
+            static_assert(I <= 1, GT_INTERNAL_ERROR);
+            static_assert(J >= -1, GT_INTERNAL_ERROR);
+            static_assert(J <= 1, GT_INTERNAL_ERROR);
+            static_assert(K >= -1, GT_INTERNAL_ERROR);
+            static_assert(K <= 1, GT_INTERNAL_ERROR);
 
             register_receive_from_buffer(p, s, I, J, K);
         }
@@ -581,12 +580,12 @@ namespace gridtools {
         */
         template <int I, int J, int K>
         void set_send_to_size(int s) {
-            GT_STATIC_ASSERT(I >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(I <= 1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(J >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(J <= 1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(K >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(K <= 1, GT_INTERNAL_ERROR);
+            static_assert(I >= -1, GT_INTERNAL_ERROR);
+            static_assert(I <= 1, GT_INTERNAL_ERROR);
+            static_assert(J >= -1, GT_INTERNAL_ERROR);
+            static_assert(J <= 1, GT_INTERNAL_ERROR);
+            static_assert(K >= -1, GT_INTERNAL_ERROR);
+            static_assert(K <= 1, GT_INTERNAL_ERROR);
 
             set_send_to_size(s, I, J, K);
         }
@@ -631,12 +630,12 @@ namespace gridtools {
         */
         template <int I, int J, int K>
         void set_receive_from_size(int s) {
-            GT_STATIC_ASSERT(I >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(I <= 1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(J >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(J <= 1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(K >= -1, GT_INTERNAL_ERROR);
-            GT_STATIC_ASSERT(K <= 1, GT_INTERNAL_ERROR);
+            static_assert(I >= -1, GT_INTERNAL_ERROR);
+            static_assert(I <= 1, GT_INTERNAL_ERROR);
+            static_assert(J >= -1, GT_INTERNAL_ERROR);
+            static_assert(J <= 1, GT_INTERNAL_ERROR);
+            static_assert(K >= -1, GT_INTERNAL_ERROR);
+            static_assert(K <= 1, GT_INTERNAL_ERROR);
 
             set_receive_from_size(s, I, J, K);
         }

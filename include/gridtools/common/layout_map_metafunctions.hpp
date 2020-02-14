@@ -12,8 +12,8 @@
 
 #include <utility>
 
+#include "generic_metafunctions/accumulate.hpp"
 #include "layout_map.hpp"
-#include "selector.hpp"
 
 namespace gridtools {
     /** \ingroup common
@@ -33,7 +33,7 @@ namespace gridtools {
     /// \private
     template <int_t... Is>
     struct reverse_map<layout_map<Is...>> {
-        static constexpr int max = layout_map<Is...>::max();
+        static constexpr int max = constexpr_max(Is...);
         using type = layout_map<(Is < 0 ? Is : max - Is)...>;
     };
 
@@ -42,7 +42,7 @@ namespace gridtools {
 
     template <class Layout, int_t... P>
     struct layout_transform<Layout, layout_map<P...>> {
-        using type = layout_map<Layout::template at<P>()...>;
+        using type = layout_map<Layout::at(P)...>;
     };
 
     enum class insert_location { pre, post };

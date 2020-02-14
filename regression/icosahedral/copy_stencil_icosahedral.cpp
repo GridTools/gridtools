@@ -10,32 +10,29 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/tools/icosahedral_regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace icosahedral;
 
 struct functor_copy {
-    using out = inout_accessor<0, enumtype::cells>;
-    using in = in_accessor<1, enumtype::cells>;
+    using out = inout_accessor<0, cells>;
+    using in = in_accessor<1, cells>;
     using param_list = make_param_list<out, in>;
-    using location = enumtype::cells;
+    using location = cells;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out{}) = eval(in{});
+        eval(out()) = eval(in());
     }
 };
 
 using copy_stencil_icosahedral = regression_fixture<>;
 
 TEST_F(copy_stencil_icosahedral, test) {
-    arg<0, cells> p_out;
-    arg<1, cells> p_in;
-    auto in = make_storage<cells>([](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; });
+    auto in = [](int_t i, int_t j, int_t k, int_t c) { return i + j + k + c; };
     auto out = make_storage<cells>();
-    make_computation(
-        p_out = out, p_in = in, make_multistage(execute::parallel(), make_stage<functor_copy>(p_out, p_in)))
-        .run();
+    run_single_stage(functor_copy(), backend_t(), make_grid(), out, make_storage<cells>(in));
     verify(in, out);
 }

@@ -11,13 +11,11 @@
 
 #include "../common/hip_wrappers.hpp"
 #ifdef __CUDACC__
-#include "../storage/storage_cuda/data_view_helpers.hpp"
 #include "./apply_gpu.hpp"
 #endif
-#include "../storage/storage_host/data_view_helpers.hpp"
-#include "../storage/storage_mc/data_view_helpers.hpp"
 #include "./apply.hpp"
 
+#include "../communication/low_level/gcl_arch.hpp"
 #include "./predicate.hpp"
 
 /** \defgroup Boundary-Conditions Boundary Conditions
@@ -30,33 +28,15 @@ namespace gridtools {
          * @{
          */
 
-        template <typename /*Backend*/, typename BoundaryFunction, typename Predicate>
+        template <typename /*GclArch*/, typename BoundaryFunction, typename Predicate>
         struct select_apply {
             using type = boundary_apply<BoundaryFunction, Predicate>;
         };
 
 #ifdef __CUDACC__
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<backend::cuda, BoundaryFunction, Predicate>
-
-        {
+        struct select_apply<gcl_gpu, BoundaryFunction, Predicate> {
             using type = boundary_apply_gpu<BoundaryFunction, Predicate>;
-        };
-#endif
-
-        template <class Arch, access_mode AM, typename DataF>
-        struct proper_view {
-            using proper_view_t = decltype(make_host_view<AM, DataF>(std::declval<DataF>()));
-
-            static proper_view_t make(DataF const &df) { return make_host_view<AM>(df); }
-        };
-
-#ifdef __CUDACC__
-        template <access_mode AM, typename DataF>
-        struct proper_view<backend::cuda, AM, DataF> {
-            using proper_view_t = decltype(make_device_view<AM, DataF>(std::declval<DataF>()));
-
-            static proper_view_t make(DataF const &df) { return make_device_view<AM>(df); }
         };
 #endif
         /** @} */
@@ -86,8 +66,7 @@ namespace gridtools {
 
         template <typename... DataFields>
         void apply(DataFields &... data_fields) const {
-            bc_apply.apply(
-                _impl::proper_view<Arch, access_mode::read_write, std::decay_t<DataFields>>::make(data_fields)...);
+            bc_apply.apply(data_fields->target_view()...);
         }
     };
 

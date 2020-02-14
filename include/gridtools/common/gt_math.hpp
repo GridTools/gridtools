@@ -50,38 +50,6 @@ namespace gridtools {
     }
 
     namespace math {
-
-#if defined(__INTEL_COMPILER) && (__INTEL_COMPILER <= 1800)
-        // Intel compiler produces wrong optimized code in some rare cases in stencil functors when using const
-        // references as return types, so we return value types instead of references for arithmetic types
-
-        namespace impl_ {
-            template <typename Value>
-            using minmax_return_type = std::conditional_t<std::is_arithmetic<Value>::value, Value, Value const &>;
-        }
-
-        template <typename Value>
-        GT_FUNCTION GT_CONSTEXPR impl_::minmax_return_type<Value> max(Value const &val0) {
-            return val0;
-        }
-
-        template <typename Value, typename... OtherValues>
-        GT_FUNCTION GT_CONSTEXPR impl_::minmax_return_type<Value> max(
-            Value const &val0, Value const &val1, OtherValues const &... vals) {
-            return val0 > max(val1, vals...) ? val0 : max(val1, vals...);
-        }
-
-        template <typename Value>
-        GT_FUNCTION GT_CONSTEXPR impl_::minmax_return_type<Value> min(Value const &val0) {
-            return val0;
-        }
-
-        template <typename Value, typename... OtherValues>
-        GT_FUNCTION GT_CONSTEXPR impl_::minmax_return_type<Value> min(
-            Value const &val0, Value const &val1, OtherValues const &... vals) {
-            return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
-        }
-#else
         template <typename Value>
         GT_FUNCTION GT_CONSTEXPR Value const &max(Value const &val0) {
             return val0;
@@ -111,7 +79,6 @@ namespace gridtools {
         GT_FUNCTION GT_CONSTEXPR Value const &min(Value const &val0, Value const &val1, OtherValues const &... vals) {
             return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
         }
-#endif
 
 #if defined(__CUDACC__) && defined(__NVCC__)
         // providing the same overload pattern as the std library
@@ -124,16 +91,7 @@ namespace gridtools {
         GT_FUNCTION decltype(auto) fabs(Value val) {
             return ::fabs((double)val);
         }
-#ifndef __CUDA_ARCH__
         GT_FUNCTION_HOST decltype(auto) fabs(long double val) { return std::fabs(val); }
-#else
-        // long double not supported in device code
-        template <typename ErrorTrigger = double>
-        GT_FUNCTION_DEVICE double fabs(long double val) {
-            GT_STATIC_ASSERT((sizeof(ErrorTrigger) == 0), "long double is not supported in device code");
-            return 0.;
-        }
-#endif
 #else
         using std::fabs;
 #endif
@@ -157,42 +115,33 @@ namespace gridtools {
 #endif
 
 #ifdef __CUDA_ARCH__
-        /**
-         * Function computing the exponential
-         */
-        GT_FUNCTION float exp(const float x) { return ::expf(x); }
+        GT_FUNCTION_DEVICE float exp(float x) { return ::expf(x); }
 
-        GT_FUNCTION double exp(const double x) { return ::exp(x); }
+        GT_FUNCTION_DEVICE double exp(double x) { return ::exp(x); }
 #else
         using std::exp;
 #endif
 
 #ifdef __CUDA_ARCH__
-        /**
-         * Function computing the log function
-         */
-        GT_FUNCTION float log(const float x) { return ::logf(x); }
+        GT_FUNCTION_DEVICE float log(float x) { return ::logf(x); }
 
-        GT_FUNCTION double log(const double x) { return ::log(x); }
+        GT_FUNCTION_DEVICE double log(double x) { return ::log(x); }
 #else
         using std::log;
 #endif
 
 #ifdef __CUDA_ARCH__
-        /**
-         * Function computing the power function
-         */
-        GT_FUNCTION float pow(const float x, const float y) { return ::powf(x, y); }
+        GT_FUNCTION_DEVICE float pow(float x, float y) { return ::powf(x, y); }
 
-        GT_FUNCTION double pow(const double x, const double y) { return ::pow(x, y); }
+        GT_FUNCTION_DEVICE double pow(double x, double y) { return ::pow(x, y); }
 #else
         using std::pow;
 #endif
 
 #ifdef __CUDA_ARCH__
-        GT_FUNCTION float sqrt(const float x) { return ::sqrtf(x); }
+        GT_FUNCTION_DEVICE float sqrt(float x) { return ::sqrtf(x); }
 
-        GT_FUNCTION double sqrt(const double x) { return ::sqrt(x); }
+        GT_FUNCTION_DEVICE double sqrt(double x) { return ::sqrt(x); }
 #else
         using std::sqrt;
 #endif
@@ -204,15 +153,7 @@ namespace gridtools {
 
         GT_FUNCTION decltype(auto) fmod(double x, double y) { return ::fmod(x, y); }
 
-#ifdef __CUDA_ARCH__
-        template <typename ErrorTrigger = int>
-        GT_FUNCTION double fmod(long double x, long double y) { // return value double to suppress warning
-            GT_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");
-            return -1.;
-        }
-#else
-        GT_FUNCTION decltype(auto) fmod(long double x, long double y) { return std::fmod(x, y); }
-#endif
+        GT_FUNCTION_HOST decltype(auto) fmod(long double x, long double y) { return std::fmod(x, y); }
 #else
         using std::fmod;
 #endif
@@ -222,22 +163,12 @@ namespace gridtools {
         // auto return type to ensure that we do not accidentally cast
         GT_FUNCTION decltype(auto) trunc(float val) { return ::truncf(val); }
 
-        GT_FUNCTION decltype(auto) trunc(double val) { return ::trunc(val); }
-
-        template <typename Value>
+        template <class Value, std::enable_if_t<std::is_convertible<Value, double>::value, int> = 0>
         GT_FUNCTION decltype(auto) trunc(Value val) {
-            return ::trunc((double)val);
+            return ::trunc(val);
         }
 
-#ifdef __CUDA_ARCH__
-        template <typename ErrorTrigger = int>
-        GT_FUNCTION double trunc(long double val) { // return value double to suppress warning
-            GT_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");
-            return 1.;
-        }
-#else
-        GT_FUNCTION decltype(auto) trunc(long double val) { return std::trunc(val); }
-#endif
+        GT_FUNCTION_HOST decltype(auto) trunc(long double val) { return std::trunc(val); }
 #else
         using std::trunc;
 #endif

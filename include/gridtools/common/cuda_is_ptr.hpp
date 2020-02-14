@@ -21,7 +21,7 @@ namespace gridtools {
      * @warning A ptr which is not allocated by cudaMalloc, cudaMallocHost, ... (a normal cpu ptr) will emit an error in
      * cuda-memcheck.
      */
-    inline bool is_gpu_ptr(void *ptr) {
+    inline bool is_gpu_ptr(void const *ptr) {
         cudaPointerAttributes ptrAttributes;
         cudaError_t error = cudaPointerGetAttributes(&ptrAttributes, ptr);
         if (error == cudaSuccess)
@@ -42,7 +42,7 @@ namespace gridtools {
 #else
 
 namespace gridtools {
-    inline bool is_gpu_ptr(void *) { return false; }
+    inline bool is_gpu_ptr(void const *) { return false; }
 } // namespace gridtools
 
 #endif

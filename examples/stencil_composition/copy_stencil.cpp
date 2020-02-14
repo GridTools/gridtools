@@ -8,66 +8,46 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <cassert>
-#include <cstdlib>
-#include <iostream>
-
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-
 /**
   @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend.
 */
-namespace gt = gridtools;
+
+#include <cstdlib>
+#include <iostream>
+
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/sid.hpp>
 
 #ifdef __CUDACC__
-using backend_t = gt::backend::cuda;
+#include <gridtools/stencil_composition/backend/cuda.hpp>
+#include <gridtools/storage/cuda.hpp>
+using backend_t = gridtools::cuda::backend<>;
+using storage_traits_t = gridtools::storage::cuda;
 #else
-using backend_t = gt::backend::mc;
+#include <gridtools/stencil_composition/backend/mc.hpp>
+#include <gridtools/storage/mc.hpp>
+using backend_t = gridtools::mc::backend;
+using storage_traits_t = gridtools::storage::mc;
 #endif
 
-using storage_info_t = gt::storage_traits<backend_t>::storage_info_t<0, 3>;
-using data_store_t = gt::storage_traits<backend_t>::data_store_t<double, storage_info_t>;
+namespace gt = gridtools;
 
 // This is the stencil operator which copies the value from `in` to `out`.
 struct copy_functor {
-    using in = gt::accessor<0, gt::intent::in>;
-    using out = gt::accessor<1, gt::intent::inout>;
+    using in = gt::cartesian::in_accessor<0>;
+    using out = gt::cartesian::inout_accessor<1>;
     using param_list = gt::make_param_list<in, out>;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
         eval(out()) = eval(in());
     }
 };
 
-// compare the result
-bool verify(data_store_t const &in, data_store_t const &out) {
-    auto in_v = gt::make_host_view(in);
-    auto out_v = gt::make_host_view(out);
-
-    // check consistency
-    assert(in_v.length<0>() == out_v.length<0>());
-    assert(in_v.length<1>() == out_v.length<1>());
-    assert(in_v.length<2>() == out_v.length<2>());
-
-    bool success = true;
-    for (int k = in_v.total_begin<2>(); k <= in_v.total_end<2>(); ++k) {
-        for (int i = in_v.total_begin<0>(); i <= in_v.total_end<0>(); ++i) {
-            for (int j = in_v.total_begin<1>(); j <= in_v.total_end<1>(); ++j) {
-                if (in_v(i, j, k) != out_v(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "in = " << in_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    return success;
-}
-
 int main(int argc, char **argv) {
-    unsigned int d1, d2, d3;
+    int d1, d2, d3;
 
     if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " dimx dimy dimz\n";
@@ -78,38 +58,34 @@ int main(int argc, char **argv) {
         d3 = atoi(argv[3]);
     }
 
-    // storage_info contains the information about sizes and layout of the storages to which it will be passed
-    storage_info_t meta_data_{d1, d2, d3};
+    // Add dimensions to the storage builder
+    auto storage_builder = gt::storage::builder<storage_traits_t>.dimensions(d1, d2, d3);
 
-    // Definition of placeholders. The order does not have any semantics.
-    using p_in = gt::arg<0, data_store_t>;
-    using p_out = gt::arg<1, data_store_t>;
+    auto f = [](int i, int j, int k) { return i + j + k; };
+
+    // Build input storage
+    auto in = storage_builder.initializer(f).type<const double>().build();
+
+    // Build the storage to collect the result
+    auto out = storage_builder.type<double>().build();
 
     // Now we describe the iteration space. In this simple example the iteration space is just described by the full
     // grid (no particular care has to be taken to describe halo points).
     auto grid = gt::make_grid(d1, d2, d3);
 
-    data_store_t in{meta_data_, [](int i, int j, int k) { return i + j + k; }, "in"};
-    data_store_t out{meta_data_, -1.0, "out"};
+    // Execute the computation
+    gt::run_single_stage(copy_functor(), backend_t(), grid, in, out);
 
-    // Setup the computation, which consists of just one stage.
-    auto copy = gt::make_computation<backend_t>(
-        grid, gt::make_multistage(gt::execute::parallel{}, gt::make_stage<copy_functor>(p_in{}, p_out{})));
+    // Compare the result
+    auto view = out->const_host_view();
+    for (int k = 0; k < d3; ++k)
+        for (int i = 0; i < d1; ++i)
+            for (int j = 0; j < d2; ++j)
+                if (view(i, j, k) != f(i, j, k)) {
+                    std::cerr << "error in " << i << ", " << j << ", " << k << ": "
+                              << "actual = " << view(i, j, k) << ", expected = " << f(i, j, k) << std::endl;
+                    return 1;
+                }
 
-    // Execute the computation, binding the actual data (`in`, `out`) to the placeholders (`p_in`, `p_out`).
-    copy.run(p_in{} = in, p_out{} = out);
-
-    // Synchronize the data between host and target (in case of CUDA, noop otherwise).
-    out.sync();
-    in.sync();
-
-    bool success = verify(in, out);
-
-    if (success) {
-        std::cout << "Successful\n";
-    } else {
-        std::cout << "Failed\n";
-    }
-
-    return !success;
+    std::cout << "Success" << std::endl;
 };

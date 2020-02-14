@@ -13,12 +13,14 @@
 /** \defgroup Distributed-Boundaries Distributed Boundary Conditions
  */
 
+#include <type_traits>
 #include <utility>
 
 #include "../boundary_conditions/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
-#include "../common/timer/timer_traits.hpp"
+#include "../common/timer/timer.hpp"
+#include "../communication/low_level/gcl_arch.hpp"
 #ifdef GCL_MPI
 #include "../communication/GCL.hpp"
 #include "../communication/halo_exchange.hpp"
@@ -86,7 +88,7 @@ namespace gridtools {
             typename CTraits::comm_arch_type>;
 
       private:
-        using performance_meter_t = typename timer_traits<typename CTraits::compute_arch>::timer_type;
+        using performance_meter_t = timer<typename CTraits::timer_impl_t>;
 
         array<halo_descriptor, 3> m_halos;
         array<int_t, 3> m_sizes;
@@ -212,7 +214,7 @@ namespace gridtools {
         template <typename BCApply>
         std::enable_if_t<is_bound_bc<BCApply>::value, void> apply_boundary(BCApply bcapply) {
             /*Apply boundary to data*/
-            call_apply(make_boundary<typename CTraits::compute_arch>(m_halos,
+            call_apply(make_boundary<typename CTraits::comm_arch_type>(m_halos,
                            bcapply.boundary_to_apply(),
                            proc_grid_predicate<typename pattern_type::grid_type>(m_he.comm())),
                 bcapply.stores(),
@@ -238,22 +240,18 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, std::integer_sequence<uint_t, Ids...>) {
-            m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
-                access_mode::read_write,
-                std::decay_t<std::tuple_element_t<Ids, Stores>>>::make(std::get<Ids>(stores)))...);
+            m_he.pack(std::get<Ids>(stores)->get_const_target_ptr()...);
         }
 
-        template <typename Stores, uint_t... Ids>
+        template <typename Stores>
         void call_pack(Stores const &stores, std::integer_sequence<uint_t>) {}
 
         template <typename Stores, uint_t... Ids>
         void call_unpack(Stores const &stores, std::integer_sequence<uint_t, Ids...>) {
-            m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
-                access_mode::read_write,
-                std::decay_t<std::tuple_element_t<Ids, Stores>>>::make(std::get<Ids>(stores)))...);
+            m_he.unpack(std::get<Ids>(stores)->get_target_ptr()...);
         }
 
-        template <typename Stores, uint_t... Ids>
+        template <typename Stores>
         static void call_unpack(Stores const &stores, std::integer_sequence<uint_t>) {}
     };
 

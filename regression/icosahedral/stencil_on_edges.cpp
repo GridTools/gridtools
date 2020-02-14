@@ -10,42 +10,39 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/binops.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/tools/icosahedral_regression_fixture.hpp>
 
 #include "neighbours_of.hpp"
 
 using namespace gridtools;
+using namespace icosahedral;
 
 struct test_on_edges_functor {
-    using in = in_accessor<0, enumtype::edges, extent<-1, 1, -1, 1>>;
-    using out = inout_accessor<1, enumtype::edges>;
+    using in = in_accessor<0, edges, extent<-1, 1, -1, 1>>;
+    using out = inout_accessor<1, edges>;
     using param_list = make_param_list<in, out>;
-    using location = enumtype::edges;
+    using location = edges;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
-        eval(out{}) = eval(on_edges(binop::sum{}, float_type{}, in{}));
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
+        float_type res = 0;
+        eval.for_neighbors([&](auto in) { res += in; }, in());
+        eval(out()) = res;
     }
 };
 
 using stencil_on_edges = regression_fixture<1>;
 
 TEST_F(stencil_on_edges, test) {
-    auto in = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
-    auto ref = [&](int_t i, int_t c, int_t j, int_t k) {
-        float_type res = {};
-        for (auto &&item : neighbours_of<edges, edges>(i, c, j, k))
+    auto in = [](int_t i, int_t j, int_t k, int_t c) { return i + j + k + c; };
+    auto ref = [&](int_t i, int_t j, int_t k, int_t c) {
+        float_type res = 0;
+        for (auto &&item : neighbours_of<edges, edges>(i, j, k, c))
             res += item.call(in);
         return res;
     };
-    arg<0, edges> p_in;
-    arg<1, edges> p_out;
     auto out = make_storage<edges>();
-    make_computation(p_in = make_storage<edges>(in),
-        p_out = out,
-        make_multistage(execute::forward(), make_stage<test_on_edges_functor>(p_in, p_out)))
-        .run();
-    verify(make_storage<edges>(ref), out);
+    run_single_stage(test_on_edges_functor(), backend_t(), make_grid(), make_storage<edges>(in), out);
+    verify(ref, out);
 }

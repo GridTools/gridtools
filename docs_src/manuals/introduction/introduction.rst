@@ -50,7 +50,7 @@ computations in order to be optimal on the target hardware.
 Dependencies
 ^^^^^^^^^^^^
 
-|GT| requires at least a header-only installation of Boost_. Besides some boost utilities, it depends on ``boost::mpl`` and ``boost::fusion``.
+|GT| requires at least a header-only installation of Boost_. It depends on ``Boost Preprocessor Library``.
 
 Additionally, |GT| requires a recent version of CMake_.
 

@@ -17,7 +17,7 @@ add_library(GridTools::gridtools ALIAS gridtools)
 target_compile_features(gridtools INTERFACE cxx_std_14)
 target_include_directories(gridtools
     INTERFACE
-      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
+      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
     )
 install(TARGETS gridtools EXPORT GridToolsTargets
@@ -27,8 +27,6 @@ install(TARGETS gridtools EXPORT GridToolsTargets
   INCLUDES DESTINATION include
 )
 target_link_libraries(gridtools INTERFACE cpp_bindgen_interface)
-include(workaround_icc)
-_workaround_icc(gridtools)
 
 set(REQUIRED_BOOST_VERSION 1.58)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
@@ -102,9 +100,6 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             "SHELL:$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -Wno-unknown-attributes>")
     endif()
 endif()
-if(GT_TESTS_ICOSAHEDRAL_GRID)
-    target_compile_definitions(GridToolsTest INTERFACE GT_ICOSAHEDRAL_GRIDS)
-endif()
 
 if(GT_TREAT_WARNINGS_AS_ERROR)
     target_compile_options(GridToolsTest INTERFACE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-Werror>)
@@ -162,11 +157,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     target_compile_options(GridToolsTest INTERFACE -diag-disable=15518,15552)
 endif()
 
-## performance meters ##
-if(GT_ENABLE_PERFORMANCE_METERS)
-    target_compile_definitions(GridToolsTest INTERFACE GT_ENABLE_METERS)
-endif()
-
 ## precision ##
 if(GT_SINGLE_PRECISION)
     target_compile_definitions(GridToolsTest INTERFACE GT_FLOAT_PRECISION=4)
@@ -174,12 +164,6 @@ if(GT_SINGLE_PRECISION)
 else()
     target_compile_definitions(GridToolsTest INTERFACE GT_FLOAT_PRECISION=8)
    message(STATUS "Compile tests in double precision")
-endif()
-
-## caching ##
-if(NOT GT_TESTS_ENABLE_CACHING)
-    # TODO this should be exposed to find_package (GT_ENABLE_CACHING)
-    target_compile_definitions(GridToolsTest INTERFACE GT_DISABLE_CACHING)
 endif()
 
 # add a target to generate API documentation with Doxygen

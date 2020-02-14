@@ -10,10 +10,11 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct copy_functor {
     using in = in_accessor<0>;
@@ -21,22 +22,21 @@ struct copy_functor {
 
     using param_list = make_param_list<in, out>;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
+    template <class Eval>
+    GT_FUNCTION static void apply(Eval &&eval) {
         eval(out()) = eval(in());
     }
 };
 
-struct copy_stencil : regression_fixture<0> {
-    storage_type in = make_storage([](int i, int j, int k) { return i + j + k; });
-    storage_type out = make_storage(-1.);
-};
+using copy_stencil = regression_fixture<>;
 
 TEST_F(copy_stencil, test) {
-    auto comp =
-        make_computation(p_0 = in, p_1 = out, make_multistage(execute::parallel(), make_stage<copy_functor>(p_0, p_1)));
-
-    comp.run();
+    auto in = [](int i, int j, int k) { return i + j + k; };
+    auto out = make_storage();
+    auto comp = [&out, grid = make_grid(), in = make_storage<float_type const>(in)] {
+        run_single_stage(copy_functor(), backend_t(), grid, in, out);
+    };
+    comp();
     verify(in, out);
     benchmark(comp);
 }

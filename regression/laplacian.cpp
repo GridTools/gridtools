@@ -9,10 +9,11 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
 
 using namespace gridtools;
+using namespace cartesian;
 
 struct lap {
     using out = inout_accessor<0>;
@@ -32,10 +33,7 @@ TEST_F(laplacian, test) {
     auto ref = [in](int_t i, int_t j, int_t k) {
         return 4 * in(i, j, k) - (in(i + 1, j, k) + in(i, j + 1, k) + in(i - 1, j, k) + in(i, j - 1, k));
     };
-    auto out = make_storage(-7.3);
-
-    make_computation(p_0 = out, p_1 = make_storage(in), make_multistage(execute::forward(), make_stage<lap>(p_0, p_1)))
-        .run();
-
-    verify(make_storage(ref), out);
+    auto out = make_storage();
+    run_single_stage(lap(), backend_t(), make_grid(), out, make_storage(in));
+    verify(ref, out);
 }

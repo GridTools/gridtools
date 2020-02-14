@@ -33,11 +33,6 @@ Glossary
   Cache
     See :term:`Software-Managed Cache`.
 
-  Computation
-    A sequence of :term:`Multi-Stages<Multi-Stage>`
-    which is applied on a :term:`Grid` with the run() method as an entry-point,
-    see section :ref:`composition_of_stencils`.
-
   Data Store
     An object that manages a logical multidimensional array of values.
     See section :ref:`data-store`.
@@ -139,10 +134,6 @@ Glossary
   Stencil Operator
     Struct or class that defines a stencil operation. See section
     :ref:`stencil_operators`.
-
-  Storage Info
-    This concept describes the dimensions, alignment and layout of a
-    multidimensional array. See section :ref:`storage-info`.
 
   Vertical Execution Order
     Order of execution (forward, backward, parallel) along the vertical

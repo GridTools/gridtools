@@ -56,24 +56,21 @@ void verify(const char *label, float_type arr[I][J][K]) {
 int main() {
     float_type in[I][J][K];
     float_type out[I][J][K];
-    bindgen_handle *in_handle, *out_handle, *stencil;
+    bindgen_handle *in_handle = create_data_store(I, J, K);
+    bindgen_handle *out_handle = create_data_store(I, J, K);
 
     init_in(in);
+    copy_to_data_store(in_handle, (float_type *)in);
 
-    in_handle = create_data_store(I, J, K, (float_type *)in);
-    out_handle = create_data_store(I, J, K, (float_type *)out);
-    stencil = create_copy_stencil(in_handle, out_handle);
+    run_copy_stencil(in_handle, out_handle);
 
-    run_stencil(stencil);
-    sync_data_store(in_handle);
-    sync_data_store(out_handle);
+    copy_from_data_store(out_handle, (float_type *)out);
+
+    bindgen_release(in_handle);
+    bindgen_release(out_handle);
 
     verify("in", in);
     verify("out", out);
-
-    bindgen_release(stencil);
-    bindgen_release(in_handle);
-    bindgen_release(out_handle);
 
     printf("It works!\n");
 }

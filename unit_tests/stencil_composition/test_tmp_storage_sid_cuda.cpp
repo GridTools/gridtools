@@ -8,16 +8,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/backend_cuda/tmp_storage_sid.hpp>
+#include <gridtools/stencil_composition/backend/cuda/tmp_storage_sid.hpp>
 
 #include <memory>
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/integral_constant.hpp>
-#include <gridtools/stencil_composition/sid/allocator.hpp>
-#include <gridtools/stencil_composition/sid/concept.hpp>
-#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/sid/allocator.hpp>
+#include <gridtools/sid/concept.hpp>
 
 #include "../tools/multiplet.hpp"
 
@@ -34,12 +32,6 @@ namespace gridtools {
             int_t n_blocks_j = 12;
             int_t k_size = 13;
 
-            template <class T>
-            struct data_store {
-                using data_t = T;
-            };
-
-#ifndef GT_ICOSAHEDRAL_GRIDS
             TEST(tmp_cuda_storage_sid, write_in_blocks) {
                 using index_info = multiplet<5>;
 
@@ -81,7 +73,6 @@ namespace gridtools {
                                 }
             }
 
-#else
             constexpr auto ncolors = 2_c;
             TEST(tmp_cuda_storage_sid_block, write_in_blocks) {
                 using index_info = multiplet<6>;
@@ -128,7 +119,6 @@ namespace gridtools {
                                         EXPECT_EQ((index_info{i, j, c, bi, bj, k}), *ptr);
                                     }
             }
-#endif
         } // namespace
     }     // namespace cuda
 } // namespace gridtools

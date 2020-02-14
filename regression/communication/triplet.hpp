@@ -18,21 +18,18 @@ struct array {
     int n, m, l;
 
     array(T *_p, int _n, int _m, int _l)
-        : ptr(_p), n(gridtools::make_array(_n, _m, _l)[lmap::template find<0>()]),
-          m(gridtools::make_array(_n, _m, _l)[lmap::template find<1>()]),
-          l(gridtools::make_array(_n, _m, _l)[lmap::template find<2>()]) {}
+        : ptr(_p), n(gridtools::make_array(_n, _m, _l)[lmap::find(0)]),
+          m(gridtools::make_array(_n, _m, _l)[lmap::find(1)]), l(gridtools::make_array(_n, _m, _l)[lmap::find(2)]) {}
 
     T &operator()(int i, int j, int k) {
         // a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj]
-        return ptr[l * m * gridtools::make_array(i, j, k)[lmap::template find<0>()] +
-                   l * gridtools::make_array(i, j, k)[lmap::template find<1>()] +
-                   gridtools::make_array(i, j, k)[lmap::template find<2>()]];
+        return ptr[l * m * gridtools::make_array(i, j, k)[lmap::find(0)] +
+                   l * gridtools::make_array(i, j, k)[lmap::find(1)] + gridtools::make_array(i, j, k)[lmap::find(2)]];
     }
 
     T const &operator()(int i, int j, int k) const {
-        return ptr[l * m * gridtools::make_array(i, j, k)[lmap::template find<0>()] +
-                   l * gridtools::make_array(i, j, k)[lmap::template find<1>()] +
-                   gridtools::make_array(i, j, k)[lmap::template find<2>()]];
+        return ptr[l * m * gridtools::make_array(i, j, k)[lmap::find(0)] +
+                   l * gridtools::make_array(i, j, k)[lmap::find(1)] + gridtools::make_array(i, j, k)[lmap::find(2)]];
     }
 
     operator void *() const { return reinterpret_cast<void *>(ptr); }

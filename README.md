@@ -33,7 +33,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 | Compiler | Backend | Tested on |
 | --- | --- | --- |
-| NVCC 9.2 with GNU 5.3 | cuda | Piz Daint |
+| NVCC 10.1 with GNU 6.2 | cuda | Piz Daint |
 | GNU 7.3.0 | x86, mc | Piz Daint |
 | Clang 7.0.1 | x86, mc | Piz Daint |
 

@@ -16,22 +16,23 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/icosahedral_grids/icosahedral_topology.hpp>
-#include <gridtools/stencil_composition/location_type.hpp>
+#include <gridtools/common/generic_metafunctions/for_each.hpp>
+#include <gridtools/common/tuple_util.hpp>
+#include <gridtools/stencil_composition/frontend/icosahedral/connectivity.hpp>
+#include <gridtools/stencil_composition/frontend/icosahedral/location_type.hpp>
 
 namespace gridtools {
     namespace _impl {
         struct neighbour {
-            int_t i, c, j, k;
+            int_t i, j, k, c;
             template <class Fun>
             auto call(Fun &&fun) const {
-                return std::forward<Fun>(fun)(i, c, j, k);
+                return std::forward<Fun>(fun)(i, j, k, c);
             }
         };
 
         template <class FromLocation, class ToLocation>
-        std::vector<array<int_t, 4>> get_offsets(
-            uint_t, std::integral_constant<uint_t, FromLocation::n_colors::value>) {
+        std::vector<array<int_t, 4>> get_offsets(uint_t, std::integral_constant<uint_t, FromLocation::value>) {
             assert(false);
             return {};
         }
@@ -39,23 +40,27 @@ namespace gridtools {
         template <class FromLocation,
             class ToLocation,
             uint_t C = 0,
-            std::enable_if_t<(C < FromLocation::n_colors::value), int> = 0>
+            std::enable_if_t<(C < FromLocation::value), int> = 0>
         std::vector<array<int_t, 4>> get_offsets(uint_t c, std::integral_constant<uint_t, C> = {}) {
             if (c > C) {
                 return get_offsets<FromLocation, ToLocation>(c, std::integral_constant<uint_t, C + 1>{});
             }
-            auto offsets = connectivity<FromLocation, ToLocation, C>::offsets();
-            return std::vector<array<int_t, 4>>(offsets.begin(), offsets.end());
+            std::vector<array<int_t, 4>> res;
+            for_each<icosahedral::neighbor_offsets<FromLocation, ToLocation, C>>([&](auto src) {
+                using tuple_util::get;
+                res.push_back({get<0>(src), get<1>(src), get<2>(src), get<3>(src)});
+            });
+            return res;
         }
     } // namespace _impl
 
     template <class FromLocation, class ToLocation>
-    std::vector<_impl::neighbour> neighbours_of(int_t i, int_t c, int_t j, int_t k) {
+    std::vector<_impl::neighbour> neighbours_of(int_t i, int_t j, int_t k, int_t c) {
         assert(c >= 0);
-        assert(c < FromLocation::n_colors::value);
+        assert(c < FromLocation::value);
         std::vector<_impl::neighbour> res;
         for (auto &item : _impl::get_offsets<FromLocation, ToLocation>(c))
-            res.push_back({i + item[0], c + item[1], j + item[2], k + item[3]});
+            res.push_back({i + item[0], j + item[1], k + item[2], c + item[3]});
         return res;
     };
 } // namespace gridtools

@@ -1,26 +1,29 @@
 #pragma once
 
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/stencil_composition/stencil_functions.hpp>
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/sid.hpp>
 
 using namespace gridtools;
-using namespace gridtools::expressions;
+using namespace cartesian;
 
 #ifdef __CUDACC__
-using backend_t = backend::cuda;
+#include <gridtools/stencil_composition/backend/cuda.hpp>
+#include <gridtools/storage/cuda.hpp>
+using backend_t = cuda::backend<>;
+using storage_traits_t = storage::cuda;
 #else
-using backend_t = backend::mc;
+#include <gridtools/stencil_composition/backend/mc.hpp>
+#include <gridtools/storage/mc.hpp>
+using backend_t = mc::backend;
+using storage_traits_t = storage::mc;
 #endif
 
-static constexpr unsigned halo_size = 2;
+constexpr unsigned halo = 2;
 
-using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3, halo<halo_size, halo_size, 0>>;
-using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
-
-constexpr static gridtools::dimension<1> i;
-constexpr static gridtools::dimension<2> j;
-constexpr static gridtools::dimension<3> k;
+constexpr dimension<1> i;
+constexpr dimension<2> j;
+constexpr dimension<3> k;
 
 using axis_t = axis<2>;
 using lower_domain = axis_t::get_interval<0>;
@@ -54,7 +57,10 @@ int main() {
     uint_t Nk = 20;
     uint_t kmax = 12;
 
-    storage_info_t info(Ni, Nj, Nk);
+    auto const make_storage = storage::builder<storage_traits_t> //
+                                  .dimensions(Ni, Nj, Nk)        //
+                                  .halos(halo, halo, 0)          //
+                                  .type<double>();               //
 
 #if defined(VARIANT1)
 #include "gt_smoothing_variant1_computation.hpp"

@@ -12,21 +12,20 @@
 #include <iostream>
 #include <utility>
 
-#include "../common/defs.hpp"
-#include "../stencil_composition/axis.hpp"
-#include "computation_fixture.hpp"
+#include "../common/timer/timer.hpp"
+#include "backend_select.hpp"
+#include "grid_fixture.hpp"
 #include "regression_fixture_impl.hpp"
 
 namespace gridtools {
-    template <size_t HaloSize = 0, class Axis = axis<1>>
-    class regression_fixture : public computation_fixture<HaloSize, Axis>, _impl::regression_fixture_base {
-      public:
-        regression_fixture() : computation_fixture<HaloSize, Axis>(s_d1, s_d2, s_d3) {}
+    template <class Fixture>
+    struct regression_fixture_templ : Fixture, private _impl::regression_fixture_base {
+        regression_fixture_templ() : Fixture(s_d1, s_d2, s_d3) {}
 
         template <class... Args>
         void verify(Args &&... args) const {
             if (s_needs_verification)
-                computation_fixture<HaloSize, Axis>::verify(std::forward<Args>(args)...);
+                Fixture::verify(std::forward<Args>(args)...);
         }
 
         template <class Comp>
@@ -35,15 +34,17 @@ namespace gridtools {
                 return;
             // we run a first time the stencil, since if there is data allocation before by other codes, the first run
             // of the stencil is very slow (we dont know why). The flusher should make sure we flush the cache
-            comp.run();
-            comp.reset_meter();
+            comp();
+            timer<timer_impl_t> timer = {"NoName"};
             for (size_t i = 0; i != s_steps; ++i) {
 #ifndef __CUDACC__
                 flush_cache();
 #endif
-                comp.run();
+                timer.start();
+                comp();
+                timer.pause();
             }
-            std::cout << comp.print_meter() << std::endl;
+            std::cout << timer.to_string() << std::endl;
         }
     };
 } // namespace gridtools

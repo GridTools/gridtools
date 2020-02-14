@@ -10,7 +10,6 @@
 #include <fstream>
 #include <gridtools/common/boollist.hpp>
 #include <gridtools/communication/halo_exchange.hpp>
-#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 #include <iostream>
 #include <mpi.h>
@@ -66,7 +65,6 @@ namespace halo_exchange_3D_all_2 {
         triple_t<USE_DOUBLE> *_b,
         triple_t<USE_DOUBLE> *_c) {
 
-        //        typedef typename gridtools::reverse_map< gridtools::layout_map< I1, I2, I3 > >::type layoutmap;
         typedef gridtools::layout_map<I1, I2, I3> layoutmap;
 
         array<triple_t<USE_DOUBLE>, layoutmap> a(_a, (DIM1 + 2 * H1), (DIM2 + 2 * H2), (DIM3 + 2 * H3));

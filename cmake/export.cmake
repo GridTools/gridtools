@@ -18,7 +18,7 @@ write_basic_package_version_file(
 
 # for build tree
 set(GRIDTOOLS_MODULE_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake)
-set(GRIDTOOLS_INCLUDE_PATH ${CMAKE_SOURCE_DIR}/include)
+set(GRIDTOOLS_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include)
 FetchContent_GetProperties(cpp_bindgen)
 set(GT_CPP_BINDGEN_CONFIG_LOCATION ${cpp_bindgen_BINARY_DIR})
 configure_package_config_file(cmake/GridToolsConfig.cmake.in

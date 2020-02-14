@@ -8,11 +8,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "generic_benchmark.hpp"
-
 #include <gridtools/boundary_conditions/boundary.hpp>
 #include <gridtools/tools/backend_select.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
+#include <gridtools/tools/cartesian_regression_fixture.hpp>
+#include <gridtools/tools/grid_fixture.hpp>
 
 #include <gtest/gtest.h>
 
@@ -71,15 +70,12 @@ namespace {
 
     template <typename Src, typename Dst>
     void apply_boundary(array<halo_descriptor, 3> const &halos, Src &src, Dst &dst) {
-        gridtools::make_boundary<backend_t>(halos, direction_bc_input{factor}).apply(src, dst);
+        gridtools::make_boundary<gcl_arch_t>(halos, direction_bc_input{factor}).apply(src, dst);
     }
-    template <typename Src, typename Dst>
-    void verify_result(array<halo_descriptor, 3> const &halos, Src &src, Dst &dst) {
-        src.sync();
-        dst.sync();
-
-        auto src_v = gridtools::make_host_view<access_mode::read_only>(src);
-        auto dst_v = gridtools::make_host_view(dst);
+    template <typename T>
+    void verify_result(array<halo_descriptor, 3> const &halos, T src, T dst) {
+        auto src_v = src->const_host_view();
+        auto dst_v = dst->host_view();
 
         // check inner domain (should be zero)
         for (uint_t i = halos[0].begin(); i <= halos[0].end(); ++i)
@@ -129,25 +125,25 @@ namespace {
             for (uint_t j = 0; j < halos[1].end() + halos[1].plus(); ++j)
                 for (uint_t k = 0; k < halos[2].end() + halos[2].plus(); ++k)
                     ASSERT_EQ(dst_v(i, j, k), -1);
-
-        src.sync();
-        dst.sync();
-    } // namespace
+    }
 } // namespace
 
-struct distributed_boundary : regression_fixture<3> {};
+constexpr auto halo_size = 3;
+
+struct distributed_boundary : cartesian::regression_fixture<halo_size> {};
 
 TEST_F(distributed_boundary, test) {
     auto src = make_storage([](int i, int j, int k) { return i + j + k; });
-    auto dst = make_storage(0.f);
+    auto dst = make_storage(0);
 
-    halo_descriptor di{halo_size, halo_size, halo_size, d1() - halo_size - 1, (unsigned)src.info().padded_length<0>()};
-    halo_descriptor dj{halo_size, halo_size, halo_size, d2() - halo_size - 1, (unsigned)src.info().padded_length<1>()};
-    halo_descriptor dk{halo_size, halo_size, halo_size, d3() - halo_size - 1, (unsigned)src.info().padded_length<2>()};
+    auto &&lengths = src->info().lengths();
+    halo_descriptor di{halo_size, halo_size, halo_size, lengths[0] - halo_size - 1, lengths[0]};
+    halo_descriptor dj{halo_size, halo_size, halo_size, lengths[1] - halo_size - 1, lengths[1]};
+    halo_descriptor dk{halo_size, halo_size, halo_size, lengths[2] - halo_size - 1, lengths[2]};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
     apply_boundary(halos, src, dst);
     verify_result(halos, src, dst);
 
-    benchmark(generic_benchmark<backend_t>{[&]() { apply_boundary(halos, src, dst); }});
+    benchmark([&] { apply_boundary(halos, src, dst); });
 }

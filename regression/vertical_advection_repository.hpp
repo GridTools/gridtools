@@ -58,7 +58,7 @@ namespace gridtools {
         }
 
         const double PI = std::atan(1) * 4;
-        uint_t m_d1, m_d2, m_d3;
+        size_t m_d1, m_d2, m_d3;
 
         double x(int_t i) const { return 1. * i / m_d1; }
         double y(int_t j) const { return 1. * j / m_d2; }
@@ -150,6 +150,6 @@ namespace gridtools {
             return res;
         });
 
-        vertical_advection_repository(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
+        vertical_advection_repository(size_t d1, size_t d2, size_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
     };
 } // namespace gridtools

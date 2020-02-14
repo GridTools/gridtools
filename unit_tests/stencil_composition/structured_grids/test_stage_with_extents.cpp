@@ -8,41 +8,37 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gtest/gtest.h>
-
-#include <gridtools/stencil_composition/stencil_composition.hpp>
-#include <gridtools/tools/computation_fixture.hpp>
+#include <gridtools/stencil_composition/cartesian.hpp>
 
 namespace gridtools {
-    namespace {
-        struct stage {
-            using in = in_accessor<0, extent<-1, 1>>;
-            using out = inout_accessor<1>;
-            using param_list = make_param_list<in, out>;
+    namespace cartesian {
+        namespace {
+            struct stage {
+                using in = in_accessor<0, extent<-1, 1>>;
+                using out = inout_accessor<1>;
+                using param_list = make_param_list<in, out>;
 
-            template <class Eval>
-            GT_FUNCTION static void apply(Eval) {}
-        };
+                template <class Eval>
+                GT_FUNCTION static void apply(Eval) {}
+            };
 
-        struct stage_with_extents : computation_fixture<10> {
-            stage_with_extents() : computation_fixture<10>(100, 100, 100) {}
-        };
+            struct a {};
+            struct b {};
+            struct c {};
+            struct d {};
 
-        TEST_F(stage_with_extents, smoke) {
-            auto comp = make_computation(make_multistage(execute::forward(),
-                make_stage_with_extent<stage, extent<-5, 5>>(p_0, p_1),
-                make_stage_with_extent<stage, extent<-3, 3>>(p_1, p_2),
-                make_stage<stage>(p_2, p_3)));
+            constexpr auto spec = execute_parallel()
+                                      .stage_with_extent(extent<-5, 5>(), stage(), a(), b())
+                                      .stage_with_extent(extent<-3, 3>(), stage(), b(), c())
+                                      .stage(stage(), c(), d());
 
-            using extent_0 = decltype(comp.get_arg_extent(p_0));
-            using extent_1 = decltype(comp.get_arg_extent(p_1));
-            using extent_2 = decltype(comp.get_arg_extent(p_2));
-            using extent_3 = decltype(comp.get_arg_extent(p_3));
+            template <class Arg, int_t... Is>
+            constexpr bool testee = std::is_same<decltype(get_arg_extent(spec, Arg())), extent<Is...>>::value;
 
-            static_assert(std::is_same<extent_0, extent<-6, 6>>(), "");
-            static_assert(std::is_same<extent_1, extent<-5, 5>>(), "");
-            static_assert(std::is_same<extent_2, extent<-3, 3>>(), "");
-            static_assert(std::is_same<extent_3, extent<>>(), "");
-        }
-    } // namespace
+            static_assert(testee<a, -6, 6>, "");
+            static_assert(testee<b, -5, 5>, "");
+            static_assert(testee<c, -3, 3>, "");
+            static_assert(testee<d>, "");
+        } // namespace
+    }     // namespace cartesian
 } // namespace gridtools

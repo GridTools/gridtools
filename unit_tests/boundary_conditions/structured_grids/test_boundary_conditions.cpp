@@ -18,38 +18,19 @@
 #include <gridtools/boundary_conditions/value.hpp>
 #include <gridtools/boundary_conditions/zero.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
-#include <gridtools/stencil_composition/stencil_composition.hpp>
+#include <gridtools/storage/builder.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 
 struct bc_basic {
-
-    // relative coordinates
     template <typename Direction, typename DataField0>
     GT_FUNCTION void operator()(Direction, DataField0 &data_field0, uint_t i, uint_t j, uint_t k) const {
         data_field0(i, j, k) = i + j + k;
     }
 };
 
-#define SET_TO_ZERO                                                                           \
-    template <typename Direction, typename DataField0>                                        \
-    void operator()(Direction, DataField0 &data_field0, uint_t i, uint_t j, uint_t k) const { \
-        data_field0(i, j, k) = 0;                                                             \
-    }
-
-template <sign X>
-struct is_minus {
-    static const bool value = (X == minus_);
-};
-
-template <typename T, typename U>
-struct is_one_of {
-    static const bool value = T::value || U::value;
-};
-
 struct bc_two {
-
     template <typename Direction, typename DataField0>
     GT_FUNCTION void operator()(Direction, DataField0 &data_field0, uint_t i, uint_t j, uint_t k) const {
         data_field0(i, j, k) = 0;
@@ -61,51 +42,21 @@ struct bc_two {
         uint_t i,
         uint_t j,
         uint_t k,
-        std::enable_if_t<is_one_of<is_minus<J>, is_minus<K>>::value> * = nullptr) const {
+        std::enable_if_t<J == minus_ || K == minus_> * = nullptr) const {
         data_field0(i, j, k) = (i + j + k + 1);
     }
-
-    // THE CODE ABOVE IS A REPLACEMENT OF THE FOLLOWING 4 DIFFERENT SPECIALIZATIONS
-    // IT IS UGLY BUT CAN SAVE QUITE A BIT OF CODE
-
-    // template <sign I, sign K, typename DataField0>
-    // void operator()(direction<I,minus,K>,
-    //                 DataField0 & data_field0,
-    //                 int i, int j, int k) const {
-    //     data_field0(i,j,k) = i+j+k+1;
-    // }
-
-    // template <sign J, sign K, typename DataField0>
-    // void operator()(direction<minus,J,K>,
-    //                 DataField0 & data_field0,
-    //                 int i, int j, int k) const {
-    //     data_field0(i,j,k) = i+j+k+1;
-    // }
-
-    // template <sign I, typename DataField0>
-    // void operator()(direction<I,minus,minus>,
-    //                 DataField0 & data_field0,
-    //                 int i, int j, int k) const {
-    //     data_field0(i,j,k) = i+j+k+1;
-    // }
-
-    // template <typename DataField0>
-    // void operator()(direction<minus,minus,minus>,
-    //                 DataField0 & data_field0,
-    //                 int i, int j, int k) const {
-    //     data_field0(i,j,k) = i+j+k+1;
-    // }
 };
 
 struct minus_predicate {
     template <sign I, sign J, sign K>
     bool operator()(direction<I, J, K>) const {
-        if (I == minus_ || J == minus_ || K == minus_)
-            return false;
-        else
-            return true;
+        return !(I == minus_ || J == minus_ || K == minus_);
     }
 };
+
+auto make_storage(uint_t d1, uint_t d2, uint_t d3, int_t value = 0) {
+    return storage::builder<storage_traits_t>.type<int_t>().dimensions(d1, d2, d3).value(value)();
+}
 
 bool basic() {
 
@@ -113,23 +64,16 @@ bool basic() {
     uint_t d2 = 3;
     uint_t d3 = 5;
 
-    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
-    typedef storage_traits<backend_t>::data_store_t<int_t, meta_data_t> storage_t;
+    auto in = make_storage(d1, d2, d3);
 
-    // Definition of the actual data fields that are used for input/output
-    meta_data_t meta_(d1, d2, d3);
-    storage_t in(meta_, 0);
-    auto inv = make_host_view(in);
+    array<halo_descriptor, 3> halos;
+    halos[0] = halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
+    halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-    halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
+    boundary<bc_basic, gcl_arch_t>(halos, bc_basic()).apply(in);
 
-    in.sync();
-    gridtools::boundary<bc_basic, backend_t>(halos, bc_basic()).apply(in);
-
-    in.sync();
+    auto inv = in->host_view();
 
     bool result = true;
 
@@ -212,28 +156,20 @@ bool predicate() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
-    typedef storage_traits<backend_t>::data_store_t<int_t, meta_data_t> storage_t;
+    auto in = make_storage(d1, d2, d3);
 
-    // Definition of the actual data fields that are used for input/output
+    array<halo_descriptor, 3> halos;
+    halos[0] = halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
+    halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    meta_data_t meta_(d1, d2, d3);
-    storage_t in(meta_, 0);
-    auto inv = make_host_view(in);
-
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-    halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
-
-    in.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    gridtools::boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(indv);
+    boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in->target_view());
 #else
-    gridtools::boundary_apply<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(inv);
+    boundary_apply<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in->target_view());
 #endif
-    in.sync();
+
+    auto inv = in->host_view();
 
     bool result = true;
 
@@ -316,28 +252,20 @@ bool twosurfaces() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
-    typedef storage_traits<backend_t>::data_store_t<int_t, meta_data_t> storage_t;
+    auto in = make_storage(d1, d2, d3, 1);
 
-    // Definition of the actual data fields that are used for input/output
+    array<halo_descriptor, 3> halos;
+    halos[0] = halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
+    halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    meta_data_t meta_(d1, d2, d3);
-    storage_t in(meta_, 1);
-    auto inv = make_host_view(in);
-
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-    halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
-
-    in.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    gridtools::boundary_apply_gpu<bc_two>(halos, bc_two()).apply(indv);
+    boundary_apply_gpu<bc_two>(halos, bc_two()).apply(in->target_view());
 #else
-    gridtools::boundary_apply<bc_two>(halos, bc_two()).apply(inv);
+    boundary_apply<bc_two>(halos, bc_two()).apply(in->target_view());
 #endif
-    in.sync();
+
+    auto inv = in->host_view();
 
     bool result = true;
 
@@ -420,28 +348,20 @@ bool usingzero_1() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
-    typedef storage_traits<backend_t>::data_store_t<int_t, meta_data_t> storage_t;
+    auto in = make_storage(d1, d2, d3, -1);
 
-    // Definition of the actual data fields that are used for input/output
+    array<halo_descriptor, 3> halos;
+    halos[0] = halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
+    halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    meta_data_t meta_(d1, d2, d3);
-    storage_t in(meta_, -1);
-    auto inv = make_host_view(in);
-
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-    halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
-
-    in.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(indv);
+    boundary_apply_gpu<zero_boundary>(halos).apply(in->target_view());
 #else
-    gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(inv);
+    boundary_apply<zero_boundary>(halos).apply(in->target_view());
 #endif
-    in.sync();
+
+    auto inv = in->host_view();
 
     bool result = true;
 
@@ -524,33 +444,22 @@ bool usingzero_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
-    typedef storage_traits<backend_t>::data_store_t<int_t, meta_data_t> storage_t;
+    auto in = make_storage(d1, d2, d3, -1);
+    auto out = make_storage(d1, d2, d3, -1);
 
-    // Definition of the actual data fields that are used for input/output
+    array<halo_descriptor, 3> halos;
+    halos[0] = halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
+    halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    meta_data_t meta_(d1, d2, d3);
-    storage_t in(meta_, -1);
-    storage_t out(meta_, -1);
-    auto inv = make_host_view(in);
-    auto outv = make_host_view(out);
-
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-    halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
-
-    in.sync();
-    out.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    auto outdv = make_device_view(out);
-    gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(indv, outdv);
+    boundary_apply_gpu<zero_boundary>(halos).apply(in->target_view(), out->target_view());
 #else
-    gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(inv, outv);
+    boundary_apply<zero_boundary>(halos).apply(in->target_view(), out->target_view());
 #endif
-    in.sync();
-    out.sync();
+
+    auto inv = in->host_view();
+    auto outv = in->host_view();
 
     bool result = true;
 
@@ -654,33 +563,22 @@ bool usingzero_3_empty_halos() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
-    typedef storage_traits<backend_t>::data_store_t<int_t, meta_data_t> storage_t;
+    auto in = make_storage(d1, d2, d3, -1);
+    auto out = make_storage(d1, d2, d3, -1);
 
-    // Definition of the actual data fields that are used for input/output
+    array<halo_descriptor, 3> halos;
+    halos[0] = halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = halo_descriptor(0, 0, 0, d2 - 1, d2);
+    halos[2] = halo_descriptor(0, 0, 0, d3 - 1, d3);
 
-    meta_data_t meta_(d1, d2, d3);
-    storage_t in(meta_, -1);
-    storage_t out(meta_, -1);
-    auto inv = make_host_view(in);
-    auto outv = make_host_view(out);
-
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(0, 0, 0, d2 - 1, d2);
-    halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
-
-    in.sync();
-    out.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    auto outdv = make_device_view(out);
-    gridtools::boundary_apply_gpu<gridtools::zero_boundary>(halos).apply(indv, outdv);
+    boundary_apply_gpu<zero_boundary>(halos).apply(in->target_view(), out->target_view());
 #else
-    gridtools::boundary_apply<gridtools::zero_boundary>(halos).apply(inv, outv);
+    boundary_apply<zero_boundary>(halos).apply(in->target_view(), out->target_view());
 #endif
-    in.sync();
-    out.sync();
+
+    auto inv = in->host_view();
+    auto outv = out->host_view();
 
     bool result = true;
 
@@ -732,35 +630,24 @@ bool usingvalue_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
-    typedef storage_traits<backend_t>::data_store_t<int_t, meta_data_t> storage_t;
+    auto in = make_storage(d1, d2, d3, -1);
+    auto out = make_storage(d1, d2, d3, -1);
 
-    // Definition of the actual data fields that are used for input/output
+    array<halo_descriptor, 3> halos;
+    halos[0] = halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
+    halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    meta_data_t meta_(d1, d2, d3);
-    storage_t in(meta_, -1);
-    storage_t out(meta_, -1);
-    auto inv = make_host_view(in);
-    auto outv = make_host_view(out);
-
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-    halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
-
-    in.sync();
-    out.sync();
 #ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    auto outdv = make_device_view(out);
-    gridtools::boundary_apply_gpu<gridtools::value_boundary<int_t>>(halos, gridtools::value_boundary<int_t>(101))
-        .apply(indv, outdv);
+    boundary_apply_gpu<value_boundary<int_t>>(halos, value_boundary<int_t>(101))
+        .apply(in->target_view(), out->target_view());
 #else
-    gridtools::boundary_apply<gridtools::value_boundary<int_t>>(halos, gridtools::value_boundary<int_t>(101))
-        .apply(inv, outv);
+    boundary_apply<value_boundary<int_t>>(halos, value_boundary<int_t>(101))
+        .apply(in->target_view(), out->target_view());
 #endif
-    in.sync();
-    out.sync();
+
+    auto inv = in->host_view();
+    auto outv = out->host_view();
 
     bool result = true;
 
@@ -864,19 +751,11 @@ bool usingcopy_3() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef storage_traits<backend_t>::storage_info_t<0, 3> meta_data_t;
-    typedef storage_traits<backend_t>::data_store_t<int_t, meta_data_t> storage_t;
+    auto src = make_storage(d1, d2, d3, -1);
+    auto one = make_storage(d1, d2, d3, -1);
+    auto two = make_storage(d1, d2, d3, 0);
 
-    // Definition of the actual data fields that are used for input/output
-
-    meta_data_t meta_(d1, d2, d3);
-    storage_t src(meta_, -1);
-    storage_t one(meta_, -1);
-    storage_t two(meta_, 0);
-
-    auto srcv = make_host_view(src);
-    auto onev = make_host_view(one);
-    auto twov = make_host_view(two);
+    auto srcv = src->host_view();
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
@@ -886,25 +765,19 @@ bool usingcopy_3() {
         }
     }
 
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-    halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
+    array<halo_descriptor, 3> halos;
+    halos[0] = halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
+    halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    src.sync();
-    one.sync();
-    two.sync();
 #ifdef __CUDACC__
-    auto srcdv = make_device_view(src);
-    auto onedv = make_device_view(one);
-    auto twodv = make_device_view(two);
-    gridtools::boundary_apply_gpu<gridtools::copy_boundary>(halos).apply(onedv, twodv, srcdv);
+    boundary_apply_gpu<copy_boundary>(halos).apply(one->target_view(), two->target_view(), src->target_view());
 #else
-    gridtools::boundary_apply<gridtools::copy_boundary>(halos).apply(onev, twov, srcv);
+    boundary_apply<copy_boundary>(halos).apply(one->target_view(), two->target_view(), src->target_view());
 #endif
-    src.sync();
-    one.sync();
-    two.sync();
+
+    auto onev = one->host_view();
+    auto twov = two->host_view();
 
     bool result = true;
 

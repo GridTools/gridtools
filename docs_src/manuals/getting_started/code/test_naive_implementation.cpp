@@ -1,19 +1,14 @@
-#include <gridtools/storage/storage_facility.hpp>
+#include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/mc.hpp>
 
 using namespace gridtools;
 
-using backend_t = backend::mc;
-
-using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
-using data_store_t = storage_traits<backend_t>::data_store_t<double, storage_info_t>;
-
-using storage_view_t = decltype(make_host_view(std::declval<data_store_t>()));
-
 // lap-begin
-void laplacian(storage_view_t &lap, storage_view_t &in, int boundary_size) {
-    int Ni = in.total_length<0>();
-    int Nj = in.total_length<1>();
-    int Nk = in.total_length<2>();
+auto laplacian = [](auto &lap, auto &in, int boundary_size) {
+    auto lengths = in.lengths();
+    int Ni = lengths[0];
+    int Nj = lengths[1];
+    int Nk = lengths[2];
     for (int i = boundary_size; i < Ni - boundary_size; ++i) {
         for (int j = boundary_size; j < Nj - boundary_size; ++j) {
             for (int k = boundary_size; k < Nk - boundary_size; ++k) {
@@ -23,24 +18,26 @@ void laplacian(storage_view_t &lap, storage_view_t &in, int boundary_size) {
             }
         }
     }
-}
+};
 // lap-end
 
+const auto storage_builder = storage::builder<storage::mc>.type<double>();
+
 // smoothing-begin
-void naive_smoothing(storage_view_t &out, storage_view_t &in, double alpha, int kmax) {
+auto naive_smoothing = [](auto &out, auto &in, double alpha, int kmax) {
     int lap_boundary = 1;
     int full_boundary = 2;
 
-    int Ni = in.total_length<0>();
-    int Nj = in.total_length<1>();
-    int Nk = in.total_length<2>();
+    int Ni = in.lengths()[0];
+    int Nj = in.lengths()[1];
+    int Nk = in.lengths()[2];
 
     // Instantiate temporary fields
-    storage_info_t info(Ni, Nj, Nk);
-    data_store_t lap_storage(info);
-    auto lap = make_host_view(lap_storage);
-    data_store_t laplap_storage(info);
-    auto laplap = make_host_view(laplap_storage);
+    auto make_storage = storage_builder.dimensions(Ni, Nj, Nk);
+    auto lap_storage = make_storage();
+    auto lap = lap_storage->target_view();
+    auto laplap_storage = make_storage();
+    auto laplap = laplap_storage->target_view();
 
     // laplacian of phi
     laplacian(lap, in, lap_boundary);
@@ -57,7 +54,7 @@ void naive_smoothing(storage_view_t &out, storage_view_t &in, double alpha, int 
             }
         }
     }
-}
+};
 // smoothing-end
 
 int main() {
@@ -66,13 +63,13 @@ int main() {
     uint_t Nk = 20;
     uint_t kmax = 12;
 
-    storage_info_t info(Ni, Nj, Nk);
+    auto make_storage = storage_builder.dimensions(Ni, Nj, Nk);
 
-    data_store_t phi(info);
-    data_store_t phi_new(info);
+    auto phi = make_storage();
+    auto phi_new = make_storage();
 
-    auto phi_view = make_host_view(phi);
-    auto phi_new_view = make_host_view(phi_new);
+    auto phi_view = phi->target_view();
+    auto phi_new_view = phi_new->target_view();
 
     laplacian(phi_new_view, phi_view, 1);
     naive_smoothing(phi_new_view, phi_view, 0.5, kmax);

@@ -10,7 +10,6 @@
 #include <fstream>
 #include <gridtools/common/boollist.hpp>
 #include <gridtools/communication/halo_exchange.hpp>
-#include <gridtools/storage/storage_facility.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 #include <iostream>
 #include <mpi.h>

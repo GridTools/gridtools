@@ -50,11 +50,6 @@ else()
 
         if(GT_USE_MPI)
             add_custom_mpi_test(x86 TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
-
-            ## The next executable is not made into a test since it does not validate.
-            ## The numerics need to be fixed (this is a task to be undertaken in the future)
-            add_executable(shallow_water_enhanced_x86  shallow_water_enhanced.cpp)
-            target_link_libraries(shallow_water_enhanced_x86 gtest_main gcl GridToolsTestX86)
         endif()
     endif(GT_ENABLE_BACKEND_X86)
 
@@ -77,11 +72,6 @@ else()
 
         if(GT_USE_MPI)
             add_custom_mpi_test(naive TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
-
-            ## The next executable is not made into a test since it does not validate.
-            ## The numerics need to be fixed (this is a task to be undertaken in the future)
-            add_executable(shallow_water_enhanced_naive  shallow_water_enhanced.cpp)
-            target_link_libraries(shallow_water_enhanced_naive gtest_main gcl GridToolsTestNAIVE)
         endif()
     endif(GT_ENABLE_BACKEND_NAIVE)
 
@@ -108,11 +98,6 @@ else()
 
         if(GT_USE_MPI)
             add_custom_mpi_test(mc TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
-
-            ## The next executable is not made into a test since it does not validate.
-            ## The numerics need to be fixed (this is a task to be undertaken in the future)
-            add_executable(shallow_water_enhanced_mc  shallow_water_enhanced.cpp)
-            target_link_libraries(shallow_water_enhanced_mc  gtest_main gcl GridToolsTestMC)
         endif()
     endif(GT_ENABLE_BACKEND_MC)
 
@@ -150,11 +135,6 @@ else()
 
        if(GT_USE_MPI)
            add_custom_mpi_test(cuda TARGET copy_stencil_parallel NPROC 4 SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )
-
-           ## The next executable is not made into a test since it does not validate.
-           ## The numerics need to be fixed (this is a task to be undertaken in the future)
-           add_executable(shallow_water_enhanced_cuda shallow_water_enhanced.cu)
-           target_link_libraries(shallow_water_enhanced_cuda gtest_main gcl GridToolsTestCUDA)
         endif()
     endif(GT_ENABLE_BACKEND_CUDA)
 
