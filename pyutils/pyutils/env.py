@@ -95,10 +95,13 @@ def clustername():
         >>> clustername()
         'kesch'
     """
-    for _ in range(3):
-        output = runtools.run(['scontrol', 'show', 'config'])
-        m = re.compile(r'.*ClusterName\s*=\s*(\S*).*',
-                       re.MULTILINE | re.DOTALL).match(output)
-        if m:
-            return m.group(1)
-    raise EnvironmentError('Could not get SLURM cluster name')
+    if env.use_slurm():
+        for _ in range(3):
+            output = runtools.run(['scontrol', 'show', 'config'])
+            m = re.compile(r'.*ClusterName\s*=\s*(\S*).*',
+                           re.MULTILINE | re.DOTALL).match(output)
+            if m:
+                return m.group(1)
+        raise EnvironmentError('Could not get SLURM cluster name')
+    else:
+        hostname()
