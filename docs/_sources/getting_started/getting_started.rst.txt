@@ -295,7 +295,7 @@ next lines the layers in :math:`k` are defined. In this case we have only one
 interval. We will discuss the details later.
 
 In line 18 we execute the stencil computation. In our example only one stencil participates.
-Hence we can use ``easy_run`` simplified API. We pass the stencil, the backend object, the grid
+Hence we can use ``run_single_stage`` simplified API. We pass the stencil, the backend object, the grid
 (the information about the loop bounds) and the storages on which the computation needs to be executed.
 The number and the order of of storage arguments should match stencil accessors.
 
@@ -368,11 +368,11 @@ Then we can assemble the computation
 .. literalinclude:: code/gt_smoothing_variant1_computation.hpp
    :language: gridtools
 
-We can not use ``easy_run`` API because now we should compose computation from three stencil calls. To achieve that
+We can not use ``run_single_stage`` API because now we should compose computation from three stencil calls. To achieve that
 we use full featured ``run`` API. It requires stencil composition specification as a first parameter. That specification
 is provided in a form of generic lambda. Its arguments represent the storages that are used in computation.
 The expression that is returned describes how the stencils should be composed. It is where |GT| EDSL is used.
-``execute_parallel()`` here means that each :math:`k`-level can be executed in parallel. ``stage`` clause represents
+``execute_parallel()`` here means that each :math`k`-level can be executed in parallel. ``stage`` clause represents
 a call to the stencil with the given arguments.
 
 In this version we needed to explicitly allocate the temporary fields
