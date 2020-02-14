@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; GridTools 1.1.0 documentation</title>
+  <title>Introduction &mdash; GridTools 1.1.3 documentation</title>
   
 
   
@@ -97,6 +97,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-and-use">Installation and Use</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#simple-script">Simple Script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enabling-clang-cuda-and-amd-gpu-support-experimental">Enabling Clang-CUDA and AMD GPU Support (Experimental)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#using-gridtools">Using GridTools</a></li>
 </ul>
 </li>
@@ -265,6 +266,45 @@ mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
 cmake ..
 make -j4
 </pre></div>
+</div>
+</div>
+<div class="section" id="enabling-clang-cuda-and-amd-gpu-support-experimental">
+<h3>Enabling Clang-CUDA and AMD GPU Support (Experimental)<a class="headerlink" href="#enabling-clang-cuda-and-amd-gpu-support-experimental" title="Permalink to this headline">¶</a></h3>
+<p>Besides NVCC-based compilation for NVIDIA GPUs, <cite>GridTools</cite> additionally supports Clang-based compilation for NVIDIA and AMD GPUs.
+Due to a bug in Clang (<a class="reference external" href="https://bugs.llvm.org/show_bug.cgi?id=42061">https://bugs.llvm.org/show_bug.cgi?id=42061</a>), this is only possible when not using OpenMP.
+As all non-GPU backends of GridTools currently require OpenMP, they have to be disabled.
+Then, Clang-based CUDA compilation can be activated by setting the CMake-variable <code class="docutils literal notranslate"><span class="pre">GT_CUDA_COMPILATION_TYPE</span></code> to <code class="docutils literal notranslate"><span class="pre">Clang-CUDA</span></code>
+and setting Clang as the main C++ compiler. A fully working command for configuring GridTools could look like this:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CXX</span><span class="o">=</span>/path/to/clang++
+cmake -DGT_ENABLE_BACKEND_CUDA<span class="o">=</span>ON <span class="se">\</span>
+    -DGT_CUDA_COMPILATION_TYPE<span class="o">=</span>Clang-CUDA <span class="se">\</span>
+    -DGT_ENABLE_BACKEND_MC<span class="o">=</span>OFF <span class="se">\</span>
+    -DGT_ENABLE_BACKEND_X86<span class="o">=</span>OFF <span class="se">\</span>
+    -DGT_ENABLE_BACKEND_NAIVE<span class="o">=</span>OFF <span class="se">\</span>
+    -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local <span class="se">\</span>
+    ..
+</pre></div>
+</div>
+<p>Further, GridTools can also be compiled for AMD GPUs using AMD’s HIP. But due to limitations of AMD’s current HCC compiler,
+the Clang-based HIP version has to be used, which is not yet officially distributed in the current HIP releases
+(but will be the successor of HCC-based HIP). Compilation of a Clang-based HIP compiler is relatively straightforward and
+documented in the <a class="reference external" href="https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md#hip-clang">official HIP repository</a>.
+Otherwise, the configuration is similar to the one for Clang-CUDA. Just set <code class="docutils literal notranslate"><span class="pre">GT_CUDA_COMPILATION_TYPE</span></code> to <code class="docutils literal notranslate"><span class="pre">HIPCC_AMDGPU</span></code>
+and the C++ compiler to HIPCC. For example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CXX</span><span class="o">=</span>/path/to/hipcc
+cmake -DGT_ENABLE_BACKEND_CUDA<span class="o">=</span>ON <span class="se">\</span>
+    -DGT_CUDA_COMPILATION_TYPE<span class="o">=</span>HIPCC-AMDGPU <span class="se">\</span>
+    -DGT_ENABLE_BACKEND_MC<span class="o">=</span>OFF <span class="se">\</span>
+    -DGT_ENABLE_BACKEND_X86<span class="o">=</span>OFF <span class="se">\</span>
+    -DGT_ENABLE_BACKEND_NAIVE<span class="o">=</span>OFF <span class="se">\</span>
+    -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local <span class="se">\</span>
+    ..
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The backend used for the AMD GPUs is also named “CUDA” for historical reasons as internally the same backend (with minor changes)
+is compiled for AMD and NVIDIA GPUs.</p>
 </div>
 </div>
 <div class="section" id="using-gridtools">
