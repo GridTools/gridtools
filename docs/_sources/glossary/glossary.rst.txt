@@ -35,7 +35,7 @@ Glossary
 
   Data Store
     An object that manages a logical multidimensional array of values.
-    See section :ref:`Data Store`.
+    See section :ref:`data-store`.
 
   Data View
     An object that allows to access and modify the elements of a

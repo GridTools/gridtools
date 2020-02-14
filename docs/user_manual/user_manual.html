@@ -135,7 +135,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#run-computation-driver"><strong>run</strong> : Computation Driver</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#stencil-composition-specification">Stencil Composition Specification</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#the-notion-of-a-stage">The Notion of a Stage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#multi-passes">Multi passes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#multi-pass-computations">Multi-Pass Computations</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#selecting-the-backend">Selecting the Backend</a></li>
@@ -628,7 +628,7 @@ side-effects and no status (which is why they are marked as <cite>static</cite>)
 <cite>implementation</cite>. The interface informs both the caller, on the order and types of arguments that have to be passed to
 it, and the implementation, on the names and types of the symbols available to it.</p>
 <p>The stencil operator specifies the computation to be performed in each grid point of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> of the
-stencil <a class="reference internal" href="../glossary/glossary.html#term-computation"><span class="xref std std-term">Computation</span></a>. In the implementation, a point of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> at which the stencil operator
+stencil <span class="xref std std-term">Computation</span>. In the implementation, a point of the <a class="reference internal" href="../glossary/glossary.html#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a> at which the stencil operator
 is called is referred to as <a class="reference internal" href="../glossary/glossary.html#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>.</p>
 <p>A stencil operator is a <cite>class</cite>, or a <cite>struct</cite>, with the following public properties:</p>
 <ul class="simple">
@@ -1103,8 +1103,8 @@ and the <a class="reference internal" href="../glossary/glossary.html#term-exten
 information is then passed to the architecture specific backend for the
 execution.</p>
 </div>
-<div class="section" id="multi-passes">
-<h4>Multi passes<a class="headerlink" href="#multi-passes" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="multi-pass-computations">
+<h4>Multi-Pass Computations<a class="headerlink" href="#multi-pass-computations" title="Permalink to this headline">¶</a></h4>
 <p>Stencil composition specification allows also to combine several passes with different execution orders
 in a single computation. This is very useful for implementing computations that require two vertical swipes,
 one ascending and one descending, but has to be used with care. Before explaining the rules for using
@@ -1276,7 +1276,7 @@ Full examples on <a class="reference internal" href="../glossary/glossary.html#t
 <a class="reference external" href="https://github.com/GridTools/gridtools/blob/master/gt_examples/stencil_composition/horizontal_diffusion_limited.cpp">horizontal diffusion</a>
 and
 <a class="reference external" href="https://github.com/GridTools/gridtools/blob/master/regression/vertical_advection_dycore.cpp">vertical advection</a>.</p>
-<p>We now describe the details of eachconstructs.</p>
+<p>We now describe the details of each construct.</p>
 <div class="section" id="cache-type">
 <span id="id7"></span><h4>Cache Type<a class="headerlink" href="#cache-type" title="Permalink to this headline">¶</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">cache_type</span></code> describes the type of access pattern present in our stencil for the field being cached. It’s
