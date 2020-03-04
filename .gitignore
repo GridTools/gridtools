@@ -28,7 +28,6 @@ __pycache__
 !cmake
 !docs
 !docs_src
-!regression
 !examples
 !include
 !jenkins
@@ -36,7 +35,7 @@ __pycache__
 !python
 !src
 !tools
-!unit_tests
+!tests
 !.clang-format
 !.gitignore
 !CMakeLists.txt
@@ -52,4 +51,4 @@ __pycache__
 !Vagrantfile
 !version.txt
 !.travis.yml
-
+!includer.in

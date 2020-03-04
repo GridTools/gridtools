@@ -32,7 +32,7 @@ precision = '@PYUTILS_PRECISION@'
 log.debug('Precision', precision)
 
 # Grid type
-grid = '@PYUTILS_GRID@'
+grid = 'structured'
 log.debug('Grid', grid)
 
 # Compiled backends

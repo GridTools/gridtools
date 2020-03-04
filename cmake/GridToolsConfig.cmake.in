@@ -7,13 +7,13 @@ message(STATUS "GridTools version @GridTools_VERSION@ found at ${GRIDTOOLS_CONFI
 include(CMakeFindDependencyMacro)
 find_dependency(Boost @REQUIRED_BOOST_VERSION@)
 
-if(@GT_USE_MPI@)
+if(@MPI_FOUND@)
     find_dependency(MPI COMPONENTS CXX)
     include("@PACKAGE_GRIDTOOLS_MODULE_PATH@/workaround_mpi.cmake")
     _fix_mpi_flags()
 endif()
 
-if(@OPENMP_AVAILABLE@)
+if(@OpenMP_CXX_FOUND@)
     find_dependency(OpenMP COMPONENTS CXX)
 endif()
 
@@ -27,16 +27,11 @@ set(GRIDTOOLS_HAS_BACKEND_MC @GT_ENABLE_BACKEND_MC@)
 set(GRIDTOOLS_HAS_BACKEND_X86 @GT_ENABLE_BACKEND_X86@)
 set(GRIDTOOLS_HAS_BACKEND_NAIVE @GT_ENABLE_BACKEND_NAIVE@)
 
-if(@CUDA_AVAILABLE@)
-    set(GRIDTOOLS_CUDA_COMPILATION_TYPE "@GT_CUDA_COMPILATION_TYPE@")
-endif()
+set(GRIDTOOLS_CUDA_COMPILATION_TYPE "@GT_CUDA_COMPILATION_TYPE@")
 
 set_and_check(GridTools_MODULE_PATH @PACKAGE_GRIDTOOLS_MODULE_PATH@)
 set_and_check(GridTools_INCLUDE_PATH @PACKAGE_GRIDTOOLS_INCLUDE_PATH@)
 
-# Remove with GT 2.0 (cpp_bindgen will be fully standalone)
-set(CPP_BINDGEN_GT_LEGACY ON CACHE BOOL "Enables the legacy mode for API compatibility with GridTools 1.x" FORCE)
-mark_as_advanced(CPP_BINDGEN_GT_LEGACY)
 find_dependency(cpp_bindgen
     HINTS @GT_CPP_BINDGEN_CONFIG_LOCATION@)
 

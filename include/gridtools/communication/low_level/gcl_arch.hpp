@@ -31,10 +31,4 @@ namespace gridtools {
     /** Indicates that the data is on the memory of a GPU
      */
     struct gcl_gpu {};
-
-    /** Indicates that the data is on the memory of a MC card.
-
-        Note: Not supported, placed here only for illustration.
-     */
-    struct gcl_mc {}; // Not supported, placed here only for illustration.
 } // namespace gridtools

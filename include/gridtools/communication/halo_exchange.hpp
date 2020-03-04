@@ -21,30 +21,6 @@
 #include "high_level/field_on_the_fly.hpp"
 
 namespace gridtools {
-
-    namespace _impl {
-        /**
-           This functions returns an MPI_Communicator that is a
-           cartesian one starting from another communicator. The MPI
-           API specifies that the values of the Array of dimensions
-           that are different than zero will be unchanged, and only
-           the ones that are zero will be updated. In this way, we can
-           pass a Cartesian communicator and its sizes to get a
-           communicator that is identical to the one passed in.
-         */
-        template <typename ValueType, size_t Size>
-        MPI_Comm _make_comm(MPI_Comm comm, array<ValueType, Size> &dims) {
-            int nprocs;
-            MPI_Comm_size(comm, &nprocs);
-            MPI_Dims_create(nprocs, dims.size(), &dims[0]);
-            int period[3] = {1, 1, 1};
-            MPI_Comm CartComm;
-            MPI_Cart_create(comm, 3, &dims[0], period, false, &CartComm);
-            return CartComm;
-        }
-
-    } // namespace _impl
-
     /**
        \anchor descr_halo_exchange_dynamic_ut
        This is the main class for the halo exchange pattern in the case
@@ -185,7 +161,6 @@ namespace gridtools {
         int version = 0>
     class halo_exchange_dynamic_ut {
 
-      private:
         typedef typename reverse_map<T_layout_map>::type layout_map; // This is necessary since the internals of gcl
                                                                      // use "increasing stride order" instead of
                                                                      // "decreasing stride order"
@@ -205,54 +180,13 @@ namespace gridtools {
         typedef Halo_Exchange_3D<grid_type> pattern_type;
 
       private:
-        template <typename Array>
-        MPI_Comm _make_comm(MPI_Comm comm, Array dims) {
-            int nprocs;
-            MPI_Comm_size(comm, &nprocs);
-            MPI_Dims_create(nprocs, dims.size(), &dims[0]);
-            int period[3] = {1, 1, 1};
-            MPI_Comm CartComm;
-            MPI_Cart_create(comm, 3, &dims[0], period, false, &CartComm);
-            return CartComm;
-        }
-
         typedef hndlr_dynamic_ut<DataType, grid_type, pattern_type, layout2proc_map, Gcl_Arch> hd_t;
 
         hd_t hd;
 
         halo_exchange_dynamic_ut(halo_exchange_dynamic_ut const &) {}
 
-        //        typename grid_type::period_type periodicity;
-
-#ifdef GCL_TRACE
-        int pattern_tag;
-#endif
-
       public:
-        template <typename layout, int DIM>
-        struct proc_map {};
-
-        template <typename layout>
-        struct proc_map<layout, 2> {
-            static std::vector<int> map() {
-                std::vector<int> m(2);
-                m[0] = layout::at(0);
-                m[1] = layout::at(1);
-                return m;
-            }
-        };
-
-        template <typename layout>
-        struct proc_map<layout, 3> {
-            static std::vector<int> map() {
-                std::vector<int> m(3);
-                m[0] = layout::at(0);
-                m[1] = layout::at(1);
-                m[2] = layout::at(2);
-                return m;
-            }
-        };
-
         /** constructor that takes the periodicity (mathich the \link
             boollist_concept \endlink concept, and the MPI CART
             communicator in 3 dimensions of the processing grid. the
@@ -279,20 +213,7 @@ namespace gridtools {
 
            \param max_fields_n Maximum number of data fields that will be passed to the communication functions
         */
-        void setup(int max_fields_n) {
-            hd.setup(max_fields_n);
-#ifdef GCL_TRACE
-            stats_collector<DIMS>::instance()->init(hd.pattern().proc_grid().communicator);
-            std::vector<int> map = proc_map<layout_map, DIMS>::map();
-            int coords[DIMS];
-            int dims[DIMS];
-            hd.pattern().proc_grid().coords(coords[0], coords[1], coords[2]);
-            hd.pattern().proc_grid().dims(dims[0], dims[1], dims[2]);
-            pattern_tag = stats_collector<DIMS>::instance()->add_pattern(
-                Pattern<DIMS>(pt_dynamic, hd.halo.halos, map, periodicity, coords, dims));
-            hd.set_pattern_tag(pattern_tag);
-#endif
-        }
+        void setup(int max_fields_n) { hd.setup(max_fields_n); }
 
         /**
            Function to register halos with the pattern. The registration
@@ -345,40 +266,14 @@ namespace gridtools {
 
            \param[in] fields vector with data fields pointers to be packed from
         */
-        void pack(std::vector<DataType *> const &fields) {
-#ifdef GCL_TRACE
-            double start_time = MPI_Wtime();
-#endif
-            hd.pack(fields);
-#ifdef GCL_TRACE
-#ifdef __CUDACC__
-            GT_CUDA_CHECK(cudaDeviceSynchronize());
-#endif
-            double end_time = MPI_Wtime();
-            stats_collector<DIMS>::instance()->add_event(
-                ExchangeEvent(ee_pack, start_time, end_time, fields.size(), pattern_tag));
-#endif
-        }
+        void pack(std::vector<DataType *> const &fields) { hd.pack(fields); }
 
         /**
            Function to unpack received data
 
            \param[in] fields vector with data fields pointers to be unpacked into
         */
-        void unpack(std::vector<DataType *> const &fields) {
-#ifdef GCL_TRACE
-            double start_time = MPI_Wtime();
-#endif
-            hd.unpack(fields);
-#ifdef GCL_TRACE
-#ifdef __CUDACC__
-            GT_CUDA_CHECK(cudaDeviceSynchronize());
-#endif
-            double end_time = MPI_Wtime();
-            stats_collector<DIMS>::instance()->add_event(
-                ExchangeEvent(ee_unpack, start_time, end_time, fields.size(), pattern_tag));
-#endif
-        }
+        void unpack(std::vector<DataType *> const &fields) { hd.unpack(fields); }
 
         /**
            function to trigger data exchange
@@ -386,41 +281,11 @@ namespace gridtools {
            Note: when the start_exchange() + wait() combination is used, the exchange() method should not be used, and
            vice versa.
         */
-        void exchange() {
-#ifdef GCL_TRACE
-            double start_time = MPI_Wtime();
-#endif
-            hd.exchange();
-#ifdef GCL_TRACE
-            double end_time = MPI_Wtime();
-            stats_collector<DIMS>::instance()->add_event(
-                ExchangeEvent(ee_exchange, start_time, end_time, 0, pattern_tag));
-#endif
-        }
+        void exchange() { hd.exchange(); }
 
-        void post_receives() {
-#ifdef GCL_TRACE
-            double start_time = MPI_Wtime();
-#endif
-            hd.post_receives();
-#ifdef GCL_TRACE
-            double end_time = MPI_Wtime();
-            stats_collector<DIMS>::instance()->add_event(
-                ExchangeEvent(ee_post_receives, start_time, end_time, 0, pattern_tag));
-#endif
-        }
+        void post_receives() { hd.post_receives(); }
 
-        void do_sends() {
-#ifdef GCL_TRACE
-            double start_time = MPI_Wtime();
-#endif
-            hd.do_sends();
-#ifdef GCL_TRACE
-            double end_time = MPI_Wtime();
-            stats_collector<DIMS>::instance()->add_event(
-                ExchangeEvent(ee_do_sends, start_time, end_time, 0, pattern_tag));
-#endif
-        }
+        void do_sends() { hd.do_sends(); }
 
         /**
            function to trigger data exchange initiation when using split-phase communication.
@@ -428,17 +293,7 @@ namespace gridtools {
            Note: when the start_exchange() + wait() combination is used, the exchange() method should not be used, and
            vice versa.
         */
-        void start_exchange() {
-#ifdef GCL_TRACE
-            double start_time = MPI_Wtime();
-#endif
-            hd.start_exchange();
-#ifdef GCL_TRACE
-            double end_time = MPI_Wtime();
-            stats_collector<DIMS>::instance()->add_event(
-                ExchangeEvent(ee_start_exchange, start_time, end_time, 0, pattern_tag));
-#endif
-        }
+        void start_exchange() { hd.start_exchange(); }
 
         /**
            function to trigger data exchange
@@ -446,16 +301,7 @@ namespace gridtools {
            Note: when the start_exchange() + wait() combination is used, the exchange() method should not be used, and
            vice versa.
         */
-        void wait() {
-#ifdef GCL_TRACE
-            double start_time = MPI_Wtime();
-#endif
-            hd.wait();
-#ifdef GCL_TRACE
-            double end_time = MPI_Wtime();
-            stats_collector<DIMS>::instance()->add_event(ExchangeEvent(ee_wait, start_time, end_time, 0, pattern_tag));
-#endif
-        }
+        void wait() { hd.wait(); }
 
         grid_type const &comm() const { return hd.comm(); }
     };
@@ -522,10 +368,6 @@ namespace gridtools {
             : hd(grid_type(c.template permute<layout2proc_map>(), comm)) {}
 
         explicit halo_exchange_generic_base(grid_type const &g) : hd(g) {}
-
-        // halo_exchange_generic(halo_exchange_generic const &src)
-        //   :
-        // {}
 
         /** Function to rerturn the L3 level pattern used inside the pattern itself.
 
@@ -627,8 +469,6 @@ namespace gridtools {
     class halo_exchange_generic<layout2proc_map, gcl_cpu>
         : public halo_exchange_generic_base<layout2proc_map, gcl_cpu> {
 
-        typedef gcl_cpu Gcl_Arch;
-
         typedef halo_exchange_generic_base<layout2proc_map, gcl_cpu> base_type;
 
       public:
@@ -653,7 +493,6 @@ namespace gridtools {
         : public halo_exchange_generic_base<layout2proc_map, gcl_gpu> {
         static const int DIMS = 3;
 
-        typedef gcl_gpu Gcl_Arch;
         typedef halo_exchange_generic_base<layout2proc_map, gcl_gpu> base_type;
 
       public:

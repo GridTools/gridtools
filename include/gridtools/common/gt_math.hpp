@@ -8,7 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+
 #include <cmath>
+#include <cstdlib>
 
 #include "defs.hpp"
 #include "host_device.hpp"
@@ -80,7 +82,7 @@ namespace gridtools {
             return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
         }
 
-#if defined(__CUDACC__) && defined(__NVCC__)
+#if defined(GT_CUDACC) && defined(__NVCC__)
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
         GT_FUNCTION decltype(auto) fabs(double val) { return ::fabs(val); }
@@ -96,7 +98,7 @@ namespace gridtools {
         using std::fabs;
 #endif
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
         GT_FUNCTION decltype(auto) abs(int val) { return ::abs(val); }
@@ -146,7 +148,7 @@ namespace gridtools {
         using std::sqrt;
 #endif
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
         GT_FUNCTION decltype(auto) fmod(float x, float y) { return ::fmodf(x, y); }
@@ -158,7 +160,7 @@ namespace gridtools {
         using std::fmod;
 #endif
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
         GT_FUNCTION decltype(auto) trunc(float val) { return ::truncf(val); }

@@ -1,51 +1,58 @@
-if (NOT GT_TESTS_ICOSAHEDRAL_GRID)
-    function(add_getting_started_test)
-        set(options)
-        set(one_value_args SOURCE SUFFIX)
-        cmake_parse_arguments(ARG "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-        get_filename_component(_name ${ARG_SOURCE} NAME_WE)
-        set(test_name getting_started_${_name}${ARG_SUFFIX})
+function(gridtools_add_getting_started_test tgt_name)
+    set(options)
+    set(one_value_args)
+    set(multi_value_args LIBRARIES SOURCES LABELS)
+    cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+    set(tgt getting_started_${tgt_name})
+    gridtools_add_executable(${tgt}
+            SOURCES ${ARGS_SOURCES}
+            LIBRARIES gridtools ${ARGS_LIBRARIES}
+            CUDA_ARCH ${GT_CUDA_ARCH})
+    add_test(NAME ${tgt} COMMAND $<TARGET_FILE:${tgt}>)
+    set(labels getting_started ${ARGS_LABELS})
+    set_tests_properties(${tgt} PROPERTIES LABELS "${labels}")
+endfunction()
 
-        add_executable(${test_name} ${ARG_SOURCE})
-        target_link_libraries(${test_name} GridToolsTest)
+gridtools_add_getting_started_test(test_naive_implementation SOURCES code/test_naive_implementation.cpp)
+gridtools_add_getting_started_test(test_gt_storage SOURCES code/test_gt_storage.cpp)
 
-        if(${ARG_SOURCE} MATCHES "\.cu$" AND
-                (GT_CUDA_COMPILATION_TYPE STREQUAL "Clang-CUDA" OR
-                 GT_CUDA_COMPILATION_TYPE STREQUAL "HIPCC-AMDGPU"))
-            set_source_files_properties(${ARG_SOURCE} PROPERTIES LANGUAGE CXX)
-        endif()
-
-        gridtools_add_test(
-            NAME ${test_name}
-            COMMAND $<TARGET_FILE:${test_name}>
-            LABELS getting_started
-            )
-    endfunction()
-
-    file(GLOB getting_started_sources "code/test_*.cpp")
-    foreach(test_source IN LISTS getting_started_sources)
-        add_getting_started_test(SOURCE ${test_source} SUFFIX "")
-    endforeach()
-
-    if(GT_ENABLE_BACKEND_CUDA)
-        file(GLOB getting_started_sources "code/test_*.cu")
-        foreach(test_source IN LISTS getting_started_sources)
-            add_getting_started_test(SOURCE ${test_source} SUFFIX "_cuda")
-        endforeach()
-    endif()
-
-    # Test the CMake example file
-    # The generated file should be part of the repository to be able to build the docs without having to run CMake.
-    configure_file(code/CMakeLists.txt.in ${CMAKE_CURRENT_LIST_DIR}/code/CMakeLists.txt @ONLY)
-
-    include(ExternalProject)
-    ExternalProject_Add(getting_started_cmake_test
-        DOWNLOAD_COMMAND ""
-        SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/code
-        CMAKE_ARGS
-            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-            -DGridTools_DIR=${PROJECT_BINARY_DIR} # relies on the GridToolsConfig.cmake in the build directory (the one used for export(package))
-        INSTALL_COMMAND ""
-    )
+if(TARGET storage_cuda)
+    gridtools_add_getting_started_test(test_gt_storage_cuda SOURCES code/test_gt_storage.cpp LIBRARIES storage_cuda)
 endif()
+
+if(TARGET backend_mc)
+    gridtools_add_getting_started_test(test_gt_laplacian
+            SOURCES code/test_gt_laplacian.cpp LIBRARIES backend_mc)
+    gridtools_add_getting_started_test(test_gt_smoothing_variant1
+            SOURCES code/test_gt_smoothing_variant1.cpp LIBRARIES backend_mc)
+    gridtools_add_getting_started_test(test_gt_smoothing_variant2
+            SOURCES code/test_gt_smoothing_variant2.cpp LIBRARIES backend_mc)
+    gridtools_add_getting_started_test(test_gt_smoothing_variant3
+            SOURCES code/test_gt_smoothing_variant3.cpp LIBRARIES backend_mc)
+endif()
+
+if(TARGET backend_cuda)
+    gridtools_add_getting_started_test(test_gt_laplacian_cuda
+            SOURCES code/test_gt_laplacian.cpp LIBRARIES backend_cuda)
+    gridtools_add_getting_started_test(test_gt_smoothing_variant1_cuda
+            SOURCES code/test_gt_smoothing_variant1.cpp LIBRARIES backend_cuda)
+    gridtools_add_getting_started_test(test_gt_smoothing_variant2_cuda
+            SOURCES code/test_gt_smoothing_variant2.cpp LIBRARIES backend_cuda)
+    gridtools_add_getting_started_test(test_gt_smoothing_variant3_cuda
+            SOURCES code/test_gt_smoothing_variant3.cpp LIBRARIES backend_cuda)
+endif()
+
+# Test the CMake example file
+# The generated file should be part of the repository to be able to build the docs without having to run CMake.
+configure_file(code/CMakeLists.txt.in ${CMAKE_CURRENT_LIST_DIR}/code/CMakeLists.txt @ONLY)
+
+include(ExternalProject)
+ExternalProject_Add(getting_started_cmake_test
+    DOWNLOAD_COMMAND ""
+    SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/code
+    CMAKE_ARGS
+        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        -DGridTools_DIR=${PROJECT_BINARY_DIR} # relies on the GridToolsConfig.cmake in the build directory (the one used for export(package))
+    INSTALL_COMMAND ""
+    )

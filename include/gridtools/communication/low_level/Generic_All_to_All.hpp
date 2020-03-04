@@ -117,7 +117,7 @@ namespace gridtools {
 
             \param[in] nprocs Number of processes in the MPI world
          */
-        all_to_all(int nprocs) : a2a_comm(GCL_WORLD), to(nprocs), from(nprocs) {}
+        all_to_all(int nprocs) : a2a_comm(GCL_world()), to(nprocs), from(nprocs) {}
 
         /** Constructor that takes the number of process which takes a
             communicator to use during communication. The elements of the
@@ -142,14 +142,6 @@ namespace gridtools {
 
             for (unsigned int i = 0; i < from.size(); ++i) {
                 if (from[i].full()) {
-#ifndef NDEBUG
-                    int tpid;
-                    MPI_Comm_rank(a2a_comm, &tpid);
-                    std::cout << "@" << tpid << "@ RECV " << i << " " << (void *)(from[i].ptr) << " " << from[i].mpidt
-                              << " "
-                              << "\n";
-                    std::cout.flush();
-#endif
                     MPI_Irecv(from[i].ptr,
                         1,
 
@@ -171,12 +163,6 @@ namespace gridtools {
 
             for (unsigned int i = 0; i < to.size(); ++i) {
                 if (to[i].full()) {
-#ifndef NDEBUG
-                    std::cout << "@" << tpid << "@ SEND " << i << " " << (void *)(to[i].ptr) << " " << to[i].mpidt
-                              << " "
-                              << "\n";
-                    std::cout.flush();
-#endif
                     MPI_Isend(to[i].ptr, 1, to[i].mpidt, i, tpid, a2a_comm, &(to[i].send_r));
                 }
             }
@@ -198,12 +184,6 @@ namespace gridtools {
             MPI_Status status;
             for (unsigned int i = 0; i < from.size(); ++i) {
                 if (from[i].full()) {
-#ifndef NDEBUG
-                    int tpid;
-                    MPI_Comm_rank(a2a_comm, &tpid);
-
-                    std::cout << "@" << tpid << "@ WAIT " << i << "\n";
-#endif
                     MPI_Wait(&(from[i].recv_r), &status);
                 }
             }

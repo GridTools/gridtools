@@ -19,8 +19,6 @@
 // This file needs to be changed
 
 namespace gridtools {
-
-#ifdef GCL_MPI
     /** \class MPI_3D_process_grid_t
      * Class that provides a representation of a 3D process grid given an MPI CART
      * It requires the MPI CART to be defined before the grid is created
@@ -244,7 +242,4 @@ namespace gridtools {
         int const &coordinates(uint_t const &i) const { return m_coordinates[i]; }
         int const &dimensions(uint_t const &i) const { return m_dimensions[i]; }
     };
-
-#endif
-
 } // namespace gridtools

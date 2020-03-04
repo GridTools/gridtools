@@ -9,11 +9,12 @@
  */
 #pragma once
 
+#include "../../common/defs.hpp"
 #include "../../common/numerics.hpp"
 #include "./descriptor_base.hpp"
 #include "./gcl_parameters.hpp"
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
 #include "./m_packXL_generic.hpp"
 #include "./m_packXU_generic.hpp"
 #include "./m_packYL_generic.hpp"
@@ -88,10 +89,6 @@ namespace gridtools {
             : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_buffer_size{0}, recv_buffer_size{0} {}
 
         ~hndlr_generic() {
-#ifdef GCL_CHECK_DESTRUCTOR
-            std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
-#endif
-
             for (int i = -1; i <= 1; ++i)
                 for (int j = -1; j <= 1; ++j)
                     for (int k = -1; k <= 1; ++k) {
@@ -135,22 +132,6 @@ namespace gridtools {
 
                             send_buffer_size[translate()(i, j, k)] = (S * max_fields_n * typesize);
                             recv_buffer_size[translate()(i, j, k)] = (R * max_fields_n * typesize);
-
-                            // std::cout << halo_example << std::endl;
-                            // std::cout << "Send size to "
-                            //           << i << ", "
-                            //           << j << ", "
-                            //           << k << ": "
-                            //           << send_buffer_size[translate()(i,j,k)]
-                            //           << std::endl;
-                            // std::cout << "Recv size fr "
-                            //           << i << ", "
-                            //           << j << ", "
-                            //           << k << ": "
-                            //           << recv_buffer_size[translate()(i,j,k)]
-                            //           << std::endl;
-                            // std::cout << std::endl;
-                            // std::cout.flush();
 
                             send_buffer[translate()(i, j, k)] =
                                 _impl::gcl_alloc<char, arch_type>::alloc(send_buffer_size[translate()(i, j, k)]);
@@ -229,7 +210,7 @@ namespace gridtools {
                 for (int jj = -1; jj <= 1; ++jj) {
                     for (int kk = -1; kk <= 1; ++kk) {
                         char *it = reinterpret_cast<char *>(&(send_buffer[translate()(ii, jj, kk)][0]));
-                        pack_dims<DIMS, 0>()(*this, /*make_array(*/ ii, jj, kk /*)*/, it, _fields...);
+                        pack_dims<DIMS, 0>()(*this, ii, jj, kk, it, _fields...);
                     }
                 }
             }
@@ -379,7 +360,7 @@ namespace gridtools {
         };
     };
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
     template <typename HaloExch, typename proc_layout_abs>
     class hndlr_generic<HaloExch, proc_layout_abs, gcl_gpu> : public descriptor_base<HaloExch> {
         typedef gcl_gpu arch_type;
@@ -421,10 +402,6 @@ namespace gridtools {
             : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_buffer_size{0}, recv_buffer_size{0} {}
 
         ~hndlr_generic() {
-#ifdef GCL_CHECK_DESTRUCTOR
-            std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
-#endif
-
             for (int ii = -1; ii <= 1; ++ii)
                 for (int jj = -1; jj <= 1; ++jj)
                     for (int kk = -1; kk <= 1; ++kk) {
@@ -504,10 +481,6 @@ namespace gridtools {
                                     ii_P,
                                     jj_P,
                                     kk_P);
-
-                                //(*filep) << "Size of buffer %d %d %d -> send %d -> recv %d" << ii << jj << kk <<
-                                // send_size[translate()(ii,jj,kk)]*max_fields_n*typesize <<
-                                // recv_size[translate()(ii,jj,kk)]*max_fields_n*typesize << std::endl;;
 
                             } else {
                                 send_size[translate()(ii, jj, kk)] = 0;
@@ -628,9 +601,6 @@ namespace gridtools {
                 }
             }
 
-            // for (int l=0; l<fields.size(); ++l)
-            //   std::cout << "after trimming " << l << " " << fields[l] << std::endl;
-
             /* Computing the (prefix sums for) offsets to place fields in linear buffers
              */
             for (int ii = -1; ii <= 1; ++ii)
@@ -642,20 +612,15 @@ namespace gridtools {
                         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                             if (ii != 0 || jj != 0 || kk != 0) {
                                 prefix_send_size[0 + translate()(ii, jj, kk)] = 0;
-                                // printf("prefix_send_size[l*27+translate()(ii,jj,kk)]=prefix_send_size[%d]=%d\n",0*27+translate()(ii,jj,kk),
-                                // prefix_send_size[0*27+translate()(ii,jj,kk)]);
                                 for (int l = 1; l < fields.size(); ++l) {
                                     prefix_send_size[l * 27 + translate()(ii, jj, kk)] =
                                         prefix_send_size[(l - 1) * 27 + translate()(ii, jj, kk)] +
                                         fields[l - 1].send_buffer_size(make_array(ii, jj, kk));
-                                    // printf("prefix_send_size[l*27+translate()(ii,jj,kk)]=prefix_send_size[%d]=%d\n",l*27+translate()(ii,jj,kk),
-                                    // prefix_send_size[l*27+translate()(ii,jj,kk)]);
                                 }
                             }
                         }
                     }
 
-            // typedef translate_t<3,default_layout_map<3>::type > translate;
             if (send_size[translate()(0, 0, -1)]) {
                 m_packZL_generic(fields,
                     reinterpret_cast<typename field_on_the_fly<T1, T2, T3>::value_type **>(d_send_buffer),
@@ -687,16 +652,7 @@ namespace gridtools {
                     &(prefix_send_size[0]));
             }
 
-#ifdef GCL_MULTI_STREAMS
-            GT_CUDA_CHECK(cudaStreamSynchronize(ZL_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(ZU_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(YL_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(YU_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(XL_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(XU_stream));
-#else
             GT_CUDA_CHECK(cudaDeviceSynchronize());
-#endif
         }
 
         /**
@@ -835,10 +791,7 @@ namespace gridtools {
                     &(prefix_recv_size[0]));
             }
         }
-
-#ifndef GT_DOXYGEN_SHOULD_EXCLUDE_THIS
-#include "./non_vect_interface.hpp"
-#endif
+#include "non_vect_interface.hpp"
     };
 #endif // cudacc
 } // namespace gridtools

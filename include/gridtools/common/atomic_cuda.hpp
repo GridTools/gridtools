@@ -8,7 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
-#include "hip_wrappers.hpp"
+
+#include "cuda_runtime.hpp"
+#include "host_device.hpp"
 
 namespace gridtools {
     /** \ingroup common

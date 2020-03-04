@@ -14,6 +14,18 @@ namespace gridtools {
     using uint_t = unsigned int;
 } // namespace gridtools
 
+#if defined(__CUDACC__)
+#define GT_CUDACC
+#ifdef __CUDA_ARCH__
+#define GT_CUDA_ARCH __CUDA_ARCH__
+#endif
+#elif defined(__HIP__)
+#define GT_CUDACC
+#ifdef __HIP_DEVICE_COMPILE__
+#define GT_CUDA_ARCH 1
+#endif
+#endif
+
 #ifdef __NVCC__
 #define GT_CONSTEXPR
 #else
@@ -26,7 +38,8 @@ namespace gridtools {
 
 #define GT_INTERNAL_ERROR_MSG(x) GT_INTERNAL_ERROR "\nMessage\n\n" x
 
-#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
+#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
 #define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name)                          \
     __forceinline__ __host__ __device__ constexpr class_name() noexcept {} \
     static_assert(1, "")

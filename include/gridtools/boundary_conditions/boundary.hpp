@@ -9,14 +9,14 @@
  */
 #pragma once
 
-#include "../common/hip_wrappers.hpp"
-#ifdef __CUDACC__
-#include "./apply_gpu.hpp"
-#endif
-#include "./apply.hpp"
-
+#include "../common/defs.hpp"
 #include "../communication/low_level/gcl_arch.hpp"
-#include "./predicate.hpp"
+#include "apply.hpp"
+#include "predicate.hpp"
+
+#ifdef GT_CUDACC
+#include "apply_gpu.hpp"
+#endif
 
 /** \defgroup Boundary-Conditions Boundary Conditions
  */
@@ -33,7 +33,7 @@ namespace gridtools {
             using type = boundary_apply<BoundaryFunction, Predicate>;
         };
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
         template <typename BoundaryFunction, typename Predicate>
         struct select_apply<gcl_gpu, BoundaryFunction, Predicate> {
             using type = boundary_apply_gpu<BoundaryFunction, Predicate>;

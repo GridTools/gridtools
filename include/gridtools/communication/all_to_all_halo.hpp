@@ -48,7 +48,7 @@ namespace gridtools {
             pattern. It also takes a communicator that is inside the processor
             grid, if different from MPI_COMM_WORLD
          */
-        all_to_all_halo(grid_type const &g, MPI_Comm &c) : proc_grid(g), a2a(proc_grid.size(), c) {}
+        all_to_all_halo(grid_type const &g, MPI_Comm c) : proc_grid(g), a2a(proc_grid.size(), c) {}
 
         /** This function takes an array or vector of halos (sorted by
             decreasing strides) (size equal to ndims), the pointer to the
@@ -66,9 +66,6 @@ namespace gridtools {
          */
         template <typename arraytype1, typename arraytype2>
         void register_block_to(value_type *field, arraytype1 const &halo_block, arraytype2 const &coords) {
-#ifndef NDEBUG
-            std::cout << "register_block_to " << proc_grid.abs_proc(coords) << "\n";
-#endif
             a2a.to[proc_grid.abs_proc(coords)] =
                 packet<value_type>(_impl::make_datatype<value_type>::make(halo_block), field);
         }
@@ -91,9 +88,6 @@ namespace gridtools {
          */
         template <typename arraytype1, typename arraytype2>
         void register_block_from(value_type *field, arraytype1 const &halo_block, arraytype2 const &coords) {
-#ifndef NDEBUG
-            std::cout << "register_block_from " << proc_grid.abs_proc(coords) << "\n";
-#endif
             a2a.from[proc_grid.abs_proc(coords)] =
                 packet<value_type>(_impl::make_datatype<value_type>::make(halo_block), field);
         }

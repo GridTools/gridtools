@@ -11,8 +11,8 @@
 
 #include <type_traits>
 
+#include "../cuda_runtime.hpp"
 #include "../cuda_util.hpp"
-#include "../hip_wrappers.hpp"
 
 namespace gridtools {
     /**

@@ -23,12 +23,13 @@
 
 #include <iostream>
 
+#include <gridtools/common/defs.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/stencil_composition/global_parameter.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
 #include <gridtools/stencil_composition/backend/cuda.hpp>
 #include <gridtools/storage/cuda.hpp>
 using backend_t = gridtools::cuda::backend<>;

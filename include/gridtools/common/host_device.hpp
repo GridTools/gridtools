@@ -18,9 +18,7 @@
     @{
 */
 
-#ifdef GT_USE_GPU
-#include "hip_wrappers.hpp"
-#endif
+#include "defs.hpp"
 
 #if defined(__NVCC__)
 #define GT_FORCE_INLINE __forceinline__
@@ -54,12 +52,12 @@
  * function. This macro is only needed to supress NVCC warnings.
  */
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
 #define GT_HOST_DEVICE __host__ __device__
 #ifdef __NVCC__ // NVIDIA CUDA compilation
 #define GT_DEVICE __device__
 #define GT_HOST __host__
-#else // Clang CUDA compilation
+#else // Clang CUDA or HIP compilation
 #define GT_DEVICE __device__ __host__
 #define GT_HOST __host__
 #endif

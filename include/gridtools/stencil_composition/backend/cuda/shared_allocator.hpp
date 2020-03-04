@@ -9,14 +9,9 @@
  */
 #pragma once
 
-#include "../../../common/hip_wrappers.hpp"
-
-#ifndef __CUDACC__
-#error This is CUDA only header
-#endif
-
 #include <cstdlib>
 
+#include "../../../common/cuda_runtime.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
 

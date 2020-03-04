@@ -14,8 +14,8 @@
 #include <sstream>
 #include <type_traits>
 
+#include "cuda_runtime.hpp"
 #include "defs.hpp"
-#include "hip_wrappers.hpp"
 
 #define GT_CUDA_CHECK(expr)                                                                    \
     do {                                                                                       \

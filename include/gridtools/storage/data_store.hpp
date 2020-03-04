@@ -261,5 +261,17 @@ namespace gridtools {
             Initializer const &initializer) {
             return std::make_shared<data_store<Traits, T, N, Id>>(std::move(name), lengths, halos, initializer);
         }
+
+        template <class DataStore>
+        auto make_total_lengths(DataStore const &ds) {
+            auto &&strides = ds.strides();
+            using layout_t = typename DataStore::layout_t;
+            std::decay_t<decltype(ds.lengths())> res;
+            for (int i = 0; i != DataStore::ndims; ++i) {
+                auto n = layout_t::at(i);
+                res[i] = n == -1 ? 1 : n == 0 ? ds.lengths()[i] : strides[layout_t::find(n - 1)] / strides[i];
+            }
+            return res;
+        }
     } // namespace storage
 } // namespace gridtools

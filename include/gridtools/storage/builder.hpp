@@ -78,9 +78,34 @@ namespace gridtools {
 
                     std::tuple<Vals...> m_vals;
 
-                    GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_vals);
-                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_vals);
+                    template <class Arg,
+                        class... Args,
+                        std::enable_if_t<std::is_constructible<std::tuple<Vals...>, Arg &&, Args &&...>::value, int> =
+                            0>
+                    constexpr values(Arg &&arg, Args &&... args) noexcept
+                        : m_vals{std::forward<Arg>(arg), std::forward<Args>(args)...} {}
 
+                    values() = default;
+                    values(values const &) = default;
+                    values(values &&) = default;
+                    values &operator=(values const &) = default;
+                    values &operator=(values &&) = default;
+
+                    struct values_tuple_util_getter {
+                        template <size_t I>
+                        static constexpr decltype(auto) get(values const &obj) {
+                            return tuple_util::get<I>(obj.m_vals);
+                        }
+                        template <size_t I>
+                        static decltype(auto) get(values &obj) {
+                            return tuple_util::get<I>(obj.m_vals);
+                        }
+                        template <size_t I>
+                        static constexpr decltype(auto) get(values &&obj) {
+                            return tuple_util::get<I>(std::move(obj).m_vals);
+                        }
+                    };
+                    friend values_tuple_util_getter tuple_getter(values const &) { return {}; }
                     friend keys hymap_get_keys(values const &) { return {}; }
                 };
             };

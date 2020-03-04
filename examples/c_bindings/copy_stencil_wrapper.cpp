@@ -16,12 +16,15 @@
 
 #include <cpp_bindgen/export.hpp>
 
+#include <gridtools/common/defs.hpp>
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
+#include <gridtools/common/cuda_runtime.hpp>
+#include <gridtools/common/cuda_util.hpp>
 #include <gridtools/stencil_composition/backend/cuda.hpp>
 #include <gridtools/storage/cuda.hpp>
 using backend_t = gridtools::cuda::backend<>;
@@ -60,8 +63,8 @@ namespace {
         auto &&lengths = out->lengths();
         auto grid = make_grid(lengths[0], lengths[1], lengths[2]);
         run_single_stage(copy_functor(), backend_t(), grid, in, out);
-#ifdef __CUDACC__
-        cudaDeviceSynchronize();
+#ifdef GT_CUDACC
+        GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
     }
     BINDGEN_EXPORT_BINDING_2(run_copy_stencil, run_copy_stencil_impl);

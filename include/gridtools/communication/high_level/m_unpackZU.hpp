@@ -124,24 +124,13 @@ void m_unpackZU(array_t const &d_data_array,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef GCL_CUDAMSG
-    printf("UnpackZU Launch grid (%d,%d,%d) with (%d,%d) threads tot: %dx%dx%d\n", nbx, nby, nbz, ntx, nty, nx, ny, nz);
-
-    // just some timing stuff
-    cudaEvent_t start, stop;
-    GT_CUDA_CHECK(cudaEventCreate(&start));
-    GT_CUDA_CHECK(cudaEventCreate(&stop));
-
-    GT_CUDA_CHECK(cudaEventRecord(start, 0));
-#endif
-
     const int niter = d_data_array.size();
 
     // run the compression a few times, just to get a bit
     // more statistics
     for (int i = 0; i < niter; i++) {
         // the actual kernel launch
-        m_unpackZUKernel<<<blocks, threads, 0, ZU_stream>>>(d_data_array[i],
+        m_unpackZUKernel<<<blocks, threads>>>(d_data_array[i],
             d_msgbufTab_r,
             d_msgsize_r,
             halo_d,
@@ -152,24 +141,6 @@ void m_unpackZU(array_t const &d_data_array,
             i);
         GT_CUDA_CHECK(cudaGetLastError());
     }
-
-#ifdef GCL_CUDAMSG
-    // more timing stuff and conversion into reasonable units
-    // for display
-    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
-    GT_CUDA_CHECK(cudaEventSynchronize(stop));
-
-    float elapsedTime;
-    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
-
-    GT_CUDA_CHECK(cudaEventDestroy(start));
-    GT_CUDA_CHECK(cudaEventDestroy(stop));
-
-    double nnumb = niter * (double)(nx * ny * halo[2].plus());
-    double nbyte = nnumb * sizeof(double);
-
-    printf("ZU Packed %g numbers in %g ms, BW = %g GB/s\n", nnumb, elapsedTime, (nbyte / (elapsedTime / 1e3)) / 1e9);
-#endif
 }
 
 template <typename Blocks,
@@ -190,8 +161,7 @@ int call_kernel_ZU_u(Blocks blocks,
     int ny,
     int tranlation_const,
     int i) {
-    m_unpackZUKernel<<<blocks, threads, b, ZU_stream>>>(
-        d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, tranlation_const, i);
+    m_unpackZUKernel<<<blocks, threads, b>>>(d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, tranlation_const, i);
 
     GT_CUDA_CHECK(cudaGetLastError());
 
@@ -224,17 +194,6 @@ void m_unpackZU_variadic(value_type **d_msgbufTab_r,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef GCL_CUDAMSG
-    printf("UnpackZU Launch grid (%d,%d,%d) with (%d,%d) threads tot: %dx%dx%d\n", nbx, nby, nbz, ntx, nty, nx, ny, nz);
-
-    // just some timing stuff
-    cudaEvent_t start, stop;
-    GT_CUDA_CHECK(cudaEventCreate(&start));
-    GT_CUDA_CHECK(cudaEventCreate(&stop));
-
-    GT_CUDA_CHECK(cudaEventRecord(start, 0));
-#endif
-
     const int niter = std::tuple_size<datas>::value;
     int nothing[niter] = {call_kernel_ZU_u(blocks,
         threads,
@@ -248,22 +207,4 @@ void m_unpackZU_variadic(value_type **d_msgbufTab_r,
         (halo[0].begin() - halo[0].minus()) + (halo[1].begin() - halo[1].minus()) * halo[0].total_length() +
             (halo[2].end() + 1) * halo[0].total_length() * halo[1].total_length(),
         Ids)...};
-
-#ifdef GCL_CUDAMSG
-    // more timing stuff and conversion into reasonable units
-    // for display
-    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
-    GT_CUDA_CHECK(cudaEventSynchronize(stop));
-
-    float elapsedTime;
-    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
-
-    GT_CUDA_CHECK(cudaEventDestroy(start));
-    GT_CUDA_CHECK(cudaEventDestroy(stop));
-
-    double nnumb = niter * (double)(nx * ny * halo[2].plus());
-    double nbyte = nnumb * sizeof(double);
-
-    printf("ZU Packed %g numbers in %g ms, BW = %g GB/s\n", nnumb, elapsedTime, (nbyte / (elapsedTime / 1e3)) / 1e9);
-#endif
 }

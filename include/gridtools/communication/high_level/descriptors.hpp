@@ -421,8 +421,8 @@ namespace gridtools {
         empty_field_no_dt halo;
 
       private:
-        gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...
-        gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> recv_buffer;
+        array<DataType *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...
+        array<DataType *, _impl::static_pow3<DIMS>::value> recv_buffer;
         array<int, _impl::static_pow3<DIMS>::value> send_size;
         array<int, _impl::static_pow3<DIMS>::value> recv_size;
 
@@ -455,13 +455,7 @@ namespace gridtools {
         explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
             : base_type(c, comm), halo(), send_buffer{nullptr}, recv_buffer{nullptr}, send_size{0}, recv_size{0} {}
 
-        ~hndlr_dynamic_ut() {
-#ifdef GCL_CHECK_DESTRUCTOR
-            std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
-#endif
-
-            _destroy_dynamic_ut<DIMS, 0>().do_it(this);
-        }
+        ~hndlr_dynamic_ut() { _destroy_dynamic_ut<DIMS, 0>().do_it(this); }
 
         /**
            Constructor
@@ -489,10 +483,6 @@ namespace gridtools {
            \param max_fields_n Maximum number of data fields that will be passed to the communication functions
         */
         void setup(int max_fields_n) { _impl::allocation_service<this_type>()(this, max_fields_n); }
-
-#ifdef GCL_TRACE
-        void set_pattern_tag(int tag) { base_type::m_haloexch.set_pattern_tag(tag); };
-#endif
 
         /**
            Function to pack data to be sent
