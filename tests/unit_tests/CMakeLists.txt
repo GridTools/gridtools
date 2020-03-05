@@ -17,9 +17,9 @@ function(gridtools_add_unit_test tgt)
     cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
     gridtools_add_test_executable(${tgt}
             SOURCES ${ARGS_SOURCES}
-            LIBRARIES GridToolsTest gtest_main gmock ${ARGS_LIBRARIES})
+            LIBRARIES gtest_main gmock ${ARGS_LIBRARIES})
 
-    gridtools_depends_on(nvcc_compilation_checked ${tgt}, gridtools_nvcc)
+    gridtools_depends_on(nvcc_compilation_checked ${tgt} gridtools_nvcc)
 
     if(NOT ARGS_NO_NVCC AND TARGET gridtools_nvcc AND NOT nvcc_compilation_checked)
         gridtools_convert_to_cuda_source(sources ${ARGS_SOURCES})

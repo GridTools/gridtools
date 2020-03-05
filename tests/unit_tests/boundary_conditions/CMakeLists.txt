@@ -8,3 +8,4 @@ if(TARGET bc_cpu)
     gridtools_add_unit_test(test_boundary_conditions_cpu SOURCES test_boundary_conditions.cpp LIBRARIES bc_cpu)
     target_compile_definitions(test_boundary_conditions_cpu PRIVATE GT_STORAGE_X86 GT_GCL_CPU)
 endif()
+

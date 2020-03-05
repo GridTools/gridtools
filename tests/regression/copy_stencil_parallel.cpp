@@ -26,7 +26,6 @@
 #include <gridtools/storage/traits.hpp>
 
 #include <backend_select.hpp>
-#include <float_type.hpp>
 #include <gcl_select.hpp>
 #include <storage_select.hpp>
 
@@ -74,7 +73,7 @@ TEST(copy_stencil_parallel, test) {
 
     using pattern_type = halo_exchange_dynamic_ut<storage::traits::layout_type<storage_traits_t, 3>,
         layout_map<0, 1, 2>,
-        float_type,
+        double,
         gcl_arch_t>;
 
     pattern_type he(boollist<3>(false, false, false), CartComm);
@@ -99,7 +98,7 @@ TEST(copy_stencil_parallel, test) {
     size_t x = d1 + 2 * halo[0];
     size_t y = d2 + 2 * halo[1];
 
-    auto builder = storage::builder<storage_traits_t>.type<float_type>().dimensions(x, y, d3);
+    auto builder = storage::builder<storage_traits_t>.type<double>().dimensions(x, y, d3);
 
     auto input = [&](int i, int j, int k) {
         int I = i + x * pi;
@@ -129,7 +128,7 @@ TEST(copy_stencil_parallel, test) {
         halos, boundary_conditions(), proc_grid_predicate<decltype(c_grid)>(c_grid))
         .apply(in, out);
 
-    std::vector<float_type *> vec = {in->get_target_ptr(), out->get_target_ptr()};
+    std::vector<double *> vec = {in->get_target_ptr(), out->get_target_ptr()};
 
     he.pack(vec);
     he.exchange();

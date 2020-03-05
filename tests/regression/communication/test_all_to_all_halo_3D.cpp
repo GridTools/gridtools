@@ -90,8 +90,6 @@ TEST(communication, test_all_to_all_halo_3D) {
             for (int k = 0; k < N + 2 * H; ++k)
                 datain[i * (N + 2 * H) * (N + 2 * H) + j * (N + 2 * H) + k] = 0;
 
-    MPI_Barrier(GCL_world());
-
     a2a.setup();
     a2a.start_exchange();
     a2a.wait();

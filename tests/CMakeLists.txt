@@ -1,7 +1,6 @@
 
 add_library(GridToolsTest INTERFACE)
 target_link_libraries(GridToolsTest INTERFACE gridtools)
-#target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 target_include_directories(GridToolsTest INTERFACE include)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(GridToolsTest INTERFACE
@@ -57,12 +56,12 @@ endif()
 
 function(gridtools_setup_test_target tgt)
     set(options)
-    set(one_value_args CUDA_ARCH)
+    set(one_value_args)
     set(multi_value_args SOURCES LIBRARIES)
     cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
     gridtools_setup_target(${tgt}
             SOURCES ${ARGS_SOURCES}
-            LIBRARIES GridToolsTest ${ARGS_LIBRARIES}
+            LIBRARIES ${ARGS_LIBRARIES} PRIVATE GridToolsTest
             CUDA_ARCH ${GT_CUDA_ARCH})
 endfunction()
 
@@ -111,5 +110,26 @@ if( _restore_BUILD_SHARED_LIBS )
 endif()
 
 add_subdirectory(src)
+
+function(gridtools_add_mpi_test arch tgt)
+    set(options)
+    set(one_value_args)
+    set(multi_value_args SOURCES LIBRARIES LABELS)
+    cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+    gridtools_add_test_executable(${tgt}
+            SOURCES ${ARGS_SOURCES}
+            LIBRARIES ${ARGS_LIBRARIES} mpi_gtest_main_${arch})
+    set(nproc 4)
+    set(labels ${ARGS_LABELS} mpi gcl ${arch})
+    # Note: We use MPITEST_ instead of MPIEXEC_ because our own MPI_TEST_-variables are slurm-aware
+    add_test(
+            NAME ${tgt}
+            COMMAND  ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} ${nproc} ${MPITEST_PREFLAGS} $<TARGET_FILE:${tgt}> ${MPITEST_POSTFLAGS}
+    )
+    set_tests_properties(${tgt} PROPERTIES LABELS "${labels}")
+    set_tests_properties(${tgt} PROPERTIES PROCESSORS ${nproc})
+endfunction()
+
+
 add_subdirectory(regression)
 add_subdirectory(unit_tests)

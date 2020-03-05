@@ -94,38 +94,15 @@ function(gridtools_add_boundary_conditions_test)
             PERFTEST)
 endfunction()
 
-function(gridtools_add_copy_stencil_parallel_test)
-    if(TARGET MPI::MPI_CXX)
-        foreach(arch IN LISTS GT_GCL_ARCHS)
-            foreach(float_type float double)
-                set(tgt copy_stencil_parallel_${arch}_${float_type})
-                if (arch STREQUAL gpu)
-                    set(storage cuda)
-                    set(backend cuda)
-                elseif (arch STREQUAL cpu)
-                    set(storage x86)
-                    set(backend x86)
-                endif()
-                gridtools_add_test_executable(${tgt}
-                        SOURCES copy_stencil_parallel.cpp
-                        LIBRARIES gridtools mpi_gtest_main gcl_${arch} backend_${backend})
-                string(TOUPPER ${arch} u_arch)
-                string(TOUPPER ${backend} u_backend)
-                string(TOUPPER ${storage} u_storage)
-                target_compile_definitions(${tgt} PRIVATE
-                        GT_FLOAT_TYPE=${float_type}
-                        GT_STORAGE_${u_storage}
-                        GT_BACKEND_${u_backend}
-                        GT_GCL_${u_arch})
-                add_test(NAME ${tgt}
-                        COMMAND  ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} 4 ${MPITEST_PREFLAGS} $<TARGET_FILE:${tgt}> ${MPITEST_POSTFLAGS})
-                set(labels mpi regression ${arch} ${float_type})
-                set_tests_properties(${tgt} PROPERTIES LABELS "${labels}")
-                set_tests_properties(${tgt} PROPERTIES PROCESSORS 4)
-            endforeach()
-        endforeach()
-    endif()
-endfunction()
+if (TARGET gcl_cpu AND TARGET backend_x86)
+    gridtools_add_mpi_test(cpu copy_stencil_parallel_cpu SOURCES copy_stencil_parallel.cpp LIBRARIES backend_x86)
+    target_compile_definitions(copy_stencil_parallel_cpu PRIVATE GT_STORAGE_X86 GT_BACKEND_X86 GT_GCL_CPU)
+endif()
+
+if (TARGET gcl_gpu AND TARGET backend_cuda)
+    gridtools_add_mpi_test(gpu copy_stencil_parallel_gpu SOURCES copy_stencil_parallel.cpp LIBRARIES backend_cuda)
+    target_compile_definitions(copy_stencil_parallel_gpu PRIVATE GT_STORAGE_CUDA GT_BACKEND_CUDA GT_GCL_GPU)
+endif()
 
 gridtools_add_cartesian_regression_test(horizontal_diffusion SOURCES horizontal_diffusion.cpp PERFTEST)
 gridtools_add_cartesian_regression_test(horizontal_diffusion_fused SOURCES horizontal_diffusion_fused.cpp PERFTEST)
@@ -143,7 +120,6 @@ gridtools_add_cartesian_regression_test(expandable_parameters_single_kernel SOUR
 gridtools_add_cartesian_regression_test(horizontal_diffusion_functions SOURCES horizontal_diffusion_functions.cpp)
 gridtools_add_layout_transformation_test()
 gridtools_add_boundary_conditions_test()
-gridtools_add_copy_stencil_parallel_test()
 
 add_subdirectory(icosahedral)
 add_subdirectory(c_bindings)
