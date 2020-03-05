@@ -95,7 +95,7 @@ def clustername():
         >>> clustername()
         'kesch'
     """
-    if env.use_slurm():
+    if use_slurm():
         for _ in range(3):
             output = runtools.run(['scontrol', 'show', 'config'])
             m = re.compile(r'.*ClusterName\s*=\s*(\S*).*',
