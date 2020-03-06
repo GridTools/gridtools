@@ -117,8 +117,10 @@ namespace gridtools {
 #ifndef NDEBUG
             using extent_map_t = core::get_extent_map_from_msses<spec_t>;
             auto check_bounds = [origin = grid.origin(), size = grid.size()](auto arg, auto const &field) {
-                using extent_t = to_horizontal_extent<core::lookup_extent_map<extent_map_t, decltype(arg)>>;
-                for_each<meta::list<dim::i, dim::j, dim::k>>(
+                using extent_t = core::lookup_extent_map<extent_map_t, decltype(arg)>;
+                // There is no check in k-direction because at the fields may be used within subintervals
+                // TODO(anstaf): find the proper place to check k-bounds
+                for_each<meta::list<dim::i, dim::j>>(
                     [&, l_bounds = sid::get_lower_bounds(field), u_bounds = sid::get_upper_bounds(field)](auto d) {
                         using dim_t = decltype(d);
                         auto &&l_bound =
