@@ -14,10 +14,12 @@
 #include <limits>
 #include <utility>
 
+#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/hymap.hpp"
 #include "../../meta.hpp"
 #include "../../sid/concept.hpp"
 #include "../common/caches.hpp"
+#include "../common/dim.hpp"
 #include "../core/backend.hpp"
 #include "../core/cache_info.hpp"
 #include "../core/compute_extents_metafunctions.hpp"
