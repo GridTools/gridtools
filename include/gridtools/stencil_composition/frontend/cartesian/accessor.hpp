@@ -132,6 +132,7 @@ namespace gridtools {
             template <class... Ts, std::enable_if_t<accessor_impl_::are_ints<Ts...>::value, int> = 0>
             GT_FUNCTION GT_CONSTEXPR accessor(typename accessor_impl_::just_int<Is>::type... offsets, Ts... zeros)
                 : base_t({offsets...}) {
+                assert(accumulate(logical_and(), true, (zeros == 0)...));
                 assert(accessor_impl_::check_offsets<Extent>(*this));
             }
 
