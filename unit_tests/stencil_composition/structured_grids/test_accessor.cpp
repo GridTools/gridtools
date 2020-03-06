@@ -50,14 +50,6 @@ TEST(accessor, extra_args) {
     testee_t{dimension<2>{0}};
 }
 
-TEST(accessor, array) {
-    inout_accessor<0, extent<0, 3, 0, 2, -1, 0>> first(array<int_t, 3>{3, 2, -1});
-
-    EXPECT_EQ(3, tuple_util::get<0>(first));
-    EXPECT_EQ(2, tuple_util::get<1>(first));
-    EXPECT_EQ(-1, tuple_util::get<2>(first));
-}
-
 /**
  * @brief interface with out-of-order optional arguments
  */
