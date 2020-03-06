@@ -119,6 +119,10 @@ namespace gridtools {
                 using namespace literals;
                 return extent.extend(dim::k(), 1_c + splitter_size(x) + offset(To()) - offset(From()));
             }
+
+            auto size() const {
+                return tuple_util::make<hymap::keys<dim::i, dim::j, dim::k>::values>(i_size(), j_size(), k_size());
+            }
         };
 
         template <class T>
