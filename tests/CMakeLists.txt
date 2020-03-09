@@ -118,7 +118,7 @@ function(gridtools_add_mpi_test arch tgt)
     cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
     gridtools_add_test_executable(${tgt}
             SOURCES ${ARGS_SOURCES}
-            LIBRARIES ${ARGS_LIBRARIES} mpi_gtest_main_${arch})
+            LIBRARIES ${ARGS_LIBRARIES} mpi_gtest_main_${arch} gcl_${arch})
     set(nproc 4)
     set(labels ${ARGS_LABELS} mpi gcl ${arch})
     # Note: We use MPITEST_ instead of MPIEXEC_ because our own MPI_TEST_-variables are slurm-aware
