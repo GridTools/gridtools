@@ -59,17 +59,15 @@ namespace gridtools {
             return unique_cuda_ptr<T>{ptr};
         }
 
-        template <class T>
+        template <class T, std::enable_if_t<std::is_trivially_copyable<T>::value, int> = 0>
         unique_cuda_ptr<T> make_clone(T const &src) {
-            static_assert(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
             unique_cuda_ptr<T> res = cuda_malloc<T>();
             GT_CUDA_CHECK(cudaMemcpy(res.get(), &src, sizeof(T), cudaMemcpyHostToDevice));
             return res;
         }
 
-        template <class T>
+        template <class T, std::enable_if_t<std::is_trivially_copyable<T>::value, int> = 0>
         T from_clone(unique_cuda_ptr<T> const &clone) {
-            static_assert(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
             T res;
             GT_CUDA_CHECK(cudaMemcpy(&res, clone.get(), sizeof(T), cudaMemcpyDeviceToHost));
             return res;
