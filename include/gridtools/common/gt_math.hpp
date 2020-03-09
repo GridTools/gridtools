@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <type_traits>
 
 #include "defs.hpp"
 #include "host_device.hpp"

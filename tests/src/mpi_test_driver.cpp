@@ -10,12 +10,11 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
-#include <gridtools/common/defs.hpp>
 #include <gridtools/communication/GCL.hpp>
 
 #include "mpi_listener.hpp"
 
-#ifdef GT_CUDACC
+#ifdef GT_HAS_CUDA
 
 #include <cstdlib>
 
@@ -43,7 +42,7 @@ namespace {
 
 int main(int argc, char **argv) {
 
-#ifdef GT_CUDACC
+#ifdef GT_HAS_CUDA
     GT_CUDA_CHECK(cudaSetDevice(get_local_rank() % dev_device_count()));
 #endif
 

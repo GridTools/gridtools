@@ -9,13 +9,12 @@
  */
 #pragma once
 
-#include <cassert>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <type_traits>
 
 #include "cuda_runtime.hpp"
-#include "defs.hpp"
 
 #define GT_CUDA_CHECK(expr)                                                                    \
     do {                                                                                       \
@@ -26,9 +25,6 @@
 
 namespace gridtools {
     namespace cuda_util {
-        template <class T>
-        struct is_cloneable : std::is_trivially_copyable<T> {};
-
         namespace _impl {
             inline void on_error(cudaError_t err, const char snippet[], const char fun[], const char file[], int line) {
                 std::ostringstream strm;
