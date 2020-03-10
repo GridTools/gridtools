@@ -141,8 +141,7 @@ namespace gridtools {
 
         template <class Comp, class Backend, class Grid, class... Fields>
         void run(Comp comp, Backend be, Grid const &grid, Fields &&... fields) {
-            static_assert(conjunction<is_sid<std::decay_t<Fields>>...>::value,
-                "All computation fields must satisfy SID concept.");
+            static_assert(conjunction<is_sid<Fields>...>::value, "All computation fields must satisfy SID concept.");
             run_impl(comp, be, grid, std::index_sequence_for<Fields...>(), std::forward<Fields>(fields)...);
         }
 
