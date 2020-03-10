@@ -9,8 +9,6 @@ find_dependency(Boost @REQUIRED_BOOST_VERSION@)
 
 if(@MPI_FOUND@)
     find_dependency(MPI COMPONENTS CXX)
-    include("@PACKAGE_GRIDTOOLS_MODULE_PATH@/workaround_mpi.cmake")
-    _fix_mpi_flags()
 endif()
 
 if(@OpenMP_CXX_FOUND@)

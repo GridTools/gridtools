@@ -4,7 +4,7 @@ mark_as_advanced(CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
 
 option(GT_ENABLE_PYUTILS "If on, Python utility scripts will be configured" OFF)
 
-option(GT_PREFER_CLANG_CUDA_OVER_NVCC_CUDA "if ON, CUDA code will be compiled with clang" OFF)
+option(GT_PREFER_CLANG_CUDA_OVER_NVCC_CUDA "if ON, CUDA code will be compiled with clang" ON)
 
 option(GT_ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experimental repository" OFF )
 
