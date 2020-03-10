@@ -9,6 +9,7 @@ export CXX=$(which CC)
 export CC=$(which cc)
 export FC=$(which ftn)
 export GTCMAKE_CMAKE_CUDA_HOST_COMPILER="$CXX"
+export CUDAHOSTCXX="$CXX"
 
 export CTEST_PARALLEL_LEVEL=1
 

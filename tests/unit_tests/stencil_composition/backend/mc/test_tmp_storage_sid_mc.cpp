@@ -66,9 +66,9 @@ TEST(tmp_storage_sid_mc, nonzero_k_extents) {
         sid::shift(ptr, sid::get_stride<dim::j>(strides), extent_t::jminus::value);
         sid::shift(ptr, sid::get_stride<dim::k>(strides), extent_t::kminus::value);
 
-        const int_t size_i = block_size.i - extent_t::iminus::value + extent_t::iplus::value;
-        const int_t size_j = block_size.j - extent_t::jminus::value + extent_t::jplus::value;
-        const int_t size_k = block_size.k - extent_t::kminus::value + extent_t::kplus::value;
+        const int_t size_i = extent_t::extend(dim::i(), block_size.i);
+        const int_t size_j = extent_t::extend(dim::j(), block_size.j);
+        const int_t size_k = extent_t::extend(dim::k(), block_size.k);
         for (int_t j = 0; j < size_j; ++j) {
             for (int_t k = 0; k < size_k; ++k) {
                 for (int_t i = 0; i < size_i; ++i) {
@@ -134,8 +134,8 @@ TEST(tmp_storage_sid_mc, zero_k_extents) {
         sid::shift(ptr, sid::get_stride<dim::j>(strides), extent_t::jminus::value);
         sid::shift(ptr, sid::get_stride<dim::k>(strides), extent_t::kminus::value);
 
-        const int_t size_i = block_size.i - extent_t::iminus::value + extent_t::iplus::value;
-        const int_t size_j = block_size.j - extent_t::jminus::value + extent_t::jplus::value;
+        const int_t size_i = extent_t::extend(dim::i(), block_size.i);
+        const int_t size_j = extent_t::extend(dim::j(), block_size.j);
         for (int_t j = 0; j < size_j; ++j) {
             for (int_t i = 0; i < size_i; ++i) {
                 // check alignment of first data point inside domain

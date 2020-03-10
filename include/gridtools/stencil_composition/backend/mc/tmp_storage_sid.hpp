@@ -44,9 +44,9 @@ namespace gridtools {
             template <class T, class Extent>
             pos3<std::size_t> full_block_size(pos3<std::size_t> const &block_size) {
                 // add padding to the i dimension to align all first elements along the i dimension
-                const std::size_t size_i = pad<T>(block_size.i - Extent::iminus::value + Extent::iplus::value);
-                const std::size_t size_j = block_size.j - Extent::jminus::value + Extent::jplus::value;
-                const std::size_t size_k = block_size.k - Extent::kminus::value + Extent::kplus::value;
+                const std::size_t size_i = pad<T>(Extent::extend(dim::i(), block_size.i));
+                const std::size_t size_j = Extent::extend(dim::j(), block_size.j);
+                const std::size_t size_k = Extent::extend(dim::k(), block_size.k);
                 return {size_i, size_j, size_k};
             }
 
