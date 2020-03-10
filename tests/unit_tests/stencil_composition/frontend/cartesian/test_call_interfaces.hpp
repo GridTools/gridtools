@@ -22,8 +22,8 @@ namespace gridtools {
         using x_interval = axis<1>::full_interval;
 
         struct copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -32,8 +32,8 @@ namespace gridtools {
         };
 
         struct copy_functor_with_expression {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -43,8 +43,8 @@ namespace gridtools {
         };
 
         struct copy_functor_default_interval {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <class Eval>
             GT_FUNCTION static void apply(Eval &&eval) {

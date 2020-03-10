@@ -31,9 +31,9 @@ namespace gridtools {
         };
 
         struct copy_functor_with_add {
-            typedef inout_accessor<0, extent<>, 3> out;
-            typedef in_accessor<1, extent<>, 3> in1;
-            typedef in_accessor<2, extent<>, 3> in2;
+            typedef inout_accessor<0> out;
+            typedef in_accessor<1> in1;
+            typedef in_accessor<2> in2;
             typedef make_param_list<out, in1, in2> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -44,8 +44,8 @@ namespace gridtools {
         // The implementation is different depending on the position of the out accessor in the callee, as the position
         // of the input accessors in the call has to be shifted when it is not in the last position.
         struct copy_functor_with_out_first {
-            typedef inout_accessor<0, extent<>, 3> out;
-            typedef in_accessor<1, extent<>, 3> in;
+            typedef inout_accessor<0> out;
+            typedef in_accessor<1> in;
             typedef make_param_list<out, in> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -54,8 +54,8 @@ namespace gridtools {
         };
 
         struct call_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -66,8 +66,8 @@ namespace gridtools {
         TEST_F(call_interface, call_to_copy_functor) { do_test<call_copy_functor>(); }
 
         struct call_copy_functor_with_local_variable {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -81,8 +81,8 @@ namespace gridtools {
         }
 
         struct call_copy_functor_with_local_variable2 {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -96,8 +96,8 @@ namespace gridtools {
         }
 
         struct call_copy_functor_with_out_first {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -108,8 +108,8 @@ namespace gridtools {
         TEST_F(call_interface, call_to_copy_functor_with_out_first) { do_test<call_copy_functor_with_out_first>(); }
 
         struct call_proc_copy_functor_with_expression {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -122,8 +122,8 @@ namespace gridtools {
         }
 
         struct call_at_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<0, 1, 0, 1>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -134,8 +134,8 @@ namespace gridtools {
         TEST_F(call_interface, call_at_to_copy_functor) { do_test<call_at_copy_functor>(shifted); }
 
         struct call_with_offsets_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<0, 1, 0, 1>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -146,8 +146,8 @@ namespace gridtools {
         TEST_F(call_interface, call_with_offsets_to_copy_functor) { do_test<call_with_offsets_copy_functor>(shifted); }
 
         struct call_at_with_offsets_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<0, 1, 0, 1>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -158,8 +158,8 @@ namespace gridtools {
         TEST_F(call_interface, call_at_with_offsets_to_copy_functor) { do_test<call_at_with_offsets_copy_functor>(); }
 
         struct call_copy_functor_default_interval {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval) {
@@ -170,8 +170,8 @@ namespace gridtools {
         TEST_F(call_interface, call_to_copy_functor_default_interval) { do_test<call_copy_functor_default_interval>(); }
 
         struct call_copy_functor_default_interval_from_smaller_interval {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval::modify<1, -1>) {
@@ -185,8 +185,8 @@ namespace gridtools {
         }
 
         struct call_copy_functor_default_interval_with_offset_in_k {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<0, 0, 0, 0, 0, 1>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval) {
@@ -199,8 +199,8 @@ namespace gridtools {
         }
 
         struct call_call_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -211,8 +211,8 @@ namespace gridtools {
         TEST_F(call_interface, call_to_call_to_copy_functor) { do_test<call_call_copy_functor>(); }
 
         struct call_call_at_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<0, 1, 0, 1>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -223,8 +223,8 @@ namespace gridtools {
         TEST_F(call_interface, call_to_call_at_to_copy_functor) { do_test<call_call_at_copy_functor>(shifted); }
 
         struct call_call_with_offsets_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<0, 1, 0, 1>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -237,8 +237,8 @@ namespace gridtools {
         }
 
         struct call_at_call_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<0, 1, 0, 1>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -249,8 +249,8 @@ namespace gridtools {
         TEST_F(call_interface, call_at_to_call_to_copy_functor) { do_test<call_at_call_copy_functor>(shifted); }
 
         struct call_at_call_at_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<-1, 0, -1, 0>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -261,8 +261,8 @@ namespace gridtools {
         TEST_F(call_interface, call_at_to_call_at_to_copy_functor) { do_test<call_at_call_at_copy_functor>(); }
 
         struct call_with_offsets_call_at_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<-1, 0, -1, 0>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -275,8 +275,8 @@ namespace gridtools {
         }
 
         struct call_at_call_with_offsets_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<-1, 0, -1, 0>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
@@ -289,8 +289,8 @@ namespace gridtools {
         }
 
         struct call_with_offsets_call_with_offsets_copy_functor {
-            typedef in_accessor<0, extent<>, 3> in;
-            typedef inout_accessor<1, extent<>, 3> out;
+            typedef in_accessor<0, extent<-1, 0, -1, 0>> in;
+            typedef inout_accessor<1> out;
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {

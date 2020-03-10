@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <type_traits>
 #include <utility>
 
@@ -87,6 +88,25 @@ namespace gridtools {
 
             template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus>
             struct minimal_dim<extent<IMinus, IPlus, JMinus, JPlus>> : std::integral_constant<size_t, 2> {};
+
+            template <class>
+            struct minimal_requried_args;
+
+            template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus>
+            struct minimal_requried_args<extent<IMinus, IPlus, JMinus, JPlus, KMinus, KPlus>>
+                : std::integral_constant<size_t,
+                      (KMinus > 0 || KPlus < 0 ? 3 : JMinus > 0 || JPlus < 0 ? 2 : IMinus > 0 || IPlus < 0 ? 1 : 0)> {};
+
+#ifndef NDEBUG
+            template <class Extent, size_t Dim>
+            GT_FUNCTION GT_CONSTEXPR bool check_offsets(array<int_t, Dim> const &offsets) {
+                int_t i = Dim > 0 ? offsets[0] : 0;
+                int_t j = Dim > 1 ? offsets[1] : 0;
+                int_t k = Dim > 2 ? offsets[2] : 0;
+                return i >= Extent::iminus::value && i <= Extent::iplus::value && j >= Extent::jminus::value &&
+                       j <= Extent::jplus::value && k >= Extent::kminus::value && k <= Extent::kplus::value;
+            }
+#endif
         } // namespace accessor_impl_
 
         template <uint_t Id,
@@ -105,18 +125,19 @@ namespace gridtools {
             static constexpr intent intent_v = Intent;
             using extent_t = Extent;
 
-            GT_FUNCTION GT_CONSTEXPR accessor() : base_t({}) {}
-
-            GT_FUNCTION GT_CONSTEXPR accessor(base_t src) : base_t(wstd::move(src)) {}
-
             template <class... Ts,
                 std::enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
-            GT_FUNCTION GT_CONSTEXPR accessor(Ts... offsets) : base_t({offsets...}) {}
+            GT_FUNCTION GT_CONSTEXPR accessor(Ts... offsets) : base_t({offsets...}) {
+                static_assert(sizeof...(Ts) >= accessor_impl_::minimal_requried_args<Extent>::value,
+                    "zero offsets is out of the extents range");
+                assert(accessor_impl_::check_offsets<Extent>(*this));
+            }
 
             template <class... Ts, std::enable_if_t<accessor_impl_::are_ints<Ts...>::value, int> = 0>
             GT_FUNCTION GT_CONSTEXPR accessor(typename accessor_impl_::just_int<Is>::type... offsets, Ts... zeros)
                 : base_t({offsets...}) {
                 assert(accumulate(logical_and(), true, (zeros == 0)...));
+                assert(accessor_impl_::check_offsets<Extent>(*this));
             }
 
             template <size_t J, size_t... Js>
@@ -126,6 +147,7 @@ namespace gridtools {
                     "all dimensions should be of different indicies");
                 assert(accessor_impl_::out_of_range_dim<Dim>(src) == 0);
                 assert(accumulate(logical_and(), true, (accessor_impl_::out_of_range_dim<Dim>(srcs) == 0)...));
+                assert(accessor_impl_::check_offsets<Extent>(*this));
             }
         };
 
