@@ -10,11 +10,16 @@
 
 #pragma once
 
+#include <cassert>
+#include <limits>
 #include <utility>
 
+#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/hymap.hpp"
 #include "../../meta.hpp"
+#include "../../sid/concept.hpp"
 #include "../common/caches.hpp"
+#include "../common/dim.hpp"
 #include "../core/backend.hpp"
 #include "../core/cache_info.hpp"
 #include "../core/compute_extents_metafunctions.hpp"
@@ -109,11 +114,35 @@ namespace gridtools {
             using spec_t = decltype(comp(arg<Is>()...));
             using entry_point_t = core::backend_entry_point_f<Backend, spec_t>;
             using data_store_map_t = typename hymap::keys<arg<Is>...>::template values<Fields &...>;
+#ifndef NDEBUG
+            using extent_map_t = core::get_extent_map_from_msses<spec_t>;
+            auto check_bounds = [origin = grid.origin(), size = grid.size()](auto arg, auto const &field) {
+                using extent_t = core::lookup_extent_map<extent_map_t, decltype(arg)>;
+                // There is no check in k-direction because at the fields may be used within subintervals
+                // TODO(anstaf): find the proper place to check k-bounds
+                for_each<meta::list<dim::i, dim::j>>(
+                    [&, l_bounds = sid::get_lower_bounds(field), u_bounds = sid::get_upper_bounds(field)](auto d) {
+                        using dim_t = decltype(d);
+                        auto &&l_bound =
+                            at_key_with_default<dim_t, integral_constant<int_t, std::numeric_limits<int_t>::min()>>(
+                                l_bounds);
+                        auto &&u_bound =
+                            at_key_with_default<dim_t, integral_constant<int_t, std::numeric_limits<int_t>::max()>>(
+                                u_bounds);
+                        assert(at_key<dim_t>(origin) + extent_t::minus(d) >= l_bound);
+                        assert(at_key<dim_t>(origin) + at_key<dim_t>(size) + extent_t::plus(d) <= u_bound);
+                    });
+                return 0;
+            };
+            (void)(int[]){check_bounds(arg<Is>(), fields)...};
+#endif
             entry_point_t()(grid, data_store_map_t{fields...});
         }
 
         template <class Comp, class Backend, class Grid, class... Fields>
         void run(Comp comp, Backend be, Grid const &grid, Fields &&... fields) {
+            static_assert(conjunction<is_sid<std::decay_t<Fields>>...>::value,
+                "All computation fields must satisfy SID concept.");
             run_impl(comp, be, grid, std::index_sequence_for<Fields...>(), std::forward<Fields>(fields)...);
         }
 
