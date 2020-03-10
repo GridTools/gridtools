@@ -89,6 +89,14 @@ namespace gridtools {
             template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus>
             struct minimal_dim<extent<IMinus, IPlus, JMinus, JPlus>> : std::integral_constant<size_t, 2> {};
 
+            template <class>
+            struct minimal_requried_args;
+
+            template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus>
+            struct minimal_requried_args<extent<IMinus, IPlus, JMinus, JPlus, KMinus, KPlus>>
+                : std::integral_constant<size_t,
+                      (KMinus > 0 || KPlus < 0 ? 3 : JMinus > 0 || JPlus < 0 ? 2 : IMinus > 0 || IPlus < 0 ? 1 : 0)> {};
+
 #ifndef NDEBUG
             template <class Extent, size_t Dim>
             GT_FUNCTION GT_CONSTEXPR bool check_offsets(array<int_t, Dim> const &offsets) {
@@ -117,15 +125,11 @@ namespace gridtools {
             static constexpr intent intent_v = Intent;
             using extent_t = Extent;
 
-            template <class E = Extent,
-                std::enable_if_t<E::iminus::value <= 0 && E::iplus::value >= 0 && E::jminus::value <= 0 &&
-                                     E::jplus::value >= 0 && E::kminus::value <= 0 && E::kplus::value >= 0,
-                    int> = 0>
-            GT_FUNCTION GT_CONSTEXPR accessor() : base_t({}) {}
-
             template <class... Ts,
                 std::enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value, int> = 0>
             GT_FUNCTION GT_CONSTEXPR accessor(Ts... offsets) : base_t({offsets...}) {
+                static_assert(sizeof...(Ts) >= accessor_impl_::minimal_requried_args<Extent>::value,
+                    "zero offsets is out of the extents range");
                 assert(accessor_impl_::check_offsets<Extent>(*this));
             }
 
