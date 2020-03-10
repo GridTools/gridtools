@@ -23,11 +23,26 @@ gridtools_add_unit_test(test_tuple SOURCES test_tuple.cpp NO_NVCC)
 if(TARGET gridtools_cuda)
     gridtools_check_compilation(test_cuda_type_traits test_cuda_type_traits.cu)
 
-    gridtools_add_unit_test(test_atomic_functions_cuda SOURCES test_atomic_functions.cu LIBRARIES gridtools_cuda)
-    gridtools_add_unit_test(test_cuda_is_ptr_cuda SOURCES test_cuda_is_ptr.cu LIBRARIES gridtools_cuda)
-    gridtools_add_unit_test(test_gt_math_cuda SOURCES test_gt_math.cu LIBRARIES gridtools_cuda)
-    gridtools_add_unit_test(test_hypercube_iterator_cuda SOURCES test_hypercube_iterator.cu LIBRARIES gridtools_cuda)
-    gridtools_add_unit_test(test_tuple_cuda SOURCES test_tuple.cu LIBRARIES gridtools_cuda)
+    gridtools_add_unit_test(test_atomic_functions_cuda
+            SOURCES test_atomic_functions.cu
+            LIBRARIES gridtools_cuda
+            LABELS cuda)
+    gridtools_add_unit_test(test_cuda_is_ptr_cuda
+            SOURCES test_cuda_is_ptr.cu
+            LIBRARIES gridtools_cuda
+            LABELS cuda)
+    gridtools_add_unit_test(test_gt_math_cuda
+            SOURCES test_gt_math.cu
+            LIBRARIES gridtools_cuda
+            LABELS cuda)
+    gridtools_add_unit_test(test_hypercube_iterator_cuda
+            SOURCES test_hypercube_iterator.cu
+            LIBRARIES gridtools_cuda
+            LABELS cuda)
+    gridtools_add_unit_test(test_tuple_cuda
+            SOURCES test_tuple.cu
+            LIBRARIES gridtools_cuda
+            LABELS cuda)
 endif()
 
 add_subdirectory(generic_metafunctions)

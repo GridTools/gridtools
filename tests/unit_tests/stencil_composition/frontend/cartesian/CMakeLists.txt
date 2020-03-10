@@ -8,7 +8,7 @@ function(gridtools_add_cartesian_test tgt_name)
         gridtools_add_unit_test(${tgt}
                 SOURCES ${ARGS_SOURCES}
                 LIBRARIES backend_${backend}
-                LABELS cartestian ${backend}
+                LABELS cartesian ${backend}
                 NO_NVCC)
         if (backend STREQUAL naive)
             set(u_storage X86)
