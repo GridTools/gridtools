@@ -18,7 +18,10 @@ gridtools_add_getting_started_test(test_naive_implementation SOURCES code/test_n
 gridtools_add_getting_started_test(test_gt_storage SOURCES code/test_gt_storage.cpp)
 
 if(TARGET storage_cuda)
-    gridtools_add_getting_started_test(test_gt_storage_cuda SOURCES code/test_gt_storage.cpp LIBRARIES storage_cuda)
+    gridtools_add_getting_started_test(test_gt_storage_cuda
+            SOURCES code/test_gt_storage.cpp
+            LIBRARIES storage_cuda
+            LABELS cuda)
 endif()
 
 if(TARGET backend_mc)

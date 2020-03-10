@@ -45,5 +45,5 @@ gridtools_add_cartesian_test(test_kparallel SOURCES test_kparallel.cpp)
 gridtools_add_unit_test(test_expressions SOURCES test_expressions.cpp NO_NVCC)
 
 if(TARGET gridtools_cuda)
-    gridtools_add_unit_test(test_expressions_cuda SOURCES test_expressions.cu LIBRARIES gridtools_cuda)
+    gridtools_add_unit_test(test_expressions_cuda SOURCES test_expressions.cu LIBRARIES gridtools_cuda LABELS cuda)
 endif()
