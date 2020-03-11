@@ -69,67 +69,32 @@ namespace gridtools {
                 return sum_offsets<Res>(wstd::move(acc), offset_t());
             }
 
-            template <class Res, class Offsets>
-            struct accessor_transform_f {
-                static_assert(is_accessor<Res>::value, GT_INTERNAL_ERROR);
+            template <int_t I, int_t J, int_t K, class Params, class Eval, class Args>
+            struct evaluator {
+                Eval &m_eval;
+                Args m_args;
 
-                Offsets m_offsets;
-
-                template <class Eval, class Src>
-                GT_FUNCTION decltype(auto) operator()(Eval &eval, Src src) const {
-                    return eval(sum_offsets<Res>(m_offsets, wstd::move(src)));
-                }
-            };
-
-            template <class Res, class Offsets>
-            GT_CONSTEXPR GT_FUNCTION accessor_transform_f<Res, Offsets> accessor_transform(Offsets offsets) {
-                return {wstd::move(offsets)};
-            }
-
-            template <class T>
-            struct local_transform_f {
-                T m_val;
-
-                template <class Eval, class Src>
-                GT_FUNCTION T operator()(Eval &&, Src &&) const {
-                    return m_val;
-                }
-            };
-
-            template <int_t I, int_t J, int_t K>
-            struct get_transform_f {
                 template <class Accessor,
-                    class LazyParam,
-                    class Param = typename LazyParam::type,
-                    std::enable_if_t<is_accessor<Accessor>::value &&
-                                         !(Param::intent_v == intent::inout && Accessor::intent_v == intent::in),
+                    class Arg = std::decay_t<meta::at<Args, typename Accessor::index_t>>,
+                    class Param = meta::at<Params, typename Accessor::index_t>,
+                    std::enable_if_t<is_accessor<Accessor>::value && is_accessor<Arg>::value &&
+                                         !(Param::intent_v == intent::inout && Arg::intent_v == intent::in),
                         int> = 0>
-                GT_FUNCTION auto operator()(Accessor accessor, LazyParam) const {
-                    return accessor_transform<Accessor>(get_offsets<I, J, K>(wstd::move(accessor)));
+                GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
+                    return m_eval(sum_offsets<Arg>(
+                        get_offsets<I, J, K>(tuple_util::host_device::get<Accessor::index_t::value>(m_args)),
+                        std::move(acc)));
                 }
 
-                template <class Arg,
-                    class Decayed = std::decay_t<Arg>,
-                    class LazyParam,
-                    class Param = typename LazyParam::type,
-                    std::enable_if_t<!is_accessor<Decayed>::value &&
+                template <class Accessor,
+                    class Arg = std::decay_t<meta::at<Args, typename Accessor::index_t>>,
+                    class Param = meta::at<Params, typename Accessor::index_t>,
+                    std::enable_if_t<is_accessor<Accessor>::value && !is_accessor<Arg>::value &&
                                          !(Param::intent_v == intent::inout &&
                                              std::is_const<std::remove_reference_t<Arg>>::value),
                         int> = 0>
-                GT_FUNCTION GT_CONSTEXPR local_transform_f<Arg> operator()(Arg &&arg, LazyParam) const {
-                    return {wstd::forward<Arg>(arg)};
-                }
-            };
-
-            template <class Eval, class Transforms>
-            struct evaluator {
-                Eval &m_eval;
-                Transforms m_transforms;
-
-                template <class Accessor, std::enable_if_t<is_accessor<Accessor>::value, int> = 0>
-                GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
-                    return tuple_util::host_device::get<Accessor::index_t::value>(m_transforms)(
-                        m_eval, wstd::move(acc));
+                GT_FUNCTION decltype(auto) operator()(Accessor) const {
+                    return tuple_util::host_device::get<Accessor::index_t::value>(m_args);
                 }
 
                 template <class Op, class... Ts>
@@ -137,17 +102,16 @@ namespace gridtools {
                     return expressions::evaluation::value(*this, wstd::move(arg));
                 }
             };
-            template <class Eval, class Transforms>
-            GT_CONSTEXPR GT_FUNCTION evaluator<Eval, Transforms> make_evaluator(Eval &eval, Transforms transforms) {
-                return {eval, wstd::move(transforms)};
+
+            template <int_t I, int_t J, int_t K, class Params, class Eval, class Args>
+            GT_CONSTEXPR GT_FUNCTION evaluator<I, J, K, Params, Eval, Args> make_evaluator(Eval &eval, Args args) {
+                return {eval, wstd::move(args)};
             }
 
             template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>
             GT_FUNCTION void evaluate_bound_functor(Eval &eval, Args args) {
-                using lazy_params_t =
-                    meta::rename<tuple, meta::transform<meta::lazy::id, typename Functor::param_list>>;
-                call_functor<Functor, Region>(make_evaluator(eval,
-                    tuple_util::host_device::transform(get_transform_f<I, J, K>(), wstd::move(args), lazy_params_t())));
+                call_functor<Functor, Region>(
+                    make_evaluator<I, J, K, typename Functor::param_list>(eval, wstd::move(args)));
             }
 
             template <class Eval, class Arg, bool = is_accessor<Arg>::value>
@@ -218,12 +182,14 @@ namespace gridtools {
              */
             template <class Eval,
                 class... Args,
-                class Res = typename call_interfaces_impl_::get_result_type<Eval, ReturnType, Args...>::type,
+                class Res =
+                    typename call_interfaces_impl_::get_result_type<Eval, ReturnType, std::decay_t<Args>...>::type,
                 std::enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
-            GT_FUNCTION static Res with(Eval &eval, Args... args) {
+            GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
                 Res res;
-                call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
-                    eval, tuple_util::host_device::insert<out_param_index>(res, tuple<Args...>{wstd::move(args)...}));
+                call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
+                    tuple_util::host_device::insert<out_param_index>(
+                        res, tuple<Args &&...>{wstd::forward<Args>(args)...}));
                 return res;
             }
         };
@@ -265,7 +231,7 @@ namespace gridtools {
             GT_FUNCTION static std::enable_if_t<sizeof...(Args) == meta::length<typename Functor::param_list>::value>
             with(Eval &eval, Args &&... args) {
                 call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
-                    eval, tuple<Args...>{wstd::forward<Args>(args)...});
+                    eval, tuple<Args &&...>{wstd::forward<Args>(args)...});
             }
         };
     } // namespace cartesian
