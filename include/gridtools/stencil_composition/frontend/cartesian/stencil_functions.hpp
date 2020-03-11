@@ -72,7 +72,7 @@ namespace gridtools {
             template <int_t I, int_t J, int_t K, class Params, class Eval, class Args>
             struct evaluator {
                 Eval &m_eval;
-                Args args;
+                Args m_args;
 
                 template <class Accessor,
                     class Arg = std::decay_t<meta::at<Args, typename Accessor::index_t>>,
@@ -82,7 +82,7 @@ namespace gridtools {
                         int> = 0>
                 GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
                     return m_eval(sum_offsets<Arg>(
-                        get_offsets<I, J, K>(tuple_util::host_device::get<Accessor::index_t::value>(args)),
+                        get_offsets<I, J, K>(tuple_util::host_device::get<Accessor::index_t::value>(m_args)),
                         std::move(acc)));
                 }
 
@@ -94,7 +94,7 @@ namespace gridtools {
                                              std::is_const<std::remove_reference_t<Arg>>::value),
                         int> = 0>
                 GT_FUNCTION decltype(auto) operator()(Accessor) const {
-                    return tuple_util::host_device::get<Accessor::index_t::value>(args);
+                    return tuple_util::host_device::get<Accessor::index_t::value>(m_args);
                 }
 
                 template <class Op, class... Ts>
