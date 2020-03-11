@@ -12,7 +12,7 @@ tasks:
       mkdir .theia && ln $(pwd)/.gitpod/.theia/settings.json .theia &&  ln $(pwd)/.gitpod/.theia/launch.json .theia
       mkdir .vscode && ln $(pwd)/.gitpod/.vscode/cmake-kits.json .vscode
       mkdir build
-      cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -H/workspace/gridtools -B/workspace/gridtools/build
+      cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -H/workspace/gridtools -B/workspace/gridtools/build -DCMAKE_BUILD_TYPE:STRING=Debug -G "Unix Makefiles"
       ln -s /workspace/gridtools/build/compile_commands.json .
     prebuild: |
       cmake --build /workspace/gridtools/build/ --parallel 8
