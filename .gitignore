@@ -52,4 +52,7 @@ __pycache__
 !Vagrantfile
 !version.txt
 !.travis.yml
+!.gitpod.yml
+!.gitpod.Dockerfile
+!.gitpod
 
