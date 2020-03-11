@@ -93,7 +93,7 @@ namespace gridtools {
                                          !(Param::intent_v == intent::inout &&
                                              std::is_const<std::remove_reference_t<Arg>>::value),
                         int> = 0>
-                GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
+                GT_FUNCTION decltype(auto) operator()(Accessor) const {
                     return tuple_util::host_device::get<Accessor::index_t::value>(args);
                 }
 
