@@ -9,4 +9,3 @@ export CXX=$(which clang++)
 export CC=$(which clang)
 export FC=$(which gfortran)
 
-export GTCMAKE_GT_ENABLE_BACKEND_CUDA='OFF'
