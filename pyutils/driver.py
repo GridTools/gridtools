@@ -21,7 +21,7 @@ def driver(verbose, logfile):
 # TODO(anstaf): remove unused precision and grid options
 @driver.command(description='build GridTools')
 @args.arg('--build-type', '-b', choices=['release', 'debug'], required=True)
-@args.arg('--precision', '-p', choices=['float', 'double'], required=True)
+@args.arg('--precision', '-p', choices=['float', 'double'], default='double')
 @args.arg('--grid', '-g', choices=['structured', 'icosahedral'],
           default='structured')
 @args.arg('--environment', '-e', help='path to environment file')
@@ -78,8 +78,10 @@ if buildinfo:
             label = None
 
         test.run(label, run_mpi_tests, verbose_ctest)
-        if build_examples:
-            test.compile_examples(examples_build_dir)
+
+# TODO(anstaf): restore examples
+#        if build_examples:
+#            test.compile_examples(examples_build_dir)
 
 
 @driver.command(description='performance test utilities')
