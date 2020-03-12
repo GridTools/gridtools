@@ -5,8 +5,12 @@ import os
 from pyutils import buildinfo, env, log, runtools
 
 
-def _ctest(label, verbose):
-    command = ['ctest', '--output-on-failure', '-L', label]
+def _ctest(good_labels, bad_labels, verbose):
+    command = ['ctest', '--output-on-failure']
+    if good_labels:
+        command += ['-L', good_labels]
+    if bad_labels:
+        command += ['-LE', bad_labels]
     if verbose:
         command.append('-VV')
     return command
@@ -14,25 +18,25 @@ def _ctest(label, verbose):
 
 def _run_nompi(label, verbose_ctest):
     log.info('Running non-MPI tests', label)
-    output, = runtools.sbatch([_ctest(label, verbose_ctest)],
+    output, = runtools.sbatch([_ctest(label, 'mpi', verbose_ctest)],
                               cwd=buildinfo.binary_dir)
     log.info('ctest unit test output', output)
 
 
-def _run_mpi(label, verbose_ctest):
-    log.info('Running MPI tests', label)
-    output, = runtools.sbatch([_ctest(label, verbose_ctest)],
+def _run_mpi(verbose_ctest):
+    log.info('Running MPI tests')
+    output, = runtools.sbatch([_ctest('mpi', None, verbose_ctest)],
                               cwd=buildinfo.binary_dir,
                               use_srun=False,
                               use_mpi_config=True)
     log.info('ctest MPI test output', output)
 
 
-def run(label, mpi_label, verbose_ctest):
+def run(label, run_mpi_tests, verbose_ctest):
     if label:
         _run_nompi(label, verbose_ctest)
-    if mpi_label:
-        _run_mpi(mpi_label, verbose_ctest)
+    if run_mpi_tests:
+        _run_mpi(verbose_ctest)
 
 
 def compile_examples(build_dir):

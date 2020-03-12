@@ -10,12 +10,6 @@ else()
     set(PYUTILS_COMPILER "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 endif()
 
-if(GT_SINGLE_PRECISION)
-    set(PYUTILS_PRECISION "float")
-else()
-    set(PYUTILS_PRECISION "double")
-endif()
-
 if(TARGET backend_x86)
     list(APPEND PYUTILS_BACKEND "x86")
 endif()
