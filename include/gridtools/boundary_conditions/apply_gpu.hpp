@@ -239,7 +239,7 @@ namespace gridtools {
             const uint_t i = blockIdx.x * apply_gpu_impl_::threads_per_block_x_t::value + threadIdx.x;
             const uint_t j = blockIdx.y * apply_gpu_impl_::threads_per_block_y_t::value + threadIdx.y;
             const uint_t k = blockIdx.z * apply_gpu_impl_::threads_per_block_z_t::value + threadIdx.z;
-
+#ifdef GT_CUDA_ARCH
             device::for_each<directions_t>([&](auto dir) {
                 if (predicate(dir)) {
                     auto const &shape = conf.shape(dir);
@@ -252,6 +252,7 @@ namespace gridtools {
                     }
                 }
             });
+#endif
         }
     } // namespace apply_gpu_impl_
 
