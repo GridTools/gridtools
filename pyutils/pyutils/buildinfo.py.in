@@ -27,14 +27,6 @@ log.debug('Compiler', compiler)
 envfile = '@PYUTILS_ENVFILE@' or None
 log.debug('Environment file', envfile)
 
-# Floating point precision
-precision = '@PYUTILS_PRECISION@'
-log.debug('Precision', precision)
-
-# Grid type
-grid = 'structured'
-log.debug('Grid', grid)
-
 # Compiled backends
 backends = '@PYUTILS_BACKEND@'.replace(';', ' ').split()
 log.debug('Backends', backends)

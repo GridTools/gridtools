@@ -37,8 +37,4 @@ function(_fix_mpi_exec)
         set(use_mpi_wrappers OFF)
     endif()
 
-    option( TEST_USE_WRAPPERS_FOR_ALL_TESTS "Use mpi wrappers for all tests" ${use_mpi_wrappers})
-    mark_as_advanced(
-        TEST_USE_WRAPPERS_FOR_ALL_TESTS)
-
 endfunction()

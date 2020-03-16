@@ -45,7 +45,7 @@ namespace gridtools {
                 T *m_ptr;
                 storage::info<N> const *m_info;
 
-#ifdef GT_CUDA_ARCH
+#if defined(GT_CUDA_ARCH) or (defined(GT_CUDACC) and defined(__clang__))
                 GT_FUNCTION_DEVICE auto const &info() const { return *m_info; }
 
                 GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }
