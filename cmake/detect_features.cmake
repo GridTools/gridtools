@@ -4,7 +4,7 @@ function(detect_cuda_type dst prefer_clang)
     get_filename_component(cxx_name ${CMAKE_CXX_COMPILER} NAME)
     if(cxx_name STREQUAL "hipcc")
         include(try_compile_hip)
-        try_compile_hip()
+        try_compile_hip() #TODO use cache variable to avoid compiling each cmake run
         if(GT_HIP_WORKS)
             set(${dst} HIPCC-AMDGPU PARENT_SCOPE)
             return()
