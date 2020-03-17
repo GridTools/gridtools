@@ -6,6 +6,7 @@ vscode:
     - twxs.cmake@0.0.17:9s7m9CWOr6i6NZ7CNNF4kw==
     - ms-vscode.cmake-tools@1.3.1:Yde58UUl5J9XpLmXM+Bqiw==
     - ms-vscode.cpptools@0.26.2:Pq/tmf2WN3SanVzB4xZc1g==
+    - eamodio.gitlens@10.2.1:ZI2Sl3DHdJu4aG2wW92CQQ==
 
 tasks:
   - init: |
