@@ -67,7 +67,8 @@ function(detect_cuda_type cuda_type clang_mode)
                 message(FATAL_ERROR "NVCC-CUDA mode was selected, but doesn't work.")
             endif()
         else() # AUTO
-            if(CMAKE_CUDA_COMPILER) # CUDA language is already enabled, prefer it
+            get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+            if("CUDA" IN_LIST languages) # CUDA language is already enabled, prefer it
                 set(${cuda_type} NVCC-CUDA PARENT_SCOPE)
                 return()
             else()

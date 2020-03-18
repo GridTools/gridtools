@@ -31,10 +31,20 @@ mark_as_advanced(GT_CUDA_TYPE)
 # Enable cuda language
 # Additionally add the gridtools_nvcc proxy
 if (GT_CUDA_TYPE STREQUAL NVCC-CUDA)
-    enable_language(CUDA)
-    add_library(gridtools_nvcc INTERFACE)
-    # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
-    target_compile_options(gridtools_nvcc INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+    if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+        # Do not enable the language if we are included from a super-project.
+        # It is up to the super-project to enable CUDA.
+        enable_language(CUDA)
+    endif()
+
+    get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+    if("CUDA" IN_LIST languages)
+        add_library(gridtools_nvcc INTERFACE)
+        # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
+        target_compile_options(gridtools_nvcc INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+    else()
+        message(STATUS "CUDA was not enabled. If you want CUDA support, please enable the language in your project")
+    endif()
 endif()
 
 find_package(MPI COMPONENTS CXX)
@@ -231,7 +241,7 @@ function(gridtools_add_library tgt)
     gridtools_setup_target(${tgt} ${ARGN})
 endfunction()
 
-if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # add a target to generate API documentation with Doxygen
     find_package(Doxygen)
     if(DOXYGEN_FOUND)
@@ -241,13 +251,13 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     endif()
 
     include(CTest)
-    if (BUILD_TESTING)
+    if(BUILD_TESTING)
         if (TARGET MPI::MPI_CXX)
             include(workaround_mpiexec)
             _fix_mpi_exec()
         endif()
 
-        if (TARGET gridtools_cuda)
+        if(TARGET gridtools_cuda)
             if (DEFINED ENV{CUDA_ARCH})
                 set(GT_CUDA_ARCH_INIT $ENV{CUDA_ARCH})
             else()
