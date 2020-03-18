@@ -70,6 +70,8 @@ endfunction()
 if (GT_CUDA_TYPE)
     add_library(gridtools_cuda INTERFACE)
     gridtools_cuda_setup(${GT_CUDA_TYPE})
+else()
+    message(STATUS "No CUDA- or HIP-capable compiler detected.")
 endif()
 
 add_library(gridtools INTERFACE)
