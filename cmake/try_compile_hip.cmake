@@ -28,6 +28,12 @@ int main(int argc, char* argv[]) {
     set(SRC_FILE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/TryHip.cpp)
     file(WRITE "${SRC_FILE}" "${HIP_TEST_SOURCE}")
 
-    try_compile(hip_works ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY} ${SRC_FILE})
+    try_compile(hip_works ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY} ${SRC_FILE}
+        OUTPUT_VARIABLE HIP_TRY_COMPILE_OUTPUT
+        )
+    if(NOT hip_works)
+        file(APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
+            "Testing HIP compilation gave the following output:\n${HIP_TRY_COMPILE_OUTPUT}\n\n")
+    endif()
     set(GT_HIP_WORKS ${hip_works} PARENT_SCOPE)
 endfunction()
