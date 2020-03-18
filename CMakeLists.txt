@@ -25,7 +25,7 @@ if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL AppleClang AND CMAKE_CXX_COMPILER_VERSION
 endif()
 
 # detect what cuda do we have
-detect_cuda_type(GT_CUDA_TYPE ${GT_PREFER_CLANG_CUDA_OVER_NVCC_CUDA})
+detect_cuda_type(GT_CUDA_TYPE "${GT_CLANG_CUDA_MODE}")
 mark_as_advanced(GT_CUDA_TYPE)
 
 # Enable cuda language
