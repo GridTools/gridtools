@@ -122,6 +122,13 @@ gridtools_add_cartesian_regression_test(horizontal_diffusion_functions SOURCES h
 gridtools_add_layout_transformation_test()
 gridtools_add_boundary_conditions_test()
 
+gridtools_add_test_executable(horizontal_diffusion_cuda2
+        SOURCES horizontal_diffusion_alt.cpp
+        LIBRARIES gridtools regression_main backend_cuda)
+target_compile_definitions(
+        horizontal_diffusion_cuda2
+        PRIVATE GT_FLOAT_TYPE=float GT_STORAGE_CUDA GT_TIMER_CUDA)
+
 add_subdirectory(icosahedral)
 add_subdirectory(c_bindings)
 add_subdirectory(communication)
