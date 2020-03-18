@@ -99,7 +99,7 @@ namespace gridtools {
                 auto composite = tuple_util::convert_to<keys_t::template values>(
                     tuple_util::transform(make_sid_f<DataStores>{data_stores}, plh_map_t()));
 
-                launch_kernel<typename mss_t::extent_t, IBlockSize::value, JBlockSize::value>(grid.i_size(),
+                launch_kernel<IBlockSize::value, JBlockSize::value>(grid.i_size(),
                     grid.j_size(),
                     (grid.k_size() + KBlockSize::value - 1) / KBlockSize::value,
                     make_kernel_fun<deref_t, mss_t, JBlockSize::value, KBlockSize::value>(grid, composite));

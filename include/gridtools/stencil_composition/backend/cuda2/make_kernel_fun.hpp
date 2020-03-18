@@ -35,7 +35,8 @@ namespace gridtools {
                     constexpr auto step = 1_c;
                     using max_extent_t = typename Info::extent_t;
 
-                    sid::shift(ptr, sid::get_stride<dim::j>(strides), max_extent_t::minus(dim::j()));
+                    constexpr auto j_start = typename max_extent_t::jminus() - typename max_extent_t::jplus();
+                    sid::shift(ptr, sid::get_stride<dim::j>(strides), j_start);
 
                     using j_caches_t = j_caches_type<Info>;
                     j_caches_t j_caches;
@@ -47,11 +48,11 @@ namespace gridtools {
                     };
 
 #pragma unroll
-                    for (int_t j = max_extent_t::jminus::value - max_extent_t::jplus::value; j < JBlockSize; ++j) {
+                    for (int_t j = decltype(j_start)::value; j < JBlockSize; ++j) {
                         device::for_each<typename Info::cells_t>([&](auto cell) GT_FORCE_INLINE_LAMBDA {
                             using cell_t = decltype(cell);
                             using extent_t = typename cell_t::extent_t;
-                            constexpr auto j_offset = typename max_extent_t::jplus() - typename extent_t::jplus();
+                            constexpr auto j_offset = typename extent_t::jplus();
                             shift_mixed_ptr(dim::j(), j_offset);
                             shift_mixed_ptr(dim::i(), typename extent_t::iminus());
 #pragma unroll
