@@ -16,7 +16,7 @@ endfunction()
 
 # try_nvcc_cuda()
 # Parameters:
-#    - gt_result: result variable is set to NVCC-CUDA  or NOTFOUND
+#    - gt_result: result variable is set to NVCC-CUDA or NOTFOUND
 function(try_nvcc_cuda gt_result)
     include(CheckLanguage)
     check_language(CUDA)
