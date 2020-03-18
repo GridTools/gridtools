@@ -20,6 +20,18 @@
 using namespace gridtools;
 using namespace cartesian;
 
+struct copy_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1>;
+
+    using param_list = make_param_list<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void apply(Evaluation eval) {
+        eval(out()) = eval(in());
+    }
+};
+
 struct lap_function {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 1, -1, 1>>;
@@ -77,12 +89,13 @@ struct out_function {
 };
 
 const auto spec = [](auto in, auto coeff, auto out) {
-    GT_DECLARE_TMP(float_type, lap, flx, fly);
+    GT_DECLARE_TMP(float_type, lap, flx, fly, inc);
     return execute_parallel()
-        .stage(lap_function(), lap, in)
-        .stage(flx_function(), flx, in, lap)
-        .stage(fly_function(), fly, in, lap)
-        .stage(out_function(), out, in, flx, fly, coeff);
+        .stage(copy_function(), inc, in)
+        .stage(lap_function(), lap, inc)
+        .stage(flx_function(), flx, inc, lap)
+        .stage(fly_function(), fly, inc, lap)
+        .stage(out_function(), out, inc, flx, fly, coeff);
 };
 
 using horizontal_diffusion = regression_fixture<2>;
