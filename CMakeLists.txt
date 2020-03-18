@@ -26,7 +26,7 @@ endif()
 
 # detect what cuda do we have
 detect_cuda_type(GT_CUDA_TYPE "${GT_CLANG_CUDA_MODE}")
-mark_as_advanced(GT_CUDA_TYPE)
+mark_as_advanced(GT_CUDA_TYPE) #TODO currently this is useless, because not cached, should we cache?
 
 # Enable cuda language
 # Additionally add the gridtools_nvcc proxy
