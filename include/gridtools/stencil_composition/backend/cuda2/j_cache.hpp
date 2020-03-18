@@ -22,8 +22,9 @@ namespace gridtools {
         namespace j_cache_impl_ {
 
             template <class Extent>
-            using ij_strides_t = hymap::keys<dim::i, dim::j>::values<integral_constant<int_t, 1>,
-                integral_constant<int_t, Extent::iplus::value - Extent::iminus::value + 1>>;
+            using ij_strides_t = hymap::keys<dim::i,
+                dim::j>::values<integral_constant<int_t, Extent::jplus::value - Extent::jminus::value + 1>,
+                integral_constant<int_t, 1>>;
 
             template <class T, class Extent>
             struct storage;
@@ -41,7 +42,7 @@ namespace gridtools {
                     for (int_t j = 0; j < JPlus - JMinus; ++j)
 #pragma unroll
                         for (int_t i = 0; i < IPlus - IMinus + 1; ++i)
-                            m_values[i][j] = m_values[i][j - 1];
+                            m_values[i][j] = m_values[i][j + 1];
                 }
 
                 using strides_t = ij_strides_t<extent<IMinus, IPlus, JMinus, JPlus>>;

@@ -44,6 +44,9 @@ namespace gridtools {
 
                 int_t i_block_size =
                     (blockIdx.x + 1) * BlockSizeI < i_size ? BlockSizeI : i_size - blockIdx.x * BlockSizeI;
+                if (i_block >= i_block_size)
+                    return;
+
                 int_t j_block_size =
                     (blockIdx.y + 1) * BlockSizeJ < j_size ? BlockSizeJ : j_size - blockIdx.y * BlockSizeJ;
 
