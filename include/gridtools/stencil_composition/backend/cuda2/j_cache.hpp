@@ -115,7 +115,7 @@ namespace gridtools {
 
         template <class Extent>
         using j_cache_sid_t = j_cache_impl_::fake<Extent>;
-        //        using j_cache_impl_::has_k_caches;
+
         using j_cache_impl_::j_caches_type;
     } // namespace cuda2
 } // namespace gridtools

@@ -122,6 +122,8 @@ gridtools_add_cartesian_regression_test(horizontal_diffusion_functions SOURCES h
 gridtools_add_layout_transformation_test()
 gridtools_add_boundary_conditions_test()
 
+# temporary solution
+# TODO(anstaf): perftest and full regression test suite for cuda2 backend
 gridtools_add_test_executable(horizontal_diffusion_cuda2
         SOURCES horizontal_diffusion_alt.cpp
         LIBRARIES gridtools regression_main backend_cuda)

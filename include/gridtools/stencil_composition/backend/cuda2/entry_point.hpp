@@ -15,11 +15,14 @@
 #include "../../../common/cuda_type_traits.hpp"
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
+#include "../../../common/functional.hpp"
+#include "../../../common/generic_metafunctions/utility.hpp"
+#include "../../../common/gt_math.hpp"
+#include "../../../common/host_device.hpp"
 #include "../../../common/hymap.hpp"
 #include "../../../common/integral_constant.hpp"
 #include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
-#include "../../../sid/allocator.hpp"
 #include "../../../sid/as_const.hpp"
 #include "../../../sid/block.hpp"
 #include "../../../sid/blocked_dim.hpp"
@@ -33,7 +36,6 @@
 #include "../../common/extent.hpp"
 #include "j_cache.hpp"
 #include "launch_kernel.hpp"
-#include "make_kernel_fun.hpp"
 
 namespace gridtools {
     namespace cuda2 {
@@ -52,36 +54,110 @@ namespace gridtools {
             }
         };
 
+        template <int_t JBlockSize>
+        struct j_loop_f {
+            template <class Info, class Ptr, class Strides, class Validator>
+            GT_FUNCTION_DEVICE void operator()(
+                Info, Ptr ptr, Strides const &strides, Validator const &validator) const {
+                using namespace literals;
+                constexpr auto step = 1_c;
+                using max_extent_t = typename Info::extent_t;
+                using const_keys_t =
+                    meta::transform<be_api::get_key, meta::filter<be_api::get_is_const, typename Info::plh_map_t>>;
+
+                constexpr auto j_start = typename max_extent_t::jminus() - typename max_extent_t::jplus();
+                sid::shift(ptr, sid::get_stride<dim::j>(strides), j_start);
+
+                using j_caches_t = j_caches_type<Info>;
+                j_caches_t j_caches;
+                auto mixed_ptr = hymap::device::merge(j_caches.ptr(), wstd::move(ptr));
+
+                auto shift_mixed_ptr = [&](auto dim, auto offset) {
+                    sid::shift(mixed_ptr.secondary(), sid::get_stride<decltype(dim)>(strides), offset);
+                    j_caches_t::shift(dim, mixed_ptr.primary(), offset);
+                };
+
+#pragma unroll
+                for (int_t j = decltype(j_start)::value; j < JBlockSize; ++j) {
+                    device::for_each<typename Info::cells_t>([&](auto cell) GT_FORCE_INLINE_LAMBDA {
+                        using cell_t = decltype(cell);
+                        using extent_t = typename cell_t::extent_t;
+                        constexpr auto j_offset = typename extent_t::jplus();
+                        shift_mixed_ptr(dim::j(), j_offset);
+                        shift_mixed_ptr(dim::i(), typename extent_t::iminus());
+#pragma unroll
+                        for (int_t i = extent_t::iminus::value; i <= extent_t::iplus::value; ++i) {
+                            if (validator(extent_t(), i, j + j_offset))
+                                cell.template operator()<deref_f<const_keys_t>>(mixed_ptr, strides);
+                            shift_mixed_ptr(dim::i(), step);
+                        }
+                        shift_mixed_ptr(dim::i(), -typename extent_t::iplus() - step);
+                        shift_mixed_ptr(dim::j(), -j_offset);
+                    });
+                    sid::shift(mixed_ptr.secondary(), sid::get_stride<dim::j>(strides), step);
+                    j_caches.slide();
+                }
+            }
+        };
+
+        template <class JLoop, class Mss, class Sizes, int_t KBlockSize>
+        struct k_loop_f {
+            Sizes m_sizes;
+
+            template <class Ptr, class Strides, class Validator>
+            GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
+                int_t cur = -(int_t)blockIdx.z * KBlockSize;
+                sid::shift(ptr, sid::get_stride<dim::k>(strides), -cur);
+                tuple_util::device::for_each(
+                    [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
+                        if (cur >= KBlockSize)
+                            return;
+                        int_t lim = math::min(cur + size, KBlockSize) - math::max(cur, 0);
+                        cur += size;
+#pragma unroll
+                        for (int_t i = 0; i < KBlockSize; ++i) {
+                            if (i >= lim)
+                                break;
+                            JLoop()(info, ptr, strides, validator);
+                            info.inc_k(ptr, strides);
+                        }
+                    },
+                    m_sizes,
+                    Mss::interval_infos());
+            }
+        };
+
+        template <class Sid, class KLoop>
+        struct kernel_f {
+            sid::ptr_holder_type<Sid> m_ptr_holder;
+            sid::strides_type<Sid> m_strides;
+            KLoop k_loop;
+
+            template <class Validator>
+            GT_FUNCTION_DEVICE void operator()(int_t i_block, Validator validator) const {
+                auto ptr = m_ptr_holder();
+                sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::i>>(m_strides), blockIdx.x);
+                sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::j>>(m_strides), blockIdx.y);
+                sid::shift(ptr, sid::get_stride<dim::i>(m_strides), i_block);
+                k_loop(wstd::move(ptr), m_strides, wstd::move(validator));
+            }
+        };
+
         template <class IBlockSize = integral_constant<int_t, 64>,
             class JBlockSize = integral_constant<int_t, 8>,
             class KBlockSize = integral_constant<int_t, 1>>
         struct backend {
-            template <class DataStoreMap>
-            static auto block(DataStoreMap data_stores) {
-                return tuple_util::transform(
-                    [=](auto &&src) {
-                        return sid::block(std::forward<decltype(src)>(src),
-                            tuple_util::make<hymap::keys<dim::i, dim::j>::values>(IBlockSize(), JBlockSize()));
-                    },
-                    std::move(data_stores));
+            template <class Mss, class Grid, class Composite>
+            static auto make_kernel_fun(Grid const &grid, Composite &composite) {
+                sid::ptr_diff_type<Composite> offset{};
+                auto strides = sid::get_strides(composite);
+                sid::shift(offset, sid::get_stride<dim::k>(strides), grid.k_start(Mss::interval(), Mss::execution()));
+                auto k_sizes = be_api::make_k_sizes(Mss::interval_infos(), grid);
+                using k_sizes_t = decltype(k_sizes);
+                using k_loop_t = k_loop_f<j_loop_f<JBlockSize::value>, Mss, k_sizes_t, KBlockSize::value>;
+                return kernel_f<Composite, k_loop_t>{
+                    sid::get_origin(composite) + offset, std::move(strides), {std::move(k_sizes)}};
             }
-
-            template <class DataStores>
-            struct make_sid_f {
-                DataStores &m_data_stores;
-
-                template <class PlhInfo, std::enable_if_t<PlhInfo::is_tmp_t::value, int> = 0>
-                auto operator()(PlhInfo) const {
-                    return j_cache_sid_t<typename PlhInfo::extent_t>();
-                }
-
-                template <class PlhInfo, std::enable_if_t<!PlhInfo::is_tmp_t::value, int> = 0>
-                auto operator()(PlhInfo) const {
-                    return sid::add_const(PlhInfo::is_const(),
-                        sid::block(at_key<typename PlhInfo::plh_t>(m_data_stores),
-                            tuple_util::make<hymap::keys<dim::i, dim::j>::values>(IBlockSize(), JBlockSize())));
-                }
-            };
 
             template <class Spec, class Grid, class DataStores>
             static void entry_point(Grid const &grid, DataStores data_stores) {
@@ -89,20 +165,24 @@ namespace gridtools {
                 static_assert(meta::length<msses_t>::value == 1, "Not implemented");
                 using mss_t = meta::first<msses_t>;
                 static_assert(be_api::is_parallel<typename mss_t::execution_t>(), "Not implemented");
-                using const_keys_t =
-                    meta::transform<be_api::get_key, meta::filter<be_api::get_is_const, typename mss_t::plh_map_t>>;
-                using deref_t = deref_f<const_keys_t>;
-
                 using plh_map_t = typename mss_t::plh_map_t;
-                using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
 
-                auto composite = tuple_util::convert_to<keys_t::template values>(
-                    tuple_util::transform(make_sid_f<DataStores>{data_stores}, plh_map_t()));
+                using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
+                auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
+                    overload( //
+                        [&](std::true_type, auto info) { return j_cache_sid_t<decltype(info.extent())>(); },
+                        [&](std::false_type, auto info) {
+                            return sid::add_const(info.is_const(),
+                                sid::block(at_key<decltype(info.plh())>(data_stores),
+                                    tuple_util::make<hymap::keys<dim::i, dim::j>::values>(IBlockSize(), JBlockSize())));
+                        }),
+                    meta::transform<be_api::get_is_tmp, plh_map_t>(),
+                    plh_map_t()));
 
                 launch_kernel<IBlockSize::value, JBlockSize::value>(grid.i_size(),
                     grid.j_size(),
                     (grid.k_size() + KBlockSize::value - 1) / KBlockSize::value,
-                    make_kernel_fun<deref_t, mss_t, JBlockSize::value, KBlockSize::value>(grid, composite));
+                    make_kernel_fun<mss_t>(grid, composite));
             }
 
             template <class Spec, class Grid, class DataStores>
