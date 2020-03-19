@@ -1,6 +1,6 @@
 # try_compile_hip(result)
 # Parameters:
-#    - result: result variable is set to ON if HIP compilation worked.
+#    - result: result variable is set to TRUE if HIP compilation worked.
 function(try_compile_hip result)
     set(HIP_TEST_SOURCE
 "
