@@ -14,7 +14,6 @@ jobs:
         matrix:
             version: [7, 8, 9]
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
-
     steps:
     - uses: actions/checkout@v2
     - name: CMake configure expect success
@@ -40,7 +39,6 @@ jobs:
 #         matrix:
 #             version: [9]
 #             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
-
 #     steps:
 #     - uses: actions/checkout@v2
 #     - name: CMake configure expect success
@@ -52,10 +50,24 @@ jobs:
 #         && echo $expected_mode
 #         && grep "GridTools GPU mode: $expected_mode" out.log > /dev/null
 
+  gcc:
+    runs-on: ubuntu-latest
+    container: mrtravis/gridtools:gcc-${{ matrix.version }}
+    strategy:
+        matrix:
+            version: [7, 8, 9]
+    steps:
+    - uses: actions/checkout@v2
+    - name: CMake configure expect success
+      if: contains(matrix.cuda-mode, 'AUTO')
+      run: >
+        mkdir build && cd build
+        && cmake .. > out.log
+        && grep "GridTools GPU mode: NOTFOUND" out.log > /dev/null
+
   gcc-nvcc:
     runs-on: ubuntu-latest
     container: mrtravis/gridtools:cuda-10.1
-
     steps:
     - uses: actions/checkout@v2
     - name: CMake configure expect success
