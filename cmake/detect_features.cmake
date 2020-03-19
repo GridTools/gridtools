@@ -89,7 +89,6 @@ function(detect_cuda_type cuda_type clang_mode)
                 endif()
 
                 set(${cuda_type} NOTFOUND PARENT_SCOPE)
-                return()
             endif()
         endif()
     endif()
