@@ -17,11 +17,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: CMake configure
+    - name: CMake configure expect success
+      if: contains(matrix.cuda-mode, 'AUTO')
       run: |
         mkdir build && cd build
         cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }}
-    - name: validate
-      if: (contains(matrix.cuda-mode, 'AUTO') && success()) || failure()
-      run: echo done
+    - name: CMake configure expect failure
+      if: !contains(matrix.cuda-mode, 'AUTO')
+      run: |
+        mkdir build && cd build
+        if cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }}; then
+            false
+        else
+            true
+        fi
     #TODO parse CMake output and check if targets are available
