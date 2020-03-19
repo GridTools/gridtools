@@ -10,6 +10,7 @@
 #pragma once
 
 #include <type_traits>
+#include <cassert>
 
 #include "../../../common/cuda_runtime.hpp"
 #include "../../../common/cuda_util.hpp"
