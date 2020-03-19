@@ -22,7 +22,7 @@ jobs:
       run:
         mkdir build && cd build
         cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }} > out.log
-        grep "expect fail" out.log > /dev/null
+        grep "expect fail" out.log
     - name: CMake configure expect failure
       if: (!contains(matrix.cuda-mode, 'AUTO'))
       run: |
