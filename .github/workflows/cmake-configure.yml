@@ -47,7 +47,6 @@ jobs:
         && cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }} > out.log
         && export expected_mode=${{ matrix.cuda-mode }}
         && if [ "$expected_mode" = "AUTO" ]; then export expected_mode="Clang-CUDA"; fi
-        && echo $expected_mode
         && grep "GridTools GPU mode: $expected_mode" out.log > /dev/null
 
   gcc:
