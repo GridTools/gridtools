@@ -22,6 +22,6 @@ jobs:
         mkdir build && cd build
         cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }}
     - name: validate
-      if: (matrix.cuda-mode == "AUTO" && success()) || failure()
+      if: (contains(matrix.cuda-mode, 'AUTO') && success()) || failure()
       run: echo done
     #TODO parse CMake output and check if targets are available
