@@ -11,7 +11,11 @@ FetchContent_Declare(
 
 set(build_testing_ ${BUILD_TESTING})
 set(BUILD_TESTING OFF)
-FetchContent_MakeAvailable(cpp_bindgen)
+FetchContent_GetProperties(cpp_bindgen)
+if(NOT cpp_bindgen_POPULATED)
+  FetchContent_Populate(cpp_bindgen)
+  add_subdirectory(${cpp_bindgen_SOURCE_DIR} ${cpp_bindgen_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
 set(BUILD_TESTING ${build_testing_})
 
 bindgen_add_library(implementation SOURCES implementation.cpp FORTRAN_MODULE_NAME implementation)
