@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: CMake configure expect success
       if: contains(matrix.cuda-mode, 'AUTO')
-      run:
+      run: |
         mkdir build && cd build
         cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }} > out.log
         grep "expect fail" out.log
