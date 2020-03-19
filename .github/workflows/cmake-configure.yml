@@ -33,21 +33,33 @@ jobs:
             true
         fi
 
-  clang-cuda:
+#   clang-cuda:
+#     runs-on: ubuntu-latest
+#     container: mrtravis/gridtools:clang-${{ matrix.version }}-cuda-10.1
+#     strategy:
+#         matrix:
+#             version: [9]
+#             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
+
+#     steps:
+#     - uses: actions/checkout@v2
+#     - name: CMake configure expect success
+#       run: >
+#         mkdir build && cd build
+#         && cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }} > out.log
+#         && export expected_mode=${{ matrix.cuda-mode }}
+#         && if [ "$expected_mode" = "AUTO" ]; then export expected_mode="Clang-CUDA"; fi
+#         && echo $expected_mode
+#         && grep "GridTools GPU mode: $expected_mode" out.log > /dev/null
+
+  gcc-nvcc:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:clang-${{ matrix.version }}-cuda-10.1
-    strategy:
-        matrix:
-            version: [9]
-            cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
+    container: mrtravis/gridtools:cuda-10.1
 
     steps:
     - uses: actions/checkout@v2
     - name: CMake configure expect success
       run: >
         mkdir build && cd build
-        && cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }} > out.log
-        && export expected_mode=${{ matrix.cuda-mode }}
-        && if [ "$expected_mode" = "AUTO" ]; then export expected_mode="Clang-CUDA"; fi
-        && echo $expected_mode
-        && grep "GridTools GPU mode: $expected_mode" out.log > /dev/null
+        && cmake .. > out.log
+        && grep "GridTools GPU mode: NVCC-CUDA" out.log > /dev/null
