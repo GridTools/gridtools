@@ -143,7 +143,7 @@ namespace gridtools {
             }
         };
 
-        template <class IBlockSize = integral_constant<int_t, 64>,
+        template <class IBlockSize = integral_constant<int_t, 256>,
             class JBlockSize = integral_constant<int_t, 8>,
             class KBlockSize = integral_constant<int_t, 1>>
         struct backend {

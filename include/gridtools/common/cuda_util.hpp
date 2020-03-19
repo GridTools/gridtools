@@ -82,10 +82,10 @@ namespace gridtools {
                 cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_memory_size));
 #endif
             kernel<<<blocks, threads, shared_memory_size>>>(std::move(args)...);
+            GT_CUDA_CHECK(cudaGetLastError());
 #ifndef NDEBUG
             GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
-            GT_CUDA_CHECK(cudaGetLastError());
         }
 #endif
     } // namespace cuda_util

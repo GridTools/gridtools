@@ -15,7 +15,6 @@
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
-#include "../../common/dim.hpp"
 #include "../../common/extent.hpp"
 
 namespace gridtools {
@@ -33,7 +32,7 @@ namespace gridtools {
                 template <class Extent, class I>
                 GT_FUNCTION_DEVICE bool operator()(Extent, I i, int_t j) const {
                     static_assert(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-                    return Extent::minus(dim::i()) - i <= m_i_lo && Extent::plus(dim::i()) - i > m_i_hi &&
+                    return Extent::iminus::value - i <= m_i_lo && Extent::iplus::value - i > m_i_hi &&
                            Extent::jminus::value <= j && Extent::jplus::value > j - m_j_block_size;
                 }
             };
@@ -54,13 +53,13 @@ namespace gridtools {
             }
 
             template <int_t BlockSizeI, int_t BlockSizeJ, class Fun>
-            void launch_kernel(int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
+            void launch_kernel(int_t i_size, int_t j_size, uint_t zblocks, Fun fun) {
                 static_assert(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
 
                 cuda_util::launch(
                     dim3((i_size + BlockSizeI - 1) / BlockSizeI, (j_size + BlockSizeJ - 1) / BlockSizeJ, zblocks),
                     dim3(BlockSizeI, 1, 1),
-                    shared_memory_size,
+                    0,
                     wrapper<BlockSizeI, BlockSizeI, BlockSizeJ, Fun>,
                     std::move(fun),
                     i_size,
