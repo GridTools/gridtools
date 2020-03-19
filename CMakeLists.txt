@@ -43,7 +43,8 @@ if (GT_CUDA_TYPE STREQUAL NVCC-CUDA)
         # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
         target_compile_options(gridtools_nvcc INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
     else()
-        message(STATUS "CUDA was not enabled. If you want CUDA support, please enable the language in your project")
+        message(WARNING "CUDA was not enabled. If you want CUDA support, please enable the language in your project")
+        set(GT_CUDA_TYPE NOTFOUND)
     endif()
 endif()
 
@@ -81,7 +82,7 @@ if (GT_CUDA_TYPE)
     add_library(gridtools_cuda INTERFACE)
     gridtools_cuda_setup(${GT_CUDA_TYPE})
 else()
-    message(STATUS "No CUDA- or HIP-capable compiler detected.")
+    message(STATUS "GridTools GPU mode: NOTFOUND, no GPU support enabled.")
 endif()
 
 add_library(gridtools INTERFACE)
