@@ -2,7 +2,8 @@
 
 source $(dirname "$0")/setup.sh
 
-./pyutils/driver.py -v -l $logfile build -b $build_type -p $real_type -g $grid_type -e $envfile -o build -i install -t install || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
+# TODO reset to an appropriate log level (e.g. my making CMake output available already from -v)
+./pyutils/driver.py -vvv -l $logfile build -b $build_type -p $real_type -g $grid_type -e $envfile -o build -i install -t install || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
 
 # disable mpi tests by default
 if [[ "$run_mpi_tests" == true ]]; then
