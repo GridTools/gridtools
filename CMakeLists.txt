@@ -50,6 +50,8 @@ if (GT_CUDA_TYPE STREQUAL NVCC-CUDA)
 endif()
 
 find_package(MPI COMPONENTS CXX)
+include(workaround_mpi)
+_fix_mpi_flags()
 
 if (GT_CUDA_TYPE STREQUAL NVCC-CUDA)
     set(GT_CUDA_ARCH_FLAG -arch)
