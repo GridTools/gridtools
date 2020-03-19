@@ -1,0 +1,27 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CMake
+
+on:
+  push:
+    branches: [ cmake_refactoring ] #TODO point to master
+  pull_request:
+    branches: [ cmake_refactoring ]
+
+jobs:
+  clang:
+    runs-on: ubuntu-latest
+    container: mrtravis/gridtools:clang-${{ matrix.version }}
+    strategy:
+        matrix:
+            version: [7, 8, 9]
+            cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: CMake configure
+      run: |
+        mkdir build && cd build
+        cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }}
+
+    #TODO parse CMake output and check if targets are available
