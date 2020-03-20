@@ -11,7 +11,7 @@ unset(__GT_VERSION)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CUDA_EXTENSIONS OFF)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/public" "${CMAKE_CURRENT_LIST_DIR}/cmake/internal")
 
 include(CMakePrintHelpers)
 include(flags)
@@ -78,4 +78,4 @@ if(GT_INSTALL_EXAMPLES)
 endif()
 
 # absolute path to avoid collision with "export" from other packages
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/export.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/internal/export.cmake)

@@ -6,7 +6,7 @@ set(GRIDTOOLS_MODULE_PATH lib/cmake)
 
 include(CMakePackageConfigHelpers)
 set(GRIDTOOLS_INCLUDE_PATH include)
-configure_package_config_file(cmake/GridToolsConfig.cmake.in
+configure_package_config_file(cmake/internal/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfig.cmake
   PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_INCLUDE_PATH
   INSTALL_DESTINATION lib/cmake)
@@ -18,8 +18,7 @@ write_basic_package_version_file(
 # for build tree
 set(GRIDTOOLS_MODULE_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake)
 set(GRIDTOOLS_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include)
-FetchContent_GetProperties(cpp_bindgen)
-configure_package_config_file(cmake/GridToolsConfig.cmake.in
+configure_package_config_file(cmake/internal/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}/GridToolsConfig.cmake
   PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_INCLUDE_PATH
   INSTALL_DESTINATION ${PROJECT_BINARY_DIR})
@@ -45,11 +44,6 @@ install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsCo
     "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake"
   DESTINATION "lib/cmake/${PROJECT_NAME}")
 
-set(CMAKE_SOURCES
-    "${PROJECT_SOURCE_DIR}/cmake/fortran_helpers.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/workaround_check_language.cmake"
-    )
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/cmake/public/ DESTINATION "lib/cmake/${PROJECT_NAME}")
 
-install(FILES ${CMAKE_SOURCES} DESTINATION "lib/cmake/${PROJECT_NAME}")
-
-file(COPY ${CMAKE_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
+file(COPY ${PROJECT_SOURCE_DIR}/cmake/public/ DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
