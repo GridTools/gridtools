@@ -19,10 +19,6 @@ include(flags)
 set(REQUIRED_BOOST_VERSION 1.58)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
 
-if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL AppleClang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0))
-find_package(OpenMP COMPONENTS CXX)
-endif()
-
 # setup main gridtools target
 add_library(gridtools INTERFACE)
 add_library(GridTools::gridtools ALIAS gridtools)

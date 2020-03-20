@@ -26,16 +26,16 @@ foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
     # one executable for each example in the list
     add_executable(${srcfile}_mc ${srcfile}.cpp)
     # 4) An executable/library using GridTools needs to link to the target GridTools::gridtools
-    #    if it is using header-only modules.
-    target_link_libraries(${srcfile}_mc GridTools::gridtools)
+    #    if it is using header-only modules. TODO
+    target_link_libraries(${srcfile}_mc GridTools::backend_mc)
     add_test(NAME ${srcfile}_mc COMMAND $<TARGET_FILE:${srcfile}_mc> 33 44 55)
 endforeach()
 
-if(TARGET GridTools::gridtools_cuda)
+if(TARGET GridTools::backend_cuda)
     foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
         add_executable(${srcfile}_cuda ${srcfile}.cu)
-        # The executable links to the same target GridTools::gridtools as in the case of the "mc" backend
-        target_link_libraries(${srcfile}_cuda GridTools::gridtools_cuda)
+        # The executable links to the target GridTools::backend_cuda
+        target_link_libraries(${srcfile}_cuda GridTools::backend_cuda)
         add_test(NAME ${srcfile}_cuda COMMAND $<TARGET_FILE:${srcfile}_cuda> 33 44 55)
     endforeach()
 else()

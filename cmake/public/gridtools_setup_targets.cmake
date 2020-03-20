@@ -38,6 +38,10 @@ macro(gridtools_setup_targets _config_mode clang_cuda_mode)
     include(${_gt_gridtools_setup_targets_dir}/workaround_mpi.cmake)
     _fix_mpi_flags()
 
+    if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL AppleClang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0))
+        find_package(OpenMP COMPONENTS CXX)
+    endif()
+
     if (GT_CUDA_TYPE STREQUAL NVCC-CUDA)
         set(GT_CUDA_ARCH_FLAG -arch)
     elseif (GT_CUDA_TYPE STREQUAL Clang-CUDA)
@@ -48,7 +52,7 @@ macro(gridtools_setup_targets _config_mode clang_cuda_mode)
 
     function(gridtools_cuda_setup type)
         if (type STREQUAL NVCC-CUDA)
-            target_link_libraries(${_gt_namespace}gridtools_cuda INTERFACE gridtools_nvcc)
+            target_link_libraries(${_gt_namespace}gridtools_cuda INTERFACE ${_gt_namespace}gridtools_nvcc)
             find_library(cudart cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
             set(GT_CUDA_LIBRARIES ${cudart} PARENT_SCOPE)
             set(GT_CUDA_INCLUDE_DIRS ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} PARENT_SCOPE)
@@ -74,13 +78,13 @@ macro(gridtools_setup_targets _config_mode clang_cuda_mode)
     endif()
 
     add_library(${_gt_namespace}storage_x86 INTERFACE ${_gt_imported})
-    target_link_libraries(${_gt_namespace}storage_x86 INTERFACE gridtools)
+    target_link_libraries(${_gt_namespace}storage_x86 INTERFACE ${_gt_namespace}gridtools)
 
     add_library(${_gt_namespace}storage_mc INTERFACE ${_gt_imported})
-    target_link_libraries(${_gt_namespace}storage_mc INTERFACE gridtools)
+    target_link_libraries(${_gt_namespace}storage_mc INTERFACE ${_gt_namespace}gridtools)
 
     add_library(${_gt_namespace}backend_naive INTERFACE ${_gt_imported})
-    target_link_libraries(${_gt_namespace}backend_naive INTERFACE gridtools)
+    target_link_libraries(${_gt_namespace}backend_naive INTERFACE ${_gt_namespace}gridtools)
 
     set(GT_BACKENDS naive)
     set(GT_ICO_BACKENDS naive)
@@ -89,44 +93,44 @@ macro(gridtools_setup_targets _config_mode clang_cuda_mode)
 
     if (TARGET ${_gt_namespace}gridtools_cuda)
         add_library(${_gt_namespace}backend_cuda INTERFACE ${_gt_imported})
-        target_link_libraries(${_gt_namespace}backend_cuda INTERFACE gridtools gridtools_cuda)
+        target_link_libraries(${_gt_namespace}backend_cuda INTERFACE ${_gt_namespace}gridtools ${_gt_namespace}gridtools_cuda)
         list(APPEND GT_BACKENDS cuda)
         list(APPEND GT_ICO_BACKENDS cuda)
 
         add_library(${_gt_namespace}storage_cuda INTERFACE ${_gt_imported})
-        target_link_libraries(${_gt_namespace}storage_cuda INTERFACE gridtools gridtools_cuda)
+        target_link_libraries(${_gt_namespace}storage_cuda INTERFACE ${_gt_namespace}gridtools ${_gt_namespace}gridtools_cuda)
         list(APPEND GT_STORAGES cuda)
 
         if(MPI_CXX_FOUND)
             add_library(${_gt_namespace}gcl_gpu INTERFACE ${_gt_imported})
-            target_link_libraries(${_gt_namespace}gcl_gpu INTERFACE gridtools gridtools_cuda MPI::MPI_CXX)
+            target_link_libraries(${_gt_namespace}gcl_gpu INTERFACE ${_gt_namespace}gridtools ${_gt_namespace}gridtools_cuda MPI::MPI_CXX)
         endif()
 
         add_library(${_gt_namespace}bc_gpu INTERFACE ${_gt_imported})
-        target_link_libraries(${_gt_namespace}bc_gpu INTERFACE gridtools gridtools_cuda)
+        target_link_libraries(${_gt_namespace}bc_gpu INTERFACE ${_gt_namespace}gridtools ${_gt_namespace}gridtools_cuda)
 
         add_library(${_gt_namespace}layout_transformation_gpu INTERFACE ${_gt_imported})
-        target_link_libraries(${_gt_namespace}layout_transformation_gpu INTERFACE gridtools gridtools_cuda)
+        target_link_libraries(${_gt_namespace}layout_transformation_gpu INTERFACE ${_gt_namespace}gridtools ${_gt_namespace}gridtools_cuda)
 
         list(APPEND GT_GCL_ARCHS gpu)
     endif()
 
     if (OpenMP_CXX_FOUND)
         add_library(${_gt_namespace}backend_x86 INTERFACE ${_gt_imported})
-        target_link_libraries(${_gt_namespace}backend_x86 INTERFACE gridtools OpenMP::OpenMP_CXX)
+        target_link_libraries(${_gt_namespace}backend_x86 INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
         add_library(${_gt_namespace}backend_mc INTERFACE ${_gt_imported})
-        target_link_libraries(${_gt_namespace}backend_mc INTERFACE gridtools OpenMP::OpenMP_CXX)
+        target_link_libraries(${_gt_namespace}backend_mc INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
         if(MPI_CXX_FOUND)
             add_library(${_gt_namespace}gcl_cpu INTERFACE ${_gt_imported})
-            target_link_libraries(${_gt_namespace}gcl_cpu INTERFACE gridtools OpenMP::OpenMP_CXX MPI::MPI_CXX)
+            target_link_libraries(${_gt_namespace}gcl_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX MPI::MPI_CXX)
         endif()
         add_library(${_gt_namespace}bc_cpu INTERFACE ${_gt_imported})
-        target_link_libraries(${_gt_namespace}bc_cpu INTERFACE gridtools OpenMP::OpenMP_CXX)
+        target_link_libraries(${_gt_namespace}bc_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
         add_library(${_gt_namespace}layout_transformation_cpu INTERFACE ${_gt_imported})
-        target_link_libraries(${_gt_namespace}layout_transformation_cpu INTERFACE gridtools OpenMP::OpenMP_CXX)
+        target_link_libraries(${_gt_namespace}layout_transformation_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
         list(APPEND GT_GCL_ARCHS cpu)
 
