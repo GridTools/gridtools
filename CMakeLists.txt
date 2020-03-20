@@ -173,49 +173,46 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
                 ${CMAKE_CURRENT_BINARY_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM)
     endif()
 
-    include(CTest)
-    if(BUILD_TESTING)
-        if (TARGET MPI::MPI_CXX)
-            include(workaround_mpiexec)
-            _fix_mpi_exec()
-        endif()
-
-        if(TARGET gridtools_cuda)
-            if (DEFINED ENV{CUDA_ARCH})
-                set(GT_CUDA_ARCH_INIT $ENV{CUDA_ARCH})
-            else()
-                set(GT_CUDA_ARCH_INIT "sm_35")
-            endif()
-            set(GT_CUDA_ARCH "${GT_CUDA_ARCH_INIT}" CACHE STRING "Compute capability for CUDA used for tests")
-        endif()
-        include(detect_test_features)
-        detect_c_compiler()
-        detect_fortran_compiler()
-
-        add_subdirectory(tests)
-        add_subdirectory(docs_src/manuals/getting_started)
-    endif()
-
-    # ===============
-    # examples
-    # ===============
-    if(GT_INSTALL_EXAMPLES)
-        add_subdirectory(examples)
-    endif()
-
-    # ===============
-    # Downloads the gridtools_experimental repository
-    # ===============
-    if(GT_ENABLE_EXPERIMENTAL_REPOSITORY)
-        include(gridtools_experimental/download_gridtools_experimental)
-    endif()
-
-    # ===============
     # Python scripts
-    # ===============
-    if(GT_ENABLE_PYUTILS)
-        add_subdirectory(pyutils)
+    add_subdirectory(pyutils)
+endif()
+
+# Enable tests
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CTest)
+else()
+    option(GT_BUILD_TESTING "Build GridTools tests" OFF)
+    if(GT_BUILD_TESTING)
+        include(CTest)
     endif()
+     # Note that the following is setting a local variable BUILD_TESTING, not affecting the setting of a super-project
+    set(BUILD_TESTING ${GT_BUILD_TESTING})
+endif()
+if(BUILD_TESTING)
+    if(MPI_CXX_FOUND)
+        include(workaround_mpiexec)
+        _fix_mpi_exec()
+    endif()
+
+    if(TARGET gridtools_cuda)
+        if (DEFINED ENV{CUDA_ARCH})
+            set(GT_CUDA_ARCH_INIT $ENV{CUDA_ARCH})
+        else()
+            set(GT_CUDA_ARCH_INIT "sm_35")
+        endif()
+        set(GT_CUDA_ARCH "${GT_CUDA_ARCH_INIT}" CACHE STRING "Compute capability for CUDA used for tests")
+    endif()
+    include(detect_test_features)
+    detect_c_compiler()
+    detect_fortran_compiler()
+
+    add_subdirectory(tests)
+    add_subdirectory(docs_src/manuals/getting_started)
+endif()
+
+# examples
+if(GT_INSTALL_EXAMPLES)
+    add_subdirectory(examples)
 endif()
 
 # absolute path to avoid collision with "export" from other packages
