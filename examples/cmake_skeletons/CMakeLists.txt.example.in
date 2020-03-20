@@ -17,7 +17,7 @@ endif()
 
 # 3) Find the GridTools installation
 find_package(GridTools @GridTools_VERSION@ REQUIRED
-    HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake)
+    HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake/GridTools)
 
 enable_testing()
 

@@ -1,11 +1,13 @@
 # - If install_mode == TRUE, prefix all targets with the GridTools:: namespace
-
+# - for includes from this file, always use absolute filenames using _gt_gridtools_setup_targets_dir
+#   as we use it in GridToolsConfig.cmake, too.
+set(_gt_gridtools_setup_targets_dir ${CMAKE_CURRENT_LIST_DIR})
 # TODO prefix all internal variables with _gt_
 macro(gridtools_setup_targets install_mode clang_cuda_mode)
-    include(detect_features)
+    include(${_gt_gridtools_setup_targets_dir}/detect_features.cmake)
     detect_cuda_type(GT_CUDA_TYPE "${clang_cuda_mode}")
 
-    if(install_mode)
+    if(${install_mode})
         set(_gt_namespace "GridTools::")
     else()
         if((GT_CUDA_TYPE STREQUAL NVCC-CUDA) AND (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME))
@@ -15,7 +17,7 @@ macro(gridtools_setup_targets install_mode clang_cuda_mode)
         endif()
     endif()
 
-    include(gridtools_helpers)
+    include(${_gt_gridtools_setup_targets_dir}/gridtools_helpers.cmake)
 
     # Add the gridtools_nvcc proxy if the CUDA language is enabled
     if (GT_CUDA_TYPE STREQUAL NVCC-CUDA)
@@ -31,7 +33,7 @@ macro(gridtools_setup_targets install_mode clang_cuda_mode)
     endif()
 
     find_package(MPI COMPONENTS CXX)
-    include(workaround_mpi)
+    include(${_gt_gridtools_setup_targets_dir}/workaround_mpi.cmake)
     _fix_mpi_flags()
 
     if (GT_CUDA_TYPE STREQUAL NVCC-CUDA)

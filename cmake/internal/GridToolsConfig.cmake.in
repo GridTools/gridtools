@@ -7,7 +7,7 @@ message(STATUS "GridTools @GridTools_VERSION@ found at ${GRIDTOOLS_CONFIG_CMAKE_
 # Only setup targets, if GridTools was not already included with a add_subdirectory/FetchContent
 if(NOT @PROJECT_NAME@_BINARY_DIR AND NOT TARGET GridTools::gridtools)
     include(${GRIDTOOLS_CONFIG_CMAKE_DIR}/gridtools_setup_targets.cmake)
-    gridtools_setup_targets(ON AUTO) #TODO decide how to select the mode
+    gridtools_setup_targets(TRUE AUTO) #TODO decide how to select the mode
 
     # TODO
     # check_required_components(GridTools)
