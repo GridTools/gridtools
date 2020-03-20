@@ -23,6 +23,24 @@ if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL AppleClang AND CMAKE_CXX_COMPILER_VERSION
 find_package(OpenMP COMPONENTS CXX)
 endif()
 
+# setup main gridtools target
+add_library(gridtools INTERFACE)
+add_library(GridTools::gridtools ALIAS gridtools)
+target_compile_features(gridtools INTERFACE cxx_std_14)
+target_link_libraries(gridtools INTERFACE Boost::boost)
+target_compile_definitions(gridtools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:BOOST_PP_VARIADICS=1>)
+target_include_directories(gridtools
+        INTERFACE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/>
+        $<INSTALL_INTERFACE:include>
+        )
+install(TARGETS gridtools EXPORT GridToolsTargets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include
+        )
+
 include(gridtools_setup_targets)
 gridtools_setup_targets(FALSE "${GT_CLANG_CUDA_MODE}")
 

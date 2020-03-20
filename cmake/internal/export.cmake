@@ -31,5 +31,11 @@ install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsCo
     "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake"
   DESTINATION "lib/cmake/${PROJECT_NAME}")
 
+install(EXPORT GridToolsTargets
+  FILE GridToolsTargets.cmake
+  NAMESPACE GridTools::
+  DESTINATION "lib/cmake/${PROJECT_NAME}"
+  )
+
 
 # file(COPY ${PROJECT_SOURCE_DIR}/cmake/public/ DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")

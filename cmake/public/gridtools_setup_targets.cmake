@@ -1,14 +1,16 @@
-# - If install_mode == TRUE, prefix all targets with the GridTools:: namespace
+# - If _config_mode == TRUE, prefix all targets with the GridTools:: namespace
 # - for includes from this file, always use absolute filenames using _gt_gridtools_setup_targets_dir
 #   as we use it in GridToolsConfig.cmake, too.
 set(_gt_gridtools_setup_targets_dir ${CMAKE_CURRENT_LIST_DIR})
 # TODO prefix all internal variables with _gt_
-macro(gridtools_setup_targets install_mode clang_cuda_mode)
+# TODO make aliases for all libraries in non config mode
+macro(gridtools_setup_targets _config_mode clang_cuda_mode)
     include(${_gt_gridtools_setup_targets_dir}/detect_features.cmake)
     detect_cuda_type(GT_CUDA_TYPE "${clang_cuda_mode}")
 
-    if(${install_mode})
+    if(${_config_mode})
         set(_gt_namespace "GridTools::")
+        set(_gt_imported IMPORTED)
     else()
         if((GT_CUDA_TYPE STREQUAL NVCC-CUDA) AND (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME))
             # Do not enable the language if we are included from a super-project.
@@ -23,7 +25,7 @@ macro(gridtools_setup_targets install_mode clang_cuda_mode)
     if (GT_CUDA_TYPE STREQUAL NVCC-CUDA)
         get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
         if("CUDA" IN_LIST languages)
-            add_library(${_gt_namespace}gridtools_nvcc INTERFACE)
+            add_library(${_gt_namespace}gridtools_nvcc INTERFACE ${_gt_imported})
             # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
             target_compile_options(${_gt_namespace}gridtools_nvcc INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
         else()
@@ -65,29 +67,19 @@ macro(gridtools_setup_targets install_mode clang_cuda_mode)
     endfunction()
 
     if (GT_CUDA_TYPE)
-        add_library(${_gt_namespace}gridtools_cuda INTERFACE)
+        add_library(${_gt_namespace}gridtools_cuda INTERFACE ${_gt_imported})
         gridtools_cuda_setup(${GT_CUDA_TYPE})
     else()
         message(STATUS "GridTools GPU mode: ${GT_CUDA_TYPE}, no GPU support enabled.")
     endif()
 
-    add_library(${_gt_namespace}gridtools INTERFACE)
-    target_compile_features(${_gt_namespace}gridtools INTERFACE cxx_std_14)
-    target_link_libraries(${_gt_namespace}gridtools INTERFACE Boost::boost)
-    target_compile_definitions(${_gt_namespace}gridtools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:BOOST_PP_VARIADICS=1>)
-    target_include_directories(${_gt_namespace}gridtools
-            INTERFACE
-            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/>
-            $<INSTALL_INTERFACE:include>
-            )
-
-    add_library(${_gt_namespace}storage_x86 INTERFACE)
+    add_library(${_gt_namespace}storage_x86 INTERFACE ${_gt_imported})
     target_link_libraries(${_gt_namespace}storage_x86 INTERFACE gridtools)
 
-    add_library(${_gt_namespace}storage_mc INTERFACE)
+    add_library(${_gt_namespace}storage_mc INTERFACE ${_gt_imported})
     target_link_libraries(${_gt_namespace}storage_mc INTERFACE gridtools)
 
-    add_library(${_gt_namespace}backend_naive INTERFACE)
+    add_library(${_gt_namespace}backend_naive INTERFACE ${_gt_imported})
     target_link_libraries(${_gt_namespace}backend_naive INTERFACE gridtools)
 
     set(GT_BACKENDS naive)
@@ -96,44 +88,44 @@ macro(gridtools_setup_targets install_mode clang_cuda_mode)
     set(GT_GCL_ARCHS)
 
     if (TARGET ${_gt_namespace}gridtools_cuda)
-        add_library(${_gt_namespace}backend_cuda INTERFACE)
+        add_library(${_gt_namespace}backend_cuda INTERFACE ${_gt_imported})
         target_link_libraries(${_gt_namespace}backend_cuda INTERFACE gridtools gridtools_cuda)
         list(APPEND GT_BACKENDS cuda)
         list(APPEND GT_ICO_BACKENDS cuda)
 
-        add_library(${_gt_namespace}storage_cuda INTERFACE)
+        add_library(${_gt_namespace}storage_cuda INTERFACE ${_gt_imported})
         target_link_libraries(${_gt_namespace}storage_cuda INTERFACE gridtools gridtools_cuda)
         list(APPEND GT_STORAGES cuda)
 
         if(MPI_CXX_FOUND)
-            add_library(${_gt_namespace}gcl_gpu INTERFACE)
+            add_library(${_gt_namespace}gcl_gpu INTERFACE ${_gt_imported})
             target_link_libraries(${_gt_namespace}gcl_gpu INTERFACE gridtools gridtools_cuda MPI::MPI_CXX)
         endif()
 
-        add_library(${_gt_namespace}bc_gpu INTERFACE)
+        add_library(${_gt_namespace}bc_gpu INTERFACE ${_gt_imported})
         target_link_libraries(${_gt_namespace}bc_gpu INTERFACE gridtools gridtools_cuda)
 
-        add_library(${_gt_namespace}layout_transformation_gpu INTERFACE)
+        add_library(${_gt_namespace}layout_transformation_gpu INTERFACE ${_gt_imported})
         target_link_libraries(${_gt_namespace}layout_transformation_gpu INTERFACE gridtools gridtools_cuda)
 
         list(APPEND GT_GCL_ARCHS gpu)
     endif()
 
     if (OpenMP_CXX_FOUND)
-        add_library(${_gt_namespace}backend_x86 INTERFACE)
+        add_library(${_gt_namespace}backend_x86 INTERFACE ${_gt_imported})
         target_link_libraries(${_gt_namespace}backend_x86 INTERFACE gridtools OpenMP::OpenMP_CXX)
 
-        add_library(${_gt_namespace}backend_mc INTERFACE)
+        add_library(${_gt_namespace}backend_mc INTERFACE ${_gt_imported})
         target_link_libraries(${_gt_namespace}backend_mc INTERFACE gridtools OpenMP::OpenMP_CXX)
 
         if(MPI_CXX_FOUND)
-            add_library(${_gt_namespace}gcl_cpu INTERFACE)
+            add_library(${_gt_namespace}gcl_cpu INTERFACE ${_gt_imported})
             target_link_libraries(${_gt_namespace}gcl_cpu INTERFACE gridtools OpenMP::OpenMP_CXX MPI::MPI_CXX)
         endif()
-        add_library(${_gt_namespace}bc_cpu INTERFACE)
+        add_library(${_gt_namespace}bc_cpu INTERFACE ${_gt_imported})
         target_link_libraries(${_gt_namespace}bc_cpu INTERFACE gridtools OpenMP::OpenMP_CXX)
 
-        add_library(${_gt_namespace}layout_transformation_cpu INTERFACE)
+        add_library(${_gt_namespace}layout_transformation_cpu INTERFACE ${_gt_imported})
         target_link_libraries(${_gt_namespace}layout_transformation_cpu INTERFACE gridtools OpenMP::OpenMP_CXX)
 
         list(APPEND GT_GCL_ARCHS cpu)
