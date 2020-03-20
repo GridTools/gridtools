@@ -15,28 +15,16 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(CMakePrintHelpers)
 include(flags)
-include(detect_features)
 
 set(REQUIRED_BOOST_VERSION 1.58)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
 
 if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL AppleClang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0))
-    find_package(OpenMP COMPONENTS CXX)
-endif()
-
-# detect what cuda do we have
-detect_cuda_type(GT_CUDA_TYPE "${GT_CLANG_CUDA_MODE}")
-
-if(GT_CUDA_TYPE STREQUAL NVCC-CUDA)
-    if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-        # Do not enable the language if we are included from a super-project.
-        # It is up to the super-project to enable CUDA.
-        enable_language(CUDA)
-    endif()
+find_package(OpenMP COMPONENTS CXX)
 endif()
 
 include(gridtools_setup_targets)
-gridtools_setup_targets(FALSE)
+gridtools_setup_targets(FALSE "${GT_CLANG_CUDA_MODE}")
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # add a target to generate API documentation with Doxygen

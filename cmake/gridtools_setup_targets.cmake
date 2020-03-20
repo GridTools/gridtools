@@ -1,17 +1,21 @@
-# If install_mode == TRUE, prefix all targets with the GridTools:: namespace
-macro(gridtools_setup_targets install_mode)
-    if(NOT DEFINED GT_CUDA_TYPE)
-        # GT_CUDA_TYPE needs to be run before
-        # (but cannot be included here as in non-GridToolsConfig mode we need to enable a language)
-        # TODO consider passing the information via parameter
-        message(FATAL_ERROR "CMake configuration issue. This is a bug in GridTools, please open an issue.")
-    endif()
+# - If install_mode == TRUE, prefix all targets with the GridTools:: namespace
+
+# TODO prefix all internal variables with _gt_
+macro(gridtools_setup_targets install_mode clang_cuda_mode)
+    include(detect_features)
+    detect_cuda_type(GT_CUDA_TYPE "${clang_cuda_mode}")
 
     if(install_mode)
         set(_gt_namespace "GridTools::")
+    else()
+        if((GT_CUDA_TYPE STREQUAL NVCC-CUDA) AND (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME))
+            # Do not enable the language if we are included from a super-project.
+            # It is up to the super-project to enable CUDA.
+            enable_language(CUDA)
+        endif()
     endif()
 
-    include(gridtools_helpers) #TODO consider inlining the functions in this file
+    include(gridtools_helpers)
 
     # Add the gridtools_nvcc proxy if the CUDA language is enabled
     if (GT_CUDA_TYPE STREQUAL NVCC-CUDA)
