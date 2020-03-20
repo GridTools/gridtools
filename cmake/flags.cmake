@@ -1,8 +1,6 @@
 set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON CACHE BOOL "")
 mark_as_advanced(CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
 
-option(GT_ENABLE_PYUTILS "If on, Python utility scripts will be configured" OFF)
-
 # GT_CLANG_CUDA_MODE: decide if Clang-CUDA or NVCC
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(GT_CLANG_CUDA_MODE "AUTO" CACHE STRING
