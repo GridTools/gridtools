@@ -1,3 +1,16 @@
+# GridTools CMake coding convention and architecture
+# The following guide is intended for CMake developers of the GridTools library,
+# users are referred to the GridTools documentation. TODO(havogt): update
+# - GridTools cmake modules are in
+#   a) /cmake/internal: used exclusively in the GridTools CMake project
+#   b) /cmake/public: need to be available in a GridTools installation
+# - CMake functions are prefixed with
+#   a) gridtools_: functions intended for the user (public API)
+#   b) _gt_: private functions, they are not part of the public API
+# - GridTools is header-only, which allows for a more flexible CMake installation compared to compiled libraries:
+#   the environment from which GridTools was installed is irrelevant for the installation.
+#   Therefore, we use the same macro to setup CMake targets in the main CMakeLists.txt (this file) and in the
+#   GridToolsConfig.cmake of an installation (see cmake/public/gridtools_setup_target.cmake)
 cmake_minimum_required(VERSION 3.14.5)
 cmake_policy(VERSION 3.14.5)
 
@@ -13,7 +26,6 @@ set(CMAKE_CUDA_EXTENSIONS OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/public" "${CMAKE_CURRENT_LIST_DIR}/cmake/internal")
 
-include(CMakePrintHelpers)
 include(flags)
 
 set(REQUIRED_BOOST_VERSION 1.58)
@@ -38,7 +50,7 @@ install(TARGETS gridtools EXPORT GridToolsTargets
         )
 
 include(gridtools_setup_targets)
-gridtools_setup_targets(FALSE "${GT_CLANG_CUDA_MODE}")
+_gt_setup_targets(FALSE "${GT_CLANG_CUDA_MODE}")
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # add a target to generate API documentation with Doxygen
@@ -93,3 +105,5 @@ endif()
 
 # absolute path to avoid collision with "export" from other packages
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/internal/export.cmake)
+
+_gt_print_configuration_summary()

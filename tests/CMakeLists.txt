@@ -59,10 +59,10 @@ function(gridtools_setup_test_target tgt)
     set(one_value_args)
     set(multi_value_args SOURCES LIBRARIES)
     cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
-    gridtools_setup_target(${tgt}
-            SOURCES ${ARGS_SOURCES}
-            LIBRARIES ${ARGS_LIBRARIES} PRIVATE GridToolsTest
-            CUDA_ARCH ${GT_CUDA_ARCH})
+    target_sources(${tgt} PRIVATE ${ARGS_SOURCES})
+    target_link_libraries(${tgt} PUBLIC ${ARGS_LIBRARIES})
+    target_link_libraries(${tgt} PUBLIC GridToolsTest)
+    gridtools_setup_target(${tgt} CUDA_ARCH ${GT_CUDA_ARCH})
 endfunction()
 
 function(gridtools_add_test_executable tgt)
@@ -76,38 +76,9 @@ function(gridtools_add_test_library tgt)
     gridtools_setup_test_target(${tgt} ${ARGN})
 endfunction()
 
-
-####################################################################################
-########################### GET GTEST LIBRARY ############################
-####################################################################################
-
-# include Threads manually before googletest such that we can properly apply the workaround
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package( Threads REQUIRED )
-target_link_libraries( GridToolsTest INTERFACE Threads::Threads)
-include(workaround_threads)
-_fix_threads_flags()
-
-# The gtest library needs to be built as static library to avoid RPATH issues,
-# so make sure that the variable BUILD_SHARED_LIBS=OFF and restored back afterwards.
-if( BUILD_SHARED_LIBS )
-    set( _restore_BUILD_SHARED_LIBS ON )
-    set( BUILD_SHARED_LIBS OFF )
-endif()
-
-include(FetchContent)
-option(INSTALL_GTEST OFF) #TODO replace with set(INSTALL_GTEST OFF) with CMake >= 3.13
-mark_as_advanced(INSTALL_GTEST)
-FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG        release-1.8.1
-)
-FetchContent_MakeAvailable(googletest)
-
-if( _restore_BUILD_SHARED_LIBS )
-    set( BUILD_SHARED_LIBS ON )
-endif()
+include(FetchGoogletest)
+fetch_googletest()
+target_link_libraries(GridToolsTest INTERFACE Threads::Threads)
 
 add_subdirectory(src)
 
