@@ -32,9 +32,10 @@ endforeach()
 
 if(TARGET GridTools::backend_cuda)
     foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
-        add_executable(${srcfile}_cuda ${srcfile}.cu)
+        add_executable(${srcfile}_cuda ${srcfile}.cpp)
         # The executable links to the target GridTools::backend_cuda
         target_link_libraries(${srcfile}_cuda GridTools::backend_cuda)
+        gridtools_setup_target(${srcfile}_cuda)
         add_test(NAME ${srcfile}_cuda COMMAND $<TARGET_FILE:${srcfile}_cuda> 33 44 55)
     endforeach()
 else()

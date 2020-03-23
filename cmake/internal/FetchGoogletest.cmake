@@ -9,12 +9,12 @@ function(fetch_googletest)
     set(BUILD_SHARED_LIBS OFF)
 
     include(FetchContent)
-    set(INSTALL_GTEST OFF)
-    cmake_policy(SET CMP0077 NEW)
+    option(INSTALL_GTEST OFF)
+    mark_as_advanced(INSTALL_GTEST)
     FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG        release-1.8.1
+        GIT_TAG        release-1.10.0
     )
     FetchContent_MakeAvailable(googletest)
 endfunction()

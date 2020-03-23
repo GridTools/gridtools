@@ -11,11 +11,8 @@ if(NOT @PROJECT_NAME@_BINARY_DIR AND NOT TARGET GridTools::gridtools)
 
     include("${GRIDTOOLS_CONFIG_CMAKE_DIR}/GridToolsTargets.cmake" )
 
-    include(${GRIDTOOLS_CONFIG_CMAKE_DIR}/gridtools_setup_targets.cmake)
+    include(@PACKAGE_GRIDTOOLS_MODULE_PATH@/gridtools_setup_targets.cmake)
     _gt_setup_targets(TRUE AUTO) #TODO decide how to select the mode
-
-    # TODO
-    # check_required_components(GridTools)
 else()
     message(WARNING "find_package(GridTools) ignored, targets are already available.")
 endif()
