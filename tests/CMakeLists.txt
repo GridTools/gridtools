@@ -78,7 +78,7 @@ endfunction()
 
 include(FetchGoogletest)
 fetch_googletest()
-target_link_libraries(GridToolsTest INTERFACE Threads::Threads)
+target_link_libraries(GridToolsTest INTERFACE Threads::Threads gtest)
 
 add_subdirectory(src)
 
