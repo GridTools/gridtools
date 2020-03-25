@@ -1,7 +1,7 @@
-if(TARGET gridtools_cuda)
+if(TARGET _gridtools_cuda)
     gridtools_add_unit_test(test_layout_transformation_cuda
             SOURCES test_layout_transformation.cpp
-            LIBRARIES gridtools_cuda
+            LIBRARIES _gridtools_cuda
             LABELS cuda)
 endif()
 

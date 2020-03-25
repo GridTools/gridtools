@@ -37,7 +37,7 @@ if(GT_TREAT_WARNINGS_AS_ERROR)
 endif()
 
 ## cuda support ##
-if(TARGET gridtools_nvcc)
+if(TARGET _gridtools_nvcc)
     if(GT_TREAT_WARNINGS_AS_ERROR)
         # unfortunately we cannot treat all as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
         # CUDA 9 adds deprecated-declarations (activated) and reorder (not activated)

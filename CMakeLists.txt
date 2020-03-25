@@ -82,7 +82,7 @@ if(BUILD_TESTING)
         _fix_mpi_exec()
     endif()
 
-    if(TARGET gridtools_cuda)
+    if(TARGET _gridtools_cuda)
         if (DEFINED ENV{CUDA_ARCH})
             set(GT_CUDA_ARCH_INIT $ENV{CUDA_ARCH})
         else()
