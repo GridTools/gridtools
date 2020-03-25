@@ -126,7 +126,6 @@ function(gridtools_setup_target tgt) # TODO this function needs a better name
     set(multi_value_args)
     cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-    # TODO check that we depend on a gridtools target
     _gt_depends_on_gridtools(links_to_a_gt_backend ${tgt})
     if(NOT links_to_a_gt_backend)
         message(FATAL_ERROR "gridtools_setup_target() needs to be called after a backend library is linked to the target")
