@@ -3,10 +3,10 @@
 # context, this function may fail. Therefore, use of this function with care!
 function(_gt_depends_on dst lib dependency)
     if (NOT TARGET ${dependency})
-        set(${dst} OFF PARENT_SCOPE)
-        return()
+        message(AUTHOR_WARNING "_gt_depends_on() argument ${dependency} is not a target.")
     elseif (lib STREQUAL dependency)
         set(${dst} ON PARENT_SCOPE)
+	return()
     elseif (TARGET ${lib})
         get_target_property(tgt_type ${lib} TYPE)
         set(deps)
@@ -24,6 +24,7 @@ function(_gt_depends_on dst lib dependency)
             endforeach()
         endif()
     endif()
+    set(${dst} OFF PARENT_SCOPE)
 endfunction()
 
 
