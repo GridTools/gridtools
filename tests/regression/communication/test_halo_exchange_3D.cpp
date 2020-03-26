@@ -115,7 +115,7 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
             auto &&lengths = view.lengths();
             for (int i = 0; i != lengths[0]; ++i)
                 for (int j = 0; j != lengths[1]; ++j)
-                    for (int k = 0; k != lengths[3]; ++k)
+                    for (int k = 0; k != lengths[2]; ++k)
                         EXPECT_EQ(view(i, j, k),
                             is_border(i, 0) || is_border(j, 1) || is_border(k, 2) ? none() : initial_state(i, j, k, f));
         }
