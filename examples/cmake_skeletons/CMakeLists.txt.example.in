@@ -17,7 +17,7 @@ endif()
 
 # 3) Find the GridTools installation
 find_package(GridTools @GridTools_VERSION@ REQUIRED
-    HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake)
+    HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake/GridTools)
 
 enable_testing()
 
@@ -25,22 +25,19 @@ set(EXAMPLES_SRCFILES @EXAMPLES_SRCFILES@)
 foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
     # one executable for each example in the list
     add_executable(${srcfile}_mc ${srcfile}.cpp)
-    # 4) An executable/library using GridTools needs to link to the target GridTools::gridtools
-    #    if it is using header-only modules.
-    target_link_libraries(${srcfile}_mc GridTools::gridtools)
+    # 4) An executable/library using GridTools stencil_composition needs to link to backend, here GridTools::backend_mc
+    target_link_libraries(${srcfile}_mc GridTools::backend_mc)
     add_test(NAME ${srcfile}_mc COMMAND $<TARGET_FILE:${srcfile}_mc> 33 44 55)
 endforeach()
 
-if(CMAKE_CUDA_COMPILER)
-    if(GRIDTOOLS_HAS_BACKEND_CUDA)
-        # If a CUDA compiler was found AND the GridTools installation was installed with CUDA enabled we can compile the CUDA example
-        foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
-            add_executable(${srcfile}_cuda ${srcfile}.cu)
-            # The executable links to the same target GridTools::gridtools as in the case of the "mc" backend
-            target_link_libraries(${srcfile}_cuda GridTools::gridtools)
-            add_test(NAME ${srcfile}_cuda COMMAND $<TARGET_FILE:${srcfile}_cuda> 33 44 55)
-        endforeach()
-    else()
-        message("A CUDA-capable compiler was found, but GridTools was installed without CUDA support. Skipping the CUDA example...")
-    endif()
+if(TARGET GridTools::backend_cuda)
+    foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
+        add_executable(${srcfile}_cuda ${srcfile}.cpp)
+        # The executable links to the target GridTools::backend_cuda
+        target_link_libraries(${srcfile}_cuda GridTools::backend_cuda)
+        gridtools_setup_target(${srcfile}_cuda)
+        add_test(NAME ${srcfile}_cuda COMMAND $<TARGET_FILE:${srcfile}_cuda> 33 44 55)
+    endforeach()
+else()
+    message("A CUDA-capable compiler was found, but GridTools was installed without CUDA support. Skipping the CUDA example...")
 endif()

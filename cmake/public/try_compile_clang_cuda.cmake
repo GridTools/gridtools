@@ -1,6 +1,6 @@
 # try_compile_clang_cuda(result, cuda_arch)
 # Parameters:
-#    - result: result variable is set to ON if Clang-CUDA compilation worked.
+#    - result: result variable is set to TRUE if Clang-CUDA compilation worked.
 #    - cuda_arch: CUDA architecture used for compilation test
 #                 (doesn't have to match the architecture of an available GPU, no code is executed)
 function(try_compile_clang_cuda result cuda_arch)
