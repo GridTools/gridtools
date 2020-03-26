@@ -19,35 +19,37 @@
 #include <gridtools/stencil_composition/frontend/axis.hpp>
 #include <gridtools/stencil_composition/frontend/make_grid.hpp>
 
-#include "backend_select.hpp"
 #include "verifier.hpp"
 
 namespace gridtools {
-    template <size_t Halo = 0, class Axis = axis<1>, class = std::make_index_sequence<Axis::n_intervals>>
-    class grid_fixture;
 
-    template <size_t Halo, class Axis, size_t... Is>
-    class grid_fixture<Halo, Axis, std::index_sequence<Is...>> : public virtual testing::Test {
-        std::array<size_t, 2 + sizeof...(Is)> m_dims;
+    template <uint_t... Is>
+    struct static_domain {
+        static auto d(size_t i) { return ((uint_t[]){Is...})[i]; }
+        static size_t steps() { return 0; }
+        static bool needs_verification() { return true; }
 
-        template <size_t>
-        using just_size_t = size_t;
+        static void flush_cache() {}
+    };
 
-      public:
-        grid_fixture(size_t d0, size_t d1, just_size_t<Is>... ds) : m_dims{d0, d1, ds...} {}
+    template <class Domain, size_t Halo = 0, class Axis = axis<1>, class = std::make_index_sequence<Axis::n_intervals>>
+    struct grid_fixture;
 
-        auto &d(size_t i) { return m_dims[i]; }
-        auto const &d(size_t i) const { return m_dims[i]; }
+    template <class Domain, size_t Halo, class Axis, size_t... Is>
+    struct grid_fixture<Domain, Halo, Axis, std::index_sequence<Is...>> {
+        static auto d(size_t i) { return Domain::d(i); }
 
-        auto k_size() const { return make_grid().k_size(typename Axis::full_interval()); }
+        static auto k_size() { return make_grid().k_size(typename Axis::full_interval()); }
 
-        auto make_grid() const {
+        static auto make_grid() {
             auto halo_desc = [](auto d) { return halo_descriptor(Halo, Halo, Halo, d - Halo - 1, d); };
-            return ::gridtools::make_grid(halo_desc(m_dims[0]), halo_desc(m_dims[1]), Axis(m_dims[2 + Is]...));
+            return ::gridtools::make_grid(halo_desc(d(0)), halo_desc(d(1)), Axis(d(2 + Is)...));
         }
 
         template <class Expected, class Actual, class EqualTo = default_equal_to<typename Actual::element_type>>
-        void verify(Expected const &expected, Actual const &actual, EqualTo equal_to = {}) const {
+        static void verify(Expected const &expected, Actual const &actual, EqualTo equal_to = {}) {
+            if (!Domain::needs_verification())
+                return;
             std::array<std::array<size_t, 2>, Actual::element_type::ndims> halos = {{{Halo, Halo}, {Halo, Halo}}};
             EXPECT_TRUE(verify_data_store(expected, actual, halos, equal_to));
         }

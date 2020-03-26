@@ -9,22 +9,24 @@
  */
 #pragma once
 
+#include <array>
+#include <cstdlib>
+
 #include <gridtools/common/defs.hpp>
 
 namespace gridtools {
-    namespace _impl {
-        class regression_fixture_base {
-          protected:
-            static uint_t s_d1;
-            static uint_t s_d2;
-            static uint_t s_d3;
-            static uint_t s_steps;
-            static bool s_needs_verification;
+    class regression_domain {
+        static std::array<uint_t, 3> s_d;
+        static uint_t s_steps;
+        static bool s_needs_verification;
 
-            static void flush_cache();
+      public:
+        static auto d(size_t i) { return s_d[i]; }
+        static auto steps() { return s_steps; }
+        static auto needs_verification() { return s_needs_verification; }
 
-          public:
-            static void init(int argc, char **argv);
-        };
-    } // namespace _impl
+        static void flush_cache();
+
+        static bool init(int argc, char **argv);
+    };
 } // namespace gridtools

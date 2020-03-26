@@ -14,7 +14,9 @@
 
 namespace gridtools {
     namespace cartesian {
-        template <size_t Halo = 0, class Axis = axis<1>>
-        struct regression_fixture : regression_fixture_templ<computation_fixture<Halo, Axis>> {};
+        //        template <class DataType, class Backend, size_t Halo = 0, class Axis = axis<1>>
+        //        struct regression_fixture : gridtools::regression_fixture,
+        //                                    computation_fixture<DataType, regression_domain, Halo, Axis> {};
+        //
     } // namespace cartesian
 } // namespace gridtools
