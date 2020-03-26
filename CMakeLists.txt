@@ -26,7 +26,35 @@ set(CMAKE_CUDA_EXTENSIONS OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/public" "${CMAKE_CURRENT_LIST_DIR}/cmake/internal")
 
-include(flags)
+set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON CACHE BOOL "")
+mark_as_advanced(CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
+
+# User setting GT_CLANG_CUDA_MODE: decide if Clang-CUDA or NVCC
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(GT_CLANG_CUDA_MODE "AUTO" CACHE STRING
+        "AUTO, Clang-CUDA or NVCC-CUDA; \
+        AUTO = Use NVCC if language CUDA is enabled, else prefer Clang-CUDA.")
+    set_property(CACHE GT_CLANG_CUDA_MODE PROPERTY STRINGS "AUTO;Clang-CUDA;NVCC-CUDA")
+endif()
+
+# User setting GT_INSTALL_EXAMPLES:
+# if we are pointing to the default install path (usually system) we will disable installation of examples by default
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(_default_GT_INSTALL_EXAMPLES OFF)
+else()
+    set(_default_GT_INSTALL_EXAMPLES ON)
+endif()
+option(GT_INSTALL_EXAMPLES "Install example sources" ${_default_GT_INSTALL_EXAMPLES})
+if(GT_INSTALL_EXAMPLES)
+    set(GT_INSTALL_EXAMPLES_PATH "${CMAKE_INSTALL_PREFIX}/gridtools_examples" CACHE FILEPATH
+        "Specifies where the source codes of examples should be installed")
+    mark_as_advanced(CLEAR GT_INSTALL_EXAMPLES_PATH)
+else()
+    if(GT_INSTALL_EXAMPLES_PATH)
+        mark_as_advanced(FORCE GT_INSTALL_EXAMPLES_PATH)
+    endif()
+endif()
+
 
 set(REQUIRED_BOOST_VERSION 1.58)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
@@ -43,9 +71,6 @@ target_include_directories(gridtools
         $<INSTALL_INTERFACE:include>
         )
 install(TARGETS gridtools EXPORT GridToolsTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
         INCLUDES DESTINATION include
         )
 
@@ -69,6 +94,8 @@ endif()
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
 else()
+    # User setting GT_BUILD_TESTING: by default testing is disabled if included via FetchContent/add_subdirectory,
+    # GT_BUILD_TESTING=ON will overwrite this default.
     option(GT_BUILD_TESTING "Build GridTools tests" OFF)
     if(GT_BUILD_TESTING)
         include(CTest)
