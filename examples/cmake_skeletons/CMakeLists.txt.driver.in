@@ -9,7 +9,7 @@ enable_testing()
 
 include(workaround_check_language.cmake) # see https://gitlab.kitware.com/cmake/cmake/issues/19013
 _workaround_check_language(CUDA)
-if(GT_EXAMPLES_FORCE_CUDA AND NOT CMAKE_CUDA_COMPILER)
+if(GT_EXAMPLES_FORCE_CUDA AND NOT CMAKE_CUDA_COMPILER) #TODO fix me
     message(FATAL_ERROR "No CUDA compiler is available, but CUDA compilation was requested.")
 endif()
 
