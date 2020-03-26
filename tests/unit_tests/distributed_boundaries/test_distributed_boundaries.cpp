@@ -33,14 +33,20 @@ constexpr int d1 = 6;
 constexpr int d2 = 7;
 constexpr int d3 = 2;
 
-const array<halo_descriptor, 3> halos = {halo_descriptor(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-    halo_descriptor(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
-    halo_descriptor(d3)};
-
 const auto builder = storage::builder<storage_traits_t>.type<triplet>().halos(2, 2, 0).dimensions(d1, d2, d3);
 
 using storage_t = decltype(builder());
 using testee_t = distributed_boundaries<comm_traits<storage_t, gcl_arch_t, timer_impl_t>>;
+
+const auto halos = []() {
+    auto storage = builder();
+    array<halo_descriptor, 3> res;
+    auto lengths = storage->lengths();
+    auto total_lengths = make_total_lengths(*storage);
+    return array<halo_descriptor, 3>{{{halo_size, halo_size, halo_size, lengths[0] - halo_size - 1, total_lengths[0]},
+        {halo_size, halo_size, halo_size, lengths[1] - halo_size - 1, total_lengths[1]},
+        {0, 0, 0, lengths[2] - 1, total_lengths[2]}}};
+}();
 
 // Returns the relative coordinates of a neighbor processor given the dimensions of a storage
 int region(int index, int size) { return index < halo_size ? -1 : index >= size - halo_size ? 1 : 0; }
