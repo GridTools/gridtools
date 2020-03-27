@@ -1,0 +1,20 @@
+@PACKAGE_INIT@
+
+get_filename_component(GRIDTOOLS_CONFIG_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+message(STATUS "GridTools @GridTools_VERSION@ found at ${GRIDTOOLS_CONFIG_CMAKE_DIR}")
+
+# Only setup targets, if GridTools was not already included with a add_subdirectory/FetchContent
+if(NOT @PROJECT_NAME@_BINARY_DIR AND NOT TARGET GridTools::gridtools)
+    include(CMakeFindDependencyMacro)
+    find_dependency(Boost @REQUIRED_BOOST_VERSION@)
+
+    include("${GRIDTOOLS_CONFIG_CMAKE_DIR}/GridToolsTargets.cmake" )
+
+    include(@PACKAGE_GRIDTOOLS_MODULE_PATH@/gridtools_setup_targets.cmake)
+    _gt_setup_targets(TRUE AUTO) #TODO decide how to select the mode
+else()
+    message(WARNING "find_package(GridTools) ignored, targets are already available.")
+endif()
+
+#TODO find_package_handle_standard_args

@@ -5,10 +5,9 @@ function(gridtools_add_getting_started_test tgt_name)
     set(multi_value_args LIBRARIES SOURCES LABELS)
     cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
     set(tgt getting_started_${tgt_name})
-    gridtools_add_executable(${tgt}
-            SOURCES ${ARGS_SOURCES}
-            LIBRARIES gridtools ${ARGS_LIBRARIES}
-            CUDA_ARCH ${GT_CUDA_ARCH})
+    add_executable(${tgt} ${ARGS_SOURCES})
+    target_link_libraries(${tgt} PRIVATE gridtools ${ARGS_LIBRARIES})
+    gridtools_setup_target(${tgt} CUDA_ARCH ${GT_CUDA_ARCH})
     add_test(NAME ${tgt} COMMAND $<TARGET_FILE:${tgt}>)
     set(labels getting_started ${ARGS_LABELS})
     set_tests_properties(${tgt} PROPERTIES LABELS "${labels}")
