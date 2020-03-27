@@ -82,7 +82,7 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
         auto make_storage = [&](int field_no) {
             auto size = [&](int d) {
                 auto &&halos = GetParam().halos[field_no][d];
-                return GetParam().dims[0] + halos[0] + halos[1];
+                return GetParam().dims[d] + halos[0] + halos[1];
             };
             auto in_halo = [&](int i, int d) {
                 i -= GetParam().halos[field_no][d][0];
@@ -115,9 +115,10 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
             auto &&lengths = view.lengths();
             for (int i = 0; i != lengths[0]; ++i)
                 for (int j = 0; j != lengths[1]; ++j)
-                    for (int k = 0; k != lengths[3]; ++k)
+                    for (int k = 0; k != lengths[2]; ++k)
                         EXPECT_EQ(view(i, j, k),
-                            is_border(i, 0) || is_border(j, 1) || is_border(k, 2) ? none() : initial_state(i, j, k, f));
+                            is_border(i, 0) || is_border(j, 1) || is_border(k, 2) ? none() : initial_state(i, j, k, f))
+                            << "pid:" << GCL_pid() << " f:" << f << " i:" << i << " j:" << j << " k:" << k;
         }
     }
 
