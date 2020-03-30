@@ -2,9 +2,9 @@ name: CMake
 
 on:
   push:
-    branches: [ cmake_refactoring ] #TODO point to master
+    branches: [ master ] #TODO point to master
   pull_request:
-    branches: [ cmake_refactoring ]
+    branches: [ master ]
 
 jobs:
   clang:
