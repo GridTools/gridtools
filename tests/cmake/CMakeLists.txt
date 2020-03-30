@@ -11,6 +11,7 @@ function(add_cmake_test name)
     add_test(NAME cmaketest_${name}
         COMMAND /usr/bin/env sh ${test_driver_filename}
     )
+    set_tests_properties(cmaketest_${name} PROPERTIES LABELS cmake)
 endfunction()
 
 if(TARGET _gridtools_cuda)
