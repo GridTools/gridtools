@@ -102,6 +102,10 @@ function(gridtools_add_mpi_test arch tgt)
 endfunction()
 
 
-add_subdirectory(cmake)
 add_subdirectory(regression)
 add_subdirectory(unit_tests)
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    # Even if the explicitly requests testing, we cannot run these CMake tests as it would result in an infinite recursion.
+    add_subdirectory(cmake)
+endif()
