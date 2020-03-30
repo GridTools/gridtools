@@ -23,9 +23,6 @@ namespace gridtools {
     namespace axis_config {
         template <int_t V>
         struct offset_limit : std::integral_constant<int_t, V> {};
-
-        template <int_t V>
-        struct extra_offsets : std::integral_constant<int_t, V> {};
     } // namespace axis_config
 
     /**
@@ -33,17 +30,12 @@ namespace gridtools {
      * @param NIntervals Number of intervals the axis should support
      * @param LevelOffsetLimit Maximum offset relative to the splitter position that is required to specify the
      * intervals
-     * @param (non-API) ExtraOffsetsAroundFullInterval Special case when access of k-values around the full_interval
-     * (i.e. after the last or before the first splitter value) are needed. (Note that the default interval will span
-     * the whole axis_interval_t.)
      */
-    template <size_t, class = axis_config::offset_limit<2>, class = axis_config::extra_offsets<0>>
+    template <size_t, class = axis_config::offset_limit<2>>
     class axis;
 
-    template <size_t NIntervals, int_t LevelOffsetLimit, int_t ExtraOffsetsAroundFullInterval>
-    class axis<NIntervals,
-        axis_config::offset_limit<LevelOffsetLimit>,
-        axis_config::extra_offsets<ExtraOffsetsAroundFullInterval>> {
+    template <size_t NIntervals, int_t LevelOffsetLimit>
+    class axis<NIntervals, axis_config::offset_limit<LevelOffsetLimit>> {
         template <size_t... IntervalIDs>
         struct interval_impl {
             static_assert(is_continuous(IntervalIDs...), "Intervals must be continuous.");
@@ -59,8 +51,7 @@ namespace gridtools {
         static constexpr size_t n_intervals = NIntervals;
 
         using axis_interval_t =
-            core::interval<core::level<0, core::add_offset(1, -ExtraOffsetsAroundFullInterval), LevelOffsetLimit>,
-                core::level<NIntervals, core::add_offset(-1, ExtraOffsetsAroundFullInterval), LevelOffsetLimit>>;
+            core::interval<core::level<0, 1, LevelOffsetLimit>, core::level<NIntervals, -1, LevelOffsetLimit>>;
 
         using full_interval =
             core::interval<core::level<0, 1, LevelOffsetLimit>, core::level<NIntervals, -1, LevelOffsetLimit>>;
