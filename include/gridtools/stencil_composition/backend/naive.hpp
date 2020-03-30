@@ -33,7 +33,7 @@ namespace gridtools {
             template <class Spec, class Grid, class DataStores>
             friend void gridtools_backend_entry_point(
                 backend, Spec, Grid const &grid, DataStores external_data_stores) {
-                auto alloc = sid::make_allocator(&std::make_unique<char[]>);
+                auto alloc = sid::host_device::make_allocator(&std::make_unique<char[]>);
                 using stages_t = be_api::make_split_view<Spec>;
                 using tmp_plh_map_t = be_api::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
                 auto temporaries = be_api::make_data_stores(tmp_plh_map_t(), [&](auto info) {

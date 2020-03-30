@@ -122,26 +122,6 @@ void m_packYU(array_t const &d_data_array,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef GCL_CUDAMSG
-    printf("Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
-        nbx,
-        nby,
-        nbz,
-        ntx,
-        nty,
-        ntz,
-        nx,
-        ny,
-        nz);
-
-    // just some timing stuff
-    cudaEvent_t start, stop;
-    GT_CUDA_CHECK(cudaEventCreate(&start));
-    GT_CUDA_CHECK(cudaEventCreate(&stop));
-
-    GT_CUDA_CHECK(cudaEventRecord(start, 0));
-#endif
-
     const int niter = d_data_array.size();
 
     // run the compression a few times, just to get a bit
@@ -149,27 +129,9 @@ void m_packYU(array_t const &d_data_array,
     for (int i = 0; i < niter; i++) {
 
         // the actual kernel launch
-        m_packYUKernel<<<blocks, threads, 0, YU_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, nz, i);
+        m_packYUKernel<<<blocks, threads>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, nz, i);
         GT_CUDA_CHECK(cudaGetLastError());
     }
-
-#ifdef GCL_CUDAMSG
-    // more timing stuff and conversion into reasonable units
-    // for display
-    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
-    GT_CUDA_CHECK(cudaEventSynchronize(stop));
-
-    float elapsedTime;
-    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
-
-    GT_CUDA_CHECK(cudaEventDestroy(start));
-    GT_CUDA_CHECK(cudaEventDestroy(stop));
-
-    double nnumb = niter * (double)(nx * ny * nz);
-    double nbyte = nnumb * sizeof(double);
-
-    printf("YU Packed %g numbers in %g ms, BW = %g GB/s\n", nnumb, elapsedTime, (nbyte / (elapsedTime / 1e3)) / 1e9);
-#endif
 }
 
 template <typename Blocks,
@@ -189,7 +151,7 @@ int call_kernel_YU(Blocks blocks,
     int nx,
     int ny,
     unsigned int i) {
-    m_packYUKernel<<<blocks, threads, b, YU_stream>>>(d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
+    m_packYUKernel<<<blocks, threads, b>>>(d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
 
     GT_CUDA_CHECK(cudaGetLastError());
 
@@ -222,26 +184,6 @@ void m_packYU_variadic(value_type **d_msgbufTab,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef GCL_CUDAMSG
-    printf("Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
-        nbx,
-        nby,
-        nbz,
-        ntx,
-        nty,
-        ntz,
-        nx,
-        ny,
-        nz);
-
-    // just some timing stuff
-    cudaEvent_t start, stop;
-    GT_CUDA_CHECK(cudaEventCreate(&start));
-    GT_CUDA_CHECK(cudaEventCreate(&stop));
-
-    GT_CUDA_CHECK(cudaEventRecord(start, 0));
-#endif
-
     const int niter = std::tuple_size<datas>::value;
 
     int nothing[niter] = {call_kernel_YU(blocks,
@@ -254,22 +196,4 @@ void m_packYU_variadic(value_type **d_msgbufTab,
         nx,
         nz,
         Ids)...};
-
-#ifdef GCL_CUDAMSG
-    // more timing stuff and conversion into reasonable units
-    // for display
-    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
-    GT_CUDA_CHECK(cudaEventSynchronize(stop));
-
-    float elapsedTime;
-    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
-
-    GT_CUDA_CHECK(cudaEventDestroy(start));
-    GT_CUDA_CHECK(cudaEventDestroy(stop));
-
-    double nnumb = niter * (double)(nx * ny * nz);
-    double nbyte = nnumb * sizeof(double);
-
-    printf("YU Packed %g numbers in %g ms, BW = %g GB/s\n", nnumb, elapsedTime, (nbyte / (elapsedTime / 1e3)) / 1e9);
-#endif
 }

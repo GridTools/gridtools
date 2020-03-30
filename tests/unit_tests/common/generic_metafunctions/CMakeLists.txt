@@ -1,0 +1,2 @@
+gridtools_check_compilation(test_accumulate test_accumulate.cpp)
+gridtools_add_unit_test(test_for_each SOURCES test_for_each.cpp)

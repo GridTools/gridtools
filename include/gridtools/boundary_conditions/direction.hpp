@@ -9,8 +9,6 @@
  */
 #pragma once
 
-#include <ostream>
-
 /**
 @file
 @brief definition of direction in a 3D cartesian grid
@@ -75,18 +73,4 @@ namespace gridtools {
         static constexpr sign j = J_;
         static constexpr sign k = K_;
     };
-
-    /** @brief Facility to print direction, useful for debugging
-
-        \param s Output stream
-        \param * direction Direction to be printed (only type is necessary)
-     */
-    template <sign I, sign J, sign K>
-    std::ostream &operator<<(std::ostream &s, direction<I, J, K> const &) {
-        s << "direction<" << I << ", " << J << ", " << K << ">";
-        return s;
-    }
-
-    /** @} */
-
 } // namespace gridtools

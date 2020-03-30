@@ -74,15 +74,6 @@ __global__ void m_unpackXUKernel_generic(value_type *__restrict__ d_data,
 template <typename array_t>
 void m_unpackXU_generic(
     array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab_r, int *d_msgsize_r) {
-
-#ifdef GCL_CUDAMSG
-    // just some timing stuff
-    cudaEvent_t start, stop;
-    GT_CUDA_CHECK(cudaEventCreate(&start));
-    GT_CUDA_CHECK(cudaEventCreate(&stop));
-
-    GT_CUDA_CHECK(cudaEventRecord(start, 0));
-#endif
     const int niter = fields.size();
 
     // run the compression a few times, just to get a bit
@@ -105,19 +96,6 @@ void m_unpackXU_generic(
         int nbz = (nz + ntz - 1) / ntz;
         dim3 blocks(nbx, nby, nbz);
 
-#ifdef GCL_CUDAMSG
-        printf("UNPACK XU Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
-            nbx,
-            nby,
-            nbz,
-            ntx,
-            nty,
-            ntz,
-            nx,
-            ny,
-            nz);
-#endif
-
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             m_unpackXUKernel_generic<<<blocks, threads>>>(fields[i].ptr,
@@ -133,25 +111,4 @@ void m_unpackXU_generic(
             GT_CUDA_CHECK(cudaGetLastError());
         }
     }
-
-#ifdef GCL_CUDAMSG
-    // more timing stuff and conversion into reasonable units
-    // for display
-    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
-    GT_CUDA_CHECK(cudaEventSynchronize(stop));
-
-    float elapsedTime;
-    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
-
-    GT_CUDA_CHECK(cudaEventDestroy(start));
-    GT_CUDA_CHECK(cudaEventDestroy(stop));
-
-    // double nnumb =  niter * (double) (nx * ny * nz);
-    // double nbyte =  nnumb * sizeof(double);
-
-    // printf("XU Packed %g numbers in %g ms, BW = %g GB/s\n",
-    //     nnumb, elapsedTime, (nbyte/(elapsedTime/1e3))/1e9);
-
-    printf("XU Packed numbers in %g ms\n", elapsedTime);
-#endif
 }

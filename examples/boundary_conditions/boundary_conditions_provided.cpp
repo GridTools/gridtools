@@ -30,10 +30,11 @@
 #include <gridtools/boundary_conditions/copy.hpp>
 #include <gridtools/boundary_conditions/value.hpp>
 #include <gridtools/boundary_conditions/zero.hpp>
+#include <gridtools/common/defs.hpp>
 #include <gridtools/communication/low_level/gcl_arch.hpp>
 #include <gridtools/storage/builder.hpp>
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
 #include <gridtools/storage/cuda.hpp>
 using storage_traits_t = gridtools::storage::cuda;
 using gcl_arch_t = gridtools::gcl_gpu;

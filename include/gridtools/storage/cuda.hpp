@@ -13,9 +13,10 @@
 #include <utility>
 
 #include "../common/array.hpp"
+#include "../common/cuda_runtime.hpp"
 #include "../common/cuda_util.hpp"
+#include "../common/defs.hpp"
 #include "../common/generic_metafunctions/utility.hpp"
-#include "../common/hip_wrappers.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "info.hpp"
@@ -44,6 +45,7 @@ namespace gridtools {
                 T *m_ptr;
                 storage::info<N> const *m_info;
 
+#if defined(GT_CUDA_ARCH) or (defined(GT_CUDACC) and defined(__clang__))
                 GT_FUNCTION_DEVICE auto const &info() const { return *m_info; }
 
                 GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }
@@ -61,6 +63,7 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE GT_CONSTEXPR auto length() const { return m_info->length(); }
 
                 GT_FUNCTION_DEVICE GT_CONSTEXPR auto const &lengths() const { return m_info->lengths(); }
+#endif
             };
 
             template <size_t N>

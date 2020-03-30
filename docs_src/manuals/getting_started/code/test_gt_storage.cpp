@@ -3,7 +3,7 @@
 
 using namespace gridtools;
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
 #include <gridtools/storage/cuda.hpp>
 using traits_t = storage::cuda;
 #else

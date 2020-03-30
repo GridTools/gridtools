@@ -8,11 +8,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
-#ifdef GCL_GPU
+
+#include "../../common/defs.hpp"
+#include "../../common/make_array.hpp"
+#include "../low_level/gcl_arch.hpp"
+#include "descriptors_fwd.hpp"
+
+#ifdef GT_CUDACC
+#include "../../common/cuda_runtime.hpp"
 #include "../../common/cuda_util.hpp"
 #endif
-#include "../../common/make_array.hpp"
-#include "descriptors_fwd.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -33,7 +38,7 @@ namespace gridtools {
             static void free(T *t) { delete[] t; }
         };
 
-#ifdef GCL_GPU
+#ifdef GT_CUDACC
         template <typename T>
         struct gcl_alloc<T, gcl_gpu> {
 

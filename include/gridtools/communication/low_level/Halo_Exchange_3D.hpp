@@ -9,10 +9,6 @@
  */
 #pragma once
 
-#ifdef GT_VERBOSE
-#include <iostream>
-#endif
-
 #include "../../common/defs.hpp"
 #include "../GCL.hpp"
 #include "has_communicator.hpp"
@@ -253,18 +249,6 @@ namespace gridtools {
         template <int I, int J, int K>
         void post_receive() {
             if (m_recv_buffers.size(I, J, K)) {
-#ifdef GT_VERBOSE
-                std::cout << "@" << gridtools::PID << "@ IRECV (" << I << "," << J << "," << K << ") "
-                          << " P " << m_proc_grid.template proc<I, J, K>() << " - "
-                          << " T " << TAG<-I, -J, -K>::value << " - "
-                          << " R " << translate()(-I, -J, -K) << " - "
-                          << " Amount " << m_recv_buffers.size(I, J, K) << "\n";
-#endif
-
-#ifdef GCL_TRACE
-                double begin_time = MPI_Wtime();
-#endif
-
                 MPI_Irecv(static_cast<char *>(m_recv_buffers.buffer(I, J, K)),
                     m_recv_buffers.size(I, J, K),
                     MPI_CHAR,
@@ -272,34 +256,12 @@ namespace gridtools {
                     TAG<-I, -J, -K>::value,
                     get_communicator(m_proc_grid),
                     &request(-I, -J, -K));
-#ifdef GCL_TRACE
-                double end_time = MPI_Wtime();
-                stats_collector_3D.add_event(CommEvent(ce_receive,
-                    m_proc_grid.template proc<I, J, K>(),
-                    TAG<-I, -J, -K>::value,
-                    m_recv_buffers.size(I, J, K),
-                    begin_time,
-                    end_time,
-                    pattern_tag));
-#endif
             }
         }
 
         template <int I, int J, int K>
         void perform_isend() {
             if (m_send_buffers.size(I, J, K)) {
-#ifdef GT_VERBOSE
-                std::cout << "@" << gridtools::PID << "@ ISEND (" << I << "," << J << "," << K << ") "
-                          << " P " << m_proc_grid.template proc<I, J, K>() << " - "
-                          << " T " << TAG<I, J, K>::value << " - "
-                          << " R " << translate()(I, J, K) << " - "
-                          << " Amount " << m_send_buffers.size(I, J, K) << "\n";
-#endif
-
-#ifdef GCL_TRACE
-                double begin_time = MPI_Wtime();
-#endif
-
                 MPI_Isend(static_cast<char *>(m_send_buffers.buffer(I, J, K)),
                     m_send_buffers.size(I, J, K),
                     MPI_CHAR,
@@ -309,16 +271,6 @@ namespace gridtools {
                     &send_request(I, J, K));
 
                 send_request.set(I, J, K);
-#ifdef GCL_TRACE
-                double end_time = MPI_Wtime();
-                stats_collector_3D.add_event(CommEvent(ce_send,
-                    m_proc_grid.template proc<I, J, K>(),
-                    TAG<I, J, K>::value,
-                    m_send_buffers.size(I, J, K),
-                    begin_time,
-                    end_time,
-                    pattern_tag));
-#endif
             }
         }
 
@@ -328,22 +280,7 @@ namespace gridtools {
                 for (int j = -1; j <= 1; ++j)
                     for (int k = -1; k <= 1; ++k)
                         if (send_request.marked(i, j, k)) {
-#ifdef GCL_TRACE
-                            double begin_time = MPI_Wtime();
-#endif
                             MPI_Wait(&send_request(i, j, k), &status);
-#ifdef GCL_TRACE
-                            double end_time = MPI_Wtime();
-                            stats_collector_3D.add_event(CommEvent(ce_send_wait,
-                                // m_proc_grid.template proc<I,J,K>(),
-                                m_proc_grid.proc(i, j, k),
-                                // TAG<I,J,K>::value,
-                                -1,
-                                m_send_buffers.size(i, j, k),
-                                begin_time,
-                                end_time,
-                                pattern_tag));
-#endif
                             send_request.reset(i, j, k);
                         }
         }
@@ -351,39 +288,12 @@ namespace gridtools {
         template <int I, int J, int K>
         void wait() {
             if (m_recv_buffers.size(I, J, K)) {
-#ifdef GT_VERBOSE
-                std::cout << "@" << gridtools::PID << "@ WAIT  (" << I << "," << J << "," << K << ") "
-                          << " R " << translate()(-I, -J, -K) << "\n";
-#endif
-
-#ifdef GCL_TRACE
-                double begin_time = MPI_Wtime();
-#endif
-
                 MPI_Status status;
                 MPI_Wait(&request(-I, -J, -K), &status);
-#ifdef GCL_TRACE
-                double end_time = MPI_Wtime();
-                stats_collector_3D.add_event(CommEvent(ce_receive_wait,
-                    m_proc_grid.template proc<I, J, K>(),
-                    TAG<-I, -J, -K>::value,
-                    m_recv_buffers.size(I, J, K),
-                    begin_time,
-                    end_time,
-                    pattern_tag));
-#endif
             }
         }
 
-#ifdef GCL_TRACE
-        int pattern_tag;
-#endif
-
       public:
-#ifdef GCL_TRACE
-        void set_pattern_tag(int tag) { pattern_tag = tag; }
-#endif
-
         /** Type of the processor grid used by the pattern
          */
         typedef PROC_GRID grid_type;
@@ -397,13 +307,7 @@ namespace gridtools {
          *
          */
         explicit Halo_Exchange_3D(PROC_GRID /*const&*/ _pg)
-            : m_send_buffers(), m_recv_buffers(), request(), send_request(), m_proc_grid(_pg)
-#ifdef GCL_TRACE
-              ,
-              pattern_tag(-1)
-#endif
-        {
-        }
+            : m_send_buffers(), m_recv_buffers(), request(), send_request(), m_proc_grid(_pg) {}
 
         /** Function to retrieve the grid from the pattern, from which user can query
             location information.
@@ -432,16 +336,6 @@ namespace gridtools {
             assert((I >= -1 && I <= 1));
             assert((J >= -1 && J <= 1));
             assert((K >= -1 && K <= 1));
-
-#ifdef GT_VERBOSE
-//       std::cout << "@" << gridtools::PID
-//                 << "@ " << __PRETTY_FUNCTION__
-//                 << " : " << p << " size " << s
-//                 << " I:" << I
-//                 << " J:" << J
-//                 << " K:" << K
-//                 << " (" << translate()(I,J,K) << ")\n";
-#endif
 
             m_send_buffers.buffer(I, J, K) = reinterpret_cast<char *>(p);
             m_send_buffers.size(I, J, K) = s;
@@ -495,16 +389,6 @@ namespace gridtools {
             assert((I >= -1 && I <= 1));
             assert((J >= -1 && J <= 1));
             assert((K >= -1 && K <= 1));
-
-#ifdef GT_VERBOSE
-//       std::cout << "@" << gridtools::PID
-//                 << "@ " << __PRETTY_FUNCTION__
-//                 << " : " << p << " size " << s
-//                 << " I:" << I
-//                 << " J:" << J
-//                 << " K:" << K
-//                 <<  " (" << translate()(I,J,K) << ")\n";
-#endif
 
             m_recv_buffers.buffer(I, J, K) = reinterpret_cast<char *>(p);
             m_recv_buffers.size(I, J, K) = s;
@@ -908,14 +792,12 @@ namespace gridtools {
             until the wait() function returns.
          */
         void start_exchange() {
-
-            //      cout << GSL_pid() << " proc coords: " << r << " " << c << endl;
             /* NORTH/IMINUS
                      |---------| |---------| |---------| |---------| |---------| |---------| |---------| |---------|
                      |         | |         | |      |  | |  |      | |      |  | |  |      | |-------  | |  -------|
                      |         | |---------| |      |  | |  |      | | r<R-1|  | |  | r<R-1| |      |  | |  |      |
                      |  r<R-1  | |         | | c<C-1|  | |  |      | | c<C-1|  | |  | c>0  | | r>0  |  | |  | r>0  |
-                     WEST  |         | |   r>0   | |      |  | |  | c>0  | |      |  | |  |      | | c<C-1|  | |  | c>0
+            WEST  |         | |   r>0   | |      |  | |  | c>0  | |      |  | |  |      | | c<C-1|  | |  | c>0
                |
                      EAST
                JMINUS|---------| |         | |      |  | |  |      | |      |  | |  |      | |      |  | |  | |JPLUS
@@ -1045,9 +927,6 @@ namespace gridtools {
             if (m_proc_grid.template proc<0, 0, 1>() != -1) {
                 wait<0, 0, 1>();
             }
-
-            // MPI_Barrier(gridtools::GCL_WORLD);
         }
     };
-
 } // namespace gridtools

@@ -10,10 +10,12 @@
 
 #pragma once
 
-#ifdef GT_USE_GPU
+#include "defs.hpp"
 
-#include "../common/cuda_util.hpp"
-#include "hip_wrappers.hpp"
+#ifdef GT_CUDACC
+
+#include "cuda_runtime.hpp"
+#include "cuda_util.hpp"
 
 namespace gridtools {
     /**
@@ -26,7 +28,7 @@ namespace gridtools {
         cudaError_t error = cudaPointerGetAttributes(&ptrAttributes, ptr);
         if (error == cudaSuccess)
 
-#if CUDART_VERSION < 10000
+#if defined(CUDART_VERSION) && CUDART_VERSION < 10000
             return ptrAttributes.memoryType == cudaMemoryTypeDevice; // deprecated in CUDA 10
 #else
             return ptrAttributes.type == cudaMemoryTypeDevice;

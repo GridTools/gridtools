@@ -13,6 +13,7 @@
 /** \defgroup Distributed-Boundaries Distributed Boundary Conditions
  */
 
+#include <memory>
 #include <type_traits>
 #include <utility>
 
@@ -20,27 +21,15 @@
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/timer/timer.hpp"
-#include "../communication/low_level/gcl_arch.hpp"
-#ifdef GCL_MPI
 #include "../communication/GCL.hpp"
 #include "../communication/halo_exchange.hpp"
+#include "../communication/low_level/gcl_arch.hpp"
 #include "../communication/low_level/proc_grids_3D.hpp"
-#else
-#include "./mock_pattern.hpp"
-#endif
-#include "./grid_predicate.hpp"
+#include "grid_predicate.hpp"
 
-#include "./bound_bc.hpp"
+#include "bound_bc.hpp"
 
 namespace gridtools {
-
-#ifndef GCL_MPI
-    // This provides an processing grid that works on a single process
-    // to be used without periodic boundary conditions, this enables
-    // the grid predicate to work
-    using namespace mock_;
-#endif
-
     /** \ingroup Distributed-Boundaries
      * @{ */
 
@@ -93,7 +82,7 @@ namespace gridtools {
         array<halo_descriptor, 3> m_halos;
         array<int_t, 3> m_sizes;
         uint_t m_max_stores;
-        pattern_type m_he;
+        std::unique_ptr<pattern_type> m_he;
 
         performance_meter_t m_meter_pack;
         performance_meter_t m_meter_exchange;
@@ -113,22 +102,21 @@ namespace gridtools {
         */
         distributed_boundaries(
             array<halo_descriptor, 3> halos, boollist<3> period, uint_t max_stores, MPI_Comm CartComm)
-            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm),
-              m_meter_pack("pack/unpack       "), m_meter_exchange("exchange          "),
-              m_meter_bc("boundary condition") {
+            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores},
+              m_he(std::make_unique<pattern_type>(period, CartComm)), m_meter_pack("pack/unpack       "),
+              m_meter_exchange("exchange          "), m_meter_bc("boundary condition") {
+            m_he->pattern().proc_grid().fill_dims(m_sizes);
 
-            m_he.pattern().proc_grid().fill_dims(m_sizes);
-
-            m_he.template add_halo<0>(
+            m_he->template add_halo<0>(
                 m_halos[0].minus(), m_halos[0].plus(), m_halos[0].begin(), m_halos[0].end(), m_halos[0].total_length());
 
-            m_he.template add_halo<1>(
+            m_he->template add_halo<1>(
                 m_halos[1].minus(), m_halos[1].plus(), m_halos[1].begin(), m_halos[1].end(), m_halos[1].total_length());
 
-            m_he.template add_halo<2>(
+            m_he->template add_halo<2>(
                 m_halos[2].minus(), m_halos[2].plus(), m_halos[2].begin(), m_halos[2].end(), m_halos[2].total_length());
 
-            m_he.setup(m_max_stores);
+            m_he->setup(m_max_stores);
         }
 
         /**
@@ -175,7 +163,7 @@ namespace gridtools {
             call_pack(all_stores_for_exc, std::make_integer_sequence<uint_t, sizeof...(jobs)>{});
             m_meter_pack.pause();
             m_meter_exchange.start();
-            m_he.exchange();
+            m_he->exchange();
             m_meter_exchange.pause();
             m_meter_pack.start();
             call_unpack(all_stores_for_exc, std::make_integer_sequence<uint_t, sizeof...(jobs)>{});
@@ -184,7 +172,7 @@ namespace gridtools {
             boundary_only(jobs...);
         }
 
-        typename pattern_type::grid_type const &proc_grid() const { return m_he.comm(); }
+        typename pattern_type::grid_type const &proc_grid() const { return m_he->comm(); }
 
         std::string print_meters() const {
             return m_meter_pack.to_string() + "\n" + m_meter_exchange.to_string() + "\n" + m_meter_bc.to_string();
@@ -216,7 +204,7 @@ namespace gridtools {
             /*Apply boundary to data*/
             call_apply(make_boundary<typename CTraits::comm_arch_type>(m_halos,
                            bcapply.boundary_to_apply(),
-                           proc_grid_predicate<typename pattern_type::grid_type>(m_he.comm())),
+                           proc_grid_predicate<typename pattern_type::grid_type>(m_he->comm())),
                 bcapply.stores(),
                 std::make_integer_sequence<uint_t, std::tuple_size<typename BCApply::stores_type>::value>{});
         }
@@ -240,7 +228,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, std::integer_sequence<uint_t, Ids...>) {
-            m_he.pack(std::get<Ids>(stores)->get_const_target_ptr()...);
+            m_he->pack(std::get<Ids>(stores)->get_const_target_ptr()...);
         }
 
         template <typename Stores>
@@ -248,7 +236,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_unpack(Stores const &stores, std::integer_sequence<uint_t, Ids...>) {
-            m_he.unpack(std::get<Ids>(stores)->get_target_ptr()...);
+            m_he->unpack(std::get<Ids>(stores)->get_target_ptr()...);
         }
 
         template <typename Stores>

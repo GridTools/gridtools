@@ -8,13 +8,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
-#include "host_device.hpp"
 
 #include <cmath>
-#ifdef __CUDACC__
-#include "./atomic_cuda.hpp"
+
+#include "defs.hpp"
+#include "host_device.hpp"
+
+#ifdef GT_CUDACC
+#include "atomic_cuda.hpp"
 #else
-#include "./atomic_host.hpp"
+#include "atomic_host.hpp"
 #endif
 
 /**

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <gridtools/common/defs.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
@@ -7,7 +8,7 @@
 using namespace gridtools;
 using namespace cartesian;
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
 #include <gridtools/stencil_composition/backend/cuda.hpp>
 #include <gridtools/storage/cuda.hpp>
 using backend_t = cuda::backend<>;

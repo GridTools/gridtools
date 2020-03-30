@@ -37,12 +37,7 @@
 #define GCL_COPY_FIELDS(m) BOOST_PP_REPEAT(m, _GCL_COPY_FIELDS, nil)
 
 #define _GCL_COPY_BACK(z, m, s) FIELD##m &new_field##m = fields[m].template retarget<typename FIELD##m::value_type>();
-// std::cout << fields[ m ] << " is equal to (input) " << new_field ## m << std::endl;
 #define GCL_COPY_BACK(m) BOOST_PP_REPEAT(m, _GCL_COPY_BACK, nil)
-
-// #define _GCL_PREFIX_SEND(z, m, s) prefix_send_size[(m + 1 )*27+translate()(ii,jj,kk)] = prefix_send_size[( m
-// )*27+translate()(ii,jj,kk)] + field ## m.send_buffer_size(make_array(ii,jj,kk));
-// #define GCL_PREFIX_SEND(m) BOOST_PP_REPEAT(m, _GCL_PREFIX_SEND, nil)
 
 template <BOOST_PP_ENUM_PARAMS(GCL_NOI, typename FIELD)>
 void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
@@ -52,8 +47,6 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
     std::vector<FIELD0> fields(GCL_NOI);
 
     GCL_COPY_FIELDS(GCL_NOI);
-
-    //  std::cout << fields[0] << " is equal to (input) " << _field0 << std::endl;
 
     {
         int ii = 1;
@@ -185,16 +178,7 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
             BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);
     }
 
-#ifdef GCL_MULTI_STREAMS
-    GT_CUDA_CHECK(cudaStreamSynchronize(ZL_stream));
-    GT_CUDA_CHECK(cudaStreamSynchronize(ZU_stream));
-    GT_CUDA_CHECK(cudaStreamSynchronize(YL_stream));
-    GT_CUDA_CHECK(cudaStreamSynchronize(YU_stream));
-    GT_CUDA_CHECK(cudaStreamSynchronize(XL_stream));
-    GT_CUDA_CHECK(cudaStreamSynchronize(XU_stream));
-#else
     GT_CUDA_CHECK(cudaDeviceSynchronize());
-#endif
 }
 
 /**
@@ -304,7 +288,6 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
 
     GCL_COPY_BACK(GCL_NOI);
 
-    // typedef translate_t<3,default_layout_map<3>::type > translate;
     if (recv_size[translate()(0, 0, -1)]) {
         m_unpackZL_generic_nv(
             BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_recv_buffer), prefix_recv_size);

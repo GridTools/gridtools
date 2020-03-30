@@ -12,10 +12,12 @@
 #include <cmath>
 
 #include "../common/array.hpp"
+#include "../common/cuda_runtime.hpp"
 #include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/for_each.hpp"
 #include "../common/halo_descriptor.hpp"
+#include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "../meta.hpp"
 #include "direction.hpp"
@@ -237,7 +239,6 @@ namespace gridtools {
             const uint_t i = blockIdx.x * apply_gpu_impl_::threads_per_block_x_t::value + threadIdx.x;
             const uint_t j = blockIdx.y * apply_gpu_impl_::threads_per_block_y_t::value + threadIdx.y;
             const uint_t k = blockIdx.z * apply_gpu_impl_::threads_per_block_z_t::value + threadIdx.z;
-
             device::for_each<directions_t>([&](auto dir) {
                 if (predicate(dir)) {
                     auto const &shape = conf.shape(dir);
@@ -251,9 +252,6 @@ namespace gridtools {
                 }
             });
         }
-
-#undef GT_RUN_BC_ON
-
     } // namespace apply_gpu_impl_
 
     /**

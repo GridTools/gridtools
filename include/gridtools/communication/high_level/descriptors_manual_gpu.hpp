@@ -10,7 +10,9 @@
 
 #include <utility>
 
-#ifdef __CUDACC__
+#include "../../common/defs.hpp"
+
+#ifdef GT_CUDACC
 #include "m_packXL.hpp"
 #include "m_packXU.hpp"
 #include "m_packYL.hpp"
@@ -71,15 +73,7 @@ namespace gridtools {
         halo_descriptor *dangerous_raw_array() { return &(base_type::halos[0]); }
     };
 
-    template <int I>
-    std::ostream &operator<<(std::ostream &s, empty_field_no_dt_gpu<I> const &ef) {
-        s << "empty_field_no_dt_gpu ";
-        for (int i = 0; i < I; ++i)
-            s << ef.raw_array()[i] << ", ";
-        return s;
-    }
-
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
     /** specialization for GPU and manual packing */
     template <typename DataType, typename HaloExch, typename proc_layout, template <int Ndim> class GridType>
     class hndlr_dynamic_ut<DataType, GridType<3>, HaloExch, proc_layout, gcl_gpu> : public descriptor_base<HaloExch> {
@@ -126,9 +120,6 @@ namespace gridtools {
         hndlr_dynamic_ut(hndlr_dynamic_ut &&) = delete;
 
       public:
-#ifdef GCL_TRACE
-        void set_pattern_tag(int tag) { base_type::m_haloexch.set_pattern_tag(tag); };
-#endif
         /**
            Constructor
 
@@ -147,10 +138,6 @@ namespace gridtools {
             : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_size{0}, recv_size{0} {}
 
         ~hndlr_dynamic_ut() {
-#ifdef GCL_CHECK_DESTRUCTOR
-            std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
-#endif
-
             for (int i = -1; i <= 1; ++i)
                 for (int j = -1; j <= 1; ++j)
                     for (int k = -1; k <= 1; ++k) {
@@ -182,38 +169,6 @@ namespace gridtools {
             dangeroushalo_r[1] = halo.dangerous_raw_array()[1];
             dangeroushalo_r[2] = halo.dangerous_raw_array()[2];
 
-            // printf("%d danhalo %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID,
-            //        dangeroushalo[0].minus(),
-            //        dangeroushalo[0].plus(),
-            //        dangeroushalo[0].begin(),
-            //        dangeroushalo[0].end(),
-            //        dangeroushalo[0].total_length(),
-            //        dangeroushalo[1].minus(),
-            //        dangeroushalo[1].plus(),
-            //        dangeroushalo[1].begin(),
-            //        dangeroushalo[1].end(),
-            //        dangeroushalo[1].total_length(),
-            //        dangeroushalo[2].minus(),
-            //        dangeroushalo[2].plus(),
-            //        dangeroushalo[2].begin(),
-            //        dangeroushalo[2].end(),
-            //        dangeroushalo[2].total_length());
-            // printf("%d danhalo_r %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID,
-            //        dangeroushalo_r[0].minus(),
-            //        dangeroushalo_r[0].plus(),
-            //        dangeroushalo_r[0].begin(),
-            //        dangeroushalo_r[0].end(),
-            //        dangeroushalo_r[0].total_length(),
-            //        dangeroushalo_r[1].minus(),
-            //        dangeroushalo_r[1].plus(),
-            //        dangeroushalo_r[1].begin(),
-            //        dangeroushalo_r[1].end(),
-            //        dangeroushalo_r[1].total_length(),
-            //        dangeroushalo_r[2].minus(),
-            //        dangeroushalo_r[2].plus(),
-            //        dangeroushalo_r[2].begin(),
-            //        dangeroushalo_r[2].end(),
-            //        dangeroushalo_r[2].total_length());
             {
                 typedef proc_layout map_type;
                 int ii = 1;
@@ -292,47 +247,6 @@ namespace gridtools {
                     dangeroushalo_r[2].reset_minus();
                 }
             }
-
-            // printf("%d danhalo %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID,
-            //        dangeroushalo[0].minus(),
-            //        dangeroushalo[0].plus(),
-            //        dangeroushalo[0].begin(),
-            //        dangeroushalo[0].end(),
-            //        dangeroushalo[0].total_length(),
-            //        dangeroushalo[1].minus(),
-            //        dangeroushalo[1].plus(),
-            //        dangeroushalo[1].begin(),
-            //        dangeroushalo[1].end(),
-            //        dangeroushalo[1].total_length(),
-            //        dangeroushalo[2].minus(),
-            //        dangeroushalo[2].plus(),
-            //        dangeroushalo[2].begin(),
-            //        dangeroushalo[2].end(),
-            //        dangeroushalo[2].total_length());
-
-            // printf("%d danhalo_r %d %d %d %d %d, %d %d %d %d %d, %d %d %d %d %d\n", PID,
-            //        dangeroushalo_r[0].minus(),
-            //        dangeroushalo_r[0].plus(),
-            //        dangeroushalo_r[0].begin(),
-            //        dangeroushalo_r[0].end(),
-            //        dangeroushalo_r[0].total_length(),
-            //        dangeroushalo_r[1].minus(),
-            //        dangeroushalo_r[1].plus(),
-            //        dangeroushalo_r[1].begin(),
-            //        dangeroushalo_r[1].end(),
-            //        dangeroushalo_r[1].total_length(),
-            //        dangeroushalo_r[2].minus(),
-            //        dangeroushalo_r[2].plus(),
-            //        dangeroushalo_r[2].begin(),
-            //        dangeroushalo_r[2].end(),
-            //        dangeroushalo_r[2].total_length());
-
-            //       printf("halo 1 is: %d, %d, %d, %d, %d \n", (halo.halos[0]).minus(), (halo.halos[0]).plus(),
-            //       (halo.halos[0]).begin(), (halo.halos[0]).end(), (halo.halos[0]).total_length());
-            //       printf("halo 2 is: %d, %d, %d, %d, %d \n", (halo.halos[1]).minus(), (halo.halos[1]).plus(),
-            //       (halo.halos[1]).begin(), (halo.halos[1]).end(), (halo.halos[1]).total_length());
-            //       printf("halo 3 is: %d, %d, %d, %d, %d \n", (halo.halos[2]).minus(), (halo.halos[2]).plus(),
-            //       (halo.halos[2]).begin(), (halo.halos[2]).end(), (halo.halos[2]).total_length());
 
             for (int ii = -1; ii <= 1; ++ii)
                 for (int jj = -1; jj <= 1; ++jj)
@@ -475,16 +389,7 @@ namespace gridtools {
                             }
                         }
 
-#ifdef GCL_MULTI_STREAMS
-            GT_CUDA_CHECK(cudaStreamSynchronize(ZL_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(ZU_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(YL_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(YU_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(XL_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(XU_stream));
-#else
             GT_CUDA_CHECK(cudaDeviceSynchronize());
-#endif
         }
 
         template <typename... Pointers>
@@ -567,68 +472,10 @@ namespace gridtools {
                             }
                         }
 
-// perform device syncronization to ensure that packing is finished
-// before MPI is called with the device pointers, otherwise stale
-// information can be sent
-#ifdef GCL_MULTI_STREAMS
-            GT_CUDA_CHECK(cudaStreamSynchronize(ZL_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(ZU_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(YL_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(YU_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(XL_stream));
-            GT_CUDA_CHECK(cudaStreamSynchronize(XU_stream));
-#else
+            // perform device syncronization to ensure that packing is finished
+            // before MPI is called with the device pointers, otherwise stale
+            // information can be sent
             GT_CUDA_CHECK(cudaDeviceSynchronize());
-#endif
-            // CODE TO SEE THE PACKED BUFFERS
-            //     double *send_buffer_l[27];
-            // for(int k=0; k<3; k++)
-            //   for(int j=0; j<3; j++)
-            //     for(int i=0; i<3; i++)
-            //       if (i!=1 || j!=1 || k!=1) {
-            //         send_buffer_l[k*9 + i+3*j] = (double*)malloc(send_size[k*9 + i+3*j]*sizeof(double)*3);
-            //       }
-
-            //     int size, err;
-            // for(int k=0; k<3; k++)
-            //   //if (k==0)// || k==2)
-            //   for(int j=0; j<3; j++)
-            //     for(int i=0; i<3; i++)
-            //       if (i!=1 || j!=1 || k!=1) {
-            //         size = send_size[k*9 + i+3*j] * sizeof(double)*3;
-            //         printf("START transferring bufer i=%d, j=%d, size=%d\n",
-            //                  i, j, size);
-            //         err = cudaMemcpy(send_buffer_l[k*9 + i+3*j], send_buffer[k*9 + i+3*j], size,
-            //                        cudaMemcpyDeviceToHost);
-            //         if(err != cudaSuccess) {
-            //           printf("Error transferring bufer i=%d, j=%d, size=%d\n",
-            //                  i, j, size);
-            //           exit(-1);
-            //         }
-            //         printf("OK transferring bufer i=%d, j=%d, size=%d\n",
-            //                  i, j, size);
-            //       }
-
-            // printf("printing buffers\n");
-            // // exit(0);
-
-            // // display content of all the buffers
-            // for(int k=0; k<3; k++)
-            //   //    if (k==0)// || k==2)
-            //   for(int j=0; j<3; j++)
-            //     for(int i=0; i<3; i++)
-            //       if (i!=1 || j!=1 || k!=1) {
-            //         printf("Buffer = %d\n", j*3 + i);
-            //         for(int l=0; l < dangeroushalo[2].s_length(k-1); l++)
-            //           for(int m=0; m < dangeroushalo[1].s_length(j-1); m++)
-            //             for(int n=0; n < dangeroushalo[0].s_length(i-1); n++){
-            //               int ind = l * dangeroushalo[1].s_length(j-1) * dangeroushalo[0].s_length(i-1) + m *
-            //               dangeroushalo[0].s_length(i-1) + n;
-            //               long long int value = static_cast<long long int>(send_buffer_l[9*k + j*3+i][ind]);
-            //               printf("PACKED %d; %d / %d / %d (%d) = %lld %lld %lld \n",
-            //                      9*k+j*3+i, n, m, l, ind, value%10000, (value/10000)%10000, (value/100000000)%10000);
-            //             }
-            //       }
         }
 
         /**

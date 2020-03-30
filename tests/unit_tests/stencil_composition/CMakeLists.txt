@@ -1,0 +1,6 @@
+add_subdirectory(core)
+add_subdirectory(frontend)
+add_subdirectory(backend)
+
+gridtools_add_unit_test(test_positional SOURCES test_positional.cpp)
+gridtools_add_unit_test(test_global_parameter SOURCES test_global_parameter.cpp)

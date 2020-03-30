@@ -18,9 +18,10 @@ def driver(verbose, logfile):
         log.log_to_file(logfile)
 
 
+# TODO(anstaf): remove unused precision and grid options
 @driver.command(description='build GridTools')
 @args.arg('--build-type', '-b', choices=['release', 'debug'], required=True)
-@args.arg('--precision', '-p', choices=['float', 'double'], required=True)
+@args.arg('--precision', '-p', choices=['float', 'double'], default='double')
 @args.arg('--grid', '-g', choices=['structured', 'icosahedral'],
           default='structured')
 @args.arg('--environment', '-e', help='path to environment file')
@@ -30,7 +31,7 @@ def driver(verbose, logfile):
 @args.arg('--install-dir', '-i', help='install directory')
 @args.arg('--cmake-only', action='store_true',
           help='only execute CMake but do not build')
-def build(build_type, precision, grid, environment, target, source_dir,
+def build(build_type, grid, precision, environment, target, source_dir,
           build_dir, install_dir, cmake_only):
     import build
 
@@ -38,8 +39,6 @@ def build(build_type, precision, grid, environment, target, source_dir,
         source_dir = os.path.abspath(os.path.join(script_dir, os.path.pardir))
 
     env.set_cmake_arg('CMAKE_BUILD_TYPE', build_type.title())
-    env.set_cmake_arg('GT_SINGLE_PRECISION', precision == 'float')
-    env.set_cmake_arg('GT_TESTS_ICOSAHEDRAL_GRID', grid == 'icosahedral')
 
     if environment:
         env.load(environment)
@@ -74,16 +73,12 @@ if buildinfo:
             examples_build_dir = os.path.join(buildinfo.binary_dir,
                                               'examples_build')
         if perftests_only:
-            label = 'perftests_*'
+            label = 'perftests'
         else:
-            label = '(unittest_*|regression_*)'
+            label = None
 
-        if run_mpi_tests:
-            mpi_label = 'mpitest_*'
-        else:
-            mpi_label = None
+        test.run(label, run_mpi_tests, verbose_ctest)
 
-        test.run(label, mpi_label, verbose_ctest)
         if build_examples:
             test.compile_examples(examples_build_dir)
 

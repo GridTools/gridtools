@@ -9,13 +9,12 @@
  */
 #pragma once
 
-#include <cassert>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <type_traits>
 
-#include "defs.hpp"
-#include "hip_wrappers.hpp"
+#include "cuda_runtime.hpp"
 
 #define GT_CUDA_CHECK(expr)                                                                    \
     do {                                                                                       \
@@ -26,9 +25,6 @@
 
 namespace gridtools {
     namespace cuda_util {
-        template <class T>
-        struct is_cloneable : std::is_trivially_copyable<T> {};
-
         namespace _impl {
             inline void on_error(cudaError_t err, const char snippet[], const char fun[], const char file[], int line) {
                 std::ostringstream strm;
@@ -63,17 +59,15 @@ namespace gridtools {
             return unique_cuda_ptr<T>{ptr};
         }
 
-        template <class T>
+        template <class T, std::enable_if_t<std::is_trivially_copyable<T>::value, int> = 0>
         unique_cuda_ptr<T> make_clone(T const &src) {
-            static_assert(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
             unique_cuda_ptr<T> res = cuda_malloc<T>();
             GT_CUDA_CHECK(cudaMemcpy(res.get(), &src, sizeof(T), cudaMemcpyHostToDevice));
             return res;
         }
 
-        template <class T>
+        template <class T, std::enable_if_t<std::is_trivially_copyable<T>::value, int> = 0>
         T from_clone(unique_cuda_ptr<T> const &clone) {
-            static_assert(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
             T res;
             GT_CUDA_CHECK(cudaMemcpy(&res, clone.get(), sizeof(T), cudaMemcpyDeviceToHost));
             return res;

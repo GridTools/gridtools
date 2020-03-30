@@ -5,7 +5,9 @@ project(GridTools-laplacian LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(GridTools 2.0.0 REQUIRED)
+find_package(GridTools 2.0.0 REQUIRED QUIET)
 
-add_executable(gt_laplacian test_gt_laplacian.cpp)
-target_link_libraries(gt_laplacian GridTools::gridtools)
+if(TARGET GridTools::backend_mc)
+    add_executable(gt_laplacian test_gt_laplacian.cpp)
+    target_link_libraries(gt_laplacian GridTools::gridtools GridTools::backend_mc)
+endif()

@@ -122,19 +122,7 @@ __global__ void m_packZLKernel_generic(const value_type *__restrict__ d_data,
 
 template <typename array_t> //, typename T1, typename T2, template <typename> class T3>
 void m_packZL_generic(
-    array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab, const int *d_msgsize)
-//                      const gridtools::field_on_the_fly<T1,T2,T3> * halo_d)
-{
-
-#ifdef GCL_CUDAMSG
-    // just some timing stuff
-    cudaEvent_t start, stop;
-    GT_CUDA_CHECK(cudaEventCreate(&start));
-    GT_CUDA_CHECK(cudaEventCreate(&stop));
-
-    GT_CUDA_CHECK(cudaEventRecord(start, 0));
-#endif
-
+    array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab, const int *d_msgsize) {
     // run the compression a few times, just to get a bit
     // more statistics
     int niter = fields.size();
@@ -156,22 +144,9 @@ void m_packZL_generic(
         int nbz = (nz + ntz - 1) / ntz;
         dim3 blocks(nbx, nby, nbz);
 
-#ifdef GCL_CUDAMSG
-        printf("ZL -- PACK Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
-            nbx,
-            nby,
-            nbz,
-            ntx,
-            nty,
-            ntz,
-            nx,
-            ny,
-            nz);
-#endif
-
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
-            m_packZLKernel_generic<<<blocks, threads, 0, ZL_stream>>>(fields[i].ptr,
+            m_packZLKernel_generic<<<blocks, threads>>>(fields[i].ptr,
                 (d_msgbufTab),
                 wrap_argument(d_msgsize + 27 * i),
                 *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor, 3> *>(&fields[i])),
@@ -181,25 +156,4 @@ void m_packZL_generic(
             GT_CUDA_CHECK(cudaGetLastError());
         }
     }
-
-// more timing stuff and conversion into reasonable units
-// for display
-#ifdef GCL_CUDAMSG
-    GT_CUDA_CHECK(cudaEventRecord(stop, 0));
-    GT_CUDA_CHECK(cudaEventSynchronize(stop));
-
-    float elapsedTime;
-    GT_CUDA_CHECK(cudaEventElapsedTime(&elapsedTime, start, stop));
-
-    GT_CUDA_CHECK(cudaEventDestroy(start));
-    GT_CUDA_CHECK(cudaEventDestroy(stop));
-
-    // double nnumb =  niter * (double) (nx * ny * nz);
-    // double nbyte =  nnumb * sizeof(double);
-
-    // printf("ZL Packed %g numbers in %g ms, BW = %g GB/s\n",
-    //     nnumb, elapsedTime, (nbyte/(elapsedTime/1e3))/1e9);
-
-    printf("ZL Packed numbers in %g ms\n", elapsedTime);
-#endif
 }

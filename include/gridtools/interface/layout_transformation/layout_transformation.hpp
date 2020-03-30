@@ -14,10 +14,11 @@
 #include <utility>
 
 #include "../../common/array.hpp"
+#include "../../common/defs.hpp"
 #include "../../common/tuple_util.hpp"
 #include "layout_transformation_impl_omp.hpp"
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
 #include "../../common/cuda_is_ptr.hpp"
 #include "layout_transformation_impl_cuda.hpp"
 #endif
@@ -41,7 +42,7 @@ namespace gridtools {
                 return tuple_util::concat(std::move(tup), extra_elems(val, std::make_index_sequence<3 - N>()));
             }
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
             template <class T, class Dims, class DstStrides, class SrcSrides>
             void transform_impl(T *dst, T const *src, Dims dims, DstStrides dst_strides, SrcSrides src_strides) {
                 assert(is_gpu_ptr(dst) == is_gpu_ptr(src));

@@ -142,7 +142,6 @@ namespace gridtools {
                 sid::ptr_diff_type<Composite> offset{};
                 auto strides = sid::get_strides(composite);
                 sid::shift(offset, sid::get_stride<dim::k>(strides), grid.k_start(Mss::interval(), Mss::execution()));
-                auto origin = sid::get_origin(composite) + offset;
                 auto k_sizes = be_api::make_k_sizes(Mss::interval_infos(), grid);
                 using k_sizes_t = decltype(k_sizes);
                 using k_loop_t = k_loop_f<Deref, Mss, k_sizes_t, KBlockSize>;

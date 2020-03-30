@@ -14,22 +14,13 @@
 #include "../GCL.hpp"
 
 namespace gridtools {
-
-#ifndef GCL_MPI
-#define MPI_Comm int
-#endif
-
     template <typename _grid_>
-    MPI_Comm get_communicator(_grid_ const &g, std::enable_if_t<_grid_::has_communicator::value> * = 0) {
+    auto get_communicator(_grid_ const &g, std::enable_if_t<_grid_::has_communicator::value> * = 0) {
         return g.communicator();
     }
 
     template <typename _grid_>
-    MPI_Comm get_communicator(_grid_ const &g, std::enable_if_t<!_grid_::has_communicator::value> * = 0) {
-        return gridtools::GCL_WORLD;
+    auto get_communicator(_grid_ const &g, std::enable_if_t<!_grid_::has_communicator::value> * = 0) {
+        return GCL_world();
     }
-
-#ifndef GCL_MPI
-#undef MPI_Comm
-#endif
 } // namespace gridtools

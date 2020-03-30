@@ -28,7 +28,7 @@
 
 #define GT_TARGET_ITERATING
 
-#ifdef __CUDACC__
+#ifdef GT_CUDACC
 
 #define GT_TARGET_NAMESPACE_NAME host
 #define GT_TARGET_NAMESPACE inline namespace host

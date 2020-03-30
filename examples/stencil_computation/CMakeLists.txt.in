@@ -21,7 +21,6 @@ add_test(NAME driver_mc COMMAND $<TARGET_FILE:driver_mc> 33 44 55)
 if (CMAKE_CUDA_COMPILER)
     if(GRIDTOOLS_HAS_BACKEND_CUDA)
         add_library(stencil_lib_cuda interpolate_stencil.cu)
-        target_compile_definitions(stencil_lib_cuda PUBLIC USE_GPU)
         target_link_libraries(stencil_lib_cuda PUBLIC GridTools::gridtools)
 
         add_executable(driver_cuda driver.cpp)

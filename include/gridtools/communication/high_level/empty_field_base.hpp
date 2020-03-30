@@ -11,7 +11,6 @@
 
 #include "../../common/boollist.hpp"
 #include "../../common/halo_descriptor.hpp"
-#include "../../common/ndloops.hpp"
 #include "../../common/numerics.hpp"
 #include "../low_level/data_types_mapping.hpp"
 
@@ -19,8 +18,6 @@ namespace gridtools {
     namespace _impl {
         template <typename value_type>
         struct make_datatype_outin {
-
-          public:
             static MPI_Datatype type() { return compute_type<value_type>().value; }
 
             template <typename arraytype, typename arraytype2>
@@ -93,18 +90,22 @@ namespace gridtools {
             return idx;
         }
 
-        template <typename DataType, typename HALO_t, typename MPDT_t>
-        struct set_mpdt {
-            MPDT_t &mpdt_out;
-            MPDT_t &mpdt_in;
-            HALO_t const &halo;
-            set_mpdt(HALO_t const &h, MPDT_t &t, MPDT_t &e) : mpdt_out(t), mpdt_in(e), halo(h) {}
+        template <int_t I>
+        struct neigh_loop {
+            template <typename F, typename array>
+            void operator()(F &f, array &tuple) {
+                for (int i = -1; i <= 1; ++i) {
+                    tuple[I - 1] = i;
+                    neigh_loop<I - 1>()(f, tuple);
+                }
+            }
+        };
 
-            template <typename Tuple>
-            void operator()(Tuple const &tuple) {
-                int idx = neigh_idx(tuple);
-                mpdt_out[idx] = _impl::make_datatype_outin<DataType>::outside(halo, tuple);
-                mpdt_in[idx] = _impl::make_datatype_outin<DataType>::inside(halo, tuple);
+        template <>
+        struct neigh_loop<0> {
+            template <typename F, typename array>
+            void operator()(F &f, array &tuple) {
+                f(tuple);
             }
         };
     } // namespace _impl
@@ -121,15 +122,6 @@ namespace gridtools {
         MPDT_t MPDT_OUTSIDE;
         MPDT_t MPDT_INSIDE;
 
-      private:
-        void generate_datatypes() {
-            array<int, DIMS> tuple;
-            _impl::set_mpdt<DataType, HALO_t, MPDT_t> set_function(halos, MPDT_OUTSIDE, MPDT_INSIDE);
-            neigh_loop<DIMS> nl;
-            nl(set_function, tuple);
-        }
-
-      public:
         /**
             Function to set the halo descriptor of the field descriptor
 
@@ -151,7 +143,16 @@ namespace gridtools {
 
         void add_halo(int D, halo_descriptor const &halo) { halos[D] = halo; }
 
-        void setup() { generate_datatypes(); }
+        void setup() {
+            array<int, DIMS> tuple;
+            _impl::neigh_loop<DIMS>()(
+                [&](auto const &tuple) {
+                    int idx = _impl::neigh_idx(tuple);
+                    MPDT_OUTSIDE[idx] = _impl::make_datatype_outin<DataType>::outside(halos, tuple);
+                    MPDT_INSIDE[idx] = _impl::make_datatype_outin<DataType>::inside(halos, tuple);
+                },
+                tuple);
+        }
 
         std::pair<MPI_Datatype, bool> mpdt_inside(gridtools::array<int, DIMS> const &eta) const {
             return MPDT_INSIDE[_impl::neigh_idx(eta)];
@@ -168,7 +169,7 @@ namespace gridtools {
 
             \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
         */
-        int send_buffer_size(gridtools::array<int, DIMS> const &eta) const {
+        int send_buffer_size(array<int, DIMS> const &eta) const {
             int S = 1;
             for (int i = 0; i < DIMS; ++i) {
                 S *= halos[i].s_length(eta[i]);
@@ -183,7 +184,7 @@ namespace gridtools {
 
             \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
         */
-        int recv_buffer_size(gridtools::array<int, DIMS> const &eta) const {
+        int recv_buffer_size(array<int, DIMS> const &eta) const {
             int S = 1;
             for (int i = 0; i < DIMS; ++i) {
                 S *= halos[i].r_length(eta[i]);

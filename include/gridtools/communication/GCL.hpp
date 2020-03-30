@@ -9,63 +9,35 @@
  */
 #pragma once
 
-#include <iostream>
-#ifdef GCL_MPI
 #include <mpi.h>
-#endif
-
-#ifdef GCL_GPU
-#include "../common/cuda_util.hpp"
-#endif
-#include "../common/host_device.hpp"
-
-#ifdef GCL_TRACE
-#include "high_level/stats_collector.hpp"
-#endif
-
-#include "low_level/gcl_arch.hpp"
-
-#ifdef GCL_GPU
-#ifdef GCL_MULTI_STREAMS
-#ifdef GCL_USE_3
-extern cudaStream_t ZL_stream;
-extern cudaStream_t &ZU_stream;
-extern cudaStream_t YL_stream;
-extern cudaStream_t &YU_stream;
-extern cudaStream_t XL_stream;
-extern cudaStream_t &XU_stream;
-#else
-extern cudaStream_t ZL_stream;
-extern cudaStream_t ZU_stream;
-extern cudaStream_t YL_stream;
-extern cudaStream_t YU_stream;
-extern cudaStream_t XL_stream;
-extern cudaStream_t XU_stream;
-#endif
-#else
-#define ZL_stream 0
-#define ZU_stream 0
-#define YL_stream 0
-#define YU_stream 0
-#define XL_stream 0
-#define XU_stream 0
-#endif
-#endif
 
 namespace gridtools {
+    namespace gcl_impl_ {
+        inline int &pid_holder() {
+            static int res;
+            return res;
+        }
 
-#ifdef GCL_MPI
-    extern MPI_Comm GCL_WORLD;
-#else
-    extern int GCL_WORLD;
-#endif
-    extern int PID;
-    extern int PROCS;
+        inline int &procs_holder() {
+            static int res;
+            return res;
+        }
+    } // namespace gcl_impl_
 
-    void GCL_Init(int argc, char **argv);
+    inline auto GCL_world() { return MPI_COMM_WORLD; }
 
-    void GCL_Init();
+    inline int GCL_pid() { return gcl_impl_::pid_holder(); }
 
-    void GCL_Finalize();
+    inline int GCL_procs() { return gcl_impl_::procs_holder(); }
 
+    inline void GCL_Init(int argc, char **argv) {
+        int ready;
+        MPI_Initialized(&ready);
+        if (!ready)
+            MPI_Init(&argc, &argv);
+        MPI_Comm_rank(GCL_world(), &gcl_impl_::pid_holder());
+        MPI_Comm_size(GCL_world(), &gcl_impl_::procs_holder());
+    }
+
+    inline void GCL_Finalize() { MPI_Finalize(); }
 } // namespace gridtools

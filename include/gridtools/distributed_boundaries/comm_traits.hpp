@@ -12,18 +12,9 @@
 
 #include "../common/layout_map.hpp"
 #include "../communication/GCL.hpp"
-#ifdef GCL_MPI
 #include "../communication/low_level/proc_grids_3D.hpp"
-#else
-#include "./mock_pattern.hpp"
-#endif
 
 namespace gridtools {
-
-#ifndef GCL_MPI
-    using namespace mock_;
-#endif
-
     /** \ingroup Distributed-Boundaries
      * @{ */
 
