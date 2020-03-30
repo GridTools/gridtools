@@ -102,5 +102,6 @@ function(gridtools_add_mpi_test arch tgt)
 endfunction()
 
 
+add_subdirectory(cmake)
 add_subdirectory(regression)
 add_subdirectory(unit_tests)

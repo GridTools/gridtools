@@ -215,10 +215,6 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         list(APPEND GT_BACKENDS cuda)
         list(APPEND GT_ICO_BACKENDS cuda)
 
-        _gt_add_library(${_config_mode} storage_cuda)
-        target_link_libraries(${_gt_namespace}storage_cuda INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
-        list(APPEND GT_STORAGES cuda)
-
         if(MPI_CXX_FOUND)
             _gt_add_library(${_config_mode} gcl_gpu)
             target_link_libraries(${_gt_namespace}gcl_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda MPI::MPI_CXX)
@@ -231,6 +227,13 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         target_link_libraries(${_gt_namespace}layout_transformation_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
 
         list(APPEND GT_GCL_ARCHS gpu)
+    endif()
+
+    find_package(CUDAToolkit)
+    if(CUDAToolkit_FOUND)
+        _gt_add_library(${_config_mode} storage_cuda)
+        target_link_libraries(${_gt_namespace}storage_cuda INTERFACE ${_gt_namespace}gridtools CUDA::cudart)
+        list(APPEND GT_STORAGES cuda)
     endif()
 
     if (OpenMP_CXX_FOUND)
