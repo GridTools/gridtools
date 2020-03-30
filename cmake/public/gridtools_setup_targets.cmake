@@ -31,7 +31,7 @@ function(_gt_depends_on dst lib dependency)
 endfunction()
 
 function(_gt_depends_on_cuda dst tgt)
-    if(TARGET _gridtools_nvcc)
+    if(TARGET _gridtools_cuda)
         _gt_depends_on(result ${tgt} _gridtools_cuda)
         set(${dst} ${result} PARENT_SCOPE)
     else()
