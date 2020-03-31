@@ -129,8 +129,8 @@ namespace {
     GT_REGRESSION_TEST(vertical_advection_dycore, env_t, modified_backend_t) {
         vertical_advection_repository repo{TypeParam::d(0), TypeParam::d(1), TypeParam::d(2)};
         auto utens_stage = TypeParam::make_storage(repo.utens_stage_in);
-        auto comp = [grid = TypeParam::make_grid(),
-                        &utens_stage,
+        auto comp = [&,
+                        grid = TypeParam::make_grid(),
                         u_stage = TypeParam::make_storage(repo.u_stage),
                         wcon = TypeParam::make_storage(repo.wcon),
                         u_pos = TypeParam::make_storage(repo.u_pos),

@@ -40,7 +40,7 @@ namespace {
             in.push_back(TypeParam::make_storage(i));
         }
 
-        auto comp = [grid = TypeParam::make_grid(), &in, &out, rho = TypeParam::make_const_storage(1.1)] {
+        auto comp = [&, grid = TypeParam::make_grid(), rho = TypeParam::make_const_storage(1.1)] {
             expandable_run<2>(
                 [](auto out, auto in, auto rho) { return execute_parallel().stage(prepare_tracers(), out, in, rho); },
                 backend_t(),
