@@ -16,17 +16,19 @@ jobs:
             build_type: [debug, release]
             exclude:
               - compiler: gcc-7
-                build_type: Debug
+                build_type: debug
               - compiler: gcc-8
-                build_type: Debug
+                build_type: debug
               - compiler: clang-7
-                build_type: Debug
+                build_type: debug
               - compiler: clang-8
-                build_type: Debug
+                build_type: debug
     steps:
     - uses: actions/checkout@v2
     - name: build
-      run: python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
+      run: |
+        python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
     - name: run tests
       if: (!contains(matrix.compiler, 'cuda')) # no GPUs available -> not tests
-      run: $(pwd)/build/pyutils/driver.py -vv test --perftests-only
+      run: |
+        $(pwd)/build/pyutils/driver.py -vv test --perftests-only
