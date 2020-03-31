@@ -31,6 +31,6 @@ jobs:
         install_dir=$(pwd)/install
         python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $build_dir -i $install_dir -t perftests
     - name: run tests
-        if: (!contains(matrix.compiler, 'cuda'))
-        run: |
-          $build_dir/pyutils/driver.py -vv test --perftests-only
+      if: (!contains(matrix.compiler, 'cuda')) # no GPUs available -> not tests
+      run: |
+        $build_dir/pyutils/driver.py -vv test --perftests-only
