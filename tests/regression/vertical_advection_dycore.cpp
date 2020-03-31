@@ -124,11 +124,9 @@ namespace {
         cuda::backend<integral_constant<int_t, 256>, integral_constant<int_t, 1>, integral_constant<int_t, 1>>,
         backend_t>;
 
-    using env = test_environment<3, axis_t>;
+    using env_t = vertical_test_environment<3, axis_t>;
 
-    GT_REGRESSION_TEST(vertical_advection_dycore, env, modified_backend_t) {
-        if (!TypeParam::supports_vertical_stencils())
-            return;
+    GT_REGRESSION_TEST(vertical_advection_dycore, env_t, modified_backend_t) {
         vertical_advection_repository repo{TypeParam::d(0), TypeParam::d(1), TypeParam::d(2)};
         auto utens_stage = TypeParam::make_storage(repo.utens_stage_in);
         auto comp = [grid = TypeParam::make_grid(),

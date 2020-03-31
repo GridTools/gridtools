@@ -19,13 +19,7 @@ function(gridtools_add_regression_test tgt_name)
         set(labels regression ${key} ${ARGS_LABELS})
         set_tests_properties(${tgt} PROPERTIES LABELS "${labels}")
         if (ARGS_PERFTEST AND NOT key STREQUAL naive)
-            get_target_property(perftest_srcs perftests SOURCES)
-            if (perftest_srcs)
-                list(APPEND perftest_srcs $<TARGET_OBJECTS:${tgt}_lib>)
-            else()
-                set(perftest_srcs $<TARGET_OBJECTS:${tgt}_lib>)
-            endif()
-            target_sources(perftests PRIVATE ${perftest_srcs})
+            set_property(TARGET perftests APPEND PROPERTY SOURCES $<TARGET_OBJECTS:${tgt}_lib>)
             target_link_libraries(perftests ${ARGS_LIB_PREFIX}_${key})
         endif()
     endforeach()
@@ -49,78 +43,69 @@ function(gridtools_add_cartesian_regression_test tgt_name)
             LABELS cartesian)
 endfunction()
 
-#function(gridtools_add_layout_transformation_test)
-#    foreach(arch IN LISTS GT_GCL_ARCHS)
-#        set(tgt layout_transformation_testee_${arch})
-#        add_library(${tgt} INTERFACE)
-#        target_link_libraries(${tgt} INTERFACE layout_transformation_${arch})
-#        if (arch STREQUAL gpu)
-#            target_compile_definitions(${tgt} INTERFACE GT_STORAGE_CUDA GT_TIMER_CUDA)
-#        elseif (arch STREQUAL cpu)
-#            target_compile_definitions(${tgt} INTERFACE GT_STORAGE_X86 GT_TIMER_OMP)
-#        endif()
-#    endforeach()
-#    gridtools_add_regression_test(layout_transformation
-#            LIB_PREFIX layout_transformation_testee
-#            KEYS ${GT_GCL_ARCHS}
-#            SOURCES layout_transformation.cpp
-#            PERFTEST)
-#endfunction()
-#
-#function(gridtools_add_boundary_conditions_test)
-#    foreach(arch IN LISTS GT_GCL_ARCHS)
-#        set(tgt bc_testee_${arch})
-#        add_library(${tgt} INTERFACE)
-#        target_link_libraries(${tgt} INTERFACE bc_${arch})
-#        if (arch STREQUAL gpu)
-#            target_compile_definitions(${tgt} INTERFACE GT_STORAGE_CUDA GT_TIMER_CUDA GT_GCL_GPU)
-#        elseif (arch STREQUAL cpu)
-#            target_compile_definitions(${tgt} INTERFACE GT_STORAGE_X86 GT_TIMER_OMP GT_GCL_CPU)
-#        endif()
-#    endforeach()
-#    gridtools_add_regression_test(boundary_conditions
-#            LIB_PREFIX bc_testee
-#            KEYS ${GT_GCL_ARCHS}
-#            SOURCES boundary_conditions.cpp
-#            PERFTEST)
-#endfunction()
-#
-#if (TARGET gcl_cpu AND TARGET backend_x86)
-#    gridtools_add_mpi_test(cpu copy_stencil_parallel_cpu SOURCES copy_stencil_parallel.cpp LIBRARIES backend_x86)
-#    target_compile_definitions(copy_stencil_parallel_cpu PRIVATE GT_STORAGE_X86 GT_BACKEND_X86 GT_GCL_CPU)
-#endif()
-#
-#if (TARGET gcl_gpu AND TARGET backend_cuda)
-#    gridtools_add_mpi_test(gpu copy_stencil_parallel_gpu SOURCES copy_stencil_parallel.cpp LIBRARIES backend_cuda)
-#    target_compile_definitions(copy_stencil_parallel_gpu PRIVATE GT_STORAGE_CUDA GT_BACKEND_CUDA GT_GCL_GPU)
-#endif()
+function(gridtools_add_layout_transformation_test)
+    foreach(arch IN LISTS GT_GCL_ARCHS)
+        set(tgt layout_transformation_testee_${arch})
+        add_library(${tgt} INTERFACE)
+        target_link_libraries(${tgt} INTERFACE layout_transformation_${arch})
+        if (arch STREQUAL gpu)
+            target_compile_definitions(${tgt} INTERFACE GT_STORAGE_CUDA GT_TIMER_CUDA)
+        elseif (arch STREQUAL cpu)
+            target_compile_definitions(${tgt} INTERFACE GT_STORAGE_X86 GT_TIMER_OMP)
+        endif()
+    endforeach()
+    gridtools_add_regression_test(layout_transformation_test
+            LIB_PREFIX layout_transformation_testee
+            KEYS ${GT_GCL_ARCHS}
+            SOURCES layout_transformation.cpp
+            PERFTEST)
+endfunction()
+
+function(gridtools_add_boundary_conditions_test)
+    foreach(arch IN LISTS GT_GCL_ARCHS)
+        set(tgt bc_testee_${arch})
+        add_library(${tgt} INTERFACE)
+        target_link_libraries(${tgt} INTERFACE bc_${arch})
+        if (arch STREQUAL gpu)
+            target_compile_definitions(${tgt} INTERFACE GT_GCL_GPU)
+        elseif (arch STREQUAL cpu)
+            target_compile_definitions(${tgt} INTERFACE GT_GCL_CPU)
+        endif()
+    endforeach()
+    gridtools_add_regression_test(boundary_conditions
+            LIB_PREFIX bc_testee
+            KEYS ${GT_GCL_ARCHS}
+            SOURCES boundary_conditions.cpp
+            PERFTEST)
+endfunction()
+
+if (TARGET gcl_cpu AND TARGET backend_x86)
+    gridtools_add_mpi_test(cpu copy_stencil_parallel_cpu SOURCES copy_stencil_parallel.cpp LIBRARIES backend_x86)
+    target_compile_definitions(copy_stencil_parallel_cpu PRIVATE GT_BACKEND_X86 GT_GCL_CPU)
+endif()
+
+if (TARGET gcl_gpu AND TARGET backend_cuda)
+    gridtools_add_mpi_test(gpu copy_stencil_parallel_gpu SOURCES copy_stencil_parallel.cpp LIBRARIES backend_cuda)
+    target_compile_definitions(copy_stencil_parallel_gpu PRIVATE GT_BACKEND_CUDA GT_GCL_GPU)
+endif()
 
 gridtools_add_cartesian_regression_test(horizontal_diffusion SOURCES horizontal_diffusion.cpp PERFTEST)
 gridtools_add_cartesian_regression_test(horizontal_diffusion_fused SOURCES horizontal_diffusion_fused.cpp PERFTEST)
 gridtools_add_cartesian_regression_test(simple_hori_diff SOURCES simple_hori_diff.cpp PERFTEST)
 gridtools_add_cartesian_regression_test(copy_stencil SOURCES copy_stencil.cpp PERFTEST)
 gridtools_add_cartesian_regression_test(vertical_advection_dycore SOURCES vertical_advection_dycore.cpp PERFTEST)
-#gridtools_add_cartesian_regression_test(advection_pdbott_prepare_tracers SOURCES advection_pdbott_prepare_tracers.cpp PERFTEST)
-#gridtools_add_cartesian_regression_test(laplacian SOURCES laplacian.cpp)
-#gridtools_add_cartesian_regression_test(positional_stencil SOURCES positional_stencil.cpp)
-#gridtools_add_cartesian_regression_test(tridiagonal SOURCES tridiagonal.cpp)
-#gridtools_add_cartesian_regression_test(alignment SOURCES alignment.cpp)
-#gridtools_add_cartesian_regression_test(extended_4D SOURCES extended_4D.cpp)
-#gridtools_add_cartesian_regression_test(expandable_parameters SOURCES expandable_parameters.cpp)
-#gridtools_add_cartesian_regression_test(expandable_parameters_single_kernel SOURCES expandable_parameters_single_kernel.cpp)
-#gridtools_add_cartesian_regression_test(horizontal_diffusion_functions SOURCES horizontal_diffusion_functions.cpp)
-#gridtools_add_layout_transformation_test()
-#gridtools_add_boundary_conditions_test()
+gridtools_add_cartesian_regression_test(advection_pdbott_prepare_tracers SOURCES advection_pdbott_prepare_tracers.cpp PERFTEST)
+gridtools_add_cartesian_regression_test(laplacian SOURCES laplacian.cpp)
+gridtools_add_cartesian_regression_test(positional_stencil SOURCES positional_stencil.cpp)
+gridtools_add_cartesian_regression_test(tridiagonal SOURCES tridiagonal.cpp)
+gridtools_add_cartesian_regression_test(alignment SOURCES alignment.cpp)
+gridtools_add_cartesian_regression_test(extended_4D SOURCES extended_4D.cpp)
+gridtools_add_cartesian_regression_test(expandable_parameters SOURCES expandable_parameters.cpp)
+gridtools_add_cartesian_regression_test(expandable_parameters_single_kernel SOURCES expandable_parameters_single_kernel.cpp)
+gridtools_add_cartesian_regression_test(horizontal_diffusion_functions SOURCES horizontal_diffusion_functions.cpp)
+gridtools_add_layout_transformation_test()
+gridtools_add_boundary_conditions_test()
 
-# temporary solution
-# TODO(anstaf): perftest and full regression test suite for cuda2 backend
-#gridtools_add_test_executable(horizontal_diffusion_cuda2
-#        SOURCES horizontal_diffusion_alt.cpp
-#        LIBRARIES gridtools regression_main backend_cuda)
-#target_compile_definitions(
-#        horizontal_diffusion_cuda2
-#        PRIVATE GT_FLOAT_TYPE=float GT_STORAGE_CUDA GT_TIMER_CUDA)
-
-#add_subdirectory(icosahedral)
-#add_subdirectory(c_bindings)
-#add_subdirectory(communication)
+add_subdirectory(icosahedral)
+add_subdirectory(c_bindings)
+add_subdirectory(communication)

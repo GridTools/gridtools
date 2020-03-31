@@ -10,51 +10,50 @@
 
 #include <vector>
 
-#include <gtest/gtest.h>
-
 #include <gridtools/stencil_composition/cartesian.hpp>
 
-#include <cartesian_regression_fixture.hpp>
+#include <backend_select.hpp>
+#include <test_environment.hpp>
 
-using namespace gridtools;
-using namespace cartesian;
+namespace {
+    using namespace gridtools;
+    using namespace cartesian;
 
-struct prepare_tracers {
-    using data = inout_accessor<0>;
-    using data_nnow = in_accessor<1>;
-    using rho = in_accessor<2>;
+    struct prepare_tracers {
+        using data = inout_accessor<0>;
+        using data_nnow = in_accessor<1>;
+        using rho = in_accessor<2>;
 
-    using param_list = make_param_list<data, data_nnow, rho>;
+        using param_list = make_param_list<data, data_nnow, rho>;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval) {
-        eval(data()) = eval(rho()) * eval(data_nnow());
-    }
-};
-
-using advection_pdbott_prepare_tracers = regression_fixture<>;
-
-TEST_F(advection_pdbott_prepare_tracers, test) {
-    std::vector<storage_type> in, out;
-
-    for (size_t i = 0; i < 11; ++i) {
-        out.push_back(make_storage());
-        in.push_back(make_storage(i));
-    }
-
-    auto comp = [grid = make_grid(), &in, &out, rho = make_const_storage(1.1)] {
-        expandable_run<2>(
-            [](auto out, auto in, auto rho) { return execute_parallel().stage(prepare_tracers(), out, in, rho); },
-            backend_t(),
-            grid,
-            out,
-            in,
-            rho);
+        template <typename Evaluation>
+        GT_FUNCTION static void apply(Evaluation eval) {
+            eval(data()) = eval(rho()) * eval(data_nnow());
+        }
     };
 
-    comp();
-    for (size_t i = 0; i != out.size(); ++i)
-        verify([i](int, int, int) { return 1.1 * i; }, out[i]);
+    GT_REGRESSION_TEST(advection_pdbott_prepare_tracers, test_environment<>, backend_t) {
+        std::vector<typename TypeParam::storage_type> in, out;
 
-    benchmark(comp);
-}
+        for (size_t i = 0; i < 11; ++i) {
+            out.push_back(TypeParam::make_storage());
+            in.push_back(TypeParam::make_storage(i));
+        }
+
+        auto comp = [grid = TypeParam::make_grid(), &in, &out, rho = TypeParam::make_const_storage(1.1)] {
+            expandable_run<2>(
+                [](auto out, auto in, auto rho) { return execute_parallel().stage(prepare_tracers(), out, in, rho); },
+                backend_t(),
+                grid,
+                out,
+                in,
+                rho);
+        };
+
+        comp();
+        for (size_t i = 0; i != out.size(); ++i)
+            TypeParam::verify([i](int, int, int) { return 1.1 * i; }, out[i]);
+
+        TypeParam::benchmark("advection_pdbott_prepare_tracers", comp);
+    }
+} // namespace

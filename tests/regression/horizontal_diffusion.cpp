@@ -109,7 +109,7 @@ namespace {
         return [](auto in, auto coeff, auto out) {
             GT_DECLARE_TMP(typename Env::float_t, inc, lap, flx, fly);
             return execute_parallel()
-                .stage(copy_function(), in, inc)
+                .stage(copy_function(), inc, in)
                 .stage(lap_function(), lap, inc)
                 .stage(flx_function(), flx, inc, lap)
                 .stage(fly_function(), fly, inc, lap)

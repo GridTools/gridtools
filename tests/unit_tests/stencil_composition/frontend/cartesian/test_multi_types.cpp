@@ -12,10 +12,9 @@
 #include <gridtools/stencil_composition/backend/naive.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
 
-#define GT_FLOAT_TYPE double
-#define GT_STORAGE_X86
-
-#include <cartesian_fixture.hpp>
+#define GT_BACKEND_NAIVE
+#include <backend_select.hpp>
+#include <test_environment.hpp>
 
 namespace gridtools {
     namespace cartesian {
@@ -157,47 +156,42 @@ namespace gridtools {
                 }
             };
 
-            struct multitypes : computation_fixture<> {
-                multitypes() : computation_fixture<>(4, 5, 6) {}
+            template <call_type CallType>
+            void do_test() {
+                using env = test_environment<>::apply<naive::backend, double, inlined_params<4, 5, 6>>;
+                auto in = [](int i, int j, int k) -> type1 { return {i, j, k}; };
+                auto field2 = env::make_storage<type2>();
+                auto field3 = env::make_storage<type3>();
 
-                template <call_type CallType>
-                void do_test() {
-                    auto in = [](int i, int j, int k) -> type1 { return {i, j, k}; };
-                    auto field2 = make_storage<type2>();
-                    auto field3 = make_storage<type3>();
+                using fun1 = function1<CallType>;
 
-                    using fun1 = function1<CallType>;
+                run(
+                    [](auto field1, auto field2, auto field3) {
+                        GT_DECLARE_TMP(type1, temp);
+                        return multi_pass(
+                            execute_forward().stage(fun1(), temp, field1).stage(function2(), field2, field1, temp),
+                            execute_backward().stage(fun1(), temp, field1).stage(function3(), field3, temp, field1));
+                    },
+                    naive::backend(),
+                    env::make_grid(),
+                    env::make_storage<type1>(in),
+                    field2,
+                    field3);
 
-                    run(
-                        [](auto field1, auto field2, auto field3) {
-                            GT_DECLARE_TMP(type1, temp);
-                            return multi_pass(
-                                execute_forward().stage(fun1(), temp, field1).stage(function2(), field2, field1, temp),
-                                execute_backward()
-                                    .stage(fun1(), temp, field1)
-                                    .stage(function3(), field3, temp, field1));
-                        },
-                        naive::backend(),
-                        make_grid(),
-                        make_storage<type1>(in),
-                        field2,
-                        field3);
+                env::verify(
+                    [&in](int i, int j, int k) {
+                        auto f1 = in(i, j, k);
+                        type2 res = {2. * (f1.i + f1.j + 1)};
+                        return res;
+                    },
+                    field2);
 
-                    verify(
-                        [&in](int i, int j, int k) {
-                            auto f1 = in(i, j, k);
-                            type2 res = {2. * (f1.i + f1.j + 1)};
-                            return res;
-                        },
-                        field2);
+                env::verify(type3{2}, field3);
+            }
 
-                    verify(type3{2}, field3);
-                }
-            };
+            TEST(multitypes, function) { do_test<call_type::function>(); }
 
-            TEST_F(multitypes, function) { do_test<call_type::function>(); }
-
-            TEST_F(multitypes, procedure) { do_test<call_type::procedure>(); }
+            TEST(multitypes, procedure) { do_test<call_type::procedure>(); }
 
         } // namespace
     }     // namespace cartesian
