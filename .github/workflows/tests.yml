@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  perftests:
+    runs-on: ubuntu-latest
+    container: mrtravis/gridtools:${{ matrix.compiler }}
+    strategy:
+        matrix:
+            compiler: [gcc-7, gcc-8, gcc-9, clang-7, clang-8, clang-9, clang-10, cuda-10.1]
+            build_type: [debug, release]
+            exclude:
+              - compiler: gcc-7
+                build_type: debug
+              - compiler: gcc-8
+                build_type: debug
+              - compiler: clang-7
+                build_type: debug
+              - compiler: clang-8
+                build_type: debug
+              - compiler: clang-9
+                build_type: debug
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup environment
+      run: |
+        export num_proc=$(nproc)
+        echo "::set-env name=GTRUN_NO_SLURM::true"
+        echo "::set-env name=GTRUN_BUILD_COMMAND::make -j $(nproc)"
+        echo "::set-env name=CTEST_PARALLEL_LEVEL::$num_proc
+        echo "::set-env name=OMP_NUM_THREADS::$num_proc
+    - name: build
+      run: |
+        python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
+    - name: run tests
+      if: (!contains(matrix.compiler, 'cuda')) # no GPUs available -> not tests
+      run: |
+        $(pwd)/build/pyutils/driver.py -vv test --perftests-only
