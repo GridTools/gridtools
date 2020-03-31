@@ -30,6 +30,6 @@ if(TARGET storage_cuda)
     gridtools_add_unit_test(test_target_view_cuda SOURCES test_target_view.cu LIBRARIES storage_cuda LABELS storage cuda)
 
     # for test_storage_facility_cuda we need a CUDA compiler for validation, therefore explicitly linking to _gridtools_cuda
-    gridtools_add_unit_test(test_storage_facility_cuda SOURCES test_storage_facility.cu LIBRARIES storage_cuda _gridtools_cuda LABELS storage cuda)
+    gridtools_add_unit_test(test_storage_facility_cuda SOURCES test_storage_facility.cpp LIBRARIES storage_cuda _gridtools_cuda LABELS storage cuda)
     target_compile_definitions(test_storage_facility_cuda PRIVATE GT_STORAGE_CUDA)
 endif()
