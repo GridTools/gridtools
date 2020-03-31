@@ -87,8 +87,8 @@ namespace {
 
         horizontal_diffusion_repository repo(TypeParam::d(0), TypeParam::d(1), TypeParam::d(2));
 
-        auto comp = [grid = TypeParam::make_grid(),
-                        &out,
+        auto comp = [&,
+                        grid = TypeParam::make_grid(),
                         in = TypeParam::make_storage(repo.in),
                         coeff = TypeParam::make_storage(repo.coeff)] {
             run_single_stage(out_function(), backend_t(), grid, out, in, coeff);
