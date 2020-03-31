@@ -113,13 +113,16 @@ namespace {
         auto jac = [](int, int, int, int q) { return 1 + q; };
         const auto const_builder = storage::builder<storage_traits_t>.template type<float_t const>();
 
+        elemental ephi = {phi};
+        elemental epsi = {psi};
+
         auto result = storage::builder<storage_traits_t>.template type<float_t>().dimensions(
             TypeParam::d(0), TypeParam::d(1), TypeParam::d(2), b1, b2, b3)();
         run_single_stage(integration(),
             backend_t(),
             TypeParam::make_grid(),
-            make_global_parameter(elemental{phi}),
-            make_global_parameter(elemental{psi}),
+            make_global_parameter(ephi),
+            make_global_parameter(epsi),
             const_builder.dimensions(TypeParam::d(0), TypeParam::d(1), TypeParam::d(2), nbQuadPt)
                 .initializer(jac)
                 .build(),
