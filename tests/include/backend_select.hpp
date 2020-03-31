@@ -59,7 +59,6 @@ namespace {
     using backend_t = gridtools::cuda::backend<>;
 }
 #elif defined(GT_BACKEND_CUDA2)
-#elif defined(GT_BACKEND_CUDA)
 #ifndef GT_STORAGE_CUDA
 #define GT_STORAGE_CUDA
 #endif
