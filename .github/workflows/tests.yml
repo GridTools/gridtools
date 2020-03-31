@@ -12,14 +12,12 @@ jobs:
     container: mrtravis/gridtools:${{ matrix.compiler }}
     strategy:
         matrix:
-            compiler: [gcc-7, gcc-8, gcc-9, clang-7, clang-8, clang-9, cuda-10.1]
+            compiler: [gcc-7, gcc-8, gcc-9, clang-8, clang-9, cuda-10.1]
             build_type: [debug, release]
             exclude:
               - compiler: gcc-7
                 build_type: debug
               - compiler: gcc-8
-                build_type: debug
-              - compiler: clang-7
                 build_type: debug
               - compiler: clang-8
                 build_type: debug
