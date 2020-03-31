@@ -10,7 +10,7 @@ envfile=./jenkins/envs/${label}_$env.sh
 # use the machines python virtualenv with required modules installed
 source /project/c14/jenkins/python-venvs/$label/bin/activate
 
-if [[ $label != "kesch" ]]; then
+if [[ $label != "tsa" ]]; then
     export SLURM_ACCOUNT=d75
     export SBATCH_ACCOUNT=d75
 fi
