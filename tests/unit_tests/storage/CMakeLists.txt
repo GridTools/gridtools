@@ -1,9 +1,12 @@
 function(gridtools_add_storage_test tgt_name)
-    set(options)
+    set(options SKIP_CUDA)
     set(one_value_args)
     set(multi_value_args SOURCES)
     cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
     foreach(storage IN LISTS GT_STORAGES)
+        if(ARGS_SKIP_CUDA AND storage STREQUAL "cuda")
+            return()
+        endif()
         set(tgt ${tgt_name}_${storage})
         gridtools_add_unit_test(${tgt}
                 SOURCES ${ARGS_SOURCES}
@@ -18,11 +21,15 @@ endfunction()
 gridtools_add_unit_test(test_storage_info SOURCES test_storage_info.cpp LABELS storage)
 
 gridtools_add_storage_test(test_storage_sid SOURCES test_storage_sid.cpp)
-gridtools_add_storage_test(test_storage_facility SOURCES test_storage_facility.cpp)
+gridtools_add_storage_test(test_storage_facility SOURCES test_storage_facility.cpp SKIP_CUDA) # see below
 gridtools_add_storage_test(test_alignment_inner_region SOURCES test_alignment_inner_region.cpp)
 gridtools_add_storage_test(test_data_store SOURCES test_data_store.cpp)
 gridtools_add_storage_test(test_host_view SOURCES test_host_view.cpp)
 
 if(TARGET storage_cuda)
-    gridtools_add_storage_test(test_target_view SOURCES test_target_view.cu LIBRARIES storage_cuda LABELS storage cuda)
+    gridtools_add_unit_test(test_target_view_cuda SOURCES test_target_view.cu LIBRARIES storage_cuda LABELS storage cuda)
+
+    # for test_storage_facility_cuda we need a CUDA compiler for validation, therefore explicitly linking to _gridtools_cuda
+    gridtools_add_unit_test(test_storage_facility_cuda SOURCES test_storage_facility.cu LIBRARIES storage_cuda _gridtools_cuda LABELS storage cuda)
+    target_compile_definitions(test_storage_facility_cuda PRIVATE GT_STORAGE_CUDA)
 endif()
