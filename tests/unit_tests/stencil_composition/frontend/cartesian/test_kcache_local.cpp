@@ -16,7 +16,7 @@
 using namespace gridtools;
 using namespace cartesian;
 
-using axis_t = axis<3, axis_config::offset_limit<3>, axis_config::extra_offsets<1>>;
+using axis_t = axis<3, axis_config::offset_limit<3>>;
 using kfull = axis_t::full_interval;
 
 double in(int i, int j, int k) { return i + j + k + 1; };
