@@ -1,0 +1,36 @@
+name: tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  clang:
+    runs-on: ubuntu-latest
+    container: mrtravis/gridtools:${{ matrix.compiler }}
+    strategy:
+        matrix:
+            compiler: [gcc-7, cuda-10.1] #, gcc-8, gcc-9, clang-7, clang-8, clang-9, cuda-10.1]
+            build_type: [debug, release]
+            exclude:
+              - compiler: gcc-7
+                build_type: Debug
+              # - compiler: gcc-8
+              #   build_type: Debug
+              # - compiler: clang-7
+              #   build_type: Debug
+              # - compiler: clang-8
+              #   build_type: Debug
+    steps:
+    - uses: actions/checkout@v2
+    - name: build
+      run: |
+        build_dir=$(pwd)/build
+        install_dir=$(pwd)/install
+        python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $build_dir -i $install_dir -t perftests
+    - name: run tests
+        if: (!contains(matrix.compiler, 'cuda')) # cannot run cuda builds
+        run: |
+          $build_dir/pyutils/driver.py -vv test --perftests-only
