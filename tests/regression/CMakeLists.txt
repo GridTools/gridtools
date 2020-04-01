@@ -1,4 +1,4 @@
-add_executable(perftests empty.cpp)
+add_executable(perftests)
 
 target_link_libraries(perftests regression_main)
 
@@ -109,5 +109,3 @@ gridtools_add_boundary_conditions_test()
 add_subdirectory(icosahedral)
 add_subdirectory(c_bindings)
 add_subdirectory(communication)
-
-gridtools_set_gpu_arch_on_target(perftests "${GT_CUDA_ARCH}")
