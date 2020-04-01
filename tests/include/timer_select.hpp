@@ -10,8 +10,8 @@
 #pragma once
 
 namespace gridtools {
-    struct timer_cuda;
-    struct timer_omp;
+    class timer_cuda;
+    class timer_omp;
     struct timer_dummy;
 } // namespace gridtools
 
