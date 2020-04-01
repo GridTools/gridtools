@@ -97,7 +97,7 @@ namespace gridtools {
 
                 template <class Ptr, class Dim, class Offset>
                 static GT_FUNCTION_DEVICE void shift(Dim, Ptr &ptr, Offset offset) {
-                    using strides_t = meta::rename<tuple, meta::transform<get_stride_f<Dim>::apply, Storages>>;
+                    using strides_t = meta::rename<tuple, meta::transform<get_stride_f<Dim>::template apply, Storages>>;
                     tuple_util::device::for_each(
                         [offset](auto &ptr, auto stride) { sid::shift(ptr, stride, offset); }, ptr, strides_t());
                 }

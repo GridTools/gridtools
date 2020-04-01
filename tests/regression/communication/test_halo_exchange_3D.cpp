@@ -193,7 +193,7 @@ TEST_P(halo_exchange_3D_all, test) {
     });
 }
 
-INSTANTIATE_TEST_CASE_P(tests,
+INSTANTIATE_TEST_SUITE_P(tests,
     halo_exchange_3D_all,
     testing::Values(test_spec{.dims = {123, 56, 76},
                         .halos = {{{2, 3}, {1, 2}, {2, 1}}, {{2, 3}, {1, 2}, {2, 1}}, {{2, 3}, {1, 2}, {2, 1}}},
@@ -239,7 +239,7 @@ TEST_P(halo_exchange_3D_generic, test) {
     });
 }
 
-INSTANTIATE_TEST_CASE_P(tests,
+INSTANTIATE_TEST_SUITE_P(tests,
     halo_exchange_3D_generic,
     testing::Values(test_spec{.dims = {98, 54, 87},
                         .halos = {{{0, 1}, {2, 3}, {2, 1}}, {{0, 1}, {2, 3}, {2, 1}}, {{0, 1}, {2, 3}, {0, 1}}},
