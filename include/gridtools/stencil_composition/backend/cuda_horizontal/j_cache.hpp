@@ -18,7 +18,7 @@
 #include "../../common/extent.hpp"
 
 namespace gridtools {
-    namespace cuda2 {
+    namespace cuda_horizontal {
         namespace j_cache_impl_ {
 
             template <class Extent>
@@ -117,5 +117,5 @@ namespace gridtools {
         using j_cache_sid_t = j_cache_impl_::fake<Extent>;
 
         using j_cache_impl_::j_caches_type;
-    } // namespace cuda2
+    } // namespace cuda_horizontal
 } // namespace gridtools

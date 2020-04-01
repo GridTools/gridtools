@@ -38,7 +38,7 @@
 #include "launch_kernel.hpp"
 
 namespace gridtools {
-    namespace cuda2 {
+    namespace cuda_horizontal {
         template <class Keys>
         struct deref_f {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
@@ -190,5 +190,5 @@ namespace gridtools {
                 return backend::entry_point<Spec>(grid, std::move(data_stores));
             }
         };
-    } // namespace cuda2
+    } // namespace cuda_horizontal
 } // namespace gridtools

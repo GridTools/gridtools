@@ -18,7 +18,7 @@
 #include "../../common/extent.hpp"
 
 namespace gridtools {
-    namespace cuda2 {
+    namespace cuda_horizontal {
         namespace launch_kernel_impl_ {
             struct extent_validator_f {
 
@@ -68,5 +68,5 @@ namespace gridtools {
         } // namespace launch_kernel_impl_
 
         using launch_kernel_impl_::launch_kernel;
-    } // namespace cuda2
+    } // namespace cuda_horizontal
 } // namespace gridtools

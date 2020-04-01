@@ -90,7 +90,7 @@ namespace {
     };
 
     template <class Env,
-        std::enable_if_t<!meta::is_instantiation_of<cuda2::backend, typename Env::backend_t>::value, int> = 0>
+        std::enable_if_t<!meta::is_instantiation_of<cuda_horizontal::backend, typename Env::backend_t>::value, int> = 0>
     auto get_spec(Env) {
         return [](auto in, auto coeff, auto out) {
             GT_DECLARE_TMP(typename Env::float_t, lap, flx, fly);
@@ -104,7 +104,7 @@ namespace {
     }
 
     template <class Env,
-        std::enable_if_t<meta::is_instantiation_of<cuda2::backend, typename Env::backend_t>::value, int> = 0>
+        std::enable_if_t<meta::is_instantiation_of<cuda_horizontal::backend, typename Env::backend_t>::value, int> = 0>
     auto get_spec(Env) {
         return [](auto in, auto coeff, auto out) {
             GT_DECLARE_TMP(typename Env::float_t, inc, lap, flx, fly);
