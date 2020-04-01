@@ -14,11 +14,11 @@ def cmake(source_dir, build_dir, install_dir=None):
     build_dir = os.path.abspath(build_dir)
     os.makedirs(build_dir, exist_ok=True)
 
-    command = ['cmake', source_dir] + env.cmake_args()
     if install_dir is not None:
         install_dir = os.path.abspath(install_dir)
         os.makedirs(install_dir, exist_ok=True)
-        command.append(f'-DCMAKE_INSTALL_PREFIX:STRING={install_dir}')
+        env.set_cmake_arg('CMAKE_INSTALL_PREFIX', install_dir)
+    command = ['cmake', source_dir] + env.cmake_args()
     output = runtools.run(command, cwd=build_dir)
     log.info('CMake output', output)
 
