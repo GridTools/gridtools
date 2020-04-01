@@ -10,7 +10,7 @@ if (TARGET gcl_cpu)
     target_link_libraries(mpi_gtest_main_cpu gridtools gtest MPI::MPI_CXX)
 endif()
 
-if (GT_ENABLE_MPI_CUDA_TESTS)
+if (TARGET gcl_gpu)
     add_library(mpi_gtest_main_gpu STATIC EXCLUDE_FROM_ALL mpi_test_driver.cpp)
     target_compile_definitions(mpi_gtest_main_gpu PRIVATE GT_HAS_CUDA)
     target_link_libraries(mpi_gtest_main_gpu PUBLIC gridtools gtest MPI::MPI_CXX ${GT_CUDA_LIBRARIES})

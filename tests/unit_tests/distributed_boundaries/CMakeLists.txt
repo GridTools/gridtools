@@ -5,7 +5,7 @@ if (TARGET gcl_cpu)
     target_compile_definitions(test_distributed_boundaries_cpu PRIVATE GT_STORAGE_X86 GT_GCL_CPU GT_TIMER_OMP)
 endif()
 
-if (GT_ENABLE_MPI_CUDA_TESTS)
+if (TARGET gcl_gpu)
     gridtools_add_mpi_test(gpu test_distributed_boundaries_gpu SOURCES test_distributed_boundaries.cpp)
     target_compile_definitions(test_distributed_boundaries_gpu PRIVATE GT_STORAGE_CUDA GT_GCL_GPU GT_TIMER_CUDA)
 endif()

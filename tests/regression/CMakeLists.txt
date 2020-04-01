@@ -100,7 +100,7 @@ if (TARGET gcl_cpu AND TARGET backend_x86)
     target_compile_definitions(copy_stencil_parallel_cpu PRIVATE GT_STORAGE_X86 GT_BACKEND_X86 GT_GCL_CPU)
 endif()
 
-if (GT_ENABLE_MPI_CUDA_TESTS AND TARGET backend_cuda)
+if (TARGET gcl_gpu AND TARGET backend_cuda)
     gridtools_add_mpi_test(gpu copy_stencil_parallel_gpu SOURCES copy_stencil_parallel.cpp LIBRARIES backend_cuda)
     target_compile_definitions(copy_stencil_parallel_gpu PRIVATE GT_STORAGE_CUDA GT_BACKEND_CUDA GT_GCL_GPU)
 endif()

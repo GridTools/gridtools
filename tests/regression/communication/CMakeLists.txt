@@ -4,7 +4,7 @@ if (TARGET gcl_cpu)
     target_compile_definitions(test_halo_exchange_3D_cpu PRIVATE GT_STORAGE_X86 GT_GCL_CPU)
 endif()
 
-if (GT_ENABLE_MPI_CUDA_TESTS)
+if (TARGET gcl_gpu)
     gridtools_add_mpi_test(gpu test_halo_exchange_3D_gpu SOURCES test_halo_exchange_3D.cpp LIBRARIES gmock)
     target_compile_definitions(test_halo_exchange_3D_gpu PRIVATE GT_STORAGE_CUDA GT_GCL_GPU)
 endif()
