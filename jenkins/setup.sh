@@ -19,9 +19,11 @@ if [[ ! -v build_examples ]] && [[ $env == "clang_nvcc" ]]; then
     build_examples=false
 fi
 
+logdir=/tmp/gridtools/ # log to subfolder to workaround https://webrt.cscs.ch/Ticket/Display.html?id=38406
+mkdir -p $logdir
 # possibly delete old log files and create new log file
-find /tmp -maxdepth 1 -mtime +5 -name 'gridtools-jenkins-*.log' -execdir rm -f {} + 2>/dev/null
-logfile=$(mktemp -p /tmp gridtools-jenkins-XXXXX.log)
+find $logdir -maxdepth 1 -mtime +5 -name 'gridtools-jenkins-*.log' -execdir rm -f {} + 2>/dev/null
+logfile=$(mktemp -p $logdir gridtools-jenkins-XXXXX.log)
 chmod +r $logfile
 
 # create directory for temporaries
