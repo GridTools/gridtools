@@ -18,7 +18,6 @@ def driver(verbose, logfile):
         log.log_to_file(logfile)
 
 
-# TODO(anstaf): remove unused precision and grid options
 @driver.command(description='build GridTools')
 @args.arg('--build-type', '-b', choices=['release', 'debug'], required=True)
 @args.arg('--environment', '-e', help='path to environment file')
