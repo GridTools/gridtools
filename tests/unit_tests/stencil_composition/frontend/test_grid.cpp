@@ -21,7 +21,7 @@ TEST(test_grid, k_total_length) {
     using axis_t = axis<1, axis_config::offset_limit<3>>;
     auto testee = make_grid(1, 1, axis_t{45});
 
-    EXPECT_EQ(49, testee.k_size());
+    EXPECT_EQ(45, testee.k_size());
 }
 
 constexpr int level_offset_limit = 3;
