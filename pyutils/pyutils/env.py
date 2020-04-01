@@ -41,7 +41,7 @@ def _items_with_tag(tag):
 def cmake_args():
     args = []
     for k, v in _items_with_tag('GTCMAKE_').items():
-        if v.strip() in ('ON', 'OFF'):
+        if v.strip().upper() in ('ON', 'OFF'):
             k += ':BOOL'
         else:
             k += ':STRING'
