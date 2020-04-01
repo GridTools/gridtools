@@ -14,7 +14,7 @@ endif()
 
 # 3) find installed GridTools version
 find_package(GridTools @GridTools_VERSION@ REQUIRED
-    HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake)
+    HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake/GridTools)
 
 # 4) In the future cpp_bindgen will not be shipped with GridTools, then the following
 #    steps are needed to make the library available
@@ -60,11 +60,11 @@ if (CMAKE_Fortran_COMPILER)
 endif()
 
 if(TARGET GridTools::backend_cuda)
-    set(C_BINDINGS_EXAMPLE_CUDA_ARCH "@GT_CUDA_ARCH@" CACHE STRING "CUDA compute capability to be used for this example.")
+    set(EXAMPLE_CUDA_ARCH "@GT_CUDA_ARCH@" CACHE STRING "CUDA compute capability to be used for this example.")
 
     bindgen_add_library(copy_stencil_lib_cuda SOURCES copy_stencil_wrapper.cpp)
     target_link_libraries(copy_stencil_lib_cuda PUBLIC GridTools::backend_cuda)
-    gridtools_setup_target(copy_stencil_lib_cuda CUDA_ARCH ${C_BINDINGS_EXAMPLE_CUDA_ARCH})
+    gridtools_setup_target(copy_stencil_lib_cuda CUDA_ARCH ${EXAMPLE_CUDA_ARCH})
 
     if (CMAKE_C_COMPILER_LOADED)
         add_executable(example_driver_cuda_c driver_cuda.c)

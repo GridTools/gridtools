@@ -31,11 +31,12 @@ foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
 endforeach()
 
 if(TARGET GridTools::backend_cuda)
+    set(EXAMPLE_CUDA_ARCH "@GT_CUDA_ARCH@" CACHE STRING "CUDA compute capability to be used for this example.")
     foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
         add_executable(${srcfile}_cuda ${srcfile}.cpp)
         # The executable links to the target GridTools::backend_cuda
         target_link_libraries(${srcfile}_cuda GridTools::backend_cuda)
-        gridtools_setup_target(${srcfile}_cuda)
+        gridtools_setup_target(${srcfile}_cuda CUDA_ARCH ${EXAMPLE_CUDA_ARCH})
         add_test(NAME ${srcfile}_cuda COMMAND $<TARGET_FILE:${srcfile}_cuda> 33 44 55)
     endforeach()
 else()
