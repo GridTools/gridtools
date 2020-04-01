@@ -32,8 +32,7 @@ def _run_mpi(verbose_ctest):
 
 
 def run(label, run_mpi_tests, verbose_ctest):
-    if label:
-        _run_nompi(label, verbose_ctest)
+    _run_nompi(label, verbose_ctest)
     if run_mpi_tests:
         _run_mpi(verbose_ctest)
 
