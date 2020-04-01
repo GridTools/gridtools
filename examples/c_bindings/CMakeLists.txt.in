@@ -60,8 +60,7 @@ if (CMAKE_Fortran_COMPILER)
 endif()
 
 if(TARGET GridTools::backend_cuda)
-    # TODO set the CUDA_ARCH that was used when installing
-    set(C_BINDINGS_EXAMPLE_CUDA_ARCH "sm_60" CACHE STRING "CUDA compute capability to be used for this example.")
+    set(C_BINDINGS_EXAMPLE_CUDA_ARCH "@GT_CUDA_ARCH@" CACHE STRING "CUDA compute capability to be used for this example.")
 
     bindgen_add_library(copy_stencil_lib_cuda SOURCES copy_stencil_wrapper.cpp)
     target_link_libraries(copy_stencil_lib_cuda PUBLIC GridTools::backend_cuda)
