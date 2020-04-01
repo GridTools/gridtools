@@ -2,7 +2,7 @@
 
 import os
 
-from pyutils import env, runtools
+from pyutils import env, log, runtools
 
 
 def cmake(source_dir, build_dir, install_dir=None):
@@ -19,7 +19,8 @@ def cmake(source_dir, build_dir, install_dir=None):
         install_dir = os.path.abspath(install_dir)
         os.makedirs(install_dir, exist_ok=True)
         command.append(f'-DCMAKE_INSTALL_PREFIX:STRING={install_dir}')
-    runtools.run(command, cwd=build_dir)
+    output = runtools.run(command, cwd=build_dir)
+    log.info('CMake output', output)
 
 
 def make(build_dir, targets=None):
