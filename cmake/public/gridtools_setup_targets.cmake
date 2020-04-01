@@ -138,12 +138,10 @@ endfunction()
 #   prefix and aliases.
 # - Within this macro, all references to targets created with _gt_add_library() need to be prefixed with
 #   ${_gt_namespace}, e.g. target_link_libraries(${_gt_namespace}my_tgt INTERFACE ${_gt_namespace}_my_other_tgt).
-# - Including other CMake files should be done with absolute paths. Use ${_gt_gridtools_setup_targets_dir} to refer
-#   to the directory where this files lives.
 macro(_gt_setup_targets _config_mode clang_cuda_mode)
     set(GT_AVAILABLE_TARGETS)
 
-    include(${_gt_gridtools_setup_targets_dir}/detect_features.cmake)
+    include(detect_features)
     detect_cuda_type(GT_CUDA_TYPE "${clang_cuda_mode}")
 
     if(${_config_mode})
@@ -171,7 +169,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     endif()
 
     find_package(MPI COMPONENTS CXX)
-    include(${_gt_gridtools_setup_targets_dir}/workaround_mpi.cmake)
+    include(workaround_mpi)
     _fix_mpi_flags()
 
     if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL AppleClang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0))
@@ -190,12 +188,14 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         if (type STREQUAL NVCC-CUDA)
             target_link_libraries(_gridtools_cuda INTERFACE _gridtools_nvcc)
             find_library(cudart cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
-            set(GT_CUDA_LIBRARIES ${cudart} PARENT_SCOPE)
-            set(GT_CUDA_INCLUDE_DIRS ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} PARENT_SCOPE)
+            set(GT_CUDA_LIBRARIES ${cudart} PARENT_SCOPE) # TODO do we need this?
+            set(GT_CUDA_INCLUDE_DIRS ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} PARENT_SCOPE) # TODO do we need this?
+            target_link_libraries(_gridtools_cuda INTERFACE ${cudart})
+            target_include_directories(_gridtools_cuda INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
         elseif(type STREQUAL Clang-CUDA)
             set(_gt_setup_root_dir ${CUDAToolkit_BIN_DIR}/..)
-            set(GT_CUDA_LIBRARIES ${CUDA_LIBRARIES} PARENT_SCOPE)
-            set(GT_CUDA_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS} PARENT_SCOPE)
+            set(GT_CUDA_LIBRARIES ${CUDA_LIBRARIES} PARENT_SCOPE) # TODO do we need this?
+            set(GT_CUDA_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS} PARENT_SCOPE) # TODO do we need this?
             target_compile_options(_gridtools_cuda INTERFACE -xcuda --cuda-path=${_gt_setup_root_dir})
             target_link_libraries(_gridtools_cuda INTERFACE CUDA::cudart)
         elseif(type STREQUAL HIPCC-AMDGPU)
@@ -292,7 +292,12 @@ function(gridtools_set_gpu_arch_on_target tgt arch)
     if(arch)
         _gt_depends_on_cuda(need_cuda ${tgt})
         if(need_cuda)
-            target_compile_options(${tgt} PUBLIC ${GT_CUDA_ARCH_FLAG}=${arch})
+            _gt_depends_on_nvcc(need_nvcc ${tgt})
+            if(need_nvcc)
+                target_compile_options(${tgt} PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:${GT_CUDA_ARCH_FLAG}=${arch}>)
+            else()
+                target_compile_options(${tgt} PUBLIC ${GT_CUDA_ARCH_FLAG}=${arch})
+            endif()
         endif()
     endif()
 endfunction()

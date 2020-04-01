@@ -18,13 +18,13 @@ find_package(GridTools @GridTools_VERSION@ REQUIRED
 
 # 4) In the future cpp_bindgen will not be shipped with GridTools, then the following
 #    steps are needed to make the library available
-# include(FetchContent)
-# FetchContent_Declare(
-#   cpp_bindgen
-#   GIT_REPOSITORY https://github.com/GridTools/cpp_bindgen.git
-#   GIT_TAG        master # consider replacing master by a tagged version
-# )
-# FetchContent_MakeAvailable(cpp_bindgen)
+include(FetchContent)
+FetchContent_Declare(
+    cpp_bindgen
+    GIT_REPOSITORY https://github.com/GridTools/cpp_bindgen.git
+    GIT_TAG        v1.0.1
+    )
+FetchContent_MakeAvailable(cpp_bindgen)
 
 enable_testing()
 
@@ -32,7 +32,7 @@ enable_testing()
 #    - copy_stencil_lib_mc_c (the C library)
 #    - copy_stencil_lib_mc_fortran (the Fortran Library)
 bindgen_add_library(copy_stencil_lib_mc SOURCES copy_stencil_wrapper.cpp)
-target_link_libraries(copy_stencil_lib_mc PUBLIC GridTools::gridtools)
+target_link_libraries(copy_stencil_lib_mc PUBLIC GridTools::backend_mc)
 
 include(CheckLanguage)
 check_language(C)
@@ -59,15 +59,17 @@ if (CMAKE_Fortran_COMPILER)
     add_test(NAME example_driver_fortran COMMAND $<TARGET_FILE:example_driver_fortran>)
 endif()
 
-if (CMAKE_CUDA_COMPILER)
-    if(GRIDTOOLS_HAS_BACKEND_CUDA)
-        bindgen_add_library(copy_stencil_lib_cuda SOURCES copy_stencil_wrapper.cu)
-        target_link_libraries(copy_stencil_lib_cuda PUBLIC GridTools::gridtools)
+if(TARGET GridTools::backend_cuda)
+    # TODO set the CUDA_ARCH that was used when installing
+    set(C_BINDINGS_EXAMPLE_CUDA_ARCH "sm_60" CACHE STRING "CUDA compute capability to be used for this example.")
 
-        if (CMAKE_C_COMPILER_LOADED)
-            add_executable(example_driver_cuda_c driver_cuda.c)
-            target_link_libraries(example_driver_cuda_c copy_stencil_lib_cuda_c)
-            add_test(NAME example_driver_cuda_c COMMAND $<TARGET_FILE:example_driver_cuda_c>)
-        endif()
+    bindgen_add_library(copy_stencil_lib_cuda SOURCES copy_stencil_wrapper.cpp)
+    target_link_libraries(copy_stencil_lib_cuda PUBLIC GridTools::backend_cuda)
+    gridtools_setup_target(copy_stencil_lib_cuda CUDA_ARCH ${C_BINDINGS_EXAMPLE_CUDA_ARCH})
+
+    if (CMAKE_C_COMPILER_LOADED)
+        add_executable(example_driver_cuda_c driver_cuda.c)
+        target_link_libraries(example_driver_cuda_c copy_stencil_lib_cuda_c)
+        add_test(NAME example_driver_cuda_c COMMAND $<TARGET_FILE:example_driver_cuda_c>)
     endif()
 endif()
