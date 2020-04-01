@@ -6,7 +6,7 @@
 #include <gridtools/stencil_composition/frontend/make_grid.hpp>
 #include <gridtools/storage/builder.hpp>
 
-#ifdef GT_CUDACC
+#ifdef USE_GPU
 #include <gridtools/storage/cuda.hpp>
 using storage_traits_t = gridtools::storage::cuda;
 #else
