@@ -2,6 +2,19 @@
 
 source $(dirname "$BASH_SOURCE")/base.sh
 
+# the module command on Daint does not properly return an error code, so we
+# override the function to catch failing module invocations
+eval "$(declare -f module | sed 's/^module () *$/original_\0/')"
+function module() {
+    local tmpout=$(mktemp)
+    original_module $* 2> "$tmpout"
+    local output=$(cat "$tmpout" && rm "$tmpout")
+    if [[ "$output" =~ "ERROR" ]]; then
+        >&2 echo "'module $*' exited with error: $output"
+        return 1
+    fi
+}
+
 module load daint-gpu
 module load cudatoolkit/10.1.105_3.27-7.0.1.1_4.1__ga311ce7
 module rm CMake
