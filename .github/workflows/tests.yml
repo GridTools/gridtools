@@ -30,14 +30,13 @@ jobs:
     - name: setup environment
       run: |
         export num_proc=$(nproc)
-        echo "::set-env name=GTRUN_NO_SLURM::true"
         echo "::set-env name=GTRUN_BUILD_COMMAND::make -j $(nproc)"
         echo "::set-env name=CTEST_PARALLEL_LEVEL::$num_proc
         echo "::set-env name=OMP_NUM_THREADS::$num_proc
     - name: build
       run: |
-        python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
+        python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install
     - name: run tests
       if: (!contains(matrix.compiler, 'cuda')) # no GPUs available -> not tests
       run: |
-        $(pwd)/build/pyutils/driver.py -vv test --perftests-only
+        $(pwd)/build/pyutils/driver.py -vv test
