@@ -29,8 +29,7 @@ namespace gridtools {
         if (error == cudaSuccess)
 
 #if defined(CUDART_VERSION) && CUDART_VERSION < 10000
-            return ptrAttributes.memoryType == cudaMemoryTypeDevice ||
-                   ptrAttributes.memoryType == cudaMemoryTypeManaged; // deprecated in CUDA 10
+            return ptrAttributes.memoryType == cudaMemoryTypeDevice; // deprecated in CUDA 10
 #else
             return ptrAttributes.type == cudaMemoryTypeDevice || ptrAttributes.type == cudaMemoryTypeManaged;
 #endif
