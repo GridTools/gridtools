@@ -67,11 +67,6 @@ def sbatch_options(mpi):
     ]
 
 
-def srun_command():
-    return (env.get('GTCMAKE_MPITEST_EXECUTABLE', 'srun') + ' ' +
-            env.get('GTCMAKE_MPITEST_PREFLAGS', '').replace(';', ' '))
-
-
 def build_command():
     return env.get('GTRUN_BUILD_COMMAND', 'make').split()
 
