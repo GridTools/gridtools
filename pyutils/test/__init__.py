@@ -19,6 +19,7 @@ def _ctest(good_labels, bad_labels, verbose):
 def _run_nompi(verbose_ctest):
     log.info('Running non-MPI tests')
     output = runtools.srun(_ctest(None, 'mpi', verbose_ctest),
+                           log_output=log.info,
                            cwd=buildinfo.binary_dir)
     log.info('ctest unit test output', output)
 
@@ -26,6 +27,7 @@ def _run_nompi(verbose_ctest):
 def _run_mpi(verbose_ctest):
     log.info('Running MPI tests')
     output = runtools.salloc(_ctest('mpi', None, verbose_ctest),
+                             log_output=log.info,
                              cwd=buildinfo.binary_dir,
                              use_mpi_config=True)
     log.info('ctest MPI test output', output)
