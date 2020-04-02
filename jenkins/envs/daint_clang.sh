@@ -11,3 +11,5 @@ export CXX=$(which clang++)
 export CC=$(which clang)
 export FC=$(which gfortran)
 
+export CTEST_PARALLEL_LEVEL=1
+

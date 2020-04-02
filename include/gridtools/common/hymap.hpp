@@ -324,7 +324,7 @@ namespace gridtools {
 
             // This class holds two maps and models hymap content.
             // at_key returns the item of the primary map if the key is found there
-            // otherwise it falls bake to the secondary map.
+            // otherwise it falls back to the secondary map.
             template <class Primary, class Secondary>
             class merged : tuple<Primary, Secondary> {
                 using base_t = tuple<Primary, Secondary>;

@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <gridtools/stencil_composition/icosahedral.hpp>
 
 namespace ico_operators {
@@ -67,7 +69,7 @@ namespace ico_operators {
 
         template <class Eval>
         GT_FUNCTION static void apply(Eval &&eval) {
-            float_type t = 0;
+            std::decay_t<decltype(eval(out_vertices()))> t = 0;
             int e = 0;
             eval.for_neighbors(
                 [&](auto in, auto len) {

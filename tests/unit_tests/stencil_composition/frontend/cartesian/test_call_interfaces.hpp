@@ -9,13 +9,13 @@
  */
 #pragma once
 
-#include <gridtools/stencil_composition/backend/naive.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
 
-#define GT_FLOAT_TYPE double
-#define GT_STORAGE_X86
+#include <gtest/gtest.h>
 
-#include <cartesian_fixture.hpp>
+#define GT_BACKEND_NAIVE
+#include <backend_select.hpp>
+#include <test_environment.hpp>
 
 namespace gridtools {
     namespace cartesian {
@@ -52,12 +52,12 @@ namespace gridtools {
             }
         };
 
-        struct base_fixture : computation_fixture<1> {
-            base_fixture() : computation_fixture<1>(13, 9, 7) {}
+        struct base_fixture : ::testing::Test {
+            using env_t = test_environment<1, axis<1>>::apply<naive::backend, double, inlined_params<13, 9, 7>>;
 
             template <class Fun, class... Storages>
             void run_computation(Storages &&... storages) const {
-                run_single_stage(Fun(), naive::backend(), make_grid(), std::forward<Storages>(storages)...);
+                run_single_stage(Fun(), naive::backend(), env_t::make_grid(), std::forward<Storages>(storages)...);
             }
 
             using fun_t = std::function<double(int, int, int)>;

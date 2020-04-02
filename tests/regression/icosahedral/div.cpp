@@ -8,48 +8,48 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gtest/gtest.h>
-
 #include <gridtools/stencil_composition/icosahedral.hpp>
-#include <icosahedral_regression_fixture.hpp>
+
+#include <backend_select.hpp>
+#include <test_environment.hpp>
 
 #include "div_functors.hpp"
 #include "operators_repository.hpp"
 
-using namespace gridtools;
-using namespace ico_operators;
+namespace {
+    using namespace gridtools;
+    using namespace ico_operators;
 
-struct div : regression_fixture<2> {
-    operators_repository repo = {d(0), d(1)};
-};
+    GT_REGRESSION_TEST(div_reduction_into_scalar, icosahedral_test_environment<2>, backend_t) {
+        auto spec = [](auto in_edges, auto edge_length, auto cell_area_reciprocal, auto out) {
+            GT_DECLARE_ICO_TMP((array<typename TypeParam ::float_t, 3>), cells, weights);
+            return execute_parallel()
+                .ij_cached(weights)
+                .stage(div_prep_functor(), edge_length, cell_area_reciprocal, weights)
+                .stage(div_functor_reduction_into_scalar(), in_edges, weights, out);
+        };
+        operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
+        auto out = TypeParam ::icosahedral_make_storage(cells());
+        run(spec,
+            backend_t(),
+            TypeParam ::make_grid(),
+            TypeParam ::icosahedral_make_storage(edges(), repo.u),
+            TypeParam ::icosahedral_make_storage(edges(), repo.edge_length),
+            TypeParam ::icosahedral_make_storage(cells(), repo.cell_area_reciprocal),
+            out);
+        TypeParam ::verify(repo.div_u, out);
+    }
 
-TEST_F(div, reduction_into_scalar) {
-    auto spec = [](auto in_edges, auto edge_length, auto cell_area_reciprocal, auto out) {
-        GT_DECLARE_ICO_TMP((array<float_type, 3>), cells, weights);
-        return execute_parallel()
-            .ij_cached(weights)
-            .stage(div_prep_functor(), edge_length, cell_area_reciprocal, weights)
-            .stage(div_functor_reduction_into_scalar(), in_edges, weights, out);
-    };
-    auto out = make_storage<cells>();
-    run(spec,
-        backend_t(),
-        make_grid(),
-        make_storage<edges>(repo.u),
-        make_storage<edges>(repo.edge_length),
-        make_storage<cells>(repo.cell_area_reciprocal),
-        out);
-    verify(repo.div_u, out);
-}
-
-TEST_F(div, flow_convention) {
-    auto out = make_storage<cells>();
-    run_single_stage(div_functor_flow_convention_connectivity(),
-        backend_t(),
-        make_grid(),
-        make_storage<edges>(repo.u),
-        make_storage<edges>(repo.edge_length),
-        make_storage<cells>(repo.cell_area_reciprocal),
-        out);
-    verify(repo.div_u, out);
-}
+    GT_REGRESSION_TEST(div_flow_convention, icosahedral_test_environment<2>, backend_t) {
+        operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
+        auto out = TypeParam ::icosahedral_make_storage(cells());
+        run_single_stage(div_functor_flow_convention_connectivity(),
+            backend_t(),
+            TypeParam::make_grid(),
+            TypeParam ::icosahedral_make_storage(edges(), repo.u),
+            TypeParam ::icosahedral_make_storage(edges(), repo.edge_length),
+            TypeParam ::icosahedral_make_storage(cells(), repo.cell_area_reciprocal),
+            out);
+        TypeParam ::verify(repo.div_u, out);
+    }
+} // namespace
