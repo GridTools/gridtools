@@ -27,7 +27,6 @@
 
 #include <backend_select.hpp>
 #include <gcl_select.hpp>
-#include <storage_select.hpp>
 
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel with boundary conditions*/

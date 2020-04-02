@@ -13,10 +13,9 @@
 #include <gridtools/stencil_composition/backend/naive.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
 
-#define GT_FLOAT_TYPE double
-#define GT_STORAGE_X86
-
-#include <cartesian_fixture.hpp>
+#define GT_BACKEND_NAIVE
+#include <backend_select.hpp>
+#include <test_environment.hpp>
 
 namespace gridtools {
     namespace cartesian {
@@ -39,21 +38,23 @@ namespace gridtools {
             template <int... Is>
             constexpr l_type<Is...> l = {};
 
-            struct stencils : computation_fixture<> {
+            struct stencils : testing::Test {
                 static constexpr uint_t i_max = 58;
                 static constexpr uint_t j_max = 46;
                 static constexpr uint_t k_max = 70;
-                stencils() : computation_fixture<>(i_max + 1, j_max + 1, k_max + 1) {}
+
+                using env_t =
+                    test_environment<>::apply<naive::backend, double, inlined_params<i_max + 1, j_max + 1, k_max + 1>>;
 
                 template <int... Srcs, int... Dsts, class Expected>
                 void do_test(l_type<Srcs...>, l_type<Dsts...>, Expected const &expected) {
-                    auto out = builder().layout<Dsts...>()();
+                    auto out = env_t::builder().layout<Dsts...>()();
                     run_single_stage(copy_functor(),
                         naive::backend(),
-                        make_grid(),
-                        builder().layout<Srcs...>().initializer([](int i, int j, int k) { return i + j + k; })(),
+                        env_t::make_grid(),
+                        env_t::builder().layout<Srcs...>().initializer([](int i, int j, int k) { return i + j + k; })(),
                         out);
-                    verify(expected, out);
+                    env_t::verify(expected, out);
                 }
 
                 template <class Src, class Expected>

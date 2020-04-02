@@ -1,5 +1,6 @@
-# special target for executables which are used from performance benchmarks
-add_custom_target(perftests)
+add_executable(perftests)
+
+target_link_libraries(perftests regression_main)
 
 function(gridtools_add_regression_test tgt_name)
     set(options PERFTEST)
@@ -7,22 +8,20 @@ function(gridtools_add_regression_test tgt_name)
     set(multi_value_args KEYS SOURCES LABELS)
     cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
     foreach(key IN LISTS ARGS_KEYS)
-        foreach(float_type float double)
-            set(tgt ${tgt_name}_${key}_${float_type})
-            gridtools_add_test_executable(${tgt}
-                    SOURCES ${ARGS_SOURCES}
-                    LIBRARIES gridtools regression_main ${ARGS_LIB_PREFIX}_${key})
-            target_compile_definitions(${tgt} PRIVATE GT_FLOAT_TYPE=${float_type})
-            add_test(NAME tests.${tgt}_12_33_61 COMMAND $<TARGET_FILE:${tgt}> 12 33 61)
-            add_test(NAME tests.${tgt}_23_11_43 COMMAND $<TARGET_FILE:${tgt}> 23 11 43)
-            set(labels regression ${key} ${float_type} ${ARGS_LABELS})
-            set_tests_properties(tests.${tgt}_12_33_61 PROPERTIES LABELS "${labels}")
-            set_tests_properties(tests.${tgt}_23_11_43 PROPERTIES LABELS "${labels}")
-            if (ARGS_PERFTEST AND NOT key STREQUAL naive AND float_type STREQUAL double)
-                add_dependencies(perftests ${tgt})
-                set_property(TEST tests.${tgt}_12_33_61 APPEND PROPERTY LABELS perftests)
-            endif()
-        endforeach()
+        set(tgt ${tgt_name}_${key})
+        add_library(${tgt}_lib OBJECT)
+        gridtools_setup_test_target(${tgt}_lib
+                SOURCES ${ARGS_SOURCES}
+                LIBRARIES gridtools regression_main ${ARGS_LIB_PREFIX}_${key})
+        add_executable(${tgt} $<TARGET_OBJECTS:${tgt}_lib>)
+        target_link_libraries(${tgt} regression_main ${ARGS_LIB_PREFIX}_${key})
+        add_test(NAME ${tgt} COMMAND $<TARGET_FILE:${tgt}>)
+        set(labels regression ${key} ${ARGS_LABELS})
+        set_tests_properties(${tgt} PROPERTIES LABELS "${labels}")
+        if (ARGS_PERFTEST AND NOT key STREQUAL naive)
+            set_property(TARGET perftests APPEND PROPERTY SOURCES $<TARGET_OBJECTS:${tgt}_lib>)
+            target_link_libraries(perftests ${ARGS_LIB_PREFIX}_${key})
+        endif()
     endforeach()
 endfunction()
 
@@ -31,23 +30,8 @@ function(add_backend_testees prefix)
         set(tgt ${prefix}_${backend})
         add_library(${tgt} INTERFACE)
         target_link_libraries(${tgt} INTERFACE backend_${backend})
-        if (backend STREQUAL naive)
-            set(u_storage X86)
-        else()
-            string(TOUPPER ${backend} u_storage)
-        endif()
-        if(backend STREQUAL cuda)
-            set(timer CUDA)
-        elseif (backend STREQUAL mc OR backend STREQUAL x86)
-            set(timer OMP)
-        else()
-            set(timer DUMMY)
-        endif()
         string(TOUPPER ${backend} u_backend)
-        target_compile_definitions(${tgt} INTERFACE
-                GT_BACKEND_${u_backend}
-                GT_STORAGE_${u_storage}
-                GT_TIMER_${timer})
+        target_compile_definitions(${tgt} INTERFACE GT_BACKEND_${u_backend})
     endforeach()
 endfunction()
 add_backend_testees(backend_testee ${GT_BACKENDS})
@@ -70,7 +54,7 @@ function(gridtools_add_layout_transformation_test)
             target_compile_definitions(${tgt} INTERFACE GT_STORAGE_X86 GT_TIMER_OMP)
         endif()
     endforeach()
-    gridtools_add_regression_test(layout_transformation
+    gridtools_add_regression_test(layout_transformation_test
             LIB_PREFIX layout_transformation_testee
             KEYS ${GT_GCL_ARCHS}
             SOURCES layout_transformation.cpp
@@ -83,9 +67,9 @@ function(gridtools_add_boundary_conditions_test)
         add_library(${tgt} INTERFACE)
         target_link_libraries(${tgt} INTERFACE bc_${arch})
         if (arch STREQUAL gpu)
-            target_compile_definitions(${tgt} INTERFACE GT_STORAGE_CUDA GT_TIMER_CUDA GT_GCL_GPU)
+            target_compile_definitions(${tgt} INTERFACE GT_GCL_GPU)
         elseif (arch STREQUAL cpu)
-            target_compile_definitions(${tgt} INTERFACE GT_STORAGE_X86 GT_TIMER_OMP GT_GCL_CPU)
+            target_compile_definitions(${tgt} INTERFACE GT_GCL_CPU)
         endif()
     endforeach()
     gridtools_add_regression_test(boundary_conditions
@@ -97,12 +81,12 @@ endfunction()
 
 if (TARGET gcl_cpu AND TARGET backend_x86)
     gridtools_add_mpi_test(cpu copy_stencil_parallel_cpu SOURCES copy_stencil_parallel.cpp LIBRARIES backend_x86)
-    target_compile_definitions(copy_stencil_parallel_cpu PRIVATE GT_STORAGE_X86 GT_BACKEND_X86 GT_GCL_CPU)
+    target_compile_definitions(copy_stencil_parallel_cpu PRIVATE GT_BACKEND_X86 GT_GCL_CPU)
 endif()
 
 if (TARGET gcl_gpu AND TARGET backend_cuda)
     gridtools_add_mpi_test(gpu copy_stencil_parallel_gpu SOURCES copy_stencil_parallel.cpp LIBRARIES backend_cuda)
-    target_compile_definitions(copy_stencil_parallel_gpu PRIVATE GT_STORAGE_CUDA GT_BACKEND_CUDA GT_GCL_GPU)
+    target_compile_definitions(copy_stencil_parallel_gpu PRIVATE GT_BACKEND_CUDA GT_GCL_GPU)
 endif()
 
 gridtools_add_cartesian_regression_test(horizontal_diffusion SOURCES horizontal_diffusion.cpp PERFTEST)

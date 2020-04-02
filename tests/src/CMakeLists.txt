@@ -2,7 +2,7 @@
 if (OpenMP_CXX_FOUND)
     set(omp_ OpenMP::OpenMP_CXX)
 endif()
-gridtools_add_test_library(regression_main SOURCES regression_fixture.cpp LIBRARIES PRIVATE ${omp_})
+gridtools_add_test_library(regression_main SOURCES regression_main.cpp LIBRARIES PRIVATE ${omp_})
 unset(omp_)
 
 if (TARGET gcl_cpu)

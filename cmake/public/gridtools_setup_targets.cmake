@@ -218,7 +218,6 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     target_link_libraries(${_gt_namespace}backend_naive INTERFACE ${_gt_namespace}gridtools)
 
     set(GT_BACKENDS naive) #TODO move outside of this file
-    set(GT_ICO_BACKENDS naive)
     set(GT_STORAGES x86 mc)
     set(GT_GCL_ARCHS)
 
@@ -226,7 +225,6 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         _gt_add_library(${_config_mode} backend_cuda)
         target_link_libraries(${_gt_namespace}backend_cuda INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
         list(APPEND GT_BACKENDS cuda)
-        list(APPEND GT_ICO_BACKENDS cuda)
 
         if(MPI_CXX_FOUND)
             option(GT_GCL_GPU "Disable if your MPI implementation is not CUDA-aware" ON)
@@ -272,7 +270,6 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         list(APPEND GT_GCL_ARCHS cpu)
 
         list(APPEND GT_BACKENDS x86 mc)
-        list(APPEND GT_ICO_BACKENDS x86)
     endif()
 endmacro()
 
