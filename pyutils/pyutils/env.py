@@ -16,8 +16,9 @@ def load(envfile):
     env['GTCMAKE_PYUTILS_ENVFILE'] = os.path.abspath(envfile)
 
     envdir, envfile = os.path.split(envfile)
-    output = runtools.run(['bash', '-c', f'source {envfile} && env -0'],
-                          cwd=envdir).strip('\0')
+    output = runtools.run(
+        ['bash', '-c', f'set -e && source {envfile} && env -0'],
+        cwd=envdir).strip('\0')
     env.update(line.split('=', 1) for line in output.split('\0'))
 
     log.info(f'Loaded environment from {os.path.join(envdir, envfile)}')
