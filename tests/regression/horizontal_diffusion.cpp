@@ -89,7 +89,8 @@ namespace {
         }
     };
 
-    template <class Env>
+    template <class Env,
+        std::enable_if_t<!meta::is_instantiation_of<cuda_horizontal::backend, typename Env::backend_t>::value, int> = 0>
     auto get_spec(Env) {
         return [](auto in, auto coeff, auto out) {
             GT_DECLARE_TMP(typename Env::float_t, lap, flx, fly);
@@ -99,6 +100,20 @@ namespace {
                 .stage(flx_function(), flx, in, lap)
                 .stage(fly_function(), fly, in, lap)
                 .stage(out_function(), out, in, flx, fly, coeff);
+        };
+    }
+
+    template <class Env,
+        std::enable_if_t<meta::is_instantiation_of<cuda_horizontal::backend, typename Env::backend_t>::value, int> = 0>
+    auto get_spec(Env) {
+        return [](auto in, auto coeff, auto out) {
+            GT_DECLARE_TMP(typename Env::float_t, inc, lap, flx, fly);
+            return execute_parallel()
+                .stage(copy_function(), inc, in)
+                .stage(lap_function(), lap, inc)
+                .stage(flx_function(), flx, inc, lap)
+                .stage(fly_function(), fly, inc, lap)
+                .stage(out_function(), out, inc, flx, fly, coeff);
         };
     }
 
