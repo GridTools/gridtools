@@ -11,8 +11,6 @@
 
 #include <gridtools/stencil_composition/cartesian.hpp>
 
-#include <grid_fixture.hpp>
-
 #include "test_call_interfaces.hpp"
 
 namespace gridtools {
@@ -22,11 +20,11 @@ namespace gridtools {
 
             template <class Fun>
             void do_test(fun_t expected = {}) const {
-                storage_type out = make_storage(0);
-                run_computation<Fun>(make_storage(input), out);
+                auto out = env_t::make_storage(0);
+                run_computation<Fun>(env_t::make_storage(input), out);
                 if (!expected)
                     expected = input;
-                verify(expected, out);
+                env_t::verify(expected, out);
             }
         };
 
@@ -71,7 +69,7 @@ namespace gridtools {
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
-                float_type local = 1.;
+                double local = 1.;
                 eval(out()) = call<copy_functor_with_add, x_interval>::with(eval, in(), local);
             }
         };
@@ -86,7 +84,7 @@ namespace gridtools {
             typedef make_param_list<in, out> param_list;
             template <typename Evaluation>
             GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
-                float_type local = 1.;
+                double local = 1.;
                 eval(out()) = call<copy_functor_with_add, x_interval>::with(eval, local, in());
             }
         };
@@ -181,7 +179,7 @@ namespace gridtools {
 
         TEST_F(call_interface, call_to_copy_functor_default_interval_from_smaller_interval) {
             do_test<call_copy_functor_default_interval_from_smaller_interval>(
-                [this](int i, int j, int k) { return k > 0 && k < k_size() - 1 ? input(i, j, k) : 0; });
+                [this](int i, int j, int k) { return k > 0 && k < env_t::k_size() - 1 ? input(i, j, k) : 0; });
         }
 
         struct call_copy_functor_default_interval_with_offset_in_k {

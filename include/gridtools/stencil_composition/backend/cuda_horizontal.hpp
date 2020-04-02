@@ -9,6 +9,4 @@
  */
 #pragma once
 
-#ifdef GT_FLOAT_TYPE
-using float_type = GT_FLOAT_TYPE;
-#endif
+#include "cuda_horizontal/entry_point.hpp"

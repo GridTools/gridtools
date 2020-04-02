@@ -92,7 +92,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<cells, cells, 1> : l<e<1, 0, -1>, e<1, 0, -1>, e<0, 1, -1>> {};
+            struct offsets<cells, cells, 1> : l<e<1, 0, 0>, e<1, 0, 0>, e<0, 1, 0>> {};
 
             /*
              * neighbors order
@@ -158,7 +158,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<edges, edges, 1> : l<e<-1, 0, 1>, e<-1, 1, -1>, e<0, 0, 1>, e<0, 0, -1>> {};
+            struct offsets<edges, edges, 1> : l<e<-1, 0, 2>, e<-1, 1, 0>, e<0, 0, 2>, e<0, 0, 0>> {};
 
             /*
              * neighbors order
@@ -173,7 +173,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<edges, edges, 2> : l<e<0, 0, -2>, e<0, 0, -1>, e<0, 1, -2>, e<1, 0, -1>> {};
+            struct offsets<edges, edges, 2> : l<e<0, 0, 0>, e<0, 0, 1>, e<0, 1, 0>, e<1, 0, 1>> {};
 
             /*
              * neighbors order
@@ -187,7 +187,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<cells, edges, 1> : l<e<1, 0, 0>, e<0, 0, 1>, e<0, 1, -1>> {};
+            struct offsets<cells, edges, 1> : l<e<1, 0, 1>, e<0, 0, 2>, e<0, 1, 0>> {};
 
             /*
              * neighbors order
@@ -234,7 +234,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<cells, vertices, 1> : l<e<0, 1, -1>, e<1, 1, -1>, e<1, 0, -1>> {};
+            struct offsets<cells, vertices, 1> : l<e<0, 1, 0>, e<1, 1, 0>, e<1, 0, 0>> {};
 
             /*
              * neighbors order
@@ -265,7 +265,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<edges, cells, 1> : l<e<-1, 0, 0>, e<0, 0, -1>> {};
+            struct offsets<edges, cells, 1> : l<e<-1, 0, 1>, e<0, 0, 0>> {};
 
             /*
              * neighbors order
@@ -279,7 +279,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<edges, cells, 2> : l<e<0, 0, -1>, e<0, 0, -2>> {};
+            struct offsets<edges, cells, 2> : l<e<0, 0, 1>, e<0, 0, 0>> {};
 
             /*
              * neighbors order
@@ -312,7 +312,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<edges, vertices, 1> : l<e<0, 0, -1>, e<0, 1, -1>> {};
+            struct offsets<edges, vertices, 1> : l<e<0, 0, 0>, e<0, 1, 0>> {};
 
             /*
              * neighbors order
@@ -328,7 +328,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<edges, vertices, 2> : l<e<0, 1, -2>, e<1, 0, -2>> {};
+            struct offsets<edges, vertices, 2> : l<e<0, 1, 0>, e<1, 0, 0>> {};
 
             /*
              * neighbors order

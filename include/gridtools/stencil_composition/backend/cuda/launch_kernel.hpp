@@ -129,26 +129,12 @@ namespace gridtools {
                        Extent::jplus::value == 0;
             }
 
-            template <class Kernel, class... Args>
-            void launch(dim3 blocks, dim3 threads, size_t shared_memory_size, Kernel kernel, Args... args) {
-#ifndef __HIPCC__
-                GT_CUDA_CHECK(
-                    cudaFuncSetAttribute(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_memory_size));
-#endif
-                kernel<<<blocks, threads, shared_memory_size>>>(std::move(args)...);
-#ifndef NDEBUG
-                GT_CUDA_CHECK(cudaDeviceSynchronize());
-#endif
-                GT_CUDA_CHECK(cudaGetLastError());
-            }
-
             template <class Extent,
                 int_t BlockSizeI,
                 int_t BlockSizeJ,
                 class Fun,
                 std::enable_if_t<!is_empty_ij_extents<Extent>(), int> = 0>
-            GT_FORCE_INLINE void launch_kernel(
-                int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
+            void launch_kernel(int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
                 static_assert(is_extent<Extent>::value, GT_INTERNAL_ERROR);
                 static_assert(Extent::iminus::value <= 0, GT_INTERNAL_ERROR);
                 static_assert(Extent::iplus::value >= 0, GT_INTERNAL_ERROR);
@@ -166,7 +152,7 @@ namespace gridtools {
                 dim3 blocks = {xblocks, yblocks, zblocks};
                 dim3 threads = {BlockSizeI, BlockSizeJ + halo_lines, 1};
 
-                launch(blocks,
+                cuda_util::launch(blocks,
                     threads,
                     shared_memory_size,
                     wrapper<num_threads, BlockSizeI, BlockSizeJ, Extent, Fun>,
@@ -180,8 +166,7 @@ namespace gridtools {
                 int_t BlockSizeJ,
                 class Fun,
                 std::enable_if_t<is_empty_ij_extents<Extent>(), int> = 0>
-            GT_FORCE_INLINE void launch_kernel(
-                int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
+            void launch_kernel(int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
 
                 static_assert(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
 
@@ -193,7 +178,7 @@ namespace gridtools {
                 dim3 blocks = {xblocks, yblocks, zblocks};
                 dim3 threads = {BlockSizeI, BlockSizeJ, 1};
 
-                launch(blocks,
+                cuda_util::launch(blocks,
                     threads,
                     shared_memory_size,
                     zero_extent_wrapper<num_threads, BlockSizeI, BlockSizeJ, Fun>,

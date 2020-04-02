@@ -10,9 +10,7 @@
 
 #pragma once
 
-#include <backend_select.hpp>
-
 // define some physical constants
-constexpr float_type BETA_V = 0;
-constexpr float_type BET_M = (1 - BETA_V) / 2;
-constexpr float_type BET_P = (1 + BETA_V) / 2;
+constexpr double BETA_V = 0;
+constexpr double BET_M = (1 - BETA_V) / 2;
+constexpr double BET_P = (1 + BETA_V) / 2;

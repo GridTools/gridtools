@@ -2,7 +2,7 @@
 function(gridtools_add_icosahedral_test tgt_name)
     gridtools_add_regression_test(${tgt_name} ${ARGN}
             LIB_PREFIX backend_testee
-            KEYS ${GT_ICO_BACKENDS}
+            KEYS ${GT_BACKENDS}
             LABELS icosahedral)
 endfunction()
 

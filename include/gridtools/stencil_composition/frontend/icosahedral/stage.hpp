@@ -80,8 +80,8 @@ namespace gridtools {
 
                 template <class Accessor>
                 GT_FUNCTION decltype(auto) operator()(Accessor) const {
-                    return apply_intent<Accessor::intent_v>(
-                        get_ref<meta::at_c<Keys, Accessor::index_t::value>>(tuple<>()));
+                    return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(
+                        hymap::keys<dim::c>::values<integral_constant<int_t, Color>>()));
                 }
 
                 template <class Accessor, class Offset>
@@ -109,12 +109,11 @@ namespace gridtools {
                 using location_t = typename Functor::location;
 
                 template <class Deref = void, class Ptr, class Strides>
-                GT_FUNCTION void operator()(Ptr ptr, Strides const &strides) const {
+                GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
                     using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
                     host_device::for_each<meta::make_indices<location_t>>([&](auto color) {
                         using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
                         Functor::apply(eval_t{ptr, strides});
-                        sid::shift(ptr, sid::get_stride<dim::c>(strides), integral_constant<int_t, 1>());
                     });
                 }
             };
