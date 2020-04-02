@@ -58,17 +58,6 @@ namespace {
 namespace {
     using backend_t = gridtools::cuda::backend<>;
 }
-#elif defined(GT_BACKEND_CUDA_HORIZONTAL)
-#ifndef GT_STORAGE_CUDA
-#define GT_STORAGE_CUDA
-#endif
-#ifndef GT_TIMER_CUDA
-#define GT_TIMER_CUDA
-#endif
-#include <gridtools/stencil_composition/backend/cuda_horizontal.hpp>
-namespace {
-    using backend_t = gridtools::cuda_horizontal::backend<>;
-}
 #endif
 
 #include "storage_select.hpp"
@@ -124,23 +113,4 @@ namespace gridtools {
             return "cuda";
         }
     } // namespace cuda
-
-    namespace cuda_horizontal {
-        template <class, class, class>
-        struct backend;
-
-        template <class I, class J, class K>
-        storage::cuda backend_storage_traits(backend<I, J, K>);
-
-        template <class I, class J, class K>
-        std::false_type backend_supports_vertical_stencils(backend<I, J, K>);
-
-        template <class I, class J, class K>
-        timer_cuda backend_timer_impl(backend<I, J, K>);
-
-        template <class I, class J, class K>
-        char const *backend_name(backend<I, J, K> const &) {
-            return "cuda_horizontal";
-        }
-    } // namespace cuda_horizontal
 } // namespace gridtools
