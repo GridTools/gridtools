@@ -10,16 +10,8 @@ function(gridtools_add_cartesian_test tgt_name)
                 LIBRARIES backend_${backend}
                 LABELS cartesian ${backend}
                 NO_NVCC)
-        if (backend STREQUAL naive)
-            set(u_storage X86)
-        else()
-            string(TOUPPER ${backend} u_storage)
-        endif()
         string(TOUPPER ${backend} u_backend)
-        target_compile_definitions(${tgt} PRIVATE
-                    GT_BACKEND_${u_backend}
-                    GT_STORAGE_${u_storage}
-                    GT_FLOAT_TYPE=double)
+        target_compile_definitions(${tgt} PRIVATE GT_BACKEND_${u_backend})
     endforeach()
 endfunction()
 

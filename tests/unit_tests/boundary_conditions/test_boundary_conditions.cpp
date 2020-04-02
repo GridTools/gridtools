@@ -18,7 +18,6 @@
 #include <gridtools/storage/builder.hpp>
 
 #include <gcl_select.hpp>
-#include <storage_select.hpp>
 
 using namespace gridtools;
 

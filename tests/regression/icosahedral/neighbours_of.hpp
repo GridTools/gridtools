@@ -32,23 +32,23 @@ namespace gridtools {
         };
 
         template <class FromLocation, class ToLocation>
-        std::vector<array<int_t, 4>> get_offsets(uint_t, std::integral_constant<uint_t, FromLocation::value>) {
+        std::vector<array<int_t, 4>> get_offsets(int_t, std::integral_constant<int_t, FromLocation::value>) {
             assert(false);
             return {};
         }
 
         template <class FromLocation,
             class ToLocation,
-            uint_t C = 0,
+            int_t C = 0,
             std::enable_if_t<(C < FromLocation::value), int> = 0>
-        std::vector<array<int_t, 4>> get_offsets(uint_t c, std::integral_constant<uint_t, C> = {}) {
+        std::vector<array<int_t, 4>> get_offsets(int_t c, std::integral_constant<int_t, C> = {}) {
             if (c > C) {
-                return get_offsets<FromLocation, ToLocation>(c, std::integral_constant<uint_t, C + 1>{});
+                return get_offsets<FromLocation, ToLocation>(c, std::integral_constant<int_t, C + 1>{});
             }
             std::vector<array<int_t, 4>> res;
             for_each<icosahedral::neighbor_offsets<FromLocation, ToLocation, C>>([&](auto src) {
                 using tuple_util::get;
-                res.push_back({get<0>(src), get<1>(src), get<2>(src), get<3>(src)});
+                res.push_back({get<0>(src), get<1>(src), get<2>(src), get<3>(src) - C});
             });
             return res;
         }

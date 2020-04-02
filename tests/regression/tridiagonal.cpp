@@ -7,11 +7,10 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gtest/gtest.h>
-
 #include <gridtools/stencil_composition/cartesian.hpp>
 
-#include <cartesian_regression_fixture.hpp>
+#include <backend_select.hpp>
+#include <test_environment.hpp>
 
 /*
   @file This file shows an implementation of the Thomas algorithm, done using stencil operations.
@@ -27,67 +26,75 @@
   the algorithm. This choice coresponds to having the same vector index for each row of the matrix.
  */
 
-using namespace gridtools;
-using namespace cartesian;
-using namespace expressions;
+namespace {
+    using namespace gridtools;
+    using namespace cartesian;
+    using namespace expressions;
 
-// This is the definition of the special regions in the "vertical" direction
-using axis_t = axis<1>;
-using full_t = axis_t::full_interval;
+    // This is the definition of the special regions in the "vertical" direction
+    using axis_t = axis<1>;
+    using full_t = axis_t::full_interval;
 
-struct forward_thomas {
-    using inf = in_accessor<0>;                               // a
-    using diag = in_accessor<1>;                              // b
-    using sup = inout_accessor<2, extent<0, 0, 0, 0, -1, 0>>; // c
-    using rhs = inout_accessor<3, extent<0, 0, 0, 0, -1, 0>>; // d
-    using param_list = make_param_list<inf, diag, sup, rhs>;
+    struct forward_thomas {
+        using inf = in_accessor<0>;                               // a
+        using diag = in_accessor<1>;                              // b
+        using sup = inout_accessor<2, extent<0, 0, 0, 0, -1, 0>>; // c
+        using rhs = inout_accessor<3, extent<0, 0, 0, 0, -1, 0>>; // d
+        using param_list = make_param_list<inf, diag, sup, rhs>;
 
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, 0>) {
-        eval(sup{}) = eval(sup{} / (diag{} - sup{0, 0, -1} * inf{}));
-        eval(rhs{}) = eval((rhs{} - inf{} * rhs{0, 0, -1}) / (diag{} - sup{0, 0, -1} * inf{}));
+        template <typename Evaluation>
+        GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, 0>) {
+            eval(sup{}) = eval(sup{} / (diag{} - sup{0, 0, -1} * inf{}));
+            eval(rhs{}) = eval((rhs{} - inf{} * rhs{0, 0, -1}) / (diag{} - sup{0, 0, -1} * inf{}));
+        }
+
+        template <typename Evaluation>
+        GT_FUNCTION static void apply(Evaluation eval, full_t::first_level) {
+            eval(sup{}) = eval(sup{}) / eval(diag{});
+            eval(rhs{}) = eval(rhs{}) / eval(diag{});
+        }
+    };
+
+    struct backward_thomas {
+        using out = inout_accessor<0, extent<0, 0, 0, 0, 0, 1>>;
+        using sup = in_accessor<1>; // c
+        using rhs = in_accessor<2>; // d
+        using param_list = make_param_list<out, sup, rhs>;
+
+        template <typename Evaluation>
+        GT_FUNCTION static void apply(Evaluation eval, full_t::modify<0, -1>) {
+            eval(out{}) = eval(rhs{} - sup{} * out{0, 0, 1});
+        }
+
+        template <typename Evaluation>
+        GT_FUNCTION static void apply(Evaluation eval, full_t::last_level) {
+            eval(out{}) = eval(rhs{});
+        }
+    };
+
+    using env_t = vertical_test_environment<>;
+
+    template <class>
+    using tridiagonal = ::testing::Test;
+    using tridiagonal_types_t = meta::if_<env_t::is_enabled<backend_t>,
+        ::testing::Types<env_t::apply<backend_t, double, ::gridtools::inlined_params<12, 33, 6>>,
+            env_t::apply<backend_t, double, ::gridtools::inlined_params<23, 11, 6>>>,
+        ::testing::Types<>>;
+    TYPED_TEST_SUITE(tridiagonal, tridiagonal_types_t);
+    TYPED_TEST(tridiagonal, test) {
+        auto out = TypeParam::make_storage();
+        run(
+            [](auto inf, auto diag, auto sup, auto rhs, auto out) {
+                return multi_pass(execute_forward().stage(forward_thomas(), inf, diag, sup, rhs),
+                    execute_backward().stage(backward_thomas(), out, sup, rhs));
+            },
+            backend_t(),
+            TypeParam::make_grid(),
+            TypeParam::make_storage(-1),
+            TypeParam::make_storage(3),
+            TypeParam::make_storage(1),
+            TypeParam::make_storage([](int, int, int k) { return k == 0 ? 4 : k == 5 ? 2 : 3; }),
+            out);
+        TypeParam::verify(1, out);
     }
-
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval, full_t::first_level) {
-        eval(sup{}) = eval(sup{}) / eval(diag{});
-        eval(rhs{}) = eval(rhs{}) / eval(diag{});
-    }
-};
-
-struct backward_thomas {
-    using out = inout_accessor<0, extent<0, 0, 0, 0, 0, 1>>;
-    using sup = in_accessor<1>; // c
-    using rhs = in_accessor<2>; // d
-    using param_list = make_param_list<out, sup, rhs>;
-
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval, full_t::modify<0, -1>) {
-        eval(out{}) = eval(rhs{} - sup{} * out{0, 0, 1});
-    }
-
-    template <typename Evaluation>
-    GT_FUNCTION static void apply(Evaluation eval, full_t::last_level) {
-        eval(out{}) = eval(rhs{});
-    }
-};
-
-using tridiagonal = regression_fixture<>;
-
-TEST_F(tridiagonal, test) {
-    d(2) = 6;
-    auto out = make_storage();
-    run(
-        [](auto inf, auto diag, auto sup, auto rhs, auto out) {
-            return multi_pass(execute_forward().stage(forward_thomas(), inf, diag, sup, rhs),
-                execute_backward().stage(backward_thomas(), out, sup, rhs));
-        },
-        backend_t(),
-        make_grid(),
-        make_storage(-1),
-        make_storage(3),
-        make_storage(1),
-        make_storage([](int, int, int k) { return k == 0 ? 4 : k == 5 ? 2 : 3; }),
-        out);
-    verify(1, out);
-}
+} // namespace
