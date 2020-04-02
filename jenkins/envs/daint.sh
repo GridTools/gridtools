@@ -11,7 +11,7 @@ function module() {
     local output=$(cat "$tmpout" && rm "$tmpout")
     if [[ "$output" =~ "ERROR" ]]; then
         >&2 echo "'module $*' exited with error: $output"
-        exit 1
+        return 1
     fi
 }
 
