@@ -2,6 +2,8 @@
 
 source $(dirname "$BASH_SOURCE")/base.sh
 
+# the module command on Daint does not properly return an error code, so we
+# override the function to catch failing module invocations
 eval "$(declare -f module | sed 's/^module () *$/original_\0/')"
 function module() {
     local tmpout=$(mktemp)
