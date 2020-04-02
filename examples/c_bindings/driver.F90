@@ -9,7 +9,12 @@
 program main
     use iso_c_binding
     use bindgen_handle
+#ifdef _OPENACC
+    use copy_stencil_lib_cuda
+#else
     use copy_stencil_lib_mc
+    use copy_stencil_lib_mc
+#endif
     implicit none
     integer, parameter :: i = 9, j = 10, k = 11
     real(c_float), dimension(i, j, k) :: in_array, out_array
@@ -22,6 +27,7 @@ program main
     in_handle = make_data_store(i, j, k)
     out_handle = make_data_store(i, j, k)
 
+!$acc data copy(out_array,in_array)
     ! transform data from Fortran to C layout
     call transform_f_to_c(in_handle, in_array)
 
@@ -29,6 +35,7 @@ program main
 
     ! transform data from C layout to Fortran layout
     call transform_c_to_f(out_array, out_handle)
+!$acc end data
 
     ! check output
     if (any(in_array /= initial())) stop 1
