@@ -8,7 +8,7 @@ import time
 from pyutils import env, log
 
 
-async def _run_async(command, **kwargs):
+async def _run_async(command, log_output, **kwargs):
     process = await asyncio.create_subprocess_exec(
         *command,
         stdout=asyncio.subprocess.PIPE,
@@ -21,7 +21,7 @@ async def _run_async(command, **kwargs):
         async for line in stream:
             line = line.decode()
             buffer.write(line)
-            log.debug(command[0], line.strip('\n'))
+            log_output(command[0], line.strip('\n'))
         buffer.seek(0)
         return buffer.read()
 
@@ -39,15 +39,17 @@ async def _run_async(command, **kwargs):
     return stdout
 
 
-def run(command, **kwargs):
+def run(command, log_output=None, **kwargs):
     if not command:
         raise ValueError('No command provided')
+    if log_output is None:
+        log_output = log.debug
 
     log.info('Invoking', ' '.join(f'"{c}"' for c in command))
     start = time.time()
 
     loop = asyncio.get_event_loop()
-    output = loop.run_until_complete(_run_async(command, **kwargs))
+    output = loop.run_until_complete(_run_async(command, log_output, **kwargs))
 
     end = time.time()
     log.info(f'{command[0]} finished in {end - start:.2f}s')

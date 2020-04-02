@@ -19,8 +19,7 @@ def cmake(source_dir, build_dir, install_dir=None):
         os.makedirs(install_dir, exist_ok=True)
         env.set_cmake_arg('CMAKE_INSTALL_PREFIX', install_dir)
     command = ['cmake', source_dir] + env.cmake_args()
-    output = runtools.run(command, cwd=build_dir)
-    log.info('CMake output', output)
+    runtools.run(command, log_output=log.info, cwd=build_dir)
 
 
 def make(build_dir, targets=None):
