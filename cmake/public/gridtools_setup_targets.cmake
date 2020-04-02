@@ -231,8 +231,11 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         list(APPEND GT_BACKENDS cuda_horizontal)
 
         if(MPI_CXX_FOUND)
-            _gt_add_library(${_config_mode} gcl_gpu)
-            target_link_libraries(${_gt_namespace}gcl_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda MPI::MPI_CXX)
+            option(GT_GCL_GPU "Disable if your MPI implementation is not CUDA-aware" ON)
+            if(GT_GCL_GPU)
+                _gt_add_library(${_config_mode} gcl_gpu)
+                target_link_libraries(${_gt_namespace}gcl_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda MPI::MPI_CXX)
+            endif()
         endif()
 
         _gt_add_library(${_config_mode} bc_gpu)
