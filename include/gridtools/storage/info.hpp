@@ -44,9 +44,7 @@ namespace gridtools {
 
             template <int... Dims, int... LayoutArgs, class Array>
             constexpr Array make_strides(layout_map<LayoutArgs...> layout, uint_t align, Array const &lengths) {
-#if not defined(__CUDA_ARCH__) || (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ >= 10)
                 assert(align > 0);
-#endif
                 Array padded_lengths = {make_padded_length(layout, LayoutArgs, align, lengths[Dims])...};
                 return {make_stride(layout, LayoutArgs, padded_lengths)...};
             }
