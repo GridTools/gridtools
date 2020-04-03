@@ -13,7 +13,6 @@ program main
     use copy_stencil_lib_cuda
 #else
     use copy_stencil_lib_mc
-    use copy_stencil_lib_mc
 #endif
     implicit none
     integer, parameter :: i = 9, j = 10, k = 11
