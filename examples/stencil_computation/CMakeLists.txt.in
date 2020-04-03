@@ -3,6 +3,7 @@ project(stencil_computation LANGUAGES CXX)
 
 # enable CUDA if it is found on the system
 include(../workaround_check_language.cmake) # see https://gitlab.kitware.com/cmake/cmake/issues/19013
+_workaround_check_language(CUDA)
 if(CMAKE_CUDA_COMPILER)
     # 2) Enable the CUDA language if you want to run your code on a CUDA-capable GPU. This
     #    must be done before calling `find_package(GridTools)`
@@ -10,7 +11,7 @@ if(CMAKE_CUDA_COMPILER)
 endif()
 
 find_package(GridTools @GridTools_VERSION@ REQUIRED
-    HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake)
+    HINTS @CMAKE_INSTALL_PREFIX@/lib/cmake/GridTools)
 
 enable_testing()
 
@@ -18,14 +19,17 @@ add_executable(driver_mc driver.cpp interpolate_stencil.cpp)
 target_link_libraries(driver_mc GridTools::gridtools)
 add_test(NAME driver_mc COMMAND $<TARGET_FILE:driver_mc> 33 44 55)
 
-if (CMAKE_CUDA_COMPILER)
-    if(GRIDTOOLS_HAS_BACKEND_CUDA)
-        add_library(stencil_lib_cuda interpolate_stencil.cu)
-        target_link_libraries(stencil_lib_cuda PUBLIC GridTools::gridtools)
+if(TARGET GridTools::backend_cuda)
+    set(EXAMPLE_CUDA_ARCH "@GT_CUDA_ARCH@" CACHE STRING "CUDA compute capability to be used for this example.")
 
-        add_executable(driver_cuda driver.cpp)
-        target_link_libraries(driver_cuda PUBLIC stencil_lib_cuda)
+    add_library(stencil_lib_cuda interpolate_stencil.cpp)
+    target_link_libraries(stencil_lib_cuda PRIVATE GridTools::backend_cuda)
+    target_compile_definitions(stencil_lib_cuda PUBLIC USE_GPU)
+    gridtools_setup_target(stencil_lib_cuda CUDA_ARCH ${EXAMPLE_CUDA_ARCH})
 
-        add_test(NAME driver_cuda COMMAND $<TARGET_FILE:driver_cuda> 33 44 55)
-    endif()
+    add_executable(driver_cuda driver.cpp) # Can be build with the host compiler
+    target_link_libraries(driver_cuda PRIVATE stencil_lib_cuda)
+    target_link_libraries(driver_cuda PRIVATE GridTools::storage_cuda)
+
+    add_test(NAME driver_cuda COMMAND $<TARGET_FILE:driver_cuda> 33 44 55)
 endif()
