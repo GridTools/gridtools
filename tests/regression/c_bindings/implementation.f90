@@ -1,5 +1,6 @@
 ! This file is generated!
 module implementation
+use iso_c_binding
 implicit none
   interface
 
