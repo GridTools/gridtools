@@ -104,14 +104,15 @@ if buildinfo:
               required=True,
               help='output file path, extension .json is added if not given')
     def run(domain_size, runs, output):
+        import json
         import perftest
         if not output.lower().endswith('.json'):
             output += '.json'
 
-        results = perftest.run(domain_size, runs)
-        for tag, result in results.items():
-            perftest.result.save(f'.{tag}.'.join(output.rsplit('.', 1)),
-                                 result)
+        data = perftest.run(domain_size, runs)
+        with open(output, 'w') as outfile:
+            json.dump(data, outfile, indent='  ')
+            log.info(f'Successfully saved perftests output to {output}')
 
 
 @perftest.command(description='plot performance results')
