@@ -217,7 +217,7 @@ which then can be transformed into a |GT| storage.
 
 .. code-block:: gridtools
 
-  #include <gridtools/interface/fortran_array_adapter.hpp>
+  #include <gridtools/storage/adapter/fortran_array_adapter.hpp>
 
   using storage_info_t = storage_traits<Backend>::storage_info_t<0, 3>;
   using data_store_t = storage_traits<Backend>::data_store_t<double, storage_info_t>;

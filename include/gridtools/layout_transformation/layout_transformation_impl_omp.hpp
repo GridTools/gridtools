@@ -13,8 +13,8 @@
 #include <cassert>
 #include <utility>
 
-#include "../../common/hypercube_iterator.hpp"
-#include "../../common/tuple_util.hpp"
+#include "../common/hypercube_iterator.hpp"
+#include "../common/tuple_util.hpp"
 
 namespace gridtools {
     namespace impl {
