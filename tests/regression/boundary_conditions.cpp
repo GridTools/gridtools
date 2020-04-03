@@ -125,7 +125,7 @@ namespace {
 
     GT_REGRESSION_TEST(distributed_boundary, test_environment<halo_size>, gcl_arch_t) {
         auto src = TypeParam::make_storage([](int i, int j, int k) { return i + j + k; });
-        auto dst = TypeParam::make_storage();
+        auto dst = TypeParam::make_storage(0);
 
         auto &&lengths = src->info().lengths();
         auto &&total_lengths = make_total_lengths(*src);
