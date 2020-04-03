@@ -27,6 +27,12 @@ def run(run_mpi_tests, verbose_ctest):
                         use_mpi_config=True)
 
 
+def run_perftests():
+    runtools.srun([os.path.join('tests', 'regression', 'perftests')],
+                  log_output=log.info,
+                  cwd=buildinfo.binary_dir)
+
+
 def compile_examples(build_dir):
     import build
     from pyutils import buildinfo

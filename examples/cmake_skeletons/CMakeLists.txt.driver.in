@@ -9,6 +9,9 @@ enable_testing()
 
 include(workaround_check_language.cmake) # see https://gitlab.kitware.com/cmake/cmake/issues/19013
 _workaround_check_language(CUDA)
+if(CMAKE_CUDA_COMPILER)
+    set(EXAMPLE_CUDA_ARCH "@GT_CUDA_ARCH@" CACHE STRING "CUDA compute capability to be used for this example.")
+endif()
 if(GT_EXAMPLES_FORCE_CUDA AND NOT CMAKE_CUDA_COMPILER) #TODO fix me
     message(FATAL_ERROR "No CUDA compiler is available, but CUDA compilation was requested.")
 endif()
@@ -21,6 +24,7 @@ foreach(ex IN ITEMS @enabled_examples@)
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             -DCMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER}
             -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON
+            -DEXAMPLE_CUDA_ARCH=${EXAMPLE_CUDA_ARCH}
         INSTALL_COMMAND ""
         )
     ExternalProject_Get_property(${ex}_example BINARY_DIR)

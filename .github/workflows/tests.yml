@@ -35,8 +35,8 @@ jobs:
         echo "::set-env name=OMP_NUM_THREADS::$num_proc
     - name: build
       run: |
-        python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install
+        python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
     - name: run tests
       if: (!contains(matrix.compiler, 'cuda')) # no GPUs available -> not tests
       run: |
-        $(pwd)/build/pyutils/driver.py -vv test
+        $(pwd)/build/pyutils/driver.py -vv test --perftests-only

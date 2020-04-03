@@ -1,5 +1,6 @@
 ! This file is generated!
 module implementation_wrapper
+use iso_c_binding
 implicit none
   interface
 

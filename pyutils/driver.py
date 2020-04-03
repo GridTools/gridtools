@@ -59,22 +59,27 @@ if buildinfo:
               '-m',
               action='store_true',
               help='enable execution of MPI tests')
+    @args.arg('--perftests-only',
+              action='store_true',
+              help='only run perftests binaries')
     @args.arg('--verbose-ctest',
               action='store_true',
               help='run ctest in verbose mode')
-    @args.arg('--examples-build-dir', help='build directory for examples')
+    @args.arg('--examples-build-dir',
+              help='build directory for examples',
+              default=os.path.join(buildinfo.binary_dir, 'examples_build'))
     @args.arg('--build-examples',
               '-b',
               action='store_true',
               help='enable building of GridTools examples')
-    def test(run_mpi_tests, verbose_ctest, examples_build_dir, build_examples):
+    def test(run_mpi_tests, perftests_only, verbose_ctest, examples_build_dir,
+             build_examples):
         import test
 
-        if not examples_build_dir:
-            examples_build_dir = os.path.join(buildinfo.binary_dir,
-                                              'examples_build')
-
-        test.run(run_mpi_tests, verbose_ctest)
+        if perftests_only:
+            test.run_perftests()
+        else:
+            test.run(run_mpi_tests, verbose_ctest)
 
         if build_examples:
             test.compile_examples(examples_build_dir)
