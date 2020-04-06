@@ -50,160 +50,180 @@ computations in order to be optimal on the target hardware.
 Dependencies
 ^^^^^^^^^^^^
 
-|GT| requires at least a header-only installation of Boost_. It depends on ``Boost Preprocessor Library``.
-
-Additionally, |GT| requires a recent version of CMake_.
+|GT| requires a header-only installation of Boost_, a recent version of CMake_ and a modern compiler.
+The exact version requirements can be found on `github <https://github.com/GridTools/gridtools>`_.
 
 .. _Boost: https://www.boost.org/
 .. _CMake: https://www.cmake.org/
 
-|GT| requires a modern compiler. A list of supported compilers can be found on `github <https://github.com/GridTools/gridtools>`_.
+Addtionally |GT| requires the following optional dependencies.
+For the communication module (GCL) *MPI* is required. For the CUDA/HIP backends a CUDA or HIP compiler is required.
+For the CPU backends *OpenMP* is required.
 
+
+---------------
+Using GridTools
+---------------
+
+|GT| uses CMake as build system.  CMake offers two ways of using a CMake-managed project: from an installation
+or using FetchContent to pull in a dependency on the fly. |GT| supports both ways.
 
 .. _installation:
 
---------------------
-Installation and Use
---------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installing and validating GridTools
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-^^^^^^^^^^^^^
-Simple Script
-^^^^^^^^^^^^^
-
-We first provide a sample of the commands needed to enable the multicore and CUDA backends, install them in ``/usr/local``,
-and run the gridtools tests.
+To install |GT| in ``/usr/local``
+and run the tests use the following commands.
 
 .. code-block:: shell
 
  git clone http://github.com/eth-cscs/gridtools.git
  cd gridtools
  mkdir build && cd build
- cmake -DGT_ENABLE_BACKEND_MC=ON -DGT_ENABLE_BACKEND_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
- make install -j4
- make test
+ cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..
+ cmake --build --parallel 4
+ ctest
 
-|GT| uses CMake as building system. The installation can be configured using `ccmake`. The following variables control the back-ends that will be supported by the runtime components of the installation, namely :ref:`GCL <halo-exchanges>`.
+CMake will detect the optional dependencies and enable the available backends accordingly.
+During configure the available GridTools targets will be listed.
 
-.. code-block:: shell
+The following CMake variables are available to customize the installation of |GT|.
 
- GT_ENABLE_BACKEND_CUDA # For CUDA GPUs
- GT_ENABLE_BACKEND_X86  # For cache based multicores
- GT_ENABLE_BACKEND_NAIVE  # For naive implementation
- GT_ENABLE_BACKEND_MC   # For optimized multicores and KNL
+  * Set ``GT_INSTALL_EXAMPLES`` to ``ON`` and
+  * select a directory for installation with ``GT_INSTALL_EXAMPLES_PATH``.
+    The examples come with a standalone CMake project and can be built separately.
 
-All the targets can be installed and used at the same time, but some runtime components may lead to incompatibilities or complex environments to make the codes run. It may be more effective to do multiple installs of the library for different targets in this case.
+Additionally, use the following CMake variables to customize building of tests.
 
-At the moment the only runtime component of |GT| is the GCL, the communication module. By default, this component will be installed in the system as a single-node mockery of the full distributed memory capability. To enable the full GCL you must set to ``ON`` the following variable
+  * Set ``BUILD_TESTING`` to ``OFF`` to disable building any tests (fast installation without validation).
+  * Set ``GT_GCL_GPU`` to ``OFF`` to disable the ``gcl_gpu`` target (and to disable building of GPU GCL tests).
+    This is useful, if you have CUDA in your environment, but the MPI implementation is not CUDA-aware.
+  * Set ``GT_CUDA_ARCH`` to the compute capability of the GPU device on which you want to run the tests.
+  * If your compiler is a CUDA-capable *Clang*, you can switch how CUDA code will be compiled, by setting
+    ``GT_CLANG_CUDA_MODE`` to one of ``AUTO`` (default, prefer Clang-CUDA if available), ``Clang-CUDA`` (compile with
+    Clang), ``NVCC-CUDA`` (compile with NVCC and Clang as the host compiler).
 
-.. code-block:: shell
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using a GridTools installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
- GT_USE_MPI
+Using |GT| follows standard CMake practices. If |GT| was installed to `<prefix>`,
+provide ``-DCMAKE_PREFIX_PATH=<prefix>`` or ``-DGridTools_ROOT=<prefix>`` to indicate where |GT| can be found.
+The ``CMakeLists.txt`` file should then contain the following line:
 
-In addition, it may be convenient to install the library without compiling and running the tests, that use multiple nodes. To do so you can set to ``ON`` the following variable:
+.. code-block:: cmake
 
-.. code-block:: shell
-
- GT_GCL_ONLY
-
-Other variables can be useful for your system, and you can find their descriptions using ``ccmake``.
-
-When installing |GT| all the source codes of the components will be copied to the installation path. To avoid compiling and running tests for specific components, |GT| allows to enable or disable components using the following variables, with obvious meaning:
-
-.. code-block:: shell
-
- INSTALL_BOUNDARY_CONDITIONS
- INSTALL_DISTRIBUTED_BOUNDARIES
- INSTALL_COMMON
- INSTALL_STENCIL_COMPOSITION
- INSTALL_STORAGE
- INSTALL_C_BINDINGS
- INSTALL_INTERFACE
- INSTALL_TOOLS
-
-To have access to these variables ``INSTALL_ALL`` should be set to ``OFF``.
-
-Examples can be installed by enabling ``GT_INSTALL_EXAMPLES``. This will install the examples into the path given by
-``GT_INSTALL_EXAMPLES_PATH``. The examples come with a standalone CMake project and can be built separately, e.g. with
-the following set of instructions:
-
-.. code-block:: shell
-
-  cd examples
-  mkdir build && cd build
-  cmake ..
-  make -j4
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Enabling Clang-CUDA and AMD GPU Support (Experimental)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Besides NVCC-based compilation for NVIDIA GPUs, |GT| additionally supports Clang-based compilation for NVIDIA and AMD GPUs.
-Due to a bug in Clang (https://bugs.llvm.org/show_bug.cgi?id=42061), this is only possible when not using OpenMP.
-As all non-GPU backends of GridTools currently require OpenMP, they have to be disabled.
-Then, Clang-based CUDA compilation can be activated by setting the CMake-variable ``GT_CUDA_COMPILATION_TYPE`` to ``Clang-CUDA``
-and setting Clang as the main C++ compiler. A fully working command for configuring GridTools could look like this:
-
-.. code-block:: shell
-
- export CXX=/path/to/clang++
- cmake -DGT_ENABLE_BACKEND_CUDA=ON \
-     -DGT_CUDA_COMPILATION_TYPE=Clang-CUDA \
-     -DGT_ENABLE_BACKEND_MC=OFF \
-     -DGT_ENABLE_BACKEND_X86=OFF \
-     -DGT_ENABLE_BACKEND_NAIVE=OFF \
-     -DCMAKE_INSTALL_PREFIX=/usr/local \
-     ..
-
-Further, GridTools can also be compiled for AMD GPUs using AMD’s HIP. But due to limitations of AMD’s current HCC compiler,
-the Clang-based HIP version has to be used, which is not yet officially distributed in the current HIP releases
-(but will be the successor of HCC-based HIP). Compilation of a Clang-based HIP compiler is relatively straightforward and
-documented in the `official HIP repository <https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md#hip-clang>`_.
-Otherwise, the configuration is similar to the one for Clang-CUDA. Just set ``GT_CUDA_COMPILATION_TYPE`` to ``HIPCC_AMDGPU``
-and the C++ compiler to HIPCC. For example:
-
-.. code-block:: shell
-
- export CXX=/path/to/hipcc
- cmake -DGT_ENABLE_BACKEND_CUDA=ON \
-     -DGT_CUDA_COMPILATION_TYPE=HIPCC-AMDGPU \
-     -DGT_ENABLE_BACKEND_MC=OFF \
-     -DGT_ENABLE_BACKEND_X86=OFF \
-     -DGT_ENABLE_BACKEND_NAIVE=OFF \
-     -DCMAKE_INSTALL_PREFIX=/usr/local \
-     ..
+ find_package(GridTools VERSION ... REQUIRED)
 
 .. note::
 
- The backend used for the AMD GPUs is also named “CUDA” for historical reasons as internally the same backend (with minor changes)
- is compiled for AMD and NVIDIA GPUs.
+  If GridTools should use CUDA with NVCC, you must call ``enable_language(CUDA)`` before the call to ``find_package``.
 
+.. note::
+
+  If you are compiling with *Clang*, set the variable ``GT_CLANG_CUDA_MODE`` before calling ``find_package``, see
+  :ref:`installation`. It is recommended to make this variable a CMake cached variable to allow users of your code
+  to change the mode.
+
+.. _fetch_content:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using GridTools with CMake's FetchContent
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Alternatively to a |GT| installation you can use GridTools with *FetchContent*. To use FetchContent add the following
+lines to your CMake project
+
+.. code-block:: cmake
+
+  include(FetchContent)
+  FetchContent_Declare(GridTools
+      URL https://github.com/GridTools/gridtools/archive/<release_tag>.tar.gz
+  )
+  FetchContent_GetProperties(GridTools)
+  if(NOT GridTools_POPULATED)
+      FetchContent_Populate(GridTools)
+      add_subdirectory(${gridtools_SOURCE_DIR} ${gridtools_BINARY_DIR})
+  endif()
+
+where *<release_tag>* is the git tag of the |GT| release, e.g. ``v2.0.0``.
+
+The following CMake options are available (see also :ref:`installation`).
+
+  * By default, all |GT| tests are disabled. To enable building of the tests, set ``GT_BUILD_TESTING`` to ``ON``.
+    If tests are enabled, their behavior can be changed as described in :ref:`installation`.
+  * Use ``GT_CLANG_CUDA_MODE`` to select how CUDA code is compiled, see :ref:`installation`.
 
 ^^^^^^^^^^^^^^^
 Using GridTools
 ^^^^^^^^^^^^^^^
 
-Using |GT| follows standard CMake practices. To indicate where the |GT| can be found,
-CMake should be provided with the variable ``GridTools_DIR``,
-e.g. by calling CMake with ``-DGridTools_DIR=</path/to/gridtools/lib/cmake>``.
-The ``CMakeLists.txt`` file should then contain the following lines:
+After the GridTools is made available by either ``find_package`` or ``FetchContent`` the following targets for the
+different |GT| modules are available
 
-.. code-block:: cmake
+  * ``backend_naive``
 
- find_package(GridTools VERSION ... REQUIRED)
- list(APPEND CMAKE_MODULE_PATH "${GridTools_MODULE_PATH}")
+If *OpenMP* is available
 
-.. note::
- If GridTools uses the CUDA backend, you must call ``enable_language(CUDA)`` before finding the package.
+  * ``backend_cpu_ifirst``
+  * ``backend_cpu_kfirst``
+  * ``storage_cpu_ifirst``
+  * ``storage_cpu_kfirst``
+  * ``layout_transformation_cpu``
+  * ``bc_cpu``
 
-Targets that need |GT| should link against ``GridTools::gridtools``. If the communication module is needed ``GridTools::gcl`` should be used instead.
+If *OpenMP* **and** *MPI* is available
+
+  * ``gcl_cpu``
+
+If a *CUDA runtime* is available (no *CUDA compiler* required)
+
+  * ``storage_cuda``
+
+If a *CUDA compiler* or a *HIP compiler* is available
+
+  * ``backend_cuda``
+  * ``layout_transformation_gpu``
+  * ``bc_gpu``
+
+If a *CUDA compiler* and *MPI* is available
+
+  * ``gcl_gpu`` (can be disabled by the user if the MPI implementation is not CUDA-aware)
+
+After linking to the GridTools backend, we recommend to call the CMake function
+``gridtools_setup_target(<target> [CUDA_ARCH <compute_capability>])`` on your target.
+The function helps abstracting differences in how CUDA code is compiled
+(e.g. *Clang* uses a different flag than *NVCC* for the CUDA architecture). Additionally, using this function
+allows to compile the same *.cpp* file for both CUDA and host, without having to wrap the implementation in a
+*.cu* file.
 
 .. code-block:: cmake
 
  add_library(my_library source.cpp)
- target_link_libraries(my_library PUBLIC GridTools::gridtools)
+ target_link_libraries(my_library PUBLIC GridTools::backend_cuda)
+ gridtools_setup_target(my_library CUDA_ARCH sm_60)
+
+
+^^^^^^^^^^^^^^^
+AMD GPU Support
+^^^^^^^^^^^^^^^
+
+Further, GridTools can also be compiled for AMD GPUs using AMD’s HIP. But due to limitations of AMD’s current HCC compiler,
+the Clang-based HIP version has to be used, which is not yet officially distributed in the current HIP releases
+(but will be the successor of HCC-based HIP). Compilation of a Clang-based HIP compiler is relatively straightforward and
+documented in the `official HIP repository <https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md#hip-clang>`_.
+
+The backend used for the AMD GPUs is also named “CUDA” for historical reasons as internally the same backend (with minor changes)
+is compiled for AMD and NVIDIA GPUs.
+
 
 ------------
 Contributing
 ------------
 
-Contributions to the |GT| set of libraries are welcome. However, our policy is that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.
+Contributions to the |GT| set of libraries are welcome. However, our policy is that we will be the official maintainers
+and providers of the GridTools code. We believe that this will provide our users with a clear reference point for
+support and guarantees on timely interactions. For this reason, we require that external contributions to |GT|
+will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.
