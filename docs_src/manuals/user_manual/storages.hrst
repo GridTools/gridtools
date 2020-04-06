@@ -371,4 +371,3 @@ SID Concept Adaptation
 Stencil Composition Library doesn't use Storage Library directly.
 Instead ``SID Concept`` is used to specify the requirements on input/output fields.
 ``Data store`` models ``SID`` if ``gridtools/storage/sid.hpp`` header is included.
-

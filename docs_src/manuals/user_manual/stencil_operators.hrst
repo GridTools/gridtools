@@ -36,7 +36,7 @@ Accessors are defined as follows:
 .. code-block:: gridtools
 
   using name = accessor<I, intent, [extent = extent<>, N]>;
- 
+
 where
 
 * ``name`` is the name associated to the :term:`Accessor` and will be used in the implementation of the stencil
@@ -52,7 +52,7 @@ where
   #. ``intent::in`` to specify *read-only* access
   #. ``intent::inout`` to specify *read-write* access. The ``extent`` for `i` and `j` for ``inout`` must be made of all
      zeros (see next points)
-  
+
   Alternatively, the abbreviations ``in_accessor`` our ``inout_accessor`` can be used respectively.
 
   .. code-block:: gridtools
@@ -105,7 +105,7 @@ The parameter list ``param_list`` is defined as follows:
 where ``_accessors_`` is a comma separated list of all the :term:`Accessors<Accessor>` specified before. For example:
 
 .. code-block:: gridtools
- 
+
  using in_ = in_accessor<0>;
  using out_ = inout_accessor<1>;
 
@@ -206,7 +206,7 @@ Example
             }
         }
     };
- 
+
 -----------
 Expressions
 -----------
@@ -248,4 +248,3 @@ your code:
          eval(out()) = 0.;
      }
  }
- 
