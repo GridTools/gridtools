@@ -60,7 +60,7 @@ However, some data fields used in boundary conditions may be read-only and shoul
   using namespace std::placeholders;
   bind_bc(copy_boundary{}, b, _1).associate(c)
 
-This example, copies the boundary of ``c`` into ``b``, and performs the halo exchanges for ``b``. The halo exchange will not be executed on ``c``, which is `read only` in this call. 
+This example, copies the boundary of ``c`` into ``b``, and performs the halo exchanges for ``b``. The halo exchange will not be executed on ``c``, which is `read only` in this call.
 
 If halo exchanges should be applied to both fields, and the boundary of ```c`` should be copied into ``b``, both fields should be used used in ``bind_bc``:
 
