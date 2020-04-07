@@ -273,10 +273,14 @@ def compare(a, b, output):
         return all(ao[k] == v for k, v in bo.items() if k != 'series')
 
     results = []
-    for props in a['outputs']:
-        a_series = props.pop('series')
-        b_series = next(o for o in b['outputs']
-                        if all(o[k] == v for k, v in props.items()))['series']
+    for props in b['outputs']:
+        b_series = props.pop('series')
+        try:
+            a_series = next(o for o in a['outputs'] if all(
+                o[k] == v for k, v in props.items()))['series']
+        except StopIteration:
+            log.debug('Nothing to compare for', props)
+            continue
 
         props['ci'] = _compare_medians(a_series, b_series)
         props['series_before'] = a_series
