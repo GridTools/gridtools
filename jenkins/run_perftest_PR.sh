@@ -2,10 +2,6 @@
 
 source $(dirname "$0")/setup.sh
 
-grid=structured
-
-export GTCMAKE_GT_ENABLE_BACKEND_NAIVE=OFF
-
 # build binaries for performance tests
 ./pyutils/driver.py -v -l $logfile build -b release -o build -e $envfile -t perftests || { echo 'Build failed'; rm -rf $tmpdir; exit 1; }
 
