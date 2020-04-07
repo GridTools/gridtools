@@ -148,7 +148,6 @@ def compare(output, input):
 
     results = [load(i) for i in input]
     plot.compare(*results, output)
-    log.info(f'Successfully saved plot to {output}')
 
 
 @plot.command(description='plot performance history')

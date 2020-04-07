@@ -231,7 +231,7 @@ def _write_table_html(results, html):
 
 
 def _write_histogram_html(result, html):
-    log.info('Plotting comparison histogram')
+    log.debug('Plotting comparison histogram')
     title = (result['name'].replace('_', ' ').title() + ' (' +
              result['backend'].upper() + ', ' + result['float_type'].upper() +
              ', ' + _classify(result['ci']) + ')')
@@ -258,6 +258,7 @@ def _write_histogram_html(result, html):
     fig.update_traces(opacity=0.5)
     fig.update_xaxes(rangemode='tozero')
     fig.write_html(html)
+    log.info(f'Sucessfully written histogram plot to {html}')
 
 
 def _write_combined_html(iframes, html):
