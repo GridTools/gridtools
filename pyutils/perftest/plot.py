@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
-import contextlib
 import functools
 import itertools
 import math
@@ -11,68 +10,13 @@ import re
 import sys
 import types
 import warnings
+from xml.etree import ElementTree as et
 
 import numpy as np
 
 from pyutils import log
 
 from plotly import graph_objs as go, colors
-
-
-def figsize(rows=1, cols=1):
-    """Default figsize for a plot with given subplot rows and columns."""
-    return (7 * rows, 5 * cols)
-
-
-def discrete_colors(n):
-    """Generates `n` discrete colors for plotting."""
-    colors = plt.cm.tab20.colors
-    colors = colors[::2] + colors[1::2]
-    return list(itertools.islice(itertools.cycle(colors), n))
-
-
-def get_titles(results):
-    """Generates plot titles. Compares the stored run info in the results
-    and groups them by common and different values to automtically generate
-    figure title and plot captions.
-
-    Args:
-        results: List of `result.Result` objects.
-
-    Returns:
-        A tuple with two elements. The first element is a single string,
-        usable as a common title. The second element is a list of strings,
-        one per given result, usable as subtitles or plot captions.
-    """
-    common, diff = result.compare([r.runinfo for r in results])
-
-    def titlestr(k, v):
-        if k == 'name':
-            return 'Runtime: ' + v.title()
-        if k == 'datetime':
-            return 'Date/Time: ' + time.short_timestr(time.local_time(v))
-        elif k == 'compiler':
-            m = re.match(
-                '(?P<compiler>[^ ]+) (?P<version>[^ ]+)'
-                '( \\((?P<compiler2>[^ ]+) (?P<version2>[^ ]+)\\))?', v)
-            if m:
-                d = m.groupdict()
-                d['compiler'] = os.path.basename(d['compiler'])
-                v = '{compiler} {version}'.format(**d)
-                if d['compiler2']:
-                    d['compiler2'] = os.path.basename(d['compiler2'])
-                    v += ' ({compiler2} {version2})'.format(**d)
-            return 'Compiler: ' + v
-        else:
-            s = str(v).title()
-            if len(s) > 20:
-                s = s[:20] + '…'
-            return k.title() + ': ' + s
-
-    suptitle = ', '.join(titlestr(k, v) for k, v in common.items())
-
-    titles = ['\n'.join(titlestr(k, v) for k, v in d.items()) for d in diff]
-    return suptitle, titles
 
 
 def _compare_medians(a, b, n=1000, alpha=0.05):
@@ -155,86 +99,77 @@ def _color(class_str):
     return red * m + green * p + blue * u + white * w
 
 
-@contextlib.contextmanager
-def _html(filename, style=None):
-    with open(filename, 'w') as file:
-        file.write('<html>\n')
-        file.write('<head>\n')
-        file.write('<meta charset="UTF-8">\n')
-        file.write('<meta name="viewport" '
-                   'content="width=1000, initial-scale=1.0">\n')
-        if style is not None:
-            file.write('<style>html { font-family: sans-serif; } ' + style +
-                       '</style>\n')
-        file.write('</head>\n')
-        file.write('<body>\n')
-        yield file
-        file.write('</body>\n')
-        file.write('</html>\n')
-    log.info(f'Successfully written {filename}')
+def _base_html():
+    html = et.Element('html')
+    head = et.SubElement(html, 'head')
+    meta = et.SubElement(head, 'meta')
+    meta.set('charset', 'utf-8')
+    meta = et.SubElement(head, 'meta')
+    meta.set('name', 'viewport')
+    meta.set('content', 'width=2000, initial-scale=1.0')
+    body = et.SubElement(html, 'body')
+    return html
 
 
-def _write_table_html(results, html):
-    log.info('Writing comparison table')
-    with _html(html, style='td { padding: 0.5em; }') as file:
+def _table_html(results):
+    log.info('Generating comparison table')
 
-        def name_backend(result):
-            return result['name'], result['backend']
+    def name_backend(result):
+        return result['name'], result['backend']
 
-        backends = set()
-        names = set()
-        classified = defaultdict(dict)
-        for (name,
-             backend), items in itertools.groupby(sorted(results,
-                                                         key=name_backend),
-                                                  key=name_backend):
-            data = {
-                item['float_type']: _classify(item['ci'])
-                for item in items
-            }
-            classified[name][backend] = data['float'], data['double']
-            names.add(name)
-            backends.add(backend)
+    backends = set()
+    names = set()
+    classified = defaultdict(dict)
+    for (name, backend), items in itertools.groupby(sorted(results,
+                                                           key=name_backend),
+                                                    key=name_backend):
+        data = {item['float_type']: _classify(item['ci']) for item in items}
+        classified[name][backend] = data['float'], data['double']
+        names.add(name)
+        backends.add(backend)
 
-        backends = list(sorted(backends))
-        names = list(sorted(names))
+    backends = list(sorted(backends))
+    names = list(sorted(names))
 
-        file.write('<table>\n<tr>\n')
-        file.write('    <td style="font-weight:bold">BENCHMARK</td>\n')
+    table = et.Element('table')
+
+    row = et.SubElement(table, 'tr')
+
+    cell = et.SubElement(row, 'th')
+    cell.text = 'BENCHMARK'
+    for backend in backends:
+        cell = et.SubElement(row, 'th')
+        cell.text = backend.upper()
+
+    for name in names:
+        row = et.SubElement(table, 'tr')
+        cell = et.SubElement(row, 'td')
+        cell.text = name.replace('_', ' ').title()
+
         for backend in backends:
-            file.write(
-                f'    <td style="font-weight:bold">{backend.upper()}</td>\n')
-        file.write('  </tr>\n')
+            try:
+                float_class, double_class = classified[name][backend]
+            except KeyError:
+                cell = et.SubElement(row, 'td')
+                continue
+            if float_class == double_class:
+                class_str = float_class
+                r, g, b = _color(class_str)
+            else:
+                class_str = float_class + ' ' + double_class
+                r, g, b = (_color(float_class) + _color(double_class)) / 2
 
-        for name in names:
-            file.write('  <tr>\n')
-            title = name.replace('_', ' ').title()
-            file.write(f'    <td>{title}</td>\n')
-            for backend in backends:
-                try:
-                    float_class, double_class = classified[name][backend]
-                except KeyError:
-                    file.write('    <td></td>\n')
-                    continue
-                if float_class == double_class:
-                    class_str = float_class
-                    r, g, b = _color(class_str)
-                else:
-                    class_str = float_class + ' ' + double_class
-                    r, g, b = (_color(float_class) + _color(double_class)) / 2
+            cell = et.SubElement(row, 'td')
+            r, g, b = int(r), int(g), int(b)
+            cell.set('style', f'background:rgb({r}, {g}, {b})')
+            cell.text = class_str
 
-                file.write(
-                    f'    <td style="background:rgb({r}, {g}, {b})">{class_str}</td>\n'
-                )
-            file.write('  </tr>\n')
-        file.write('</table>\n')
+    log.debug('Generated performance comparison table')
+    return table
 
 
-def _write_histogram_html(result, html):
+def _histogram_html(result):
     log.info('Plotting comparison histogram')
-    title = (result['name'].replace('_', ' ').title() + ' (' +
-             result['backend'].upper() + ', ' + result['float_type'].upper() +
-             ', ' + _classify(result['ci']) + ')')
     fig = go.Figure()
     fig.add_trace(go.Histogram(x=result['series_before'], name='Before'))
     fig.add_trace(go.Histogram(x=result['series_after'], name='After'))
@@ -254,18 +189,42 @@ def _write_histogram_html(result, html):
                   y1=1,
                   yref='paper',
                   line=dict(color=colors.DEFAULT_PLOTLY_COLORS[1]))
-    fig.update_layout(title=title, barmode='overlay', font=dict(color='black'))
+    fig.update_layout(barmode='overlay',
+                      font=dict(color='black'),
+                      autosize=False,
+                      width=990,
+                      height=500)
     fig.update_traces(opacity=0.5)
     fig.update_xaxes(rangemode='tozero')
-    fig.write_html(html)
+    log.debug('Generated histogram plot')
+    return et.fromstring(fig.to_html(include_plotlyjs='cdn', full_html=False))
 
 
-def _write_combined_html(iframes, html):
-    log.debug('Generating combined HTML', ', '.join(iframes) + ' -> ' + html)
-    with _html(html, style='iframe { width: 1000px; height: 500px; }') as file:
-        for iframe in iframes:
-            file.write(f'<iframe src="{iframe}" frameborder=0 scrolling="no">'
-                       f'</iframe>')
+def _info_html(a, b):
+    table = et.Element('table')
+
+    def add_row(name, va, vb, tag='td'):
+        row = et.SubElement(table, 'tr')
+        cell = et.SubElement(row, tag)
+        cell.text = name
+        cell = et.SubElement(row, tag)
+        cell.text = va
+        cell = et.SubElement(row, tag)
+        cell.text = vb
+        return row
+
+    add_row('Property', 'Before', 'After', tag='th')
+
+    for k, vb in b['gridtools'].items():
+        va = a['gridtools'].get(k, '')
+        add_row('GridTools ' + k.title(), va, vb)
+
+    for k, vb in b['environment'].items():
+        va = a['environment'].get(k, '')
+        add_row(k.title(), va, vb)
+
+    log.debug('Generated info comparison table')
+    return table
 
 
 def compare(a, b, output):
@@ -287,17 +246,56 @@ def compare(a, b, output):
         props['series_after'] = b_series
         results.append(props)
 
-    base, ext = os.path.splitext(output)
-    htmls = [f'{base}_table{ext}']
-    _write_table_html(results, htmls[-1])
+    html = _base_html()
+
+    style = et.SubElement(html.find('head'), 'style')
+    style.text = (
+        '''table { margin-bottom: 5em; border-collapse: collapse; }
+           th { text-align: left;
+                border-bottom: 1px solid black;
+                padding: 0.5em; }
+           td { padding: 0.5em; }
+           .container { width: 100%;
+                        display: flex;
+                        flex-direction: row;
+                        flex-wrap: wrap; }
+           .item { width: 995px; }
+           html { font-family: sans-serif; }''')
+
+    body = html.find('body')
+
+    title = et.SubElement(body, 'h1')
+    title.text = 'GridTools Performance Test Results'
+
+    p = et.SubElement(body, 'p')
+    p.text = 'Domain size: ' + '×'.join(str(d) for d in b['domain'])
+
+    title = et.SubElement(body, 'h2')
+    title.text = 'Results'
+    body.append(_table_html(results))
+
+    title = et.SubElement(body, 'h2')
+    title.text = 'Details'
+    container = et.SubElement(body, 'div')
+    container.set('class', 'container')
 
     for result in results:
         if _significant(result['ci']):
-            html = f'{base}_plot_{len(htmls)}{ext}'
-            _write_histogram_html(result, html)
-            htmls.append(html)
+            item = et.SubElement(container, 'div')
+            item.set('class', 'item')
+            title = et.SubElement(item, 'h3')
+            title.text = (result['name'].replace('_', ' ').title() + ' (' +
+                          result['backend'].upper() + ', ' +
+                          result['float_type'].upper() + ', ' +
+                          _classify(result['ci']) + ')')
+            item.append(_histogram_html(result))
 
-    _write_combined_html(htmls, output)
+    title = et.SubElement(body, 'h2')
+    title.text = 'Info'
+    body.append(_info_html(a, b))
+
+    et.ElementTree(html).write(output, encoding='utf-8', method='html')
+    log.info(f'Sucessfully written output to {output}')
 
 
 def history(results, key='job', limit=None):
