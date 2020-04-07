@@ -561,7 +561,7 @@
       ]
     },
     {
-      "name": "stencil_on_edges_multifields",
+      "name": "stencil_on_edges_multiplefields",
       "backend": "mc",
       "float_type": "float",
       "series": [
@@ -629,7 +629,7 @@
       ]
     },
     {
-      "name": "stencil_on_edges_multifields",
+      "name": "stencil_on_edges_multiplefields",
       "backend": "mc",
       "float_type": "double",
       "series": [

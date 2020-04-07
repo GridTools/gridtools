@@ -289,7 +289,7 @@
       ]
     },
     {
-      "name": "stencil_on_edges_multifields",
+      "name": "stencil_on_edges_multiplefields",
       "backend": "cuda",
       "float_type": "float",
       "series": [
@@ -357,7 +357,7 @@
       ]
     },
     {
-      "name": "stencil_on_edges_multifields",
+      "name": "stencil_on_edges_multiplefields",
       "backend": "cuda",
       "float_type": "double",
       "series": [
