@@ -46,6 +46,7 @@ def run(domain, runs):
         'datetime': _now(),
         'envfile': buildinfo.envfile
     }
+    data['domain'] = list(domain)
     log.debug('Perftests data', pprint.pformat(data))
 
     return data
