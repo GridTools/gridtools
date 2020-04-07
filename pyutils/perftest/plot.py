@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
 
+from collections import defaultdict
+import contextlib
 import functools
 import itertools
 import math
+import operator
 import os
 import re
+import sys
+import types
 import warnings
 
 import numpy as np
 
-from perftest import result, time
 from pyutils import log
 
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot as plt  # noqa: E402
-
-
-plt.style.use('ggplot')
+from plotly import graph_objs as go, colors
 
 
 def figsize(rows=1, cols=1):
@@ -53,9 +52,9 @@ def get_titles(results):
         if k == 'datetime':
             return 'Date/Time: ' + time.short_timestr(time.local_time(v))
         elif k == 'compiler':
-            m = re.match('(?P<compiler>[^ ]+) (?P<version>[^ ]+)'
-                         '( \\((?P<compiler2>[^ ]+) (?P<version2>[^ ]+)\\))?',
-                         v)
+            m = re.match(
+                '(?P<compiler>[^ ]+) (?P<version>[^ ]+)'
+                '( \\((?P<compiler2>[^ ]+) (?P<version2>[^ ]+)\\))?', v)
             if m:
                 d = m.groupdict()
                 d['compiler'] = os.path.basename(d['compiler'])
@@ -76,47 +75,225 @@ def get_titles(results):
     return suptitle, titles
 
 
-def compare(results):
-    """Plots run time comparison of all results, one subplot per stencil.
+def _compare_medians(a, b, n=1000, alpha=0.05):
+    scale = np.median(a)
+    a = np.asarray(a) / scale
+    b = np.asarray(b) / scale
+    # bootstrap sampling
+    asamps = np.random.choice(a, (a.size, n))
+    bsamps = np.random.choice(b, (b.size, n))
+    # bootstrap estimates of difference of medians
+    bootstrap_estimates = np.median(bsamps, axis=0) - np.median(asamps, axis=0)
+    # percentile bootstrap confidence interval
+    ci = np.quantile(bootstrap_estimates, [alpha / 2, 1 - alpha / 2])
+    log.debug(f'Boostrap results (n = {n}, alpha = {alpha})',
+              f'{ci[0]:8.5f} - {ci[1]:8.5f}')
+    return ci
 
-    Args:
-        results: List of `result.Result` objects.
-    """
 
-    stenciltimes = result.times_by_stencil(results, missing=[np.nan])
-    stencils = stenciltimes.keys()
+def _classify(ci):
+    lower, upper = ci
+    assert lower <= upper
 
-    cols = math.ceil(math.sqrt(len(stencils)) / (0.5 * len(results)))
-    rows = math.ceil(len(stencils) / cols)
+    # large uncertainty
+    if upper - lower > 0.1:
+        return '??'
 
-    fig, axarr = plt.subplots(rows, cols, squeeze=False,
-                              figsize=figsize(cols * len(results) / 2, rows))
+    # no change
+    if -0.01 <= lower <= 0 <= upper <= 0.01:
+        return '='
+    if -0.02 <= lower <= upper <= 0.02:
+        return '(=)'
 
-    axes = itertools.chain(*axarr)
-    colors = discrete_colors(len(results))
+    # probably no change, but quite large uncertainty
+    if -0.05 <= lower <= 0 <= upper <= 0.05:
+        return '?'
 
-    suptitle, titles = get_titles(results)
-    fig.suptitle(suptitle, wrap=True, y=1 - 0.1 / rows,
-                 verticalalignment='center')
+    # faster
+    if -0.01 <= upper <= 0.0:
+        return '(+)'
+    if -0.05 <= upper <= -0.01:
+        return '+'
+    if -0.1 <= upper <= -0.05:
+        return '++'
+    if upper <= -0.1:
+        return '+++'
 
-    xticks = list(range(1, len(results) + 1))
-    for ax, st in itertools.zip_longest(axes, sorted(stenciltimes.items())):
-        if st:
-            stencil, times = st
-            ax.set_title(stencil.title())
+    # slower
+    if 0.01 >= lower >= 0.0:
+        return '(-)'
+    if 0.05 >= lower >= 0.01:
+        return '-'
+    if 0.1 >= lower >= 0.05:
+        return '--'
+    if lower >= 0.1:
+        return '---'
 
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore', category=RuntimeWarning)
-                medians = [np.median(t) for t in times]
-                ax.bar(xticks, medians, width=0.9, color=colors)
-                ax.boxplot(times, widths=0.9, medianprops={'color': 'black'})
+    # no idea
+    return '???'
 
-            ax.set_xticklabels(titles, wrap=True)
-        else:
-            ax.set_visible(False)
 
-    fig.tight_layout(rect=[0, 0, 1, 1 - 0.2 / rows])
-    return fig
+def _significant(ci):
+    return '=' not in _classify(ci)
+
+
+def _color(class_str):
+    red = np.array([180.0, 30.0, 0.0])
+    green = np.array([100.0, 180.0, 0.0])
+    blue = np.array([0.0, 100.0, 180.0])
+    white = np.array([245.0] * 3)
+
+    p = class_str.count('+') / 3
+    m = class_str.count('-') / 3
+    u = class_str.count('?') / 3
+    if '(' in class_str:
+        p *= 0.5
+        m *= 0.5
+        u *= 0.5
+    w = 1 - p - m - u
+    assert w >= 0
+    return red * m + green * p + blue * u + white * w
+
+
+@contextlib.contextmanager
+def _html(filename, style=None):
+    with open(filename, 'w') as file:
+        file.write('<html>\n')
+        file.write('<head>\n')
+        file.write('<meta charset="UTF-8">\n')
+        file.write('<meta name="viewport" '
+                   'content="width=1000, initial-scale=1.0">\n')
+        if style is not None:
+            file.write('<style>html { font-family: sans-serif; } ' + style +
+                       '</style>\n')
+        file.write('</head>\n')
+        file.write('<body>\n')
+        yield file
+        file.write('</body>\n')
+        file.write('</html>\n')
+    log.info(f'Successfully written {filename}')
+
+
+def _write_table_html(results, html):
+    log.info('Writing comparison table')
+    with _html(html, style='td { padding: 0.5em; }') as file:
+
+        def name_backend(result):
+            return result['name'], result['backend']
+
+        backends = set()
+        names = set()
+        classified = defaultdict(dict)
+        for (name,
+             backend), items in itertools.groupby(sorted(results,
+                                                         key=name_backend),
+                                                  key=name_backend):
+            data = {
+                item['float_type']: _classify(item['ci'])
+                for item in items
+            }
+            classified[name][backend] = data['float'], data['double']
+            names.add(name)
+            backends.add(backend)
+
+        backends = list(sorted(backends))
+        names = list(sorted(names))
+
+        file.write('<table>\n<tr>\n')
+        file.write('    <td style="font-weight:bold">BENCHMARK</td>\n')
+        for backend in backends:
+            file.write(
+                f'    <td style="font-weight:bold">{backend.upper()}</td>\n')
+        file.write('  </tr>\n')
+
+        for name in names:
+            file.write('  <tr>\n')
+            title = name.replace('_', ' ').title()
+            file.write(f'    <td>{title}</td>\n')
+            for backend in backends:
+                try:
+                    float_class, double_class = classified[name][backend]
+                except KeyError:
+                    file.write('    <td></td>\n')
+                    continue
+                if float_class == double_class:
+                    class_str = float_class
+                    r, g, b = _color(class_str)
+                else:
+                    class_str = float_class + ' ' + double_class
+                    r, g, b = (_color(float_class) + _color(double_class)) / 2
+
+                file.write(
+                    f'    <td style="background:rgb({r}, {g}, {b})">{class_str}</td>\n'
+                )
+            file.write('  </tr>\n')
+        file.write('</table>\n')
+
+
+def _write_histogram_html(result, html):
+    log.info('Plotting comparison histogram')
+    title = (result['name'].replace('_', ' ').title() + ' (' +
+             result['backend'].upper() + ', ' + result['float_type'].upper() +
+             ', ' + _classify(result['ci']) + ')')
+    fig = go.Figure()
+    fig.add_trace(go.Histogram(x=result['series_before'], name='Before'))
+    fig.add_trace(go.Histogram(x=result['series_after'], name='After'))
+    median_before = np.median(result['series_before'])
+    median_after = np.median(result['series_after'])
+    fig.add_shape(type='line',
+                  x0=median_before,
+                  x1=median_before,
+                  y0=0,
+                  y1=1,
+                  yref='paper',
+                  line=dict(color=colors.DEFAULT_PLOTLY_COLORS[0]))
+    fig.add_shape(type='line',
+                  x0=median_after,
+                  x1=median_after,
+                  y0=0,
+                  y1=1,
+                  yref='paper',
+                  line=dict(color=colors.DEFAULT_PLOTLY_COLORS[1]))
+    fig.update_layout(title=title, barmode='overlay', font=dict(color='black'))
+    fig.update_traces(opacity=0.5)
+    fig.update_xaxes(rangemode='tozero')
+    fig.write_html(html)
+
+
+def _write_combined_html(iframes, html):
+    log.debug('Generating combined HTML', ', '.join(iframes) + ' -> ' + html)
+    with _html(html, style='iframe { width: 1000px; height: 500px; }') as file:
+        for iframe in iframes:
+            file.write(f'<iframe src="{iframe}" frameborder=0 scrolling="no">'
+                       f'</iframe>')
+
+
+def compare(a, b, output):
+    def same_keys(ao, bo):
+        return all(ao[k] == v for k, v in bo.items() if k != 'series')
+
+    results = []
+    for props in a['outputs']:
+        a_series = props.pop('series')
+        b_series = next(o for o in b['outputs']
+                        if all(o[k] == v for k, v in props.items()))['series']
+
+        props['ci'] = _compare_medians(a_series, b_series)
+        props['series_before'] = a_series
+        props['series_after'] = b_series
+        results.append(props)
+
+    base, ext = os.path.splitext(output)
+    htmls = [f'{base}_table{ext}']
+    _write_table_html(results, htmls[-1])
+
+    for result in results:
+        if _significant(result['ci']):
+            html = f'{base}_plot_{len(htmls)}{ext}'
+            _write_histogram_html(result, html)
+            htmls.append(html)
+
+    _write_combined_html(htmls, output)
 
 
 def history(results, key='job', limit=None):
@@ -153,15 +330,18 @@ def history(results, key='job', limit=None):
 
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=RuntimeWarning)
-        percentiles = [result.times_by_stencil(results,
-                                               missing=[np.nan],
-                                               func=functools.partial(
-                                                   np.percentile, q=q))
-                       for q in (0, 25, 50, 75, 100)]
+        percentiles = [
+            result.times_by_stencil(results,
+                                    missing=[np.nan],
+                                    func=functools.partial(np.percentile, q=q))
+            for q in (0, 25, 50, 75, 100)
+        ]
 
     stencils = percentiles[0].keys()
-    percentiles = {stencil: [p[stencil] for p in percentiles]
-                   for stencil in stencils}
+    percentiles = {
+        stencil: [p[stencil] for p in percentiles]
+        for stencil in stencils
+    }
 
     dates = [matplotlib.dates.date2num(get_datetime(r)) for r in results]
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import os
 
 from pyutils import args, env, log
@@ -101,7 +102,7 @@ if buildinfo:
               metavar=('ISIZE', 'JSIZE', 'KSIZE'),
               help='domain size (excluding halo)')
     @args.arg('--runs',
-              default=10,
+              default=100,
               type=int,
               help='number of runs to do for each stencil')
     @args.arg('--output',
@@ -109,7 +110,7 @@ if buildinfo:
               required=True,
               help='output file path, extension .json is added if not given')
     def run(domain_size, runs, output):
-        import json
+
         import perftest
         if not output.lower().endswith('.json'):
             output += '.json'
@@ -129,16 +130,24 @@ def plot():
 @args.arg('--output',
           '-o',
           required=True,
-          help='output file, can have any extension supported by matplotlib')
+          help='output HTML file')
 @args.arg('--input',
           '-i',
           required=True,
-          nargs='+',
-          help='any number of input files')
+          nargs=2,
+          help='two input files')
 def compare(output, input):
-    from perftest import plot, result
-    results = [result.load(f) for f in input]
-    plot.compare(results).savefig(output)
+    from perftest import plot
+
+    if not output.lower().endswith('.html'):
+        output += '.html'
+
+    def load(infile):
+        with open(infile, 'r') as f:
+            return json.load(f)
+
+    results = [load(i) for i in input]
+    plot.compare(*results, output)
     log.info(f'Successfully saved plot to {output}')
 
 
