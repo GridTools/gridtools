@@ -20,6 +20,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 from pyutils import log
+from perftest import html
 
 plt.style.use('ggplot')
 
@@ -96,8 +97,8 @@ def _css_class(class_str):
     return ''
 
 
-def _table_html(results):
-    log.info('Generating comparison table')
+def _add_comparison_table(report, results):
+    log.debug('Generating comparison table')
 
     def name_backend(result):
         return result['name'], result['backend']
@@ -116,35 +117,24 @@ def _table_html(results):
     backends = list(sorted(backends))
     names = list(sorted(names))
 
-    table = et.Element('table')
+    with report.table('Comparison') as table:
+        with table.row() as row:
+            row.cell('BENCHMARK')
+            for backend in backends:
+                row.cell(backend.upper())
 
-    row = et.SubElement(table, 'tr')
-
-    cell = et.SubElement(row, 'th')
-    cell.text = 'BENCHMARK'
-    for backend in backends:
-        cell = et.SubElement(row, 'th')
-        cell.text = backend.upper()
-
-    for name in names:
-        row = et.SubElement(table, 'tr')
-        cell = et.SubElement(row, 'td')
-        cell.text = name.replace('_', ' ').title()
-
-        for backend in backends:
-            try:
-                clss, double_clss = classified[name][backend]
-                if double_clss != clss:
-                    clss += ' ' + double_clss
-            except KeyError:
-                clss = ''
-
-            cell = et.SubElement(row, 'td')
-            cell.set('class', _css_class(clss))
-            cell.text = clss
-
+        for name in names:
+            with table.row() as row:
+                row.cell(name.replace('_', ' ').title())
+                for backend in backends:
+                    try:
+                        clss, double_clss = classified[name][backend]
+                        if double_clss != clss:
+                            clss += ' ' + double_clss
+                    except KeyError:
+                        clss = ''
+                    row.cell(clss).set('class', _css_class(clss))
     log.debug('Generated performance comparison table')
-    return table
 
 
 def _histogram_plot(title, result, output):
@@ -166,50 +156,20 @@ def _histogram_plot(title, result, output):
     plt.close(fig)
 
 
-def _info_html(a, b):
-    table = et.Element('table')
+def _add_comparison_info(report, before, after):
+    with report.table('Info') as table:
+        with table.row() as row:
+            row.fill('Property', 'Before', 'After')
 
-    def add_row(name, va, vb, tag='td'):
-        row = et.SubElement(table, 'tr')
-        cell = et.SubElement(row, tag)
-        cell.text = name
-        cell = et.SubElement(row, tag)
-        cell.text = va
-        cell = et.SubElement(row, tag)
-        cell.text = vb
-        return row
+        for k, vafter in after['gridtools'].items():
+            vbefore = before['gridtools'].get(k, '')
+            with table.row() as row:
+                row.fill('GridTools ' + k.title(), vbefore, vafter)
 
-    add_row('Property', 'Before', 'After', tag='th')
-
-    for k, vb in b['gridtools'].items():
-        va = a['gridtools'].get(k, '')
-        add_row('GridTools ' + k.title(), va, vb)
-
-    for k, vb in b['environment'].items():
-        va = a['environment'].get(k, '')
-        add_row(k.title(), va, vb)
-
-    log.debug('Generated info comparison table')
-    return table
-
-
-def _write_css(output):
-    css = '''
-        table { margin-bottom: 5em; border-collapse: collapse; }
-        th { text-align: left; border-bottom: 1px solid black; padding: 0.5em; }
-        td { padding: 0.5em; }
-        .container { width: 100%; display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); }
-        .item { }
-        .good { color: #81b113; font-weight: bold; }
-        .bad { color: #c23424; font-weight: bold; }
-        .unknown { color: #1f65c2; font-weight: bold; }
-        img { width: 100%; }
-        html { font-family: sans-serif; }
-    '''
-    with open(str(output), 'w') as file:
-        file.write(css)
-    log.debug(f'Sucessfully written CSS to {output}')
+        for k, vafter in after['environment'].items():
+            vbefore = before['environment'].get(k, '')
+            with table.row() as row:
+                row.fill(k.title(), vbefore, vafter)
 
 
 def _compare(a, b):
@@ -234,71 +194,24 @@ def _compare(a, b):
     return results
 
 
-@contextlib.contextmanager
-def _html_output(output):
-    data_dir = pathlib.Path(pathlib.Path(output).stem)
-    data_dir.mkdir()
-
-    html = et.Element('html')
-    head = et.SubElement(html, 'head')
-    meta = et.SubElement(head, 'meta')
-    meta.set('charset', 'utf-8')
-    meta = et.SubElement(head, 'meta')
-    meta.set('name', 'viewport')
-    meta.set('content', 'width=device-width, initial-scale=1.0')
-
-    _write_css(data_dir / 'style.css')
-    et.SubElement(head,
-                  'link',
-                  rel='stylesheet',
-                  href=data_dir.name + '/style.css')
-
-    body = et.SubElement(html, 'body')
-
-    yield html, data_dir, data_dir.name
-
-    et.ElementTree(html).write(output, encoding='utf-8', method='html')
-    log.info(f'Sucessfully written output to {output}')
-
-
-def compare(a, b, output):
-    with _html_output(output) as (html, data_dir, rel_data_dir):
-        results = _compare(a, b)
-
-        body = html.find('body')
-
-        title = et.SubElement(body, 'h1')
-        title.text = 'GridTools Performance Test Results'
-
-        p = et.SubElement(body, 'p')
-        p.text = 'Domain size: ' + '×'.join(str(d) for d in b['domain'])
-
-        title = et.SubElement(body, 'h2')
-        title.text = 'Results'
-        body.append(_table_html(results))
-
-        title = et.SubElement(body, 'h2')
-        title.text = 'Details'
-        container = et.SubElement(body, 'div')
-        container.set('class', 'container')
-
-        significant = 0
+def _add_comparison_plots(report, results):
+    with report.image_grid('Details') as grid:
         for result in results:
             if _significant(result['ci']):
                 title = (result['name'].replace('_', ' ').title() + ' (' +
                          result['backend'].upper() + ', ' +
                          result['float_type'].upper() + ', ' +
                          _classify(result['ci']) + ')')
-                name = f'plot{significant:02}.png'
-                img = et.SubElement(container, 'img')
-                img.set('class', 'item')
-                img.set('src', rel_data_dir + '/' + name)
-                _histogram_plot(title, result, data_dir / name)
-                significant += 1
+                _histogram_plot(title, result, grid.image())
 
-        title = et.SubElement(body, 'h2')
-        title.text = 'Info'
-        body.append(_info_html(a, b))
+
+def compare(before, after, output):
+    with html.Report(output, 'GridTools Performance Test Results') as report:
+        results = _compare(before, after)
+
+        _add_comparison_table(report, results)
+        _add_comparison_plots(report, results)
+        _add_comparison_info(report, before, after)
 
 
 _OUTPUT_KEYS = 'name', 'backend', 'float_type'
@@ -370,17 +283,10 @@ def _history_plot(title, dates, measurements, output):
 
 
 def history(data, output, key='job', limit=None):
-    with _html_output(output) as (html, data_dir, rel_data_dir):
+    with html.Report(output, 'GridTools Performance History') as report:
         dates, measurements = _history_data(data, key, limit)
 
-        container = et.SubElement(html, 'div')
-        container.set('class', 'container')
-
-        counter = 0
-        for i, (k, m) in enumerate(measurements.items()):
-            name = f'plot{i:02}.png'
-            title = ', '.join(k).replace('_', ' ').title()
-            _history_plot(title, dates, m, data_dir / name)
-            img = et.SubElement(container, 'img')
-            img.set('src', rel_data_dir + '/' + name)
-            img.set('class', 'item')
+        with report.image_grid() as grid:
+            for k, m in measurements.items():
+                title = ', '.join(k).replace('_', ' ').title()
+                _history_plot(title, dates, m, grid.image())
