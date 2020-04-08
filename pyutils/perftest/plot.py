@@ -6,6 +6,7 @@ import itertools
 import math
 import operator
 import os
+import pathlib
 import re
 import sys
 import types
@@ -16,7 +17,8 @@ import numpy as np
 
 from pyutils import log
 
-from plotly import graph_objs as go, colors
+from matplotlib import pyplot as plt
+plt.style.use('ggplot')
 
 
 def _compare_medians(a, b, n=1000, alpha=0.05):
@@ -81,22 +83,14 @@ def _significant(ci):
     return '=' not in _classify(ci)
 
 
-def _color(class_str):
-    red = np.array([180.0, 30.0, 0.0])
-    green = np.array([100.0, 180.0, 0.0])
-    blue = np.array([0.0, 100.0, 180.0])
-    white = np.array([245.0] * 3)
-
-    p = class_str.count('+') / 3
-    m = class_str.count('-') / 3
-    u = class_str.count('?') / 3
-    if '(' in class_str:
-        p *= 0.5
-        m *= 0.5
-        u *= 0.5
-    w = 1 - p - m - u
-    assert w >= 0
-    return red * m + green * p + blue * u + white * w
+def _css_class(class_str):
+    if '-' in class_str:
+        return 'bad'
+    if '?' in class_str:
+        return 'unknown'
+    if '+' in class_str:
+        return 'good'
+    return ''
 
 
 def _base_html():
@@ -106,7 +100,7 @@ def _base_html():
     meta.set('charset', 'utf-8')
     meta = et.SubElement(head, 'meta')
     meta.set('name', 'viewport')
-    meta.set('content', 'width=2000, initial-scale=1.0')
+    meta.set('content', 'width=device-width, initial-scale=1.0')
     body = et.SubElement(html, 'body')
     return html
 
@@ -148,56 +142,34 @@ def _table_html(results):
 
         for backend in backends:
             try:
-                float_class, double_class = classified[name][backend]
+                clss, double_clss = classified[name][backend]
+                if double_clss != clss:
+                    clss += ' ' + double_clss
             except KeyError:
-                cell = et.SubElement(row, 'td')
-                continue
-            if float_class == double_class:
-                class_str = float_class
-                r, g, b = _color(class_str)
-            else:
-                class_str = float_class + ' ' + double_class
-                r, g, b = (_color(float_class) + _color(double_class)) / 2
+                clss = ''
 
             cell = et.SubElement(row, 'td')
-            r, g, b = int(r), int(g), int(b)
-            cell.set('style', f'background:rgb({r}, {g}, {b})')
-            cell.text = class_str
+            cell.set('class', _css_class(clss))
+            cell.text = clss
 
     log.debug('Generated performance comparison table')
     return table
 
 
-def _histogram_html(result):
-    log.info('Plotting comparison histogram')
-    fig = go.Figure()
-    fig.add_trace(go.Histogram(x=result['series_before'], name='Before'))
-    fig.add_trace(go.Histogram(x=result['series_after'], name='After'))
-    median_before = np.median(result['series_before'])
-    median_after = np.median(result['series_after'])
-    fig.add_shape(type='line',
-                  x0=median_before,
-                  x1=median_before,
-                  y0=0,
-                  y1=1,
-                  yref='paper',
-                  line=dict(color=colors.DEFAULT_PLOTLY_COLORS[0]))
-    fig.add_shape(type='line',
-                  x0=median_after,
-                  x1=median_after,
-                  y0=0,
-                  y1=1,
-                  yref='paper',
-                  line=dict(color=colors.DEFAULT_PLOTLY_COLORS[1]))
-    fig.update_layout(barmode='overlay',
-                      font=dict(color='black'),
-                      autosize=False,
-                      width=990,
-                      height=500)
-    fig.update_traces(opacity=0.5)
-    fig.update_xaxes(rangemode='tozero')
-    log.debug('Generated histogram plot')
-    return et.fromstring(fig.to_html(include_plotlyjs='cdn', full_html=False))
+def _histogram_plot(result, output):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    before = result['series_before']
+    after = result['series_after']
+    bins = np.linspace(0, max(np.amax(before), np.amax(after)), 50)
+    ax.hist(before, alpha=0.5, bins=bins, density=True, label='Before')
+    ax.hist(after, alpha=0.5, bins=bins, density=True, label='After')
+    style = iter(plt.rcParams['axes.prop_cycle'])
+    ax.axvline(np.median(before), **next(style))
+    ax.axvline(np.median(after), **next(style))
+    ax.legend()
+    fig.savefig(output)
+    log.debug(f'Sucessfully written histogram plot to {output}')
+    plt.close(fig)
 
 
 def _info_html(a, b):
@@ -227,7 +199,26 @@ def _info_html(a, b):
     return table
 
 
-def compare(a, b, output):
+def _write_css(output):
+    css = '''
+        table { margin-bottom: 5em; border-collapse: collapse; }
+        th { text-align: left; border-bottom: 1px solid black; padding: 0.5em; }
+        td { padding: 0.5em; }
+        .container { width: 100%; display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); }
+        .item { }
+        .good { color: #81b113; font-weight: bold; }
+        .bad { color: #c23424; font-weight: bold; }
+        .unknown { color: #1f65c2; font-weight: bold; }
+        img { width: 100%; }
+        html { font-family: sans-serif; }
+    '''
+    with open(str(output), 'w') as file:
+        file.write(css)
+    log.debug(f'Sucessfully written CSS to {output}')
+
+
+def _compare(a, b):
     def same_keys(ao, bo):
         return all(ao[k] == v for k, v in bo.items() if k != 'series')
 
@@ -246,21 +237,21 @@ def compare(a, b, output):
         props['series_after'] = b_series
         results.append(props)
 
+    return results
+
+
+def compare(a, b, output):
+    results = _compare(a, b)
+
+    output_dir = pathlib.Path(output).parent
+
     html = _base_html()
 
-    style = et.SubElement(html.find('head'), 'style')
-    style.text = (
-        '''table { margin-bottom: 5em; border-collapse: collapse; }
-           th { text-align: left;
-                border-bottom: 1px solid black;
-                padding: 0.5em; }
-           td { padding: 0.5em; }
-           .container { width: 100%;
-                        display: flex;
-                        flex-direction: row;
-                        flex-wrap: wrap; }
-           .item { width: 995px; }
-           html { font-family: sans-serif; }''')
+    _write_css(output_dir / 'style.css')
+    et.SubElement(html.find('head'),
+                  'link',
+                  rel='stylesheet',
+                  href='style.css')
 
     body = html.find('body')
 
@@ -279,6 +270,7 @@ def compare(a, b, output):
     container = et.SubElement(body, 'div')
     container.set('class', 'container')
 
+    significant = 0
     for result in results:
         if _significant(result['ci']):
             item = et.SubElement(container, 'div')
@@ -288,7 +280,10 @@ def compare(a, b, output):
                           result['backend'].upper() + ', ' +
                           result['float_type'].upper() + ', ' +
                           _classify(result['ci']) + ')')
-            item.append(_histogram_html(result))
+            name = f'plot_{significant:02}.svg'
+            img = et.SubElement(item, 'img', src=name)
+            _histogram_plot(result, output_dir / name)
+            significant += 1
 
     title = et.SubElement(body, 'h2')
     title.text = 'Info'
