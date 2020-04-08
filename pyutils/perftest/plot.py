@@ -241,9 +241,10 @@ def _compare(a, b):
 
 
 def compare(a, b, output):
-    results = _compare(a, b)
+    output_dir = pathlib.Path(pathlib.Path(output).stem)
+    output_dir.mkdir()
 
-    output_dir = pathlib.Path(output).parent
+    results = _compare(a, b)
 
     html = _base_html()
 
@@ -251,7 +252,7 @@ def compare(a, b, output):
     et.SubElement(html.find('head'),
                   'link',
                   rel='stylesheet',
-                  href='style.css')
+                  href=output_dir.name + '/style.css')
 
     body = html.find('body')
 
@@ -281,7 +282,7 @@ def compare(a, b, output):
                           result['float_type'].upper() + ', ' +
                           _classify(result['ci']) + ')')
             name = f'plot_{significant:02}.png'
-            img = et.SubElement(item, 'img', src=name)
+            img = et.SubElement(item, 'img', src=output_dir.name + '/' + name)
             _histogram_plot(result, output_dir / name)
             significant += 1
 
