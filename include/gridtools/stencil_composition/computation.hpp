@@ -43,7 +43,7 @@ namespace gridtools {
         template <class Arg>
         struct generator_f {
             template <class ArgDataStoreRefs>
-            arg_storage_pair<Arg, typename Arg::data_store_t const &> operator()(ArgDataStoreRefs const &srcs) const {
+            arg_storage_pair<Arg, typename Arg::data_store_t &> operator()(ArgDataStoreRefs srcs) const {
                 using map_t = meta::transform<std::decay_t, ArgDataStoreRefs>;
                 using item_t = meta::mp_find<map_t, Arg>;
                 GT_STATIC_ASSERT(!std::is_void<item_t>::value, GT_INTERNAL_ERROR);
@@ -63,11 +63,11 @@ namespace gridtools {
     class computation {
         GT_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "template parameters should be args");
 
-        using arg_storage_pair_crefs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t const &>...>;
+        using arg_storage_pair_refs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t &>...>;
 
         struct iface : virtual computation_impl_::iface_arg<Args>... {
             virtual ~iface() = default;
-            virtual void run(arg_storage_pair_crefs_t const &) = 0;
+            virtual void run(arg_storage_pair_refs_t) = 0;
             virtual std::string print_meter() const = 0;
             virtual double get_time() const = 0;
             virtual size_t get_count() const = 0;
@@ -80,8 +80,8 @@ namespace gridtools {
 
             impl(Obj &&obj) : m_obj{std::move(obj)} {}
 
-            void run(arg_storage_pair_crefs_t const &args) override {
-                tuple_util::apply([&](auto const &... args) { m_obj.run(args...); }, args);
+            void run(arg_storage_pair_refs_t args) override {
+                tuple_util::apply([&](auto &... args) { m_obj.run(args...); }, args);
             }
             std::string print_meter() const override { return m_obj.print_meter(); }
             double get_time() const override { return m_obj.get_time(); }
@@ -105,9 +105,9 @@ namespace gridtools {
 
         template <class... SomeArgs, class... SomeDataStores>
         std::enable_if_t<sizeof...(SomeArgs) == sizeof...(Args)> run(
-            arg_storage_pair<SomeArgs, SomeDataStores> const &... args) {
+            arg_storage_pair<SomeArgs, SomeDataStores>... args) {
             using generators_t = meta::transform<computation_impl_::generator_f, meta::list<Args...>>;
-            m_impl->run(tuple_util::generate<generators_t, arg_storage_pair_crefs_t>(std::tie(args...)));
+            m_impl->run(tuple_util::generate<generators_t, arg_storage_pair_refs_t>(std::tie(args...)));
         }
 
         std::string print_meter() const { return m_impl->print_meter(); }
