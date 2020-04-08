@@ -280,7 +280,7 @@ def compare(a, b, output):
                           result['backend'].upper() + ', ' +
                           result['float_type'].upper() + ', ' +
                           _classify(result['ci']) + ')')
-            name = f'plot_{significant:02}.svg'
+            name = f'plot_{significant:02}.png'
             img = et.SubElement(item, 'img', src=name)
             _histogram_plot(result, output_dir / name)
             significant += 1
