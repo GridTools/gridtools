@@ -146,15 +146,15 @@ def compare(output, input):
         with open(infile, 'r') as f:
             return json.load(f)
 
-    results = [load(i) for i in input]
-    plot.compare(*results, output)
+    data = [load(i) for i in input]
+    plot.compare(*data, output)
 
 
 @plot.command(description='plot performance history')
 @args.arg('--output',
           '-o',
           required=True,
-          help='output file, can have any extension supported by matplotlib')
+          help='output HTML file')
 @args.arg('--input',
           '-i',
           required=True,
@@ -163,7 +163,7 @@ def compare(output, input):
 @args.arg('--date',
           '-d',
           default='job',
-          choices=['build', 'job'],
+          choices=['commit', 'job'],
           help='date to use, either the build/commit date or the date when '
           'the job was run')
 @args.arg('--limit',
@@ -171,10 +171,18 @@ def compare(output, input):
           type=int,
           help='limit the history size to the given number of results')
 def history(output, input, date, limit):
-    from perftest import plot, result
-    results = [result.load(f) for f in input]
-    plot.history(results, date, limit).savefig(output)
-    log.info(f'Successfully saved plot to {output}')
+    from perftest import plot
+
+    if not output.lower().endswith('.html'):
+        output += '.html'
+
+    def load(infile):
+        with open(infile, 'r') as f:
+            return json.load(f)
+
+    data = [load(i) for i in input]
+
+    plot.history(data, output, date, limit)
 
 
 with log.exception_logging():

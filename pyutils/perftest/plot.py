@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict
+import collections
+import contextlib
 import functools
 import itertools
 import math
@@ -13,11 +14,13 @@ import types
 import warnings
 from xml.etree import ElementTree as et
 
+import dateutil.parser
+import matplotlib
+from matplotlib import pyplot as plt
 import numpy as np
 
 from pyutils import log
 
-from matplotlib import pyplot as plt
 plt.style.use('ggplot')
 
 
@@ -93,18 +96,6 @@ def _css_class(class_str):
     return ''
 
 
-def _base_html():
-    html = et.Element('html')
-    head = et.SubElement(html, 'head')
-    meta = et.SubElement(head, 'meta')
-    meta.set('charset', 'utf-8')
-    meta = et.SubElement(head, 'meta')
-    meta.set('name', 'viewport')
-    meta.set('content', 'width=device-width, initial-scale=1.0')
-    body = et.SubElement(html, 'body')
-    return html
-
-
 def _table_html(results):
     log.info('Generating comparison table')
 
@@ -113,7 +104,7 @@ def _table_html(results):
 
     backends = set()
     names = set()
-    classified = defaultdict(dict)
+    classified = collections.defaultdict(dict)
     for (name, backend), items in itertools.groupby(sorted(results,
                                                            key=name_backend),
                                                     key=name_backend):
@@ -156,7 +147,7 @@ def _table_html(results):
     return table
 
 
-def _histogram_plot(result, output):
+def _histogram_plot(title, result, output):
     fig, ax = plt.subplots(figsize=(10, 5))
     before = result['series_before']
     after = result['series_after']
@@ -166,7 +157,10 @@ def _histogram_plot(result, output):
     style = iter(plt.rcParams['axes.prop_cycle'])
     ax.axvline(np.median(before), **next(style))
     ax.axvline(np.median(after), **next(style))
-    ax.legend()
+    ax.legend(loc='upper left')
+    ax.set_xlabel('Time [s]')
+    ax.set_title(title)
+    fig.tight_layout()
     fig.savefig(output)
     log.debug(f'Sucessfully written histogram plot to {output}')
     plt.close(fig)
@@ -240,113 +234,119 @@ def _compare(a, b):
     return results
 
 
-def compare(a, b, output):
-    output_dir = pathlib.Path(pathlib.Path(output).stem)
-    output_dir.mkdir()
+@contextlib.contextmanager
+def _html_output(output):
+    data_dir = pathlib.Path(pathlib.Path(output).stem)
+    data_dir.mkdir()
 
-    results = _compare(a, b)
+    html = et.Element('html')
+    head = et.SubElement(html, 'head')
+    meta = et.SubElement(head, 'meta')
+    meta.set('charset', 'utf-8')
+    meta = et.SubElement(head, 'meta')
+    meta.set('name', 'viewport')
+    meta.set('content', 'width=device-width, initial-scale=1.0')
 
-    html = _base_html()
-
-    _write_css(output_dir / 'style.css')
-    et.SubElement(html.find('head'),
+    _write_css(data_dir / 'style.css')
+    et.SubElement(head,
                   'link',
                   rel='stylesheet',
-                  href=output_dir.name + '/style.css')
+                  href=data_dir.name + '/style.css')
 
-    body = html.find('body')
+    body = et.SubElement(html, 'body')
 
-    title = et.SubElement(body, 'h1')
-    title.text = 'GridTools Performance Test Results'
-
-    p = et.SubElement(body, 'p')
-    p.text = 'Domain size: ' + '×'.join(str(d) for d in b['domain'])
-
-    title = et.SubElement(body, 'h2')
-    title.text = 'Results'
-    body.append(_table_html(results))
-
-    title = et.SubElement(body, 'h2')
-    title.text = 'Details'
-    container = et.SubElement(body, 'div')
-    container.set('class', 'container')
-
-    significant = 0
-    for result in results:
-        if _significant(result['ci']):
-            item = et.SubElement(container, 'div')
-            item.set('class', 'item')
-            title = et.SubElement(item, 'h3')
-            title.text = (result['name'].replace('_', ' ').title() + ' (' +
-                          result['backend'].upper() + ', ' +
-                          result['float_type'].upper() + ', ' +
-                          _classify(result['ci']) + ')')
-            name = f'plot_{significant:02}.png'
-            img = et.SubElement(item, 'img', src=output_dir.name + '/' + name)
-            _histogram_plot(result, output_dir / name)
-            significant += 1
-
-    title = et.SubElement(body, 'h2')
-    title.text = 'Info'
-    body.append(_info_html(a, b))
+    yield html, data_dir, data_dir.name
 
     et.ElementTree(html).write(output, encoding='utf-8', method='html')
     log.info(f'Sucessfully written output to {output}')
 
 
-def history(results, key='job', limit=None):
-    """Plots run time history of all results. Depending on the argument `job`,
-       The results are either ordered by commit/build time or job time
-       (i.e. when the job was run).
+def compare(a, b, output):
+    with _html_output(output) as (html, data_dir, rel_data_dir):
+        results = _compare(a, b)
 
-    Args:
-        results: List of `result.Result` objects.
-        key: Either 'job' or 'build'.
-        limit: Optionally limits the number of plotted results to the given
-               number, i.e. only displays the most recent results. If `None`,
-               all given results are plotted.
-    """
+        body = html.find('body')
 
-    # get date/time either from the commit/build or job (when job was run)
+        title = et.SubElement(body, 'h1')
+        title.text = 'GridTools Performance Test Results'
+
+        p = et.SubElement(body, 'p')
+        p.text = 'Domain size: ' + '×'.join(str(d) for d in b['domain'])
+
+        title = et.SubElement(body, 'h2')
+        title.text = 'Results'
+        body.append(_table_html(results))
+
+        title = et.SubElement(body, 'h2')
+        title.text = 'Details'
+        container = et.SubElement(body, 'div')
+        container.set('class', 'container')
+
+        significant = 0
+        for result in results:
+            if _significant(result['ci']):
+                title = (result['name'].replace('_', ' ').title() + ' (' +
+                         result['backend'].upper() + ', ' +
+                         result['float_type'].upper() + ', ' +
+                         _classify(result['ci']) + ')')
+                name = f'plot{significant:02}.png'
+                img = et.SubElement(container, 'img')
+                img.set('class', 'item')
+                img.set('src', rel_data_dir + '/' + name)
+                _histogram_plot(title, result, data_dir / name)
+                significant += 1
+
+        title = et.SubElement(body, 'h2')
+        title.text = 'Info'
+        body.append(_info_html(a, b))
+
+
+_OUTPUT_KEYS = 'name', 'backend', 'float_type'
+
+
+def _output_key(output):
+    return tuple(output[k] for k in _OUTPUT_KEYS)
+
+
+def _outputs_by_key(data):
+    return {_output_key(o): o['series'] for o in data['outputs']}
+
+
+def _history_data(data, key, limit):
     def get_datetime(result):
-        if key == 'build':
-            datetime = result.runinfo.datetime
-        elif key == 'job':
-            datetime = result.datetime
-        else:
-            raise ValueError('"key" argument must be "build" or "job"')
-        return time.local_time(datetime)
+        source = 'gridtools' if key == 'commit' else 'environment'
+        return dateutil.parser.isoparse(result[source]['datetime'])
 
-    # sort results by desired reference time
-    results = sorted(results, key=get_datetime)
+    data = sorted(data, key=get_datetime)
+    if limit:
+        data = data[-limit:]
 
-    #
-    if limit is not None:
-        if not isinstance(limit, int) or limit <= 0:
-            raise ValueError('"limit" must be a positive integer')
-        results = results[-limit:]
+    datetimes = [get_datetime(d) for d in data]
+    outputs = [_outputs_by_key(d) for d in data]
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', category=RuntimeWarning)
-        percentiles = [
-            result.times_by_stencil(results,
-                                    missing=[np.nan],
-                                    func=functools.partial(np.percentile, q=q))
-            for q in (0, 25, 50, 75, 100)
-        ]
+    keys = set.union(*(set(o.keys()) for o in outputs))
 
-    stencils = percentiles[0].keys()
-    percentiles = {
-        stencil: [p[stencil] for p in percentiles]
-        for stencil in stencils
-    }
+    measurement = collections.namedtuple('measurment',
+                                         ['median', 'lower', 'upper'])
+    measurements = {k: measurement([], [], []) for k in keys}
+    for o in outputs:
+        for k in keys:
+            try:
+                lower, median, upper = np.percentile(o[k], [5, 50, 95])
+            except KeyError:
+                lower = median = upper = np.nan
+            measurements[k].lower.append(lower)
+            measurements[k].median.append(median)
+            measurements[k].upper.append(upper)
 
-    dates = [matplotlib.dates.date2num(get_datetime(r)) for r in results]
+    return datetimes, measurements
 
+
+def _history_plot(title, dates, measurements, output):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    dates = [matplotlib.dates.date2num(d) for d in dates]
     if len(dates) > len(set(dates)):
-        log.warning('Non-unique datetimes in history plot')
-
-    fig, ax = plt.subplots(figsize=figsize(2, 1))
+        log.warning('Non-unique dates in history plot')
 
     locator = matplotlib.dates.AutoDateLocator()
     formatter = matplotlib.dates.AutoDateFormatter(locator)
@@ -354,19 +354,33 @@ def history(results, key='job', limit=None):
     formatter.scaled[1 / (24 * 60)] = '%y-%m-%d %H:%M'
     formatter.scaled[1 / (24 * 60 * 60)] = '%y-%m-%d %H:%M:%S'
 
+    ax.set_title(title)
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
 
-    colors = discrete_colors(len(stencils))
-
-    for color, (stencil, qs) in zip(colors, sorted(percentiles.items())):
-        mint, q1, q2, q3, maxt = qs
-        ax.fill_between(dates, mint, maxt, alpha=0.2, color=color)
-        ax.fill_between(dates, q1, q3, alpha=0.5, color=color)
-        ax.plot(dates, q2, '|-', label=stencil.title(), color=color)
-
-    ax.legend(loc='upper left')
+    ax.fill_between(dates, measurements.lower, measurements.upper, alpha=0.2)
+    ax.plot(dates, measurements.median, '|-')
+    ax.set_ylim(bottom=0)
+    ax.set_ylabel('Time [s]')
     fig.autofmt_xdate()
     fig.tight_layout()
+    fig.savefig(output, dpi=300)
+    log.debug(f'Sucessfully written history plot to {output}')
+    plt.close(fig)
 
-    return fig
+
+def history(data, output, key='job', limit=None):
+    with _html_output(output) as (html, data_dir, rel_data_dir):
+        dates, measurements = _history_data(data, key, limit)
+
+        container = et.SubElement(html, 'div')
+        container.set('class', 'container')
+
+        counter = 0
+        for i, (k, m) in enumerate(measurements.items()):
+            name = f'plot{i:02}.png'
+            title = ', '.join(k).replace('_', ' ').title()
+            _history_plot(title, dates, m, data_dir / name)
+            img = et.SubElement(container, 'img')
+            img.set('src', rel_data_dir + '/' + name)
+            img.set('class', 'item')
