@@ -5,17 +5,64 @@ from xml.etree import ElementTree as et
 from pyutils import log
 
 _CSS = '''
-    table { margin-bottom: 5em; border-collapse: collapse; }
-    th { text-align: left; border-bottom: 1px solid black; padding: 0.5em; }
-    td { padding: 0.5em; }
-    .grid-container { width: 100%; display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); }
-    .grid-item { }
-    .good { color: #81b113; background: #dfff79; font-weight: bold; }
-    .bad { color: #c23424; background: #ffd0ac; font-weight: bold; }
-    .unknown { color: #1f65c2; background: #d5ffff; font-weight: bold; }
-    img { width: 100%; }
-    html { font-family: sans-serif; }
+    /* general style */
+    body {
+        font-family: sans-serif;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    section {
+        flex: 0 0 auto;
+        align-items: center;
+        box-sizing: border-box;
+        padding: 20px;
+    }
+    h1 {
+        width: 100%;
+        padding: 20px;
+    }
+    /* table style */
+    table {
+        padding-bottom: 5em;
+        border-collapse: collapse;
+    }
+    th {
+        text-align: left;
+        border-bottom: 1px solid black;
+        padding: 0.5em;
+    }
+    td {
+        padding: 0.5em;
+    }
+    /* styles for good/bad/unknown entries in table */
+    .good {
+        color: #81b113;
+        background: #dfff79;
+        font-weight: bold;
+    }
+    .bad {
+        color: #c23424;
+        background: #ffd0ac;
+        font-weight: bold;
+    }
+    .unknown {
+        color: #1f65c2;
+        background: #d5ffff;
+        font-weight: bold;
+    }
+    /* image-grid style */
+    .grid-section {
+        width: 100%;
+    }
+    .grid-container {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    }
+    img {
+        width: 100%;
+    }
+
 '''
 
 
@@ -72,10 +119,11 @@ class Report:
 
     @contextlib.contextmanager
     def _section(self, title):
+        section = et.SubElement(self.body, 'section')
         if title:
-            header = et.SubElement(self.body, 'h2')
+            header = et.SubElement(section, 'h2')
             header.text = title
-        yield self.body
+        yield section
 
     @contextlib.contextmanager
     def table(self, title=None):
@@ -85,6 +133,7 @@ class Report:
     @contextlib.contextmanager
     def image_grid(self, title=None):
         with self._section(title) as section:
+            section.set('class', 'grid-section')
             yield _Grid(section, self.get_data_path)
 
 
