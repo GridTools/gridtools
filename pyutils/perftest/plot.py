@@ -223,7 +223,10 @@ def compare(before, after, output):
         for k, v in after_outs.items() if k in before_outs
     }
 
-    with html.Report(output, 'GridTools Performance Test Results') as report:
+    assert before['domain'] == after['domain']
+    title = 'GridTools Performance for Domain ' + '×'.join(
+        str(d) for d in after['domain'])
+    with html.Report(output, title) as report:
         _add_comparison_table(report, cis)
         _add_comparison_plots(report, before_outs, after_outs, cis)
         _add_comparison_info(report, before, after)
@@ -305,7 +308,11 @@ def _history_plot(title, dates, measurements, output):
 
 
 def history(data, output, key='job', limit=None):
-    with html.Report(output, 'GridTools Performance History') as report:
+    assert all(d['domain'] == data[0]['domain'] for d in data)
+
+    title = 'GridTools Performance History for Domain ' + '×'.join(
+        str(d) for d in data[0]['domain'])
+    with html.Report(output, title) as report:
         dates, measurements = _history_data(data, key, limit)
 
         with report.image_grid() as grid:
