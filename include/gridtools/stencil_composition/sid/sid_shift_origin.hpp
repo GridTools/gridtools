@@ -58,8 +58,8 @@ namespace gridtools {
                           multi_shift(ptr_offset, strides, offsets);
                           return sid::get_origin(this->impl()) + ptr_offset;
                       }()},
-                      m_lower_bounds(add_offsets(sid::get_lower_bounds(original_sid), offsets)),
-                      m_upper_bounds(add_offsets(sid::get_upper_bounds(original_sid), offsets)) {}
+                      m_lower_bounds(add_offsets(sid::get_lower_bounds(this()->impl), offsets)),
+                      m_upper_bounds(add_offsets(sid::get_upper_bounds(this()->impl), offsets)) {}
             };
 
             template <class Sid, class Offsets>
