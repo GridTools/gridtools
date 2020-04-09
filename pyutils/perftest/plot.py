@@ -11,6 +11,7 @@ import pathlib
 import re
 import sys
 import types
+import typing
 import warnings
 from xml.etree import ElementTree as et
 
@@ -25,122 +26,146 @@ from perftest import html
 plt.style.use('ggplot')
 
 
-def _compare_medians(a, b, n=1000, alpha=0.05):
-    scale = np.median(a)
-    a = np.asarray(a) / scale
-    b = np.asarray(b) / scale
-    # bootstrap sampling
-    asamps = np.random.choice(a, (a.size, n))
-    bsamps = np.random.choice(b, (b.size, n))
-    # bootstrap estimates of difference of medians
-    bootstrap_estimates = np.median(bsamps, axis=0) - np.median(asamps, axis=0)
-    # percentile bootstrap confidence interval
-    ci = np.quantile(bootstrap_estimates, [alpha / 2, 1 - alpha / 2])
-    log.debug(f'Boostrap results (n = {n}, alpha = {alpha})',
-              f'{ci[0]:8.5f} - {ci[1]:8.5f}')
-    return ci
+class _OutputKey(typing.NamedTuple):
+    name: str
+    backend: str
+    float_type: str
+
+    def __str__(self):
+        name = self.name.replace('_', ' ').title()
+        backend = self.backend.upper()
+        float_type = self.float_type
+        return f'{name} ({backend}, {float_type})'
+
+    @classmethod
+    def outputs_by_key(cls, data):
+        def split_output(o):
+            return cls(**{k: v
+                          for k, v in o.items() if k != 'series'}), o['series']
+
+        return dict(split_output(o) for o in data['outputs'])
 
 
-def _classify(ci):
-    lower, upper = ci
-    assert lower <= upper
+class _ConfidenceInterval(typing.NamedTuple):
+    lower: float
+    upper: float
 
-    # large uncertainty
-    if upper - lower > 0.1:
-        return '??'
+    def classify(self):
+        assert self.lower <= self.upper
 
-    # no change
-    if -0.01 <= lower <= 0 <= upper <= 0.01:
-        return '='
-    if -0.02 <= lower <= upper <= 0.02:
-        return '(=)'
+        # large uncertainty
+        if self.upper - self.lower > 0.1:
+            return '??'
 
-    # probably no change, but quite large uncertainty
-    if -0.05 <= lower <= 0 <= upper <= 0.05:
-        return '?'
+        # no change
+        if -0.01 <= self.lower <= 0 <= self.upper <= 0.01:
+            return '='
+        if -0.02 <= self.lower <= self.upper <= 0.02:
+            return '(=)'
 
-    # faster
-    if -0.01 <= upper <= 0.0:
-        return '(+)'
-    if -0.05 <= upper <= -0.01:
-        return '+'
-    if -0.1 <= upper <= -0.05:
-        return '++'
-    if upper <= -0.1:
-        return '+++'
+        # probably no change, but quite large uncertainty
+        if -0.05 <= self.lower <= 0 <= self.upper <= 0.05:
+            return '?'
 
-    # slower
-    if 0.01 >= lower >= 0.0:
-        return '(-)'
-    if 0.05 >= lower >= 0.01:
-        return '-'
-    if 0.1 >= lower >= 0.05:
-        return '--'
-    if lower >= 0.1:
-        return '---'
+        # faster
+        if -0.01 <= self.upper <= 0.0:
+            return '(+)'
+        if -0.05 <= self.upper <= -0.01:
+            return '+'
+        if -0.1 <= self.upper <= -0.05:
+            return '++'
+        if self.upper <= -0.1:
+            return '+++'
 
-    # no idea
-    return '???'
+        # slower
+        if 0.01 >= self.lower >= 0.0:
+            return '(-)'
+        if 0.05 >= self.lower >= 0.01:
+            return '-'
+        if 0.1 >= self.lower >= 0.05:
+            return '--'
+        if self.lower >= 0.1:
+            return '---'
+
+        # no idea
+        return '???'
+
+    def significant(self):
+        return '=' not in self.classify()
+
+    def __str__(self):
+        assert self.lower <= self.upper
+        plower, pupper = 100 * self.lower, 100 * self.upper
+
+        if self.lower <= 0 and self.upper <= 0:
+            return f'{-pupper:3.1f}% – {-plower:3.1f}% faster'
+        if self.lower >= 0 and self.upper >= 0:
+            return f'{plower:3.1f}% – {pupper:3.1f}% slower'
+        return f'{-plower:3.1f}% faster – {pupper:3.1f}% slower'
+
+    @classmethod
+    def compare_medians(cls, before, after, n=1000, alpha=0.05):
+        scale = np.median(before)
+        before = np.asarray(before) / scale
+        after = np.asarray(after) / scale
+        # bootstrap sampling
+        before_samples = np.random.choice(before, (before.size, n))
+        after_samples = np.random.choice(after, (after.size, n))
+        # bootstrap estimates of difference of medians
+        bootstrap_estimates = (np.median(after_samples, axis=0) -
+                               np.median(before_samples, axis=0))
+        # percentile bootstrap confidence interval
+        ci = np.quantile(bootstrap_estimates, [alpha / 2, 1 - alpha / 2])
+        log.debug(f'Boostrap results (n = {n}, alpha = {alpha})',
+                  f'{ci[0]:8.5f} - {ci[1]:8.5f}')
+        return cls(*ci)
 
 
-def _significant(ci):
-    return '=' not in _classify(ci)
+def _add_comparison_table(report, cis):
+    names = list(sorted(set(k.name for k in cis.keys())))
+    backends = list(sorted(set(k.backend for k in cis.keys())))
 
-
-def _css_class(class_str):
-    if '-' in class_str:
-        return 'bad'
-    if '?' in class_str:
-        return 'unknown'
-    if '+' in class_str:
-        return 'good'
-    return ''
-
-
-def _add_comparison_table(report, results):
-    log.debug('Generating comparison table')
-
-    def name_backend(result):
-        return result['name'], result['backend']
-
-    backends = set()
-    names = set()
-    classified = collections.defaultdict(dict)
-    for (name, backend), items in itertools.groupby(sorted(results,
-                                                           key=name_backend),
-                                                    key=name_backend):
-        data = {item['float_type']: _classify(item['ci']) for item in items}
-        classified[name][backend] = data['float'], data['double']
-        names.add(name)
-        backends.add(backend)
-
-    backends = list(sorted(backends))
-    names = list(sorted(names))
+    def css_class(classification):
+        if '-' in classification:
+            return 'bad'
+        if '?' in classification:
+            return 'unknown'
+        if '+' in classification:
+            return 'good'
+        return ''
 
     with report.table('Comparison') as table:
         with table.row() as row:
-            row.cell('BENCHMARK')
-            for backend in backends:
-                row.cell(backend.upper())
+            row.fill('BENCHMARK', *(b.upper() for b in backends))
 
         for name in names:
             with table.row() as row:
-                row.cell(name.replace('_', ' ').title())
+                name_cell = row.cell(name.replace('_', ' ').title())
+                row_classification = ''
                 for backend in backends:
                     try:
-                        clss, double_clss = classified[name][backend]
-                        if double_clss != clss:
-                            clss += ' ' + double_clss
+                        classification = [
+                            cis[_OutputKey(name=name,
+                                           backend=backend,
+                                           float_type=float_type)].classify()
+                            for float_type in ('float', 'double')
+                        ]
+                        if classification[0] == classification[1]:
+                            classification = classification[0]
+                        else:
+                            classification = ' '.join(classification)
                     except KeyError:
-                        clss = ''
-                    row.cell(clss).set('class', _css_class(clss))
+                        classification = ''
+                    row_classification += classification
+                    row.cell(classification).set('class',
+                                                 css_class(classification))
+                name_cell.set('class', css_class(row_classification))
+
     log.debug('Generated performance comparison table')
 
 
-def _histogram_plot(title, result, output):
+def _histogram_plot(title, before, after, output):
     fig, ax = plt.subplots(figsize=(10, 5))
-    before = result['series_before']
-    after = result['series_after']
     bins = np.linspace(0, max(np.amax(before), np.amax(after)), 50)
     ax.hist(before, alpha=0.5, bins=bins, density=True, label='Before')
     ax.hist(after, alpha=0.5, bins=bins, density=True, label='After')
@@ -154,6 +179,15 @@ def _histogram_plot(title, result, output):
     fig.savefig(output)
     log.debug(f'Sucessfully written histogram plot to {output}')
     plt.close(fig)
+
+
+def _add_comparison_plots(report, before_outs, after_outs, cis):
+    with report.image_grid('Details') as grid:
+        for k, ci in cis.items():
+            if ci.significant():
+                title = (str(k) + ': ' + str(ci))
+                _histogram_plot(title, before_outs[k], after_outs[k],
+                                grid.image())
 
 
 def _add_comparison_info(report, before, after):
@@ -172,57 +206,31 @@ def _add_comparison_info(report, before, after):
                 row.fill(k.title(), vbefore, vafter)
 
 
-def _compare(a, b):
-    def same_keys(ao, bo):
-        return all(ao[k] == v for k, v in bo.items() if k != 'series')
-
-    results = []
-    for props in b['outputs']:
-        b_series = props.pop('series')
-        try:
-            a_series = next(o for o in a['outputs'] if all(
-                o[k] == v for k, v in props.items()))['series']
-        except StopIteration:
-            log.debug('Nothing to compare for', props)
-            continue
-
-        props['ci'] = _compare_medians(a_series, b_series)
-        props['series_before'] = a_series
-        props['series_after'] = b_series
-        results.append(props)
-
-    return results
-
-
-def _add_comparison_plots(report, results):
-    with report.image_grid('Details') as grid:
-        for result in results:
-            if _significant(result['ci']):
-                title = (result['name'].replace('_', ' ').title() + ' (' +
-                         result['backend'].upper() + ', ' +
-                         result['float_type'].upper() + ', ' +
-                         _classify(result['ci']) + ')')
-                _histogram_plot(title, result, grid.image())
-
-
 def compare(before, after, output):
-    with html.Report(output, 'GridTools Performance Test Results') as report:
-        results = _compare(before, after)
+    before_outs = _OutputKey.outputs_by_key(before)
+    after_outs = _OutputKey.outputs_by_key(after)
+    cis = {
+        k: _ConfidenceInterval.compare_medians(before_outs[k], v)
+        for k, v in after_outs.items() if k in before_outs
+    }
 
-        _add_comparison_table(report, results)
-        _add_comparison_plots(report, results)
+    with html.Report(output, 'GridTools Performance Test Results') as report:
+        _add_comparison_table(report, cis)
+        _add_comparison_plots(report, before_outs, after_outs, cis)
         _add_comparison_info(report, before, after)
 
 
-_OUTPUT_KEYS = 'name', 'backend', 'float_type'
+class _Measurements(typing.NamedTuple):
+    min: list
+    q1: list
+    q2: list
+    q3: list
+    max: list
 
-
-def _output_key(output):
-    return tuple(output[k] for k in _OUTPUT_KEYS)
-
-
-def _outputs_by_key(data):
-    return {_output_key(o): o['series'] for o in data['outputs']}
+    def append(self, *values):
+        assert len(self) == len(values)
+        for l, v in zip(self, values):
+            l.append(v)
 
 
 def _history_data(data, key, limit):
@@ -235,22 +243,18 @@ def _history_data(data, key, limit):
         data = data[-limit:]
 
     datetimes = [get_datetime(d) for d in data]
-    outputs = [_outputs_by_key(d) for d in data]
+    outputs = [_OutputKey.outputs_by_key(d) for d in data]
 
     keys = set.union(*(set(o.keys()) for o in outputs))
 
-    measurement = collections.namedtuple('measurment',
-                                         ['median', 'lower', 'upper'])
-    measurements = {k: measurement([], [], []) for k in keys}
+    measurements = {k: _Measurements([], [], [], [], []) for k in keys}
     for o in outputs:
         for k in keys:
             try:
-                lower, median, upper = np.percentile(o[k], [5, 50, 95])
+                data = np.percentile(o[k], [0, 25, 50, 75, 100])
             except KeyError:
-                lower = median = upper = np.nan
-            measurements[k].lower.append(lower)
-            measurements[k].median.append(median)
-            measurements[k].upper.append(upper)
+                data = [np.nan] * 5
+            measurements[k].append(*data)
 
     return datetimes, measurements
 
@@ -271,8 +275,18 @@ def _history_plot(title, dates, measurements, output):
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
 
-    ax.fill_between(dates, measurements.lower, measurements.upper, alpha=0.2)
-    ax.plot(dates, measurements.median, '|-')
+    style = next(iter(plt.rcParams['axes.prop_cycle']))
+    ax.fill_between(dates,
+                    measurements.min,
+                    measurements.max,
+                    alpha=0.2,
+                    **style)
+    ax.fill_between(dates,
+                    measurements.q1,
+                    measurements.q3,
+                    alpha=0.5,
+                    **style)
+    ax.plot(dates, measurements.q2, '|-', **style)
     ax.set_ylim(bottom=0)
     ax.set_ylabel('Time [s]')
     fig.autofmt_xdate()
