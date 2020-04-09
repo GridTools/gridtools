@@ -55,21 +55,21 @@ class _ConfidenceInterval(typing.NamedTuple):
             return '?'
 
         # faster
-        if -0.01 <= self.upper <= 0.0:
+        if -0.01 <= self.lower <= 0.0:
             return '(+)'
-        if -0.05 <= self.upper <= -0.01:
+        if -0.05 <= self.lower <= -0.01:
             return '+'
-        if -0.1 <= self.upper <= -0.05:
+        if -0.1 <= self.lower <= -0.05:
             return '++'
         if self.upper <= -0.1:
             return '+++'
 
         # slower
-        if 0.01 >= self.lower >= 0.0:
+        if 0.01 >= self.upper >= 0.0:
             return '(-)'
-        if 0.05 >= self.lower >= 0.01:
+        if 0.05 >= self.upper >= 0.01:
             return '-'
-        if 0.1 >= self.lower >= 0.05:
+        if 0.1 >= self.upper >= 0.05:
             return '--'
         if self.lower >= 0.1:
             return '---'
