@@ -45,7 +45,7 @@ namespace gridtools {
                 LowerBounds m_lower_bounds;
                 UpperBounds m_upper_bounds;
 
-                friend sid::ptr_holder_type<Sid> sid_get_origin(shifted_sid &obj) { return obj.m_origin; }
+                friend sid::ptr_holder_type<Sid> sid_get_origin(shifted_sid const &obj) { return obj.m_origin; }
                 friend LowerBounds const &sid_get_lower_bounds(shifted_sid const &obj) { return obj.m_lower_bounds; }
                 friend UpperBounds const &sid_get_upper_bounds(shifted_sid const &obj) { return obj.m_upper_bounds; }
 

@@ -94,8 +94,8 @@ namespace gridtools {
             BoundArgStoragePairs m_bound_data_stores;
 
             template <class Plh>
-            using data_store_ref = std::add_lvalue_reference_t<
-                meta::second<meta::mp_find<BoundArgStoragePairs, Plh, meta::list<Plh, typename Plh::data_store_t>>>>;
+            using data_store_ref = std::add_lvalue_reference_t<meta::second<
+                meta::mp_find<BoundArgStoragePairs, Plh, meta::list<Plh, typename Plh::data_store_t const>>>>;
 
             using data_store_refs_t = meta::transform<data_store_ref, non_tmp_placeholders_t>;
 
