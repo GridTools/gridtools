@@ -149,6 +149,7 @@ def _add_comparison_table(report, cis):
                 name_cell.set('class', css_class(row_classification))
 
     with report.table('Explanation of Symbols') as table:
+
         def add_help(string, meaning):
             with table.row() as row:
                 row.fill(string, meaning)
