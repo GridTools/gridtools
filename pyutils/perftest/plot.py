@@ -148,6 +148,28 @@ def _add_comparison_table(report, cis):
                                                  css_class(classification))
                 name_cell.set('class', css_class(row_classification))
 
+    with report.table('Explanation of Symbols') as table:
+        def add_help(string, meaning):
+            with table.row() as row:
+                row.fill(string, meaning)
+
+        add_help('Symbol', 'MEANING')
+        add_help('=', 'No performance change (confidence interval within ±1%)')
+        add_help(
+            '(=)',
+            'Probably no performance change (confidence interval within ±2%)')
+        add_help('(+)/(-)',
+                 'Very small performance improvement/degradation (≤1%)')
+        add_help('+/-', 'Small performance improvement/degradation (≤5%)')
+        add_help('++/--', 'Large performance improvement/degradation (≤10%)')
+        add_help('+++/---',
+                 'Very large performance improvement/degradation (>10%)')
+        add_help(
+            '?', 'Probably no change, but quite large uncertainty '
+            '(confidence interval with ±5%)')
+        add_help('??', 'Unclear result, very large uncertainty (±10%)')
+        add_help('???', 'Something unexpected…')
+
     log.debug('Generated performance comparison table')
 
 
