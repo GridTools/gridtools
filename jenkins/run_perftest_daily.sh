@@ -17,7 +17,7 @@ for domain in 128 256; do
   ./build/pyutils/driver.py -v -l $logfile perftest run -s $domain $domain 80 -o $resultdir/$resultname || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
 
   # find previous results for history plot
-  results=$(ls $resultdir '*.json')
+  results=$(find $resultdir -name '*.json')
   if [[ -n "$results" ]]; then
     # plot history
     ./build/pyutils/driver.py -v -l $logfile perftest plot history -i $results -o history-$domain-full.html || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
