@@ -246,7 +246,6 @@ def _history_data(data, key, limit):
     outputs = [_OutputKey.outputs_by_key(d) for d in data]
 
     keys = set.union(*(set(o.keys()) for o in outputs))
-
     measurements = {k: _Measurements([], [], [], [], []) for k in keys}
     for o in outputs:
         for k in keys:
@@ -301,6 +300,5 @@ def history(data, output, key='job', limit=None):
         dates, measurements = _history_data(data, key, limit)
 
         with report.image_grid() as grid:
-            for k, m in measurements.items():
-                title = ', '.join(k).replace('_', ' ').title()
-                _history_plot(title, dates, m, grid.image())
+            for k, m in sorted(measurements.items()):
+                _history_plot(str(k), dates, m, grid.image())
