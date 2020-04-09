@@ -1,19 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import collections
-import contextlib
-import functools
-import itertools
-import math
-import operator
-import os
-import pathlib
-import re
-import sys
-import types
 import typing
-import warnings
-from xml.etree import ElementTree as et
 
 import dateutil.parser
 import matplotlib
