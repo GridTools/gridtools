@@ -9,11 +9,11 @@ _CSS = '''
     th { text-align: left; border-bottom: 1px solid black; padding: 0.5em; }
     td { padding: 0.5em; }
     .grid-container { width: 100%; display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); }
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); }
     .grid-item { }
-    .good { color: #81b113; font-weight: bold; }
-    .bad { color: #c23424; font-weight: bold; }
-    .unknown { color: #1f65c2; font-weight: bold; }
+    .good { color: #81b113; background: #dfff79; font-weight: bold; }
+    .bad { color: #c23424; background: #ffd0ac; font-weight: bold; }
+    .unknown { color: #1f65c2; background: #d5ffff; font-weight: bold; }
     img { width: 100%; }
     html { font-family: sans-serif; }
 '''
