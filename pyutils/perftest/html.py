@@ -26,7 +26,7 @@ _CSS = '''
         padding-bottom: 5em;
         border-collapse: collapse;
         table-layout:fixed;
-        width: calc(100vw - 60px);
+        max-width: calc(100vw - 60px);
     }
     th {
         text-align: left;
