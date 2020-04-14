@@ -190,7 +190,7 @@ def _histogram_plot(title, before, after, output):
     ax.set_title(title)
     fig.tight_layout()
     fig.savefig(output)
-    log.debug(f'Sucessfully written histogram plot to {output}')
+    log.debug(f'Successfully written histogram plot to {output}')
     plt.close(fig)
 
 
@@ -309,7 +309,7 @@ def _history_plot(title, dates, measurements, output):
     fig.autofmt_xdate()
     fig.tight_layout()
     fig.savefig(output, dpi=300)
-    log.debug(f'Sucessfully written history plot to {output}')
+    log.debug(f'Successfully written history plot to {output}')
     plt.close(fig)
 
 
@@ -343,7 +343,7 @@ def _bar_plot(title, labels, datas, output):
     ax.set_ylabel('Time [s]')
     fig.tight_layout()
     fig.savefig(output, dpi=300)
-    log.debug(f'Sucessfully written bar plot to {output}')
+    log.debug(f'Successfully written bar plot to {output}')
     plt.close(fig)
 
 

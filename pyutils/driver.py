@@ -132,19 +132,16 @@ def _load_json(filename):
 
 
 @plot.command(description='plot performance comparison')
-@args.arg('--output', '-o', required=True, help='output HTML file')
+@args.arg('--output', '-o', required=True, help='output directory')
 @args.arg('--input', '-i', required=True, nargs=2, help='two input files')
 def compare(output, input):
     from perftest import plot
-
-    if not output.lower().endswith('.html'):
-        output += '.html'
 
     plot.compare(*(_load_json(i) for i in input), output)
 
 
 @plot.command(description='plot performance history')
-@args.arg('--output', '-o', required=True, help='output HTML file')
+@args.arg('--output', '-o', required=True, help='output directory')
 @args.arg('--input',
           '-i',
           required=True,
@@ -163,14 +160,11 @@ def compare(output, input):
 def history(output, input, date, limit):
     from perftest import plot
 
-    if not output.lower().endswith('.html'):
-        output += '.html'
-
     plot.history([_load_json(i) for i in input], output, date, limit)
 
 
 @plot.command(description='plot backends comparison')
-@args.arg('--output', '-o', required=True, help='output HTML file')
+@args.arg('--output', '-o', required=True, help='output directory')
 @args.arg('--input',
           '-i',
           required=True,
@@ -178,9 +172,6 @@ def history(output, input, date, limit):
           help='any number of input files')
 def compare_backends(output, input):
     from perftest import plot
-
-    if not output.lower().endswith('.html'):
-        output += '.html'
 
     plot.compare_backends([_load_json(i) for i in input], output)
 
