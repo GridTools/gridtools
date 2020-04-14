@@ -91,4 +91,3 @@ You can call the laplacian above with the following syntax:
 .. code-block:: gridtools
 
     call_proc<lap_function>::with(eval, lap(), param());
-

@@ -8,7 +8,7 @@ Getting Started
 ===============
 
 This chapter describes how to use |GT| to solve a (simple) PDE.
-We will use a fourth-order horizontal smoothing filter 
+We will use a fourth-order horizontal smoothing filter
 to explain the necessary steps to assemble a
 stencil from scratch. We will not go into details in this chapter but
 refer to later chapters for more details.
@@ -49,7 +49,7 @@ the vertical dimension, where :math:`x_i, y_j, z_k` are the :math:`x,y,z`
 coordinates restricted on the grid. The *computation domain* is defined
 by all grid points in our domain of interest
 
-.. math:: 
+.. math::
 
    \Lambda = (i,j,k) \quad \text{with}\quad i \in \{ 0\dots N_i-1\}, j \in \{0\dots N_j-1\}, k\in\{0 \dots N_k-1\}
 
@@ -67,9 +67,9 @@ points in the boundary region.
 .. _fig_getting_started_coordinates:
 .. figure:: figures/coordinates.png
    :scale: 60 %
-   
+
    Coordinate system
-   
+
 --------
 Storages
 --------
@@ -94,18 +94,18 @@ is to define the *storage traits* type which typically looks like
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
-   :start-after: #ifdef __CUDACC__
+   :start-after: #ifdef GT_CUDACC
    :end-before: #else
 
 for the CUDA :term:`Storage Traits` or
- 
+
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :start-after: #else
    :end-before: #endif
 
 for the CPU :term:`Storage Traits`.
- 
+
 ^^^^^^^^^^^^^^^^^
 Building Storages
 ^^^^^^^^^^^^^^^^^
@@ -168,7 +168,7 @@ five-point stencil as depicted in :numref:`fig_getting_started_2dlap`.
 .. _fig_getting_started_2dlap:
 .. figure:: figures/Laplacian2D.png
    :scale: 60 %
-   
+
    Access pattern of a 2D Laplacian
 
 For the calculation of
@@ -235,8 +235,8 @@ negative number, while ``i_plus`` is the positive offset. Analogously for
 in the extent of the ``in`` accessor define that we want to access the
 field at :math:`i-1`, :math:`i` and  :math:`i+1`. The accessor type and the extent is needed for a
 dependency analysis in the compile-time optimizations for more complex
-stencils. (For example, the computation 
-domain needs to be extended when we calculate the Laplacian of the Laplacian later. This is done automatically by the 
+stencils. (For example, the computation
+domain needs to be extended when we calculate the Laplacian of the Laplacian later. This is done automatically by the
 library.)
 
 The first template argument is an index defining the order of the
@@ -283,7 +283,7 @@ For our example this looks as follows
    :language: gridtools
    :start-after: int main() {
    :end-before: }
-   :dedent: 4 
+   :dedent: 4
    :linenos:
 
 In lines 14-16 we setup the physical dimension of the problem.
@@ -309,7 +309,7 @@ The full working example looks as follows:
    :language: gridtools
    :linenos:
 
-There are some points which we did not discuss so far. For a first look at |GT| these can be considered fixed patterns and 
+There are some points which we did not discuss so far. For a first look at |GT| these can be considered fixed patterns and
 we won't discuss them now in detail. In brief:
 
 - In order to use the :math:`(i,j)` syntax we need to define the symbols to point to the respective dimensions.
@@ -359,7 +359,7 @@ The :term:`Vertical Intervals<Vertical Interval>` are defined as
    :language: gridtools
    :start-after: dimension<2>
    :end-before: struct lap_function {
-   
+
 The first line defines an axis with 2 :term:`Vertical Intervals<Vertical Interval>`. From this axis retrieve the :term:`Vertical Intervals<Vertical Interval>`
 and give them a name.
 
@@ -411,7 +411,7 @@ have a fixed size, temporaries can have block-private :term:`Halos<Halo>` which 
    region for redundant computation. In such case several threads (OpenMP or CUDA) will write the same location multiple
    times. As long as all threads write the same data (which is a requirement for correctness of |GT|), this should be
    no problem for correctness on current hardware (might change in the future) but might have side-effects on performance.
-   
+
 .. note::
 
    This change from normal storages to temporaries did not require any code changes to the functor.
@@ -420,17 +420,17 @@ have a fixed size, temporaries can have block-private :term:`Halos<Halo>` which 
 Functor Calls
 ^^^^^^^^^^^^^
 
-The next feature we want to use is the *stencil function call*. In the first example we computed the Laplacian 
-and the Laplacian of the Laplacian explicitly and stored the intermediate values in the temporaries. Stencil function 
+The next feature we want to use is the *stencil function call*. In the first example we computed the Laplacian
+and the Laplacian of the Laplacian explicitly and stored the intermediate values in the temporaries. Stencil function
 calls will allow us do the computation on the fly and will allow us to get rid of the temporaries.
 
-.. note:: 
+.. note::
 
-   Note that this is 
-   not necessarily a performance optimization. It might well be that the version with temporaries is actually the 
+   Note that this is
+   not necessarily a performance optimization. It might well be that the version with temporaries is actually the
    faster one.
 
-In the following we will remove only one of the temporaries. Instead of calling the Laplacian twice from the 
+In the following we will remove only one of the temporaries. Instead of calling the Laplacian twice from the
 ``spec``, we will move one of the calls into the smoothing functor. The new smoothing functor looks as follows
 
 .. literalinclude:: code/gt_smoothing_variant3_operator.hpp

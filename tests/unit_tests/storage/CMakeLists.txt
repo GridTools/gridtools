@@ -35,3 +35,5 @@ if(TARGET storage_cuda AND TARGET _gridtools_cuda)
     gridtools_add_unit_test(test_storage_facility_cuda SOURCES test_storage_facility.cpp LIBRARIES storage_cuda _gridtools_cuda LABELS storage cuda)
     target_compile_definitions(test_storage_facility_cuda PRIVATE GT_STORAGE_CUDA)
 endif()
+
+add_subdirectory(adapter)
