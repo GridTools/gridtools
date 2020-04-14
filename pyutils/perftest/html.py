@@ -25,14 +25,18 @@ _CSS = '''
     table {
         padding-bottom: 5em;
         border-collapse: collapse;
+        table-layout:fixed;
+        width: calc(100vw - 60px);
     }
     th {
         text-align: left;
         border-bottom: 1px solid black;
         padding: 0.5em;
+        word-wrap:break-word;
     }
     td {
         padding: 0.5em;
+        word-wrap:break-word;
     }
     /* styles for good/bad/unknown entries in table */
     .good {
