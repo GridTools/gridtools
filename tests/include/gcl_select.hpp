@@ -22,8 +22,8 @@ namespace {
     using gcl_arch_t = gridtools::gcl_gpu;
 }
 #elif defined(GT_GCL_CPU)
-#ifndef GT_STORAGE_X86
-#define GT_STORAGE_X86
+#ifndef GT_STORAGE_MC
+#define GT_STORAGE_MC
 #endif
 #ifndef GT_TIMER_OMP
 #define GT_TIMER_OMP
@@ -37,7 +37,7 @@ namespace {
 #include "timer_select.hpp"
 
 namespace gridtools {
-    storage::x86 backend_storage_traits(gcl_cpu const &);
+    storage::mc backend_storage_traits(gcl_cpu const &);
     timer_omp backend_timer_impl(gcl_cpu const &);
     inline char const *backend_name(gcl_cpu const &) { return "cpu"; }
 
