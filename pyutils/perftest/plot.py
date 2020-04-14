@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import functools
 import itertools
 import typing
 
@@ -324,12 +325,19 @@ def history(data, output, key='job', limit=None):
                 _history_plot(str(k), dates, m, grid.image())
 
 
-def _bar_plot(title, labels, colors, y, output):
+def _bar_plot(title, labels, datas, output):
     fig, ax = plt.subplots(figsize=(10, 5))
-    x = np.arange(len(y))
-    ax.bar(x, y, color=colors)
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
+    x0 = 0
+    xticklabels = []
+    for label, data in zip(labels, datas):
+        x = x0 + np.arange(len(data))
+        x0 += len(data)
+        ax.bar(x, data.values(), label=label)
+        xticklabels += [k.upper() for k in data.keys()]
+
+    ax.legend(loc='upper left')
+    ax.set_xticks(np.arange(len(xticklabels)))
+    ax.set_xticklabels(xticklabels)
     ax.set_title(title)
     ax.set_ylabel('Time [s]')
     fig.tight_layout()
@@ -338,35 +346,43 @@ def _bar_plot(title, labels, colors, y, output):
     plt.close(fig)
 
 
-def _add_backend_comparison_plots(report, outputs):
-    backends = set(k.backend for k in outputs.keys())
-    backend_colors = dict(
-        zip(backends, plt.rcParams['axes.prop_cycle'].by_key()['color']))
+def _add_backend_comparison_plots(report, data):
+    outputs = [_OutputKey.outputs_by_key(d) for d in data]
+    envs = [
+        d['environment']['envfile'].strip('.sh').replace('_', '-').upper()
+        for d in data
+    ]
 
-    def group(outputs, key):
-        def keyf(item):
-            k, v = item
-            return getattr(k, key)
+    float_types = {k.float_type for o in outputs for k in o.keys()}
+    backends = {k.backend for o in outputs for k in o.keys()}
+    names = {k.name for o in outputs for k in o.keys()}
 
-        return itertools.groupby(sorted(outputs, key=keyf), key=keyf)
-
-    for float_type, float_type_items in group(outputs.items(), 'float_type'):
+    for float_type in sorted(float_types):
         with report.image_grid(float_type.upper()) as grid:
-            for name, name_items in group(float_type_items, 'name'):
-                keys, values = zip(*name_items)
+            for name in sorted(names):
+                key = functools.partial(_OutputKey,
+                                        float_type=float_type,
+                                        name=name)
                 title = name.replace('_', ' ').title()
-                labels = [k.backend.upper() for k in keys]
-                colors = [backend_colors[k.backend] for k in keys]
-                y = [np.median(v) for v in values]
-                _bar_plot(title, labels, colors, y, grid.image())
+                data = [{
+                    backend: np.median(output[key(backend=backend)])
+                    for backend in backends if key(backend=backend) in output
+                } for output in outputs]
+                labels = [
+                    f'Configuration {i + 1} ({env})'
+                    for i, env in enumerate(envs)
+                ]
+                _bar_plot(title, labels, data,
+                          grid.image())
 
 
 def compare_backends(data, output):
-    outputs = _OutputKey.outputs_by_key(data)
+    assert all(d['domain'] == data[0]['domain'] for d in data)
 
     title = 'GridTools Backends Comparison for Domain ' + '×'.join(
-        str(d) for d in data['domain'])
+        str(d) for d in data[0]['domain'])
     with html.Report(output, title) as report:
 
-        _add_backend_comparison_plots(report, outputs)
-        _add_info(report, ['Value'], [data])
+        _add_backend_comparison_plots(report, data)
+        _add_info(report, [f'Configuration {i + 1}' for i in range(len(data))],
+                  data)

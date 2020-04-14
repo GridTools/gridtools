@@ -171,14 +171,18 @@ def history(output, input, date, limit):
 
 @plot.command(description='plot backends comparison')
 @args.arg('--output', '-o', required=True, help='output HTML file')
-@args.arg('--input', '-i', required=True, help='input file')
+@args.arg('--input',
+          '-i',
+          required=True,
+          nargs='+',
+          help='any number of input files')
 def compare_backends(output, input):
     from perftest import plot
 
     if not output.lower().endswith('.html'):
         output += '.html'
 
-    plot.compare_backends(_load_json(input), output)
+    plot.compare_backends([_load_json(i) for i in input], output)
 
 
 with log.exception_logging():
