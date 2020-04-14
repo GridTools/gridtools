@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import itertools
 import typing
 
 import dateutil.parser
@@ -200,20 +201,22 @@ def _add_comparison_plots(report, before_outs, after_outs, cis):
                                 grid.image())
 
 
-def _add_comparison_info(report, before, after):
+def _add_info(report, labels, data):
     with report.table('Info') as table:
         with table.row() as row:
-            row.fill('Property', 'Before', 'After')
+            row.fill('Property', *labels)
 
-        for k, vafter in after['gridtools'].items():
-            vbefore = before['gridtools'].get(k, '')
+        for k in {k for d in data for k in d['gridtools'].keys()}:
             with table.row() as row:
-                row.fill('GridTools ' + k.title(), vbefore, vafter)
+                row.cell('GridTools ' + k.title())
+                for d in data:
+                    row.cell(d['gridtools'].get(k, '—'))
 
-        for k, vafter in after['environment'].items():
-            vbefore = before['environment'].get(k, '')
+        for k in {k for d in data for k in d['environment'].keys()}:
             with table.row() as row:
-                row.fill(k.title(), vbefore, vafter)
+                row.cell(k.title())
+                for d in data:
+                    row.cell(d['environment'].get(k, '—'))
 
 
 def compare(before, after, output):
@@ -230,7 +233,7 @@ def compare(before, after, output):
     with html.Report(output, title) as report:
         _add_comparison_table(report, cis)
         _add_comparison_plots(report, before_outs, after_outs, cis)
-        _add_comparison_info(report, before, after)
+        _add_info(report, ['Before', 'After'], [before, after])
 
 
 class _Measurements(typing.NamedTuple):
@@ -319,3 +322,51 @@ def history(data, output, key='job', limit=None):
         with report.image_grid() as grid:
             for k, m in sorted(measurements.items()):
                 _history_plot(str(k), dates, m, grid.image())
+
+
+def _bar_plot(title, labels, colors, y, output):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    x = np.arange(len(y))
+    ax.bar(x, y, color=colors)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.set_title(title)
+    ax.set_ylabel('Time [s]')
+    fig.tight_layout()
+    fig.savefig(output, dpi=300)
+    log.debug(f'Sucessfully written bar plot to {output}')
+    plt.close(fig)
+
+
+def _add_backend_comparison_plots(report, outputs):
+    backends = set(k.backend for k in outputs.keys())
+    backend_colors = dict(
+        zip(backends, plt.rcParams['axes.prop_cycle'].by_key()['color']))
+
+    def group(outputs, key):
+        def keyf(item):
+            k, v = item
+            return getattr(k, key)
+
+        return itertools.groupby(sorted(outputs, key=keyf), key=keyf)
+
+    for float_type, float_type_items in group(outputs.items(), 'float_type'):
+        with report.image_grid(float_type.upper()) as grid:
+            for name, name_items in group(float_type_items, 'name'):
+                keys, values = zip(*name_items)
+                title = name.replace('_', ' ').title()
+                labels = [k.backend.upper() for k in keys]
+                colors = [backend_colors[k.backend] for k in keys]
+                y = [np.median(v) for v in values]
+                _bar_plot(title, labels, colors, y, grid.image())
+
+
+def compare_backends(data, output):
+    outputs = _OutputKey.outputs_by_key(data)
+
+    title = 'GridTools Backends Comparison for Domain ' + '×'.join(
+        str(d) for d in data['domain'])
+    with html.Report(output, title) as report:
+
+        _add_backend_comparison_plots(report, outputs)
+        _add_info(report, ['Value'], [data])

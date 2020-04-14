@@ -126,35 +126,25 @@ def plot():
     pass
 
 
+def _load_json(filename):
+    with open(filename, 'r') as file:
+        return json.load(file)
+
+
 @plot.command(description='plot performance comparison')
-@args.arg('--output',
-          '-o',
-          required=True,
-          help='output HTML file')
-@args.arg('--input',
-          '-i',
-          required=True,
-          nargs=2,
-          help='two input files')
+@args.arg('--output', '-o', required=True, help='output HTML file')
+@args.arg('--input', '-i', required=True, nargs=2, help='two input files')
 def compare(output, input):
     from perftest import plot
 
     if not output.lower().endswith('.html'):
         output += '.html'
 
-    def load(infile):
-        with open(infile, 'r') as f:
-            return json.load(f)
-
-    data = [load(i) for i in input]
-    plot.compare(*data, output)
+    plot.compare(*(_load_json(i) for i in input), output)
 
 
 @plot.command(description='plot performance history')
-@args.arg('--output',
-          '-o',
-          required=True,
-          help='output HTML file')
+@args.arg('--output', '-o', required=True, help='output HTML file')
 @args.arg('--input',
           '-i',
           required=True,
@@ -176,13 +166,19 @@ def history(output, input, date, limit):
     if not output.lower().endswith('.html'):
         output += '.html'
 
-    def load(infile):
-        with open(infile, 'r') as f:
-            return json.load(f)
+    plot.history([_load_json(i) for i in input], output, date, limit)
 
-    data = [load(i) for i in input]
 
-    plot.history(data, output, date, limit)
+@plot.command(description='plot backends comparison')
+@args.arg('--output', '-o', required=True, help='output HTML file')
+@args.arg('--input', '-i', required=True, help='input file')
+def compare_backends(output, input):
+    from perftest import plot
+
+    if not output.lower().endswith('.html'):
+        output += '.html'
+
+    plot.compare_backends(_load_json(input), output)
 
 
 with log.exception_logging():

@@ -11,10 +11,10 @@ for domain in 128 256; do
   mkdir -p $resultdir
 
   # name result file by date/time
-  resultname=$(date +%F-%H-%M-%S).json
+  result="$resultdir/$(date +%F-%H-%M-%S).json"
 
   # run performance tests
-  ./build/pyutils/driver.py -v -l $logfile perftest run -s $domain $domain 80 -o $resultdir/$resultname || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
+  ./build/pyutils/driver.py -v -l $logfile perftest run -s $domain $domain 80 -o $result || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
 
   # find previous results for history plot
   results=$(find $resultdir -name '*.json')
@@ -23,4 +23,7 @@ for domain in 128 256; do
     ./build/pyutils/driver.py -v -l $logfile perftest plot history -i $results -o history-$domain-full.html || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
     ./build/pyutils/driver.py -v -l $logfile perftest plot history -i $results -o history-$domain-last.html --limit=10 || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
   fi
+
+  # plot backend comparison
+  ./build/pyutils/driver.py -v -l $logfile perftest plot compare-backends -i $result -o backends-$domain.html || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
 done
