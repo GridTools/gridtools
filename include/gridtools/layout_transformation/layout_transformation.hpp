@@ -13,13 +13,13 @@
 #include <cassert>
 #include <utility>
 
-#include "../../common/array.hpp"
-#include "../../common/defs.hpp"
-#include "../../common/tuple_util.hpp"
+#include "../common/array.hpp"
+#include "../common/defs.hpp"
+#include "../common/tuple_util.hpp"
 #include "layout_transformation_impl_omp.hpp"
 
 #ifdef GT_CUDACC
-#include "../../common/cuda_is_ptr.hpp"
+#include "../common/cuda_is_ptr.hpp"
 #include "layout_transformation_impl_cuda.hpp"
 #endif
 

@@ -50,11 +50,11 @@ Glossary
     The maximum relative offsets along the coordinate axes at which data is
     accessed around the :term:`Iteration Point`. See section
     :ref:`stencil_operators`.
-    
+
   Field
     Multi-dimensional data representing a physical field, e.g. temperature.
     Often used as a synonym for multi-dimensional data in general or a
-    :term:`Data Store` in particular. 
+    :term:`Data Store` in particular.
 
   GCL
     The |GT| Communication Module. See section :ref:`halo-exchanges`.
@@ -108,7 +108,7 @@ Glossary
     a :term:`Data Store`. See section :ref:`storage-module`. Also used to
     define the process layout in an multi-process setup. For this usage, see
     section :ref:`storage-info`.
-    
+
   Masked Dimension
     A dimension with stride 0.
 
@@ -120,7 +120,7 @@ Glossary
   Placeholder
     Placeholders allow compile-time naming of :term:`Stencil Operator`
     arguments. See section :ref:`placeholders`.
-    
+
   Software-Managed Cache
     User-defined caching of :term:`Fields<Field>` during a :term:`Multi-Stage`, which has a
     :ref:`cache-policy` and a :ref:`cache-type`.

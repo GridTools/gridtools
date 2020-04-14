@@ -16,9 +16,9 @@
 
 #include <cpp_bindgen/array_descriptor.h>
 
-#include "../common/integral_constant.hpp"
-#include "../common/stride_util.hpp"
-#include "../sid/simple_ptr_holder.hpp"
+#include "../../common/integral_constant.hpp"
+#include "../../common/stride_util.hpp"
+#include "../../sid/simple_ptr_holder.hpp"
 
 namespace gridtools {
     namespace fortran_array_view_impl_ {

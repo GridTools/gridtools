@@ -11,8 +11,8 @@
 
 #include <cpp_bindgen/fortran_array_view.hpp>
 
-#include "../storage/data_store.hpp"
-#include "layout_transformation/layout_transformation.hpp"
+#include "../../layout_transformation/layout_transformation.hpp"
+#include "../data_store.hpp"
 
 namespace gridtools {
     template <class DataStorePtr>
