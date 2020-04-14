@@ -7,7 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/interface/layout_transformation/layout_transformation.hpp>
+#include <gridtools/layout_transformation/layout_transformation.hpp>
 
 #include <gtest/gtest.h>
 

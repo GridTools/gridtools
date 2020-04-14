@@ -2,6 +2,7 @@
 
 import functools
 import itertools
+import pathlib
 import typing
 
 import dateutil.parser
@@ -189,7 +190,7 @@ def _histogram_plot(title, before, after, output):
     ax.set_title(title)
     fig.tight_layout()
     fig.savefig(output)
-    log.debug(f'Sucessfully written histogram plot to {output}')
+    log.debug(f'Successfully written histogram plot to {output}')
     plt.close(fig)
 
 
@@ -308,7 +309,7 @@ def _history_plot(title, dates, measurements, output):
     fig.autofmt_xdate()
     fig.tight_layout()
     fig.savefig(output, dpi=300)
-    log.debug(f'Sucessfully written history plot to {output}')
+    log.debug(f'Successfully written history plot to {output}')
     plt.close(fig)
 
 
@@ -342,16 +343,17 @@ def _bar_plot(title, labels, datas, output):
     ax.set_ylabel('Time [s]')
     fig.tight_layout()
     fig.savefig(output, dpi=300)
-    log.debug(f'Sucessfully written bar plot to {output}')
+    log.debug(f'Successfully written bar plot to {output}')
     plt.close(fig)
 
 
 def _add_backend_comparison_plots(report, data):
     outputs = [_OutputKey.outputs_by_key(d) for d in data]
-    envs = [
-        d['environment']['envfile'].strip('.sh').replace('_', '-').upper()
-        for d in data
-    ]
+
+    envs = (envfile.stem.replace('_', '-').upper()
+            for envfile in (pathlib.Path(d['environment']['envfile'])
+                            for d in data))
+    labels = [f'Configuration {i + 1} ({env})' for i, env in enumerate(envs)]
 
     float_types = {k.float_type for o in outputs for k in o.keys()}
     backends = {k.backend for o in outputs for k in o.keys()}
@@ -368,12 +370,7 @@ def _add_backend_comparison_plots(report, data):
                     backend: np.median(output[key(backend=backend)])
                     for backend in backends if key(backend=backend) in output
                 } for output in outputs]
-                labels = [
-                    f'Configuration {i + 1} ({env})'
-                    for i, env in enumerate(envs)
-                ]
-                _bar_plot(title, labels, data,
-                          grid.image())
+                _bar_plot(title, labels, data, grid.image())
 
 
 def compare_backends(data, output):
@@ -382,7 +379,6 @@ def compare_backends(data, output):
     title = 'GridTools Backends Comparison for Domain ' + '×'.join(
         str(d) for d in data[0]['domain'])
     with html.Report(output, title) as report:
-
         _add_backend_comparison_plots(report, data)
         _add_info(report, [f'Configuration {i + 1}' for i in range(len(data))],
                   data)

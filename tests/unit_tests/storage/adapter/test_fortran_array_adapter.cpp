@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <cpp_bindgen/fortran_array_view.hpp>
-#include <gridtools/interface/fortran_array_adapter.hpp>
+#include <gridtools/storage/adapter/fortran_array_adapter.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/x86.hpp>
 

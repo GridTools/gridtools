@@ -71,9 +71,8 @@ _CSS = '''
 
 
 class Report:
-    def __init__(self, filename, title):
-        self.filename = pathlib.Path(filename)
-        self.data_dir = pathlib.Path(self.filename.stem)
+    def __init__(self, data_dir, title):
+        self.data_dir = pathlib.Path(data_dir)
         self.data_dir.mkdir()
         self.data_counter = 0
 
@@ -99,7 +98,7 @@ class Report:
         path, rel_path = self.get_data_path('.css')
         with path.open('w') as css_file:
             css_file.write(_CSS)
-        log.debug(f'Sucessfully written CSS to {path}')
+        log.debug(f'Successfully written CSS to {path}')
         return rel_path
 
     def __enter__(self):
@@ -111,15 +110,15 @@ class Report:
         return False
 
     def write(self):
-        et.ElementTree(self.html).write(self.filename,
+        et.ElementTree(self.html).write(self.data_dir / 'index.html',
                                         encoding='utf-8',
                                         method='html')
-        log.info(f'Successfully written HTML report to {self.filename}')
+        log.info(f'Successfully written HTML report to {self.data_dir}')
 
     def get_data_path(self, suffix=''):
-        path = self.data_dir / f'{self.data_counter:03}{suffix}'
+        filename = f'{self.data_counter:03}{suffix}'
         self.data_counter += 1
-        return path, path.relative_to(self.filename.parent)
+        return self.data_dir / filename, filename
 
     @contextlib.contextmanager
     def _section(self, title):

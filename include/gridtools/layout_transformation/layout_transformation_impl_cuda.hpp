@@ -12,12 +12,12 @@
 
 #include <utility>
 
-#include "../../common/array.hpp"
-#include "../../common/defs.hpp"
-#include "../../common/host_device.hpp"
-#include "../../common/hypercube_iterator.hpp"
-#include "../../common/integral_constant.hpp"
-#include "../../common/tuple_util.hpp"
+#include "../common/array.hpp"
+#include "../common/defs.hpp"
+#include "../common/host_device.hpp"
+#include "../common/hypercube_iterator.hpp"
+#include "../common/integral_constant.hpp"
+#include "../common/tuple_util.hpp"
 
 namespace gridtools {
     namespace impl {
