@@ -13,7 +13,7 @@ for domain in 128 256; do
         done
 
         if [[ -n "$results" ]]; then
-            ./pyutils/driver.py -v perftest plot compare-backends -i $results -o backends-$label-$domain
+            ./pyutils/driver.py -v perftest plot compare-backends -i $results -o report-$label-$domain
         fi
     done
 done

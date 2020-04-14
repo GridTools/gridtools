@@ -17,7 +17,7 @@ for domain in 128 256; do
   # find references for same configuration
   reference=./pyutils/perftest/references/${label}_$env/$domain.json
   # plot comparison of current result with references
-  ./build/pyutils/driver.py -v -l $logfile perftest plot compare -i $reference $result -o compare-$domain || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
+  ./build/pyutils/driver.py -v -l $logfile perftest plot compare -i $reference $result -o report-$domain-reference-comparison || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
   # plot comparison between backends
-  ./build/pyutils/driver.py -v -l $logfile perftest plot compare-backends -i $result -o backends-$domain || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
+  ./build/pyutils/driver.py -v -l $logfile perftest plot compare-backends -i $result -o report-$domain-backends-comparison || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
 done
