@@ -331,10 +331,12 @@ def _bar_plot(title, labels, datas, output):
     x0 = 0
     xticklabels = []
     for label, data in zip(labels, datas):
-        x = x0 + np.arange(len(data))
-        x0 += len(data)
-        ax.bar(x, data.values(), label=label)
-        xticklabels += [k.upper() for k in data.keys()]
+        if data:
+            x = x0 + np.arange(len(data))
+            x0 += len(data)
+            keys, values = zip(*sorted(data.items()))
+            ax.bar(x, values, label=label)
+            xticklabels += [k.upper() for k in keys]
 
     ax.legend(loc='upper left')
     ax.set_xticks(np.arange(len(xticklabels)))
