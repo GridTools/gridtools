@@ -64,7 +64,7 @@ class _ConfidenceInterval(typing.NamedTuple):
             return '+'
         if -0.1 <= self.lower <= -0.05:
             return '++'
-        if self.upper <= -0.1:
+        if self.lower <= -0.1:
             return '+++'
 
         # slower
@@ -74,7 +74,7 @@ class _ConfidenceInterval(typing.NamedTuple):
             return '-'
         if 0.1 >= self.upper >= 0.05:
             return '--'
-        if self.lower >= 0.1:
+        if self.upper >= 0.1:
             return '---'
 
         # no idea
