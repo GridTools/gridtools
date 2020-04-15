@@ -327,6 +327,9 @@ def history(data, output, key='job', limit=None):
 
 
 def _bar_plot(title, labels, datas, output):
+    def fmt(seconds, *args):
+        return f'{seconds * 1000:.2f} ms'
+
     fig, ax = plt.subplots(figsize=(10, 5))
     x0 = 0
     xticklabels = []
@@ -335,14 +338,20 @@ def _bar_plot(title, labels, datas, output):
             x = x0 + np.arange(len(data))
             x0 += len(data)
             keys, values = zip(*sorted(data.items()))
-            ax.bar(x, values, label=label)
+            bars = ax.bar(x, values, label=label)
+            for bar in bars:
+                ax.text(bar.get_x() + bar.get_width() / 2,
+                        bar.get_height(),
+                        fmt(bar.get_height()),
+                        ha='center',
+                        va='bottom')
             xticklabels += [k.upper() for k in keys]
 
     ax.legend(loc='upper left')
     ax.set_xticks(np.arange(len(xticklabels)))
     ax.set_xticklabels(xticklabels)
     ax.set_title(title)
-    ax.set_ylabel('Time [s]')
+    ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(fmt))
     fig.tight_layout()
     fig.savefig(output, dpi=300)
     log.debug(f'Successfully written bar plot to {output}')
