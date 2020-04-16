@@ -45,12 +45,16 @@ namespace {
             return res;
         };
         auto out = TypeParam::icosahedral_make_storage(edges());
-        auto comp = [&] {
+        auto comp = [grid = TypeParam::make_grid(),
+                        in1 = TypeParam::icosahedral_make_storage(edges(), in1),
+                        in2 = TypeParam::icosahedral_make_storage(edges(), in2),
+                        &out] {
             run_single_stage(test_on_edges_functor(),
                 backend_t(),
-                TypeParam::make_grid(),
-                TypeParam::icosahedral_make_storage(edges(), in1),
-                TypeParam::icosahedral_make_storage(edges(), in2),
+                grid,
+                in1,
+                in2,
+
                 out);
         };
         comp();
