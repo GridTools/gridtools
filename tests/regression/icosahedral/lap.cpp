@@ -49,7 +49,7 @@ namespace {
 
     struct backend_filter {
         template <class Backend>
-        using apply = bool_constant<!std::is_same<mc::backend, Backend>::value &&
+        using apply = bool_constant<!meta::is_instantiation_of<mc::backend, Backend>::value &&
                                     !meta::is_instantiation_of<cuda_horizontal::backend, Backend>::value>;
     };
 

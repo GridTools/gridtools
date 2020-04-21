@@ -16,7 +16,6 @@
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/integral_constant.hpp"
-#include "../../common/omp.hpp"
 #include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta.hpp"
@@ -28,13 +27,15 @@
 #include "../../sid/contiguous.hpp"
 #include "../../sid/loop.hpp"
 #include "../../sid/sid_shift_origin.hpp"
+#include "../../thread_pool/concept.hpp"
+#include "../../thread_pool/omp.hpp"
 #include "../be_api.hpp"
 #include "../common/dim.hpp"
 
 namespace gridtools {
     namespace x86 {
-        template <class Stage, class Grid, class DataStores>
-        auto make_stage_loop(Stage, Grid const &grid, DataStores &data_stores) {
+        template <class ThreadPool, class Stage, class Grid, class DataStores>
+        auto make_stage_loop(ThreadPool, Stage, Grid const &grid, DataStores &data_stores) {
             using extent_t = typename Stage::extent_t;
 
             using plh_map_t = typename Stage::plh_map_t;
@@ -69,7 +70,7 @@ namespace gridtools {
                        strides = std::move(strides),
                        k_loop = std::move(k_loop)](int_t i_block, int_t j_block, int_t i_size, int_t j_size) {
                 ptr_diff_t offset{};
-                sid::shift(offset, sid::get_stride<dim::thread>(strides), omp_get_thread_num());
+                sid::shift(offset, sid::get_stride<dim::thread>(strides), thread_pool::get_thread_num(ThreadPool()));
                 sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(strides), i_block);
                 sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), j_block);
                 auto ptr = origin() + offset;
@@ -79,12 +80,14 @@ namespace gridtools {
             };
         }
 
-        template <class IBlockSize = integral_constant<int_t, 8>, class JBlockSize = integral_constant<int_t, 8>>
+        template <class IBlockSize = integral_constant<int_t, 8>,
+            class JBlockSize = integral_constant<int_t, 8>,
+            class ThreadPool = thread_pool::omp>
         struct backend {};
 
-        template <class IBlockSize, class JBlockSize, class Spec, class Grid, class DataStores>
+        template <class IBlockSize, class JBlockSize, class ThreadPool, class Spec, class Grid, class DataStores>
         void gridtools_backend_entry_point(
-            backend<IBlockSize, JBlockSize>, Spec, Grid const &grid, DataStores external_data_stores) {
+            backend<IBlockSize, JBlockSize, ThreadPool>, Spec, Grid const &grid, DataStores external_data_stores) {
             using stages_t = be_api::make_split_view<Spec>;
 
             auto alloc = sid::make_cached_allocator(&std::make_unique<char[]>);
@@ -101,7 +104,7 @@ namespace gridtools {
                         grid.k_size(interval, extent),
                         extent.extend(dim::j(), JBlockSize()),
                         extent.extend(dim::i(), IBlockSize()),
-                        omp_get_max_threads());
+                        thread_pool::get_max_threads(ThreadPool()));
 
                 using stride_kind = meta::list<decltype(extent), decltype(num_colors)>;
                 return sid::shift_sid_origin(
@@ -118,7 +121,8 @@ namespace gridtools {
             auto data_stores = hymap::concat(std::move(blocked_external_data_stores), std::move(temporaries));
 
             auto stage_loops = tuple_util::transform(
-                [&](auto stage) { return make_stage_loop(stage, grid, data_stores); }, meta::rename<tuple, stages_t>());
+                [&](auto stage) { return make_stage_loop(ThreadPool(), stage, grid, data_stores); },
+                meta::rename<tuple, stages_t>());
 
             int_t total_i = grid.i_size();
             int_t total_j = grid.j_size();
@@ -126,14 +130,14 @@ namespace gridtools {
             int_t NBI = (total_i + IBlockSize::value - 1) / IBlockSize::value;
             int_t NBJ = (total_j + JBlockSize::value - 1) / JBlockSize::value;
 
-#pragma omp parallel for collapse(2)
-            for (int_t bi = 0; bi < NBI; ++bi) {
-                for (int_t bj = 0; bj < NBJ; ++bj) {
+            thread_pool::parallel_for_loop(ThreadPool(),
+                [&](auto bi, auto bj) {
                     int_t i_size = bi + 1 == NBI ? total_i - bi * IBlockSize::value : IBlockSize::value;
                     int_t j_size = bj + 1 == NBJ ? total_j - bj * JBlockSize::value : JBlockSize::value;
                     tuple_util::for_each([=](auto &&fun) { fun(bi, bj, i_size, j_size); }, stage_loops);
-                }
-            }
+                },
+                NBI,
+                NBJ);
         }
     } // namespace x86
 } // namespace gridtools
