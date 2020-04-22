@@ -108,12 +108,12 @@ namespace gridtools {
                 int_t j_blocks = info.j_blocks();
                 int_t k_size = grid.k_size();
                 thread_pool::parallel_for_loop(ThreadPool(),
-                    [&](auto j, int k, int i) {
+                    [&](auto i, auto k, auto j) {
                         tuple_util::for_each([block = info.block(i, j, k)](auto &&loop) { loop(block); }, loops);
                     },
-                    j_blocks,
+                    i_blocks,
                     k_size,
-                    i_blocks);
+                    j_blocks);
             }
 
             template <class ThreadPool, class Stage, class Grid, class Composite, class KSizes>
@@ -156,11 +156,11 @@ namespace gridtools {
             void run_loops(std::false_type, Grid const &grid, Loops loops) {
                 execinfo_mc info(ThreadPool(), grid);
                 thread_pool::parallel_for_loop(ThreadPool(),
-                    [&](auto j, auto i) {
+                    [&](auto i, auto j) {
                         tuple_util::for_each([block = info.block(i, j)](auto &&loop) { loop(block); }, loops);
                     },
-                    info.j_blocks(),
-                    info.i_blocks());
+                    info.i_blocks(),
+                    info.j_blocks());
             }
         } // namespace loops_impl_
         using loops_impl_::make_loop;

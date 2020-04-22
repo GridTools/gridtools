@@ -131,13 +131,13 @@ namespace gridtools {
             int_t NBJ = (total_j + JBlockSize::value - 1) / JBlockSize::value;
 
             thread_pool::parallel_for_loop(ThreadPool(),
-                [&](auto bi, auto bj) {
+                [&](auto bj, auto bi) {
                     int_t i_size = bi + 1 == NBI ? total_i - bi * IBlockSize::value : IBlockSize::value;
                     int_t j_size = bj + 1 == NBJ ? total_j - bj * JBlockSize::value : JBlockSize::value;
                     tuple_util::for_each([=](auto &&fun) { fun(bi, bj, i_size, j_size); }, stage_loops);
                 },
-                NBI,
-                NBJ);
+                NBJ,
+                NBI);
         }
     } // namespace x86
 } // namespace gridtools

@@ -20,6 +20,7 @@
  *   where `pool` is an instance of the type.
  *
  *   There maybe additional overloads of `thread_pool_parallel_for_loop` avaliable:
+ *   Note that the limits go from the inner most to the outer most
  *     thread_pool_parallel_for_loop(pool, func, lim0, lim1);
  *     thread_pool_parallel_for_loop(pool, func, lim0, lim1, lim2);
  *     etc.

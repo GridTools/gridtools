@@ -23,7 +23,7 @@ namespace gridtools {
 
             template <class F, class I>
             friend void thread_pool_parallel_for_loop(omp, F const &f, I lim) {
-#pragma omp parallel for collapse(1)
+#pragma omp parallel for
                 for (I i = 0; i < lim; ++i)
                     f(i);
             }
@@ -31,17 +31,17 @@ namespace gridtools {
             template <class F, class I, class J>
             friend void thread_pool_parallel_for_loop(omp, F const &f, I i_lim, J j_lim) {
 #pragma omp parallel for collapse(2)
-                for (I i = 0; i < i_lim; ++i)
-                    for (J j = 0; j < j_lim; ++j)
+                for (J j = 0; j < j_lim; ++j)
+                    for (I i = 0; i < i_lim; ++i)
                         f(i, j);
             }
 
             template <class F, class I, class J, class K>
             friend void thread_pool_parallel_for_loop(omp, F const &f, I i_lim, J j_lim, K k_lim) {
 #pragma omp parallel for collapse(3)
-                for (I i = 0; i < i_lim; ++i)
+                for (K k = 0; k < k_lim; ++k)
                     for (J j = 0; j < j_lim; ++j)
-                        for (K k = 0; k < k_lim; ++k)
+                        for (I i = 0; i < i_lim; ++i)
                             f(i, j, k);
             }
 #endif
