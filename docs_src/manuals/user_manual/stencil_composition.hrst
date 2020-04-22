@@ -299,7 +299,7 @@ Stencil operators are written and composed in an architecture-independent way an
 for a given ``backend``. The ``backend`` is a tag type with with the following possible values:
 
 - ``cuda::backend<>``: a GPU-enabled backend for NVIDIA GPUs
-- ``mc::backend<>``: a backend for modern CPUs with long vector-length.
+- ``mc::backend``: a backend for modern CPUs with long vector-length.
 - ``x86::backend<>``: a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future.
 
 Currently we recommend one of the following two backends for optimal performance
@@ -312,6 +312,6 @@ for GPUs or
 
 .. code-block:: gridtools
 
-   using backend_t = mc::backend<>;
+   using backend_t = mc::backend;
 
 for modern CPUs or Xeon Phis.

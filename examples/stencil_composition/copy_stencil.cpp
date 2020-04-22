@@ -29,7 +29,7 @@ using storage_traits_t = gridtools::storage::cuda;
 #else
 #include <gridtools/stencil_composition/backend/mc.hpp>
 #include <gridtools/storage/mc.hpp>
-using backend_t = gridtools::mc::backend<>;
+using backend_t = gridtools::mc::backend;
 using storage_traits_t = gridtools::storage::mc;
 #endif
 

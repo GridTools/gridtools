@@ -18,7 +18,6 @@
 #include "../../../common/tuple_util.hpp"
 #include "../../../meta.hpp"
 #include "../../../sid/concept.hpp"
-#include "../../../thread_pool/concept.hpp"
 #include "../../common/dim.hpp"
 #include "execinfo_mc.hpp"
 
@@ -62,7 +61,7 @@ namespace gridtools {
                 return {i_size, ptr, strides};
             }
 
-            template <class ThreadPool, class Stage, class Grid, class Composite, class KSizes>
+            template <class Stage, class Grid, class Composite, class KSizes>
             auto make_loop(std::true_type, Grid const &grid, Composite composite, KSizes k_sizes) {
                 using extent_t = typename Stage::extent_t;
                 using ptr_diff_t = sid::ptr_diff_type<Composite>;
@@ -75,8 +74,7 @@ namespace gridtools {
                            k_start = grid.k_start(Stage::interval()),
                            k_sizes = std::move(k_sizes)](execinfo_block_kparallel_mc const &info) {
                     ptr_diff_t offset{};
-                    sid::shift(
-                        offset, sid::get_stride<dim::thread>(strides), thread_pool::get_thread_num(ThreadPool()));
+                    sid::shift(offset, sid::get_stride<dim::thread>(strides), omp_get_thread_num());
                     sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(strides), info.i_block);
                     sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), info.j_block);
                     sid::shift(offset, sid::get_stride<dim::k>(strides), info.k);
@@ -101,22 +99,23 @@ namespace gridtools {
                 };
             }
 
-            template <class ThreadPool, class Grid, class Loops>
+            template <class Grid, class Loops>
             void run_loops(std::true_type, Grid const &grid, Loops loops) {
-                execinfo_mc info(ThreadPool(), grid);
+                execinfo_mc info(grid);
                 int_t i_blocks = info.i_blocks();
                 int_t j_blocks = info.j_blocks();
                 int_t k_size = grid.k_size();
-                thread_pool::parallel_for_loop(ThreadPool(),
-                    [&](auto j, int k, int i) {
-                        tuple_util::for_each([block = info.block(i, j, k)](auto &&loop) { loop(block); }, loops);
-                    },
-                    j_blocks,
-                    k_size,
-                    i_blocks);
+#pragma omp parallel for collapse(3)
+                for (int_t j = 0; j < j_blocks; ++j) {
+                    for (int_t k = 0; k < k_size; ++k) {
+                        for (int_t i = 0; i < i_blocks; ++i) {
+                            tuple_util::for_each([block = info.block(i, j, k)](auto &&loop) { loop(block); }, loops);
+                        }
+                    }
+                }
             }
 
-            template <class ThreadPool, class Stage, class Grid, class Composite, class KSizes>
+            template <class Stage, class Grid, class Composite, class KSizes>
             auto make_loop(std::false_type, Grid const &grid, Composite composite, KSizes k_sizes) {
                 using extent_t = typename Stage::extent_t;
                 using ptr_diff_t = sid::ptr_diff_type<Composite>;
@@ -133,8 +132,7 @@ namespace gridtools {
                            k_shift_back = -grid.k_size(Stage::interval()) * Stage::k_step(),
                            k_sizes = std::move(k_sizes)](execinfo_block_kserial_mc const &info) {
                     sid::ptr_diff_type<Composite> offset{};
-                    sid::shift(
-                        offset, sid::get_stride<dim::thread>(strides), thread_pool::get_thread_num(ThreadPool()));
+                    sid::shift(offset, sid::get_stride<dim::thread>(strides), omp_get_thread_num());
                     sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(strides), info.i_block);
                     sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), info.j_block);
                     auto ptr = origin() + offset;
@@ -152,15 +150,17 @@ namespace gridtools {
                 };
             }
 
-            template <class ThreadPool, class Grid, class Loops>
+            template <class Grid, class Loops>
             void run_loops(std::false_type, Grid const &grid, Loops loops) {
-                execinfo_mc info(ThreadPool(), grid);
-                thread_pool::parallel_for_loop(ThreadPool(),
-                    [&](auto j, auto i) {
+                execinfo_mc info(grid);
+                int_t i_blocks = info.i_blocks();
+                int_t j_blocks = info.j_blocks();
+#pragma omp parallel for collapse(2)
+                for (int_t j = 0; j < j_blocks; ++j) {
+                    for (int_t i = 0; i < i_blocks; ++i) {
                         tuple_util::for_each([block = info.block(i, j)](auto &&loop) { loop(block); }, loops);
-                    },
-                    info.j_blocks(),
-                    info.i_blocks());
+                    }
+                }
             }
         } // namespace loops_impl_
         using loops_impl_::make_loop;

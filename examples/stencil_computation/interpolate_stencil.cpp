@@ -20,7 +20,7 @@
 using backend_t = gridtools::cuda::backend<>;
 #else
 #include <gridtools/stencil_composition/backend/mc.hpp>
-using backend_t = gridtools::mc::backend<>;
+using backend_t = gridtools::mc::backend;
 #endif
 
 namespace {
