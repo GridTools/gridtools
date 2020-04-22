@@ -17,8 +17,8 @@
 #include <cpp_bindgen/export.hpp>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/storage/adapter/fortran_array_adapter.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 

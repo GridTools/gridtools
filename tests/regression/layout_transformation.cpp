@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/interface/layout_transformation/layout_transformation.hpp>
+#include <gridtools/layout_transformation/layout_transformation.hpp>
 
 #include <storage_select.hpp>
 #include <test_environment.hpp>

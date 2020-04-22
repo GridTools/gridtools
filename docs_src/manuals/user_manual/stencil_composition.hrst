@@ -67,7 +67,7 @@ be directly integrated into the stencil operation.
    non-overlapping subsets of the vertical :term:`Iteration Space` with run-time defined sizes; second :term:`Vertical
    Intervals<Vertical Interval>` (or just :term:`Interval<Vertical Interval>`) are compile-time defined descriptions
    from one vertical level (not every vertical level can be selected, see below) to another.
- 
+
 
 ^^^^^^^^^^^^^^^^^^^
 Default Interval
@@ -87,7 +87,7 @@ Defining Vertical Intervals
 |GT| allows to split the full vertical iteration space into regions. The number of vertical regions needs to be specified at
 compile-time, while the size of each region can be defined at run-time.
 
-For defining a computation with more than a single vertical region we need to define an ``axis`` first.  
+For defining a computation with more than a single vertical region we need to define an ``axis`` first.
 
 .. code-block:: gridtools
 
@@ -100,7 +100,7 @@ At runtime the axis is instantiated with the sizes of each region,
 .. code-block:: gridtools
 
    my_axis_t my_axis{N0, N1, N2, ...};
-   
+
 where the ``Nx`` are the sizes of region ``x``. With our axis object we can now generate a grid with one of the following
 signatures
 
@@ -117,7 +117,7 @@ Each region already defines a :term:`Vertical Interval` which can be queried fro
    using second_interval = my_axis_t::get_interval<1>;
    using full_interval = my_axis_t::full_interval;
    ...
-   
+
 Note that the :term:`Vertical Intervals<Vertical Interval>` are compile time object, i.e. C++ types. These :term:`Vertical Intervals<Vertical Interval>`
 are used for defining which :term:`Apply-Method` version of the stencil operator should be used during the iteration.
 
@@ -307,8 +307,8 @@ Currently we recommend one of the following two backends for optimal performance
 .. code-block:: gridtools
 
    using backend_t = cuda::backend<>;
-   
-for GPUs or 
+
+for GPUs or
 
 .. code-block:: gridtools
 
