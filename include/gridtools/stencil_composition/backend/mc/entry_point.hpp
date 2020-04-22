@@ -20,7 +20,6 @@
 #include "../../../sid/block.hpp"
 #include "../../../sid/composite.hpp"
 #include "../../../sid/concept.hpp"
-#include "../../../thread_pool/omp.hpp"
 #include "../../be_api.hpp"
 #include "../../common/dim.hpp"
 #include "execinfo_mc.hpp"
@@ -30,7 +29,6 @@
 
 namespace gridtools {
     namespace mc {
-        template <class ThreadPool = thread_pool::omp>
         struct backend {
             template <class Spec, class Grid, class DataStores>
             friend void gridtools_backend_entry_point(
@@ -41,7 +39,7 @@ namespace gridtools {
 
                 tmp_allocator_mc alloc;
 
-                execinfo_mc info(ThreadPool(), grid);
+                execinfo_mc info(grid);
 
                 using tmp_plh_map_t = be_api::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
                 auto temporaries = be_api::make_data_stores(tmp_plh_map_t(),
@@ -51,8 +49,7 @@ namespace gridtools {
                         auto info) {
                         return make_tmp_storage_mc<decltype(info.data()),
                             decltype(info.extent()),
-                            all_parrallel_t::value,
-                            ThreadPool>(alloc, block_size);
+                            all_parrallel_t::value>(alloc, block_size);
                     });
 
                 auto blocked_externals = tuple_util::transform(
@@ -77,12 +74,11 @@ namespace gridtools {
                                 return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores));
                             },
                             stage_t::plh_map()));
-                        return make_loop<ThreadPool, stage_t>(
-                            all_parrallel_t(), grid, std::move(composite), std::move(k_sizes));
+                        return make_loop<stage_t>(all_parrallel_t(), grid, std::move(composite), std::move(k_sizes));
                     },
                     meta::rename<tuple, stages_t>());
 
-                run_loops<ThreadPool>(all_parrallel_t(), grid, std::move(loops));
+                run_loops(all_parrallel_t(), grid, std::move(loops));
             }
         };
     } // namespace mc

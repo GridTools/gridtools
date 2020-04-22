@@ -45,7 +45,7 @@ namespace {
 #endif
 #include <gridtools/stencil_composition/backend/mc.hpp>
 namespace {
-    using backend_t = gridtools::mc::backend<>;
+    using backend_t = gridtools::mc::backend;
 }
 #elif defined(GT_BACKEND_CUDA)
 #ifndef GT_STORAGE_CUDA
@@ -76,17 +76,17 @@ namespace {
 
 namespace gridtools {
     namespace x86 {
-        template <class, class, class>
+        template <class, class>
         struct backend;
 
-        template <class I, class J, class T>
-        storage::x86 backend_storage_traits(backend<I, J, T>);
+        template <class I, class J>
+        storage::x86 backend_storage_traits(backend<I, J>);
 
-        template <class I, class J, class T>
-        timer_omp backend_timer_impl(backend<I, J, T>);
+        template <class I, class J>
+        timer_omp backend_timer_impl(backend<I, J>);
 
-        template <class I, class J, class T>
-        char const *backend_name(backend<I, J, T> const &) {
+        template <class I, class J>
+        char const *backend_name(backend<I, J> const &) {
             return "x86";
         }
     } // namespace x86
@@ -100,22 +100,13 @@ namespace gridtools {
     } // namespace naive
 
     namespace mc {
-        template <class>
         struct backend;
 
-        template <class T>
-        storage::mc backend_storage_traits(backend<T>);
+        storage::mc backend_storage_traits(backend);
 
-        template <class T>
-        std::false_type backend_supports_icosahedral(backend<T>);
-
-        template <class T>
-        timer_omp backend_timer_impl(backend<T>);
-
-        template <class T>
-        char const *backend_name(backend<T> const &) {
-            return "mc";
-        }
+        std::false_type backend_supports_icosahedral(backend);
+        timer_omp backend_timer_impl(backend);
+        inline char const *backend_name(backend const &) { return "mc"; }
     } // namespace mc
 
     namespace cuda {
