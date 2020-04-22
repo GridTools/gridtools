@@ -15,9 +15,11 @@ find_package(GridTools @GridTools_VERSION@ REQUIRED
 
 enable_testing()
 
-add_executable(driver_mc driver.cpp interpolate_stencil.cpp)
-target_link_libraries(driver_mc GridTools::gridtools)
-add_test(NAME driver_mc COMMAND $<TARGET_FILE:driver_mc> 33 44 55)
+if(TARGET GridTools::backend_mc)
+    add_executable(driver_mc driver.cpp interpolate_stencil.cpp)
+    target_link_libraries(driver_mc GridTools::backend_mc)
+    add_test(NAME driver_mc COMMAND $<TARGET_FILE:driver_mc> 33 44 55)
+endif()
 
 if(TARGET GridTools::backend_cuda)
     set(EXAMPLE_CUDA_ARCH "@GT_CUDA_ARCH@" CACHE STRING "CUDA compute capability to be used for this example.")
