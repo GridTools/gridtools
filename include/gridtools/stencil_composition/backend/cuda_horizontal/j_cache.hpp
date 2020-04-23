@@ -21,15 +21,16 @@ namespace gridtools {
     namespace cuda_horizontal {
         namespace j_cache_impl_ {
 
-            template <class Extent>
-            using ij_strides_t = hymap::keys<dim::i,
-                dim::j>::values<integral_constant<int_t, Extent::jplus::value - Extent::jminus::value + 1>,
+            template <class Extent, class NumColors>
+            using ij_strides_t = hymap::keys<dim::i, dim::j, dim::c>::values<
+                integral_constant<int_t, (Extent::jplus::value - Extent::jminus::value + 1) * NumColors::value>,
+                NumColors,
                 integral_constant<int_t, 1>>;
 
-            template <class T, class Extent>
+            template <class T, class Extent, class NumColors>
             struct storage;
-            template <class T, int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus>
-            struct storage<T, extent<IMinus, IPlus, JMinus, JPlus>> {
+            template <class T, int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, class NumColors>
+            struct storage<T, extent<IMinus, IPlus, JMinus, JPlus>, NumColors> {
                 T m_values[IPlus - IMinus + 1][JPlus - JMinus + 1];
                 storage() = default;
                 storage(storage const &) = delete;
@@ -45,7 +46,7 @@ namespace gridtools {
                             m_values[i][j] = m_values[i][j + 1];
                 }
 
-                using strides_t = ij_strides_t<extent<IMinus, IPlus, JMinus, JPlus>>;
+                using strides_t = ij_strides_t<extent<IMinus, IPlus, JMinus, JPlus>, NumColors>;
             };
 
             template <class T>
@@ -57,26 +58,26 @@ namespace gridtools {
                 using apply = std::decay_t<decltype(at_key<Dim>(typename T::strides_t()))>;
             };
 
-            template <class Extent>
+            template <class Extent, class NumColors>
             struct fake {
                 GT_FUNCTION fake operator()() const { return {}; }
                 fake operator*() const;
             };
-            template <class Extent>
-            fake<Extent> sid_get_ptr_diff(fake<Extent>);
+            template <class Extent, class NumColors>
+            fake<Extent, NumColors> sid_get_ptr_diff(fake<Extent, NumColors>);
 
-            template <class Extent>
-            fake<Extent> sid_get_origin(fake<Extent>) {
+            template <class Extent, class NumColors>
+            fake<Extent, NumColors> sid_get_origin(fake<Extent, NumColors>) {
                 return {};
             }
 
-            template <class Extent>
-            GT_FUNCTION fake<Extent> operator+(fake<Extent>, fake<Extent>) {
+            template <class Extent, class NumColors>
+            GT_FUNCTION fake<Extent, NumColors> operator+(fake<Extent, NumColors>, fake<Extent, NumColors>) {
                 return {};
             }
 
-            template <class Extent>
-            ij_strides_t<Extent> sid_get_strides(fake<Extent>) {
+            template <class Extent, class NumColors>
+            ij_strides_t<Extent, NumColors> sid_get_strides(fake<Extent, NumColors>) {
                 return {};
             }
 
@@ -104,7 +105,8 @@ namespace gridtools {
             };
 
             template <class PlhInfo>
-            using make_storage_type = storage<typename PlhInfo::data_t, typename PlhInfo::extent_t>;
+            using make_storage_type =
+                storage<typename PlhInfo::data_t, typename PlhInfo::extent_t, typename PlhInfo::num_colors_t>;
 
             template <class Info,
                 class PlhMap = meta::filter<be_api::get_is_tmp, typename Info::plh_map_t>,
@@ -113,8 +115,8 @@ namespace gridtools {
             using j_caches_type = j_caches<hymap::from_keys_values<Keys, Storages>>;
         } // namespace j_cache_impl_
 
-        template <class Extent>
-        using j_cache_sid_t = j_cache_impl_::fake<Extent>;
+        template <class PlhInfo>
+        using j_cache_sid_t = j_cache_impl_::fake<typename PlhInfo::extent_t, typename PlhInfo::num_colors_t>;
 
         using j_cache_impl_::j_caches_type;
     } // namespace cuda_horizontal
