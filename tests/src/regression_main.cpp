@@ -193,4 +193,5 @@ int main(int argc, char **argv) {
     int res = RUN_ALL_TESTS();
     if (perf_mode && res == 0)
         std::cout << times();
+    return res;
 }

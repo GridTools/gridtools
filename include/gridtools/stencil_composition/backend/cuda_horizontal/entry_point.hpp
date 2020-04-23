@@ -170,7 +170,7 @@ namespace gridtools {
                 using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
                 auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
                     overload( //
-                        [&](std::true_type, auto info) { return j_cache_sid_t<decltype(info.extent())>(); },
+                        [&](std::true_type, auto info) { return j_cache_sid_t<decltype(info)>(); },
                         [&](std::false_type, auto info) {
                             return sid::add_const(info.is_const(),
                                 sid::block(at_key<decltype(info.plh())>(data_stores),

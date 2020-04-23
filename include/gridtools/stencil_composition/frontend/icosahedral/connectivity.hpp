@@ -92,7 +92,7 @@ namespace gridtools {
              @endverbatim
              */
             template <>
-            struct offsets<cells, cells, 1> : l<e<1, 0, 0>, e<1, 0, 0>, e<0, 1, 0>> {};
+            struct offsets<cells, cells, 1> : l<e<1, 0, 0>, e<0, 0, 0>, e<0, 1, 0>> {};
 
             /*
              * neighbors order
