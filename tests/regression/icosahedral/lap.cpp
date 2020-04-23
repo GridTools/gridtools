@@ -47,15 +47,7 @@ namespace {
         }
     };
 
-    struct backend_filter {
-        template <class Backend>
-        using apply = bool_constant<!meta::is_instantiation_of<mc::backend, Backend>::value &&
-                                    !meta::is_instantiation_of<cuda_horizontal::backend, Backend>::value>;
-    };
-
-    using env_t = test_environment<2, axis<1>, backend_filter>;
-
-    GT_REGRESSION_TEST(lap_weights, env_t, backend_t) {
+    GT_REGRESSION_TEST(lap_weights, icosahedral_test_environment<2>, backend_t) {
         using float_t = typename TypeParam ::float_t;
         auto spec = [](auto edge_length,
                         auto cell_area_reciprocal,
@@ -99,7 +91,7 @@ namespace {
         TypeParam::verify(TypeParam::icosahedral_make_storage(edges(), repo.lap), out);
     }
 
-    GT_REGRESSION_TEST(lap_flow_convention, env_t, backend_t) {
+    GT_REGRESSION_TEST(lap_flow_convention, icosahedral_test_environment<2>, backend_t) {
         using float_t = typename TypeParam ::float_t;
         auto spec = [](auto in_edges,
                         auto edge_length,
