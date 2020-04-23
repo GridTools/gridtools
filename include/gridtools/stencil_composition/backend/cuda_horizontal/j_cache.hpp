@@ -44,7 +44,7 @@ namespace gridtools {
 #pragma unroll
                         for (int_t i = 0; i < IPlus - IMinus + 1; ++i)
 #pragma unroll
-                            for (int_t c = 0, c < NumColors::value; ++c)
+                            for (int_t c = 0; c < NumColors::value; ++c)
                                 m_values[i][j][c] = m_values[i][j + 1][c];
                 }
 
