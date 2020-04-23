@@ -8,7 +8,12 @@ label=${label%%-*}
 envfile=./jenkins/envs/${label}_$env.sh
 
 # use the machines python virtualenv with required modules installed
-source /project/c14/jenkins/python-venvs/$label/bin/activate
+if [[ $label = ault ]]; then
+    venv_dir=/users/fthaler/public/jenkins/gridtools-venv
+else
+    venv_dir=/project/c14/jenkins/python-venvs/$label
+fi
+source $venv_dir/bin/activate
 
 if [[ $label != "tsa" ]]; then
     export SLURM_ACCOUNT=d75
