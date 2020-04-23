@@ -58,7 +58,7 @@ namespace gridtools {
 
             cabc_t cabc{halos, // halos for communication
                         {false, false, false}, // Periodicity in first, second and third dimension
-                        4, // Maximum number of data_stores to be handled by this communicatio obeject
+                        4, // Maximum number of data_stores to be handled by this communication object
                         GCL_WORLD}; // Communicator to be used
 
             cabc.exchange(bind_bc(value_boundary< triplet >{triplet{42, 42, 42}}, a),
