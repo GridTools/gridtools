@@ -5,38 +5,32 @@ import os
 from pyutils import buildinfo, env, log, runtools
 
 
-def _ctest(good_labels, bad_labels, verbose):
+def _ctest(only=None, exclude=None, verbose=False):
     command = ['ctest', '--output-on-failure']
-    if good_labels:
-        command += ['-L', good_labels]
-    if bad_labels:
-        command += ['-LE', bad_labels]
+    if only:
+        command += ['-L', only]
+    if exclude:
+        command += ['-LE', exclude]
     if verbose:
         command.append('-VV')
     return command
 
 
-def _run_nompi(label, verbose_ctest):
-    log.info('Running non-MPI tests', label)
-    output, = runtools.sbatch([_ctest(label, 'mpi', verbose_ctest)],
-                              cwd=buildinfo.binary_dir)
-    log.info('ctest unit test output', output)
-
-
-def _run_mpi(verbose_ctest):
-    log.info('Running MPI tests')
-    output, = runtools.sbatch([_ctest('mpi', None, verbose_ctest)],
-                              cwd=buildinfo.binary_dir,
-                              use_srun=False,
-                              use_mpi_config=True)
-    log.info('ctest MPI test output', output)
-
-
-def run(label, run_mpi_tests, verbose_ctest):
-    if label:
-        _run_nompi(label, verbose_ctest)
+def run(run_mpi_tests, verbose_ctest):
+    runtools.srun(_ctest(exclude='mpi', verbose=verbose_ctest),
+                  log_output=log.info,
+                  cwd=buildinfo.binary_dir)
     if run_mpi_tests:
-        _run_mpi(verbose_ctest)
+        runtools.salloc(_ctest(only='mpi', verbose=verbose_ctest),
+                        log_output=log.info,
+                        cwd=buildinfo.binary_dir,
+                        use_mpi_config=True)
+
+
+def run_perftests():
+    runtools.srun([os.path.join('tests', 'regression', 'perftests')],
+                  log_output=log.info,
+                  cwd=buildinfo.binary_dir)
 
 
 def compile_examples(build_dir):

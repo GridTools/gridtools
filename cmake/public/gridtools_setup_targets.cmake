@@ -138,12 +138,10 @@ endfunction()
 #   prefix and aliases.
 # - Within this macro, all references to targets created with _gt_add_library() need to be prefixed with
 #   ${_gt_namespace}, e.g. target_link_libraries(${_gt_namespace}my_tgt INTERFACE ${_gt_namespace}_my_other_tgt).
-# - Including other CMake files should be done with absolute paths. Use ${_gt_gridtools_setup_targets_dir} to refer
-#   to the directory where this files lives.
 macro(_gt_setup_targets _config_mode clang_cuda_mode)
     set(GT_AVAILABLE_TARGETS)
 
-    include(${_gt_gridtools_setup_targets_dir}/detect_features.cmake)
+    include(detect_features)
     detect_cuda_type(GT_CUDA_TYPE "${clang_cuda_mode}")
 
     if(${_config_mode})
@@ -171,7 +169,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     endif()
 
     find_package(MPI COMPONENTS CXX)
-    include(${_gt_gridtools_setup_targets_dir}/workaround_mpi.cmake)
+    include(workaround_mpi)
     _fix_mpi_flags()
 
     if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL AppleClang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0))
@@ -189,13 +187,16 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     function(gridtools_cuda_setup type)
         if (type STREQUAL NVCC-CUDA)
             target_link_libraries(_gridtools_cuda INTERFACE _gridtools_nvcc)
-            find_library(cudart cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
-            set(GT_CUDA_LIBRARIES ${cudart} PARENT_SCOPE)
-            set(GT_CUDA_INCLUDE_DIRS ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} PARENT_SCOPE)
+            find_package(CUDAToolkit)
+            if(CUDAToolkit_FOUND)
+                target_link_libraries(_gridtools_cuda INTERFACE CUDA::cudart)
+            else()
+                message(FATAL_ERROR "NVCC was found, but the CUDAToolkit was not found."
+                    "This should not happen. Please report this issue at https://github.com/GridTools/gridtools."
+                )
+            endif()
         elseif(type STREQUAL Clang-CUDA)
             set(_gt_setup_root_dir ${CUDAToolkit_BIN_DIR}/..)
-            set(GT_CUDA_LIBRARIES ${CUDA_LIBRARIES} PARENT_SCOPE)
-            set(GT_CUDA_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS} PARENT_SCOPE)
             target_compile_options(_gridtools_cuda INTERFACE -xcuda --cuda-path=${_gt_setup_root_dir})
             target_link_libraries(_gridtools_cuda INTERFACE CUDA::cudart)
         elseif(type STREQUAL HIPCC-AMDGPU)
@@ -217,8 +218,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     _gt_add_library(${_config_mode} backend_naive)
     target_link_libraries(${_gt_namespace}backend_naive INTERFACE ${_gt_namespace}gridtools)
 
-    set(GT_BACKENDS naive) #TODO move outside of this file
-    set(GT_ICO_BACKENDS naive)
+    set(GT_BACKENDS naive)
     set(GT_STORAGES x86 mc)
     set(GT_GCL_ARCHS)
 
@@ -226,11 +226,17 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         _gt_add_library(${_config_mode} backend_cuda)
         target_link_libraries(${_gt_namespace}backend_cuda INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
         list(APPEND GT_BACKENDS cuda)
-        list(APPEND GT_ICO_BACKENDS cuda)
+
+        _gt_add_library(${_config_mode} backend_cuda_horizontal)
+        target_link_libraries(${_gt_namespace}backend_cuda_horizontal INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
+        list(APPEND GT_BACKENDS cuda_horizontal)
 
         if(MPI_CXX_FOUND)
-            _gt_add_library(${_config_mode} gcl_gpu)
-            target_link_libraries(${_gt_namespace}gcl_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda MPI::MPI_CXX)
+            option(GT_GCL_GPU "Disable if your MPI implementation is not CUDA-aware" ON)
+            if(GT_GCL_GPU)
+                _gt_add_library(${_config_mode} gcl_gpu)
+                target_link_libraries(${_gt_namespace}gcl_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda MPI::MPI_CXX)
+            endif()
         endif()
 
         _gt_add_library(${_config_mode} bc_gpu)
@@ -269,7 +275,6 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         list(APPEND GT_GCL_ARCHS cpu)
 
         list(APPEND GT_BACKENDS x86 mc)
-        list(APPEND GT_ICO_BACKENDS x86)
     endif()
 endmacro()
 
@@ -289,7 +294,12 @@ function(gridtools_set_gpu_arch_on_target tgt arch)
     if(arch)
         _gt_depends_on_cuda(need_cuda ${tgt})
         if(need_cuda)
-            target_compile_options(${tgt} PUBLIC ${GT_CUDA_ARCH_FLAG}=${arch})
+            _gt_depends_on_nvcc(need_nvcc ${tgt})
+            if(need_nvcc)
+                target_compile_options(${tgt} PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:${GT_CUDA_ARCH_FLAG}=${arch}>)
+            else()
+                target_compile_options(${tgt} PUBLIC ${GT_CUDA_ARCH_FLAG}=${arch})
+            endif()
         endif()
     endif()
 endfunction()
@@ -301,7 +311,7 @@ endfunction()
 # is not possible as you need to specify exactly one language to the file (either implicitly by file suffix or
 # explicitly by setting the language). This function will wrap .cpp files in a .cu if the given target links to
 # _gridtools_cuda.
-function(gridtools_setup_target tgt) # TODO this function needs a better name
+function(gridtools_setup_target tgt)
     set(options)
     set(one_value_args CUDA_ARCH)
     set(multi_value_args)

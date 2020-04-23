@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import functools
 import os
 import platform
 import re
 
 from pyutils import log, runtools
-
 
 env = os.environ.copy()
 
@@ -16,8 +16,9 @@ def load(envfile):
     env['GTCMAKE_PYUTILS_ENVFILE'] = os.path.abspath(envfile)
 
     envdir, envfile = os.path.split(envfile)
-    output = runtools.run(['bash', '-c', f'source {envfile} && env -0'],
-                          cwd=envdir).strip('\0')
+    output = runtools.run(
+        ['bash', '-c', f'set -e && source {envfile} && env -0'],
+        cwd=envdir).strip('\0')
     env.update(line.split('=', 1) for line in output.split('\0'))
 
     log.info(f'Loaded environment from {os.path.join(envdir, envfile)}')
@@ -41,7 +42,7 @@ def _items_with_tag(tag):
 def cmake_args():
     args = []
     for k, v in _items_with_tag('GTCMAKE_').items():
-        if v.strip() in ('ON', 'OFF'):
+        if v.strip().upper() in ('ON', 'OFF'):
             k += ':BOOL'
         else:
             k += ':STRING'
@@ -55,22 +56,15 @@ def set_cmake_arg(arg, value):
     env['GTCMAKE_' + arg] = value
 
 
-def use_slurm():
-    return 'GTRUN_NO_SLURM' not in env
-
-
 def sbatch_options(mpi):
     options = _items_with_tag('GTRUN_SBATCH_')
     if mpi:
         options.update(_items_with_tag('GTRUNMPI_SBATCH_'))
 
-    return ['--' + k.lower().replace('_', '-') + ('=' + v if v else '')
-            for k, v in options.items()]
-
-
-def srun_command():
-    return (env.get('GTCMAKE_MPITEST_EXECUTABLE', 'srun') + ' '
-            + env.get('GTCMAKE_MPITEST_PREFLAGS', '').replace(';', ' '))
+    return [
+        '--' + k.lower().replace('_', '-') + ('=' + v if v else '')
+        for k, v in options.items()
+    ]
 
 
 def build_command():
@@ -84,24 +78,22 @@ def hostname():
         >>> hostname()
         'keschln-0002'
     """
-    hostname = platform.node()
-    return hostname
+    return platform.node()
 
 
+@functools.lru_cache()
 def clustername():
     """SLURM cluster name of the current machine.
 
-    Examples:
+    Example:
         >>> clustername()
         'kesch'
     """
-    if use_slurm():
-        for _ in range(3):
-            output = runtools.run(['scontrol', 'show', 'config'])
-            m = re.compile(r'.*ClusterName\s*=\s*(\S*).*',
-                           re.MULTILINE | re.DOTALL).match(output)
-            if m:
-                return m.group(1)
-        raise EnvironmentError('Could not get SLURM cluster name')
-    else:
-        hostname()
+    try:
+        output = runtools.run(['scontrol', 'show', 'config'])
+        m = re.compile(r'.*ClusterName\s*=\s*(\S*).*',
+                       re.MULTILINE | re.DOTALL).match(output)
+        if m:
+            return m.group(1)
+    except FileNotFoundError:
+        return hostname()

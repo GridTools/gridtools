@@ -10,29 +10,24 @@
 
 #include <gridtools/boundary_conditions/boundary.hpp>
 
-#include <gtest/gtest.h>
-
-#include <cartesian_regression_fixture.hpp>
-#include <float_type.hpp>
 #include <gcl_select.hpp>
-#include <grid_fixture.hpp>
-
-using namespace gridtools;
+#include <test_environment.hpp>
 
 namespace {
-    static constexpr float_type face_value = 88;
-    static constexpr float_type edge_value = 77777;
-    static constexpr float_type corner_value = 55555;
-    static constexpr float_type factor = 2;
+    using namespace gridtools;
 
+    template <class Float>
+    constexpr Float face_value = 88;
+    template <class Float>
+    constexpr Float edge_value = 77777;
+    template <class Float>
+    constexpr Float corner_value = 55555;
+    template <class Float>
+    constexpr Float factor = 2;
+
+    template <class Float>
     struct direction_bc_input {
-        float_type value;
-
-        GT_FUNCTION
-        direction_bc_input() : value(1) {}
-
-        GT_FUNCTION
-        direction_bc_input(float_type v) : value(v) {}
+        Float value = factor<Float>;
 
         // relative coordinates
         template <typename Direction, typename DataField0, typename DataField1>
@@ -45,7 +40,7 @@ namespace {
         template <sign I, sign K, typename DataField0, typename DataField1>
         GT_FUNCTION void operator()(
             direction<I, minus_, K>, DataField0 &, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
-            data_field1(i, j, k) = face_value * value;
+            data_field1(i, j, k) = face_value<Float> * value;
         }
 
         // relative coordinates
@@ -56,7 +51,7 @@ namespace {
             uint_t i,
             uint_t j,
             uint_t k) const {
-            data_field1(i, j, k) = edge_value * value;
+            data_field1(i, j, k) = edge_value<Float> * value;
         }
 
         template <typename DataField0, typename DataField1>
@@ -66,18 +61,15 @@ namespace {
             uint_t i,
             uint_t j,
             uint_t k) const {
-            data_field1(i, j, k) = corner_value * value;
+            data_field1(i, j, k) = corner_value<Float> * value;
         }
     };
 
-    template <typename Src, typename Dst>
-    void apply_boundary(array<halo_descriptor, 3> const &halos, Src &src, Dst &dst) {
-        gridtools::make_boundary<gcl_arch_t>(halos, direction_bc_input{factor}).apply(src, dst);
-    }
     template <typename T>
-    void verify_result(array<halo_descriptor, 3> const &halos, T src, T dst) {
+    void verify_result(array<halo_descriptor, 3> const &halos, T &&src, T &&dst) {
         auto src_v = src->const_host_view();
         auto dst_v = dst->host_view();
+        using float_t = std::decay_t<decltype(src_v(0, 0, 0))>;
 
         // check inner domain (should be zero)
         for (uint_t i = halos[0].begin(); i <= halos[0].end(); ++i)
@@ -92,7 +84,7 @@ namespace {
         for (uint_t i = 0; i < halos[0].begin(); ++i)
             for (uint_t j = 0; j < halos[1].begin(); ++j)
                 for (uint_t k = 0; k < halos[2].begin(); ++k) {
-                    EXPECT_EQ(dst_v(i, j, k), factor * corner_value);
+                    EXPECT_EQ(dst_v(i, j, k), factor<float_t> * corner_value<float_t>);
                     dst_v(i, j, k) = -1;
                 }
 
@@ -100,7 +92,7 @@ namespace {
         for (uint_t i = 0; i < halos[0].begin(); ++i)
             for (uint_t j = 0; j < halos[1].begin(); ++j)
                 for (uint_t k = halos[2].begin(); k <= halos[2].end() + halos[2].plus(); ++k) {
-                    EXPECT_EQ(dst_v(i, j, k), factor * edge_value);
+                    EXPECT_EQ(dst_v(i, j, k), factor<float_t> * edge_value<float_t>);
                     dst_v(i, j, k) = -1;
                 }
 
@@ -108,7 +100,7 @@ namespace {
         for (uint_t i = halos[0].begin(); i <= halos[0].end() + halos[0].plus(); ++i)
             for (uint_t j = 0; j < halos[1].begin(); ++j)
                 for (uint_t k = 0; k < halos[2].end() + halos[2].plus(); ++k) {
-                    EXPECT_EQ(dst_v(i, j, k), factor * face_value);
+                    EXPECT_EQ(dst_v(i, j, k), factor<float_t> * face_value<float_t>);
                     dst_v(i, j, k) = -1;
                 }
 
@@ -118,7 +110,7 @@ namespace {
                 for (uint_t k = 0; k < halos[2].end() + halos[2].plus(); ++k)
                     if (i < halos[0].begin() || i > halos[0].end() || k < halos[2].begin() || k > halos[2].end() ||
                         j > halos[1].end()) {
-                        EXPECT_EQ(dst_v(i, j, k), factor * src_v(i, j, k));
+                        EXPECT_EQ(dst_v(i, j, k), factor<float_t> * src_v(i, j, k));
                         dst_v(i, j, k) = -1;
                     }
 
@@ -128,24 +120,26 @@ namespace {
                 for (uint_t k = 0; k < halos[2].end() + halos[2].plus(); ++k)
                     ASSERT_EQ(dst_v(i, j, k), -1);
     }
+
+    constexpr auto halo_size = 3;
+
+    GT_REGRESSION_TEST(distributed_boundary, test_environment<halo_size>, gcl_arch_t) {
+        auto src = TypeParam::make_storage([](int i, int j, int k) { return i + j + k; });
+        auto dst = TypeParam::make_storage(0);
+
+        auto &&lengths = src->info().lengths();
+        auto &&total_lengths = make_total_lengths(*src);
+        array<halo_descriptor, 3> halos;
+        for (size_t i = 0; i != 3; ++i)
+            halos[i] = {halo_size, halo_size, halo_size, lengths[i] - halo_size - 1, total_lengths[i]};
+
+        auto testee = [&] {
+            make_boundary<gcl_arch_t>(halos, direction_bc_input<typename TypeParam::float_t>()).apply(src, dst);
+        };
+
+        testee();
+        verify_result(halos, src, dst);
+
+        TypeParam::benchmark("distributed_boundary", testee);
+    }
 } // namespace
-
-constexpr auto halo_size = 3;
-
-struct distributed_boundary : cartesian::regression_fixture<halo_size> {};
-
-TEST_F(distributed_boundary, test) {
-    auto src = make_storage([](int i, int j, int k) { return i + j + k; });
-    auto dst = make_storage(0);
-
-    auto &&lengths = src->info().lengths();
-    halo_descriptor di{halo_size, halo_size, halo_size, lengths[0] - halo_size - 1, lengths[0]};
-    halo_descriptor dj{halo_size, halo_size, halo_size, lengths[1] - halo_size - 1, lengths[1]};
-    halo_descriptor dk{halo_size, halo_size, halo_size, lengths[2] - halo_size - 1, lengths[2]};
-    array<halo_descriptor, 3> halos{di, dj, dk};
-
-    apply_boundary(halos, src, dst);
-    verify_result(halos, src, dst);
-
-    benchmark([&] { apply_boundary(halos, src, dst); });
-}

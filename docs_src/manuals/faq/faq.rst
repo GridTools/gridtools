@@ -18,4 +18,3 @@ your console):
     $ make install
 
 The output will be in the ``docs`` subdirectory inside the main |GT| directory.
-

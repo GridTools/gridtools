@@ -30,7 +30,6 @@ jobs:
     - name: setup environment
       run: |
         export num_proc=$(nproc)
-        echo "::set-env name=GTRUN_NO_SLURM::true"
         echo "::set-env name=GTRUN_BUILD_COMMAND::make -j $(nproc)"
         echo "::set-env name=CTEST_PARALLEL_LEVEL::$num_proc
         echo "::set-env name=OMP_NUM_THREADS::$num_proc

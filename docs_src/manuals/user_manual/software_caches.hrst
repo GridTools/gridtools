@@ -112,7 +112,7 @@ The possible values are:
 
  :numref:`fig_kcache_ex` graphically depicts an example of all the ordered operations that are executed when a ``fill_and_flush``
  :term:`Cache` is used in a forward vertical loop.
- 
+
 .. _fig_kcache_ex:
 .. figure:: figures/kcache_ex.png
    :scale: 50 %

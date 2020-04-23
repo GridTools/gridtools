@@ -10,9 +10,9 @@
 
 #include <cpp_bindgen/export.hpp>
 #include <gridtools/common/hymap.hpp>
-#include <gridtools/interface/fortran_array_view.hpp>
 #include <gridtools/stencil_composition/backend/naive.hpp>
 #include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/storage/adapter/fortran_array_view.hpp>
 
 namespace {
     using namespace gridtools;
