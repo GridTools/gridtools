@@ -75,7 +75,7 @@ and run the gridtools tests.
 
 .. code-block:: shell
 
- git clone http://github.com/eth-cscs/gridtools.git
+ git clone http://github.com/GridTools/gridtools.git
  cd gridtools
  mkdir build && cd build
  cmake -DGT_ENABLE_BACKEND_MC=ON -DGT_ENABLE_BACKEND_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..

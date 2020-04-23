@@ -43,41 +43,28 @@ namespace gridtools {
             template <class T, size_t N>
             struct target_view {
                 T *m_ptr;
-                storage::info<N> const *m_info;
+                storage::info<N> m_info;
 
 #if defined(GT_CUDA_ARCH) or (defined(GT_CUDACC) and defined(__clang__))
-                GT_FUNCTION_DEVICE auto const &info() const { return *m_info; }
+                GT_FUNCTION_DEVICE auto const &info() const { return m_info; }
 
                 GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }
 
                 template <class... Args>
                 GT_FUNCTION_DEVICE auto operator()(Args &&... args) const
-                    -> decltype(m_ptr[m_info->index(wstd::forward<Args>(args)...)]) {
-                    return m_ptr[m_info->index(wstd::forward<Args>(args)...)];
+                    -> decltype(m_ptr[m_info.index(wstd::forward<Args>(args)...)]) {
+                    return m_ptr[m_info.index(wstd::forward<Args>(args)...)];
                 }
 
                 GT_FUNCTION_DEVICE decltype(auto) operator()(array<int, N> const &arg) const {
-                    return m_ptr[m_info->index(arg)];
+                    return m_ptr[m_info.index(arg)];
                 }
 
-                GT_FUNCTION_DEVICE GT_CONSTEXPR auto length() const { return m_info->length(); }
+                GT_FUNCTION_DEVICE GT_CONSTEXPR auto length() const { return m_info.length(); }
 
-                GT_FUNCTION_DEVICE GT_CONSTEXPR auto const &lengths() const { return m_info->lengths(); }
+                GT_FUNCTION_DEVICE GT_CONSTEXPR auto const &lengths() const { return m_info.lengths(); }
 #endif
             };
-
-            template <size_t N>
-            auto make_cache(info<N> const &info) {
-                return std::make_pair(info, cuda_util::make_clone(info).release());
-            }
-
-            template <class Kind, size_t N>
-            auto *get_info_ptr(Kind, info<N> const &src) {
-                thread_local static auto cache = make_cache(src);
-                if (cache.first != src)
-                    cache = make_cache(src);
-                return cache.second;
-            }
         } // namespace cuda_impl_
 
         struct cuda {
@@ -112,10 +99,9 @@ namespace gridtools {
                     cudaMemcpyDeviceToHost));
             }
 
-            template <class T, class Kind, size_t N>
-            friend cuda_impl_::target_view<T, N> storage_make_target_view(
-                cuda, Kind kind, T *ptr, info<N> const &info) {
-                return {ptr, cuda_impl_::get_info_ptr(kind, info)};
+            template <class T, size_t N>
+            friend cuda_impl_::target_view<T, N> storage_make_target_view(cuda, T *ptr, info<N> const &info) {
+                return {ptr, info};
             }
         };
     } // namespace storage
