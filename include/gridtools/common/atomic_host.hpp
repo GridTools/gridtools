@@ -137,10 +137,6 @@ namespace gridtools {
         }
     };
 
-    template <typename T>
-    struct get_atomic_helper {
-        typedef atomic_host<T> type;
-    };
     /** @} */
     /** @} */
 

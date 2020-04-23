@@ -12,93 +12,6 @@
 #include "cuda_runtime.hpp"
 #include "host_device.hpp"
 
-#ifdef __HIPCC__
-GT_FUNCTION_HOST float __int_as_float(int) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST int __float_as_int(float) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST double __longlong_as_double(long long) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST long long __double_as_longlong(double) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST int atomicAdd(int *, int) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST int atomicSub(int *, int) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST int atomicExch(int *, int) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST int atomicMin(int *, int) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST int atomicMax(int *, int) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST float atomicAdd(float *, float) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST float atomicSub(float *, float) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST float atomicExch(float *, float) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST float atomicMin(float *, float) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST float atomicMax(float *, float) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST double atomicAdd(double *, double) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST double atomicSub(double *, double) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST double atomicExch(double *, double) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST double atomicMin(double *, double) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST double atomicMax(double *, double) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST unsigned atomicCAS(unsigned *, unsigned, unsigned) {
-    assert(false);
-    return 0;
-}
-GT_FUNCTION_HOST unsigned long long atomicCAS(unsigned long long *, unsigned long long, unsigned long long) {
-    assert(false);
-    return 0;
-}
-#endif
-
 namespace gridtools {
     /** \ingroup common
         @{
@@ -324,10 +237,6 @@ namespace gridtools {
         }
     };
 
-    template <typename T>
-    struct get_atomic_helper {
-        typedef atomic_cuda<T> type;
-    };
     /** @} */
     /** @} */
 } // namespace gridtools
