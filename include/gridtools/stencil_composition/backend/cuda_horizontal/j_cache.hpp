@@ -31,19 +31,21 @@ namespace gridtools {
             struct storage;
             template <class T, int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, class NumColors>
             struct storage<T, extent<IMinus, IPlus, JMinus, JPlus>, NumColors> {
-                T m_values[IPlus - IMinus + 1][JPlus - JMinus + 1];
+                T m_values[IPlus - IMinus + 1][JPlus - JMinus + 1][NumColors::value];
                 storage() = default;
                 storage(storage const &) = delete;
                 storage(storage &&) = default;
 
-                GT_FUNCTION_DEVICE T *ptr() { return &m_values[-IMinus][-JMinus]; }
+                GT_FUNCTION_DEVICE T *ptr() { return &m_values[-IMinus][-JMinus][0]; }
 
                 GT_FUNCTION_DEVICE void slide() {
 #pragma unroll
                     for (int_t j = 0; j < JPlus - JMinus; ++j)
 #pragma unroll
                         for (int_t i = 0; i < IPlus - IMinus + 1; ++i)
-                            m_values[i][j] = m_values[i][j + 1];
+#pragma unroll
+                            for (int_t c = 0, c < NumColors::value; ++c)
+                                m_values[i][j][c] = m_values[i][j + 1][c];
                 }
 
                 using strides_t = ij_strides_t<extent<IMinus, IPlus, JMinus, JPlus>, NumColors>;
