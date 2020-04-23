@@ -21,7 +21,7 @@
 using namespace gridtools;
 
 template <class View>
-#ifdef GT_CUDACC
+#ifdef GT_STORAGE_CUDA
 __global__
 #endif
     void
@@ -48,7 +48,7 @@ TEST(StorageFacility, ViewTests) {
 
     // do some computation
     computation
-#ifdef GT_CUDACC
+#ifdef GT_STORAGE_CUDA
         <<<1, 1>>>
 #endif
         (ds->target_view());
