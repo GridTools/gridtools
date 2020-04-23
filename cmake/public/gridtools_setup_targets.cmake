@@ -187,15 +187,16 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     function(gridtools_cuda_setup type)
         if (type STREQUAL NVCC-CUDA)
             target_link_libraries(_gridtools_cuda INTERFACE _gridtools_nvcc)
-            find_library(cudart cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
-            set(GT_CUDA_LIBRARIES ${cudart} PARENT_SCOPE) # TODO do we need this?
-            set(GT_CUDA_INCLUDE_DIRS ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} PARENT_SCOPE) # TODO do we need this?
-            target_link_libraries(_gridtools_cuda INTERFACE ${cudart})
-            target_include_directories(_gridtools_cuda INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+            find_package(CUDAToolkit)
+            if(CUDAToolkit_FOUND)
+                target_link_libraries(_gridtools_cuda INTERFACE CUDA::cudart)
+            else()
+                message(FATAL_ERROR "NVCC was found, but the CUDAToolkit was not found."
+                    "This should not happen. Please report this issue at https://github.com/GridTools/gridtools."
+                )
+            endif()
         elseif(type STREQUAL Clang-CUDA)
             set(_gt_setup_root_dir ${CUDAToolkit_BIN_DIR}/..)
-            set(GT_CUDA_LIBRARIES ${CUDA_LIBRARIES} PARENT_SCOPE) # TODO do we need this?
-            set(GT_CUDA_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS} PARENT_SCOPE) # TODO do we need this?
             target_compile_options(_gridtools_cuda INTERFACE -xcuda --cuda-path=${_gt_setup_root_dir})
             target_link_libraries(_gridtools_cuda INTERFACE CUDA::cudart)
         elseif(type STREQUAL HIPCC-AMDGPU)
@@ -217,7 +218,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     _gt_add_library(${_config_mode} backend_naive)
     target_link_libraries(${_gt_namespace}backend_naive INTERFACE ${_gt_namespace}gridtools)
 
-    set(GT_BACKENDS naive) #TODO move outside of this file
+    set(GT_BACKENDS naive)
     set(GT_STORAGES x86 mc)
     set(GT_GCL_ARCHS)
 
@@ -310,7 +311,7 @@ endfunction()
 # is not possible as you need to specify exactly one language to the file (either implicitly by file suffix or
 # explicitly by setting the language). This function will wrap .cpp files in a .cu if the given target links to
 # _gridtools_cuda.
-function(gridtools_setup_target tgt) # TODO this function needs a better name
+function(gridtools_setup_target tgt)
     set(options)
     set(one_value_args CUDA_ARCH)
     set(multi_value_args)
