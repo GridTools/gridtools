@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/layout_transformation/layout_transformation.hpp>
+#include <gridtools/layout_transformation.hpp>
 
 #include <storage_select.hpp>
 #include <test_environment.hpp>
@@ -32,8 +32,7 @@ GT_REGRESSION_TEST(layout_transformation, test_environment<>, storage_traits_t) 
         TypeParam::builder().template layout<0, 1, 2>().initializer([](int i, int j, int k) { return i + j + k; })();
     auto dst = TypeParam::builder().template layout<2, 1, 0>()();
     auto testee = [&] {
-        interface::transform(
-            dst->get_target_ptr(), src->get_target_ptr(), src->lengths(), dst->strides(), src->strides());
+        transform_layout(dst->get_target_ptr(), src->get_target_ptr(), src->lengths(), dst->strides(), src->strides());
     };
     testee();
     verify_result(src, dst);
