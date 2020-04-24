@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil/cartesian.hpp>
 
 #include <backend_select.hpp>
 #include <test_environment.hpp>

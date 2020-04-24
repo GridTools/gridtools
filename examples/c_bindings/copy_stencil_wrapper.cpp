@@ -9,7 +9,7 @@
  */
 // In this example, we demonstrate how the cpp_bindgen library can be used to export functions to C and Fortran. We are
 // going to export the functions required to run a simple copy stencil (see also the commented example in
-// examples/stencil_composition/copy_stencil.cpp)
+// examples/stencil/copy_stencil.cpp)
 
 #include <cassert>
 #include <functional>
@@ -17,7 +17,7 @@
 #include <cpp_bindgen/export.hpp>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/storage/adapter/fortran_array_adapter.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
@@ -25,12 +25,12 @@
 #ifdef GT_CUDACC
 #include <gridtools/common/cuda_runtime.hpp>
 #include <gridtools/common/cuda_util.hpp>
-#include <gridtools/stencil_composition/backend/cuda.hpp>
+#include <gridtools/stencil/backend/cuda.hpp>
 #include <gridtools/storage/cuda.hpp>
 using backend_t = gridtools::cuda::backend<>;
 using storage_traits_t = gridtools::storage::cuda;
 #else
-#include <gridtools/stencil_composition/backend/mc.hpp>
+#include <gridtools/stencil/backend/mc.hpp>
 #include <gridtools/storage/mc.hpp>
 using backend_t = gridtools::mc::backend<>;
 using storage_traits_t = gridtools::storage::mc;

@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <gridtools/communication/low_level/gcl_arch.hpp>
+#include <gridtools/gcl/low_level/gcl_arch.hpp>
 
 #if defined(GT_GCL_GPU)
 #ifndef GT_STORAGE_CUDA

@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/stencil/icosahedral.hpp>
 
 #include <type_traits>
 

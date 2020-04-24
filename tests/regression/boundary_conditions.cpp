@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/boundary_conditions/boundary.hpp>
+#include <gridtools/boundaries/boundary.hpp>
 
 #include <gcl_select.hpp>
 #include <test_environment.hpp>

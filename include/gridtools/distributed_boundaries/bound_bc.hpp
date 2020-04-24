@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "../boundary_conditions/boundary.hpp"
+#include "../boundaries/boundary.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../storage/data_store.hpp"
 

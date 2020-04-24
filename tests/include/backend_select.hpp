@@ -13,7 +13,7 @@
 
 #include <gridtools/meta.hpp>
 
-// stencil composition backend
+// stencil backend
 #ifdef GT_BACKEND_X86
 #ifndef GT_STORAGE_X86
 #define GT_STORAGE_X86
@@ -21,7 +21,7 @@
 #ifndef GT_TIMER_OMP
 #define GT_TIMER_OMP
 #endif
-#include <gridtools/stencil_composition/backend/x86.hpp>
+#include <gridtools/stencil/backend/x86.hpp>
 namespace {
     using backend_t = gridtools::x86::backend<>;
 }
@@ -32,7 +32,7 @@ namespace {
 #ifndef GT_TIMER_DUMMY
 #define GT_TIMER_DUMMY
 #endif
-#include <gridtools/stencil_composition/backend/naive.hpp>
+#include <gridtools/stencil/backend/naive.hpp>
 namespace {
     using backend_t = gridtools::naive::backend;
 }
@@ -43,7 +43,7 @@ namespace {
 #ifndef GT_TIMER_OMP
 #define GT_TIMER_OMP
 #endif
-#include <gridtools/stencil_composition/backend/mc.hpp>
+#include <gridtools/stencil/backend/mc.hpp>
 namespace {
     using backend_t = gridtools::mc::backend<>;
 }
@@ -54,7 +54,7 @@ namespace {
 #ifndef GT_TIMER_CUDA
 #define GT_TIMER_CUDA
 #endif
-#include <gridtools/stencil_composition/backend/cuda.hpp>
+#include <gridtools/stencil/backend/cuda.hpp>
 namespace {
     using backend_t = gridtools::cuda::backend<>;
 }
@@ -65,7 +65,7 @@ namespace {
 #ifndef GT_TIMER_CUDA
 #define GT_TIMER_CUDA
 #endif
-#include <gridtools/stencil_composition/backend/cuda_horizontal.hpp>
+#include <gridtools/stencil/backend/cuda_horizontal.hpp>
 namespace {
     using backend_t = gridtools::cuda_horizontal::backend<>;
 }

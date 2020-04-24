@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/stencil_composition/positional.hpp>
+#include <gridtools/stencil/cartesian.hpp>
+#include <gridtools/stencil/positional.hpp>
 #include <gridtools/storage/traits.hpp>
 
 #include <backend_select.hpp>

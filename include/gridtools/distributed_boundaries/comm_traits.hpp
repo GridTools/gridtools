@@ -11,8 +11,8 @@
 #pragma once
 
 #include "../common/layout_map.hpp"
-#include "../communication/GCL.hpp"
-#include "../communication/low_level/proc_grids_3D.hpp"
+#include "../gcl/GCL.hpp"
+#include "../gcl/low_level/proc_grids_3D.hpp"
 
 namespace gridtools {
     /** \ingroup Distributed-Boundaries

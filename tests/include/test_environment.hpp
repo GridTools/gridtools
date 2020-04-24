@@ -19,8 +19,8 @@
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/timer/timer.hpp>
 #include <gridtools/meta.hpp>
-#include <gridtools/stencil_composition/frontend/axis.hpp>
-#include <gridtools/stencil_composition/frontend/make_grid.hpp>
+#include <gridtools/stencil/frontend/axis.hpp>
+#include <gridtools/stencil/frontend/make_grid.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 

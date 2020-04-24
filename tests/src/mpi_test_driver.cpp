@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
-#include <gridtools/communication/GCL.hpp>
+#include <gridtools/gcl/GCL.hpp>
 
 #include "mpi_listener.hpp"
 

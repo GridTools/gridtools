@@ -13,7 +13,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/boundary_conditions/zero.hpp>
+#include <gridtools/boundaries/zero.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/x86.hpp>
 

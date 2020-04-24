@@ -17,8 +17,8 @@
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/sid/composite.hpp>
 #include <gridtools/sid/synthetic.hpp>
-#include <gridtools/stencil_composition/common/dim.hpp>
-#include <gridtools/stencil_composition/positional.hpp>
+#include <gridtools/stencil/common/dim.hpp>
+#include <gridtools/stencil/positional.hpp>
 
 namespace gridtools {
     namespace {

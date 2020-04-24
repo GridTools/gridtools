@@ -17,17 +17,17 @@
 #include <type_traits>
 #include <utility>
 
-#include "../boundary_conditions/predicate.hpp"
+#include "../boundaries/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/timer/timer.hpp"
-#include "../communication/GCL.hpp"
-#include "../communication/halo_exchange.hpp"
-#include "../communication/low_level/gcl_arch.hpp"
-#include "../communication/low_level/proc_grids_3D.hpp"
-#include "grid_predicate.hpp"
+#include "../gcl/GCL.hpp"
+#include "../gcl/halo_exchange.hpp"
+#include "../gcl/low_level/gcl_arch.hpp"
+#include "../gcl/low_level/proc_grids_3D.hpp"
 
 #include "bound_bc.hpp"
+#include "grid_predicate.hpp"
 
 namespace gridtools {
     /** \ingroup Distributed-Boundaries

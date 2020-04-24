@@ -246,7 +246,7 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
         
  ## SID Concept Adaptation
  
- [Stencil Composition Library](../stencil_composition) doesn't use `Storage Library` directly.
+ [Stencil Composition Library](../stencil) doesn't use `Storage Library` directly.
  Instead [SID Concept](../sid) is used to specify the requirements on input/output fields.
  `Data store` models `SID` if [sid.hpp](sid.hpp) header is included.
  

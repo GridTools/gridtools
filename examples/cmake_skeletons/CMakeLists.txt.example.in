@@ -25,7 +25,7 @@ set(EXAMPLES_SRCFILES @EXAMPLES_SRCFILES@)
 foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
     # one executable for each example in the list
     add_executable(${srcfile}_mc ${srcfile}.cpp)
-    # 4) An executable/library using GridTools stencil_composition needs to link to backend, here GridTools::backend_mc
+    # 4) An executable/library using GridTools stencil needs to link to backend, here GridTools::backend_mc
     target_link_libraries(${srcfile}_mc GridTools::backend_mc)
     add_test(NAME ${srcfile}_mc COMMAND $<TARGET_FILE:${srcfile}_mc> 33 44 55)
 endforeach()

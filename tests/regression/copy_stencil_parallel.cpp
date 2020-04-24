@@ -13,14 +13,14 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
-#include <gridtools/boundary_conditions/boundary.hpp>
+#include <gridtools/boundaries/boundary.hpp>
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/boollist.hpp>
 #include <gridtools/common/layout_map.hpp>
-#include <gridtools/communication/GCL.hpp>
-#include <gridtools/communication/halo_exchange.hpp>
 #include <gridtools/distributed_boundaries/grid_predicate.hpp>
-#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/gcl/GCL.hpp>
+#include <gridtools/gcl/halo_exchange.hpp>
+#include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 #include <gridtools/storage/traits.hpp>

@@ -9,7 +9,7 @@
  */
 
 #include <gridtools/common/array.hpp>
-#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/stencil/icosahedral.hpp>
 
 #include <backend_select.hpp>
 #include <test_environment.hpp>

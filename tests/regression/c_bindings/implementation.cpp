@@ -9,8 +9,8 @@
  */
 
 #include <cpp_bindgen/export.hpp>
-#include <gridtools/stencil_composition/backend/naive.hpp>
-#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil/backend/naive.hpp>
+#include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 #include <gridtools/storage/x86.hpp>

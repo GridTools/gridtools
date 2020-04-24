@@ -12,7 +12,7 @@
 
 #include <type_traits>
 
-#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/stencil/icosahedral.hpp>
 
 namespace ico_operators {
 

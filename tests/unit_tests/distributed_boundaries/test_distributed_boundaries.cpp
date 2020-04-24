@@ -15,8 +15,8 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
-#include <gridtools/boundary_conditions/copy.hpp>
-#include <gridtools/boundary_conditions/value.hpp>
+#include <gridtools/boundaries/copy.hpp>
+#include <gridtools/boundaries/value.hpp>
 #include <gridtools/distributed_boundaries/comm_traits.hpp>
 #include <gridtools/storage/builder.hpp>
 

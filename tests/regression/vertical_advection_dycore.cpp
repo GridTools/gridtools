@@ -11,8 +11,8 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/meta.hpp>
-#include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/stencil_composition/global_parameter.hpp>
+#include <gridtools/stencil/cartesian.hpp>
+#include <gridtools/stencil/global_parameter.hpp>
 
 #include <backend_select.hpp>
 #include <test_environment.hpp>

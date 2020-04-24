@@ -15,7 +15,7 @@
 #include <functional>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/frontend/icosahedral/location_type.hpp>
+#include <gridtools/stencil/frontend/icosahedral/location_type.hpp>
 
 #include "neighbours_of.hpp"
 
