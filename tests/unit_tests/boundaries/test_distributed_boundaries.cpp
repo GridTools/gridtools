@@ -8,16 +8,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/distributed_boundaries/distributed_boundaries.hpp>
+#include <gridtools/boundaries/distributed_boundaries.hpp>
 
 #include <functional>
 
 #include <gtest/gtest.h>
 #include <mpi.h>
 
+#include <gridtools/boundaries/comm_traits.hpp>
 #include <gridtools/boundaries/copy.hpp>
 #include <gridtools/boundaries/value.hpp>
-#include <gridtools/distributed_boundaries/comm_traits.hpp>
 #include <gridtools/storage/builder.hpp>
 
 #include <gcl_select.hpp>
@@ -26,6 +26,7 @@
 #include <timer_select.hpp>
 
 using namespace gridtools;
+using namespace boundaries;
 using namespace std::placeholders;
 
 constexpr int halo_size = 2;
@@ -72,10 +73,10 @@ struct distributed_boundaries_test : testing::Test {
     distributed_boundaries_test()
         : testee(halos, {false, false, false}, 3, [] {
               int dims[3] = {};
-              MPI_Dims_create(GCL_procs(), 3, dims);
+              MPI_Dims_create(gcl::procs(), 3, dims);
               int period[3] = {1, 1, 1};
               MPI_Comm res;
-              MPI_Cart_create(GCL_world(), 3, dims, period, false, &res);
+              MPI_Cart_create(gcl::world(), 3, dims, period, false, &res);
               return res;
           }()) {
         testee.proc_grid().coords(pi, pj, pk);
@@ -97,15 +98,15 @@ struct distributed_boundaries_test : testing::Test {
                 for (int k = 0; k < d3; ++k) {
                     if (expected_a) {
                         EXPECT_EQ(a->host_view()(i, j, k), expected_a(i, j, k))
-                            << GCL_pid() << ": " << i << ", " << j << ", " << k;
+                            << gcl::pid() << ": " << i << ", " << j << ", " << k;
                     }
                     if (expected_b) {
                         EXPECT_EQ(b->host_view()(i, j, k), expected_b(i, j, k))
-                            << GCL_pid() << ": " << i << ", " << j << ", " << k;
+                            << gcl::pid() << ": " << i << ", " << j << ", " << k;
                     }
                     if (expected_d) {
                         EXPECT_EQ(d->host_view()(i, j, k), expected_d(i, j, k))
-                            << GCL_pid() << ": " << i << ", " << j << ", " << k;
+                            << gcl::pid() << ": " << i << ", " << j << ", " << k;
                     }
                 }
     }

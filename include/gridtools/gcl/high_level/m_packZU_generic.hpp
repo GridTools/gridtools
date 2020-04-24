@@ -7,29 +7,26 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include "../../common/array.hpp"
 #include "../../common/halo_descriptor.hpp"
+#include "wrap_argument.hpp"
 
 template <typename value_type>
 __global__ void m_packZUKernel_generic(const value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab,
     const wrap_argument d_msgsize,
-    const gridtools::array<gridtools::halo_descriptor, 3> halo /*_g*/,
+    const gridtools::array<gridtools::halo_descriptor, 3> halo,
     int const nx,
     int const ny,
     int const field_index) {
 
     // per block shared buffer for storing destination buffers
     __shared__ value_type *msgbuf[27];
-    //__shared__ gridtools::halo_descriptor halo[3];
 
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int idy = blockIdx.y * blockDim.y + threadIdx.y;
     int idz = blockIdx.z;
 
-    // printf("in kernel %d -> %d %d %d - %d %d %d - %d %d %d\n",
-    //        field_index, blockDim.x, blockDim.y, blockDim.z,
-    //        threadIdx.x, threadIdx.y, threadIdx.z,
-    //        idx, idy, idz);
     // load msg buffer table into shmem. Only the first 9 threads
     // need to do this
     if (threadIdx.x < 27 && threadIdx.y == 0) {

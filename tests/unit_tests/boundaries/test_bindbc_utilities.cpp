@@ -7,7 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/distributed_boundaries/bound_bc.hpp>
+#include <gridtools/boundaries/bound_bc.hpp>
 
 #include <utility>
 
@@ -19,21 +19,22 @@
 
 using namespace std::placeholders;
 namespace gt = gridtools;
+namespace bd = gt::boundaries;
 
 TEST(DistributedBoundaries, SelectElement) {
     auto all = std::make_tuple(1, _1, 3, _2);
     auto sub = std::make_tuple(2, 4);
 
-    EXPECT_EQ(gt::_impl::select_element<0>(sub, all, gt::_impl::NotPlc{}), 1);
-    EXPECT_EQ(gt::_impl::select_element<1>(sub, all, gt::_impl::Plc{}), 2);
-    EXPECT_EQ(gt::_impl::select_element<2>(sub, all, gt::_impl::NotPlc{}), 3);
-    EXPECT_EQ(gt::_impl::select_element<3>(sub, all, gt::_impl::Plc{}), 4);
+    EXPECT_EQ(bd::_impl::select_element<0>(sub, all, bd::_impl::NotPlc{}), 1);
+    EXPECT_EQ(bd::_impl::select_element<1>(sub, all, bd::_impl::Plc{}), 2);
+    EXPECT_EQ(bd::_impl::select_element<2>(sub, all, bd::_impl::NotPlc{}), 3);
+    EXPECT_EQ(bd::_impl::select_element<3>(sub, all, bd::_impl::Plc{}), 4);
 }
 
 namespace collect_indices {
     template <class Tuple, size_t... Is>
     constexpr bool testee = std::is_same<
-        typename gt::_impl::comm_indices<std::tuple<>>::collect_indices<0, std::index_sequence<>, Tuple>::type,
+        typename bd::_impl::comm_indices<std::tuple<>>::collect_indices<0, std::index_sequence<>, Tuple>::type,
         std::index_sequence<Is...>>::value;
 
     static_assert(testee<std::tuple<int, int>, 0, 1>, "");
@@ -42,15 +43,15 @@ namespace collect_indices {
 } // namespace collect_indices
 
 TEST(DistributedBoundaries, RestTuple) {
-    EXPECT_EQ(gt::_impl::rest_tuple(std::make_tuple(), std::make_index_sequence<0>{}), std::make_tuple());
-    EXPECT_EQ(gt::_impl::rest_tuple(std::make_tuple(1), std::make_index_sequence<0>{}), std::make_tuple());
-    EXPECT_EQ(gt::_impl::rest_tuple(std::make_tuple(1, 2), std::make_index_sequence<1>{}), std::make_tuple(2));
+    EXPECT_EQ(bd::_impl::rest_tuple(std::make_tuple(), std::make_index_sequence<0>{}), std::make_tuple());
+    EXPECT_EQ(bd::_impl::rest_tuple(std::make_tuple(1), std::make_index_sequence<0>{}), std::make_tuple());
+    EXPECT_EQ(bd::_impl::rest_tuple(std::make_tuple(1, 2), std::make_index_sequence<1>{}), std::make_tuple(2));
 }
 
-static_assert(!gt::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, 5))>::value, "");
-static_assert(!gt::_impl::contains_placeholders<decltype(std::make_tuple())>::value, "");
-static_assert(gt::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, _1))>::value, "");
-static_assert(gt::_impl::contains_placeholders<decltype(std::make_tuple(3, _2, 5))>::value, "");
+static_assert(!bd::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, 5))>::value, "");
+static_assert(!bd::_impl::contains_placeholders<decltype(std::make_tuple())>::value, "");
+static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, _1))>::value, "");
+static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, _2, 5))>::value, "");
 
 TEST(DistributedBoundaries, BoundBC) {
     const auto builder = gt::storage::builder<gt::storage::x86>.type<double>().dimensions(3, 3, 3);
@@ -61,8 +62,8 @@ TEST(DistributedBoundaries, BoundBC) {
 
     using ds = decltype(a);
 
-    gt::bound_bc<gt::zero_boundary, std::tuple<ds, ds, ds>, std::index_sequence<1>> bbc{
-        gt::zero_boundary{}, std::make_tuple(a, b, c)};
+    bd::bound_bc<bd::zero_boundary, std::tuple<ds, ds, ds>, std::index_sequence<1>> bbc{
+        bd::zero_boundary{}, std::make_tuple(a, b, c)};
 
     auto x = bbc.stores();
 

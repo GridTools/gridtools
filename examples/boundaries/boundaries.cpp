@@ -31,17 +31,17 @@
 
 #include <gridtools/boundaries/boundary.hpp>
 #include <gridtools/common/defs.hpp>
-#include <gridtools/gcl/low_level/gcl_arch.hpp>
+#include <gridtools/gcl/low_level/arch.hpp>
 #include <gridtools/storage/builder.hpp>
 
 #ifdef GT_CUDACC
 #include <gridtools/storage/cuda.hpp>
 using storage_traits_t = gridtools::storage::cuda;
-using gcl_arch_t = gridtools::gcl_gpu;
+using gcl_arch_t = gridtools::gcl::gpu;
 #else
 #include <gridtools/storage/mc.hpp>
 using storage_traits_t = gridtools::storage::mc;
-using gcl_arch_t = gridtools::gcl_cpu;
+using gcl_arch_t = gridtools::gcl::cpu;
 #endif
 
 namespace gt = gridtools;

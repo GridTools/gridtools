@@ -11,7 +11,7 @@
 #include <gridtools/common/numerics.hpp>
 
 template <unsigned N>
-constexpr auto testee = gridtools::_impl::static_pow3<N>::value;
+constexpr auto testee = gridtools::static_pow3(N);
 
 static_assert(testee<0> == 1, "");
 static_assert(testee<1> == 3, "");

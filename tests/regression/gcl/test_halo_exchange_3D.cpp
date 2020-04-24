@@ -118,7 +118,7 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
                     for (int k = 0; k != lengths[2]; ++k)
                         EXPECT_EQ(view(i, j, k),
                             is_border(i, 0) || is_border(j, 1) || is_border(k, 2) ? none() : initial_state(i, j, k, f))
-                            << "pid:" << GCL_pid() << " f:" << f << " i:" << i << " j:" << j << " k:" << k;
+                            << "pid:" << gcl::pid() << " f:" << f << " i:" << i << " j:" << j << " k:" << k;
         }
     }
 
@@ -182,7 +182,7 @@ TEST_P(halo_exchange_3D_all, test) {
         ASSERT_THAT(halos[1], ContainerEq(halos[0]));
         ASSERT_THAT(halos[2], ContainerEq(halos[0]));
 
-        using testee_t = halo_exchange_dynamic_ut<decltype(layout), layout_map<0, 1, 2>, value_type, gcl_arch_t>;
+        using testee_t = gcl::halo_exchange_dynamic_ut<decltype(layout), layout_map<0, 1, 2>, value_type, gcl_arch_t>;
         testee_t testee(periodicity, CartComm);
         auto halo_descriptors = make_halo_descriptors(storages, 0);
         for_each<meta::make_indices_c<num_fields>>(
@@ -226,13 +226,13 @@ struct halo_exchange_3D_generic : halo_exchange_3D_test {
 TEST_P(halo_exchange_3D_generic, test) {
     run_exchanges([&](auto layout, auto use_vector_interface, auto &&storages, auto periodicity) {
         using layout_t = decltype(layout);
-        using testee_t = halo_exchange_generic<layout_map<0, 1, 2>, gcl_arch_t>;
+        using testee_t = gcl::halo_exchange_generic<layout_map<0, 1, 2>, gcl_arch_t>;
         testee_t testee(periodicity, CartComm);
         testee.setup(3,
-            field_on_the_fly<int, layout_t, testee_t::traits>(nullptr, make_enclosed_halo_descriptor()),
+            gcl::field_on_the_fly<int, layout_t, testee_t::traits>(nullptr, make_enclosed_halo_descriptor()),
             sizeof(value_type));
         auto field = [&](int f) {
-            return field_on_the_fly<value_type, layout_t, testee_t::traits>(
+            return gcl::field_on_the_fly<value_type, layout_t, testee_t::traits>(
                 storages[f]->get_target_ptr(), make_halo_descriptors(storages, f));
         };
         exchange(use_vector_interface, testee, field(0), field(1), field(2));

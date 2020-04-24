@@ -12,9 +12,10 @@
 #include <gtest/gtest.h>
 
 namespace gt = gridtools;
+namespace bd = gt::boundaries;
 
 TEST(apply_gpu, shape) {
-    using shape = gt::apply_gpu_impl_::kernel_configuration::shape_type;
+    using shape = bd::apply_gpu_impl_::kernel_configuration::shape_type;
 
     {
         shape x(3, 6, 7, 0, 0, 0);
@@ -49,7 +50,7 @@ TEST(apply_gpu, shape) {
 }
 
 TEST(apply_gpu, configurtation) {
-    using conf = gt::apply_gpu_impl_::kernel_configuration;
+    using conf = bd::apply_gpu_impl_::kernel_configuration;
 
     gt::uint_t l = 1000;
 
@@ -72,49 +73,49 @@ TEST(apply_gpu, configurtation) {
         EXPECT_EQ(c.block_size().z, res[2]);
 
         {
-            auto const &shape = c.shape(gt::direction<gt::minus_, gt::minus_, gt::minus_>{});
+            auto const &shape = c.shape(bd::direction<bd::minus_, bd::minus_, bd::minus_>{});
             EXPECT_EQ(shape.start(0), 0);
             EXPECT_EQ(shape.start(1), 2);
             EXPECT_EQ(shape.start(2), 2);
         }
 
         {
-            auto const &shape = c.shape(gt::direction<gt::zero_, gt::minus_, gt::minus_>{});
+            auto const &shape = c.shape(bd::direction<bd::zero_, bd::minus_, bd::minus_>{});
             EXPECT_EQ(shape.start(0), 1);
             EXPECT_EQ(shape.start(1), 2);
             EXPECT_EQ(shape.start(2), 2);
         }
 
         {
-            auto const &shape = c.shape(gt::direction<gt::plus_, gt::minus_, gt::minus_>{});
+            auto const &shape = c.shape(bd::direction<bd::plus_, bd::minus_, bd::minus_>{});
             EXPECT_EQ(shape.start(0), 68);
             EXPECT_EQ(shape.start(1), 2);
             EXPECT_EQ(shape.start(2), 2);
         }
 
         {
-            auto const &shape = c.shape(gt::direction<gt::minus_, gt::zero_, gt::minus_>{});
+            auto const &shape = c.shape(bd::direction<bd::minus_, bd::zero_, bd::minus_>{});
             EXPECT_EQ(shape.start(0), 0);
             EXPECT_EQ(shape.start(1), 4);
             EXPECT_EQ(shape.start(2), 2);
         }
 
         {
-            auto const &shape = c.shape(gt::direction<gt::minus_, gt::plus_, gt::minus_>{});
+            auto const &shape = c.shape(bd::direction<bd::minus_, bd::plus_, bd::minus_>{});
             EXPECT_EQ(shape.start(0), 0);
             EXPECT_EQ(shape.start(1), 46);
             EXPECT_EQ(shape.start(2), 2);
         }
 
         {
-            auto const &shape = c.shape(gt::direction<gt::minus_, gt::minus_, gt::zero_>{});
+            auto const &shape = c.shape(bd::direction<bd::minus_, bd::minus_, bd::zero_>{});
             EXPECT_EQ(shape.start(0), 0);
             EXPECT_EQ(shape.start(1), 2);
             EXPECT_EQ(shape.start(2), 5);
         }
 
         {
-            auto const &shape = c.shape(gt::direction<gt::minus_, gt::minus_, gt::plus_>{});
+            auto const &shape = c.shape(bd::direction<bd::minus_, bd::minus_, bd::plus_>{});
             EXPECT_EQ(shape.start(0), 0);
             EXPECT_EQ(shape.start(1), 2);
             EXPECT_EQ(shape.start(2), 55);

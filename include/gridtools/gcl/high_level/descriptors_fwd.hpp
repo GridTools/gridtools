@@ -10,16 +10,17 @@
 #pragma once
 
 namespace gridtools {
-    template <typename DataType, typename>
-    class hndlr_descriptor_ut;
+    namespace gcl {
+        template <typename DataType, typename>
+        class hndlr_descriptor_ut;
 
-    template <typename Datatype, typename GridType, typename, typename, typename>
-    class hndlr_dynamic_ut;
+        template <typename Datatype, typename GridType, typename, typename, typename>
+        class hndlr_dynamic_ut;
 
-    template <typename Haloexch, typename proc_layout, typename Gcl_Arch>
-    class hndlr_generic;
+        template <typename Haloexch, typename proc_layout, typename Gcl_Arch>
+        class hndlr_generic;
 
-    template <typename DataType, typename layoutmap, template <typename> class traits>
-    struct field_on_the_fly;
-
+        template <typename DataType, typename layoutmap, template <typename> class traits>
+        struct field_on_the_fly;
+    } // namespace gcl
 } // namespace gridtools

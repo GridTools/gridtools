@@ -27,7 +27,7 @@
             m_packZLKernel_generic<<<blocks, threads, 0, 0>>>(field##n.ptr,                                      \
                 reinterpret_cast<typename FOTF_T##n::value_type **>(d_msgbufTab),                                \
                 wrap_argument(d_msgsize + 27 * n),                                                               \
-                *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor, 3> *>(&field##n)),         \
+                *(reinterpret_cast<const ::gridtools::array<::gridtools::halo_descriptor, 3> *>(&field##n)),     \
                 nx,                                                                                              \
                 ny,                                                                                              \
                 0);                                                                                              \

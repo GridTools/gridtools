@@ -46,10 +46,7 @@ int main(int argc, char **argv) {
     GT_CUDA_CHECK(cudaSetDevice(get_local_rank() % dev_device_count()));
 #endif
 
-    // We need to set the communicator policy at the top level
-    // this allows us to build multiple communicators in the tests
-    MPI_Init(&argc, &argv);
-    gridtools::GCL_Init(argc, argv);
+    gridtools::gcl::init(argc, argv);
 
     // initialize google test environment
     testing::InitGoogleTest(&argc, argv);
@@ -70,7 +67,7 @@ int main(int argc, char **argv) {
     MPI_Allreduce(&result, &global_result, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
     MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
+    gridtools::gcl::finalize();
     // perform global collective, to ensure that all ranks return the same exit code
     return global_result;
 }

@@ -10,7 +10,7 @@
 #pragma once
 
 namespace gridtools {
-    namespace _impl {
+    namespace gcl {
         template <typename v_type>
         struct compute_type {
             // This is called when no other type is found.
@@ -52,7 +52,7 @@ namespace gridtools {
         struct make_datatype {
 
           public:
-            static MPI_Datatype type() { return _impl::compute_type<value_type>().value; }
+            static MPI_Datatype type() { return compute_type<value_type>().value; }
 
             template <typename arraytype>
             static MPI_Datatype make(arraytype const &halo) {
@@ -77,5 +77,5 @@ namespace gridtools {
                 return res;
             }
         };
-    } // namespace _impl
+    } // namespace gcl
 } // namespace gridtools

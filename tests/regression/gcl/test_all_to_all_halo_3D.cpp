@@ -22,6 +22,7 @@
 #include <gridtools/gcl/low_level/proc_grids_3D.hpp>
 
 using namespace gridtools;
+using namespace gcl;
 
 TEST(gcl, test_all_to_all_halo_3D) {
     constexpr int N = 13;
@@ -46,7 +47,7 @@ TEST(gcl, test_all_to_all_halo_3D) {
 
     array<int, 3> crds;
 
-    if (GCL_pid() == 0) {
+    if (pid() == 0) {
         halo_block send_block;
 
         for (int i = 0; i < PI; ++i) {

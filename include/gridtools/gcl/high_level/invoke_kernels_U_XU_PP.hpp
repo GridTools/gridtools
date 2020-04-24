@@ -27,7 +27,7 @@
             m_unpackXUKernel_generic<<<blocks, threads>>>(field##n.ptr,                                                \
                 reinterpret_cast<typename FOTF_T##n::value_type **>(d_msgbufTab_r),                                    \
                 wrap_argument(d_msgsize_r + 27 * n),                                                                   \
-                *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor, 3> *>(&field##n)),               \
+                *(reinterpret_cast<const ::gridtools::array<::gridtools::halo_descriptor, 3> *>(&field##n)),           \
                 ny,                                                                                                    \
                 nz,                                                                                                    \
                 (field##n.halos[0].end() + 1) + (field##n.halos[1].begin()) * field##n.halos[0].total_length() +       \

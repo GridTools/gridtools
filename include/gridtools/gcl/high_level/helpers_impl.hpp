@@ -11,7 +11,9 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/make_array.hpp"
-#include "../low_level/gcl_arch.hpp"
+#include "../low_level/arch.hpp"
+#include "../low_level/translate.hpp"
+
 #include "descriptors_fwd.hpp"
 
 #ifdef GT_CUDACC
@@ -20,13 +22,12 @@
 #endif
 
 namespace gridtools {
-    namespace _impl {
-
-        template <typename T, typename arch /*=gcl_cpu*/>
+    namespace gcl {
+        template <typename T, typename arch>
         struct gcl_alloc;
 
         template <typename T>
-        struct gcl_alloc<T, gcl_cpu> {
+        struct gcl_alloc<T, cpu> {
 
             static T *alloc(size_t sz) {
                 if (sz)
@@ -40,7 +41,7 @@ namespace gridtools {
 
 #ifdef GT_CUDACC
         template <typename T>
-        struct gcl_alloc<T, gcl_gpu> {
+        struct gcl_alloc<T, gpu> {
 
             static T *alloc(size_t sz) {
                 if (sz) {
@@ -70,12 +71,10 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj)
                         for (int kk = -1; kk <= 1; ++kk)
                             if (ii != 0 || jj != 0 || kk != 0) {
-                                // std::cout << hm->total_pack_size(make_array(ii,jj,kk)) << " " <<
-                                // hm->total_unpack_size(make_array(ii,jj,kk)) << "\n";
-                                hm->send_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(
-                                    hm->total_pack_size(make_array(ii, jj, kk)));
-                                hm->recv_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(
-                                    hm->total_unpack_size(make_array(ii, jj, kk)));
+                                hm->send_buffer[translate()(ii, jj, kk)] =
+                                    gcl_alloc<Datatype, cpu>::alloc(hm->total_pack_size(make_array(ii, jj, kk)));
+                                hm->recv_buffer[translate()(ii, jj, kk)] =
+                                    gcl_alloc<Datatype, cpu>::alloc(hm->total_unpack_size(make_array(ii, jj, kk)));
 
                                 hm->m_haloexch.register_send_to_buffer(&(hm->send_buffer[translate()(ii, jj, kk)][0]),
                                     hm->total_pack_size(make_array(ii, jj, kk)) * sizeof(Datatype),
@@ -103,15 +102,13 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj)
                         for (int kk = -1; kk <= 1; ++kk)
                             if (ii != 0 || jj != 0 || kk != 0) {
-                                // std::cout << hm->total_pack_size(make_array(ii,jj,kk)) << " " <<
-                                // hm->total_unpack_size(make_array(ii,jj,kk)) << "\n";
                                 hm->send_size[translate()(ii, jj, kk)] =
                                     hm->halo.send_buffer_size(make_array(ii, jj, kk));
                                 hm->recv_size[translate()(ii, jj, kk)] =
                                     hm->halo.recv_buffer_size(make_array(ii, jj, kk));
-                                hm->send_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, arch>::alloc(
+                                hm->send_buffer[translate()(ii, jj, kk)] = gcl_alloc<Datatype, arch>::alloc(
                                     hm->halo.send_buffer_size(make_array(ii, jj, kk)) * mf);
-                                hm->recv_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, arch>::alloc(
+                                hm->recv_buffer[translate()(ii, jj, kk)] = gcl_alloc<Datatype, arch>::alloc(
                                     hm->halo.recv_buffer_size(make_array(ii, jj, kk)) * mf);
 
                                 typedef typename translate_P::map_type map_type;
@@ -170,6 +167,5 @@ namespace gridtools {
                             }
             }
         };
-
-    } // namespace _impl
+    } // namespace gcl
 } // namespace gridtools

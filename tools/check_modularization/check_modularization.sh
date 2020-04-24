@@ -25,20 +25,16 @@ no_dependency "common" "boundaries"
 no_dependency "common" "gcl"
 no_dependency "common" "storage"
 no_dependency "common" "c_bindings"
-no_dependency "common" "distributed_boundaries"
 
 are_independent "stencil" "boundaries"
 are_independent "stencil" "gcl"
 are_independent "stencil" "layout_transformation"
 
-are_independent "boundaries" "layout_transformation"
-
 are_independent "gcl" "layout_transformation"
 are_independent "gcl" "storage"
 
-are_independent "distributed_boundaries" "c_bindings"
-are_independent "distributed_boundaries" "stencil"
-are_independent "distributed_boundaries" "layout_transformation"
+are_independent "boundaries" "c_bindings"
+are_independent "boundaries" "layout_transformation"
 
 no_dependency "storage" "stencil"
 no_dependency "storage" "boundaries"

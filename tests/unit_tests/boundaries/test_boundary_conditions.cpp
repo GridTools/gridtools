@@ -20,6 +20,7 @@
 #include <gcl_select.hpp>
 
 using namespace gridtools;
+using namespace boundaries;
 
 struct bc_basic {
     template <typename Direction, typename DataField0>

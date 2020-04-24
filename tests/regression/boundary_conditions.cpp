@@ -15,6 +15,7 @@
 
 namespace {
     using namespace gridtools;
+    using namespace boundaries;
 
     template <class Float>
     constexpr Float face_value = 88;

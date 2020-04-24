@@ -14,10 +14,10 @@
 #include <mpi.h>
 
 #include <gridtools/boundaries/boundary.hpp>
+#include <gridtools/boundaries/grid_predicate.hpp>
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/boollist.hpp>
 #include <gridtools/common/layout_map.hpp>
-#include <gridtools/distributed_boundaries/grid_predicate.hpp>
 #include <gridtools/gcl/GCL.hpp>
 #include <gridtools/gcl/halo_exchange.hpp>
 #include <gridtools/stencil/cartesian.hpp>
@@ -65,12 +65,12 @@ TEST(copy_stencil_parallel, test) {
     MPI_Comm CartComm;
     array<int, 3> dimensions{0, 0, 1};
     int period[3] = {1, 1, 1};
-    MPI_Dims_create(GCL_procs(), 2, &dimensions[0]);
+    MPI_Dims_create(gcl::procs(), 2, &dimensions[0]);
     assert(dimensions[2] == 1);
 
     MPI_Cart_create(MPI_COMM_WORLD, 3, &dimensions[0], period, false, &CartComm);
 
-    using pattern_type = halo_exchange_dynamic_ut<storage::traits::layout_type<storage_traits_t, 3>,
+    using pattern_type = gcl::halo_exchange_dynamic_ut<storage::traits::layout_type<storage_traits_t, 3>,
         layout_map<0, 1, 2>,
         double,
         gcl_arch_t>;
@@ -79,7 +79,7 @@ TEST(copy_stencil_parallel, test) {
 
     array<uint_t, 2> halo{1, 1};
 
-    if (GCL_procs() == 1) // serial execution
+    if (gcl::procs() == 1) // serial execution
         halo[0] = halo[1] = 0;
 
     // Definition of the actual data fields that are used for input/output
@@ -123,8 +123,8 @@ TEST(copy_stencil_parallel, test) {
     halos[1] = halo_descriptor(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
     halos[2] = halo_descriptor(0, 0, 0, d3 - 1, d3);
 
-    boundary<boundary_conditions, gcl_arch_t, proc_grid_predicate<decltype(c_grid)>>(
-        halos, boundary_conditions(), proc_grid_predicate<decltype(c_grid)>(c_grid))
+    boundaries::boundary<boundary_conditions, gcl_arch_t, boundaries::proc_grid_predicate<decltype(c_grid)>>(
+        halos, boundary_conditions(), boundaries::proc_grid_predicate<decltype(c_grid)>(c_grid))
         .apply(in, out);
 
     std::vector<double *> vec = {in->get_target_ptr(), out->get_target_ptr()};
@@ -133,7 +133,7 @@ TEST(copy_stencil_parallel, test) {
     he.exchange();
     he.unpack(vec);
 
-    MPI_Barrier(GCL_world());
+    MPI_Barrier(gcl::world());
 
     auto v_out_h = out->const_host_view();
 
@@ -141,5 +141,5 @@ TEST(copy_stencil_parallel, test) {
         for (uint_t j = halo[1]; j < d2 - halo[1]; ++j)
             for (uint_t k = 1; k < d3; ++k)
                 EXPECT_EQ(v_out_h(i, j, k), input(i, j, k))
-                    << " pid = " << GCL_pid() << "i = " << i << "; j = " << j << "; k = " << k;
+                    << " pid = " << gcl::pid() << "i = " << i << "; j = " << j << "; k = " << k;
 }
