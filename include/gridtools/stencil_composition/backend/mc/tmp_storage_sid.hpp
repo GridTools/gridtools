@@ -13,11 +13,11 @@
 
 #include "../../../common/hugepage_alloc.hpp"
 #include "../../../common/hymap.hpp"
-#include "../../../common/omp.hpp"
 #include "../../../sid/allocator.hpp"
 #include "../../../sid/concept.hpp"
 #include "../../../sid/simple_ptr_holder.hpp"
 #include "../../../sid/synthetic.hpp"
+#include "../../../thread_pool/concept.hpp"
 #include "../../common/dim.hpp"
 #include "pos3.hpp"
 
@@ -53,13 +53,13 @@ namespace gridtools {
             /**
              * @brief Size of the full allocation of a temporary buffer (in number of elements).
              */
-            template <class T, class Extent>
+            template <class T, class Extent, class ThreadPool>
             std::size_t storage_size(pos3<std::size_t> const &block_size) {
                 auto bs = full_block_size<T, Extent>(block_size);
                 // allocate one extra cache line to allow for offsetting the initial allocation
                 // to guarantee alignment of first element inside domain
                 constexpr std::size_t extra = (byte_alignment::value + sizeof(T) - 1) / sizeof(T);
-                return bs.i * bs.j * bs.k * omp_get_max_threads() + extra;
+                return bs.i * bs.j * bs.k * thread_pool::get_max_threads(ThreadPool()) + extra;
             }
 
             template <std::size_t, class>
@@ -124,11 +124,12 @@ namespace gridtools {
          */
         using tmp_allocator_mc = sid::cached_allocator<_impl_tmp_mc::make_allocation_f>;
 
-        template <class T, class Extent, bool AllParallel, class Allocator>
+        template <class T, class Extent, bool AllParallel, class ThreadPool, class Allocator>
         auto make_tmp_storage_mc(Allocator &allocator, pos3<std::size_t> const &block_size) {
             return sid::synthetic()
                 .set<sid::property::origin>(
-                    allocate(allocator, meta::lazy::id<T>(), _impl_tmp_mc::storage_size<T, Extent>(block_size)) +
+                    allocate(
+                        allocator, meta::lazy::id<T>(), _impl_tmp_mc::storage_size<T, Extent, ThreadPool>(block_size)) +
                     _impl_tmp_mc::origin_offset<T, Extent, AllParallel>(block_size))
                 .template set<sid::property::strides>(_impl_tmp_mc::strides<T, Extent, AllParallel>(block_size))
                 .template set<sid::property::strides_kind, _impl_tmp_mc::strides_kind<T, Extent>>()

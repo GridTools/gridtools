@@ -12,7 +12,7 @@
 
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
-#include "../../../common/omp.hpp"
+#include "../../../thread_pool/concept.hpp"
 
 namespace gridtools {
     namespace mc {
@@ -53,9 +53,10 @@ namespace gridtools {
             }
 
           public:
-            template <class Grid>
-            GT_FORCE_INLINE execinfo_mc(const Grid &grid) : m_i_grid_size(grid.i_size()), m_j_grid_size(grid.j_size()) {
-                int_t threads = omp_get_max_threads();
+            template <class ThreadPool, class Grid>
+            GT_FORCE_INLINE execinfo_mc(ThreadPool, const Grid &grid)
+                : m_i_grid_size(grid.i_size()), m_j_grid_size(grid.j_size()) {
+                int_t threads = thread_pool::get_max_threads(ThreadPool());
 
                 // if domain is large enough (relative to the number of threads),
                 // we split only along j-axis (for prefetching reasons)
