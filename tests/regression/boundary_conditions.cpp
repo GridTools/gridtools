@@ -27,20 +27,18 @@ namespace {
 
     template <class Float>
     struct direction_bc_input {
-        Float value = factor<Float>;
-
         // relative coordinates
         template <typename Direction, typename DataField0, typename DataField1>
         GT_FUNCTION void operator()(
             Direction, DataField0 &data_field0, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
-            data_field1(i, j, k) = data_field0(i, j, k) * value;
+            data_field1(i, j, k) = data_field0(i, j, k) * factor<Float>;
         }
 
         // relative coordinates
         template <sign I, sign K, typename DataField0, typename DataField1>
         GT_FUNCTION void operator()(
             direction<I, minus_, K>, DataField0 &, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
-            data_field1(i, j, k) = face_value<Float> * value;
+            data_field1(i, j, k) = face_value<Float> * factor<Float>;
         }
 
         // relative coordinates
@@ -51,7 +49,7 @@ namespace {
             uint_t i,
             uint_t j,
             uint_t k) const {
-            data_field1(i, j, k) = edge_value<Float> * value;
+            data_field1(i, j, k) = edge_value<Float> * factor<Float>;
         }
 
         template <typename DataField0, typename DataField1>
@@ -61,7 +59,7 @@ namespace {
             uint_t i,
             uint_t j,
             uint_t k) const {
-            data_field1(i, j, k) = corner_value<Float> * value;
+            data_field1(i, j, k) = corner_value<Float> * factor<Float>;
         }
     };
 
