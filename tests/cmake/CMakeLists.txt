@@ -15,6 +15,5 @@ function(add_cmake_test name)
 endfunction()
 
 if(TARGET _gridtools_cuda)
-    # TODO most likely we have to change the test for HIP
     add_cmake_test(storage_cuda)
 endif()

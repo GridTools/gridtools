@@ -5,6 +5,9 @@ cmake_minimum_required(VERSION 3.14.5)
 
 project(test_storage_cuda LANGUAGES CXX)
 
+# Disabling C++ extensions is only required for HIP.
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 include(FetchContent)
 FetchContent_Declare(
     gridtools
