@@ -18,8 +18,8 @@ using backend_t = mc::backend;
 using storage_traits_t = storage::mc;
 #endif
 
-constexpr dimension<1> i;
-constexpr dimension<2> j;
+constexpr GT_DEVICE dimension<1> i;
+constexpr GT_DEVICE dimension<2> j;
 
 struct lap_function {
     using in = in_accessor<0, extent<-1, 1, -1, 1>>;

@@ -22,9 +22,9 @@ using storage_traits_t = storage::mc;
 
 constexpr unsigned halo = 2;
 
-constexpr dimension<1> i;
-constexpr dimension<2> j;
-constexpr dimension<3> k;
+constexpr GT_DEVICE dimension<1> i;
+constexpr GT_DEVICE dimension<2> j;
+constexpr GT_DEVICE dimension<3> k;
 
 using axis_t = axis<2>;
 using lower_domain = axis_t::get_interval<0>;
