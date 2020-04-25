@@ -10,8 +10,8 @@
 #include <gridtools/storage/cuda.hpp>
 using storage_traits_t = gridtools::storage::cuda;
 #else
-#include <gridtools/storage/mc.hpp>
-using storage_traits_t = gridtools::storage::mc;
+#include <gridtools/storage/cpu_ifirst.hpp>
+using storage_traits_t = gridtools::storage::cpu_ifirst;
 #endif
 
 using data_store_t = decltype(gridtools::storage::builder<storage_traits_t>.dimensions(0, 0, 0).type<double>().build());

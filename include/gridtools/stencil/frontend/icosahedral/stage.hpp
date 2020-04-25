@@ -57,68 +57,70 @@
  */
 
 namespace gridtools {
-    namespace icosahedral {
-        namespace stage_impl_ {
-            struct default_deref_f {
-                template <class Key, class T>
-                GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
-                    return *ptr;
-                }
-            };
+    namespace stencil {
+        namespace icosahedral {
+            namespace stage_impl_ {
+                struct default_deref_f {
+                    template <class Key, class T>
+                    GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
+                        return *ptr;
+                    }
+                };
 
-            template <class Ptr, class Strides, class Keys, class Deref, class LocationType, int_t Color>
-            struct evaluator {
-                Ptr const &m_ptr;
-                Strides const &m_strides;
+                template <class Ptr, class Strides, class Keys, class Deref, class LocationType, int_t Color>
+                struct evaluator {
+                    Ptr const &m_ptr;
+                    Strides const &m_strides;
 
-                template <class Key, class Offset>
-                GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
-                    auto ptr = host_device::at_key<Key>(m_ptr);
-                    sid::multi_shift<Key>(ptr, m_strides, wstd::move(offset));
-                    return Deref()(Key(), ptr);
-                }
+                    template <class Key, class Offset>
+                    GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
+                        auto ptr = host_device::at_key<Key>(m_ptr);
+                        sid::multi_shift<Key>(ptr, m_strides, wstd::move(offset));
+                        return Deref()(Key(), ptr);
+                    }
 
-                template <class Accessor>
-                GT_FUNCTION decltype(auto) operator()(Accessor) const {
-                    return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(
-                        hymap::keys<dim::c>::values<integral_constant<int_t, Color>>()));
-                }
+                    template <class Accessor>
+                    GT_FUNCTION decltype(auto) operator()(Accessor) const {
+                        return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(
+                            hymap::keys<dim::c>::values<integral_constant<int_t, Color>>()));
+                    }
 
-                template <class Accessor, class Offset>
-                GT_FUNCTION decltype(auto) neighbor(Accessor, Offset offset) const {
-                    return apply_intent<Accessor::intent_v>(
-                        get_ref<meta::at_c<Keys, Accessor::index_t::value>>(wstd::move(offset)));
-                }
+                    template <class Accessor, class Offset>
+                    GT_FUNCTION decltype(auto) neighbor(Accessor, Offset offset) const {
+                        return apply_intent<Accessor::intent_v>(
+                            get_ref<meta::at_c<Keys, Accessor::index_t::value>>(wstd::move(offset)));
+                    }
 
-                static constexpr int_t color = Color;
+                    static constexpr int_t color = Color;
 
-                template <class Fun, class Accessor, class... Accessors>
-                GT_FUNCTION void for_neighbors(Fun &&fun, Accessor, Accessors...) const {
-                    static_assert(
-                        conjunction<
-                            std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>::value,
-                        "All accessors should be of the same location");
-                    host_device::for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
-                        [&](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });
-                }
-            };
+                    template <class Fun, class Accessor, class... Accessors>
+                    GT_FUNCTION void for_neighbors(Fun &&fun, Accessor, Accessors...) const {
+                        static_assert(
+                            conjunction<
+                                std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>::value,
+                            "All accessors should be of the same location");
+                        host_device::for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
+                            [&](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });
+                    }
+                };
 
-            template <class Functor, class PlhMap>
-            struct stage {
-                static_assert(core::has_apply<Functor>::value, GT_INTERNAL_ERROR);
-                using location_t = typename Functor::location;
+                template <class Functor, class PlhMap>
+                struct stage {
+                    static_assert(core::has_apply<Functor>::value, GT_INTERNAL_ERROR);
+                    using location_t = typename Functor::location;
 
-                template <class Deref = void, class Ptr, class Strides>
-                GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
-                    using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
-                    host_device::for_each<meta::make_indices<location_t>>([&](auto color) {
-                        using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
-                        Functor::apply(eval_t{ptr, strides});
-                    });
-                }
-            };
-        } // namespace stage_impl_
-        template <class... Ts>
-        meta::curry<stage_impl_::stage> get_stage(Ts &&...);
-    } // namespace icosahedral
+                    template <class Deref = void, class Ptr, class Strides>
+                    GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
+                        using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
+                        host_device::for_each<meta::make_indices<location_t>>([&](auto color) {
+                            using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
+                            Functor::apply(eval_t{ptr, strides});
+                        });
+                    }
+                };
+            } // namespace stage_impl_
+            template <class... Ts>
+            meta::curry<stage_impl_::stage> get_stage(Ts &&...);
+        } // namespace icosahedral
+    }     // namespace stencil
 } // namespace gridtools

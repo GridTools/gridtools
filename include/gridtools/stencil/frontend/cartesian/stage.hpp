@@ -40,48 +40,50 @@
 #include "expressions/expr_base.hpp"
 
 namespace gridtools {
-    namespace cartesian {
-        namespace stage_impl_ {
-            struct default_deref_f {
-                template <class Key, class T>
-                GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
-                    return *ptr;
-                }
-            };
+    namespace stencil {
+        namespace cartesian {
+            namespace stage_impl_ {
+                struct default_deref_f {
+                    template <class Key, class T>
+                    GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
+                        return *ptr;
+                    }
+                };
 
-            template <class Ptr, class Strides, class Keys, class Deref>
-            struct evaluator {
-                Ptr const &m_ptr;
-                Strides const &m_strides;
+                template <class Ptr, class Strides, class Keys, class Deref>
+                struct evaluator {
+                    Ptr const &m_ptr;
+                    Strides const &m_strides;
 
-                template <class Accessor>
-                GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
-                    using key_t = meta::at_c<Keys, Accessor::index_t::value>;
-                    auto ptr = host_device::at_key<key_t>(m_ptr);
-                    sid::multi_shift<key_t>(ptr, m_strides, wstd::move(acc));
-                    return apply_intent<Accessor::intent_v>(Deref()(key_t(), ptr));
-                }
+                    template <class Accessor>
+                    GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
+                        using key_t = meta::at_c<Keys, Accessor::index_t::value>;
+                        auto ptr = host_device::at_key<key_t>(m_ptr);
+                        sid::multi_shift<key_t>(ptr, m_strides, wstd::move(acc));
+                        return apply_intent<Accessor::intent_v>(Deref()(key_t(), ptr));
+                    }
 
-                template <class Op, class... Ts>
-                GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const {
-                    return expressions::evaluation::value(*this, wstd::move(arg));
-                }
-            };
+                    template <class Op, class... Ts>
+                    GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const {
+                        return expressions::evaluation::value(*this, wstd::move(arg));
+                    }
+                };
 
-            template <class Functor, class PlhMap>
-            struct stage {
-                static_assert(core::has_apply<Functor>::value, GT_INTERNAL_ERROR);
+                template <class Functor, class PlhMap>
+                struct stage {
+                    static_assert(core::has_apply<Functor>::value, GT_INTERNAL_ERROR);
 
-                template <class Deref = void, class Ptr, class Strides>
-                GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
-                    using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
-                    using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t>;
-                    eval_t eval{ptr, strides};
-                    Functor::template apply<eval_t &>(eval);
-                }
-            };
-        } // namespace stage_impl_
-        template <class... Ts>
-        meta::curry<stage_impl_::stage> get_stage(Ts &&...);
-    } // namespace cartesian
+                    template <class Deref = void, class Ptr, class Strides>
+                    GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
+                        using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
+                        using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t>;
+                        eval_t eval{ptr, strides};
+                        Functor::template apply<eval_t &>(eval);
+                    }
+                };
+            } // namespace stage_impl_
+            template <class... Ts>
+            meta::curry<stage_impl_::stage> get_stage(Ts &&...);
+        } // namespace cartesian
+    }     // namespace stencil
 } // namespace gridtools

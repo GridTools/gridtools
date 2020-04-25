@@ -25,19 +25,20 @@
 #ifdef GT_CUDACC
 #include <gridtools/common/cuda_runtime.hpp>
 #include <gridtools/common/cuda_util.hpp>
-#include <gridtools/stencil/backend/cuda.hpp>
+#include <gridtools/stencil/cuda.hpp>
 #include <gridtools/storage/cuda.hpp>
-using backend_t = gridtools::cuda::backend<>;
+using stencil_backend_t = gridtools::stencil::cuda<>;
 using storage_traits_t = gridtools::storage::cuda;
 #else
-#include <gridtools/stencil/backend/mc.hpp>
-#include <gridtools/storage/mc.hpp>
-using backend_t = gridtools::mc::backend<>;
-using storage_traits_t = gridtools::storage::mc;
+#include <gridtools/stencil/cpu_ifirst.hpp>
+#include <gridtools/storage/cpu_ifirst.hpp>
+using stencil_backend_t = gridtools::stencil::cpu_ifirst<>;
+using storage_traits_t = gridtools::storage::cpu_ifirst;
 #endif
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct copy_functor {
@@ -62,7 +63,7 @@ namespace {
         assert(in->lengths() == out->lengths());
         auto &&lengths = out->lengths();
         auto grid = make_grid(lengths[0], lengths[1], lengths[2]);
-        run_single_stage(copy_functor(), backend_t(), grid, in, out);
+        run_single_stage(copy_functor(), stencil_backend_t(), grid, in, out);
 #ifdef GT_CUDACC
         GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif

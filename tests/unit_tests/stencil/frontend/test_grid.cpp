@@ -16,6 +16,7 @@
 #include <gridtools/stencil/frontend/axis.hpp>
 
 using namespace gridtools;
+using namespace stencil;
 
 TEST(test_grid, k_total_length) {
     using axis_t = axis<1, axis_config::offset_limit<3>>;

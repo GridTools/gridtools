@@ -17,6 +17,7 @@
 namespace ico_operators {
 
     using namespace gridtools;
+    using namespace stencil;
     using namespace icosahedral;
 
     struct curl_prep_functor {

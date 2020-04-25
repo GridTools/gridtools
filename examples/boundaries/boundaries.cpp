@@ -39,8 +39,8 @@
 using storage_traits_t = gridtools::storage::cuda;
 using gcl_arch_t = gridtools::gcl::gpu;
 #else
-#include <gridtools/storage/mc.hpp>
-using storage_traits_t = gridtools::storage::mc;
+#include <gridtools/storage/cpu_ifirst.hpp>
+using storage_traits_t = gridtools::storage::cpu_ifirst;
 using gcl_arch_t = gridtools::gcl::cpu;
 #endif
 

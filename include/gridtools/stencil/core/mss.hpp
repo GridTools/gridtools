@@ -19,19 +19,21 @@
 @brief descriptor of the Multi Stage Stencil (MSS)
 */
 namespace gridtools {
-    namespace core {
-        /** @brief Descriptors for  Multi Stage Stencil (MSS) */
-        template <class ExecutionEngine, class EsfDescrSequence, class CacheMap>
-        struct mss_descriptor {
-            static_assert(is_execution_engine<ExecutionEngine>::value, GT_INTERNAL_ERROR);
-            static_assert(meta::all_of<is_esf_descriptor, EsfDescrSequence>::value, GT_INTERNAL_ERROR);
+    namespace stencil {
+        namespace core {
+            /** @brief Descriptors for  Multi Stage Stencil (MSS) */
+            template <class ExecutionEngine, class EsfDescrSequence, class CacheMap>
+            struct mss_descriptor {
+                static_assert(is_execution_engine<ExecutionEngine>::value, GT_INTERNAL_ERROR);
+                static_assert(meta::all_of<is_esf_descriptor, EsfDescrSequence>::value, GT_INTERNAL_ERROR);
 
-            using execution_engine_t = ExecutionEngine;
-            using esf_sequence_t = EsfDescrSequence;
-            using cache_map_t = CacheMap;
-        };
+                using execution_engine_t = ExecutionEngine;
+                using esf_sequence_t = EsfDescrSequence;
+                using cache_map_t = CacheMap;
+            };
 
-        template <typename Mss>
-        using is_mss_descriptor = meta::is_instantiation_of<mss_descriptor, Mss>;
-    } // namespace core
+            template <typename Mss>
+            using is_mss_descriptor = meta::is_instantiation_of<mss_descriptor, Mss>;
+        } // namespace core
+    }     // namespace stencil
 } // namespace gridtools

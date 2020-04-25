@@ -10,11 +10,12 @@
 #include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/stencil/positional.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct functor {
@@ -30,10 +31,10 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(positional_stencil, test_environment<>, backend_t) {
+    GT_REGRESSION_TEST(positional_stencil, test_environment<>, stencil_backend_t) {
         auto out = TypeParam::make_storage();
         run_single_stage(functor(),
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             out,
             positional<dim::i>(),

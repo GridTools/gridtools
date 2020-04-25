@@ -14,20 +14,22 @@
 #include "expr_base.hpp"
 
 namespace gridtools {
-    namespace cartesian {
-        namespace expressions {
-            template <int I>
-            struct pow_f {
-                template <class Arg>
-                GT_FUNCTION GT_CONSTEXPR auto operator()(Arg const &arg) const {
-                    return gt_pow<I>::template apply(arg);
-                }
-            };
+    namespace stencil {
+        namespace cartesian {
+            namespace expressions {
+                template <int I>
+                struct pow_f {
+                    template <class Arg>
+                    GT_FUNCTION GT_CONSTEXPR auto operator()(Arg const &arg) const {
+                        return gt_pow<I>::template apply(arg);
+                    }
+                };
 
-            template <int I, class Arg>
-            GT_FUNCTION GT_CONSTEXPR auto pow(Arg arg) -> decltype(make_expr(pow_f<I>(), Arg())) {
-                return make_expr(pow_f<I>(), arg);
-            }
-        } // namespace expressions
-    }     // namespace cartesian
+                template <int I, class Arg>
+                GT_FUNCTION GT_CONSTEXPR auto pow(Arg arg) -> decltype(make_expr(pow_f<I>(), Arg())) {
+                    return make_expr(pow_f<I>(), arg);
+                }
+            } // namespace expressions
+        }     // namespace cartesian
+    }         // namespace stencil
 } // namespace gridtools

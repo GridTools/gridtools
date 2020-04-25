@@ -14,17 +14,18 @@
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     template <typename Axis>
     struct parallel_functor {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef gridtools::make_param_list<in, out> param_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<0>) {
@@ -40,7 +41,7 @@ namespace {
     struct parallel_functor_on_upper_interval {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef gridtools::make_param_list<in, out> param_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
@@ -65,7 +66,7 @@ namespace {
 
         auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
 
-        run_single_stage(parallel_functor<Axis>(), backend_t(), grid, in, out);
+        run_single_stage(parallel_functor<Axis>(), stencil_backend_t(), grid, in, out);
 
         auto outv = out->host_view();
         auto inv = in->host_view();
@@ -100,7 +101,7 @@ namespace {
                     .stage(parallel_functor<Axis>(), in, tmp)
                     .stage(parallel_functor<Axis>(), tmp, out);
             },
-            backend_t(),
+            stencil_backend_t(),
             grid,
             in,
             out);
@@ -116,10 +117,10 @@ namespace {
             }
     }
 
-    TEST(structured_grid, kparallel_with_temporary) { run_test_with_temporary<gridtools::axis<2>>(); }
+    TEST(structured_grid, kparallel_with_temporary) { run_test_with_temporary<axis<2>>(); }
 
     TEST(structured_grid, kparallel_with_unused_intervals) {
-        using Axis = gridtools::axis<3>;
+        using Axis = axis<3>;
 
         constexpr int_t d1 = 7;
         constexpr int_t d2 = 8;
@@ -134,7 +135,7 @@ namespace {
 
         auto grid = make_grid(d1, d2, Axis(d3_1, d3_2, d3_3));
 
-        run_single_stage(parallel_functor_on_upper_interval<Axis>(), backend_t(), grid, in, out);
+        run_single_stage(parallel_functor_on_upper_interval<Axis>(), stencil_backend_t(), grid, in, out);
 
         auto outv = out->host_view();
         auto inv = in->host_view();

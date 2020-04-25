@@ -30,15 +30,15 @@
 #include <gridtools/storage/sid.hpp>
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil/backend/cuda.hpp>
+#include <gridtools/stencil/cuda.hpp>
 #include <gridtools/storage/cuda.hpp>
-using backend_t = gridtools::cuda::backend<>;
+using stencil_backend_t = gridtools::stencil::cuda<>;
 using storage_traits_t = gridtools::storage::cuda;
 #else
-#include <gridtools/stencil/backend/mc.hpp>
-#include <gridtools/storage/mc.hpp>
-using backend_t = gridtools::mc::backend<>;
-using storage_traits_t = gridtools::storage::mc;
+#include <gridtools/stencil/cpu_ifirst.hpp>
+#include <gridtools/storage/cpu_ifirst.hpp>
+using stencil_backend_t = gridtools::stencil::cpu_ifirst<>;
+using storage_traits_t = gridtools::storage::cpu_ifirst;
 #endif
 
 namespace gt = gridtools;
@@ -113,7 +113,7 @@ int main() {
 
     // Here we make the computation, specifying the backend, the grid (iteration space), binding of the spec arguments
     // to the fields
-    gt::run(spec, backend_t(), grid, gt::make_global_parameter(-1), gt::make_global_parameter(3), sup, rhs, out);
+    run(spec, stencil_backend_t(), grid, gt::make_global_parameter(-1), gt::make_global_parameter(3), sup, rhs, out);
 
     // In this simple example the solution is known and we can easily check it.
     auto view = out->const_host_view();

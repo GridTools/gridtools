@@ -12,11 +12,12 @@
 
 #include <gridtools/stencil/cartesian.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct copy_functor {
@@ -31,11 +32,11 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(copy_stencil, test_environment<>, backend_t) {
+    GT_REGRESSION_TEST(copy_stencil, test_environment<>, stencil_backend_t) {
         auto in = [](int i, int j, int k) { return i + j + k; };
         auto out = TypeParam::make_storage();
         auto comp = [&out, grid = TypeParam::make_grid(), in = TypeParam::make_const_storage(in)] {
-            run_single_stage(copy_functor(), backend_t(), grid, in, out);
+            run_single_stage(copy_functor(), stencil_backend_t(), grid, in, out);
         };
         comp();
         TypeParam::verify(in, out);

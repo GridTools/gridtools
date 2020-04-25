@@ -7,8 +7,8 @@ using namespace gridtools;
 #include <gridtools/storage/cuda.hpp>
 using traits_t = storage::cuda;
 #else
-#include <gridtools/storage/mc.hpp>
-using traits_t = storage::mc;
+#include <gridtools/storage/cpu_ifirst.hpp>
+using traits_t = storage::cpu_ifirst;
 #endif
 
 int main() {

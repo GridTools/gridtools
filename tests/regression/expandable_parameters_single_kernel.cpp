@@ -11,11 +11,12 @@
 
 #include <gridtools/stencil/cartesian.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct functor_single_kernel {
@@ -52,7 +53,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(expandable_parameters_single_kernel, test_environment<>, backend_t) {
+    GT_REGRESSION_TEST(expandable_parameters_single_kernel, test_environment<>, stencil_backend_t) {
         std::vector<typename TypeParam::storage_type> out = {TypeParam::make_storage(1),
             TypeParam::make_storage(2),
             TypeParam::make_storage(3),
@@ -81,7 +82,7 @@ namespace {
                     .stage(functor_single_kernel(), tmp0, tmp1, tmp2, tmp3, tmp4, in0, in1, in2, in3, in4)
                     .stage(functor_single_kernel(), out0, out1, out2, out3, out4, tmp0, tmp1, tmp2, tmp3, tmp4);
             },
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             out[0],
             out[1],

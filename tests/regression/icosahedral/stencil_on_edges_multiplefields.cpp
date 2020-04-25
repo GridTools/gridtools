@@ -10,13 +10,14 @@
 
 #include <gridtools/stencil/icosahedral.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "neighbours_of.hpp"
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace icosahedral;
 
     struct test_on_edges_functor {
@@ -35,7 +36,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(stencil_on_edges_multiplefields, icosahedral_test_environment<1>, backend_t) {
+    GT_REGRESSION_TEST(stencil_on_edges_multiplefields, icosahedral_test_environment<1>, stencil_backend_t) {
         auto in1 = [](int_t i, int_t j, int_t k, int_t c) { return i + j + k + c; };
         auto in2 = [](int_t i, int_t j, int_t k, int_t c) { return i / 2 + j / 2 + k / 2 + c; };
         auto ref = [=](int_t i, int_t j, int_t k, int_t c) {
@@ -48,7 +49,7 @@ namespace {
         auto comp = [grid = TypeParam::make_grid(),
                         in1 = TypeParam::icosahedral_make_storage(edges(), in1),
                         in2 = TypeParam::icosahedral_make_storage(edges(), in2),
-                        &out] { run_single_stage(test_on_edges_functor(), backend_t(), grid, in1, in2, out); };
+                        &out] { run_single_stage(test_on_edges_functor(), stencil_backend_t(), grid, in1, in2, out); };
         comp();
         TypeParam::verify(ref, out);
         TypeParam::benchmark("stencil_on_edges_multiplefields", comp);

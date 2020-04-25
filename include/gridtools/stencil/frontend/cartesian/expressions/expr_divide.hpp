@@ -14,19 +14,22 @@
 #include "expr_base.hpp"
 
 namespace gridtools {
-    namespace cartesian {
-        namespace expressions {
-            struct divide_f {
-                template <class Lhs, class Rhs>
-                GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs const &lhs, Rhs const &rhs) const {
-                    return lhs / rhs;
-                }
-            };
+    namespace stencil {
+        namespace cartesian {
+            namespace expressions {
+                struct divide_f {
+                    template <class Lhs, class Rhs>
+                    GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs const &lhs, Rhs const &rhs) const {
+                        return lhs / rhs;
+                    }
+                };
 
-            template <class Lhs, class Rhs>
-            GT_FUNCTION GT_CONSTEXPR auto operator/(Lhs lhs, Rhs rhs) -> decltype(make_expr(divide_f(), Lhs(), Rhs())) {
-                return make_expr(divide_f(), lhs, rhs);
-            }
-        } // namespace expressions
-    }     // namespace cartesian
+                template <class Lhs, class Rhs>
+                GT_FUNCTION GT_CONSTEXPR auto operator/(Lhs lhs, Rhs rhs)
+                    -> decltype(make_expr(divide_f(), Lhs(), Rhs())) {
+                    return make_expr(divide_f(), lhs, rhs);
+                }
+            } // namespace expressions
+        }     // namespace cartesian
+    }         // namespace stencil
 } // namespace gridtools

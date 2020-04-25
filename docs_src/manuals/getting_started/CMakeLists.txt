@@ -23,26 +23,26 @@ if(TARGET storage_cuda)
             LABELS cuda)
 endif()
 
-if(TARGET backend_mc)
+if(TARGET stencil_cpu_ifirst)
     gridtools_add_getting_started_test(test_gt_laplacian
-            SOURCES code/test_gt_laplacian.cpp LIBRARIES backend_mc)
+            SOURCES code/test_gt_laplacian.cpp LIBRARIES stencil_cpu_ifirst)
     gridtools_add_getting_started_test(test_gt_smoothing_variant1
-            SOURCES code/test_gt_smoothing_variant1.cpp LIBRARIES backend_mc)
+            SOURCES code/test_gt_smoothing_variant1.cpp LIBRARIES stencil_cpu_ifirst)
     gridtools_add_getting_started_test(test_gt_smoothing_variant2
-            SOURCES code/test_gt_smoothing_variant2.cpp LIBRARIES backend_mc)
+            SOURCES code/test_gt_smoothing_variant2.cpp LIBRARIES stencil_cpu_ifirst)
     gridtools_add_getting_started_test(test_gt_smoothing_variant3
-            SOURCES code/test_gt_smoothing_variant3.cpp LIBRARIES backend_mc)
+            SOURCES code/test_gt_smoothing_variant3.cpp LIBRARIES stencil_cpu_ifirst)
 endif()
 
-if(TARGET backend_cuda)
+if(TARGET stencil_cuda)
     gridtools_add_getting_started_test(test_gt_laplacian_cuda
-            SOURCES code/test_gt_laplacian.cpp LIBRARIES backend_cuda LABELS cuda)
+            SOURCES code/test_gt_laplacian.cpp LIBRARIES stencil_cuda LABELS cuda)
     gridtools_add_getting_started_test(test_gt_smoothing_variant1_cuda
-            SOURCES code/test_gt_smoothing_variant1.cpp LIBRARIES backend_cuda LABELS cuda)
+            SOURCES code/test_gt_smoothing_variant1.cpp LIBRARIES stencil_cuda LABELS cuda)
     gridtools_add_getting_started_test(test_gt_smoothing_variant2_cuda
-            SOURCES code/test_gt_smoothing_variant2.cpp LIBRARIES backend_cuda LABELS cuda)
+            SOURCES code/test_gt_smoothing_variant2.cpp LIBRARIES stencil_cuda LABELS cuda)
     gridtools_add_getting_started_test(test_gt_smoothing_variant3_cuda
-            SOURCES code/test_gt_smoothing_variant3.cpp LIBRARIES backend_cuda LABELS cuda)
+            SOURCES code/test_gt_smoothing_variant3.cpp LIBRARIES stencil_cuda LABELS cuda)
 endif()
 
 # Test the CMake example file

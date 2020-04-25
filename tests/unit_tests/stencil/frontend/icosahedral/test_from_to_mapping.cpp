@@ -13,6 +13,7 @@
 #include <gridtools/stencil/icosahedral.hpp>
 
 using namespace gridtools;
+using namespace stencil;
 using namespace icosahedral;
 
 template <class From, class To, int Color>

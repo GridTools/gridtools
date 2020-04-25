@@ -22,24 +22,24 @@
 #include <gridtools/storage/sid.hpp>
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil/backend/cuda.hpp>
+#include <gridtools/stencil/cuda.hpp>
 #include <gridtools/storage/cuda.hpp>
-using backend_t = gridtools::cuda::backend<>;
+using stencil_backend_t = gridtools::stencil::cuda<>;
 using storage_traits_t = gridtools::storage::cuda;
 #else
-#include <gridtools/stencil/backend/mc.hpp>
-#include <gridtools/storage/mc.hpp>
-using backend_t = gridtools::mc::backend<>;
-using storage_traits_t = gridtools::storage::mc;
+#include <gridtools/stencil/cpu_ifirst.hpp>
+#include <gridtools/storage/cpu_ifirst.hpp>
+using stencil_backend_t = gridtools::stencil::cpu_ifirst<>;
+using storage_traits_t = gridtools::storage::cpu_ifirst;
 #endif
 
 namespace gt = gridtools;
 
 // This is the stencil operator which copies the value from `in` to `out`.
 struct copy_functor {
-    using in = gt::cartesian::in_accessor<0>;
-    using out = gt::cartesian::inout_accessor<1>;
-    using param_list = gt::make_param_list<in, out>;
+    using in = gt::stencil::cartesian::in_accessor<0>;
+    using out = gt::stencil::cartesian::inout_accessor<1>;
+    using param_list = gt::stencil::make_param_list<in, out>;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
@@ -72,10 +72,10 @@ int main(int argc, char **argv) {
 
     // Now we describe the iteration space. In this simple example the iteration space is just described by the full
     // grid (no particular care has to be taken to describe halo points).
-    auto grid = gt::make_grid(d1, d2, d3);
+    auto grid = gt::stencil::make_grid(d1, d2, d3);
 
     // Execute the computation
-    gt::run_single_stage(copy_functor(), backend_t(), grid, in, out);
+    gt::stencil::run_single_stage(copy_functor(), stencil_backend_t(), grid, in, out);
 
     // Compare the result
     auto view = out->const_host_view();

@@ -15,17 +15,18 @@
  */
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil/backend/naive.hpp>
 #include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/stencil/global_parameter.hpp>
+#include <gridtools/stencil/naive.hpp>
 #include <gridtools/stencil/positional.hpp>
 
-#define GT_BACKEND_NAIVE
-#include <backend_select.hpp>
+#define GT_STENCIL_NAIVE
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct test_functor {
@@ -99,12 +100,12 @@ namespace {
         }
     };
 
-    using env_t = test_environment<>::apply<backend_t, double, inlined_params<100, 1, 1>>;
+    using env_t = test_environment<>::apply<stencil_backend_t, double, inlined_params<100, 1, 1>>;
 
     TEST(test_expressions, integration_test) {
         auto out = env_t::make_storage();
         run_single_stage(test_functor(),
-            naive::backend(),
+            naive(),
             env_t::make_grid(),
             make_global_parameter(2.),
             make_global_parameter(3.),

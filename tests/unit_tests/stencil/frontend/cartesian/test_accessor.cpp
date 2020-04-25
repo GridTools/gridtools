@@ -16,6 +16,7 @@
 #include <gridtools/stencil/frontend/cartesian/expressions.hpp>
 
 using namespace gridtools;
+using namespace stencil;
 using namespace cartesian;
 using namespace expressions;
 

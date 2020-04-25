@@ -12,11 +12,12 @@
 
 #include <gridtools/stencil/cartesian.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct prepare_tracers {
@@ -32,7 +33,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(advection_pdbott_prepare_tracers, test_environment<>, backend_t) {
+    GT_REGRESSION_TEST(advection_pdbott_prepare_tracers, test_environment<>, stencil_backend_t) {
         std::vector<typename TypeParam::storage_type> in, out;
 
         for (size_t i = 0; i < 11; ++i) {
@@ -43,7 +44,7 @@ namespace {
         auto comp = [&, grid = TypeParam::make_grid(), rho = TypeParam::make_const_storage(1.1)] {
             expandable_run<2>(
                 [](auto out, auto in, auto rho) { return execute_parallel().stage(prepare_tracers(), out, in, rho); },
-                backend_t(),
+                stencil_backend_t(),
                 grid,
                 out,
                 in,

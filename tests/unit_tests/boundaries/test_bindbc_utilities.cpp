@@ -15,7 +15,7 @@
 
 #include <gridtools/boundaries/zero.hpp>
 #include <gridtools/storage/builder.hpp>
-#include <gridtools/storage/x86.hpp>
+#include <gridtools/storage/cpu_kfirst.hpp>
 
 using namespace std::placeholders;
 namespace gt = gridtools;
@@ -54,7 +54,7 @@ static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, _1
 static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, _2, 5))>::value, "");
 
 TEST(DistributedBoundaries, BoundBC) {
-    const auto builder = gt::storage::builder<gt::storage::x86>.type<double>().dimensions(3, 3, 3);
+    const auto builder = gt::storage::builder<gt::storage::cpu_kfirst>.type<double>().dimensions(3, 3, 3);
 
     auto a = builder();
     auto b = builder();

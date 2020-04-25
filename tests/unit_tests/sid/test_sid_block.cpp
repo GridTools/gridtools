@@ -22,6 +22,7 @@
 
 namespace gridtools {
     namespace {
+        using namespace stencil;
         struct some_dim;
 
         using positional_t = sid::composite::keys<dim::i, dim::j, dim::k>::

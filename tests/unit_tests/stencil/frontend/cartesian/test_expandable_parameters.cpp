@@ -10,25 +10,26 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/stencil/backend/naive.hpp>
 #include <gridtools/stencil/cartesian.hpp>
+#include <gridtools/stencil/naive.hpp>
 
-#define GT_BACKEND_NAIVE
-#include <backend_select.hpp>
+#define GT_STENCIL_NAIVE
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
     using namespace expressions;
 
     struct expandable_parameters : ::testing::Test {
-        using env_t = test_environment<>::apply<naive::backend, double, inlined_params<13, 9, 7>>;
+        using env_t = test_environment<>::apply<naive, double, inlined_params<13, 9, 7>>;
         using storages_t = std::vector<env_t::storage_type>;
 
         template <class Comp, class... Args>
         void run_computation(Comp comp, Args &&... args) const {
-            expandable_run<2>(comp, naive::backend(), env_t::make_grid(), std::forward<Args>(args)...);
+            expandable_run<2>(comp, naive(), env_t::make_grid(), std::forward<Args>(args)...);
         }
 
         void verify(storages_t const &expected, storages_t const &actual) const {

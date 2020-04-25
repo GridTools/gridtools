@@ -6,18 +6,19 @@
 #include <gridtools/storage/sid.hpp>
 
 using namespace gridtools;
+using namespace stencil;
 using namespace cartesian;
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil/backend/cuda.hpp>
+#include <gridtools/stencil/cuda.hpp>
 #include <gridtools/storage/cuda.hpp>
-using backend_t = cuda::backend<>;
+using stencil_backend_t = stencil::cuda<>;
 using storage_traits_t = storage::cuda;
 #else
-#include <gridtools/stencil/backend/mc.hpp>
-#include <gridtools/storage/mc.hpp>
-using backend_t = mc::backend<>;
-using storage_traits_t = storage::mc;
+#include <gridtools/stencil/cpu_ifirst.hpp>
+#include <gridtools/storage/cpu_ifirst.hpp>
+using stencil_backend_t = stencil::cpu_ifirst<>;
+using storage_traits_t = storage::cpu_ifirst;
 #endif
 
 constexpr unsigned halo = 2;

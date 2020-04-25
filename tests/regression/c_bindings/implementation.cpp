@@ -9,14 +9,15 @@
  */
 
 #include <cpp_bindgen/export.hpp>
-#include <gridtools/stencil/backend/naive.hpp>
 #include <gridtools/stencil/cartesian.hpp>
+#include <gridtools/stencil/naive.hpp>
 #include <gridtools/storage/builder.hpp>
+#include <gridtools/storage/cpu_kfirst.hpp>
 #include <gridtools/storage/sid.hpp>
-#include <gridtools/storage/x86.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct copy_functor {
@@ -31,7 +32,7 @@ namespace {
     };
 
     auto make_data_store(uint_t x, uint_t y, uint_t z) {
-        return storage::builder<storage::x86>.type<double>().dimensions(x, y, z)();
+        return storage::builder<storage::cpu_kfirst>.type<double>().dimensions(x, y, z)();
     }
     BINDGEN_EXPORT_BINDING_3(create_data_store, make_data_store);
 
@@ -39,7 +40,7 @@ namespace {
 
     void run(data_store_t const &in, data_store_t const &out) {
         auto lengths = out->lengths();
-        run_single_stage(copy_functor(), naive::backend(), make_grid(lengths[0], lengths[1], lengths[2]), in, out);
+        run_single_stage(copy_functor(), naive(), make_grid(lengths[0], lengths[1], lengths[2]), in, out);
     }
     BINDGEN_EXPORT_BINDING_2(run_copy_stencil, run);
 

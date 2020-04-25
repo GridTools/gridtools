@@ -12,11 +12,12 @@
 #include <gridtools/stencil/positional.hpp>
 #include <gridtools/storage/traits.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     constexpr auto halo = 2;
@@ -35,10 +36,14 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(alignment_test, test_environment<halo>, backend_t) {
+    GT_REGRESSION_TEST(alignment_test, test_environment<halo>, stencil_backend_t) {
         auto out = TypeParam::template make_storage<bool>();
-        run_single_stage(
-            not_aligned(), backend_t(), TypeParam::make_grid(), TypeParam::make_storage(), out, positional<dim::i>());
+        run_single_stage(not_aligned(),
+            stencil_backend_t(),
+            TypeParam::make_grid(),
+            TypeParam::make_storage(),
+            out,
+            positional<dim::i>());
         TypeParam::verify(false, out);
     }
 } // namespace

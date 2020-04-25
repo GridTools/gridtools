@@ -82,7 +82,7 @@ static_assert(expect_custom_layout<2, 1, 0>, "");
 static_assert(expect_custom_layout<1, 0>, "");
 static_assert(expect_custom_layout<2, -1, 1, 0>, "");
 
-#if defined(GT_STORAGE_X86)
+#if defined(GT_STORAGE_CPU_KFIRST)
 
 static_assert(expect_layout<0>, "");
 static_assert(expect_layout<0, 1>, "");
@@ -123,7 +123,7 @@ static_assert(expect_special_layout<layout_map<-1, -1, 0, -1, -1>, 0, 0, 1, 0, 0
 static_assert(expect_special_layout<layout_map<-1, -1, -1, 0, -1>, 0, 0, 0, 1, 0>, "");
 static_assert(expect_special_layout<layout_map<-1, -1, -1, -1, 0>, 0, 0, 0, 0, 1>, "");
 
-#elif defined(GT_STORAGE_MC)
+#elif defined(GT_STORAGE_CPU_IFIRST)
 
 static_assert(expect_layout<0>, "");
 static_assert(expect_layout<1, 0>, "");

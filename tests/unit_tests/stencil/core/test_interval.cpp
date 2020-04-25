@@ -11,6 +11,7 @@
 #include <gridtools/stencil/core/interval.hpp>
 
 using namespace gridtools;
+using namespace stencil;
 using namespace core;
 
 constexpr int level_offset_limit = 3;

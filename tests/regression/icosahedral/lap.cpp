@@ -10,7 +10,7 @@
 
 #include <gridtools/stencil/icosahedral.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "curl_functors.hpp"
@@ -19,6 +19,7 @@
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace ico_operators;
 
     struct lap_functor {
@@ -47,7 +48,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(lap_weights, icosahedral_test_environment<2>, backend_t) {
+    GT_REGRESSION_TEST(lap_weights, icosahedral_test_environment<2>, stencil_backend_t) {
         using float_t = typename TypeParam ::float_t;
         auto spec = [](auto edge_length,
                         auto cell_area_reciprocal,
@@ -78,7 +79,7 @@ namespace {
         operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
         auto out = TypeParam::icosahedral_make_storage(edges());
         run(spec,
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             TypeParam::icosahedral_make_storage(edges(), repo.edge_length),
             TypeParam::icosahedral_make_storage(cells(), repo.cell_area_reciprocal),
@@ -91,7 +92,7 @@ namespace {
         TypeParam::verify(TypeParam::icosahedral_make_storage(edges(), repo.lap), out);
     }
 
-    GT_REGRESSION_TEST(lap_flow_convention, icosahedral_test_environment<2>, backend_t) {
+    GT_REGRESSION_TEST(lap_flow_convention, icosahedral_test_environment<2>, stencil_backend_t) {
         using float_t = typename TypeParam ::float_t;
         auto spec = [](auto in_edges,
                         auto edge_length,
@@ -122,7 +123,7 @@ namespace {
         operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
         auto out = TypeParam::icosahedral_make_storage(edges());
         run(spec,
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             TypeParam::icosahedral_make_storage(edges(), repo.u),
             TypeParam::icosahedral_make_storage(edges(), repo.edge_length),

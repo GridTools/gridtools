@@ -14,11 +14,12 @@
 #include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/stencil/global_parameter.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
     using namespace expressions;
 
@@ -100,7 +101,7 @@ namespace {
         double m_val;
     };
 
-    GT_REGRESSION_TEST(extended_4d, test_environment<>, backend_t) {
+    GT_REGRESSION_TEST(extended_4d, test_environment<>, stencil_backend_t) {
         static constexpr uint_t nbQuadPt = 2;
         static constexpr uint_t b1 = 2;
         static constexpr uint_t b2 = 2;
@@ -119,7 +120,7 @@ namespace {
         auto result = storage::builder<storage_traits_t>.template type<float_t>().dimensions(
             TypeParam::d(0), TypeParam::d(1), TypeParam::d(2), b1, b2, b3)();
         run_single_stage(integration(),
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             make_global_parameter(ephi),
             make_global_parameter(epsi),

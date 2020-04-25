@@ -10,12 +10,13 @@
 
 #include <cpp_bindgen/export.hpp>
 #include <gridtools/common/hymap.hpp>
-#include <gridtools/stencil/backend/naive.hpp>
 #include <gridtools/stencil/cartesian.hpp>
+#include <gridtools/stencil/naive.hpp>
 #include <gridtools/storage/adapter/fortran_array_view.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct copy_functor {
@@ -33,7 +34,7 @@ namespace {
     void run_copy_functor_impl(fortran_array_view<T, 3> in, fortran_array_view<T, 3> out) {
         auto &&size = sid::get_upper_bounds(out);
         run_single_stage(copy_functor(),
-            naive::backend(),
+            naive(),
             make_grid(at_key<dim::i>(size), at_key<dim::j>(size), at_key<dim::k>(size)),
             in,
             out);

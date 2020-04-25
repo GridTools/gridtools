@@ -11,11 +11,12 @@
 
 #include <gridtools/stencil/cartesian.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     using axis_t = axis<3, axis_config::offset_limit<3>>;
@@ -28,9 +29,9 @@ namespace {
     template <class>
     using test_kcache_fill = ::testing::Test;
 
-    using types_t = meta::if_<env_t::is_enabled<backend_t>,
-        ::testing::Types<env_t::apply<backend_t, double, ::gridtools::inlined_params<6, 6, 2, 6, 2>>>,
-        ::testing::Types<>>;
+    using types_t = meta::if_<env_t::is_enabled<stencil_backend_t>,
+        testing::Types<env_t::apply<stencil_backend_t, double, inlined_params<6, 6, 2, 6, 2>>>,
+        testing::Types<>>;
     TYPED_TEST_SUITE(test_kcache_fill, types_t);
 
     struct shift_acc_forward_fill {
@@ -59,7 +60,7 @@ namespace {
         auto spec = [](auto in, auto out) {
             return execute_forward().k_cached(cache_io_policy::fill(), in).stage(shift_acc_forward_fill(), in, out);
         };
-        run(spec, backend_t(), TypeParam::make_grid(), TypeParam::make_storage(in), out);
+        run(spec, stencil_backend_t(), TypeParam::make_grid(), TypeParam::make_storage(in), out);
         auto ref = TypeParam::make_storage();
         auto refv = ref->host_view();
         for (int i = 0; i < TypeParam::d(0); ++i) {
@@ -100,7 +101,7 @@ namespace {
         auto spec = [](auto in, auto out) {
             return execute_backward().k_cached(cache_io_policy::fill(), in).stage(shift_acc_backward_fill(), in, out);
         };
-        run(spec, backend_t(), TypeParam::make_grid(), TypeParam::make_storage(in), out);
+        run(spec, stencil_backend_t(), TypeParam::make_grid(), TypeParam::make_storage(in), out);
         auto ref = TypeParam::make_storage();
         auto refv = ref->host_view();
         for (int i = 0; i < TypeParam::d(0); ++i) {
@@ -132,7 +133,7 @@ namespace {
         auto spec = [](auto in, auto out) {
             return execute_forward().k_cached(cache_io_policy::fill(), in).stage(copy_fill(), in, out);
         };
-        run(spec, backend_t(), TypeParam::make_grid(), TypeParam::make_storage(in), out);
+        run(spec, stencil_backend_t(), TypeParam::make_grid(), TypeParam::make_storage(in), out);
         TypeParam::verify(in, out);
     }
 } // namespace

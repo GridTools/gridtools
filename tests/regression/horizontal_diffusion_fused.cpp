@@ -10,13 +10,14 @@
 
 #include <gridtools/stencil/cartesian.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "horizontal_diffusion_repository.hpp"
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct lap_function {
@@ -82,7 +83,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(horizontal_diffusion_fused, test_environment<2>, backend_t) {
+    GT_REGRESSION_TEST(horizontal_diffusion_fused, test_environment<2>, stencil_backend_t) {
         auto out = TypeParam::make_storage();
 
         horizontal_diffusion_repository repo(TypeParam::d(0), TypeParam::d(1), TypeParam::d(2));
@@ -91,7 +92,7 @@ namespace {
                         grid = TypeParam::make_grid(),
                         in = TypeParam::make_storage(repo.in),
                         coeff = TypeParam::make_storage(repo.coeff)] {
-            run_single_stage(out_function(), backend_t(), grid, out, in, coeff);
+            run_single_stage(out_function(), stencil_backend_t(), grid, out, in, coeff);
         };
 
         comp();

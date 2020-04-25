@@ -209,27 +209,27 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         gridtools_cuda_setup(${GT_CUDA_TYPE})
     endif()
 
-    _gt_add_library(${_config_mode} storage_x86)
-    target_link_libraries(${_gt_namespace}storage_x86 INTERFACE ${_gt_namespace}gridtools)
+    _gt_add_library(${_config_mode} storage_cpu_kfirst)
+    target_link_libraries(${_gt_namespace}storage_cpu_kfirst INTERFACE ${_gt_namespace}gridtools)
 
-    _gt_add_library(${_config_mode} storage_mc)
-    target_link_libraries(${_gt_namespace}storage_mc INTERFACE ${_gt_namespace}gridtools)
+    _gt_add_library(${_config_mode} storage_cpu_ifirst)
+    target_link_libraries(${_gt_namespace}storage_cpu_ifirst INTERFACE ${_gt_namespace}gridtools)
 
-    _gt_add_library(${_config_mode} backend_naive)
-    target_link_libraries(${_gt_namespace}backend_naive INTERFACE ${_gt_namespace}gridtools)
+    _gt_add_library(${_config_mode} stencil_naive)
+    target_link_libraries(${_gt_namespace}stencil_naive INTERFACE ${_gt_namespace}gridtools)
 
-    set(GT_BACKENDS naive)
-    set(GT_STORAGES x86 mc)
+    set(GT_STENCILS naive)
+    set(GT_STORAGES cpu_kfirst cpu_ifirst)
     set(GT_GCL_ARCHS)
 
     if (TARGET _gridtools_cuda)
-        _gt_add_library(${_config_mode} backend_cuda)
-        target_link_libraries(${_gt_namespace}backend_cuda INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
-        list(APPEND GT_BACKENDS cuda)
+        _gt_add_library(${_config_mode} stencil_cuda)
+        target_link_libraries(${_gt_namespace}stencil_cuda INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
+        list(APPEND GT_STENCILS cuda)
 
-        _gt_add_library(${_config_mode} backend_cuda_horizontal)
-        target_link_libraries(${_gt_namespace}backend_cuda_horizontal INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
-        list(APPEND GT_BACKENDS cuda_horizontal)
+        _gt_add_library(${_config_mode} stencil_cuda_horizontal)
+        target_link_libraries(${_gt_namespace}stencil_cuda_horizontal INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
+        list(APPEND GT_STENCILS cuda_horizontal)
 
         if(MPI_CXX_FOUND)
             option(GT_GCL_GPU "Disable if your MPI implementation is not CUDA-aware" ON)
@@ -239,8 +239,8 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
             endif()
         endif()
 
-        _gt_add_library(${_config_mode} bc_gpu)
-        target_link_libraries(${_gt_namespace}bc_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
+        _gt_add_library(${_config_mode} boundaries_gpu)
+        target_link_libraries(${_gt_namespace}boundaries_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
 
         _gt_add_library(${_config_mode} layout_transformation_gpu)
         target_link_libraries(${_gt_namespace}layout_transformation_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
@@ -256,25 +256,25 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     endif()
 
     if (OpenMP_CXX_FOUND)
-        _gt_add_library(${_config_mode} backend_x86)
-        target_link_libraries(${_gt_namespace}backend_x86 INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
+        _gt_add_library(${_config_mode} stencil_cpu_kfirst)
+        target_link_libraries(${_gt_namespace}stencil_cpu_kfirst INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
-        _gt_add_library(${_config_mode} backend_mc)
-        target_link_libraries(${_gt_namespace}backend_mc INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
+        _gt_add_library(${_config_mode} stencil_cpu_ifirst)
+        target_link_libraries(${_gt_namespace}stencil_cpu_ifirst INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
         if(MPI_CXX_FOUND)
             _gt_add_library(${_config_mode} gcl_cpu)
             target_link_libraries(${_gt_namespace}gcl_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX MPI::MPI_CXX)
         endif()
-        _gt_add_library(${_config_mode} bc_cpu)
-        target_link_libraries(${_gt_namespace}bc_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
+        _gt_add_library(${_config_mode} boundaries_cpu)
+        target_link_libraries(${_gt_namespace}boundaries_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
         _gt_add_library(${_config_mode} layout_transformation_cpu)
         target_link_libraries(${_gt_namespace}layout_transformation_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
         list(APPEND GT_GCL_ARCHS cpu)
 
-        list(APPEND GT_BACKENDS x86 mc)
+        list(APPEND GT_STENCILS cpu_kfirst cpu_ifirst)
     endif()
 endmacro()
 
@@ -307,7 +307,7 @@ endfunction()
 # gridtools_setup_target()
 # Applying this function to a target will allow the same .cpp or .cu file to be compiled with CUDA and CXX in the same
 # CMake project.
-# Example: Compile a file copy_stencil.cpp for CUDA with backend_cuda and for CPU with backend_mc. In plain CMake this
+# Example: Compile a file copy_stencil.cpp for CUDA with stencil_cuda and for CPU with stencil_cpu_ifirst. In plain CMake this
 # is not possible as you need to specify exactly one language to the file (either implicitly by file suffix or
 # explicitly by setting the language). This function will wrap .cpp files in a .cu if the given target links to
 # _gridtools_cuda.

@@ -11,14 +11,15 @@
 
 #include <gridtools/stencil/cartesian.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
-    using axis_t = gridtools::axis<3, gridtools::axis_config::offset_limit<3>>;
+    using axis_t = axis<3, axis_config::offset_limit<3>>;
     using kfull = axis_t::full_interval;
 
     double in(int i, int j, int k) { return i + j + k + 1; };
@@ -28,8 +29,8 @@ namespace {
     template <class>
     using test_kcache_fill_and_flush = ::testing::Test;
 
-    using types_t = meta::if_<env_t::is_enabled<backend_t>,
-        ::testing::Types<env_t::apply<backend_t, double, ::gridtools::inlined_params<6, 6, 2, 6, 2>>>,
+    using types_t = meta::if_<env_t::is_enabled<stencil_backend_t>,
+        ::testing::Types<env_t::apply<stencil_backend_t, double, inlined_params<6, 6, 2, 6, 2>>>,
         ::testing::Types<>>;
     TYPED_TEST_SUITE(test_kcache_fill_and_flush, types_t);
 
@@ -54,7 +55,7 @@ namespace {
                 .k_cached(cache_io_policy::fill(), cache_io_policy::flush(), in)
                 .stage(shift_acc_forward_fill_and_flush(), in);
         };
-        run(spec, backend_t(), TypeParam::make_grid(), field);
+        run(spec, stencil_backend_t(), TypeParam::make_grid(), field);
         auto ref = TypeParam::make_storage();
         auto refv = ref->host_view();
         for (int i = 0; i < TypeParam::d(0); ++i)
@@ -87,7 +88,7 @@ namespace {
                 .k_cached(cache_io_policy::fill(), cache_io_policy::flush(), in)
                 .stage(shift_acc_backward_fill_and_flush(), in);
         };
-        run(spec, backend_t(), TypeParam::make_grid(), field);
+        run(spec, stencil_backend_t(), TypeParam::make_grid(), field);
         auto ref = TypeParam::make_storage();
         auto refv = ref->host_view();
         for (int i = 0; i < TypeParam::d(0); ++i)
@@ -116,7 +117,7 @@ namespace {
                 .k_cached(cache_io_policy::fill(), cache_io_policy::flush(), in)
                 .stage(copy_fill(), in);
         };
-        run(spec, backend_t(), TypeParam::make_grid(), field);
+        run(spec, stencil_backend_t(), TypeParam::make_grid(), field);
         TypeParam::verify(in, field);
     }
 
@@ -137,7 +138,7 @@ namespace {
                 .k_cached(cache_io_policy::fill(), cache_io_policy::flush(), in)
                 .stage(scale_fill(), in);
         };
-        run(spec, backend_t(), TypeParam::make_grid(), field);
+        run(spec, stencil_backend_t(), TypeParam::make_grid(), field);
         TypeParam::verify([](int i, int j, int k) { return 2 * in(i, j, k); }, field);
     }
 } // namespace

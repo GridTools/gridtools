@@ -118,8 +118,8 @@ This API implements advanced variation of the builder design pattern. Unlike cla
 return `*this` but the new instance of potentially different class is returned. Because of that the improper usage
 of builder is caught in compile time:
 ```C++
-auto bad0 = builder<mc>.type<double>().build() // compilation failure: dimensions should be set.
-auto bad1 = builder<mc>.type<int>().dimensions(10).value(42).initialize([](int i) { return i;})();
+auto bad0 = builder<cpu_ifirst>.type<double>().build() // compilation failure: dimensions should be set.
+auto bad1 = builder<cpu_ifirst>.type<int>().dimensions(10).value(42).initialize([](int i) { return i;})();
 // compilation failure: value and initialize setters are mutually exclusive
 ```
 
@@ -196,7 +196,7 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
     innermost index will be aligned as well.
   - `selector` allows to mask out any dimension or several. Example:
     ```C++
-    auto ds = builder<mc>.type<int>().selector<1,0>().dimensions(10, 10).value(-1);
+    auto ds = builder<cpu_ifirst>.type<int>().selector<1,0>().dimensions(10, 10).value(-1);
     auto view = ds->host_view();
     // even though the second dimension is masked out we can used indices in the defined range;
     assert(ds->lengths()[1], 10);  
@@ -220,9 +220,9 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
  
  Builder API needs a traits type to instantiate the `builder` object. In order to be used in this context
  this type should model `Storage Traits Concept`. The library comes with three predefined traits:
-   - [x86](x86.hpp). Layout is chosen to benefit from data locality while doing 3D loop.
+   - [cpu_kfirst](cpu_kfirst.hpp). Layout is chosen to benefit from data locality while doing 3D loop.
      `malloc` allocation. No alignment. `target` and `host` spaces are same. 
-   - [mc](mc.hpp).  Huge page allocation. `64 bytes` alignment. Layout is tailored to utilize vectorization while
+   - [cpu_ifirst](cpu_ifirst.hpp).  Huge page allocation. `64 bytes` alignment. Layout is tailored to utilize vectorization while
      3D looping. `target` and `host` spaces are same.
    - [cuda](cuda.hpp). Tailored for GPU. `target` and `host` spaces are different.
    

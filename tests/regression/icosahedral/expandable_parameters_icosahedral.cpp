@@ -10,11 +10,12 @@
 
 #include <gridtools/stencil/icosahedral.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace icosahedral;
 
     struct functor_copy {
@@ -29,7 +30,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(expandable_parameters_icosahedral, icosahedral_test_environment<>, backend_t) {
+    GT_REGRESSION_TEST(expandable_parameters_icosahedral, icosahedral_test_environment<>, stencil_backend_t) {
         using storages_t = std::vector<decltype(TypeParam::icosahedral_make_storage(cells()))>;
         storages_t out = {TypeParam::icosahedral_make_storage(cells()),
             TypeParam::icosahedral_make_storage(cells()),
@@ -37,7 +38,7 @@ namespace {
             TypeParam::icosahedral_make_storage(cells()),
             TypeParam::icosahedral_make_storage(cells())};
         expandable_run<2>([](auto out, auto in) { return execute_parallel().stage(functor_copy(), out, in); },
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             out,
             storages_t{TypeParam::icosahedral_make_storage(cells(), 10),

@@ -430,7 +430,7 @@
     },
     {
       "name": "advection_pdbott_prepare_tracers",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "double",
       "series": [
         0.00713015,
@@ -537,7 +537,7 @@
     },
     {
       "name": "advection_pdbott_prepare_tracers",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "float",
       "series": [
         0.00345016,
@@ -644,7 +644,7 @@
     },
     {
       "name": "advection_pdbott_prepare_tracers",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.00721002,
@@ -751,7 +751,7 @@
     },
     {
       "name": "advection_pdbott_prepare_tracers",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.00321889,
@@ -1286,7 +1286,7 @@
     },
     {
       "name": "copy_stencil",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "double",
       "series": [
         0.000478029,
@@ -1393,7 +1393,7 @@
     },
     {
       "name": "copy_stencil",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "float",
       "series": [
         0.000241995,
@@ -1500,7 +1500,7 @@
     },
     {
       "name": "copy_stencil",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.000477076,
@@ -1607,7 +1607,7 @@
     },
     {
       "name": "copy_stencil",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.000246048,
@@ -2570,7 +2570,7 @@
     },
     {
       "name": "horizontal_diffusion",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "double",
       "series": [
         0.000838995,
@@ -2677,7 +2677,7 @@
     },
     {
       "name": "horizontal_diffusion",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "float",
       "series": [
         0.000502825,
@@ -2784,7 +2784,7 @@
     },
     {
       "name": "horizontal_diffusion",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.00106812,
@@ -2891,7 +2891,7 @@
     },
     {
       "name": "horizontal_diffusion",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.000496864,
@@ -3426,7 +3426,7 @@
     },
     {
       "name": "horizontal_diffusion_fused",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "double",
       "series": [
         0.00088191,
@@ -3533,7 +3533,7 @@
     },
     {
       "name": "horizontal_diffusion_fused",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "float",
       "series": [
         0.000504971,
@@ -3640,7 +3640,7 @@
     },
     {
       "name": "horizontal_diffusion_fused",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.00122213,
@@ -3747,7 +3747,7 @@
     },
     {
       "name": "horizontal_diffusion_fused",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.00120807,
@@ -4068,7 +4068,7 @@
     },
     {
       "name": "layout_transformation",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.00255299,
@@ -4175,7 +4175,7 @@
     },
     {
       "name": "layout_transformation",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.00255179,
@@ -4710,7 +4710,7 @@
     },
     {
       "name": "simple_hori_diff",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "double",
       "series": [
         0.000833988,
@@ -4817,7 +4817,7 @@
     },
     {
       "name": "simple_hori_diff",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "float",
       "series": [
         0.00051403,
@@ -4924,7 +4924,7 @@
     },
     {
       "name": "simple_hori_diff",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.000845194,
@@ -5031,7 +5031,7 @@
     },
     {
       "name": "simple_hori_diff",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.000424862,
@@ -5566,7 +5566,7 @@
     },
     {
       "name": "stencil_manual_fold",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.00310493,
@@ -5673,7 +5673,7 @@
     },
     {
       "name": "stencil_manual_fold",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.00159097,
@@ -6208,7 +6208,7 @@
     },
     {
       "name": "stencil_on_cells",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.00106192,
@@ -6315,7 +6315,7 @@
     },
     {
       "name": "stencil_on_cells",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.000504017,
@@ -6850,7 +6850,7 @@
     },
     {
       "name": "stencil_on_edges_multiplefields",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.00247717,
@@ -6957,7 +6957,7 @@
     },
     {
       "name": "stencil_on_edges_multiplefields",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.00124288,
@@ -7492,7 +7492,7 @@
     },
     {
       "name": "stencil_on_neighcell_of_edges",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.00138593,
@@ -7599,7 +7599,7 @@
     },
     {
       "name": "stencil_on_neighcell_of_edges",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.000653028,
@@ -7920,7 +7920,7 @@
     },
     {
       "name": "vertical_advection_dycore",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "double",
       "series": [
         0.00289202,
@@ -8027,7 +8027,7 @@
     },
     {
       "name": "vertical_advection_dycore",
-      "backend": "mc",
+      "backend": "cpu_ifirst",
       "float_type": "float",
       "series": [
         0.00123191,
@@ -8134,7 +8134,7 @@
     },
     {
       "name": "vertical_advection_dycore",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "double",
       "series": [
         0.00143909,
@@ -8241,7 +8241,7 @@
     },
     {
       "name": "vertical_advection_dycore",
-      "backend": "x86",
+      "backend": "cpu_kfirst",
       "float_type": "float",
       "series": [
         0.000879049,

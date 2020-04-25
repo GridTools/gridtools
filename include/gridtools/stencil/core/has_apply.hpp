@@ -15,24 +15,26 @@
 #include "../../meta/type_traits.hpp"
 
 namespace gridtools {
-    namespace core {
-        namespace _impl {
-            template <class T, class ExtraArgs, class = void>
-            struct has_apply_impl : std::false_type {};
+    namespace stencil {
+        namespace core {
+            namespace _impl {
+                template <class T, class ExtraArgs, class = void>
+                struct has_apply_impl : std::false_type {};
 
+                template <class T, class... ExtraArgs>
+                struct has_apply_impl<T,
+                    std::tuple<ExtraArgs...>,
+                    void_t<decltype(T::apply(std::declval<int const &>(), std::declval<ExtraArgs>()...))>>
+                    : std::true_type {};
+            } // namespace _impl
+
+            /**
+             * @struct has_apply
+             * Meta function testing if a functor has a specific apply method
+             * (note that the meta function does consider overload resolution as well)
+             */
             template <class T, class... ExtraArgs>
-            struct has_apply_impl<T,
-                std::tuple<ExtraArgs...>,
-                void_t<decltype(T::apply(std::declval<int const &>(), std::declval<ExtraArgs>()...))>>
-                : std::true_type {};
-        } // namespace _impl
-
-        /**
-         * @struct has_apply
-         * Meta function testing if a functor has a specific apply method
-         * (note that the meta function does consider overload resolution as well)
-         */
-        template <class T, class... ExtraArgs>
-        struct has_apply : _impl::has_apply_impl<T, std::tuple<ExtraArgs...>> {};
-    } // namespace core
+            struct has_apply : _impl::has_apply_impl<T, std::tuple<ExtraArgs...>> {};
+        } // namespace core
+    }     // namespace stencil
 } // namespace gridtools

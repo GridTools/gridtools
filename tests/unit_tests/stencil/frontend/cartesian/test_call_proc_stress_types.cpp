@@ -9,14 +9,15 @@
  */
 
 #include <gridtools/meta/type_traits.hpp>
-#include <gridtools/stencil/backend/naive.hpp>
 #include <gridtools/stencil/cartesian.hpp>
+#include <gridtools/stencil/naive.hpp>
 
 /**
  * Compile-time test to ensure that types are correct in all call_proc stages
  */
 
 using namespace gridtools;
+using namespace stencil;
 using namespace cartesian;
 
 template <class T>
@@ -24,7 +25,7 @@ T storage[1];
 
 template <class Fun, class... Args>
 void do_test() {
-    run_single_stage(Fun(), naive::backend(), make_grid(1, 1, 1), storage<Args>...);
+    run_single_stage(Fun(), naive(), make_grid(1, 1, 1), storage<Args>...);
 }
 
 template <class Eval, class Acc, class Expected>

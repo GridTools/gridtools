@@ -12,12 +12,14 @@
 #include "../../meta/list.hpp"
 
 namespace gridtools {
-    namespace core {
-        template <class Plh, class CacheTypes = meta::list<>, class CacheIOPolicies = meta::list<>>
-        struct cache_info {
-            using plh_t = Plh;
-            using cache_types_t = CacheTypes;
-            using cache_io_policies_t = CacheIOPolicies;
-        };
-    } // namespace core
+    namespace stencil {
+        namespace core {
+            template <class Plh, class CacheTypes = meta::list<>, class CacheIOPolicies = meta::list<>>
+            struct cache_info {
+                using plh_t = Plh;
+                using cache_types_t = CacheTypes;
+                using cache_io_policies_t = CacheIOPolicies;
+            };
+        } // namespace core
+    }     // namespace stencil
 } // namespace gridtools

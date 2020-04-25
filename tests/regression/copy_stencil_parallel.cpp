@@ -25,13 +25,14 @@
 #include <gridtools/storage/sid.hpp>
 #include <gridtools/storage/traits.hpp>
 
-#include <backend_select.hpp>
 #include <gcl_select.hpp>
+#include <stencil_select.hpp>
 
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel with boundary conditions*/
 
 using namespace gridtools;
+using namespace stencil;
 using namespace cartesian;
 
 // These are the stencil operators that compose the multistage stencil in this test
@@ -116,7 +117,7 @@ TEST(copy_stencil_parallel, test) {
         {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
         d3);
 
-    run_single_stage(copy_functor(), backend_t(), grid, in, out);
+    run_single_stage(copy_functor(), stencil_backend_t(), grid, in, out);
 
     array<halo_descriptor, 3> halos;
     halos[0] = halo_descriptor(halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]);

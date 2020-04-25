@@ -13,12 +13,14 @@
 #include "../../common/integral_constant.hpp"
 
 namespace gridtools {
-    namespace dim {
-        using i = integral_constant<int, 0>;
-        using j = integral_constant<int, 1>;
-        using k = integral_constant<int, 2>;
-        using c = integral_constant<int, 3>;
+    namespace stencil {
+        namespace dim {
+            using i = integral_constant<int, 0>;
+            using j = integral_constant<int, 1>;
+            using k = integral_constant<int, 2>;
+            using c = integral_constant<int, 3>;
 
-        struct thread;
-    } // namespace dim
+            struct thread;
+        } // namespace dim
+    }     // namespace stencil
 } // namespace gridtools

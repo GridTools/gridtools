@@ -16,15 +16,16 @@
 #include <gridtools/storage/sid.hpp>
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil/backend/cuda.hpp>
-using backend_t = gridtools::cuda::backend<>;
+#include <gridtools/stencil/cuda.hpp>
+using stencil_backend_t = gridtools::stencil::cuda<>;
 #else
-#include <gridtools/stencil/backend/mc.hpp>
-using backend_t = gridtools::mc::backend<>;
+#include <gridtools/stencil/cpu_ifirst.hpp>
+using stencil_backend_t = gridtools::stencil::cpu_ifirst<>;
 #endif
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct interpolate_stage {
@@ -47,6 +48,6 @@ namespace {
 std::function<void(inputs, outputs)> make_interpolate_stencil(grid_t grid, double weight) {
     return [grid = std::move(grid), weight](inputs in, outputs out) {
         run_single_stage(
-            interpolate_stage(), backend_t(), grid, in.in1, in.in2, make_global_parameter(weight), out.out);
+            interpolate_stage(), stencil_backend_t(), grid, in.in1, in.in2, make_global_parameter(weight), out.out);
     };
 }

@@ -13,6 +13,7 @@
 #include <gridtools/stencil/cartesian.hpp>
 
 using namespace gridtools;
+using namespace stencil;
 using namespace cartesian;
 using namespace core;
 

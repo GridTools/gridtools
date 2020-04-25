@@ -3,15 +3,15 @@ function(gridtools_add_cartesian_test tgt_name)
     set(one_value_args)
     set(multi_value_args SOURCES)
     cmake_parse_arguments(ARGS "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
-    foreach(backend IN LISTS GT_BACKENDS)
+    foreach(backend IN LISTS GT_STENCILS)
         set(tgt ${tgt_name}_${backend})
         gridtools_add_unit_test(${tgt}
                 SOURCES ${ARGS_SOURCES}
-                LIBRARIES backend_${backend}
+                LIBRARIES stencil_${backend}
                 LABELS cartesian ${backend}
                 NO_NVCC)
         string(TOUPPER ${backend} u_backend)
-        target_compile_definitions(${tgt} PRIVATE GT_BACKEND_${u_backend})
+        target_compile_definitions(${tgt} PRIVATE GT_STENCIL_${u_backend})
     endforeach()
 endfunction()
 

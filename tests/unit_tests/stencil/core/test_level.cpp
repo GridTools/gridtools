@@ -11,6 +11,7 @@
 #include <gridtools/stencil/core/level.hpp>
 
 using namespace gridtools;
+using namespace stencil;
 using namespace core;
 
 namespace test_level_to_index {

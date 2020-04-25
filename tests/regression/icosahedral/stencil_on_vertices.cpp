@@ -10,13 +10,14 @@
 
 #include <gridtools/stencil/icosahedral.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "neighbours_of.hpp"
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace icosahedral;
 
     struct test_on_vertices_functor {
@@ -33,7 +34,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(stencil_on_vertices, icosahedral_test_environment<1>, backend_t) {
+    GT_REGRESSION_TEST(stencil_on_vertices, icosahedral_test_environment<1>, stencil_backend_t) {
         auto in = [](int_t i, int_t j, int_t k, int_t c) { return i + j + k + c; };
         auto ref = [&](int_t i, int_t j, int_t k, int_t c) {
             typename TypeParam ::float_t res = {};
@@ -43,7 +44,7 @@ namespace {
         };
         auto out = TypeParam ::icosahedral_make_storage(vertices());
         run_single_stage(test_on_vertices_functor(),
-            backend_t(),
+            stencil_backend_t(),
             TypeParam ::make_grid(),
             TypeParam ::icosahedral_make_storage(vertices(), in),
             out);

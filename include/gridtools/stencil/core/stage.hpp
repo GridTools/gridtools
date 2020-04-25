@@ -10,15 +10,18 @@
 #pragma once
 
 namespace gridtools {
-    namespace {
-        namespace stage_impl_ {
-            template <class>
-            struct meta_stage;
+    namespace stencil {
+        namespace core {
+            namespace stage_impl_ {
+                template <class>
+                struct meta_stage;
 
-            template <template <class...> class L, class... Ts>
-            struct meta_stage<L<Ts...>> : decltype(get_stage(std::declval<Ts>()...)) {};
-        } // namespace stage_impl_
-        template <class Functor, class PlhMap>
-        using stage = typename stage_impl_::meta_stage<typename Functor::param_list>::template apply<Functor, PlhMap>;
-    } // namespace
+                template <template <class...> class L, class... Ts>
+                struct meta_stage<L<Ts...>> : decltype(get_stage(std::declval<Ts>()...)) {};
+            } // namespace stage_impl_
+            template <class Functor, class PlhMap>
+            using stage =
+                typename stage_impl_::meta_stage<typename Functor::param_list>::template apply<Functor, PlhMap>;
+        } // namespace core
+    }     // namespace stencil
 } // namespace gridtools

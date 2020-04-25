@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 using namespace gridtools;
+using namespace stencil;
 using namespace core;
 
 constexpr int level_offset_limit = 2;

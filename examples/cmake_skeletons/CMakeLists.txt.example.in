@@ -24,18 +24,18 @@ enable_testing()
 set(EXAMPLES_SRCFILES @EXAMPLES_SRCFILES@)
 foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
     # one executable for each example in the list
-    add_executable(${srcfile}_mc ${srcfile}.cpp)
-    # 4) An executable/library using GridTools stencil needs to link to backend, here GridTools::backend_mc
-    target_link_libraries(${srcfile}_mc GridTools::backend_mc)
-    add_test(NAME ${srcfile}_mc COMMAND $<TARGET_FILE:${srcfile}_mc> 33 44 55)
+    add_executable(${srcfile}_cpu_ifirst ${srcfile}.cpp)
+    # 4) An executable/library using GridTools stencil needs to link to backend, here GridTools::stencil_cpu_ifirst
+    target_link_libraries(${srcfile}_cpu_ifirst GridTools::stencil_cpu_ifirst)
+    add_test(NAME ${srcfile}_cpu_ifirst COMMAND $<TARGET_FILE:${srcfile}_cpu_ifirst> 33 44 55)
 endforeach()
 
-if(TARGET GridTools::backend_cuda)
+if(TARGET GridTools::stencil_cuda)
     set(EXAMPLE_CUDA_ARCH "@GT_CUDA_ARCH@" CACHE STRING "CUDA compute capability to be used for this example.")
     foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
         add_executable(${srcfile}_cuda ${srcfile}.cpp)
-        # The executable links to the target GridTools::backend_cuda
-        target_link_libraries(${srcfile}_cuda GridTools::backend_cuda)
+        # The executable links to the target GridTools::stencil_cuda
+        target_link_libraries(${srcfile}_cuda GridTools::stencil_cuda)
         gridtools_setup_target(${srcfile}_cuda CUDA_ARCH ${EXAMPLE_CUDA_ARCH})
         add_test(NAME ${srcfile}_cuda COMMAND $<TARGET_FILE:${srcfile}_cuda> 33 44 55)
     endforeach()

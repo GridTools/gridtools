@@ -16,10 +16,10 @@
 #include <boost/preprocessor/tuple/elem.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
 
-#define GT_INTERNAL_DECLARE_EXPANDABLE_ICO_TMP(r, type_location, name)               \
-    constexpr ::gridtools::expandable<::gridtools::icosahedral::tmp_arg<__COUNTER__, \
-        BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(2, 1, type_location)),            \
-        BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(2, 0, type_location))>>           \
+#define GT_INTERNAL_DECLARE_EXPANDABLE_ICO_TMP(r, type_location, name)                                 \
+    constexpr ::gridtools::stencil::expandable<::gridtools::stencil::icosahedral::tmp_arg<__COUNTER__, \
+        BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(2, 1, type_location)),                              \
+        BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(2, 0, type_location))>>                             \
         name = {};
 
 #define GT_DECLARE_EXPANDABLE_ICO_TMP(type, location, ...)                                               \
@@ -28,7 +28,7 @@
     static_assert(1, "")
 
 #define GT_INTERNAL_DECLARE_ICO_TMP(r, type_location, name)               \
-    constexpr ::gridtools::icosahedral::tmp_arg<__COUNTER__,              \
+    constexpr ::gridtools::stencil::icosahedral::tmp_arg<__COUNTER__,     \
         BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(2, 1, type_location)), \
         BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(2, 0, type_location))> \
         name = {};
@@ -38,12 +38,14 @@
     static_assert(1, "")
 
 namespace gridtools {
-    namespace icosahedral {
-        template <size_t, class NumColors, class Data>
-        struct tmp_arg {
-            using data_t = Data;
-            using num_colors_t = NumColors;
-            using tmp_tag = std::true_type;
-        };
-    } // namespace icosahedral
+    namespace stencil {
+        namespace icosahedral {
+            template <size_t, class NumColors, class Data>
+            struct tmp_arg {
+                using data_t = Data;
+                using num_colors_t = NumColors;
+                using tmp_tag = std::true_type;
+            };
+        } // namespace icosahedral
+    }     // namespace stencil
 } // namespace gridtools

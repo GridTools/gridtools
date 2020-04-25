@@ -26,13 +26,11 @@ and not from any other subdirectory.
 
 ## Namespaces
 
-  - `gridtools`. Grid independent user facing entities are defined here.
-  - `gridtools::dim`, `gridtools::cache_io_policy`, `gridtools::cache_type` sub namespaces are of the same kind.
-  - `gridtools::x86`, `gridtools::naive`, `gridtools::mc`, `gridtools::cuda` are backend namespaces. The only user
-    facing entity they have is `backend`.
-  - `gridtools::cartesian`. All user facing entities that are specific to cartesian grid.
-  - `gridtools::cartesian::expressions`. Is used to enable constructs like `eval(in1() + in2())`  within stencil
+  - `gridtools::stencil`. Grid independent user facing entities are defined here.
+  - `gridtools::stencil::dim`, `gridtools::stencil::cache_io_policy`, `gridtools::stencil::cache_type` sub namespaces are of the same kind.
+  - `gridtools::stencil::cartesian`. All user facing entities that are specific to cartesian grid.
+  - `gridtools::stencil::cartesian::expressions`. Is used to enable constructs like `eval(in1() + in2())`  within stencil
     `apply` functions.
-  - `gridtools::icosahedral`. All user facing entities that a specific to icosahedral grid.
-  - `gridtools::core`. Internal stuff. Not user facing.
+  - `gridtools::stencil::icosahedral`. All user facing entities that a specific to icosahedral grid.
+  - `gridtools::stencil::core`. Internal stuff. Not user facing.
   
