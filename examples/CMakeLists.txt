@@ -20,6 +20,8 @@ function(install_example)
 endfunction()
 
 if(GT_INSTALL_EXAMPLES)
+    message(STATUS "fuck!!! ${GT_INSTALL_EXAMPLES_PATH}")
+
     set(enabled_examples) # used in CMakeLists.txt.in, filled in install_example()
     install_example(DIRECTORY stencil SOURCES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
 

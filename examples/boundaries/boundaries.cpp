@@ -35,8 +35,8 @@
 #include <gridtools/storage/builder.hpp>
 
 #ifdef GT_CUDACC
-#include <gridtools/storage/cuda.hpp>
-using storage_traits_t = gridtools::storage::cuda;
+#include <gridtools/storage/gpu.hpp>
+using storage_traits_t = gridtools::storage::gpu;
 using gcl_arch_t = gridtools::gcl::gpu;
 #else
 #include <gridtools/storage/cpu_ifirst.hpp>

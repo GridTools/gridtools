@@ -413,7 +413,7 @@ namespace gridtools {
             using core::is_forward;
             using core::is_parallel;
 
-            // used in cuda/fill_flush. TODO: get rid of that?
+            // used in gpu/fill_flush. TODO: get rid of that?
             using core::level;
         } // namespace be_api
     }     // namespace stencil

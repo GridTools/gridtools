@@ -5,7 +5,7 @@
 int main() {
     int result_value = 42;
 
-    auto builder = gridtools::storage::builder<gridtools::storage::cuda>.type<int>().dimensions(2);
+    auto builder = gridtools::storage::builder<gridtools::storage::gpu>.type<int>().dimensions(2);
     auto my_storage = builder();
 
     my_storage->host_view()(0) = result_value;
