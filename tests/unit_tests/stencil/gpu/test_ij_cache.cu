@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil/cuda/ij_cache.hpp>
+#include <gridtools/stencil/gpu/ij_cache.hpp>
 
 #include <gtest/gtest.h>
 
@@ -20,7 +20,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             using namespace literals;
 
             constexpr auto i_size = 3_c;
@@ -127,6 +127,6 @@ namespace gridtools {
                     strides1,
                     strides2));
             }
-        } // namespace cuda_backend
+        } // namespace gpu_backend
     }     // namespace stencil
 } // namespace gridtools

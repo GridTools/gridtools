@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil/cuda/shared_allocator.hpp>
+#include <gridtools/stencil/gpu/shared_allocator.hpp>
 
 #include <gtest/gtest.h>
 
@@ -18,7 +18,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             namespace {
                 template <typename PtrHolder>
                 __device__ uint64_t get_ptr(PtrHolder ptr_holder) {
@@ -96,6 +96,6 @@ namespace gridtools {
                     GT_CUDA_CHECK(cudaFree(result));
                 }
             } // namespace
-        }     // namespace cuda_backend
+        }     // namespace gpu_backend
     }         // namespace stencil
 } // namespace gridtools

@@ -19,7 +19,7 @@
 namespace gridtools {
     namespace impl {
         template <class T, class Dims, class DstStrides, class SrcSrides>
-        void transform_openmp_loop(
+        void transform_cpu_loop(
             T *dst, T const *__restrict__ src, Dims dims, DstStrides dst_strides, SrcSrides src_strides) {
 
             auto omp_loop = [size_i = tuple_util::get<0>(dims),

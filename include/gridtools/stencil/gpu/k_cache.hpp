@@ -18,7 +18,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             namespace k_cache_impl_ {
                 template <class T, int_t Minus, int_t Plus>
                 struct storage {
@@ -93,6 +93,6 @@ namespace gridtools {
             using k_cache_sid_t = k_cache_impl_::fake;
             using k_cache_impl_::has_k_caches;
             using k_cache_impl_::k_caches_type;
-        } // namespace cuda_backend
+        } // namespace gpu_backend
     }     // namespace stencil
 } // namespace gridtools

@@ -4,8 +4,8 @@
 using namespace gridtools;
 
 #ifdef GT_CUDACC
-#include <gridtools/storage/cuda.hpp>
-using traits_t = storage::cuda;
+#include <gridtools/storage/gpu.hpp>
+using traits_t = storage::gpu;
 #else
 #include <gridtools/storage/cpu_ifirst.hpp>
 using traits_t = storage::cpu_ifirst;

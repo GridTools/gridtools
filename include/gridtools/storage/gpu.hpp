@@ -23,7 +23,7 @@
 
 namespace gridtools {
     namespace storage {
-        namespace cuda_impl_ {
+        namespace gpu_impl_ {
             /**
              * @brief metafunction used to retrieve a layout_map with n-dimensions that can be used in combination with
              * the GPU backend (i-first order). E.g., make_layout<5> will return following type: layout_map<4,3,2,1,0>.
@@ -65,26 +65,26 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE GT_CONSTEXPR auto const &lengths() const { return m_info.lengths(); }
 #endif
             };
-        } // namespace cuda_impl_
+        } // namespace gpu_impl_
 
-        struct cuda {
-            friend std::false_type storage_is_host_referenceable(cuda) { return {}; }
+        struct gpu {
+            friend std::false_type storage_is_host_referenceable(gpu) { return {}; }
 
             template <size_t Dims>
-            friend typename cuda_impl_::make_layout<Dims>::type storage_layout(
-                cuda, std::integral_constant<size_t, Dims>) {
+            friend typename gpu_impl_::make_layout<Dims>::type storage_layout(
+                gpu, std::integral_constant<size_t, Dims>) {
                 return {};
             }
 
-            friend integral_constant<size_t, 128> storage_alignment(cuda) { return {}; }
+            friend integral_constant<size_t, 128> storage_alignment(gpu) { return {}; }
 
             template <class LazyType, class T = typename LazyType::type>
-            friend auto storage_allocate(cuda, LazyType, size_t size) {
+            friend auto storage_allocate(gpu, LazyType, size_t size) {
                 return cuda_util::cuda_malloc<T[]>(size);
             }
 
             template <class T>
-            friend void storage_update_target(cuda, T *dst, T const *src, size_t size) {
+            friend void storage_update_target(gpu, T *dst, T const *src, size_t size) {
                 GT_CUDA_CHECK(cudaMemcpy(const_cast<std::remove_volatile_t<T> *>(dst),
                     const_cast<std::remove_volatile_t<T> *>(src),
                     size * sizeof(T),
@@ -92,7 +92,7 @@ namespace gridtools {
             }
 
             template <class T>
-            friend void storage_update_host(cuda, T *dst, T const *src, size_t size) {
+            friend void storage_update_host(gpu, T *dst, T const *src, size_t size) {
                 GT_CUDA_CHECK(cudaMemcpy(const_cast<std::remove_volatile_t<T> *>(dst),
                     const_cast<std::remove_volatile_t<T> *>(src),
                     size * sizeof(T),
@@ -100,7 +100,7 @@ namespace gridtools {
             }
 
             template <class T, size_t N>
-            friend cuda_impl_::target_view<T, N> storage_make_target_view(cuda, T *ptr, info<N> const &info) {
+            friend gpu_impl_::target_view<T, N> storage_make_target_view(gpu, T *ptr, info<N> const &info) {
                 return {ptr, info};
             }
         };

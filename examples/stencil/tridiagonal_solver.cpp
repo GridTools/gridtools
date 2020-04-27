@@ -30,10 +30,10 @@
 #include <gridtools/storage/sid.hpp>
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil/cuda.hpp>
-#include <gridtools/storage/cuda.hpp>
-using stencil_backend_t = gridtools::stencil::cuda<>;
-using storage_traits_t = gridtools::storage::cuda;
+#include <gridtools/stencil/gpu.hpp>
+#include <gridtools/storage/gpu.hpp>
+using stencil_backend_t = gridtools::stencil::gpu<>;
+using storage_traits_t = gridtools::storage::gpu;
 #else
 #include <gridtools/stencil/cpu_ifirst.hpp>
 #include <gridtools/storage/cpu_ifirst.hpp>
@@ -42,18 +42,19 @@ using storage_traits_t = gridtools::storage::cpu_ifirst;
 #endif
 
 namespace gt = gridtools;
+namespace st = gt::stencil;
 
 // This is the definition of the special regions in the "vertical" direction
-using full_t = gt::axis<1>::full_interval;
+using full_t = st::axis<1>::full_interval;
 
 struct forward_thomas {
     // five vectors: output, the 3 diagonals, and the right hand side
-    using out = gt::cartesian::inout_accessor<0>;
-    using inf = gt::cartesian::in_accessor<1>;
-    using diag = gt::cartesian::in_accessor<2>;
-    using sup = gt::cartesian::inout_accessor<3, gt::extent<0, 0, 0, 0, -1, 0>>;
-    using rhs = gt::cartesian::inout_accessor<4, gt::extent<0, 0, 0, 0, -1, 0>>;
-    using param_list = gt::make_param_list<out, inf, diag, sup, rhs>;
+    using out = st::cartesian::inout_accessor<0>;
+    using inf = st::cartesian::in_accessor<1>;
+    using diag = st::cartesian::in_accessor<2>;
+    using sup = st::cartesian::inout_accessor<3, st::extent<0, 0, 0, 0, -1, 0>>;
+    using rhs = st::cartesian::inout_accessor<4, st::extent<0, 0, 0, 0, -1, 0>>;
+    using param_list = st::make_param_list<out, inf, diag, sup, rhs>;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval, full_t::modify<1, 0>) {
@@ -70,12 +71,12 @@ struct forward_thomas {
 };
 
 struct backward_thomas {
-    using out = gt::cartesian::inout_accessor<0, gt::extent<0, 0, 0, 0, 0, 1>>;
-    using inf = gt::cartesian::in_accessor<1>;
-    using diag = gt::cartesian::in_accessor<2>;
-    using sup = gt::cartesian::inout_accessor<3>;
-    using rhs = gt::cartesian::inout_accessor<4>;
-    using param_list = gt::make_param_list<out, inf, diag, sup, rhs>;
+    using out = st::cartesian::inout_accessor<0, st::extent<0, 0, 0, 0, 0, 1>>;
+    using inf = st::cartesian::in_accessor<1>;
+    using diag = st::cartesian::in_accessor<2>;
+    using sup = st::cartesian::inout_accessor<3>;
+    using rhs = st::cartesian::inout_accessor<4>;
+    using param_list = st::make_param_list<out, inf, diag, sup, rhs>;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval, full_t::modify<0, -1>) {
@@ -104,16 +105,16 @@ int main() {
     // The grid represents the iteration space. The third dimension is indicated here as a size and the iteration space
     // is deduced by the fact that there is not an axis definition. More complex third dimensions are possible but not
     // described in this example.
-    auto grid = gt::make_grid(d1, d2, d3);
+    auto grid = st::make_grid(d1, d2, d3);
 
     auto spec = [](auto inf, auto diag, auto sup, auto rhs, auto out) {
-        return gt::multi_pass(gt::execute_forward().stage(forward_thomas(), out, inf, diag, sup, rhs),
-            gt::execute_backward().stage(backward_thomas(), out, inf, diag, sup, rhs));
+        return st::multi_pass(st::execute_forward().stage(forward_thomas(), out, inf, diag, sup, rhs),
+            st::execute_backward().stage(backward_thomas(), out, inf, diag, sup, rhs));
     };
 
     // Here we make the computation, specifying the backend, the grid (iteration space), binding of the spec arguments
     // to the fields
-    run(spec, stencil_backend_t(), grid, gt::make_global_parameter(-1), gt::make_global_parameter(3), sup, rhs, out);
+    run(spec, stencil_backend_t(), grid, st::make_global_parameter(-1), st::make_global_parameter(3), sup, rhs, out);
 
     // In this simple example the solution is known and we can easily check it.
     auto view = out->const_host_view();

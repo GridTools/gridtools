@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "copy_stencil_lib_cpu_ifirst.h"
+#include "copy_stencil_lib_cpu.h"
 
 int main() {
     const int nx = 9;

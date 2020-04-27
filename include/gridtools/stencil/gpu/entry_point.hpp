@@ -39,7 +39,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             template <class PlhInfo>
             using is_not_cached = meta::is_empty<typename PlhInfo::caches_t>;
 
@@ -145,7 +145,7 @@ namespace gridtools {
             template <class IBlockSize = integral_constant<int_t, 64>,
                 class JBlockSize = integral_constant<int_t, 8>,
                 class KBlockSize = integral_constant<int_t, 1>>
-            struct cuda {
+            struct gpu {
                 using i_block_size_t = IBlockSize;
                 using j_block_size_t = JBlockSize;
 
@@ -216,7 +216,7 @@ namespace gridtools {
                     class DataStores,
                     class PrevKernel = no_kernel>
                 static void launch_msses(L<>, Grid const &grid, DataStores &&, PrevKernel prev_kernel = {}) {
-                    std::move(prev_kernel).launch_or_fuse(cuda(), grid, no_kernel());
+                    std::move(prev_kernel).launch_or_fuse(gpu(), grid, no_kernel());
                 }
 
                 template <class Deref,
@@ -229,7 +229,7 @@ namespace gridtools {
                 static void launch_msses(
                     L<Mss, Msses...>, Grid const &grid, DataStores &data_stores, PrevKernel prev_kernel = {}) {
                     auto kernel = make_mss_kernel<Deref, Mss>(grid, data_stores);
-                    auto fused_kernel = std::move(prev_kernel).launch_or_fuse(cuda(), grid, std::move(kernel));
+                    auto fused_kernel = std::move(prev_kernel).launch_or_fuse(gpu(), grid, std::move(kernel));
                     launch_msses<Deref>(L<Msses...>(), grid, data_stores, std::move(fused_kernel));
                 }
 
@@ -244,14 +244,14 @@ namespace gridtools {
                 }
 
                 template <class Spec, class Grid, class DataStores>
-                friend void gridtools_backend_entry_point(cuda, Spec, Grid const &grid, DataStores data_stores) {
+                friend void gridtools_backend_entry_point(gpu, Spec, Grid const &grid, DataStores data_stores) {
                     using new_spec_t = fill_flush::transform_spec<Spec>;
                     using msses_t = be_api::make_fused_view<new_spec_t>;
-                    cuda::entry_point<msses_t>(
+                    gpu::entry_point<msses_t>(
                         grid, fill_flush::transform_data_stores<typename msses_t::plh_map_t>(std::move(data_stores)));
                 }
             };
-        } // namespace cuda_backend
-        using cuda_backend::cuda;
+        } // namespace gpu_backend
+        using gpu_backend::gpu;
     } // namespace stencil
 } // namespace gridtools

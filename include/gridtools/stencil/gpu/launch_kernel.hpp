@@ -20,7 +20,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             /*
              *  In a typical cuda block we have the following regions
              *
@@ -216,6 +216,6 @@ namespace gridtools {
              *  \param shared_memory_size delegated to cuda
              */
             using launch_kernel_impl_::launch_kernel;
-        } // namespace cuda_backend
+        } // namespace gpu_backend
     }     // namespace stencil
 } // namespace gridtools

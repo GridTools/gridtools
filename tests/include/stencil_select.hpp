@@ -47,27 +47,27 @@ namespace {
 namespace {
     using stencil_backend_t = gridtools::stencil::cpu_ifirst<>;
 }
-#elif defined(GT_STENCIL_CUDA)
-#ifndef GT_STORAGE_CUDA
-#define GT_STORAGE_CUDA
+#elif defined(GT_STENCIL_GPU)
+#ifndef GT_STORAGE_GPU
+#define GT_STORAGE_GPU
 #endif
 #ifndef GT_TIMER_CUDA
 #define GT_TIMER_CUDA
 #endif
-#include <gridtools/stencil/cuda.hpp>
+#include <gridtools/stencil/gpu.hpp>
 namespace {
-    using stencil_backend_t = gridtools::stencil::cuda<>;
+    using stencil_backend_t = gridtools::stencil::gpu<>;
 }
-#elif defined(GT_STENCIL_CUDA_HORIZONTAL)
-#ifndef GT_STORAGE_CUDA
-#define GT_STORAGE_CUDA
+#elif defined(GT_STENCIL_GPU_HORIZONTAL)
+#ifndef GT_STORAGE_GPU
+#define GT_STORAGE_GPU
 #endif
 #ifndef GT_TIMER_CUDA
 #define GT_TIMER_CUDA
 #endif
-#include <gridtools/stencil/cuda_horizontal.hpp>
+#include <gridtools/stencil/gpu_horizontal.hpp>
 namespace {
-    using stencil_backend_t = gridtools::stencil::cuda_horizontal<>;
+    using stencil_backend_t = gridtools::stencil::gpu_horizontal<>;
 }
 #endif
 
@@ -117,39 +117,39 @@ namespace gridtools {
             }
         } // namespace cpu_ifirst_backend
 
-        namespace cuda_backend {
+        namespace gpu_backend {
             template <class, class, class>
-            struct cuda;
+            struct gpu;
 
             template <class I, class J, class K>
-            storage::cuda backend_storage_traits(cuda<I, J, K>);
+            storage::gpu backend_storage_traits(gpu<I, J, K>);
 
             template <class I, class J, class K>
-            timer_cuda backend_timer_impl(cuda<I, J, K>);
+            timer_cuda backend_timer_impl(gpu<I, J, K>);
 
             template <class I, class J, class K>
-            char const *backend_name(cuda<I, J, K> const &) {
-                return "cuda";
+            char const *backend_name(gpu<I, J, K> const &) {
+                return "gpu";
             }
-        } // namespace cuda_backend
+        } // namespace gpu_backend
 
-        namespace cuda_horizontal_backend {
+        namespace gpu_horizontal_backend {
             template <class, class, class>
-            struct cuda_horizontal;
+            struct gpu_horizontal;
 
             template <class I, class J, class K>
-            storage::cuda backend_storage_traits(cuda_horizontal<I, J, K>);
+            storage::gpu backend_storage_traits(gpu_horizontal<I, J, K>);
 
             template <class I, class J, class K>
-            std::false_type backend_supports_vertical_stencils(cuda_horizontal<I, J, K>);
+            std::false_type backend_supports_vertical_stencils(gpu_horizontal<I, J, K>);
 
             template <class I, class J, class K>
-            timer_cuda backend_timer_impl(cuda_horizontal<I, J, K>);
+            timer_cuda backend_timer_impl(gpu_horizontal<I, J, K>);
 
             template <class I, class J, class K>
-            char const *backend_name(cuda_horizontal<I, J, K> const &) {
-                return "cuda_horizontal";
+            char const *backend_name(gpu_horizontal<I, J, K> const &) {
+                return "gpu_horizontal";
             }
-        } // namespace cuda_horizontal_backend
+        } // namespace gpu_horizontal_backend
     }     // namespace stencil
 } // namespace gridtools

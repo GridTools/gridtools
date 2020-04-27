@@ -18,8 +18,8 @@ if(TARGET stencil_naive)
     list(APPEND PYUTILS_BACKEND "naive")
 endif()
 
-if(TARGET stencil_cuda)
-    list(APPEND PYUTILS_BACKEND "cuda")
+if(TARGET stencil_gpu)
+    list(APPEND PYUTILS_BACKEND "gpu")
 endif()
 
 if(TARGET stencil_cpu_ifirst)

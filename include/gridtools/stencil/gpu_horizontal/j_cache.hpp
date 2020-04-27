@@ -19,7 +19,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_horizontal_backend {
+        namespace gpu_horizontal_backend {
             namespace j_cache_impl_ {
 
                 template <class Extent, class NumColors>
@@ -123,6 +123,6 @@ namespace gridtools {
             using j_cache_sid_t = j_cache_impl_::fake<typename PlhInfo::extent_t, typename PlhInfo::num_colors_t>;
 
             using j_cache_impl_::j_caches_type;
-        } // namespace cuda_horizontal_backend
+        } // namespace gpu_horizontal_backend
     }     // namespace stencil
 } // namespace gridtools

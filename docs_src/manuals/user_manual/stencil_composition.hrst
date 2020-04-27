@@ -298,7 +298,7 @@ One of the key concepts of |GT| is portability between different target architec
 Stencil operators are written and composed in an architecture-independent way and then instantiated
 for a given ``backend``. The ``backend`` is a tag type with with the following possible values:
 
-- ``stencil::cuda<>``: a GPU-enabled backend for NVIDIA GPUs
+- ``stencil::gpu<>``: a GPU-enabled backend for NVIDIA GPUs
 - ``stencil::cpu_ifirst<>``: a backend for modern CPUs with long vector-length.
 - ``stencil::cpu_kfirst<>``: a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future.
 
@@ -306,7 +306,7 @@ Currently we recommend one of the following two backends for optimal performance
 
 .. code-block:: gridtools
 
-   using backend_t = stencil::cuda<>;
+   using backend_t = stencil::gpu<>;
 
 for GPUs or
 

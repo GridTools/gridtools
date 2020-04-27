@@ -121,8 +121,8 @@ namespace {
         }
     };
 
-    using modified_backend_t = meta::if_<meta::is_instantiation_of<cuda_backend::cuda, stencil_backend_t>,
-        cuda_backend::cuda<integral_constant<int_t, 256>, integral_constant<int_t, 1>, integral_constant<int_t, 1>>,
+    using modified_backend_t = meta::if_<meta::is_instantiation_of<gpu_backend::gpu, stencil_backend_t>,
+        gpu_backend::gpu<integral_constant<int_t, 256>, integral_constant<int_t, 1>, integral_constant<int_t, 1>>,
         stencil_backend_t>;
 
     using env_t = vertical_test_environment<3, axis_t>;

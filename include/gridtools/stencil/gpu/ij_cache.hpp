@@ -21,7 +21,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             namespace ij_cache_impl_ {
                 template <class Extent>
                 auto origin_offset(Extent) {
@@ -49,6 +49,6 @@ namespace gridtools {
             } // namespace ij_cache_impl_
 
             using ij_cache_impl_::make_ij_cache;
-        } // namespace cuda_backend
+        } // namespace gpu_backend
     }     // namespace stencil
 } // namespace gridtools

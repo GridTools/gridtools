@@ -19,7 +19,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_horizontal_backend {
+        namespace gpu_horizontal_backend {
             namespace launch_kernel_impl_ {
                 struct extent_validator_f {
 
@@ -69,6 +69,6 @@ namespace gridtools {
             } // namespace launch_kernel_impl_
 
             using launch_kernel_impl_::launch_kernel;
-        } // namespace cuda_horizontal_backend
+        } // namespace gpu_horizontal_backend
     }     // namespace stencil
 } // namespace gridtools

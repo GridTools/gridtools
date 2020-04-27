@@ -9,4 +9,4 @@
  */
 #pragma once
 
-#include "cuda_horizontal/entry_point.hpp"
+#include "gpu/entry_point.hpp"

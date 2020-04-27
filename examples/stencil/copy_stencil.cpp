@@ -22,10 +22,10 @@
 #include <gridtools/storage/sid.hpp>
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil/cuda.hpp>
-#include <gridtools/storage/cuda.hpp>
-using stencil_backend_t = gridtools::stencil::cuda<>;
-using storage_traits_t = gridtools::storage::cuda;
+#include <gridtools/stencil/gpu.hpp>
+#include <gridtools/storage/gpu.hpp>
+using stencil_backend_t = gridtools::stencil::gpu<>;
+using storage_traits_t = gridtools::storage::gpu;
 #else
 #include <gridtools/stencil/cpu_ifirst.hpp>
 #include <gridtools/storage/cpu_ifirst.hpp>

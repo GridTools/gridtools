@@ -1,5 +1,5 @@
 if(TARGET _gridtools_cuda)
-    gridtools_add_unit_test(test_layout_transformation_cuda
+    gridtools_add_unit_test(test_layout_transformation_gpu
             SOURCES test_layout_transformation.cpp
             LIBRARIES _gridtools_cuda
             LABELS cuda)

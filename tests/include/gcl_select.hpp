@@ -12,8 +12,8 @@
 #include <gridtools/gcl/low_level/arch.hpp>
 
 #if defined(GT_GCL_GPU)
-#ifndef GT_STORAGE_CUDA
-#define GT_STORAGE_CUDA
+#ifndef GT_STORAGE_GPU
+#define GT_STORAGE_GPU
 #endif
 #ifndef GT_TIMER_CUDA
 #define GT_TIMER_CUDA
@@ -42,7 +42,7 @@ namespace gridtools {
         timer_omp backend_timer_impl(cpu const &);
         inline char const *backend_name(cpu const &) { return "cpu"; }
 
-        storage::cuda backend_storage_traits(gpu const &);
+        storage::gpu backend_storage_traits(gpu const &);
         timer_cuda backend_timer_impl(gpu const &);
         inline char const *backend_name(gpu const &) { return "gpu"; }
     } // namespace gcl

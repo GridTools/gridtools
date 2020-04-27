@@ -20,7 +20,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             namespace tmp_impl_ {
                 template <class Extent>
                 hymap::keys<dim::i, dim::j, dim::k>::values<integral_constant<int_t, -Extent::iminus::value>,
@@ -66,6 +66,6 @@ namespace gridtools {
                             num_colors, block_size_i, block_size_j, extent, n_blocks_i, n_blocks_j, k_size)),
                     tmp_impl_::origin_offset(extent));
             }
-        } // namespace cuda_backend
+        } // namespace gpu_backend
     }     // namespace stencil
 } // namespace gridtools

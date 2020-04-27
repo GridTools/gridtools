@@ -1,6 +1,6 @@
 #include <cuda_runtime.h>
 #include <gridtools/storage/builder.hpp>
-#include <gridtools/storage/cuda.hpp>
+#include <gridtools/storage/gpu.hpp>
 
 int main() {
     int result_value = 42;

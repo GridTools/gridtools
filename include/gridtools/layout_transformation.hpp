@@ -16,11 +16,11 @@
 #include "common/array.hpp"
 #include "common/defs.hpp"
 #include "common/tuple_util.hpp"
-#include "layout_transformation/omp.hpp"
+#include "layout_transformation/cpu.hpp"
 
 #ifdef GT_CUDACC
 #include "common/cuda_is_ptr.hpp"
-#include "layout_transformation/cuda.hpp"
+#include "layout_transformation/gpu.hpp"
 #endif
 
 namespace gridtools {
@@ -46,14 +46,14 @@ namespace gridtools {
         void transform_impl(T *dst, T const *src, Dims dims, DstStrides dst_strides, SrcSrides src_strides) {
             assert(is_gpu_ptr(dst) == is_gpu_ptr(src));
             if (is_gpu_ptr(dst))
-                impl::transform_cuda_loop(dst, src, std::move(dims), std::move(dst_strides), std::move(src_strides));
+                impl::transform_gpu_loop(dst, src, std::move(dims), std::move(dst_strides), std::move(src_strides));
             else
-                impl::transform_openmp_loop(dst, src, std::move(dims), std::move(dst_strides), std::move(src_strides));
+                impl::transform_cpu_loop(dst, src, std::move(dims), std::move(dst_strides), std::move(src_strides));
         }
 #else
         template <class T, class Dims, class DstStrides, class SrcStrides>
         void transform_impl(T *dst, T const *src, Dims dims, DstStrides dst_strides, SrcStrides src_strides) {
-            impl::transform_openmp_loop(dst, src, dims, dst_strides, src_strides);
+            impl::transform_cpu_loop(dst, src, dims, dst_strides, src_strides);
         }
 #endif
 

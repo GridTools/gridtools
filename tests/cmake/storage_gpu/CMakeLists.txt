@@ -3,7 +3,7 @@
 # Note that this test is meaningless with Clang as it is (almost) always a CUDA compiler.
 cmake_minimum_required(VERSION 3.14.5)
 
-project(test_storage_cuda LANGUAGES CXX)
+project(test_storage_gpu LANGUAGES CXX)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -12,4 +12,4 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(gridtools)
 add_executable(main main.cpp)
-target_link_libraries(main GridTools::storage_cuda)
+target_link_libraries(main GridTools::storage_gpu)

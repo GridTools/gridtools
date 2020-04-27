@@ -10,10 +10,10 @@ using namespace stencil;
 using namespace cartesian;
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil/cuda.hpp>
-#include <gridtools/storage/cuda.hpp>
-using stencil_backend_t = stencil::cuda<>;
-using storage_traits_t = storage::cuda;
+#include <gridtools/stencil/gpu.hpp>
+#include <gridtools/storage/gpu.hpp>
+using stencil_backend_t = stencil::gpu<>;
+using storage_traits_t = storage::gpu;
 #else
 #include <gridtools/stencil/cpu_ifirst.hpp>
 #include <gridtools/storage/cpu_ifirst.hpp>

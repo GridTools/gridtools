@@ -36,7 +36,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 | Compiler | Backend | Tested on |
 | --- | --- | --- |
-| NVCC 10.1 with GNU 6.2 | cuda | Piz Daint |
+| NVCC 10.1 with GNU 6.2 | gpu | Piz Daint |
 | GNU 7.3.0 | cpu_kfirst, cpu_ifirst | Piz Daint |
 | Clang 7.0.1 | cpu_kfirst, cpu_ifirst | Piz Daint |
 
@@ -48,8 +48,8 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 | Compiler | Backend | Date | Comments
 | --- | --- | --- | --- |
-| NVCC <= 8.0 | cuda | 2019-05-20 | removed workarounds in GT 1.1
-| NVCC <= 9.1 with GNU 6.x | cuda | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
+| NVCC <= 8.0 | gpu | 2019-05-20 | removed workarounds in GT 1.1
+| NVCC <= 9.1 with GNU 6.x | gpu | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
 | PGI 18.5 | cpu_kfirst | 2018-12-06 | no effort to fix compilation
 | Cray 8.7.3 | cpu_kfirst | 2018-12-06 | no effort to fix compilation
 

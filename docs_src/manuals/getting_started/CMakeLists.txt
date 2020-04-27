@@ -16,11 +16,11 @@ endfunction()
 gridtools_add_getting_started_test(test_naive_implementation SOURCES code/test_naive_implementation.cpp)
 gridtools_add_getting_started_test(test_gt_storage SOURCES code/test_gt_storage.cpp)
 
-if(TARGET storage_cuda)
-    gridtools_add_getting_started_test(test_gt_storage_cuda
+if(TARGET storage_gpu)
+    gridtools_add_getting_started_test(test_gt_storage_gpu
             SOURCES code/test_gt_storage.cpp
-            LIBRARIES storage_cuda
-            LABELS cuda)
+            LIBRARIES storage_gpu
+            LABELS gpu)
 endif()
 
 if(TARGET stencil_cpu_ifirst)
@@ -34,15 +34,15 @@ if(TARGET stencil_cpu_ifirst)
             SOURCES code/test_gt_smoothing_variant3.cpp LIBRARIES stencil_cpu_ifirst)
 endif()
 
-if(TARGET stencil_cuda)
-    gridtools_add_getting_started_test(test_gt_laplacian_cuda
-            SOURCES code/test_gt_laplacian.cpp LIBRARIES stencil_cuda LABELS cuda)
-    gridtools_add_getting_started_test(test_gt_smoothing_variant1_cuda
-            SOURCES code/test_gt_smoothing_variant1.cpp LIBRARIES stencil_cuda LABELS cuda)
-    gridtools_add_getting_started_test(test_gt_smoothing_variant2_cuda
-            SOURCES code/test_gt_smoothing_variant2.cpp LIBRARIES stencil_cuda LABELS cuda)
-    gridtools_add_getting_started_test(test_gt_smoothing_variant3_cuda
-            SOURCES code/test_gt_smoothing_variant3.cpp LIBRARIES stencil_cuda LABELS cuda)
+if(TARGET stencil_gpu)
+    gridtools_add_getting_started_test(test_gt_laplacian_gpu
+            SOURCES code/test_gt_laplacian.cpp LIBRARIES stencil_gpu LABELS gpu)
+    gridtools_add_getting_started_test(test_gt_smoothing_variant1_gpu
+            SOURCES code/test_gt_smoothing_variant1.cpp LIBRARIES stencil_gpu LABELS gpu)
+    gridtools_add_getting_started_test(test_gt_smoothing_variant2_gpu
+            SOURCES code/test_gt_smoothing_variant2.cpp LIBRARIES stencil_gpu LABELS gpu)
+    gridtools_add_getting_started_test(test_gt_smoothing_variant3_gpu
+            SOURCES code/test_gt_smoothing_variant3.cpp LIBRARIES stencil_gpu LABELS gpu)
 endif()
 
 # Test the CMake example file

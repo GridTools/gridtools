@@ -63,7 +63,7 @@ class data_store {
 ### Data View Synopsis
 
 Data view is a supplemental struct that is returned form data store access methods. The distinctive property:
-data view is a POD. Hence it can be passed to the target device by copying the memory. For the cuda data stores
+data view is a POD. Hence it can be passed to the target device by copying the memory. For the gpu data stores
 all data view methods are declared as device only.
 
 ```C++
@@ -95,7 +95,7 @@ The idea is that the user takes a builder with the desired traits, customize it 
 calls `build()` method (or alternatively overloaded call operator) to produce `std::shared_ptr` to a data store.
 For example:
 ```C++
-auto ds = storage::builder<storage::cuda>
+auto ds = storage::builder<storage::gpu>
         .type<double>()
         .name("my special data")
         .dimensions(132, 132, 80)
@@ -109,7 +109,7 @@ assert(ds->const_host_view()(1, 2, 3) == 42);
 ```
 One can also use partially specified builder to produce several data stores:
 ```C++
-auto const my_builder = storage::builder<storage::cuda>.dimensions(10, 10, 10);
+auto const my_builder = storage::builder<storage::gpu>.dimensions(10, 10, 10);
 auto foo = my_builder.type<int>().name("foo")();
 auto bar = my_builder.type<tuple<int, double>>()();
 auto baz = my_builder.type<double const>.initialize([](int i, int j, int k){ return i + j + k; })();
@@ -171,8 +171,8 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
     ```C++
     // We have two different sizes that we use in our computation.
     // Hence we prepare two partially specified builders.  
-    auto const builder_a = builder<cuda>.id<0>.dimensions(3, 4, 5);
-    auto const builder_b = builder<cuda>.id<1>.dimensions(5, 6, 7);
+    auto const builder_a = builder<gpu>.id<0>.dimensions(3, 4, 5);
+    auto const builder_b = builder<gpu>.id<1>.dimensions(5, 6, 7);
     
     // We use our builders to make some data_stores.
     auto a_0 = builder_a.type<double>().build();
@@ -208,7 +208,7 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
   - `layout`. By default the data layout is controlled by `Traits`. However it is overridable with
      the `layout` setter. Example:
      ```C++
-     auto ds0 = builder<cuda>
+     auto ds0 = builder<gpu>
          .type<int>()
          .layout<0, 2, 4, 1, 3>()
          .dimensions(10, 10, 10, 10, 10)
@@ -224,7 +224,7 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
      `malloc` allocation. No alignment. `target` and `host` spaces are same. 
    - [cpu_ifirst](cpu_ifirst.hpp).  Huge page allocation. `64 bytes` alignment. Layout is tailored to utilize vectorization while
      3D looping. `target` and `host` spaces are same.
-   - [cuda](cuda.hpp). Tailored for GPU. `target` and `host` spaces are different.
+   - [gpu](gpu.hpp). Tailored for GPU. `target` and `host` spaces are different.
    
  Each traits resides in its own header. Note that the [builder.hpp](builder.hpp) doesn't include specific
  traits headers.  To use a particular trait the user should include the correspondent header.

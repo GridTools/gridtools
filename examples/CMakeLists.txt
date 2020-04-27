@@ -2,7 +2,7 @@
 
 function(install_example)
     set(options)
-    # - if needed later split into cpu_ifirst and cuda sources (then add extension)
+    # - if needed later split into cpu and gpu sources (then add extension)
     set(one_value_args DIRECTORY)
     set(multi_value_args SOURCES)
     cmake_parse_arguments(ARG "${options}" "${one_value_args};" "${multi_value_args}" ${ARGN})

@@ -92,7 +92,7 @@ namespace {
 
     template <class Env,
         std::enable_if_t<
-            !meta::is_instantiation_of<cuda_horizontal_backend::cuda_horizontal, typename Env::backend_t>::value,
+            !meta::is_instantiation_of<gpu_horizontal_backend::gpu_horizontal, typename Env::backend_t>::value,
             int> = 0>
     auto get_spec(Env) {
         return [](auto in, auto coeff, auto out) {
@@ -108,7 +108,7 @@ namespace {
 
     template <class Env,
         std::enable_if_t<
-            meta::is_instantiation_of<cuda_horizontal_backend::cuda_horizontal, typename Env::backend_t>::value,
+            meta::is_instantiation_of<gpu_horizontal_backend::gpu_horizontal, typename Env::backend_t>::value,
             int> = 0>
     auto get_spec(Env) {
         return [](auto in, auto coeff, auto out) {

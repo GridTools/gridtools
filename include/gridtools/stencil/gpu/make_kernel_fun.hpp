@@ -25,7 +25,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             namespace make_kernel_fun_impl_ {
                 GT_FUNCTION_DEVICE void syncthreads(std::true_type) { __syncthreads(); }
                 GT_FUNCTION_DEVICE void syncthreads(std::false_type) {}
@@ -157,6 +157,6 @@ namespace gridtools {
                 }
             } // namespace make_kernel_fun_impl_
             using make_kernel_fun_impl_::make_kernel_fun;
-        } // namespace cuda_backend
+        } // namespace gpu_backend
     }     // namespace stencil
 } // namespace gridtools

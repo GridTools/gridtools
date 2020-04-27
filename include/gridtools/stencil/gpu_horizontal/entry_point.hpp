@@ -39,7 +39,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_horizontal_backend {
+        namespace gpu_horizontal_backend {
             template <class Keys>
             struct deref_f {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
@@ -147,7 +147,7 @@ namespace gridtools {
             template <class IBlockSize = integral_constant<int_t, 256>,
                 class JBlockSize = integral_constant<int_t, 8>,
                 class KBlockSize = integral_constant<int_t, 1>>
-            struct cuda_horizontal {
+            struct gpu_horizontal {
                 template <class Mss, class Grid, class Composite>
                 static auto make_kernel_fun(Grid const &grid, Composite &composite) {
                     sid::ptr_diff_type<Composite> offset{};
@@ -190,11 +190,11 @@ namespace gridtools {
 
                 template <class Spec, class Grid, class DataStores>
                 friend void gridtools_backend_entry_point(
-                    cuda_horizontal, Spec, Grid const &grid, DataStores data_stores) {
-                    return cuda_horizontal::entry_point<Spec>(grid, std::move(data_stores));
+                    gpu_horizontal, Spec, Grid const &grid, DataStores data_stores) {
+                    return gpu_horizontal::entry_point<Spec>(grid, std::move(data_stores));
                 }
             };
-        } // namespace cuda_horizontal_backend
-        using cuda_horizontal_backend::cuda_horizontal;
+        } // namespace gpu_horizontal_backend
+        using gpu_horizontal_backend::gpu_horizontal;
     } // namespace stencil
 } // namespace gridtools

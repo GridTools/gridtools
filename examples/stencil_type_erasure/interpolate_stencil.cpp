@@ -16,8 +16,8 @@
 #include <gridtools/storage/sid.hpp>
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil/cuda.hpp>
-using stencil_backend_t = gridtools::stencil::cuda<>;
+#include <gridtools/stencil/gpu.hpp>
+using stencil_backend_t = gridtools::stencil::gpu<>;
 #else
 #include <gridtools/stencil/cpu_ifirst.hpp>
 using stencil_backend_t = gridtools::stencil::cpu_ifirst<>;

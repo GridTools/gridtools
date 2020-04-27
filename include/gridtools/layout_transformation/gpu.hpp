@@ -93,7 +93,7 @@ namespace gridtools {
         }
 
         template <class T, class Dims, class DstStrides, class SrcSrides>
-        void transform_cuda_loop(T *dst, T const *src, Dims dims, DstStrides dst_strides, SrcSrides src_strides) {
+        void transform_gpu_loop(T *dst, T const *src, Dims dims, DstStrides dst_strides, SrcSrides src_strides) {
             dim3 grid_size((tuple_util::get<0>(dims) + block_size_1d_t::value - 1) / block_size_1d_t::value,
                 (tuple_util::get<1>(dims) + block_size_1d_t::value - 1) / block_size_1d_t::value,
                 (tuple_util::get<2>(dims) + block_size_1d_t::value - 1) / block_size_1d_t::value);

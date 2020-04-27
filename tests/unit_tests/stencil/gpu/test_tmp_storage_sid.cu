@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil/cuda/tmp_storage_sid.hpp>
+#include <gridtools/stencil/gpu/tmp_storage_sid.hpp>
 
 #include <gtest/gtest.h>
 
@@ -40,11 +40,11 @@ namespace gridtools {
 
             TEST(tmp_cuda_storage, maker_with_device_allocator) {
                 sid::device::allocator<GT_INTEGRAL_CONSTANT_FROM_VALUE(&cuda_util::cuda_malloc<char[]>)> alloc;
-                auto testee = cuda_backend::make_tmp_storage<int>(1_c, 2_c, 2_c, extent<>{}, 1, 1, 2, alloc);
+                auto testee = gpu_backend::make_tmp_storage<int>(1_c, 2_c, 2_c, extent<>{}, 1, 1, 2, alloc);
                 EXPECT_TRUE(on_device::exec(smoke_f{}, sid::get_origin(testee), sid::get_strides(testee)));
             }
         } // namespace
     }     // namespace stencil
 } // namespace gridtools
 
-#include "test_tmp_storage_sid_cuda.cpp"
+#include "test_tmp_storage_sid.cpp"

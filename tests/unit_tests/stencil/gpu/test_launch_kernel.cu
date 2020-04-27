@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil/cuda/launch_kernel.hpp>
+#include <gridtools/stencil/gpu/launch_kernel.hpp>
 
 #include <gtest/gtest.h>
 
@@ -20,7 +20,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             template <class Extent, int_t IBlockSize, int_t JBlockSize>
             struct validation_kernel_f {
                 int *m_failures;
@@ -110,6 +110,6 @@ namespace gridtools {
                 launch_kernel<extent<-1, 1>, 32, 8>(1, 1, 1, syncthreads_kernel_f{failures.get(), count.get()}, 0);
                 EXPECT_EQ(0, cuda_util::from_clone(failures));
             }
-        } // namespace cuda_backend
+        } // namespace gpu_backend
     }     // namespace stencil
 } // namespace gridtools

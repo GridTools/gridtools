@@ -17,7 +17,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             class shared_allocator {
                 size_t m_offset = 0; // in bytes
 
@@ -51,6 +51,6 @@ namespace gridtools {
 
                 size_t size() const { return m_offset; }
             };
-        } // namespace cuda_backend
+        } // namespace gpu_backend
     }     // namespace stencil
 } // namespace gridtools

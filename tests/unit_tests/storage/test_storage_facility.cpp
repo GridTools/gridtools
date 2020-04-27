@@ -164,7 +164,7 @@ static_assert(expect_special_layout<layout_map<-1, -1, 0, -1, -1>, 0, 0, 1, 0, 0
 static_assert(expect_special_layout<layout_map<-1, -1, -1, 0, -1>, 0, 0, 0, 1, 0>, "");
 static_assert(expect_special_layout<layout_map<-1, -1, -1, -1, 0>, 0, 0, 0, 0, 1>, "");
 
-#elif defined(GT_STORAGE_CUDA)
+#elif defined(GT_STORAGE_GPU)
 
 static_assert(expect_layout<0>, "");
 static_assert(expect_layout<1, 0>, "");

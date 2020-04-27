@@ -21,10 +21,10 @@
 #include <gridtools/storage/sid.hpp>
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil/cuda.hpp>
-#include <gridtools/storage/cuda.hpp>
-using stencil_backend_t = gridtools::stencil::cuda<>;
-using storage_traits_t = gridtools::storage::cuda;
+#include <gridtools/stencil/gpu.hpp>
+#include <gridtools/storage/gpu.hpp>
+using stencil_backend_t = gridtools::stencil::gpu<>;
+using storage_traits_t = gridtools::storage::gpu;
 #else
 #include <gridtools/stencil/cpu_ifirst.hpp>
 #include <gridtools/storage/cpu_ifirst.hpp>
@@ -33,13 +33,14 @@ using storage_traits_t = gridtools::storage::cpu_ifirst;
 #endif
 
 namespace gt = gridtools;
+namespace st = gt::stencil;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-    using out = gt::cartesian::inout_accessor<0>;
-    using in = gt::cartesian::in_accessor<1, gt::extent<-1, 1, -1, 1>>;
+    using out = st::cartesian::inout_accessor<0>;
+    using in = st::cartesian::in_accessor<1, st::extent<-1, 1, -1, 1>>;
 
-    using param_list = gt::make_param_list<out, in>;
+    using param_list = st::make_param_list<out, in>;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
@@ -48,11 +49,11 @@ struct lap_function {
 };
 
 struct flx_function {
-    using out = gt::cartesian::inout_accessor<0>;
-    using in = gt::cartesian::in_accessor<1, gt::extent<0, 1, 0, 0>>;
-    using lap = gt::cartesian::in_accessor<2, gt::extent<0, 1, 0, 0>>;
+    using out = st::cartesian::inout_accessor<0>;
+    using in = st::cartesian::in_accessor<1, st::extent<0, 1, 0, 0>>;
+    using lap = st::cartesian::in_accessor<2, st::extent<0, 1, 0, 0>>;
 
-    using param_list = gt::make_param_list<out, in, lap>;
+    using param_list = st::make_param_list<out, in, lap>;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
@@ -62,11 +63,11 @@ struct flx_function {
 };
 
 struct fly_function {
-    using out = gt::cartesian::inout_accessor<0>;
-    using in = gt::cartesian::in_accessor<1, gt::extent<0, 0, 0, 1>>;
-    using lap = gt::cartesian::in_accessor<2, gt::extent<0, 0, 0, 1>>;
+    using out = st::cartesian::inout_accessor<0>;
+    using in = st::cartesian::in_accessor<1, st::extent<0, 0, 0, 1>>;
+    using lap = st::cartesian::in_accessor<2, st::extent<0, 0, 0, 1>>;
 
-    using param_list = gt::make_param_list<out, in, lap>;
+    using param_list = st::make_param_list<out, in, lap>;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
@@ -76,13 +77,13 @@ struct fly_function {
 };
 
 struct out_function {
-    using out = gt::cartesian::inout_accessor<0>;
-    using in = gt::cartesian::in_accessor<1>;
-    using flx = gt::cartesian::in_accessor<2, gt::extent<-1, 0, 0, 0>>;
-    using fly = gt::cartesian::in_accessor<3, gt::extent<0, 0, -1, 0>>;
-    using coeff = gt::cartesian::in_accessor<4>;
+    using out = st::cartesian::inout_accessor<0>;
+    using in = st::cartesian::in_accessor<1>;
+    using flx = st::cartesian::in_accessor<2, st::extent<-1, 0, 0, 0>>;
+    using fly = st::cartesian::in_accessor<3, st::extent<0, 0, -1, 0>>;
+    using coeff = st::cartesian::in_accessor<4>;
 
-    using param_list = gt::make_param_list<out, in, flx, fly, coeff>;
+    using param_list = st::make_param_list<out, in, flx, fly, coeff>;
 
     template <class Eval>
     GT_FUNCTION static void apply(Eval &&eval) {
@@ -115,7 +116,7 @@ int main(int argc, char **argv) {
     auto spec = [](auto coeff, auto in, auto out) {
         // temporary data (the library will take care of that and it is not observable by the user)
         GT_DECLARE_TMP(double, lap, flx, fly);
-        return gt::execute_parallel()
+        return st::execute_parallel()
             .ij_cached(lap, flx, fly)
             .stage(lap_function(), lap, in)
             .stage(flx_function(), flx, in, lap)
@@ -134,7 +135,7 @@ int main(int argc, char **argv) {
     // The grid represent the iteration space. The third dimension is indicated here as a size and the iteration space
     // is deduced by the fact that there is not an axis definition. More complex third dimensions are possible but not
     // described in this example.
-    auto grid = gt::make_grid(di, dj, d3);
+    auto grid = st::make_grid(di, dj, d3);
 
     // Here we perform the computation, specifying the backend, the grid (iteration space), binding spec arguments to
     // the data fields

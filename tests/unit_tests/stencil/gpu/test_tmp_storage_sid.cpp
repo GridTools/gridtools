@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil/cuda/tmp_storage_sid.hpp>
+#include <gridtools/stencil/gpu/tmp_storage_sid.hpp>
 
 #include <memory>
 
@@ -21,7 +21,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             namespace {
                 using namespace literals;
 
@@ -121,6 +121,6 @@ namespace gridtools {
                                         }
                 }
             } // namespace
-        }     // namespace cuda_backend
+        }     // namespace gpu_backend
     }         // namespace stencil
 } // namespace gridtools

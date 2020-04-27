@@ -27,7 +27,7 @@
 
 namespace gridtools {
     namespace stencil {
-        namespace cuda_backend {
+        namespace gpu_backend {
             namespace fill_flush {
                 namespace impl_ {
                     template <class Cells>
@@ -344,6 +344,6 @@ namespace gridtools {
                 using impl_::transform_data_stores;
                 using impl_::transform_spec;
             } // namespace fill_flush
-        }     // namespace cuda_backend
+        }     // namespace gpu_backend
     }         // namespace stencil
 } // namespace gridtools
