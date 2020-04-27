@@ -45,6 +45,7 @@ using gcl_arch_t = gridtools::gcl::cpu;
 #endif
 
 namespace gt = gridtools;
+namespace bd = gt::boundaries;
 
 using uint_t = unsigned;
 
@@ -77,8 +78,8 @@ struct direction_bc_input {
         data_field0(i, j, k) = value;
     }
 
-    template <gt::sign I, gt::sign K, typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(gt::direction<I, gt::minus_, K>,
+    template <bd::sign I, bd::sign K, typename DataField0, typename DataField1>
+    GT_FUNCTION void operator()(bd::direction<I, bd::minus_, K>,
         DataField0 &data_field0,
         DataField1 const &data_field1,
         uint_t i,
@@ -87,8 +88,8 @@ struct direction_bc_input {
         data_field0(i, j, k) = data_field1(i, j + 1, k);
     }
 
-    template <gt::sign K, typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(gt::direction<gt::minus_, gt::minus_, K>,
+    template <bd::sign K, typename DataField0, typename DataField1>
+    GT_FUNCTION void operator()(bd::direction<bd::minus_, bd::minus_, K>,
         DataField0 &data_field0,
         DataField1 const &data_field1,
         uint_t i,
@@ -98,7 +99,7 @@ struct direction_bc_input {
     }
 
     template <typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(gt::direction<gt::minus_, gt::minus_, gt::minus_>,
+    GT_FUNCTION void operator()(bd::direction<bd::minus_, bd::minus_, bd::minus_>,
         DataField0 &data_field0,
         DataField1 const &data_field1,
         uint_t i,
@@ -144,7 +145,7 @@ int main(int argc, char **argv) {
 
     // Here we apply the boundary conditions to the fields created earlier with the class above. GridTools provides
     // default boundary classes to copy fields and to set constant values to the boundaries of fields.
-    gt::boundary<direction_bc_input<uint_t>, gcl_arch_t>(halos, direction_bc_input<uint_t>(42)).apply(out_s, in_s);
+    bd::boundary<direction_bc_input<uint_t>, gcl_arch_t>(halos, direction_bc_input<uint_t>(42)).apply(out_s, in_s);
 
     // making the views to access and check correctness
     auto in = in_s->const_host_view();

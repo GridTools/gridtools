@@ -45,6 +45,7 @@ using gcl_arch_t = gridtools::gcl::cpu;
 #endif
 
 namespace gt = gridtools;
+namespace bd = gt::boundaries;
 
 int main(int argc, char **argv) {
     if (argc != 4) {
@@ -84,7 +85,7 @@ int main(int argc, char **argv) {
 
     bool error = false;
     {
-        gt::boundary<gt::copy_boundary, gcl_arch_t>(halos, gt::copy_boundary{}).apply(out_s, in_s);
+        bd::boundary<bd::copy_boundary, gcl_arch_t>(halos, bd::copy_boundary{}).apply(out_s, in_s);
 
         // making the views to access and check correctness
         auto in = in_s->const_host_view();
@@ -107,7 +108,7 @@ int main(int argc, char **argv) {
     }
 
     {
-        gt::boundary<gt::zero_boundary, gcl_arch_t>(halos, gt::zero_boundary{}).apply(out_s);
+        bd::boundary<bd::zero_boundary, gcl_arch_t>(halos, bd::zero_boundary{}).apply(out_s);
 
         // making the views to access and check correctness
         auto out = out_s->const_host_view();
@@ -127,7 +128,7 @@ int main(int argc, char **argv) {
     }
 
     {
-        gt::boundary<gt::value_boundary<int>, gcl_arch_t>(halos, gt::value_boundary<int>{42}).apply(out_s);
+        bd::boundary<bd::value_boundary<int>, gcl_arch_t>(halos, bd::value_boundary<int>{42}).apply(out_s);
 
         // making the views to access and check correctness
         auto out = out_s->const_host_view();

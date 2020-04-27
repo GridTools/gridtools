@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
     // Now we describe the iteration space. In this simple example the iteration space is just described by the full
     // grid (no particular care has to be taken to describe halo points).
-    auto grid = gridtools::make_grid(d1, d2, d3);
+    auto grid = gridtools::stencil::make_grid(d1, d2, d3);
 
     // Create some data stores
     inputs in = {storage_builder.initializer([](int i, int j, int k) { return i + j + k; }).build(),

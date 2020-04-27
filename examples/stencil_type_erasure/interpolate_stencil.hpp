@@ -16,7 +16,7 @@ using storage_traits_t = gridtools::storage::cpu_ifirst;
 
 using data_store_t = decltype(gridtools::storage::builder<storage_traits_t>.dimensions(0, 0, 0).type<double>().build());
 
-using grid_t = decltype(gridtools::make_grid(0, 0, 0));
+using grid_t = decltype(gridtools::stencil::make_grid(0, 0, 0));
 
 struct inputs {
     data_store_t in1;
