@@ -18,25 +18,48 @@ function are_independent() {
 }
 modularization_result=0
 
-# list of non-dependencies
 no_dependency "meta" "common"
-no_dependency "common" "stencil"
-no_dependency "common" "boundaries"
-no_dependency "common" "gcl"
-no_dependency "common" "storage"
-no_dependency "common" "c_bindings"
+no_dependency "meta" "sid"
+no_dependency "meta" "thread_pool"
+no_dependency "meta" "gcl"
+no_dependency "meta" "layout_transformation"
+no_dependency "meta" "storage"
+no_dependency "meta" "boundaries"
+no_dependency "meta" "stencil"
 
-are_independent "stencil" "boundaries"
-are_independent "stencil" "gcl"
-are_independent "stencil" "layout_transformation"
+no_dependency "common" "sid"
+no_dependency "common" "thread_pool"
+no_dependency "common" "gcl"
+no_dependency "common" "layout_transformation"
+no_dependency "common" "storage"
+no_dependency "common" "boundaries"
+no_dependency "common" "stencil"
+
+are_independent "sid" "thread_pool"
+are_independent "sid" "gcl"
+are_independent "sid" "layout_transformation"
+no_dependency "sid" "storage"
+are_independent "sid" "boundaries"
+no_dependency "sid" "stencil"
+
+are_independent "thread_pool" "gcl"
+are_independent "thread_pool" "layout_transformation"
+are_independent "thread_pool" "storage"
+are_independent "thread_pool" "boundaries"
+no_dependency "thread_pool" "stencil"
 
 are_independent "gcl" "layout_transformation"
 are_independent "gcl" "storage"
+no_dependency "gcl" "boundaries"
+are_independent "gcl" "stencil"
 
-are_independent "boundaries" "c_bindings"
-are_independent "boundaries" "layout_transformation"
+are_independent "layout_transformation" "storage"
+are_independent "layout_transformation" "boundaries"
+are_independent "layout_transformation" "stencil"
 
-no_dependency "storage" "stencil"
 no_dependency "storage" "boundaries"
+are_independent "storage" "stencil"
+
+are_independent "boundaries" "stencil"
 
 # we cannot use an exit code here because the git hook will terminate immediately
