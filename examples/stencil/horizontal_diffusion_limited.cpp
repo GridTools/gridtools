@@ -139,5 +139,5 @@ int main(int argc, char **argv) {
 
     // Here we perform the computation, specifying the backend, the grid (iteration space), binding spec arguments to
     // the data fields
-    run(spec, stencil_backend_t(), grid, coeff, in, out);
+    st::run(spec, stencil_backend_t(), grid, coeff, in, out);
 }
