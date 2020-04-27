@@ -16,9 +16,9 @@ find_package(GridTools @GridTools_VERSION@ REQUIRED
 enable_testing()
 
 if(TARGET GridTools::stencil_cpu_ifirst)
-    add_executable(driver_cpu_ifirst driver.cpp interpolate_stencil.cpp)
-    target_link_libraries(driver_cpu_ifirst GridTools::stencil_cpu_ifirst)
-    add_test(NAME driver_cpu_ifirst COMMAND $<TARGET_FILE:driver_cpu_ifirst> 33 44 55)
+    add_executable(driver_cpu driver.cpp interpolate_stencil.cpp)
+    target_link_libraries(driver_cpu GridTools::stencil_cpu_ifirst)
+    add_test(NAME driver_cpu COMMAND $<TARGET_FILE:driver_cpu> 33 44 55)
 endif()
 
 if(TARGET GridTools::stencil_gpu)

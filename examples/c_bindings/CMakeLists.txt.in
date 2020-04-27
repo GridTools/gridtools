@@ -39,7 +39,7 @@ check_language(C)
 if(CMAKE_C_COMPILER)
     enable_language(C)
 
-    add_executable(example_driver_cpu_c driver_cpu_ifirst.c)
+    add_executable(example_driver_cpu_c driver_cpu.c)
     target_link_libraries(example_driver_cpu_c copy_stencil_lib_cpu_c)
 
     add_test(NAME example_driver_cpu_c COMMAND $<TARGET_FILE:example_driver_cpu_c>)
