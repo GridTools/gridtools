@@ -30,7 +30,7 @@ if(TARGET GridTools::stencil_gpu)
     gridtools_setup_target(stencil_lib_gpu CUDA_ARCH ${EXAMPLE_CUDA_ARCH})
 
     add_executable(driver_gpu driver.cpp) # Can be build with the host compiler
-    target_link_libraries(driver_gpu PRIVATE stencil_lib_gpi)
+    target_link_libraries(driver_gpu PRIVATE stencil_lib_gpu)
     target_link_libraries(driver_gpu PRIVATE GridTools::storage_gpu)
 
     add_test(NAME driver_gpu COMMAND $<TARGET_FILE:driver_gpu> 33 44 55)
