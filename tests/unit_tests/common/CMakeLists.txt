@@ -14,7 +14,6 @@ gridtools_add_unit_test(test_stride_util SOURCES test_stride_util.cpp)
 gridtools_add_unit_test(test_tuple_util SOURCES test_tuple_util.cpp)
 gridtools_add_unit_test(test_boollist SOURCES test_boollist.cpp)
 
-gridtools_add_unit_test(test_atomic_functions SOURCES test_atomic_functions.cpp NO_NVCC)
 gridtools_add_unit_test(test_cuda_is_ptr SOURCES test_cuda_is_ptr.cpp NO_NVCC)
 gridtools_add_unit_test(test_gt_math SOURCES test_gt_math.cpp NO_NVCC)
 gridtools_add_unit_test(test_hypercube_iterator SOURCES test_hypercube_iterator.cpp NO_NVCC)
@@ -23,10 +22,6 @@ gridtools_add_unit_test(test_tuple SOURCES test_tuple.cpp NO_NVCC)
 if(TARGET _gridtools_cuda)
     gridtools_check_compilation(test_cuda_type_traits test_cuda_type_traits.cu)
 
-    gridtools_add_unit_test(test_atomic_functions_cuda
-            SOURCES test_atomic_functions.cu
-            LIBRARIES _gridtools_cuda
-            LABELS cuda)
     gridtools_add_unit_test(test_cuda_is_ptr_cuda
             SOURCES test_cuda_is_ptr.cu
             LIBRARIES _gridtools_cuda
