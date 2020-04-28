@@ -162,17 +162,6 @@ namespace gridtools {
         int cmdline_params::d(size_t i) { return s_state.m_d[i]; }
         size_t cmdline_params::steps() { return s_state.m_steps; }
         bool cmdline_params::needs_verification() { return s_state.m_needs_verification; }
-
-        void flush_cache(timer_omp const &) {
-            static std::size_t n = 1024 * 1024 * 21 / 2;
-            static std::vector<double> a_(n), b_(n), c_(n);
-            double *a = a_.data();
-            double *b = b_.data();
-            double *c = c_.data();
-#pragma omp parallel for
-            for (std::size_t i = 0; i < n; i++)
-                a[i] = b[i] * c[i];
-        }
     } // namespace test_environment_impl_
 } // namespace gridtools
 

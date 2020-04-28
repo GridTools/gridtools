@@ -65,11 +65,6 @@ namespace gridtools {
             }
         };
 
-        template <class T>
-        inline void flush_cache(T const &) {}
-
-        void flush_cache(timer_omp const &);
-
         void add_time(std::string const &name, std::string const &backend, std::string const &float_type, double time);
 
         struct cmdline_params {
@@ -206,7 +201,6 @@ namespace gridtools {
                     comp();
                     timer_impl_t timer;
                     for (size_t i = 0; i != steps; ++i) {
-                        flush_cache(timer);
                         timer.start_impl();
                         comp();
                         auto time = timer.pause_impl();
