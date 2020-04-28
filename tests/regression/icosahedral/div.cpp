@@ -8,9 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/stencil/icosahedral.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "div_functors.hpp"
@@ -18,9 +18,10 @@
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace ico_operators;
 
-    GT_REGRESSION_TEST(div_reduction_into_scalar, icosahedral_test_environment<2>, backend_t) {
+    GT_REGRESSION_TEST(div_reduction_into_scalar, icosahedral_test_environment<2>, stencil_backend_t) {
         auto spec = [](auto in_edges, auto edge_length, auto cell_area_reciprocal, auto out) {
             GT_DECLARE_ICO_TMP((array<typename TypeParam ::float_t, 3>), cells, weights);
             return execute_parallel()
@@ -31,7 +32,7 @@ namespace {
         operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
         auto out = TypeParam ::icosahedral_make_storage(cells());
         run(spec,
-            backend_t(),
+            stencil_backend_t(),
             TypeParam ::make_grid(),
             TypeParam ::icosahedral_make_storage(edges(), repo.u),
             TypeParam ::icosahedral_make_storage(edges(), repo.edge_length),
@@ -40,11 +41,11 @@ namespace {
         TypeParam ::verify(repo.div_u, out);
     }
 
-    GT_REGRESSION_TEST(div_flow_convention, icosahedral_test_environment<2>, backend_t) {
+    GT_REGRESSION_TEST(div_flow_convention, icosahedral_test_environment<2>, stencil_backend_t) {
         operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
         auto out = TypeParam ::icosahedral_make_storage(cells());
         run_single_stage(div_functor_flow_convention_connectivity(),
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             TypeParam ::icosahedral_make_storage(edges(), repo.u),
             TypeParam ::icosahedral_make_storage(edges(), repo.edge_length),

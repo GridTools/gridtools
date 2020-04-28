@@ -8,13 +8,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/boundary_conditions/boundary.hpp>
+#include <gridtools/boundaries/boundary.hpp>
 
 #include <gcl_select.hpp>
 #include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
+    using namespace boundaries;
 
     template <class Float>
     constexpr Float face_value = 88;

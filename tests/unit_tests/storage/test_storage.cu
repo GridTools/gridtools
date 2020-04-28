@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/storage/builder.hpp>
-#include <gridtools/storage/cuda.hpp>
+#include <gridtools/storage/gpu.hpp>
 
 __global__ void check_s1(int *s) {
     assert(s[0] == 10);
@@ -27,7 +27,7 @@ __global__ void check_s2(int *s) {
 }
 
 TEST(StorageCudaTest, Simple) {
-    auto builder = gridtools::storage::builder<gridtools::storage::cuda>.type<int>().dimensions(2);
+    auto builder = gridtools::storage::builder<gridtools::storage::gpu>.type<int>().dimensions(2);
     // create two storages
     auto s1 = builder();
     auto s2 = builder();

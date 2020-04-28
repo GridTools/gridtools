@@ -8,15 +8,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/stencil/icosahedral.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "neighbours_of.hpp"
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace icosahedral;
 
     struct test_on_cells_functor {
@@ -34,7 +35,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(stencil_on_neighcell_of_edges, icosahedral_test_environment<1>, backend_t) {
+    GT_REGRESSION_TEST(stencil_on_neighcell_of_edges, icosahedral_test_environment<1>, stencil_backend_t) {
         auto in = [](int_t i, int_t j, int_t k, int_t c) { return i + j + k + c; };
         auto ref = [&](int_t i, int_t j, int_t k, int_t c) {
             typename TypeParam::float_t res = {};
@@ -44,7 +45,7 @@ namespace {
         };
         auto out = TypeParam::icosahedral_make_storage(edges());
         auto comp = [&, grid = TypeParam::make_grid(), in = TypeParam::icosahedral_make_storage(cells(), in)] {
-            run_single_stage(test_on_cells_functor(), backend_t(), grid, in, out);
+            run_single_stage(test_on_cells_functor(), stencil_backend_t(), grid, in, out);
         };
         comp();
         TypeParam::verify(ref, out);

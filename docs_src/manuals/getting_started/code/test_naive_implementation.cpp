@@ -1,5 +1,5 @@
 #include <gridtools/storage/builder.hpp>
-#include <gridtools/storage/mc.hpp>
+#include <gridtools/storage/cpu_ifirst.hpp>
 
 using namespace gridtools;
 
@@ -21,7 +21,7 @@ auto laplacian = [](auto &lap, auto &in, int boundary_size) {
 };
 // lap-end
 
-const auto storage_builder = storage::builder<storage::mc>.type<double>();
+const auto storage_builder = storage::builder<storage::cpu_ifirst>.type<double>();
 
 // smoothing-begin
 auto naive_smoothing = [](auto &out, auto &in, double alpha, int kmax) {
