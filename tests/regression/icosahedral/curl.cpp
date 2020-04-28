@@ -8,11 +8,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/stencil/icosahedral.hpp>
 
 #include <type_traits>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "curl_functors.hpp"
@@ -20,6 +20,7 @@
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace ico_operators;
 
     template <class Env>
@@ -27,7 +28,7 @@ namespace {
         return expect_with_threshold(lhs, rhs, std::is_same<typename Env::float_t, float>::value ? 1e-4 : 1e-9);
     };
 
-    GT_REGRESSION_TEST(curl_weights, icosahedral_test_environment<2>, backend_t) {
+    GT_REGRESSION_TEST(curl_weights, icosahedral_test_environment<2>, stencil_backend_t) {
         auto spec = [](auto reciprocal, auto edge_length, auto in_edges, auto out) {
             GT_DECLARE_ICO_TMP((array<typename TypeParam::float_t, 6>), vertices, weights);
             return execute_parallel()
@@ -38,7 +39,7 @@ namespace {
         operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
         auto out = TypeParam ::icosahedral_make_storage(vertices());
         run(spec,
-            backend_t(),
+            stencil_backend_t(),
             TypeParam ::make_grid(),
             TypeParam ::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal),
             TypeParam ::icosahedral_make_storage(edges(), repo.dual_edge_length),
@@ -47,11 +48,11 @@ namespace {
         TypeParam::verify(repo.curl_u, out, eq<TypeParam>);
     }
 
-    GT_REGRESSION_TEST(curl_flow_convention, icosahedral_test_environment<2>, backend_t) {
+    GT_REGRESSION_TEST(curl_flow_convention, icosahedral_test_environment<2>, stencil_backend_t) {
         operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
         auto out = TypeParam ::icosahedral_make_storage(vertices());
         run_single_stage(curl_functor_flow_convention(),
-            backend_t(),
+            stencil_backend_t(),
             TypeParam ::make_grid(),
             TypeParam ::icosahedral_make_storage(edges(), repo.u),
             TypeParam ::icosahedral_make_storage(vertices(), repo.dual_area_reciprocal),

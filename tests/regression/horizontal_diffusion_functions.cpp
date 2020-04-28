@@ -7,15 +7,16 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil/cartesian.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "horizontal_diffusion_repository.hpp"
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct lap_function {
@@ -190,7 +191,7 @@ namespace {
                     .stage(fly_function<Variation>(), fly, in)
                     .stage(out_function(), out, in, flx, fly, coeff);
             },
-            backend_t(),
+            stencil_backend_t(),
             Env::make_grid(),
             Env::make_storage(repo.coeff),
             Env::make_storage(repo.in),
@@ -198,10 +199,10 @@ namespace {
         Env::verify(repo.out, out);
     }
 
-#define TEST_VARIATION(v)                                                                    \
-    GT_REGRESSION_TEST(horizontal_diffusion_functions_##v, test_environment<2>, backend_t) { \
-        do_test<TypeParam, variation::v>();                                                  \
-    }                                                                                        \
+#define TEST_VARIATION(v)                                                                            \
+    GT_REGRESSION_TEST(horizontal_diffusion_functions_##v, test_environment<2>, stencil_backend_t) { \
+        do_test<TypeParam, variation::v>();                                                          \
+    }                                                                                                \
     static_assert(1, "")
 
     TEST_VARIATION(monolithic);

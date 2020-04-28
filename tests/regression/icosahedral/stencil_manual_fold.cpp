@@ -9,15 +9,16 @@
  */
 
 #include <gridtools/common/array.hpp>
-#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/stencil/icosahedral.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "neighbours_of.hpp"
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace icosahedral;
 
     struct test_on_edges_functor {
@@ -35,7 +36,7 @@ namespace {
         }
     };
 
-    GT_REGRESSION_TEST(stencil_manual_fold, icosahedral_test_environment<1>, backend_t) {
+    GT_REGRESSION_TEST(stencil_manual_fold, icosahedral_test_environment<1>, stencil_backend_t) {
         using float_t = typename TypeParam::float_t;
         using weight_edges_t = array<float_t, 3>;
 
@@ -48,7 +49,7 @@ namespace {
         };
         auto out = TypeParam::template icosahedral_make_storage<weight_edges_t>(cells());
         auto comp = [&, grid = TypeParam::make_grid(), in = TypeParam::icosahedral_make_storage(cells(), in)] {
-            run_single_stage(test_on_edges_functor(), backend_t(), grid, in, out);
+            run_single_stage(test_on_edges_functor(), stencil_backend_t(), grid, in, out);
         };
         comp();
         TypeParam::verify(ref, out, [](auto lhs, auto rhs) {

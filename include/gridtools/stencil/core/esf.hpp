@@ -1,0 +1,61 @@
+/*
+ * GridTools
+ *
+ * Copyright (c) 2014-2019, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+#pragma once
+
+#include <type_traits>
+
+#include "../../meta.hpp"
+#include "../common/extent.hpp"
+
+namespace gridtools {
+    namespace stencil {
+        namespace core {
+            namespace esf_impl_ {
+                template <class Param>
+                using param_index = std::integral_constant<size_t, Param::index_t::value>;
+
+                template <class ParamList,
+                    class Actual = meta::rename<meta::list, meta::transform<param_index, ParamList>>,
+                    class Expected = meta::make_indices_for<ParamList>>
+                using check_param_list = std::is_same<Actual, Expected>;
+
+                template <class, class = void>
+                struct has_param_list : std::false_type {};
+
+                template <class T>
+                struct has_param_list<T, void_t<typename T::param_list>> : std::true_type {};
+            } // namespace esf_impl_
+
+            /**
+             * @brief Descriptors for Elementary Stencil Function (ESF)
+             */
+            template <class EsfFunction, class Args, class Extent = void>
+            struct esf_descriptor {
+                static_assert(esf_impl_::has_param_list<EsfFunction>::type::value,
+                    "The type param_list was not found in a user functor definition. All user functors must have a "
+                    "type alias called \'param_list\', which is an instantiation of \'make_param_list\' accessors "
+                    "defined in the functor Example: \n\n using v1=in_accessor<0>; \n\n using v2=inout_accessor<1>; \n "
+                    "using param_list=make_param_list<v1, v2>;");
+                static_assert(esf_impl_::check_param_list<typename EsfFunction::param_list>::value,
+                    "The list of accessors in a user functor (i.e. the param_list type to be defined on each functor) "
+                    "does not have increasing index");
+                static_assert(meta::length<typename EsfFunction::param_list>::value == meta::length<Args>::value,
+                    "The number of actual arguments should match the number of parameters.");
+
+                using esf_function_t = EsfFunction;
+                using args_t = Args;
+                using extent_t = Extent;
+            };
+
+            template <class T>
+            using is_esf_descriptor = meta::is_instantiation_of<esf_descriptor, T>;
+        } // namespace core
+    }     // namespace stencil
+} // namespace gridtools

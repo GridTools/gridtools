@@ -2,7 +2,7 @@
   "outputs": [
     {
       "name": "advection_pdbott_prepare_tracers",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.00215862,
@@ -109,7 +109,7 @@
     },
     {
       "name": "advection_pdbott_prepare_tracers",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.00111526,
@@ -216,7 +216,7 @@
     },
     {
       "name": "advection_pdbott_prepare_tracers",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "double",
       "series": [
         0.00222058,
@@ -323,7 +323,7 @@
     },
     {
       "name": "advection_pdbott_prepare_tracers",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "float",
       "series": [
         0.00119194,
@@ -430,7 +430,7 @@
     },
     {
       "name": "copy_stencil",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.000158496,
@@ -537,7 +537,7 @@
     },
     {
       "name": "copy_stencil",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         9.8112e-05,
@@ -644,7 +644,7 @@
     },
     {
       "name": "copy_stencil",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "double",
       "series": [
         0.000165152,
@@ -751,7 +751,7 @@
     },
     {
       "name": "copy_stencil",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "float",
       "series": [
         8.896e-05,
@@ -1072,7 +1072,7 @@
     },
     {
       "name": "horizontal_diffusion",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.000448416,
@@ -1179,7 +1179,7 @@
     },
     {
       "name": "horizontal_diffusion",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.000395424,
@@ -1286,7 +1286,7 @@
     },
     {
       "name": "horizontal_diffusion",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "double",
       "series": [
         0.000350592,
@@ -1393,7 +1393,7 @@
     },
     {
       "name": "horizontal_diffusion",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "float",
       "series": [
         0.0002008,
@@ -1500,7 +1500,7 @@
     },
     {
       "name": "horizontal_diffusion_fused",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.0003632,
@@ -1607,7 +1607,7 @@
     },
     {
       "name": "horizontal_diffusion_fused",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.000275456,
@@ -1714,7 +1714,7 @@
     },
     {
       "name": "horizontal_diffusion_fused",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "double",
       "series": [
         0.000445856,
@@ -1821,7 +1821,7 @@
     },
     {
       "name": "horizontal_diffusion_fused",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "float",
       "series": [
         0.000248192,
@@ -1928,7 +1928,7 @@
     },
     {
       "name": "layout_transformation",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.000229984,
@@ -2035,7 +2035,7 @@
     },
     {
       "name": "layout_transformation",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.000164608,
@@ -2142,7 +2142,7 @@
     },
     {
       "name": "simple_hori_diff",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.000394496,
@@ -2249,7 +2249,7 @@
     },
     {
       "name": "simple_hori_diff",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.000350496,
@@ -2356,7 +2356,7 @@
     },
     {
       "name": "simple_hori_diff",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "double",
       "series": [
         0.0006928,
@@ -2463,7 +2463,7 @@
     },
     {
       "name": "simple_hori_diff",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "float",
       "series": [
         0.000483552,
@@ -2570,7 +2570,7 @@
     },
     {
       "name": "stencil_manual_fold",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.00135168,
@@ -2677,7 +2677,7 @@
     },
     {
       "name": "stencil_manual_fold",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.00076672,
@@ -2784,7 +2784,7 @@
     },
     {
       "name": "stencil_manual_fold",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "double",
       "series": [
         0.00194659,
@@ -2891,7 +2891,7 @@
     },
     {
       "name": "stencil_manual_fold",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "float",
       "series": [
         0.00078048,
@@ -2998,7 +2998,7 @@
     },
     {
       "name": "stencil_on_cells",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.000325824,
@@ -3105,7 +3105,7 @@
     },
     {
       "name": "stencil_on_cells",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.000174144,
@@ -3212,7 +3212,7 @@
     },
     {
       "name": "stencil_on_cells",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "double",
       "series": [
         0.000463936,
@@ -3319,7 +3319,7 @@
     },
     {
       "name": "stencil_on_cells",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "float",
       "series": [
         0.000209888,
@@ -3426,7 +3426,7 @@
     },
     {
       "name": "stencil_on_edges_multiplefields",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.000804672,
@@ -3533,7 +3533,7 @@
     },
     {
       "name": "stencil_on_edges_multiplefields",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.000489472,
@@ -3640,7 +3640,7 @@
     },
     {
       "name": "stencil_on_edges_multiplefields",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "double",
       "series": [
         0.0011079,
@@ -3747,7 +3747,7 @@
     },
     {
       "name": "stencil_on_edges_multiplefields",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "float",
       "series": [
         0.000547648,
@@ -3854,7 +3854,7 @@
     },
     {
       "name": "stencil_on_neighcell_of_edges",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.000410144,
@@ -3961,7 +3961,7 @@
     },
     {
       "name": "stencil_on_neighcell_of_edges",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.000210112,
@@ -4068,7 +4068,7 @@
     },
     {
       "name": "stencil_on_neighcell_of_edges",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "double",
       "series": [
         0.00050128,
@@ -4175,7 +4175,7 @@
     },
     {
       "name": "stencil_on_neighcell_of_edges",
-      "backend": "cuda_horizontal",
+      "backend": "gpu_horizontal",
       "float_type": "float",
       "series": [
         0.000230944,
@@ -4282,7 +4282,7 @@
     },
     {
       "name": "vertical_advection_dycore",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "double",
       "series": [
         0.000901472,
@@ -4389,7 +4389,7 @@
     },
     {
       "name": "vertical_advection_dycore",
-      "backend": "cuda",
+      "backend": "gpu",
       "float_type": "float",
       "series": [
         0.00059264,

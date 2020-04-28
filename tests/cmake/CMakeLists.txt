@@ -16,5 +16,5 @@ endfunction()
 
 if(TARGET _gridtools_cuda)
     # TODO most likely we have to change the test for HIP
-    add_cmake_test(storage_cuda)
+    add_cmake_test(storage_gpu)
 endif()
