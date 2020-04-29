@@ -37,6 +37,6 @@ jobs:
       run: |
         python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
     - name: run tests
-      if: (!contains(matrix.compiler, 'cuda') && !contains(matrix.compiler, 'hip')) # no GPUs available -> not tests
+      if: (!contains(matrix.compiler, 'cuda') && !contains(matrix.compiler, 'hip')) # no GPUs available -> no tests
       run: |
         $(pwd)/build/pyutils/driver.py -vv test --perftests-only
