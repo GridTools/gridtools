@@ -36,7 +36,7 @@ namespace {
         auto in = [](int i, int j, int k) { return i + j + k; };
         std::vector<decltype(TypeParam::make_const_storage(in))> in_storages;
         std::vector<decltype(TypeParam::make_storage())> out_storages;
-        for (std::size_t set = 0; set < 16; ++set) {
+        for (std::size_t set = 0; set < 100; ++set) {
             in_storages.push_back(TypeParam::make_const_storage(in));
             out_storages.push_back(TypeParam::make_storage());
         }
