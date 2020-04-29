@@ -18,14 +18,14 @@ using backend_t = mc::backend;
 using storage_traits_t = storage::mc;
 #endif
 
-constexpr GT_DEVICE dimension<1> i;
-constexpr GT_DEVICE dimension<2> j;
-
 struct lap_function {
     using in = in_accessor<0, extent<-1, 1, -1, 1>>;
     using lap = inout_accessor<1>;
 
     using param_list = make_param_list<in, lap>;
+
+    constexpr static auto i = dimension<1>();
+    constexpr static auto j = dimension<2>();
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &&eval) {

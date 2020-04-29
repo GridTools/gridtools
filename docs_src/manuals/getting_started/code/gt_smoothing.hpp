@@ -22,10 +22,6 @@ using storage_traits_t = storage::mc;
 
 constexpr unsigned halo = 2;
 
-constexpr GT_DEVICE dimension<1> i;
-constexpr GT_DEVICE dimension<2> j;
-constexpr GT_DEVICE dimension<3> k;
-
 using axis_t = axis<2>;
 using lower_domain = axis_t::get_interval<0>;
 using upper_domain = axis_t::get_interval<1>;
@@ -35,6 +31,10 @@ struct lap_function {
     using lap = inout_accessor<1>;
 
     using param_list = make_param_list<in, lap>;
+
+    constexpr static auto i = dimension<1>();
+    constexpr static auto j = dimension<2>();
+    constexpr static auto k = dimension<3>();
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
