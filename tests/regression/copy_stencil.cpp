@@ -34,12 +34,23 @@ namespace {
 
     GT_REGRESSION_TEST(copy_stencil, test_environment<>, stencil_backend_t) {
         auto in = [](int i, int j, int k) { return i + j + k; };
-        auto out = TypeParam::make_storage();
-        auto comp = [&out, grid = TypeParam::make_grid(), in = TypeParam::make_const_storage(in)] {
-            run_single_stage(copy_functor(), stencil_backend_t(), grid, in, out);
+        std::vector<decltype(TypeParam::make_const_storage(in))> in_storages;
+        std::vector<decltype(TypeParam::make_storage())> out_storages;
+        for (std::size_t set = 0; set < 16; ++set) {
+            in_storages.push_back(TypeParam::make_const_storage(in));
+            out_storages.push_back(TypeParam::make_storage());
+        }
+        std::size_t run = 0;
+        auto comp = [&, grid = TypeParam::make_grid()] {
+            run_single_stage(copy_functor(),
+                stencil_backend_t(),
+                grid,
+                in_storages[run % in_storages.size()],
+                out_storages[run % out_storages.size()]);
+            ++run;
         };
         comp();
-        TypeParam::verify(in, out);
+        TypeParam::verify(in, out_storages[0]);
         TypeParam::benchmark("copy_stencil", comp);
     }
 } // namespace
