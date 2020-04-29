@@ -28,7 +28,7 @@ struct lap_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &&eval) {
-        eval(lap()) = eval(-4. * in() + in(1, 0) + in(0, 1) + in(-1, 0) + in(0, -1)); //
+        eval(lap()) = eval(-4. * in() + in(1, 0) + in(0, 1) + in(-1, 0) + in(0, -1));
     }
 };
 
