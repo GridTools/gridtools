@@ -1,21 +1,22 @@
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 
 using namespace gridtools;
+using namespace stencil;
 using namespace cartesian;
 
 #ifdef GT_CUDACC
-#include <gridtools/stencil_composition/backend/cuda.hpp>
-#include <gridtools/storage/cuda.hpp>
-using backend_t = cuda::backend<>;
-using storage_traits_t = storage::cuda;
+#include <gridtools/stencil/gpu.hpp>
+#include <gridtools/storage/gpu.hpp>
+using stencil_backend_t = stencil::gpu<>;
+using storage_traits_t = storage::gpu;
 #else
-#include <gridtools/stencil_composition/backend/mc.hpp>
-#include <gridtools/storage/mc.hpp>
-using backend_t = mc::backend;
-using storage_traits_t = storage::mc;
+#include <gridtools/stencil/cpu_ifirst.hpp>
+#include <gridtools/storage/cpu_ifirst.hpp>
+using stencil_backend_t = stencil::cpu_ifirst<>;
+using storage_traits_t = storage::cpu_ifirst;
 #endif
 
 struct lap_function {
@@ -55,5 +56,5 @@ int main() {
     halo_descriptor boundary_j(halo, halo, halo, Nj - halo - 1, Nj);
     auto grid = make_grid(boundary_i, boundary_j, Nk);
 
-    run_single_stage(lap_function(), backend_t(), grid, phi, lap);
+    run_single_stage(lap_function(), stencil_backend_t(), grid, phi, lap);
 }

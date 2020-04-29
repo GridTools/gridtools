@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/storage/builder.hpp>
-#include <gridtools/storage/cuda.hpp>
+#include <gridtools/storage/gpu.hpp>
 
 #include <multiplet.hpp>
 
@@ -30,7 +30,7 @@ __global__ void mul2(View s) {
 
 TEST(DataViewTest, Simple) {
     // create and allocate a data_store
-    auto ds = storage::builder<storage::cuda>.type<double>().layout<2, 1, 0>().dimensions(c_x, c_y, c_z)();
+    auto ds = storage::builder<storage::gpu>.type<double>().layout<2, 1, 0>().dimensions(c_x, c_y, c_z)();
     // create a rw view and fill with some data
     auto dv = ds->host_view();
     dv(0, 0, 0) = 50;

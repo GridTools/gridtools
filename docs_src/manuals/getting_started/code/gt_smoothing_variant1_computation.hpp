@@ -14,4 +14,4 @@ auto const spec = [](auto phi, auto phi_new, auto lap, auto laplap) {
         .stage(smoothing_function_1(), phi, laplap, phi_new);
 };
 
-run(spec, backend_t(), grid, phi, phi_new, lap, laplap);
+run(spec, stencil_backend_t(), grid, phi, phi_new, lap, laplap);

@@ -7,9 +7,9 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil/cartesian.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 /*
@@ -28,6 +28,7 @@
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
     using namespace expressions;
 
@@ -76,9 +77,9 @@ namespace {
 
     template <class>
     using tridiagonal = ::testing::Test;
-    using tridiagonal_types_t = meta::if_<env_t::is_enabled<backend_t>,
-        ::testing::Types<env_t::apply<backend_t, double, ::gridtools::inlined_params<12, 33, 6>>,
-            env_t::apply<backend_t, double, ::gridtools::inlined_params<23, 11, 6>>>,
+    using tridiagonal_types_t = meta::if_<env_t::is_enabled<stencil_backend_t>,
+        ::testing::Types<env_t::apply<stencil_backend_t, double, inlined_params<12, 33, 6>>,
+            env_t::apply<stencil_backend_t, double, inlined_params<23, 11, 6>>>,
         ::testing::Types<>>;
     TYPED_TEST_SUITE(tridiagonal, tridiagonal_types_t);
     TYPED_TEST(tridiagonal, test) {
@@ -88,7 +89,7 @@ namespace {
                 return multi_pass(execute_forward().stage(forward_thomas(), inf, diag, sup, rhs),
                     execute_backward().stage(backward_thomas(), out, sup, rhs));
             },
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             TypeParam::make_storage(-1),
             TypeParam::make_storage(3),

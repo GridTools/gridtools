@@ -13,9 +13,9 @@
 #include <cpp_bindgen/fortran_array_view.hpp>
 #include <gridtools/storage/adapter/fortran_array_adapter.hpp>
 #include <gridtools/storage/builder.hpp>
-#include <gridtools/storage/x86.hpp>
+#include <gridtools/storage/cpu_kfirst.hpp>
 
-const auto builder = gridtools::storage::builder<gridtools::storage::x86>.type<double>();
+const auto builder = gridtools::storage::builder<gridtools::storage::cpu_kfirst>.type<double>();
 
 TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
     constexpr size_t x_size = 6;

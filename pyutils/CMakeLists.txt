@@ -10,20 +10,20 @@ else()
     set(PYUTILS_COMPILER "${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_VERSION}")
 endif()
 
-if(TARGET backend_x86)
-    list(APPEND PYUTILS_BACKEND "x86")
+if(TARGET stencil_cpu_kfirst)
+    list(APPEND PYUTILS_BACKEND "cpu_kfirst")
 endif()
 
-if(TARGET backend_naive)
+if(TARGET stencil_naive)
     list(APPEND PYUTILS_BACKEND "naive")
 endif()
 
-if(TARGET backend_cuda)
-    list(APPEND PYUTILS_BACKEND "cuda")
+if(TARGET stencil_gpu)
+    list(APPEND PYUTILS_BACKEND "gpu")
 endif()
 
-if(TARGET backend_mc)
-    list(APPEND PYUTILS_BACKEND "mc")
+if(TARGET stencil_cpu_ifirst)
+    list(APPEND PYUTILS_BACKEND "cpu_ifirst")
 endif()
 
 file(COPY . DESTINATION . FILES_MATCHING PATTERN *.py)

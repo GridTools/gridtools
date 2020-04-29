@@ -15,5 +15,5 @@ function(add_cmake_test name)
 endfunction()
 
 if(TARGET _gridtools_cuda)
-    add_cmake_test(storage_cuda)
+    add_cmake_test(storage_gpu)
 endif()
