@@ -19,8 +19,8 @@
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/timer/timer.hpp>
 #include <gridtools/meta.hpp>
-#include <gridtools/stencil_composition/frontend/axis.hpp>
-#include <gridtools/stencil_composition/frontend/make_grid.hpp>
+#include <gridtools/stencil/frontend/axis.hpp>
+#include <gridtools/stencil/frontend/make_grid.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
 
@@ -75,7 +75,7 @@ namespace gridtools {
         };
 
         template <size_t Halo = 0,
-            class Axis = axis<1>,
+            class Axis = stencil::axis<1>,
             class Pred = meta::always<std::true_type>,
             class = std::make_index_sequence<Axis::n_intervals>>
         struct test_environment;
@@ -90,11 +90,11 @@ namespace gridtools {
             using apply = decltype(backend_supports_icosahedral(Backend()));
         };
 
-        template <size_t Halo = 0, class Axis = axis<1>>
+        template <size_t Halo = 0, class Axis = stencil::axis<1>>
         using vertical_test_environment = test_environment<Halo, Axis, vertical_stencil>;
 
         template <size_t Halo = 0>
-        using icosahedral_test_environment = test_environment<Halo, axis<1>, icosahedral_stencil>;
+        using icosahedral_test_environment = test_environment<Halo, stencil::axis<1>, icosahedral_stencil>;
 
         template <size_t Halo, class Axis, class Pred, size_t... Is>
         struct test_environment<Halo, Axis, Pred, std::index_sequence<Is...>> {
@@ -114,7 +114,7 @@ namespace gridtools {
 
                 static auto make_grid() {
                     auto halo_desc = [](auto d) { return halo_descriptor(Halo, Halo, Halo, d - Halo - 1, d); };
-                    return ::gridtools::make_grid(halo_desc(d(0)), halo_desc(d(1)), Axis(d(2 + Is)...));
+                    return stencil::make_grid(halo_desc(d(0)), halo_desc(d(1)), Axis(d(2 + Is)...));
                 }
 
                 template <class Expected, class Actual, class EqualTo = default_equal_to<typename Actual::element_type>>

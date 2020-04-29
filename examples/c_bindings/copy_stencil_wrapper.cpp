@@ -9,7 +9,7 @@
  */
 // In this example, we demonstrate how the cpp_bindgen library can be used to export functions to C and Fortran. We are
 // going to export the functions required to run a simple copy stencil (see also the commented example in
-// examples/stencil_composition/copy_stencil.cpp)
+// examples/stencil/copy_stencil.cpp)
 
 #include <cassert>
 #include <functional>
@@ -17,7 +17,7 @@
 #include <cpp_bindgen/export.hpp>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/storage/adapter/fortran_array_adapter.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/sid.hpp>
@@ -25,19 +25,20 @@
 #ifdef GT_CUDACC
 #include <gridtools/common/cuda_runtime.hpp>
 #include <gridtools/common/cuda_util.hpp>
-#include <gridtools/stencil_composition/backend/cuda.hpp>
-#include <gridtools/storage/cuda.hpp>
-using backend_t = gridtools::cuda::backend<>;
-using storage_traits_t = gridtools::storage::cuda;
+#include <gridtools/stencil/gpu.hpp>
+#include <gridtools/storage/gpu.hpp>
+using stencil_backend_t = gridtools::stencil::gpu<>;
+using storage_traits_t = gridtools::storage::gpu;
 #else
-#include <gridtools/stencil_composition/backend/mc.hpp>
-#include <gridtools/storage/mc.hpp>
-using backend_t = gridtools::mc::backend<>;
-using storage_traits_t = gridtools::storage::mc;
+#include <gridtools/stencil/cpu_ifirst.hpp>
+#include <gridtools/storage/cpu_ifirst.hpp>
+using stencil_backend_t = gridtools::stencil::cpu_ifirst<>;
+using storage_traits_t = gridtools::storage::cpu_ifirst;
 #endif
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct copy_functor {
@@ -62,7 +63,7 @@ namespace {
         assert(in->lengths() == out->lengths());
         auto &&lengths = out->lengths();
         auto grid = make_grid(lengths[0], lengths[1], lengths[2]);
-        run_single_stage(copy_functor(), backend_t(), grid, in, out);
+        run_single_stage(copy_functor(), stencil_backend_t(), grid, in, out);
 #ifdef GT_CUDACC
         GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif

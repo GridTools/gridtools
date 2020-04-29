@@ -63,7 +63,7 @@ class data_store {
 ### Data View Synopsis
 
 Data view is a supplemental struct that is returned form data store access methods. The distinctive property:
-data view is a POD. Hence it can be passed to the target device by copying the memory. For the cuda data stores
+data view is a POD. Hence it can be passed to the target device by copying the memory. For the gpu data stores
 all data view methods are declared as device only.
 
 ```C++
@@ -95,7 +95,7 @@ The idea is that the user takes a builder with the desired traits, customize it 
 calls `build()` method (or alternatively overloaded call operator) to produce `std::shared_ptr` to a data store.
 For example:
 ```C++
-auto ds = storage::builder<storage::cuda>
+auto ds = storage::builder<storage::gpu>
         .type<double>()
         .name("my special data")
         .dimensions(132, 132, 80)
@@ -109,7 +109,7 @@ assert(ds->const_host_view()(1, 2, 3) == 42);
 ```
 One can also use partially specified builder to produce several data stores:
 ```C++
-auto const my_builder = storage::builder<storage::cuda>.dimensions(10, 10, 10);
+auto const my_builder = storage::builder<storage::gpu>.dimensions(10, 10, 10);
 auto foo = my_builder.type<int>().name("foo")();
 auto bar = my_builder.type<tuple<int, double>>()();
 auto baz = my_builder.type<double const>.initialize([](int i, int j, int k){ return i + j + k; })();
@@ -118,8 +118,8 @@ This API implements advanced variation of the builder design pattern. Unlike cla
 return `*this` but the new instance of potentially different class is returned. Because of that the improper usage
 of builder is caught in compile time:
 ```C++
-auto bad0 = builder<mc>.type<double>().build() // compilation failure: dimensions should be set.
-auto bad1 = builder<mc>.type<int>().dimensions(10).value(42).initialize([](int i) { return i;})();
+auto bad0 = builder<cpu_ifirst>.type<double>().build() // compilation failure: dimensions should be set.
+auto bad1 = builder<cpu_ifirst>.type<int>().dimensions(10).value(42).initialize([](int i) { return i;})();
 // compilation failure: value and initialize setters are mutually exclusive
 ```
 
@@ -171,8 +171,8 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
     ```C++
     // We have two different sizes that we use in our computation.
     // Hence we prepare two partially specified builders.  
-    auto const builder_a = builder<cuda>.id<0>.dimensions(3, 4, 5);
-    auto const builder_b = builder<cuda>.id<1>.dimensions(5, 6, 7);
+    auto const builder_a = builder<gpu>.id<0>.dimensions(3, 4, 5);
+    auto const builder_b = builder<gpu>.id<1>.dimensions(5, 6, 7);
     
     // We use our builders to make some data_stores.
     auto a_0 = builder_a.type<double>().build();
@@ -196,7 +196,7 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
     innermost index will be aligned as well.
   - `selector` allows to mask out any dimension or several. Example:
     ```C++
-    auto ds = builder<mc>.type<int>().selector<1,0>().dimensions(10, 10).value(-1);
+    auto ds = builder<cpu_ifirst>.type<int>().selector<1,0>().dimensions(10, 10).value(-1);
     auto view = ds->host_view();
     // even though the second dimension is masked out we can used indices in the defined range;
     assert(ds->lengths()[1], 10);  
@@ -208,7 +208,7 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
   - `layout`. By default the data layout is controlled by `Traits`. However it is overridable with
      the `layout` setter. Example:
      ```C++
-     auto ds0 = builder<cuda>
+     auto ds0 = builder<gpu>
          .type<int>()
          .layout<0, 2, 4, 1, 3>()
          .dimensions(10, 10, 10, 10, 10)
@@ -220,11 +220,11 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
  
  Builder API needs a traits type to instantiate the `builder` object. In order to be used in this context
  this type should model `Storage Traits Concept`. The library comes with three predefined traits:
-   - [x86](x86.hpp). Layout is chosen to benefit from data locality while doing 3D loop.
+   - [cpu_kfirst](cpu_kfirst.hpp). Layout is chosen to benefit from data locality while doing 3D loop.
      `malloc` allocation. No alignment. `target` and `host` spaces are same. 
-   - [mc](mc.hpp).  Huge page allocation. `64 bytes` alignment. Layout is tailored to utilize vectorization while
+   - [cpu_ifirst](cpu_ifirst.hpp).  Huge page allocation. `64 bytes` alignment. Layout is tailored to utilize vectorization while
      3D looping. `target` and `host` spaces are same.
-   - [cuda](cuda.hpp). Tailored for GPU. `target` and `host` spaces are different.
+   - [gpu](gpu.hpp). Tailored for GPU. `target` and `host` spaces are different.
    
  Each traits resides in its own header. Note that the [builder.hpp](builder.hpp) doesn't include specific
  traits headers.  To use a particular trait the user should include the correspondent header.
@@ -246,7 +246,7 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
         
  ## SID Concept Adaptation
  
- [Stencil Composition Library](../stencil_composition) doesn't use `Storage Library` directly.
+ [Stencil Composition Library](../stencil) doesn't use `Storage Library` directly.
  Instead [SID Concept](../sid) is used to specify the requirements on input/output fields.
  `Data store` models `SID` if [sid.hpp](sid.hpp) header is included.
  
