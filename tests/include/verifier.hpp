@@ -62,8 +62,8 @@ namespace gridtools {
             return fun(tuple_util::get<Is>(indices)...);
         }
         template <class F, class Indices>
-        auto apply(F const &fun, Indices const &indices)
-            -> decltype(apply_impl(fun, indices, std::make_index_sequence<tuple_util::size<Indices>::value>())) {
+        auto apply(F const &fun, Indices const &indices) -> decltype(
+            verify_impl_::apply_impl(fun, indices, std::make_index_sequence<tuple_util::size<Indices>::value>())) {
             return apply_impl(fun, indices, std::make_index_sequence<tuple_util::size<Indices>::value>());
         }
 
@@ -71,8 +71,9 @@ namespace gridtools {
         struct is_view_compatible : std::false_type {};
 
         template <class F, size_t N>
-        struct is_view_compatible<F, N, void_t<decltype(apply(std::declval<F const &>(), array<size_t, N>{}))>>
-            : std::true_type {};
+        struct is_view_compatible<F,
+            N,
+            void_t<decltype(verify_impl_::apply(std::declval<F const &>(), array<size_t, N>{}))>> : std::true_type {};
 
         struct float_equal_to {
             template <class T>
@@ -101,8 +102,8 @@ namespace gridtools {
             static constexpr size_t err_lim = 20;
             size_t err_count = 0;
             for (auto &&pos : make_hypercube_view(bounds)) {
-                auto a = apply(view, pos);
-                decltype(a) e = apply(expected, pos);
+                auto a = verify_impl_::apply(view, pos);
+                decltype(a) e = verify_impl_::apply(expected, pos);
                 if (equal_to(e, a))
                     continue;
                 if (err_count < err_lim)
