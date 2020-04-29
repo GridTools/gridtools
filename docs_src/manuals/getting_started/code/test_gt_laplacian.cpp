@@ -6,6 +6,7 @@
 using namespace gridtools;
 using namespace stencil;
 using namespace cartesian;
+using namespace expressions;
 
 #ifdef GT_CUDACC
 #include <gridtools/stencil/gpu.hpp>
@@ -25,16 +26,9 @@ struct lap_function {
 
     using param_list = make_param_list<in, lap>;
 
-    constexpr static auto i = dimension<1>();
-    constexpr static auto j = dimension<2>();
-
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &&eval) {
-        eval(lap(i, j)) = -4 * eval(in(i, j))   //
-                          + eval(in(i + 1, j))  //
-                          + eval(in(i, j + 1))  //
-                          + eval(in(i - 1, j))  //
-                          + eval(in(i, j - 1)); //
+        eval(lap()) = eval(-4. * in() + in(1, 0) + in(0, 1) + in(-1, 0) + in(0, -1)); //
     }
 };
 

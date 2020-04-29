@@ -7,18 +7,13 @@ struct smoothing_function_1 {
 
     constexpr static double alpha = 0.5;
 
-    constexpr static auto i = dimension<1>();
-    constexpr static auto j = dimension<2>();
-    constexpr static auto k = dimension<3>();
-
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, lower_domain) {
-        eval(out(i, j, k)) = eval(phi(i, j, k)) //
-                             - alpha * eval(laplap(i, j, k));
+        eval(out()) = eval(phi() - alpha * laplap());
     }
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, upper_domain) {
-        eval(out(i, j, k)) = eval(phi(i, j, k));
+        eval(out()) = eval(phi());
     }
 };
