@@ -102,7 +102,7 @@ if buildinfo:
               metavar=('ISIZE', 'JSIZE', 'KSIZE'),
               help='domain size (excluding halo)')
     @args.arg('--runs',
-              default=1000,
+              default=100,
               type=int,
               help='number of runs to do for each stencil')
     @args.arg('--output',
