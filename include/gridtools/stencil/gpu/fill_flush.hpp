@@ -18,6 +18,7 @@
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
+#include "../../meta.hpp"
 #include "../../sid/concept.hpp"
 #include "../be_api.hpp"
 #include "../common/caches.hpp"
@@ -232,7 +233,7 @@ namespace gridtools {
                         static constexpr int_t minus = PlhInfo::extent_t::kminus::value;
                         static constexpr int_t plus = PlhInfo::extent_t::kplus::value;
                         static constexpr bool close_to_first =
-                            levels_are_close<meta::fisrt<FirstInterval>, meta::second<CurInterval>, -minus>::value;
+                            levels_are_close<meta::first<FirstInterval>, meta::second<CurInterval>, -minus>::value;
                         static constexpr bool close_to_last =
                             levels_are_close<meta::first<CurInterval>, meta::second<LastInterval>, plus>::value;
                         static constexpr bool is_forward = !be_api::is_backward<Execution>::value;

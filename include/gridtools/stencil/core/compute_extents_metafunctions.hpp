@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../../meta.hpp"
+#include "../common/extent.hpp"
 #include "esf_metafunctions.hpp"
 #include "mss.hpp"
 
