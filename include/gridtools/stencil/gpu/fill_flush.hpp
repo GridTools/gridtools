@@ -231,12 +231,10 @@ namespace gridtools {
                         static constexpr bool is_last = std::is_same<LastInterval, CurInterval>::value;
                         static constexpr int_t minus = PlhInfo::extent_t::kminus::value;
                         static constexpr int_t plus = PlhInfo::extent_t::kplus::value;
-                        static constexpr bool close_to_first = levels_are_close<typename FirstInterval::FromLevel,
-                            typename CurInterval::ToLevel,
-                            -minus>::value;
-                        static constexpr bool close_to_last = levels_are_close<typename CurInterval::FromLevel,
-                            typename LastInterval::ToLevel,
-                            plus>::value;
+                        static constexpr bool close_to_first =
+                            levels_are_close<meta::fisrt<FirstInterval>, meta::second<CurInterval>, -minus>::value;
+                        static constexpr bool close_to_last =
+                            levels_are_close<meta::first<CurInterval>, meta::second<LastInterval>, plus>::value;
                         static constexpr bool is_forward = !be_api::is_backward<Execution>::value;
 
                         static constexpr bool sync_all = is_forward == is_fill ? is_first : is_last;

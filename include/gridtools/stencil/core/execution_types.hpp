@@ -13,7 +13,6 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/integral_constant.hpp"
-#include "../../meta/type_traits.hpp"
 
 namespace gridtools {
     namespace stencil {
@@ -33,9 +32,6 @@ namespace gridtools {
 
             template <class T>
             constexpr integral_constant<int_t, is_backward<T>::value ? -1 : 1> step = {};
-
-            template <class T>
-            using is_execution_engine = disjunction<is_parallel<T>, is_backward<T>, is_forward<T>>;
         } // namespace core
     }     // namespace stencil
 } // namespace gridtools

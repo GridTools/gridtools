@@ -147,14 +147,29 @@ namespace gridtools {
             }
 
             template <size_t Factor, class Comp, class Backend, class Grid, class... Fields, size_t... Is>
-            void run_impl(Comp comp, Backend, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields) {
+            auto run_impl(Comp comp, Backend, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields)
+                -> void_t<decltype(comp(make_arg<Is, Fields>()...))> {
                 using spec_t = decltype(comp(make_arg<Is, Fields>()...));
+                static_assert(meta::is_instantiation_of<frontend_impl_::spec, spec_t>::value,
+                    "Invalid stencil composition specification.");
+                static_assert(
+                    meta::is_instantiation_of<core::interval, typename Grid::interval_t>::value, "Invalid grid.");
+                using functors_t = meta::transform<meta::first, meta::flatten<meta::transform<meta::second, spec_t>>>;
+                using dummy_t = meta::transform<meta::curry<meta::force<frontend_impl_::functor_validator>::apply,
+                                                    typename Grid::interval_t>::template apply,
+                    functors_t>;
+
                 size_t size = get_expandable_size(fields...);
                 size_t offset = 0;
                 for (; size - offset >= Factor; offset += Factor)
                     expanded_run<Factor, spec_t, Backend, Is...>(grid, offset, fields...);
                 for (; offset < size; ++offset)
                     expanded_run<1, spec_t, Backend, Is...>(grid, offset, fields...);
+            }
+
+            template <size_t, class... Ts>
+            void run_impl(Ts...) {
+                static_assert(sizeof...(Ts) < 0, "Unexpected gridtools::stencil::expandable_run first argument.");
             }
 
             template <size_t Factor, class Comp, class Backend, class Grid, class... Fields>

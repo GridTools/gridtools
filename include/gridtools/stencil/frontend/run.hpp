@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <limits>
+#include <type_traits>
 #include <utility>
 
 #include "../../common/generic_metafunctions/for_each.hpp"
@@ -20,16 +21,66 @@
 #include "../../sid/concept.hpp"
 #include "../common/caches.hpp"
 #include "../common/dim.hpp"
+#include "../common/extent.hpp"
+#include "../common/intent.hpp"
 #include "../core/backend.hpp"
 #include "../core/cache_info.hpp"
 #include "../core/compute_extents_metafunctions.hpp"
 #include "../core/esf.hpp"
 #include "../core/execution_types.hpp"
+#include "../core/functor_metafunctions.hpp"
+#include "../core/is_tmp_arg.hpp"
 #include "../core/mss.hpp"
 
 namespace gridtools {
     namespace stencil {
         namespace frontend_impl_ {
+            template <class, class = void>
+            struct has_param_list : std::false_type {};
+
+            template <class T>
+            struct has_param_list<T, void_t<typename T::param_list>> : std::true_type {};
+
+            template <class, class = void>
+            struct is_accessor : std::false_type {};
+
+            template <class T>
+            struct is_accessor<T,
+                std::enable_if_t<is_extent<typename T::extent_t>::value &&
+                                 std::is_convertible<decltype(T::index_t::value), size_t>::value &&
+                                 std::is_same<intent, std::decay_t<decltype(T::intent_v)>>::value>> : std::true_type {};
+
+            template <class Param>
+            using param_index = std::integral_constant<size_t, Param::index_t::value>;
+
+            template <class ParamList,
+                class Actual = meta::rename<meta::list, meta::transform<param_index, ParamList>>,
+                class Expected = meta::make_indices_for<ParamList>>
+            using check_param_list = std::is_same<Actual, Expected>;
+
+            template <class F, class... Args>
+            struct validate_functor {
+                static_assert(has_param_list<F>::value,
+                    "The type param_list was not found in a user functor definition. All user functors must have a "
+                    "type alias called \'param_list\', which is an instantiation of \'make_param_list\' accessors "
+                    "defined in the functor Example:\n using v1=in_accessor<0>;\n using v2=inout_accessor<1>;\n "
+                    "using param_list=make_param_list<v1, v2>;\n");
+
+                static_assert(meta::is_list<typename F::param_list>::value, "param_list must be a type list.");
+
+                static_assert(meta::all_of<is_accessor, typename F::param_list>::value,
+                    "All members of param_list must be accessors.");
+
+                static_assert(check_param_list<typename F::param_list>::value,
+                    "The list of accessors in a user functor (i.e. the param_list type to be defined on each functor) "
+                    "does not have increasing index");
+
+                static_assert(meta::length<typename F::param_list>::value == sizeof...(Args),
+                    "The number of actual arguments should match the number of parameters.");
+
+                using type = F;
+            };
+
             template <class...>
             struct spec {};
 
@@ -37,17 +88,21 @@ namespace gridtools {
             struct spec<core::mss_descriptor<ExecutionType, Esfs, Caches>> {
                 template <class F, class... Args>
                 constexpr spec<core::mss_descriptor<ExecutionType,
-                    meta::push_back<Esfs, core::esf_descriptor<F, meta::list<Args...>, void>>,
+                    meta::push_back<Esfs,
+                        core::esf_descriptor<typename validate_functor<F, Args...>::type, meta::list<Args...>, void>>,
                     Caches>>
                 stage(F, Args...) const {
                     return {};
                 }
 
-                template <class Extent, class F, class... Args>
+                template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, class F, class... Args>
                 constexpr spec<core::mss_descriptor<ExecutionType,
-                    meta::push_back<Esfs, core::esf_descriptor<F, meta::list<Args...>, Extent>>,
+                    meta::push_back<Esfs,
+                        core::esf_descriptor<typename validate_functor<F, Args...>::type,
+                            meta::list<Args...>,
+                            extent<IMinus, IPlus, JMinus, JPlus>>>,
                     Caches>>
-                stage_with_extent(Extent, F, Args...) const {
+                stage_with_extent(extent<IMinus, IPlus, JMinus, JPlus>, F, Args...) const {
                     return {};
                 }
             };
@@ -57,11 +112,21 @@ namespace gridtools {
                 template <class... Args>
                 constexpr empty_spec<ExecutionType, Caches..., core::cache_info<Args, meta::list<cache_type::ij>>...>
                 ij_cached(Args...) const {
+                    static_assert(meta::is_set<meta::list<Args...>>::value, "Duplicated arguments.");
+                    static_assert(
+                        meta::is_set<meta::list<typename Caches::plh_t..., Args...>>::value, "Duplicated caches.");
+                    static_assert(
+                        conjunction<core::is_tmp_arg<Args>...>::value, "Only temporary args can be IJ-cached.");
                     return {};
                 }
                 template <class... Args>
                 constexpr empty_spec<ExecutionType, Caches..., core::cache_info<Args, meta::list<cache_type::k>>...>
                 k_cached(Args...) const {
+                    static_assert(meta::is_set<meta::list<Args...>>::value, "Duplicated arguments.");
+                    static_assert(
+                        meta::is_set<meta::list<typename Caches::plh_t..., Args...>>::value, "Duplicated caches.");
+                    static_assert(conjunction<core::is_tmp_arg<Args>...>::value,
+                        "Only temporary args can be K-cached without fill or flush policies.");
                     return {};
                 }
                 template <class... Args>
@@ -69,6 +134,9 @@ namespace gridtools {
                     Caches...,
                     core::cache_info<Args, meta::list<cache_type::k>, meta::list<cache_io_policy::flush>>...>
                 k_cached(cache_io_policy::flush, Args...) const {
+                    static_assert(meta::is_set<meta::list<Args...>>::value, "Duplicated arguments.");
+                    static_assert(
+                        meta::is_set<meta::list<typename Caches::plh_t..., Args...>>::value, "Duplicated caches.");
                     return {};
                 }
                 template <class... Args>
@@ -76,6 +144,9 @@ namespace gridtools {
                     Caches...,
                     core::cache_info<Args, meta::list<cache_type::k>, meta::list<cache_io_policy::fill>>...>
                 k_cached(cache_io_policy::fill, Args...) const {
+                    static_assert(meta::is_set<meta::list<Args...>>::value, "Duplicated arguments.");
+                    static_assert(
+                        meta::is_set<meta::list<typename Caches::plh_t..., Args...>>::value, "Duplicated caches.");
                     return {};
                 }
                 template <class... Args>
@@ -85,6 +156,9 @@ namespace gridtools {
                         meta::list<cache_type::k>,
                         meta::list<cache_io_policy::fill, cache_io_policy::flush>>...>
                 k_cached(cache_io_policy::fill, cache_io_policy::flush, Args...) const {
+                    static_assert(meta::is_set<meta::list<Args...>>::value, "Duplicated arguments.");
+                    static_assert(
+                        meta::is_set<meta::list<typename Caches::plh_t..., Args...>>::value, "Duplicated caches.");
                     return {};
                 }
                 template <class... Args>
@@ -94,6 +168,9 @@ namespace gridtools {
                         meta::list<cache_type::k>,
                         meta::list<cache_io_policy::fill, cache_io_policy::flush>>...>
                 k_cached(cache_io_policy::flush, cache_io_policy::fill, Args...) const {
+                    static_assert(meta::is_set<meta::list<Args...>>::value, "Duplicated arguments.");
+                    static_assert(
+                        meta::is_set<meta::list<typename Caches::plh_t..., Args...>>::value, "Duplicated caches.");
                     return {};
                 }
             };
@@ -102,17 +179,38 @@ namespace gridtools {
             constexpr empty_spec<core::forward> execute_forward() { return {}; }
             constexpr empty_spec<core::backward> execute_backward() { return {}; }
 
-            template <class... Msses>
-            constexpr spec<Msses...> multi_pass(spec<Msses>...) {
+            template <class Mss, class... Msses>
+            constexpr spec<Mss, Msses...> multi_pass(spec<Mss>, spec<Msses>...) {
                 return {};
+            }
+
+            template <class... Ts>
+            void multi_pass(Ts...) {
+                static_assert(sizeof...(Ts) < 0, "Unexpected arguments of gridtools::stencil::multi_pass.");
             }
 
             template <size_t>
             struct arg {};
 
+            template <class Interval, class F>
+            struct functor_validator {
+                static_assert(core::is_valid_functor<F, Interval>::value, "Invalid elementary functor");
+                using type = void;
+            };
+
             template <class Comp, class Backend, class Grid, class... Fields, size_t... Is>
-            void run_impl(Comp comp, Backend, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields) {
+            auto run_impl(Comp comp, Backend, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields)
+                -> void_t<decltype(comp(arg<Is>()...))> {
                 using spec_t = decltype(comp(arg<Is>()...));
+                static_assert(
+                    meta::is_instantiation_of<spec, spec_t>::value, "Invalid stencil composition specification.");
+                static_assert(
+                    meta::is_instantiation_of<core::interval, typename Grid::interval_t>::value, "Invalid grid.");
+                using functors_t = meta::transform<meta::first, meta::flatten<meta::transform<meta::second, spec_t>>>;
+                using dummy_t = meta::transform<
+                    meta::curry<meta::force<functor_validator>::apply, typename Grid::interval_t>::template apply,
+                    functors_t>;
+
                 using entry_point_t = core::backend_entry_point_f<Backend, spec_t>;
                 using data_store_map_t = typename hymap::keys<arg<Is>...>::template values<Fields &...>;
 #ifndef NDEBUG
@@ -138,6 +236,11 @@ namespace gridtools {
                 (void)(int[]){check_bounds(arg<Is>(), fields)...};
 #endif
                 entry_point_t()(grid, data_store_map_t{fields...});
+            }
+
+            template <class... Ts>
+            void run_impl(Ts...) {
+                static_assert(sizeof...(Ts) < 0, "Unexpected gridtools::stencil::run first argument.");
             }
 
             template <class Comp, class Backend, class Grid, class... Fields>

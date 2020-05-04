@@ -30,32 +30,21 @@ namespace gridtools {
              * @struct Interval
              * Structure defining a closed interval on an axis given two levels
              */
-            template <class TFromLevel, class TToLevel>
-            struct interval {
-                // HACK allow implicit conversion from the from level to any interval starting with the from level
-                // (due to this trick we can search all do method overloads starting at a given from position)
-                interval() = default;
-                interval(TFromLevel);
+            template <class, class>
+            struct interval;
 
-                // check the parameters are of type level
-                static_assert(is_level<TFromLevel>::value, "check the first template parameter is of type level");
-                static_assert(is_level<TToLevel>::value, "check the second template parameter is of type level");
-
+            template <uint_t FromSplitter, int_t FromOffset, uint_t ToSplitter, int_t ToOffset, int_t OffsetLimit>
+            struct interval<level<FromSplitter, FromOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>> {
                 // check the from level is lower or equal to the to level
-                static_assert(
-                    TFromLevel::splitter < TToLevel::splitter ||
-                        (TFromLevel::splitter == TToLevel::splitter && TFromLevel::offset <= TToLevel::offset),
+                static_assert(FromSplitter < ToSplitter || (FromSplitter == ToSplitter && FromOffset <= ToOffset),
                     "check the from level is lower or equal to the to level");
-                static_assert(TFromLevel::offset_limit == TToLevel::offset_limit, "levels must have same offset limit");
-                static constexpr int_t offset_limit = TFromLevel::offset_limit;
-
-                // define the from and to splitter indexes
-                typedef TFromLevel FromLevel;
-                typedef TToLevel ToLevel;
+                static constexpr int_t offset_limit = OffsetLimit;
 
                 // User API: helper to access the first and last level as an interval
-                using first_level = interval<TFromLevel, TFromLevel>;
-                using last_level = interval<TToLevel, TToLevel>;
+                using first_level = interval<level<FromSplitter, FromOffset, OffsetLimit>,
+                    level<FromSplitter, FromOffset, OffsetLimit>>;
+                using last_level =
+                    interval<level<ToSplitter, ToOffset, OffsetLimit>, level<ToSplitter, ToOffset, OffsetLimit>>;
 
                 /**
                  * @brief returns an interval where the boundaries are modified according to left and right
@@ -64,55 +53,21 @@ namespace gridtools {
                  */
                 template <int_t left, int_t right>
                 struct modify_impl {
-                    static_assert(add_offset(TFromLevel::offset, left) >= -TFromLevel::offset_limit &&
-                                      add_offset(TToLevel::offset, right) <= TFromLevel::offset_limit,
+                    static_assert(
+                        add_offset(FromOffset, left) >= -OffsetLimit && add_offset(ToOffset, right) <= OffsetLimit,
                         "You are trying to modify an interval to increase beyond its maximal offset.");
-                    static_assert(TFromLevel::splitter < TToLevel::splitter ||
-                                      add_offset(TFromLevel::offset, left) <= add_offset(TToLevel::offset, right),
+                    static_assert(
+                        FromSplitter < ToSplitter || add_offset(FromOffset, left) <= add_offset(ToOffset, right),
                         "You are trying to modify an interval such that the result is an empty interval(left boundary "
-                        "> "
-                        "right "
-                        "boundary).");
-                    using type = interval<
-                        level<TFromLevel::splitter, add_offset(TFromLevel::offset, left), TFromLevel::offset_limit>,
-                        level<TToLevel::splitter, add_offset(TToLevel::offset, right), TToLevel::offset_limit>>;
+                        "> right boundary).");
+                    using type = interval<level<FromSplitter, add_offset(FromOffset, left), OffsetLimit>,
+                        level<ToSplitter, add_offset(ToOffset, right), OffsetLimit>>;
                 };
                 template <int_t left, int_t right>
                 using modify = typename modify_impl<left, right>::type;
                 template <int_t dir>
                 using shift = modify<dir, dir>;
             };
-
-            /**
-             * @struct is_interval
-             * Trait returning true it the template parameter is an interval
-             */
-            template <class T>
-            using is_interval = meta::is_instantiation_of<interval, T>;
-
-            /**
-             * @struct interval_from_index
-             * Meta function returning the interval from level index
-             */
-            template <class Index, class Level = index_to_level<Index>>
-            using interval_from_index = interval<Level, Level>;
-
-            /**
-             * @struct interval_to_index
-             * Meta function returning the interval to level index
-             */
-            template <class>
-            struct interval_to_index;
-
-            template <class TFromLevel, class TToLevel>
-            struct interval_to_index<interval<TFromLevel, TToLevel>> : level_to_index<TToLevel> {};
-
-            /**
-             * @struct make_interval
-             * Meta function computing an interval given a from and a to level index
-             */
-            template <class FromIndex, class ToIndex>
-            using make_interval = interval<index_to_level<FromIndex>, index_to_level<ToIndex>>;
 
             namespace lazy {
                 template <class...>
