@@ -32,13 +32,13 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 | Compiler | Backend | Tested on |
 | --- | --- | --- |
-| NVCC 9.2 with GNU 5.3 | cuda | Piz Daint |
+| NVCC 10.1 with GNU 6.2.2 | cuda | Piz Daint |
 | GNU 7.3.0 | x86, mc | Piz Daint |
 | Clang 7.0.1 | x86, mc | Piz Daint |
 
 ##### Known issues
 
-- Intel is able to compile GridTools code, but depending on user code, might have severe performance problems compared to GNU- or Clang-compiled code.
+- Intel might be able to compile GridTools code, but depending on user code, can have severe performance problems compared to GNU- or Clang-compiled code.
 
 ##### Officially not supported (no workarounds implemented and planned)
 
@@ -48,6 +48,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 | NVCC <= 9.1 with GNU 6.x | cuda | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
 | PGI 18.5 | x86 | 2018-12-06 | no effort to fix compilation
 | Cray 8.7.3 | x86 | 2018-12-06 | no effort to fix compilation
+| Intel 19.0.1 | all backends | 2020-05-05 | no effort to fix compilation
 
 ### Contributing
 
