@@ -28,9 +28,6 @@ namespace gridtools {
                 };
 
             } // namespace stage_impl_
-            template <class Functor, class Keys>
-            using stage = typename stage_impl_::meta_stage<typename Functor::param_list>::template apply<Functor, Keys>;
-
             template <class Functors, class Keys>
             using make_stages = meta::transform<stage_impl_::make_stage_f<Keys>::template apply, Functors>;
         } // namespace core
