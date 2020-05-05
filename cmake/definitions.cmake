@@ -157,9 +157,9 @@ endif()
 # TODO: Move to separate file?
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # TODO add those flags to documentation (slightly improve performance)
-    target_compile_options(GridToolsTest INTERFACE -qopt-subscript-in-range -qoverride-limits)
+    target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-qopt-subscript-in-range -qoverride-limits>)
     # disable failed vectorization warnings for OpenMP SIMD loops
-    target_compile_options(GridToolsTest INTERFACE -diag-disable=15518,15552)
+    target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-diag-disable=15518,15552>)
 endif()
 
 ## performance meters ##
