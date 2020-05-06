@@ -84,11 +84,11 @@ namespace gridtools {
                         split_interval<interval<index_to_level<level_index<0, Interval::offset_limit>>,
                             meta::second<Interval>>>>>>;
 
-                template <class, class Lhs, class Rhs>
+                template <class F, class Lhs, class Rhs>
                     struct intersection_detector
                     : bool_constant <
                       level_to_index<meta::second<Lhs>>::value<level_to_index<meta::first<Rhs>>::value> {
-                    static_assert(intersection_detector::value,
+                    static_assert(intersection_detector<F, Lhs, Rhs>::value,
                         "Elementary functor apply overloads detected with the the intersected intervals.\nSearch above "
                         "for `intersection_detector` in this compiler error output to determine the functor and the "
                         "intervals.");
@@ -98,7 +98,7 @@ namespace gridtools {
                 struct has_any_apply
                     : bool_constant<has_apply<Functor>::value ||
                                     meta::length<find_interval_parameters<Functor, Interval>>::value != 0> {
-                    static_assert(has_any_apply::value,
+                    static_assert(has_any_apply<Functor, Interval>::value,
                         "Elementary functor doesn't have any apply overload within the given interval.\nSearch above "
                         "for `has_any_apply` in this compiler error output to determine the functor and the interval.");
                 };
