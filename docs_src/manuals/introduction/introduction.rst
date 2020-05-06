@@ -57,7 +57,7 @@ The exact version requirements can be found on `github <https://github.com/GridT
 .. _CMake: https://www.cmake.org/
 
 Addtionally |GT| requires the following optional dependencies.
-For the communication module (GCL) *MPI* is required. For the CUDA/HIP backends a CUDA or HIP compiler is required.
+For the communication module (GCL) *MPI* is required. For the GPU backends a *CUDA* or *HIP* compiler is required.
 For the CPU backends *OpenMP* is required.
 
 
@@ -65,7 +65,7 @@ For the CPU backends *OpenMP* is required.
 Using GridTools
 ---------------
 
-|GT| uses CMake as build system.  CMake offers two ways of using a CMake-managed project: from an installation
+|GT| uses CMake as its build system.  CMake offers two ways of using a CMake-managed project: from an installation
 or using FetchContent to pull in a dependency on the fly. |GT| supports both ways.
 
 .. _installation:
@@ -163,30 +163,30 @@ Using GridTools
 After the GridTools is made available by either ``find_package`` or ``FetchContent`` the following targets for the
 different |GT| modules are available
 
-  * ``backend_naive``
+  * ``stencil_naive``
 
 If *OpenMP* is available
 
-  * ``backend_cpu_ifirst``
-  * ``backend_cpu_kfirst``
+  * ``stencil_cpu_ifirst``
+  * ``stencil_cpu_kfirst``
   * ``storage_cpu_ifirst``
   * ``storage_cpu_kfirst``
   * ``layout_transformation_cpu``
-  * ``bc_cpu``
+  * ``boundaries_cpu``
 
 If *OpenMP* **and** *MPI* is available
 
   * ``gcl_cpu``
 
-If a *CUDA runtime* is available (no *CUDA compiler* required)
+If a *CUDA runtime* (or a *HIP compiler*) is available (no *CUDA compiler* required)
 
-  * ``storage_cuda``
+  * ``storage_gpu``
 
 If a *CUDA compiler* or a *HIP compiler* is available
 
-  * ``backend_cuda``
+  * ``stencil_gpu``
   * ``layout_transformation_gpu``
-  * ``bc_gpu``
+  * ``boundaries_gpu``
 
 If a *CUDA compiler* and *MPI* is available
 
@@ -202,7 +202,7 @@ allows to compile the same *.cpp* file for both CUDA and host, without having to
 .. code-block:: cmake
 
  add_library(my_library source.cpp)
- target_link_libraries(my_library PUBLIC GridTools::backend_cuda)
+ target_link_libraries(my_library PUBLIC GridTools::stencil_cuda)
  gridtools_setup_target(my_library CUDA_ARCH sm_60)
 
 
