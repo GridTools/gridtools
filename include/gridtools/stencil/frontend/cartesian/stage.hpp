@@ -36,7 +36,6 @@
 #include "../../../sid/multi_shift.hpp"
 #include "../../common/extent.hpp"
 #include "../../common/intent.hpp"
-#include "../../core/has_apply.hpp"
 #include "expressions/expr_base.hpp"
 
 namespace gridtools {
@@ -71,8 +70,6 @@ namespace gridtools {
 
                 template <class Functor, class PlhMap>
                 struct stage {
-                    static_assert(core::has_apply<Functor>::value, GT_INTERNAL_ERROR);
-
                     template <class Deref = void, class Ptr, class Strides>
                     GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
                         using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;

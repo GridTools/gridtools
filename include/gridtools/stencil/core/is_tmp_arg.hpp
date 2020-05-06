@@ -9,18 +9,18 @@
  */
 #pragma once
 
+#include <type_traits>
+
+#include "../../meta.hpp"
+
 namespace gridtools {
     namespace stencil {
         namespace core {
-            /**
-             * @brief Descriptors for Elementary Stencil Function (ESF)
-             */
-            template <class EsfFunction, class Args, class Extent>
-            struct esf_descriptor {
-                using esf_function_t = EsfFunction;
-                using args_t = Args;
-                using extent_t = Extent;
-            };
+            template <class T, class = void>
+            struct is_tmp_arg : std::false_type {};
+
+            template <class T>
+            struct is_tmp_arg<T, void_t<typename T::tmp_tag>> : std::true_type {};
         } // namespace core
     }     // namespace stencil
 } // namespace gridtools
