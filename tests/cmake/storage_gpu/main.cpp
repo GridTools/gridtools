@@ -1,4 +1,4 @@
-#include <cuda_runtime.h>
+#include <gridtools/common/cuda_runtime.hpp>
 #include <gridtools/storage/builder.hpp>
 #include <gridtools/storage/gpu.hpp>
 

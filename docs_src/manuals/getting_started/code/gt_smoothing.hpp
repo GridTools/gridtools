@@ -8,6 +8,7 @@
 using namespace gridtools;
 using namespace stencil;
 using namespace cartesian;
+using namespace expressions;
 
 #ifdef GT_CUDACC
 #include <gridtools/stencil/gpu.hpp>
@@ -23,10 +24,6 @@ using storage_traits_t = storage::cpu_ifirst;
 
 constexpr unsigned halo = 2;
 
-constexpr dimension<1> i;
-constexpr dimension<2> j;
-constexpr dimension<3> k;
-
 using axis_t = axis<2>;
 using lower_domain = axis_t::get_interval<0>;
 using upper_domain = axis_t::get_interval<1>;
@@ -39,11 +36,7 @@ struct lap_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
-        eval(lap(i, j, k)) = -4. * eval(in(i, j, k)) //
-                             + eval(in(i + 1, j, k)) //
-                             + eval(in(i, j + 1, k)) //
-                             + eval(in(i - 1, j, k)) //
-                             + eval(in(i, j - 1, k));
+        eval(lap()) = eval(-4. * in() + in(1, 0, 0) + in(0, 1, 0) + in(-1, 0, 0) + in(0, -1, 0));
     }
 };
 

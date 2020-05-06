@@ -16,9 +16,8 @@
 
 #ifdef GT_CUDACC
 #include "atomic_cuda.hpp"
-#else
-#include "atomic_host.hpp"
 #endif
+#include "atomic_host.hpp"
 
 /**
  * Namespace providing a set of atomic functions working for all backends
@@ -32,60 +31,47 @@ namespace gridtools {
         @{
     */
 
-    /**
-     * Function computing an atomic addition
-     * @param var reference to variable where the addition is performed
-     * @param val value added to var
-     * @return the old value contained in var
-     */
-    template <typename T>
-    GT_FUNCTION T atomic_add(T &var, const T val) {
-        return get_atomic_helper<T>::type::atomic_add(var, val);
+#ifdef __NVCC__
+#ifdef GT_CUDA_ARCH
+#define GT_DECLARE_ATOMIC(name)                               \
+    template <class T>                                        \
+    GT_FUNCTION_DEVICE T atomic_##name(T &var, const T val) { \
+        return atomic_cuda<T>::atomic_##name(var, val);       \
     }
+#else
+#define GT_DECLARE_ATOMIC(name)                             \
+    template <class T>                                      \
+    GT_FUNCTION_HOST T atomic_##name(T &var, const T val) { \
+        return atomic_host<T>::atomic_##name(var, val);     \
+    }
+#endif
+#else
+#ifdef GT_CUDACC
+#define GT_DECLARE_ATOMIC(name)                                       \
+    template <class T>                                                \
+    GT_FORCE_INLINE __device__ T atomic_##name(T &var, const T val) { \
+        return atomic_cuda<T>::atomic_##name(var, val);               \
+    }                                                                 \
+    template <class T>                                                \
+    GT_FUNCTION_HOST T atomic_##name(T &var, const T val) {           \
+        return atomic_host<T>::atomic_##name(var, val);               \
+    }
+#else
+#define GT_DECLARE_ATOMIC(name)                             \
+    template <class T>                                      \
+    GT_FUNCTION_HOST T atomic_##name(T &var, const T val) { \
+        return atomic_host<T>::atomic_##name(var, val);     \
+    }
+#endif
+#endif
 
-    /**
-     * Function computing an atomic substraction
-     * @param var reference to variable where the substraction is performed
-     * @param val value added to var
-     * @return the old value contained in var
-     */
-    template <typename T>
-    GT_FUNCTION T atomic_sub(T &var, const T val) {
-        return get_atomic_helper<T>::type::atomic_sub(var, val);
-    }
+    GT_DECLARE_ATOMIC(add);
+    GT_DECLARE_ATOMIC(sub);
+    GT_DECLARE_ATOMIC(exch);
+    GT_DECLARE_ATOMIC(min);
+    GT_DECLARE_ATOMIC(max);
 
-    /**
-     * Function computing an atomic exchange
-     * @param var reference to variable which value is replaced by val
-     * @param val value inserted in variable var
-     * @return the old value contained in var
-     */
-    template <typename T>
-    GT_FUNCTION T atomic_exch(T &var, const T val) {
-        return get_atomic_helper<T>::type::atomic_exch(var, val);
-    }
-
-    /**
-     * Function computing an atomic min operation
-     * @param var reference used to compute and store the min
-     * @param val value used in the min comparison
-     * @return the old value contained in var
-     */
-    template <typename T>
-    GT_FUNCTION T atomic_min(T &var, const T val) {
-        return get_atomic_helper<T>::type::atomic_min(var, val);
-    }
-
-    /**
-     * Function computing an atomic max operation
-     * @param var reference used to compute and store the min
-     * @param val value used in the min comparison
-     * @return the old value contained in var
-     */
-    template <typename T>
-    GT_FUNCTION T atomic_max(T &var, const T val) {
-        return get_atomic_helper<T>::type::atomic_max(var, val);
-    }
+#undef GT_DECLARE_ATOMIC
 
     /** @} */
     /** @} */
