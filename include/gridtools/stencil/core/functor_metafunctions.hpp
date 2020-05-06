@@ -99,7 +99,7 @@ namespace gridtools {
                     : bool_constant<has_apply<Functor>::value ||
                                     meta::length<find_interval_parameters<Functor, Interval>>::value != 0> {
                     static_assert(has_any_apply<Functor, Interval>::value,
-                        "Elementary functor doesn't have any apply overload within the given interval.\nSearch above "
+                        "A stencil operator without any apply() overload within the given interval.\nSearch above "
                         "for `has_any_apply` in this compiler error output to determine the functor and the interval.");
                 };
 
