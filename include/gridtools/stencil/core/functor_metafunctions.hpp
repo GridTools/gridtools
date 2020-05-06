@@ -90,7 +90,7 @@ namespace gridtools {
                       level_to_index<meta::second<Lhs>>::value<level_to_index<meta::first<Rhs>>::value> {
                     static_assert(intersection_detector<F, Lhs, Rhs>::value,
                         "A stencil operator with intersecting intervals was detected.\nSearch above "
-                        "for `intersection_detector` in this compiler error output to determine the functor and the "
+                        "for `intersection_detector` in this compiler error output to determine the stencil operator and the "
                         "intervals.");
                 };
 
