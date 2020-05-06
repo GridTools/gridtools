@@ -240,7 +240,7 @@ namespace gridtools {
 
             template <class... Ts>
             void run_impl(Ts...) {
-                static_assert(sizeof...(Ts) < 0, "Unexpected gridtools::stencil::run first argument.");
+                static_assert(sizeof...(Ts) < 0, "Unexpected first argument of gridtools::stencil::run.");
             }
 
             template <class Comp, class Backend, class Grid, class... Fields>
