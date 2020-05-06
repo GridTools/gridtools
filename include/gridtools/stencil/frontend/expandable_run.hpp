@@ -158,7 +158,7 @@ namespace gridtools {
                 static_assert(
                     meta::all_of<frontend_impl_::check_valid_apply_overloads<typename Grid::interval_t>::template apply,
                         functors_t>::value,
-                    "Invalid elementary functor detected.");
+                    "Invalid stencil operator detected.");
 
                 size_t size = get_expandable_size(fields...);
                 size_t offset = 0;
