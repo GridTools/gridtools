@@ -148,13 +148,9 @@ namespace gridtools {
                 auto host_view() { return make_host_view(get_host_ptr(), this->info()); }
                 auto const_host_view() { return make_host_view(get_const_host_ptr(), this->info()); }
 
-                auto target_view() {
-                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
-                        get_target_ptr(), this->info());
-                }
+                auto target_view() { return traits::make_target_view<Traits>(get_target_ptr(), this->info()); }
                 auto const_target_view() {
-                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
-                        get_const_target_ptr(), this->info());
+                    return traits::make_target_view<Traits>(get_const_target_ptr(), this->info());
                 }
             };
 
@@ -179,13 +175,9 @@ namespace gridtools {
                 T *get_target_ptr() const { return this->raw_target_ptr(); }
                 T const *get_const_target_ptr() const { return this->raw_target_ptr(); }
 
-                auto target_view() const {
-                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
-                        get_target_ptr(), this->info());
-                }
+                auto target_view() const { return traits::make_target_view<Traits>(get_target_ptr(), this->info()); }
                 auto const_target_view() const {
-                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
-                        get_const_target_ptr(), this->info());
+                    return traits::make_target_view<Traits>(get_const_target_ptr(), this->info());
                 }
 
                 T *get_host_ptr() { return get_target_ptr(); }
@@ -228,10 +220,7 @@ namespace gridtools {
                     init(initializer);
                 }
                 T const *get_target_ptr() const { return this->raw_target_ptr(); }
-                auto target_view() const {
-                    return traits::make_target_view<Traits, typename data_store_impl::kind_t>(
-                        get_target_ptr(), this->info());
-                }
+                auto target_view() const { return traits::make_target_view<Traits>(get_target_ptr(), this->info()); }
                 auto get_const_target_ptr() const { return get_target_ptr(); }
                 auto const_target_view() const { return target_view(); }
             };

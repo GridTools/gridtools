@@ -8,9 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/stencil/icosahedral.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "curl_functors.hpp"
@@ -19,6 +19,7 @@
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace ico_operators;
 
     struct lap_functor {
@@ -47,15 +48,7 @@ namespace {
         }
     };
 
-    struct backend_filter {
-        template <class Backend>
-        using apply = bool_constant<!std::is_same<mc::backend, Backend>::value &&
-                                    !meta::is_instantiation_of<cuda_horizontal::backend, Backend>::value>;
-    };
-
-    using env_t = test_environment<2, axis<1>, backend_filter>;
-
-    GT_REGRESSION_TEST(lap_weights, env_t, backend_t) {
+    GT_REGRESSION_TEST(lap_weights, icosahedral_test_environment<2>, stencil_backend_t) {
         using float_t = typename TypeParam ::float_t;
         auto spec = [](auto edge_length,
                         auto cell_area_reciprocal,
@@ -86,7 +79,7 @@ namespace {
         operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
         auto out = TypeParam::icosahedral_make_storage(edges());
         run(spec,
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             TypeParam::icosahedral_make_storage(edges(), repo.edge_length),
             TypeParam::icosahedral_make_storage(cells(), repo.cell_area_reciprocal),
@@ -99,7 +92,7 @@ namespace {
         TypeParam::verify(TypeParam::icosahedral_make_storage(edges(), repo.lap), out);
     }
 
-    GT_REGRESSION_TEST(lap_flow_convention, env_t, backend_t) {
+    GT_REGRESSION_TEST(lap_flow_convention, icosahedral_test_environment<2>, stencil_backend_t) {
         using float_t = typename TypeParam ::float_t;
         auto spec = [](auto in_edges,
                         auto edge_length,
@@ -130,7 +123,7 @@ namespace {
         operators_repository repo = {TypeParam::d(0), TypeParam::d(1)};
         auto out = TypeParam::icosahedral_make_storage(edges());
         run(spec,
-            backend_t(),
+            stencil_backend_t(),
             TypeParam::make_grid(),
             TypeParam::icosahedral_make_storage(edges(), repo.u),
             TypeParam::icosahedral_make_storage(edges(), repo.edge_length),

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import os
 
 from pyutils import args, env, log
@@ -101,7 +102,7 @@ if buildinfo:
               metavar=('ISIZE', 'JSIZE', 'KSIZE'),
               help='domain size (excluding halo)')
     @args.arg('--runs',
-              default=10,
+              default=100,
               type=int,
               help='number of runs to do for each stencil')
     @args.arg('--output',
@@ -109,14 +110,15 @@ if buildinfo:
               required=True,
               help='output file path, extension .json is added if not given')
     def run(domain_size, runs, output):
+
         import perftest
         if not output.lower().endswith('.json'):
             output += '.json'
 
-        results = perftest.run(domain_size, runs)
-        for tag, result in results.items():
-            perftest.result.save(f'.{tag}.'.join(output.rsplit('.', 1)),
-                                 result)
+        data = perftest.run(domain_size, runs)
+        with open(output, 'w') as outfile:
+            json.dump(data, outfile, indent='  ')
+            log.info(f'Successfully saved perftests output to {output}')
 
 
 @perftest.command(description='plot performance results')
@@ -124,28 +126,22 @@ def plot():
     pass
 
 
+def _load_json(filename):
+    with open(filename, 'r') as file:
+        return json.load(file)
+
+
 @plot.command(description='plot performance comparison')
-@args.arg('--output',
-          '-o',
-          required=True,
-          help='output file, can have any extension supported by matplotlib')
-@args.arg('--input',
-          '-i',
-          required=True,
-          nargs='+',
-          help='any number of input files')
+@args.arg('--output', '-o', required=True, help='output directory')
+@args.arg('--input', '-i', required=True, nargs=2, help='two input files')
 def compare(output, input):
-    from perftest import plot, result
-    results = [result.load(f) for f in input]
-    plot.compare(results).savefig(output)
-    log.info(f'Successfully saved plot to {output}')
+    from perftest import plot
+
+    plot.compare(*(_load_json(i) for i in input), output)
 
 
 @plot.command(description='plot performance history')
-@args.arg('--output',
-          '-o',
-          required=True,
-          help='output file, can have any extension supported by matplotlib')
+@args.arg('--output', '-o', required=True, help='output directory')
 @args.arg('--input',
           '-i',
           required=True,
@@ -154,7 +150,7 @@ def compare(output, input):
 @args.arg('--date',
           '-d',
           default='job',
-          choices=['build', 'job'],
+          choices=['commit', 'job'],
           help='date to use, either the build/commit date or the date when '
           'the job was run')
 @args.arg('--limit',
@@ -162,10 +158,22 @@ def compare(output, input):
           type=int,
           help='limit the history size to the given number of results')
 def history(output, input, date, limit):
-    from perftest import plot, result
-    results = [result.load(f) for f in input]
-    plot.history(results, date, limit).savefig(output)
-    log.info(f'Successfully saved plot to {output}')
+    from perftest import plot
+
+    plot.history([_load_json(i) for i in input], output, date, limit)
+
+
+@plot.command(description='plot backends comparison')
+@args.arg('--output', '-o', required=True, help='output directory')
+@args.arg('--input',
+          '-i',
+          required=True,
+          nargs='+',
+          help='any number of input files')
+def compare_backends(output, input):
+    from perftest import plot
+
+    plot.compare_backends([_load_json(i) for i in input], output)
 
 
 with log.exception_logging():

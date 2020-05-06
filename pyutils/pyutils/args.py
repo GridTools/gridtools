@@ -50,17 +50,20 @@ class Command:
         def inner(func):
             if self.subparsers is None:
                 self.subparsers = self.parser.add_subparsers(
-                        dest=self.func.__name__ + ' subcommand')
+                    dest=self.func.__name__ + ' subcommand')
                 self.subparsers.required = True
 
-            parser = self.subparsers.add_parser(func.__name__, **kwargs)
+            parser = self.subparsers.add_parser(
+                func.__name__.replace('_', '-'), **kwargs)
             subcommand = Command(func, parser)
             parser.set_defaults(**{self._command_name: subcommand})
             return subcommand
+
         return inner
 
 
 def command(**kwargs):
     def inner(func):
         return Command(func, argparse.ArgumentParser(**kwargs))
+
     return inner

@@ -12,11 +12,12 @@
 
 #include <type_traits>
 
-#include <gridtools/stencil_composition/icosahedral.hpp>
+#include <gridtools/stencil/icosahedral.hpp>
 
 namespace ico_operators {
 
     using namespace gridtools;
+    using namespace stencil;
     using namespace icosahedral;
 
     struct div_prep_functor {

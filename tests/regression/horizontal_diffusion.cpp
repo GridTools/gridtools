@@ -8,15 +8,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/stencil_composition/cartesian.hpp>
+#include <gridtools/stencil/cartesian.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "horizontal_diffusion_repository.hpp"
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     struct copy_function {
@@ -90,7 +91,9 @@ namespace {
     };
 
     template <class Env,
-        std::enable_if_t<!meta::is_instantiation_of<cuda_horizontal::backend, typename Env::backend_t>::value, int> = 0>
+        std::enable_if_t<
+            !meta::is_instantiation_of<gpu_horizontal_backend::gpu_horizontal, typename Env::backend_t>::value,
+            int> = 0>
     auto get_spec(Env) {
         return [](auto in, auto coeff, auto out) {
             GT_DECLARE_TMP(typename Env::float_t, lap, flx, fly);
@@ -104,7 +107,9 @@ namespace {
     }
 
     template <class Env,
-        std::enable_if_t<meta::is_instantiation_of<cuda_horizontal::backend, typename Env::backend_t>::value, int> = 0>
+        std::enable_if_t<
+            meta::is_instantiation_of<gpu_horizontal_backend::gpu_horizontal, typename Env::backend_t>::value,
+            int> = 0>
     auto get_spec(Env) {
         return [](auto in, auto coeff, auto out) {
             GT_DECLARE_TMP(typename Env::float_t, inc, lap, flx, fly);
@@ -117,23 +122,15 @@ namespace {
         };
     }
 
-    GT_REGRESSION_TEST(horizontal_diffusion, test_environment<2>, backend_t) {
+    GT_REGRESSION_TEST(horizontal_diffusion, test_environment<2>, stencil_backend_t) {
         horizontal_diffusion_repository repo(TypeParam::d(1), TypeParam::d(2), TypeParam::d(3));
         auto out = TypeParam::make_storage();
-        run(get_spec(TypeParam()),
-            TypeParam::backend(),
-            TypeParam::make_grid(),
-            TypeParam::make_const_storage(repo.in),
-            TypeParam::make_const_storage(repo.coeff),
-            out);
+        auto comp = [grid = TypeParam::make_grid(),
+                        coeff = TypeParam::make_const_storage(repo.coeff),
+                        in = TypeParam::make_const_storage(repo.in),
+                        &out] { run(get_spec(TypeParam()), TypeParam::backend(), grid, in, coeff, out); };
+        comp();
         TypeParam::verify(repo.out, out);
-
-        TypeParam::benchmark("horizontal_diffusion",
-            [grid = TypeParam::make_grid(),
-                in = TypeParam::make_storage(),
-                coeff = TypeParam::make_storage(),
-                out = TypeParam::make_storage()] {
-                run(get_spec(TypeParam()), TypeParam::backend(), grid, in, coeff, out);
-            });
+        TypeParam::benchmark("horizontal_diffusion", comp);
     }
 } // namespace

@@ -11,7 +11,7 @@
 
 #include <cpp_bindgen/fortran_array_view.hpp>
 
-#include "../../layout_transformation/layout_transformation.hpp"
+#include "../../layout_transformation.hpp"
 #include "../data_store.hpp"
 
 namespace gridtools {
@@ -70,13 +70,13 @@ namespace gridtools {
 
         void transform_to(DataStorePtr const &dst) const {
             check_fortran_lengths(dst);
-            interface::transform(
+            transform_layout(
                 dst->get_target_ptr(), fortran_ptr(), dst->lengths(), dst->strides(), fortran_strides(dst));
         }
 
         void transform_from(DataStorePtr const &src) const {
             check_fortran_lengths(src);
-            interface::transform(
+            transform_layout(
                 fortran_ptr(), src->get_target_ptr(), src->lengths(), fortran_strides(src), src->strides());
         }
     };

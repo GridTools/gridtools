@@ -7,7 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <gridtools/layout_transformation/layout_transformation.hpp>
+#include <gridtools/layout_transformation.hpp>
 
 #include <gtest/gtest.h>
 
@@ -32,7 +32,7 @@ namespace {
         host, T (&dst)[N], U (&src)[M], Dims const &dims, DstStrides const &dst_strides, SrcSrides const &src_strides) {
         static_assert(std::is_same<std::remove_all_extents_t<T>, std::remove_all_extents_t<U>>::value, "");
         using data_t = std::remove_all_extents_t<T>;
-        interface::transform((data_t *)dst, (data_t const *)src, dims, dst_strides, src_strides);
+        transform_layout((data_t *)dst, (data_t const *)src, dims, dst_strides, src_strides);
     }
 
 #ifdef GT_CUDACC
@@ -51,7 +51,7 @@ namespace {
         auto &dst_arr = reinterpret_cast<array<T, N> &>(dst);
         auto d_src = cuda_util::make_clone(src_arr);
         auto d_dst = cuda_util::make_clone(dst_arr);
-        interface::transform((data_t *)d_dst.get(), (data_t const *)d_src.get(), dims, dst_strides, src_strides);
+        transform_layout((data_t *)d_dst.get(), (data_t const *)d_src.get(), dims, dst_strides, src_strides);
         dst_arr = cuda_util::from_clone(d_dst);
     }
 

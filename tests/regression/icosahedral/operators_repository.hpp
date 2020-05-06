@@ -15,14 +15,14 @@
 #include <functional>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/stencil_composition/frontend/icosahedral/location_type.hpp>
+#include <gridtools/stencil/frontend/icosahedral/location_type.hpp>
 
 #include "neighbours_of.hpp"
 
 class operators_repository {
-    using cells = gridtools::icosahedral::cells;
-    using edges = gridtools::icosahedral::edges;
-    using vertices = gridtools::icosahedral::vertices;
+    using cells = gridtools::stencil::icosahedral::cells;
+    using edges = gridtools::stencil::icosahedral::edges;
+    using vertices = gridtools::stencil::icosahedral::vertices;
 
     using fun_t = std::function<double(int, int, int, int)>;
 

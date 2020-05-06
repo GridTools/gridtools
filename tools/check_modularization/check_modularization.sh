@@ -18,35 +18,48 @@ function are_independent() {
 }
 modularization_result=0
 
-# list of non-dependencies
-no_dependency "common" "stencil_composition"
-no_dependency "common" "boundary_conditions"
-no_dependency "common" "communication"
+no_dependency "meta" "common"
+no_dependency "meta" "sid"
+no_dependency "meta" "thread_pool"
+no_dependency "meta" "gcl"
+no_dependency "meta" "layout_transformation"
+no_dependency "meta" "storage"
+no_dependency "meta" "boundaries"
+no_dependency "meta" "stencil"
+
+no_dependency "common" "sid"
+no_dependency "common" "thread_pool"
+no_dependency "common" "gcl"
+no_dependency "common" "layout_transformation"
 no_dependency "common" "storage"
-no_dependency "common" "tools"
-no_dependency "common" "interface"
-no_dependency "common" "c_bindings"
-no_dependency "common" "distributed_boundaries"
+no_dependency "common" "boundaries"
+no_dependency "common" "stencil"
 
-are_independent "stencil_composition" "boundary_conditions"
-are_independent "stencil_composition" "communication"
-are_independent "stencil_composition" "interface"
-no_dependency "stencil_composition" "tools"
+are_independent "sid" "thread_pool"
+are_independent "sid" "gcl"
+are_independent "sid" "layout_transformation"
+no_dependency "sid" "storage"
+are_independent "sid" "boundaries"
+no_dependency "sid" "stencil"
 
-are_independent "boundary_conditions" "tools"
-are_independent "boundary_conditions" "interface"
+are_independent "thread_pool" "gcl"
+are_independent "thread_pool" "layout_transformation"
+are_independent "thread_pool" "storage"
+are_independent "thread_pool" "boundaries"
+no_dependency "thread_pool" "stencil"
 
-are_independent "communication" "interface"
-are_independent "communication" "storage"
+are_independent "gcl" "layout_transformation"
+are_independent "gcl" "storage"
+no_dependency "gcl" "boundaries"
+are_independent "gcl" "stencil"
 
-are_independent "distributed_boundaries" "c_bindings"
-are_independent "distributed_boundaries" "stencil_composition"
-are_independent "distributed_boundaries" "interface"
-are_independent "distributed_boundaries" "tools"
+are_independent "layout_transformation" "storage"
+are_independent "layout_transformation" "boundaries"
+are_independent "layout_transformation" "stencil"
 
-no_dependency "storage" "stencil_composition"
-no_dependency "storage" "boundary_conditions"
-no_dependency "storage" "tools"
-no_dependency "storage" "interface"
+no_dependency "storage" "boundaries"
+are_independent "storage" "stencil"
+
+are_independent "boundaries" "stencil"
 
 # we cannot use an exit code here because the git hook will terminate immediately

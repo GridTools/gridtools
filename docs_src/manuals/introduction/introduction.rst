@@ -79,7 +79,7 @@ and run the tests use the following commands.
 
 .. code-block:: shell
 
- git clone http://github.com/eth-cscs/gridtools.git
+ git clone http://github.com/GridTools/gridtools.git
  cd gridtools
  mkdir build && cd build
  cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..

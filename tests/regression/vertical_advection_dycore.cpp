@@ -11,10 +11,10 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/meta.hpp>
-#include <gridtools/stencil_composition/cartesian.hpp>
-#include <gridtools/stencil_composition/global_parameter.hpp>
+#include <gridtools/stencil/cartesian.hpp>
+#include <gridtools/stencil/global_parameter.hpp>
 
-#include <backend_select.hpp>
+#include <stencil_select.hpp>
 #include <test_environment.hpp>
 
 #include "vertical_advection_defs.hpp"
@@ -22,6 +22,7 @@
 
 namespace {
     using namespace gridtools;
+    using namespace stencil;
     using namespace cartesian;
 
     // This is the definition of the special regions in the "vertical" direction
@@ -120,9 +121,9 @@ namespace {
         }
     };
 
-    using modified_backend_t = meta::if_<meta::is_instantiation_of<cuda::backend, backend_t>,
-        cuda::backend<integral_constant<int_t, 256>, integral_constant<int_t, 1>, integral_constant<int_t, 1>>,
-        backend_t>;
+    using modified_backend_t = meta::if_<meta::is_instantiation_of<gpu_backend::gpu, stencil_backend_t>,
+        gpu_backend::gpu<integral_constant<int_t, 256>, integral_constant<int_t, 1>, integral_constant<int_t, 1>>,
+        stencil_backend_t>;
 
     using env_t = vertical_test_environment<3, axis_t>;
 

@@ -9,27 +9,27 @@
  */
 #pragma once
 
-#include <gridtools/communication/low_level/gcl_arch.hpp>
+#include <gridtools/gcl/low_level/arch.hpp>
 
 #if defined(GT_GCL_GPU)
-#ifndef GT_STORAGE_CUDA
-#define GT_STORAGE_CUDA
+#ifndef GT_STORAGE_GPU
+#define GT_STORAGE_GPU
 #endif
 #ifndef GT_TIMER_CUDA
 #define GT_TIMER_CUDA
 #endif
 namespace {
-    using gcl_arch_t = gridtools::gcl_gpu;
+    using gcl_arch_t = gridtools::gcl::gpu;
 }
 #elif defined(GT_GCL_CPU)
-#ifndef GT_STORAGE_X86
-#define GT_STORAGE_X86
+#ifndef GT_STORAGE_CPU_IFIRST
+#define GT_STORAGE_CPU_IFIRST
 #endif
 #ifndef GT_TIMER_OMP
 #define GT_TIMER_OMP
 #endif
 namespace {
-    using gcl_arch_t = gridtools::gcl_cpu;
+    using gcl_arch_t = gridtools::gcl::cpu;
 }
 #endif
 
@@ -37,11 +37,13 @@ namespace {
 #include "timer_select.hpp"
 
 namespace gridtools {
-    storage::x86 backend_storage_traits(gcl_cpu const &);
-    timer_omp backend_timer_impl(gcl_cpu const &);
-    inline char const *backend_name(gcl_cpu const &) { return "cpu"; }
+    namespace gcl {
+        storage::cpu_ifirst backend_storage_traits(cpu const &);
+        timer_omp backend_timer_impl(cpu const &);
+        inline char const *backend_name(cpu const &) { return "cpu"; }
 
-    storage::cuda backend_storage_traits(gcl_gpu const &);
-    timer_cuda backend_timer_impl(gcl_gpu const &);
-    inline char const *backend_name(gcl_gpu const &) { return "gpu"; }
+        storage::gpu backend_storage_traits(gpu const &);
+        timer_cuda backend_timer_impl(gpu const &);
+        inline char const *backend_name(gpu const &) { return "gpu"; }
+    } // namespace gcl
 } // namespace gridtools
