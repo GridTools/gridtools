@@ -73,7 +73,7 @@ namespace gridtools {
 
                 static_assert(check_param_list<typename F::param_list>::value,
                     "The `accessor`s in `param_list` of a stencil operator"
-                    "does not have increasing index");
+                    "don't have increasing index");
 
                 static_assert(meta::length<typename F::param_list>::value == sizeof...(Args),
                     "The number of actual arguments should match the number of parameters.");
