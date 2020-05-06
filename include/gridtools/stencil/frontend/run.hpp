@@ -209,7 +209,7 @@ namespace gridtools {
                 using functors_t = meta::transform<meta::first, meta::flatten<meta::transform<meta::second, spec_t>>>;
                 static_assert(meta::all_of<check_valid_apply_overloads<typename Grid::interval_t>::template apply,
                                   functors_t>::value,
-                    "Invalid elementary functor detected.");
+                    "Invalid stencil operator detected.");
 
                 using entry_point_t = core::backend_entry_point_f<Backend, spec_t>;
                 using data_store_map_t = typename hymap::keys<arg<Is>...>::template values<Fields &...>;
