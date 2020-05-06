@@ -62,7 +62,7 @@ namespace gridtools {
             struct validate_functor {
                 static_assert(has_param_list<F>::value,
                     "The type param_list was not found in a user functor definition. All user functors must have a "
-                    "type alias called \'param_list\', which is an instantiation of \'make_param_list\' accessors "
+                    "type alias called `param_list`, which is an instantiation of `make_param_list` accessors "
                     "defined in the functor Example:\n using v1=in_accessor<0>;\n using v2=inout_accessor<1>;\n "
                     "using param_list=make_param_list<v1, v2>;\n");
 
