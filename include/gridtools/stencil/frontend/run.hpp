@@ -66,7 +66,7 @@ namespace gridtools {
                     "defined in the functor Example:\n using v1=in_accessor<0>;\n using v2=inout_accessor<1>;\n "
                     "using param_list=make_param_list<v1, v2>;\n");
 
-                static_assert(meta::is_list<typename F::param_list>::value, "param_list must be a type list.");
+                static_assert(meta::is_list<typename F::param_list>::value, "`param_list` must be a type list (use `make_param_list`).");
 
                 static_assert(meta::all_of<is_accessor, typename F::param_list>::value,
                     "All members of `param_list` must be `accessor`s.");
