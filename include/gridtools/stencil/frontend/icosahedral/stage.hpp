@@ -24,7 +24,6 @@
 #include "../../common/dim.hpp"
 #include "../../common/extent.hpp"
 #include "../../common/intent.hpp"
-#include "../../core/has_apply.hpp"
 #include "connectivity.hpp"
 #include "location_type.hpp"
 
@@ -106,7 +105,6 @@ namespace gridtools {
 
                 template <class Functor, class PlhMap>
                 struct stage {
-                    static_assert(core::has_apply<Functor>::value, GT_INTERNAL_ERROR);
                     using location_t = typename Functor::location;
 
                     template <class Deref = void, class Ptr, class Strides>

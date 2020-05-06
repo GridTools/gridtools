@@ -17,6 +17,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
+#include "../../meta.hpp"
 #include "../common/dim.hpp"
 #include "../common/extent.hpp"
 #include "execution_types.hpp"
@@ -28,17 +29,17 @@ namespace gridtools {
         namespace core {
             template <class Interval>
             class grid {
-                static_assert(is_interval<Interval>::value, GT_INTERNAL_ERROR);
-                static_assert(Interval::FromLevel::splitter == 0, GT_INTERNAL_ERROR);
+                static_assert(meta::is_instantiation_of<interval, Interval>::value, GT_INTERNAL_ERROR);
+                static_assert(meta::first<Interval>::splitter == 0, GT_INTERNAL_ERROR);
 
-                static constexpr int_t offset_limit = Interval::FromLevel::offset_limit;
-                static constexpr int_t start_offset = Interval::FromLevel::offset;
+                static constexpr int_t offset_limit = Interval::offset_limit;
+                static constexpr int_t start_offset = meta::first<Interval>::offset;
 
                 int_t m_i_start;
                 int_t m_i_size;
                 int_t m_j_start;
                 int_t m_j_size;
-                int_t m_k_values[Interval::ToLevel::splitter];
+                int_t m_k_values[meta::second<Interval>::splitter];
 
                 template <uint_t Splitter = 0, int_t Offset = start_offset>
                 static integral_constant<int_t, (Offset > 0) ? Offset - 1 : Offset> offset(
@@ -56,9 +57,9 @@ namespace gridtools {
                     return {};
                 }
 
-                template <class T, std::enable_if_t<T::FromLevel::splitter != T::ToLevel::splitter, int> = 0>
+                template <class T, std::enable_if_t<meta::first<T>::splitter != meta::second<T>::splitter, int> = 0>
                 auto splitter_size(T) const {
-                    return splitter_value(typename T::ToLevel()) - splitter_value(typename T::FromLevel());
+                    return splitter_value(meta::second<T>()) - splitter_value(meta::first<T>());
                 }
 
                 template <uint_t Splitter, int_t FromOffset, int_t ToOffset>
@@ -102,8 +103,8 @@ namespace gridtools {
                     return extent.extend(dim::j(), m_j_size);
                 }
 
-                template <class From = typename Interval::FromLevel,
-                    class To = typename Interval::ToLevel,
+                template <class From = meta::first<Interval>,
+                    class To = meta::second<Interval>,
                     class Execution = forward>
                 auto k_start(interval<From, To> = {}, Execution = {}) const {
                     return value_at(From());
@@ -114,8 +115,8 @@ namespace gridtools {
                     return value_at(To());
                 }
 
-                template <class From = typename Interval::FromLevel,
-                    class To = typename Interval::ToLevel,
+                template <class From = meta::first<Interval>,
+                    class To = meta::second<Interval>,
                     class Extent = extent<>>
                 auto k_size(interval<From, To> x = {}, Extent extent = {}) const {
                     using namespace literals;
