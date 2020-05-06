@@ -84,27 +84,64 @@ namespace gridtools {
                         split_interval<interval<index_to_level<level_index<0, Interval::offset_limit>>,
                             meta::second<Interval>>>>>>;
 
-                template <class Intervals>
-                struct are_intervals_valid;
+                template <class, class Lhs, class Rhs>
+                    struct intersection_detector
+                    : bool_constant <
+                      level_to_index<meta::second<Lhs>>::value<level_to_index<meta::first<Rhs>>::value> {
+                    static_assert(intersection_detector::value,
+                        "Elementary functor apply overloads detected with the the intersected intervals.\nSearch above "
+                        "for `intersection_detector` in this compiler error output to determine the functor and the "
+                        "intervals.");
+                };
 
-                template <template <class...> class L>
-                struct are_intervals_valid<L<>> : std::true_type {};
+                template <class Functor, class Interval>
+                struct has_any_apply
+                    : bool_constant<has_apply<Functor>::value ||
+                                    meta::length<find_interval_parameters<Functor, Interval>>::value != 0> {
+                    static_assert(has_any_apply::value,
+                        "Elementary functor doesn't have any apply overload within the given interval.\nSearch above "
+                        "for `has_any_apply` in this compiler error output to determine the functor and the interval.");
+                };
 
-                template <template <class...> class L, class Interval>
-                struct are_intervals_valid<L<Interval>> : std::true_type {};
+                template <template <class...> class F, class L>
+                struct transform_neighbours;
 
-                template <template <class...> class L, class First, class Second, class... Intervals>
-                struct are_intervals_valid<L<First, Second, Intervals...>>
-                    : bool_constant<(level_to_index<meta::second<First>>::value <
-                                        level_to_index<meta::first<Second>>::value) &&
-                                    are_intervals_valid<meta::list<Second, Intervals...>>::value> {};
+                template <template <class...> class F, template <class...> class L>
+                struct transform_neighbours<F, L<>> {
+                    using type = L<>;
+                };
 
+                template <template <class...> class F, template <class...> class L, class T>
+                struct transform_neighbours<F, L<T>> {
+                    using type = L<>;
+                };
+
+                template <template <class...> class F, template <class...> class L, class T0, class T1, class... Ts>
+                struct transform_neighbours<F, L<T0, T1, Ts...>> {
+                    using type = meta::push_front<typename transform_neighbours<F, L<T1, Ts...>>::type, F<T0, T1>>;
+                };
+
+                template <class Functor, class Interval>
+                struct invalid_apply_detector {
+                    using intervals_t = find_interval_parameters<Functor, Interval>;
+                    static constexpr bool has_any_apply =
+                        has_apply<Functor>::value || meta::length<intervals_t>::value != 0;
+                    static_assert(has_any_apply, "Elementary functor doesn't have apply.");
+                    using intersection_detectors_t =
+                        typename transform_neighbours<meta::curry<intersection_detector, Functor>::template apply,
+                            intervals_t>::type;
+                    using type = bool_constant<has_any_apply && meta::all<intersection_detectors_t>::value>;
+                };
+
+                // if overloads are valid this alias evaluate to std::true_type
+                // otherwise static_assert is triggered.
                 template <class Functor,
                     class Interval,
-                    class Params = find_interval_parameters<Functor, Interval>,
-                    class HasApply = has_apply<Functor>>
-                using is_valid_functor = bool_constant<are_intervals_valid<Params>::value &&
-                                                       (HasApply::value || meta::length<Params>::value != 0)>;
+                    class HasAnyApply = has_any_apply<Functor, Interval>,
+                    class IntersectionDetectors =
+                        typename transform_neighbours<meta::curry<intersection_detector, Functor>::template apply,
+                            find_interval_parameters<Functor, Interval>>::type>
+                using check_valid_apply_overloads = meta::all<meta::push_back<IntersectionDetectors, HasAnyApply>>;
 
                 template <class Index, class Intervals>
                 struct find_in_interval_parameters;
@@ -165,7 +202,8 @@ namespace gridtools {
                     meta::transform<item_maker_f<Functor, Interval>::template apply, split_interval<Interval>>;
 
             } // namespace functor_metafunctions_impl_
-            using functor_metafunctions_impl_::is_valid_functor;
+            using functor_metafunctions_impl_::check_valid_apply_overloads;
+            using functor_metafunctions_impl_::invalid_apply_detector;
             using functor_metafunctions_impl_::make_functor_map;
         } // namespace core
     }     // namespace stencil

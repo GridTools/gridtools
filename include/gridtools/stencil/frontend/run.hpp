@@ -192,10 +192,10 @@ namespace gridtools {
             template <size_t>
             struct arg {};
 
-            template <class Interval, class F>
-            struct functor_validator {
-                static_assert(core::is_valid_functor<F, Interval>::value, "Invalid elementary functor");
-                using type = void;
+            template <class Interval>
+            struct check_valid_apply_overloads {
+                template <class Functor>
+                using apply = core::check_valid_apply_overloads<Functor, Interval>;
             };
 
             template <class Comp, class Backend, class Grid, class... Fields, size_t... Is>
@@ -207,9 +207,9 @@ namespace gridtools {
                 static_assert(
                     meta::is_instantiation_of<core::interval, typename Grid::interval_t>::value, "Invalid grid.");
                 using functors_t = meta::transform<meta::first, meta::flatten<meta::transform<meta::second, spec_t>>>;
-                using dummy_t = meta::transform<
-                    meta::curry<meta::force<functor_validator>::apply, typename Grid::interval_t>::template apply,
-                    functors_t>;
+                static_assert(meta::all_of<check_valid_apply_overloads<typename Grid::interval_t>::template apply,
+                                  functors_t>::value,
+                    "Invalid elementary functor detected.");
 
                 using entry_point_t = core::backend_entry_point_f<Backend, spec_t>;
                 using data_store_map_t = typename hymap::keys<arg<Is>...>::template values<Fields &...>;

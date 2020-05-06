@@ -155,9 +155,10 @@ namespace gridtools {
                 static_assert(
                     meta::is_instantiation_of<core::interval, typename Grid::interval_t>::value, "Invalid grid.");
                 using functors_t = meta::transform<meta::first, meta::flatten<meta::transform<meta::second, spec_t>>>;
-                using dummy_t = meta::transform<meta::curry<meta::force<frontend_impl_::functor_validator>::apply,
-                                                    typename Grid::interval_t>::template apply,
-                    functors_t>;
+                static_assert(
+                    meta::all_of<frontend_impl_::check_valid_apply_overloads<typename Grid::interval_t>::template apply,
+                        functors_t>::value,
+                    "Invalid elementary functor detected.");
 
                 size_t size = get_expandable_size(fields...);
                 size_t offset = 0;
