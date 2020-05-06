@@ -72,7 +72,7 @@ namespace gridtools {
                     "All members of `param_list` must be `accessor`s.");
 
                 static_assert(check_param_list<typename F::param_list>::value,
-                    "The list of accessors in a user functor (i.e. the param_list type to be defined on each functor) "
+                    "The `accessor`s in `param_list` of a stencil operator"
                     "does not have increasing index");
 
                 static_assert(meta::length<typename F::param_list>::value == sizeof...(Args),
