@@ -20,6 +20,10 @@
 
 #include "defs.hpp"
 
+#ifdef __HIPCC__
+#include "cuda_runtime.hpp"
+#endif
+
 #if defined(__NVCC__)
 #define GT_FORCE_INLINE __forceinline__
 #define GT_FORCE_INLINE_LAMBDA

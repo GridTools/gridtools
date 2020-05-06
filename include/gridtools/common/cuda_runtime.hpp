@@ -11,6 +11,10 @@
 
 #if defined(__HIP__)
 #include <hip/hip_runtime.h>
+#ifdef NDEBUG
+#undef assert
+#define assert(x) ((void)0)
+#endif
 #define cudaDeviceProp hipDeviceProp
 #define cudaDeviceSynchronize hipDeviceSynchronize
 #define cudaErrorInvalidValue hipErrorInvalidValue

@@ -162,7 +162,7 @@ bool predicate() {
     halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-#ifdef GT_CUDACC
+#ifdef GT_STORAGE_GPU
     boundary_apply_gpu<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in->target_view());
 #else
     boundary_apply<bc_basic, minus_predicate>(halos, bc_basic(), minus_predicate()).apply(in->target_view());
@@ -258,7 +258,7 @@ bool twosurfaces() {
     halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-#ifdef GT_CUDACC
+#ifdef GT_STORAGE_GPU
     boundary_apply_gpu<bc_two>(halos, bc_two()).apply(in->target_view());
 #else
     boundary_apply<bc_two>(halos, bc_two()).apply(in->target_view());
@@ -354,7 +354,7 @@ bool usingzero_1() {
     halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-#ifdef GT_CUDACC
+#ifdef GT_STORAGE_GPU
     boundary_apply_gpu<zero_boundary>(halos).apply(in->target_view());
 #else
     boundary_apply<zero_boundary>(halos).apply(in->target_view());
@@ -451,7 +451,7 @@ bool usingzero_2() {
     halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-#ifdef GT_CUDACC
+#ifdef GT_STORAGE_GPU
     boundary_apply_gpu<zero_boundary>(halos).apply(in->target_view(), out->target_view());
 #else
     boundary_apply<zero_boundary>(halos).apply(in->target_view(), out->target_view());
@@ -570,7 +570,7 @@ bool usingzero_3_empty_halos() {
     halos[1] = halo_descriptor(0, 0, 0, d2 - 1, d2);
     halos[2] = halo_descriptor(0, 0, 0, d3 - 1, d3);
 
-#ifdef GT_CUDACC
+#ifdef GT_STORAGE_GPU
     boundary_apply_gpu<zero_boundary>(halos).apply(in->target_view(), out->target_view());
 #else
     boundary_apply<zero_boundary>(halos).apply(in->target_view(), out->target_view());
@@ -637,7 +637,7 @@ bool usingvalue_2() {
     halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-#ifdef GT_CUDACC
+#ifdef GT_STORAGE_GPU
     boundary_apply_gpu<value_boundary<int_t>>(halos, value_boundary<int_t>(101))
         .apply(in->target_view(), out->target_view());
 #else
@@ -769,7 +769,7 @@ bool usingcopy_3() {
     halos[1] = halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-#ifdef GT_CUDACC
+#ifdef GT_STORAGE_GPU
     boundary_apply_gpu<copy_boundary>(halos).apply(one->target_view(), two->target_view(), src->target_view());
 #else
     boundary_apply<copy_boundary>(halos).apply(one->target_view(), two->target_view(), src->target_view());
