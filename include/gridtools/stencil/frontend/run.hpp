@@ -69,7 +69,7 @@ namespace gridtools {
                 static_assert(meta::is_list<typename F::param_list>::value, "param_list must be a type list.");
 
                 static_assert(meta::all_of<is_accessor, typename F::param_list>::value,
-                    "All members of param_list must be accessors.");
+                    "All members of `param_list` must be `accessor`s.");
 
                 static_assert(check_param_list<typename F::param_list>::value,
                     "The list of accessors in a user functor (i.e. the param_list type to be defined on each functor) "
