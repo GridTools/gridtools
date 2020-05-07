@@ -51,7 +51,7 @@ Dependencies
 ^^^^^^^^^^^^
 
 |GT| requires a header-only installation of Boost_, a recent version of CMake_ and a modern compiler.
-The exact version requirements can be found on `github <https://github.com/GridTools/gridtools>`_.
+The exact version requirements can be found on `GitHub <https://github.com/GridTools/gridtools>`_.
 
 .. _Boost: https://www.boost.org/
 .. _CMake: https://www.cmake.org/
@@ -71,7 +71,7 @@ or using FetchContent to pull in a dependency on the fly. |GT| supports both way
 .. _installation:
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Installing and validating GridTools
+Installing and Validating GridTools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install |GT| in ``/usr/local``
@@ -106,7 +106,7 @@ Additionally, use the following CMake variables to customize building of tests.
     Clang), ``NVCC-CUDA`` (compile with NVCC and Clang as the host compiler).
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using a GridTools installation
+Using a GridTools Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Using |GT| follows standard CMake practices. If |GT| was installed to `<prefix>`,
@@ -160,7 +160,7 @@ The following CMake options are available (see also :ref:`installation`).
 Using GridTools
 ^^^^^^^^^^^^^^^
 
-After the GridTools is made available by either ``find_package`` or ``FetchContent`` the following targets for the
+After GridTools was made available by either ``find_package`` or ``FetchContent`` the following targets for the
 different |GT| modules are available
 
   * ``stencil_naive``

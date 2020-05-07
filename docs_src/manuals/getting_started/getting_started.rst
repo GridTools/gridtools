@@ -136,7 +136,7 @@ the shared properties set and to reuse it while building concrete storages.
    It is recommended to use the ``id`` property each time the ``dimensions`` property is set.
    ``id`` should identify the unique set of dimension sizes.
    This is because the stencil computation engine assumes that the storages that have the same ``id`` have the same
-   sizes. However, if only one set of dimensions is used, ``id`` property could be skipped.
+   sizes. However, if only one set of dimensions is used, the ``id`` property could be skipped.
 
 We can now
 
