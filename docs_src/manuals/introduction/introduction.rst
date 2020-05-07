@@ -130,7 +130,7 @@ The ``CMakeLists.txt`` file should then contain the following line:
 .. _fetch_content:
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using GridTools with CMake's FetchContent
+Using GridTools with CMake’s FetchContent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Alternatively to a |GT| installation you can use GridTools with *FetchContent*. To use FetchContent add the following
