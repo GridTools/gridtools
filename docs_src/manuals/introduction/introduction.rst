@@ -215,9 +215,6 @@ the Clang-based HIP version has to be used, which is not yet officially distribu
 (but will be the successor of HCC-based HIP). Compilation of a Clang-based HIP compiler is relatively straightforward and
 documented in the `official HIP repository <https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md#hip-clang>`_.
 
-The backend used for the AMD GPUs is also named “CUDA” for historical reasons as internally the same backend (with minor changes)
-is compiled for AMD and NVIDIA GPUs.
-
 
 ------------
 Contributing
