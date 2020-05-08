@@ -51,3 +51,4 @@ def compile_and_run_examples(build_dir, verbose_ctest):
     runtools.srun(_ctest(verbose=verbose_ctest),
                   log_output=log.info,
                   cwd=build_dir)
+    log.info('Successfully executed examples')
