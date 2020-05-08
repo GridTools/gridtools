@@ -28,8 +28,8 @@
 #include "verifier.hpp"
 
 #define GT_REGRESSION_TEST(name, env, backend)                                                             \
-    template <class>                                                                                       \
-    using name = ::testing::Test;                                                                          \
+    template <class T>                                                                                     \
+    using name = ::gridtools::test_environment_impl_::regression_test<T>;                                  \
     using name##_types_t = meta::if_<env::is_enabled<backend>,                                             \
         ::testing::Types<env::apply<backend, double, ::gridtools::test_environment_impl_::cmdline_params>, \
             env::apply<backend, float, ::gridtools::test_environment_impl_::cmdline_params>,               \
@@ -41,6 +41,33 @@
 
 namespace gridtools {
     namespace test_environment_impl_ {
+
+        template <class T>
+        void backend_init(T, int &argc, char **argv) {}
+
+        template <class T>
+        void backend_finalize(T) {}
+
+        template <class Backend>
+        struct state {
+            state(int &argc, char **argv) { backend_init(Backend(), argc, argv); }
+            ~state() { backend_finalize(Backend()); }
+        };
+
+        template <class Backend>
+        void backend_state_holder(Backend, int &argc, char **argv) {
+            static state<Backend> instance(argc, argv);
+        }
+
+        template <class T>
+        struct regression_test : testing::Test {
+            regression_test() {
+                using backend_t = meta::first<T>;
+                using params_t = meta::third<T>;
+                backend_state_holder(backend_t(), params_t::argc(), params_t::argv());
+            }
+        };
+
         template <class T>
         std::true_type backend_supports_icosahedral(T);
 
@@ -57,6 +84,15 @@ namespace gridtools {
             static int d(size_t i) { return ((int[]){Is...})[i]; }
             static size_t steps() { return 0; }
             static bool needs_verification() { return true; }
+            static int &argc() {
+                static int res = 1;
+                return res;
+            }
+            static char **argv() {
+                static char res[] = "dummy";
+                static char *p = res;
+                return &p;
+            }
             static std::string name() {
                 std::string res = "_domain_size";
                 for (int i : (int[]){Is...})
@@ -76,6 +112,8 @@ namespace gridtools {
             static int d(size_t i);
             static size_t steps();
             static bool needs_verification();
+            static int &argc();
+            static char **argv();
             static std::string name() { return "_cmdline"; }
         };
 

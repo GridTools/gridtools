@@ -10,6 +10,7 @@
 #include <test_environment.hpp>
 #include <timer_select.hpp>
 
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -25,9 +26,23 @@ namespace {
         std::array<int, 3> m_d = {};
         size_t m_steps = 0;
         bool m_needs_verification = true;
+        int m_argc;
+        char **m_argv;
     } s_state;
 
     bool init(int argc, char **argv) {
+        assert(argc > 0);
+        s_state.m_argc = 1;
+        s_state.m_argv = argv;
+
+        // Let's assume that our stuff goes the last in the command line.
+        // so we can expect some third-party flags at the beginning.
+        while (argc > 1 && argv[1][0] == '-') {
+            ++s_state.m_argc;
+            --argc;
+            ++argv;
+        }
+
         if (argc == 1)
             return false;
         if (argc < 4) {
@@ -162,6 +177,8 @@ namespace gridtools {
         int cmdline_params::d(size_t i) { return s_state.m_d[i]; }
         size_t cmdline_params::steps() { return s_state.m_steps; }
         bool cmdline_params::needs_verification() { return s_state.m_needs_verification; }
+        int &cmdline_params::argc() { return s_state.m_argc; }
+        char **cmdline_params::argv() { return s_state.m_argv; }
 
         void flush_cache(timer_omp const &) {
             static std::size_t n = 1024 * 1024 * 21 / 2;

@@ -33,7 +33,7 @@ def run_perftests():
                   cwd=buildinfo.binary_dir)
 
 
-def compile_examples(build_dir):
+def compile_and_run_examples(build_dir, verbose_ctest):
     import build
     from pyutils import buildinfo
 
@@ -48,3 +48,7 @@ def compile_examples(build_dir):
     log.info('Building examples')
     build.make(build_dir)
     log.info('Successfully built examples')
+    runtools.srun(_ctest(verbose=verbose_ctest),
+                  log_output=log.info,
+                  cwd=build_dir)
+    log.info('Successfully executed examples')
