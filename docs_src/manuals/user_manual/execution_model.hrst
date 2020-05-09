@@ -15,19 +15,6 @@ of executions. There are three different execution policies for the `K` dimensio
   the horizontal plane;
 - `parallel`: No order is specified and execution can happen concurrently.
 
-An execution strategy for a computation is indicated by ``execute::order()``,
-where `order` is one of the `K` dimension execution orders: ``forward``, ``backward``, ``parallel``.
-
-In the CUDA backend, the parallel execution policy allows for tuning the degree of parallelism by selecting
-``execute::parallel_block<vertical_block_size>``, where ``vertical_block_size`` describes the dimension of CUDA block
-in the vertical. Setting this value too high value, e.g. each k-level in a separate CUDA-thread, may result in low
-instruction level parallelism and lead to poor performance.
-
-.. note::
-
-   The option to specify the vertical block size will most likely be moved to the backend in the future,
-   see :ref:`backend-selection`.
-
 More concretely, a multistage is a list of stages, implemented with stencil operators, to be executed with a certain
 execution policy. A computation combines several multistages and is executed one multistage after the other.
 
