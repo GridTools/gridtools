@@ -16,7 +16,7 @@ of executions. There are three different execution policies for the `K` dimensio
 - `parallel`: No order is specified and execution can happen concurrently.
 
 More concretely, a multistage is a list of stages, implemented with stencil operators, to be executed with a certain
-execution policy. A computation combines several multistages and is executed one multistage after the other.
+execution policy. A computation combines several multistages and executes one multistage after the other.
 
 - For each `IJ` plane, the stages of a multistage will be executed strictly one after the other. This means that a
   stage can assume that the previous stage has been applied to the the whole `IJ` plane before its execution. The user
