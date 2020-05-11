@@ -75,8 +75,8 @@ namespace {
 
     using env_t = vertical_test_environment<>;
 
-    template <class>
-    using tridiagonal = ::testing::Test;
+    template <class T>
+    using tridiagonal = regression_test<T>;
     using tridiagonal_types_t = meta::if_<env_t::is_enabled<stencil_backend_t>,
         ::testing::Types<env_t::apply<stencil_backend_t, double, inlined_params<12, 33, 6>>,
             env_t::apply<stencil_backend_t, double, inlined_params<23, 11, 6>>>,

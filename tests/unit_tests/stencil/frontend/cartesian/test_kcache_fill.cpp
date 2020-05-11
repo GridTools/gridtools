@@ -26,8 +26,8 @@ namespace {
 
     using env_t = vertical_test_environment<0, axis_t>;
 
-    template <class>
-    using test_kcache_fill = ::testing::Test;
+    template <class T>
+    using test_kcache_fill = regression_test<T>;
 
     using types_t = meta::if_<env_t::is_enabled<stencil_backend_t>,
         testing::Types<env_t::apply<stencil_backend_t, double, inlined_params<6, 6, 2, 6, 2>>>,
