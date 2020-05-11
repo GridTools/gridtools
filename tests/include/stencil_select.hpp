@@ -25,6 +25,20 @@
 namespace {
     using stencil_backend_t = gridtools::stencil::cpu_kfirst<>;
 }
+#elif defined(GT_STENCIL_CPU_KFIRST_HPX)
+#ifndef GT_STORAGE_CPU_KFIRST
+#define GT_STORAGE_CPU_KFIRST
+#endif
+#ifndef GT_TIMER_OMP
+#define GT_TIMER_OMP
+#endif
+#include <hpx/hpx_start.hpp>
+#include <hpx/include/apply.hpp>
+#include <gridtools/stencil/cpu_kfirst.hpp>
+#include <gridtools/thread_pool/hpx.hpp>
+namespace {
+    using stencil_backend_t = gridtools::stencil::cpu_kfirst<gridtools::integral_constant<int, 8>, gridtools::integral_constant<int, 8>, gridtools::thread_pool::hpx>;
+}
 #elif defined(GT_STENCIL_NAIVE)
 #ifndef GT_STORAGE_CPU_KFIRST
 #define GT_STORAGE_CPU_KFIRST
@@ -110,6 +124,24 @@ namespace gridtools {
             char const *backend_name(cpu_kfirst<I, J, T> const &) {
                 return "cpu_kfirst";
             }
+
+#if defined(GT_STENCIL_CPU_KFIRST_HPX)
+            template <class I, class J>
+            char const *backend_name(cpu_kfirst<I, J, thread_pool::hpx> const &) {
+                return "cpu_kfirst_hpx";
+            }
+
+            template <class I, class J>
+            void backend_init(cpu_kfirst<I, J, thread_pool::hpx>, int &argc, char **argv) {
+                ::hpx::start(nullptr, argc, argv);
+            }
+
+            template <class I, class J>
+            void backend_finalize(cpu_kfirst<I, J, thread_pool::hpx>) {
+                ::hpx::apply([]() { return hpx::finalize(); });
+                ::hpx::stop();
+            }
+#endif
         } // namespace cpu_kfirst_backend
 
         namespace cpu_ifirst_backend {
