@@ -275,6 +275,7 @@ namespace gridtools {
 
     using test_environment_impl_::icosahedral_test_environment;
     using test_environment_impl_::inlined_params;
+    using test_environment_impl_::regression_test;
     using test_environment_impl_::test_environment;
     using test_environment_impl_::vertical_test_environment;
 } // namespace gridtools
