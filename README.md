@@ -24,34 +24,44 @@ cmake ..
 make -j8
 make test
 ```
+
+For choosing the compiler, use the standard CMake techniques, e.g. setting the environment variables
+```
+CXX=`which g++` # full path to the C++ compiler
+CC=`which gcc` # full path to theC compiler
+FC=`which gfortran` # full path to theFortran compiler
+CUDACXX=`which nvcc` # full path to NVCC
+CUDAHOSTCXX=`which g++` # full path to the C++ compiler to be used as CUDA host compiler
+```
+
 ##### Requirements
 
 - Boost (1.65.1 or later)
 - CMake (3.14.5 or later)
 - CUDA Toolkit (9.0 or later, optional)
+- MPI (optional, CUDA-aware MPI for the GPU communication module `gcl_gpu`)
 
 ### Supported compilers
 
 The GridTools libraries are currently nightly tested with the following compilers on [CSCS supercomputers](https://www.cscs.ch/computers/overview/).
 
-| Compiler | Backend | Tested on |
-| --- | --- | --- |
-| NVCC 10.1 with GNU 6.2 | gpu | Piz Daint |
-| GNU 7.3.0 | cpu_kfirst, cpu_ifirst | Piz Daint |
-| Clang 7.0.1 | cpu_kfirst, cpu_ifirst | Piz Daint |
-
-##### Known issues
-
-- Intel is able to compile GridTools code, but depending on user code, might have severe performance problems compared to GNU- or Clang-compiled code.
+| Compiler | Backend | Tested on | Comments
+| --- | --- | --- | --- |
+| Cray clang version 9.0.2 | all backends | Piz Daint | with flags `-fno-cray-gpu -fno-cray`, P100 GPU
+| GNU 7.3.0 + NVCC 10.1 | all backends | Piz Daint | P100 GPU |
+| Clang 7.0.1 + NVCC 10.1 | all backends | Piz Daint | GPU compilation in NVCC-CUDA mode, P100 GPU |
+| GNU 8.3.0 + NVCC 10.1 | all backends | Tsa | V100 GPU |
+| HIP Clang (TODO) | all backends | Ault | TODO GPU |
 
 ##### Officially not supported (no workarounds implemented and planned)
 
 | Compiler | Backend | Date | Comments
 | --- | --- | --- | --- |
-| NVCC <= 8.0 | gpu | 2019-05-20 | removed workarounds in GT 1.1
+| Cray without Clang frontend| cpu_kfirst |  | no effort to fix compilation
 | NVCC <= 9.1 with GNU 6.x | gpu | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
 | PGI 18.5 | cpu_kfirst | 2018-12-06 | no effort to fix compilation
-| Cray 8.7.3 | cpu_kfirst | 2018-12-06 | no effort to fix compilation
+| Intel 19.0.1.144 | all backends | 2020-05-11 | Intel workarounds removed in GridTools 2.0 (goal would be to support Intel with `-gnextgen`)
+| Intel 19.1.0.166 | all backends | 2020-05-11 | even with `-qnextgen`, no effort to fix compilation
 
 ### Contributing
 
