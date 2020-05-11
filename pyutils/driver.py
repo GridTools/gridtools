@@ -83,7 +83,7 @@ if buildinfo:
             test.run(run_mpi_tests, verbose_ctest)
 
         if build_examples:
-            test.compile_examples(examples_build_dir)
+            test.compile_and_run_examples(examples_build_dir, verbose_ctest)
 
 
 @driver.command(description='performance test utilities')
