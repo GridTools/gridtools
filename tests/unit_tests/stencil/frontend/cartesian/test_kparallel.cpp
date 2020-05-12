@@ -11,142 +11,72 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil/cartesian.hpp>
-#include <gridtools/storage/builder.hpp>
-#include <gridtools/storage/sid.hpp>
 
 #include <stencil_select.hpp>
+#include <test_environment.hpp>
 
 namespace {
     using namespace gridtools;
     using namespace stencil;
     using namespace cartesian;
 
-    template <typename Axis>
     struct parallel_functor {
-        typedef in_accessor<0> in;
-        typedef inout_accessor<1> out;
-        typedef make_param_list<in, out> param_list;
+        using in = in_accessor<0>;
+        using out = inout_accessor<1>;
+        using param_list = make_param_list<in, out>;
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<0>) {
+        template <class Eval>
+        GT_FUNCTION static void apply(Eval &&eval, axis<2>::get_interval<0>) {
             eval(out()) = eval(in());
         }
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
+        template <class Eval>
+        GT_FUNCTION static void apply(Eval &&eval, axis<2>::get_interval<1>) {
             eval(out()) = 2 * eval(in());
         }
     };
 
-    template <typename Axis>
-    struct parallel_functor_on_upper_interval {
-        typedef in_accessor<0> in;
-        typedef inout_accessor<1> out;
-        typedef make_param_list<in, out> param_list;
+    using env1_t = test_environment<0, axis<2>>::apply<stencil_backend_t, double, inlined_params<7, 8, 14, 16>>;
 
-        template <typename Evaluation>
-        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
+    using kparallel_with_temporary = regression_test<env1_t>;
+
+    TEST_F(kparallel_with_temporary, test) {
+        auto in = [](int i, int j, int k) { return i * 1000 + j * 100 + k; };
+        auto out = env1_t::make_storage(1.5);
+        run(
+            [](auto in, auto out) {
+                GT_DECLARE_TMP(double, tmp);
+                return execute_parallel().stage(parallel_functor(), in, tmp).stage(parallel_functor(), tmp, out);
+            },
+            stencil_backend_t(),
+            env1_t::make_grid(),
+            env1_t ::make_storage(in),
+            out);
+        env1_t::verify([&](int i, int j, int k) { return in(i, j, k) * (k < 14 ? 1 : 4); }, out);
+    }
+
+    struct parallel_functor_on_upper_interval {
+        using in = in_accessor<0>;
+        using out = inout_accessor<1>;
+        using param_list = make_param_list<in, out>;
+
+        template <class Eval>
+        GT_FUNCTION static void apply(Eval &&eval, axis<3>::get_interval<1>) {
             eval(out()) = eval(in());
         }
     };
 
-    const auto builder = storage::builder<storage_traits_t>.type<double>();
+    using env2_t = test_environment<0, axis<3>>::apply<stencil_backend_t, double, inlined_params<7, 8, 14, 16, 18>>;
 
-    template <typename Axis>
-    void run_test() {
+    using kparallel_with_unused_intervals = regression_test<env2_t>;
 
-        constexpr uint_t d1 = 7;
-        constexpr uint_t d2 = 8;
-        constexpr uint_t d3_l = 14;
-        constexpr uint_t d3_u = 16;
-
-        auto builder = ::builder.dimensions(d1, d2, d3_l + d3_u);
-
-        auto in = builder.initializer([](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); })();
-        auto out = builder.value(1.5)();
-
-        auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
-
-        run_single_stage(parallel_functor<Axis>(), stencil_backend_t(), grid, in, out);
-
-        auto outv = out->host_view();
-        auto inv = in->host_view();
-        for (int i = 0; i < d1; ++i)
-            for (int j = 0; j < d2; ++j) {
-                for (int k = 0; k < d3_l; ++k)
-                    EXPECT_EQ(inv(i, j, k), outv(i, j, k));
-                for (int k = d3_l; k < d3_u; ++k)
-                    EXPECT_EQ(2 * inv(i, j, k), outv(i, j, k));
-            }
-    }
-
-    template <typename Axis>
-    void run_test_with_temporary() {
-
-        constexpr uint_t d1 = 7;
-        constexpr uint_t d2 = 8;
-        constexpr uint_t d3_l = 14;
-        constexpr uint_t d3_u = 16;
-
-        auto builder = ::builder.dimensions(d1, d2, d3_l + d3_u);
-
-        auto in = builder.initializer([](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); })();
-        auto out = builder.value(1.5)();
-
-        auto grid = make_grid(d1, d2, Axis(d3_l, d3_u));
-
-        run(
-            [](auto in, auto out) {
-                GT_DECLARE_TMP(double, tmp);
-                return execute_parallel()
-                    .stage(parallel_functor<Axis>(), in, tmp)
-                    .stage(parallel_functor<Axis>(), tmp, out);
-            },
+    TEST_F(kparallel_with_unused_intervals, test) {
+        auto in = [](int i, int j, int k) { return i * 1000 + j * 100 + k; };
+        auto out = env2_t::make_storage(1.5);
+        run_single_stage(parallel_functor_on_upper_interval(),
             stencil_backend_t(),
-            grid,
-            in,
+            env2_t::make_grid(),
+            env2_t::make_storage(in),
             out);
-
-        auto outv = out->host_view();
-        auto inv = in->host_view();
-        for (int i = 0; i < d1; ++i)
-            for (int j = 0; j < d2; ++j) {
-                for (int k = 0; k < d3_l; ++k)
-                    EXPECT_EQ(inv(i, j, k), outv(i, j, k));
-                for (int k = d3_l; k < d3_u; ++k)
-                    EXPECT_EQ(4 * inv(i, j, k), outv(i, j, k));
-            }
-    }
-
-    TEST(structured_grid, kparallel_with_temporary) { run_test_with_temporary<axis<2>>(); }
-
-    TEST(structured_grid, kparallel_with_unused_intervals) {
-        using Axis = axis<3>;
-
-        constexpr int_t d1 = 7;
-        constexpr int_t d2 = 8;
-        constexpr int_t d3_1 = 14;
-        constexpr int_t d3_2 = 16;
-        constexpr int_t d3_3 = 18;
-
-        auto builder = ::builder.dimensions(d1, d2, d3_1 + d3_2 + d3_3);
-
-        auto in = builder.initializer([](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); })();
-        auto out = builder.value(1.5)();
-
-        auto grid = make_grid(d1, d2, Axis(d3_1, d3_2, d3_3));
-
-        run_single_stage(parallel_functor_on_upper_interval<Axis>(), stencil_backend_t(), grid, in, out);
-
-        auto outv = out->host_view();
-        auto inv = in->host_view();
-        for (int i = 0; i < d1; ++i)
-            for (int j = 0; j < d2; ++j) {
-                for (int k = 0; k < d3_1; ++k)
-                    EXPECT_EQ(1.5, outv(i, j, k));
-                for (int k = d3_1; k < d3_1 + d3_2; ++k)
-                    EXPECT_EQ(inv(i, j, k), outv(i, j, k));
-                for (int k = d3_1 + d3_2; k < d3_1 + d3_2 + d3_3; ++k)
-                    EXPECT_EQ(1.5, outv(i, j, k));
-            }
+        env2_t::verify([&in](int i, int j, int k) { return k >= 14 && k < 14 + 16 ? in(i, j, k) : 1.5; }, out);
     }
 } // namespace
