@@ -278,17 +278,10 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
 
     endif()
 
-    # Setup HPX
     find_package(HPX QUIET NO_MODULE)
     if (HPX_FOUND)
-        # Add a stencil cpu Ifirst target for HPX backend
-        _gt_add_library(${_config_mode} stencil_cpu_ifirst_hpx)
-        target_link_libraries(${_gt_namespace}stencil_cpu_ifirst_hpx INTERFACE ${_gt_namespace}gridtools HPX::hpx_no_wrap_main)
-        list(APPEND GT_STENCILS cpu_ifirst_hpx)
-        # Add a stencil cpu Kfirst target for HPX backend
-        add_library(${_gt_namespace}stencil_cpu_kfirst_hpx ALIAS ${_gt_namespace}stencil_cpu_ifirst_hpx)
-        list(APPEND GT_AVAILABLE_TARGETS ${_gt_namespace}stencil_cpu_kfirst_hpx)
-        list(APPEND GT_STENCILS cpu_kfirst_hpx)
+        _gt_add_library(${_config_mode} threadpool_hpx)
+        target_link_libraries(${_gt_namespace}threadpool_hpx INTERFACE ${_gt_namespace}gridtools HPX::hpx_no_wrap_main)
     endif(HPX_FOUND)
 
 endmacro()
