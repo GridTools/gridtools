@@ -51,7 +51,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 | GNU 7.3.0 + NVCC 10.1 | all backends | Piz Daint | P100 GPU |
 | Clang 7.0.1 + NVCC 10.1 | all backends | Piz Daint | GPU compilation in NVCC-CUDA mode, P100 GPU |
 | GNU 8.3.0 + NVCC 10.1 | all backends | Tsa | V100 GPU |
-| HIP Clang (TODO) | all backends | Ault | TODO GPU |
+| HIP-Clang pre-release, based on Clang 10.0.0 | all backends | Ault | Mi50 GPU |
 
 ##### Officially not supported (no workarounds implemented and planned)
 
@@ -60,7 +60,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 | Cray without Clang frontend| cpu_kfirst |  | no effort to fix compilation
 | NVCC <= 9.1 with GNU 6.x | gpu | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
 | PGI 18.5 | cpu_kfirst | 2018-12-06 | no effort to fix compilation
-| Intel 19.0.1.144 | all backends | 2020-05-11 | Intel workarounds removed in GridTools 2.0 (goal would be to support Intel with `-gnextgen`)
+| Intel 19.0.1.144 | all backends | 2020-05-11 | Intel workarounds removed in GridTools 2.0 (goal would be to support Intel with `-qnextgen`)
 | Intel 19.1.0.166 | all backends | 2020-05-11 | even with `-qnextgen`, no effort to fix compilation
 
 ### Contributing
