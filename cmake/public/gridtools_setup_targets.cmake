@@ -281,7 +281,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     if (HPX_FOUND)
         _gt_add_library(${_config_mode} threadpool_hpx)
         target_link_libraries(${_gt_namespace}threadpool_hpx INTERFACE ${_gt_namespace}gridtools HPX::hpx_no_wrap_main)
-    endif(HPX_FOUND)
+    endif()
 endmacro()
 
 function(_gt_print_configuration_summary)
