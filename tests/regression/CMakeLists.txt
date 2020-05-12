@@ -13,7 +13,6 @@ if(TARGET threadpool_hpx)
     target_link_libraries(stencil_cpu_ifirst_hpx INTERFACE stencil_cpu_ifirst threadpool_hpx)
 endif()
 
-
 function(gridtools_add_regression_test tgt_name)
     set(options PERFTEST)
     set(one_value_args LIB_PREFIX)

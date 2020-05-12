@@ -275,7 +275,6 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         list(APPEND GT_GCL_ARCHS cpu)
 
         list(APPEND GT_STENCILS cpu_kfirst cpu_ifirst)
-
     endif()
 
     find_package(HPX QUIET NO_MODULE)
@@ -283,7 +282,6 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         _gt_add_library(${_config_mode} threadpool_hpx)
         target_link_libraries(${_gt_namespace}threadpool_hpx INTERFACE ${_gt_namespace}gridtools HPX::hpx_no_wrap_main)
     endif(HPX_FOUND)
-
 endmacro()
 
 function(_gt_print_configuration_summary)
