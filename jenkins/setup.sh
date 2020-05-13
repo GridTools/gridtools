@@ -20,7 +20,7 @@ if [[ $label != "tsa" ]]; then
     export SBATCH_ACCOUNT=d75
 fi
 
-if [[ ! -v build_examples ]] && [[ $env =~ ^(clang_nvcc|hip)$ ]]; then
+if [[ ! -v build_examples ]] && [[ $env =~ ^(cray|hip)$ ]]; then
     build_examples=false
 fi
 
