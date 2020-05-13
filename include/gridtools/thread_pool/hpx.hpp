@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <hpx/parallel/algorithm.hpp>
-#include <hpx/runtime_fwd.hpp>
+#include <hpx/include/parallel_for_loop.hpp>
+#include <hpx/include/runtime.hpp>
 
 namespace gridtools {
     namespace thread_pool {
