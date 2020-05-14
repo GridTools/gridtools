@@ -14,7 +14,7 @@ if (TARGET gcl_gpu)
     add_library(mpi_gtest_main_gpu STATIC EXCLUDE_FROM_ALL mpi_test_driver.cpp)
     target_compile_definitions(mpi_gtest_main_gpu PRIVATE GT_HAS_CUDA)
     target_link_libraries(mpi_gtest_main_gpu PUBLIC gridtools gtest MPI::MPI_CXX)
-    if(CUDAToolkit_FOUND)
+    if(TARGET CUDA::cudart) # doesn't exist if HIP mode
         target_link_libraries(mpi_gtest_main_gpu PUBLIC CUDA::cudart)
     endif()
 endif()
