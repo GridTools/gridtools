@@ -162,7 +162,6 @@ namespace gridtools {
 
             template <class I, class J>
             void backend_finalize(cpu_kfirst<I, J, thread_pool::hpx>) {
-                ::hpx::apply([]() { return hpx::finalize(); });
                 hpx_stop();
             }
 #endif
@@ -191,10 +190,7 @@ namespace gridtools {
 
             inline void backend_init(cpu_ifirst<thread_pool::hpx>, int &argc, char **argv) { hpx_start(argc, argv); }
 
-            inline void backend_finalize(cpu_ifirst<thread_pool::hpx>) {
-                ::hpx::apply([]() { return hpx::finalize(); });
-                hpx_stop();
-            }
+            inline void backend_finalize(cpu_ifirst<thread_pool::hpx>) { hpx_stop(); }
 #endif
         } // namespace cpu_ifirst_backend
 
