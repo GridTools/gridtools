@@ -22,9 +22,7 @@ namespace gridtools {
 
             template <class F, class I>
             friend void thread_pool_parallel_for_loop(hpx, F const &f, I lim) {
-                using ::hpx::parallel::for_loop;
-                using ::hpx::parallel::execution::par;
-                for_loop(par, 0, lim, f);
+                ::hpx::parallel::for_loop(::hpx::parallel::execution::par, 0, lim, f);
             }
         };
     } // namespace thread_pool

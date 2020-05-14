@@ -77,6 +77,25 @@ namespace {
 namespace {
     using stencil_backend_t = gridtools::stencil::cpu_ifirst<gridtools::thread_pool::hpx>;
 }
+
+inline bool& hpx_started() {
+  static bool res = false;
+  return res;
+}
+
+inline void hpx_start(int argc, char **argv) {
+  if (hpx_started()) return;
+  ::hpx::start(argc, argv);
+  hpx_started() = true;
+}
+
+inline void hpx_stop() {
+  if (!hpx_started()) return;
+  ::hpx::apply([] { return hpx::finalize(); });
+  ::hpx::stop();
+  hpx_started() = false;
+}
+
 #elif defined(GT_STENCIL_GPU)
 #ifndef GT_STORAGE_GPU
 #define GT_STORAGE_GPU
@@ -135,13 +154,13 @@ namespace gridtools {
 
             template <class I, class J>
             void backend_init(cpu_kfirst<I, J, thread_pool::hpx>, int &argc, char **argv) {
-                ::hpx::start(nullptr, argc, argv);
+                hpx_start(argc, argv);
             }
 
             template <class I, class J>
             void backend_finalize(cpu_kfirst<I, J, thread_pool::hpx>) {
                 ::hpx::apply([]() { return hpx::finalize(); });
-                ::hpx::stop();
+                hpx_stop();
             }
 #endif
         } // namespace cpu_kfirst_backend
@@ -168,12 +187,12 @@ namespace gridtools {
             inline char const *backend_name(cpu_ifirst<thread_pool::hpx> const &) { return "cpu_ifirst_hpx"; }
 
             inline void backend_init(cpu_ifirst<thread_pool::hpx>, int &argc, char **argv) {
-                ::hpx::start(nullptr, argc, argv);
+                hpx_start(argc, argv);
             }
 
             inline void backend_finalize(cpu_ifirst<thread_pool::hpx>) {
                 ::hpx::apply([]() { return hpx::finalize(); });
-                ::hpx::stop();
+                hpx_stop();
             }
 #endif
         } // namespace cpu_ifirst_backend
