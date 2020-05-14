@@ -77,25 +77,6 @@ namespace {
 namespace {
     using stencil_backend_t = gridtools::stencil::cpu_ifirst<gridtools::thread_pool::hpx>;
 }
-
-inline bool& hpx_started() {
-  static bool res = false;
-  return res;
-}
-
-inline void hpx_start(int argc, char **argv) {
-  if (hpx_started()) return;
-  ::hpx::start(argc, argv);
-  hpx_started() = true;
-}
-
-inline void hpx_stop() {
-  if (!hpx_started()) return;
-  ::hpx::apply([] { return hpx::finalize(); });
-  ::hpx::stop();
-  hpx_started() = false;
-}
-
 #elif defined(GT_STENCIL_GPU)
 #ifndef GT_STORAGE_GPU
 #define GT_STORAGE_GPU
@@ -122,6 +103,28 @@ namespace {
 
 #include "storage_select.hpp"
 #include "timer_select.hpp"
+
+#if defined(GT_STENCIL_CPU_KFIRST_HPX) || defined(GT_STENCIL_CPU_IFIRST_HPX)
+inline bool &hpx_started() {
+    static bool res = false;
+    return res;
+}
+
+inline void hpx_start(int argc, char **argv) {
+    if (hpx_started())
+        return;
+    ::hpx::start(argc, argv);
+    hpx_started() = true;
+}
+
+inline void hpx_stop() {
+    if (!hpx_started())
+        return;
+    ::hpx::apply([] { return hpx::finalize(); });
+    ::hpx::stop();
+    hpx_started() = false;
+}
+#endif
 
 namespace gridtools {
     namespace stencil {
@@ -186,9 +189,7 @@ namespace gridtools {
 #if defined(GT_STENCIL_CPU_IFIRST_HPX)
             inline char const *backend_name(cpu_ifirst<thread_pool::hpx> const &) { return "cpu_ifirst_hpx"; }
 
-            inline void backend_init(cpu_ifirst<thread_pool::hpx>, int &argc, char **argv) {
-                hpx_start(argc, argv);
-            }
+            inline void backend_init(cpu_ifirst<thread_pool::hpx>, int &argc, char **argv) { hpx_start(argc, argv); }
 
             inline void backend_finalize(cpu_ifirst<thread_pool::hpx>) {
                 ::hpx::apply([]() { return hpx::finalize(); });
