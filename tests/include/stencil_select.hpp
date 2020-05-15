@@ -113,7 +113,7 @@ inline bool &hpx_started() {
 inline void hpx_start(int argc, char **argv) {
     if (hpx_started())
         return;
-    ::hpx::start(argc, argv);
+    ::hpx::start(nullptr, argc, argv);
     hpx_started() = true;
 }
 
