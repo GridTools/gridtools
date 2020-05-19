@@ -31,7 +31,7 @@ namespace gridtools {
 
         inline int procs() { return impl_::procs_holder(); }
 
-        inline void init(int argc, char **argv) {
+        inline void init(int argc = 1, char **argv = 0) {
             int ready;
             MPI_Initialized(&ready);
             if (!ready)

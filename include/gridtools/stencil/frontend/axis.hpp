@@ -51,7 +51,7 @@ namespace gridtools {
             static constexpr size_t n_intervals = NIntervals;
 
             using axis_interval_t =
-                core::interval<core::level<0, 1, LevelOffsetLimit>, core::level<NIntervals, -1, LevelOffsetLimit>>;
+                core::interval<core::level<0, -1, LevelOffsetLimit>, core::level<NIntervals, 1, LevelOffsetLimit>>;
 
             using full_interval =
                 core::interval<core::level<0, 1, LevelOffsetLimit>, core::level<NIntervals, -1, LevelOffsetLimit>>;

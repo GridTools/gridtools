@@ -46,9 +46,9 @@ namespace gridtools {
                 std::string m_name;
                 storage::info<N> m_info;
                 traits::target_ptr_type<Traits, mutable_data_t> m_target_ptr_holder;
-                mutable_data_t *m_target_ptr;
 
               public:
+                mutable_data_t *m_target_ptr; // TODO(change dycore to not require this)
                 using layout_t = traits::layout_type<Traits, N>;
                 using data_t = T;
                 static constexpr size_t ndims = N;
