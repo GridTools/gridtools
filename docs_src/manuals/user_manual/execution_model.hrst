@@ -24,11 +24,11 @@ execution policy. A computation combines several multistages and executes one mu
 - If the execution policy is `parallel`, a stage cannot impose any assumptions on which stages are applied before in
   another `IJ` plane.
 - If the execution policy is `forward`, it is guaranteed that if a stage is executed at index ``k`` then all stages of
-  the multistage were already applied to the same column with smaller ``k``, and that no stages of the multistage are
-  already applied to the indices in the same column with larger ``k``.
+  the multistage were already applied to the same column with smaller ``k``. There is no guarantee that previous stages
+  of the multistage have not already been applied to the indices in the same column with larger ``k``.
 - If the execution policy is `backward`, it is guaranteed that if a stage is executed at index ``k`` then all stages of
-  the multistage were already applied to the same column with larger ``k``, and that no stages of the multistage are
-  already applied to the indices in the same column with smaller ``k``.
+  the multistage were already applied to the same column with larger ``k``. Similarly, there is no guarantee that
+  previous stages of the multistage have not already been applied to the indices in the same column with smaller ``k``.
 
 
 -------------------
