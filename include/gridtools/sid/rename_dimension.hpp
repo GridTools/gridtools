@@ -28,7 +28,7 @@ namespace gridtools {
             template <class OldKey, class NewKey, class Sid>
             struct renamed_sid : delegate<Sid> {
                 template <class Map>
-                using remaped_t = decltype(remap<OldKey, NewKey>(std::declval<Map>()));
+                using remapped_t = decltype(remap<OldKey, NewKey>(std::declval<Map>()));
 
                 template <class T>
                 renamed_sid(T &&obj) : delegate<Sid>(std::forward<T>(obj)) {}
