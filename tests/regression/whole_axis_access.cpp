@@ -7,6 +7,8 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include <type_traits>
+
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/sid/rename_dimension.hpp>
 #include <gridtools/stencil/cartesian.hpp>
@@ -28,11 +30,11 @@ namespace {
 
         template <class Eval>
         GT_FUNCTION static void apply(Eval &&eval) {
-            auto &&res = eval(out());
             auto k = eval(k_pos());
-            res = 0;
+            std::decay_t<decltype(eval(out()))> res = 0;
             for (int kk = 0; kk < k; ++kk)
                 res += eval(in(0, 0, 0, kk));
+            eval(out()) = res;
         }
     };
 
