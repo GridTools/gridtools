@@ -36,7 +36,7 @@ namespace gridtools {
                 friend remaped_t<strides_type<Sid>> sid_get_strides(renamed_sid const &obj) {
                     return remap<OldKey, NewKey>(sid_get_strides(obj.impl()));
                 }
-                friend remaped_t<lower_bounds_type<Sid>> sid_get_lower_bounds(renamed_sid const &obj) {
+                friend remapped_t<lower_bounds_type<Sid>> sid_get_lower_bounds(renamed_sid const &obj) {
                     return remap<OldKey, NewKey>(sid_get_lower_bounds(obj.impl()));
                 }
                 friend remapped_t<upper_bounds_type<Sid>> sid_get_upper_bounds(renamed_sid const &obj) {
