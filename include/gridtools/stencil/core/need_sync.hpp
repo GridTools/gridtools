@@ -42,15 +42,14 @@ namespace gridtools {
 
                 template <class CacheMap>
                 using has_ij_cache =
-                    meta::st_contains<meta::dedup<meta::concat<meta::transform<get_cache_types, CacheMap>>>,
+                    meta::st_contains<meta::dedup<meta::flatten<meta::transform<get_cache_types, CacheMap>>>,
                         cache_type::ij>;
             } // namespace need_sync_impl_
 
             template <class Esfs,
                 class CacheMap,
                 class InitialState = meta::list<meta::list<>, meta::list<>>,
-                class FinalState = meta::lfold<need_sync_impl_::folding_fun, InitialState, Esfs>,
-                class FinalDirty = meta::second<FinalState>>
+                class FinalState = meta::lfold<need_sync_impl_::folding_fun, InitialState, Esfs>>
             using need_sync = meta::replace_at_c<meta::first<FinalState>, 0, need_sync_impl_::has_ij_cache<CacheMap>>;
         } // namespace core
     }     // namespace stencil
