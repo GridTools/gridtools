@@ -139,7 +139,7 @@ endfunction()
 # - Within this macro, all references to targets created with _gt_add_library() need to be prefixed with
 #   ${_gt_namespace}, e.g. target_link_libraries(${_gt_namespace}my_tgt INTERFACE ${_gt_namespace}_my_other_tgt).
 macro(_gt_setup_targets _config_mode clang_cuda_mode)
-    set(GT_AVAILABLE_TARGETS)
+    set(GT_AVAILABLE_TARGETS "" CACHE INTERNAL "Available GridTools targets")
 
     include(detect_features)
     detect_cuda_type(GT_CUDA_TYPE "${clang_cuda_mode}")
