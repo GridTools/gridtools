@@ -2,6 +2,17 @@ add_executable(perftests)
 
 target_link_libraries(perftests regression_main)
 
+if(TARGET threadpool_hpx)
+    # These fake targets should not be used by the user, they are just to parametrize the tests on the threadpool
+    list(APPEND GT_STENCILS cpu_kfirst_hpx cpu_ifirst_hpx)
+
+    add_library(stencil_cpu_kfirst_hpx INTERFACE)
+    target_link_libraries(stencil_cpu_kfirst_hpx INTERFACE stencil_cpu_kfirst threadpool_hpx)
+
+    add_library(stencil_cpu_ifirst_hpx INTERFACE)
+    target_link_libraries(stencil_cpu_ifirst_hpx INTERFACE stencil_cpu_ifirst threadpool_hpx)
+endif()
+
 function(gridtools_add_regression_test tgt_name)
     set(options PERFTEST)
     set(one_value_args LIB_PREFIX)
