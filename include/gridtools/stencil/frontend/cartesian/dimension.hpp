@@ -9,9 +9,10 @@
  */
 #pragma once
 
+#include <cstddef>
+
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
-#include <cstddef>
 
 namespace gridtools {
     namespace stencil {
