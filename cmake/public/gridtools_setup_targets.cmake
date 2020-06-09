@@ -125,8 +125,8 @@ function(_gt_add_library _config_mode name)
         add_library(${name} INTERFACE)
         add_library(${GT_NAMESPACE}${name} ALIAS ${name})
     endif()
-    list(APPEND GT_AVAILABLE_TARGETS ${GT_NAMESPACE}${name})
-    set(GT_AVAILABLE_TARGETS ${GT_AVAILABLE_TARGETS} PARENT_SCOPE)
+    list(APPEND _gt_available_targets ${GT_NAMESPACE}${name})
+    set(_gt_available_targets ${_gt_available_targets} PARENT_SCOPE)
 endfunction()
 
 # gridtools_setup_targets()
@@ -139,7 +139,7 @@ endfunction()
 # - Within this macro, all references to targets created with _gt_add_library() need to be prefixed with
 #   ${_gt_namespace}, e.g. target_link_libraries(${_gt_namespace}my_tgt INTERFACE ${_gt_namespace}_my_other_tgt).
 macro(_gt_setup_targets _config_mode clang_cuda_mode)
-    set(GT_AVAILABLE_TARGETS "" CACHE INTERNAL "Available GridTools targets")
+    set(_gt_available_targets)
 
     include(detect_features)
     detect_cuda_type(GT_CUDA_TYPE "${clang_cuda_mode}")
@@ -276,6 +276,8 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
 
         list(APPEND GT_STENCILS cpu_kfirst cpu_ifirst)
     endif()
+    set(GT_AVAILABLE_TARGETS ${_gt_available_targets} CACHE STRING "Available GridTools targets" FORCE)
+    mark_as_advanced(GT_AVAILABLE_TARGETS)
 endmacro()
 
 function(_gt_print_configuration_summary)
