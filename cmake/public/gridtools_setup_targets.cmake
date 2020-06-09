@@ -125,7 +125,7 @@ function(_gt_add_library _config_mode name)
         add_library(${name} INTERFACE)
         add_library(${GT_NAMESPACE}${name} ALIAS ${name})
     endif()
-    list(APPEND _gt_available_targets ${GT_NAMESPACE}${name})
+    list(APPEND _gt_available_targets ${name})
     set(_gt_available_targets ${_gt_available_targets} PARENT_SCOPE)
 endfunction()
 
@@ -281,8 +281,9 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
 endmacro()
 
 function(_gt_print_configuration_summary)
+    list(TRANSFORM GT_AVAILABLE_TARGETS PREPEND "${GT_NAMESPACE}" OUTPUT_VARIABLE namespaced_targets)
     message(STATUS "GridTools configuration summary")
-    message(STATUS "  Available targets: ${GT_AVAILABLE_TARGETS}")
+    message(STATUS "  Available targets: ${namespaced_targets}")
     message(STATUS "  GPU mode: ${GT_CUDA_TYPE}") # Note that the CMake tests rely on the string "GPU mode: <mode>"
                                                   # to be present in the CMake configure output
 endfunction()
