@@ -75,24 +75,22 @@ namespace gridtools {
             template <>
             constexpr literal_int_t to_int<2>(char c) {
                 return c == '0' ? 0 : c == '1' ? 1 : throw "invalid binary _c literal";
-            };
-
+            }
             template <>
             constexpr literal_int_t to_int<8>(char c) {
                 return c >= '0' && c <= '7' ? c - '0' : throw "invalid octal _c literal";
-            };
+            }
             template <>
             constexpr literal_int_t to_int<10>(char c) {
                 return c >= '0' && c <= '9' ? c - '0' : throw "invalid decimal _c literal";
-            };
-
+            }
             template <>
             constexpr literal_int_t to_int<16>(char c) {
                 return c >= 'A' && c <= 'F'
                            ? c - 'A' + 10
                            : c >= 'a' && c <= 'f' ? c - 'a' + 10
                                                   : c >= '0' && c <= '9' ? c - '0' : throw "invalid hex _c literal";
-            };
+            }
 
             template <literal_int_t Base>
             constexpr literal_int_t parse(char const *first, char const *last) {
