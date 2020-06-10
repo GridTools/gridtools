@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <cstddef>
+
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
 
@@ -20,7 +22,7 @@ namespace gridtools {
                It contains a direction (compile time constant, specifying the ID of the component),
                and a value (runtime value, which is storing the offset in the given direction).
             */
-            template <size_t Coordinate>
+            template <std::size_t Coordinate>
             struct dimension {
                 static_assert(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
 
