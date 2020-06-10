@@ -63,7 +63,7 @@ function(_gt_depends_on_gridtools dst tgt)
     endif()
 endfunction()
 
-set(_GT_INCLUDER_IN ${CMAKE_CURRENT_LIST_DIR}/includer.in)
+set(_GT_INCLUDER_IN ${CMAKE_CURRENT_LIST_DIR}/includer.in CACHE INTERNAL "")
 
 function(_gt_convert_to_cuda_source dst srcfile)
     get_filename_component(extension ${srcfile} LAST_EXT)
