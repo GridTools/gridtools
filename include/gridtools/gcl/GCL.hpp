@@ -31,8 +31,8 @@ namespace gridtools {
                 MPI_Initialized(&ready);
                 if (!ready)
                     MPI_Init(argc, argv);
-                MPI_Comm_rank(world(), &impl_::pid_holder());
-                MPI_Comm_size(world(), &impl_::procs_holder());
+                MPI_Comm_rank(world(), &pid_holder());
+                MPI_Comm_size(world(), &procs_holder());
             }
         } // namespace impl_
 
