@@ -293,8 +293,10 @@ namespace gridtools {
                 template <class... Sids>
                 class values {
                     GT_STATIC_ASSERT(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 1
+#else
                     GT_STATIC_ASSERT(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
-
+#endif
                     typename hymap::keys<Keys...>::template values<Sids...> m_sids;
 
                     // Extracted lists of raw kinds (uncompresed)
