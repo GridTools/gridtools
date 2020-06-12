@@ -8356,7 +8356,7 @@
     "clustername": "daint",
     "compiler": "/opt/nvidia/cudatoolkit10/10.1.105_3.27-7.0.1.1_4.1__ga311ce7/bin/nvcc 10.1.105 (/users/vogtha/clang-7.0.1/bin/clang++ 7.0.1)",
     "datetime": "2020-05-05T14:58:50.585216+02:00",
-    "envfile": "/scratch/snx3000/jenkins/workspace/GridTools_perftest_PR/env/clang/label/daint-cn/jenkins/envs/daint_clang.sh"
+    "envfile": "/scratch/snx3000/jenkins/workspace/GridTools_perftest_PR/env/nvcc_clang/label/daint-cn/jenkins/envs/daint_nvcc_clang.sh"
   },
   "domain": [
     256,

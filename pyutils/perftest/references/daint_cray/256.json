@@ -4504,7 +4504,7 @@
     "clustername": "daint",
     "compiler": "/opt/cray/pe/craype/2.6.1/bin/CC 9.0.0 ( )",
     "datetime": "2020-05-05T14:56:46.250069+02:00",
-    "envfile": "/scratch/snx3000/jenkins/workspace/GridTools_perftest_PR/env/clang_nvcc/label/daint-cn/jenkins/envs/daint_clang_nvcc.sh"
+    "envfile": "/scratch/snx3000/jenkins/workspace/GridTools_perftest_PR/env/cray/label/daint-cn/jenkins/envs/daint_cray.sh"
   },
   "domain": [
     256,
