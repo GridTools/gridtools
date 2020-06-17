@@ -475,7 +475,8 @@ namespace gridtools {
                     Fun m_fun;
 
                     template <size_t I, class... Args>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) operator()(Args &&... args) const {
+                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto operator()(Args &&... args) const
+                        -> decltype(m_fun(wstd::forward<Args>(args)...)) {
                         return m_fun(wstd::forward<Args>(args)...);
                     }
                 };
