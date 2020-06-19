@@ -33,15 +33,15 @@ struct copy_functor {
 };
 
 template <class From, class To>
-void copy(From from, To to) {
+void copy(From &&from, To &&to) {
     static_assert(is_sid<From>(), "");
     static_assert(is_sid<To>(), "");
     auto &&size = sid::get_upper_bounds(to);
     run_single_stage(copy_functor(),
         naive(),
         make_grid(at_key<dim::i>(size), at_key<dim::j>(size), at_key<dim::k>(size)),
-        std::move(from),
-        std::move(to));
+        std::forward<From>(from),
+        std::forward<To>(to));
 }
 
 PYBIND11_MODULE(py_implementation, m) {
