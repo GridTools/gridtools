@@ -11,6 +11,7 @@
 
 #include <pybind11/pybind11.h>
 
+#include <gridtools/sid/concept.hpp>
 #include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/stencil/global_parameter.hpp>
 #include <gridtools/stencil/naive.hpp>
@@ -32,7 +33,7 @@ struct copy_functor {
     }
 };
 
-// Here is the generic implementation of the copy algorithm.
+// Here is a generic implementation of the copy algorithm.
 // The input and output fields are passed as SIDs
 template <class From, class To>
 void copy(From &&from, To &&to) {
