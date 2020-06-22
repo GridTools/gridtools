@@ -22,8 +22,8 @@ def test_1d():
 
 def test_scalar():
     dst = np.empty((3, 4, 5), dtype=np.double)
-    testee.copy_from_scalar(42, dst)
-    assert np.all(dst == 42)
+    testee.copy_from_scalar(42., dst)
+    assert np.all(dst == 42.)
 
 test_3d()
 test_1d()
