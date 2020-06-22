@@ -62,7 +62,11 @@ namespace gridtools {
         wrapper<T, Dim, Kind> as_sid(pybind11::buffer const &src) {
             static_assert(
                 std::is_trivially_copyable<T>::value, "as_sid should be instantiated with the trivially copyable type");
-            auto info = src.request(!std::is_const<T>());
+            constexpr bool writable = !std::is_const<T>();
+            // pybind11::buffer::request accepts writable as an optional parameter (default is false).
+            // if writable is true PyBUF_WRITABLE flag is added while delegating to the PyObject_GetBuffer.
+            auto info = src.request(writable);
+            assert(!(writable && info.readonly));
             if (info.ndim != Dim)
                 throw std::domain_error("buffer has incorrect number of dimensions: " + std::to_string(info.ndim) +
                                         "; expected " + std::to_string(Dim));
