@@ -21,8 +21,7 @@ def test_1d():
     assert numpy.all(dst == expected)
 
 def test_scalar():
-    shape = (3, 4, 5)
-    dst = numpy.empty(shape, dtype=numpy.double)
+    dst = numpy.empty((3, 4, 5), dtype=numpy.double)
     py_implementation.copy_from_scalar(42, dst)
     assert numpy.all(dst == 42)
 
