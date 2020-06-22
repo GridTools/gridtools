@@ -59,5 +59,5 @@ PYBIND11_MODULE(py_implementation, m) {
         "Copy from the 1D double buffer to a 3D one.");
     m.def("copy_from_scalar",
         [](double from, py::buffer to) { copy(make_global_parameter(from), as_sid<double, 3>(to)); },
-        "Copy from the 1D double buffer to a 3D one.");
+        "Copy from the scalar to a 3D buffer of doubles.");
 }
