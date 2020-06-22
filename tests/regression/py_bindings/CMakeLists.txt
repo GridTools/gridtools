@@ -1,9 +1,10 @@
-find_package(Python3)
+find_package(Python3 COMPONENTS Interpreter Development NumPy)
 
-if (NOT Python3_FOUND)
+if (NOT Python3_FOUND OR NOT Python3_Development_FOUND OR NOT Python3_NumPy_FOUND)
     return()
 endif()
 
+include(FetchContent)
 FetchContent_Declare(
     pybind11
     GIT_REPOSITORY https://github.com/pybind/pybind11.git
