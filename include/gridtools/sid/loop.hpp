@@ -536,7 +536,7 @@ namespace gridtools {
          *   Usage:
          *     1. One dimensional traversal:
          *     ```
-         *     // let us assume that we have a sid with stride dimesion tags `i`, `j` and `k`.
+         *     // let us assume that we have a sid with stride dimension tags `i`, `j` and `k`.
          *
          *     // define the way we are going to traverse the data
          *     auto loop = sid::make_loop<k>(32);

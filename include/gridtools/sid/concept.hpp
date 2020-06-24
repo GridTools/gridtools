@@ -36,6 +36,8 @@
  *   A type `T` models SID concept if it has the following functions defined and available via ADL:
  *     `PtrHolder sid_get_origin(T&);`
  *     `Strides sid_get_strides(T const&);`
+ *     `LowerBounds sid_get_lower_bounds(T const&);`
+ *     `UpperBounds sid_get_upper_bounds(T const&)`
  *
  *   The following functions should be declared (definition is not needed) and available via ADL:
  *     `PtrDiff sid_get_ptr_diff(T const&)`
@@ -51,8 +53,10 @@
  *     - there is `PtrHolder operator+(PtrHolder, PtrDiff)` defined and `(holder + diff)()` should return the same as
  *       `holder() + diff`
  *     - decayed `Strides` is a hymap
+ *     - decayed  `LowerBounds` and decayed `UpperBounds` are hymaps. The values of the those hymaps are of integral
+ *       or integral_constant types.
  *
- *   Each type that participate in `Strides` tuple-like (aka `Stride`) should:
+ *   Each type that participate in `Strides` hymap (aka `Stride`) should:
  *     - be an integral
  *     or
  *     - be an integral constant (be an instantiation of the `integral_constant` or provide the same functionality)
@@ -89,7 +93,22 @@
  *    For concept implementors it means that the inferred from the `SID` types can delegate the ownership handling
  *    to `SID`. It is legal for example the `Strides` can be implemented as a reference (or a tuple of references)
  *
- *    TODO(anstaf): formal semantic definition is not complete.
+ *    `LowerBounds` and `UpperBounds` define the boundaries of the iteration space. They model `hymap` concept as well
+ *    as `Strides` does. However the keys not necessarily must be the same. If some key (`a`) exists both in `Strides`
+ *    and `LowerBounds` the call of `sid_shift(origin, at_key<a>(strides), offset)` will be illegal where
+ *     `offset < at_key<a>(lower_bounds)`.
+ *    The same logic is applied to the `UpperBounds`: the shift is illegal if `offset >= at_key<a>(upper_bounds)`.
+ *    Note that the absence of the key in the bounds means nothing.
+ *    Note also that there is no contract that `sid_shift` is always legal with any `offset` within the boundaries.
+ *
+ *    In some sense SID boundaries is a "best effort" API. The users of the SID concepts can use it to validate the
+ *    data boundaries against the computation area. The style of that validation should be that: if there are boundaries
+ *    along that dimension, we check, otherwise everything is OK. The SID modelers are free to skip boundaries
+ *    definitions. There are strong use cases where that skipping makes sense. For example blocking. After the blocking
+ *    the valid iteration area can be not rectangular (even the original SID has the rectangular one). Even we would
+ *    define some formally correct bounds for the blocked sid, we loose some information and practically it makes sense
+ *    to do boundary checking before the blocking anyway. The composite SID is even more complex from boundaries
+ *    perspective (and more or less useless).
  *
  *    Fallbacks
  *    ---------
@@ -97,6 +116,7 @@
  *    `get_strides(Sid)` returns an empty tuple.
  *    `get_ptr_diff(Sid)` returns the same type as `decltype(Ptr{} - Ptr{})`
  *    `get_strides_kind(Sid)` is enabled if `Strides` is empty and returns `Strides`
+ *    `get_lower_bounds(Sid)` and `get_upper_bounds(Sid)` return an empty tuple.
  *
  *   Compile time API
  *   =================
@@ -118,13 +138,13 @@
  *
  *  - Ptr sid::get_origin(Sid&);
  *  - Strides sid::get_strides(Sid const&);
- *  - void sid::shift(T&, Stride, Offset);
+ *  - void sid::shift(PtrOrPtrDiff&, Stride, Offset);
+ *  - LowerBounds sid::get_lower_bounds(Sid const&);
+ *  - UpperBounds sid::get_upper_bounds(Sid const&);
  *
  *  Auxiliary functions:
  *
  *  - Stride sid::get_stride<I>(Strides)
- *
- * TODO(anstaf): Document lower/upper bounds stuff when the API will be finally settled.
  *
  */
 
