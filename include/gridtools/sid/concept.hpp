@@ -106,10 +106,10 @@
  *    data boundaries against the computation area. The style of that validation should be that: if there are boundaries
  *    along that dimension, we check, otherwise everything is OK. The SID modelers are free to skip boundaries
  *    definitions. There are strong use cases where that skipping makes sense. For example blocking. After the blocking
- *    the valid iteration area can be not rectangular (even the original SID has the rectangular one). Even we would
- *    define some formally correct bounds for the blocked sid, we loose some information and practically it makes sense
- *    to do boundary checking before the blocking anyway. The composite SID is even more complex from boundaries
- *    perspective (and more or less useless).
+ *    the valid iteration area can be not rectangular (even the original SID is rectangular). Even we would define some
+ *    formally correct bounds for the blocked sid, we loose some information and practically it makes sense to do
+ *    boundary checking before the blocking anyway. The composite SID is even more complex from boundaries perspective
+ *    (and more or less useless).
  *
  *    Fallbacks
  *    ---------
