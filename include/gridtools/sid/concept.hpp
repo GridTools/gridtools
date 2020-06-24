@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <limits>
 #include <type_traits>
 
 #include "../common/defs.hpp"
@@ -37,7 +38,7 @@
  *     `PtrHolder sid_get_origin(T&);`
  *     `Strides sid_get_strides(T const&);`
  *     `LowerBounds sid_get_lower_bounds(T const&);`
- *     `UpperBounds sid_get_upper_bounds(T const&)`
+ *     `UpperBounds sid_get_upper_bounds(T const&);`
  *
  *   The following functions should be declared (definition is not needed) and available via ADL:
  *     `PtrDiff sid_get_ptr_diff(T const&)`
@@ -144,7 +145,9 @@
  *
  *  Auxiliary functions:
  *
- *  - Stride sid::get_stride<I>(Strides)
+ *  - Stride sid::get_stride<Dim>(Strides)
+ *  - Bound  sid::get_lower_bound<Dim>(Bounds)
+ *  - Bound  sid::get_upper_bound<Dim>(Bounds)
  *
  */
 
@@ -746,6 +749,22 @@ namespace gridtools {
             std::enable_if_t<!has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
         GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides &&) {
             return {};
+        }
+
+        /**
+         *  Getters from (Lower/Upper)Bounds to the bound in a given dimension.
+         *
+         *  If `Bounds` doesn't have `Key`, integral_constant<int_t, min/max> is returned.
+         */
+        template <class Key, class Bounds>
+        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_lower_bound(Bounds &&bounds) {
+            return gridtools::host_device::at_key_with_default<Key,
+                integral_constant<int_t, std::numeric_limits<int_t>::min()>>(wstd::forward<Bounds>(bounds));
+        }
+        template <class Key, class Bounds>
+        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_upper_bound(Bounds &&bounds) {
+            return gridtools::host_device::at_key_with_default<Key,
+                integral_constant<int_t, std::numeric_limits<int_t>::max()>>(wstd::forward<Bounds>(bounds));
         }
     } // namespace sid
 
