@@ -54,7 +54,7 @@
  *     - there is `PtrHolder operator+(PtrHolder, PtrDiff)` defined and `(holder + diff)()` should return the same as
  *       `holder() + diff`
  *     - decayed `Strides` is a hymap
- *     - decayed  `LowerBounds` and decayed `UpperBounds` are hymaps. The values of the those hymaps are of integral
+ *     - decayed `LowerBounds` and decayed `UpperBounds` are hymaps. The values of the those hymaps are of integral
  *       or integral_constant types.
  *
  *   Each type that participate in `Strides` hymap (aka `Stride`) should:
