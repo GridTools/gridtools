@@ -118,6 +118,10 @@ gridtools_add_cartesian_regression_test(whole_axis_access SOURCES whole_axis_acc
 gridtools_add_layout_transformation_test()
 gridtools_add_boundary_conditions_test()
 
+add_executable(c_array_copy c_array_copy.cpp)
+target_link_libraries(c_array_copy gtest_main gmock gridtools)
+add_test(NAME c_array_copy COMMAND $<TARGET_FILE:c_array_copy>)
+
 add_subdirectory(icosahedral)
 add_subdirectory(c_bindings)
 add_subdirectory(py_bindings)
