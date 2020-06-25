@@ -32,7 +32,7 @@ struct copy {
 template <class T>
 auto grid(T const &) {
     static_assert(std::rank<T>() == 3, "");
-    return make_grid(halo_descriptor(std::extent<T, 0>()), halo_descriptor(std::extent<T, 1>()), std::extent<T, 2>());
+    return make_grid(std::extent<T, 0>(), std::extent<T, 1>(), std::extent<T, 2>());
 }
 
 TEST(c_array, smoke) {
