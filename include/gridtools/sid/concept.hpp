@@ -99,7 +99,7 @@
  *    and `LowerBounds` the call of `sid_shift(origin, at_key<a>(strides), offset)` will be illegal where
  *     `offset < at_key<a>(lower_bounds)`.
  *    The same logic is applied to the `UpperBounds`: the shift is illegal if `offset >= at_key<a>(upper_bounds)`.
- *    Note that the absence of the key in the bounds means nothing.
+ *    Note that the absence of the key in the bounds means there is no check.
  *    Note also that there is no contract that `sid_shift` is always legal with any `offset` within the boundaries.
  *
  *    In some sense SID boundaries is a "best effort" API. The users of the SID concepts can use it to validate the
