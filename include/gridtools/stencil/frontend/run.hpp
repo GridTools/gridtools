@@ -11,7 +11,6 @@
 #pragma once
 
 #include <cassert>
-#include <limits>
 #include <type_traits>
 #include <utility>
 
@@ -66,7 +65,8 @@ namespace gridtools {
                     "defined in the functor Example:\n using v1=in_accessor<0>;\n using v2=inout_accessor<1>;\n "
                     "using param_list=make_param_list<v1, v2>;\n");
 
-                static_assert(meta::is_list<typename F::param_list>::value, "`param_list` must be a type list (use `make_param_list`).");
+                static_assert(meta::is_list<typename F::param_list>::value,
+                    "`param_list` must be a type list (use `make_param_list`).");
 
                 static_assert(meta::all_of<is_accessor, typename F::param_list>::value,
                     "All members of `param_list` must be `accessor`s.");
@@ -222,14 +222,9 @@ namespace gridtools {
                     for_each<meta::list<dim::i, dim::j>>(
                         [&, l_bounds = sid::get_lower_bounds(field), u_bounds = sid::get_upper_bounds(field)](auto d) {
                             using dim_t = decltype(d);
-                            auto &&l_bound =
-                                at_key_with_default<dim_t, integral_constant<int_t, std::numeric_limits<int_t>::min()>>(
-                                    l_bounds);
-                            auto &&u_bound =
-                                at_key_with_default<dim_t, integral_constant<int_t, std::numeric_limits<int_t>::max()>>(
-                                    u_bounds);
-                            assert(at_key<dim_t>(origin) + extent_t::minus(d) >= l_bound);
-                            assert(at_key<dim_t>(origin) + at_key<dim_t>(size) + extent_t::plus(d) <= u_bound);
+                            assert(at_key<dim_t>(origin) + extent_t::minus(d) >= sid::get_lower_bound<dim_t>(l_bounds));
+                            assert(at_key<dim_t>(origin) + at_key<dim_t>(size) + extent_t::plus(d) <=
+                                   sid::get_upper_bound<dim_t>(u_bounds));
                         });
                     return 0;
                 };

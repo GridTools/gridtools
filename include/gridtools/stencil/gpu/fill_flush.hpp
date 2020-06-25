@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <limits>
 #include <type_traits>
 #include <utility>
 
@@ -308,15 +307,13 @@ namespace gridtools {
                     template <class Plh, class DataStores>
                     auto make_data_store(bound<Plh, check::lo>, DataStores const &data_stores) {
                         return make_global_parameter(
-                            at_key_with_default<dim::k, integral_constant<int_t, std::numeric_limits<int_t>::min()>>(
-                                sid::get_lower_bounds(at_key<Plh>(data_stores))));
+                            sid::get_lower_bound<dim::k>(sid::get_lower_bounds(at_key<Plh>(data_stores))));
                     }
 
                     template <class Plh, class DataStores>
                     auto make_data_store(bound<Plh, check::hi>, DataStores const &data_stores) {
                         return make_global_parameter(
-                            at_key_with_default<dim::k, integral_constant<int_t, std::numeric_limits<int_t>::min()>>(
-                                sid::get_upper_bounds(at_key<Plh>(data_stores))));
+                            sid::get_upper_bound<dim::k>(sid::get_upper_bounds(at_key<Plh>(data_stores))));
                     }
 
                     template <class DataStores>
