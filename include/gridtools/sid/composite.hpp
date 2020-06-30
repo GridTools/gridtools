@@ -146,7 +146,7 @@ namespace gridtools {
              *
              */
             template <class... Keys>
-            class keys {
+            struct keys {
 
                 template <class... Ptrs>
                 struct composite_ptr {
@@ -295,9 +295,8 @@ namespace gridtools {
                     };
                 };
 
-              public:
                 template <class... Sids>
-                class values {
+                struct values {
                     static_assert(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 1
 #else
@@ -342,7 +341,6 @@ namespace gridtools {
                     using strides_t = meta::rename<stride_hymap_ctor, meta::transform<get_stride_type, stride_keys_t>>;
                     using ptr_diff_t = compress<ptr_diff_type<Sids>...>;
 
-                  public:
                     // Here the `SID` concept is modeled
 
                     friend ptr_holder_t sid_get_origin(values &obj) {
