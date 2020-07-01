@@ -23,7 +23,7 @@ namespace gridtools {
     namespace sid {
         namespace as_const_impl_ {
             template <class Sid>
-            class const_adapter : public delegate<Sid> {
+            struct const_adapter : delegate<Sid> {
                 struct const_ptr_holder {
                     sid::ptr_holder_type<Sid> m_impl;
 
