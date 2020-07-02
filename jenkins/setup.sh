@@ -30,7 +30,7 @@ chmod ugo+rwx $logdir
 # possibly delete old log files and create new log file
 find $logdir -maxdepth 1 -mtime +5 -name 'gridtools-jenkins-*.log' -execdir rm -f {} + 2>/dev/null
 logfile=$(mktemp -p $logdir gridtools-jenkins-XXXXX.log)
-chmod ugo++rw $logfile
+chmod ugo+rw $logfile
 
 # create directory for temporaries
 if [[ $label == "tave" ]]; then
