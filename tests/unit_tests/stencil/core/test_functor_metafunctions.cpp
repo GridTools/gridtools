@@ -29,14 +29,12 @@ namespace gridtools {
 
                 using expected_simple_map_t = meta::list<meta::list<interval<level<0, 1, 3>, level<0, 1, 3>>, simple>,
                     meta::list<interval<level<0, 2, 3>, level<0, 2, 3>>, simple>,
-                    meta::list<interval<level<0, 3, 3>, level<0, 3, 3>>, simple>,
-                    meta::list<interval<level<1, -3, 3>, level<1, -3, 3>>, simple>,
+                    meta::list<interval<level<0, 3, 3>, level<1, -3, 3>>, simple>,
                     meta::list<interval<level<1, -2, 3>, level<1, -2, 3>>, simple>,
                     meta::list<interval<level<1, -1, 3>, level<1, -1, 3>>, simple>,
                     meta::list<interval<level<1, 1, 3>, level<1, 1, 3>>, simple>,
                     meta::list<interval<level<1, 2, 3>, level<1, 2, 3>>, simple>,
-                    meta::list<interval<level<1, 3, 3>, level<1, 3, 3>>, simple>,
-                    meta::list<interval<level<2, -3, 3>, level<2, -3, 3>>, simple>,
+                    meta::list<interval<level<1, 3, 3>, level<2, -3, 3>>, simple>,
                     meta::list<interval<level<2, -2, 3>, level<2, -2, 3>>, simple>,
                     meta::list<interval<level<2, -1, 3>, level<2, -1, 3>>, simple>>;
 
@@ -58,9 +56,7 @@ namespace gridtools {
                     meta::list<interval<level<0, 1, 3>, level<0, 1, 3>>,
                         functor_metafunctions_impl_::bound_functor<good, interval<level<0, -2, 3>, level<0, 1, 3>>>>,
                     meta::list<interval<level<0, 2, 3>, level<0, 2, 3>>, good>,
-                    meta::list<interval<level<0, 3, 3>, level<0, 3, 3>>,
-                        functor_metafunctions_impl_::bound_functor<good, interval<level<0, 3, 3>, level<1, 1, 3>>>>,
-                    meta::list<interval<level<1, -3, 3>, level<1, -3, 3>>,
+                    meta::list<interval<level<0, 3, 3>, level<1, -3, 3>>,
                         functor_metafunctions_impl_::bound_functor<good, interval<level<0, 3, 3>, level<1, 1, 3>>>>,
                     meta::list<interval<level<1, -2, 3>, level<1, -2, 3>>,
                         functor_metafunctions_impl_::bound_functor<good, interval<level<0, 3, 3>, level<1, 1, 3>>>>,
@@ -70,9 +66,7 @@ namespace gridtools {
                         functor_metafunctions_impl_::bound_functor<good, interval<level<0, 3, 3>, level<1, 1, 3>>>>,
                     meta::list<interval<level<1, 2, 3>, level<1, 2, 3>>,
                         functor_metafunctions_impl_::bound_functor<good, interval<level<1, 2, 3>, level<2, -3, 3>>>>,
-                    meta::list<interval<level<1, 3, 3>, level<1, 3, 3>>,
-                        functor_metafunctions_impl_::bound_functor<good, interval<level<1, 2, 3>, level<2, -3, 3>>>>,
-                    meta::list<interval<level<2, -3, 3>, level<2, -3, 3>>,
+                    meta::list<interval<level<1, 3, 3>, level<2, -3, 3>>,
                         functor_metafunctions_impl_::bound_functor<good, interval<level<1, 2, 3>, level<2, -3, 3>>>>,
                     meta::list<interval<level<2, -2, 3>, level<2, -2, 3>>, good>,
                     meta::list<interval<level<2, -1, 3>, level<2, -1, 3>>, good>>;
@@ -97,22 +91,40 @@ namespace gridtools {
 
                 using expected_gaps_map_t = meta::list<meta::list<interval<level<0, 1, 3>, level<0, 1, 3>>>,
                     meta::list<interval<level<0, 2, 3>, level<0, 2, 3>>>,
-                    meta::list<interval<level<0, 3, 3>, level<0, 3, 3>>,
-                        functor_metafunctions_impl_::bound_functor<gaps, interval<level<0, 3, 3>, level<1, -3, 3>>>>,
-                    meta::list<interval<level<1, -3, 3>, level<1, -3, 3>>,
+                    meta::list<interval<level<0, 3, 3>, level<1, -3, 3>>,
                         functor_metafunctions_impl_::bound_functor<gaps, interval<level<0, 3, 3>, level<1, -3, 3>>>>,
                     meta::list<interval<level<1, -2, 3>, level<1, -2, 3>>>,
                     meta::list<interval<level<1, -1, 3>, level<1, -1, 3>>>,
                     meta::list<interval<level<1, 1, 3>, level<1, 1, 3>>>,
                     meta::list<interval<level<1, 2, 3>, level<1, 2, 3>>>,
-                    meta::list<interval<level<1, 3, 3>, level<1, 3, 3>>,
-                        functor_metafunctions_impl_::bound_functor<gaps, interval<level<1, 3, 3>, level<2, -3, 3>>>>,
-                    meta::list<interval<level<2, -3, 3>, level<2, -3, 3>>,
+                    meta::list<interval<level<1, 3, 3>, level<2, -3, 3>>,
                         functor_metafunctions_impl_::bound_functor<gaps, interval<level<1, 3, 3>, level<2, -3, 3>>>>,
                     meta::list<interval<level<2, -2, 3>, level<2, -2, 3>>>,
                     meta::list<interval<level<2, -1, 3>, level<2, -1, 3>>>>;
-
                 static_assert(std::is_same<make_functor_map<gaps, interval_t>, expected_gaps_map_t>::value, "");
+
+                struct good_intervals {
+                    template <class T>
+                    static void apply(T, interval<level<1, 2, 3>, level<1, 2, 3>>);
+                    template <class T>
+                    static void apply(T, interval<level<0, -3, 3>, level<0, -3, 3>>);
+                    template <class T>
+                    static void apply(T, interval<level<2, 3, 3>, level<2, 3, 3>>);
+                };
+                static_assert(
+                    check_valid_apply_overloads<good_intervals, interval<level<0, -3, 3>, level<2, 2, 3>>>::value, "");
+
+                struct bad_from_level {
+                    template <class T>
+                    static void apply(T, interval<level<1, -3, 3>, level<4, 1, 3>>);
+                };
+                //                static_assert(check_valid_apply_overloads<bad_from_level, interval_t>::value, "");
+
+                struct bad_to_level {
+                    template <class T>
+                    static void apply(T, interval<level<1, 1, 3>, level<1, 3, 3>>);
+                };
+                //                static_assert(check_valid_apply_overloads<bad_to_level, interval_t>::value, "");
             } // namespace
         }     // namespace core
     }         // namespace stencil
