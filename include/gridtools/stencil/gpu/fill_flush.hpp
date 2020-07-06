@@ -237,6 +237,19 @@ namespace gridtools {
                             levels_are_close<meta::first<FirstInterval>, meta::second<CurInterval>, -minus>::value;
                         static constexpr bool close_to_last =
                             levels_are_close<meta::first<CurInterval>, meta::second<LastInterval>, plus>::value;
+
+                        //  Those static asserts are commented on purpose.
+                        //  They trigger when the filling or the flushing of the k-cache could cause access violation in
+                        //   the "inner" (runtime size) intervals due to the small offset limit.
+                        //  We optimistically assume that the user knows what he is doing in this case.
+                        //
+                        //  static_assert(
+                        //      levels_are_close<meta::first<FirstInterval>, meta::first<CurInterval>, -minus>::value ==
+                        //      close_to_first, "offset_limit too small");
+                        //  static_assert(
+                        //      levels_are_close<meta::second<CurInterval>, meta::second<LastInterval>, plus>::value ==
+                        //      close_to_last, "offset_limit too small");
+
                         static constexpr bool is_forward = !be_api::is_backward<Execution>::value;
 
                         static constexpr bool sync_all = is_forward == is_fill ? is_first : is_last;
@@ -363,6 +376,9 @@ namespace gridtools {
                                 auto const &ds = at_key<typename plh_info_t::plh_t>(data_stores);
                                 auto lower_bound = sid::get_lower_bound<dim::k>(sid::get_lower_bounds(ds));
                                 auto upper_bound = sid::get_upper_bound<dim::k>(sid::get_upper_bounds(ds));
+                                // Those asserts can trigger even if the user obeys the contract that the data is
+                                // valid within computation area.
+                                // Namely it can happen when k-cache windows are too big for the chosen offset limit.
                                 assert(lower_bound <= unchecked_area_begin + extent_t::kminus::value);
                                 assert(upper_bound >= unchecked_area_end + extent_t::kplus::value);
                             });
