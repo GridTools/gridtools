@@ -364,7 +364,7 @@ namespace gridtools {
                                 auto lower_bound = sid::get_lower_bound<dim::k>(sid::get_lower_bounds(ds));
                                 auto upper_bound = sid::get_upper_bound<dim::k>(sid::get_upper_bounds(ds));
                                 assert(lower_bound <= unchecked_area_begin + extent_t::kminus::value);
-                                assert(upper_bound <= unchecked_area_end + extent_t::kplus::value);
+                                assert(upper_bound >= unchecked_area_end + extent_t::kplus::value);
                             });
                         });
                         return true;
