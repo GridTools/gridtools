@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <cassert>
 #include <type_traits>
 #include <utility>
 
@@ -244,7 +245,8 @@ namespace gridtools {
                 }
 
                 template <class Spec, class Grid, class DataStores>
-                friend void gridtools_backend_entry_point(gpu, Spec, Grid const &grid, DataStores data_stores) {
+                friend void gridtools_backend_entry_point(gpu, Spec spec, Grid const &grid, DataStores data_stores) {
+                    assert(fill_flush::validate_k_bounds<Spec>(grid, data_stores));
                     using new_spec_t = fill_flush::transform_spec<Spec>;
                     using msses_t = be_api::make_fused_view<new_spec_t>;
                     gpu::entry_point<msses_t>(

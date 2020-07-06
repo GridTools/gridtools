@@ -10,10 +10,12 @@
 
 #pragma once
 
+#include <cassert>
 #include <type_traits>
 #include <utility>
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
@@ -336,9 +338,42 @@ namespace gridtools {
                             hymap::from_keys_values<plhs_t, plhs_t>());
                         return hymap::concat(std::move(data_stores), std::move(extra));
                     }
+
+                    template <class PlhInfo, class Policies = typename PlhInfo::cache_io_policies_t>
+                    using need_assert_bounds =
+                        bool_constant<(meta::st_contains<Policies, cache_io_policy::fill>::value ||
+                                          meta::st_contains<Policies, cache_io_policy::fill>::value) &&
+                                      !PlhInfo::is_tmp_t::value>;
+
+                    template <class Interval, int Lim = Interval::offset_limit>
+                    using inner_interval = be_api::interval<be_api::level<meta::first<Interval>::splitter, Lim, Lim>,
+                        be_api::level<meta::second<Interval>::splitter, -Lim, Lim>>;
+
+                    template <class Spec, class Grid, class DataStores>
+                    bool validate_k_bounds(Grid const &grid, DataStores const &data_stores) {
+                        for_each<be_api::make_fused_view<Spec>>([&](auto mss) {
+                            using mss_t = decltype(mss);
+                            using interval_t = inner_interval<typename mss_t::interval_t>;
+                            auto unchecked_area_begin = grid.k_start(interval_t());
+                            auto unchecked_area_end = unchecked_area_begin + grid.k_size(interval_t());
+                            using plh_map_t = meta::filter<need_assert_bounds, typename mss_t::plh_map_t>;
+                            for_each<plh_map_t>([&](auto info) {
+                                using plh_info_t = decltype(info);
+                                using extent_t = typename plh_info_t::extent_t;
+                                auto const &ds = at_key<typename plh_info_t::plh_t>(data_stores);
+                                auto lower_bound = sid::get_lower_bound<dim::k>(sid::get_lower_bounds(ds));
+                                auto upper_bound = sid::get_upper_bound<dim::k>(sid::get_upper_bounds(ds));
+                                assert(lower_bound <= unchecked_area_begin + extent_t::kminus::value);
+                                assert(upper_bound <= unchecked_area_end + extent_t::kplus::value);
+                            });
+                        });
+                        return true;
+                    }
+
                 } // namespace impl_
                 using impl_::transform_data_stores;
                 using impl_::transform_spec;
+                using impl_::validate_k_bounds;
             } // namespace fill_flush
         }     // namespace gpu_backend
     }         // namespace stencil

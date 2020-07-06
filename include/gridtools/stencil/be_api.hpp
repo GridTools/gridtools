@@ -414,6 +414,7 @@ namespace gridtools {
             using core::is_parallel;
 
             // used in gpu/fill_flush. TODO: get rid of that?
+            using core::interval;
             using core::level;
         } // namespace be_api
     }     // namespace stencil
