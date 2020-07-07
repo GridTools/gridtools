@@ -29,6 +29,7 @@ namespace gridtools {
         struct b {};
         struct c {};
         struct d {};
+
         TEST(rename_dimensions, smoke) {
             double data[3][5][7];
 
