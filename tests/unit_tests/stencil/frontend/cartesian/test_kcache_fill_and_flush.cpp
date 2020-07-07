@@ -22,7 +22,7 @@ namespace {
     using axis_t = axis<3, axis_config::offset_limit<3>>;
     using kfull = axis_t::full_interval;
 
-    double in(int i, int j, int k) { return i + j + k + 1; };
+    double in(int i, int j, int k) { return i + j + k + 1; }
 
     using env_t = vertical_test_environment<0, axis_t>;
 

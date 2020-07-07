@@ -523,7 +523,8 @@ namespace gridtools {
                 struct for_each_in_cartesian_product_impl_f<Outer<Inners...>> {
                     template <class Fun, class... Tups>
                     GT_TARGET GT_FORCE_INLINE void operator()(Fun &&fun, Tups &&... tups) const {
-                        void((int[]){
+                        using loop_t = int[sizeof...(Inners)];
+                        void(loop_t{
                             (apply_to_elements_f<Inners>{}(wstd::forward<Fun>(fun), wstd::forward<Tups>(tups)...),
                                 0)...});
                     }

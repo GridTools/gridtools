@@ -43,7 +43,7 @@ namespace gridtools {
                     auto indices = info.indices(layout, i);
                     dst[i] = fun(indices[Is]...);
                 }
-            };
+            }
 
             template <class Fun>
             auto wrap_initializer(Fun fun) {
