@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/sid/rename_dimension.hpp>
+#include <gridtools/sid/rename_dimensions.hpp>
 
 #include <gtest/gtest.h>
 
@@ -38,7 +38,7 @@ namespace gridtools {
                            .set<property::strides>(tu::make<hymap::keys<a, b, c>::values>(5_c * 7_c, 7_c, 1_c))
                            .set<property::upper_bounds>(tu::make<hymap::keys<a, b>::values>(3, 5));
 
-            auto testee = sid::rename_dimension<b, d>(src);
+            auto testee = sid::rename_dimensions(src, b(), d());
             using testee_t = decltype(testee);
 
             auto strides = sid::get_strides(testee);
@@ -48,7 +48,6 @@ namespace gridtools {
             EXPECT_EQ(7, sid::get_stride<d>(strides));
 
             static_assert(meta::is_empty<get_keys<sid::lower_bounds_type<testee_t>>>(), "");
-
             auto u_bound = sid::get_upper_bounds(testee);
             EXPECT_EQ(3, at_key<a>(u_bound));
             EXPECT_EQ(5, at_key<d>(u_bound));
@@ -60,7 +59,7 @@ namespace gridtools {
                            .set<property::origin>(sid::make_simple_ptr_holder(&data[0][0][0]))
                            .set<property::strides>(tu::make<hymap::keys<a, b, c>::values>(5_c * 7_c, 7_c, 1_c))
                            .set<property::upper_bounds>(tu::make<hymap::keys<a, b>::values>(3, 5));
-            auto testee = sid::rename_dimension<a, c>(sid::rename_dimension<b, d>(src));
+            auto testee = sid::rename_dimensions(src, a(), c(), b(), d());
             static_assert(sid::is_sid<decltype(testee)>(), "");
             auto composite = tu::make<gridtools::sid::composite::keys<void>::values>(testee);
             static_assert(sid::is_sid<decltype(composite)>(), "");
