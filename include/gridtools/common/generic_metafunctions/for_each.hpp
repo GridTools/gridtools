@@ -28,6 +28,12 @@ namespace gridtools {
             template <class List>
             struct for_each_impl;
 
+            template <template <class...> class L>
+            struct for_each_impl<L<>> {
+                template <class Fun>
+                GT_TARGET GT_FORCE_INLINE static void exec(Fun const &) {}
+            };
+
             template <template <class...> class L, class... Ts>
             struct for_each_impl<L<Ts...>> {
                 template <class Fun>
@@ -38,6 +44,12 @@ namespace gridtools {
 
             template <class List>
             struct for_each_type_impl;
+
+            template <template <class...> class L>
+            struct for_each_type_impl<L<>> {
+                template <class Fun>
+                GT_TARGET GT_FORCE_INLINE static void exec(Fun const &) {}
+            };
 
             template <template <class...> class L, class... Ts>
             struct for_each_type_impl<L<Ts...>> {
