@@ -71,7 +71,7 @@ namespace gridtools {
         template <class List, class Fun>
         GT_TARGET GT_FORCE_INLINE void for_each(Fun const &fun) {
             for_each_detail::for_each_impl<List>::exec(fun);
-        };
+        }
 
         ///  Calls fun.template operator<T>() for each element of the type list List.
         ///
@@ -84,7 +84,7 @@ namespace gridtools {
         template <class List, class Fun>
         GT_TARGET GT_FORCE_INLINE void for_each_type(Fun const &fun) {
             for_each_detail::for_each_type_impl<List>::exec(fun);
-        };
+        }
 
         /** @} */
         /** @} */
