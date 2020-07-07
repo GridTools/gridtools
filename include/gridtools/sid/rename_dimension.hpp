@@ -36,12 +36,6 @@ namespace gridtools {
                 friend remapped_t<strides_type<Sid>> sid_get_strides(renamed_sid const &obj) {
                     return remap<OldKey, NewKey>(sid_get_strides(obj.impl()));
                 }
-                friend remapped_t<lower_bounds_type<Sid>> sid_get_lower_bounds(renamed_sid const &obj) {
-                    return remap<OldKey, NewKey>(sid_get_lower_bounds(obj.impl()));
-                }
-                friend remapped_t<upper_bounds_type<Sid>> sid_get_upper_bounds(renamed_sid const &obj) {
-                    return remap<OldKey, NewKey>(sid_get_upper_bounds(obj.impl()));
-                }
             };
 
             template <class...>
@@ -54,6 +48,18 @@ namespace gridtools {
             template <class OldKey, class NewKey, class Sid>
             renamed_sid<OldKey, NewKey, Sid> rename_dimension(Sid &&sid) {
                 return renamed_sid<OldKey, NewKey, Sid>{std::forward<Sid>(sid)};
+            }
+
+            template <class OldKey, class NewKey, class Sid>
+            decltype(remap<OldKey, NewKey>(sid_get_lower_bounds(std::declval<Sid const &>()))) sid_get_lower_bounds(
+                renamed_sid<OldKey, NewKey, Sid> const &obj) {
+                return remap<OldKey, NewKey>(sid_get_lower_bounds(obj.impl()));
+            }
+
+            template <class OldKey, class NewKey, class Sid>
+            decltype(remap<OldKey, NewKey>(sid_get_upper_bounds(std::declval<Sid const &>()))) sid_get_upper_bounds(
+                renamed_sid<OldKey, NewKey, Sid> const &obj) {
+                return remap<OldKey, NewKey>(sid_get_upper_bounds(obj.impl()));
             }
         } // namespace rename_dimension_impl_
         using rename_dimension_impl_::rename_dimension;

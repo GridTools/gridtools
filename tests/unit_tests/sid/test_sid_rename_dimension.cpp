@@ -15,6 +15,7 @@
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
+#include <gridtools/sid/composite.hpp>
 #include <gridtools/sid/simple_ptr_holder.hpp>
 #include <gridtools/sid/synthetic.hpp>
 
@@ -28,7 +29,6 @@ namespace gridtools {
         struct b {};
         struct c {};
         struct d {};
-
         TEST(rename_dimensions, smoke) {
             double data[3][5][7];
 
@@ -51,6 +51,18 @@ namespace gridtools {
             auto u_bound = sid::get_upper_bounds(testee);
             EXPECT_EQ(3, at_key<a>(u_bound));
             EXPECT_EQ(5, at_key<d>(u_bound));
+        }
+
+        TEST(rename_dimensions, rename_twice_and_make_composite) {
+            double data[3][5][7];
+            auto src = sid::synthetic()
+                           .set<property::origin>(sid::make_simple_ptr_holder(&data[0][0][0]))
+                           .set<property::strides>(tu::make<hymap::keys<a, b, c>::values>(5_c * 7_c, 7_c, 1_c))
+                           .set<property::upper_bounds>(tu::make<hymap::keys<a, b>::values>(3, 5));
+            auto testee = sid::rename_dimension<a, c>(sid::rename_dimension<b, d>(src));
+            static_assert(sid::is_sid<decltype(testee)>(), "");
+            auto composite = tu::make<gridtools::sid::composite::keys<void>::values>(testee);
+            static_assert(sid::is_sid<decltype(composite)>(), "");
         }
     } // namespace
 } // namespace gridtools

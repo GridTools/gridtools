@@ -32,16 +32,6 @@ namespace gridtools {
 
             friend ptr_holder_type<Sid> sid_get_origin(delegate &obj) { return get_origin(obj.m_impl); }
             friend strides_type<Sid> sid_get_strides(delegate const &obj) { return get_strides(obj.m_impl); }
-            friend lower_bounds_type<Sid> sid_get_lower_bounds(delegate const &obj) {
-                return get_lower_bounds(obj.m_impl);
-            }
-            friend upper_bounds_type<Sid> sid_get_upper_bounds(delegate const &obj) {
-                return get_upper_bounds(obj.m_impl);
-            }
-
-          protected:
-            Sid const &impl() const { return m_impl; }
-            Sid &impl() { return m_impl; }
 
           public:
             template <class Arg>
@@ -49,6 +39,9 @@ namespace gridtools {
 
             template <class Arg>
             explicit delegate(Arg &&arg) noexcept : m_impl(std::forward<Arg>(arg)) {}
+
+            Sid const &impl() const { return m_impl; }
+            Sid &impl() { return m_impl; }
         };
 
         template <class Sid>
@@ -56,5 +49,14 @@ namespace gridtools {
 
         template <class Sid>
         strides_kind<Sid> sid_get_strides_kind(delegate<Sid> const &);
+
+        template <class Sid>
+        decltype(get_lower_bounds(std::declval<Sid const &>())) sid_get_lower_bounds(delegate<Sid> const &obj) {
+            return get_lower_bounds(obj.impl());
+        }
+        template <class Sid>
+        decltype(get_upper_bounds(std::declval<Sid const &>())) sid_get_upper_bounds(delegate<Sid> const &obj) {
+            return get_upper_bounds(obj.impl());
+        }
     } // namespace sid
 } // namespace gridtools
