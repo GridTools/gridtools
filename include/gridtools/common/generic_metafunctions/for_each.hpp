@@ -38,7 +38,8 @@ namespace gridtools {
             struct for_each_impl<L<Ts...>> {
                 template <class Fun>
                 GT_TARGET GT_FORCE_INLINE static void exec(Fun const &fun) {
-                    (void)(int[]){((void)fun(Ts{}), 0)...};
+                    using array_t = int[sizeof...(Ts)];
+                    (void)array_t{((void)fun(Ts{}), 0)...};
                 }
             };
 
@@ -55,7 +56,8 @@ namespace gridtools {
             struct for_each_type_impl<L<Ts...>> {
                 template <class Fun>
                 GT_TARGET GT_FORCE_INLINE static void exec(Fun const &fun) {
-                    (void)(int[]){((void)fun.template operator()<Ts>(), 0)...};
+                    using array_t = int[sizeof...(Ts)];
+                    (void)array_t{((void)fun.template operator()<Ts>(), 0)...};
                 }
             };
         } // namespace for_each_detail
