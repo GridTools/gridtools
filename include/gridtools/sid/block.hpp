@@ -117,7 +117,7 @@ namespace gridtools {
                     : delegate<Sid>(std::forward<SidT>(impl)), m_block_map(std::forward<BlockMapT>(block_map)) {}
 
                 friend strides_t sid_get_strides(blocked_sid const &obj) {
-                    return tuple_util::generate<generators_t, strides_t>(get_strides(obj.impl()), obj.m_block_map);
+                    return tuple_util::generate<generators_t, strides_t>(get_strides(obj.m_impl), obj.m_block_map);
                 }
             };
 

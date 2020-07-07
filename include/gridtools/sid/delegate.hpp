@@ -9,7 +9,8 @@
  */
 #pragma once
 
-#include <initializer_list>
+#include <type_traits>
+#include <utility>
 
 #include "../common/defs.hpp"
 #include "../meta/macros.hpp"
@@ -25,23 +26,21 @@ namespace gridtools {
          * @tparam Sid a object that models `SID` concept.
          */
         template <class Sid>
-        class delegate {
+        struct delegate {
+            static_assert(is_sid<Sid>::value, GT_INTERNAL_ERROR);
             Sid m_impl;
 
-            static_assert(is_sid<Sid>::value, GT_INTERNAL_ERROR);
+            template <bool IsRef = std::is_reference<Sid>::value, std::enable_if_t<!IsRef, int> = 0>
+            delegate(Sid impl) : m_impl(std::move(impl)) {}
 
-            friend ptr_holder_type<Sid> sid_get_origin(delegate &obj) { return get_origin(obj.m_impl); }
-
-          public:
-            template <class Arg>
-            explicit delegate(std::initializer_list<Arg> lst) : m_impl(*lst.begin()) {}
-
-            template <class Arg>
-            explicit delegate(Arg &&arg) noexcept : m_impl(std::forward<Arg>(arg)) {}
-
-            Sid const &impl() const { return m_impl; }
-            Sid &impl() { return m_impl; }
+            template <bool IsRef = std::is_reference<Sid>::value, std::enable_if_t<IsRef, int> = 0>
+            delegate(Sid impl) : m_impl(impl) {}
         };
+
+        template <class Sid>
+        decltype(sid_get_origin(std::declval<Sid &>())) sid_get_origin(delegate<Sid> &obj) {
+            return sid_get_origin(obj.m_impl);
+        }
 
         template <class Sid>
         decltype(sid_get_ptr_diff(std::declval<Sid const &>())) sid_get_ptr_diff(delegate<Sid> const &);
@@ -51,15 +50,15 @@ namespace gridtools {
 
         template <class Sid>
         decltype(sid_get_strides(std::declval<Sid const &>())) sid_get_strides(delegate<Sid> const &obj) {
-            return sid_get_strides(obj.impl());
+            return sid_get_strides(obj.m_impl);
         }
         template <class Sid>
         decltype(sid_get_lower_bounds(std::declval<Sid const &>())) sid_get_lower_bounds(delegate<Sid> const &obj) {
-            return sid_get_lower_bounds(obj.impl());
+            return sid_get_lower_bounds(obj.m_impl);
         }
         template <class Sid>
         decltype(sid_get_upper_bounds(std::declval<Sid const &>())) sid_get_upper_bounds(delegate<Sid> const &obj) {
-            return sid_get_upper_bounds(obj.impl());
+            return sid_get_upper_bounds(obj.m_impl);
         }
     } // namespace sid
 } // namespace gridtools

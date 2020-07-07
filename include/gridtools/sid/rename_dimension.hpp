@@ -27,8 +27,7 @@ namespace gridtools {
 
             template <class OldKey, class NewKey, class Sid>
             struct renamed_sid : delegate<Sid> {
-                template <class T>
-                renamed_sid(T &&obj) : delegate<Sid>(std::forward<T>(obj)) {}
+                using delegate<Sid>::delegate;
             };
 
             template <class...>
@@ -41,19 +40,19 @@ namespace gridtools {
             template <class OldKey, class NewKey, class Sid>
             decltype(remap<OldKey, NewKey>(sid_get_strides(std::declval<Sid const &>()))) sid_get_strides(
                 renamed_sid<OldKey, NewKey, Sid> const &obj) {
-                return remap<OldKey, NewKey>(sid_get_strides(obj.impl()));
+                return remap<OldKey, NewKey>(sid_get_strides(obj.m_impl));
             }
 
             template <class OldKey, class NewKey, class Sid>
             decltype(remap<OldKey, NewKey>(sid_get_lower_bounds(std::declval<Sid const &>()))) sid_get_lower_bounds(
                 renamed_sid<OldKey, NewKey, Sid> const &obj) {
-                return remap<OldKey, NewKey>(sid_get_lower_bounds(obj.impl()));
+                return remap<OldKey, NewKey>(sid_get_lower_bounds(obj.m_impl));
             }
 
             template <class OldKey, class NewKey, class Sid>
             decltype(remap<OldKey, NewKey>(sid_get_upper_bounds(std::declval<Sid const &>()))) sid_get_upper_bounds(
                 renamed_sid<OldKey, NewKey, Sid> const &obj) {
-                return remap<OldKey, NewKey>(sid_get_upper_bounds(obj.impl()));
+                return remap<OldKey, NewKey>(sid_get_upper_bounds(obj.m_impl));
             }
 
             template <class OldKey, class NewKey, class Sid>

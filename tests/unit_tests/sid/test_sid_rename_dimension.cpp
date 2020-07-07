@@ -62,8 +62,9 @@ namespace gridtools {
                            .set<property::upper_bounds>(tu::make<hymap::keys<a, b>::values>(3, 5));
             auto testee = sid::rename_dimension<a, c>(sid::rename_dimension<b, d>(src));
             static_assert(sid::is_sid<decltype(testee)>(), "");
-            auto composite = tu::make<gridtools::sid::composite::keys<void>::values>(testee);
+            auto composite = tu::make<sid::composite::keys<void>::values>(testee);
             static_assert(sid::is_sid<decltype(composite)>(), "");
+            sid::get_origin(composite);
         }
     } // namespace
 } // namespace gridtools
