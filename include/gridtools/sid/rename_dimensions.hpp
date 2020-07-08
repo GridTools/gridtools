@@ -46,8 +46,7 @@ namespace gridtools {
 
             template <class KeyMap, class Sid>
             struct renamed_sid : delegate<Sid> {
-                template <class T>
-                renamed_sid(T &&obj) : delegate<Sid>(std::forward<T>(obj)) {}
+                using delegate<Sid>::delegate;
             };
 
             template <class...>
@@ -73,6 +72,21 @@ namespace gridtools {
             decltype(remap<KeyMap>(sid_get_upper_bounds(std::declval<Sid const &>()))) sid_get_upper_bounds(
                 renamed_sid<KeyMap, Sid> const &obj) {
                 return remap<KeyMap>(sid_get_upper_bounds(obj.impl()));
+            }
+
+            template <class KeyMap, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            auto sid_get_strides(renamed_sid<KeyMap, Arr &> const &obj) {
+                return remap<KeyMap>(get_strides(obj.m_impl));
+            }
+
+            template <class KeyMap, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            auto sid_get_lower_bounds(renamed_sid<KeyMap, Arr &> const &obj) {
+                return remap<KeyMap>(get_lower_bounds(obj.m_impl));
+            }
+
+            template <class KeyMap, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            auto sid_get_upper_bounds(renamed_sid<KeyMap, Arr &> const &obj) {
+                return remap<KeyMap>(get_upper_bounds(obj.m_impl));
             }
 
             template <class Sid, class... Keys>

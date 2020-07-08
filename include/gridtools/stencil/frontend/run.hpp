@@ -228,7 +228,8 @@ namespace gridtools {
                         });
                     return 0;
                 };
-                (void)(int[]){check_bounds(arg<Is>(), fields)...};
+                using loop_t = int[sizeof...(Is)];
+                (void)loop_t{check_bounds(arg<Is>(), fields)...};
 #endif
                 entry_point_t()(grid, data_store_map_t{fields...});
             }

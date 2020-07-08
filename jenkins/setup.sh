@@ -24,7 +24,7 @@ if [[ ! -v build_examples ]] && [[ $env =~ ^(cray|hip)$ ]]; then
     build_examples=false
 fi
 
-logdir=/tmp/gridtools/ # log to subfolder to workaround https://webrt.cscs.ch/Ticket/Display.html?id=38406
+logdir=/var/tmp/gridtools_${USER}/ # log to subfolder to workaround https://webrt.cscs.ch/Ticket/Display.html?id=38406
 mkdir -p $logdir
 chmod +rwx $logdir
 # possibly delete old log files and create new log file

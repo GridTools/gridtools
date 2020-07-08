@@ -81,7 +81,10 @@ namespace gridtools {
 
         template <int... Is>
         struct inlined_params {
-            static int d(size_t i) { return ((int[]){Is...})[i]; }
+            static int d(size_t i) {
+                using loop_t = int[sizeof...(Is)];
+                return (loop_t{Is...})[i];
+            }
             static size_t steps() { return 0; }
             static bool needs_verification() { return true; }
             static int &argc() {
@@ -95,7 +98,8 @@ namespace gridtools {
             }
             static std::string name() {
                 std::string res = "_domain_size";
-                for (int i : (int[]){Is...})
+                int is[] = {Is...};
+                for (int i : is)
                     res += "_" + std::to_string(i);
                 return res;
             }
