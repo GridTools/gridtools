@@ -254,6 +254,10 @@ namespace gridtools {
 
                         static constexpr bool sync_all = is_forward == is_fill ? is_first : is_last;
 
+                        static_assert(
+                            !sync_all || std::is_same<meta::first<CurInterval>, meta::second<CurInterval>>::value,
+                            "offset_limit too small");
+
                         static constexpr range range_v =
                             minus == plus ? range::minus
                                           : sync_all ? range::all : is_forward == is_fill ? range::plus : range::minus;
@@ -352,12 +356,6 @@ namespace gridtools {
                         return hymap::concat(std::move(data_stores), std::move(extra));
                     }
 
-                    template <class PlhInfo, class Policies = typename PlhInfo::cache_io_policies_t>
-                    using need_assert_bounds =
-                        bool_constant<(meta::st_contains<Policies, cache_io_policy::fill>::value ||
-                                          meta::st_contains<Policies, cache_io_policy::fill>::value) &&
-                                      !PlhInfo::is_tmp_t::value>;
-
                     template <class Interval, int Lim = Interval::offset_limit>
                     using inner_interval = be_api::interval<be_api::level<meta::first<Interval>::splitter, Lim, Lim>,
                         be_api::level<meta::second<Interval>::splitter, -Lim, Lim>>;
@@ -367,24 +365,34 @@ namespace gridtools {
                         for_each<be_api::make_fused_view<Spec>>([&](auto mss) {
                             using mss_t = decltype(mss);
                             using interval_t = inner_interval<typename mss_t::interval_t>;
-                            auto unchecked_area_begin = grid.k_start(interval_t());
-                            auto unchecked_area_end = unchecked_area_begin + grid.k_size(interval_t());
-                            using plh_map_t = meta::filter<need_assert_bounds, typename mss_t::plh_map_t>;
-                            for_each<plh_map_t>([&](auto info) {
-                                using plh_info_t = decltype(info);
-                                using extent_t = typename plh_info_t::extent_t;
-                                auto const &ds = at_key<typename plh_info_t::plh_t>(data_stores);
-                                auto lower_bound = sid::get_lower_bound<dim::k>(sid::get_lower_bounds(ds));
-                                auto upper_bound = sid::get_upper_bound<dim::k>(sid::get_upper_bounds(ds));
-                                // Those asserts can trigger even if the user obeys the contract that the data is
-                                // valid within computation area.
-                                // Namely it can happen when k-cache windows are too big for the chosen offset limit.
-                                assert(lower_bound <= unchecked_area_begin + extent_t::kminus::value);
-                                assert(upper_bound >= unchecked_area_end + extent_t::kplus::value);
-                            });
+                            using is_backward_t = be_api::is_backward<typename mss_t::execution_t>;
+                            using plh_map_t =
+                                meta::filter<meta::not_<be_api::get_is_tmp>::apply, typename mss_t::plh_map_t>;
+                            using fill_plhs_t = meta::filter<has_policy_f<cache_io_policy::fill>::apply, plh_map_t>;
+                            using flush_plhs_t = meta::filter<has_policy_f<cache_io_policy::flush>::apply, plh_map_t>;
+                            // Those asserts can trigger even if the user obeys the contract that the data is
+                            // valid within computation area.
+                            // Namely it can happen when k-cache windows are too big for the chosen offset limit.
+                            for_each<meta::if_<is_backward_t, fill_plhs_t, flush_plhs_t>>(
+                                [unchecked_area_begin = grid.k_start(interval_t()), &data_stores](auto info) {
+                                    using plh_info_t = decltype(info);
+                                    constexpr auto extent = plh_info_t::extent_t::kminus::value;
+                                    auto lower_bound = sid::get_lower_bound<dim::k>(
+                                        sid::get_lower_bounds(at_key<typename plh_info_t::plh_t>(data_stores)));
+                                    assert(lower_bound <= unchecked_area_begin + extent);
+                                });
+                            for_each<meta::if_<is_backward_t, flush_plhs_t, fill_plhs_t>>(
+                                [unchecked_area_end = grid.k_start(interval_t()) + grid.k_size(interval_t()),
+                                    &data_stores](auto info) {
+                                    using plh_info_t = decltype(info);
+                                    constexpr auto extent = plh_info_t::extent_t::kplus::value;
+                                    auto upper_bound = sid::get_upper_bound<dim::k>(
+                                        sid::get_upper_bounds(at_key<typename plh_info_t::plh_t>(data_stores)));
+                                    assert(upper_bound >= unchecked_area_end + extent);
+                                });
                         });
                         return true;
-                    }
+                    } // namespace impl_
 
                 } // namespace impl_
                 using impl_::transform_data_stores;
