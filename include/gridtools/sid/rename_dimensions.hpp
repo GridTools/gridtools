@@ -59,19 +59,19 @@ namespace gridtools {
             template <class KeyMap, class Sid>
             decltype(remap<KeyMap>(sid_get_strides(std::declval<Sid const &>()))) sid_get_strides(
                 renamed_sid<KeyMap, Sid> const &obj) {
-                return remap<KeyMap>(sid_get_strides(obj.impl()));
+                return remap<KeyMap>(sid_get_strides(obj.m_impl));
             }
 
             template <class KeyMap, class Sid>
             decltype(remap<KeyMap>(sid_get_lower_bounds(std::declval<Sid const &>()))) sid_get_lower_bounds(
                 renamed_sid<KeyMap, Sid> const &obj) {
-                return remap<KeyMap>(sid_get_lower_bounds(obj.impl()));
+                return remap<KeyMap>(sid_get_lower_bounds(obj.m_impl));
             }
 
             template <class KeyMap, class Sid>
             decltype(remap<KeyMap>(sid_get_upper_bounds(std::declval<Sid const &>()))) sid_get_upper_bounds(
                 renamed_sid<KeyMap, Sid> const &obj) {
-                return remap<KeyMap>(sid_get_upper_bounds(obj.impl()));
+                return remap<KeyMap>(sid_get_upper_bounds(obj.m_impl));
             }
 
             template <class KeyMap, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
@@ -89,6 +89,8 @@ namespace gridtools {
                 return remap<KeyMap>(get_upper_bounds(obj.m_impl));
             }
 
+            // Keys parameters represent old and new dimension pairs
+            // The order is the following old_key0, new_key0, old_key1, new_key1, ...
             template <class Sid, class... Keys>
             renamed_sid<typename make_key_map<Keys...>::type, Sid> rename_dimensions(Sid &&sid, Keys...) {
                 return {std::forward<Sid>(sid)};
