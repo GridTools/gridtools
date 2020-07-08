@@ -65,11 +65,11 @@ namespace gridtools {
 #endif
 #endif
 
-    GT_DECLARE_ATOMIC(add);
-    GT_DECLARE_ATOMIC(sub);
-    GT_DECLARE_ATOMIC(exch);
-    GT_DECLARE_ATOMIC(min);
-    GT_DECLARE_ATOMIC(max);
+    GT_DECLARE_ATOMIC(add)
+    GT_DECLARE_ATOMIC(sub)
+    GT_DECLARE_ATOMIC(exch)
+    GT_DECLARE_ATOMIC(min)
+    GT_DECLARE_ATOMIC(max)
 
 #undef GT_DECLARE_ATOMIC
 

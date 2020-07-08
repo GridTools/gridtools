@@ -62,5 +62,5 @@ namespace gridtools {
         for (auto &item : _impl::get_offsets<FromLocation, ToLocation>(c))
             res.push_back({i + item[0], j + item[1], k + item[2], c + item[3]});
         return res;
-    };
+    }
 } // namespace gridtools

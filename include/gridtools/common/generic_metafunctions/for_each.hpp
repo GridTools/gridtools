@@ -28,22 +28,36 @@ namespace gridtools {
             template <class List>
             struct for_each_impl;
 
+            template <template <class...> class L>
+            struct for_each_impl<L<>> {
+                template <class Fun>
+                GT_TARGET GT_FORCE_INLINE static void exec(Fun const &) {}
+            };
+
             template <template <class...> class L, class... Ts>
             struct for_each_impl<L<Ts...>> {
                 template <class Fun>
                 GT_TARGET GT_FORCE_INLINE static void exec(Fun const &fun) {
-                    (void)(int[]){((void)fun(Ts{}), 0)...};
+                    using array_t = int[sizeof...(Ts)];
+                    (void)array_t{((void)fun(Ts{}), 0)...};
                 }
             };
 
             template <class List>
             struct for_each_type_impl;
 
+            template <template <class...> class L>
+            struct for_each_type_impl<L<>> {
+                template <class Fun>
+                GT_TARGET GT_FORCE_INLINE static void exec(Fun const &) {}
+            };
+
             template <template <class...> class L, class... Ts>
             struct for_each_type_impl<L<Ts...>> {
                 template <class Fun>
                 GT_TARGET GT_FORCE_INLINE static void exec(Fun const &fun) {
-                    (void)(int[]){((void)fun.template operator()<Ts>(), 0)...};
+                    using array_t = int[sizeof...(Ts)];
+                    (void)array_t{((void)fun.template operator()<Ts>(), 0)...};
                 }
             };
         } // namespace for_each_detail
@@ -59,7 +73,7 @@ namespace gridtools {
         template <class List, class Fun>
         GT_TARGET GT_FORCE_INLINE void for_each(Fun const &fun) {
             for_each_detail::for_each_impl<List>::exec(fun);
-        };
+        }
 
         ///  Calls fun.template operator<T>() for each element of the type list List.
         ///
@@ -72,7 +86,7 @@ namespace gridtools {
         template <class List, class Fun>
         GT_TARGET GT_FORCE_INLINE void for_each_type(Fun const &fun) {
             for_each_detail::for_each_type_impl<List>::exec(fun);
-        };
+        }
 
         /** @} */
         /** @} */

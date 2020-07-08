@@ -53,11 +53,11 @@ namespace gridtools {
         return result;                                                   \
     }
 
-                EXPRESSION_TEST(add_accessors, val{1} + val{2});
-                EXPRESSION_TEST(sub_accessors, val{1} - val{2});
-                EXPRESSION_TEST(negate_accessors, -val{1});
-                EXPRESSION_TEST(plus_sign_accessors, +val{1});
-                EXPRESSION_TEST(with_parenthesis_accessors, (val{1} + val{2}) * (val{1} - val{2}));
+                EXPRESSION_TEST(add_accessors, val{1} + val{2})
+                EXPRESSION_TEST(sub_accessors, val{1} - val{2})
+                EXPRESSION_TEST(negate_accessors, -val{1})
+                EXPRESSION_TEST(plus_sign_accessors, +val{1})
+                EXPRESSION_TEST(with_parenthesis_accessors, (val{1} + val{2}) * (val{1} - val{2}))
 
                 /*
                  * User API tests

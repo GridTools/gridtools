@@ -102,7 +102,8 @@ namespace gridtools {
 
             GT_FORCE_INLINE void swap(tuple_impl &other) noexcept {
                 using std::swap;
-                void((int[]){(swap(tuple_leaf_getter::get<Is>(*this), tuple_leaf_getter::get<Is>(other)), 0)...});
+                using loop_t = int[sizeof...(Is)];
+                void(loop_t{(swap(tuple_leaf_getter::get<Is>(*this), tuple_leaf_getter::get<Is>(other)), 0)...});
             }
 
             template <class... Args,
@@ -110,7 +111,8 @@ namespace gridtools {
                                      conjunction<std::is_assignable<Ts &, Args const &>...>::value,
                     int> = 0>
             GT_FUNCTION void assign(tuple_impl<std::index_sequence<Is...>, Args...> const &src) noexcept {
-                void((int[]){(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(src), 0)...});
+                using loop_t = int[sizeof...(Is)];
+                void(loop_t{(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(src), 0)...});
             }
 
             template <class... Args,
@@ -118,7 +120,8 @@ namespace gridtools {
                                      conjunction<std::is_assignable<Ts &, Args &&>...>::value,
                     int> = 0>
             GT_FUNCTION void assign(tuple_impl<std::index_sequence<Is...>, Args...> &&src) noexcept {
-                void((int[]){(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(wstd::move(src)), 0)...});
+                using loop_t = int[sizeof...(Is)];
+                void(loop_t{(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(wstd::move(src)), 0)...});
             }
         };
     } // namespace impl_
