@@ -74,7 +74,7 @@ namespace gridtools {
                     using type = expanded<I::value, Plh>;
                 };
 
-            }; // namespace lazy
+            } // namespace lazy
             GT_META_DELEGATE_TO_LAZY(convert_plh, class... Ts, Ts...);
 
             template <class Esf>
