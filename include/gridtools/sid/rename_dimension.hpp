@@ -55,6 +55,21 @@ namespace gridtools {
                 return remap<OldKey, NewKey>(sid_get_upper_bounds(obj.m_impl));
             }
 
+            template <class OldKey, class NewKey, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            auto sid_get_strides(renamed_sid<OldKey, NewKey, Arr &> const &obj) {
+                return remap<OldKey, NewKey>(get_strides(obj.m_impl));
+            }
+
+            template <class OldKey, class NewKey, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            auto sid_get_lower_bounds(renamed_sid<OldKey, NewKey, Arr &> const &obj) {
+                return remap<OldKey, NewKey>(get_lower_bounds(obj.m_impl));
+            }
+
+            template <class OldKey, class NewKey, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            auto sid_get_upper_bounds(renamed_sid<OldKey, NewKey, Arr &> const &obj) {
+                return remap<OldKey, NewKey>(get_upper_bounds(obj.m_impl));
+            }
+
             template <class OldKey, class NewKey, class Sid>
             renamed_sid<OldKey, NewKey, Sid> rename_dimension(Sid &&sid) {
                 return renamed_sid<OldKey, NewKey, Sid>{std::forward<Sid>(sid)};

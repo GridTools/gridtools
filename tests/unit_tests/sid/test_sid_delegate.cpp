@@ -64,6 +64,9 @@ namespace gridtools {
             static_assert(is_sid<decltype(testee)>(), "");
 
             EXPECT_EQ(&src[1][0], sid::get_origin(testee)());
+            auto strides = sid::get_strides(testee);
+            EXPECT_EQ(tu::get<0>(strides), 5);
+            EXPECT_EQ(tu::get<1>(strides), 1);
         }
 
         template <class Sid>

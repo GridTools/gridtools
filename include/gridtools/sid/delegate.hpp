@@ -91,5 +91,22 @@ namespace gridtools {
         decltype(sid_get_upper_bounds(std::declval<Sid const &>())) sid_get_upper_bounds(delegate<Sid> const &obj) {
             return sid_get_upper_bounds(obj.m_impl);
         }
+
+        template <class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+        auto sid_get_origin(delegate<Arr &> &obj) {
+            return sid::get_origin(obj.m_impl);
+        }
+        template <class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+        auto sid_get_strides(delegate<Arr &> const &obj) {
+            return get_strides(obj.m_impl);
+        }
+        template <class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+        auto sid_get_lower_bounds(delegate<Arr &> const &obj) {
+            return get_lower_bounds(obj.m_impl);
+        }
+        template <class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+        auto sid_get_upper_bounds(delegate<Arr &> const &obj) {
+            return get_upper_bounds(obj.m_impl);
+        }
     } // namespace sid
 } // namespace gridtools
