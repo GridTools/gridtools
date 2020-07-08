@@ -27,29 +27,48 @@ namespace gridtools {
 
             template <class OldKey, class NewKey, class Sid>
             struct renamed_sid : delegate<Sid> {
-                template <class Map>
-                using remapped_t = decltype(remap<OldKey, NewKey>(std::declval<Map>()));
-
-                template <class T>
-                renamed_sid(T &&obj) : delegate<Sid>(std::forward<T>(obj)) {}
-
-                friend remapped_t<strides_type<Sid>> sid_get_strides(renamed_sid const &obj) {
-                    return remap<OldKey, NewKey>(sid_get_strides(obj.impl()));
-                }
-                friend remapped_t<lower_bounds_type<Sid>> sid_get_lower_bounds(renamed_sid const &obj) {
-                    return remap<OldKey, NewKey>(sid_get_lower_bounds(obj.impl()));
-                }
-                friend remapped_t<upper_bounds_type<Sid>> sid_get_upper_bounds(renamed_sid const &obj) {
-                    return remap<OldKey, NewKey>(sid_get_upper_bounds(obj.impl()));
-                }
+                using delegate<Sid>::delegate;
             };
 
             template <class...>
             struct stride_kind_wrapper {};
 
             template <class OldKey, class NewKey, class Sid>
-            stride_kind_wrapper<OldKey, NewKey, strides_kind<Sid>> sid_get_strides_kind(
-                renamed_sid<OldKey, NewKey, Sid> const &);
+            stride_kind_wrapper<OldKey, NewKey, decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
+            sid_get_strides_kind(renamed_sid<OldKey, NewKey, Sid> const &);
+
+            template <class OldKey, class NewKey, class Sid>
+            decltype(remap<OldKey, NewKey>(sid_get_strides(std::declval<Sid const &>()))) sid_get_strides(
+                renamed_sid<OldKey, NewKey, Sid> const &obj) {
+                return remap<OldKey, NewKey>(sid_get_strides(obj.m_impl));
+            }
+
+            template <class OldKey, class NewKey, class Sid>
+            decltype(remap<OldKey, NewKey>(sid_get_lower_bounds(std::declval<Sid const &>()))) sid_get_lower_bounds(
+                renamed_sid<OldKey, NewKey, Sid> const &obj) {
+                return remap<OldKey, NewKey>(sid_get_lower_bounds(obj.m_impl));
+            }
+
+            template <class OldKey, class NewKey, class Sid>
+            decltype(remap<OldKey, NewKey>(sid_get_upper_bounds(std::declval<Sid const &>()))) sid_get_upper_bounds(
+                renamed_sid<OldKey, NewKey, Sid> const &obj) {
+                return remap<OldKey, NewKey>(sid_get_upper_bounds(obj.m_impl));
+            }
+
+            template <class OldKey, class NewKey, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            auto sid_get_strides(renamed_sid<OldKey, NewKey, Arr &> const &obj) {
+                return remap<OldKey, NewKey>(get_strides(obj.m_impl));
+            }
+
+            template <class OldKey, class NewKey, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            auto sid_get_lower_bounds(renamed_sid<OldKey, NewKey, Arr &> const &obj) {
+                return remap<OldKey, NewKey>(get_lower_bounds(obj.m_impl));
+            }
+
+            template <class OldKey, class NewKey, class Arr, std::enable_if_t<std::is_array<Arr>::value, int> = 0>
+            auto sid_get_upper_bounds(renamed_sid<OldKey, NewKey, Arr &> const &obj) {
+                return remap<OldKey, NewKey>(get_upper_bounds(obj.m_impl));
+            }
 
             template <class OldKey, class NewKey, class Sid>
             renamed_sid<OldKey, NewKey, Sid> rename_dimension(Sid &&sid) {
