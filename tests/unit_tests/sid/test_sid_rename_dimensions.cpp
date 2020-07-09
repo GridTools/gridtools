@@ -86,5 +86,27 @@ namespace gridtools {
             static_assert(sid::is_sid<decltype(composite)>(), "");
             sid::get_origin(composite);
         }
+
+        TEST(rename_dimensions, numbered) {
+            double data[3][5][7];
+
+            auto testee = sid::rename_numbered_dimensions(data, a(), b(), c());
+            using testee_t = decltype(testee);
+
+            auto strides = sid::get_strides(testee);
+            EXPECT_EQ(35, sid::get_stride<a>(strides));
+            EXPECT_EQ(7, sid::get_stride<b>(strides));
+            EXPECT_EQ(1, sid::get_stride<c>(strides));
+
+            auto l_bound = sid::get_lower_bounds(testee);
+            EXPECT_EQ(0, at_key<a>(l_bound));
+            EXPECT_EQ(0, at_key<b>(l_bound));
+            EXPECT_EQ(0, at_key<c>(l_bound));
+
+            auto u_bound = sid::get_upper_bounds(testee);
+            EXPECT_EQ(3, at_key<a>(u_bound));
+            EXPECT_EQ(5, at_key<b>(u_bound));
+            EXPECT_EQ(7, at_key<c>(u_bound));
+        }
     } // namespace
 } // namespace gridtools
