@@ -46,7 +46,7 @@ namespace {
             stencil_backend_t(),
             TypeParam::make_grid(),
             out,
-            sid::rename_dimensions(TypeParam::make_storage(in), dim::k(), 3_c),
+            sid::rename_dimensions<dim::k, decltype(3_c)>(TypeParam::make_storage(in)),
             positional<dim::k>());
         TypeParam::verify(
             [in](int i, int j, int k) {

@@ -38,7 +38,7 @@ namespace gridtools {
                            .set<property::strides>(tu::make<hymap::keys<a, b, c>::values>(5_c * 7_c, 7_c, 1_c))
                            .set<property::upper_bounds>(tu::make<hymap::keys<a, b>::values>(3, 5));
 
-            auto testee = sid::rename_dimensions(src, b(), d());
+            auto testee = sid::rename_dimensions<b, d>(src);
             using testee_t = decltype(testee);
 
             auto strides = sid::get_strides(testee);
@@ -56,7 +56,7 @@ namespace gridtools {
         TEST(rename_dimensions, c_array) {
             double data[3][5][7];
 
-            auto testee = sid::rename_dimensions(data, 1_c, d());
+            auto testee = sid::rename_dimensions<decltype(1_c), d>(data);
             using testee_t = decltype(testee);
 
             auto strides = sid::get_strides(testee);
@@ -80,7 +80,7 @@ namespace gridtools {
                            .set<property::origin>(sid::make_simple_ptr_holder(&data[0][0][0]))
                            .set<property::strides>(tu::make<hymap::keys<a, b, c>::values>(5_c * 7_c, 7_c, 1_c))
                            .set<property::upper_bounds>(tu::make<hymap::keys<a, b>::values>(3, 5));
-            auto testee = sid::rename_dimensions(src, a(), c(), b(), d());
+            auto testee = sid::rename_dimensions<a, c, b, d>(src);
             static_assert(sid::is_sid<decltype(testee)>(), "");
             auto composite = tu::make<sid::composite::keys<void>::values>(testee);
             static_assert(sid::is_sid<decltype(composite)>(), "");
@@ -90,7 +90,7 @@ namespace gridtools {
         TEST(rename_dimensions, numbered) {
             double data[3][5][7];
 
-            auto testee = sid::rename_numbered_dimensions(data, a(), b(), c());
+            auto testee = sid::rename_numbered_dimensions<a, b, c>(data);
             using testee_t = decltype(testee);
 
             auto strides = sid::get_strides(testee);

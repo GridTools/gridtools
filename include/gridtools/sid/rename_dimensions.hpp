@@ -91,10 +91,16 @@ namespace gridtools {
 
             // Keys parameters represent old and new dimension pairs
             // The order is the following old_key0, new_key0, old_key1, new_key1, ...
-            template <class Sid, class... Keys>
-            renamed_sid<typename make_key_map<Keys...>::type, Sid> rename_dimensions(Sid &&sid, Keys...) {
-                return {std::forward<Sid>(sid)};
-            }
+            template <class... Keys>
+            struct rename_dimensions_f {
+                template <class Sid>
+                renamed_sid<typename make_key_map<Keys...>::type, Sid> operator()(Sid &&sid) const {
+                    return {std::forward<Sid>(sid)};
+                }
+            };
+
+            template <class... Keys>
+            constexpr rename_dimensions_f<Keys...> rename_dimensions = {};
 
             template <class Keys, class Is = std::make_integer_sequence<int_t, meta::length<Keys>::value>>
             struct make_numbered_map;
@@ -104,13 +110,18 @@ namespace gridtools {
                 using type = meta::list<meta::list<integral_constant<int_t, Is>, Keys>...>;
             };
 
-            // rename_numbered_dimensions(sid, a, b, c) is the same as
-            // rename_dimensions(sid, 0_c, a, 1_c, b, 2_c, c);
-            template <class Sid, class... Keys>
-            renamed_sid<typename make_numbered_map<meta::list<Keys...>>::type, Sid> rename_numbered_dimensions(
-                Sid &&sid, Keys...) {
-                return {std::forward<Sid>(sid)};
-            }
+            // rename_numbered_dimensions<a, b, c>(sid) is the same as
+            // rename_dimensions<decltype(0_c), a, decltype(1_c), b decltype(2_c), c>(sid);
+            template <class... Keys>
+            struct rename_numbered_dimensions_f {
+                template <class Sid>
+                renamed_sid<typename make_numbered_map<meta::list<Keys...>>::type, Sid> operator()(Sid &&sid) const {
+                    return {std::forward<Sid>(sid)};
+                }
+            };
+
+            template <class... Keys>
+            constexpr rename_numbered_dimensions_f<Keys...> rename_numbered_dimensions = {};
         } // namespace rename_dimensions_impl_
         using rename_dimensions_impl_::rename_dimensions;
         using rename_dimensions_impl_::rename_numbered_dimensions;
