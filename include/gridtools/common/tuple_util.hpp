@@ -881,6 +881,14 @@ namespace gridtools {
                     template <class I>
                     using get_generator = transform_f<get_nth_f<I::value>>;
 
+                    template <class Tup>
+                    GT_TARGET
+                        GT_FORCE_INLINE GT_CONSTEXPR std::enable_if_t<tuple_util::size<std::decay_t<Tup>>::value == 0>
+                        operator()(Tup &&tup) const {
+                        static_assert(tuple_util::size<std::decay_t<Tup>>::value,
+                            "tuple_util::transpose input should not be empty");
+                    }
+
                     template <class Tup,
                         class First = meta::first<to_types<Tup>>,
                         class Accessors = meta::transform<get_accessors, get_accessors<Tup>>,
@@ -888,8 +896,6 @@ namespace gridtools {
                         class InnerTuples = meta::transform<get_inner_tuple_f<Tup>::template apply, Types>,
                         class Res = from_types<First, InnerTuples>>
                     GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Res operator()(Tup &&tup) const {
-                        static_assert(tuple_util::size<std::decay_t<Tup>>::value,
-                            "tuple_util::transpose input should not be empty");
                         using inner_indices_t = meta::make_indices_for<to_types<First>>;
                         using generators_t = meta::transform<get_generator, inner_indices_t>;
                         return generate_f<generators_t, Res>{}(wstd::forward<Tup>(tup));
