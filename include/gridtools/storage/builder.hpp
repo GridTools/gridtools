@@ -38,10 +38,17 @@ namespace gridtools {
             void initializer_impl(
                 Fun const &fun, T *dst, Layout layout, info<N> const &info, std::index_sequence<Is...>) {
                 int length = info.length();
+                auto in_range = [&](auto const &indices) {
+                    for (auto ok : {(indices[Is] < info.lengths()[Is])...})
+                        if (!ok)
+                            return false;
+                    return true;
+                };
 #pragma omp parallel for
                 for (int i = 0; i < length; ++i) {
                     auto indices = info.indices(layout, i);
-                    dst[i] = fun(indices[Is]...);
+                    if (in_range(indices))
+                        dst[i] = fun(indices[Is]...);
                 }
             }
 
