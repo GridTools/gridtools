@@ -10,7 +10,7 @@
 #include <type_traits>
 
 #include <gridtools/common/integral_constant.hpp>
-#include <gridtools/sid/rename_dimension.hpp>
+#include <gridtools/sid/rename_dimensions.hpp>
 #include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/stencil/positional.hpp>
 
@@ -21,6 +21,7 @@ namespace {
     using namespace gridtools;
     using namespace stencil;
     using namespace cartesian;
+    using namespace literals;
 
     struct functor {
         using out = inout_accessor<0>;
@@ -45,7 +46,7 @@ namespace {
             stencil_backend_t(),
             TypeParam::make_grid(),
             out,
-            sid::rename_dimension<dim::k, integral_constant<int_t, 3>>(TypeParam::make_storage(in)),
+            sid::rename_dimensions<dim::k, decltype(3_c)>(TypeParam::make_storage(in)),
             positional<dim::k>());
         TypeParam::verify(
             [in](int i, int j, int k) {
