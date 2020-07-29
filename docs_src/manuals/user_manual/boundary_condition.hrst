@@ -106,9 +106,7 @@ To do this we need an array of :term:`Halo Descriptors<Halo Descriptor>` initial
 .. note::
  The fifth number, namely the total length, in the :term:`Halo
  Descriptor` is not used by the boundary condition application module,
- but we kept the same implementation we had in other parts of |GT| to
- avoid introducing too many concepts. This will be improved
- in the future.
+ but kept to reduce the number of similar concepts.
 
 .. code-block:: gridtools
 

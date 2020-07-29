@@ -1,7 +1,8 @@
 Interfacing to other programming languages
 ============================================
 
-|GT| provides an easy macro interface to generate bindings to C and Fortran.
+|GT| provides an easy macro interface to generate bindings to C and Fortran. This library is available separately
+at `GridTools/cpp_bindgen <https://github.com/GridTools/cpp_bindgen>`_.
 
 To make the cpp_bindgen library available the recommended way is to use CMake's FetchContent as follows
 

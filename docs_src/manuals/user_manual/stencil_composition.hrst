@@ -23,14 +23,10 @@ we cover how to define the :term:`Iteration Space` with the ``grid`` object.
 
 .. cpp:function:: auto make_grid(halo_descriptor halo_i, halo_descriptor halo_j, int size_z)
 
-   For finer control of the iteration space a :term:`Halo Descriptor` can be passed for the horizontal directions (``I``
+   For finer control of the iteration space a :ref:`halo-descriptor` can be passed for the horizontal directions (``I``
    and ``J``).  The 3rd and 4th argument of the ``halo_descriptor`` define the start and the endpoint of the
    :term:`Iteration Space`. Note that the minus (first argument) and plus (second argument) of the ``halo_descriptor``
    should be larger than the maximum extent of the whole computation.
-
-   .. note::
-    The last argument of the halo descriptor (total length) is not used in in the grid. This will be improved in the
-    future.
 
    .. code-block:: gridtools
 
@@ -125,7 +121,7 @@ are used for defining which :term:`Apply-Method` version of the stencil operator
 
 - ``interval::first_level``, which is the Interval (a C++ type) describing the first level of the Interval
 - ``interval::last_level``, which is Interval describing the last level of the Interval
-- ``interval::modify<begin, end>``, which is an Interval extended (``begin`` < 0) or shrunk (``begin`` > 0) at at the
+- ``interval::modify<begin, end>``, which is an Interval extended (``begin`` < 0) or shrunk (``begin`` > 0) at the
   beginning of the Interval and extended (``end`` > 0) or shrunk (``end`` < 0) at the end of the Interval.
 - ``interval::shift<value>``, which is the Interval shifted by ``value``, i.e. it is a shortcut for ``modify<value,
   value>``.
@@ -170,38 +166,37 @@ The ``axis`` type has an additional template parameter to change a default restr
   ``Apply``-methods. Increasing this value could have negative implications on compile-time.
 
 ----------------------------
-**run** : Computation Driver
+**run**: Computation Driver
 ----------------------------
 
-|GT| provides ``gridtools::run`` function that executes stencil computation. It has the following signature:
+|GT| provides the ``gridtools::run`` function to execute a stencil computation. It has the following signature:
 
 .. cpp:function:: void run(specification, backend, grid, fields ...)
 
-The types of parameters are not specified for the reason: None of the types that ``run`` accepts are part of the public API.
-Parameters have the following meaning:
+The types of parameters are not specified on purpose: none of the types that ``run`` accepts are part of the public API.
+The parameters have the following meaning:
 
-  * **specification** describes the stencil composition. Even thought technically it is a callable object it it never
-    got called. It is better to think about this parameter as a micro script that is written in |GT| provided domain
-    specific language embedded into C++.
+  * **specification** describes the stencil composition. Even thought technically it is a callable object, it never
+    gets called. It is better to think about this parameter as a micro script that is written in |GT|'s DSL.
   * **backend** specifies the :term:`Backend` that is used to execute the computation.
   * **grid** defines the computation space
-  * **fields ...** -- the actual data stores on which computation is performed. The number of the fields is defined by
-    ``specification`` parameter. Field types should model SID concept.
+  * **fields ...** -- the storages on which the computation is performed. The number of the fields is defined by
+    the ``specification`` parameter. The storage types have to model the SID concept.
 
 ---------------------------------
 Stencil Composition Specification
 ---------------------------------
 
-Informally the first parameter of the ``run`` should be a generic lambda function, where its arguments represents
-the fields that participate in the computation. Please mind the terminology. The specification arguments are not fields.
-They just represent them. They serve as place holders. The only thing you can do with those arguments is passing them to
+Informally the first parameter of the ``run`` should be a generic lambda function, where its arguments represent
+the fields that participate in the computation. Please mind the terminology, the specification arguments are not fields,
+they just represent them. They serve as place holders. The only thing you can do with those arguments is passing them to
 the |GT| syntax constructs described below.
 
 The temporary fields (that are managed by |GT|) should be declared with the lambda by using ``GT_DECLARE_TMP``.
 It accepts the type of the element as a first parameter. Other parameters are the names of the temporaries.
 
 The specification (this generic lambda) returns a single C++ expression split by dots into |GT| syntax clauses.
-The first clause always specifies an execution model. The next goes zero or more clauses describing software caches. Other
+The first clause always specifies an execution model. The next zero or more clauses describe software caches. Other
 clauses correspond to computation stages.
 
 The following example demonstrates how to create a specification for a diffusion operator.
@@ -230,7 +225,7 @@ This specification can be executed as follows:
 The Notion of a Stage
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The main component of |GT| provide the capability of composing different :term:`Stages<Stage>`. A stage is the
+The main component of |GT| provides the capability of composing different :term:`Stages<Stage>`. A stage is the
 application of a single :term:`Stencil Operator` to an :term:`Iteration Space`. The ability to fuse multiple stages
 allows the |GT| library to improve the memory locality of the computation by taking advantage of the produce consumer
 relations.
@@ -250,31 +245,28 @@ Where the `operator` is the stencil operator of the stage and the `plc0`,
 .. note ::
 
  When composing stencils, each output data field must be written only
- once. Failing to do so will end up in undefined behavior. We plan to
- introduce compile time checks to catch the violation of this
- condition.
+ once. Violating this constraint results in undefined behavior.
 
 .. note::
 
- This decision put the emphasis on the fact that composition
- is considered the main feature of |GT|. If your application
+ The ability to compose stages and profiting from improved memory locality is the key feature of |GT|.
+ If your application
  is made of a simple stencil, or stencils that cannot be
- composed (see below), then |GT| may not be the right solution
+ composed (see below), then |GT| might not be the right solution
  for you.
 
 The data-dependence analysis of |GT| will determine the data flow
 and the :term:`Extents<Extent>` at which each data field will be accessed. This
-information is then passed to the architecture specific backend for the
+information is then passed to the architecture specific backend for
 execution.
 
 ^^^^^^^^^^^^^^^^^^^^^^^
 Multi-Pass Computations
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Stencil composition specification allows also to combine several passes with different execution orders
-in a single computation. This is very useful for implementing computations that require two vertical swipes,
-one ascending and one descending, but has to be used with care. Before explaining the rules for using
-this feature, we provide a simple example of the syntax in the vertical advection example:
+The stencil composition specification allows also to combine several passes with different execution orders
+in a single computation. This is very useful for implementing computations that require two vertical sweeps,
+one ascending and one descending.
 
 .. code-block:: gridtools
 
@@ -286,7 +278,7 @@ this feature, we provide a simple example of the syntax in the vertical advectio
  };
 
 This option is particularly useful on multi-core machines with caches, since
-the backend there can actively pass information between the two stages thus
+the backend can actively pass information between the two stages thus
 improving substantially the performance.
 
 .. _backend-selection:
@@ -315,4 +307,4 @@ for GPUs or
 
    using backend_t = stencil::cpu_ifirst<>;
 
-for modern CPUs or Xeon Phis.
+for modern CPUs.

@@ -6,13 +6,13 @@ Expandable Parameters
 
 Expandable parameters implement a "single stencil multiple storages" pattern.
 They are useful when we have a vector of storages which have the same
-storage info, and we want to perform the same operation with all of them
+shape, and we want to perform the same operation with all of them
 (a typical situation when implementing e.g. time differentiation schemes).
 Normally this could be achieved by creating a loop and running multiple computations,
 but this solution would be inefficient. A more efficient solution is provided
 through the expandable parameters API.
 
-The user must collect the storage pointers in a ``std::vector``
+The user must collect the storages in a ``std::vector``
 
 .. code-block:: gridtools
 
@@ -23,7 +23,7 @@ This ``std::vector`` is then used as a storage type with no differences with res
 the regular storages.
 
 The implementation requires the user to specify an integer ``expand_factor`` when defining the computation.
-The optimal value for ``expand_factor`` might need to be tuned for different backends.
+The optimal value for ``expand_factor`` might be backend-dependent.
 
 .. code-block:: gridtools
 

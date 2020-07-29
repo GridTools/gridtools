@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -220,21 +220,21 @@ thread.</p>
 <span id="fig-block-contents"></span><img alt="../_images/block_contents.png" src="../_images/block_contents.png" />
 <p class="caption"><span class="caption-number">Fig. 8 </span><span class="caption-text">Old <cite>GridTools</cite> indexing approach.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
-<p>The index is computed as follows. If there is no <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> the index will be</p>
+<p>The index is computed as follows. If there is no <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> the index will be</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align} i &amp;= (block\_id\_x * block\_size\_x + thread\_id\_x) * stride\_i \\\\ &amp;+ (block\_id\_y * block\_size\_y + thread\_id\_y) * stride\_j \end{align}\end{split}\]</div>
-<p>In case of a <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> the index is shifted into the right direction (like visible in <a class="reference internal" href="#fig-block-contents"><span class="std std-numref">Fig. 8</span></a>).</p>
+<p>In case of a <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> the index is shifted into the right direction (like visible in <a class="reference internal" href="#fig-block-contents"><span class="std std-numref">Fig. 8</span></a>).</p>
 </div>
 <div class="section" id="issues-regarding-temporaries">
 <h3>Issues Regarding Temporaries<a class="headerlink" href="#issues-regarding-temporaries" title="Permalink to this headline">¶</a></h3>
 <p>Temporary storages share the same <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> because they all have the same size. The problem with temporaries is that
-computations in the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> region have to be redundant because we don’t know when the data will be available. To solve the
+computations in the <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> region have to be redundant because we don’t know when the data will be available. To solve the
 problem with redundant computations the temporary storages, that are allocated in the <code class="docutils literal notranslate"><span class="pre">intermediate</span></code>, are extended by a certain
-number of elements. The size of the CUDA block is known beforehand and also the size of the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> and the number of blocks/threads
+number of elements. The size of the CUDA block is known beforehand and also the size of the <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> and the number of blocks/threads
 is known. With this information an extended temporary storage can be instantiated. For performance reasons we want the first
-non-<a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> data point of each block to be in an aligned memory position. Therefore we add a certain number of padding elements between
+non-<a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> data point of each block to be in an aligned memory position. Therefore we add a certain number of padding elements between
 the blocks. <a class="reference internal" href="#fig-temporary"><span class="std std-numref">Fig. 9</span></a> compares the non-aligned versus the aligned storages. The green dots
-are marking the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> points. It can be seen that each block has its own <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> region. The blue squares are padding elements and the yellow
+are marking the <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> points. It can be seen that each block has its own <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> region. The blue squares are padding elements and the yellow
 squares are data points. As visible on the right part of the drawing the first data point should be in an aligned memory position.
 In order to achieve this padding elements are added between the blocks.</p>
 <div class="figure align-default" id="id3">
@@ -265,26 +265,26 @@ convenience and in order to smoothly integrate the aligned temporary block impro
 <p>Formerly <cite>GridTools</cite> used one <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> per temporary storage. This is convenient but consumes more resources than needed.
 Therefore it was replaced by the more resource efficient “one <code class="docutils literal notranslate"><span class="pre">storage_info</span></code> for all temporaries” solution.
 The temporaries are all having the same size. So the stride information can be shared in the backend. The only problem occurs
-when different temporaries (with the same size, as mentioned before) are accessing different <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halos</span></a>. The base pointer is set
-correctly only for the temporary that is using the maximum <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a>. All the other temporaries are unaligned by $max_halo - used_halo$
-points. This happens for instance when computing the horizontal diffusion. The flx and fly temporaries use different <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halos</span></a>. In this case
-the temporary written in the flx stage will be properly aligned because it is accessing the maximum <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> in the aligned direction (x direction). The second temporary written in the fly stage will be unaligned because it does not use the <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> points in x-direction. In order to fix this alignment mistake
+when different temporaries (with the same size, as mentioned before) are accessing different <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halos</span></a>. The base pointer is set
+correctly only for the temporary that is using the maximum <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a>. All the other temporaries are unaligned by $max_halo - used_halo$
+points. This happens for instance when computing the horizontal diffusion. The flx and fly temporaries use different <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halos</span></a>. In this case
+the temporary written in the flx stage will be properly aligned because it is accessing the maximum <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> in the aligned direction (x direction). The second temporary written in the fly stage will be unaligned because it does not use the <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> points in x-direction. In order to fix this alignment mistake
 the missing offset is added when setting the base pointer. The information that is passed to the algorithm that extracts the base pointer knows about
-the used <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> of each <code class="docutils literal notranslate"><span class="pre">storage</span></code> and also the maximum <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> in the alinged direction. A value of $max_halo - used_halo$ is added to each base pointer.</p>
+the used <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> of each <code class="docutils literal notranslate"><span class="pre">storage</span></code> and also the maximum <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> in the alinged direction. A value of $max_halo - used_halo$ is added to each base pointer.</p>
 </div>
 <div class="section" id="passing-huge-types-down-to-the-offset-computation">
 <h3>Passing Huge Types Down to the Offset Computation<a class="headerlink" href="#passing-huge-types-down-to-the-offset-computation" title="Permalink to this headline">¶</a></h3>
-<p>In order to fix the alignment when using different <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halos</span></a> we have to pass a lot of type information from the <code class="docutils literal notranslate"><span class="pre">intermediate</span></code> down to the backend. This is exhaustive for the compiler and the performance suffers. This could lead to problems, especially when trying to compile computations with many stages and
+<p>In order to fix the alignment when using different <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halos</span></a> we have to pass a lot of type information from the <code class="docutils literal notranslate"><span class="pre">intermediate</span></code> down to the backend. This is exhaustive for the compiler and the performance suffers. This could lead to problems, especially when trying to compile computations with many stages and
 a high number of fields.</p>
 </div>
 <div class="section" id="updated-indexing-algorithm">
 <h3>Updated Indexing Algorithm<a class="headerlink" href="#updated-indexing-algorithm" title="Permalink to this headline">¶</a></h3>
 <p>The new indexing approach tries to avoid the strategy of setting the base pointer to the first point of the block. The new approach is to set the
-pointer to the first non-<a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> point of the block. The method that is setting the index of each cuda thread has to be modified. <a class="reference internal" href="#fig-new-temporary-block-contents"><span class="std std-numref">Fig. 11</span></a> shows the new indexing. As shown, the first non <a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> point is used as base pointer. The index
+pointer to the first non-<a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> point of the block. The method that is setting the index of each cuda thread has to be modified. <a class="reference internal" href="#fig-new-temporary-block-contents"><span class="std std-numref">Fig. 11</span></a> shows the new indexing. As shown, the first non <a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> point is used as base pointer. The index
 is also modified in order to point to the correct data location.</p>
 <div class="figure align-default" id="id5">
 <span id="fig-new-temporary-block-contents"></span><img alt="../_images/new_temporary_block_contents.png" src="../_images/new_temporary_block_contents.png" />
-<p class="caption"><span class="caption-number">Fig. 11 </span><span class="caption-text">Per-block private base pointers to first non-<a class="reference internal" href="../glossary/glossary.html#term-halo"><span class="xref std std-term">Halo</span></a> point of the block.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 11 </span><span class="caption-text">Per-block private base pointers to first non-<a class="reference internal" href="../glossary/glossary.html#term-Halo"><span class="xref std std-term">Halo</span></a> point of the block.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 </div>

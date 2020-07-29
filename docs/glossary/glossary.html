@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -163,112 +163,115 @@
   <div class="section" id="glossary">
 <span id="id1"></span><h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h1>
 <dl class="glossary simple">
-<dt id="term-accessor">Accessor</dt><dd><p>A class with an interface to access one element of a data <a class="reference internal" href="#term-field"><span class="xref std std-term">Field</span></a> and its
+<dt id="term-Accessor">Accessor</dt><dd><p>A class with an interface to access one element of a data <a class="reference internal" href="#term-Field"><span class="xref std std-term">Field</span></a> and its
 neighbors. See section <a class="reference internal" href="../user_manual/user_manual.html#stencil-operators"><span class="std std-ref">Stencil Operators</span></a>.</p>
 </dd>
-<dt id="term-apply-method">Apply-Method</dt><dd><p>Main method of a <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a>. Multiple overloads can exist for
-different <a class="reference internal" href="#term-vertical-interval"><span class="xref std std-term">Vertical Intervals</span></a>. See section
+<dt id="term-Apply-Method">Apply-Method</dt><dd><p>Main method of a <a class="reference internal" href="#term-Stencil-Operator"><span class="xref std std-term">Stencil Operator</span></a>. Multiple overloads can exist for
+different <a class="reference internal" href="#term-Vertical-Interval"><span class="xref std std-term">Vertical Intervals</span></a>. See section
 <a class="reference internal" href="../user_manual/user_manual.html#stencil-operators-apply-method"><span class="std std-ref">Apply-Method</span></a>.</p>
 </dd>
-<dt id="term-axis">Axis</dt><dd><p>A class to generate <a class="reference internal" href="#term-vertical-region"><span class="xref std std-term">Vertical
-Regions</span></a> of an <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. See section
+<dt id="term-Axis">Axis</dt><dd><p>A class to generate <a class="reference internal" href="#term-Vertical-Region"><span class="xref std std-term">Vertical
+Regions</span></a> of an <a class="reference internal" href="#term-Iteration-Space"><span class="xref std std-term">Iteration Space</span></a>. See section
 <a class="reference internal" href="../user_manual/user_manual.html#stencil-composition"><span class="std std-ref">Stencil Composition</span></a>.</p>
 </dd>
-<dt id="term-backend">Backend</dt><dd><p><cite>GridTools</cite> provides several backends, allowing to run the same code efficiently
+<dt id="term-Backend">Backend</dt><dd><p><cite>GridTools</cite> provides several backends, allowing to run the same code efficiently
 on different hardware architectures. See section <a class="reference internal" href="../user_manual/user_manual.html#backend-selection"><span class="std std-ref">Selecting the Backend</span></a>.</p>
 </dd>
-<dt id="term-boundary-condition">Boundary condition</dt><dd><p>An operation applied to points at the edges/corners/faces of a 3D cube
-(usually the <a class="reference internal" href="#term-global-boundary"><span class="xref std std-term">Global Boundary</span></a>). See section <a class="reference internal" href="../user_manual/user_manual.html#boundary-conditions"><span class="std std-ref">Boundary Conditions</span></a>.</p>
+<dt id="term-Boundary-condition">Boundary condition</dt><dd><p>An operation applied to points at the edges/corners/faces of a 3D cube
+(usually the <a class="reference internal" href="#term-Global-Boundary"><span class="xref std std-term">Global Boundary</span></a>). See section <a class="reference internal" href="../user_manual/user_manual.html#boundary-conditions"><span class="std std-ref">Boundary Conditions</span></a>.</p>
 </dd>
-<dt id="term-cache">Cache</dt><dd><p>See <a class="reference internal" href="#term-software-managed-cache"><span class="xref std std-term">Software-Managed Cache</span></a>.</p>
+<dt id="term-Cache">Cache</dt><dd><p>See <a class="reference internal" href="#term-Software-Managed-Cache"><span class="xref std std-term">Software-Managed Cache</span></a>.</p>
 </dd>
-<dt id="term-data-store">Data Store</dt><dd><p>An object that manages a logical multidimensional array of values.
-See section <span class="xref std std-ref">data-store</span>.</p>
+<dt id="term-Computation">Computation</dt><dd><p>A set of <a class="reference internal" href="#term-Multi-Stage"><span class="xref std std-term">Multi-Stages</span></a>, see section <a class="reference internal" href="../user_manual/user_manual.html#stencil-composition"><span class="std std-ref">Stencil Composition</span></a>.</p>
 </dd>
-<dt id="term-data-view">Data View</dt><dd><p>An object that allows to access and modify the elements of a
-<a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a> through a tuple of indices. See section
-<span class="xref std std-ref">data-view</span>.</p>
+<dt id="term-Data-Store">Data Store</dt><dd><p>An object that manages a logical multidimensional array of values.
+See section <a class="reference internal" href="../user_manual/user_manual.html#id2"><span class="std std-ref">Data Store Synopsis</span></a>.</p>
 </dd>
-<dt id="term-execution-model">Execution Model</dt><dd><p>Definition of the order of execution of a <cite>GridTools</cite>
-<span class="xref std std-term">Computations</span>. See section <a class="reference internal" href="../user_manual/user_manual.html#execution-model"><span class="std std-ref">Execution Model</span></a>.</p>
+<dt id="term-Data-View">Data View</dt><dd><p>An object that allows to access and modify the elements of a
+<a class="reference internal" href="#term-Data-Store"><span class="xref std std-term">Data Store</span></a> through a tuple of indices. See section
+<a class="reference internal" href="../user_manual/user_manual.html#data-view"><span class="std std-ref">Data View Synopsis</span></a>.</p>
 </dd>
-<dt id="term-extent">Extent</dt><dd><p>The maximum relative offsets along the coordinate axes at which data is
-accessed around the <a class="reference internal" href="#term-iteration-point"><span class="xref std std-term">Iteration Point</span></a>. See section
+<dt id="term-Execution-Model">Execution Model</dt><dd><p>Definition of the order of execution of a <cite>GridTools</cite>
+<a class="reference internal" href="#term-Computation"><span class="xref std std-term">Computations</span></a>. See section <a class="reference internal" href="../user_manual/user_manual.html#execution-model"><span class="std std-ref">Execution Model</span></a>.</p>
+</dd>
+<dt id="term-Extent">Extent</dt><dd><p>The maximum relative offsets along the coordinate axes at which data is
+accessed around the <a class="reference internal" href="#term-Iteration-Point"><span class="xref std std-term">Iteration Point</span></a>. See section
 <a class="reference internal" href="../user_manual/user_manual.html#stencil-operators"><span class="std std-ref">Stencil Operators</span></a>.</p>
 </dd>
-<dt id="term-field">Field</dt><dd><p>Multi-dimensional data representing a physical field, e.g. temperature.
+<dt id="term-Field">Field</dt><dd><p>Multi-dimensional data representing a physical field, e.g. temperature.
 Often used as a synonym for multi-dimensional data in general or a
-<a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a> in particular.</p>
+<a class="reference internal" href="#term-Data-Store"><span class="xref std std-term">Data Store</span></a> in particular.</p>
 </dd>
-<dt id="term-gcl">GCL</dt><dd><p>The <cite>GridTools</cite> Communication Module. See section <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">Halo Exchanges</span></a>.</p>
+<dt id="term-GCL">GCL</dt><dd><p>The <cite>GridTools</cite> Communication Module. See section <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">Halo Exchanges</span></a>.</p>
 </dd>
-<dt id="term-global-boundary">Global Boundary</dt><dd><p>Boundary of the <a class="reference internal" href="#term-global-domain"><span class="xref std std-term">Global Domain</span></a> when using distributed computing. See
+<dt id="term-Global-Boundary">Global Boundary</dt><dd><p>Boundary of the <a class="reference internal" href="#term-Global-Domain"><span class="xref std std-term">Global Domain</span></a> when using distributed computing. See
 section <a class="reference internal" href="../user_manual/user_manual.html#distributed-boundary-conditions"><span class="std std-ref">Distributed Boundary Conditions</span></a>.</p>
 </dd>
-<dt id="term-global-domain">Global Domain</dt><dd><p>The compute domain that is composed from all domains of the subprocesses
+<dt id="term-Global-Domain">Global Domain</dt><dd><p>The compute domain that is composed from all domains of the subprocesses
 that participate in a distributed computation. See section
 <a class="reference internal" href="../user_manual/user_manual.html#distributed-boundary-conditions"><span class="std std-ref">Distributed Boundary Conditions</span></a>.</p>
 </dd>
-<dt id="term-global-parameter">Global Parameter</dt><dd><p>A special 0-dimensional <a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a> for read-only data.
+<dt id="term-Global-Parameter">Global Parameter</dt><dd><p>A special 0-dimensional <a class="reference internal" href="#term-Data-Store"><span class="xref std std-term">Data Store</span></a> for read-only data.
 See section <a class="reference internal" href="../user_manual/user_manual.html#global-accessor"><span class="std std-ref">Global Parameters</span></a>.</p>
 </dd>
-<dt id="term-grid">Grid</dt><dd><p>The grid is the object that defines the <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. See
+<dt id="term-Grid">Grid</dt><dd><p>The grid is the object that defines the <a class="reference internal" href="#term-Iteration-Space"><span class="xref std std-term">Iteration Space</span></a>. See
 section <a class="reference internal" href="../user_manual/user_manual.html#defining-iteration-space"><span class="std std-ref">Defining the Iteration Space: the Grid</span></a>.</p>
 </dd>
-<dt id="term-halo">Halo</dt><dd><p>Additional data points around the main compute data. Used for boundary
-conditions or distributed computations (see <a class="reference internal" href="#term-halo-exchange"><span class="xref std std-term">Halo Exchanges</span></a>). <a class="reference internal" href="#term-halo"><span class="xref std std-term">Halo</span></a> information is also stored in the <span class="xref std std-term">Storage
-Info</span> to allow correct data alignment. The size of the <a class="reference internal" href="#term-halo"><span class="xref std std-term">Halo</span></a>
-regions is often described by a <a class="reference internal" href="#term-halo-descriptor"><span class="xref std std-term">Halo Descriptor</span></a>. For boundary
+<dt id="term-Halo">Halo</dt><dd><p>Additional data points around the main compute data. Used for boundary
+conditions or distributed computations (see <a class="reference internal" href="#term-Halo-Exchange"><span class="xref std std-term">Halo Exchanges</span></a>). <a class="reference internal" href="#term-Halo"><span class="xref std std-term">Halo</span></a> information is also in the <a class="reference internal" href="#term-Data-Store"><span class="xref std std-term">Data Store</span></a> to allow correct data alignment.
+The size of the <a class="reference internal" href="#term-Halo"><span class="xref std std-term">Halo</span></a>
+regions is often described by a <a class="reference internal" href="#term-Halo-Descriptor"><span class="xref std std-term">Halo Descriptor</span></a>. For boundary
 conditions, see sections <a class="reference internal" href="../user_manual/user_manual.html#boundary-conditions"><span class="std std-ref">Boundary Conditions</span></a> and
 <a class="reference internal" href="../user_manual/user_manual.html#distributed-boundary-conditions"><span class="std std-ref">Distributed Boundary Conditions</span></a>.</p>
 </dd>
-<dt id="term-halo-descriptor">Halo Descriptor</dt><dd><p>An object defining the <a class="reference internal" href="#term-halo"><span class="xref std std-term">Halo</span></a> regions of a <span class="xref std std-term">Computation</span>. See
+<dt id="term-Halo-Descriptor">Halo Descriptor</dt><dd><p>An object defining the <a class="reference internal" href="#term-Halo"><span class="xref std std-term">Halo</span></a> regions of a <a class="reference internal" href="#term-Computation"><span class="xref std std-term">Computation</span></a>. See
 section <a class="reference internal" href="../user_manual/user_manual.html#halo-descriptor"><span class="std std-ref">Halo Descriptor</span></a>.</p>
 </dd>
-<dt id="term-halo-exchange">Halo Exchange</dt><dd><p>Communication of <a class="reference internal" href="#term-halo"><span class="xref std std-term">Halo</span></a> data points between multiple processes. See
+<dt id="term-Halo-Exchange">Halo Exchange</dt><dd><p>Communication of <a class="reference internal" href="#term-Halo"><span class="xref std std-term">Halo</span></a> data points between multiple processes. See
 section <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">Halo Exchanges</span></a> and section
 <a class="reference internal" href="../user_manual/user_manual.html#distributed-boundary-conditions"><span class="std std-ref">Distributed Boundary Conditions</span></a>.</p>
 </dd>
-<dt id="term-iteration-point">Iteration Point</dt><dd><p>A triple of indices. The horizontal indices are often denoted by <cite>i</cite> and
-<cite>j</cite>, while <cite>k</cite> refers to the vertical index. <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operators</span></a>
+<dt id="term-Iteration-Point">Iteration Point</dt><dd><p>A triple of indices. The horizontal indices are often denoted by <cite>i</cite> and
+<cite>j</cite>, while <cite>k</cite> refers to the vertical index. <a class="reference internal" href="#term-Stencil-Operator"><span class="xref std std-term">Stencil Operators</span></a>
 are written relative to the current iteration point.</p>
 </dd>
-<dt id="term-iteration-space">Iteration Space</dt><dd><p>A set of <a class="reference internal" href="#term-iteration-point"><span class="xref std std-term">Iteration Points</span></a> on which a stencil is
+<dt id="term-Iteration-Space">Iteration Space</dt><dd><p>A set of <a class="reference internal" href="#term-Iteration-Point"><span class="xref std std-term">Iteration Points</span></a> on which a stencil is
 applied. See section <a class="reference internal" href="../user_manual/user_manual.html#defining-iteration-space"><span class="std std-ref">Defining the Iteration Space: the Grid</span></a>.</p>
 </dd>
-<dt id="term-layout-map">Layout Map</dt><dd><p>A (compile time) sequence of integer values, defining the storage layout of
-a <a class="reference internal" href="#term-data-store"><span class="xref std std-term">Data Store</span></a>. See section <a class="reference internal" href="../user_manual/user_manual.html#storage-module"><span class="std std-ref">Storage Library</span></a>. Also used to
-define the process layout in an multi-process setup. For this usage, see
-section <span class="xref std std-ref">storage-info</span>.</p>
+<dt id="term-Layout-Map">Layout Map</dt><dd><p>A (compile time) sequence of integer values, defining the storage layout of
+a <a class="reference internal" href="#term-Data-Store"><span class="xref std std-term">Data Store</span></a>. See section <a class="reference internal" href="../user_manual/user_manual.html#storage-module"><span class="std std-ref">Storage Library</span></a>.</p>
 </dd>
-<dt id="term-masked-dimension">Masked Dimension</dt><dd><p>A dimension with stride 0.</p>
+<dt id="term-Masked-Dimension">Masked Dimension</dt><dd><p>A dimension with stride 0.</p>
 </dd>
-<dt id="term-multi-stage">Multi-Stage</dt><dd><p>A partially-order collection of <a class="reference internal" href="#term-stage"><span class="xref std std-term">Stages</span></a> with an associated
-<a class="reference internal" href="#term-vertical-execution-order"><span class="xref std std-term">Vertical Execution Order</span></a>. See <a class="reference internal" href="#term-execution-model"><span class="xref std std-term">Execution Model</span></a> and
-section <span class="xref std std-ref">composition_of_stencils</span>.</p>
+<dt id="term-Multi-Stage">Multi-Stage</dt><dd><p>A partially-order collection of <a class="reference internal" href="#term-Stage"><span class="xref std std-term">Stages</span></a> with an associated
+<a class="reference internal" href="#term-Vertical-Execution-Order"><span class="xref std std-term">Vertical Execution Order</span></a>. See <a class="reference internal" href="#term-Execution-Model"><span class="xref std std-term">Execution Model</span></a> and
+section <a class="reference internal" href="../user_manual/user_manual.html#stencil-composition"><span class="std std-ref">Stencil Composition</span></a>.</p>
 </dd>
-<dt id="term-placeholder">Placeholder</dt><dd><p>Placeholders allow compile-time naming of <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a>
-arguments. See section <span class="xref std std-ref">placeholders</span>.</p>
+<dt id="term-Placeholder">Placeholder</dt><dd><p>Placeholders allow compile-time naming of <a class="reference internal" href="#term-Stencil-Operator"><span class="xref std std-term">Stencil Operator</span></a>
+arguments. See section <a class="reference internal" href="../user_manual/user_manual.html#stage"><span class="std std-ref">The Notion of a Stage</span></a>.</p>
 </dd>
-<dt id="term-software-managed-cache">Software-Managed Cache</dt><dd><p>User-defined caching of <a class="reference internal" href="#term-field"><span class="xref std std-term">Fields</span></a> during a <a class="reference internal" href="#term-multi-stage"><span class="xref std std-term">Multi-Stage</span></a>, which has a
+<dt id="term-Software-Managed-Cache">Software-Managed Cache</dt><dd><p>User-defined caching of <a class="reference internal" href="#term-Field"><span class="xref std std-term">Fields</span></a> during a <a class="reference internal" href="#term-Multi-Stage"><span class="xref std std-term">Multi-Stage</span></a>, which has a
 <a class="reference internal" href="../user_manual/user_manual.html#cache-policy"><span class="std std-ref">Cache Policy</span></a> and a <a class="reference internal" href="../user_manual/user_manual.html#cache-type"><span class="std std-ref">Cache Type</span></a>.
 See section <a class="reference internal" href="../user_manual/user_manual.html#caches"><span class="std std-ref">Software-Managed Caches</span></a>.</p>
 </dd>
-<dt id="term-stage">Stage</dt><dd><p>A <a class="reference internal" href="#term-stencil-operator"><span class="xref std std-term">Stencil Operator</span></a> with associated
-<a class="reference internal" href="#term-placeholder"><span class="xref std std-term">Placeholders</span></a>. See <a class="reference internal" href="#term-execution-model"><span class="xref std std-term">Execution Model</span></a> and section
-<span class="xref std std-ref">composition_of_stencils</span>.</p>
+<dt id="term-Stage">Stage</dt><dd><p>A <a class="reference internal" href="#term-Stencil-Operator"><span class="xref std std-term">Stencil Operator</span></a> with associated
+<a class="reference internal" href="#term-Placeholder"><span class="xref std std-term">Placeholders</span></a>. See <a class="reference internal" href="#term-Execution-Model"><span class="xref std std-term">Execution Model</span></a> and section
+<a class="reference internal" href="../user_manual/user_manual.html#stencil-composition"><span class="std std-ref">Stencil Composition</span></a>.</p>
 </dd>
-<dt id="term-stencil-operator">Stencil Operator</dt><dd><p>Struct or class that defines a stencil operation. See section
+<dt id="term-Stencil-Operator">Stencil Operator</dt><dd><p>Struct or class that defines a stencil operation. See section
 <a class="reference internal" href="../user_manual/user_manual.html#stencil-operators"><span class="std std-ref">Stencil Operators</span></a>.</p>
 </dd>
-<dt id="term-vertical-execution-order">Vertical Execution Order</dt><dd><p>Order of execution (forward, backward, parallel) along the vertical
-axis on an <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>. See <a class="reference internal" href="#term-execution-model"><span class="xref std std-term">Execution Model</span></a>.</p>
+<dt id="term-Storage-Traits">Storage Traits</dt><dd><p>Similar to the <a class="reference internal" href="#term-Backend"><span class="xref std std-term">Backend</span></a>, storage traits allow to select a storage type suitable for a given architecture.
+See, e.g., section <a class="reference internal" href="../getting_started/getting_started.html#getting-started-storage-traits"><span class="std std-ref">Storage Traits</span></a>.</p>
 </dd>
-<dt id="term-vertical-interval">Vertical Interval</dt><dd><p>A compile-time defined subset of an <a class="reference internal" href="#term-iteration-space"><span class="xref std std-term">Iteration Space</span></a>, possibly
+<dt id="term-Vertical-Execution-Order">Vertical Execution Order</dt><dd><p>Order of execution (forward, backward, parallel) along the vertical
+axis on an <a class="reference internal" href="#term-Iteration-Space"><span class="xref std std-term">Iteration Space</span></a>. See <a class="reference internal" href="#term-Execution-Model"><span class="xref std std-term">Execution Model</span></a>.</p>
+</dd>
+<dt id="term-Vertical-Interval">Vertical Interval</dt><dd><p>A compile-time defined subset of an <a class="reference internal" href="#term-Iteration-Space"><span class="xref std std-term">Iteration Space</span></a>, possibly
 covering only parts of the vertical iteration range. See section
 <a class="reference internal" href="../user_manual/user_manual.html#vertical-regions"><span class="std std-ref">Vertical Regions and Vertical Boundary Conditions</span></a>.</p>
 </dd>
-<dt id="term-vertical-region">Vertical Region</dt><dd><p>A <a class="reference internal" href="#term-vertical-interval"><span class="xref std std-term">Vertical Interval</span></a> with associated run-time vertical iteration
+<dt id="term-Vertical-Region">Vertical Region</dt><dd><p>A <a class="reference internal" href="#term-Vertical-Interval"><span class="xref std std-term">Vertical Interval</span></a> with associated run-time vertical iteration
 range. See section <a class="reference internal" href="../user_manual/user_manual.html#vertical-regions"><span class="std std-ref">Vertical Regions and Vertical Boundary Conditions</span></a>.</p>
 </dd>
 </dl>
