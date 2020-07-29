@@ -54,7 +54,7 @@ by all grid points in our domain of interest
    \Lambda = (i,j,k) \quad \text{with}\quad i \in \{ 0\dots N_i-1\}, j \in \{0\dots N_j-1\}, k\in\{0 \dots N_k-1\}
 
 |GT| supports any number of dimension, however the iteration is always restricted to three dimensions, and |GT| will
-treat one dimension, here the :math:`k`, dimension differently: the :math:`ij`-plane is executed in parallel while the
+treat one dimension, here the :math:`k` dimension, differently: the :math:`ij`-plane is executed in parallel while the
 computation in :math:`k` can be sequential. The consequence is that there must not be a dependency in :math:`ij` within
 a stencil while there can be a dependency in :math:`k`. For now (this chapter) it is sufficient to just remember that
 the :math:`ij`-plane and the :math:`k` dimension are treated differently by |GT|.
@@ -85,6 +85,8 @@ following capabilities:
 
 -   synchronization between CPU memory and a device (e.g. a CUDA capable GPU)
 
+.. _getting_started_storage_traits:
+
 ^^^^^^^^^^^^^^
 Storage Traits
 ^^^^^^^^^^^^^^
@@ -114,16 +116,16 @@ For efficient memory accesses the index ordering might depend on the target arch
 memory layout will be implicitly decided by storage traits.
 
 |GT| storage classes don't have user facing constructors. The builder design pattern is used instead.
-The library provides ``storage::builder`` object template that is instantiated by storage traits.
+The library provides the ``storage::builder`` object template that is instantiated by storage traits.
 To create a storage we need to supply the builder with the desired storage properties by chaining
-the setters methods and finally call ``build()`` method which returns ``std::shared_ptr``
-of a newly created storage. The builder also provides overloaded call operator which is a synonym of ``build()``
+the setter methods and finally call the ``build()`` method which returns a ``std::shared_ptr``
+of a newly created storage. The builder also provides overloaded call operator which is a synonym of ``build()``.
 There are two required properties that need to be set:
 the type of element, eg ``.type<double>()``, and the sizes for each dimension, eg ``.dimensions(10, 12, 20)``.
 Other properties are optional.
 
-If we need several storages that share some properties, we can construct partially specified builder with
-the shared properties set and to reuse it while building concrete storages.
+If we need several storages that share some properties, we can construct a partially specified builder with
+the set of shared properties and reuse it while building concrete storages.
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
@@ -136,7 +138,7 @@ the shared properties set and to reuse it while building concrete storages.
    It is recommended to use the ``id`` property each time the ``dimensions`` property is set.
    ``id`` should identify the unique set of dimension sizes.
    This is because the stencil computation engine assumes that the storages that have the same ``id`` have the same
-   sizes. However, if only one set of dimensions is used, the ``id`` property could be skipped.
+   sizes. However, if only one set of dimensions is used, the ``id`` property can be skipped.
 
 We can now
 
@@ -188,7 +190,7 @@ consists of 2 main components:
 - Loop-logic: defines the stencil application domain and loop order
 - Update-logic: defines the update formula (here: the 2D Laplacian)
 
-Special care had to be taken at the boundary of the domain. Since the
+Special care has to be taken at the boundary of the domain. Since the
 Laplacian needs the neighboring points, we cannot calculate the Laplacian
 on the boundary layer and have to exclude it from the loop.
 
@@ -196,8 +198,8 @@ on the boundary layer and have to exclude it from the loop.
 First GridTools Stencil
 -----------------------
 
-In |GT| the loop logic and the storage order are implemented (and optimized) by the library while the update function to
-be applied to each gridpoint is implemented by the user. The loop logic (for a given architecture) is combined with the
+In |GT| the loop logic and the storage order are implemented (and optimized) by the library while the update function, to
+be applied to each gridpoint, is implemented by the user. The loop logic (for a given architecture) is combined with the
 user-defined update function at compile-time by template meta-programming.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -213,7 +215,7 @@ allow for compile-time optimizations.
 
 .. literalinclude:: code/test_gt_laplacian.cpp
    :language: gridtools
-   :start-at: constexpr dimension<1>
+   :start-after: #endif
    :end-before: int main() {
 
 In addition to the ``apply``-method, the functor contains ``accessor`` s. These
@@ -242,7 +244,7 @@ library.)
 The first template argument is an index defining the order of the
 parameters, i.e. the order in which the fields are passed to the
 functor. The ``param_list`` is a |GT| keyword which has to be defined for each stencil,
-and should contain th elist of accessors.
+and should contain the list of accessors.
 
 A ``apply``-method needs as first parameter a context
 object, usually called ``eval``, which is created and passed to the method by the library on
@@ -295,9 +297,9 @@ next lines the layers in :math:`k` are defined. In this case we have only one
 interval. We will discuss the details later.
 
 In line 18 we execute the stencil computation. In our example only one stencil participates.
-Hence we can use ``run_single_stage`` simplified API. We pass the stencil, the backend object, the grid
+Hence, we can use the simple ``run_single_stage`` API. We pass the stencil the backend object, the grid
 (the information about the loop bounds) and the storages on which the computation needs to be executed.
-The number and the order of of storage arguments should match stencil accessors.
+The number and the order of storage arguments should match the number of stencil accessors.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Full GridTools Laplacian
@@ -310,10 +312,11 @@ The full working example looks as follows:
    :linenos:
 
 There are some points which we did not discuss so far. For a first look at |GT| these can be considered fixed patterns and
-we won't discuss them now in detail. In brief:
+we won't discuss them now in detail.
 
-- In order to use the :math:`(i,j)` syntax we need to define the symbols to point to the respective dimensions.
-- A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code. We use this to set the :term:`Backend`.
+A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code.
+Here we use the GridTools internal ``GT_CUDA`` macro to do this. The macro is used to set the correct :term:`Backend`
+and :term:`Storage Traits` for the CUDA or CPU architecture, respectively.
 
 The code example can be compiled using the following simple CMake script (requires an installation of GridTools, see :ref:`installation`).
 
@@ -357,7 +360,7 @@ The :term:`Vertical Intervals<Vertical Interval>` are defined as
 
 .. literalinclude:: code/gt_smoothing.hpp
    :language: gridtools
-   :start-after: dimension<2>
+   :start-after: constexpr unsigned halo = 2;
    :end-before: struct lap_function {
 
 The first line defines an axis with 2 :term:`Vertical Intervals<Vertical Interval>`. From this axis retrieve the :term:`Vertical Intervals<Vertical Interval>`
@@ -368,11 +371,11 @@ Then we can assemble the computation
 .. literalinclude:: code/gt_smoothing_variant1_computation.hpp
    :language: gridtools
 
-We can not use ``run_single_stage`` API because now we should compose computation from three stencil calls. To achieve that
-we use full featured ``run`` API. It requires stencil composition specification as a first parameter. That specification
-is provided in a form of generic lambda. Its arguments represent the storages that are used in computation.
-The expression that is returned describes how the stencils should be composed. It is where |GT| EDSL is used.
-``execute_parallel()`` here means that each :math`k`-level can be executed in parallel. ``stage`` clause represents
+We cannot use the ``run_single_stage`` API because now we need to compose a :term:`Computation` from three stencil calls. To achieve that
+we use the full featured ``run`` API. It requires a stencil composition specification as a first parameter. That specification
+is provided in form of a generic lambda. Its arguments represent the storages that are used in the computation.
+The expression that is returned describes how the stencils should be composed. It is where the |GT| DSL is used.
+``execute_parallel()`` means that each :math:`k`-level can be executed in parallel. The ``stage`` clause represents
 a call to the stencil with the given arguments.
 
 In this version we needed to explicitly allocate the temporary fields
@@ -384,8 +387,7 @@ In this version we needed to explicitly allocate the temporary fields
 ^^^^^^^^^^^^^^^^
 
 |GT| *temporary storages* are storages with the lifetime of the
-``computation``, i.e. they can be used by different stages assembled in one
-``make_computation`` call. This is exactly what we need for the ``lap`` and ``laplap``
+``computation``. This is exactly what we need for the ``lap`` and ``laplap``
 fields.
 
 .. note::
@@ -395,8 +397,8 @@ fields.
    necessary to replace a temporary by a normal storage for debugging.
 
 To use temporary storages we exclude the correspondent fields from the arguments of our ``spec`` and declare them as
-a temporaries within the `spec` lambda using ``GT_DECLARE_TMP`` macro. We don't need the explicit
-instantiations any more and don't have pass them to the ``run``. The new code looks as follows
+temporaries, within the `spec` lambda, using the ``GT_DECLARE_TMP`` macro. We don't need the explicit
+instantiations any more and don't have to pass them to the ``run``. The new code looks as follows
 
 .. literalinclude:: code/gt_smoothing_variant2_computation.hpp
    :language: gridtools

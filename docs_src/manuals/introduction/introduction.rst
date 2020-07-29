@@ -41,7 +41,7 @@ to another:
       }
   };
 
-Several such stages can be composed into a computation and be applied on each grid-point of a grid. Requiring this
+Several such stages can be composed into a :term:`Computation` and be applied on each grid-point of a grid. Requiring this
 abstract descriptions of a stencils, the DSL allows |GT| can apply architecture-specific optimizations to the stencil
 computations in order to be optimal on the target hardware.
 
@@ -74,8 +74,8 @@ or using FetchContent to pull in a dependency on the fly. |GT| supports both way
 Installing and Validating GridTools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To install |GT| in ``/usr/local``
-and run the tests use the following commands.
+To install |GT| (in ``/usr/local``)
+and run the tests, use the following commands.
 
 .. code-block:: shell
 

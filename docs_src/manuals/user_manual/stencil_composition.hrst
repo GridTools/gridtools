@@ -224,6 +224,7 @@ This specification can be executed as follows:
 
  run(spec, backend_t(), grid, in, coeff, out);
 
+.. _stage:
 
 ^^^^^^^^^^^^^^^^^^^^^^^
 The Notion of a Stage
