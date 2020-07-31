@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.14.5)
 
 project(GridTools-laplacian LANGUAGES CXX)
 
+set(CMAKE_CXX_EXTENSIONS OFF) # Currently required for HIP
+
 find_package(GridTools 2.0.0 REQUIRED QUIET)
 
 if(TARGET GridTools::stencil_cpu_ifirst)
