@@ -267,7 +267,7 @@
 layout and alignment. All entities are defined in the <code class="docutils literal notranslate"><span class="pre">gridtools::storage</span></code> namespace.</p>
 <div class="section" id="data-store">
 <h3>Data Store<a class="headerlink" href="#data-store" title="Permalink to this headline">¶</a></h3>
-<p>The key entity of the library, representing <span class="math notranslate nohighlight">\(N\)</span>-d array.</p>
+<p>The key entity of the library, representing a multidimensional array.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>Data store has no user facing constructors. To create it one should use the <a class="reference internal" href="#builder-api"><span class="std std-ref">Builder API</span></a>.</p></li>
@@ -589,13 +589,13 @@ this type should model the <code class="docutils literal notranslate"><span clas
 To use a particular trait the user should include the correspondent header.</p>
 <div class="section" id="defining-custom-traits">
 <h4>Defining Custom Traits<a class="headerlink" href="#defining-custom-traits" title="Permalink to this headline">¶</a></h4>
-<p>To use their own traits users, should provide a type that models the <code class="docutils literal notranslate"><span class="pre">Storage</span> <span class="pre">Traits</span> <span class="pre">Concept</span></code>. There is no need
-to place a custom traits within <cite>GridTools</cite> source tree. The concept is <code class="docutils literal notranslate"><span class="pre">ADL</span></code> based. The easiest way to go
+<p>To use their own traits, users should provide a type that models the <code class="docutils literal notranslate"><span class="pre">Storage</span> <span class="pre">Traits</span> <span class="pre">Concept</span></code>. There is no need
+to place a custom traits within <cite>GridTools</cite> source tree. The concept is ADL-based. The easiest way to go
 is to copy any of predefined traits and modify it. Skipping some details the concept is defined as follows:</p>
 <blockquote>
 <div><ul>
 <li><p>traits must specify if the <code class="docutils literal notranslate"><span class="pre">target</span></code> and <code class="docutils literal notranslate"><span class="pre">host</span></code> memory spaces are the same by providing
-a <code class="docutils literal notranslate"><span class="pre">storage_is_host_referenceable</span></code> ADL based overload function.</p></li>
+a <code class="docutils literal notranslate"><span class="pre">storage_is_host_referenceable</span></code> ADL-based overload function.</p></li>
 <li><p>traits must specify alignment in bytes by defining a <code class="docutils literal notranslate"><span class="pre">storage_alignment</span></code> function.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">storage_allocate</span></code> function must be defined to say the library how to target memory is allocated.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">storage_layout</span></code> function is needed to define the layout_map for a given number of dimensions.</p></li>
@@ -621,7 +621,7 @@ Instead the <code class="docutils literal notranslate"><span class="pre">SID</sp
 </div>
 <div class="section" id="stencil-operators">
 <span id="id4"></span><h2>Stencil Operators<a class="headerlink" href="#stencil-operators" title="Permalink to this headline">¶</a></h2>
-<p><em>Stencil operators</em> are the GridTools-equivalent of <cite>functors</cite> in regular C++ code.  They are assumed to have no
+<p><em>Stencil operators</em> are the <cite>GridTools</cite>-equivalent of <cite>functors</cite> in regular C++ code.  They are assumed to have no
 side-effects and no status (which is why they are marked as <cite>static</cite>). As functions they have an <cite>interface</cite> and an
 <cite>implementation</cite>. The interface informs the caller, on the order and types of arguments that have to be passed to
 it, and the implementation, on the names and types of the symbols available to it.</p>

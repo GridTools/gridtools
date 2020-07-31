@@ -124,8 +124,8 @@ There are two required properties that need to be set:
 the type of element, eg ``.type<double>()``, and the sizes for each dimension, eg ``.dimensions(10, 12, 20)``.
 Other properties are optional.
 
-If we need several storages that share some properties, we can construct a partially specified builder with
-the set of shared properties and reuse it while building concrete storages.
+If we need several storages that share some properties, we can construct a partially specified builder by
+setting the shared properties and reuse it while building concrete storages.
 
 .. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
@@ -315,10 +315,10 @@ There are some points which we did not discuss so far. For a first look at |GT| 
 we won't discuss them now in detail.
 
 A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code.
-Here we use the GridTools internal ``GT_CUDA`` macro to do this. The macro is used to set the correct :term:`Backend`
+Here we use the |GT| internal ``GT_CUDA`` macro to do this. The macro is used to set the correct :term:`Backend`
 and :term:`Storage Traits` for the CUDA or CPU architecture, respectively.
 
-The code example can be compiled using the following simple CMake script (requires an installation of GridTools, see :ref:`installation`).
+The code example can be compiled using the following simple CMake script (requires an installation of |GT|, see :ref:`installation`).
 
 .. literalinclude:: code/CMakeLists.txt
 

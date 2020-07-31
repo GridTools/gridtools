@@ -236,7 +236,7 @@ ctest
 </pre></div>
 </div>
 <p>CMake will detect the optional dependencies and enable the available backends accordingly.
-During configure the available GridTools targets will be listed.</p>
+During configure the available <cite>GridTools</cite> targets will be listed.</p>
 <p>The following CMake variables are available to customize the installation of <cite>GridTools</cite>.</p>
 <blockquote>
 <div><ul class="simple">
@@ -268,7 +268,7 @@ The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt<
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If GridTools should use CUDA with NVCC, you must call <code class="docutils literal notranslate"><span class="pre">enable_language(CUDA)</span></code> before the call to <code class="docutils literal notranslate"><span class="pre">find_package</span></code>.</p>
+<p>If <cite>GridTools</cite> should use CUDA with NVCC, you must call <code class="docutils literal notranslate"><span class="pre">enable_language(CUDA)</span></code> before the call to <code class="docutils literal notranslate"><span class="pre">find_package</span></code>.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -279,7 +279,7 @@ to change the mode.</p>
 </div>
 <div class="section" id="using-gridtools-with-cmakes-fetchcontent">
 <span id="fetch-content"></span><h3>Using GridTools with CMake’s FetchContent<a class="headerlink" href="#using-gridtools-with-cmakes-fetchcontent" title="Permalink to this headline">¶</a></h3>
-<p>Alternatively to a <cite>GridTools</cite> installation you can use GridTools with <em>FetchContent</em>. To use FetchContent add the following
+<p>Alternatively to a <cite>GridTools</cite> installation you can use <cite>GridTools</cite> with <em>FetchContent</em>. To use FetchContent add the following
 lines to your CMake project</p>
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">include</span><span class="p">(</span><span class="s">FetchContent</span><span class="p">)</span>
 <span class="nb">FetchContent_Declare</span><span class="p">(</span><span class="s">GridTools</span>
@@ -304,7 +304,7 @@ If tests are enabled, their behavior can be changed as described in <a class="re
 </div>
 <div class="section" id="id2">
 <h3>Using GridTools<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>After GridTools was made available by either <code class="docutils literal notranslate"><span class="pre">find_package</span></code> or <code class="docutils literal notranslate"><span class="pre">FetchContent</span></code> the following targets for the
+<p>After <cite>GridTools</cite> was made available by either <code class="docutils literal notranslate"><span class="pre">find_package</span></code> or <code class="docutils literal notranslate"><span class="pre">FetchContent</span></code> the following targets for the
 different <cite>GridTools</cite> modules are available</p>
 <blockquote>
 <div><ul class="simple">
@@ -348,7 +348,7 @@ different <cite>GridTools</cite> modules are available</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">gcl_gpu</span></code> (can be disabled by the user if the MPI implementation is not CUDA-aware)</p></li>
 </ul>
 </div></blockquote>
-<p>After linking to the GridTools backend, we recommend to call the CMake function
+<p>After linking to the <cite>GridTools</cite> backend, we recommend to call the CMake function
 <code class="docutils literal notranslate"><span class="pre">gridtools_setup_target(&lt;target&gt;</span> <span class="pre">[CUDA_ARCH</span> <span class="pre">&lt;compute_capability&gt;])</span></code> on your target.
 The function helps abstracting differences in how CUDA code is compiled
 (e.g. <em>Clang</em> uses a different flag than <em>NVCC</em> for the CUDA architecture). Additionally, using this function
@@ -362,16 +362,13 @@ allows to compile the same <em>.cpp</em> file for both CUDA and host, without ha
 </div>
 <div class="section" id="amd-gpu-support">
 <h3>AMD GPU Support<a class="headerlink" href="#amd-gpu-support" title="Permalink to this headline">¶</a></h3>
-<p>Further, GridTools can also be compiled for AMD GPUs using AMD’s HIP. But due to limitations of AMD’s current HCC compiler,
-the Clang-based HIP version has to be used, which is not yet officially distributed in the current HIP releases
-(but will be the successor of HCC-based HIP). Compilation of a Clang-based HIP compiler is relatively straightforward and
-documented in the <a class="reference external" href="https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md#hip-clang">official HIP repository</a>.</p>
+<p>Further, <cite>GridTools</cite> can also be compiled for AMD GPUs using AMD’s HIP. To compile <cite>GridTools</cite> you need the Clang-based HIP compiler which is available with ROCm 3.5 and later.</p>
 </div>
 </div>
 <div class="section" id="contributing">
 <h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h2>
 <p>Contributions to the <cite>GridTools</cite> set of libraries are welcome. However, our policy is that we will be the official maintainers
-and providers of the GridTools code. We believe that this will provide our users with a clear reference point for
+and providers of the <cite>GridTools</cite> code. We believe that this will provide our users with a clear reference point for
 support and guarantees on timely interactions. For this reason, we require that external contributions to <cite>GridTools</cite>
 will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.</p>
 </div>

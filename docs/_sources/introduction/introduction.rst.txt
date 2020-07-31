@@ -87,7 +87,7 @@ and run the tests, use the following commands.
  ctest
 
 CMake will detect the optional dependencies and enable the available backends accordingly.
-During configure the available GridTools targets will be listed.
+During configure the available |GT| targets will be listed.
 
 The following CMake variables are available to customize the installation of |GT|.
 
@@ -119,7 +119,7 @@ The ``CMakeLists.txt`` file should then contain the following line:
 
 .. note::
 
-  If GridTools should use CUDA with NVCC, you must call ``enable_language(CUDA)`` before the call to ``find_package``.
+  If |GT| should use CUDA with NVCC, you must call ``enable_language(CUDA)`` before the call to ``find_package``.
 
 .. note::
 
@@ -133,7 +133,7 @@ The ``CMakeLists.txt`` file should then contain the following line:
 Using GridTools with CMake’s FetchContent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Alternatively to a |GT| installation you can use GridTools with *FetchContent*. To use FetchContent add the following
+Alternatively to a |GT| installation you can use |GT| with *FetchContent*. To use FetchContent add the following
 lines to your CMake project
 
 .. code-block:: cmake
@@ -160,7 +160,7 @@ The following CMake options are available (see also :ref:`installation`).
 Using GridTools
 ^^^^^^^^^^^^^^^
 
-After GridTools was made available by either ``find_package`` or ``FetchContent`` the following targets for the
+After |GT| was made available by either ``find_package`` or ``FetchContent`` the following targets for the
 different |GT| modules are available
 
   * ``stencil_naive``
@@ -192,7 +192,7 @@ If a *CUDA compiler* and *MPI* is available
 
   * ``gcl_gpu`` (can be disabled by the user if the MPI implementation is not CUDA-aware)
 
-After linking to the GridTools backend, we recommend to call the CMake function
+After linking to the |GT| backend, we recommend to call the CMake function
 ``gridtools_setup_target(<target> [CUDA_ARCH <compute_capability>])`` on your target.
 The function helps abstracting differences in how CUDA code is compiled
 (e.g. *Clang* uses a different flag than *NVCC* for the CUDA architecture). Additionally, using this function
@@ -210,10 +210,7 @@ allows to compile the same *.cpp* file for both CUDA and host, without having to
 AMD GPU Support
 ^^^^^^^^^^^^^^^
 
-Further, GridTools can also be compiled for AMD GPUs using AMD’s HIP. But due to limitations of AMD’s current HCC compiler,
-the Clang-based HIP version has to be used, which is not yet officially distributed in the current HIP releases
-(but will be the successor of HCC-based HIP). Compilation of a Clang-based HIP compiler is relatively straightforward and
-documented in the `official HIP repository <https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md#hip-clang>`_.
+Further, |GT| can also be compiled for AMD GPUs using AMD’s HIP. To compile |GT| you need the Clang-based HIP compiler which is available with ROCm 3.5 and later.
 
 
 ------------
@@ -221,6 +218,6 @@ Contributing
 ------------
 
 Contributions to the |GT| set of libraries are welcome. However, our policy is that we will be the official maintainers
-and providers of the GridTools code. We believe that this will provide our users with a clear reference point for
+and providers of the |GT| code. We believe that this will provide our users with a clear reference point for
 support and guarantees on timely interactions. For this reason, we require that external contributions to |GT|
 will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.

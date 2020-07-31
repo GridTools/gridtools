@@ -273,8 +273,8 @@ of a newly created storage. The builder also provides overloaded call operator w
 There are two required properties that need to be set:
 the type of element, eg <code class="docutils literal notranslate"><span class="pre">.type&lt;double&gt;()</span></code>, and the sizes for each dimension, eg <code class="docutils literal notranslate"><span class="pre">.dimensions(10,</span> <span class="pre">12,</span> <span class="pre">20)</span></code>.
 Other properties are optional.</p>
-<p>If we need several storages that share some properties, we can construct a partially specified builder with
-the set of shared properties and reuse it while building concrete storages.</p>
+<p>If we need several storages that share some properties, we can construct a partially specified builder by
+setting the shared properties and reuse it while building concrete storages.</p>
 <div class="highlight-gridtools notranslate"><div class="highlight"><pre><span></span><span class="n">uint_t</span> <span class="n">Ni</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
 <span class="n">uint_t</span> <span class="n">Nj</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
 <span class="n">uint_t</span> <span class="n">Nk</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
@@ -596,9 +596,9 @@ The number and the order of storage arguments should match the number of stencil
 <p>There are some points which we did not discuss so far. For a first look at <cite>GridTools</cite> these can be considered fixed patterns and
 we won’t discuss them now in detail.</p>
 <p>A common pattern is to use the preprocessor flag <code class="docutils literal notranslate"><span class="pre">__CUDACC__</span></code> to distinguish between CPU and GPU code.
-Here we use the GridTools internal <code class="docutils literal notranslate"><span class="pre">GT_CUDA</span></code> macro to do this. The macro is used to set the correct <a class="reference internal" href="../glossary/glossary.html#term-Backend"><span class="xref std std-term">Backend</span></a>
+Here we use the <cite>GridTools</cite> internal <code class="docutils literal notranslate"><span class="pre">GT_CUDA</span></code> macro to do this. The macro is used to set the correct <a class="reference internal" href="../glossary/glossary.html#term-Backend"><span class="xref std std-term">Backend</span></a>
 and <a class="reference internal" href="../glossary/glossary.html#term-Storage-Traits"><span class="xref std std-term">Storage Traits</span></a> for the CUDA or CPU architecture, respectively.</p>
-<p>The code example can be compiled using the following simple CMake script (requires an installation of GridTools, see <a class="reference internal" href="../introduction/introduction.html#installation"><span class="std std-ref">Installing and Validating GridTools</span></a>).</p>
+<p>The code example can be compiled using the following simple CMake script (requires an installation of <cite>GridTools</cite>, see <a class="reference internal" href="../introduction/introduction.html#installation"><span class="std std-ref">Installing and Validating GridTools</span></a>).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cmake_minimum_required</span><span class="p">(</span><span class="n">VERSION</span> <span class="mf">3.14</span><span class="o">.</span><span class="mi">5</span><span class="p">)</span>
 
 <span class="n">project</span><span class="p">(</span><span class="n">GridTools</span><span class="o">-</span><span class="n">laplacian</span> <span class="n">LANGUAGES</span> <span class="n">CXX</span><span class="p">)</span>
