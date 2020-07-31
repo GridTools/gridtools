@@ -603,8 +603,7 @@ and <a class="reference internal" href="../glossary/glossary.html#term-Storage-T
 
 <span class="n">project</span><span class="p">(</span><span class="n">GridTools</span><span class="o">-</span><span class="n">laplacian</span> <span class="n">LANGUAGES</span> <span class="n">CXX</span><span class="p">)</span>
 
-<span class="nb">set</span><span class="p">(</span><span class="n">CMAKE_CXX_STANDARD</span> <span class="mi">14</span><span class="p">)</span>
-<span class="nb">set</span><span class="p">(</span><span class="n">CMAKE_CXX_EXTENSIONS</span> <span class="n">OFF</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="n">CMAKE_CXX_EXTENSIONS</span> <span class="n">OFF</span><span class="p">)</span> <span class="c1"># Currently required for HIP</span>
 
 <span class="n">find_package</span><span class="p">(</span><span class="n">GridTools</span> <span class="mf">2.0</span><span class="o">.</span><span class="mi">0</span> <span class="n">REQUIRED</span> <span class="n">QUIET</span><span class="p">)</span>
 
