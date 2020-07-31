@@ -18,7 +18,7 @@
 
 template <typename T>
 void TestAtomicAdd() {
-    int size = 360;
+    constexpr int size = 360;
     T field[size];
     T sum = 0;
     T sumRef = 0;
@@ -36,7 +36,7 @@ void TestAtomicAdd() {
 
 template <typename T>
 void TestAtomicSub() {
-    int size = 360;
+    constexpr int size = 360;
     T field[size];
     T sum = 0;
     T sumRef = 0;
@@ -54,7 +54,7 @@ void TestAtomicSub() {
 
 template <typename T>
 void TestAtomicMin() {
-    int size = 360;
+    constexpr int size = 360;
     T field[size];
     T min = 99999;
     T minRef = 99999;
@@ -72,7 +72,7 @@ void TestAtomicMin() {
 
 template <typename T>
 void TestAtomicMax() {
-    int size = 360;
+    constexpr int size = 360;
     T field[size];
     T max = 0;
     T maxRef = 0;

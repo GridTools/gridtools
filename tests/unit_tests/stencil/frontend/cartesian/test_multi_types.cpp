@@ -109,7 +109,7 @@ namespace gridtools {
                 template <call_type Type, class Eval, class T, std::enable_if_t<Type == call_type::function, int> = 0>
                 GT_FUNCTION auto call_function0(Eval &eval, T obj) {
                     return call<function0>::with(eval, obj);
-                };
+                }
 
                 template <call_type Type, class Eval, class T, std::enable_if_t<Type == call_type::procedure, int> = 0>
                 GT_FUNCTION type1 call_function0(Eval &eval, T obj) {
