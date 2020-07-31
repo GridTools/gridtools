@@ -10,7 +10,7 @@ layout and alignment. All entities are defined in the ``gridtools::storage`` nam
 Data Store
 ----------
 
-The key entity of the library, representing :math:`N`-d array.
+The key entity of the library, representing a multidimensional array.
 
   * Data store has no user facing constructors. To create it one should use the :ref:`builder-api`.
   * The access to the actual data is indirect. Data store has methods to request a view. The view provides data access
@@ -355,12 +355,12 @@ To use a particular trait the user should include the correspondent header.
 Defining Custom Traits
 ^^^^^^^^^^^^^^^^^^^^^^
 
-To use their own traits users, should provide a type that models the ``Storage Traits Concept``. There is no need
-to place a custom traits within |GT| source tree. The concept is ``ADL`` based. The easiest way to go
+To use their own traits, users should provide a type that models the ``Storage Traits Concept``. There is no need
+to place a custom traits within |GT| source tree. The concept is ADL-based. The easiest way to go
 is to copy any of predefined traits and modify it. Skipping some details the concept is defined as follows:
 
    * traits must specify if the ``target`` and ``host`` memory spaces are the same by providing
-     a ``storage_is_host_referenceable`` ADL based overload function.
+     a ``storage_is_host_referenceable`` ADL-based overload function.
    * traits must specify alignment in bytes by defining a ``storage_alignment`` function.
    * ``storage_allocate`` function must be defined to say the library how to target memory is allocated.
    * ``storage_layout`` function is needed to define the layout_map for a given number of dimensions.
