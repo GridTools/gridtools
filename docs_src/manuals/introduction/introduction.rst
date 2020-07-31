@@ -210,9 +210,7 @@ allows to compile the same *.cpp* file for both CUDA and host, without having to
 AMD GPU Support
 ^^^^^^^^^^^^^^^
 
-Further, |GT| can also be compiled for AMD GPUs using AMD’s HIP. To compile |GT| you need the Clang-based HIP copmpiler.
-Compilation of a Clang-based HIP compiler is relatively straightforward and
-documented in the `official HIP repository <https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md#hip-clang>`_.
+Further, |GT| can also be compiled for AMD GPUs using AMD’s HIP. To compile |GT| you need the Clang-based HIP compiler which is available with ROCm 3.5 and later.
 
 
 ------------
