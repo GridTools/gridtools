@@ -3,7 +3,7 @@
 Stencil Operators
 =================
 
-*Stencil operators* are the GridTools-equivalent of `functors` in regular C++ code.  They are assumed to have no
+*Stencil operators* are the |GT|-equivalent of `functors` in regular C++ code.  They are assumed to have no
 side-effects and no status (which is why they are marked as `static`). As functions they have an `interface` and an
 `implementation`. The interface informs the caller, on the order and types of arguments that have to be passed to
 it, and the implementation, on the names and types of the symbols available to it.
