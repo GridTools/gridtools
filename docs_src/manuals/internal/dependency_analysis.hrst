@@ -22,7 +22,7 @@ This means that those outputs must be computed in a set of points that will be c
 A very simple example
 ---------------------
 
-Let us consider an example (in 1D for simplicity). Suppose we have the following concatenation of stages, 
+Let us consider an example (in 1D for simplicity). Suppose we have the following concatenation of stages,
 where we write at the left the outputs and on the right, with an associated extent, are the inputs:
 
 ::
@@ -31,7 +31,7 @@ where we write at the left the outputs and on the right, with an associated exte
    d <- f1(b<-2,0>, c<-1,2>)
    e <- f2(a<-1,2>, d<-2,2>, c<-1,1>)
 
-We call the arguments placeholders, to be closer to the gridtools algorithm. We have 5 placeholders and we start with an initial map such as:
+We call the arguments placeholders, to be closer to the |GT| algorithm. We have 5 placeholders and we start with an initial map such as:
 
 ::
 
@@ -41,7 +41,7 @@ We call the arguments placeholders, to be closer to the gridtools algorithm. We 
    d -> <0,0>
    e -> <0,0>
 
-Now we visit our sequence of stages from the last to the first. 
+Now we visit our sequence of stages from the last to the first.
 The last computes ``e`` and then needs ``a``, ``d``, and ``c`` in different extents. We update the map as follow:
 
 ::
@@ -52,7 +52,7 @@ The last computes ``e`` and then needs ``a``, ``d``, and ``c`` in different exte
    d -> <-2,2>
    e -> <0,0>
 
-Next we examine ``f1``. It writes ``d``, and since ``d`` is needed in an interval ``<-2,2>`` by ``f2``, 
+Next we examine ``f1``. It writes ``d``, and since ``d`` is needed in an interval ``<-2,2>`` by ``f2``,
 we need to update it's inputs that need now to be read at an extent that is ``<-2,2> + <x,y>``, where ``<x,y>`` is the extent of an input and the ``+`` operation corresponds to the following operation: ``<x,y> + <u,v> = <x+u, y+v>``. If the extent needed for the inputs are smaller than the one contained in the map already, we do not update the map, since the needed values are already there. We do it by using the ``mee`` function that returns the minimum enclosing extent of two extents. So now we update the map as follow:
 
 ::
@@ -73,11 +73,11 @@ Now to the last stage to examine: ``f0``. It writes ``a`` and needs ``b<-1,2>`` 
    d -> <-2,2>
    e -> <0,0>
 
-The fields ``a`` and ``d`` are written and the read. They are eligible to be temporary fields. ``b`` and ``c`` are inputs, 
-and they are needed in ``<-4,3>`` and ``<-3,4>`` respectively. So the number of "halos" around them should be appropriate to avoid access violations. 
+The fields ``a`` and ``d`` are written and the read. They are eligible to be temporary fields. ``b`` and ``c`` are inputs,
+and they are needed in ``<-4,3>`` and ``<-3,4>`` respectively. So the number of "halos" around them should be appropriate to avoid access violations.
 The field ``e`` is the output and it's written in a single point.
 
-If we compute ``f2`` in a point, we need to compute ``f1`` in ``<-2,2>``, since this will produce the values needed by ``f2``. 
+If we compute ``f2`` in a point, we need to compute ``f1`` in ``<-2,2>``, since this will produce the values needed by ``f2``.
 We then need to compute ``f0`` in ``<-1,2>`` to produce the values needed for ``a``.
 
 ----------------------
@@ -106,7 +106,7 @@ When we examine ``f1``, however, the extents become:
 
 ::
 
-   a -> mee(<-1,2>, <-2,2>+<-1,2>) = <-3,4> 
+   a -> mee(<-1,2>, <-2,2>+<-1,2>) = <-3,4>
    b -> mee(<0,0>, <-2,2>+<-2,0>) = <-4,2>
    c -> <-1,1>
    d -> <-2,2>
@@ -116,13 +116,13 @@ When we move to ``f0``:
 
 ::
 
-   a -> <-3,4> 
+   a -> <-3,4>
    b -> mee(<-4,2>, <-3,4>+<-1,1>) = <-4,5>
    c -> mee(<-1,1>, <-3,4>+<0,1>) = <-3,5>
    d -> <-2,2>
    e -> <0,0>
 
-So, now, to compute ``f2`` in a point we need to compute ``f1`` in ``<-2,2>`` and ``f0`` in ``<-3,4>``. Note that, when ``f2`` access ``a`` in ``<-1, 2>``, 
+So, now, to compute ``f2`` in a point we need to compute ``f1`` in ``<-2,2>`` and ``f0`` in ``<-3,4>``. Note that, when ``f2`` access ``a`` in ``<-1, 2>``,
 those values have been computed in abundance to allow the computation of ``f1``.
 
 -------------------------
@@ -172,5 +172,5 @@ And then ``f0``
 But now we have a problem, if we apply the previous strateg. ``f1`` is computed to compute ``c`` in ``<-2,4>``,
 the extent associated by the map. A next element of the output would then read the modified values of ``c`` and
 this is probably wrong. We need to catch this as a problem.
-We cannot write into a field that is accessed in an extent different than ``<0,0>`` in a previous stage. 
+We cannot write into a field that is accessed in an extent different than ``<0,0>`` in a previous stage.
 We need a check for this, but it is not yet implemented.

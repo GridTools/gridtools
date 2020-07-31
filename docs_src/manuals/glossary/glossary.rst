@@ -33,6 +33,9 @@ Glossary
   Cache
     See :term:`Software-Managed Cache`.
 
+  Computation
+    A set of :term:`Multi-Stages<Multi-Stage>`, see section :ref:`stencil-composition`.
+
   Data Store
     An object that manages a logical multidimensional array of values.
     See section :ref:`data-store`.
@@ -79,8 +82,8 @@ Glossary
   Halo
     Additional data points around the main compute data. Used for boundary
     conditions or distributed computations (see :term:`Halo Exchanges<Halo
-    Exchange>`). :term:`Halo` information is also stored in the :term:`Storage
-    Info` to allow correct data alignment. The size of the :term:`Halo`
+    Exchange>`). :term:`Halo` information is also in the :term:`Data Store` to allow correct data alignment.
+    The size of the :term:`Halo`
     regions is often described by a :term:`Halo Descriptor`. For boundary
     conditions, see sections :ref:`boundary-conditions` and
     :ref:`distributed-boundary-conditions`.
@@ -105,9 +108,7 @@ Glossary
 
   Layout Map
     A (compile time) sequence of integer values, defining the storage layout of
-    a :term:`Data Store`. See section :ref:`storage-module`. Also used to
-    define the process layout in an multi-process setup. For this usage, see
-    section :ref:`storage-info`.
+    a :term:`Data Store`. See section :ref:`storage-module`.
 
   Masked Dimension
     A dimension with stride 0.
@@ -115,11 +116,11 @@ Glossary
   Multi-Stage
     A partially-order collection of :term:`Stages<Stage>` with an associated
     :term:`Vertical Execution Order`. See :term:`Execution Model` and
-    section :ref:`composition_of_stencils`.
+    section :ref:`stencil-composition`.
 
   Placeholder
     Placeholders allow compile-time naming of :term:`Stencil Operator`
-    arguments. See section :ref:`placeholders`.
+    arguments. See section :ref:`stage`.
 
   Software-Managed Cache
     User-defined caching of :term:`Fields<Field>` during a :term:`Multi-Stage`, which has a
@@ -129,11 +130,15 @@ Glossary
   Stage
     A :term:`Stencil Operator` with associated
     :term:`Placeholders<Placeholder>`. See :term:`Execution Model` and section
-    :ref:`composition_of_stencils`.
+    :ref:`stencil-composition`.
 
   Stencil Operator
     Struct or class that defines a stencil operation. See section
     :ref:`stencil_operators`.
+
+  Storage Traits
+    Similar to the :term:`Backend`, storage traits allow to select a storage type suitable for a given architecture.
+    See, e.g., section :ref:`getting_started_storage_traits`.
 
   Vertical Execution Order
     Order of execution (forward, backward, parallel) along the vertical

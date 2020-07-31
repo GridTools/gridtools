@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -95,10 +95,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#dependencies">Dependencies</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#installation-and-use">Installation and Use</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#simple-script">Simple Script</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#enabling-clang-cuda-and-amd-gpu-support-experimental">Enabling Clang-CUDA and AMD GPU Support (Experimental)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#using-gridtools">Using GridTools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-gridtools">Using GridTools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installing-and-validating-gridtools">Installing and Validating GridTools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-a-gridtools-installation">Using a GridTools Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-gridtools-with-cmakes-fetchcontent">Using GridTools with CMake’s FetchContent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Using GridTools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#amd-gpu-support">AMD GPU Support</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#contributing">Contributing</a></li>
@@ -205,132 +207,170 @@ to another:</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>Several such stages can be composed into a computation and be applied on each grid-point of a grid. Requiring this
+<p>Several such stages can be composed into a <a class="reference internal" href="../glossary/glossary.html#term-Computation"><span class="xref std std-term">Computation</span></a> and be applied on each grid-point of a grid. Requiring this
 abstract descriptions of a stencils, the DSL allows <cite>GridTools</cite> can apply architecture-specific optimizations to the stencil
 computations in order to be optimal on the target hardware.</p>
 <div class="section" id="dependencies">
 <h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
-<p><cite>GridTools</cite> requires at least a header-only installation of <a class="reference external" href="https://www.boost.org/">Boost</a>. It depends on <code class="docutils literal notranslate"><span class="pre">Boost</span> <span class="pre">Preprocessor</span> <span class="pre">Library</span></code>.</p>
-<p>Additionally, <cite>GridTools</cite> requires a recent version of <a class="reference external" href="https://www.cmake.org/">CMake</a>.</p>
-<p><cite>GridTools</cite> requires a modern compiler. A list of supported compilers can be found on <a class="reference external" href="https://github.com/GridTools/gridtools">github</a>.</p>
-</div>
-</div>
-<div class="section" id="installation-and-use">
-<span id="installation"></span><h2>Installation and Use<a class="headerlink" href="#installation-and-use" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="simple-script">
-<h3>Simple Script<a class="headerlink" href="#simple-script" title="Permalink to this headline">¶</a></h3>
-<p>We first provide a sample of the commands needed to enable the multicore and CUDA backends, install them in <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code>,
-and run the gridtools tests.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone http://github.com/eth-cscs/gridtools.git
-<span class="nb">cd</span> gridtools
-mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
-cmake -DGT_ENABLE_BACKEND_MC<span class="o">=</span>ON -DGT_ENABLE_BACKEND_CUDA<span class="o">=</span>ON -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local ..
-make install -j4
-make <span class="nb">test</span>
-</pre></div>
-</div>
-<p><cite>GridTools</cite> uses CMake as building system. The installation can be configured using <cite>ccmake</cite>. The following variables control the back-ends that will be supported by the runtime components of the installation, namely <a class="reference internal" href="../user_manual/user_manual.html#halo-exchanges"><span class="std std-ref">GCL</span></a>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>GT_ENABLE_BACKEND_CUDA <span class="c1"># For CUDA GPUs</span>
-GT_ENABLE_BACKEND_X86  <span class="c1"># For cache based multicores</span>
-GT_ENABLE_BACKEND_NAIVE  <span class="c1"># For naive implementation</span>
-GT_ENABLE_BACKEND_MC   <span class="c1"># For optimized multicores and KNL</span>
-</pre></div>
-</div>
-<p>All the targets can be installed and used at the same time, but some runtime components may lead to incompatibilities or complex environments to make the codes run. It may be more effective to do multiple installs of the library for different targets in this case.</p>
-<p>At the moment the only runtime component of <cite>GridTools</cite> is the GCL, the communication module. By default, this component will be installed in the system as a single-node mockery of the full distributed memory capability. To enable the full GCL you must set to <code class="docutils literal notranslate"><span class="pre">ON</span></code> the following variable</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>GT_USE_MPI
-</pre></div>
-</div>
-<p>In addition, it may be convenient to install the library without compiling and running the tests, that use multiple nodes. To do so you can set to <code class="docutils literal notranslate"><span class="pre">ON</span></code> the following variable:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>GT_GCL_ONLY
-</pre></div>
-</div>
-<p>Other variables can be useful for your system, and you can find their descriptions using <code class="docutils literal notranslate"><span class="pre">ccmake</span></code>.</p>
-<p>When installing <cite>GridTools</cite> all the source codes of the components will be copied to the installation path. To avoid compiling and running tests for specific components, <cite>GridTools</cite> allows to enable or disable components using the following variables, with obvious meaning:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>INSTALL_BOUNDARY_CONDITIONS
-INSTALL_DISTRIBUTED_BOUNDARIES
-INSTALL_COMMON
-INSTALL_STENCIL_COMPOSITION
-INSTALL_STORAGE
-INSTALL_C_BINDINGS
-INSTALL_INTERFACE
-INSTALL_TOOLS
-</pre></div>
-</div>
-<p>To have access to these variables <code class="docutils literal notranslate"><span class="pre">INSTALL_ALL</span></code> should be set to <code class="docutils literal notranslate"><span class="pre">OFF</span></code>.</p>
-<p>Examples can be installed by enabling <code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES</span></code>. This will install the examples into the path given by
-<code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES_PATH</span></code>. The examples come with a standalone CMake project and can be built separately, e.g. with
-the following set of instructions:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> examples
-mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
-cmake ..
-make -j4
-</pre></div>
-</div>
-</div>
-<div class="section" id="enabling-clang-cuda-and-amd-gpu-support-experimental">
-<h3>Enabling Clang-CUDA and AMD GPU Support (Experimental)<a class="headerlink" href="#enabling-clang-cuda-and-amd-gpu-support-experimental" title="Permalink to this headline">¶</a></h3>
-<p>Besides NVCC-based compilation for NVIDIA GPUs, <cite>GridTools</cite> additionally supports Clang-based compilation for NVIDIA and AMD GPUs.
-Due to a bug in Clang (<a class="reference external" href="https://bugs.llvm.org/show_bug.cgi?id=42061">https://bugs.llvm.org/show_bug.cgi?id=42061</a>), this is only possible when not using OpenMP.
-As all non-GPU backends of GridTools currently require OpenMP, they have to be disabled.
-Then, Clang-based CUDA compilation can be activated by setting the CMake-variable <code class="docutils literal notranslate"><span class="pre">GT_CUDA_COMPILATION_TYPE</span></code> to <code class="docutils literal notranslate"><span class="pre">Clang-CUDA</span></code>
-and setting Clang as the main C++ compiler. A fully working command for configuring GridTools could look like this:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CXX</span><span class="o">=</span>/path/to/clang++
-cmake -DGT_ENABLE_BACKEND_CUDA<span class="o">=</span>ON <span class="se">\</span>
-    -DGT_CUDA_COMPILATION_TYPE<span class="o">=</span>Clang-CUDA <span class="se">\</span>
-    -DGT_ENABLE_BACKEND_MC<span class="o">=</span>OFF <span class="se">\</span>
-    -DGT_ENABLE_BACKEND_X86<span class="o">=</span>OFF <span class="se">\</span>
-    -DGT_ENABLE_BACKEND_NAIVE<span class="o">=</span>OFF <span class="se">\</span>
-    -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local <span class="se">\</span>
-    ..
-</pre></div>
-</div>
-<p>Further, GridTools can also be compiled for AMD GPUs using AMD’s HIP. But due to limitations of AMD’s current HCC compiler,
-the Clang-based HIP version has to be used, which is not yet officially distributed in the current HIP releases
-(but will be the successor of HCC-based HIP). Compilation of a Clang-based HIP compiler is relatively straightforward and
-documented in the <a class="reference external" href="https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md#hip-clang">official HIP repository</a>.
-Otherwise, the configuration is similar to the one for Clang-CUDA. Just set <code class="docutils literal notranslate"><span class="pre">GT_CUDA_COMPILATION_TYPE</span></code> to <code class="docutils literal notranslate"><span class="pre">HIPCC_AMDGPU</span></code>
-and the C++ compiler to HIPCC. For example:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CXX</span><span class="o">=</span>/path/to/hipcc
-cmake -DGT_ENABLE_BACKEND_CUDA<span class="o">=</span>ON <span class="se">\</span>
-    -DGT_CUDA_COMPILATION_TYPE<span class="o">=</span>HIPCC-AMDGPU <span class="se">\</span>
-    -DGT_ENABLE_BACKEND_MC<span class="o">=</span>OFF <span class="se">\</span>
-    -DGT_ENABLE_BACKEND_X86<span class="o">=</span>OFF <span class="se">\</span>
-    -DGT_ENABLE_BACKEND_NAIVE<span class="o">=</span>OFF <span class="se">\</span>
-    -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local <span class="se">\</span>
-    ..
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The backend used for the AMD GPUs is also named “CUDA” for historical reasons as internally the same backend (with minor changes)
-is compiled for AMD and NVIDIA GPUs.</p>
+<p><cite>GridTools</cite> requires a header-only installation of <a class="reference external" href="https://www.boost.org/">Boost</a>, a recent version of <a class="reference external" href="https://www.cmake.org/">CMake</a> and a modern compiler.
+The exact version requirements can be found on <a class="reference external" href="https://github.com/GridTools/gridtools">GitHub</a>.</p>
+<p>Addtionally <cite>GridTools</cite> requires the following optional dependencies.
+For the communication module (GCL) <em>MPI</em> is required. For the GPU backends a <em>CUDA</em> or <em>HIP</em> compiler is required.
+For the CPU backends <em>OpenMP</em> is required.</p>
 </div>
 </div>
 <div class="section" id="using-gridtools">
-<h3>Using GridTools<a class="headerlink" href="#using-gridtools" title="Permalink to this headline">¶</a></h3>
-<p>Using <cite>GridTools</cite> follows standard CMake practices. To indicate where the <cite>GridTools</cite> can be found,
-CMake should be provided with the variable <code class="docutils literal notranslate"><span class="pre">GridTools_DIR</span></code>,
-e.g. by calling CMake with <code class="docutils literal notranslate"><span class="pre">-DGridTools_DIR=&lt;/path/to/gridtools/lib/cmake&gt;</span></code>.
-The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file should then contain the following lines:</p>
+<h2>Using GridTools<a class="headerlink" href="#using-gridtools" title="Permalink to this headline">¶</a></h2>
+<p><cite>GridTools</cite> uses CMake as its build system.  CMake offers two ways of using a CMake-managed project: from an installation
+or using FetchContent to pull in a dependency on the fly. <cite>GridTools</cite> supports both ways.</p>
+<div class="section" id="installing-and-validating-gridtools">
+<span id="installation"></span><h3>Installing and Validating GridTools<a class="headerlink" href="#installing-and-validating-gridtools" title="Permalink to this headline">¶</a></h3>
+<p>To install <cite>GridTools</cite> (in <code class="docutils literal notranslate"><span class="pre">/usr/local</span></code>)
+and run the tests, use the following commands.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone http://github.com/GridTools/gridtools.git
+<span class="nb">cd</span> gridtools
+mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
+cmake -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local ..
+cmake --build --parallel <span class="m">4</span>
+ctest
+</pre></div>
+</div>
+<p>CMake will detect the optional dependencies and enable the available backends accordingly.
+During configure the available <cite>GridTools</cite> targets will be listed.</p>
+<p>The following CMake variables are available to customize the installation of <cite>GridTools</cite>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES</span></code> to <code class="docutils literal notranslate"><span class="pre">ON</span></code> and</p></li>
+<li><p>select a directory for installation with <code class="docutils literal notranslate"><span class="pre">GT_INSTALL_EXAMPLES_PATH</span></code>.
+The examples come with a standalone CMake project and can be built separately.</p></li>
+</ul>
+</div></blockquote>
+<p>Additionally, use the following CMake variables to customize building of tests.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">BUILD_TESTING</span></code> to <code class="docutils literal notranslate"><span class="pre">OFF</span></code> to disable building any tests (fast installation without validation).</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">GT_GCL_GPU</span></code> to <code class="docutils literal notranslate"><span class="pre">OFF</span></code> to disable the <code class="docutils literal notranslate"><span class="pre">gcl_gpu</span></code> target (and to disable building of GPU GCL tests).
+This is useful, if you have CUDA in your environment, but the MPI implementation is not CUDA-aware.</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">GT_CUDA_ARCH</span></code> to the compute capability of the GPU device on which you want to run the tests.</p></li>
+<li><p>If your compiler is a CUDA-capable <em>Clang</em>, you can switch how CUDA code will be compiled, by setting
+<code class="docutils literal notranslate"><span class="pre">GT_CLANG_CUDA_MODE</span></code> to one of <code class="docutils literal notranslate"><span class="pre">AUTO</span></code> (default, prefer Clang-CUDA if available), <code class="docutils literal notranslate"><span class="pre">Clang-CUDA</span></code> (compile with
+Clang), <code class="docutils literal notranslate"><span class="pre">NVCC-CUDA</span></code> (compile with NVCC and Clang as the host compiler).</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="using-a-gridtools-installation">
+<h3>Using a GridTools Installation<a class="headerlink" href="#using-a-gridtools-installation" title="Permalink to this headline">¶</a></h3>
+<p>Using <cite>GridTools</cite> follows standard CMake practices. If <cite>GridTools</cite> was installed to <cite>&lt;prefix&gt;</cite>,
+provide <code class="docutils literal notranslate"><span class="pre">-DCMAKE_PREFIX_PATH=&lt;prefix&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">-DGridTools_ROOT=&lt;prefix&gt;</span></code> to indicate where <cite>GridTools</cite> can be found.
+The <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file should then contain the following line:</p>
 <div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">find_package</span><span class="p">(</span><span class="s">GridTools</span> <span class="s">VERSION</span> <span class="s">...</span> <span class="s">REQUIRED</span><span class="p">)</span>
-<span class="nb">list</span><span class="p">(</span><span class="s">APPEND</span> <span class="s">CMAKE_MODULE_PATH</span> <span class="s2">&quot;${GridTools_MODULE_PATH}&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If GridTools uses the CUDA backend, you must call <code class="docutils literal notranslate"><span class="pre">enable_language(CUDA)</span></code> before finding the package.</p>
+<p>If <cite>GridTools</cite> should use CUDA with NVCC, you must call <code class="docutils literal notranslate"><span class="pre">enable_language(CUDA)</span></code> before the call to <code class="docutils literal notranslate"><span class="pre">find_package</span></code>.</p>
 </div>
-<p>Targets that need <cite>GridTools</cite> should link against <code class="docutils literal notranslate"><span class="pre">GridTools::gridtools</span></code>. If the communication module is needed <code class="docutils literal notranslate"><span class="pre">GridTools::gcl</span></code> should be used instead.</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">add_library</span><span class="p">(</span><span class="s">my_library</span> <span class="s">source.cpp</span><span class="p">)</span>
-<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_library</span> <span class="s">PUBLIC</span> <span class="s">GridTools::gridtools</span><span class="p">)</span>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are compiling with <em>Clang</em>, set the variable <code class="docutils literal notranslate"><span class="pre">GT_CLANG_CUDA_MODE</span></code> before calling <code class="docutils literal notranslate"><span class="pre">find_package</span></code>, see
+<a class="reference internal" href="#installation"><span class="std std-ref">Installing and Validating GridTools</span></a>. It is recommended to make this variable a CMake cached variable to allow users of your code
+to change the mode.</p>
+</div>
+</div>
+<div class="section" id="using-gridtools-with-cmakes-fetchcontent">
+<span id="fetch-content"></span><h3>Using GridTools with CMake’s FetchContent<a class="headerlink" href="#using-gridtools-with-cmakes-fetchcontent" title="Permalink to this headline">¶</a></h3>
+<p>Alternatively to a <cite>GridTools</cite> installation you can use <cite>GridTools</cite> with <em>FetchContent</em>. To use FetchContent add the following
+lines to your CMake project</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">include</span><span class="p">(</span><span class="s">FetchContent</span><span class="p">)</span>
+<span class="nb">FetchContent_Declare</span><span class="p">(</span><span class="s">GridTools</span>
+    <span class="s">URL</span> <span class="s">https://github.com/GridTools/gridtools/archive/&lt;release_tag&gt;.tar.gz</span>
+<span class="p">)</span>
+<span class="nb">FetchContent_GetProperties</span><span class="p">(</span><span class="s">GridTools</span><span class="p">)</span>
+<span class="nb">if</span><span class="p">(</span><span class="s">NOT</span> <span class="s">GridTools_POPULATED</span><span class="p">)</span>
+    <span class="nb">FetchContent_Populate</span><span class="p">(</span><span class="s">GridTools</span><span class="p">)</span>
+    <span class="nb">add_subdirectory</span><span class="p">(</span><span class="o">${</span><span class="nv">gridtools_SOURCE_DIR</span><span class="o">}</span> <span class="o">${</span><span class="nv">gridtools_BINARY_DIR</span><span class="o">}</span><span class="p">)</span>
+<span class="nb">endif</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>where <em>&lt;release_tag&gt;</em> is the git tag of the <cite>GridTools</cite> release, e.g. <code class="docutils literal notranslate"><span class="pre">v2.0.0</span></code>.</p>
+<p>The following CMake options are available (see also <a class="reference internal" href="#installation"><span class="std std-ref">Installing and Validating GridTools</span></a>).</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>By default, all <cite>GridTools</cite> tests are disabled. To enable building of the tests, set <code class="docutils literal notranslate"><span class="pre">GT_BUILD_TESTING</span></code> to <code class="docutils literal notranslate"><span class="pre">ON</span></code>.
+If tests are enabled, their behavior can be changed as described in <a class="reference internal" href="#installation"><span class="std std-ref">Installing and Validating GridTools</span></a>.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">GT_CLANG_CUDA_MODE</span></code> to select how CUDA code is compiled, see <a class="reference internal" href="#installation"><span class="std std-ref">Installing and Validating GridTools</span></a>.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id2">
+<h3>Using GridTools<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>After <cite>GridTools</cite> was made available by either <code class="docutils literal notranslate"><span class="pre">find_package</span></code> or <code class="docutils literal notranslate"><span class="pre">FetchContent</span></code> the following targets for the
+different <cite>GridTools</cite> modules are available</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">stencil_naive</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>If <em>OpenMP</em> is available</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">stencil_cpu_ifirst</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stencil_cpu_kfirst</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">storage_cpu_ifirst</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">storage_cpu_kfirst</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">layout_transformation_cpu</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">boundaries_cpu</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>If <em>OpenMP</em> <strong>and</strong> <em>MPI</em> is available</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">gcl_cpu</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>If a <em>CUDA runtime</em> (or a <em>HIP compiler</em>) is available (no <em>CUDA compiler</em> required)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">storage_gpu</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>If a <em>CUDA compiler</em> or a <em>HIP compiler</em> is available</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">stencil_gpu</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">layout_transformation_gpu</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">boundaries_gpu</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>If a <em>CUDA compiler</em> and <em>MPI</em> is available</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">gcl_gpu</span></code> (can be disabled by the user if the MPI implementation is not CUDA-aware)</p></li>
+</ul>
+</div></blockquote>
+<p>After linking to the <cite>GridTools</cite> backend, we recommend to call the CMake function
+<code class="docutils literal notranslate"><span class="pre">gridtools_setup_target(&lt;target&gt;</span> <span class="pre">[CUDA_ARCH</span> <span class="pre">&lt;compute_capability&gt;])</span></code> on your target.
+The function helps abstracting differences in how CUDA code is compiled
+(e.g. <em>Clang</em> uses a different flag than <em>NVCC</em> for the CUDA architecture). Additionally, using this function
+allows to compile the same <em>.cpp</em> file for both CUDA and host, without having to wrap the implementation in a
+<em>.cu</em> file.</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">add_library</span><span class="p">(</span><span class="s">my_library</span> <span class="s">source.cpp</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_library</span> <span class="s">PUBLIC</span> <span class="s">GridTools::stencil_cuda</span><span class="p">)</span>
+<span class="nb">gridtools_setup_target</span><span class="p">(</span><span class="s">my_library</span> <span class="s">CUDA_ARCH</span> <span class="s">sm_60</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="amd-gpu-support">
+<h3>AMD GPU Support<a class="headerlink" href="#amd-gpu-support" title="Permalink to this headline">¶</a></h3>
+<p>Further, <cite>GridTools</cite> can also be compiled for AMD GPUs using AMD’s HIP. To compile <cite>GridTools</cite> you need the Clang-based HIP compiler which is available with ROCm 3.5 and later.</p>
 </div>
 </div>
 <div class="section" id="contributing">
 <h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h2>
-<p>Contributions to the <cite>GridTools</cite> set of libraries are welcome. However, our policy is that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to <cite>GridTools</cite> will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.</p>
+<p>Contributions to the <cite>GridTools</cite> set of libraries are welcome. However, our policy is that we will be the official maintainers
+and providers of the <cite>GridTools</cite> code. We believe that this will provide our users with a clear reference point for
+support and guarantees on timely interactions. For this reason, we require that external contributions to <cite>GridTools</cite>
+will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.</p>
 </div>
 </div>
 
