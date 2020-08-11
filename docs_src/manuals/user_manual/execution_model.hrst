@@ -4,7 +4,7 @@ Execution Model
 ===============
 
 Stencil operations are executed in a three dimensional :term:`Iteration Space`. The first two dimensions of the
-iteration space, usually referred to as `I` and `J` dimensions identify the horizontal dimension. There is no
+iteration space, usually referred to as `I` and `J` dimensions, identify the horizontal dimension. There is no
 prescription for the order of stencil operators in different points of the same `IJ` plane. Stencil operators in the
 third dimension of the iteration space, usually referred as `K` or vertical dimension, can have prescribed order
 of executions. There are three different execution policies for the `K` dimension:
@@ -31,15 +31,105 @@ execution policy. A computation combines several multistages and executes one mu
   previous stages of the multistage have not already been applied to the indices in the same column with smaller ``k``.
 
 
+----------------------------------
+Extended Compute Domain of a Stage
+----------------------------------
+
+For a clear specification of access restrictions, we need to introduce the concept of extended compute domains.
+
+If a stage is accessing neighbor grid points of field `a`, the computation will consume halo points at the boundary of the compute domain.
+In case field `a` was written in a previous stage of the same multi-stage, the compute domain of the first stage needs to be extended, such
+that the *extended compute domain* of the stage covers the extent of the read access in the later stage.
+
 -------------------
 Access restrictions
 -------------------
 
-The execution model imposes restrictions on how accessors can be evaluated. The following restrictions apply:
+The execution model imposes restrictions on how accessors can be evaluated. These restrictions are not checked by GridTools,
+violating these rules results in undefined behavior.
+
+Definitions:
+
+ - *Writing/reading to/from an accessor* is short for *writing/reading to/from a field through an accessor*.
+   Note that the same field could be bound to different accessors, though this is not recommended.
+
+- *Previous/later statement* is short for *previous/later statement in the same stage or any previous/later stage*.
+
+
+The following rules apply to accesses in stages *within the same multi-stage*:
+
+ 1. A stage may write to an accessor, if there is no read from the same accessor in a previous statement.
+
+ 2. Accessors can be written and read in a later statement, if all reads of
+    this accessor are in stages where the compute domain is not extended.
+
+ 3. Temporaries are not restricted by 2, i.e. a stage may write to a temporary through an accessor and read later.
+    Rule 1 still applies for temporaries.
+
+
+Corollaries
 
  1. Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
-    a whole *multistage*
+    a whole *multistage*.
 
- 2. A stage may write to a field through an accessor. In this stage and in all later stages in the same multistage,
-    this field must not be read anymore with any non-zero offsets, except with k-offsets in case of
-    non-parallel policy. For example, you must not access such a field with ``eval(field(-1, -1, -1))``.
+ 2. Accessors can be written only once in a *multistage*. For intermediate results separate temporary fields should be used.
+
+--------------------------------
+Examples for Access Restrictions
+--------------------------------
+
+In the following we show only the statements inside a stage, correct extents (matching the offset in the accessors are assumed).
+All stages are assumed to be in the same multi-stage.
+
+
+  .. code-block:: gridtools
+
+    // stage 0 (extended because of read in stage 1)
+    eval(a()) = some_value;
+
+    // stage 1
+    eval(b()) = eval(a(i+1)); // ok, read in a stage with non-extended domain
+
+
+  .. code-block:: gridtools
+
+    // stage 0 (extended, but irrelevant for the example)
+    eval(a()) = some_value;
+
+    // stage 1 (extended because of read of c in stage 2)
+    eval(b()) = eval(a()); // error, violating rule 2 (stage 1 is extended)
+    eval(c()) = some_value;
+
+    // stage 2
+    eval(d()) = eval(c(i+1));
+
+  .. code-block:: gridtools
+
+    // stage 0
+    eval(tmp_a()) = some_value;
+
+    // stage 1
+    eval(b()) = eval(tmp_a(i+1)); // ok, see rule 3 (temporaries don't violate 2)
+    eval(c()) = some_value;
+
+    // stage 2
+    eval(d()) = eval(c(i+1));
+
+  .. code-block:: gridtools
+
+    // stage 0
+    eval(b()) = eval(a(i+1));
+
+    // stage 1
+    eval(a()) = some_value; // error, violating rule 1 (write after read)
+
+  .. code-block:: gridtools
+
+    // stage 0
+    eval(tmp_a()) = some_value;
+
+    // stage 1
+    eval(tmp_b()) = eval(tmp_a());
+
+    // stage 2
+    eval(tmp_a()) = some_other_value; // error, violating rule 1, see corollary 2.
