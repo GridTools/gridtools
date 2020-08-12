@@ -58,21 +58,18 @@ Definitions:
 
 The following rules apply to accesses in stages *within the same multi-stage*:
 
- 1. A stage may write to an accessor, if there is no read from the same accessor in a previous statement.
+ 1. A stage may read from an accessor unconditionally, if the same accessor is never written to.
 
- 2. Accessors can be written and read in a later statement, if all reads of
-    this accessor are in stages where the compute domain is not extended.
+ 2. A stage may write to an accessor only once.
 
- 3. Temporaries are not restricted by 2, i.e. a stage may write to a temporary through an accessor and read later.
-    Rule 1 still applies for temporaries.
+ 3. A stage may write to an accessor, if there is no read from the same accessor in a previous statement. (Read after write is unconditionally allowed.)
 
+ 4. A stage may read from an accessor and write to it in a later statement, if
 
-Corollaries
+    a. all reads of this accessor are in stages where the compute domain is not extended;
+    b. all read of this accessor are without offsets.
 
- 1. Accessors can be read at any offset at any time, if the fields bound to the accessor are read-only within
-    a whole *multistage*.
-
- 2. Accessors can be written only once in a *multistage*. For intermediate results separate temporary fields should be used.
+    (Write after read only, if read is in non-extended stages and no offsets are used.)
 
 --------------------------------
 Examples for Access Restrictions
@@ -84,32 +81,32 @@ All stages are assumed to be in the same multi-stage.
 
   .. code-block:: gridtools
 
-    // stage 0 (extended because of read in stage 1)
+    // stage 0
     eval(a()) = some_value;
 
     // stage 1
-    eval(b()) = eval(a(i+1)); // ok, read in a stage with non-extended domain
+    eval(b()) = eval(a(i+1)); // ok, read after write
 
-
-  .. code-block:: gridtools
-
-    // stage 0 (extended, but irrelevant for the example)
-    eval(a()) = some_value;
-
-    // stage 1 (extended because of read of c in stage 2)
-    eval(b()) = eval(a()); // error, violating rule 2 (stage 1 is extended)
-    eval(c()) = some_value;
-
-    // stage 2
-    eval(d()) = eval(c(i+1));
 
   .. code-block:: gridtools
 
     // stage 0
-    eval(tmp_a()) = some_value;
+    eval(a()) = some_value;
 
     // stage 1
-    eval(b()) = eval(tmp_a(i+1)); // ok, see rule 3 (temporaries don't violate 2)
+    eval(b()) = eval(a());
+    eval(c()) = some_value;
+
+    // stage 2
+    eval(d()) = eval(c(i+1)); // ok, read after write everywhere
+
+  .. code-block:: gridtools
+
+    // stage 0
+    eval(b()) = eval(a());
+
+    // stage 1 (extended domain because of read from c in stage 2)
+    eval(a()) = some_value; // error, violating rule 4a
     eval(c()) = some_value;
 
     // stage 2
@@ -121,7 +118,7 @@ All stages are assumed to be in the same multi-stage.
     eval(b()) = eval(a(i+1));
 
     // stage 1
-    eval(a()) = some_value; // error, violating rule 1 (write after read)
+    eval(a()) = some_value; // error, violating rule 4b
 
   .. code-block:: gridtools
 
@@ -132,4 +129,4 @@ All stages are assumed to be in the same multi-stage.
     eval(tmp_b()) = eval(tmp_a());
 
     // stage 2
-    eval(tmp_a()) = some_other_value; // error, violating rule 1, see corollary 2.
+    eval(tmp_a()) = some_other_value; // error, violating rule 2
