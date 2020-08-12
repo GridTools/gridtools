@@ -74,6 +74,10 @@ The following rules apply to accesses in stages *within the same multi-stage*:
  5. Temporaries are not restricted by 4, i.e. a stage may write to an accessor after previous read of the same accessor, unconditionally.
     Restriction 2 still applies. Note that read before write is only useful, if the temporary was written in a previous multi-stage.
 
+.. note::
+
+   Higher level tools generating GridTools code, may choose to ignore rule 2 and use `stage_with_extent()` instead.
+
 --------------------------------
 Examples for Access Restrictions
 --------------------------------
