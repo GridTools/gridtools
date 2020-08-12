@@ -71,6 +71,9 @@ The following rules apply to accesses in stages *within the same multi-stage*:
 
     (Write after read only, if read is in non-extended stages and no offsets are used.)
 
+ 5. Temporaries are not restricted by 4, i.e. a stage may write to an accessor after previous read of the same accessor, unconditionally.
+    Restriction 2 still applies. Note that read before write is only useful, if the temporary was written in a previous multi-stage.
+
 --------------------------------
 Examples for Access Restrictions
 --------------------------------
@@ -119,6 +122,14 @@ All stages are assumed to be in the same multi-stage.
 
     // stage 1
     eval(a()) = some_value; // error, violating rule 4b
+
+  .. code-block:: gridtools
+
+    // stage 0
+    eval(b()) = eval(tmp(i+1));
+
+    // stage 1
+    eval(tmp()) = some_value; // ok, see rule 5, temporaries don't violate rule 4
 
   .. code-block:: gridtools
 
