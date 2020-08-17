@@ -50,8 +50,8 @@ namespace gridtools {
 
                 template <class Functor>
                 struct find_interval_parameter_f {
-                    template <class Interval>
-                    using apply = typename find_interval_parameter<Functor, meta::first<Interval>>::type;
+                    template <class From>
+                    using apply = typename find_interval_parameter<Functor, From>::type;
                 };
 
                 template <class Interval>
@@ -64,43 +64,77 @@ namespace gridtools {
                                                 level_to_index<meta::second<Other>>::value >= from_index_t::value>;
                 };
 
-                template <class Src>
-                struct make_interval_from_index_f {
-                    using from_index_t = level_to_index<meta::first<Src>>;
+                template <class From>
+                struct make_level_from_index_f {
+                    using from_index_t = level_to_index<From>;
                     template <class N>
-                    using make_level = index_to_level<level_index<N::value + from_index_t::value, Src::offset_limit>>;
-                    template <class N>
-                    using apply = interval<make_level<N>, make_level<N>>;
+                    using apply = index_to_level<level_index<N::value + from_index_t::value, From::offset_limit>>;
                 };
 
+                template <class Intervals, class Level>
+                struct add_level {
+                    using type = meta::list<meta::flatten<Intervals>, meta::list<interval<Level, Level>>>;
+                };
+
+                template <class Intervals, uint_t Splitter, int_t Limit, class Level>
+                struct add_level<
+                    meta::list<Intervals,
+                        meta::list<interval<level<Splitter, Limit, Limit>, level<Splitter, Limit, Limit>>>>,
+                    Level> {
+                    using type = meta::list<meta::push_back<Intervals, interval<level<Splitter, Limit, Limit>, Level>>>;
+                };
+
+                template <class From, class To>
+                using all_levels = meta::transform<make_level_from_index_f<From>::template apply,
+                    meta::make_indices_c<level_to_index<To>::value - level_to_index<From>::value + 1>>;
+
                 template <class Interval>
-                using split_interval = meta::transform<make_interval_from_index_f<Interval>::template apply,
-                    meta::make_indices_c<level_to_index<meta::second<Interval>>::value -
-                                         level_to_index<meta::first<Interval>>::value + 1>>;
+                using split_interval = meta::flatten<meta::lfold<meta::force<add_level>::apply,
+                    meta::list<meta::list<>>,
+                    all_levels<meta::first<Interval>, meta::second<Interval>>>>;
 
                 template <class Functor, class Interval>
                 using find_interval_parameters = meta::filter<interval_intersects_with<Interval>::template apply,
                     meta::flatten<meta::transform<find_interval_parameter_f<Functor>::template apply,
-                        split_interval<interval<index_to_level<level_index<0, Interval::offset_limit>>,
-                            meta::second<Interval>>>>>>;
+                        all_levels<index_to_level<level_index<0, Interval::offset_limit>>, meta::second<Interval>>>>>;
 
                 template <class F, class Lhs, class Rhs>
                     struct intersection_detector
                     : bool_constant <
                       level_to_index<meta::second<Lhs>>::value<level_to_index<meta::first<Rhs>>::value> {
                     static_assert(intersection_detector<F, Lhs, Rhs>::value,
-                        "A stencil operator with intersecting intervals was detected.\nSearch above "
-                        "for `intersection_detector` in this compiler error output to determine the stencil operator and the "
-                        "intervals.");
+                        "A stencil operator with intersecting intervals was detected. Search above for "
+                        "`intersection_detector` in this compiler error output to determine the stencil operator and "
+                        "the intervals.");
                 };
 
-                template <class Functor, class Interval>
+                template <class Functor, class IntervalParameters>
                 struct has_any_apply
-                    : bool_constant<has_apply<Functor>::value ||
-                                    meta::length<find_interval_parameters<Functor, Interval>>::value != 0> {
-                    static_assert(has_any_apply<Functor, Interval>::value,
+                    : bool_constant<has_apply<Functor>::value || meta::length<IntervalParameters>::value != 0> {
+                    static_assert(has_any_apply<Functor, IntervalParameters>::value,
                         "A stencil operator without any apply() overload within the given interval.\nSearch above "
                         "for `has_any_apply` in this compiler error output to determine the functor and the interval.");
+                };
+
+                template <class F, class FullInterval, class Interval>
+                struct is_from_level_valid : bool_constant<meta::first<Interval>::offset != -Interval::offset_limit ||
+                                                           level_to_index<meta::first<Interval>>::value <=
+                                                               level_to_index<meta::first<FullInterval>>::value> {
+                    static_assert(is_from_level_valid<F, FullInterval, Interval>::value,
+                        "The interval `from` level offset could be equal to `-offset_limit` only if this level is less "
+                        "or equal to the `from` level of the full computation interval.\nSearch above for "
+                        "`is_from_level_valid` in this compiler error output to determine the functor and the "
+                        "interval.");
+                };
+
+                template <class F, class FullInterval, class Interval>
+                struct is_to_level_valid : bool_constant<meta::second<Interval>::offset != Interval::offset_limit ||
+                                                         level_to_index<meta::second<Interval>>::value >=
+                                                             level_to_index<meta::second<FullInterval>>::value> {
+                    static_assert(is_to_level_valid<F, FullInterval, Interval>::value,
+                        "The interval `to` level offset could be equal to `offset_limit` only if this level is greater "
+                        "or equal to the `to` level of the full computation interval.\nSearch above for "
+                        "`is_to_level_valid` in this compiler error output to determine the functor and the interval.");
                 };
 
                 template <template <class...> class F, class L>
@@ -121,27 +155,24 @@ namespace gridtools {
                     using type = meta::push_front<typename transform_neighbours<F, L<T1, Ts...>>::type, F<T0, T1>>;
                 };
 
-                template <class Functor, class Interval>
-                struct invalid_apply_detector {
-                    using intervals_t = find_interval_parameters<Functor, Interval>;
-                    static constexpr bool has_any_apply =
-                        has_apply<Functor>::value || meta::length<intervals_t>::value != 0;
-                    static_assert(has_any_apply, "Elementary functor doesn't have apply.");
-                    using intersection_detectors_t =
-                        typename transform_neighbours<meta::curry<intersection_detector, Functor>::template apply,
-                            intervals_t>::type;
-                    using type = bool_constant<has_any_apply && meta::all<intersection_detectors_t>::value>;
-                };
-
                 // if overloads are valid this alias evaluate to std::true_type
                 // otherwise static_assert is triggered.
                 template <class Functor,
                     class Interval,
-                    class HasAnyApply = has_any_apply<Functor, Interval>,
+                    class IntervalParameters = find_interval_parameters<Functor, Interval>,
+                    class HasAnyApply = has_any_apply<Functor, IntervalParameters>,
                     class IntersectionDetectors =
                         typename transform_neighbours<meta::curry<intersection_detector, Functor>::template apply,
-                            find_interval_parameters<Functor, Interval>>::type>
-                using check_valid_apply_overloads = meta::all<meta::push_back<IntersectionDetectors, HasAnyApply>>;
+                            IntervalParameters>::type,
+                    class FromLevelValidators =
+                        meta::transform<meta::curry<is_from_level_valid, Functor, Interval>::template apply,
+                            IntervalParameters>,
+                    class ToLevelValidators =
+                        meta::transform<meta::curry<is_to_level_valid, Functor, Interval>::template apply,
+                            IntervalParameters>>
+                using check_valid_apply_overloads = meta::all<
+                    meta::push_back<meta::concat<IntersectionDetectors, FromLevelValidators, ToLevelValidators>,
+                        HasAnyApply>>;
 
                 template <class Index, class Intervals>
                 struct find_in_interval_parameters;
@@ -203,7 +234,6 @@ namespace gridtools {
 
             } // namespace functor_metafunctions_impl_
             using functor_metafunctions_impl_::check_valid_apply_overloads;
-            using functor_metafunctions_impl_::invalid_apply_detector;
             using functor_metafunctions_impl_::make_functor_map;
         } // namespace core
     }     // namespace stencil

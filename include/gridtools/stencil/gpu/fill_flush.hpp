@@ -10,10 +10,12 @@
 
 #pragma once
 
+#include <cassert>
 #include <type_traits>
 #include <utility>
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
@@ -235,9 +237,26 @@ namespace gridtools {
                             levels_are_close<meta::first<FirstInterval>, meta::second<CurInterval>, -minus>::value;
                         static constexpr bool close_to_last =
                             levels_are_close<meta::first<CurInterval>, meta::second<LastInterval>, plus>::value;
+
+                        //  Those static asserts are commented on purpose.
+                        //  They trigger when the filling or the flushing of the k-cache could cause access violation in
+                        //   the "inner" (runtime size) intervals due to the small offset limit.
+                        //  We optimistically assume that the user knows what he is doing in this case.
+                        //
+                        //  static_assert(
+                        //      levels_are_close<meta::first<FirstInterval>, meta::first<CurInterval>, -minus>::value ==
+                        //      close_to_first, "offset_limit too small");
+                        //  static_assert(
+                        //      levels_are_close<meta::second<CurInterval>, meta::second<LastInterval>, plus>::value ==
+                        //      close_to_last, "offset_limit too small");
+
                         static constexpr bool is_forward = !be_api::is_backward<Execution>::value;
 
                         static constexpr bool sync_all = is_forward == is_fill ? is_first : is_last;
+
+                        static_assert(
+                            !sync_all || std::is_same<meta::first<CurInterval>, meta::second<CurInterval>>::value,
+                            "offset_limit too small");
 
                         static constexpr range range_v =
                             minus == plus ? range::minus
@@ -336,9 +355,49 @@ namespace gridtools {
                             hymap::from_keys_values<plhs_t, plhs_t>());
                         return hymap::concat(std::move(data_stores), std::move(extra));
                     }
+
+                    template <class Interval, int Lim = Interval::offset_limit>
+                    using inner_interval = be_api::interval<be_api::level<meta::first<Interval>::splitter, Lim, Lim>,
+                        be_api::level<meta::second<Interval>::splitter, -Lim, Lim>>;
+
+                    template <class Spec, class Grid, class DataStores>
+                    bool validate_k_bounds(Grid const &grid, DataStores const &data_stores) {
+                        for_each<be_api::make_fused_view<Spec>>([&](auto mss) {
+                            using mss_t = decltype(mss);
+                            using interval_t = inner_interval<typename mss_t::interval_t>;
+                            using is_backward_t = be_api::is_backward<typename mss_t::execution_t>;
+                            using plh_map_t =
+                                meta::filter<meta::not_<be_api::get_is_tmp>::apply, typename mss_t::plh_map_t>;
+                            using fill_plhs_t = meta::filter<has_policy_f<cache_io_policy::fill>::apply, plh_map_t>;
+                            using flush_plhs_t = meta::filter<has_policy_f<cache_io_policy::flush>::apply, plh_map_t>;
+                            // Those asserts can trigger even if the user obeys the contract that the data is
+                            // valid within computation area.
+                            // Namely it can happen when k-cache windows are too big for the chosen offset limit.
+                            for_each<meta::if_<is_backward_t, fill_plhs_t, flush_plhs_t>>(
+                                [unchecked_area_begin = grid.k_start(interval_t()), &data_stores](auto info) {
+                                    using plh_info_t = decltype(info);
+                                    constexpr auto extent = plh_info_t::extent_t::kminus::value;
+                                    auto lower_bound = sid::get_lower_bound<dim::k>(
+                                        sid::get_lower_bounds(at_key<typename plh_info_t::plh_t>(data_stores)));
+                                    assert(lower_bound <= unchecked_area_begin + extent);
+                                });
+                            for_each<meta::if_<is_backward_t, flush_plhs_t, fill_plhs_t>>(
+                                [unchecked_area_end = grid.k_start(interval_t()) + grid.k_size(interval_t()),
+                                    &data_stores](auto info) {
+                                    using plh_info_t = decltype(info);
+                                    constexpr auto extent = plh_info_t::extent_t::kplus::value;
+                                    auto upper_bound = sid::get_upper_bound<dim::k>(
+                                        sid::get_upper_bounds(at_key<typename plh_info_t::plh_t>(data_stores)));
+                                    assert(upper_bound >= unchecked_area_end + extent);
+                                });
+                        });
+                        return true;
+                    } // namespace impl_
+
                 } // namespace impl_
                 using impl_::transform_data_stores;
                 using impl_::transform_spec;
+                using impl_::validate_k_bounds;
             } // namespace fill_flush
         }     // namespace gpu_backend
     }         // namespace stencil
