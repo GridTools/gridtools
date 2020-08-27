@@ -44,7 +44,9 @@ namespace gridtools {
                             return false;
                     return true;
                 };
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
                 for (int i = 0; i < length; ++i) {
                     auto indices = info.indices(layout, i);
                     if (in_range(indices))
@@ -64,7 +66,9 @@ namespace gridtools {
             auto wrap_value(T const &value) {
                 return [value = std::move(value)](auto *dst, auto, auto const &info) {
                     int length = info.length();
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
                     for (int i = 0; i < length; ++i)
                         dst[i] = value;
                 };
