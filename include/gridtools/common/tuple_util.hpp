@@ -884,7 +884,7 @@ namespace gridtools {
                     template <class Tup>
                     GT_TARGET
                         GT_FORCE_INLINE GT_CONSTEXPR std::enable_if_t<tuple_util::size<std::decay_t<Tup>>::value == 0>
-                        operator()(Tup &&tup) const {
+                        operator()(Tup &&) const {
                         static_assert(tuple_util::size<std::decay_t<Tup>>::value,
                             "tuple_util::transpose input should not be empty");
                     }
