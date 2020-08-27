@@ -35,7 +35,7 @@ jobs:
 
   clang-cuda:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:clang-${{ matrix.version }}-cuda-10.1
+    container: mrtravis/gridtools:clang-${{ matrix.version }}-cuda-11.0
     strategy:
         matrix:
             version: [9]
@@ -69,7 +69,7 @@ jobs:
 
   gcc-nvcc:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:cuda-10.1
+    container: mrtravis/gridtools:cuda-11.0
     steps:
     - uses: actions/checkout@v2
     - name: CMake configure expect success
