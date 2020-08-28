@@ -16,7 +16,10 @@
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/for_each.hpp"
 #include "../common/hymap.hpp"
+#include "../common/integral_constant.hpp"
 #include "../common/layout_map.hpp"
+#include "../common/tuple.hpp"
+#include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "data_store.hpp"
 #include "traits.hpp"
@@ -34,12 +37,29 @@ namespace gridtools {
                 struct layout {};
             } // namespace param
 
-            template <class Fun, class T, class Layout, size_t N, size_t... Is>
-            void initializer_impl(
-                Fun const &fun, T *dst, Layout layout, info<N> const &info, std::index_sequence<Is...>) {
+            template <class, class = void>
+            struct is_integral_constant : std::false_type {};
+
+            template <class T>
+            struct is_integral_constant<T,
+                std::enable_if_t<std::is_base_of<std::integral_constant<typename T::value_type, T::value>, T>::value>>
+                : std::true_type {};
+
+            template <class T>
+            integral_constant<int_t, T::value> normalize_dimension(T, std::true_type) {
+                return {};
+            }
+
+            template <class T>
+            int_t normalize_dimension(T const &obj, std::false_type) {
+                return obj;
+            }
+
+            template <class Fun, class T, class Layout, class Info, size_t... Is>
+            void initializer_impl(Fun const &fun, T *dst, Layout layout, Info const &info, std::index_sequence<Is...>) {
                 int length = info.length();
                 auto in_range = [&](auto const &indices) {
-                    for (auto ok : {(indices[Is] < info.lengths()[Is])...})
+                    for (auto ok : {(tuple_util::get<Is>(indices) < tuple_util::get<Is>(info.lengths()))...})
                         if (!ok)
                             return false;
                     return true;
@@ -48,7 +68,7 @@ namespace gridtools {
                 for (int i = 0; i < length; ++i) {
                     auto indices = info.indices(layout, i);
                     if (in_range(indices))
-                        dst[i] = fun(indices[Is]...);
+                        dst[i] = fun(tuple_util::get<Is>(indices)...);
                 }
             }
 
@@ -234,7 +254,8 @@ namespace gridtools {
                     static_assert(conjunction<std::is_convertible<Args const &, uint_t>...>::value,
                         "builder.dimensions(...) arguments should be convertible to unsigned int");
                     check_dimensions_number<sizeof...(Args)>();
-                    return add_value<param::lengths>(tuple_util::make<array, uint_t>(values...));
+                    return add_value<param::lengths>(
+                        tuple_util::make<tuple>(normalize_dimension(values, is_integral_constant<Args>())...));
                 }
 
                 template <class... Args>

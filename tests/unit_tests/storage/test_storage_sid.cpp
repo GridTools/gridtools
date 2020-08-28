@@ -25,6 +25,7 @@ namespace gridtools {
     namespace {
         namespace tu = tuple_util;
         using tuple_util::get;
+        using namespace literals;
 
         const auto builder = storage::builder<storage_traits_t>.type<double>().layout<1, -1, 2, 0>();
 
@@ -101,5 +102,16 @@ namespace gridtools {
             static_assert(tuple_util::size<lower_bounds_t>() == 0, "");
             static_assert(tuple_util::size<upper_bounds_t>() == 0, "");
         }
-    } // namespace
+
+        namespace compile_time_lengths {
+            using testee_t =
+                decltype(storage::builder<storage_traits_t>.type<int>().layout<0, 1>().dimensions(10_c, 10_c)());
+
+            static_assert(sid::concept_impl_::is_sid<testee_t>(), "");
+
+            static_assert(tuple_util::is_empty_or_tuple_of_empties<sid::strides_type<testee_t>>(), "");
+            static_assert(tuple_util::is_empty_or_tuple_of_empties<sid::lower_bounds_type<testee_t>>(), "");
+            static_assert(tuple_util::is_empty_or_tuple_of_empties<sid::upper_bounds_type<testee_t>>(), "");
+        } // namespace compile_time_lengths
+    }     // namespace
 } // namespace gridtools

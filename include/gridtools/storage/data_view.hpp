@@ -16,26 +16,32 @@
 
 namespace gridtools {
     namespace storage {
-        template <class T, size_t N>
+        template <class T, class Info>
         struct host_view {
             T *m_ptr;
-            storage::info<N> const *m_info;
+            Info const *m_info;
 
-            constexpr auto const &info() const { return *m_info; }
-            constexpr auto length() const { return m_info->length(); }
-            constexpr auto const &lengths() const { return m_info->lengths(); }
             auto *data() const { return m_ptr; }
+            auto const &info() const { return *m_info; }
+
+            decltype(auto) length() const { return m_info->length(); }
+            decltype(auto) lengths() const { return m_info->lengths(); }
+            decltype(auto) strides() const { return m_info->strides(); }
+            decltype(auto) native_lengths() const { return m_info->native_lengths(); }
+            decltype(auto) native_strides() const { return m_info->native_strides(); }
 
             template <class... Args>
             auto operator()(Args &&... args) const -> decltype(m_ptr[m_info->index(std::forward<Args>(args)...)]) {
                 return m_ptr[m_info->index(std::forward<Args>(args)...)];
             }
 
-            decltype(auto) operator()(array<int, N> const &arg) const { return m_ptr[m_info->index(arg)]; }
+            decltype(auto) operator()(array<int, Info::ndims> const &arg) const {
+                return m_ptr[m_info->index_from_tuple(arg)];
+            }
         };
 
-        template <class T, size_t N>
-        host_view<T, N> make_host_view(T *ptr, info<N> const &info) {
+        template <class T, class Info>
+        host_view<T, Info> make_host_view(T *ptr, Info const &info) {
             return {ptr, &info};
         }
     } // namespace storage

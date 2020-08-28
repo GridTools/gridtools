@@ -206,21 +206,12 @@ namespace gridtools {
             using default_ptr_diff = decltype(::gridtools::sid::concept_impl_::sid_get_default_ptr_diff(
                 std::declval<std::add_lvalue_reference_t<std::add_const_t<Ptr>>>()));
 
-            template <class T, class = void>
-            struct is_empty_or_tuple_of_empties : std::is_empty<T> {};
-
-            template <class Tup, class Types = tuple_util::traits::to_types<Tup>>
-            using is_tuple_of_empties = meta::all_of<is_empty_or_tuple_of_empties, Types>;
-
-            template <class Tup>
-            struct is_empty_or_tuple_of_empties<Tup, std::enable_if_t<is_tuple_of_empties<Tup>::value>>
-                : std::true_type {};
-
             namespace lazy {
                 template <class, class = void>
                 struct default_kind;
                 template <class T>
-                struct default_kind<T, std::enable_if_t<is_empty_or_tuple_of_empties<std::decay_t<T>>::value>>
+                struct default_kind<T,
+                    std::enable_if_t<tuple_util::is_empty_or_tuple_of_empties<std::decay_t<T>>::value>>
                     : std::decay<T> {};
             } // namespace lazy
             GT_META_DELEGATE_TO_LAZY(default_kind, class T, T);

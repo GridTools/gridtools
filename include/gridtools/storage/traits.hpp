@@ -49,13 +49,13 @@ namespace gridtools {
                 storage_update_host(Traits(), dst, src, size);
             }
 
-            template <class Traits, class T, size_t N, std::enable_if_t<is_host_referenceable<Traits>, int> = 0>
-            auto storage_make_target_view(Traits, T *ptr, info<N> const &info) {
+            template <class Traits, class T, class Info, std::enable_if_t<is_host_referenceable<Traits>, int> = 0>
+            auto storage_make_target_view(Traits, T *ptr, Info const &info) {
                 return make_host_view(ptr, info);
             }
 
-            template <class Traits, class T, size_t N>
-            auto make_target_view(T *ptr, info<N> const &info) {
+            template <class Traits, class T, class Info>
+            auto make_target_view(T *ptr, Info const &info) {
                 return storage_make_target_view(Traits(), ptr, info);
             }
         } // namespace traits
