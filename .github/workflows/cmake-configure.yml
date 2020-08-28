@@ -35,7 +35,7 @@ jobs:
 
   clang-cuda:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:clang-${{ matrix.version }}-cuda-11.0
+    container: mrtravis/gridtools:clang-${{ matrix.version }}-cuda-10.1
     strategy:
         matrix:
             version: [10]
