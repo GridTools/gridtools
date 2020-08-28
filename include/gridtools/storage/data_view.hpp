@@ -12,7 +12,6 @@
 #include <utility>
 
 #include "../common/array.hpp"
-#include "info.hpp"
 
 namespace gridtools {
     namespace storage {

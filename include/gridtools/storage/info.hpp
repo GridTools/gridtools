@@ -102,28 +102,26 @@ namespace gridtools {
                 GT_FUNCTION auto const &native_lengths() const { return tuple_util::host_device::get<0>(base()); }
                 GT_FUNCTION auto const &native_strides() const { return tuple_util::host_device::get<1>(base()); }
                 GT_FUNCTION int length() const {
-                    return accumulate(logical_and(), true, lengths()[Dims]...) ? index((lengths()[Dims] - 1)...) + 1
-                                                                               : 0;
+                    using tuple_util::host_device::get;
+                    return accumulate(logical_and(), true, get<Dims>(native_lengths())...)
+                               ? index((get<Dims>(native_lengths()) - integral_constant<int_t, 1>())...) + 1
+                               : 0;
                 }
-                GT_FUNCTION array<int_t, ndims> lengths() const {
-                    return {(int_t)tuple_util::host_device::get<Dims>(native_lengths())...};
+                GT_FUNCTION array<uint_t, ndims> lengths() const {
+                    return {(uint_t)tuple_util::host_device::get<Dims>(native_lengths())...};
                 }
-                GT_FUNCTION array<int_t, ndims> strides() const {
-                    return {(int_t)tuple_util::host_device::get<Dims>(native_strides())...};
+                GT_FUNCTION array<uint_t, ndims> strides() const {
+                    return {(uint_t)tuple_util::host_device::get<Dims>(native_strides())...};
                 }
 
-                template <class... Is>
+                template <class... Is,
+                    std::enable_if_t<sizeof...(Is) == ndims && conjunction<std::is_convertible<Is, int_t>...>::value,
+                        int> = 0>
                 GT_FUNCTION auto index(Is... indices) const {
-                    static_assert(sizeof...(Is) == ndims, GT_INTERNAL_ERROR);
-                    assert(accumulate(
-                        logical_and(), true, (indices < tuple_util::host_device::get<Dims>(native_lengths()))...));
-                    return accumulate(plus_functor(),
-                        integral_constant<int, 0>(),
-                        indices * tuple_util::host_device::get<Dims>(native_strides())...);
-                    //                    return tuple_util::host_device::fold([](auto l, auto r) { return l + r; },
-                    //                        tuple_util::host_device::transform([](auto l, auto r) { return l * r; },
-                    //                            tuple_util::host_device::make<tuple>(indices...),
-                    //                            native_strides()));
+                    using tuple_util::host_device::get;
+                    assert(accumulate(logical_and(), true, (indices < get<Dims>(native_lengths()))...));
+                    return accumulate(
+                        plus_functor(), integral_constant<int, 0>(), indices * get<Dims>(native_strides())...);
                 }
 
                 template <class Indices>
@@ -131,13 +129,12 @@ namespace gridtools {
                     return index(tuple_util::host_device::get<Dims>(indices)...);
                 }
 
-                template <int... LayoutArgs>
-                GT_FUNCTION array<int, ndims> indices(layout_map<LayoutArgs...>, int_t index) const {
-                    return {(LayoutArgs == -1
-                                 ? lengths()[Dims] - 1
-                                 : LayoutArgs ? index % strides()[layout_map<LayoutArgs...>::find(LayoutArgs - 1)] /
-                                                    strides()[Dims]
-                                              : index / strides()[Dims])...};
+                template <int... Is>
+                GT_FUNCTION array<int, ndims> indices(layout_map<Is...>, int_t i) const {
+                    using layout_t = layout_map<Is...>;
+                    auto l = tuple_util::host_device::convert_to<array, int_t>(native_lengths());
+                    auto s = tuple_util::host_device::convert_to<array, int_t>(native_strides());
+                    return {(Is == -1 ? l[Dims] - 1 : Is ? i % s[layout_t::find(Is - 1)] / s[Dims] : i / s[Dims])...};
                 }
             };
 
@@ -150,96 +147,7 @@ namespace gridtools {
             auto make_info(Align align, Lengths const &lengths) {
                 return make_info_helper(lengths, make_strides<Layout>(align, lengths));
             }
-
-            template <class Layout, class Align, class Length>
-            uint_t make_padded_length(Layout, int layout_arg, Align align, Length length) {
-                return layout_arg == -1
-                           ? 1
-                           : layout_arg == Layout::max_arg && layout_arg != 0 ? (length + align - 1) / align * align
-                                                                              : length;
-            }
-
-            template <class Layout, class Array>
-            uint_t make_stride(Layout, int layout_arg, Array const &padded_lengths) {
-                if (layout_arg == -1)
-                    return 0;
-                uint_t res = 1;
-                for (int i = Layout::max_arg; i != layout_arg; --i)
-                    res *= padded_lengths[Layout::find(i)];
-                return res;
-            }
-
-            template <int... Dims, int... LayoutArgs, class Align, class Lengths>
-            Lengths make_strides_old(layout_map<LayoutArgs...> layout, Align align, Lengths const &lengths) {
-                assert(align > 0);
-                Lengths padded_lengths = {
-                    make_padded_length(layout, LayoutArgs, align, tuple_util::get<Dims>(lengths))...};
-                return {make_stride(layout, LayoutArgs, padded_lengths)...};
-            }
-
-            template <class, class>
-            struct base;
-
-            template <class Lengths, size_t... Dims>
-            struct base<Lengths, std::index_sequence<Dims...>> {
-                static constexpr size_t ndims = sizeof...(Dims);
-
-              private:
-                using array_t = array<uint_t, ndims>;
-                template <size_t>
-                using index_type = uint_t;
-
-                Lengths m_lengths;
-                array_t m_strides;
-                uint_t m_length;
-
-              public:
-                template <int... LayoutArgs, class Align, class Lens>
-                base(layout_map<LayoutArgs...> layout, Align align, Lens const &lengths)
-                    : m_lengths{tuple_util::get<Dims>(lengths)...},
-                      m_strides(make_strides_old<Dims...>(layout, align, m_lengths)),
-                      m_length(accumulate(logical_and(), true, m_lengths[Dims]...) ? index((m_lengths[Dims] - 1)...) + 1
-                                                                                   : 0) {}
-
-                GT_FUNCTION GT_CONSTEXPR auto const &lengths() const { return m_lengths; }
-                GT_FUNCTION GT_CONSTEXPR auto const &strides() const { return m_strides; }
-
-                GT_FUNCTION GT_CONSTEXPR auto index(index_type<Dims>... indices) const {
-                    assert(accumulate(logical_and(), true, (indices < m_lengths[Dims])...));
-                    return accumulate(plus_functor(), 0, indices * m_strides[Dims]...);
-                }
-                GT_FUNCTION GT_CONSTEXPR auto index(array<int, ndims> const &indices) const {
-                    return index(indices[Dims]...);
-                }
-
-                template <int... LayoutArgs>
-                GT_FUNCTION GT_CONSTEXPR array_t indices(layout_map<LayoutArgs...>, uint_t index) const {
-                    return {(LayoutArgs == -1
-                                 ? m_lengths[Dims] - 1
-                                 : LayoutArgs ? index % m_strides[layout_map<LayoutArgs...>::find(LayoutArgs - 1)] /
-                                                    m_strides[Dims]
-                                              : index / m_strides[Dims])...};
-                }
-
-                GT_FUNCTION GT_CONSTEXPR auto length() const { return m_length; }
-            };
         } // namespace info_impl_
-
         using info_impl_::make_info;
-
-        template <size_t N>
-        struct info : info_impl_::base<array<uint_t, N>, std::make_index_sequence<N>> {
-            using info_impl_::base<array<uint_t, N>, std::make_index_sequence<N>>::base;
-        };
-
-        template <size_t N>
-        GT_FUNCTION GT_CONSTEXPR bool operator==(info<N> const &lhs, info<N> const &rhs) {
-            return lhs.lengths() == rhs.lengths() && lhs.strides() == rhs.strides();
-        }
-
-        template <size_t N>
-        GT_FUNCTION GT_CONSTEXPR bool operator!=(info<N> const &lhs, info<N> const &rhs) {
-            return !(lhs == rhs);
-        }
     } // namespace storage
 } // namespace gridtools

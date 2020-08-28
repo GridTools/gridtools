@@ -748,12 +748,12 @@ namespace gridtools {
          *  If `Bounds` doesn't have `Key`, integral_constant<int_t, min/max> is returned.
          */
         template <class Key, class Bounds>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_lower_bound(Bounds &&bounds) {
+        decltype(auto) get_lower_bound(Bounds &&bounds) {
             return gridtools::host_device::at_key_with_default<Key,
                 integral_constant<int_t, std::numeric_limits<int_t>::min()>>(wstd::forward<Bounds>(bounds));
         }
         template <class Key, class Bounds>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_upper_bound(Bounds &&bounds) {
+        decltype(auto) get_upper_bound(Bounds &&bounds) {
             return gridtools::host_device::at_key_with_default<Key,
                 integral_constant<int_t, std::numeric_limits<int_t>::max()>>(wstd::forward<Bounds>(bounds));
         }

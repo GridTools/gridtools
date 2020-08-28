@@ -19,7 +19,6 @@
 #include "../common/generic_metafunctions/utility.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
-#include "info.hpp"
 
 namespace gridtools {
     namespace storage {
@@ -49,11 +48,11 @@ namespace gridtools {
                 GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }
                 GT_FUNCTION_DEVICE auto const &info() const { return m_info; }
 
-                GT_FUNCTION_DEVICE decltype(auto) length() const { return m_info->length(); }
-                GT_FUNCTION_DEVICE decltype(auto) lengths() const { return m_info->lengths(); }
-                GT_FUNCTION_DEVICE decltype(auto) strides() const { return m_info->strides(); }
-                GT_FUNCTION_DEVICE decltype(auto) native_lengths() const { return m_info->native_lengths(); }
-                GT_FUNCTION_DEVICE decltype(auto) native_strides() const { return m_info->native_strides(); }
+                GT_FUNCTION_DEVICE decltype(auto) length() const { return m_info.length(); }
+                GT_FUNCTION_DEVICE decltype(auto) lengths() const { return m_info.lengths(); }
+                GT_FUNCTION_DEVICE decltype(auto) strides() const { return m_info.strides(); }
+                GT_FUNCTION_DEVICE decltype(auto) native_lengths() const { return m_info.native_lengths(); }
+                GT_FUNCTION_DEVICE decltype(auto) native_strides() const { return m_info.native_strides(); }
 
                 template <class... Args>
                 GT_FUNCTION_DEVICE auto operator()(Args &&... args) const

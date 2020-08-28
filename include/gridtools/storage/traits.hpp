@@ -13,7 +13,6 @@
 
 #include "../meta.hpp"
 #include "data_view.hpp"
-#include "info.hpp"
 
 namespace gridtools {
     namespace storage {
