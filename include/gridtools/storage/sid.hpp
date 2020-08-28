@@ -31,10 +31,9 @@ namespace gridtools {
 
             enum class dimension_kind { masked, innermost, dynamic };
 
-            constexpr dimension_kind get_dimension_kind(int i, size_t n_dim) {
+            constexpr dimension_kind get_dimension_kind(int i, int n_dim) {
                 return i < 0 ? dimension_kind::masked
-                             : static_cast<std::size_t>(i) + 1 == n_dim ? dimension_kind::innermost
-                                                                        : dimension_kind::dynamic;
+                             : i + 1 == n_dim ? dimension_kind::innermost : dimension_kind::dynamic;
             }
 
             template <dimension_kind Kind>
