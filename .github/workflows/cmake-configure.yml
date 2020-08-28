@@ -38,7 +38,7 @@ jobs:
     container: mrtravis/gridtools:clang-${{ matrix.version }}-cuda-10.1
     strategy:
         matrix:
-            version: [10]
+            version: [9]
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
