@@ -25,6 +25,7 @@ namespace gridtools {
     namespace {
         namespace tu = tuple_util;
         using tuple_util::get;
+        using namespace literals;
 
         const auto builder = storage::builder<storage_traits_t>.type<double>().layout<1, -1, 2, 0>();
 
@@ -100,6 +101,28 @@ namespace gridtools {
 
             static_assert(tuple_util::size<lower_bounds_t>() == 0, "");
             static_assert(tuple_util::size<upper_bounds_t>() == 0, "");
+        }
+
+        TEST(storage_sid, compile_time_lengths) {
+            auto testee = storage::builder<storage_traits_t>.type<int>().layout<0, 1>().dimensions(10_c, 10_c)();
+            using testee_t = decltype(testee);
+
+            static_assert(sid::concept_impl_::is_sid<testee_t>(), "");
+
+            using strides_t = sid::strides_type<testee_t>;
+            using bounds_t = sid::upper_bounds_type<testee_t>;
+
+            static_assert(tuple_util::is_empty_or_tuple_of_empties<strides_t>(), "");
+            static_assert(tuple_util::is_empty_or_tuple_of_empties<bounds_t>(), "");
+
+            static_assert(tu::size<bounds_t>() == 2, "");
+            static_assert(tu::element<1, bounds_t>::value == 10, "");
+            static_assert(tu::element<0, bounds_t>::value == 10, "");
+
+            auto expected_strides = testee->strides();
+            static_assert(tu::size<strides_t>() == 2, "");
+            EXPECT_EQ(expected_strides[0], (tu::element<0, strides_t>::value));
+            EXPECT_EQ(expected_strides[1], (tu::element<1, strides_t>::value));
         }
     } // namespace
 } // namespace gridtools

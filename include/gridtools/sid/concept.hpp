@@ -172,31 +172,6 @@ namespace gridtools {
                                  !std::is_member_pointer<decltype(&T::value)>::value>>
                 : std::integral_constant<decltype(T::value), T::value> {};
 
-            /**
-             *  generic trait for integral constant
-             *
-             *  TODO(anstaf) : consider moving it to `meta` or to `common`
-             */
-            template <class T, class = void>
-            struct is_integral_constant : std::false_type {};
-            template <class T>
-            struct is_integral_constant<T,
-                std::enable_if_t<std::is_empty<T>::value && std::is_integral<decltype(T::value)>::value &&
-                                 std::is_convertible<T, typename get_static_const_value<T>::value_type>::value &&
-                                 T() == get_static_const_value<T>::value>> : std::true_type {};
-
-            /**
-             *  generic trait for integral constant of Val
-             *
-             *  TODO(anstaf) : consider moving it to `meta` or to `common`
-             */
-            template <class T, int Val, class = void>
-            struct is_integral_constant_of : std::false_type {};
-
-            template <class T, int Val>
-            struct is_integral_constant_of<T, Val, std::enable_if_t<is_integral_constant<T>::value && T() == Val>>
-                : std::true_type {};
-
             /////// BEGIN defaults PART /////
 
             template <class Ptr>
@@ -206,21 +181,12 @@ namespace gridtools {
             using default_ptr_diff = decltype(::gridtools::sid::concept_impl_::sid_get_default_ptr_diff(
                 std::declval<std::add_lvalue_reference_t<std::add_const_t<Ptr>>>()));
 
-            template <class T, class = void>
-            struct is_empty_or_tuple_of_empties : std::is_empty<T> {};
-
-            template <class Tup, class Types = tuple_util::traits::to_types<Tup>>
-            using is_tuple_of_empties = meta::all_of<is_empty_or_tuple_of_empties, Types>;
-
-            template <class Tup>
-            struct is_empty_or_tuple_of_empties<Tup, std::enable_if_t<is_tuple_of_empties<Tup>::value>>
-                : std::true_type {};
-
             namespace lazy {
                 template <class, class = void>
                 struct default_kind;
                 template <class T>
-                struct default_kind<T, std::enable_if_t<is_empty_or_tuple_of_empties<std::decay_t<T>>::value>>
+                struct default_kind<T,
+                    std::enable_if_t<tuple_util::is_empty_or_tuple_of_empties<std::decay_t<T>>::value>>
                     : std::decay<T> {};
             } // namespace lazy
             GT_META_DELEGATE_TO_LAZY(default_kind, class T, T);
@@ -757,12 +723,12 @@ namespace gridtools {
          *  If `Bounds` doesn't have `Key`, integral_constant<int_t, min/max> is returned.
          */
         template <class Key, class Bounds>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_lower_bound(Bounds &&bounds) {
+        decltype(auto) get_lower_bound(Bounds &&bounds) {
             return gridtools::host_device::at_key_with_default<Key,
                 integral_constant<int_t, std::numeric_limits<int_t>::min()>>(wstd::forward<Bounds>(bounds));
         }
         template <class Key, class Bounds>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_upper_bound(Bounds &&bounds) {
+        decltype(auto) get_upper_bound(Bounds &&bounds) {
             return gridtools::host_device::at_key_with_default<Key,
                 integral_constant<int_t, std::numeric_limits<int_t>::max()>>(wstd::forward<Bounds>(bounds));
         }

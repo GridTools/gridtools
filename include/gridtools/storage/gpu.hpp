@@ -19,7 +19,7 @@
 #include "../common/generic_metafunctions/utility.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
-#include "info.hpp"
+#include "../common/layout_map.hpp"
 
 namespace gridtools {
     namespace storage {
@@ -40,15 +40,20 @@ namespace gridtools {
                 using type = layout_map<(N - 1 - Dims)...>;
             };
 
-            template <class T, size_t N>
+            template <class T, class Info>
             struct target_view {
                 T *m_ptr;
-                storage::info<N> m_info;
+                Info m_info;
 
 #if defined(GT_CUDA_ARCH) or (defined(GT_CUDACC) and defined(__clang__))
+                GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }
                 GT_FUNCTION_DEVICE auto const &info() const { return m_info; }
 
-                GT_FUNCTION_DEVICE auto *data() const { return m_ptr; }
+                GT_FUNCTION_DEVICE decltype(auto) length() const { return m_info.length(); }
+                GT_FUNCTION_DEVICE decltype(auto) lengths() const { return m_info.lengths(); }
+                GT_FUNCTION_DEVICE decltype(auto) strides() const { return m_info.strides(); }
+                GT_FUNCTION_DEVICE decltype(auto) native_lengths() const { return m_info.native_lengths(); }
+                GT_FUNCTION_DEVICE decltype(auto) native_strides() const { return m_info.native_strides(); }
 
                 template <class... Args>
                 GT_FUNCTION_DEVICE auto operator()(Args &&... args) const
@@ -56,13 +61,9 @@ namespace gridtools {
                     return m_ptr[m_info.index(wstd::forward<Args>(args)...)];
                 }
 
-                GT_FUNCTION_DEVICE decltype(auto) operator()(array<int, N> const &arg) const {
-                    return m_ptr[m_info.index(arg)];
+                GT_FUNCTION_DEVICE decltype(auto) operator()(array<int, Info::ndims> const &arg) const {
+                    return m_ptr[m_info.index_from_tuple(arg)];
                 }
-
-                GT_FUNCTION_DEVICE GT_CONSTEXPR auto length() const { return m_info.length(); }
-
-                GT_FUNCTION_DEVICE GT_CONSTEXPR auto const &lengths() const { return m_info.lengths(); }
 #endif
             };
         } // namespace gpu_impl_
@@ -99,8 +100,8 @@ namespace gridtools {
                     cudaMemcpyDeviceToHost));
             }
 
-            template <class T, size_t N>
-            friend gpu_impl_::target_view<T, N> storage_make_target_view(gpu, T *ptr, info<N> const &info) {
+            template <class T, class Info>
+            friend gpu_impl_::target_view<T, Info> storage_make_target_view(gpu, T *ptr, Info const &info) {
                 return {ptr, info};
             }
         };

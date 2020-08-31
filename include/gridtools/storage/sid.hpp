@@ -19,79 +19,12 @@
 #include "../common/layout_map.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
-#include "../meta/if.hpp"
-#include "../meta/macros.hpp"
-#include "../meta/make_indices.hpp"
-#include "../meta/transform.hpp"
+#include "../meta.hpp"
 #include "data_store.hpp"
 
 namespace gridtools {
     namespace storage {
         namespace storage_sid_impl_ {
-
-            enum class dimension_kind { masked, innermost, dynamic };
-
-            constexpr dimension_kind get_dimension_kind(int i, int n_dim) {
-                return i < 0 ? dimension_kind::masked
-                             : i + 1 == n_dim ? dimension_kind::innermost : dimension_kind::dynamic;
-            }
-
-            template <dimension_kind Kind>
-            struct stride_type;
-
-            template <>
-            struct stride_type<dimension_kind::masked> {
-                using type = integral_constant<int_t, 0>;
-            };
-
-            template <>
-            struct stride_type<dimension_kind::innermost> {
-                using type = integral_constant<int_t, 1>;
-            };
-
-            template <>
-            struct stride_type<dimension_kind::dynamic> {
-                using type = int_t;
-            };
-
-            template <class I, class Res>
-            struct stride_generator_f;
-
-            template <class I, int V>
-            struct stride_generator_f<I, integral_constant<int_t, V>> {
-                using type = stride_generator_f;
-                template <class Src>
-                integral_constant<int_t, V> operator()(Src const &src) {
-                    assert(src[I::value] == V);
-                    return {};
-                }
-            };
-
-            template <class I>
-            struct stride_generator_f<I, int_t> {
-                using type = stride_generator_f;
-                template <class Src>
-                int_t operator()(Src const &src) {
-                    assert(src[I::value] != 0);
-                    return (int_t)src[I::value];
-                }
-            };
-
-            template <class Layout>
-            struct convert_strides_f;
-
-            template <int... Is>
-            struct convert_strides_f<layout_map<Is...>> {
-                using res_t =
-                    tuple<typename stride_type<get_dimension_kind(Is, layout_map<Is...>::unmasked_length)>::type...>;
-                using generators_t = meta::transform<stride_generator_f, meta::make_indices_c<sizeof...(Is)>, res_t>;
-
-                template <class Src>
-                res_t operator()(Src const &src) const {
-                    return tuple_util::generate<generators_t, res_t>(src);
-                }
-            };
-
             struct empty_ptr_diff {
                 template <class T>
                 friend GT_CONSTEXPR GT_FUNCTION T *operator+(T *lhs, empty_ptr_diff) {
@@ -111,40 +44,27 @@ namespace gridtools {
                 friend GT_FORCE_INLINE constexpr ptr_holder operator+(ptr_holder obj, empty_ptr_diff) { return obj; }
             };
 
-            template <class Src>
-            using to_dim = integral_constant<int_t, Src::value>;
-
-            namespace lazy {
-                template <class Layout>
-                struct get_unmasked_dims;
-                template <int... Is>
-                struct get_unmasked_dims<layout_map<Is...>> {
-                    using indices_t = meta::make_indices_c<sizeof...(Is), tuple>;
-                    using dims_t = meta::transform<to_dim, indices_t>;
-                    using items_t = meta::zip<dims_t, meta::list<bool_constant<Is >= 0>...>>;
-                    using filtered_items_t = meta::filter<meta::second, items_t>;
-                    using type = meta::transform<meta::first, filtered_items_t>;
-                };
-            } // namespace lazy
-            GT_META_DELEGATE_TO_LAZY(get_unmasked_dims, class Layout, Layout);
-
-            template <class DataStore,
-                class Value,
-                class Layout = typename DataStore::layout_t,
-                class Dims = get_unmasked_dims<Layout>,
-                class Values = meta::repeat_c<Layout::unmasked_length, Value>>
-            using bounds_type = hymap::from_keys_values<Dims, Values>;
-
             template <class Dim>
-            struct upper_bound_generator_f {
-                using type = upper_bound_generator_f;
-
+            struct bound_generator_f {
                 template <class Lengths>
-                int_t operator()(Lengths const &lengths) const {
-                    return lengths[Dim::value];
+                auto operator()(Lengths const &lengths) const {
+                    return tuple_util::get<Dim::value>(lengths);
                 }
             };
 
+            template <int... Is, class Bounds>
+            auto filter_unmasked_bounds(layout_map<Is...>, Bounds const &bounds) {
+                using all_keys_t = get_keys<Bounds>;
+                using all_values_t = tuple_util::traits::to_types<Bounds>;
+                using is_unmasked_t = meta::list<bool_constant<Is >= 0>...>;
+                using all_items_t = meta::zip<is_unmasked_t, all_keys_t, all_values_t>;
+                using items_t = meta::filter<meta::first, all_items_t>;
+                using keys_t = meta::transform<meta::second, items_t>;
+                using values_t = meta::transform<meta::third, items_t>;
+                using res_t = hymap::from_keys_values<keys_t, values_t>;
+                using generators_t = meta::transform<bound_generator_f, keys_t>;
+                return tuple_util::generate<generators_t, res_t>(bounds);
+            }
         } // namespace storage_sid_impl_
 
         /**
@@ -157,7 +77,7 @@ namespace gridtools {
 
         template <class DataStore, std::enable_if_t<is_data_store<DataStore>::value, int> = 0>
         auto sid_get_strides(std::shared_ptr<DataStore> const &ds) {
-            return storage_sid_impl_::convert_strides_f<typename DataStore::layout_t>{}(ds->strides());
+            return ds->native_strides();
         }
 
         template <class DataStore, std::enable_if_t<is_data_store<DataStore>::value, int> = 0>
@@ -168,17 +88,16 @@ namespace gridtools {
         sid_get_ptr_diff(std::shared_ptr<DataStore> const &);
 
         template <class DataStore, std::enable_if_t<is_data_store<DataStore>::value, int> = 0>
-        storage_sid_impl_::bounds_type<DataStore, integral_constant<int_t, 0>> sid_get_lower_bounds(
-            std::shared_ptr<DataStore> const &) {
-            return {};
+        auto sid_get_lower_bounds(std::shared_ptr<DataStore> const &) {
+            using layout_t = typename DataStore::layout_t;
+            using bounds_t = meta::rename<tuple, meta::repeat_c<DataStore::ndims, integral_constant<int_t, 0>>>;
+            return storage_sid_impl_::filter_unmasked_bounds(layout_t(), bounds_t());
         }
 
         template <class DataStore, std::enable_if_t<is_data_store<DataStore>::value, int> = 0>
         auto sid_get_upper_bounds(std::shared_ptr<DataStore> const &ds) {
-            using res_t = storage_sid_impl_::bounds_type<DataStore, int_t>;
-            using keys_t = get_keys<res_t>;
-            using generators_t = meta::transform<storage_sid_impl_::upper_bound_generator_f, keys_t>;
-            return tuple_util::generate<generators_t, res_t>(ds->lengths());
+            using layout_t = typename DataStore::layout_t;
+            return storage_sid_impl_::filter_unmasked_bounds(layout_t(), ds->native_lengths());
         }
     } // namespace storage
 } // namespace gridtools
