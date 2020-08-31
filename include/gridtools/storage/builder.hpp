@@ -37,14 +37,6 @@ namespace gridtools {
                 struct layout {};
             } // namespace param
 
-            template <class, class = void>
-            struct is_integral_constant : std::false_type {};
-
-            template <class T>
-            struct is_integral_constant<T,
-                std::enable_if_t<std::is_base_of<std::integral_constant<typename T::value_type, T::value>, T>::value>>
-                : std::true_type {};
-
             template <class T>
             integral_constant<int_t, T::value> normalize_dimension(T, std::true_type) {
                 return {};

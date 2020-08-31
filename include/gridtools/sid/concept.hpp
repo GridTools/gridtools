@@ -172,31 +172,6 @@ namespace gridtools {
                                  !std::is_member_pointer<decltype(&T::value)>::value>>
                 : std::integral_constant<decltype(T::value), T::value> {};
 
-            /**
-             *  generic trait for integral constant
-             *
-             *  TODO(anstaf) : consider moving it to `meta` or to `common`
-             */
-            template <class T, class = void>
-            struct is_integral_constant : std::false_type {};
-            template <class T>
-            struct is_integral_constant<T,
-                std::enable_if_t<std::is_empty<T>::value && std::is_integral<decltype(T::value)>::value &&
-                                 std::is_convertible<T, typename get_static_const_value<T>::value_type>::value &&
-                                 T() == get_static_const_value<T>::value>> : std::true_type {};
-
-            /**
-             *  generic trait for integral constant of Val
-             *
-             *  TODO(anstaf) : consider moving it to `meta` or to `common`
-             */
-            template <class T, int Val, class = void>
-            struct is_integral_constant_of : std::false_type {};
-
-            template <class T, int Val>
-            struct is_integral_constant_of<T, Val, std::enable_if_t<is_integral_constant<T>::value && T() == Val>>
-                : std::true_type {};
-
             /////// BEGIN defaults PART /////
 
             template <class Ptr>
