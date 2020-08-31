@@ -243,6 +243,15 @@ namespace gridtools {
         }
         GT_META_DELEGATE_TO_LAZY(element, (size_t I, class T), (I, T));
 
+        template <class T, class = void>
+        struct is_empty_or_tuple_of_empties : std::is_empty<T> {};
+
+        template <class Tup, class Types = traits::to_types<Tup>>
+        using is_tuple_of_empties = meta::all_of<is_empty_or_tuple_of_empties, Types>;
+
+        template <class Tup>
+        struct is_empty_or_tuple_of_empties<Tup, std::enable_if_t<is_tuple_of_empties<Tup>::value>> : std::true_type {};
+
         // Here goes the stuff that is common for all targets (meta functions)
         namespace _impl {
 
