@@ -39,7 +39,9 @@ jobs:
     strategy:
         matrix:
             version: [9]
-            cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
+            # TODO re-enable NVCC-CUDA: nvcc 10.1 doesn't support clang 9
+            # this never worked, but we were actually using gcc as host compiler before
+            cuda-mode: [AUTO, Clang-CUDA] #, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
     - name: CMake configure expect success
