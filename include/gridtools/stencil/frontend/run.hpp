@@ -199,7 +199,7 @@ namespace gridtools {
             };
 
             template <class Comp, class Backend, class Grid, class... Fields, size_t... Is>
-            auto run_impl(Comp comp, Backend, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields)
+            auto run_impl(Comp comp, Backend &&be, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields)
                 -> void_t<decltype(comp(arg<Is>()...))> {
                 using spec_t = decltype(comp(arg<Is>()...));
                 static_assert(
@@ -211,7 +211,6 @@ namespace gridtools {
                                   functors_t>::value,
                     "Invalid stencil operator detected.");
 
-                using entry_point_t = core::backend_entry_point_f<Backend, spec_t>;
                 using data_store_map_t = typename hymap::keys<arg<Is>...>::template values<Fields &...>;
 #ifndef NDEBUG
                 using extent_map_t = core::get_extent_map_from_msses<spec_t>;
@@ -231,7 +230,7 @@ namespace gridtools {
                 using loop_t = int[sizeof...(Is)];
                 (void)loop_t{check_bounds(arg<Is>(), fields)...};
 #endif
-                entry_point_t()(grid, data_store_map_t{fields...});
+                core::call_entry_point_f<spec_t>()(std::forward<Backend>(be), grid, data_store_map_t{fields...});
             }
 
             template <class... Ts>
@@ -240,16 +239,20 @@ namespace gridtools {
             }
 
             template <class Comp, class Backend, class Grid, class... Fields>
-            void run(Comp comp, Backend be, Grid const &grid, Fields &&... fields) {
+            void run(Comp comp, Backend &&be, Grid const &grid, Fields &&... fields) {
                 static_assert(
                     conjunction<is_sid<Fields>...>::value, "All computation fields must satisfy SID concept.");
-                run_impl(comp, be, grid, std::index_sequence_for<Fields...>(), std::forward<Fields>(fields)...);
+                run_impl(comp,
+                    std::forward<Backend>(be),
+                    grid,
+                    std::index_sequence_for<Fields...>(),
+                    std::forward<Fields>(fields)...);
             }
 
             template <class F, class Backend, class Grid, class... Fields>
-            void run_single_stage(F, Backend be, Grid const &grid, Fields &&... fields) {
+            void run_single_stage(F, Backend &&be, Grid const &grid, Fields &&... fields) {
                 return run([](auto... args) { return execute_parallel().stage(F(), args...); },
-                    be,
+                    std::forward<Backend>(be),
                     grid,
                     std::forward<Fields>(fields)...);
             }

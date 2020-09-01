@@ -218,6 +218,21 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     _gt_add_library(${_config_mode} stencil_naive)
     target_link_libraries(${_gt_namespace}stencil_naive INTERFACE ${_gt_namespace}gridtools)
 
+    include(FetchContent)
+
+    FetchContent_Declare(json
+            GIT_REPOSITORY https://github.com/nlohmann/json.git
+            GIT_TAG v3.7.3)
+
+    FetchContent_GetProperties(json)
+    if(NOT json_POPULATED)
+        FetchContent_Populate(json)
+        add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+    endif()
+
+    _gt_add_library(${_config_mode} stencil_dump)
+    target_link_libraries(${_gt_namespace}stencil_dump INTERFACE ${_gt_namespace}gridtools nlohmann_json::nlohmann_json)
+
     set(GT_STENCILS naive)
     set(GT_STORAGES cpu_kfirst cpu_ifirst)
     set(GT_GCL_ARCHS)

@@ -122,6 +122,9 @@ add_executable(c_array_copy c_array_copy.cpp)
 target_link_libraries(c_array_copy gtest_main gmock gridtools)
 add_test(NAME c_array_copy COMMAND $<TARGET_FILE:c_array_copy>)
 
+add_executable(dump dump.cpp)
+target_link_libraries(dump gtest_main gmock gridtools stencil_dump)
+
 add_subdirectory(icosahedral)
 add_subdirectory(c_bindings)
 add_subdirectory(py_bindings)

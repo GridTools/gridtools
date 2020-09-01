@@ -140,14 +140,14 @@ namespace gridtools {
                 return hymap::concat(make_data_store_map2<Factor, arg<Is>>(offset, fields)...);
             }
 
-            template <size_t Factor, class Spec, class Backend, size_t... Is, class Grid, class... Fields>
-            void expanded_run(Grid const &grid, size_t offset, const Fields &... fields) {
-                core::backend_entry_point_f<Backend, expand_spec<std::integral_constant<size_t, Factor>, Spec>>()(
-                    grid, make_data_store_map<Factor, Is...>(offset, fields...));
+            template <size_t Factor, class Spec, size_t... Is, class Backend, class Grid, class... Fields>
+            void expanded_run(Backend be, Grid const &grid, size_t offset, const Fields &... fields) {
+                core::call_entry_point_f<expand_spec<std::integral_constant<size_t, Factor>, Spec>>()(
+                    std::forward<Backend>(be), grid, make_data_store_map<Factor, Is...>(offset, fields...));
             }
 
             template <size_t Factor, class Comp, class Backend, class Grid, class... Fields, size_t... Is>
-            auto run_impl(Comp comp, Backend, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields)
+            auto run_impl(Comp comp, Backend &&be, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields)
                 -> void_t<decltype(comp(make_arg<Is, Fields>()...))> {
                 using spec_t = decltype(comp(make_arg<Is, Fields>()...));
                 static_assert(meta::is_instantiation_of<frontend_impl_::spec, spec_t>::value,
@@ -163,9 +163,9 @@ namespace gridtools {
                 size_t size = get_expandable_size(fields...);
                 size_t offset = 0;
                 for (; size - offset >= Factor; offset += Factor)
-                    expanded_run<Factor, spec_t, Backend, Is...>(grid, offset, fields...);
+                    expanded_run<Factor, spec_t, Is...>(be, grid, offset, fields...);
                 for (; offset < size; ++offset)
-                    expanded_run<1, spec_t, Backend, Is...>(grid, offset, fields...);
+                    expanded_run<1, spec_t, Is...>(be, grid, offset, fields...);
             }
 
             template <size_t, class... Ts>
@@ -174,8 +174,12 @@ namespace gridtools {
             }
 
             template <size_t Factor, class Comp, class Backend, class Grid, class... Fields>
-            void expandable_run(Comp comp, Backend be, Grid const &grid, Fields &&... fields) {
-                run_impl<Factor>(comp, be, grid, std::index_sequence_for<Fields...>(), std::forward<Fields>(fields)...);
+            void expandable_run(Comp comp, Backend &&be, Grid const &grid, Fields &&... fields) {
+                run_impl<Factor>(comp,
+                    std::forward<Backend>(be),
+                    grid,
+                    std::index_sequence_for<Fields...>(),
+                    std::forward<Fields>(fields)...);
             }
         } // namespace expandalble_frontend_impl_
         using expandalble_frontend_impl_::expandable;
