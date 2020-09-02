@@ -9,55 +9,62 @@
  */
 #pragma once
 
-#include <array>
 #include <ostream>
+#include <typeinfo>
 
-#include <boost/a>
+#include <boost/core/demangle.hpp>
 #include <nlohmann/json.hpp>
 
 #include "../common/defs.hpp"
-#include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "be_api.hpp"
 #include "common/caches.hpp"
 #include "common/extent.hpp"
 #include "core/execution_types.hpp"
+#include "core/functor_metafunctions.hpp"
 #include "core/interval.hpp"
 #include "core/level.hpp"
 
 namespace gridtools {
     namespace stencil {
         namespace dump_backend {
+            using nlohmann::json;
 
-            inline auto from_execution(core::parallel) { return "parallel"; }
-            inline auto from_execution(core::backward) { return "backward"; }
-            inline auto from_execution(core::forward) { return "forward"; }
-            inline auto from_cache(cache_type::ij) { return "ij"; }
-            inline auto from_cache(cache_type::k) { return "k"; }
-            inline auto from_cache_io_policy(cache_io_policy::fill) { return "fill"; }
-            inline auto from_cache_io_policy(cache_io_policy::flush) { return "flush"; }
+            inline auto from(core::parallel) { return "parallel"; }
+            inline auto from(core::backward) { return "backward"; }
+            inline auto from(core::forward) { return "forward"; }
+            inline auto from(cache_type::ij) { return "ij"; }
+            inline auto from(cache_type::k) { return "k"; }
+            inline auto from(cache_io_policy::fill) { return "fill"; }
+            inline auto from(cache_io_policy::flush) { return "flush"; }
 
-            template <int... Is>
-            auto from_extent(extent<Is...>) {
-                return tuple_util::make<std::array, int>(Is...);
+            inline json dim_extent(int_t minus, int_t plus) { return {{"minus", minus}, {"plus", plus}}; }
+
+            template <int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus>
+            json from(extent<IMinus, IPlus, JMinus, JPlus, KMinus, KPlus>) {
+                return {{"i", dim_extent(IMinus, IPlus)},
+                    {"j", dim_extent(JMinus, JPlus)},
+                    {"k", dim_extent(KMinus, KPlus)}};
             }
 
             template <uint_t Splitter, int_t Offset, int_t Limit>
-            auto from_level(core::level<Splitter, Offset, Limit>) {
-                return tuple_util::make<std::array, int>(Splitter, Offset);
+            json from(core::level<Splitter, Offset, Limit>) {
+                return {{"splitter", Splitter}, {"offset", Offset}};
             }
 
             template <class From, class To>
-            auto from_interval(core::interval<From, To>) {
-                return tuple_util::make<std::array>(from_level(From()), from_level(To()));
+            json from(core::interval<From, To>) {
+                return {{"from", from(From())}, {"to", from(To())}};
             }
 
-            template <class Fun>
-            nlohmann::json from_fun(Fun) {
-                return {};
+            template <class Plh>
+            auto from_plh(Plh) {
+                return typeid(Plh).name();
             }
 
-            template <class Plh,
+            template <template <class...> class L,
+                template <class...> class LL,
+                class Plh,
                 class... Caches,
                 class IsTmp,
                 class Data,
@@ -65,60 +72,79 @@ namespace gridtools {
                 class IsConst,
                 class Extent,
                 class... CacheIoPolicies>
-            nlohmann::json from_plh_info(be_api::plh_info<meta::list<Plh, Caches...>,
-                IsTmp,
-                Data,
-                NumColors,
-                IsConst,
-                Extent,
-                meta::list<CacheIoPolicies...>>) {
-                return {{"plh", "bar"},
-                    {"caches", {from_cache(Caches())...}},
+            json from(
+                be_api::plh_info<L<Plh, Caches...>, IsTmp, Data, NumColors, IsConst, Extent, LL<CacheIoPolicies...>>) {
+                json res = {{"plh", from_plh(Plh())},
+                    {"caches", json::array({from(Caches())...})},
                     {"is_tmp", IsTmp::value},
-                    {"data_type", "foo"},
-                    {"num_colors", NumColors::value},
+                    {"data", boost::core::demangle(typeid(Data).name())},
                     {"is_const", IsConst::value},
-                    {"extent", from_extent(Extent())},
-                    {"cache_io_policies", {from_cache_io_policy(CacheIoPolicies())...}}};
+                    {"extent", from(Extent())},
+                    {"cache_io_policies", json::array({from(CacheIoPolicies())...})}};
+                if (IsTmp::value)
+                    res["num_colors"] = NumColors::value;
+                return res;
+            }
+
+            template <template <class...> class L, class Plh, class... Caches>
+            json from_arg(L<Plh, Caches...>) {
+                return {{"plh", from_plh(Plh())}, {"caches", json::array({from(Caches())...})}};
+            }
+
+            template <class F>
+            json from_fun(F) {
+                return {{"functor", boost::core::demangle(typeid(F).name())}};
+            }
+
+            template <class F, class Interval>
+            json from_fun(core::bound_functor<F, Interval>) {
+                return {{"functor", boost::core::demangle(typeid(F).name())}, {"interval", from(Interval())}};
+            }
+
+            template <template <class...> class L, template <class...> class LL, class Fun, class... Args>
+            json from_fun_call(L<Fun, LL<Args...>>) {
+                json res = from_fun(Fun());
+                res["args"] = json::array({from_arg(Args())...});
+                return res;
             }
 
             template <template <class...> class L,
                 template <class...> class LL,
-                class... Funs,
+                class... FunCalls,
                 class Interval,
                 class... PlhInfos,
                 class Extent,
                 class Execution,
                 class NeedSync>
-            nlohmann::json from_cell(be_api::cell<L<Funs...>, Interval, LL<PlhInfos...>, Extent, Execution, NeedSync>) {
-                return {{"funs", {from_fun(Funs())...}},
-                    {"interval", from_interval(Interval())},
-                    {"plh_infos", {from_plh_info(PlhInfos())...}},
-                    {"extent", from_extent(Extent())},
-                    {"execution", from_execution(Execution())},
+            json from(be_api::cell<L<FunCalls...>, Interval, LL<PlhInfos...>, Extent, Execution, NeedSync>) {
+                return {{"fun_calls", json::array({from_fun_call(FunCalls())...})},
+                    {"interval", from(Interval())},
+                    {"plh_infos", json::array({from(PlhInfos())...})},
+                    {"extent", from(Extent())},
+                    {"execution", from(Execution())},
                     {"need_sync", NeedSync::value}};
             }
 
             template <template <class...> class L, class... Cells>
-            nlohmann::json from_row(L<Cells...>) {
-                return {{"cells", {from_cell(Cells())...}}};
+            auto from_row(L<Cells...>) {
+                return json::array({from(Cells())...});
             }
 
             template <template <class...> class L, class... Rows>
-            nlohmann::json from_matrix(L<Rows...>) {
-                return {{"rows", {from_row(Rows())...}}};
+            auto from_matrix(L<Rows...>) {
+                return json::array({from_row(Rows())...});
             }
 
             template <template <class...> class L, class... Matrices>
-            nlohmann::json from_matrices(L<Matrices...>) {
-                return {{"matrices", {from_matrix(Matrices())...}}};
+            auto from_matrices(L<Matrices...>) {
+                return json::array({from_matrix(Matrices())...});
             }
 
             struct dump {
                 std::ostream &m_sink;
                 template <class Spec, class... Ts>
-                friend void gridtools_backend_entry_point(dump obj, Spec spec, Ts &&...) {
-                    obj.m_sink << from_matrices(spec) << std::endl;
+                friend void gridtools_backend_entry_point(dump obj, Spec, Ts &&...) {
+                    obj.m_sink << from_matrices(be_api::make_fused_view<Spec>()) << std::endl;
                 }
             };
         } // namespace dump_backend
