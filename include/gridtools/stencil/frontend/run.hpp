@@ -189,8 +189,8 @@ namespace gridtools {
                 static_assert(sizeof...(Ts) < 0, "Unexpected arguments of gridtools::stencil::multi_pass.");
             }
 
-            template <size_t>
-            struct arg {};
+            template <size_t I>
+            struct arg : std::integral_constant<size_t, I> {};
 
             template <class Interval>
             struct check_valid_apply_overloads {

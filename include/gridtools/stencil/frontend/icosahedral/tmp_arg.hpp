@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstddef>
+#include <type_traits>
 
 #include <boost/preprocessor/punctuation/remove_parens.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -40,8 +41,8 @@
 namespace gridtools {
     namespace stencil {
         namespace icosahedral {
-            template <size_t, class NumColors, class Data>
-            struct tmp_arg {
+            template <size_t I, class NumColors, class Data>
+            struct tmp_arg : std::integral_constant<size_t, I> {
                 using data_t = Data;
                 using num_colors_t = NumColors;
                 using tmp_tag = std::true_type;

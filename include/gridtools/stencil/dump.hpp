@@ -10,6 +10,7 @@
 #pragma once
 
 #include <ostream>
+#include <string>
 #include <typeinfo>
 
 #include <boost/core/demangle.hpp>
@@ -23,6 +24,7 @@
 #include "core/execution_types.hpp"
 #include "core/functor_metafunctions.hpp"
 #include "core/interval.hpp"
+#include "core/is_tmp_arg.hpp"
 #include "core/level.hpp"
 
 namespace gridtools {
@@ -59,7 +61,7 @@ namespace gridtools {
 
             template <class Plh>
             auto from_plh(Plh) {
-                return typeid(Plh).name();
+                return (core::is_tmp_arg<Plh>() ? "tmp" : "arg") + std::to_string(Plh::value);
             }
 
             template <template <class...> class L,

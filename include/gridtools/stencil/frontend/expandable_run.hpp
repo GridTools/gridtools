@@ -25,8 +25,8 @@ namespace gridtools {
             template <size_t, class T>
             struct expanded : T {};
 
-            template <size_t>
-            struct arg {};
+            template <size_t I>
+            struct arg : integral_constant<size_t, I> {};
 
             template <size_t, size_t>
             struct expanded_arg {};
