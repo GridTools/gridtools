@@ -32,6 +32,11 @@ namespace gridtools {
         namespace dump_backend {
             using nlohmann::json;
 
+            template <class T>
+            auto get_type_name() {
+                return boost::core::demangle(typeid(T).name());
+            }
+
             inline auto from(core::parallel) { return "parallel"; }
             inline auto from(core::backward) { return "backward"; }
             inline auto from(core::forward) { return "forward"; }
@@ -79,7 +84,7 @@ namespace gridtools {
                 json res = {{"plh", from_plh(Plh())},
                     {"caches", json::array({from(Caches())...})},
                     {"is_tmp", IsTmp::value},
-                    {"data", boost::core::demangle(typeid(Data).name())},
+                    {"data", get_type_name<Data>()},
                     {"is_const", IsConst::value},
                     {"extent", from(Extent())},
                     {"cache_io_policies", json::array({from(CacheIoPolicies())...})}};
@@ -95,12 +100,12 @@ namespace gridtools {
 
             template <class F>
             json from_fun(F) {
-                return {{"functor", boost::core::demangle(typeid(F).name())}};
+                return {{"functor", get_type_name<F>()}};
             }
 
             template <class F, class Interval>
             json from_fun(core::bound_functor<F, Interval>) {
-                return {{"functor", boost::core::demangle(typeid(F).name())}, {"interval", from(Interval())}};
+                return {{"functor", get_type_name<F>()}, {"interval", from(Interval())}};
             }
 
             template <template <class...> class L, template <class...> class LL, class Fun, class... Args>
