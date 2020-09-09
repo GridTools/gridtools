@@ -119,7 +119,8 @@ namespace gridtools {
                         int> = 0>
                 GT_FUNCTION auto index(Is... indices) const {
                     using tuple_util::host_device::get;
-                    assert(accumulate(logical_and(), true, (indices < get<Dims>(native_lengths()))...));
+                    assert(accumulate(
+                        logical_and(), true, (static_cast<int_t>(indices) < get<Dims>(native_lengths()))...));
                     return accumulate(
                         plus_functor(), integral_constant<int, 0>(), indices * get<Dims>(native_strides())...);
                 }
