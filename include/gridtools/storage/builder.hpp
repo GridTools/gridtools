@@ -51,7 +51,7 @@ namespace gridtools {
             void initializer_impl(Fun const &fun, T *dst, Layout layout, Info const &info, std::index_sequence<Is...>) {
                 int length = info.length();
                 auto in_range = [&](auto const &indices) {
-                    for (auto ok : {(tuple_util::get<Is>(indices) < tuple_util::get<Is>(info.lengths()))...})
+                    for (auto ok : {(tuple_util::get<Is>(indices) < tuple_util::get<Is>(info.native_lengths()))...})
                         if (!ok)
                             return false;
                     return true;
