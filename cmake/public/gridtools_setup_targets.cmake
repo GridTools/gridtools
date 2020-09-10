@@ -218,17 +218,24 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     _gt_add_library(${_config_mode} stencil_naive)
     target_link_libraries(${_gt_namespace}stencil_naive INTERFACE ${_gt_namespace}gridtools)
 
-    include(FetchContent)
-
-    FetchContent_Declare(json
-            GIT_REPOSITORY https://github.com/nlohmann/json.git
-            GIT_TAG v3.7.3)
-
-    FetchContent_GetProperties(json)
-    if(NOT json_POPULATED)
-        FetchContent_Populate(json)
-        set(JSON_BuildTests OFF CACHE INTERNAL "")
-        add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+    set(_required_nlohmann_json_version "3.7.3")
+    if(NOT _nlohmann_json_already_fetched)
+        find_package(nlohmann_json ${_required_nlohmann_json_version})
+    endif()
+    if(NOT nlohmann_json_FOUND)
+        set(_gridtools_repository "https://github.com/GridTools/gridtools.git")
+        set(_gridtools_tag        "v${_required_gridtools_version}")
+        include(FetchContent)
+        FetchContent_Declare(json
+                GIT_REPOSITORY https://github.com/nlohmann/json.git
+                GIT_TAG "v${_required_nlohmann_json_version}")
+        FetchContent_GetProperties(json)
+        if(NOT json_POPULATED)
+            FetchContent_Populate(json)
+            set(JSON_BuildTests OFF CACHE INTERNAL "")
+            add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+        endif()
+        set(_nlohmann_json_already_fetched ON CACHE INTERNAL "")
     endif()
 
     _gt_add_library(${_config_mode} stencil_dump)
