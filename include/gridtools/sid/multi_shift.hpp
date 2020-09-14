@@ -65,6 +65,12 @@ namespace gridtools {
             std::enable_if_t<tuple_util::size<Offsets>::value == 0, int> = 0>
         GT_FUNCTION void multi_shift(Ptr &, Strides const &, Offsets) {}
 
+        template <class Ptr, class Strides, class Offsets>
+        GT_FUNCTION Ptr multi_shifted(Ptr ptr, Strides const &strides, Offsets offsets) {
+            multi_shift(ptr, strides, wstd::move(offsets));
+            return ptr;
+        }
+
         /**
          *   Variation of multi_shift that works with the strides of composite sid.
          */
@@ -85,5 +91,12 @@ namespace gridtools {
             class Offsets,
             std::enable_if_t<tuple_util::size<Offsets>::value == 0, int> = 0>
         GT_FUNCTION void multi_shift(Ptr &, Strides const &, Offsets) {}
+
+        template <class Arg, class Ptr, class Strides, class Offsets>
+        GT_FUNCTION Ptr multi_shifted(Ptr ptr, Strides const &strides, Offsets offsets) {
+            multi_shift<Arg>(ptr, strides, wstd::move(offsets));
+            return ptr;
+        }
+
     } // namespace sid
 } // namespace gridtools

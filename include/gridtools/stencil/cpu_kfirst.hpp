@@ -78,10 +78,9 @@ namespace gridtools {
                         offset, sid::get_stride<dim::thread>(strides), thread_pool::get_thread_num(ThreadPool()));
                     sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::i>>(strides), i_block);
                     sid::shift(offset, sid::get_stride<sid::blocked_dim<dim::j>>(strides), j_block);
-                    auto ptr = origin() + offset;
                     auto i_loop = sid::make_loop<dim::i>(extent_t::extend(dim::i(), i_size));
                     auto j_loop = sid::make_loop<dim::j>(extent_t::extend(dim::j(), j_size));
-                    i_loop(j_loop(k_loop))(ptr, strides);
+                    i_loop(j_loop(k_loop))(origin() + offset, strides);
                 };
             }
 

@@ -73,9 +73,8 @@ namespace gridtools {
 
                     template <class Key, class Offset>
                     GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
-                        auto ptr = host_device::at_key<Key>(m_ptr);
-                        sid::multi_shift<Key>(ptr, m_strides, wstd::move(offset));
-                        return Deref()(Key(), ptr);
+                        return Deref()(Key(),
+                            sid::multi_shifted<Key>(host_device::at_key<Key>(m_ptr), m_strides, wstd::move(offset)));
                     }
 
                     template <class Accessor>

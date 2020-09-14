@@ -40,7 +40,7 @@ namespace gridtools {
                     T m_step;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &ptr, Strides const &strides) const {
+                    void GT_FUNCTION operator()(Ptr &&ptr, Strides const &strides) const {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
@@ -49,7 +49,7 @@ namespace gridtools {
                             m_fun(ptr, strides);
                             shift(ptr, stride, m_step);
                         }
-                        shift(ptr, stride, -m_step * m_num_steps);
+                        shift(wstd::forward<Ptr>(ptr), stride, -m_step * m_num_steps);
                     }
                 };
 
@@ -66,16 +66,16 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
                         if (++m_pos == m_num_steps) {
                             shift(ptr, get_stride<Key>(strides), m_step * (1 - m_num_steps));
                             m_pos = 0;
-                            m_outer.next(ptr, strides);
+                            m_outer.next(wstd::forward<Ptr>(ptr), strides);
                         } else {
-                            shift(ptr, get_stride<Key>(strides), m_step);
+                            shift(wstd::forward<Ptr>(ptr), get_stride<Key>(strides), m_step);
                         }
                     }
 
@@ -92,9 +92,9 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         --m_pos;
-                        shift(ptr, get_stride<Key>(strides), m_step);
+                        shift(wstd::forward<Ptr>(ptr), get_stride<Key>(strides), m_step);
                     }
 
                     GT_FUNCTION bool done() const { return m_pos > 0; }
@@ -115,7 +115,7 @@ namespace gridtools {
                     T m_num_steps;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &ptr, Strides const &strides) const {
+                    void GT_FUNCTION operator()(Ptr &&ptr, Strides const &strides) const {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
@@ -125,7 +125,7 @@ namespace gridtools {
                             shift(ptr, stride, integral_constant<T, Step>{});
                         }
                         static constexpr T minus_step = -Step;
-                        shift(ptr, stride, minus_step * m_num_steps);
+                        shift(wstd::forward<Ptr>(ptr), stride, minus_step * m_num_steps);
                     }
                 };
 
@@ -141,16 +141,16 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
                         if (++m_pos == m_num_steps) {
                             shift(ptr, get_stride<Key>(strides), Step * (1 - m_num_steps));
                             m_pos = 0;
-                            m_outer.next(ptr, strides);
+                            m_outer.next(wstd::forward<Ptr>(ptr), strides);
                         } else {
-                            shift(ptr, get_stride<Key>(strides), integral_constant<T, Step>{});
+                            shift(wstd::forward<Ptr>(ptr), get_stride<Key>(strides), integral_constant<T, Step>{});
                         }
                     }
 
@@ -166,9 +166,9 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         --m_pos;
-                        shift(ptr, get_stride<Key>(strides), integral_constant<T, Step>{});
+                        shift(wstd::forward<Ptr>(ptr), get_stride<Key>(strides), integral_constant<T, Step>{});
                     }
 
                     GT_FUNCTION bool done() const { return m_pos > 0; }
@@ -189,10 +189,10 @@ namespace gridtools {
                     T m_num_steps;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &ptr, const Strides &strides) const {
+                    void GT_FUNCTION operator()(Ptr &&ptr, const Strides &strides) const {
                         assert(m_num_steps >= 0);
                         for (T i = 0; i < m_num_steps; ++i)
-                            m_fun(ptr, strides);
+                            m_fun(wstd::forward<Ptr>(ptr), strides);
                     }
                 };
 
@@ -208,13 +208,13 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
                         if (++m_pos == m_num_steps) {
                             m_pos = 0;
-                            m_outer.next(ptr, strides);
+                            m_outer.next(wstd::forward<Ptr>(ptr), strides);
                         }
                     }
 
@@ -230,7 +230,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&, Strides const &) {
                         --m_pos;
                     }
 
@@ -252,7 +252,7 @@ namespace gridtools {
                     T m_step;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &ptr, const Strides &strides) const {
+                    void GT_FUNCTION operator()(Ptr &&ptr, const Strides &strides) const {
                         auto &&stride = get_stride<Key>(strides);
                         // TODO(anstaf): to figure out if for_each<make_indices_c<NumSteps>>(...) produces better code.
                         for (T i = 0; i < NumSteps; ++i) {
@@ -260,7 +260,7 @@ namespace gridtools {
                             shift(ptr, stride, m_step);
                         }
                         static constexpr T minus_num_steps = -NumSteps;
-                        shift(ptr, stride, m_step * minus_num_steps);
+                        shift(wstd::forward<Ptr>(ptr), stride, m_step * minus_num_steps);
                     }
                 };
 
@@ -276,14 +276,14 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         if (++m_pos == NumSteps) {
                             constexpr T num_steps_back = 1 - NumSteps;
                             shift(ptr, get_stride<Key>(strides), m_step * num_steps_back);
                             m_pos = 0;
-                            m_outer.next(ptr, strides);
+                            m_outer.next(wstd::forward<Ptr>(ptr), strides);
                         } else {
-                            shift(ptr, get_stride<Key>(strides), m_step);
+                            shift(wstd::forward<Ptr>(ptr), get_stride<Key>(strides), m_step);
                         }
                     }
 
@@ -300,9 +300,9 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         --m_pos;
-                        shift(ptr, get_stride<Key>(strides), m_step);
+                        shift(wstd::forward<Ptr>(ptr), get_stride<Key>(strides), m_step);
                     }
 
                     GT_FUNCTION bool done() const { return m_pos > 0; }
@@ -320,13 +320,13 @@ namespace gridtools {
                     Fun m_fun;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &ptr, const Strides &strides) const {
+                    void GT_FUNCTION operator()(Ptr &&ptr, const Strides &strides) const {
                         auto &&stride = get_stride<Key>(strides);
                         for (T i = 0; i < (T)NumSteps; ++i) {
                             m_fun(ptr, strides);
                             shift(ptr, stride, integral_constant<T, Step>{});
                         }
-                        shift(ptr, stride, integral_constant<T, -Step * NumSteps>{});
+                        shift(wstd::forward<Ptr>(ptr), stride, integral_constant<T, -Step * NumSteps>{});
                     }
                 };
 
@@ -341,14 +341,14 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         if (++m_pos == NumSteps) {
                             constexpr T offset_back = Step * (1 - NumSteps);
                             shift(ptr, get_stride<Key>(strides), offset_back);
                             m_pos = 0;
-                            m_outer.next(ptr, strides);
+                            m_outer.next(wstd::forward<Ptr>(ptr), strides);
                         } else {
-                            shift(ptr, get_stride<Key>(strides), Step);
+                            shift(wstd::forward<Ptr>(ptr), get_stride<Key>(strides), Step);
                         }
                     }
 
@@ -364,9 +364,9 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         --m_pos;
-                        shift(ptr, get_stride<Key>(strides), Step);
+                        shift(wstd::forward<Ptr>(ptr), get_stride<Key>(strides), Step);
                     }
 
                     GT_FUNCTION bool done() const { return m_pos > 0; }
@@ -384,7 +384,7 @@ namespace gridtools {
                     Fun m_fun;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &ptr, Strides const &strides) const {
+                    void GT_FUNCTION operator()(Ptr &&ptr, Strides const &strides) const {
                         for (T i = 0; i < (T)NumSteps; ++i)
                             m_fun(ptr, strides);
                     }
@@ -401,10 +401,10 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &ptr, Strides const &strides) {
+                    void GT_FUNCTION next(Ptr &&ptr, Strides const &strides) {
                         if (++m_pos == NumSteps) {
                             m_pos = 0;
-                            m_outer.next(ptr, strides);
+                            m_outer.next(wstd::forward<Ptr>(ptr), strides);
                         }
                     }
 
@@ -420,7 +420,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &, Strides const &) {
+                    void GT_FUNCTION next(Ptr &&, Strides const &) {
                         --m_pos;
                     }
 
@@ -448,7 +448,7 @@ namespace gridtools {
                     bool m_done;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &, Strides const &) {
+                    void GT_FUNCTION next(Ptr &&, Strides const &) {
                         m_done = true;
                     }
 
@@ -469,7 +469,7 @@ namespace gridtools {
 
                 struct cursor_f {
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &, Strides const &) {}
+                    void GT_FUNCTION next(Ptr &&, Strides const &) {}
 
                     GT_FUNCTION bool done() const { return true; }
                 };
@@ -530,7 +530,7 @@ namespace gridtools {
          *   @param num_steps number of iterations in the loop. Can be of integral or integral_constant type
          *   @param step (optional) a step for each iteration. Can be of integral or integral_constant type.
          *               The default is integral_constant<int, 1>
-         *   @return a functor that accepts another functor with the signature: `void(Ptr&, Strides const&)` and
+         *   @return a functor that accepts another functor with the signature: `void(Ptr&&, Strides const&)` and
          *           returns a functor also with the same signature.
          *
          *   Usage:

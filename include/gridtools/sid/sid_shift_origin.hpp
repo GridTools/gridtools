@@ -52,12 +52,9 @@ namespace gridtools {
               public:
                 template <class Arg, class Offsets>
                 shifted_sid(Arg &&original_sid, Offsets &&offsets) noexcept
-                    : delegate<Sid>(std::forward<Arg>(original_sid)), m_origin{[this, &offsets]() {
-                          auto &&strides = get_strides(this->m_impl);
-                          ptr_diff_type<Sid> ptr_offset{};
-                          multi_shift(ptr_offset, strides, offsets);
-                          return get_origin(this->m_impl) + ptr_offset;
-                      }()},
+                    : delegate<Sid>(std::forward<Arg>(original_sid)),
+                      m_origin(get_origin(this->m_impl) +
+                               multi_shifted(ptr_diff_type<Sid>(), get_strides(this->m_impl), offsets)),
                       m_lower_bounds(add_offsets(get_lower_bounds(this->m_impl), offsets)),
                       m_upper_bounds(add_offsets(get_upper_bounds(this->m_impl), offsets)) {}
             };
