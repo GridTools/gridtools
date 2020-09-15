@@ -30,18 +30,18 @@ namespace gridtools {
                         std::move(data_stores));
                 }
 
-                template <class Backend, class Spec>
-                struct backend_entry_point_f {
-                    template <class Grid, class DataStores>
-                    void operator()(Grid const &grid, DataStores data_stores) const {
-                        gridtools_backend_entry_point(Backend(),
+                template <class Spec>
+                struct call_entry_point_f {
+                    template <class Backend, class Grid, class DataStores>
+                    void operator()(Backend &&be, Grid const &grid, DataStores data_stores) const {
+                        gridtools_backend_entry_point(std::forward<Backend>(be),
                             convert_fe_to_be_spec<Spec, typename Grid::interval_t, DataStores>(),
                             grid,
                             shift_origin(grid, std::move(data_stores)));
                     }
                 };
             } // namespace backend_impl_
-            using backend_impl_::backend_entry_point_f;
+            using backend_impl_::call_entry_point_f;
         } // namespace core
     }     // namespace stencil
 } // namespace gridtools

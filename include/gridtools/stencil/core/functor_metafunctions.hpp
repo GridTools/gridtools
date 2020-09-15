@@ -233,6 +233,7 @@ namespace gridtools {
                     meta::transform<item_maker_f<Functor, Interval>::template apply, split_interval<Interval>>;
 
             } // namespace functor_metafunctions_impl_
+            using functor_metafunctions_impl_::bound_functor;
             using functor_metafunctions_impl_::check_valid_apply_overloads;
             using functor_metafunctions_impl_::make_functor_map;
         } // namespace core

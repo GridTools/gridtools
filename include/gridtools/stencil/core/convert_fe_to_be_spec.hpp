@@ -39,7 +39,7 @@ namespace gridtools {
 
                 template <class Plh, bool = is_tmp_arg<Plh>::value>
                 struct get_num_colors {
-                    using type = void;
+                    using type = integral_constant<int, -1>;
                 };
 
                 template <class Plh>
