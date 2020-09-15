@@ -52,6 +52,12 @@ namespace gridtools {
             for (int i = 0; i < 10; ++i)
                 for (int j = 0; j < 10; ++j)
                     EXPECT_EQ(88, data[i][j]) << " i:" << i << ", j:" << j;
+
+            // pass ptr as r-value
+            sid::make_loop<i_t>(10_c)(sid::make_loop<j_t>(10_c)(assignment_f{88}))(&data[0][0], strides);
+            for (int i = 0; i < 10; ++i)
+                for (int j = 0; j < 10; ++j)
+                    EXPECT_EQ(88, data[i][j]) << " i:" << i << ", j:" << j;
         }
 
         TEST(nest_loops, smoke) {

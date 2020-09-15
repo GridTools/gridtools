@@ -450,8 +450,9 @@ namespace gridtools {
              *  noop `shift` overload
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION std::enable_if_t<!need_shift<T, Stride, Offset>::value> shift(
-                T &, Stride const &, Offset const &) {}
+            GT_FUNCTION std::enable_if_t<!(std::is_lvalue_reference<T>::value &&
+                                           need_shift<std::remove_reference_t<T>, std::decay_t<Stride>, Offset>::value)>
+            shift(T &&, Stride &&, Offset) {}
 
             /**
              * `shift` overload that delegates to `sid_shift`
@@ -731,6 +732,12 @@ namespace gridtools {
         decltype(auto) get_upper_bound(Bounds &&bounds) {
             return gridtools::host_device::at_key_with_default<Key,
                 integral_constant<int_t, std::numeric_limits<int_t>::max()>>(wstd::forward<Bounds>(bounds));
+        }
+
+        template <class T, class Stride, class Offset>
+        GT_FUNCTION T shifted(T obj, Stride const &stride, Offset offset) {
+            shift(obj, stride, offset);
+            return obj;
         }
     } // namespace sid
 

@@ -138,6 +138,11 @@ namespace gridtools {
             tu::host::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
         }
 
+        TEST(shift, noop) {
+            // this should compile
+            sid::shift(3, 4, 5);
+        }
+
         namespace non_static_value {
             struct stride {
                 int value;
