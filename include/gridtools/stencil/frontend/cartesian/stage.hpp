@@ -57,7 +57,7 @@ namespace gridtools {
                     template <class Accessor>
                     GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
                         using key_t = meta::at_c<Keys, Accessor::index_t::value>;
-                        return apply_intent<Accessor::intent_v>(Deref()(meta::at_c<Keys, Accessor::index_t::value>(),
+                        return apply_intent<Accessor::intent_v>(Deref()(key_t(),
                             sid::multi_shifted<key_t>(host_device::at_key<key_t>(m_ptr), m_strides, wstd::move(acc))));
                     }
 
