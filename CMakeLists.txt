@@ -55,6 +55,10 @@ else()
     endif()
 endif()
 
+option(GT_REQUIRE_OpenMP "Require OpenMP support." OFF)
+if(GT_REQUIRE_OpenMP)
+    find_package(OpenMP COMPONENTS CXX REQUIRED)
+endif()
 
 set(REQUIRED_BOOST_VERSION 1.58)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
@@ -76,6 +80,11 @@ install(TARGETS gridtools EXPORT GridToolsTargets
 
 include(gridtools_setup_targets)
 _gt_setup_targets(FALSE "${GT_CLANG_CUDA_MODE}")
+
+option(GT_REQUIRE_GPU "Require GPU support." OFF)
+if(GT_REQUIRE_GPU AND NOT TARGET stencil_gpu)
+    message(FATAL_ERROR "GPU targets where required but we couldn't configure GPU support. Please check the CMake error logs.")
+endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # add a target to generate API documentation with Doxygen
