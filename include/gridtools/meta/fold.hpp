@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "curry_fun.hpp"
 #include "macros.hpp"
 
@@ -112,19 +114,17 @@ namespace gridtools {
                 folder<F, F<S, T>> &&operator+(folder<F, S> &&, id<T> *);
                 template <template <class...> class F, class S, class T>
                 folder<F, F<T, S>> &&operator+(id<T> *, folder<F, S> &&);
-                template <class T>
-                T &&make();
             } // namespace fold_impl_
 
             template <template <class...> class F, class S, template <class...> class L, class... Ts>
             struct lfold<F, S, L<Ts...>>
                 : fold_impl_::state<decltype(
-                      (fold_impl_::make<fold_impl_::folder<F, S>>() + ... + (fold_impl_::id<Ts> *)0))> {};
+                      (std::declval<fold_impl_::folder<F, S> &&>() + ... + (fold_impl_::id<Ts> *)0))> {};
 
             template <template <class...> class F, class S, template <class...> class L, class... Ts>
             struct rfold<F, S, L<Ts...>>
                 : fold_impl_::state<decltype(
-                      ((fold_impl_::id<Ts> *)0 + ... + fold_impl_::make<fold_impl_::folder<F, S>>()))> {};
+                      ((fold_impl_::id<Ts> *)0 + ... + std::declval<fold_impl_::folder<F, S> &&>()))> {};
 #endif
         } // namespace lazy
     }     // namespace meta
