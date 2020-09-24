@@ -34,12 +34,18 @@ namespace gridtools {
 //   the current set of pragmas is at the border of legality for the present code, so maybe we can find a better option.
 #pragma ivdep
 #pragma omp simd
-#endif
                     for (int_t i = 0; i < size; ++i) {
                         using namespace literals;
                         stage(ptr, strides);
                         sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
                     }
+#else
+                    for (int_t i = 0; i < size; ++i) {
+                        using namespace literals;
+                        stage(ptr, strides);
+                        sid::shift(ptr, sid::get_stride<dim::i>(strides), 1_c);
+                    }
+#endif
                     sid::shift(ptr, sid::get_stride<dim::i>(strides), -size);
                 }
 
@@ -109,7 +115,8 @@ namespace gridtools {
                     int_t i_blocks = info.i_blocks();
                     int_t j_blocks = info.j_blocks();
                     int_t k_size = grid.k_size();
-                    thread_pool::parallel_for_loop(ThreadPool(),
+                    thread_pool::parallel_for_loop(
+                        ThreadPool(),
                         [&](auto i, auto k, auto j) {
                             tuple_util::for_each([block = info.block(i, j, k)](auto &&loop) { loop(block); }, loops);
                         },
@@ -157,7 +164,8 @@ namespace gridtools {
                 template <class ThreadPool, class Grid, class Loops>
                 void run_loops(std::false_type, Grid const &grid, Loops loops) {
                     execinfo info(ThreadPool(), grid);
-                    thread_pool::parallel_for_loop(ThreadPool(),
+                    thread_pool::parallel_for_loop(
+                        ThreadPool(),
                         [&](auto i, auto j) {
                             tuple_util::for_each([block = info.block(i, j)](auto &&loop) { loop(block); }, loops);
                         },
