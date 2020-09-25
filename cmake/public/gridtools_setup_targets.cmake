@@ -218,6 +218,8 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     _gt_add_library(${_config_mode} stencil_naive)
     target_link_libraries(${_gt_namespace}stencil_naive INTERFACE ${_gt_namespace}gridtools)
 
+set(_required_nlohmann_json_version "3.asdf")
+
     set(GT_STENCILS naive)
     set(GT_STORAGES cpu_kfirst cpu_ifirst)
     set(GT_GCL_ARCHS)
