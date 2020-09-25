@@ -11,7 +11,5 @@ export FC=$(which gfortran)
 export CUDAHOSTCXX="$CXX"
 
 export GTCMAKE_GT_CLANG_CUDA_MODE=NVCC-CUDA
-export GTCMAKE_GT_REQUIRE_OpenMP="ON"
-export GTCMAKE_GT_REQUIRE_GPU="ON"
 
 export CTEST_PARALLEL_LEVEL=1
