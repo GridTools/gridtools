@@ -21,6 +21,10 @@ namespace gridtools {
      * reduce cache set conflicts.
      */
     inline void *hugepage_alloc(std::size_t size) {
+#ifdef __cray__
+// see issue https://github.com/GridTools/gridtools/issues/1557
+#warning "hugepage_alloc on Cray might be suboptimal"
+#endif
         static std::atomic<std::size_t> s_offset(64);
         auto offset = s_offset.load(std::memory_order_relaxed);
         auto next_offset = offset;
