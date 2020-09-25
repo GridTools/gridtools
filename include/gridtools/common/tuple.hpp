@@ -11,8 +11,10 @@
 #pragma once
 
 #include <cstdlib>
+#include <tuple>
 #include <type_traits>
 
+#include "../meta/at.hpp"
 #include "../meta/type_traits.hpp"
 #include "defs.hpp"
 #include "generic_metafunctions/utility.hpp"
@@ -283,4 +285,29 @@ namespace gridtools {
     GT_FORCE_INLINE void swap(tuple<Ts...> &lhs, tuple<Ts...> &rhs) noexcept {
         lhs.swap(rhs);
     }
+
+    template <size_t I, class... Ts>
+    GT_CONSTEXPR GT_FUNCTION decltype(auto) get(tuple<Ts...> const &obj) noexcept {
+        return decltype(tuple_getter(obj))::template get<I>(obj);
+    }
+
+    template <size_t I, class... Ts>
+    GT_FUNCTION decltype(auto) get(tuple<Ts...> &obj) noexcept {
+        return decltype(tuple_getter(std::declval<tuple<Ts...> const &>()))::template get<I>(obj);
+    }
+
+    template <size_t I, class... Ts>
+    GT_CONSTEXPR GT_FUNCTION decltype(auto) get(tuple<Ts...> &&obj) noexcept {
+        return decltype(tuple_getter(std::declval<tuple<Ts...> const &>()))::template get<I>(wstd::move(obj));
+    }
 } // namespace gridtools
+
+namespace std {
+    template <class... Ts>
+    struct tuple_size<::gridtools::tuple<Ts...>> : integral_constant<size_t, sizeof...(Ts)> {};
+
+    template <size_t I, class... Ts>
+    struct tuple_element<I, ::gridtools::tuple<Ts...>> {
+        using type = gridtools::meta::at_c<::gridtools::tuple<Ts...>, I>;
+    };
+} // namespace std

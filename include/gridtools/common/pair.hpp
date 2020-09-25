@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstddef>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -104,25 +105,6 @@ namespace gridtools {
     /** @} */
     /** @} */
 
-    template <typename T>
-    struct tuple_size;
-
-    template <typename T1, typename T2>
-    struct tuple_size<pair<T1, T2>> : std::integral_constant<std::size_t, 2> {};
-
-    template <std::size_t I, typename T>
-    struct tuple_element;
-
-    template <typename T1, typename T2>
-    struct tuple_element<0, pair<T1, T2>> {
-        using type = T1;
-    };
-
-    template <typename T1, typename T2>
-    struct tuple_element<1, pair<T1, T2>> {
-        using type = T2;
-    };
-
     namespace pair_impl_ {
         template <std::size_t I>
         struct pair_get;
@@ -194,3 +176,17 @@ namespace gridtools {
     template <class T1, class T2>
     pair_impl_::getter tuple_getter(pair<T1, T2> const &);
 } // namespace gridtools
+
+namespace std {
+    template <class T1, class T2>
+    struct tuple_size<::gridtools::pair<T1, T2>> : integral_constant<size_t, 2> {};
+
+    template <class T1, class T2>
+    struct tuple_element<0, ::gridtools::pair<T1, T2>> {
+        using type = T1;
+    };
+    template <class T1, class T2>
+    struct tuple_element<1, ::gridtools::pair<T1, T2>> {
+        using type = T2;
+    };
+} // namespace std

@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -161,20 +162,6 @@ namespace gridtools {
     template <size_t D, typename Value>
     struct is_array_of<array<Value, D>, Value> : std::true_type {};
 
-    template <typename T>
-    struct tuple_size;
-
-    template <typename T, size_t D>
-    struct tuple_size<array<T, D>> : std::integral_constant<size_t, D> {};
-
-    template <size_t, typename T>
-    struct tuple_element;
-
-    template <size_t I, typename T, size_t D>
-    struct tuple_element<I, array<T, D>> {
-        using type = T;
-    };
-
     template <size_t I, typename T, size_t D>
     GT_FUNCTION T &get(array<T, D> &arr) noexcept {
         static_assert(I < D, "index is out of bounds");
@@ -197,3 +184,14 @@ namespace gridtools {
     /** @} */
 
 } // namespace gridtools
+
+namespace std {
+    template <class T, size_t D>
+    struct tuple_size<::gridtools::array<T, D>> : integral_constant<size_t, D> {};
+
+    template <std::size_t I, class T, size_t D>
+    struct tuple_element<I, ::gridtools::array<T, D>> {
+        static_assert(I < D, "index is out of bounds");
+        using type = T;
+    };
+} // namespace std

@@ -71,6 +71,16 @@ namespace gridtools {
             point_t m_begin = {};
             point_t m_end;
         };
+
+        template <class, class = void>
+        struct is_pair_like : std::false_type {};
+
+        template <class T>
+        struct is_pair_like<T, std::enable_if_t<tuple_util::size<T>::value == 2>> : std::true_type {};
+
+        template <class T>
+        using is_size_t_like = std::is_convertible<size_t, T>;
+
     } // namespace impl_
 
     /**
@@ -78,9 +88,9 @@ namespace gridtools {
      */
     template <typename Container,
         typename Decayed = std::decay_t<Container>,
-        size_t OuterD = tuple_size<Decayed>::value,
-        size_t InnerD = tuple_size<typename tuple_element<0, Decayed>::type>::value,
-        std::enable_if_t<OuterD != 0 && InnerD == 2, int> = 0>
+        size_t OuterD = tuple_util::size<Decayed>::value,
+        std::enable_if_t<OuterD != 0 && meta::all_of<impl_::is_pair_like, tuple_util::traits::to_types<Decayed>>::value,
+            int> = 0>
     GT_FUNCTION impl_::hypercube_view<OuterD> make_hypercube_view(Container &&cube) {
         auto &&transposed = tuple_util::host_device::transpose(wstd::forward<Container>(cube));
         return {tuple_util::host_device::convert_to<array, size_t>(tuple_util::host_device::get<0>(transposed)),
@@ -91,7 +101,7 @@ namespace gridtools {
      * @brief short-circuit for zero dimensional hypercube (transpose cannot work)
      */
     template <typename Container,
-        size_t D = tuple_size<std::decay_t<Container>>::value,
+        size_t D = tuple_util::size<std::decay_t<Container>>::value,
         std::enable_if_t<D == 0, int> = 0>
     GT_FUNCTION array<array<size_t, 0>, 1> make_hypercube_view(Container &&) {
         return {{}};
@@ -103,9 +113,9 @@ namespace gridtools {
      */
     template <typename Container,
         typename Decayed = std::decay_t<Container>,
-        size_t D = tuple_size<Decayed>::value,
-        std::enable_if_t<D != 0 && std::is_convertible<size_t, typename tuple_element<0, Decayed>::type>::value, int> =
-            0>
+        size_t D = tuple_util::size<Decayed>::value,
+        std::enable_if_t<D != 0 && meta::all_of<impl_::is_size_t_like, tuple_util::traits::to_types<Decayed>>::value,
+            int> = 0>
     GT_FUNCTION impl_::hypercube_view<D> make_hypercube_view(Container &&sizes) {
         return {tuple_util::host_device::convert_to<array, size_t>(wstd::forward<Container>(sizes))};
     }
