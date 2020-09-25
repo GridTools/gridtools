@@ -11,5 +11,3 @@ export GTCMAKE_CMAKE_CUDA_HOST_COMPILER="$CXX"
 
 export CUDAHOSTCXX="$CXX"
 export CTEST_PARALLEL_LEVEL=1
-export CXXFLAGS='-fno-cray-gpu -fno-cray'
-export CFLAGS='-fno-cray-gpu -fno-cray-mallopt -fno-cray'
