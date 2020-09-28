@@ -323,7 +323,7 @@ namespace gridtools {
         TEST(nested_empty, regression) { EXPECT_EQ(42, get<0>(get<0>(tuple<tuple<an_empty<42>>>())).value); }
 
 #if __cplusplus >= 201703
-        TEST(structured_bindings, functoinal) {
+        TEST(structured_bindings, functional) {
             auto [a, b] = tuple<int, double>(42, 2.5);
             EXPECT_EQ(a, 42);
             EXPECT_EQ(b, 2.5);
