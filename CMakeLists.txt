@@ -55,7 +55,6 @@ else()
     endif()
 endif()
 
-
 set(REQUIRED_BOOST_VERSION 1.58)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
 
@@ -118,6 +117,14 @@ if(BUILD_TESTING)
     include(detect_test_features)
     detect_c_compiler()
     detect_fortran_compiler()
+    option(GT_TESTS_REQUIRE_OpenMP "Require OpenMP support." OFF)
+    if(GT_TESTS_REQUIRE_OpenMP)
+        find_package(OpenMP COMPONENTS CXX REQUIRED)
+    endif()
+    option(GT_TESTS_REQUIRE_GPU "Require GPU support." OFF)
+    if(GT_TESTS_REQUIRE_GPU AND NOT TARGET stencil_gpu)
+        message(FATAL_ERROR "GPU targets where required but we couldn't configure GPU support. Please check the CMake error logs.")
+    endif()
 
     add_subdirectory(tests)
     add_subdirectory(docs_src/manuals/getting_started)
