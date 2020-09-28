@@ -16,7 +16,7 @@ function module() {
 }
 
 module load daint-gpu
-module load cudatoolkit/10.1.105_3.27-7.0.1.1_4.1__ga311ce7
+module load cudatoolkit
 module rm CMake
 module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.14.5
 
