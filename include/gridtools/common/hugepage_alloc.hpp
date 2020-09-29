@@ -17,6 +17,9 @@
 #if __cpp_lib_int_pow2 >= 202002L
 #include <bit>
 #endif
+#ifdef __linux__
+#include <regex>
+#endif
 
 namespace gridtools {
     namespace hugepage_alloc_impl_ {
@@ -34,9 +37,9 @@ namespace gridtools {
         inline std::size_t cache_line_size() {
             std::size_t value = 64; // default value for x86-64 archs
 #if __linux__
-            std::ifstream f("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size");
-            if (f.is_open())
-                f >> value;
+            std::ifstream file("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size");
+            if (file.is_open())
+                file >> value;
 #endif
             return value;
         }
@@ -44,9 +47,28 @@ namespace gridtools {
         inline std::size_t cache_sets() {
             std::size_t value = 64; // default value for (most?) x86-64 archs
 #if __linux__
-            std::ifstream f("/sys/devices/system/cpu/cpu0/cache/index0/number_of_sets");
-            if (f.is_open())
-                f >> value;
+            std::ifstream file("/sys/devices/system/cpu/cpu0/cache/index0/number_of_sets");
+            if (file.is_open())
+                file >> value;
+#endif
+            return value;
+        }
+
+        inline std::size_t hugepage_size() {
+            std::size_t value = 2 * 1024 * 1024; // 2MB default on most systems
+#if __linux__
+            std::ifstream file("/proc/meminfo");
+            if (file.is_open()) {
+                std::regex re("^Hugepagesize: *([0-9]+) *kB");
+                std::string line;
+                while (std::getline(file, line)) {
+                    std::smatch match;
+                    if (std::regex_match(line, match, re)) {
+                        value = std::stoll(match[1].str()) * 1024;
+                        break;
+                    }
+                }
+            }
 #endif
             return value;
         }
@@ -60,12 +82,13 @@ namespace gridtools {
         static std::atomic<std::size_t> s_offset(0);
         static const std::size_t cache_line_size = hugepage_alloc_impl_::cache_line_size();
         static const std::size_t cache_set_size = hugepage_alloc_impl_::cache_sets();
+        static const std::size_t hugepage_size = hugepage_alloc_impl_::hugepage_size();
 
         std::size_t offset =
             ((s_offset++ % cache_set_size) << hugepage_alloc_impl_::ilog2(cache_line_size)) + cache_line_size;
 
         void *ptr;
-        if (posix_memalign(&ptr, 2 * 1024 * 1024, size + offset))
+        if (posix_memalign(&ptr, hugepage_size, size + offset))
             throw std::bad_alloc();
 
         ptr = static_cast<char *>(ptr) + offset;

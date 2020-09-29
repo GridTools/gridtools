@@ -39,6 +39,8 @@ namespace gridtools {
 
         TEST(hugepage_alloc, cache_sets) { EXPECT_GT(hugepage_alloc_impl_::cache_sets(), 0); }
 
+        TEST(hugepage_alloc, hugepage_size) { EXPECT_GT(hugepage_alloc_impl_::hugepage_size(), 0); }
+
         TEST(hugepage_alloc, offsets) {
             // test shifting of the allocated data: hugepage_alloc guarantees that consecutive allocations return
             // pointers with different last X bits to reduce number of cache set conflict misses
