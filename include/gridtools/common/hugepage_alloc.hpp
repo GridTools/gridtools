@@ -144,6 +144,10 @@ namespace gridtools {
             full_size = ((full_size + page_size - 1) / page_size) * page_size;
             if (posix_memalign(&ptr, page_size, full_size))
                 throw std::bad_alloc();
+#ifdef __linux__
+            // explicitly forbid usage of huge pagese
+            madvise(ptr, full_size, MADV_NOHUGEPAGE);
+#endif
             break;
 #ifdef __linux__
         case hugepage_alloc_impl_::hugepage_mode::transparent:
