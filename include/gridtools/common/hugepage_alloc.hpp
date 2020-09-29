@@ -13,17 +13,19 @@
 #include <atomic>
 #include <cassert>
 #include <cstdlib>
-#include <fstream>
+#include <cstring>
 #include <new>
 #include <stdexcept>
 #if __cpp_lib_int_pow2 >= 202002L
 #include <bit>
 #endif
 #ifdef __linux__
-#include <iostream>
-#include <regex>
+#include <cstdio>
 
+#include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #endif
 
@@ -40,24 +42,36 @@ namespace gridtools {
 #endif
         }
 
-        inline std::size_t cache_line_size() {
-            std::size_t value = 64; // default value for x86-64 archs
-#if __linux__
-            std::ifstream file("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size");
-            if (file.is_open())
-                file >> value;
+#ifdef __linux__
+        inline std::size_t get_sys_info(const char *info, std::size_t default_value) {
+            int fd = open(info, O_RDONLY);
+            if (fd != -1) {
+                char buffer[16];
+                auto size = read(fd, buffer, sizeof(buffer));
+                if (size > 0)
+                    default_value = std::atoll(buffer);
+                close(fd);
+            }
+            return default_value;
+        }
 #endif
-            return value;
+
+        inline std::size_t cache_line_size() {
+            std::size_t default_value = 64; // default value for x86-64 archs
+#ifdef __linux__
+            return get_sys_info("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", default_value);
+#else
+            return default_value;
+#endif
         }
 
         inline std::size_t cache_sets() {
-            std::size_t value = 64; // default value for (most?) x86-64 archs
+            std::size_t default_value = 64; // default value for (most?) x86-64 archs
 #ifdef __linux__
-            std::ifstream file("/sys/devices/system/cpu/cpu0/cache/index0/number_of_sets");
-            if (file.is_open())
-                file >> value;
+            return get_sys_info("/sys/devices/system/cpu/cpu0/cache/index0/number_of_sets", default_value);
+#else
+            return default_value;
 #endif
-            return value;
         }
 
         enum class hugepage_mode { disabled, transparent, explicit_allocation };
@@ -66,27 +80,32 @@ namespace gridtools {
             const char *env_value = std::getenv("GT_HUGEPAGE_MODE");
             if (!env_value || std::strcmp(env_value, "transparent") == 0)
                 return hugepage_mode::transparent;
-            if (std::strcmp(env_value, "disabled") == 0)
+            if (std::strcmp(env_value, "disable") == 0)
                 return hugepage_mode::disabled;
             if (std::strcmp(env_value, "explicit") == 0)
                 return hugepage_mode::explicit_allocation;
+            std::fprintf(stderr, "warning: env variable GT_HUGEPAGE_MODE set to invalid value '%s'\n", env_value);
             return hugepage_mode::transparent;
         }
 
         inline std::size_t hugepage_size() {
+            std::size_t default_value = 2 * 1024 * 1024; // 2MB is the default on most systems
 #ifdef __linux__
-            std::ifstream file("/proc/meminfo");
-            if (file.is_open()) {
-                std::regex re("^Hugepagesize: *([0-9]+) *kB$");
-                std::string line;
-                while (std::getline(file, line)) {
-                    std::smatch match;
-                    if (std::regex_match(line, match, re))
-                        return std::stoll(match[1].str()) * 1024;
+            auto *fp = std::fopen("/proc/meminfo", "r");
+            if (fp) {
+                char *line = nullptr;
+                size_t line_length;
+                while (getline(&line, &line_length, fp) != -1) {
+                    if (sscanf(line, "Hugepagesize: %lu kB", &default_value) == 1) {
+                        default_value *= 1024;
+                        break;
+                    }
                 }
+                free(line);
+                std::fclose(fp);
             }
 #endif
-            return 2 * 1024 * 1024; // 2MB is the default on most systems
+            return default_value;
         }
 
         struct ptr_metadata {
