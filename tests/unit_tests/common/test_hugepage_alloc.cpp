@@ -36,7 +36,7 @@ namespace gridtools {
         }
 
         TEST(hugepage_alloc, cache_line_size) {
-            EXPECT_GE(hugepage_alloc_impl_::cache_line_size(), 2 * sizeof(std::size_t));
+            EXPECT_GE(hugepage_alloc_impl_::cache_line_size(), sizeof(hugepage_alloc_impl_::ptr_metadata));
         }
 
         TEST(hugepage_alloc, cache_sets) { EXPECT_GT(hugepage_alloc_impl_::cache_sets(), 0); }
