@@ -77,7 +77,7 @@ namespace gridtools {
         TEST(rename_dimensions, rename_twice_and_make_composite) {
             double data[3][5][7];
             auto src = sid::synthetic()
-                           .set<property::origin>(sid::make_simple_ptr_holder(&data[0][0][0]))
+                           .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0][0]))
                            .set<property::strides>(tu::make<hymap::keys<a, b, c>::values>(5_c * 7_c, 7_c, 1_c))
                            .set<property::upper_bounds>(tu::make<hymap::keys<a, b>::values>(3, 5));
             auto testee = sid::rename_dimensions<a, c, b, d>(src);
