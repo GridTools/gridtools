@@ -10,7 +10,8 @@
 #pragma once
 
 #include <cassert>
-#include <tuple>
+#include <type_traits>
+#include <utility>
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/for_each.hpp"
@@ -252,13 +253,13 @@ namespace gridtools {
                         template <class... Ptrs>
                         friend GT_CONSTEXPR GT_FUNCTION composite_ptr<Ptrs...> operator+(
                             composite_ptr<Ptrs...> const &lhs, composite_entity const &rhs) {
-                            return tuple_util::host_device::transform(impl_::sum{}, lhs, rhs);
+                            return tuple_util::host_device::transform(impl_::sum(), lhs, rhs);
                         }
 
                         template <class... PtrHolders>
                         friend composite_ptr_holder<PtrHolders...> operator+(
                             composite_ptr_holder<PtrHolders...> const &lhs, composite_entity const &rhs) {
-                            return tuple_util::transform(impl_::sum{}, lhs, rhs);
+                            return tuple_util::transform(impl_::sum(), lhs, rhs);
                         }
 
                         template <class... Ptrs, class Offset>
@@ -305,7 +306,7 @@ namespace gridtools {
                     static_assert(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 #endif
 
-                    std::tuple<Sids...> m_sids;
+                    tuple<Sids...> m_sids;
 
                     // Extracted lists of raw kinds (uncompresed)
                     using strides_kinds_t = meta::list<strides_kind<Sids>...>;
@@ -346,15 +347,14 @@ namespace gridtools {
                     // Here the `SID` concept is modeled
 
                     friend ptr_holder_t sid_get_origin(values &obj) {
-                        return tuple_util::convert_to<tuple>(tuple_util::transform(
-                            [](auto obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids));
+                        return tuple_util::transform(
+                            [](auto obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids);
                     }
 
                     friend strides_t sid_get_strides(values const &obj) {
-                        return tuple_util::convert_to<stride_hymap_keys_t::template values>(
-                            tuple_util::transform(typename compressed_t::convert_f(),
-                                tuple_util::transpose(
-                                    tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>{}, obj.m_sids))));
+                        return tuple_util::transform(typename compressed_t::convert_f(),
+                            tuple_util::transpose(
+                                tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>(), obj.m_sids)));
                     }
 
                     friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
