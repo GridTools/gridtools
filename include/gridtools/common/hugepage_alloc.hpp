@@ -83,12 +83,12 @@ namespace gridtools {
     inline void *hugepage_alloc(std::size_t size) {
         static std::atomic<std::size_t> s_offset(0);
         static const std::size_t cache_line_size = hugepage_alloc_impl_::cache_line_size();
-        static const std::size_t cache_set_size = hugepage_alloc_impl_::cache_sets();
+        static const std::size_t cache_sets = hugepage_alloc_impl_::cache_sets();
         static const std::size_t hugepage_size = hugepage_alloc_impl_::hugepage_size();
         assert(cache_line_size >= 2 * sizeof(std::size_t));
 
         std::size_t offset =
-            ((s_offset++ % cache_set_size) << hugepage_alloc_impl_::ilog2(cache_line_size)) + cache_line_size;
+            ((s_offset++ % cache_sets) << hugepage_alloc_impl_::ilog2(cache_line_size)) + cache_line_size;
         std::size_t full_size = ((size + offset + hugepage_size - 1) / hugepage_size) * hugepage_size;
 
         void *ptr;
