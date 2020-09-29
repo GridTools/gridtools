@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cassert>
+#include <tuple>
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/for_each.hpp"
@@ -303,7 +304,7 @@ namespace gridtools {
                     static_assert(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 #endif
 
-                    typename hymap::keys<Keys...>::template values<Sids...> m_sids;
+                    std::tuple<Sids...> m_sids;
 
                     // Extracted lists of raw kinds (uncompresed)
                     using strides_kinds_t = meta::list<strides_kind<Sids>...>;
@@ -344,8 +345,8 @@ namespace gridtools {
                     // Here the `SID` concept is modeled
 
                     friend ptr_holder_t sid_get_origin(values &obj) {
-                        return tuple_util::transform(
-                            [](auto obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids);
+                        return tuple_util::convert_to<hymap::keys<Keys...>::template values>(tuple_util::transform(
+                            [](auto obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids));
                     }
 
                     friend strides_t sid_get_strides(values const &obj) {
@@ -360,9 +361,32 @@ namespace gridtools {
                     friend meta::dedup<strides_kinds_t> sid_get_strides_kind(values const &) { return {}; }
 
                     // Here the `tuple_like` concept is modeled
+                    struct getter {
+                        template <size_t I>
+                        static decltype(auto) get(values const &obj) noexcept {
+                            return tuple_util::get<I>(obj.m_sids);
+                        }
+                        template <size_t I>
+                        static decltype(auto) get(values &obj) noexcept {
+                            return tuple_util::get<I>(obj.m_sids);
+                        }
+                        template <size_t I>
+                        static decltype(auto) get(values &&obj) noexcept {
+                            return tuple_util::get<I>(std::move(obj).m_sids);
+                        }
+                    };
+                    friend getter tuple_getter(values const &) { return {}; }
 
-                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_sids);
-                    GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_sids);
+                    template <class Arg,
+                        class... Args,
+                        std::enable_if_t<std::is_constructible<tuple<Sids...>, Arg &&, Args &&...>::value, int> = 0>
+                    values(Arg &&arg, Args &&... args) noexcept
+                        : m_sids(std::forward<Arg>(arg), std::forward<Args>(args)...) {}
+                    values() = default;
+                    values(values const &) = default;
+                    values(values &&) = default;
+                    values &operator=(values const &) = default;
+                    values &operator=(values &&) = default;
 
                     // hymap concept
                     friend keys hymap_get_keys(values const &) { return {}; }
