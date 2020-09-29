@@ -153,17 +153,18 @@ namespace gridtools {
                 struct composite_ptr {
                     static_assert(sizeof...(Keys) == sizeof...(Ptrs), GT_INTERNAL_ERROR);
 
-                    typename hymap::keys<Keys...>::template values<Ptrs...> m_vals;
+                    tuple<Ptrs...> m_vals;
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
                     GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
-                        return tuple_util::host_device::transform([](auto const &ptr)
+                        return tuple_util::host_device::convert_to<hymap::keys<Keys...>::template values>(
+                            tuple_util::host_device::transform([](auto const &ptr)
 // Workaround for GCC 9 bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333
 #if defined(__clang__) || (__GNUC__ != 9 && __GNUC_MINOR__ > 2)
-                                                                      GT_FORCE_INLINE_LAMBDA
+                                                                   GT_FORCE_INLINE_LAMBDA
 #endif
-                            -> decltype(auto) { return *ptr; },
-                            m_vals);
+                                -> decltype(auto) { return *ptr; },
+                                m_vals));
                     }
 
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
@@ -173,7 +174,7 @@ namespace gridtools {
                 struct composite_ptr_holder {
                     static_assert(sizeof...(Keys) == sizeof...(PtrHolders), GT_INTERNAL_ERROR);
 
-                    typename hymap::keys<Keys...>::template values<PtrHolders...> m_vals;
+                    tuple<PtrHolders...> m_vals;
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
 
@@ -345,7 +346,7 @@ namespace gridtools {
                     // Here the `SID` concept is modeled
 
                     friend ptr_holder_t sid_get_origin(values &obj) {
-                        return tuple_util::convert_to<hymap::keys<Keys...>::template values>(tuple_util::transform(
+                        return tuple_util::convert_to<tuple>(tuple_util::transform(
                             [](auto obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids));
                     }
 
