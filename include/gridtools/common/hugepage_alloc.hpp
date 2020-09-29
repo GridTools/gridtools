@@ -12,25 +12,57 @@
 
 #include <atomic>
 #include <cstdlib>
+#include <fstream>
 #include <new>
+#if __cpp_lib_int_pow2 >= 202002L
+#include <bit>
+#endif
 
 namespace gridtools {
+    namespace hugepage_alloc_impl_ {
+        inline std::size_t ilog2(std::size_t i) {
+#if __cpp_lib_int_pow2 >= 202002L
+            return std::bit_width(t) - 1;
+#else
+            std::size_t log = 0;
+            while (i >>= 1)
+                ++log;
+            return log;
+#endif
+        }
+
+        inline std::size_t cache_line_size() {
+            std::size_t value = 64; // default value for x86-64 archs
+#if __linux__
+            std::ifstream f("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size");
+            if (f.is_open())
+                f >> value;
+#endif
+            return value;
+        }
+
+        inline std::size_t cache_sets() {
+            std::size_t value = 64; // default value for (most?) x86-64 archs
+#if __linux__
+            std::ifstream f("/sys/devices/system/cpu/cpu0/cache/index0/number_of_sets");
+            if (f.is_open())
+                f >> value;
+#endif
+            return value;
+        }
+    } // namespace hugepage_alloc_impl_
 
     /**
      * @brief Allocates huge page memory (if GT_NO_HUGETLB is not defined) and shifts allocations by some bytes to
      * reduce cache set conflicts.
      */
     inline void *hugepage_alloc(std::size_t size) {
-#ifdef __cray__
-// see issue https://github.com/GridTools/gridtools/issues/1557
-#warning "hugepage_alloc on Cray might be suboptimal"
-#endif
-        static std::atomic<std::size_t> s_offset(64);
-        auto offset = s_offset.load(std::memory_order_relaxed);
-        auto next_offset = offset;
-        while (!s_offset.compare_exchange_weak(
-            next_offset, 2 * next_offset <= 4096 ? 2 * next_offset : 64, std::memory_order_relaxed)) {
-        }
+        static std::atomic<std::size_t> s_offset(0);
+        static const std::size_t cache_line_size = hugepage_alloc_impl_::cache_line_size();
+        static const std::size_t cache_set_size = hugepage_alloc_impl_::cache_sets();
+
+        std::size_t offset =
+            ((s_offset++ % cache_set_size) << hugepage_alloc_impl_::ilog2(cache_line_size)) + cache_line_size;
 
         void *ptr;
         if (posix_memalign(&ptr, 2 * 1024 * 1024, size + offset))
