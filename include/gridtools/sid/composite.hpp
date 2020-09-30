@@ -161,7 +161,7 @@ namespace gridtools {
                         return tuple_util::host_device::convert_to<hymap::keys<Keys...>::template values>(
                             tuple_util::host_device::transform([](auto const &ptr)
 // Workaround for GCC 9 bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333
-#if defined(__clang__) || (__GNUC__ != 9 && __GNUC_MINOR__ > 2)
+#if defined(__clang__) || !defined(__GNUC__) || !(__GNUC__ == 9 && __GNUC_MINOR__ < 3)
                                                                    GT_FORCE_INLINE_LAMBDA
 #endif
                                 -> decltype(auto) { return *ptr; },
