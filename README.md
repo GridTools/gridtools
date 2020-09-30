@@ -58,7 +58,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 | Compiler | Backend | Date | Comments
 | --- | --- | --- | --- |
 | Cray without Clang frontend| cpu_kfirst |  | no effort to fix compilation
-| Cray clang version 10.0.2 | all backends | 2020-09-30 | only with -fno-cray -fno-cray-gpu
+| Cray clang version 10.0.2 | all backends | 2020-09-30 | works only with -fno-cray -fno-cray-gpu
 | NVCC <= 9.1 with GNU 6.x | gpu | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
 | PGI 18.5 | cpu_kfirst | 2018-12-06 | no effort to fix compilation
 | Intel 19.0.1.144 | all backends | 2020-05-11 | Intel workarounds removed in GridTools 2.0 (goal would be to support Intel with `-qnextgen`)
