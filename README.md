@@ -47,9 +47,9 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 | Compiler | Backend | Tested on | Comments
 | --- | --- | --- | --- |
-| Cray clang version 9.0.2 | all backends | Piz Daint | with flags `-fno-cray-gpu -fno-cray`, P100 GPU
-| GNU 7.3.0 + NVCC 10.1 | all backends | Piz Daint | P100 GPU |
-| Clang 7.0.1 + NVCC 10.1 | all backends | Piz Daint | GPU compilation in NVCC-CUDA mode, P100 GPU |
+| Cray clang version 10.0.2 | all backends | Piz Daint | P100 GPU
+| GNU 8.3.0 + NVCC 10.2 | all backends | Piz Daint | P100 GPU |
+| Clang 7.0.1 + NVCC 10.2 | all backends | Piz Daint | GPU compilation in NVCC-CUDA mode, P100 GPU |
 | GNU 8.3.0 + NVCC 10.1 | all backends | Tsa | V100 GPU |
 | HIP-Clang pre-release, based on Clang 10.0.0 | all backends | Ault | Mi50 GPU |
 
@@ -58,6 +58,7 @@ The GridTools libraries are currently nightly tested with the following compiler
 | Compiler | Backend | Date | Comments
 | --- | --- | --- | --- |
 | Cray without Clang frontend| cpu_kfirst |  | no effort to fix compilation
+| Cray clang version 10.0.2 | all backends | 2020-09-30 | only with -fno-cray -fno-cray-gpu
 | NVCC <= 9.1 with GNU 6.x | gpu | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
 | PGI 18.5 | cpu_kfirst | 2018-12-06 | no effort to fix compilation
 | Intel 19.0.1.144 | all backends | 2020-05-11 | Intel workarounds removed in GridTools 2.0 (goal would be to support Intel with `-qnextgen`)
