@@ -32,14 +32,10 @@
 namespace gridtools {
     namespace hugepage_alloc_impl_ {
         inline std::size_t ilog2(std::size_t i) {
-#if __cpp_lib_int_pow2 >= 202002L
-            return std::bit_width(t) - 1;
-#else
             std::size_t log = 0;
             while (i >>= 1)
                 ++log;
             return log;
-#endif
         }
 
 #ifdef __linux__
