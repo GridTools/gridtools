@@ -35,7 +35,7 @@ CUDAHOSTCXX=`which g++` # full path to the C++ compiler to be used as CUDA host 
 ```
 
 ##### Requirements
-
+- C++14 compiler (see also list of tested compilers)
 - Boost (1.65.1 or later)
 - CMake (3.14.5 or later)
 - CUDA Toolkit (9.0 or later, optional)
