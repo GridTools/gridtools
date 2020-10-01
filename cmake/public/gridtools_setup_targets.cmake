@@ -293,7 +293,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     mark_as_advanced(GT_AVAILABLE_TARGETS)
     if (HPX_FOUND)
         _gt_add_library(${_config_mode} threadpool_hpx)
-        target_link_libraries(${_gt_namespace}threadpool_hpx INTERFACE ${_gt_namespace}gridtools HPX::hpx_no_wrap_main)
+        target_link_libraries(${_gt_namespace}threadpool_hpx INTERFACE ${_gt_namespace}gridtools HPX::hpx)
     endif()
 
     set(GT_AVAILABLE_TARGETS ${_gt_available_targets} CACHE STRING "Available GridTools targets" FORCE)
