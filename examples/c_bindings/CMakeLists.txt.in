@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@)
 # 1) GridTools needs the language CXX
 project(GridTools-examples LANGUAGES CXX)
 
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CUDA_EXTENSIONS OFF)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 # detect CUDA variant (Clang with CUDA support or NVCC)

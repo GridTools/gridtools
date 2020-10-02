@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@)
 # 1) GridTools needs the language CXX
 project(GridTools-examples LANGUAGES CXX)
 
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CUDA_EXTENSIONS OFF)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 # detect CUDA variant (Clang with CUDA support or NVCC)
@@ -32,8 +35,6 @@ foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
     target_link_libraries(${srcfile}_cpu_ifirst GridTools::stencil_cpu_ifirst)
     add_test(NAME ${srcfile}_cpu_ifirst COMMAND $<TARGET_FILE:${srcfile}_cpu_ifirst> 33 44 55)
 endforeach()
-
-message(STATUS "---------> ${EXAMPLE_CUDA_ARCH}")
 
 if(TARGET GridTools::stencil_gpu)
     set(EXAMPLE_CUDA_ARCH "@GT_CUDA_ARCH@" CACHE STRING "CUDA compute capability to be used for this example.")
