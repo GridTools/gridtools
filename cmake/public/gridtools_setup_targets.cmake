@@ -289,7 +289,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         list(APPEND GT_STENCILS cpu_kfirst cpu_ifirst)
     endif()
 
-    find_package(HPX QUIET NO_MODULE)
+    find_package(HPX 1.5.0 QUIET NO_MODULE)
     mark_as_advanced(GT_AVAILABLE_TARGETS)
     if (HPX_FOUND)
         _gt_add_library(${_config_mode} threadpool_hpx)
