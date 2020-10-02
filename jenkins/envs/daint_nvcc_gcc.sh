@@ -4,7 +4,7 @@ source $(dirname "$BASH_SOURCE")/daint.sh
 
 module swap PrgEnv-cray PrgEnv-gnu
 
-if [ "$build_type" == "release" ]; then
+if [ "$build_type" != "debug" ]; then
   module load HPX/1.5.0-CrayGNU-20.08-cuda
 fi
 
