@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION @CMAKE_MINIMUM_REQUIRED_VERSION@)
 project(stencil_type_erasure LANGUAGES CXX)
 
-# enable CUDA if it is found on the system
-include(../workaround_check_language.cmake) # see https://gitlab.kitware.com/cmake/cmake/issues/19013
-_workaround_check_language(CUDA)
-if(CMAKE_CUDA_COMPILER)
-    # 2) Enable the CUDA language if you want to run your code on a CUDA-capable GPU. This
-    #    must be done before calling `find_package(GridTools)`
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..")
+
+# detect CUDA variant (Clang with CUDA support or NVCC)
+include(detect_features)
+detect_cuda_type(GT_CUDA_TYPE AUTO)
+
+if(GT_CUDA_TYPE STREQUAL "NVCC-CUDA")
+    # 2) Enable the CUDA language if you want to run your code on a CUDA-capable GPU.
+    #    This needs to be done before find_package(GridTools) to properly setup the GridTools targets for CUDA.
     enable_language(CUDA)
 endif()
 

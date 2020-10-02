@@ -199,6 +199,13 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
             set(_gt_setup_root_dir ${CUDAToolkit_BIN_DIR}/..)
             target_compile_options(_gridtools_cuda INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-xcuda --cuda-path=${_gt_setup_root_dir}>)
             target_link_libraries(_gridtools_cuda INTERFACE CUDA::cudart)
+            if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0.0)
+                # Workaround for Clang in CUDA mode:
+                # The default std in Clang 10 is c++14, however in CUDA mode the compiler falls back to pre-c++11.
+                # CMake tries to be smart and only puts `-std=c++14` if needed, but isn't aware of the CUDA problem...
+                # TODO check if fixed in Clang 11
+                target_compile_options(_gridtools_cuda INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>)
+            endif()
         elseif(type STREQUAL HIPCC-AMDGPU)
             target_compile_options(_gridtools_cuda INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-xhip>)
         endif()
