@@ -77,7 +77,7 @@ namespace gridtools {
 
                 \return true if the pointer in the packet is nullptr
              */
-            bool emtpy() const { return !full(); }
+            bool empty() const { return !full(); }
 
           private:
             friend struct all_to_all<value_type>;
