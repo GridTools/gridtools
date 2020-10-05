@@ -70,7 +70,6 @@ if(TARGET GridTools::stencil_gpu)
 
     bindgen_add_library(copy_stencil_lib_gpu SOURCES copy_stencil_wrapper.cpp)
     target_link_libraries(copy_stencil_lib_gpu PUBLIC GridTools::stencil_gpu)
-    target_compile_options(copy_stencil_lib_gpu PRIVATE "-std=c++14") # TODO shouldn't be here
     gridtools_setup_target(copy_stencil_lib_gpu CUDA_ARCH ${EXAMPLE_CUDA_ARCH})
 
     if(CMAKE_C_COMPILER_LOADED)
