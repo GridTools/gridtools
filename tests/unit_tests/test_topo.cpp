@@ -70,6 +70,7 @@ namespace gridtools::topo {
             using src_t = vertex::cell::edge::vertex::cell;
             using testee_t = links<src_t>;
             static_assert(meta::length<testee_t>() == 6);
+            static_assert(meta::all_of<is_link, testee_t>());
             static_assert(std::is_same_v<join<testee_t>, src_t>);
         } // namespace links_test
 
@@ -81,7 +82,7 @@ namespace gridtools::topo {
             static_assert(meta::is_set_fast<testee_t>());
 
             template <class T>
-            using check = std::is_same<join<T>, src_t>;
+            using check = std::bool_constant<meta::all_of<is_chain, T>::value && std::is_same_v<join<T>, src_t>>;
 
             static_assert(meta::all<meta::transform<check, testee_t>>());
         } // namespace splits_test
