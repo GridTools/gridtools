@@ -173,6 +173,8 @@ namespace gridtools::topo {
 
     // Takes the list of chains and join them together into a one.
     // join<meta::list<vertex::edge, edge::vertex>> => vertex::edge::vertex
+    // precondition: for each two subsequent chains A and B, last<A> should be the same as first<B>
+    // this precondition is not statically asserted (to save on compilation time)
     template <class Chains>
     using join = meta::combine<meta::force<_impl::join>::apply, Chains>;
 
