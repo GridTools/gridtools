@@ -11,7 +11,7 @@
 #pragma once
 
 #if __cplusplus < 201703
-#error requried C++17
+#error gridtools::topo requires C++17
 #endif
 
 #include <type_traits>
