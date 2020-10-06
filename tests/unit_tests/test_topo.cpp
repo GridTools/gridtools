@@ -55,11 +55,11 @@ namespace gridtools::topo {
         static_assert(std::is_same_v<reverse<vertex::edge>, edge::vertex>);
         static_assert(std::is_same_v<reverse<vertex::cell::edge::vertex::cell>, cell::vertex::edge::cell::vertex>);
 
-        // from
-        static_assert(std::is_same_v<from<vertex::cell::edge::vertex::cell>, vertex>);
+        // first
+        static_assert(std::is_same_v<first<vertex::cell::edge::vertex::cell>, vertex>);
 
-        // to
-        static_assert(std::is_same_v<to<vertex::cell::edge::vertex::cell>, cell>);
+        // last
+        static_assert(std::is_same_v<last<vertex::cell::edge::vertex::cell>, cell>);
 
         // join
         static_assert(std::is_same_v<join<meta::list<vertex::cell, cell::edge, edge::vertex, vertex::cell>>,

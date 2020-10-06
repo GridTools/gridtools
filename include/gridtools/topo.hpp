@@ -110,10 +110,10 @@ namespace gridtools::topo {
         };
 
         template <class>
-        struct to;
+        struct last;
 
         template <location T, location U, location... Ts>
-        struct to<entity<T, U, Ts...>> {
+        struct last<entity<T, U, Ts...>> {
             using type = entity<T>;
         };
 
@@ -167,9 +167,9 @@ namespace gridtools::topo {
     using reverse = typename _impl::reverse<Chain>::type;
 
     template <class Chain>
-    using to = typename _impl::to<Chain>::type;
+    using last = typename _impl::last<Chain>::type;
     template <class Chain>
-    using from = to<reverse<Chain>>;
+    using first = last<reverse<Chain>>;
 
     // Takes the list of chains and join them together into a one.
     // join<meta::list<vertex::edge, edge::vertex>> => vertex::edge::vertex
