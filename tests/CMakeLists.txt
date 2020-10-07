@@ -1,3 +1,9 @@
+set(GT_TESTS_CXX_STANDARD "DEFAULT" CACHE STRING "C++ standard for compiling tests.")
+set_property(CACHE GT_TESTS_CXX_STANDARD PROPERTY STRINGS "DEFAULT;17")
+if(NOT GT_TESTS_CXX_STANDARD STREQUAL "DEFAULT")
+    set(CMAKE_CXX_STANDARD ${GT_TESTS_CXX_STANDARD})
+    set(CMAKE_CUDA_STANDARD ${GT_TESTS_CXX_STANDARD})
+endif()
 
 add_library(GridToolsTest INTERFACE)
 target_link_libraries(GridToolsTest INTERFACE gridtools)
