@@ -6,10 +6,6 @@ module switch cudatoolkit cudatoolkit/11.0.2_3.33-7.0.2.1_3.1__g1ba0366
 
 module swap PrgEnv-cray PrgEnv-gnu
 
-if [ "$build_type" != "debug" ]; then
-  module load HPX/1.5.0-CrayGNU-20.08-cuda
-fi
-
 export CXX=$(which CC)
 export CC=$(which cc)
 export FC=$(which ftn)
