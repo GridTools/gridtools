@@ -2,10 +2,10 @@
 
 source $(dirname "$BASH_SOURCE")/ault.sh
 
-module use /users/fthaler/public/jenkins/modules
-module load gcc/8.3.0
-module load cuda/10.1
-module load hip-clang/2020-04-28
+module load rocm/3.8.0
+# fix for broken module
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm-3.8.0/llvm/lib"
+module load gcc/10.1.0
 
 export CXX=$(which hipcc)
 export CC=$(which gcc)
