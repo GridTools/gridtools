@@ -141,7 +141,7 @@ namespace gridtools {
                                 recv_buffer[translate()(i, j, k)] =
                                     gcl_alloc<char, arch_type>::alloc(recv_buffer_size[translate()(i, j, k)]);
 
-                                typedef typename layout_transform<t_layoutmap, proc_layout_abs>::type proc_layout;
+                                using proc_layout = layout_transform<t_layoutmap, proc_layout_abs>;
                                 const int i_P = make_array(i, j, k)[proc_layout::at(0)];
                                 const int j_P = make_array(i, j, k)[proc_layout::at(1)];
                                 const int k_P = make_array(i, j, k)[proc_layout::at(2)];
@@ -187,7 +187,7 @@ namespace gridtools {
                                 send_buffer_size[translate()(i, j, k)] = (buffer_size_list[translate()(i, j, k)]);
                                 recv_buffer_size[translate()(i, j, k)] = (buffer_size_list[translate()(i, j, k)]);
 
-                                typedef typename layout_transform<t_layoutmap, proc_layout_abs>::type proc_layout;
+                                using proc_layout = layout_transform<t_layoutmap, proc_layout_abs>;
                                 const int i_P = make_array(i, j, k)[proc_layout::at(0)];
                                 const int j_P = make_array(i, j, k)[proc_layout::at(1)];
                                 const int k_P = make_array(i, j, k)[proc_layout::at(2)];
@@ -288,8 +288,7 @@ namespace gridtools {
                 void operator()(
                     const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
                     const {
-                    typedef
-                        typename layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>::type proc_layout;
+                    using proc_layout = layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>;
                     const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
                     const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
                     const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
@@ -313,8 +312,7 @@ namespace gridtools {
                 void operator()(
                     const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
                     const {
-                    typedef
-                        typename layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>::type proc_layout;
+                    using proc_layout = layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>;
                     const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
                     const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
                     const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
@@ -333,8 +331,8 @@ namespace gridtools {
 
                 template <typename T, typename iterator, typename array_of_fotf>
                 void operator()(const T &hm, int ii, int jj, int kk, iterator &it, array_of_fotf const &_fields) const {
-                    typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap,
-                        proc_layout_abs>::type proc_layout;
+                    using proc_layout =
+                        layout_transform<typename array_of_fotf::value_type::inner_layoutmap, proc_layout_abs>;
                     const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
                     const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
                     const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
@@ -354,8 +352,8 @@ namespace gridtools {
 
                 template <typename T, typename iterator, typename array_of_fotf>
                 void operator()(const T &hm, int ii, int jj, int kk, iterator &it, array_of_fotf const &_fields) const {
-                    typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap,
-                        proc_layout_abs>::type proc_layout;
+                    using proc_layout =
+                        layout_transform<typename array_of_fotf::value_type::inner_layoutmap, proc_layout_abs>;
                     const int ii_P = make_array(ii, jj, kk)[proc_layout::at(0)];
                     const int jj_P = make_array(ii, jj, kk)[proc_layout::at(1)];
                     const int kk_P = make_array(ii, jj, kk)[proc_layout::at(2)];
@@ -457,7 +455,7 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj)
                         for (int kk = -1; kk <= 1; ++kk)
                             if (ii != 0 || jj != 0 || kk != 0) {
-                                typedef typename layout_transform<data_layout, proc_layout_abs>::type map_type;
+                                using map_type = layout_transform<data_layout, proc_layout_abs>;
 
                                 const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
                                 const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
@@ -526,8 +524,8 @@ namespace gridtools {
             template <typename T1, typename T2, template <typename> class T3>
             void pack(std::vector<field_on_the_fly<T1, T2, T3>> const &_fields) {
 
-                typedef typename layout_transform<typename field_on_the_fly<T1, T2, T3>::inner_layoutmap,
-                    proc_layout_abs>::type map_type;
+                using map_type =
+                    layout_transform<typename field_on_the_fly<T1, T2, T3>::inner_layoutmap, proc_layout_abs>;
 
                 std::vector<field_on_the_fly<T1, T2, T3>> fields = _fields;
 
@@ -665,8 +663,8 @@ namespace gridtools {
             */
             template <typename T1, typename T2, template <typename> class T3>
             void unpack(std::vector<field_on_the_fly<T1, T2, T3>> const &_fields) {
-                typedef typename layout_transform<typename field_on_the_fly<T1, T2, T3>::inner_layoutmap,
-                    proc_layout_abs>::type map_type;
+                using map_type =
+                    layout_transform<typename field_on_the_fly<T1, T2, T3>::inner_layoutmap, proc_layout_abs>;
 
                 std::vector<field_on_the_fly<T1, T2, T3>> fields = _fields;
 

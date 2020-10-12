@@ -182,7 +182,7 @@ The :term:`Halo Exchange` object can be instantiated as:
 
 .. code-block:: gridtools
 
-  pattern_type he(std::array<bool, 3>{true, false, true}, CartComm);
+  pattern_type he(pattern_type::grid_type::period_type(true, false, true), CartComm);
 
 Where ``period_type`` indicates whether the corresponding dimensions are
 periodic or not. ``CartComm`` is the MPI communicator describing the

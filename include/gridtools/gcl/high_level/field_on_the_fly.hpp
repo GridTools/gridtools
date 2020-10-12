@@ -11,7 +11,7 @@
 
 #include "../../common/array.hpp"
 #include "../../common/halo_descriptor.hpp"
-#include "../../common/layout_map_metafunctions.hpp"
+#include "../../common/layout_map.hpp"
 
 namespace gridtools {
     namespace gcl {
@@ -25,9 +25,9 @@ namespace gridtools {
          */
         template <typename DataType, typename _t_layoutmap, template <typename> class Traits>
         struct field_on_the_fly : public Traits<DataType>::base_field {
-            typedef typename reverse_map<_t_layoutmap>::type inner_layoutmap; // This is necessary since the internals
-                                                                              // of gcl use "increasing stride order"
-                                                                              // instead of "decreasing stride order"
+            // This is necessary since the internals of gcl use "increasing stride order" instead of "decreasing stride
+            // order"
+            using inner_layoutmap = reverse_map<_t_layoutmap>;
             typedef _t_layoutmap outer_layoutmap;
             static const int DIMS = Traits<DataType>::I;
 

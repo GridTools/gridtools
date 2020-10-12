@@ -44,7 +44,7 @@
 template <BOOST_PP_ENUM_PARAMS(GCL_NOI, typename FIELD)>
 void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
     ////////////////////////////////// Only FIELD0 is taken for layout... all should have the same
-    typedef typename layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>::type map_type;
+    using map_type = layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>;
 
     std::vector<FIELD0> fields(GCL_NOI);
 
@@ -190,7 +190,7 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
 template <BOOST_PP_ENUM_PARAMS(GCL_NOI, typename FIELD)>
 void unpack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
     ////////////////////////////////// Only FIELD0 is taken for layout... all should have the same
-    typedef typename layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>::type map_type;
+    using map_type = layout_transform<typename FIELD0::inner_layoutmap, proc_layout_abs>;
 
     std::vector<FIELD0> fields(GCL_NOI);
 

@@ -1,5 +1,4 @@
 gridtools_check_compilation(test_integral_constant test_integral_constant.cpp)
-gridtools_check_compilation(test_layout_map_metafunctions test_layout_map_metafunctions.cpp)
 gridtools_check_compilation(test_layout_map test_layout_map.cpp)
 
 gridtools_add_unit_test(test_array SOURCES test_array.cpp)

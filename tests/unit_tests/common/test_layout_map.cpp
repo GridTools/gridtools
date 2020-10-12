@@ -8,8 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <gridtools/common/layout_map.hpp>
-#include <gridtools/common/layout_map_metafunctions.hpp>
-#include <gridtools/meta.hpp>
 
 using namespace gridtools;
 
@@ -69,40 +67,3 @@ namespace masked_layout {
     static_assert(layout3::at(2) == 1, "");
     static_assert(layout3::at(3) == 0, "");
 } // namespace masked_layout
-
-namespace extender {
-    typedef layout_map<0, 1, 2> layout;
-
-    template <class Layout, int... Is>
-    constexpr bool testee = std::is_same<layout_map<Is...>, Layout>::value;
-
-    typedef typename extend_layout_map<layout, 1>::type ext_layout_1;
-    static_assert(testee<ext_layout_1, 1, 2, 3, 0>, "");
-
-    typedef typename extend_layout_map<layout, 2>::type ext_layout_2;
-    static_assert(testee<ext_layout_2, 2, 3, 4, 0, 1>, "");
-
-    typedef typename extend_layout_map<layout, 3>::type ext_layout_3;
-    static_assert(testee<ext_layout_3, 3, 4, 5, 0, 1, 2>, "");
-
-    typedef typename extend_layout_map<layout, 1, insert_location::pre>::type ext_layout_post_1;
-    static_assert(testee<ext_layout_post_1, 0, 1, 2, 3>, "");
-
-    // try the same again with a special layout
-    typedef layout_map<2, 1, -1, 0> special_layout;
-
-    typedef typename extend_layout_map<special_layout, 1>::type ext_special_layout_1;
-    static_assert(testee<ext_special_layout_1, 3, 2, -1, 1, 0>, "");
-
-    typedef typename extend_layout_map<special_layout, 2>::type ext_special_layout_2;
-    static_assert(testee<ext_special_layout_2, 4, 3, -1, 2, 0, 1>, "");
-
-    typedef typename extend_layout_map<special_layout, 3>::type ext_special_layout_3;
-    static_assert(testee<ext_special_layout_3, 5, 4, -1, 3, 0, 1, 2>, "");
-
-    typedef typename extend_layout_map<special_layout, 1, insert_location::pre>::type ext_special_layout_post_1;
-    static_assert(testee<ext_special_layout_post_1, 0, 3, 2, -1, 1>, "");
-
-    typedef typename extend_layout_map<special_layout, 2, insert_location::pre>::type ext_special_layout_post_2;
-    static_assert(testee<ext_special_layout_post_2, 0, 1, 4, 3, -1, 2>, "");
-} // namespace extender

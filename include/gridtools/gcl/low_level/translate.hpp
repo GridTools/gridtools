@@ -12,7 +12,6 @@
 #include <utility>
 
 #include "../../common/layout_map.hpp"
-#include "../../common/layout_map_metafunctions.hpp"
 
 namespace gridtools {
     namespace gcl {
