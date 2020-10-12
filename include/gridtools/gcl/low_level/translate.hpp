@@ -9,12 +9,22 @@
  */
 #pragma once
 
+#include <utility>
+
 #include "../../common/layout_map.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 
 namespace gridtools {
     namespace gcl {
-        template <int D, typename map = typename default_layout_map<3>::type>
+        template <int D, class Is = std::make_integer_sequence<int, D>>
+        struct default_layout_map;
+
+        template <int D, int... Is>
+        struct default_layout_map<D, std::integer_sequence<int, Is...>> {
+            using type = layout_map<Is...>;
+        };
+
+        template <int D, typename map = typename default_layout_map<D>::type>
         struct translate_t;
 
         template <>

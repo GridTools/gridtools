@@ -11,8 +11,8 @@
 
 #include "array.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/utility.hpp"
 #include "tuple_util.hpp"
+#include "utility.hpp"
 
 namespace gridtools {
     /** \ingroup array

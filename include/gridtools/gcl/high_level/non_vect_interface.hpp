@@ -154,7 +154,6 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FIELD, const &_field)) const {
 
     GCL_COPY_BACK(GCL_NOI);
 
-    // typedef translate_t<3,default_layout_map<3>::type > translate;
     if (send_size[translate()(0, 0, -1)]) {
         m_packZL_generic_nv(
             BOOST_PP_ENUM_PARAMS(GCL_NOI, new_field), reinterpret_cast<void **>(d_send_buffer), prefix_send_size);

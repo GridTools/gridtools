@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include "defs.hpp"
-
 namespace gridtools {
-    constexpr int static_pow3(uint_t i) { return i ? 3 * static_pow3(i - 1) : 1; }
+    namespace gcl {
+        constexpr int static_pow3(int i) { return i ? 3 * static_pow3(i - 1) : 1; }
+    } // namespace gcl
 } // namespace gridtools

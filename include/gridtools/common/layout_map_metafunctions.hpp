@@ -10,9 +10,9 @@
 
 #pragma once
 
+#include <algorithm>
 #include <utility>
 
-#include "generic_metafunctions/accumulate.hpp"
 #include "layout_map.hpp"
 
 namespace gridtools {
@@ -33,7 +33,7 @@ namespace gridtools {
     /// \private
     template <int_t... Is>
     struct reverse_map<layout_map<Is...>> {
-        static constexpr int max = constexpr_max(Is...);
+        static constexpr int max = std::max({Is...});
         using type = layout_map<(Is < 0 ? Is : max - Is)...>;
     };
 
@@ -74,15 +74,6 @@ namespace gridtools {
 
         using type = typename build_ext_layout<Location, std::make_integer_sequence<int_t, NExtraDim>>::type;
     };
-
-    template <int_t D>
-    struct default_layout_map {
-        using type = typename extend_layout_map<layout_map<>, D, insert_location::pre>::type;
-    };
-
-    template <int_t D>
-    using default_layout_map_t = typename default_layout_map<D>::type;
-
     /** @} */
     /** @} */
 } // namespace gridtools

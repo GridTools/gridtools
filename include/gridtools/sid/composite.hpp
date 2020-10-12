@@ -14,12 +14,12 @@
 #include <utility>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/for_each.hpp"
-#include "../common/generic_metafunctions/utility.hpp"
+#include "../common/for_each.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
+#include "../common/utility.hpp"
 #include "../meta.hpp"
 #include "concept.hpp"
 
@@ -45,7 +45,7 @@ namespace gridtools {
 
                 template <class Kinds>
                 using make_index_map =
-                    meta::first<meta::lfold<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>>;
+                    meta::first<meta::foldl<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>>;
 
                 /**
                  *  `maybe_equal(lhs, rhs)` is a functional equivalent of the following pseudo code:

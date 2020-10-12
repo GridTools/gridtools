@@ -30,7 +30,7 @@ namespace gridtools {
             template <class T>
             struct simple_ptr_holder {
                 T m_val;
-                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR T const &operator()() const { return m_val; }
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR T const &operator()() const { return m_val; }
             };
 
             template <class T>

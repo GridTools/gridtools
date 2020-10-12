@@ -95,7 +95,7 @@ namespace gridtools {
         template <typename Datatype, typename T2, typename procmap, typename arch, template <int Ndim> class GridType>
         struct allocation_service<hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch>> {
             void operator()(hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch> *hm, int mf) const {
-                typedef translate_t<3, default_layout_map<3>::type> translate;
+                typedef translate_t<3> translate;
                 typedef translate_t<3, procmap> translate_P;
 
                 for (int ii = -1; ii <= 1; ++ii)

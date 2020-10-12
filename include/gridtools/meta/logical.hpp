@@ -31,7 +31,7 @@ namespace gridtools {
          */
         template <class... Ts>
         using conjunction_fast = std::is_same<list<std::integral_constant<bool, Ts::value>...>,
-            repeat_c<GT_SIZEOF_3_DOTS(Ts), std::true_type>>;
+            repeat_c<GT_SIZEOF_3_DOTS(Ts), list<std::true_type>>>;
 
         template <class... Ts>
         using disjunction_fast = negation<conjunction_fast<negation<Ts>...>>;
@@ -67,7 +67,7 @@ namespace gridtools {
         struct are_same<> : std::true_type {};
 
         template <class T, class... Ts>
-        struct are_same<T, Ts...> : std::is_same<list<Ts...>, repeat_c<GT_SIZEOF_3_DOTS(Ts), T>> {};
+        struct are_same<T, Ts...> : std::is_same<list<Ts...>, repeat_c<GT_SIZEOF_3_DOTS(Ts), list<T>>> {};
 
         template <class List>
         using all_are_same = rename<are_same, List>;

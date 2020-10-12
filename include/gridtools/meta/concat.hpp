@@ -10,9 +10,14 @@
 
 #pragma once
 
-#include "combine.hpp"
 #include "list.hpp"
 #include "macros.hpp"
+
+#if __cplusplus < 201703
+#include "combine.hpp"
+#else
+#include "fold.hpp"
+#endif
 
 namespace gridtools {
     namespace meta {
@@ -36,8 +41,13 @@ namespace gridtools {
                 using type = L1<T1s..., T2s...>;
             };
 
-            template <class L1, class L2, class L3, class... Lists>
-            struct concat<L1, L2, L3, Lists...> : combine<meta::concat, list<L1, L2, L3, Lists...>> {};
+#if __cplusplus < 201703
+            template <class... Lists>
+            struct concat : combine<meta::concat, list<Lists...>> {};
+#else
+            template <class List, class... Lists>
+            struct concat<List, Lists...> : foldl<meta::concat, List, list<Lists...>> {};
+#endif
         } // namespace lazy
     }     // namespace meta
 } // namespace gridtools

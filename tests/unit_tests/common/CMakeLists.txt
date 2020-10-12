@@ -1,8 +1,6 @@
 gridtools_check_compilation(test_integral_constant test_integral_constant.cpp)
 gridtools_check_compilation(test_layout_map_metafunctions test_layout_map_metafunctions.cpp)
 gridtools_check_compilation(test_layout_map test_layout_map.cpp)
-gridtools_check_compilation(test_numerics test_numerics.cpp)
-gridtools_check_compilation(test_variadic_pack_metafunctions test_variadic_pack_metafunctions.cpp)
 
 gridtools_add_unit_test(test_array SOURCES test_array.cpp)
 gridtools_add_unit_test(test_compose SOURCES test_compose.cpp)
@@ -12,7 +10,7 @@ gridtools_add_unit_test(test_make_array SOURCES test_make_array.cpp)
 gridtools_add_unit_test(test_pair SOURCES test_pair.cpp)
 gridtools_add_unit_test(test_stride_util SOURCES test_stride_util.cpp)
 gridtools_add_unit_test(test_tuple_util SOURCES test_tuple_util.cpp)
-gridtools_add_unit_test(test_boollist SOURCES test_boollist.cpp)
+gridtools_add_unit_test(test_for_each SOURCES test_for_each.cpp)
 
 gridtools_add_unit_test(test_atomic_functions SOURCES test_atomic_functions.cpp NO_NVCC)
 gridtools_add_unit_test(test_cuda_is_ptr SOURCES test_cuda_is_ptr.cpp NO_NVCC)
@@ -44,5 +42,3 @@ if(TARGET _gridtools_cuda)
             LIBRARIES _gridtools_cuda
             LABELS cuda)
 endif()
-
-add_subdirectory(generic_metafunctions)

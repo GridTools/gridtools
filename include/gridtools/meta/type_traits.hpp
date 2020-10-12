@@ -13,13 +13,12 @@
 #include <type_traits>
 
 namespace gridtools {
-
     /**
      * @file
      * Some C++17 type_traits drop offs. Please refer to C++17 specifications
      * to know more about them.
      */
-
+#if __cplusplus < 201703
     template <bool V>
     using bool_constant = std::integral_constant<bool, V>;
 
@@ -42,4 +41,11 @@ namespace gridtools {
 
     template <typename... Ts>
     using void_t = void;
+#else
+    using std::bool_constant;
+    using std::conjunction;
+    using std::disjunction;
+    using std::negation;
+    using std::void_t;
+#endif
 } // namespace gridtools

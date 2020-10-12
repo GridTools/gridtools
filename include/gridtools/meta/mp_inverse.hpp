@@ -26,11 +26,11 @@ namespace gridtools {
 
             template <class State, template <class...> class L, class Key, class... Vals>
             struct mp_inverse_helper<State, L<Key, Vals...>>
-                : lfold<meta::mp_insert, State, meta::list<L<Vals, Key>...>> {};
+                : foldl<meta::mp_insert, State, meta::list<L<Vals, Key>...>> {};
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(mp_inverse_helper, (class State, class Item), (State, Item));
 
         template <class Src>
-        using mp_inverse = lfold<mp_inverse_helper, clear<Src>, Src>;
+        using mp_inverse = foldl<mp_inverse_helper, clear<Src>, Src>;
     } // namespace meta
 } // namespace gridtools

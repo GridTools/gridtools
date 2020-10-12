@@ -56,11 +56,19 @@ namespace gridtools::topo {
         };
 
         template <class...>
-        struct join;
+        struct join_folder;
 
         template <location T, location... Ts, location... Us>
-        struct join<entity<T, Ts...>, entity<Us...>> {
+        struct join_folder<entity<T, Ts...>, entity<Us...>> {
             using type = entity<Us..., Ts...>;
+        };
+
+        template <class>
+        struct join;
+
+        template <template <class...> class L, class T, class... Ts>
+        struct join<L<T, Ts...>> {
+            using type = meta::foldl<meta::force<join_folder>::apply, T, L<Ts...>>;
         };
 
         template <location T>
@@ -176,7 +184,7 @@ namespace gridtools::topo {
     // precondition: for each two subsequent chains A and B, last<A> should be the same as first<B>
     // this precondition is not statically asserted (to save on compilation time)
     template <class Chains>
-    using join = meta::combine<meta::force<_impl::join>::apply, Chains>;
+    using join = typename _impl::join<Chains>::type;
 
     // Takes a chain and produces the list of links.
     // The result can be joined into the original chain.

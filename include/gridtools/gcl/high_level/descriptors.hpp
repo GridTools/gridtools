@@ -13,18 +13,14 @@
 
 #include "../../common/array.hpp"
 #include "../../common/make_array.hpp"
-#include "../../common/numerics.hpp"
-
 #include "../low_level/Halo_Exchange_3D.hpp"
 #include "../low_level/proc_grids_3D.hpp"
-
-#include "../../common/boollist.hpp"
-#include "../../common/numerics.hpp"
 #include "../low_level/translate.hpp"
 #include "access.hpp"
 #include "descriptor_base.hpp"
 #include "empty_field_base.hpp"
 #include "helpers_impl.hpp"
+#include "numerics.hpp"
 
 namespace gridtools {
     namespace gcl {
@@ -239,7 +235,7 @@ namespace gridtools {
             /**
                Type of the translation used to map dimensions to buffer addresses
              */
-            typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
+            typedef translate_t<DIMS> translate;
 
           private:
             hndlr_descriptor_ut(hndlr_descriptor_ut const &) {}
@@ -399,7 +395,7 @@ namespace gridtools {
             /**
                Type of the translation used to map dimensions to buffer addresses
              */
-            typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
+            typedef translate_t<DIMS> translate;
 
           private:
             hndlr_dynamic_ut(hndlr_dynamic_ut const &) = delete;

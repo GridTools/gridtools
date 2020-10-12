@@ -9,12 +9,12 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <type_traits>
+#include <utility>
 
 #include "../../common/array.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/accumulate.hpp"
-#include "../../common/variadic_pack_metafunctions.hpp"
 #include "../core/interval.hpp"
 #include "../core/level.hpp"
 
@@ -36,15 +36,14 @@ namespace gridtools {
 
         template <size_t NIntervals, int_t LevelOffsetLimit>
         class axis<NIntervals, axis_config::offset_limit<LevelOffsetLimit>> {
-            template <size_t... IntervalIDs>
+            template <size_t Id, size_t... Ids>
             struct interval_impl {
-                static_assert(is_continuous(IntervalIDs...), "Intervals must be continuous.");
-                static constexpr size_t min_id = constexpr_min(IntervalIDs...);
-                static constexpr size_t max_id = constexpr_max(IntervalIDs...);
-                static_assert(max_id < NIntervals, "Interval ID out of bounds for this axis.");
-
-                using type = core::interval<core::level<min_id, 1, LevelOffsetLimit>,
-                    core::level<max_id + 1, -1, LevelOffsetLimit>>;
+                static_assert(
+                    std::is_same<std::make_index_sequence<sizeof...(Ids) + 1>, std::index_sequence<0, Ids - Id...>>(),
+                    "Intervals must be continuous.");
+                static_assert(Id + sizeof...(Ids) < NIntervals, "Interval ID out of bounds for this axis.");
+                using type = core::interval<core::level<Id, 1, LevelOffsetLimit>,
+                    core::level<Id + sizeof...(Ids) + 1, -1, LevelOffsetLimit>>;
             };
 
           public:

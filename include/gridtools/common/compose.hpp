@@ -15,8 +15,8 @@
 
 #include "../meta.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
+#include "utility.hpp"
 
 #define GT_FILENAME <gridtools/common/compose.hpp>
 #include GT_ITERATE_ON_TARGETS()
@@ -37,15 +37,15 @@ namespace gridtools {
                 G m_g;
 
                 template <class... Args>
-                GT_CONSTEXPR GT_TARGET GT_FORCE_INLINE std::result_of_t<F(std::result_of_t<G(Args &&...)>)> operator()(
-                    Args &&... args) const {
+                GT_TARGET_CONSTEXPR GT_TARGET GT_FORCE_INLINE std::result_of_t<F(std::result_of_t<G(Args &&...)>)>
+                operator()(Args &&... args) const {
                     return m_f(m_g(wstd::forward<Args>(args)...));
                 }
             };
 
             template <class F, class... Fs>
             struct composed_f<F, Fs...> : composed_f<F, composed_f<Fs...>> {
-                GT_CONSTEXPR GT_TARGET GT_FORCE_INLINE composed_f(F f, Fs... fs)
+                GT_TARGET_CONSTEXPR GT_TARGET GT_FORCE_INLINE composed_f(F f, Fs... fs)
                     : composed_f<F, composed_f<Fs...>>{wstd::move(f), {wstd::move(fs)...}} {}
             };
         } // namespace compose_impl_
@@ -55,13 +55,13 @@ namespace gridtools {
         /// compose(a, b, c)(x, y) <==> a(b(c(x, y)))
         ///
         template <class... Funs>
-        GT_CONSTEXPR GT_TARGET GT_FORCE_INLINE compose_impl_::composed_f<std::decay_t<Funs>...> compose(
+        GT_TARGET_CONSTEXPR GT_TARGET GT_FORCE_INLINE compose_impl_::composed_f<std::decay_t<Funs>...> compose(
             Funs && ... funs) {
             return {wstd::forward<Funs>(funs)...};
         }
 
         template <class Fun>
-        GT_CONSTEXPR GT_TARGET GT_FORCE_INLINE Fun compose(Fun && fun) {
+        GT_TARGET_CONSTEXPR GT_TARGET GT_FORCE_INLINE Fun compose(Fun && fun) {
             return fun;
         }
     }

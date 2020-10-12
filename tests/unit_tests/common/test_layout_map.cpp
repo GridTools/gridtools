@@ -9,6 +9,7 @@
  */
 #include <gridtools/common/layout_map.hpp>
 #include <gridtools/common/layout_map_metafunctions.hpp>
+#include <gridtools/meta.hpp>
 
 using namespace gridtools;
 
@@ -68,16 +69,6 @@ namespace masked_layout {
     static_assert(layout3::at(2) == 1, "");
     static_assert(layout3::at(3) == 0, "");
 } // namespace masked_layout
-
-namespace default_layout {
-    template <int N, int... Is>
-    constexpr bool testee = std::is_same<layout_map<Is...>, typename default_layout_map<N>::type>::value;
-
-    static_assert(testee<1, 0>, "");
-    static_assert(testee<2, 0, 1>, "");
-    static_assert(testee<3, 0, 1, 2>, "");
-    static_assert(testee<4, 0, 1, 2, 3>, "");
-} // namespace default_layout
 
 namespace extender {
     typedef layout_map<0, 1, 2> layout;

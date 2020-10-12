@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../../common/defs.hpp"
-#include "../../common/numerics.hpp"
 #include "descriptor_base.hpp"
 
 #ifdef GT_CUDACC
@@ -57,10 +56,10 @@
 
 #include "../../common/array.hpp"
 #include "../../common/make_array.hpp"
-#include "../../common/numerics.hpp"
 #include "../low_level/translate.hpp"
 #include "field_on_the_fly.hpp"
 #include "helpers_impl.hpp"
+#include "numerics.hpp"
 
 namespace gridtools {
     namespace gcl {
@@ -87,7 +86,7 @@ namespace gridtools {
             /**
                Type of the translation used to map dimensions to buffer addresses
              */
-            typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
+            typedef translate_t<DIMS> translate;
 
             hndlr_generic(grid_type const &g)
                 : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_buffer_size{0}, recv_buffer_size{0} {}
@@ -405,7 +404,7 @@ namespace gridtools {
             /**
                Type of the translation used to map dimensions to buffer addresses
              */
-            typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
+            typedef translate_t<DIMS> translate;
 
             hndlr_generic(grid_type const &g)
                 : base_type(g), send_buffer{nullptr}, recv_buffer{nullptr}, send_buffer_size{0}, recv_buffer_size{0} {}
@@ -762,7 +761,6 @@ namespace gridtools {
                             }
                         }
 
-                // typedef translate_t<3,default_layout_map<3>::type > translate;
                 if (recv_size[translate()(0, 0, -1)]) {
                     m_unpackZL_generic(fields,
                         reinterpret_cast<typename field_on_the_fly<T1, T2, T3>::value_type **>(d_recv_buffer),

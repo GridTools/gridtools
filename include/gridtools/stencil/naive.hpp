@@ -12,7 +12,7 @@
 #include <memory>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/for_each.hpp"
+#include "../common/for_each.hpp"
 #include "../common/hymap.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/tuple_util.hpp"

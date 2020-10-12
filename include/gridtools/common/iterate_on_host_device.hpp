@@ -26,6 +26,10 @@
 #error GT_TARGET_NAMESPACE should not be defined outside of this file
 #endif
 
+#if defined(GT_TARGET_CONSTEXPR)
+#error GT_TARGET_NAMESPACE should not be defined outside of this file
+#endif
+
 #define GT_TARGET_ITERATING
 
 #ifdef GT_CUDACC
@@ -33,30 +37,36 @@
 #define GT_TARGET_NAMESPACE_NAME host
 #define GT_TARGET_NAMESPACE inline namespace host
 #define GT_TARGET GT_HOST
+#define GT_TARGET_CONSTEXPR constexpr
 #include GT_FILENAME
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE
 #undef GT_TARGET_NAMESPACE_NAME
+#undef GT_TARGET_CONSTEXPR
 
 #define GT_TARGET_NAMESPACE_NAME host_device
 #define GT_TARGET_NAMESPACE namespace host_device
 #define GT_TARGET GT_HOST_DEVICE
+#define GT_TARGET_CONSTEXPR
 #define GT_TARGET_HAS_DEVICE
 #include GT_FILENAME
 #undef GT_TARGET_HAS_DEVICE
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE
 #undef GT_TARGET_NAMESPACE_NAME
+#undef GT_TARGET_CONSTEXPR
 
 #define GT_TARGET_NAMESPACE_NAME device
 #define GT_TARGET_NAMESPACE namespace device
 #define GT_TARGET GT_DEVICE
 #define GT_TARGET_HAS_DEVICE
+#define GT_TARGET_CONSTEXPR
 #include GT_FILENAME
 #undef GT_TARGET_HAS_DEVICE
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE
 #undef GT_TARGET_NAMESPACE_NAME
+#undef GT_TARGET_CONSTEXPR
 
 #else
 
@@ -71,11 +81,12 @@
     }                         \
     inline namespace host
 #define GT_TARGET GT_HOST
+#define GT_TARGET_CONSTEXPR constexpr
 #include GT_FILENAME
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE
 #undef GT_TARGET_NAMESPACE_NAME
-
+#undef GT_TARGET_CONSTEXPR
 #endif
 
 #undef GT_TARGET_ITERATING

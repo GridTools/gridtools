@@ -20,11 +20,12 @@
 #include <utility>
 
 #include "../meta/id.hpp"
+#include "../meta/list.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/repeat.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
+#include "utility.hpp"
 
 namespace gridtools {
 
@@ -104,7 +105,7 @@ namespace gridtools {
 
         struct getter {
             template <size_t I, typename T, size_t D>
-            static GT_FUNCTION T &get(array<T, D> &arr) noexcept {
+            static GT_FUNCTION GT_CONSTEXPR T &get(array<T, D> &arr) noexcept {
                 static_assert(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
@@ -124,7 +125,7 @@ namespace gridtools {
     } // namespace array_impl_
 
     template <typename T, size_t D>
-    meta::repeat_c<D, T> tuple_to_types(array<T, D> const &);
+    meta::repeat_c<D, meta::list<T>> tuple_to_types(array<T, D> const &);
 
     template <typename T, size_t D>
     array_impl_::from_types_f tuple_from_types(array<T, D> const &);

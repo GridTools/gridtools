@@ -11,7 +11,7 @@
 
 #include <type_traits>
 
-#include "../common/generic_metafunctions/for_each.hpp"
+#include "../common/for_each.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple.hpp"
@@ -340,8 +340,9 @@ namespace gridtools {
                 using interval_t = core::concat_intervals<typename IntervalInfos::interval_t...>;
                 using k_step_t = typename item_t::k_step_t;
 
-                using interval_infos_t = meta::rename<tuple,
-                    meta::if_<core::is_backward<execution_t>, meta::reverse<fused_view_item>, fused_view_item>>;
+                using interval_infos_t = meta::if_<core::is_backward<execution_t>,
+                    meta::reverse<meta::rename<tuple, fused_view_item>>,
+                    meta::rename<tuple, fused_view_item>>;
 
                 static GT_FUNCTION execution_t execution() { return {}; }
                 static GT_FUNCTION extent_t extent() { return {}; }
@@ -366,8 +367,9 @@ namespace gridtools {
                 using interval_t = core::concat_intervals<typename Cells::interval_t...>;
                 using k_step_t = typename cell_t::k_step_t;
 
-                using cells_t = meta::rename<tuple,
-                    meta::if_<core::is_backward<execution_t>, meta::reverse<split_view_item>, split_view_item>>;
+                using cells_t = meta::if_<core::is_backward<execution_t>,
+                    meta::reverse<meta::rename<tuple, split_view_item>>,
+                    meta::rename<tuple, split_view_item>>;
 
                 static GT_FUNCTION execution_t execution() { return {}; }
                 static GT_FUNCTION extent_t extent() { return {}; }

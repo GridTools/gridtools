@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/common/generic_metafunctions/for_each.hpp>
+#include <gridtools/common/for_each.hpp>
 #include <gridtools/common/hypercube_iterator.hpp>
 #include <gridtools/common/make_array.hpp>
 #include <gridtools/meta.hpp>

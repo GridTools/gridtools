@@ -348,8 +348,7 @@ namespace gridtools {
                 return {};
             }
 
-            template <class T,
-                class Res = meta::rename<tuple, meta::repeat<std::rank<T>, integral_constant<ptrdiff_t, 0>>>>
+            template <class T, class Res = meta::repeat<std::rank<T>, tuple<integral_constant<ptrdiff_t, 0>>>>
             std::enable_if_t<std::is_array<T>::value, Res> get_lower_bounds(T const &) {
                 return {};
             }

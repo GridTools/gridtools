@@ -13,7 +13,7 @@
 #include <type_traits>
 
 #include "../../../common/defs.hpp"
-#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/for_each.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../../common/hymap.hpp"
 #include "../../../common/integral_constant.hpp"

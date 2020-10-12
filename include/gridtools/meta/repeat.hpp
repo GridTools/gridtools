@@ -11,7 +11,6 @@
 
 #include <cstddef>
 
-#include "list.hpp"
 #include "macros.hpp"
 
 namespace gridtools {
@@ -23,33 +22,33 @@ namespace gridtools {
             template <class List, bool Rem>
             struct repeat_impl_expand;
 
-            template <class... Ts>
-            struct repeat_impl_expand<list<Ts...>, false> {
-                using type = list<Ts..., Ts...>;
+            template <template <class...> class L, class... Ts>
+            struct repeat_impl_expand<L<Ts...>, false> {
+                using type = L<Ts..., Ts...>;
             };
 
-            template <class T, class... Ts>
-            struct repeat_impl_expand<list<T, Ts...>, true> {
-                using type = list<T, T, T, Ts..., Ts...>;
+            template <template <class...> class L, class T, class... Ts>
+            struct repeat_impl_expand<L<T, Ts...>, true> {
+                using type = L<T, T, T, Ts..., Ts...>;
             };
 
-            template <std::size_t N, class T>
+            template <std::size_t N, class L>
             struct repeat_c {
-                using type = typename repeat_impl_expand<typename repeat_c<N / 2, T>::type, N % 2>::type;
+                using type = typename repeat_impl_expand<typename repeat_c<N / 2, L>::type, N % 2>::type;
             };
 
-            template <class T>
-            struct repeat_c<0, T> {
-                using type = list<>;
+            template <template <class...> class L, class... Ts>
+            struct repeat_c<0, L<Ts...>> {
+                using type = L<>;
             };
 
-            template <class T>
-            struct repeat_c<1, T> {
-                using type = list<T>;
+            template <template <class...> class L, class... Ts>
+            struct repeat_c<1, L<Ts...>> {
+                using type = L<Ts...>;
             };
 
-            template <class N, class T>
-            using repeat = repeat_c<N::value, T>;
+            template <class N, class L>
+            using repeat = repeat_c<N::value, L>;
         } // namespace lazy
         template <std::size_t N, class T>
         using repeat_c = typename lazy::repeat_c<N, T>::type;

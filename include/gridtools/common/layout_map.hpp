@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <type_traits>
 
 #include "../meta/combine.hpp"
@@ -20,8 +21,6 @@
 #include "../meta/push_back.hpp"
 #include "../meta/type_traits.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/accumulate.hpp"
-#include "variadic_pack_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -54,7 +53,8 @@ namespace gridtools {
             meta::push_back<unmasked_args, std::integral_constant<int, 0>>>::type::value;
 
       public:
-        static constexpr int max_arg = constexpr_max(Args...);
+        static constexpr int max_arg = std::max({Args...});
+        ;
 
         /** @brief Length of layout map excluding masked dimensions. */
         static constexpr std::size_t unmasked_length = meta::length<unmasked_args>::value;
@@ -65,10 +65,20 @@ namespace gridtools {
             GT_INTERNAL_ERROR_MSG("Layout map args must not contain any holes (e.g., layout_map<3,1,0>)."));
 
         /** @brief Get the position of the element with value `i` in the layout map. */
-        GT_FUNCTION static constexpr std::size_t find(int i) { return get_index_of_element_in_pack(0, i, Args...); }
+        static constexpr std::size_t find(int i) {
+            int args[] = {Args...};
+            std::size_t res = 0;
+            for (; res != sizeof...(Args); ++res)
+                if (i == args[res])
+                    break;
+            return res;
+        }
 
         /** @brief Get the value of the element at position `I` in the layout map. */
-        GT_FUNCTION static constexpr int at(std::size_t i) { return get_value_from_pack(i, Args...); }
+        static constexpr int at(std::size_t i) {
+            int args[] = {Args...};
+            return args[i];
+        }
     };
     /** @} */
     /** @} */

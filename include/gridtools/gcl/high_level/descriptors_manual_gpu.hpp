@@ -11,10 +11,9 @@
 #include <utility>
 
 #include "../../common/defs.hpp"
-#include "../../common/numerics.hpp"
 #include "empty_field_base.hpp"
-
 #include "helpers_impl.hpp"
+#include "numerics.hpp"
 
 #ifdef GT_CUDACC
 #include "m_packXL.hpp"
@@ -118,7 +117,7 @@ namespace gridtools {
             /**
                Type of the translation used to map dimensions to buffer addresses
              */
-            typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
+            typedef translate_t<DIMS> translate;
 
           private:
             hndlr_dynamic_ut(hndlr_dynamic_ut const &) = delete;
@@ -164,7 +163,7 @@ namespace gridtools {
             */
             void setup(const int max_fields_n) {
 
-                typedef translate_t<3, default_layout_map<3>::type> translate;
+                typedef translate_t<3> translate;
                 typedef translate_t<3, proc_layout> translate_P;
 
                 dangeroushalo[0] = halo.dangerous_raw_array()[0];
@@ -342,7 +341,7 @@ namespace gridtools {
             */
             template <typename... Pointers>
             void pack(const Pointers *... fields) {
-                typedef translate_t<3, default_layout_map<3>::type> translate;
+                typedef translate_t<3> translate;
                 auto ints = std::make_integer_sequence<unsigned int, sizeof...(Pointers)>{};
                 if (send_size[translate()(0, 0, -1)]) {
                     m_packZL_variadic(
@@ -404,7 +403,7 @@ namespace gridtools {
             template <typename... Pointers>
             void unpack(Pointers *... fields) {
                 auto ints = std::make_integer_sequence<unsigned int, sizeof...(Pointers)>{};
-                typedef translate_t<3, default_layout_map<3>::type> translate;
+                typedef translate_t<3> translate;
                 if (recv_size[translate()(0, 0, -1)]) {
                     m_unpackZL_variadic(
                         d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
@@ -437,7 +436,7 @@ namespace gridtools {
                \param[in] fields vector with data fields pointers to be packed from
             */
             void pack(std::vector<DataType *> const &fields) {
-                typedef translate_t<3, default_layout_map<3>::type> translate;
+                typedef translate_t<3> translate;
                 if (send_size[translate()(0, 0, -1)]) {
                     m_packZL(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
                 }
@@ -493,7 +492,7 @@ namespace gridtools {
                \param[in] fields vector with data fields pointers to be unpacked into
             */
             void unpack(std::vector<DataType *> const &fields) {
-                typedef translate_t<3, default_layout_map<3>::type> translate;
+                typedef translate_t<3> translate;
                 if (recv_size[translate()(0, 0, -1)]) {
                     m_unpackZL(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r);
                 }

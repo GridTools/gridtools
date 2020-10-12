@@ -10,9 +10,8 @@
 
 #pragma once
 
-#include "combine.hpp"
 #include "concat.hpp"
-#include "macros.hpp"
+#include "rename.hpp"
 
 namespace gridtools {
     /**
@@ -22,10 +21,10 @@ namespace gridtools {
      */
     namespace meta {
         namespace lazy {
-            template <class Lists>
-            using flatten = combine<meta::concat, Lists>;
-        }
-        template <class Lists>
-        using flatten = typename lazy::combine<concat, Lists>::type;
+            template <class T>
+            using flatten = rename<meta::concat, T>;
+        } // namespace lazy
+        template <class T>
+        using flatten = rename<concat, T>;
     } // namespace meta
 } // namespace gridtools

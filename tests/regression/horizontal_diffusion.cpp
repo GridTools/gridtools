@@ -123,7 +123,7 @@ namespace {
     }
 
     GT_REGRESSION_TEST(horizontal_diffusion, test_environment<2>, stencil_backend_t) {
-        horizontal_diffusion_repository repo(TypeParam::d(1), TypeParam::d(2), TypeParam::d(3));
+        horizontal_diffusion_repository repo(TypeParam::d(0), TypeParam::d(1), TypeParam::d(2));
         auto out = TypeParam::make_storage();
         auto comp = [grid = TypeParam::make_grid(),
                         coeff = TypeParam::make_const_storage(repo.coeff),

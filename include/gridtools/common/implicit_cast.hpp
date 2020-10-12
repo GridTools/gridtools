@@ -13,11 +13,11 @@
 #ifndef GT_COMMON_IMPLICIT_CAST_HPP_
 #define GT_COMMON_IMPLICIT_CAST_HPP_
 
-#include "../../meta/id.hpp"
-#include "../defs.hpp"
-#include "../host_device.hpp"
+#include "../meta/id.hpp"
+#include "defs.hpp"
+#include "host_device.hpp"
 
-#define GT_FILENAME <gridtools/common/generic_metafunctions/implicit_cast.hpp>
+#define GT_FILENAME <gridtools/common/implicit_cast.hpp>
 #include GT_ITERATE_ON_TARGETS()
 #undef GT_FILENAME
 
@@ -32,7 +32,7 @@ namespace gridtools {
          * The use of identity creates a non-deduced form, so that the explicit template argument must be supplied
          */
         template <class T>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR T implicit_cast(typename meta::lazy::id<T>::type x) {
+        GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR T implicit_cast(typename meta::lazy::id<T>::type x) {
             return x;
         }
     }

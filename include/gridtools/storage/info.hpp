@@ -16,7 +16,6 @@
 
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/layout_map.hpp"
@@ -103,9 +102,10 @@ namespace gridtools {
                 GT_FUNCTION auto const &native_strides() const { return tuple_util::host_device::get<1>(base()); }
                 GT_FUNCTION int length() const {
                     using tuple_util::host_device::get;
-                    return accumulate(logical_and(), true, get<Dims>(native_lengths())...)
-                               ? index((get<Dims>(native_lengths()) - integral_constant<int_t, 1>())...) + 1
-                               : 0;
+                    bool is_empty = false;
+                    for (auto empty_dim : {(get<Dims>(native_lengths()) == 0)...})
+                        is_empty = is_empty || empty_dim;
+                    return is_empty ? 0 : index((get<Dims>(native_lengths()) - integral_constant<int_t, 1>())...) + 1;
                 }
                 GT_FUNCTION array<uint_t, ndims> lengths() const {
                     return {(uint_t)tuple_util::host_device::get<Dims>(native_lengths())...};
@@ -118,24 +118,24 @@ namespace gridtools {
                     std::enable_if_t<sizeof...(Is) == ndims && conjunction<std::is_convertible<Is, int_t>...>::value,
                         int> = 0>
                 GT_FUNCTION auto index(Is... indices) const {
-                    using tuple_util::host_device::get;
-                    assert(accumulate(
-                        logical_and(), true, (static_cast<int_t>(indices) < get<Dims>(native_lengths()))...));
-                    return accumulate(
-                        plus_functor(), integral_constant<int, 0>(), indices * get<Dims>(native_strides())...);
+                    return index_from_tuple(tuple_util::host_device::make<tuple>(indices...));
                 }
 
                 template <class Indices>
-                GT_FUNCTION auto index_from_tuple(Indices const &indices) const {
-                    return index(tuple_util::host_device::get<Dims>(indices)...);
-                }
-
-                template <int... Is>
-                GT_FUNCTION array<int, ndims> indices(layout_map<Is...>, int_t i) const {
-                    using layout_t = layout_map<Is...>;
-                    auto l = tuple_util::host_device::convert_to<array, int_t>(native_lengths());
-                    auto s = tuple_util::host_device::convert_to<array, int_t>(native_strides());
-                    return {(Is == -1 ? l[Dims] - 1 : Is ? i % s[layout_t::find(Is - 1)] / s[Dims] : i / s[Dims])...};
+                GT_FUNCTION auto index_from_tuple(Indices &&indices) const {
+                    using namespace tuple_util::host_device;
+#ifndef NDEBUG
+                    tuple_util::host_device::for_each(
+                        [](int index, int length) {
+                            assert(index >= 0);
+                            assert(index < length);
+                        },
+                        indices,
+                        native_lengths());
+#endif
+                    return fold([](auto l, auto r) { return l + r; },
+                        transform(
+                            [](auto i, auto s) { return i * s; }, wstd::forward<Indices>(indices), native_strides()));
                 }
             };
 

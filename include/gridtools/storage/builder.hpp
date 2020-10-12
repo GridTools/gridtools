@@ -13,8 +13,7 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/accumulate.hpp"
-#include "../common/generic_metafunctions/for_each.hpp"
+#include "../common/for_each.hpp"
 #include "../common/hymap.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/layout_map.hpp"
@@ -47,6 +46,23 @@ namespace gridtools {
                 return obj;
             }
 
+            template <class Layout, class Info>
+            auto restore_indices(Info const &info, Layout, int src) {
+                auto l = info.lengths();
+                auto s = info.strides();
+                array<int, Info::ndims> res;
+                for (size_t i = 0; i < Info::ndims; ++i) {
+                    auto n = Layout::at(i);
+                    if (n == -1)
+                        res[i] = l[i] - 1;
+                    else if (n == 0)
+                        res[i] = src / s[i];
+                    else
+                        res[i] = src % s[Layout::find(n - 1)] / s[i];
+                }
+                return res;
+            }
+
             template <class Fun, class T, class Layout, class Info, size_t... Is>
             void initializer_impl(Fun const &fun, T *dst, Layout layout, Info const &info, std::index_sequence<Is...>) {
                 int length = info.length();
@@ -60,7 +76,7 @@ namespace gridtools {
 #pragma omp parallel for
 #endif
                 for (int i = 0; i < length; ++i) {
-                    auto indices = info.indices(layout, i);
+                    auto indices = restore_indices(info, layout, i);
                     if (in_range(indices))
                         dst[i] = fun(tuple_util::get<Is>(indices)...);
                 }
@@ -139,7 +155,10 @@ namespace gridtools {
             template <int... Args, bool... Masks>
             struct apply_mask<layout_map<Args...>, Masks...> {
                 static constexpr int correction(int arg) {
-                    return accumulate(plus_functor(), (!Masks && Args >= 0 && Args < arg ? 1 : 0)...);
+                    int res = 0;
+                    for (int i : {(!Masks && Args >= 0 && Args < arg ? 1 : 0)...})
+                        res += i;
+                    return res;
                 }
 
                 using type = layout_map<(Masks ? Args - correction(Args) : -1)...>;

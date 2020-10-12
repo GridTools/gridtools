@@ -93,7 +93,7 @@ The user needs also to indicate which dimensions are periodic (refer to :ref:`gc
    halo_descriptor dk{halo_sx2, halo_dx2, begin2, end2, len2};
    array<halo_descriptor, 3> halos{di, dj, dk};
 
-   boollist<3> periodicity{b0, b1, b2}; // b0, b1, b2 are booleans. If true it will indicate that the corresponding dimension is periodic across the grid of processors.
+   std::array<bool, 3> periodicity{b0, b1, b2}; // If true it will indicate that the corresponding dimension is periodic across the grid of processors.
 
    int max_ds = 4; // maximum number of data stores to be used in a halo_update operation
 
