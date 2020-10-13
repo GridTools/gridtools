@@ -87,8 +87,7 @@ namespace gridtools {
 
         template <size_t... Is, class... Ts>
         struct tuple_impl<std::index_sequence<Is...>, Ts...> : tuple_leaf<Is, Ts>... {
-            GT_DECLARE_DEFAULT_EMPTY_CTOR(tuple_impl);
-
+            tuple_impl() = default;
             tuple_impl(tuple_impl const &) = default;
             tuple_impl(tuple_impl &&) = default;
             tuple_impl &operator=(tuple_impl const &) = default;
@@ -169,8 +168,7 @@ namespace gridtools {
         friend class tuple;
 
       public:
-        GT_DECLARE_DEFAULT_EMPTY_CTOR(tuple);
-
+        tuple() = default;
         tuple(tuple const &) = default;
         tuple(tuple &&) = default;
         tuple &operator=(tuple const &) = default;

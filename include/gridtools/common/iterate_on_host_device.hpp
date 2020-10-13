@@ -37,7 +37,16 @@
 #define GT_TARGET_NAMESPACE_NAME host
 #define GT_TARGET_NAMESPACE inline namespace host
 #define GT_TARGET GT_HOST
+
+#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ < 10 || __CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ < 2)
+// Sometimes NVCC 10.2 compilation fails with internal compiler error if constexpr functions are used in runtime
+// context even they are host only.
+#define GT_TARGET_CONSTEXPR
+#else
 #define GT_TARGET_CONSTEXPR constexpr
+#endif
+
 #include GT_FILENAME
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE

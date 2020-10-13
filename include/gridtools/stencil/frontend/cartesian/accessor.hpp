@@ -170,7 +170,7 @@ namespace gridtools {
                 static constexpr intent intent_v = Intent;
                 using extent_t = Extent;
 
-                GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor);
+                accessor() = default;
 
                 template <class... Ts, std::enable_if_t<accessor_impl_::are_ints<Ts...>::value, int> = 0>
                 GT_FUNCTION GT_CONSTEXPR accessor(Ts... zeros) {

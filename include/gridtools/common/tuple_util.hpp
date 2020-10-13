@@ -118,7 +118,7 @@
         std::enable_if_t<std::is_constructible<decltype(member_name), Arg &&, Args &&...>::value, int> = 0> \
     GT_CONSTEXPR GT_FUNCTION class_name(Arg &&arg, Args &&... args) noexcept                                \
         : member_name{wstd::forward<Arg>(arg), wstd::forward<Args>(args)...} {}                             \
-    GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name);                                                              \
+    class_name() = default;                                                                                 \
     class_name(class_name const &) = default;                                                               \
     class_name(class_name &&) = default;                                                                    \
     class_name &operator=(class_name const &) = default;                                                    \
