@@ -178,9 +178,9 @@ namespace gridtools {
                     int ii = 1;
                     int jj = 0;
                     int kk = 0;
-                    const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                    const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                    const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                    const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                    const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                    const int kk_P = nth<map_type, 2>(ii, jj, kk);
                     if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                         dangeroushalo[0].reset_minus();
                         dangeroushalo_r[0].reset_plus();
@@ -191,9 +191,9 @@ namespace gridtools {
                     int ii = -1;
                     int jj = 0;
                     int kk = 0;
-                    const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                    const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                    const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                    const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                    const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                    const int kk_P = nth<map_type, 2>(ii, jj, kk);
                     if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                         dangeroushalo[0].reset_plus();
                         dangeroushalo_r[0].reset_minus();
@@ -204,9 +204,9 @@ namespace gridtools {
                     int ii = 0;
                     int jj = 1;
                     int kk = 0;
-                    const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                    const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                    const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                    const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                    const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                    const int kk_P = nth<map_type, 2>(ii, jj, kk);
                     if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                         dangeroushalo[1].reset_minus();
                         dangeroushalo_r[1].reset_plus();
@@ -217,9 +217,9 @@ namespace gridtools {
                     int ii = 0;
                     int jj = -1;
                     int kk = 0;
-                    const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                    const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                    const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                    const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                    const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                    const int kk_P = nth<map_type, 2>(ii, jj, kk);
                     if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                         dangeroushalo[1].reset_plus();
                         dangeroushalo_r[1].reset_minus();
@@ -230,9 +230,9 @@ namespace gridtools {
                     int ii = 0;
                     int jj = 0;
                     int kk = 1;
-                    const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                    const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                    const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                    const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                    const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                    const int kk_P = nth<map_type, 2>(ii, jj, kk);
                     if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                         dangeroushalo[2].reset_minus();
                         dangeroushalo_r[2].reset_plus();
@@ -243,9 +243,9 @@ namespace gridtools {
                     int ii = 0;
                     int jj = 0;
                     int kk = -1;
-                    const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                    const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                    const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                    const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                    const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                    const int kk_P = nth<map_type, 2>(ii, jj, kk);
                     if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                         dangeroushalo[2].reset_plus();
                         dangeroushalo_r[2].reset_minus();
@@ -257,12 +257,12 @@ namespace gridtools {
                         for (int kk = -1; kk <= 1; ++kk)
                             if (ii != 0 || jj != 0 || kk != 0) {
                                 typedef typename translate_P::map_type map_type;
-                                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                                const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                                const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                                const int kk_P = nth<map_type, 2>(ii, jj, kk);
 
                                 if (base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1) {
-                                    send_size[translate()(ii, jj, kk)] = halo.send_buffer_size(make_array(ii, jj, kk));
+                                    send_size[translate()(ii, jj, kk)] = halo.send_buffer_size({ii, jj, kk});
 
                                     send_buffer[translate()(ii, jj, kk)] = gcl_alloc<DataType, arch_type>::alloc(
                                         send_size[translate()(ii, jj, kk)] * max_fields_n);
@@ -274,7 +274,7 @@ namespace gridtools {
                                         jj_P,
                                         kk_P);
 
-                                    recv_size[translate()(ii, jj, kk)] = halo.recv_buffer_size(make_array(ii, jj, kk));
+                                    recv_size[translate()(ii, jj, kk)] = halo.recv_buffer_size({ii, jj, kk});
 
                                     recv_buffer[translate()(ii, jj, kk)] = gcl_alloc<DataType, arch_type>::alloc(
                                         recv_size[translate()(ii, jj, kk)] * max_fields_n);
@@ -379,9 +379,9 @@ namespace gridtools {
                             if (ii != 0 || jj != 0 || kk != 0) {
                                 using translate_P = translate_t<3, proc_layout>;
                                 using map_type = typename translate_P::map_type;
-                                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                                const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                                const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                                const int kk_P = nth<map_type, 2>(ii, jj, kk);
 
                                 if (base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1) {
                                     base_type::m_haloexch.set_send_to_size(
@@ -462,9 +462,9 @@ namespace gridtools {
                             if (ii != 0 || jj != 0 || kk != 0) {
                                 using translate_P = translate_t<3, proc_layout>;
                                 using map_type = typename translate_P::map_type;
-                                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                                const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                                const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                                const int kk_P = nth<map_type, 2>(ii, jj, kk);
 
                                 if (base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1) {
                                     base_type::m_haloexch.set_send_to_size(
