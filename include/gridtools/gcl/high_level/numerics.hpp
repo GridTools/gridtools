@@ -11,6 +11,7 @@
 
 namespace gridtools {
     namespace gcl {
+        // computes 3^i
         constexpr int static_pow3(int i) { return i ? 3 * static_pow3(i - 1) : 1; }
     } // namespace gcl
 } // namespace gridtools
