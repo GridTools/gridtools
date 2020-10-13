@@ -50,7 +50,6 @@ namespace gridtools {
 
           public:
             static constexpr int max_arg = std::max({Args...});
-            ;
 
             /** @brief Length of layout map excluding masked dimensions. */
             static constexpr std::size_t unmasked_length = meta::length<unmasked_args>::value;
