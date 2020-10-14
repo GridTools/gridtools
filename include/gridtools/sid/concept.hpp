@@ -747,4 +747,9 @@ namespace gridtools {
      *  Just because `sid::is_sid` looks a bit redundant
      */
     using sid::is_sid;
+
+#if __cplusplus > 201703L
+    template <class T>
+    concept Sid = is_sid<T>::value;
+#endif
 } // namespace gridtools
