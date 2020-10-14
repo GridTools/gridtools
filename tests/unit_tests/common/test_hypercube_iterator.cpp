@@ -35,7 +35,7 @@ class hypercube_iteration : public ::testing::Test {
 
     template <class R>
     void call_testee(R &&range) {
-        for (auto &&item : make_hypercube_view(std::forward<R>(range)))
+        for (auto &&item : make_hypercube_view(range))
             m_actual.push_back({item[0], item[1], item[2]});
     }
 
