@@ -144,7 +144,7 @@ namespace gridtools {
         template <typename PROC_GRID, int ALIGN = 1>
         class Halo_Exchange_3D {
 
-            typedef translate_t<3, typename default_layout_map<3>::type> translate;
+            typedef translate_t<3> translate;
 
             class sr_buffers {
                 char *m_buffers[27]; // there is ona buffer more to allow for a simple indexing

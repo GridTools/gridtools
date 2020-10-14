@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
-#include <gridtools/common/boollist.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
 #include <gridtools/gcl/GCL.hpp>
 #include <gridtools/gcl/low_level/proc_grids_3D.hpp>
@@ -33,7 +32,7 @@ TEST(gcl, test_all_to_all_halo_3D) {
     typedef MPI_3D_process_grid_t<3> grid_type;
 
     array<int, 3> dims{0, 0, 0};
-    grid_type pgrid(boollist<3>(true, true, true), MPI_COMM_WORLD, dims);
+    grid_type pgrid({true, true, true}, MPI_COMM_WORLD, dims);
 
     all_to_all_halo<int, grid_type> a2a(pgrid);
 

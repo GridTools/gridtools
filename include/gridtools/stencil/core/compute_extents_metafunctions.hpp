@@ -77,30 +77,30 @@ namespace gridtools {
                         using type = meta::rename<enclosing_extent, extents_t>;
                     };
 
-                    template <class Esf, class ExtentMap, class Extent = typename Esf::extent_t>
+                    template <class ExtentMap, class Esf, class Extent = typename Esf::extent_t>
                     struct process_esf {
                         using arg_param_pairs_t = get_arg_param_pairs<Esf>;
                         using new_items_t = meta::transform<make_item_f<Extent>::template apply, arg_param_pairs_t>;
-                        using type = meta::lfold<meta::mp_insert, ExtentMap, new_items_t>;
+                        using type = meta::foldl<meta::mp_insert, ExtentMap, new_items_t>;
                     };
 
-                    template <class Esf, class ExtentMap>
-                    struct process_esf<Esf, ExtentMap, void> {
+                    template <class ExtentMap, class Esf>
+                    struct process_esf<ExtentMap, Esf, void> {
                         using esf_extent_t = typename get_esf_extent<Esf, ExtentMap>::type;
                         using arg_param_pairs_t = get_arg_param_pairs<Esf>;
                         using new_items_t =
                             meta::transform<make_item_f<esf_extent_t>::template apply, arg_param_pairs_t>;
-                        using type = meta::lfold<meta::mp_insert, ExtentMap, new_items_t>;
+                        using type = meta::foldl<meta::mp_insert, ExtentMap, new_items_t>;
                     };
                 } // namespace lazy
                 GT_META_DELEGATE_TO_LAZY(get_esf_extent, (class Esf, class ExtentMap), (Esf, ExtentMap));
-                GT_META_DELEGATE_TO_LAZY(process_esf, (class Esf, class ExtentMap), (Esf, ExtentMap));
+                GT_META_DELEGATE_TO_LAZY(process_esf, (class ExtentMap, class Esfs), (ExtentMap, Esfs));
 
                 template <class Mss>
                 using get_esfs_from_mss = typename Mss::esf_sequence_t;
 
                 template <class Esfs>
-                using get_extent_map_from_esfs = meta::rfold<process_esf, meta::list<>, Esfs>;
+                using get_extent_map_from_esfs = meta::foldr<process_esf, meta::list<>, Esfs>;
 
                 template <class Mss>
                 using get_extent_map_from_mss = get_extent_map_from_esfs<get_esfs_from_mss<Mss>>;

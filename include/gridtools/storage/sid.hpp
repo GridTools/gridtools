@@ -90,7 +90,7 @@ namespace gridtools {
         template <class DataStore, std::enable_if_t<is_data_store<DataStore>::value, int> = 0>
         auto sid_get_lower_bounds(std::shared_ptr<DataStore> const &) {
             using layout_t = typename DataStore::layout_t;
-            using bounds_t = meta::rename<tuple, meta::repeat_c<DataStore::ndims, integral_constant<int_t, 0>>>;
+            using bounds_t = meta::repeat_c<DataStore::ndims, tuple<integral_constant<int_t, 0>>>;
             return storage_sid_impl_::filter_unmasked_bounds(layout_t(), bounds_t());
         }
 

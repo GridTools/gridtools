@@ -99,11 +99,11 @@
 
 #include "../meta.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
 #include "integral_constant.hpp"
 #include "tuple.hpp"
 #include "tuple_util.hpp"
+#include "utility.hpp"
 
 namespace gridtools {
 
@@ -210,7 +210,7 @@ namespace gridtools {
             template <class Maps>
             struct merged_value_f {
                 template <class Key>
-                using apply = meta::lfold<get_first_folder, void, meta::transform<find_f<Key>::template apply, Maps>>;
+                using apply = meta::foldl<get_first_folder, void, meta::transform<find_f<Key>::template apply, Maps>>;
             };
 
             template <class Src>
@@ -245,7 +245,7 @@ namespace gridtools {
             class Decayed = std::decay_t<Map>,
             class I = meta::st_position<get_keys<Decayed>, Key>,
             std::enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key(Map && map) noexcept {
+        GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) at_key(Map && map) noexcept {
             return tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map));
         }
 
@@ -264,7 +264,7 @@ namespace gridtools {
             class Decayed = std::decay_t<Map>,
             class I = meta::st_position<get_keys<Decayed>, Key>,
             std::enable_if_t<I::value != tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) at_key_with_default(Map && map) noexcept {
+        GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) at_key_with_default(Map && map) noexcept {
             return tuple_util::GT_TARGET_NAMESPACE_NAME::get<I::value>(wstd::forward<Map>(map));
         }
 
@@ -274,7 +274,7 @@ namespace gridtools {
             class Decayed = std::decay_t<Map>,
             class I = meta::st_position<get_keys<Decayed>, Key>,
             std::enable_if_t<I::value == tuple_util::size<Decayed>::value, int> = 0>
-        GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Default at_key_with_default(Map &&) noexcept {
+        GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Default at_key_with_default(Map &&) noexcept {
             return {};
         }
     }
@@ -286,21 +286,21 @@ namespace gridtools {
                 struct adapter_f {
                     Fun m_fun;
                     template <size_t I, class Value, class Key = meta::at_c<Keys, I>>
-                    GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) operator()(Value &&value) const {
+                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(Value &&value) const {
                         return m_fun.template operator()<Key>(wstd::forward<Value>(value));
                     }
                 };
             } // namespace hymap_detail
 
             template <class Fun, class Map>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto transform(Fun && fun, Map && map) {
+            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto transform(Fun && fun, Map && map) {
                 return tuple_util::GT_TARGET_NAMESPACE_NAME::transform_index(
                     hymap_detail::adapter_f<Fun, get_keys<std::decay_t<Map>>>{wstd::forward<Fun>(fun)},
                     wstd::forward<Map>(map));
             }
 
             template <class Fun, class Map>
-            GT_TARGET GT_FORCE_INLINE void for_each(Fun && fun, Map && map) {
+            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void for_each(Fun && fun, Map && map) {
                 tuple_util::GT_TARGET_NAMESPACE_NAME::for_each_index(
                     hymap_detail::adapter_f<Fun, get_keys<std::decay_t<Map>>>{wstd::forward<Fun>(fun)},
                     wstd::forward<Map>(map));
@@ -309,7 +309,7 @@ namespace gridtools {
             // Concatenate several maps into one. The type of the result is infered from the type of the first map.
             // Precondition: keys should not overlap.
             template <class... Maps>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto concat(Maps... maps) {
+            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto concat(Maps... maps) {
                 static_assert(meta::is_set_fast<meta::concat<get_keys<Maps>...>>::value, GT_INTERNAL_ERROR);
                 return tuple_util::concat_ex<hymap_impl_::concat_result_maker_f>(wstd::move(maps)...);
             }
@@ -318,7 +318,7 @@ namespace gridtools {
                 class Keys,
                 class Tup,
                 class HyMapKeys = meta::rename<KeyCtor, Keys>>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto convert_to(Tup && tup) {
+            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto convert_to(Tup && tup) {
                 return tuple_util::convert_to<HyMapKeys::template values>(wstd::forward<Tup>(tup));
             }
 
@@ -365,44 +365,44 @@ namespace gridtools {
 
                 friend struct merged_getter;
 
-                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR base_t const &base() const { return *this; }
-                GT_TARGET GT_FORCE_INLINE base_t &base() { return *this; }
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR base_t const &base() const { return *this; }
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR base_t &base() { return *this; }
 
                 template <size_t I>
-                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) source() const {
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) source() const {
                     return tuple_util::GT_TARGET_NAMESPACE_NAME::get < is_primary_index<I>::value ? 0 : 1 > (base());
                 }
                 template <size_t I>
-                GT_TARGET GT_FORCE_INLINE decltype(auto) source() {
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) source() {
                     return tuple_util::GT_TARGET_NAMESPACE_NAME::get < is_primary_index<I>::value ? 0 : 1 > (base());
                 }
 
                 template <size_t I>
-                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) get() const {
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) get() const {
                     return tuple_util::GT_TARGET_NAMESPACE_NAME::get<inner_index<I>::value>(source<I>());
                 }
                 template <size_t I>
-                GT_TARGET GT_FORCE_INLINE decltype(auto) get() {
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) get() {
                     return tuple_util::GT_TARGET_NAMESPACE_NAME::get<inner_index<I>::value>(source<I>());
                 }
 
               public:
                 merged() = default;
 
-                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR merged(Primary primary, Secondary secondary)
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR merged(Primary primary, Secondary secondary)
                     : base_t(wstd::move(primary), wstd::move(secondary)) {}
 
-                GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR Primary const &primary() const {
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Primary const &primary() const {
                     return tuple_util::GT_TARGET_NAMESPACE_NAME::get<0>(base());
                 }
-                GT_TARGET GT_FORCE_INLINE Primary &primary() {
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Primary &primary() {
                     return tuple_util::GT_TARGET_NAMESPACE_NAME::get<0>(base());
                 }
 
-                GT_TARGET GT_FORCE_INLINE Secondary const &secondary() const {
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Secondary const &secondary() const {
                     return tuple_util::GT_TARGET_NAMESPACE_NAME::get<1>(base());
                 }
-                GT_TARGET GT_FORCE_INLINE Secondary &secondary() {
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Secondary &secondary() {
                     return tuple_util::GT_TARGET_NAMESPACE_NAME::get<1>(base());
                 }
 
@@ -414,12 +414,13 @@ namespace gridtools {
 
             struct merged_getter {
                 template <size_t I, class Primary, class Secondary>
-                static GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) get(
+                static GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) get(
                     merged<Primary, Secondary> const &obj) {
                     return obj.template get<I>();
                 }
                 template <size_t I, class Primary, class Secondary>
-                static GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR decltype(auto) get(merged<Primary, Secondary> &obj) {
+                static GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) get(
+                    merged<Primary, Secondary> &obj) {
                     return obj.template get<I>();
                 }
             };
@@ -431,13 +432,13 @@ namespace gridtools {
             // unlike concat keys could overlap
             // in the case of overlap the value is taken from the primary map
             template <class Primary, class Secondary>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR merged<Primary, Secondary> merge(
+            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR merged<Primary, Secondary> merge(
                 Primary primary, Secondary secondary) {
                 return {wstd::move(primary), wstd::move(secondary)};
             }
 
             template <class Primary, class... Secondaries>
-            GT_TARGET GT_FORCE_INLINE GT_CONSTEXPR auto merge(Primary primary, Secondaries... secondaries) {
+            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto merge(Primary primary, Secondaries... secondaries) {
                 return merge(wstd::move(primary), merge(wstd::move(secondaries)...));
             }
         } // namespace hymap

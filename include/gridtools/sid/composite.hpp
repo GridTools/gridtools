@@ -14,12 +14,12 @@
 #include <utility>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/for_each.hpp"
-#include "../common/generic_metafunctions/utility.hpp"
+#include "../common/for_each.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
+#include "../common/utility.hpp"
 #include "../meta.hpp"
 #include "concept.hpp"
 
@@ -45,7 +45,7 @@ namespace gridtools {
 
                 template <class Kinds>
                 using make_index_map =
-                    meta::first<meta::lfold<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>>;
+                    meta::first<meta::foldl<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>>;
 
                 /**
                  *  `maybe_equal(lhs, rhs)` is a functional equivalent of the following pseudo code:
@@ -244,7 +244,7 @@ namespace gridtools {
                             static_assert(sizeof...(Args) == sizeof...(Keys), GT_INTERNAL_ERROR);
                         }
 
-                        GT_DECLARE_DEFAULT_EMPTY_CTOR(composite_entity);
+                        composite_entity() = default;
                         composite_entity(composite_entity const &) = default;
                         composite_entity(composite_entity &&) noexcept = default;
                         composite_entity &operator=(composite_entity const &) = default;
@@ -322,14 +322,7 @@ namespace gridtools {
 
                     using stride_keys_t = meta::dedup<meta::concat<get_keys<strides_type<Sids>>...>>;
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2
-                    struct stride_hymap_keys {
-                        using type = meta::rename<hymap::keys, stride_keys_t>;
-                    };
-                    using stride_hymap_keys_t = typename stride_hymap_keys::type;
-#else
                     using stride_hymap_keys_t = meta::rename<hymap::keys, stride_keys_t>;
-#endif
 
                     template <class... Values>
                     using stride_hymap_ctor = typename stride_hymap_keys_t::template values<Values...>;

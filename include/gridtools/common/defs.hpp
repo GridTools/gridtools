@@ -37,12 +37,3 @@ namespace gridtools {
     "GridTools Development Team."
 
 #define GT_INTERNAL_ERROR_MSG(x) GT_INTERNAL_ERROR "\nMessage\n\n" x
-
-#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
-#define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name)                          \
-    __forceinline__ __host__ __device__ constexpr class_name() noexcept {} \
-    static_assert(1, "")
-#else
-#define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name) class_name() = default
-#endif

@@ -15,7 +15,7 @@
 #include "../common/cuda_runtime.hpp"
 #include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/for_each.hpp"
+#include "../common/for_each.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"

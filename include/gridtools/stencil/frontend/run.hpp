@@ -14,7 +14,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/for_each.hpp"
 #include "../../common/hymap.hpp"
 #include "../../meta.hpp"
 #include "../../sid/concept.hpp"

@@ -16,7 +16,6 @@
 #include <gridtools/boundaries/boundary.hpp>
 #include <gridtools/boundaries/grid_predicate.hpp>
 #include <gridtools/common/array.hpp>
-#include <gridtools/common/boollist.hpp>
 #include <gridtools/common/layout_map.hpp>
 #include <gridtools/gcl/GCL.hpp>
 #include <gridtools/gcl/halo_exchange.hpp>
@@ -76,7 +75,7 @@ TEST(copy_stencil_parallel, test) {
         double,
         gcl_arch_t>;
 
-    pattern_type he(boollist<3>(false, false, false), CartComm);
+    pattern_type he({false, false, false}, CartComm);
 
     array<uint_t, 2> halo{1, 1};
 

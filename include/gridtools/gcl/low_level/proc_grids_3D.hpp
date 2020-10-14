@@ -16,8 +16,8 @@
 #include <mpi.h>
 
 #include "../../common/array.hpp"
-#include "../../common/boollist.hpp"
 #include "../../common/defs.hpp"
+#include "boollist.hpp"
 
 // This file needs to be changed
 

@@ -9,10 +9,9 @@
  */
 #pragma once
 
-#include "../../common/boollist.hpp"
 #include "../../common/halo_descriptor.hpp"
-#include "../../common/numerics.hpp"
 #include "../low_level/data_types_mapping.hpp"
+#include "numerics.hpp"
 
 namespace gridtools {
     namespace gcl {

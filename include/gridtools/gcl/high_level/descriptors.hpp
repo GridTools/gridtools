@@ -12,19 +12,14 @@
 #include <vector>
 
 #include "../../common/array.hpp"
-#include "../../common/make_array.hpp"
-#include "../../common/numerics.hpp"
-
 #include "../low_level/Halo_Exchange_3D.hpp"
 #include "../low_level/proc_grids_3D.hpp"
-
-#include "../../common/boollist.hpp"
-#include "../../common/numerics.hpp"
 #include "../low_level/translate.hpp"
 #include "access.hpp"
 #include "descriptor_base.hpp"
 #include "empty_field_base.hpp"
 #include "helpers_impl.hpp"
+#include "numerics.hpp"
 
 namespace gridtools {
     namespace gcl {
@@ -239,7 +234,7 @@ namespace gridtools {
             /**
                Type of the translation used to map dimensions to buffer addresses
              */
-            typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
+            typedef translate_t<DIMS> translate;
 
           private:
             hndlr_descriptor_ut(hndlr_descriptor_ut const &) {}
@@ -399,7 +394,7 @@ namespace gridtools {
             /**
                Type of the translation used to map dimensions to buffer addresses
              */
-            typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
+            typedef translate_t<DIMS> translate;
 
           private:
             hndlr_dynamic_ut(hndlr_dynamic_ut const &) = delete;
@@ -506,13 +501,13 @@ namespace gridtools {
                         for (int jj = -1; jj <= 1; ++jj) {
                             for (int kk = -1; kk <= 1; ++kk) {
                                 typedef proc_layout map_type;
-                                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                                const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                                const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                                const int kk_P = nth<map_type, 2>(ii, jj, kk);
                                 if ((ii != 0 || jj != 0 || kk != 0) &&
                                     (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                     DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
-                                    hm.halo.pack_all(make_array(ii, jj, kk), it, _fields...);
+                                    hm.halo.pack_all({ii, jj, kk}, it, _fields...);
 
                                     hm.m_haloexch.set_send_to_size(
                                         hm.send_size[translate()(ii, jj, kk)] * sizeof...(_fields) * sizeof(DataType),
@@ -543,13 +538,13 @@ namespace gridtools {
                         for (int jj = -1; jj <= 1; ++jj) {
                             for (int kk = -1; kk <= 1; ++kk) {
                                 typedef proc_layout map_type;
-                                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                                const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                                const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                                const int kk_P = nth<map_type, 2>(ii, jj, kk);
                                 if ((ii != 0 || jj != 0 || kk != 0) &&
                                     (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                     DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
-                                    hm.halo.unpack_all(make_array(ii, jj, kk), it, _fields...);
+                                    hm.halo.unpack_all({ii, jj, kk}, it, _fields...);
                                 }
                             }
                         }
@@ -569,14 +564,14 @@ namespace gridtools {
                         for (int jj = -1; jj <= 1; ++jj) {
                             for (int kk = -1; kk <= 1; ++kk) {
                                 typedef proc_layout map_type;
-                                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                                const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                                const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                                const int kk_P = nth<map_type, 2>(ii, jj, kk);
                                 if ((ii != 0 || jj != 0 || kk != 0) &&
                                     (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                     DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
                                     for (size_t i = 0; i < fields.size(); ++i) {
-                                        hm.halo.pack(make_array(ii, jj, kk), fields[i], it);
+                                        hm.halo.pack({ii, jj, kk}, fields[i], it);
                                     }
 
                                     hm.m_haloexch.set_send_to_size(
@@ -608,14 +603,14 @@ namespace gridtools {
                         for (int jj = -1; jj <= 1; ++jj) {
                             for (int kk = -1; kk <= 1; ++kk) {
                                 typedef proc_layout map_type;
-                                const int ii_P = make_array(ii, jj, kk)[map_type::at(0)];
-                                const int jj_P = make_array(ii, jj, kk)[map_type::at(1)];
-                                const int kk_P = make_array(ii, jj, kk)[map_type::at(2)];
+                                const int ii_P = nth<map_type, 0>(ii, jj, kk);
+                                const int jj_P = nth<map_type, 1>(ii, jj, kk);
+                                const int kk_P = nth<map_type, 2>(ii, jj, kk);
                                 if ((ii != 0 || jj != 0 || kk != 0) &&
                                     (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                     DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
                                     for (size_t i = 0; i < fields.size(); ++i) {
-                                        hm.halo.unpack(make_array(ii, jj, kk), fields[i], it);
+                                        hm.halo.unpack({ii, jj, kk}, fields[i], it);
                                     }
                                 }
                             }

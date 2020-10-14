@@ -12,10 +12,10 @@
 #include <utility>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/gt_math.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/tuple_util.hpp"
+#include "../../common/utility.hpp"
 #include "../../meta.hpp"
 #include "../../sid/blocked_dim.hpp"
 #include "../../sid/concept.hpp"
