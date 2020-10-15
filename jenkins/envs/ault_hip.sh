@@ -2,16 +2,16 @@
 
 source $(dirname "$BASH_SOURCE")/ault.sh
 
-module use /users/fthaler/public/jenkins/modules
-module load gcc/8.3.0
-module load cuda/10.1
-module load hip-clang/2020-04-28
+module load rocm/3.8.0
+# fix for broken module
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm-3.8.0/llvm/lib"
+module load gcc/10.1.0
 
 export CXX=$(which hipcc)
 export CC=$(which gcc)
 export FC=$(which gfortran)
 
-export GTRUN_BUILD_COMMAND='srun -w ault20 --time=01:00:00 make -j 64'
+export GTRUN_BUILD_COMMAND='srun -w ault20 --time=03:00:00 make -j 64'
 export GTRUN_SBATCH_NTASKS=1
 export GTRUN_SBATCH_CPUS_PER_TASK=128
 export GTRUN_SBATCH_MEM_BIND=local

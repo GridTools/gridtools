@@ -304,6 +304,17 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         _gt_add_library(${_config_mode} layout_transformation_cpu)
         target_link_libraries(${_gt_namespace}layout_transformation_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
+        if(GT_CUDA_TYPE STREQUAL HIPCC-AMDGPU)
+            # workaround for undefind _OPENMP in HIP device code even when OpenMP is enabled
+            target_compile_definitions(${_gt_namespace}stencil_cpu_kfirst INTERFACE -DGT_HIP_OPENMP_WORKAROUND)
+            target_compile_definitions(${_gt_namespace}stencil_cpu_ifirst INTERFACE -DGT_HIP_OPENMP_WORKAROUND)
+            if(MPI_CXX_FOUND)
+                target_compile_definitions(${_gt_namespace}gcl_cpu INTERFACE -DGT_HIP_OPENMP_WORKAROUND)
+            endif()
+            target_compile_definitions(${_gt_namespace}boundaries_cpu INTERFACE -DGT_HIP_OPENMP_WORKAROUND)
+            target_compile_definitions(${_gt_namespace}layout_transformation_cpu INTERFACE -DGT_HIP_OPENMP_WORKAROUND)
+        endif()
+
         list(APPEND GT_GCL_ARCHS cpu)
 
         list(APPEND GT_STENCILS cpu_kfirst cpu_ifirst)
