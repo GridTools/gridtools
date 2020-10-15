@@ -8,7 +8,7 @@
 
 The GridTools framework is a set of libraries and utilities to develop performance portable applications in the area of weather and climate. To achieve the goal of performance portability, the user-code is written in a generic form which is then optimized for a given architecture at compile-time. The core of GridTools is the stencil composition module which implements a DSL embedded in C++ for stencils and stencil-like patterns. Further, GridTools provides modules for halo exchanges, boundary conditions, data management and bindings to C and Fortran.
 
-GridTools is successfully used to accelerate the dynamical core of the [COSMO model](http://cosmo-model.org/) with improved performance on CUDA-GPUs compared to the current official version, demonstrating production quality and feature-completeness of the library for models on lat-lon grids.
+GridTools is successfully used to accelerate the dynamical core of the [COSMO model](http://cosmo-model.org/) with improved performance on CUDA-GPUs compared to the current official version, demonstrating production quality and feature-completeness of the library for models on lat-lon grids. The GridTools-based dynamical core is shipped with COSMO v5.7 and later, see [release notes COSMO v5.7](http://cosmo-model.org/content/model/releases/histories/cosmo_5.07.htm).
 
 Although GridTools was developed for weather and climate applications it might be applicable for other domains with a focus on stencil-like computations.
 
@@ -35,33 +35,39 @@ CUDAHOSTCXX=`which g++` # full path to the C++ compiler to be used as CUDA host 
 ```
 
 ##### Requirements
-
+- C++14 compiler (see also list of tested compilers)
 - Boost (1.65.1 or later)
 - CMake (3.14.5 or later)
-- CUDA Toolkit (9.0 or later, optional)
+- CUDA Toolkit (10.1 or later, optional)
 - MPI (optional, CUDA-aware MPI for the GPU communication module `gcl_gpu`)
 
 ### Supported compilers
 
 The GridTools libraries are currently nightly tested with the following compilers on [CSCS supercomputers](https://www.cscs.ch/computers/overview/).
 
-| Compiler | Backend | Tested on | Comments
+| Compiler | Backend | Tested on | Comments |
 | --- | --- | --- | --- |
-| Cray clang version 9.0.2 | all backends | Piz Daint | with flags `-fno-cray-gpu -fno-cray`, P100 GPU
-| GNU 7.3.0 + NVCC 10.1 | all backends | Piz Daint | P100 GPU |
-| Clang 7.0.1 + NVCC 10.1 | all backends | Piz Daint | GPU compilation in NVCC-CUDA mode, P100 GPU |
+| Cray clang version 10.0.2 | all backends | Piz Daint | P100 GPU |
+| GNU 8.3.0 + NVCC 10.2 | all backends | Piz Daint | P100 GPU |
+| GNU 8.3.0 + NVCC 11.0 | all backends | Dom | P100 GPU |
+| Clang 7.0.1 + NVCC 10.2 | all backends | Piz Daint | GPU compilation in NVCC-CUDA mode, P100 GPU |
 | GNU 8.3.0 + NVCC 10.1 | all backends | Tsa | V100 GPU |
-| HIP-Clang pre-release, based on Clang 10.0.0 | all backends | Ault | Mi50 GPU |
+
+##### Known issues
+
+Some tests are failing with ROCm3.8.0 (Clang 11).
 
 ##### Officially not supported (no workarounds implemented and planned)
 
-| Compiler | Backend | Date | Comments
+| Compiler | Backend | Date | Comments |
 | --- | --- | --- | --- |
-| Cray without Clang frontend| cpu_kfirst |  | no effort to fix compilation
-| NVCC <= 9.1 with GNU 6.x | gpu | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/)
-| PGI 18.5 | cpu_kfirst | 2018-12-06 | no effort to fix compilation
-| Intel 19.0.1.144 | all backends | 2020-05-11 | Intel workarounds removed in GridTools 2.0 (goal would be to support Intel with `-qnextgen`)
-| Intel 19.1.0.166 | all backends | 2020-05-11 | even with `-qnextgen`, no effort to fix compilation
+| Cray without Clang frontend| cpu_kfirst |  | no effort to fix compilation |
+| Cray clang version 9.0.2 | all backends | 2020-09-30 | with Cray extensions (works with flags `-fno-cray -fno-cray-gpu`) |
+| NVCC <= 9.1 with GNU 6.x | gpu | 2018-10-16 | similar to [this tuple bug](https://devtalk.nvidia.com/default/topic/1028112/cuda-setup-and-installation/nvcc-bug-related-to-gcc-6-lt-tuple-gt-header-/) |
+| PGI 18.5 | cpu_kfirst | 2018-12-06 | no effort to fix compilation |
+| PGI 20.1 | cpu backends | 2020-10-08 | no effort to fix compilation |
+| Intel 19.0.1.144 | all backends | 2020-05-11 | Intel workarounds removed in GridTools 2.0 (goal would be to support Intel with `-qnextgen`) |
+| Intel 19.1.0.166 | all backends | 2020-05-11 | even with `-qnextgen`, no effort to fix compilation |
 
 ### Contributing
 
