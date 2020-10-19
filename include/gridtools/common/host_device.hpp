@@ -67,7 +67,6 @@
 #endif
 #else
 #define GT_HOST_DEVICE
-#define GT_DEVICE
 #define GT_HOST
 #endif
 

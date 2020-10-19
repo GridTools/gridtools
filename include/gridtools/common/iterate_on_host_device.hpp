@@ -82,9 +82,6 @@
 #define GT_TARGET_NAMESPACE_NAME host
 #define GT_TARGET_NAMESPACE   \
     inline namespace host {}  \
-    namespace device {        \
-        using namespace host; \
-    }                         \
     namespace host_device {   \
         using namespace host; \
     }                         \

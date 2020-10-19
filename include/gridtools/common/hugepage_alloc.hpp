@@ -156,7 +156,7 @@ namespace gridtools {
             // here we hope that aligning to hugepage_size will return transparent huge pages
             void *ptr;
             size = ((size + hugepage_size() - 1) / hugepage_size()) * hugepage_size();
-            if (posix_memalign(&ptr, hugepage_size, size))
+            if (posix_memalign(&ptr, hugepage_size(), size))
                 throw std::bad_alloc();
             return {ptr, size};
         }
