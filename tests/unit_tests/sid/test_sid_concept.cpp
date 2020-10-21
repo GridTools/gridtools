@@ -239,7 +239,7 @@ namespace gridtools {
             EXPECT_EQ(5, tuple_util::get<3>(upper_bounds));
         }
 
-#if __cplusplus > 201703L
+#ifdef __cpp_concepts
         namespace cpp20_concept {
             std::false_type foo(...);
             std::true_type foo(Sid auto const &);
