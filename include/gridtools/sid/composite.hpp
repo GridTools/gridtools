@@ -396,9 +396,15 @@ namespace gridtools {
             };
 
             template <class... Keys>
-            constexpr auto make = [](auto &&... sids) {
-                return tuple_util::make<keys<Keys...>::template values>(std::forward<decltype(sids)>(sids)...);
+            struct make_f {
+                template <class... Sids>
+                constexpr auto operator()(Sids &&... sids) const {
+                    return tuple_util::make<keys<Keys...>::template values>(std::forward<Sids>(sids)...);
+                }
             };
+
+            template <class... Keys>
+            constexpr make_f<Keys...> make = {};
         } // namespace composite
     }     // namespace sid
 } // namespace gridtools
