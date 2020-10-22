@@ -346,10 +346,16 @@ namespace gridtools {
                             [](auto obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids);
                     }
 
+                    template <class U = strides_t, std::enable_if_t<!meta::is_empty<U>::value, int> = 0>
                     friend strides_t sid_get_strides(values const &obj) {
                         return tuple_util::transform(typename compressed_t::convert_f(),
                             tuple_util::transpose(
                                 tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>(), obj.m_sids)));
+                    }
+
+                    template <class U = strides_t, std::enable_if_t<meta::is_empty<U>::value, int> = 0>
+                    friend strides_t sid_get_strides(values const &) {
+                        return {};
                     }
 
                     friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
@@ -387,6 +393,11 @@ namespace gridtools {
                     // hymap concept
                     friend keys hymap_get_keys(values const &) { return {}; }
                 };
+            };
+
+            template <class... Keys>
+            constexpr auto make = [](auto &&... sids) {
+                return tuple_util::make<keys<Keys...>::template values>(std::forward<decltype(sids)>(sids)...);
             };
         } // namespace composite
     }     // namespace sid
