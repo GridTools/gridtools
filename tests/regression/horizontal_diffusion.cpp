@@ -128,7 +128,10 @@ namespace {
         auto comp = [grid = TypeParam::make_grid(),
                         coeff = TypeParam::make_const_storage(repo.coeff),
                         in = TypeParam::make_const_storage(repo.in),
-                        &out] { run(get_spec(TypeParam()), TypeParam::backend(), grid, in, coeff, out); };
+                        &out] {
+            run(get_spec(TypeParam()), TypeParam::backend(), grid, in, coeff, out);
+            run(get_spec(TypeParam()), TypeParam::backend(), grid, in, coeff, out);
+        };
         comp();
         TypeParam::verify(repo.out, out);
         TypeParam::benchmark("horizontal_diffusion", comp);
