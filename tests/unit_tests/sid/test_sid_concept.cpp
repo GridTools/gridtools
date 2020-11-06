@@ -238,5 +238,19 @@ namespace gridtools {
             EXPECT_EQ(4, tuple_util::get<2>(upper_bounds));
             EXPECT_EQ(5, tuple_util::get<3>(upper_bounds));
         }
+
+#ifdef __cpp_concepts
+        namespace cpp20_concept {
+            std::false_type foo(...);
+            std::true_type foo(Sid auto const &);
+
+            int bad = 42;
+            int good[] = {42};
+
+            static_assert(!decltype(foo(bad))());
+            static_assert(decltype(foo(good))());
+        } // namespace cpp20_concept
+#endif
+
     } // namespace
 } // namespace gridtools

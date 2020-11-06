@@ -64,7 +64,7 @@ namespace gridtools {
             };
             template <template <class...> class Outer, template <class...> class Inner, class... Ts, class... Inners>
             struct transpose<Outer<Inner<Ts...>, Inners...>>
-                : lfold<transform<meta::push_back>::type::apply, Inner<Outer<Ts>...>, list<Inners...>> {};
+                : foldl<transform<meta::push_back>::type::apply, Inner<Outer<Ts>...>, list<Inners...>> {};
 
             // transform, generic version
             template <template <class...> class F, class List, class... Lists>

@@ -120,7 +120,8 @@ namespace gridtools {
                 meta::transform<meta::curry<meta::force<convert_mss>::apply, Factor>::template apply, Spec>;
 
             template <class Plh, size_t... Js, class T, class A>
-            meta::rename<hymap::keys<expanded<Js, Plh>...>::template values, meta::repeat_c<sizeof...(Js), T const &>>
+            meta::rename<hymap::keys<expanded<Js, Plh>...>::template values,
+                meta::repeat_c<sizeof...(Js), meta::list<T const &>>>
             make_data_store_map_impl(std::index_sequence<Js...>, size_t offset, std::vector<T, A> const &field) {
                 return {field[offset + Js]...};
             }

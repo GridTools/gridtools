@@ -11,8 +11,8 @@
 
 #include <type_traits>
 
-#include "../../../../common/generic_metafunctions/utility.hpp"
 #include "../../../../common/host_device.hpp"
+#include "../../../../common/utility.hpp"
 #include "../../../../meta.hpp"
 #include "../accessor.hpp"
 

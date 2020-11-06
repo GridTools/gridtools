@@ -114,6 +114,19 @@ function(_gt_normalize_target_sources tgt)
     endif()
 endfunction()
 
+function(gt_cuda_arch_to_cuda_arch_version gt_cuda_arch outvar)
+    if(NOT gt_cuda_arch)
+        set(_gtca2cv_result OFF)
+    elseif(gt_cuda_arch MATCHES "compute_[0-9]+")
+        string(SUBSTRING ${gt_cuda_arch} 8 -1 _gtca2cv_result)
+    elseif(gt_cuda_arch MATCHES "sm_[0-9]+")
+        string(SUBSTRING ${gt_cuda_arch} 3 -1 _gtca2cv_result)
+    else()
+        message(FATAL_ERROR "Couldn't parse CUDA architecture: ${gt_cuda_arch}")
+    endif()
+    set(${outvar} ${_gtca2cv_result} PARENT_SCOPE)
+endfunction()
+
 # _gt_add_library()
 # In config mode (called from GridToolsConfig.cmake), we create an IMPORTED target with namespace
 # In normal mode (called from main CMakeLists.txt), we create a target without namespace and an alias
@@ -199,6 +212,13 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
             set(_gt_setup_root_dir ${CUDAToolkit_BIN_DIR}/..)
             target_compile_options(_gridtools_cuda INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-xcuda --cuda-path=${_gt_setup_root_dir}>)
             target_link_libraries(_gridtools_cuda INTERFACE CUDA::cudart)
+            if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0.0)
+                # Workaround for problem seen with Clang 10.0.1 in CUDA mode (havogt):
+                # The default std in Clang 10 is c++14, however in CUDA mode the compiler falls back to pre-c++11.
+                # Hypothesis: CMake tries to be smart and only puts `-std=c++14` if needed, but isn't aware of the CUDA problem...
+                # TODO check if fixed in Clang 11
+                target_compile_options(_gridtools_cuda INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>)
+            endif()
         elseif(type STREQUAL HIPCC-AMDGPU)
             target_compile_options(_gridtools_cuda INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-xhip>)
         endif()
@@ -219,27 +239,13 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     target_link_libraries(${_gt_namespace}stencil_naive INTERFACE ${_gt_namespace}gridtools)
 
     set(_required_nlohmann_json_version "3.7.3")
-    if(NOT _nlohmann_json_already_fetched)
-        find_package(nlohmann_json ${_required_nlohmann_json_version})
-    endif()
-    if(NOT nlohmann_json_FOUND)
-        set(_gridtools_repository "https://github.com/GridTools/gridtools.git")
-        set(_gridtools_tag        "v${_required_gridtools_version}")
-        include(FetchContent)
-        FetchContent_Declare(json
-                GIT_REPOSITORY https://github.com/nlohmann/json.git
-                GIT_TAG "v${_required_nlohmann_json_version}")
-        FetchContent_GetProperties(json)
-        if(NOT json_POPULATED)
-            FetchContent_Populate(json)
-            set(JSON_BuildTests OFF CACHE INTERNAL "")
-            add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
-        endif()
-        set(_nlohmann_json_already_fetched ON CACHE INTERNAL "")
-    endif()
+    include(get_nlohmann_json)
+    get_nlohmann_json(${_required_nlohmann_json_version})
 
-    _gt_add_library(${_config_mode} stencil_dump)
-    target_link_libraries(${_gt_namespace}stencil_dump INTERFACE ${_gt_namespace}gridtools nlohmann_json::nlohmann_json)
+    if(TARGET nlohmann_json::nlohmann_json)
+        _gt_add_library(${_config_mode} stencil_dump)
+        target_link_libraries(${_gt_namespace}stencil_dump INTERFACE ${_gt_namespace}gridtools nlohmann_json::nlohmann_json)
+    endif()
 
     set(GT_STENCILS naive)
     set(GT_STORAGES cpu_kfirst cpu_ifirst)
@@ -313,6 +319,14 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
 
         list(APPEND GT_STENCILS cpu_kfirst cpu_ifirst)
     endif()
+
+    find_package(HPX 1.5.0 QUIET NO_MODULE)
+    mark_as_advanced(GT_AVAILABLE_TARGETS)
+    if (HPX_FOUND)
+        _gt_add_library(${_config_mode} threadpool_hpx)
+        target_link_libraries(${_gt_namespace}threadpool_hpx INTERFACE ${_gt_namespace}gridtools HPX::hpx)
+    endif()
+
     set(GT_AVAILABLE_TARGETS ${_gt_available_targets} CACHE STRING "Available GridTools targets" FORCE)
     mark_as_advanced(GT_AVAILABLE_TARGETS)
 endmacro()
@@ -336,7 +350,17 @@ function(gridtools_set_gpu_arch_on_target tgt arch)
         if(need_cuda)
             _gt_depends_on_nvcc(need_nvcc ${tgt})
             if(need_nvcc)
-                target_compile_options(${tgt} PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:${GT_CUDA_ARCH_FLAG}=${arch}>)
+                if(${CMAKE_VERSION} VERSION_LESS "3.18.0")
+                    # TODO once we bump minimum required version to 3.18,  we should:
+                    # - remove the following line
+                    # - set Clang as CUDA compiler instead of using the current manual setup
+                    #   (currently we set it as CXX compiler and enable cuda mode ourselves)
+                    # - only manage HIP ourselves
+                    target_compile_options(${tgt} PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:${GT_CUDA_ARCH_FLAG}=${arch}>)
+                else()
+                    gt_cuda_arch_to_cuda_arch_version(${arch} _cuda_arch_version)
+                    set_property(TARGET ${tgt} PROPERTY CUDA_ARCHITECTURES ${_cuda_arch_version})
+                endif()
             else()
                 target_compile_options(${tgt} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${GT_CUDA_ARCH_FLAG}=${arch}>)
             endif()

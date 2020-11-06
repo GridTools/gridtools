@@ -14,8 +14,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "../defs.hpp"
-#include "../host_device.hpp"
+#include "defs.hpp"
+#include "host_device.hpp"
 
 namespace gridtools {
     /**

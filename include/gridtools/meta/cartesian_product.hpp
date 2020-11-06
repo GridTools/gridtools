@@ -32,6 +32,6 @@ namespace gridtools {
             rename<concat, transform<cartesian_product_step_impl_impl<L>::template apply, S>>;
 
         template <class... Lists>
-        using cartesian_product = lfold<cartesian_product_step_impl, list<list<>>, list<Lists...>>;
+        using cartesian_product = foldl<cartesian_product_step_impl, list<list<>>, list<Lists...>>;
     } // namespace meta
 } // namespace gridtools

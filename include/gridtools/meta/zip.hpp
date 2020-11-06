@@ -18,8 +18,8 @@ namespace gridtools {
      *  Zip lists
      */
     namespace meta {
-#if defined(__CUDACC_VER_MAJOR__) && \
-    ((__CUDACC_VER_MAJOR__ == 9) || (__CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ <= 1))
+#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ < 10 || __CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ < 2)
         namespace lazy {
             template <class... Lists>
             struct zip : transpose<list<Lists...>> {};

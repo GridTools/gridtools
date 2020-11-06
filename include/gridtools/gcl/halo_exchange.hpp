@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "../common/halo_descriptor.hpp"
-#include "../common/layout_map_metafunctions.hpp"
+#include "../common/layout_map.hpp"
 #include "high_level/descriptor_generic_manual.hpp"
 #include "high_level/descriptors.hpp"
 #include "high_level/descriptors_manual_gpu.hpp"
@@ -161,11 +161,10 @@ namespace gridtools {
             typename Gcl_Arch = cpu,
             int version = 0>
         class halo_exchange_dynamic_ut {
-
-            typedef typename reverse_map<T_layout_map>::type layout_map; // This is necessary since the internals of gcl
-                                                                         // use "increasing stride order" instead of
-                                                                         // "decreasing stride order"
-            typedef typename layout_transform<layout_map, layout2proc_map_abs>::type layout2proc_map;
+            // This is necessary since the internals of gcl use "increasing stride order" instead of "decreasing stride
+            // order"
+            using layout_map = reverse_map<T_layout_map>;
+            using layout2proc_map = layout_transform<layout_map, layout2proc_map_abs>;
 
           public:
             /**

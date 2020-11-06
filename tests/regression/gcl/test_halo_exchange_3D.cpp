@@ -19,7 +19,7 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/array_addons.hpp>
-#include <gridtools/common/generic_metafunctions/for_each.hpp>
+#include <gridtools/common/for_each.hpp>
 #include <gridtools/common/layout_map.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
@@ -102,8 +102,8 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
         return tuple_util::make<array>(make_storage(0), make_storage(1), make_storage(2));
     }
 
-    template <class Storages, class Periodicity>
-    void verify(Storages const &storages, Periodicity const &periodicity) const {
+    template <class Storages>
+    void verify(Storages const &storages, std::array<bool, 3> periodicity) const {
         for (int f = 0; f != num_fields; ++f) {
             auto view = storages[f]->const_host_view();
             auto is_border = [&](int i, int d) {
@@ -162,9 +162,8 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
                     for_each<bools_t>([&](auto p1) {
                         for_each<bools_t>([=](auto p2) {
                             auto storages = make_storages(layout);
-                            bool periodicity[] = {p0, p1, p2};
-                            f(layout, use_vector_interface, storages, boollist<3>(p0, p1, p2));
-                            verify(storages, periodicity);
+                            f(layout, use_vector_interface, storages, p0, p1, p2);
+                            verify(storages, {p0, p1, p2});
                         });
                     });
                 });
@@ -176,14 +175,14 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
 struct halo_exchange_3D_all : halo_exchange_3D_test {};
 
 TEST_P(halo_exchange_3D_all, test) {
-    run_exchanges([&](auto layout, auto use_vector_interface, auto &&storages, auto periodicity) {
+    run_exchanges([&](auto layout, auto use_vector_interface, auto &&storages, auto... periodicity) {
         using testing::ContainerEq;
         auto &&halos = GetParam().halos;
         ASSERT_THAT(halos[1], ContainerEq(halos[0]));
         ASSERT_THAT(halos[2], ContainerEq(halos[0]));
 
         using testee_t = gcl::halo_exchange_dynamic_ut<decltype(layout), layout_map<0, 1, 2>, value_type, gcl_arch_t>;
-        testee_t testee(periodicity, CartComm);
+        testee_t testee({periodicity...}, CartComm);
         auto halo_descriptors = make_halo_descriptors(storages, 0);
         for_each<meta::make_indices_c<num_fields>>(
             [&](auto f) { testee.template add_halo<decltype(f)::value>(halo_descriptors[f.value]); });
@@ -224,10 +223,10 @@ struct halo_exchange_3D_generic : halo_exchange_3D_test {
 };
 
 TEST_P(halo_exchange_3D_generic, test) {
-    run_exchanges([&](auto layout, auto use_vector_interface, auto &&storages, auto periodicity) {
+    run_exchanges([&](auto layout, auto use_vector_interface, auto &&storages, auto... periodicity) {
         using layout_t = decltype(layout);
         using testee_t = gcl::halo_exchange_generic<layout_map<0, 1, 2>, gcl_arch_t>;
-        testee_t testee(periodicity, CartComm);
+        testee_t testee({periodicity...}, CartComm);
         testee.setup(3,
             gcl::field_on_the_fly<int, layout_t, testee_t::traits>(nullptr, make_enclosed_halo_descriptor()),
             sizeof(value_type));

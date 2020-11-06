@@ -74,7 +74,7 @@
  *
  *  Examples:
  *    - meta::rename
- *    - meta::lfold
+ *    - meta::foldl
  *    - meta::is_instantiation_of
  *
  *  Library Structure

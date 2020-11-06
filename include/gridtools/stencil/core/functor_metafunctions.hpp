@@ -11,8 +11,8 @@
 
 #include <type_traits>
 
-#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/utility.hpp"
 #include "../../meta.hpp"
 #include "interval.hpp"
 #include "level.hpp"
@@ -89,7 +89,7 @@ namespace gridtools {
                     meta::make_indices_c<level_to_index<To>::value - level_to_index<From>::value + 1>>;
 
                 template <class Interval>
-                using split_interval = meta::flatten<meta::lfold<meta::force<add_level>::apply,
+                using split_interval = meta::flatten<meta::foldl<meta::force<add_level>::apply,
                     meta::list<meta::list<>>,
                     all_levels<meta::first<Interval>, meta::second<Interval>>>>;
 

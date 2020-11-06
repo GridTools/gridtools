@@ -36,14 +36,14 @@ namespace gridtools {
             };
 
             template <class N, class List>
-            using drop_front = drop_front_impl<typename repeat_c<N::value, void>::type, List>;
+            using drop_front = drop_front_impl<typename repeat_c<N::value, list<void>>::type, List>;
 
             template <std::size_t N, class List>
-            using drop_front_c = drop_front_impl<typename repeat_c<N, void>::type, List>;
+            using drop_front_c = drop_front_impl<typename repeat_c<N, list<void>>::type, List>;
         } // namespace lazy
         template <std::size_t N, class List>
-        using drop_front_c = typename lazy::drop_front_impl<typename repeat_c<N, void>::type, List>::type;
+        using drop_front_c = typename lazy::drop_front_impl<typename repeat_c<N, list<void>>::type, List>::type;
         template <class N, class List>
-        using drop_front = typename lazy::drop_front_impl<typename repeat_c<N::value, void>::type, List>::type;
+        using drop_front = typename lazy::drop_front_impl<typename repeat_c<N::value, list<void>>::type, List>::type;
     } // namespace meta
 } // namespace gridtools

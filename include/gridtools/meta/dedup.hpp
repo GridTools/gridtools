@@ -28,9 +28,9 @@ namespace gridtools {
          */
         namespace lazy {
             template <class List>
-            using dedup = lfold<dedup_step_impl, typename clear<List>::type, List>;
+            using dedup = foldl<dedup_step_impl, typename clear<List>::type, List>;
         }
         template <class List>
-        using dedup = typename lazy::lfold<dedup_step_impl, typename lazy::clear<List>::type, List>::type;
+        using dedup = typename lazy::foldl<dedup_step_impl, typename lazy::clear<List>::type, List>::type;
     } // namespace meta
 } // namespace gridtools

@@ -113,6 +113,13 @@ if(BUILD_TESTING)
             set(GT_CUDA_ARCH_INIT $ENV{CUDA_ARCH})
         endif()
         set(GT_CUDA_ARCH "${GT_CUDA_ARCH_INIT}" CACHE STRING "Compute capability for CUDA used for tests")
+
+        # CMake 3.18 support for CMAKE_CUDA_ARCHITECTURES
+        if(GT_CUDA_ARCH)
+            gt_cuda_arch_to_cuda_arch_version(${GT_CUDA_ARCH} CMAKE_CUDA_ARCHITECTURES)
+        else()
+            set(CMAKE_CUDA_ARCHITECTURES OFF)
+        endif()
     endif()
     include(detect_test_features)
     detect_c_compiler()

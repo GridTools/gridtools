@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/common/generic_metafunctions/for_each.hpp>
+#include <gridtools/common/for_each.hpp>
 
 #include <type_traits>
 
@@ -24,15 +24,6 @@ namespace gridtools {
 
         template <class T>
         GT_FUNCTION_WARNING void operator()(T) const {
-            *(dst++) = T::value;
-        }
-    };
-
-    struct ff {
-        int *&dst;
-
-        template <class T>
-        GT_FUNCTION_WARNING void operator()() const {
             *(dst++) = T::value;
         }
     };
@@ -58,13 +49,25 @@ namespace gridtools {
         EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
     }
 
-    TEST(for_each_type, functional) {
-        int vals[3];
-        int *cur = vals;
-        for_each_type<lst<my_int_t<0>, my_int_t<42>, my_int_t<3>>>(ff{cur});
-        EXPECT_EQ(cur, vals + 3);
-        EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
-    }
+#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ < 10 || __CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ < 2)
+#else
+    namespace test_constexpr {
+        struct f {
+            int &dst;
+            template <class T>
+            constexpr void operator()(T) const {
+                dst = T::value;
+            }
+        };
+        constexpr int foo() {
+            int res = 0;
+            for_each<lst<my_int_t<2>>>(f{res});
+            return res;
+        }
+        static_assert(foo() == 2, "");
+    } // namespace test_constexpr
+#endif
 
     TEST(for_each, targets) {
         int *ptr = nullptr;

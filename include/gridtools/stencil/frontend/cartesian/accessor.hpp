@@ -17,7 +17,6 @@
 #include "../../../common/array.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/functional.hpp"
-#include "../../../common/generic_metafunctions/accumulate.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../../common/integral_constant.hpp"
 #include "../../../common/tuple.hpp"
@@ -108,6 +107,14 @@ namespace gridtools {
                     return i >= Extent::iminus::value && i <= Extent::iplus::value && j >= Extent::jminus::value &&
                            j <= Extent::jplus::value && k >= Extent::kminus::value && k <= Extent::kplus::value;
                 }
+
+                template <class... Ts>
+                GT_FUNCTION GT_CONSTEXPR bool all(Ts... args) {
+                    bool res = true;
+                    for (bool ok : (bool[]){args...})
+                        res = res && ok;
+                    return res;
+                }
 #endif
             } // namespace accessor_impl_
 
@@ -139,7 +146,7 @@ namespace gridtools {
                 template <class... Ts, std::enable_if_t<accessor_impl_::are_ints<Ts...>::value, int> = 0>
                 GT_FUNCTION GT_CONSTEXPR accessor(typename accessor_impl_::just_int<Is>::type... offsets, Ts... zeros)
                     : base_t({offsets...}) {
-                    assert(accumulate(logical_and(), true, (zeros == 0)...));
+                    assert(accessor_impl_::all((zeros == 0)...));
                     assert(accessor_impl_::check_offsets<Extent>(*this));
                 }
 
@@ -149,7 +156,7 @@ namespace gridtools {
                     static_assert(meta::is_set_fast<meta::list<dimension<J>, dimension<Js>...>>::value,
                         "all dimensions should be of different indicies");
                     assert(accessor_impl_::out_of_range_dim<Dim>(src) == 0);
-                    assert(accumulate(logical_and(), true, (accessor_impl_::out_of_range_dim<Dim>(srcs) == 0)...));
+                    assert(accessor_impl_::all((accessor_impl_::out_of_range_dim<Dim>(srcs) == 0)...));
                     assert(accessor_impl_::check_offsets<Extent>(*this));
                 }
             };
@@ -163,22 +170,22 @@ namespace gridtools {
                 static constexpr intent intent_v = Intent;
                 using extent_t = Extent;
 
-                GT_DECLARE_DEFAULT_EMPTY_CTOR(accessor);
+                accessor() = default;
 
                 template <class... Ts, std::enable_if_t<accessor_impl_::are_ints<Ts...>::value, int> = 0>
                 GT_FUNCTION GT_CONSTEXPR accessor(Ts... zeros) {
-                    assert(accumulate(logical_and(), true, (zeros == 0)...));
+                    assert(accessor_impl_::all((zeros == 0)...));
                 }
 
                 template <size_t J, size_t... Js>
                 GT_FUNCTION GT_CONSTEXPR accessor(dimension<J> zero, dimension<Js>... zeros) {
                     assert(zero.value == 0);
-                    assert(accumulate(logical_and(), true, (zeros.value == 0)...));
+                    assert(accessor_impl_::all((zeros.value == 0)...));
                 }
             };
 
             template <uint_t ID, intent Intent, typename Extent, size_t Number>
-            meta::repeat_c<Number, int_t> tuple_to_types(accessor<ID, Intent, Extent, Number> const &);
+            meta::repeat_c<Number, meta::list<int_t>> tuple_to_types(accessor<ID, Intent, Extent, Number> const &);
 
             template <uint_t ID, intent Intent, typename Extent, size_t Number>
             meta::always<accessor<ID, Intent, Extent, Number>> tuple_from_types(

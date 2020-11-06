@@ -16,7 +16,7 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
-#include <gridtools/common/generic_metafunctions/for_each.hpp>
+#include <gridtools/common/for_each.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil/frontend/icosahedral/connectivity.hpp>
 #include <gridtools/stencil/frontend/icosahedral/location_type.hpp>

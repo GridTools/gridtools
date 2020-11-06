@@ -15,8 +15,8 @@
 #include <utility>
 
 #include "defs.hpp"
-#include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
+#include "utility.hpp"
 
 namespace gridtools {
     /** \ingroup common

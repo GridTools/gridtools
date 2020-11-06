@@ -17,7 +17,6 @@
 #include <type_traits>
 #include <utility>
 
-#include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/timer/timer.hpp"
 #include "../gcl/halo_exchange.hpp"
@@ -97,8 +96,10 @@ namespace gridtools {
                will underutilize the memory \param CartComm MPI communicator to use in the halo update operation [must
                be a cartesian communicator]
             */
-            distributed_boundaries(
-                array<halo_descriptor, 3> halos, boollist<3> period, uint_t max_stores, MPI_Comm CartComm)
+            distributed_boundaries(array<halo_descriptor, 3> halos,
+                typename pattern_type::grid_type::period_type period,
+                uint_t max_stores,
+                MPI_Comm CartComm)
                 : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores},
                   m_he(std::make_unique<pattern_type>(period, CartComm)), m_meter_pack("pack/unpack       "),
                   m_meter_exchange("exchange          "), m_meter_bc("boundary condition") {
@@ -178,7 +179,7 @@ namespace gridtools {
                 boundary_only(jobs...);
             }
 
-            typename pattern_type::grid_type const &proc_grid() const { return m_he->comm(); }
+            auto const &proc_grid() const { return m_he->comm(); }
 
             std::string print_meters() const {
                 return m_meter_pack.to_string() + "\n" + m_meter_exchange.to_string() + "\n" + m_meter_bc.to_string();
@@ -207,10 +208,8 @@ namespace gridtools {
 
             template <typename BCApply>
             std::enable_if_t<is_bound_bc<BCApply>::value, void> apply_boundary(BCApply bcapply) {
-                /*Apply boundary to data*/
-                call_apply(make_boundary<typename CTraits::comm_arch_type>(m_halos,
-                               bcapply.boundary_to_apply(),
-                               proc_grid_predicate<typename pattern_type::grid_type>(m_he->comm())),
+                call_apply(make_boundary<typename CTraits::comm_arch_type>(
+                               m_halos, bcapply.boundary_to_apply(), make_proc_grid_predicate(m_he->comm())),
                     bcapply.stores(),
                     std::make_integer_sequence<uint_t, std::tuple_size<typename BCApply::stores_type>::value>{});
             }

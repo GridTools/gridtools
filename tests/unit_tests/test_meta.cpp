@@ -65,8 +65,8 @@ namespace gridtools {
         static_assert(std::is_same<mp_find<map, double>, void>{}, "");
 
         // repeat
-        static_assert(std::is_same<repeat_c<0, int>, list<>>{}, "");
-        static_assert(std::is_same<repeat_c<3, int>, list<int, int, int>>{}, "");
+        static_assert(std::is_same<repeat_c<0, f<int>>, f<>>{}, "");
+        static_assert(std::is_same<repeat_c<3, f<int>>, f<int, int, int>>{}, "");
 
         // drop_front
         static_assert(std::is_same<drop_front_c<0, f<int, double>>, f<int, double>>{}, "");
@@ -99,12 +99,11 @@ namespace gridtools {
 
         // combine
         static_assert(std::is_same<combine<f, g<int>>, int>{}, "");
-        static_assert(
-            std::is_same<combine<f, repeat_c<8, int>>, f<f<f<int, int>, f<int, int>>, f<f<int, int>, f<int, int>>>>{},
+        static_assert(std::is_same<combine<f, repeat_c<8, g<int>>>,
+                          f<f<f<int, int>, f<int, int>>, f<f<int, int>, f<int, int>>>>{},
             "");
-        static_assert(std::is_same<combine<f, g<int, int>>, f<int, int>>{}, "");
         static_assert(std::is_same<combine<f, g<int, int, int>>, f<int, f<int, int>>>{}, "");
-        static_assert(std::is_same<combine<f, repeat_c<4, int>>, f<f<int, int>, f<int, int>>>{}, "");
+        static_assert(std::is_same<combine<f, repeat_c<4, g<int>>>, f<f<int, int>, f<int, int>>>{}, "");
 
         // concat
         static_assert(std::is_same<concat<g<int>>, g<int>>{}, "");
@@ -185,24 +184,30 @@ namespace gridtools {
         static_assert(!is_set_fast<int>{}, "");
         //        static_assert(!is_set_fast< f< int, void, int > >{}, "");
 
-        // lfold
-        static_assert(std::is_same<lfold<f, int, g<>>, int>{}, "");
-        static_assert(std::is_same<lfold<f, int, g<int>>, f<int, int>>{}, "");
-        static_assert(std::is_same<lfold<f, int, g<int, int>>, f<f<int, int>, int>>{}, "");
-        static_assert(std::is_same<lfold<f, int, g<int, int>>, f<f<int, int>, int>>{}, "");
-        static_assert(std::is_same<lfold<f, int, g<int, int, int>>, f<f<f<int, int>, int>, int>>{}, "");
-        static_assert(std::is_same<lfold<f, int, g<int, int, int, int>>, f<f<f<f<int, int>, int>, int>, int>>{}, "");
-        static_assert(
-            std::is_same<lfold<f, int, g<int, int, int, int, int>>, f<f<f<f<f<int, int>, int>, int>, int>, int>>{}, "");
-
         // rfold
-        static_assert(std::is_same<rfold<f, int, g<>>, int>{}, "");
-        static_assert(std::is_same<rfold<f, int, g<int>>, f<int, int>>{}, "");
-        static_assert(std::is_same<rfold<f, int, g<int, int>>, f<int, f<int, int>>>{}, "");
-        static_assert(std::is_same<rfold<f, int, g<int, int, int>>, f<int, f<int, f<int, int>>>>{}, "");
-        static_assert(std::is_same<rfold<f, int, g<int, int, int, int>>, f<int, f<int, f<int, f<int, int>>>>>{}, "");
+        static_assert(std::is_same<foldl<f, int, g<>>, int>{}, "");
+        static_assert(std::is_same<foldl<f, int, g<int>>, f<int, int>>{}, "");
+        static_assert(std::is_same<foldl<f, int, g<int, int>>, f<f<int, int>, int>>{}, "");
+        static_assert(std::is_same<foldl<f, int, g<int, int>>, f<f<int, int>, int>>{}, "");
+        static_assert(std::is_same<foldl<f, int, g<int, int, int>>, f<f<f<int, int>, int>, int>>{}, "");
+        static_assert(std::is_same<foldl<f, int, g<int, int, int, int>>, f<f<f<f<int, int>, int>, int>, int>>{}, "");
         static_assert(
-            std::is_same<rfold<f, int, g<int, int, int, int, int>>, f<int, f<int, f<int, f<int, f<int, int>>>>>>{}, "");
+            std::is_same<foldl<f, int, g<int, int, int, int, int>>, f<f<f<f<f<int, int>, int>, int>, int>, int>>{}, "");
+        static_assert(std::is_same<foldl<f, int, g<int, int, int, int, int, int>>,
+                          f<f<f<f<f<f<int, int>, int>, int>, int>, int>, int>>{},
+            "");
+
+        // foldr
+        static_assert(std::is_same<foldr<f, int, g<>>, int>{}, "");
+        static_assert(std::is_same<foldr<f, int, g<int>>, f<int, int>>{}, "");
+        static_assert(std::is_same<foldr<f, int, g<int, int>>, f<f<int, int>, int>>{}, "");
+        static_assert(std::is_same<foldr<f, int, g<int, int, int>>, f<f<f<int, int>, int>, int>>{}, "");
+        static_assert(std::is_same<foldr<f, int, g<int, int, int, int>>, f<f<f<f<int, int>, int>, int>, int>>{}, "");
+        static_assert(
+            std::is_same<foldr<f, int, g<int, int, int, int, int>>, f<f<f<f<f<int, int>, int>, int>, int>, int>>{}, "");
+        static_assert(std::is_same<foldr<f, int, g<int, int, int, int, int, int>>,
+                          f<f<f<f<f<f<int, int>, int>, int>, int>, int>, int>>{},
+            "");
 
         static_assert(std::is_same<cartesian_product<>, list<list<>>>{}, "");
         static_assert(std::is_same<cartesian_product<f<>>, list<>>{}, "");
@@ -218,8 +223,8 @@ namespace gridtools {
         static_assert(
             std::is_same<cartesian_product<f<int>, g<double>, list<void>>, list<list<int, double, void>>>{}, "");
 
-        static_assert(std::is_same<reverse<f<int, int *, int **, int ***, int ****, int *****>>,
-                          f<int *****, int ****, int ***, int **, int *, int>>{},
+        static_assert(std::is_same<reverse<f<int, int *, int **, int ***, int ****, int *****, int ******>>,
+                          f<int ******, int *****, int ****, int ***, int **, int *, int>>{},
             "");
 
         static_assert(find<f<>, int>::type::value == 0, "");
@@ -248,7 +253,7 @@ namespace gridtools {
 
         // take
         static_assert(std::is_same<take_c<2, f<int, double, void, void>>, f<int, double>>::value, "");
-        static_assert(std::is_same<take_c<20, repeat_c<100, int>>, repeat_c<20, int>>::value, "");
+        static_assert(std::is_same<take_c<20, repeat_c<100, g<int>>>, repeat_c<20, g<int>>>::value, "");
 
         // insert
         static_assert(std::is_same<insert_c<3, f<void, void, void, void, void>, int, double>,

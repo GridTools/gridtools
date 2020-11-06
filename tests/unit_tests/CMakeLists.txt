@@ -34,6 +34,10 @@ endfunction()
 
 gridtools_check_compilation(test_meta test_meta.cpp)
 
+if (CMAKE_CXX_STANDARD GREATER_EQUAL 17)
+    gridtools_check_compilation(test_topo test_topo.cpp)
+endif()
+
 add_subdirectory(common)
 add_subdirectory(sid)
 add_subdirectory(boundaries)

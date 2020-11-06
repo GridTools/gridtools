@@ -12,7 +12,6 @@
 
 #include "at.hpp"
 #include "length.hpp"
-#include "macros.hpp"
 
 namespace gridtools {
     namespace meta {

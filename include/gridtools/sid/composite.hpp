@@ -10,14 +10,16 @@
 #pragma once
 
 #include <cassert>
+#include <type_traits>
+#include <utility>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/for_each.hpp"
-#include "../common/generic_metafunctions/utility.hpp"
+#include "../common/for_each.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
+#include "../common/utility.hpp"
 #include "../meta.hpp"
 #include "concept.hpp"
 
@@ -43,7 +45,7 @@ namespace gridtools {
 
                 template <class Kinds>
                 using make_index_map =
-                    meta::first<meta::lfold<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>>;
+                    meta::first<meta::foldl<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>>;
 
                 /**
                  *  `maybe_equal(lhs, rhs)` is a functional equivalent of the following pseudo code:
@@ -152,17 +154,20 @@ namespace gridtools {
                 struct composite_ptr {
                     static_assert(sizeof...(Keys) == sizeof...(Ptrs), GT_INTERNAL_ERROR);
 
-                    typename hymap::keys<Keys...>::template values<Ptrs...> m_vals;
+                    tuple<Ptrs...> m_vals;
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
                     GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
-                        return tuple_util::host_device::transform([](auto const &ptr)
+                        return tuple_util::host_device::convert_to<hymap::keys<Keys...>::template values>(
+                            tuple_util::host_device::transform([](auto const &ptr)
 // Workaround for GCC 9 bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333
-#if defined(__clang__) || (__GNUC__ != 9 && __GNUC_MINOR__ > 2)
-                                                                      GT_FORCE_INLINE_LAMBDA
+// The failure is observed with 9.3 as well even though they say it was already fixed there.
+// gcc 10.1, 10.2 fails here as well. Disabling for all gcc 9 and 10 versions...
+#if defined(__clang__) || !defined(__GNUC__) || (__GNUC__ != 9 && __GNUC__ != 10)
+                                                                   GT_FORCE_INLINE_LAMBDA
 #endif
-                            -> decltype(auto) { return *ptr; },
-                            m_vals);
+                                -> decltype(auto) { return *ptr; },
+                                m_vals));
                     }
 
                     friend keys hymap_get_keys(composite_ptr const &) { return {}; }
@@ -172,7 +177,7 @@ namespace gridtools {
                 struct composite_ptr_holder {
                     static_assert(sizeof...(Keys) == sizeof...(PtrHolders), GT_INTERNAL_ERROR);
 
-                    typename hymap::keys<Keys...>::template values<PtrHolders...> m_vals;
+                    tuple<PtrHolders...> m_vals;
                     GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
 
@@ -239,7 +244,7 @@ namespace gridtools {
                             static_assert(sizeof...(Args) == sizeof...(Keys), GT_INTERNAL_ERROR);
                         }
 
-                        GT_DECLARE_DEFAULT_EMPTY_CTOR(composite_entity);
+                        composite_entity() = default;
                         composite_entity(composite_entity const &) = default;
                         composite_entity(composite_entity &&) noexcept = default;
                         composite_entity &operator=(composite_entity const &) = default;
@@ -250,13 +255,13 @@ namespace gridtools {
                         template <class... Ptrs>
                         friend GT_CONSTEXPR GT_FUNCTION composite_ptr<Ptrs...> operator+(
                             composite_ptr<Ptrs...> const &lhs, composite_entity const &rhs) {
-                            return tuple_util::host_device::transform(impl_::sum{}, lhs, rhs);
+                            return tuple_util::host_device::transform(impl_::sum(), lhs, rhs);
                         }
 
                         template <class... PtrHolders>
                         friend composite_ptr_holder<PtrHolders...> operator+(
                             composite_ptr_holder<PtrHolders...> const &lhs, composite_entity const &rhs) {
-                            return tuple_util::transform(impl_::sum{}, lhs, rhs);
+                            return tuple_util::transform(impl_::sum(), lhs, rhs);
                         }
 
                         template <class... Ptrs, class Offset>
@@ -303,7 +308,7 @@ namespace gridtools {
                     static_assert(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 #endif
 
-                    typename hymap::keys<Keys...>::template values<Sids...> m_sids;
+                    tuple<Sids...> m_sids;
 
                     // Extracted lists of raw kinds (uncompresed)
                     using strides_kinds_t = meta::list<strides_kind<Sids>...>;
@@ -317,14 +322,7 @@ namespace gridtools {
 
                     using stride_keys_t = meta::dedup<meta::concat<get_keys<strides_type<Sids>>...>>;
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2
-                    struct stride_hymap_keys {
-                        using type = meta::rename<hymap::keys, stride_keys_t>;
-                    };
-                    using stride_hymap_keys_t = typename stride_hymap_keys::type;
-#else
                     using stride_hymap_keys_t = meta::rename<hymap::keys, stride_keys_t>;
-#endif
 
                     template <class... Values>
                     using stride_hymap_ctor = typename stride_hymap_keys_t::template values<Values...>;
@@ -348,11 +346,16 @@ namespace gridtools {
                             [](auto obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids);
                     }
 
+                    template <class U = strides_t, std::enable_if_t<!meta::is_empty<U>::value, int> = 0>
                     friend strides_t sid_get_strides(values const &obj) {
-                        return tuple_util::convert_to<stride_hymap_keys_t::template values>(
-                            tuple_util::transform(typename compressed_t::convert_f(),
-                                tuple_util::transpose(
-                                    tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>{}, obj.m_sids))));
+                        return tuple_util::transform(typename compressed_t::convert_f(),
+                            tuple_util::transpose(
+                                tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>(), obj.m_sids)));
+                    }
+
+                    template <class U = strides_t, std::enable_if_t<meta::is_empty<U>::value, int> = 0>
+                    friend strides_t sid_get_strides(values const &) {
+                        return {};
                     }
 
                     friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
@@ -360,14 +363,48 @@ namespace gridtools {
                     friend meta::dedup<strides_kinds_t> sid_get_strides_kind(values const &) { return {}; }
 
                     // Here the `tuple_like` concept is modeled
+                    struct getter {
+                        template <size_t I>
+                        static decltype(auto) get(values const &obj) noexcept {
+                            return tuple_util::get<I>(obj.m_sids);
+                        }
+                        template <size_t I>
+                        static decltype(auto) get(values &obj) noexcept {
+                            return tuple_util::get<I>(obj.m_sids);
+                        }
+                        template <size_t I>
+                        static decltype(auto) get(values &&obj) noexcept {
+                            return tuple_util::get<I>(std::move(obj).m_sids);
+                        }
+                    };
+                    friend getter tuple_getter(values const &) { return {}; }
 
-                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_sids);
-                    GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_sids);
+                    template <class Arg,
+                        class... Args,
+                        std::enable_if_t<std::is_constructible<tuple<Sids...>, Arg &&, Args &&...>::value, int> = 0>
+                    values(Arg &&arg, Args &&... args) noexcept
+                        : m_sids(std::forward<Arg>(arg), std::forward<Args>(args)...) {}
+                    values() = default;
+                    values(values const &) = default;
+                    values(values &&) = default;
+                    values &operator=(values const &) = default;
+                    values &operator=(values &&) = default;
 
                     // hymap concept
                     friend keys hymap_get_keys(values const &) { return {}; }
                 };
             };
+
+            template <class... Keys>
+            struct make_f {
+                template <class... Sids>
+                constexpr auto operator()(Sids &&... sids) const {
+                    return tuple_util::make<keys<Keys...>::template values>(std::forward<Sids>(sids)...);
+                }
+            };
+
+            template <class... Keys>
+            constexpr make_f<Keys...> make = {};
         } // namespace composite
     }     // namespace sid
 } // namespace gridtools

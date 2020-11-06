@@ -11,19 +11,19 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/defs.hpp>
-#include <gridtools/common/generic_metafunctions/for_each.hpp>
+#include <gridtools/common/array.hpp>
+#include <gridtools/common/for_each.hpp>
 #include <gridtools/common/hypercube_iterator.hpp>
-#include <gridtools/common/make_array.hpp>
+#include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
 
 #ifdef GT_CUDACC
-#include <gridtools/common/array.hpp>
 #include <gridtools/common/cuda_util.hpp>
 #endif
 
 namespace {
     using namespace gridtools;
+    using tuple_util::make;
 
     struct host {};
 
@@ -65,12 +65,12 @@ namespace {
             constexpr size_t Nx = 4, Ny = 5, Nz = 6;
             double src[Nx][Ny][Nz];
             double dst[Nz][Ny][Nx];
-            auto dims = make_array(Nx, Ny, Nz);
+            auto dims = make<array>(Nx, Ny, Nz);
             for (auto i : make_hypercube_view(dims)) {
                 src[i[0]][i[1]][i[2]] = 100 * i[0] + 10 * i[1] + i[2];
                 dst[i[2]][i[1]][i[0]] = -1;
             }
-            testee(env, dst, src, dims, make_array(1, Nx, Nx * Ny), make_array(Ny * Nz, Nz, 1));
+            testee(env, dst, src, dims, make<array>(1, Nx, Nx * Ny), make<array>(Ny * Nz, Nz, 1));
             for (auto i : make_hypercube_view(dims))
                 EXPECT_DOUBLE_EQ(dst[i[2]][i[1]][i[0]], src[i[0]][i[1]][i[2]]);
         });
@@ -81,7 +81,7 @@ namespace {
             constexpr size_t Nx = 4, Ny = 5, Nz = 6, Nw = 7;
             double src[Nx][Ny][Nz][Nw];
             double dst[Nw][Nz][Ny][Nx];
-            auto dims = make_array(Nx, Ny, Nz, Nw);
+            auto dims = make<array>(Nx, Ny, Nz, Nw);
             for (auto i : make_hypercube_view(dims)) {
                 src[i[0]][i[1]][i[2]][i[3]] = 1000 * i[0] + 100 * i[1] + 10 * i[2] + i[3];
                 dst[i[3]][i[2]][i[1]][i[0]] = -1;
@@ -90,8 +90,8 @@ namespace {
                 dst,
                 src,
                 dims,
-                make_array(1, Nx, Nx * Ny, Nx * Ny * Nz),
-                make_array(Ny * Nz * Nw, Nz * Nw, Nw, 1));
+                make<array>(1, Nx, Nx * Ny, Nx * Ny * Nz),
+                make<array>(Ny * Nz * Nw, Nz * Nw, Nw, 1));
             for (auto i : make_hypercube_view(dims))
                 EXPECT_DOUBLE_EQ(dst[i[3]][i[2]][i[1]][i[0]], src[i[0]][i[1]][i[2]][i[3]]);
         });
@@ -102,12 +102,12 @@ namespace {
             constexpr size_t Nx = 4, Ny = 5;
             double src[Nx][Ny];
             double dst[Ny][Nx];
-            auto dims = make_array(Nx, Ny);
+            auto dims = make<array>(Nx, Ny);
             for (auto i : make_hypercube_view(dims)) {
                 src[i[0]][i[1]] = 100 * i[0] + 10 * i[1];
                 dst[i[1]][i[0]] = -1;
             }
-            testee(env, dst, src, dims, make_array(1, Nx), make_array(Ny, 1));
+            testee(env, dst, src, dims, make<array>(1, Nx), make<array>(Ny, 1));
             for (auto i : make_hypercube_view(dims))
                 EXPECT_DOUBLE_EQ(dst[i[1]][i[0]], src[i[0]][i[1]]);
         });
@@ -122,7 +122,7 @@ namespace {
                 src[i] = i;
                 dst[i][0] = dst[i][1] = -1;
             }
-            testee(env, dst, src, make_array(Nx), make_array(2), make_array(1));
+            testee(env, dst, src, make<array>(Nx), make<array>(2), make<array>(1));
             for (size_t i = 0; i != Nx; ++i) {
                 EXPECT_DOUBLE_EQ(dst[i][0], src[i]); // the indexable elements match
                 EXPECT_DOUBLE_EQ(dst[i][1], -1);     // the non-indexable are not touched
