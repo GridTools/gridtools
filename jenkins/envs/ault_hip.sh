@@ -2,9 +2,13 @@
 
 source $(dirname "$BASH_SOURCE")/ault.sh
 
-module load rocm/3.8.0
-# fix for broken module
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm-3.8.0/llvm/lib"
+# no module available for ROCm 3.9
+export ROCM_PATH=/opt/rocm-3.9.0
+export PATH="$PATH:$ROCM_PATH/bin"
+# libraries are distributed over many dirs, so search them by name
+rocm_lib_paths=$(find $ROCM_PATH -type d -name 'lib*' | tr '\n' ':')
+export LIBRARY_PATH="$rocm_lib_paths$LIBRARY_PATH"
+export LD_LIBRARY_PATH="$rocm_lib_paths$LD_LIBRARY_PATH"
 module load gcc/10.1.0
 
 export CXX=$(which hipcc)
