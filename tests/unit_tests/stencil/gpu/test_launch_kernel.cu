@@ -39,12 +39,14 @@ namespace gridtools {
                     if (actual == expected)
                         return;
                     atomicAdd(m_failures, 1);
+                    int block_idx_x = blockIdx.x;
+                    int block_idx_y = blockIdx.y;
                     printf("false %s at {%d,%d} of block {%d,%d}\n",
                         actual ? "positive" : "negative",
                         iblock,
                         jblock,
-                        blockIdx.x,
-                        blockIdx.y);
+                        block_idx_x,
+                        block_idx_y);
                 }
             };
 
