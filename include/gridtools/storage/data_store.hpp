@@ -18,6 +18,7 @@
 #include "../common/defs.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/layout_map.hpp"
+#include "../common/numeric.hpp"
 #include "data_view.hpp"
 #include "info.hpp"
 #include "traits.hpp"
@@ -28,22 +29,12 @@ namespace gridtools {
         struct uninitialized {};
 
         namespace data_store_impl_ {
-
-            inline constexpr int gcd(size_t a, size_t b) {
-                if (b == 0)
-                    return a;
-                return gcd(b, a % b);
-            }
-
-            template <class Traits, class T, size_t ByteAlignment = traits::alignment<Traits>>
-            using get_alignment = integral_constant<int, ByteAlignment / gcd(sizeof(T), ByteAlignment)>;
-
-            template <class Traits, class T, class Info, class Id>
+            template <class Traits, class T, class Info, class Kind>
             class base {
-                static constexpr size_t byte_alignment = traits::alignment<Traits>;
+                static constexpr size_t byte_alignment = traits::byte_alignment<Traits>;
                 static_assert(byte_alignment > 0, GT_INTERNAL_ERROR);
 
-                using alignment_t = get_alignment<Traits, T>;
+                using alignment_t = integral_constant<int, traits::elem_alignment<Traits, T>>;
                 using strides_t = decltype(std::declval<Info const &>().native_strides());
 
                 using mutable_data_t = std::remove_const_t<T>;
@@ -56,11 +47,8 @@ namespace gridtools {
               public:
                 using layout_t = traits::layout_type<Traits, Info::ndims>;
                 using data_t = T;
+                using kind_t = Kind;
                 static constexpr size_t ndims = Info::ndims;
-
-                using kind_t = meta::if_<tuple_util::is_empty_or_tuple_of_empties<strides_t>,
-                    strides_t,
-                    meta::list<layout_t, Id, meta::if_c<(layout_t::unmasked_length > 1), alignment_t, void>>>;
 
                 auto const &name() const { return m_name; }
                 auto const &info() const { return m_info; }
@@ -88,13 +76,13 @@ namespace gridtools {
             template <class Traits,
                 class T,
                 class Info,
-                class Id,
+                class Kind,
                 bool = std::is_const<T>::value,
                 bool = traits::is_host_referenceable<Traits>>
             class data_store;
 
-            template <class Traits, class T, class Info, class Id>
-            class data_store<Traits, T, Info, Id, false, false> : public base<Traits, T, Info, Id> {
+            template <class Traits, class T, class Info, class Kind>
+            class data_store<Traits, T, Info, Kind, false, false> : public base<Traits, T, Info, Kind> {
                 enum state { synced, invalid_host, invalid_target };
                 state m_state;
                 std::unique_ptr<T[]> m_host_ptr;
@@ -157,8 +145,8 @@ namespace gridtools {
                 }
             };
 
-            template <class Traits, class T, class Info, class Id>
-            class data_store<Traits, T, Info, Id, false, true> : public base<Traits, T, Info, Id> {
+            template <class Traits, class T, class Info, class Kind>
+            class data_store<Traits, T, Info, Kind, false, true> : public base<Traits, T, Info, Kind> {
               public:
                 template <class Halos>
                 data_store(std::string name, Info info, Halos const &halos, uninitialized const &)
@@ -184,9 +172,9 @@ namespace gridtools {
                 auto const_host_view() const { return const_target_view(); }
             };
 
-            template <class Traits, class T, class Info, class Id, bool IsHostRefrenceable>
-            class data_store<Traits, T const, Info, Id, true, IsHostRefrenceable>
-                : public base<Traits, T const, Info, Id> {
+            template <class Traits, class T, class Info, class Kind, bool IsHostRefrenceable>
+            class data_store<Traits, T const, Info, Kind, true, IsHostRefrenceable>
+                : public base<Traits, T const, Info, Kind> {
 
                 template <class>
                 struct is_host_refrenceable : bool_constant<IsHostRefrenceable> {};
@@ -209,7 +197,7 @@ namespace gridtools {
 
                 template <class Initializer, class Halos>
                 data_store(std::string name, Info info, Halos const &halos, Initializer const &initializer)
-                    : base<Traits, T const, Info, Id>(std::move(name), std::move(info), halos) {
+                    : base<Traits, T const, Info, Kind>(std::move(name), std::move(info), halos) {
                     init(initializer);
                 }
                 T const *get_target_ptr() const { return this->raw_target_ptr(); }
@@ -230,21 +218,18 @@ namespace gridtools {
             template <class Traits, class T, class Info, class Id>
             struct is_data_store_ptr<std::shared_ptr<data_store<Traits, T, Info, Id>>> : std::true_type {};
 
-            template <class Traits, class T, class Id, class Info, class Halos, class Initializer>
+            template <class Traits, class T, class Kind, class Info, class Halos, class Initializer>
             auto make_data_store_helper(
                 std::string name, Info info, Halos const &halos, Initializer const &initializer) {
-                return std::make_shared<data_store<Traits, T, Info, Id>>(
+                return std::make_shared<data_store<Traits, T, Info, Kind>>(
                     std::move(name), std::move(info), halos, initializer);
             }
 
             template <class Traits, class T, class Id, class Lengths, class Halos, class Initializer>
             auto make_data_store(
                 std::string name, Lengths const &lengths, Halos const &halos, Initializer const &initializer) {
-                return make_data_store_helper<Traits, T, Id>(std::move(name),
-                    make_info<traits::layout_type<Traits, tuple_util::size<Lengths>::value>>(
-                        get_alignment<Traits, T>(), lengths),
-                    halos,
-                    initializer);
+                return make_data_store_helper<Traits, T, traits::strides_kind<Traits, T, Lengths, Id>>(
+                    std::move(name), traits::make_info<Traits, T>(lengths), halos, initializer);
             }
 
             template <class DataStore>

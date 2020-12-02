@@ -30,7 +30,7 @@ void run() {
 
     auto view = store->target_view();
     EXPECT_EQ(reinterpret_cast<uintptr_t>(store->get_target_ptr() + store->info().index(h1, h2, h3)) %
-                  storage::traits::alignment<storage_traits_t>,
+                  storage::traits::byte_alignment<storage_traits_t>,
         0);
 }
 

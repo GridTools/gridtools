@@ -32,7 +32,7 @@ namespace {
         GT_FUNCTION static void apply(Evaluation &eval) {
             auto *ptr = &eval(acc());
             eval(out()) = eval(i_pos()) == halo &&
-                          reinterpret_cast<ptrdiff_t>(ptr) % storage::traits::alignment<storage_traits_t>;
+                          reinterpret_cast<ptrdiff_t>(ptr) % storage::traits::byte_alignment<storage_traits_t>;
         }
     };
 

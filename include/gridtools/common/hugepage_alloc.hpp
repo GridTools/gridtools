@@ -177,7 +177,7 @@ namespace gridtools {
                 return hugepage_mode::disabled;
             if (std::strcmp(env_value, "explicit") == 0)
                 return hugepage_mode::explicit_allocation;
-            std::fprintf(stderr, "warning: env variable GT_HUGEPAGE_MODE set to invalid value '%s'\n", env_value);
+            fprintf(stderr, "warning: env variable GT_HUGEPAGE_MODE set to invalid value '%s'\n", env_value);
             return hugepage_mode::transparent;
         }
 

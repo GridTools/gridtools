@@ -9,6 +9,7 @@ gridtools_add_unit_test(test_pair SOURCES test_pair.cpp)
 gridtools_add_unit_test(test_stride_util SOURCES test_stride_util.cpp)
 gridtools_add_unit_test(test_tuple_util SOURCES test_tuple_util.cpp)
 gridtools_add_unit_test(test_for_each SOURCES test_for_each.cpp)
+gridtools_add_unit_test(test_ct_dispatch SOURCES test_ct_dispatch.cpp)
 
 gridtools_add_unit_test(test_atomic_functions SOURCES test_atomic_functions.cpp NO_NVCC)
 gridtools_add_unit_test(test_cuda_is_ptr SOURCES test_cuda_is_ptr.cpp NO_NVCC)

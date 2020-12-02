@@ -54,6 +54,29 @@ function(gridtools_add_cartesian_regression_test tgt_name)
             LABELS cartesian)
 endfunction()
 
+function(add_reduction_testees prefix)
+    foreach(backend IN LISTS ARGN)
+        set(tgt ${prefix}_${backend})
+        add_library(${tgt} INTERFACE)
+        target_link_libraries(${tgt} INTERFACE reduction_${backend})
+        string(TOUPPER ${backend} u_backend)
+        target_compile_definitions(${tgt} INTERFACE GT_REDUCTION_${u_backend})
+        if (backend STREQUAL gpu)
+            target_link_libraries(${tgt} INTERFACE stencil_gpu storage_gpu)
+        elseif (backend STREQUAL naive)
+            target_link_libraries(${tgt} INTERFACE stencil_naive storage_cpu_kfirst)
+        endif()
+    endforeach()
+endfunction()
+add_reduction_testees(reduction_testee ${GT_REDUCTIONS})
+
+function(gridtools_add_reduction_test tgt_name)
+    gridtools_add_regression_test(${tgt_name} ${ARGN}
+            LIB_PREFIX reduction_testee
+            KEYS ${GT_REDUCTIONS}
+            LABELS reduction)
+endfunction()
+
 function(gridtools_add_layout_transformation_test)
     foreach(arch IN LISTS GT_GCL_ARCHS)
         set(tgt layout_transformation_testee_${arch})
@@ -115,6 +138,7 @@ gridtools_add_cartesian_regression_test(expandable_parameters SOURCES expandable
 gridtools_add_cartesian_regression_test(expandable_parameters_single_kernel SOURCES expandable_parameters_single_kernel.cpp)
 gridtools_add_cartesian_regression_test(horizontal_diffusion_functions SOURCES horizontal_diffusion_functions.cpp)
 gridtools_add_cartesian_regression_test(whole_axis_access SOURCES whole_axis_access.cpp)
+gridtools_add_reduction_test(scalar_product SOURCES scalar_product.cpp PERFTEST)
 gridtools_add_layout_transformation_test()
 gridtools_add_boundary_conditions_test()
 
