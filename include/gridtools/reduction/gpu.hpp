@@ -150,7 +150,7 @@ namespace gridtools {
 
             template <size_t BlockSize, class T>
             using choose_kernel = typename meta::if_c<(BlockSize == 1),
-                // no need to use nor shared memory nighter intrinsics
+                // no need to use neither shared memory nor intrinsics
                 meta::lazy::id<tiny_kernel>,
                 meta::if_<is_shufflable<T>,
                     meta::if_c<(BlockSize > 32),
