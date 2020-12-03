@@ -277,7 +277,7 @@ namespace gridtools {
 
             inline size_t reduction_round_size(gpu, size_t size) {
                 auto chunk = next_pow2(size) / cpu_final_threshold_t::value;
-                return chunk ? (size + chunk - 1) / chunk : size;
+                return chunk ? (size + chunk - 1) / chunk * chunk : size;
             }
 
             inline size_t reduction_allocation_size(gpu, size_t n) {
@@ -286,6 +286,7 @@ namespace gridtools {
                     res += n;
                     n /= 2 * get_threads(n);
                 } while (n > cpu_final_threshold_t::value);
+                res += n;
                 return res;
             }
 
