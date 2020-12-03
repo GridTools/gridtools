@@ -28,14 +28,14 @@ namespace gridtools {
 
         template <class T>
         void reduction_fill(naive,
-            T const &initial_value,
+            T const &val,
             T *ptr,
             size_t /*data_size*/,
             size_t /*rounded_size*/,
             size_t allocation_size,
-            bool has_holes) {
+            bool /*has_holes*/) {
             for (size_t i = 0; i != allocation_size; ++i)
-                ptr[i] = initial_value;
+                ptr[i] = val;
         }
     } // namespace reduction
 } // namespace gridtools

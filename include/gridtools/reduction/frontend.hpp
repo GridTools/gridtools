@@ -56,7 +56,7 @@ namespace gridtools {
             StridesKind sid_get_strides_kind(reducible<Backend, Origin, Strides, StridesKind, Sizes> const &);
 
             template <class Backend, class StorageTraits, class Id = void, class T, class... Dims>
-            auto make_reducible(T const &initial_value, Dims... dims) {
+            auto make_reducible(T const &neutral_value, Dims... dims) {
                 auto alloc = sid::host_device::make_cached_allocator(
                     [](size_t size) { return storage::traits::allocate<StorageTraits, char>(size); });
                 auto lengths = tuple_util::make<tuple>(dims...);
@@ -67,7 +67,7 @@ namespace gridtools {
                 size_t allocation_size = reduction_allocation_size(Backend(), rounded_size);
                 auto origin = allocate(alloc, meta::lazy::id<T>(), allocation_size);
                 reduction_fill(Backend(),
-                    initial_value,
+                    neutral_value,
                     origin(),
                     data_size,
                     rounded_size,

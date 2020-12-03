@@ -11,9 +11,7 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <cstring>
 #include <type_traits>
-#include <vector>
 
 #include "../common/ct_dispatch.hpp"
 #include "../common/cuda_runtime.hpp"
@@ -77,6 +75,7 @@ namespace gridtools {
                 }
             };
 
+            // TODO(fthaler): to figure out if __shfl_down_sync is supported on HIP
             template <class F, class T>
             GT_FUNCTION_DEVICE T warp_reduce(F f, unsigned mask, T val) {
                 val = f(val, __shfl_down_sync(mask, val, 16));
@@ -144,9 +143,9 @@ namespace gridtools {
             };
 
             template <class T>
-            using is_shufflable =
-                meta::st_contains<meta::list<int, unsigned, long, unsigned long, long long, unsigned long long, float, double>,
-                    T>;
+            using is_shufflable = meta::st_contains<
+                meta::list<int, unsigned, long, unsigned long, long long, unsigned long long, float, double>,
+                T>;
 
             template <size_t BlockSize, class T>
             using choose_kernel = typename meta::if_c<(BlockSize == 1),
@@ -187,6 +186,7 @@ namespace gridtools {
                 return ret;
             }
 
+            // TODO(anstaf): benchmark that
             using cpu_final_threshold_t = integral_constant<size_t, 8>;
 
             static_assert(cpu_final_threshold_t::value > 1, GT_INTERNAL_ERROR);
@@ -200,11 +200,15 @@ namespace gridtools {
                 return res;
             }
 
+            inline size_t max_threads() {
+                static size_t res = get_device_properties().maxThreadsPerBlock;
+                return res;
+            }
+
             inline size_t get_threads(size_t n) {
-                static size_t max_threads = get_device_properties().maxThreadsPerBlock;
-                assert(is_pow2(max_threads));
+                assert(is_pow2(max_threads()));
                 assert(n % 2 == 0);
-                return gcd(n / 2, max_threads);
+                return gcd(n / 2, max_threads());
             }
 
             template <class T>
@@ -250,10 +254,8 @@ namespace gridtools {
             }
 
             template <class T>
-            inline unsigned char const *memset_cast(T const &val) {
-                auto res = reinterpret_cast<unsigned char const *>(&val);
-                T buff;
-                return std::memcmp(&val, std::memset(&buff, *res, sizeof(T)), sizeof(T)) == 0 ? res : nullptr;
+            __global__ void fill(T *dst, T val) {
+                dst[blockIdx.x * blockDim.x + threadIdx.x] = val;
             }
 
             struct gpu {};
@@ -292,25 +294,17 @@ namespace gridtools {
 
             template <class T>
             void reduction_fill(gpu,
-                T const &initial_value,
+                T const &val,
                 T *dst,
                 size_t data_size,
                 size_t rounded_size,
                 size_t /*allocation_size*/,
                 bool has_holes) {
-                if (!has_holes) {
-                    dst += data_size;
-                    rounded_size -= data_size;
-                }
-                if (!rounded_size)
+                if (!has_holes && data_size == rounded_size)
                     return;
-                size_t bytes = rounded_size * sizeof(T);
-                if (auto init = memset_cast(initial_value)) {
-                    GT_CUDA_CHECK(cudaMemset(dst, *init, bytes));
-                } else {
-                    std::vector<T> src(rounded_size, initial_value);
-                    GT_CUDA_CHECK(cudaMemcpy(dst, src.data(), bytes, cudaMemcpyHostToDevice));
-                }
+                auto threads = gcd(rounded_size, max_threads());
+                fill<<<rounded_size / threads, threads>>>(dst, val);
+                GT_CUDA_CHECK(cudaGetLastError());
             }
         } // namespace gpu_backend
         using gpu_backend::gpu;
