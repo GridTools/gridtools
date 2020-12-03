@@ -11,6 +11,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <memory>
 #include <type_traits>
 #include <utility>
 
@@ -31,9 +32,9 @@ namespace gridtools {
             template <class Sizes>
             using zeros_type = decltype(zeros(std::declval<Sizes const &>()));
 
-            template <class Backend, class Alloc, class Origin, class Strides, class StridesKind, class Sizes>
+            template <class Backend, class Origin, class Strides, class StridesKind, class Sizes>
             struct reducible {
-                Alloc m_alloc;
+                std::shared_ptr<void> m_alloc;
                 Origin m_origin;
                 size_t m_size;
                 Strides m_strides;
@@ -51,8 +52,8 @@ namespace gridtools {
                 friend Sizes sid_get_upper_bounds(reducible const &obj) { return obj.m_sizes; }
             };
 
-            template <class Backend, class Alloc, class Origin, class Strides, class StridesKind, class Sizes>
-            StridesKind sid_get_strides_kind(reducible<Backend, Alloc, Origin, Strides, StridesKind, Sizes> const &);
+            template <class Backend, class Origin, class Strides, class StridesKind, class Sizes>
+            StridesKind sid_get_strides_kind(reducible<Backend, Origin, Strides, StridesKind, Sizes> const &);
 
             template <class Backend, class StorageTraits, class Id = void, class T, class... Dims>
             auto make_reducible(T const &initial_value, Dims... dims) {
@@ -73,12 +74,14 @@ namespace gridtools {
                     allocation_size,
                     storage::traits::has_holes<StorageTraits, T>(lengths));
                 return reducible<Backend,
-                    decltype(alloc),
                     decltype(origin),
                     decltype(strides),
                     storage::traits::strides_kind<StorageTraits, T, decltype(lengths), Id>,
-                    decltype(lengths)>{
-                    std::move(alloc), std::move(origin), rounded_size, std::move(strides), std::move(lengths)};
+                    decltype(lengths)>{std::make_shared<decltype(alloc)>(std::move(alloc)),
+                    std::move(origin),
+                    rounded_size,
+                    std::move(strides),
+                    std::move(lengths)};
             }
         } // namespace frontend_impl_
         using frontend_impl_::make_reducible;
