@@ -145,7 +145,7 @@ namespace gridtools {
 
             template <class T>
             using is_shufflable =
-                meta::st_contains<meta::list<int, unsigned, long, unsigned long, long long, unsigned long long, double>,
+                meta::st_contains<meta::list<int, unsigned, long, unsigned long, long long, unsigned long long, float, double>,
                     T>;
 
             template <size_t BlockSize, class T>
