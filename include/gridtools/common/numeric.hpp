@@ -44,7 +44,7 @@ namespace gridtools {
         using res_t = std::common_type_t<T, U>;
         res_t a = std::abs(m) / gcd(m, n);
         res_t b = std::abs(n);
-        assert(numeric_limits<res_t>::max() / a > b);
+        assert(std::numeric_limits<res_t>::max() / a > b);
         return a * b;
     }
 #else
