@@ -11,7 +11,7 @@ export CUDATOOLKIT_HOME=$CUDA_PATH
 export CUDA_ARCH=sm_60
 
 export GTRUN_BUILD_COMMAND='srun --account c14 -C gpu --time=00:20:00 make -j 24'
-export GTRUN_SBATCH_ACCOUNT='c14'
+export GTRUN_SBATCH_ACCOUNT='d75'
 export GTRUN_SBATCH_PARTITION='normal'
 export GTRUN_SBATCH_NODES=1
 export GTRUN_SBATCH_NTASKS_PER_CORE=2
