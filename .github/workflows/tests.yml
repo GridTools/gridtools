@@ -31,10 +31,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: setup environment
       run: |
-        export num_proc=$(nproc)
-        echo "::set-env name=GTRUN_BUILD_COMMAND::make -j $(nproc)"
-        echo "::set-env name=CTEST_PARALLEL_LEVEL::$num_proc
-        echo "::set-env name=OMP_NUM_THREADS::$num_proc
+        echo "GTRUN_BUILD_COMMAND=make -j $(nproc)" >> $GITHUB_ENV
+        echo "CTEST_PARALLEL_LEVEL=$(nproc)" >> $GITHUB_ENV
+        echo "OMP_NUM_THREADS=$(nproc)" >> $GITHUB_ENV
     - name: build
       run: |
         python3 pyutils/driver.py -vv build -b ${{ matrix.build_type }} -o $(pwd)/build -i $(pwd)/install -t perftests
