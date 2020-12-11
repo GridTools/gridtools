@@ -28,6 +28,20 @@
 namespace {
     using reduction_backend_t = gridtools::reduction::naive;
 }
+#elif defined(GT_REDUCTION_CPU)
+#ifndef GT_STENCIL_CPU_IFIRST
+#define GT_STENCIL_CPU_IFIRST
+#endif
+#ifndef GT_STORAGE_CPU_IFIRST
+#define GT_STORAGE_CPU_IFIRST
+#endif
+#ifndef GT_TIMER_OMP
+#define GT_TIMER_OMP
+#endif
+#include <gridtools/reduction/cpu.hpp>
+namespace {
+    using reduction_backend_t = gridtools::reduction::cpu;
+}
 #elif defined(GT_REDUCTION_GPU)
 #ifndef GT_STENCIL_GPU
 #define GT_STENCIL_GPU
@@ -54,6 +68,11 @@ namespace gridtools {
         storage::cpu_kfirst backend_storage_traits(naive);
         timer_dummy backend_timer_impl(naive);
         inline char const *backend_name(naive const &) { return "naive"; }
+
+        struct cpu;
+        storage::cpu_ifirst backend_storage_traits(cpu);
+        timer_omp backend_timer_impl(cpu);
+        inline char const *backend_name(cpu const &) { return "cpu"; }
 
         namespace gpu_backend {
             struct gpu;

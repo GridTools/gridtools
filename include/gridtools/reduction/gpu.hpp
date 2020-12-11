@@ -261,7 +261,7 @@ namespace gridtools {
             struct gpu {};
 
             template <class F, class T>
-            auto reduction_reduce(gpu, F f, T *ptr, size_t size) {
+            auto reduction_reduce(gpu, T, F f, T *ptr, size_t size) {
                 T *in = ptr;
                 size_t n = size;
                 while (n > cpu_final_threshold_t::value) {
@@ -293,13 +293,7 @@ namespace gridtools {
             }
 
             template <class T>
-            void reduction_fill(gpu,
-                T const &val,
-                T *dst,
-                size_t data_size,
-                size_t rounded_size,
-                size_t /*allocation_size*/,
-                bool has_holes) {
+            void reduction_fill(gpu, T const &val, T *dst, size_t data_size, size_t rounded_size, bool has_holes) {
                 if (!has_holes && data_size == rounded_size)
                     return;
                 auto threads = gcd(rounded_size, max_threads());

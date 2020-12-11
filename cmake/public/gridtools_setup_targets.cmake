@@ -302,6 +302,9 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         _gt_add_library(${_config_mode} stencil_cpu_ifirst)
         target_link_libraries(${_gt_namespace}stencil_cpu_ifirst INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
 
+        _gt_add_library(${_config_mode} reduction_cpu)
+        target_link_libraries(${_gt_namespace}reduction_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX)
+
         if(MPI_CXX_FOUND)
             _gt_add_library(${_config_mode} gcl_cpu)
             target_link_libraries(${_gt_namespace}gcl_cpu INTERFACE ${_gt_namespace}gridtools OpenMP::OpenMP_CXX MPI::MPI_CXX)
@@ -326,6 +329,9 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         list(APPEND GT_GCL_ARCHS cpu)
 
         list(APPEND GT_STENCILS cpu_kfirst cpu_ifirst)
+
+        list(APPEND GT_REDUCTIONS cpu)
+
     endif()
 
     find_package(HPX 1.5.0 QUIET NO_MODULE)
