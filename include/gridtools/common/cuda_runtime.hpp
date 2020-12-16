@@ -27,6 +27,7 @@
 #define cudaEvent_t hipEvent_t
 #define cudaFree hipFree
 #define cudaFreeHost hipFreeHost
+#define cudaGetDevice hipGetDevice
 #define cudaGetDeviceCount hipGetDeviceCount
 #define cudaGetDeviceProperties hipGetDeviceProperties
 #define cudaGetErrorName hipGetErrorName
