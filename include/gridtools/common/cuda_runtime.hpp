@@ -15,7 +15,7 @@
 #undef assert
 #define assert(x) ((void)0)
 #endif
-#define cudaDeviceProp hipDeviceProp
+#define cudaDeviceProp hipDeviceProp_t
 #define cudaDeviceSynchronize hipDeviceSynchronize
 #define cudaErrorInvalidValue hipErrorInvalidValue
 #define cudaError_t hipError_t
