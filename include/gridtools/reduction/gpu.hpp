@@ -78,11 +78,19 @@ namespace gridtools {
             // TODO(fthaler): to figure out if __shfl_down_sync is supported on HIP
             template <class F, class T>
             GT_FUNCTION_DEVICE T warp_reduce(F f, unsigned mask, T val) {
+#ifdef __HIP__
+                val = f(val, __shfl_down(val, 16));
+                val = f(val, __shfl_down(val, 8));
+                val = f(val, __shfl_down(val, 4));
+                val = f(val, __shfl_down(val, 2));
+                return f(val, __shfl_down(val, 1));
+#else
                 val = f(val, __shfl_down_sync(mask, val, 16));
                 val = f(val, __shfl_down_sync(mask, val, 8));
                 val = f(val, __shfl_down_sync(mask, val, 4));
                 val = f(val, __shfl_down_sync(mask, val, 2));
                 return f(val, __shfl_down_sync(mask, val, 1));
+#endif
             }
 
 #if __CUDA_ARCH__ >= 800
@@ -121,7 +129,11 @@ namespace gridtools {
                     if (threadIdx.x % 32 == 0)
                         buff[threadIdx.x / 32] = res;
                     __syncthreads();
+#ifdef __HIP__
+                    const unsigned ballot_result = __ballot(threadIdx.x < ShmemSize);
+#else
                     const unsigned ballot_result = __ballot_sync(0xFFFFFFFF, threadIdx.x < ShmemSize);
+#endif
                     if (threadIdx.x < ShmemSize)
                         res = warp_reduce(f, ballot_result, buff[threadIdx.x]);
                     if (threadIdx.x == 0)
