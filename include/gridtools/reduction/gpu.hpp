@@ -215,8 +215,8 @@ namespace gridtools {
                     __shared__ T buff[ShmemSize];
                     in += blockIdx.x * BlockSize * 2 + threadIdx.x;
                     T res = warp_reduce(f, std::integral_constant<size_t, WarpSize>(), f(*in, *(in + BlockSize)));
-                    if (threadIdx.x % 32 == 0)
-                        buff[threadIdx.x / 32] = res;
+                    if (threadIdx.x % WarpSize == 0)
+                        buff[threadIdx.x / WarpSize] = res;
                     __syncthreads();
                     if (threadIdx.x >= ShmemSize)
                         return;
