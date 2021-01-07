@@ -5,6 +5,7 @@ source $(dirname "$BASH_SOURCE")/dom.sh
 module switch cudatoolkit cudatoolkit/11.0.2_3.33-7.0.2.1_3.1__g1ba0366
 
 module swap PrgEnv-cray PrgEnv-gnu
+module switch gcc/8.3.0
 
 export CXX=$(which CC)
 export CC=$(which cc)
