@@ -38,6 +38,7 @@ namespace {
     };
 
     GT_REGRESSION_TEST(scalar_product, test_environment<>, reduction_backend_t) {
+        using float_t = typename TypeParam::float_t;
         auto init = [](int, int, int) { return std::rand(); };
         auto comp = [out = reduction::make_reducible<reduction_backend_t, storage_traits_t>(
                          float_t(0), TypeParam::d(0), TypeParam::d(1), TypeParam::d(2)),
@@ -61,6 +62,7 @@ namespace {
     };
 
     GT_REGRESSION_TEST(summation, test_environment<>, reduction_backend_t) {
+        using float_t = typename TypeParam::float_t;
         auto comp = [out = reduction::make_reducible<reduction_backend_t, storage_traits_t>(
                          float_t(0), TypeParam::d(0), TypeParam::d(1), TypeParam::d(2)),
                         grid = TypeParam::make_grid()] {
