@@ -250,8 +250,13 @@ namespace gridtools {
                 meta::lazy::id<tiny_kernel>,
                 meta::if_<is_shufflable<T>,
                     meta::if_c<(BlockSize > WarpSize),
+#if defined(__HIP__) && HIP_VERSION <= 400
+                        // compiler bug appearing in big_warp_kernel, thus using shared mem
+                        meta::lazy::id<shmem_kernel<BlockSize>>,
+#else
                         // use shared memory and two rounds of warp level intrinsics
                         meta::lazy::id<big_warp_kernel<WarpSize, BlockSize>>,
+#endif
                         // use a single round of warp level intrinsics, no shared memory needed
                         meta::lazy::id<small_warp_kernel<WarpSize, BlockSize>>>,
                     // use shared memory only
