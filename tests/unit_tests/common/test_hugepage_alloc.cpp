@@ -93,7 +93,7 @@ namespace gridtools {
 #endif
         }
 
-        INSTANTIATE_TEST_CASE_P(hugepage_alloc, hugepage_alloc_fixture, ::testing::Values("disable", "transparent"));
+        INSTANTIATE_TEST_SUITE_P(hugepage_alloc, hugepage_alloc_fixture, ::testing::Values("disable", "transparent"));
 
     } // namespace
 } // namespace gridtools

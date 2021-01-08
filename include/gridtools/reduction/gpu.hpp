@@ -123,7 +123,7 @@ namespace gridtools {
 #else
             template <class F, class T>
             GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 64>, T val) {
-                val = f(val, __shfl_down_sync(-1, val, 32));
+                val = f(val, __shfl_down_sync((unsigned)-1, val, 32));
                 val = f(val, __shfl_down_sync(0xFFFFFFF, val, 16));
                 val = f(val, __shfl_down_sync(0xFFFF, val, 8));
                 val = f(val, __shfl_down_sync(0xFF, val, 4));
