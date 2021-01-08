@@ -60,7 +60,7 @@ namespace gridtools {
         }
 
         template <class F, class T>
-        T reduction_reduce(cpu, T res, F f, T const *buff, size_t n) {
+        T reduction_reduce(cpu, T res, F, T const *buff, size_t n) {
             static_assert(std::is_empty<F>(), "OpenMP reduction supports only stateless functors.");
             static_assert(
                 std::is_default_constructible<F>(), "OpenMP reduction supports only default constructible functors.");
