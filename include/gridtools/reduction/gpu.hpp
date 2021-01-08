@@ -75,68 +75,165 @@ namespace gridtools {
                 }
             };
 
-            // TODO(fthaler): to figure out if __shfl_down_sync is supported on HIP
+#ifdef __HIP__
             template <class F, class T>
-            GT_FUNCTION_DEVICE T warp_reduce(F f, unsigned mask, T val) {
-                val = f(val, __shfl_down_sync(mask, val, 16));
-                val = f(val, __shfl_down_sync(mask, val, 8));
-                val = f(val, __shfl_down_sync(mask, val, 4));
-                val = f(val, __shfl_down_sync(mask, val, 2));
-                return f(val, __shfl_down_sync(mask, val, 1));
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 64>, T val) {
+                val = f(val, __shfl_down(val, 32));
+                val = f(val, __shfl_down(val, 16));
+                val = f(val, __shfl_down(val, 8));
+                val = f(val, __shfl_down(val, 4));
+                val = f(val, __shfl_down(val, 2));
+                return f(val, __shfl_down(val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 32>, T val) {
+                val = f(val, __shfl_down(val, 16));
+                val = f(val, __shfl_down(val, 8));
+                val = f(val, __shfl_down(val, 4));
+                val = f(val, __shfl_down(val, 2));
+                return f(val, __shfl_down(val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 16>, T val) {
+                val = f(val, __shfl_down(val, 8));
+                val = f(val, __shfl_down(val, 4));
+                val = f(val, __shfl_down(val, 2));
+                return f(val, __shfl_down(val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 8>, T val) {
+                val = f(val, __shfl_down(val, 4));
+                val = f(val, __shfl_down(val, 2));
+                return f(val, __shfl_down(val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 4>, T val) {
+                val = f(val, __shfl_down(val, 2));
+                return f(val, __shfl_down(val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 2>, T val) {
+                return f(val, __shfl_down(val, 1));
+            }
+#else
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 64>, T val) {
+                val = f(val, __shfl_down_sync(-1, val, 32));
+                val = f(val, __shfl_down_sync(0xFFFFFFF, val, 16));
+                val = f(val, __shfl_down_sync(0xFFFF, val, 8));
+                val = f(val, __shfl_down_sync(0xFF, val, 4));
+                val = f(val, __shfl_down_sync(0xF, val, 2));
+                return f(val, __shfl_down_sync(0x3, val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 32>, T val) {
+                val = f(val, __shfl_down_sync(0xFFFFFFF, val, 16));
+                val = f(val, __shfl_down_sync(0xFFFF, val, 8));
+                val = f(val, __shfl_down_sync(0xFF, val, 4));
+                val = f(val, __shfl_down_sync(0xF, val, 2));
+                return f(val, __shfl_down_sync(0x3, val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 16>, T val) {
+                val = f(val, __shfl_down_sync(0xFFFF, val, 8));
+                val = f(val, __shfl_down_sync(0xFF, val, 4));
+                val = f(val, __shfl_down_sync(0xF, val, 2));
+                return f(val, __shfl_down_sync(0x3, val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 8>, T val) {
+                val = f(val, __shfl_down_sync(0xFF, val, 4));
+                val = f(val, __shfl_down_sync(0xF, val, 2));
+                return f(val, __shfl_down_sync(0x3, val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 4>, T val) {
+                val = f(val, __shfl_down_sync(0xF, val, 2));
+                return f(val, __shfl_down_sync(0x3, val, 1));
+            }
+
+            template <class F, class T>
+            GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 2>, T val) {
+                return f(val, __shfl_down_sync(0x3, val, 1));
             }
 
 #if __CUDA_ARCH__ >= 800
-            GT_FUNCTION_DEVICE auto warp_reduce(plus, unsigned mask, int res) { return __reduce_add_sync(mask, res); }
-            GT_FUNCTION_DEVICE auto warp_reduce(min, unsigned mask, int res) { return __reduce_min_sync(mask, res); }
-            GT_FUNCTION_DEVICE auto warp_reduce(max, unsigned mask, int res) { return __reduce_max_sync(mask, res); }
-            GT_FUNCTION_DEVICE auto warp_reduce(plus, unsigned mask, unsigned res) {
-                return __reduce_add_sync(mask, res);
+            template <size_t Width>
+            GT_FUNCTION_DEVICE auto warp_reduce(plus, std::integral_constant<size_t, Width>, int res) {
+                return __reduce_add_sync((1 << Width) - 1, res);
             }
-            GT_FUNCTION_DEVICE auto warp_reduce(min, unsigned mask, unsigned res) {
-                return __reduce_min_sync(mask, res);
+            template <size_t Width>
+            GT_FUNCTION_DEVICE auto warp_reduce(min, std::integral_constant<size_t, Width>, int res) {
+                return __reduce_min_sync((1 << Width) - 1, res);
             }
-            GT_FUNCTION_DEVICE auto warp_reduce(max, unsigned mask, unsigned res) {
-                return __reduce_max_sync(mask, res);
+            template <size_t Width>
+            GT_FUNCTION_DEVICE auto warp_reduce(max, std::integral_constant<size_t, Width>, int res) {
+                return __reduce_max_sync((1 << Width) - 1, res);
             }
-            GT_FUNCTION_DEVICE auto warp_reduce(bitwise_and, unsigned mask, unsigned res) {
-                return __reduce_and_sync(mask, res);
+            template <size_t Width>
+            GT_FUNCTION_DEVICE auto warp_reduce(plus, std::integral_constant<size_t, Width>, unsigned res) {
+                return __reduce_add_sync((1 << Width) - 1, res);
             }
-            GT_FUNCTION_DEVICE auto warp_reduce(bitwise_or, unsigned mask, unsigned res) {
-                return __reduce_or_sync(mask, res);
+            template <size_t Width>
+            GT_FUNCTION_DEVICE auto warp_reduce(min, std::integral_constant<size_t, Width>, unsigned res) {
+                return __reduce_min_sync((1 << Width) - 1, res);
             }
-            GT_FUNCTION_DEVICE auto warp_reduce(bitwise_xor, unsigned mask, unsigned res) {
-                return __reduce_xor_sync(mask, res);
+            template <size_t Width>
+            GT_FUNCTION_DEVICE auto warp_reduce(max, std::integral_constant<size_t, Width>, unsigned res) {
+                return __reduce_max_sync((1 << Width) - 1, res);
+            }
+            template <size_t Width>
+            GT_FUNCTION_DEVICE auto warp_reduce(bitwise_and, std::integral_constant<size_t, Width>, unsigned res) {
+                return __reduce_and_sync((1 << Width) - 1, res);
+            }
+            template <size_t Width>
+            GT_FUNCTION_DEVICE auto warp_reduce(bitwise_or, std::integral_constant<size_t, Width>, unsigned res) {
+                return __reduce_or_sync((1 << Width) - 1, res);
+            }
+            template <size_t Width>
+            GT_FUNCTION_DEVICE auto warp_reduce(bitwise_xor, std::integral_constant<size_t, Width>, unsigned res) {
+                return __reduce_xor_sync((1 << Width) - 1, res);
             }
 #endif
+#endif
 
-            template <size_t BlockSize, size_t ShmemSize = BlockSize / 32>
+            template <size_t WarpSize, size_t BlockSize, size_t ShmemSize = BlockSize / WarpSize>
             struct big_warp_kernel {
-                static_assert(BlockSize > 32, GT_INTERNAL_ERROR);
-                static_assert(BlockSize <= 1024, GT_INTERNAL_ERROR);
+                static_assert(BlockSize > WarpSize, GT_INTERNAL_ERROR);
+                static_assert(ShmemSize <= WarpSize, GT_INTERNAL_ERROR);
                 template <class F, class T>
                 GT_FUNCTION_DEVICE void operator()(F f, T const *__restrict__ in, T *__restrict__ out) const {
                     __shared__ T buff[ShmemSize];
                     in += blockIdx.x * BlockSize * 2 + threadIdx.x;
-                    T res = warp_reduce(f, 0xFFFFFFFF, f(*in, *(in + BlockSize)));
-                    if (threadIdx.x % 32 == 0)
-                        buff[threadIdx.x / 32] = res;
+                    T res = warp_reduce(f, std::integral_constant<size_t, WarpSize>(), f(*in, *(in + BlockSize)));
+                    if (threadIdx.x % WarpSize == 0)
+                        buff[threadIdx.x / WarpSize] = res;
                     __syncthreads();
-                    const unsigned ballot_result = __ballot_sync(0xFFFFFFFF, threadIdx.x < ShmemSize);
-                    if (threadIdx.x < ShmemSize)
-                        res = warp_reduce(f, ballot_result, buff[threadIdx.x]);
+                    if (threadIdx.x >= ShmemSize)
+                        return;
+                    res = warp_reduce(f, std::integral_constant<size_t, ShmemSize>(), buff[threadIdx.x]);
                     if (threadIdx.x == 0)
                         *(out + blockIdx.x) = res;
                 }
             };
 
-            template <size_t BlockSize>
+            template <size_t WarpSize, size_t BlockSize>
             struct small_warp_kernel {
                 static_assert(BlockSize > 1, GT_INTERNAL_ERROR);
-                static_assert(BlockSize <= 32, GT_INTERNAL_ERROR);
+                static_assert(BlockSize <= WarpSize, GT_INTERNAL_ERROR);
                 template <class F, class T>
                 GT_FUNCTION_DEVICE void operator()(F f, T const *__restrict__ in, T *__restrict__ out) const {
                     in += blockIdx.x * BlockSize * 2 + threadIdx.x;
-                    T res = warp_reduce(f, 0xFFFFFFFF >> (32 - BlockSize & 31), f(*in, *(in + BlockSize)));
+                    T res = warp_reduce(f, std::integral_constant<size_t, BlockSize>(), f(*in, *(in + BlockSize)));
                     if (threadIdx.x == 0)
                         *(out + blockIdx.x) = res;
                 }
@@ -147,16 +244,21 @@ namespace gridtools {
                 meta::list<int, unsigned, long, unsigned long, long long, unsigned long long, float, double>,
                 T>;
 
-            template <size_t BlockSize, class T>
+            template <size_t WarpSize, size_t BlockSize, class T>
             using choose_kernel = typename meta::if_c<(BlockSize == 1),
                 // no need to use neither shared memory nor intrinsics
                 meta::lazy::id<tiny_kernel>,
                 meta::if_<is_shufflable<T>,
-                    meta::if_c<(BlockSize > 32),
+                    meta::if_c<(BlockSize > WarpSize),
+#if defined(__HIP__) && HIP_VERSION <= 400
+                        // compiler bug appearing in big_warp_kernel, thus using shared mem
+                        meta::lazy::id<shmem_kernel<BlockSize>>,
+#else
                         // use shared memory and two rounds of warp level intrinsics
-                        meta::lazy::id<big_warp_kernel<BlockSize>>,
+                        meta::lazy::id<big_warp_kernel<WarpSize, BlockSize>>,
+#endif
                         // use a single round of warp level intrinsics, no shared memory needed
-                        meta::lazy::id<small_warp_kernel<BlockSize>>>,
+                        meta::lazy::id<small_warp_kernel<WarpSize, BlockSize>>>,
                     // use shared memory only
                     meta::lazy::id<shmem_kernel<BlockSize>>>>::type;
 
@@ -192,7 +294,7 @@ namespace gridtools {
             static_assert(cpu_final_threshold_t::value > 1, GT_INTERNAL_ERROR);
             static_assert(is_pow2(cpu_final_threshold_t::value), GT_INTERNAL_ERROR);
 
-            inline auto get_device_properties() {
+            inline auto fecth_device_properties() {
                 int device;
                 GT_CUDA_CHECK(cudaGetDevice(&device));
                 cudaDeviceProp res;
@@ -200,10 +302,12 @@ namespace gridtools {
                 return res;
             }
 
-            inline size_t max_threads() {
-                static size_t res = get_device_properties().maxThreadsPerBlock;
+            inline auto const &get_device_properties() {
+                static auto res = fecth_device_properties();
                 return res;
             }
+
+            inline size_t max_threads() { return get_device_properties().maxThreadsPerBlock; }
 
             inline size_t get_threads(size_t n) {
                 assert(is_pow2(max_threads()));
@@ -239,18 +343,24 @@ namespace gridtools {
             inline auto reduce_cpu(plus, double const *buff, size_t n) { return kahan_sum(buff, n); }
 
             template <class F, class T>
-            void reduce_step(F f, size_t threads, size_t blocks, T const *__restrict__ in, T *__restrict__ out) {
+            void reduce_step(F f, size_t threads, size_t blocks, size_t warp_size, T const *in, T *out) {
                 constexpr size_t max_threads = 1024;
                 assert(threads >= 1);
                 assert(threads <= max_threads);
-                ct_dispatch<int_log2(max_threads) + 1>(
-                    [=](auto n) {
-                        constexpr size_t block_size = 1 << decltype(n)::value;
-                        using kernel_t = choose_kernel<block_size, T>;
-                        launch<<<blocks, threads>>>(kernel_t(), f, in, out);
-                        GT_CUDA_CHECK(cudaGetLastError());
+                assert(warp_size == 32 || warp_size == 64);
+                ct_dispatch<2>(
+                    [=](auto w) {
+                        constexpr size_t warp_size = w ? 64 : 32;
+                        ct_dispatch<int_log2(max_threads) + 1>(
+                            [=](auto n) {
+                                constexpr size_t block_size = 1 << decltype(n)::value;
+                                using kernel_t = choose_kernel<warp_size, block_size, T>;
+                                launch<<<blocks, threads>>>(kernel_t(), f, in, out);
+                                GT_CUDA_CHECK(cudaGetLastError());
+                            },
+                            int_log2(threads));
                     },
-                    int_log2(threads));
+                    warp_size / 64);
             }
 
             template <class T>
@@ -264,11 +374,12 @@ namespace gridtools {
             auto reduction_reduce(gpu, T, F f, T *ptr, size_t size) {
                 T *in = ptr;
                 size_t n = size;
+                auto warp_size = get_device_properties().warpSize;
                 while (n > cpu_final_threshold_t::value) {
                     size_t threads = get_threads(n);
                     size_t blocks = n / (2 * threads);
                     T *out = in + n;
-                    reduce_step(f, threads, blocks, in, out);
+                    reduce_step(f, threads, blocks, warp_size, in, out);
                     n = blocks;
                     in = out;
                 }
