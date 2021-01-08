@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include <cassert>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <new>

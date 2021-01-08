@@ -238,6 +238,9 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     _gt_add_library(${_config_mode} stencil_naive)
     target_link_libraries(${_gt_namespace}stencil_naive INTERFACE ${_gt_namespace}gridtools)
 
+    _gt_add_library(${_config_mode} reduction_naive)
+    target_link_libraries(${_gt_namespace}reduction_naive INTERFACE ${_gt_namespace}gridtools)
+
     set(_required_nlohmann_json_version "3.7.3")
     include(get_nlohmann_json)
     get_nlohmann_json(${_required_nlohmann_json_version})
@@ -248,6 +251,7 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
     endif()
 
     set(GT_STENCILS naive)
+    set(GT_REDUCTIONS naive)
     set(GT_STORAGES cpu_kfirst cpu_ifirst)
     set(GT_GCL_ARCHS)
 
@@ -259,6 +263,10 @@ macro(_gt_setup_targets _config_mode clang_cuda_mode)
         _gt_add_library(${_config_mode} stencil_gpu_horizontal)
         target_link_libraries(${_gt_namespace}stencil_gpu_horizontal INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
         list(APPEND GT_STENCILS gpu_horizontal)
+
+        _gt_add_library(${_config_mode} reduction_gpu)
+        target_link_libraries(${_gt_namespace}reduction_gpu INTERFACE ${_gt_namespace}gridtools _gridtools_cuda)
+        list(APPEND GT_REDUCTIONS gpu)
 
         if(MPI_CXX_FOUND)
             option(GT_GCL_GPU "Disable if your MPI implementation is not CUDA-aware" ON)
