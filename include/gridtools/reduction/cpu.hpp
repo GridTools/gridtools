@@ -22,7 +22,7 @@ namespace gridtools {
         template <class T, std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
         T reduction_reduce(cpu, T res, plus, T const *buff, size_t n) {
 #pragma omp parallel for reduction(+ : res)
-            for (size_t i = 0; i != n; i++)
+            for (size_t i = 0; i < n; i++)
                 res += buff[i];
             return res;
         }
@@ -30,7 +30,7 @@ namespace gridtools {
         template <class T, std::enable_if_t<std::is_arithmetic<T>::value, int> = 0>
         T reduction_reduce(cpu, T res, mul, T const *buff, size_t n) {
 #pragma omp parallel for reduction(* : res)
-            for (size_t i = 0; i != n; i++)
+            for (size_t i = 0; i < n; i++)
                 res *= buff[i];
             return res;
         }
@@ -38,7 +38,7 @@ namespace gridtools {
         template <class T, std::enable_if_t<std::is_integral<T>::value, int> = 0>
         T reduction_reduce(cpu, T res, bitwise_and, T const *buff, size_t n) {
 #pragma omp parallel for reduction(& : res)
-            for (size_t i = 0; i != n; i++)
+            for (size_t i = 0; i < n; i++)
                 res &= buff[i];
             return res;
         }
@@ -46,7 +46,7 @@ namespace gridtools {
         template <class T, std::enable_if_t<std::is_integral<T>::value, int> = 0>
         T reduction_reduce(cpu, T res, bitwise_or, T const *buff, size_t n) {
 #pragma omp parallel for reduction(| : res)
-            for (size_t i = 0; i != n; i++)
+            for (size_t i = 0; i < n; i++)
                 res |= buff[i];
             return res;
         }
@@ -54,7 +54,7 @@ namespace gridtools {
         template <class T, std::enable_if_t<std::is_integral<T>::value, int> = 0>
         T reduction_reduce(cpu, T res, bitwise_xor, T const *buff, size_t n) {
 #pragma omp parallel for reduction (^ : res)
-            for (size_t i = 0; i != n; i++)
+            for (size_t i = 0; i < n; i++)
                 res ^= buff[i];
             return res;
         }
@@ -66,7 +66,7 @@ namespace gridtools {
                 std::is_default_constructible<F>(), "OpenMP reduction supports only default constructible functors.");
 #pragma omp declare reduction(gridtools_generic : T : omp_out = F()(omp_out, omp_in)) initializer(omp_priv = omp_orig)
 #pragma omp parallel for reduction(gridtools_generic : res)
-            for (size_t i = 0; i != n; i++)
+            for (size_t i = 0; i < n; i++)
                 res = F()(res, buff[i]);
             return res;
         }
