@@ -123,7 +123,7 @@ namespace gridtools {
 #else
             template <class F, class T>
             GT_FUNCTION_DEVICE T warp_reduce(F f, std::integral_constant<size_t, 64>, T val) {
-                val = f(val, __shfl_down_sync(-1, val, 32));
+                val = f(val, __shfl_down_sync((unsigned)-1, val, 32));
                 val = f(val, __shfl_down_sync(0xFFFFFFF, val, 16));
                 val = f(val, __shfl_down_sync(0xFFFF, val, 8));
                 val = f(val, __shfl_down_sync(0xFF, val, 4));
@@ -371,7 +371,7 @@ namespace gridtools {
             struct gpu {};
 
             template <class F, class T>
-            auto reduction_reduce(gpu, F f, T *ptr, size_t size) {
+            auto reduction_reduce(gpu, T, F f, T *ptr, size_t size) {
                 T *in = ptr;
                 size_t n = size;
                 auto warp_size = get_device_properties().warpSize;
@@ -404,13 +404,7 @@ namespace gridtools {
             }
 
             template <class T>
-            void reduction_fill(gpu,
-                T const &val,
-                T *dst,
-                size_t data_size,
-                size_t rounded_size,
-                size_t /*allocation_size*/,
-                bool has_holes) {
+            void reduction_fill(gpu, T const &val, T *dst, size_t data_size, size_t rounded_size, bool has_holes) {
                 if (!has_holes && data_size == rounded_size)
                     return;
                 auto threads = gcd(rounded_size, max_threads());

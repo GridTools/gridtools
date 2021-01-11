@@ -32,9 +32,10 @@ namespace gridtools {
             template <class Sizes>
             using zeros_type = decltype(zeros(std::declval<Sizes const &>()));
 
-            template <class Backend, class Origin, class Strides, class StridesKind, class Sizes>
+            template <class Backend, class T, class Origin, class Strides, class StridesKind, class Sizes>
             struct reducible {
                 std::shared_ptr<void> m_alloc;
+                T neutral_value;
                 Origin m_origin;
                 size_t m_size;
                 Strides m_strides;
@@ -43,7 +44,7 @@ namespace gridtools {
                 template <class F>
                 auto reduce(F f) const {
                     assert(m_size);
-                    return reduction_reduce(Backend(), f, m_origin(), m_size);
+                    return reduction_reduce(Backend(), neutral_value, f, m_origin(), m_size);
                 }
 
                 friend Strides sid_get_strides(reducible const &obj) { return obj.m_strides; }
@@ -52,8 +53,8 @@ namespace gridtools {
                 friend Sizes sid_get_upper_bounds(reducible const &obj) { return obj.m_sizes; }
             };
 
-            template <class Backend, class Origin, class Strides, class StridesKind, class Sizes>
-            StridesKind sid_get_strides_kind(reducible<Backend, Origin, Strides, StridesKind, Sizes> const &);
+            template <class Backend, class T, class Origin, class Strides, class StridesKind, class Sizes>
+            StridesKind sid_get_strides_kind(reducible<Backend, T, Origin, Strides, StridesKind, Sizes> const &);
 
             template <class Backend, class StorageTraits, class Id = void, class T, class... Dims>
             auto make_reducible(T const &neutral_value, Dims... dims) {
@@ -71,13 +72,14 @@ namespace gridtools {
                     origin(),
                     data_size,
                     rounded_size,
-                    allocation_size,
                     storage::traits::has_holes<StorageTraits, T>(lengths));
                 return reducible<Backend,
+                    T,
                     decltype(origin),
                     decltype(strides),
                     storage::traits::strides_kind<StorageTraits, T, decltype(lengths), Id>,
                     decltype(lengths)>{std::make_shared<decltype(alloc)>(std::move(alloc)),
+                    neutral_value,
                     std::move(origin),
                     rounded_size,
                     std::move(strides),
