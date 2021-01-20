@@ -27,24 +27,26 @@ def test_scalar():
 
 def test_cuda_sid():
     class Mock:
-        pass
-    mock = Mock()
-    mock.__cuda_array_interface__ = {
-        "shape": (3, 4, 5),
-        "typestr": "|f8",
-        "data": (0xDEADBEAF, True),
-        "version": 2,
-        "strides": (8, 3 * 8, 3 * 4 * 8),
-        "descr": [("", "|f8")],
-        "mask": None
-    }
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+        @property
+        def __cuda_array_interface__(self):
+            return self.kwargs
+
+    mock = Mock(
+        shape=(3, 4, 5),
+        typestr="|f8",
+        data=(0xDEADBEAF, True),
+        version=2,
+        strides=(8, 3 * 8, 3 * 4 * 8),
+        descr=[("", "|f8")],
+        mask=None)
     testee.check_cuda_sid(mock, 0xDEADBEAF, (1, 3, 3 * 4), (3, 4, 5))
-    mock.__cuda_array_interface__ = {
-        "shape": (3, 4, 5),
-        "typestr": "|f8",
-        "data": (0xDEADBEAF, True),
-        "version": 2,
-    }
+    mock = Mock(
+        shape=(3, 4, 5),
+        typestr="|f8",
+        data=(0xDEADBEAF, True),
+        version=2)
     testee.check_cuda_sid(mock, 0xDEADBEAF, (4 * 5, 5, 1), (3, 4, 5))
 
 test_3d()
