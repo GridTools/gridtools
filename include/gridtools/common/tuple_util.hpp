@@ -178,7 +178,7 @@
  * Struct adapter to tuple_like
  *
  * Usage:
- * Declaring a struct like this make this struct tuple-like:
+ * Declaring a struct like this, makes it tuple-like:
  * ```
  *  struct foo {
  *     GT_STRUCT_TUPLE(foo,
