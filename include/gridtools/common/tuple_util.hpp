@@ -105,6 +105,13 @@
 #include <type_traits>
 #include <utility>
 
+#include <boost/preprocessor/seq/enum.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
+#include <boost/preprocessor/seq/for_each_i.hpp>
+#include <boost/preprocessor/seq/transform.hpp>
+#include <boost/preprocessor/tuple/elem.hpp>
+#include <boost/preprocessor/variadic/to_seq.hpp>
+
 #include "../meta.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
@@ -141,6 +148,60 @@
     };                                                                                    \
     friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; } \
     static_assert(1, "")
+
+#define GT_STRUCT_TUPLE_IMPL_DECL_(r, data, elem) BOOST_PP_TUPLE_ELEM(0, elem) BOOST_PP_TUPLE_ELEM(1, elem);
+#define GT_STRUCT_TUPLE_IMPL_TYPE_(s, data, elem) BOOST_PP_TUPLE_ELEM(0, elem)
+#define GT_STRUCT_TUPLE_IMPL_GETS_(s, name, i, elem)                      \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>       \
+    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(name const &obj) { \
+        return (obj.BOOST_PP_TUPLE_ELEM(1, elem));                        \
+    }                                                                     \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>       \
+    static GT_FUNCTION decltype(auto) get(name &obj) {                    \
+        return (obj.BOOST_PP_TUPLE_ELEM(1, elem));                        \
+    }                                                                     \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>       \
+    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(name &&obj) {      \
+        return (wstd::move(obj.BOOST_PP_TUPLE_ELEM(1, elem)));            \
+    }
+#define GT_STRUCT_TUPLE_IMPL_(name, members)                                                                          \
+    BOOST_PP_SEQ_FOR_EACH(GT_STRUCT_TUPLE_IMPL_DECL_, _, members)                                                     \
+    struct gt_##name##_tuple_getter {                                                                                 \
+        BOOST_PP_SEQ_FOR_EACH_I(GT_STRUCT_TUPLE_IMPL_GETS_, name, members)                                            \
+    };                                                                                                                \
+    friend gt_##name##_tuple_getter tuple_getter(name);                                                               \
+    friend ::gridtools::meta::list<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_TRANSFORM(GT_STRUCT_TUPLE_IMPL_TYPE_, _, members))> \
+        tuple_to_types(name);                                                                                         \
+    friend ::gridtools::meta::always<name> tuple_from_types(name)
+
+/*
+ * Struct adapter to tuple_like
+ *
+ * Usage:
+ * Declaring a struct like this make this struct tuple-like:
+ * ```
+ *  struct foo {
+ *     GT_STRUCT_TUPLE(foo,
+ *          (int a),
+ *          (double b)
+ *     );
+ *     // some methods can be declared here as well
+ *  };
+ * ```
+ * I.e. one can access the members both by name and by `get` accessor:
+ * ```
+ *    foo obj;
+ *    obj.a = 42;
+ *    assert(tuple_util::get<1>(obj) == 42);
+ * ```
+ * Also tuple algorithms works with `foo` as expected:
+ * ```
+ *    auto x = tuple_util::trasnform([](auto x) { return x * 2; }, foo{1, 2.5});
+ *    assert(x.a == 2);
+ *    assert(x.b == 5.);
+ * ```
+ */
+#define GT_STRUCT_TUPLE(name, ...) GT_STRUCT_TUPLE_IMPL_(name, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
 
 namespace gridtools {
     namespace tuple_util {
