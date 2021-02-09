@@ -119,50 +119,50 @@
 #include "implicit_cast.hpp"
 #include "utility.hpp"
 
-#define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                      \
-    template <class Arg,                                                                                    \
-        class... Args,                                                                                      \
-        std::enable_if_t<std::is_constructible<decltype(member_name), Arg &&, Args &&...>::value, int> = 0> \
-    GT_CONSTEXPR GT_FUNCTION class_name(Arg &&arg, Args &&... args) noexcept                                \
-        : member_name{wstd::forward<Arg>(arg), wstd::forward<Args>(args)...} {}                             \
-    class_name() = default;                                                                                 \
-    class_name(class_name const &) = default;                                                               \
-    class_name(class_name &&) = default;                                                                    \
-    class_name &operator=(class_name const &) = default;                                                    \
+#define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                          \
+    template <class Arg,                                                                                        \
+        class... Args,                                                                                          \
+        ::std::enable_if_t<::std::is_constructible<decltype(member_name), Arg &&, Args &&...>::value, int> = 0> \
+    GT_CONSTEXPR GT_FUNCTION class_name(Arg &&arg, Args &&... args) noexcept                                    \
+        : member_name{::gridtools::wstd::forward<Arg>(arg), ::gridtools::wstd::forward<Args>(args)...} {}       \
+    class_name() = default;                                                                                     \
+    class_name(class_name const &) = default;                                                                   \
+    class_name(class_name &&) = default;                                                                        \
+    class_name &operator=(class_name const &) = default;                                                        \
     class_name &operator=(class_name &&) = default
 
-#define GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(class_name, member_name)                   \
-    struct class_name##_tuple_util_getter {                                               \
-        template <size_t I>                                                               \
-        static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(class_name const &obj) {       \
-            return tuple_util::host_device::get<I>(obj.member_name);                      \
-        }                                                                                 \
-        template <size_t I>                                                               \
-        static GT_FUNCTION decltype(auto) get(class_name &obj) {                          \
-            return tuple_util::host_device::get<I>(obj.member_name);                      \
-        }                                                                                 \
-        template <size_t I>                                                               \
-        static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(class_name &&obj) {            \
-            return tuple_util::host_device::get<I>(wstd::move(obj).member_name);          \
-        }                                                                                 \
-    };                                                                                    \
-    friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; } \
+#define GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(class_name, member_name)                                    \
+    struct class_name##_tuple_util_getter {                                                                \
+        template <::std::size_t I>                                                                         \
+        static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(class_name const &obj) {                        \
+            return ::gridtools::tuple_util::host_device::get<I>(obj.member_name);                          \
+        }                                                                                                  \
+        template <::std::size_t I>                                                                         \
+        static GT_FUNCTION decltype(auto) get(class_name &obj) {                                           \
+            return ::gridtools::tuple_util::host_device::get<I>(obj.member_name);                          \
+        }                                                                                                  \
+        template <::std::size_t I>                                                                         \
+        static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(class_name &&obj) {                             \
+            return ::gridtools::tuple_util::host_device::get<I>(::gridtools::wstd::move(obj).member_name); \
+        }                                                                                                  \
+    };                                                                                                     \
+    friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; }                  \
     static_assert(1, "")
 
 #define GT_STRUCT_TUPLE_IMPL_DECL_(r, data, elem) BOOST_PP_TUPLE_ELEM(0, elem) BOOST_PP_TUPLE_ELEM(1, elem);
 #define GT_STRUCT_TUPLE_IMPL_TYPE_(s, data, elem) BOOST_PP_TUPLE_ELEM(0, elem)
-#define GT_STRUCT_TUPLE_IMPL_GETS_(s, name, i, elem)                      \
-    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>       \
-    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(name const &obj) { \
-        return (obj.BOOST_PP_TUPLE_ELEM(1, elem));                        \
-    }                                                                     \
-    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>       \
-    static GT_FUNCTION decltype(auto) get(name &obj) {                    \
-        return (obj.BOOST_PP_TUPLE_ELEM(1, elem));                        \
-    }                                                                     \
-    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>       \
-    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(name &&obj) {      \
-        return (wstd::move(obj.BOOST_PP_TUPLE_ELEM(1, elem)));            \
+#define GT_STRUCT_TUPLE_IMPL_GETS_(s, name, i, elem)                        \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>         \
+    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(name const &obj) {   \
+        return (obj.BOOST_PP_TUPLE_ELEM(1, elem));                          \
+    }                                                                       \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>         \
+    static GT_FUNCTION decltype(auto) get(name &obj) {                      \
+        return (obj.BOOST_PP_TUPLE_ELEM(1, elem));                          \
+    }                                                                       \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>         \
+    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(name &&obj) {        \
+        return (::gridtools::wstd::move(obj.BOOST_PP_TUPLE_ELEM(1, elem))); \
     }
 #define GT_STRUCT_TUPLE_IMPL_(name, members)                                                                          \
     BOOST_PP_SEQ_FOR_EACH(GT_STRUCT_TUPLE_IMPL_DECL_, _, members)                                                     \
