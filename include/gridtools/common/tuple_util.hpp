@@ -151,18 +151,18 @@
 
 #define GT_STRUCT_TUPLE_IMPL_DECL_(r, data, elem) BOOST_PP_TUPLE_ELEM(0, elem) BOOST_PP_TUPLE_ELEM(1, elem);
 #define GT_STRUCT_TUPLE_IMPL_TYPE_(s, data, elem) BOOST_PP_TUPLE_ELEM(0, elem)
-#define GT_STRUCT_TUPLE_IMPL_GETS_(s, name, i, elem)                        \
-    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>         \
-    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(name const &obj) {   \
-        return (obj.BOOST_PP_TUPLE_ELEM(1, elem));                          \
-    }                                                                       \
-    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>         \
-    static GT_FUNCTION decltype(auto) get(name &obj) {                      \
-        return (obj.BOOST_PP_TUPLE_ELEM(1, elem));                          \
-    }                                                                       \
-    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0>         \
-    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(name &&obj) {        \
-        return (::gridtools::wstd::move(obj.BOOST_PP_TUPLE_ELEM(1, elem))); \
+#define GT_STRUCT_TUPLE_IMPL_GETS_(s, name, i, elem)                                                        \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = BOOST_PP_TUPLE_ELEM(0, elem)> \
+    static GT_CONSTEXPR GT_FUNCTION T const &get(name const &obj) {                                         \
+        return obj.BOOST_PP_TUPLE_ELEM(1, elem);                                                            \
+    }                                                                                                       \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = BOOST_PP_TUPLE_ELEM(0, elem)> \
+    static GT_FUNCTION T &get(name &obj) {                                                                  \
+        return obj.BOOST_PP_TUPLE_ELEM(1, elem);                                                            \
+    }                                                                                                       \
+    template <::std::size_t I, ::std::enable_if_t<I == i, int> = 0, class T = BOOST_PP_TUPLE_ELEM(0, elem)> \
+    static GT_CONSTEXPR GT_FUNCTION T &&get(name &&obj) {                                                   \
+        return static_cast<T &&>(obj.BOOST_PP_TUPLE_ELEM(1, elem));                                         \
     }
 #define GT_STRUCT_TUPLE_IMPL_(name, members)                                                                          \
     BOOST_PP_SEQ_FOR_EACH(GT_STRUCT_TUPLE_IMPL_DECL_, _, members)                                                     \
