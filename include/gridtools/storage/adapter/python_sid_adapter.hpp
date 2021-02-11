@@ -24,6 +24,7 @@
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 
+#include "../../common/array.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../sid/simple_ptr_holder.hpp"
 #include "../../sid/synthetic.hpp"
