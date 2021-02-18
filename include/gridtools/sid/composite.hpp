@@ -47,6 +47,12 @@ namespace gridtools {
                 using make_index_map =
                     meta::first<meta::foldl<make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds>>;
 
+                template <class... Items>
+                struct check_strides_of_the_same_kind : std::true_type {
+                    static_assert(meta::are_same<meta::second<Items>...>(),
+                        "SIDs with the same strides kinds must have the same strides types");
+                };
+
                 /**
                  *  `maybe_equal(lhs, rhs)` is a functional equivalent of the following pseudo code:
                  *   `<no_equal_operator_exists> || lhs == rhs;`
@@ -307,6 +313,9 @@ namespace gridtools {
 #else
                     static_assert(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 #endif
+                    static_assert(meta::all<meta::mp_make<impl_::check_strides_of_the_same_kind,
+                                      meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>(),
+                        "");
 
                     tuple<Sids...> m_sids;
 
@@ -315,13 +324,6 @@ namespace gridtools {
 
                     // The index map that is needed to build compressed composite objects
                     using map_t = impl_::make_index_map<strides_kinds_t>;
-
-                    using strides_list_t = meta::list<strides_type<Sids>...>;
-                    template <class Item>
-                    using is_valid_map_item = std::is_same<meta::at<strides_list_t, meta::first<Item>>,
-                        meta::at<strides_list_t, meta::second<Item>>>;
-                    static_assert(meta::all_of<is_valid_map_item, map_t>(),
-                        "SIDs with the same strides kinds must have the same strides types");
 
                     using compressed_t = compressed<map_t>;
 
