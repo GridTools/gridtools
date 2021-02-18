@@ -315,6 +315,14 @@ namespace gridtools {
 
                     // The index map that is needed to build compressed composite objects
                     using map_t = impl_::make_index_map<strides_kinds_t>;
+
+                    using strides_list_t = meta::list<strides_type<Sids>...>;
+                    template <class Item>
+                    using is_valid_map_item = std::is_same<meta::at<strides_list_t, meta::first<Item>>,
+                        meta::at<strides_list_t, meta::second<Item>>>;
+                    static_assert(meta::all_of<is_valid_map_item, map_t>(),
+                        "SIDs with the same strides kinds must have the same strides types");
+
                     using compressed_t = compressed<map_t>;
 
                     template <class... Ts>
