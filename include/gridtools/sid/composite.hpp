@@ -22,6 +22,7 @@
 #include "../common/utility.hpp"
 #include "../meta.hpp"
 #include "concept.hpp"
+#include "unknown_kind.hpp"
 
 namespace gridtools {
     namespace sid {
@@ -49,9 +50,20 @@ namespace gridtools {
 
                 template <class... Items>
                 struct check_strides_of_the_same_kind : std::true_type {
-                    static_assert(meta::are_same<meta::second<Items>...>(),
+                    static_assert(meta::are_same<meta::second<Items>...>() ||
+                                      conjunction<std::is_same<meta::first<Items>, unknown_kind>...>(),
                         "SIDs with the same strides kinds must have the same strides types");
                 };
+
+                template <size_t>
+                struct unique_kind {};
+
+                template <class Kind, class I>
+                using replace_unknown_kind = meta::if_<std::is_same<Kind, unknown_kind>, unique_kind<I::value>, Kind>;
+
+                template <class Kinds>
+                using replace_unknown_kinds =
+                    meta::transform<replace_unknown_kind, Kinds, meta::make_indices_for<Kinds>>;
 
                 /**
                  *  `maybe_equal(lhs, rhs)` is a functional equivalent of the following pseudo code:
@@ -144,7 +156,7 @@ namespace gridtools {
              *    you have an access to `s1` and `s2` via `get_key`: `get_key<a>(c)` is the same as `s1`
              *
              *  The way how the composite deals with strides is easy to illustrate with example:
-             *  Say the sid `s1` has strides {dim_i:3, dim_j:15} (here I use pseudo code to experess the map)
+             *  Say the sid `s1` has strides {dim_i:3, dim_j:15} (here I use pseudo code to express the map)
              *  and `s2` has strides {dim_k:4, dim_j:12}.
              *  We create a composite `c`: `composite::keys<a, b>::values<S1, S2> c = {s1, s2}`
              *  Now `c` has strides : {dim_i:{a:3, b:0}, dim_j:{a:15, b:12}, dim_k:{a:0, b:4}}
@@ -319,11 +331,11 @@ namespace gridtools {
 
                     tuple<Sids...> m_sids;
 
-                    // Extracted lists of raw kinds (uncompresed)
+                    // Extracted lists of raw kinds (uncompressed)
                     using strides_kinds_t = meta::list<strides_kind<Sids>...>;
 
                     // The index map that is needed to build compressed composite objects
-                    using map_t = impl_::make_index_map<strides_kinds_t>;
+                    using map_t = impl_::make_index_map<impl_::replace_unknown_kinds<strides_kinds_t>>;
                     using compressed_t = compressed<map_t>;
 
                     template <class... Ts>
@@ -369,7 +381,7 @@ namespace gridtools {
 
                     friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
 
-                    friend meta::dedup<strides_kinds_t> sid_get_strides_kind(values const &) { return {}; }
+                    friend unknown_kind sid_get_strides_kind(values const &) { return {}; }
 
                     // Here the `tuple_like` concept is modeled
                     struct getter {
