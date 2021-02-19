@@ -324,7 +324,6 @@ namespace gridtools {
 
                     // The index map that is needed to build compressed composite objects
                     using map_t = impl_::make_index_map<strides_kinds_t>;
-
                     using compressed_t = compressed<map_t>;
 
                     template <class... Ts>
