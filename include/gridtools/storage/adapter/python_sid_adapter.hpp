@@ -28,6 +28,7 @@
 #include "../../common/integral_constant.hpp"
 #include "../../sid/simple_ptr_holder.hpp"
 #include "../../sid/synthetic.hpp"
+#include "../../sid/unknown_kind.hpp"
 
 namespace gridtools {
     namespace python_sid_adapter_impl_ {
@@ -62,7 +63,10 @@ namespace gridtools {
                 }
                 return res;
             }
-            friend kind<Dim, Kind> sid_get_strides_kind(wrapper const &) { return {}; }
+            friend meta::if_<std::is_same<Kind, sid::unknown_kind>, Kind, kind<Dim, Kind>> sid_get_strides_kind(
+                wrapper const &) {
+                return {};
+            }
         };
 
         template <class T, std::size_t Dim, class Kind = void>
