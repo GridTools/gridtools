@@ -11,8 +11,8 @@
 
 namespace gridtools {
     namespace sid {
-        // If for some SID `sid_get_strides_kind(SID const&)` returns `unknown_kind` `sid_get_strides_kind`,
-        // it has the special meaning: SID implementation does not guaranties that the strides are the same
+        // If for some SID `sid_get_strides_kind(SID const&)` returns `unknown_kind`,
+        // it has the special meaning: SID implementation does not guarantee that the strides are the same
         // for any instances of that SID.
         //
         // The practical advice is the following:
