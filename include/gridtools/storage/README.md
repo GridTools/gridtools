@@ -142,6 +142,7 @@ class buider_type {
     auto type() const;
     template <int>
     auto id() const;
+    auto unknown_id() const;
     template <int...>
     auto layout() const;
     template <bool...>
@@ -200,6 +201,10 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
     At a moment `id`/`kind_t` matters if data stores are used in the context of gridtools stencil computation.
     Otherwise there is no need to set `id`. Note also that setting `id` can be skipped if only one set
     of dimension sizes is used even in gridtools stencil computation context.
+  - `unknown_id`  If `unknown_id` is set for the builder, the resulting `data_store::kind_t` will be equal to
+    `sid::unknown_kind`. This will opt out this data store from the optimizations that are used in the gridtools
+    stencil computation. it makes sense to set `unknown_id` if the same builder is used to create the data stores with
+    different dimension set and those fields are participating in the same stencil computation.
   - `dimensions`. Allows to specify the dimensions of the array. Arguments are either
     of integral type or derived from the `std::integral_constant` instantiation. Examples:
     ```C++
