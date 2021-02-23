@@ -21,6 +21,7 @@
 #include "blocked_dim.hpp"
 #include "concept.hpp"
 #include "delegate.hpp"
+#include "unknown_kind.hpp"
 
 namespace gridtools {
     namespace sid {
@@ -122,8 +123,9 @@ namespace gridtools {
             template <class...>
             struct kind;
 
-            template <class Sid, class BlockMap>
-            kind<strides_kind<Sid>, BlockMap> sid_get_strides_kind(blocked_sid<Sid, BlockMap> const &);
+            template <class Sid, class BlockMap, class Kind = strides_kind<Sid>>
+            meta::if_<std::is_same<Kind, unknown_kind>, unknown_kind, kind<Kind, BlockMap>> sid_get_strides_kind(
+                blocked_sid<Sid, BlockMap> const &);
 
             template <class Sid, class BlockMap>
             using no_common_dims =
