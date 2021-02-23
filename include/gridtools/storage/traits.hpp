@@ -14,6 +14,7 @@
 #include "../common/numeric.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
+#include "../sid/unknown_kind.hpp"
 #include "data_view.hpp"
 #include "info.hpp"
 
@@ -47,13 +48,16 @@ namespace gridtools {
                 class Info = decltype(make_info<Traits, T, Lengths>(std::declval<Lengths const &>())),
                 class Strides = decltype(std::declval<Info const &>().native_strides()),
                 class Layout = layout_type<Traits, tuple_util::size<Lengths>::value>>
-            using strides_kind = meta::if_<tuple_util::is_empty_or_tuple_of_empties<Strides>,
-                Strides,
-                meta::list<Strides,
-                    Layout,
-                    Id,
-                    meta::
-                        if_c<(Layout::unmasked_length > 1), integral_constant<int, elem_alignment<Traits, T>>, void>>>;
+            using strides_kind = meta::if_<std::is_same<Id, sid::unknown_kind>,
+                Id,
+                meta::if_<tuple_util::is_empty_or_tuple_of_empties<Strides>,
+                    Strides,
+                    meta::list<Strides,
+                        Layout,
+                        Id,
+                        meta::if_c<(Layout::unmasked_length > 1),
+                            integral_constant<int, elem_alignment<Traits, T>>,
+                            void>>>>;
 
             template <class Traits,
                 class T,
