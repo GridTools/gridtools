@@ -6,12 +6,12 @@ if [ ! -f $PWD/LICENSE_HEADER ] ; then
 fi
 
 execludelist=(\
-    "./unit_tests/interface/repository/repository_double.h" \
-    "./unit_tests/interface/repository/repository_float.h" \
-    "./regression/c_bindings/implementation_float.h" \
-    "./regression/c_bindings/implementation_double.h" \
-    "./regression/c_bindings/implementation_wrapper_double.h" \ 
-    "./regression/c_bindings/implementation_wrapper_float.h" \
+    "./docs_src/manuals/getting_started/code/gt_smoothing.hpp" \
+    "./docs_src/manuals/getting_started/code/gt_smoothing_variant1_computation.hpp" \
+    "./docs_src/manuals/getting_started/code/gt_smoothing_variant1_operator.hpp" \
+    "./docs_src/manuals/getting_started/code/gt_smoothing_variant2_computation.hpp" \
+    "./docs_src/manuals/getting_started/code/gt_smoothing_variant3_computation.hpp" \
+    "./docs_src/manuals/getting_started/code/gt_smoothing_variant3_operator.hpp" \
     )
 
 for file in `find . -regextype posix-egrep -regex ".*\.(h|hpp|cpp|cu|c|cpp.in)$" -not -path "./build*" -not -path "./tools/*" -not -path "./docs/*"`; do
