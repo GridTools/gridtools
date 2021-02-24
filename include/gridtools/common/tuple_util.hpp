@@ -637,9 +637,6 @@ namespace gridtools {
                     }
                 };
 
-                template <size_t N>
-                constexpr select_arg_f<std::make_index_sequence<N>> select_arg = {};
-
                 template <class ResultMaker>
                 struct concat_f {
                     template <class OuterI, class InnerI>
@@ -647,7 +644,7 @@ namespace gridtools {
                         template <class... Tups>
                         GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(Tups &&... tups) const {
                             return GT_TARGET_NAMESPACE_NAME::get<InnerI::value>(
-                                select_arg<OuterI::value>(wstd::forward<Tups>(tups)...));
+                                select_arg_f<std::make_index_sequence<OuterI::value>>{}(wstd::forward<Tups>(tups)...));
                         }
                     };
 
