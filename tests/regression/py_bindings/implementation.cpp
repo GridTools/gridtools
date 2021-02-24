@@ -7,6 +7,9 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+// Keep first to test for missing includes
+#include <gridtools/storage/adapter/python_sid_adapter.hpp>
+
 #include <cassert>
 #include <cstdlib>
 #include <utility>
@@ -24,7 +27,6 @@
 #include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/stencil/global_parameter.hpp>
 #include <gridtools/stencil/naive.hpp>
-#include <gridtools/storage/adapter/python_sid_adapter.hpp>
 
 namespace py = pybind11;
 
