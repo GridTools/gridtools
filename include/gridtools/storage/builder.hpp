@@ -244,7 +244,6 @@ namespace gridtools {
                     return add_type<param::id, std::integral_constant<int, I>>();
                 }
 
-                // TODO(anstaf): document this
                 auto unknown_id() const {
                     static_assert(!has<param::id>::value, "storage id or unknown_id is set twice");
                     return add_type<param::id, sid::unknown_kind>();

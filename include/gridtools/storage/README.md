@@ -30,15 +30,23 @@ class data_store {
     // Data store arbitrary label. Mainly for debugging.
     std::string const &name() const;
     // The sizes of the data store in each dimension.
-    array<unsigned, ndims> const& lengths() const;
+    array<unsigned, ndims> lengths() const;
     // The strides of the data store in each dimension.
-    array<unsigned, ndims> const& strides() const;
+    array<unsigned, ndims> strides() const;
+    
+    // lengths and strides in the form of tuples.
+    // If the length along some dimension is known in compile time (N),
+    // it is represented as an intergral_constant<int, N>,
+    // otherwise as int.
+    auto const& native_lengths() const;
+    auto const& native_strides() const;
+    
     // 1D length of the data store expressed in number of elements.
     // Namely it is a pointer difference between the last and the first element minus one.
     unsigned length() const;
     
     // Supplementary object that holds lengths and strides. 
-    storage::info<ndims> const& info() const;
+    auto const& info() const;
 
     // Request the target view.
     // If the target and host spaces are different necessary synchronization is performed
@@ -72,10 +80,12 @@ struct some_view {
     // POD members here
 
     // The meta info methods are the same as for data_store. 
-    array<unsigned, N> const& lengths() const;
-    array<unsigned, N> const& strides() const;
+    array<unsigned, N> lengths() const;
+    array<unsigned, N> strides() const;
+    auto const& native_lengths() const;
+    auto const& native_strides() const&
     unsigned length() const;
-    storage::info<N> const& info() const;
+    auto const& info() const;
 
     // raw access
     T *data() const;
@@ -132,12 +142,13 @@ class buider_type {
     auto type() const;
     template <int>
     auto id() const;
+    auto unknown_id() const;
     template <int...>
     auto layout() const;
     template <bool...>
     auto selector() const;
     auto name(std::string) const;
-    auto dimensions(unsigned...) const;
+    auto dimensions(...) const;
     auto halos(unsigned...) const;
     template <class Fun>
     auto initializer(Fun) const;
@@ -190,13 +201,30 @@ constexpr builder_type</* Implementation defined parameters. */> builder = {};
     At a moment `id`/`kind_t` matters if data stores are used in the context of gridtools stencil computation.
     Otherwise there is no need to set `id`. Note also that setting `id` can be skipped if only one set
     of dimension sizes is used even in gridtools stencil computation context.
+  - `unknown_id`  If `unknown_id` is set for the builder, the resulting `data_store::kind_t` will be equal to
+    `sid::unknown_kind`. This will opt out this data store from the optimizations that are used in the gridtools
+    stencil computation. it makes sense to set `unknown_id` if the same builder is used to create the data stores with
+    different dimension set and those fields are participating in the same stencil computation.
+  - `dimensions`. Allows to specify the dimensions of the array. Arguments are either
+    of integral type or derived from the `std::integral_constant` instantiation. Examples:
+    ```C++
+    using gridtools::literals;
+    auto const my_builder = builder<cpu_ifirst>.type<int>();
+    auto dynamic_ds = my_builder.dimensions(2, 3)();
+    auto static_ds = my_builder.dimensions(2_c, 3_c)();
+    auto mixed_ds = my_builder.dimensions(2, 3_c)();
+    ```
+    In this example all data stores act almost the same way.
+    But `static_ds` (unlike `dynamic_ds`) does not hold its dimensions in runtime, it
+    is encoded in the type instead. I.e. meta information (`lengths`/`strides`) takes less space
+    and also indexing/iterating code can be more aggressively optimized by compiler. 
   - `halos`. The memory alignment is controlled by specifying `Traits` (the template parameter of the builder).
     By default each first element of the innermost dimension is aligned. `halos` allows to explicitly specify
     the index of element that should be aligned. Together with chosen element, all elements that share it's
     innermost index will be aligned as well.
   - `selector` allows to mask out any dimension or several. Example:
     ```C++
-    auto ds = builder<cpu_ifirst>.type<int>().selector<1,0>().dimensions(10, 10).value(-1);
+    auto ds = builder<cpu_ifirst>.type<int>().selector<1,0>().dimensions(10, 10).value(-1)();
     auto view = ds->host_view();
     // even though the second dimension is masked out we can used indices in the defined range;
     assert(ds->lengths()[1], 10);  
