@@ -26,6 +26,7 @@
 
 #include "../../common/array.hpp"
 #include "../../common/integral_constant.hpp"
+#include "../../meta/if.hpp"
 #include "../../sid/simple_ptr_holder.hpp"
 #include "../../sid/synthetic.hpp"
 #include "../../sid/unknown_kind.hpp"
