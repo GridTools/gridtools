@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -10,12 +10,14 @@
 
 #pragma once
 
+#include <type_traits>
 #include <utility>
 
 #include "../common/hymap.hpp"
 #include "../meta.hpp"
 #include "concept.hpp"
 #include "delegate.hpp"
+#include "unknown_kind.hpp"
 
 namespace gridtools {
     namespace sid {
@@ -41,9 +43,9 @@ namespace gridtools {
             template <class...>
             struct stride_kind_wrapper {};
 
-            template <class KeyMap, class Sid>
-            stride_kind_wrapper<KeyMap, decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
-            sid_get_strides_kind(renamed_sid<KeyMap, Sid> const &);
+            template <class KeyMap, class Sid, class Kind = decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
+            meta::if_<std::is_same<Kind, unknown_kind>, Kind, stride_kind_wrapper<KeyMap, Kind>> sid_get_strides_kind(
+                renamed_sid<KeyMap, Sid> const &);
 
             template <class KeyMap, class Sid>
             decltype(remap<KeyMap>(sid_get_strides(std::declval<Sid const &>()))) sid_get_strides(

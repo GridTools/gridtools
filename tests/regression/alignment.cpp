@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -32,7 +32,7 @@ namespace {
         GT_FUNCTION static void apply(Evaluation &eval) {
             auto *ptr = &eval(acc());
             eval(out()) = eval(i_pos()) == halo &&
-                          reinterpret_cast<ptrdiff_t>(ptr) % storage::traits::alignment<storage_traits_t>;
+                          reinterpret_cast<ptrdiff_t>(ptr) % storage::traits::byte_alignment<storage_traits_t>;
         }
     };
 

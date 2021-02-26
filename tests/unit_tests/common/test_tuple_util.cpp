@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -25,38 +25,7 @@
 
 namespace custom {
     struct foo {
-        int a;
-        double b;
-
-        struct getter {
-            template <size_t I, std::enable_if_t<I == 0, int> = 0>
-            static GT_CONSTEXPR int get(foo const &obj) {
-                return obj.a;
-            }
-            template <size_t I, std::enable_if_t<I == 0, int> = 0>
-            static int &get(foo &obj) {
-                return obj.a;
-            }
-            template <size_t I, std::enable_if_t<I == 0, int> = 0>
-            static GT_CONSTEXPR int get(foo &&obj) {
-                return obj.a;
-            }
-            template <size_t I, std::enable_if_t<I == 1, int> = 0>
-            static GT_CONSTEXPR double get(foo const &obj) {
-                return obj.b;
-            }
-            template <size_t I, std::enable_if_t<I == 1, int> = 0>
-            static double &get(foo &obj) {
-                return obj.b;
-            }
-            template <size_t I, std::enable_if_t<I == 1, int> = 0>
-            static GT_CONSTEXPR double get(foo &&obj) {
-                return obj.b;
-            }
-        };
-        friend getter tuple_getter(foo);
-        friend gridtools::meta::list<int, double> tuple_to_types(foo);
-        friend gridtools::meta::always<foo> tuple_from_types(foo);
+        GT_STRUCT_TUPLE(foo, (int, a), (double, b));
     };
 } // namespace custom
 

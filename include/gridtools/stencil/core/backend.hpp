@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -9,13 +9,16 @@
  */
 #pragma once
 
+#include <cassert>
 #include <functional>
 #include <utility>
 
+#include "../../common/for_each.hpp"
 #include "../../common/hymap.hpp"
 #include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../sid/sid_shift_origin.hpp"
+#include "../be_api.hpp"
 #include "convert_fe_to_be_spec.hpp"
 
 namespace gridtools {
@@ -34,10 +37,16 @@ namespace gridtools {
                 struct call_entry_point_f {
                     template <class Backend, class Grid, class DataStores>
                     void operator()(Backend &&be, Grid const &grid, DataStores data_stores) const {
-                        gridtools_backend_entry_point(std::forward<Backend>(be),
-                            convert_fe_to_be_spec<Spec, typename Grid::interval_t, DataStores>(),
-                            grid,
-                            shift_origin(grid, std::move(data_stores)));
+                        using be_spec_t = convert_fe_to_be_spec<Spec, typename Grid::interval_t, DataStores>;
+#ifndef NDEBUG
+                        for_each<be_api::make_fused_view<be_spec_t>>([&](auto matrix) {
+                            for_each<decltype(matrix)>([&](auto info) {
+                                assert(((void)"domain k-size is too small", grid.k_size(info.interval()) >= 0));
+                            });
+                        });
+#endif
+                        gridtools_backend_entry_point(
+                            std::forward<Backend>(be), be_spec_t(), grid, shift_origin(grid, std::move(data_stores)));
                     }
                 };
             } // namespace backend_impl_

@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -46,14 +46,23 @@ namespace gridtools {
 
         /**
          *   Returns a `SID`, which ptr_type is a pointer to const.
-         *   enabled only if the original ptr_type is a pointer.
+         *   If the original ptr_type is not a non const pointer `as_const` returns the argument.
          *
          *   TODO(anstaf): at a moment the generated ptr holder always has `host_device` `operator()`
          *                 probably might we need the `host` and `device` variations as well
          */
-        template <class Src, std::enable_if_t<std::is_pointer<sid::ptr_type<std::decay_t<Src>>>::value, int> = 0>
+        template <class Src,
+            class Ptr = sid::ptr_type<std::decay_t<Src>>,
+            std::enable_if_t<std::is_pointer<Ptr>::value && !std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
         as_const_impl_::const_adapter<Src> as_const(Src &&src) {
             return {std::forward<Src>(src)};
+        }
+
+        template <class Src,
+            class Ptr = sid::ptr_type<std::decay_t<Src>>,
+            std::enable_if_t<!std::is_pointer<Ptr>::value || std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
+        decltype(auto) as_const(Src &&src) {
+            return std::forward<Src>(src);
         }
 
         template <class Src>
@@ -61,19 +70,9 @@ namespace gridtools {
             return std::forward<Src>(src);
         }
 
-        template <class Src,
-            class Ptr = sid::ptr_type<std::decay_t<Src>>,
-            std::enable_if_t<std::is_pointer<Ptr>::value && !std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
-        auto add_const(std::true_type, Src &&src) {
+        template <class Src>
+        decltype(auto) add_const(std::true_type, Src &&src) {
             return as_const(std::forward<Src>(src));
         }
-
-        template <class Src,
-            class Ptr = sid::ptr_type<std::decay_t<Src>>,
-            std::enable_if_t<!std::is_pointer<Ptr>::value || std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
-        auto add_const(std::true_type, Src &&src) {
-            return std::forward<Src>(src);
-        }
-
     } // namespace sid
 } // namespace gridtools

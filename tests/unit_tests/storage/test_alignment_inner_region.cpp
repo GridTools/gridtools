@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -30,7 +30,7 @@ void run() {
 
     auto view = store->target_view();
     EXPECT_EQ(reinterpret_cast<uintptr_t>(store->get_target_ptr() + store->info().index(h1, h2, h3)) %
-                  storage::traits::alignment<storage_traits_t>,
+                  storage::traits::byte_alignment<storage_traits_t>,
         0);
 }
 

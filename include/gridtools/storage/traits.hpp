@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -11,24 +11,73 @@
 
 #include <type_traits>
 
+#include "../common/numeric.hpp"
+#include "../common/tuple_util.hpp"
 #include "../meta.hpp"
+#include "../sid/unknown_kind.hpp"
 #include "data_view.hpp"
+#include "info.hpp"
 
 namespace gridtools {
     namespace storage {
         namespace traits {
-            namespace impl_ {}
-
             template <class Traits>
             constexpr bool is_host_referenceable =
                 decltype(storage_is_host_referenceable(std::declval<Traits>()))::value;
 
             template <class Traits>
-            constexpr size_t alignment = decltype(storage_alignment(std::declval<Traits>()))::value;
+            constexpr size_t byte_alignment = decltype(storage_alignment(std::declval<Traits>()))::value;
+
+            template <class Traits, class T, size_t ByteAlignment = byte_alignment<Traits>>
+            constexpr size_t elem_alignment = ByteAlignment / gcd(sizeof(T), ByteAlignment);
 
             template <class Traits, size_t Dims>
             using layout_type =
                 decltype(storage_layout(std::declval<Traits>(), std::integral_constant<size_t, Dims>()));
+
+            template <class Traits, class T, class Lengths>
+            auto make_info(Lengths const &lengths) {
+                return storage::make_info<layout_type<Traits, tuple_util::size<Lengths>::value>>(
+                    integral_constant<int, elem_alignment<Traits, T>>(), lengths);
+            }
+
+            template <class Traits,
+                class T,
+                class Lengths,
+                class Id,
+                class Info = decltype(make_info<Traits, T, Lengths>(std::declval<Lengths const &>())),
+                class Strides = decltype(std::declval<Info const &>().native_strides()),
+                class Layout = layout_type<Traits, tuple_util::size<Lengths>::value>>
+            using strides_kind = meta::if_<std::is_same<Id, sid::unknown_kind>,
+                Id,
+                meta::if_<tuple_util::is_empty_or_tuple_of_empties<Strides>,
+                    Strides,
+                    meta::list<Strides,
+                        Layout,
+                        Id,
+                        meta::if_c<(Layout::unmasked_length > 1),
+                            integral_constant<int, elem_alignment<Traits, T>>,
+                            void>>>>;
+
+            template <class Traits,
+                class T,
+                class Lengths,
+                size_t Alignment = elem_alignment<Traits, T>,
+                std::enable_if_t<Alignment == 1, int> = 0>
+            std::false_type has_holes(Lengths const &lengths) {
+                return {};
+            }
+
+            template <class Traits,
+                class T,
+                class Lengths,
+                size_t Alignment = elem_alignment<Traits, T>,
+                size_t Dims = tuple_util::size<Lengths>::value,
+                class Layout = layout_type<Traits, Dims>,
+                std::enable_if_t<Alignment != 1, int> = 0>
+            bool has_holes(Lengths const &lengths) {
+                return tuple_util::get<Layout::find(Dims - 1)>(lengths) % Alignment;
+            }
 
             template <class Traits, class T>
             auto allocate(size_t size) {

@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -18,6 +18,7 @@
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/sid/simple_ptr_holder.hpp>
 #include <gridtools/sid/synthetic.hpp>
+#include <gridtools/sid/unknown_kind.hpp>
 
 namespace gridtools {
     namespace {
@@ -196,6 +197,32 @@ namespace gridtools {
             EXPECT_EQ(&two, at_key<b>(ptr));
             EXPECT_EQ(&three[3][2][1], at_key<c>(ptr));
             EXPECT_EQ(&four[3][1][2], at_key<d>(ptr));
+        }
+
+        TEST(composite, unknown_kind) {
+            int one[1] = {};
+            int two[1][1] = {};
+
+            auto testee = sid::composite::make<a, b>(                                            //
+                sid::synthetic()                                                                 //
+                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(&one[0]))    //
+                    .set<property::strides>(tuple_util::make<tuple>(1))                          //
+                    .set<property::strides_kind, sid::unknown_kind>(),                           //
+                sid::synthetic()                                                                 //
+                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(&two[0][0])) //
+                    .set<property::strides>(tuple_util::make<tuple>(1, 1))                       //
+                    .set<property::strides_kind, sid::unknown_kind>());
+
+            auto &&strides = sid::get_strides(testee);
+            auto &&stride_i = sid::get_stride<dim_i>(strides);
+
+            EXPECT_EQ(at_key<a>(stride_i), 1);
+            EXPECT_EQ(at_key<b>(stride_i), 1);
+
+            auto &&stride_j = sid::get_stride<dim_j>(strides);
+
+            EXPECT_EQ(at_key<a>(stride_j), 0);
+            EXPECT_EQ(at_key<b>(stride_j), 1);
         }
     } // namespace
 } // namespace gridtools

@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -93,7 +93,7 @@ namespace gridtools {
 #endif
         }
 
-        INSTANTIATE_TEST_CASE_P(hugepage_alloc, hugepage_alloc_fixture, ::testing::Values("disable", "transparent"));
+        INSTANTIATE_TEST_SUITE_P(hugepage_alloc, hugepage_alloc_fixture, ::testing::Values("disable", "transparent"));
 
     } // namespace
 } // namespace gridtools

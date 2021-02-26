@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -24,7 +24,7 @@ namespace gridtools {
     namespace fortran_array_view_impl_ {
         struct default_kind {};
 
-        template <class T, size_t Rank, class Kind = default_kind>
+        template <class T, size_t Rank, class Kind = default_kind, bool ACCPresent = true>
         class fortran_array_view {
             static_assert(
                 std::is_arithmetic<T>::value, "fortran_array_view should be instantiated with arithmetic type");
@@ -53,7 +53,7 @@ namespace gridtools {
           public:
             using bindgen_view_rank = std::integral_constant<size_t, Rank>;
             using bindgen_view_element_type = T;
-            using bindgen_is_acc_present = std::true_type;
+            using bindgen_is_acc_present = std::integral_constant<bool, ACCPresent>;
 
             fortran_array_view(bindgen_fortran_array_descriptor const &desc) : m_desc(desc) {
 #ifndef NDEBUG

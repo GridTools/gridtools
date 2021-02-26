@@ -1,7 +1,7 @@
 /*
  * GridTools
  *
- * Copyright (c) 2014-2019, ETH Zurich
+ * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -20,6 +20,7 @@
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
+#include "../sid/unknown_kind.hpp"
 #include "data_store.hpp"
 #include "traits.hpp"
 
@@ -239,8 +240,13 @@ namespace gridtools {
 
                 template <int I>
                 auto id() const {
-                    static_assert(!has<param::id>::value, "storage id is set twice");
+                    static_assert(!has<param::id>::value, "storage id or unknown_id is set twice");
                     return add_type<param::id, std::integral_constant<int, I>>();
+                }
+
+                auto unknown_id() const {
+                    static_assert(!has<param::id>::value, "storage id or unknown_id is set twice");
+                    return add_type<param::id, sid::unknown_kind>();
                 }
 
                 template <int... Args>
