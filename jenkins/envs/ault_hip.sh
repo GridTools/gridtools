@@ -3,6 +3,8 @@
 source $(dirname "$BASH_SOURCE")/ault.sh
 
 module load rocm
+# fix for broken rocm module
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/llvm/lib"
 
 export CXX=$(which hipcc)
 export CC=$(which gcc)
