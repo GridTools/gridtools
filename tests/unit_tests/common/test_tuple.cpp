@@ -27,6 +27,7 @@ namespace gridtools {
             int value;
 
             move_only() = default;
+            explicit move_only(int v) : value(v) {}
 
             move_only(move_only const &) = delete;
             move_only(move_only &&) = default;

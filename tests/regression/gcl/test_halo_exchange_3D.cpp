@@ -160,7 +160,7 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
             for_each<bools_t>([&](auto use_vector_interface) {
                 for_each<bools_t>([&](auto p0) {
                     for_each<bools_t>([&](auto p1) {
-                        for_each<bools_t>([=](auto p2) {
+                        for_each<bools_t>([=, this](auto p2) {
                             auto storages = make_storages(layout);
                             f(layout, use_vector_interface, storages, p0, p1, p2);
                             verify(storages, {p0, p1, p2});

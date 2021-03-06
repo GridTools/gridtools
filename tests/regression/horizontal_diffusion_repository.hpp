@@ -46,17 +46,17 @@ namespace gridtools {
         fun_t crlatu = [this](int_t, int_t j, int_t) { return j == 0 ? 0 : m_crlat1(j - 1) / m_crlat0(j); };
 
         fun_t out = [this](int_t i, int_t j, int_t k) {
-            auto lap = [=](int_t ii, int_t jj) {
+            auto lap = [=, this](int_t ii, int_t jj) {
                 return 4 * in(ii, jj, k) -
                        (in(ii + 1, jj, k) + in(ii, jj + 1, k) + in(ii - 1, jj, k) + in(ii, jj - 1, k));
             };
-            auto flx = [=](int_t ii, int_t jj) {
+            auto flx = [=, this](int_t ii, int_t jj) {
                 double res = lap(ii + 1, jj) - lap(ii, jj);
                 if (res * (in(ii + 1, jj, k) - in(ii, jj, k)) > 0)
                     res = 0.;
                 return res;
             };
-            auto fly = [=](int_t ii, int_t jj) {
+            auto fly = [=, this](int_t ii, int_t jj) {
                 auto res = lap(ii, jj + 1) - lap(ii, jj);
                 if (res * (in(ii, jj + 1, k) - in(ii, jj, k)) > 0)
                     res = 0.;
@@ -66,7 +66,7 @@ namespace gridtools {
         };
 
         fun_t out_simple = [this](int_t i, int_t j, int_t k) {
-            auto lap = [=](int_t ii, int_t jj) {
+            auto lap = [=, this](int_t ii, int_t jj) {
                 return in(ii + 1, jj, k) + in(ii - 1, jj, k) - 2 * in(ii, jj, k) +
                        crlato(ii, jj, k) * (in(ii, jj + 1, k) - in(ii, jj, k)) +
                        crlatu(ii, jj, k) * (in(ii, jj - 1, k) - in(ii, jj, k));
