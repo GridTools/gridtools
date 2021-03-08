@@ -82,13 +82,10 @@ struct distributed_boundaries_test : testing::Test {
         testee.proc_grid().coords(pi, pj, pk);
         testee.proc_grid().dims(PI, PJ, PK);
 
-        a = builder.initializer(
-            [=, this](int i, int j, int k) { return from_core(i, j) ? a_init(i, j, k) : triplet{}; })();
-        b = builder.initializer(
-            [=, this](int i, int j, int k) { return from_core(i, j) ? b_init(i, j, k) : triplet{}; })();
-        c = builder.initializer([=, this](int i, int j, int k) { return c_init(i, j, k); })();
-        d = builder.initializer(
-            [=, this](int i, int j, int k) { return from_core(i, j) ? d_init(i, j, k) : triplet{}; })();
+        a = builder.initializer([&](int i, int j, int k) { return from_core(i, j) ? a_init(i, j, k) : triplet{}; })();
+        b = builder.initializer([&](int i, int j, int k) { return from_core(i, j) ? b_init(i, j, k) : triplet{}; })();
+        c = builder.initializer([&](int i, int j, int k) { return c_init(i, j, k); })();
+        d = builder.initializer([&](int i, int j, int k) { return from_core(i, j) ? d_init(i, j, k) : triplet{}; })();
     }
 
     void expect_a(expected_t f) { expected_a = f; }
