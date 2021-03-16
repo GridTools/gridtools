@@ -51,6 +51,7 @@ namespace {
         }
     };
 
+#ifndef GT_STENCIL_GPU_HORIZONTAL
     GT_REGRESSION_TEST(parallel_multistage_fusion, test_environment<>, stencil_backend_t) {
         auto out = TypeParam::make_storage();
         auto comp = [&out, grid = TypeParam::make_grid()] {
@@ -64,4 +65,5 @@ namespace {
         comp();
         TypeParam::verify([](int i, int j, int k) { return 1; }, out);
     }
+#endif
 } // namespace
