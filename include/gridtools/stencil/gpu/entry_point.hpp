@@ -87,7 +87,7 @@ namespace gridtools {
                 using apply = typename meta::mp_find<PlhMap, Key, dummy_info>::extent_t;
             };
 
-            template <class MaxExtent, class PlhMap, int_t BlockSize, class... Funs>
+            template <class MaxExtent, class PlhMap, int_t BlockSize, bool IsParallel, class... Funs>
             struct kernel {
                 tuple<Funs...> m_funs;
                 size_t m_shared_memory_size;
@@ -112,10 +112,12 @@ namespace gridtools {
                     class Extents = meta::transform<get_extent_f<OtherPlhMap>::template apply, OutKeys>,
                     class Extent = meta::rename<enclosing_extent, Extents>,
                     std::enable_if_t<Extent::iminus::value == 0 && Extent::iplus::value == 0 &&
-                                         Extent::jminus::value == 0 && Extent::jplus::value == 0,
+                                         Extent::jminus::value == 0 && Extent::jplus::value == 0 &&
+                                         (!IsParallel || (Extent::kminus::value == 0 && Extent::kplus::value == 0)),
                         int> = 0>
-                kernel<MaxExtent, be_api::merge_plh_maps<PlhMap, OtherPlhMap>, BlockSize, Funs..., Fun> launch_or_fuse(
-                    Backend, Grid const &grid, kernel<MaxExtent, OtherPlhMap, BlockSize, Fun> kernel) && {
+                kernel<MaxExtent, be_api::merge_plh_maps<PlhMap, OtherPlhMap>, BlockSize, IsParallel, Funs..., Fun>
+                launch_or_fuse(
+                    Backend, Grid const &grid, kernel<MaxExtent, OtherPlhMap, BlockSize, IsParallel, Fun> kernel) && {
                     return {tuple_util::push_back(std::move(m_funs), tuple_util::get<0>(std::move(kernel.m_funs))),
                         std::max(m_shared_memory_size, kernel.m_shared_memory_size)};
                 }
@@ -202,17 +204,21 @@ namespace gridtools {
                         meta::transform<be_api::get_caches, plh_map_t>(),
                         plh_map_t()));
 
-                    constexpr int_t k_block_size =
-                        be_api::is_parallel<typename Mss::execution_t>{} ? KBlockSize::value : 0;
+                    constexpr bool is_parallel = be_api::is_parallel<typename Mss::execution_t>{};
+                    constexpr int_t k_block_size = is_parallel ? KBlockSize::value : 0;
 
                     auto kernel_fun = make_kernel_fun<Deref, Mss, k_block_size>(grid, composite);
 
-                    return kernel<typename Mss::extent_t, typename Mss::plh_map_t, k_block_size, decltype(kernel_fun)>{
-                        std::move(kernel_fun), shared_alloc.size()};
+                    return kernel<typename Mss::extent_t,
+                        typename Mss::plh_map_t,
+                        k_block_size,
+                        is_parallel,
+                        decltype(kernel_fun)>{std::move(kernel_fun), shared_alloc.size()};
                 }
 
                 template <class Deref,
-                    template <class...> class L,
+                    template <class...>
+                    class L,
                     class Grid,
                     class DataStores,
                     class PrevKernel = no_kernel>
@@ -221,7 +227,8 @@ namespace gridtools {
                 }
 
                 template <class Deref,
-                    template <class...> class L,
+                    template <class...>
+                    class L,
                     class Mss,
                     class... Msses,
                     class Grid,
