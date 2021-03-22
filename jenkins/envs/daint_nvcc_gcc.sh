@@ -3,7 +3,7 @@
 source $(dirname "$BASH_SOURCE")/daint.sh
 
 module swap PrgEnv-cray PrgEnv-gnu
-module swap gcc/6.2.0
+module load cdt-cuda
 
 export CXX=$(which CC)
 export CC=$(which cc)
