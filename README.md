@@ -47,9 +47,9 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 | Compiler | Backend | Tested on | Comments |
 | --- | --- | --- | --- |
-| Cray clang version 10.0.2 | all backends | Piz Daint | P100 GPU |
-| GNU 8.3.0 + NVCC 10.2 | all backends | Piz Daint | P100 GPU |
-| GNU 8.3.0 + NVCC 11.0 | all backends | Dom | P100 GPU |
+| Cray clang version 11.0.0 | all backends | Piz Daint | P100 GPU |
+| GNU 9.3.0 + NVCC 11.0 | all backends | Piz Daint | P100 GPU |
+| GNU 9.3.0 + NVCC 11.0 | all backends | Dom | P100 GPU |
 | Clang 7.0.1 + NVCC 10.2 | all backends | Piz Daint | GPU compilation in NVCC-CUDA mode, P100 GPU |
 | GNU 8.3.0 + NVCC 10.1 | all backends | Tsa | V100 GPU |
 
@@ -68,6 +68,7 @@ Some tests are failing with ROCm3.8.0 (Clang 11).
 | PGI 20.1 | cpu backends | 2020-10-08 | no effort to fix compilation |
 | Intel 19.0.1.144 | all backends | 2020-05-11 | Intel workarounds removed in GridTools 2.0 (goal would be to support Intel with `-qnextgen`) |
 | Intel 19.1.0.166 | all backends | 2020-05-11 | even with `-qnextgen`, no effort to fix compilation |
+| NVCC 11.0 with Clang 7.0.1 (and most likely other Clang versions) | gpu | 2021-03-22 | see issue [#1522](https://github.com/GridTools/gridtools/issues/1522)
 
 ### Contributing
 
