@@ -116,7 +116,7 @@ namespace gridtools {
                     IsTmp,
                     Data,
                     NumColors,
-		    typename conjunction<IsConsts...>::type,
+                    typename conjunction<IsConsts...>::type,
                     enclosing_extent<Extents...>,
                     meta::dedup<meta::concat<CacheIoPolicyLists...>>>;
             };
