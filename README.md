@@ -55,7 +55,9 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 ##### Known issues
 
-Some tests are failing with ROCm3.8.0 (Clang 11).
+- Some tests are failing with ROCm3.8.0 (Clang 11).
+- CUDA 11.0.x has a severe issue, see https://github.com/GridTools/gridtools/issues/1522. Under certain conditions, GridTools code will not compile for this version of CUDA. CUDA 11.1.x and later should not be affected by this issue.
+
 
 ##### Officially not supported (no workarounds implemented and planned)
 
@@ -68,7 +70,6 @@ Some tests are failing with ROCm3.8.0 (Clang 11).
 | PGI 20.1 | cpu backends | 2020-10-08 | no effort to fix compilation |
 | Intel 19.0.1.144 | all backends | 2020-05-11 | Intel workarounds removed in GridTools 2.0 (goal would be to support Intel with `-qnextgen`) |
 | Intel 19.1.0.166 | all backends | 2020-05-11 | even with `-qnextgen`, no effort to fix compilation |
-| NVCC 11.0 with Clang 7.0.1 (and most likely other Clang versions) | gpu | 2021-03-22 | see issue [#1522](https://github.com/GridTools/gridtools/issues/1522)
 
 ### Contributing
 
