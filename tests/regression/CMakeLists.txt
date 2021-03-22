@@ -98,19 +98,25 @@ function(gridtools_add_layout_transformation_test)
 endfunction()
 
 function(gridtools_add_boundary_conditions_test)
+    set(ENABLED_GT_GCL_ARCHS)
     foreach(arch IN LISTS GT_GCL_ARCHS)
-        set(tgt bc_testee_${arch})
-        add_library(${tgt} INTERFACE)
-        target_link_libraries(${tgt} INTERFACE boundaries_${arch})
-        if (arch STREQUAL gpu)
-            target_compile_definitions(${tgt} INTERFACE GT_GCL_GPU)
-        elseif (arch STREQUAL cpu)
-            target_compile_definitions(${tgt} INTERFACE GT_GCL_CPU)
+        if(arch STREQUAL gpu AND CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL 11.0 AND CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11.1)
+            message(WARNING "CUDA 11.0.x is buggy, see https://github.com/GridTools/gridtools/issues/1522, skipping test boundary_conditions_gpu.")
+        else()
+            list(APPEND ENABLED_GT_GCL_ARCHS ${arch})
+            set(tgt bc_testee_${arch})
+            add_library(${tgt} INTERFACE)
+            target_link_libraries(${tgt} INTERFACE boundaries_${arch})
+            if (arch STREQUAL gpu)
+                target_compile_definitions(${tgt} INTERFACE GT_GCL_GPU)
+            elseif (arch STREQUAL cpu)
+                target_compile_definitions(${tgt} INTERFACE GT_GCL_CPU)
+            endif()
         endif()
     endforeach()
     gridtools_add_regression_test(boundary_conditions
             LIB_PREFIX bc_testee
-            KEYS ${GT_GCL_ARCHS}
+            KEYS ${ENABLED_GT_GCL_ARCHS}
             SOURCES boundary_conditions.cpp
             PERFTEST)
 endfunction()
