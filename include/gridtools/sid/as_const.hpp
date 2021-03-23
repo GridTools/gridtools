@@ -65,7 +65,7 @@ namespace gridtools {
             class Ptr = sid::ptr_type<std::decay_t<Src>>,
             std::enable_if_t<std::is_pointer<Ptr>::value && !std::is_const<std::remove_pointer_t<Ptr>>::value, int> = 0>
         auto add_const(std::true_type, Src &&src) {
-            return as_const(std::forward<Src>(src));
+            return std::as_const(std::forward<Src>(src));
         }
 
         template <class Src,
