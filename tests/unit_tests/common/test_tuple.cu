@@ -34,18 +34,17 @@ namespace gridtools {
         EXPECT_EQ(2.5, tuple_util::host::get<1>(testee));
     }
 
-    __device__ tuple<int, double> element_wise_conversion_ctor(char x, char y) { return {x, y}; }
-
-#if defined(__clang__) && (__clang_major__ == 11 && __clang_minor__ == 0 && __clang_patch__ == 0)
+#if defined(__clang__) && (__clang_major__ == 11 && __clang_minor__ == 0 && __clang_patchlevel__ == 0)
     // crashes Clang 11.0.0, see https://github.com/GridTools/gridtools/issues/1615
 #else
+    __device__ tuple<int, double> element_wise_conversion_ctor(char x, char y) { return {x, y}; }
+
     TEST(tuple, element_wise_conversion_ctor) {
         tuple<int, double> testee =
             on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&element_wise_conversion_ctor), 'a', 'b');
         EXPECT_EQ('a', tuple_util::host::get<0>(testee));
         EXPECT_EQ('b', tuple_util::host::get<1>(testee));
     }
-#endif
 
     __device__ tuple<int, double> tuple_conversion_ctor(tuple<char, char> const &src) { return src; }
 
@@ -55,6 +54,7 @@ namespace gridtools {
         EXPECT_EQ('a', tuple_util::host::get<0>(testee));
         EXPECT_EQ('b', tuple_util::host::get<1>(testee));
     }
+#endif
 } // namespace gridtools
 
-#include "test_tuple.cpp"
+//#include "test_tuple.cpp"
