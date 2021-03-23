@@ -72,7 +72,7 @@ namespace gridtools {
 
         template <class Src>
         decltype(auto) add_const(std::true_type, Src &&src) {
-            return as_const(std::forward<Src>(src));
+            return sid::as_const(std::forward<Src>(src));
         }
     } // namespace sid
 } // namespace gridtools
