@@ -67,7 +67,7 @@ The following rules apply to accesses in stages *within the same multi-stage*:
  4. A stage may read from an accessor and write to it in a later statement, if
 
     a. all reads of this accessor are in stages where the compute domain is not extended;
-    b. all read of this accessor are without offsets.
+    b. all reads of this accessor are without offsets.
 
     (Write after read only, if read is in non-extended stages and no offsets are used.)
 
