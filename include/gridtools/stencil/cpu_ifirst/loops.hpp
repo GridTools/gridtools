@@ -28,13 +28,7 @@ namespace gridtools {
             namespace loops_impl_ {
                 template <class Stage, class Ptr, class Strides>
                 GT_FORCE_INLINE void i_loop(int_t size, Stage stage, Ptr &ptr, Strides const &strides) {
-#ifdef NDEBUG
-// TODO(anstaf & fthaler):
-//   Maybe we have to re-run tests with different combinations of pragmas on different compilers,
-//   the current set of pragmas is at the border of legality for the present code, so maybe we can find a better option.
-#pragma ivdep
 #pragma omp simd
-#endif
                     for (int_t i = 0; i < size; ++i) {
                         using namespace literals;
                         stage(ptr, strides);
