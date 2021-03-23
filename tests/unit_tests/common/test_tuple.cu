@@ -57,4 +57,4 @@ namespace gridtools {
 #endif
 } // namespace gridtools
 
-//#include "test_tuple.cpp"
+#include "test_tuple.cpp"
