@@ -2,30 +2,17 @@
 
 source $(dirname "$BASH_SOURCE")/base.sh
 
-# the module command on Daint does not properly return an error code, so we
-# override the function to catch failing module invocations
-eval "$(declare -f module | sed 's/^module () *$/original_\0/')"
-function module() {
-    local tmpout=$(mktemp)
-    original_module $* 2> "$tmpout"
-    local output=$(cat "$tmpout" && rm "$tmpout")
-    if [[ "$output" =~ "ERROR" ]]; then
-        >&2 echo "'module $*' exited with error: $output"
-        return 1
-    fi
-}
-
 module load daint-gpu
 module load cudatoolkit
 module load CMake
-
 
 export BOOST_ROOT=/project/c14/install/daint/boost/boost_1_67_0/
 export CUDATOOLKIT_HOME=$CUDA_PATH
 export CUDA_ARCH=sm_60
 
-export GTRUN_BUILD_COMMAND='srun -C gpu -p cscsci --time=00:20:00 make -j 24'
-export GTRUN_SBATCH_PARTITION='cscsci'
+export GTRUN_BUILD_COMMAND='srun --account d75 -C gpu --time=00:20:00 make -j 24'
+export GTRUN_SBATCH_ACCOUNT='d75'
+export GTRUN_SBATCH_PARTITION='normal'
 export GTRUN_SBATCH_NODES=1
 export GTRUN_SBATCH_NTASKS_PER_CORE=2
 export GTRUN_SBATCH_NTASKS_PER_NODE=1

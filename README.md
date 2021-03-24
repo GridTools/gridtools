@@ -47,11 +47,17 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 | Compiler | Backend | Tested on | Comments
 | --- | --- | --- | --- |
-| Cray clang version 9.0.2 | all backends | Piz Daint | with flags `-fno-cray-gpu -fno-cray`, P100 GPU
-| GNU 7.3.0 + NVCC 10.1 | all backends | Piz Daint | P100 GPU |
-| Clang 7.0.1 + NVCC 10.1 | all backends | Piz Daint | GPU compilation in NVCC-CUDA mode, P100 GPU |
+| Cray clang version 11.0.0 | all backends | Piz Daint | P100 GPU |
+| GNU 9.3.0 + NVCC 11.0 | all backends | Piz Daint | P100 GPU |
+| GNU 9.3.0 + NVCC 11.0 | all backends | Dom | P100 GPU |
+| Clang 7.0.1 + NVCC 10.2 | all backends | Piz Daint | GPU compilation in NVCC-CUDA mode, P100 GPU |
 | GNU 8.3.0 + NVCC 10.1 | all backends | Tsa | V100 GPU |
-| HIP-Clang pre-release, based on Clang 10.0.0 | all backends | Ault | Mi50 GPU |
+
+##### Known issues
+
+- CUDA 11.0.x has a severe issue, see https://github.com/GridTools/gridtools/issues/1522. Under certain conditions, GridTools code will not compile for this version of CUDA. CUDA 11.1.x and later should not be affected by this issue.
+- Cray Clang version 11.0.0 has a problem with the `gridtools::tuple` conversion constructor, see https://github.com/GridTools/gridtools/issues/1615.
+
 
 ##### Officially not supported (no workarounds implemented and planned)
 
