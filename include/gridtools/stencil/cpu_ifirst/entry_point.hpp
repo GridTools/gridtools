@@ -39,6 +39,10 @@ namespace gridtools {
                     using stages_t = be_api::make_split_view<Spec>;
                     using all_parrallel_t = typename meta::all_of<be_api::is_parallel,
                         meta::transform<be_api::get_execution, stages_t>>::type;
+                    using enclosing_extent_t = meta::rename<enclosing_extent,
+                        meta::transform<be_api::get_extent, typename stages_t::plh_map_t>>;
+                    using fuse_all_t = bool_constant<all_parrallel_t::value && enclosing_extent_t::kminus::value == 0 &&
+                                                     enclosing_extent_t::kplus::value == 0>;
 
                     tmp_allocator alloc;
 
@@ -52,7 +56,7 @@ namespace gridtools {
                             auto info) {
                             return make_tmp_storage<decltype(info.data()),
                                 decltype(info.extent()),
-                                all_parrallel_t::value,
+                                fuse_all_t::value,
                                 ThreadPool>(alloc, block_size);
                         });
 
@@ -79,11 +83,11 @@ namespace gridtools {
                                 },
                                 stage_t::plh_map()));
                             return make_loop<ThreadPool, stage_t>(
-                                all_parrallel_t(), grid, std::move(composite), std::move(k_sizes));
+                                fuse_all_t(), grid, std::move(composite), std::move(k_sizes));
                         },
                         meta::rename<tuple, stages_t>());
 
-                    run_loops<ThreadPool>(all_parrallel_t(), grid, std::move(loops));
+                    run_loops<ThreadPool>(fuse_all_t(), grid, std::move(loops));
                 }
             };
         } // namespace cpu_ifirst_backend
