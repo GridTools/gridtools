@@ -31,9 +31,6 @@
 namespace gridtools {
     namespace stencil {
         namespace cpu_ifirst_backend {
-            template <class PlhInfo>
-            using get_extent_f = typename PlhInfo::extent_t;
-
             template <class ThreadPool = thread_pool::omp>
             struct cpu_ifirst {
                 template <class Spec, class Grid, class DataStores>
@@ -42,8 +39,8 @@ namespace gridtools {
                     using stages_t = be_api::make_split_view<Spec>;
                     using all_parrallel_t = typename meta::all_of<be_api::is_parallel,
                         meta::transform<be_api::get_execution, stages_t>>::type;
-                    using enclosing_extent_t =
-                        meta::rename<enclosing_extent, meta::transform<get_extent_f, typename stages_t::plh_map_t>>;
+                    using enclosing_extent_t = meta::rename<enclosing_extent,
+                        meta::transform<be_api::get_extent, typename stages_t::plh_map_t>>;
                     using fuse_all_t = bool_constant<all_parrallel_t::value && enclosing_extent_t::kminus::value == 0 &&
                                                      enclosing_extent_t::kplus::value == 0>;
 
