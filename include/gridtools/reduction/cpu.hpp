@@ -78,7 +78,7 @@ namespace gridtools {
         void reduction_fill(cpu, T const &val, T *ptr, size_t data_size, size_t rounded_size, bool has_holes) {
             if (!has_holes) {
                 ptr += data_size;
-                rounded_size += data_size;
+                rounded_size -= data_size;
             }
             std::fill(ptr, ptr + rounded_size, val);
         }
