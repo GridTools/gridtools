@@ -60,9 +60,9 @@ The following rules apply to accesses in stages *within the same multi-stage*:
 
  1. A stage may read from an accessor unconditionally, if the same accessor is never written to.
 
- 2. A stage may write to an accessor only once.
+ 2. Within a computation an accessor must be written only in a single stage. Within this stage, the accessor must not be read with an horizontal offset.
 
- 3. A stage may write to an accessor, if there is no read from the same accessor in a previous statement. (Read after write is unconditionally allowed.)
+ 3. A stage may write to an accessor, if there is no read from the same accessor in a previous statement. (Read without horizontal offsets after write is allowed.)
 
  4. A stage may read from an accessor and write to it in a later statement, if
 
@@ -71,7 +71,7 @@ The following rules apply to accesses in stages *within the same multi-stage*:
 
     (Write after read only, if read is in non-extended stages and no offsets are used.)
 
- 5. Temporaries are not restricted by 4, i.e. a stage may write to an accessor after previous read of the same accessor, unconditionally.
+ 5. Temporaries are not restricted by 4, i.e. a stage may write to an accessor after read in a previous stage of the same accessor, unconditionally.
     Restriction 2 still applies. Note that read before write is only useful, if the temporary was written in a previous multi-stage.
 
 .. note::
