@@ -3,7 +3,6 @@
 source $(dirname "$BASH_SOURCE")/dom.sh
 
 module swap PrgEnv-cray PrgEnv-gnu
-module load cdt-cuda
 
 export CXX=$(which CC)
 export CC=$(which cc)
