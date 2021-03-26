@@ -3,7 +3,7 @@
 source $(dirname "$BASH_SOURCE")/base.sh
 
 module load daint-gpu
-module load cudatoolkit
+module load cudatoolkit/11.2.0_3.36-7.0.2.1_2.2__g3ff9ab1
 module load CMake
 
 export BOOST_ROOT=/project/c14/install/daint/boost/boost_1_67_0/
