@@ -16,9 +16,9 @@ function module() {
 }
 
 module load daint-gpu
-module load cudatoolkit
-module rm CMake
-module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.14.5
+module load cudatoolkit/10.2.89_3.29-7.0.2.1_3.5__g67354b4
+module load CMake
+
 
 export BOOST_ROOT=/project/c14/install/daint/boost/boost_1_67_0/
 export CUDATOOLKIT_HOME=$CUDA_PATH
