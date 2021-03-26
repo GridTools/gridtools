@@ -16,7 +16,7 @@ function module() {
 }
 
 module load daint-gpu
-module load cudatoolkit
+module load cudatoolkit/10.2.89_3.29-7.0.2.1_3.5__g67354b4
 module load CMake
 
 
