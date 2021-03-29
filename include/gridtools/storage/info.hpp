@@ -127,8 +127,11 @@ namespace gridtools {
 #ifndef NDEBUG
                     tuple_util::host_device::for_each(
                         [](int index, int length) {
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 1
+#else
                             assert(index >= 0);
                             assert(index < length);
+#endif
                         },
                         indices,
                         native_lengths());
