@@ -12,23 +12,61 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
-#include "../common/for_each.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
 #include "concept.hpp"
 
 namespace gridtools {
     namespace sid {
+        namespace multi_shift_impl_ {
+            template <class Dims>
+            struct for_each_dim;
+
+            template <template <class...> class L, class... Dims>
+            struct for_each_dim<L<Dims...>> {
+                template <class Ptr, class Strides, class Offsets>
+                GT_FUNCTION for_each_dim(Ptr &ptr, Strides const &strides, Offsets offsets) {
+                    using array_t = int[sizeof...(Dims)];
+                    (void)array_t{
+                        (shift(ptr, get_stride<Dims>(strides), gridtools::host_device::at_key<Dims>(offsets)), 0)...};
+                }
+            };
+
+            template <template <class...> class L>
+            struct for_each_dim<L<>> {
+                template <class Ptr, class Strides, class Offsets>
+                GT_FUNCTION for_each_dim(Ptr &ptr, Strides const &strides, Offsets offsets) {}
+            };
+
+            template <class Arg, class Dims>
+            struct for_each_dim_a;
+
+            template <class Arg, template <class...> class L, class... Dims>
+            struct for_each_dim_a<Arg, L<Dims...>> {
+                template <class Ptr, class Strides, class Offsets>
+                GT_FUNCTION for_each_dim_a(Ptr &ptr, Strides const &strides, Offsets offsets) {
+                    using array_t = int[sizeof...(Dims)];
+                    (void)array_t{(
+                        shift(
+                            ptr, get_stride_element<Arg, Dims>(strides), gridtools::host_device::at_key<Dims>(offsets)),
+                        0)...};
+                }
+            };
+
+            template <class Arg, template <class...> class L>
+            struct for_each_dim_a<Arg, L<>> {
+                template <class Ptr, class Strides, class Offsets>
+                GT_FUNCTION for_each_dim_a(Ptr &ptr, Strides const &strides, Offsets offsets) {}
+            };
+        } // namespace multi_shift_impl_
+
         /**
          *   A helper the invokes `sid::shift` in several dimensions.
          *   `offsets` should be a hymap of individual offsets.
          */
         template <class Ptr, class Strides, class Offsets>
         GT_FUNCTION void multi_shift(Ptr &ptr, Strides const &strides, Offsets offsets) {
-            gridtools::host_device::for_each<meta::transform<meta::lazy::id, get_keys<Offsets>>>([&](auto key) {
-                using key_t = typename decltype(key)::type;
-                shift(ptr, get_stride<key_t>(strides), gridtools::host_device::at_key<key_t>(offsets));
-            });
+            multi_shift_impl_::for_each_dim<get_keys<Offsets>>(ptr, strides, wstd::move(offsets));
         }
 
         template <class Ptr, class Strides, class Offsets>
@@ -42,10 +80,7 @@ namespace gridtools {
          */
         template <class Arg, class Ptr, class Strides, class Offsets>
         GT_FUNCTION void multi_shift(Ptr &ptr, Strides const &strides, Offsets offsets) {
-            gridtools::host_device::for_each<meta::transform<meta::lazy::id, get_keys<Offsets>>>([&](auto key) {
-                using key_t = typename decltype(key)::type;
-                shift(ptr, get_stride_element<Arg, key_t>(strides), gridtools::host_device::at_key<key_t>(offsets));
-            });
+            multi_shift_impl_::for_each_dim_a<Arg, get_keys<Offsets>>(ptr, strides, wstd::move(offsets));
         }
 
         template <class Arg, class Ptr, class Strides, class Offsets>
