@@ -13,6 +13,7 @@
 #include <array>
 #include <cassert>
 #include <cstdlib>
+#include <cstring>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -85,10 +86,23 @@ namespace gridtools {
             if (info.itemsize != sizeof(T))
                 throw std::domain_error("buffer has incorrect itemsize: " + std::to_string(info.itemsize) +
                                         "; expected " + std::to_string(sizeof(T)));
+
             using format_desc_t = pybind11::format_descriptor<std::remove_const_t<T>>;
-            if (info.format != format_desc_t::format())
+            auto expected_format = format_desc_t::format();
+            assert(info.format.size() == 1 && expected_format.size() == 1);
+            const char *int_formats = "bBhHiIlLqQnN";
+            const char *int_char = std::strchr(int_formats, info.format[0]);
+            const char *expected_int_char = std::strchr(int_formats, expected_format[0]);
+            if (int_char && expected_int_char) {
+                // just check upper/lower case for integer formats which indicates signedness (itemsize already checked)
+                // direct format comparison in not enough, for details see
+                // https://github.com/pybind/pybind11/issues/1806 and https://github.com/pybind/pybind11/issues/1908
+                if (std::islower(*int_char) != std::islower(*expected_int_char))
+                    throw std::domain_error("incompatible integer formats: " + info.format + " and " + expected_format);
+            } else if (info.format != expected_format) {
                 throw std::domain_error(
-                    "buffer has incorrect format: " + info.format + "; expected " + format_desc_t::format());
+                    "buffer has incorrect format: " + info.format + "; expected " + expected_format);
+            }
             return {std::move(info)};
         }
 
