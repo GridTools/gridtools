@@ -28,8 +28,9 @@ namespace gridtools {
                 template <class Grid, class DataStores>
                 auto shift_origin(Grid const &grid, DataStores data_stores) {
                     return tuple_util::transform(
-                        [offsets = grid.origin()](
-                            auto &&src) { return sid::shift_sid_origin(std::forward<decltype(src)>(src), offsets); },
+                        [offsets = grid.origin()](auto &&src) GT_FORCE_INLINE_LAMBDA {
+                            return sid::shift_sid_origin(std::forward<decltype(src)>(src), offsets);
+                        },
                         std::move(data_stores));
                 }
 
@@ -39,8 +40,8 @@ namespace gridtools {
                     void operator()(Backend &&be, Grid const &grid, DataStores data_stores) const {
                         using be_spec_t = convert_fe_to_be_spec<Spec, typename Grid::interval_t, DataStores>;
 #ifndef NDEBUG
-                        for_each<be_api::make_fused_view<be_spec_t>>([&](auto matrix) {
-                            for_each<decltype(matrix)>([&](auto info) {
+                        for_each<be_api::make_fused_view<be_spec_t>>([&](auto matrix) GT_FORCE_INLINE_LAMBDA {
+                            for_each<decltype(matrix)>([&](auto info) GT_FORCE_INLINE_LAMBDA {
                                 assert(((void)"domain k-size is too small", grid.k_size(info.interval()) >= 0));
                             });
                         });
