@@ -90,16 +90,27 @@ void check_cuda_sid(T &&testee,
 // The differences between exported functions are in the way how parameters model the SID concept.
 // Note that the generic algorithm stays the same.
 PYBIND11_MODULE(py_implementation, m) {
-    m.def("copy_from_3D",
+    m.def(
+        "copy_from_3D",
         [](py::buffer from, py::buffer to) { copy(as_sid<double const, 3>(from), as_sid<double, 3>(to)); },
         "Copy from one 3D buffer of doubles to another.");
-    m.def("copy_from_1D",
+    m.def(
+        "copy_from_3D_with_unit_stride",
+        [](py::buffer from, py::buffer to) {
+            copy(as_sid<double const, 3, void, 2>(from), as_sid<double, 3, void, 2>(to));
+        },
+        "Copy from one 3D buffer of doubles to another, requires `from.strides[2] == to.strides[2] == "
+        "sizeof(double)`.");
+    m.def(
+        "copy_from_1D",
         [](py::buffer from, py::buffer to) { copy(as_sid<double const, 1>(from), as_sid<double, 3>(to)); },
         "Copy from the 1D double buffer to a 3D one.");
-    m.def("copy_from_scalar",
+    m.def(
+        "copy_from_scalar",
         [](double from, py::buffer to) { copy(make_global_parameter(from), as_sid<double, 3>(to)); },
         "Copy from the scalar to a 3D buffer of doubles.");
-    m.def("check_cuda_sid",
+    m.def(
+        "check_cuda_sid",
         [](py::object testeee, size_t ptr, std::vector<size_t> const &strides, std::vector<size_t> const &dims) {
             check_cuda_sid(as_cuda_sid<double const, 3>(testeee), ptr, strides, dims);
         },
