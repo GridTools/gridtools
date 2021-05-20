@@ -27,6 +27,8 @@
 
 #include "../../common/array.hpp"
 #include "../../common/integral_constant.hpp"
+#include "../../common/tuple.hpp"
+#include "../../common/tuple_util.hpp"
 #include "../../meta/if.hpp"
 #include "../../sid/simple_ptr_holder.hpp"
 #include "../../sid/synthetic.hpp"
@@ -37,22 +39,39 @@ namespace gridtools {
         template <size_t, class>
         struct kind {};
 
-        template <class T, size_t Dim, class Kind>
+        template <int UnitStrideDim>
+        struct transform_strides_f {
+            template <size_t I, class T, std::enable_if_t<I == UnitStrideDim, int> = 0>
+            integral_constant<pybind11::ssize_t, 1> operator()(T val) const {
+                if (val != 1)
+                    throw std::domain_error("incompatible strides, expected unit stride");
+                return {};
+            }
+
+            template <size_t I, class T, std::enable_if_t<I != UnitStrideDim, int> = 0>
+            T operator()(T val) const {
+                return val;
+            }
+        };
+
+        template <class T, size_t Dim, class Kind, int UnitStrideDim>
         struct wrapper {
             pybind11::buffer_info m_info;
 
             friend sid::simple_ptr_holder<T *> sid_get_origin(wrapper const &obj) {
                 return {reinterpret_cast<T *>(obj.m_info.ptr)};
             }
-            friend std::array<pybind11::ssize_t, Dim> sid_get_strides(wrapper const &obj) {
+            friend auto sid_get_strides(wrapper const &obj) {
                 std::array<pybind11::ssize_t, Dim> res;
                 assert(obj.m_info.strides.size() == Dim);
                 for (std::size_t i = 0; i != Dim; ++i) {
                     assert(obj.m_info.strides[i] % obj.m_info.itemsize == 0);
                     res[i] = obj.m_info.strides[i] / obj.m_info.itemsize;
                 }
-                return res;
+                return tuple_util::transform_index(
+                    transform_strides_f<UnitStrideDim>{}, tuple_util::convert_to<tuple>(res));
             }
+
             friend std::array<integral_constant<pybind11::ssize_t, 0>, Dim> sid_get_lower_bounds(wrapper const &) {
                 return {};
             }
@@ -71,8 +90,8 @@ namespace gridtools {
             }
         };
 
-        template <class T, std::size_t Dim, class Kind = void>
-        wrapper<T, Dim, Kind> as_sid(pybind11::buffer const &src) {
+        template <class T, std::size_t Dim, class Kind = void, int UnitStrideDim = -1>
+        wrapper<T, Dim, Kind, UnitStrideDim> as_sid(pybind11::buffer const &src) {
             static_assert(
                 std::is_trivially_copyable<T>::value, "as_sid should be instantiated with the trivially copyable type");
             constexpr bool writable = !std::is_const<T>();
@@ -224,7 +243,7 @@ namespace gridtools {
             return res;
         }
 
-        template <class T, size_t Dim, class Kind = void>
+        template <class T, size_t Dim, class Kind = void, int UnitStrideDim = -1>
         auto as_cuda_sid(pybind11::object const &src) {
             static_assert(std::is_trivially_copyable<T>::value,
                 "as_cuda_sid should be instantiated with the trivially copyable type");
@@ -301,7 +320,8 @@ namespace gridtools {
             using sid::property;
             return sid::synthetic()
                 .template set<property::origin>(sid::host_device::simple_ptr_holder<T *>{ptr})
-                .template set<property::strides>(strides)
+                .template set<property::strides>(tuple_util::transform_index(
+                    transform_strides_f<UnitStrideDim>{}, tuple_util::convert_to<tuple>(strides)))
                 .template set<property::strides_kind, kind<Dim, Kind>>()
                 .template set<property::lower_bounds>(array<integral_constant<size_t, 0>, Dim>())
                 .template set<property::upper_bounds>(shape);
