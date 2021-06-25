@@ -364,7 +364,7 @@ namespace gridtools {
 
                     friend ptr_holder_t sid_get_origin(values &obj) {
                         return tuple_util::transform(
-                            [](auto obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids);
+                            [](auto &obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids);
                     }
 
                     template <class U = strides_t, std::enable_if_t<!meta::is_empty<U>::value, int> = 0>
