@@ -121,7 +121,7 @@ namespace gridtools {
             };
 
             template <class...>
-            struct kind;
+            struct kind {};
 
             template <class Sid, class BlockMap, class Kind = strides_kind<Sid>>
             meta::if_<std::is_same<Kind, unknown_kind>, unknown_kind, kind<Kind, BlockMap>> sid_get_strides_kind(
