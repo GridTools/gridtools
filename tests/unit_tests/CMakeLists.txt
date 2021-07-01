@@ -44,3 +44,6 @@ add_subdirectory(boundaries)
 add_subdirectory(stencil)
 add_subdirectory(storage)
 add_subdirectory(layout_transformation)
+
+gridtools_add_unit_test(new_model SOURCES new_model.cpp)
+
