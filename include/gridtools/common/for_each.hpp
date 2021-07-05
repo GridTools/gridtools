@@ -13,6 +13,7 @@
 #define GT_COMMON_GENERIC_METAFUNCTIONS_FOR_EACH_HPP_
 
 #include "host_device.hpp"
+#include <utility>
 
 #define GT_FILENAME <gridtools/common/for_each.hpp>
 #include GT_ITERATE_ON_TARGETS()
@@ -53,8 +54,11 @@ namespace gridtools {
 #endif
         } // namespace for_each_impl_
 
-        template <class L>
-        constexpr for_each_impl_::for_each_f<L> for_each = {};
+        template <typename L, typename Args>
+        GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void for_each(Args&& args) {
+            for_each_impl_::for_each_f<L>()(std::forward<Args&&>(args));
+
+        }
     }
 } // namespace gridtools
 
