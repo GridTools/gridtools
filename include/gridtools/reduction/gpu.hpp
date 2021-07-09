@@ -350,7 +350,7 @@ namespace gridtools {
                 assert(warp_size == 32 || warp_size == 64);
                 ct_dispatch<2>(
                     [=](auto w) {
-                        constexpr size_t warp_size = w ? 64 : 32;
+                        constexpr size_t warp_size = decltype(w)::value ? 64 : 32;
                         ct_dispatch<int_log2(max_threads) + 1>(
                             [=](auto n) {
                                 constexpr size_t block_size = 1 << decltype(n)::value;
