@@ -308,8 +308,6 @@ struct unstructured {
     int vertical[2];
 };
 
-inline constexpr auto foo = [](auto &&...) { return 42; };
-
 template <class Stencil, class Outputs, class Inputs>
 void apply_stencil(unstructured domain, Stencil const &stencil, Outputs const &outputs, Inputs const &inputs) {
     using h_t = decltype(horizontal);
