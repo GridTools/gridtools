@@ -98,11 +98,6 @@ decltype(nt_indices(std::declval<Arg const &>())) nt_indices(lifted_iter<Stencil
     return nt_indices(std::get<0>(it.args));
 }
 
-template <class Stencil, class... Args>
-auto nt_shift(int i, lifted_iter<Stencil, std::tuple<Args...>> const &it) {
-    return std::apply(it.stencil, tuple_util::transform([i](auto const &it) { return nt_shift(i, it); }, it.args));
-}
-
 constexpr auto ilift = [](auto stencil) {
     return [=](auto... its) {
         using res_t = decltype(stencil(its...));
@@ -278,16 +273,6 @@ struct neighbor_iter {
 template <size_t N, class StridedIter>
 neighbor_iter<StridedIter> shift_impl(auto val, neighbors_iter<N, StridedIter> it) {
     return {it.indices[val], it.impl};
-}
-
-template <size_t N, class StridedIter>
-auto nt_shift(int i, neighbors_iter<N, StridedIter> const &it) {
-    return shift(horizontal, i)(it.impl);
-}
-
-template <size_t N, class StridedIter>
-decltype(auto) nt_at(int i, neighbors_iter<N, StridedIter> const &it) {
-    return deref(shift(horizontal, i)(it.impl));
 }
 
 template <class T, size_t N>
