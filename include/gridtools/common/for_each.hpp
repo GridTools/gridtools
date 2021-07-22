@@ -54,6 +54,9 @@ namespace gridtools {
         } // namespace for_each_impl_
 
         template <class L>
+#if defined(GT_TARGET_HAS_DEVICE) and defined(__NVCC__)
+        GT_DEVICE
+#endif
         constexpr for_each_impl_::for_each_f<L> for_each = {};
     }
 } // namespace gridtools
