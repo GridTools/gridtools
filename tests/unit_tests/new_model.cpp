@@ -1,5 +1,5 @@
+#include <array>
 #include <functional>
-#include <optional>
 #include <tuple>
 
 #include <gtest/gtest.h>
@@ -13,6 +13,7 @@
 #include <gridtools/sid/concept.hpp>
 #include <gridtools/sid/loop.hpp>
 #include <gridtools/stencil/common/dim.hpp>
+#include <gridtools/stencil/positional.hpp>
 
 using namespace gridtools;
 using namespace literals;
@@ -21,6 +22,28 @@ inline constexpr std::plus plus{};
 inline constexpr std::minus minus{};
 inline constexpr std::multiplies multiplies{};
 inline constexpr std::divides divides{};
+
+template <class Arity, class Fun>
+constexpr auto lambda(Arity, Fun fun) {
+    return fun;
+}
+
+template <class T>
+T const &deref(T *p) {
+    return *p;
+}
+
+namespace std {
+    template <class T, size_t N>
+    T const *shift_impl(int i, array<T, N> const &arr) {
+        return arr.data() + i;
+    }
+
+    template <class T, size_t N>
+    bool has_value(int i, array<T, N> const &) {
+        return true;
+    }
+} // namespace std
 
 inline constexpr auto shift() {
     return [](auto it) { return it; };
@@ -45,6 +68,8 @@ struct strided_iter {
     }
 
     friend auto deref(strided_iter const &it) { return *it.ptr; }
+
+    friend bool has_value(strided_iter const &) { return true; }
 };
 
 template <class Stencil, class Args>
@@ -58,8 +83,25 @@ struct lifted_iter {
         return lifted_iter(it.stencil, tuple_util::transform(shift(d, val), it.args));
     }
 
+    friend auto shift_impl(auto d, lifted_iter it) {
+        auto shifted_args = tuple_util::transform(shift(d), it.args);
+        return lifted_iter<Stencil, decltype(shifted_args)>(it.stencil, shifted_args);
+    }
+
     friend auto deref(lifted_iter const &it) { return std::apply(it.stencil, it.args); }
+
+    friend bool has_value(lifted_iter const &) { return true; }
 };
+
+template <class Stencil, class Arg, class... Args>
+decltype(nt_indices(std::declval<Arg const &>())) nt_indices(lifted_iter<Stencil, std::tuple<Arg, Args...>> const &it) {
+    return nt_indices(std::get<0>(it.args));
+}
+
+template <class Stencil, class... Args>
+auto nt_shift(int i, lifted_iter<Stencil, std::tuple<Args...>> const &it) {
+    return std::apply(it.stencil, tuple_util::transform([i](auto const &it) { return nt_shift(i, it); }, it.args));
+}
 
 constexpr auto ilift = [](auto stencil) {
     return [=](auto... its) {
@@ -116,7 +158,7 @@ void apply_stencil(cartesian domain, Stencil const &stencil, Outputs const &outp
     sid::shift(ptr, sid::get_stride<dim::j>(strides), domain.j[0]);
     sid::shift(ptr, sid::get_stride<dim::k>(strides), domain.k[0]);
 
-    compose(sid::make_loop<dim::k>(domain.i[1] - domain.i[0]),
+    compose(sid::make_loop<dim::i>(domain.i[1] - domain.i[0]),
         sid::make_loop<dim::j>(domain.j[1] - domain.j[0]),
         sid::make_loop<dim::k>(domain.k[1] - domain.k[0]))([&](auto &ptr, auto const &strides) {
         auto srcs = to_tuple(std::apply(stencil,
@@ -157,17 +199,17 @@ inline constexpr auto lift = ilift;
 /// lap stencils
 
 inline constexpr auto ldif = [](auto d) {
-    return [s = shift(d, -1_c)](auto in) { return minus(deref(s(in)), deref(in)); };
+    return lambda(1_c, [s = shift(d, -1_c)](auto in) { return minus(deref(s(in)), deref(in)); });
 };
 
-inline constexpr auto rdif = [](auto d) { return compose(ldif(d), shift(d, 1_c)); };
+inline constexpr auto rdif = [](auto d) { return lambda(1_c, [=](auto in) { return ldif(d)(shift(d, 1_c)(in)); }); };
 
-inline constexpr auto dif2 = [](auto d) { return compose(ldif(d), lift(rdif(d))); };
+inline constexpr auto dif2 = [](auto d) { return lambda(1_c, [=](auto in) { return ldif(d)(lift(rdif(d))(in)); }); };
 
-inline constexpr auto lap = [](auto in) { return plus(dif2(i)(in), dif2(j)(in)); };
+inline constexpr auto lap = lambda(1_c, [](auto in) { return plus(dif2(i)(in), dif2(j)(in)); });
 
 template <Sid In, Sid Out>
-void testee(cartesian domain, Out &output, In &input) {
+void lap_fencil(cartesian domain, Out &output, In &input) {
     fencil(closure(domain, lap, out(output), input));
 }
 
@@ -187,7 +229,7 @@ TEST(carthesian, lap) {
         return 4 * in[i][j][k] - in[i + 1][j][k] - in[i - 1][j][k] - in[i][j + 1][k] - in[i][j - 1][k];
     };
 
-    testee(domain, actual, in);
+    lap_fencil(domain, actual, in);
 
     for (int i = domain.i[0]; i < domain.i[1]; ++i)
         for (int j = domain.j[0]; j < domain.j[1]; ++j)
@@ -198,17 +240,17 @@ TEST(carthesian, lap) {
 template <auto>
 struct connectivity {};
 
-inline constexpr struct horizontal_t {
-} horizontal;
+inline constexpr integral_constant<int, 0> horizontal;
+inline constexpr integral_constant<int, 1> vertical;
 
-template <class Indices, class StridedIter>
+template <size_t N, class StridedIter>
 struct neighbors_iter {
-    Indices indices;
+    const int (&indices)[N];
     StridedIter impl;
 
-    friend std::optional<decltype(deref(std::declval<StridedIter const &>()))> deref(neighbors_iter const &it) {
-        return {};
-    }
+    friend bool has_value(neighbors_iter const &it) { return false; }
+
+    friend const int (&nt_indices(neighbors_iter const &it))[N] { return it.indices; }
 };
 
 template <class StridedIter>
@@ -217,8 +259,8 @@ struct neighbor_iter {
     StridedIter impl;
 
     template <auto Table>
-    friend auto shift_impl(connectivity<Table>, neighbor_iter const &it) {
-        return neighbors_iter(Table[it.index], it.impl);
+    friend neighbors_iter<std::size(Table[0]), StridedIter> shift_impl(connectivity<Table>, neighbor_iter const &it) {
+        return {Table[it.index], it.impl};
     }
 
     friend neighbor_iter shift_impl(auto d, auto val, neighbor_iter it) {
@@ -226,27 +268,98 @@ struct neighbor_iter {
         return it;
     }
 
-    friend std::optional<decltype(deref(std::declval<StridedIter const &>()))> deref(neighbor_iter const &it) {
-        if (it.index == -1)
-            return {};
+    friend decltype(deref(std::declval<StridedIter const &>())) deref(neighbor_iter const &it) {
         return deref(shift(horizontal, it.index)(it.impl));
     }
+
+    friend bool has_value(neighbor_iter const &it) { return it.index != -1 && has_value(it.impl); }
 };
 
-template <class Indices, class StridedIter>
-neighbor_iter<StridedIter> shift_impl(auto val, neighbors_iter<Indices, StridedIter> it) {
+template <size_t N, class StridedIter>
+neighbor_iter<StridedIter> shift_impl(auto val, neighbors_iter<N, StridedIter> it) {
     return {it.indices[val], it.impl};
+}
+
+template <size_t N, class StridedIter>
+auto nt_shift(int i, neighbors_iter<N, StridedIter> const &it) {
+    return shift(horizontal, i)(it.impl);
+}
+
+template <size_t N, class StridedIter>
+decltype(auto) nt_at(int i, neighbors_iter<N, StridedIter> const &it) {
+    return deref(shift(horizontal, i)(it.impl));
+}
+
+template <class T, size_t N>
+auto nt_indices(std::array<T, N> const &) {
+    std::array<int, N> res;
+    for (int i = 0; i != N; ++i)
+        res[i] = i;
+    return res;
 }
 
 constexpr auto reduce(auto fun, auto init) {
     return [=](auto const &arg, auto const &... args) {
         auto res = init;
-        for (int i : arg.indices)
+        for (int i : nt_indices(arg))
             if (i != -1)
-                res = std::apply(fun,
-                    std::tuple(res, deref(shift(horizontal, i)(arg.impl)), deref(shift(horizontal, i)(args.impl))...));
+                res = std::apply(fun, std::tuple(res, deref(shift(i)(arg)), deref(shift(i)(args))...));
         return res;
     };
+}
+
+struct location {};
+
+inline constexpr struct cell_t : location {
+} cell;
+inline constexpr struct edge_t : location {
+} edge;
+inline constexpr struct vertex_t : location {
+} vertex;
+
+struct unstructured {
+    struct location location;
+    int horizontal[2];
+    int vertical[2];
+};
+
+inline constexpr auto foo = [](auto &&...) { return 42; };
+
+template <class Stencil, class Outputs, class Inputs>
+void apply_stencil(unstructured domain, Stencil const &stencil, Outputs const &outputs, Inputs const &inputs) {
+    using h_t = decltype(horizontal);
+    using v_t = decltype(vertical);
+    using pos_t = gridtools::stencil::positional<h_t>;
+    using out_tags_t = meta::transform<out_tag, meta::make_indices<tuple_util::size<Outputs>>>;
+    using in_tags_t = meta::transform<in_tag, meta::make_indices<tuple_util::size<Inputs>>>;
+    using keys_t = meta::rename<sid::composite::keys, meta::push_back<meta::concat<out_tags_t, in_tags_t>, pos_t>>;
+    auto composite = tuple_util::convert_to<keys_t::template values>(
+        tuple_util::push_back(tuple_util::concat(outputs, inputs), pos_t()));
+
+    auto strides = sid::get_strides(composite);
+    auto ptr = sid::get_origin(composite)();
+
+    sid::shift(ptr, sid::get_stride<decltype(horizontal)>(strides), domain.horizontal[0]);
+    sid::shift(ptr, sid::get_stride<decltype(vertical)>(strides), domain.vertical[0]);
+
+    compose(sid::make_loop<h_t>(domain.horizontal[1] - domain.horizontal[0]),
+        sid::make_loop<v_t>(domain.vertical[1] - domain.vertical[0]))([&](auto &ptr, auto const &strides) {
+        int index = *at_key<pos_t>(ptr);
+        auto srcs = to_tuple(std::apply(stencil,
+            tuple_util::transform(
+                [&](auto tag) {
+                    using tag_t = decltype(tag);
+                    auto p = at_key<decltype(tag)>(ptr);
+                    auto it = strided_iter<tag_t, std::decay_t<decltype(p)>, std::decay_t<decltype(strides)>>{
+                        at_key<decltype(tag)>(ptr), strides};
+                    return neighbor_iter<decltype(it)>{index, it};
+                },
+                meta::rename<std::tuple, in_tags_t>())));
+        for_each<out_tags_t>([&](auto tag) {
+            using tag_t = decltype(tag);
+            *at_key<tag_t>(ptr) = std::get<tag_t::value>(srcs);
+        });
+    })(ptr, strides);
 }
 
 /*
@@ -278,11 +391,35 @@ inline constexpr auto sum = reduce(plus, 0);
 inline constexpr auto dot = reduce([](auto acc, auto x, auto y) { return acc + x * y; }, 0);
 
 inline constexpr auto zavg = [](auto pp, auto sx, auto sy) {
-    auto tmp = mult(.5, reduce(plus, 0)(shift(e2v)(pp)));
-    return std::tuple(mult(tmp, *deref(sx)), mult(tmp, *deref(sy)));
+    return [&](auto tmp) { return std::tuple(multiplies(tmp, deref(sx)), multiplies(tmp, deref(sy))); }(
+               multiplies(.5, sum(shift(e2v)(pp))));
 };
 
 inline constexpr auto nabla = [](auto pp, auto sx, auto sy, auto sign, auto vol) {
-    auto [x, y] = lift(zavg)(pp, sx, sy);
-    return std::tuple(divides(dot(shift(v2e)(x), sign)), divides(dot(shift(v2e)(x), sign)));
+    return [&](auto z, auto s, auto v) {
+        return std::tuple(
+            divides(dot(shift(v2e)(std::get<0>(z)), s), v), divides(dot(shift(v2e)(std::get<0>(z)), s), v));
+    }(lift(zavg)(pp, sx, sy), deref(sign), deref(vol));
 };
+
+void nabla_fencil(unstructured domain, auto &out_x, auto &out_y, auto &pp, auto &sx, auto &sy, auto &sign, auto &vol) {
+    fencil(closure(domain, nabla, out(out_x, out_y), pp, sx, sy, sign, vol));
+}
+
+TEST(unstructured, nabla) {
+    double pp[7][3] = {};
+    double sx[12][3] = {};
+    double sy[12][3] = {};
+    std::array<int, 12> sign[7][3] = {};
+    double vol[7][3] = {};
+
+    //    double expected_x[7][3] = {};
+    //    double expected_y[7][3] = {};
+
+    double actual_x[7][3] = {};
+    double actual_y[7][3] = {};
+
+    unstructured domain = {.location = vertex, .horizontal = {0, 7}, .vertical = {0, 3}};
+
+    nabla_fencil(domain, actual_x, actual_y, pp, sx, sy, sign, vol);
+}
