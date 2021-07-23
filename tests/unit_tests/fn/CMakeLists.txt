@@ -1,0 +1,4 @@
+gridtools_add_unit_test(test_fn_deref SOURCES test_fn_deref.cpp)
+gridtools_add_unit_test(test_fn_offsets SOURCES test_fn_offsets.cpp)
+gridtools_add_unit_test(test_fn_shift SOURCES test_fn_shift.cpp)
+gridtools_add_unit_test(test_fn_lift SOURCES test_fn_lift.cpp)
