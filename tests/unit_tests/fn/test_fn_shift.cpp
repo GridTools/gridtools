@@ -30,8 +30,8 @@ namespace gridtools::fn {
         static_assert(std::is_same_v<decltype(sh(dummy<42_c>{})), dummy<42_c, 1_c, 2_c, 3_c>>);
 
         TEST(shift, default) {
-            int arr[] = {41, 42, 43};
-            EXPECT_EQ(shift(1)(arr), arr + 1);
+            auto arr = std::array{41, 42, 43};
+            EXPECT_EQ(shift(1_c)(arr), &arr[1]);
         }
 
     } // namespace

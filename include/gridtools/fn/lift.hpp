@@ -12,10 +12,9 @@
 #include <tuple>
 #include <utility>
 
+#include "../meta.hpp"
 #include "offsets.hpp"
 #include "shift.hpp"
-
-#include "../meta.hpp"
 
 namespace gridtools::fn {
     namespace lift_impl_ {
@@ -29,8 +28,9 @@ namespace gridtools::fn {
         };
 
         template <class Stencil, class Args, class... Offsets>
-        constexpr auto fn_shift(lifted_iter<Stencil, Args> const &it, Offsets... offsets) {
-            return lifted_iter(it.stencil, tuple_util::transform(fn::shift(offsets...), it.args));
+        constexpr auto fn_shift(lifted_iter<Stencil, Args> const &it, Offsets &&... offsets) {
+            return lifted_iter(
+                it.stencil, tuple_util::transform(fn::shift(std::forward<Offsets>(offsets)...), it.args));
         }
 
         template <class Stencil, class Args>
@@ -39,7 +39,7 @@ namespace gridtools::fn {
         }
 
         template <class Stencil, class Arg, class... Args>
-        constexpr auto fn_offsets(lifted_iter<Stencil, std::tuple<Arg, Args...>> const &it) {
+        constexpr decltype(auto) fn_offsets(lifted_iter<Stencil, std::tuple<Arg, Args...>> const &it) {
             return fn::offsets(std::get<0>(it.args));
         }
 

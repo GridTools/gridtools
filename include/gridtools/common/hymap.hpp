@@ -159,8 +159,12 @@ namespace gridtools {
         template <class T>
         using get_from_keys_values =
             decltype(::gridtools::hymap_impl_::get_from_keys_values_fun(std::declval<T const &>()));
+
+        template <class Key, class Map>
+        using element_at = tuple_util::element<meta::st_position<get_keys<Map>, Key>::value, Map>;
     } // namespace hymap_impl_
 
+    using hymap_impl_::element_at;
     using hymap_impl_::get_from_keys_values;
     using hymap_impl_::get_keys;
 
