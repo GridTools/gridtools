@@ -38,14 +38,14 @@ namespace gridtools::fn {
         constexpr neighbor_iter(int offset, Impl impl) : offset(offset), impl(std::move(impl)) {}
         constexpr neighbor_iter(Horizontal, int offset, Impl impl) : offset(offset), impl(std::move(impl)) {}
 
-        template <class Dim, class Offset>
-        friend constexpr neighbor_iter fn_shift(neighbor_iter const &it, Dim const &d, Offset val) {
-            return {it.offset, shift(d, val)(it.impl)};
+        template <template <auto...> class H, auto Dim, auto Val>
+        friend constexpr neighbor_iter fn_shift(neighbor_iter const &it, H<Dim, Val>) {
+            return {it.offset, shift<Dim, Val>(it.impl)};
         }
 
-        template <Connectivity Conn, class Offset>
-        friend constexpr neighbor_iter fn_shift(neighbor_iter const &it, Conn const &conn, Offset) {
-            return {tuple_util::get<Offset::value>(get_neighbour_offsets(conn, it.offset)), it.impl};
+        template <template <auto...> class H, Connectivity ConnT, ConnT Conn, auto Offset>
+        friend constexpr neighbor_iter fn_shift(neighbor_iter const &it, H<Conn, Offset>) {
+            return {tuple_util::get<Offset>(get_neighbour_offsets(Conn, it.offset)), it.impl};
         }
 
         friend constexpr bool fn_can_deref(neighbor_iter const &it) { return it.offset != -1 && can_deref(it.impl); }
@@ -53,21 +53,16 @@ namespace gridtools::fn {
 
     template <class Horizontal, class Impl>
     constexpr decltype(auto) fn_deref(neighbor_iter<Horizontal, Impl> const &it) {
-        return deref(shift(Horizontal(), it.offset)(it.impl));
+        return it.impl.sid_access(Horizontal(), it.offset);
     }
 
-    template <class Horizontal, class Offsets, class Impl, size_t I>
-    constexpr auto fn_shift(neighbors_iter<Horizontal, Offsets, Impl> const &it, fast_offset<I> value) {
-        return neighbor_iter(Horizontal(), value.offset, it.impl);
-    }
-
-    template <class Horizontal, class Offsets, class Impl, class T, T I>
-    constexpr auto fn_shift(neighbors_iter<Horizontal, Offsets, Impl> const &it, std::integral_constant<T, I>) {
+    template <class Horizontal, class Offsets, class Impl, template <auto...> class H, auto I>
+    constexpr auto fn_shift(neighbors_iter<Horizontal, Offsets, Impl> const &it, H<I>) {
         return neighbor_iter(Horizontal(), tuple_util::get<I>(offsets(it)), it.impl);
     }
 
-    template <class Horizontal, class Impl, Connectivity Conn>
-    constexpr auto fn_shift(neighbor_iter<Horizontal, Impl> const &it, Conn const &conn) {
-        return neighbors_iter(Horizontal(), get_neighbour_offsets(conn, it.offset), it.impl);
+    template <class Horizontal, class Impl, template <auto...> class H, Connectivity ConnT, ConnT Conn>
+    constexpr auto fn_shift(neighbor_iter<Horizontal, Impl> const &it, H<Conn>) {
+        return neighbors_iter(Horizontal(), get_neighbour_offsets(Conn, it.offset), it.impl);
     }
 } // namespace gridtools::fn

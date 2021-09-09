@@ -11,22 +11,41 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/compose.hpp>
 #include <gridtools/fn.hpp>
 
 using namespace gridtools;
-using namespace fn;
 using namespace literals;
+using namespace fn;
 
-inline constexpr auto ldif = [](auto d) { return [s = shift(d, -1_c)](auto in) { return deref(in) - deref(s(in)); }; };
+template <auto D>
+struct dim {
+    static constexpr auto ldif = lambda<[](auto const &in) { return minus(deref(in), deref(shift<D, -1>(in))); }>;
+    static constexpr auto rdif = lambda<[](auto const &in) { return ldif(shift<D, 1>(in)); }>;
 
-inline constexpr auto rdif = [](auto d) { return [=](auto in) { return ldif(d)(shift(d, 1_c)(in)); }; };
+    template <bool UseTmp>
+    static constexpr auto dif2 = lambda<[](auto const &in) { return ldif(lift<rdif, UseTmp>(in)); }>;
+};
 
-inline constexpr auto dif2 = [](auto d) { return [=](auto in) { return ldif(d)(lift(rdif(d))(in)); }; };
+template <class Param>
+inline constexpr auto lap =
+    lambda<[](auto const &in) { return plus(dim<i>::dif2<Param::i>(in), dim<j>::dif2<Param::j>(in)); }>;
 
-inline constexpr auto lap = [](auto const &in) { return dif2(i)(in) + dif2(j)(in); };
+template <class>
+using lift_test = testing::Test;
 
-TEST(fn, lap) {
-    double actual[10][10][3];
+template <bool I, bool J>
+struct param {
+    static constexpr bool i = I;
+    static constexpr bool j = J;
+};
+
+using params_t = testing::Types<param<false, false>, param<true, false>, param<false, true>, param<true, true>>;
+
+TYPED_TEST_SUITE(lift_test, params_t);
+
+TYPED_TEST(lift_test, lap) {
+    double actual[10][10][3] = {};
     double in[10][10][3];
     for (int i = 0; i < 10; ++i)
         for (int j = 0; j < 10; ++j)
@@ -37,7 +56,10 @@ TEST(fn, lap) {
         return in[i + 1][j][k] + in[i - 1][j][k] + in[i][j + 1][k] + in[i][j - 1][k] - 4 * in[i][j][k];
     };
 
-    fencil(naive(), closure(cartesian(std::tuple(8_c, 8_c, 3_c), std::array{1_c, 1_c}), lap, out(actual), in));
+    using stage_t = make_stage<lap<TypeParam>, std::identity{}, meta::val<0>, 1>;
+    constexpr auto testee = fencil<naive, stage_t>;
+    constexpr auto domain = cartesian(std::tuple(8_c, 8_c, 3_c), std::array{1_c, 1_c});
+    testee(domain, actual, in);
 
     for (int i = 1; i < 9; ++i)
         for (int j = 1; j < 9; ++j)

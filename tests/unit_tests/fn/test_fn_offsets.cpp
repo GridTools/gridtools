@@ -18,7 +18,10 @@ namespace gridtools::fn {
             integral_constant<int, 3>>;
 
         struct testee {
-            friend constexpr int const *fn_shift(testee, int i) { return data + i; }
+            template <auto I>
+            friend constexpr int const *fn_shift(testee, meta::val<I>) {
+                return data + I;
+            }
             friend constexpr bool fn_can_deref(testee) { return false; }
             friend constexpr indices_t fn_offsets(testee) { return {}; }
         };
@@ -26,8 +29,8 @@ namespace gridtools::fn {
         constexpr inline auto offs = offsets(testee());
         static_assert(std::is_same_v<decltype(offs), indices_t const>);
 
-        constexpr inline auto sum = reduce(std::plus(), 0);
-        constexpr inline auto dot = reduce([](auto acc, auto l, auto r) { return acc + l * r; }, 0);
+        constexpr auto sum = reduce<std::plus(), 0>;
+        constexpr auto dot = reduce<[](auto acc, auto l, auto r) { return acc + l * r; }, 0>;
 
         TEST(reduce, smoke) { EXPECT_EQ(sum(testee()), 4 + 5 + 6); }
 

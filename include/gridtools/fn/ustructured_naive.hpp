@@ -34,19 +34,18 @@ namespace gridtools::fn {
 
     } // namespace unstructured_naive_impl_
 
-    template <class Sizes, class Offsets, class Horizontal, class Stencil, class Outputs, class Inputs>
+    template <auto Stencil, class Sizes, class Offsets, class Horizontal, class Outputs, class Inputs>
     void fn_apply(naive,
         unstructured<Sizes, Offsets, Horizontal> const &domain,
-        Stencil const &stencil,
+        meta::val<Stencil>,
         Outputs &&outputs,
         Inputs &&inputs) {
         using namespace unstructured_naive_impl_;
         pos_t pos;
         auto new_outputs = tuple_util::transform(
             sid::rename_dimensions<Horizontal, unstructured_naive_impl_::hor>, std::forward<Outputs>(outputs));
-        naive_apply_impl_::naive_apply(replace_horizontal<Horizontal>(domain.sizes),
+        naive_apply<Stencil>(replace_horizontal<Horizontal>(domain.sizes),
             replace_horizontal<Horizontal>(domain.offsets),
-            stencil,
             new_outputs,
             std::forward<Inputs>(inputs),
             [&](auto out_tags, auto in_tags, auto &&outs, auto &&ins) {

@@ -12,18 +12,53 @@
 #include <type_traits>
 
 #include "../common/hymap.hpp"
+#include "../meta.hpp"
 #include "../sid/concept.hpp"
+#include "../sid/multi_shift.hpp"
 
 namespace gridtools::fn {
+    namespace strided_iter_impl_ {
+        template <class... Ts>
+        using is_pair = std::bool_constant<sizeof...(Ts) == 2>;
+
+        template <class...>
+        struct merge_offsets;
+
+        template <template <class...> class L, template <auto...> class H, auto Dim, auto... Vals>
+        struct merge_offsets<L<H<Dim>, H<Vals>>...> {
+            using type = L<std::decay_t<decltype(Dim)>, integral_constant<int, (... + Vals)>>;
+        };
+
+        template <class T>
+        using not_zero = std::bool_constant<meta::second<T>::value != 0>;
+
+        template <class... Offsets>
+        using offset_map = hymap::from_meta_map<meta::filter<not_zero,
+            meta::mp_make<meta::force<merge_offsets>::apply,
+                meta::group<is_pair, meta::list, meta::list<Offsets...>>>>>;
+    } // namespace strided_iter_impl_
+
     template <class Key, class Ptr, class Strides>
     struct strided_iter {
         Ptr ptr;
         Strides const &strides;
 
-        constexpr friend strided_iter fn_shift(strided_iter it, auto d, auto val) {
-            sid::shift(it.ptr, sid::get_stride_element<Key, decltype(d)>(it.strides), val);
+        template <class Dim, class Offset>
+        auto sid_access(Dim, Offset offset) const {
+            return *sid::shifted(ptr, sid::get_stride_element<Key, Dim>(strides), offset);
+        }
+
+        template <template <auto...> class H, auto... Offsets>
+        friend std::enable_if_t<sizeof...(Offsets) % 2 == 0, strided_iter> fn_shift(strided_iter it, H<Offsets...>) {
+            sid::multi_shift<Key>(it.ptr, it.strides, strided_iter_impl_::offset_map<H<Offsets>...>());
             return it;
         }
+
+        //        template <template <auto...> class H, auto D, auto Val>
+        //        constexpr friend strided_iter fn_shift(strided_iter it, H<D, Val>) {
+        //            sid::shift(it.ptr, sid::get_stride_element<Key, decltype(D)>(it.strides), integral_constant<int,
+        //            Val>()); return it;
+        //        }
 
         template <class Ptrs>
         strided_iter(Key, Ptrs const &ptrs, Strides const &strides) : ptr(at_key<Key>(ptrs)), strides(strides) {}

@@ -22,6 +22,7 @@ namespace gridtools::fn {
     struct unstructured {
         Sizes sizes;
         Offsets offsets;
-        unstructured(Sizes sizes, Offsets offsets = {}, Horizontal = {}) : sizes(sizes), offsets(std::move(offsets)) {}
+        constexpr unstructured(Sizes sizes, Offsets offsets = {}, Horizontal = {})
+            : sizes(sizes), offsets(std::move(offsets)) {}
     };
 } // namespace gridtools::fn

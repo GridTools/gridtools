@@ -11,21 +11,41 @@
 
 #include <tuple>
 
+#include "../meta.hpp"
+
 namespace gridtools::fn {
-    template <class Domain, class Stencil, class Outputs, class... Inputs>
-    struct closure {
-        Domain domain;
-        Stencil stencil;
-        Outputs outputs;
-        std::tuple<Inputs const &...> inputs;
+    namespace fencil_impl_ {
+        template <template <class...> class L, class... Ts, class Refs>
+        auto select(L<Ts...>, Refs const &refs) {
+            return std::tie(std::get<Ts::value>(refs)...);
+        }
 
-        closure(Domain domain, Stencil stencil, Outputs outputs, Inputs const &... inputs)
-            : domain(domain), stencil(stencil), outputs(outputs), inputs(inputs...) {}
-    };
+        template <class...>
+        struct stage {};
 
-    auto out(auto &... args) { return std::tie(args...); }
+        template <auto Stencil, auto Domain, class Outs, size_t... Ins>
+        using make_stage = stage<meta::val<Stencil>,
+            meta::val<Domain>,
+            meta::vl_split<Outs>,
+            meta::list<std::integral_constant<size_t, Ins>...>>;
 
-    void fencil(auto const &backend, auto &&... closures) {
-        (..., (fn_apply(backend, closures.domain, closures.stencil, closures.outputs, closures.inputs)));
-    }
+        template <class Backend, template <class...> class L, class... Stages, class Domain, class Refs>
+        void exec_stages(Backend be, L<Stages...>, Domain const &domain, Refs const &refs) {
+            (...,
+                (fn_apply(be,
+                    meta::second<Stages>::value(domain),
+                    meta::first<Stages>(),
+                    select(meta::third<Stages>(), refs),
+                    select(meta::at_c<Stages, 3>(), refs))));
+        }
+
+        template <class Backend, class... Stages>
+        constexpr auto fencil = [](auto const &domain, auto &&... args) {
+            exec_stages(Backend(), meta::list<Stages...>(), domain, std::tie(args...));
+        };
+    } // namespace fencil_impl_
+    using fencil_impl_::exec_stages;
+    using fencil_impl_::fencil;
+    using fencil_impl_::make_stage;
+    using fencil_impl_::stage;
 } // namespace gridtools::fn

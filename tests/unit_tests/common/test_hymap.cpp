@@ -115,6 +115,13 @@ namespace gridtools {
                 std::is_same<typename std::decay<decltype(at_key<b>(std::declval<dst_t>()))>::type, double>(), "");
         }
 
+        TEST(from_meta_map, empty) {
+            using src_t = meta::list<>;
+            using dst_t = hymap::from_meta_map<src_t>;
+
+            static_assert(tuple_util::size<dst_t>() == 0);
+        }
+
         struct add_3_f {
             template <class Key, class Value>
             Value operator()(Value x) const {

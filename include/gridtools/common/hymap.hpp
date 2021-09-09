@@ -195,7 +195,8 @@ namespace gridtools {
 
         template <class MetaMap,
             template <class...> class KeyCtor = keys,
-            class KeysAndValues = meta::transpose<MetaMap>>
+            class KeysAndValues =
+                meta::if_<meta::is_empty<MetaMap>, meta::list<meta::list<>, meta::list<>>, meta::transpose<MetaMap>>>
         using from_meta_map = from_keys_values<meta::first<KeysAndValues>, meta::second<KeysAndValues>, KeyCtor>;
 
         namespace hymap_impl_ {

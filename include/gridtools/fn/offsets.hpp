@@ -24,6 +24,7 @@ namespace gridtools::fn {
         struct undefined {};
 
         undefined fn_offsets(...);
+        undefined fn_reduce(...);
 
         inline constexpr auto offsets = []<class It>(It const &it) -> decltype(auto) {
             if constexpr (std::is_same_v<undefined, decltype(fn_offsets(it))>)
@@ -32,35 +33,27 @@ namespace gridtools::fn {
                 return fn_offsets(it);
         };
 
-        template <size_t I>
-        struct fast_offset : integral_constant<size_t, I> {
-            int offset;
-            constexpr fast_offset(std::integral_constant<size_t, I>, int offset) : offset(offset) {}
-        };
-
         template <class T>
         constexpr meta::make_indices<tuple_util::size<T>, std::tuple> make_indices(T const &) {
             return {};
         }
 
-        constexpr auto reduce(auto fun, auto init) {
-            return [fun = std::move(fun), init = std::move(init)](auto const &arg, auto const &... args) {
-                auto res = init;
-                tuple_util::for_each(
-                    [&](int offset, auto i) {
-                        if (offset == -1)
-                            return;
-                        auto &&s = fn::shift(fast_offset(i, offset));
-                        res = fun(res, fn::deref(s(arg)), fn::deref(s(args))...);
-                    },
-                    offsets(arg),
-                    make_indices(offsets(arg)));
-                return res;
-            };
-        }
+        constexpr decltype(auto) get_offsets(auto const &arg, auto &&...) { return offsets(arg); }
 
+        template <auto Fun, auto Init>
+        constexpr auto reduce = [](auto const &... args) {
+            auto res = Init;
+            auto const &offsets = get_offsets(args...);
+            tuple_util::for_each(
+                [&]<class I>(int offset, I) {
+                    if (offset != -1)
+                        res = Fun(res, deref(shift<I::value>(args))...);
+                },
+                offsets,
+                make_indices(offsets));
+            return res;
+        };
     } // namespace offsets_impl_
-    using offsets_impl_::fast_offset;
     using offsets_impl_::offsets;
     using offsets_impl_::reduce;
 } // namespace gridtools::fn

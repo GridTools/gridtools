@@ -19,7 +19,7 @@ namespace gridtools::fn {
     struct cartesian {
         Sizes sizes;
         Offsets offsets;
-        cartesian(Sizes sizes, Offsets offsets = {}) : sizes(sizes), offsets(offsets) {}
+        constexpr cartesian(Sizes sizes, Offsets offsets = {}) : sizes(sizes), offsets(offsets) {}
     };
 
     using i_t = integral_constant<int, 0>;
