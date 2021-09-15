@@ -15,6 +15,7 @@
 #include "../meta.hpp"
 #include "../sid/concept.hpp"
 #include "../sid/multi_shift.hpp"
+#include "builtins.hpp"
 
 namespace gridtools::fn {
     namespace strided_iter_impl_ {
@@ -48,17 +49,12 @@ namespace gridtools::fn {
             return *sid::shifted(ptr, sid::get_stride_element<Key, Dim>(strides), offset);
         }
 
-        template <template <auto...> class H, auto... Offsets>
-        friend std::enable_if_t<sizeof...(Offsets) % 2 == 0, strided_iter> fn_shift(strided_iter it, H<Offsets...>) {
-            sid::multi_shift<Key>(it.ptr, it.strides, strided_iter_impl_::offset_map<H<Offsets>...>());
+        template <auto... Offsets>
+        friend std::enable_if_t<sizeof...(Offsets) % 2 == 0, strided_iter> fn_builtin(
+            builtins::shift, meta::val<Offsets...>, strided_iter it) {
+            sid::multi_shift<Key>(it.ptr, it.strides, strided_iter_impl_::offset_map<meta::val<Offsets>...>());
             return it;
         }
-
-        //        template <template <auto...> class H, auto D, auto Val>
-        //        constexpr friend strided_iter fn_shift(strided_iter it, H<D, Val>) {
-        //            sid::shift(it.ptr, sid::get_stride_element<Key, decltype(D)>(it.strides), integral_constant<int,
-        //            Val>()); return it;
-        //        }
 
         template <class Ptrs>
         strided_iter(Key, Ptrs const &ptrs, Strides const &strides) : ptr(at_key<Key>(ptrs)), strides(strides) {}
@@ -67,7 +63,7 @@ namespace gridtools::fn {
     strided_iter(Key, Ptrs const &, Strides const &)->strided_iter<Key, element_at<Key, Ptrs>, Strides>;
 
     template <class Key, class Ptr, class Strides>
-    constexpr decltype(auto) fn_deref(strided_iter<Key, Ptr, Strides> const &it) {
+    constexpr decltype(auto) fn_builtin(builtins::deref, strided_iter<Key, Ptr, Strides> const &it) {
         return *it.ptr;
     }
 } // namespace gridtools::fn

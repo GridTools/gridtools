@@ -1,25 +1,21 @@
-#include <gridtools/fn/shift.hpp>
+#include <gridtools/fn/builtins.hpp>
 
 #include <type_traits>
 
 #include <gtest/gtest.h>
 
-#include <gridtools/fn/strided_iter.hpp>
-
 namespace gridtools::fn {
     namespace {
-        using namespace literals;
-
         template <auto...>
         struct dummy {};
 
         template <auto... Offsets, auto Off>
-        constexpr dummy<Offsets..., Off> fn_shift(dummy<Offsets...>, meta::val<Off>) {
+        constexpr dummy<Offsets..., Off> fn_builtin(builtins::shift, meta::val<Off>, dummy<Offsets...>) {
             return {};
         }
 
         template <auto... Offsets, auto Off0, auto Off1>
-        constexpr dummy<Offsets..., Off0, Off1> fn_shift(dummy<Offsets...>, meta::val<Off0, Off1>) {
+        constexpr dummy<Offsets..., Off0, Off1> fn_builtin(builtins::shift, meta::val<Off0, Off1>, dummy<Offsets...>) {
             return {};
         }
 

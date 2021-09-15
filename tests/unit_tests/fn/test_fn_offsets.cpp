@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/integral_constant.hpp>
+#include <gridtools/fn/builtins.hpp>
 
 namespace gridtools::fn {
     namespace {
@@ -19,10 +20,10 @@ namespace gridtools::fn {
 
         struct testee {
             template <auto I>
-            friend constexpr int const *fn_shift(testee, meta::val<I>) {
+            friend constexpr int const *fn_builtin(builtins::shift, meta::val<I>, testee) {
                 return data + I;
             }
-            friend constexpr bool fn_can_deref(testee) { return false; }
+            friend constexpr bool fn_builtin(builtins::can_deref, testee) { return false; }
             friend constexpr indices_t fn_offsets(testee) { return {}; }
         };
 

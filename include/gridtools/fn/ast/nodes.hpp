@@ -10,14 +10,9 @@
 #pragma once
 
 #include "../../meta.hpp"
+#include "../builtins.hpp"
 
 namespace gridtools::fn::ast {
-    template <class...>
-    struct constant;
-
-    template <class V>
-    struct constant<V> {};
-
     template <class...>
     struct in;
 
@@ -31,59 +26,29 @@ namespace gridtools::fn::ast {
     struct lambda<meta::val<F>, Args...> {};
 
     template <class...>
-    struct plus;
+    struct builtin;
 
-    template <class L, class R, class... Ts>
-    struct plus<L, R, Ts...> {};
+    template <class Tag, class... Args>
+    struct builtin<Tag, Args...> {};
 
-    template <class...>
-    struct minus;
+    template <class F, class... Trees>
+    using inlined = builtin<builtins::ilift, F, Trees...>;
 
-    template <class T, class... Ts>
-    struct minus<T, Ts...> {};
+    template <class F, class... Trees>
+    using tmp = builtin<builtins::tlift, F, Trees...>;
 
-    template <class...>
-    struct multiplies;
+    template <class T>
+    using deref = builtin<builtins::deref, T>;
 
-    template <class L, class R, class... Ts>
-    struct multiplies<L, R, Ts...> {};
+    template <class Tree, class Offsets>
+    using shifted = builtin<builtins::shift, Offsets, Tree>;
 
-    template <class...>
-    struct divides;
+    template <class T>
+    using deref = builtin<builtins::deref, T>;
 
-    template <class L, class R, class... Ts>
-    struct divides<L, R, Ts...> {};
-
-    template <class...>
-    struct make_tuple {};
-
-    template <class...>
-    struct tuple_get;
+    template <class... Trees>
+    using make_tuple = builtin<builtins::make_tuple, Trees...>;
 
     template <class I, class Tree>
-    struct tuple_get<I, Tree> {};
-
-    template <class...>
-    struct deref;
-
-    template <class Tree>
-    struct deref<Tree> {};
-
-    template <class...>
-    struct shifted;
-
-    template <class Tree, auto... Offsets>
-    struct shifted<Tree, meta::val<Offsets...>> {};
-
-    template <class...>
-    struct inlined;
-
-    template <auto F, class... Trees>
-    struct inlined<meta::val<F>, Trees...> {};
-
-    template <class...>
-    struct tmp;
-
-    template <auto F, class... Trees>
-    struct tmp<meta::val<F>, Trees...> {};
+    using tuple_get = builtin<builtins::tuple_get, I, Tree>;
 } // namespace gridtools::fn::ast

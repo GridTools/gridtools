@@ -9,14 +9,12 @@
  */
 #pragma once
 
-#include "fn/arith.hpp"
 #include "fn/ast.hpp"
+#include "fn/builtins.hpp"
 #include "fn/cartesian.hpp"
 #include "fn/cartesian_naive.hpp"
 #include "fn/fencil.hpp"
 #include "fn/lambda.hpp"
-#include "fn/lift.hpp"
+//#include "fn/lift.hpp"
 #include "fn/offsets.hpp"
-#include "fn/shift.hpp"
-#include "fn/tuple.hpp"
 #include "fn/ustructured_naive.hpp"

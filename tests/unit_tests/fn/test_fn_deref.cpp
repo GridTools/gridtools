@@ -1,4 +1,4 @@
-#include <gridtools/fn/deref.hpp>
+#include <gridtools/fn/builtins.hpp>
 
 #include <memory>
 
@@ -24,11 +24,11 @@ namespace gridtools::fn {
         }
 
         struct good {
-            friend int fn_deref(good const &) { return 42; }
+            friend int fn_builtin(builtins::deref, good const &) { return 42; }
         };
 
         struct bad {
-            friend bool fn_can_deref(bad const &) { return false; }
+            friend bool fn_builtin(builtins::can_deref, bad const &) { return false; }
         };
 
         TEST(deref, smoke) {
