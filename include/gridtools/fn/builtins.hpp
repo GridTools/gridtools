@@ -102,23 +102,9 @@ namespace gridtools::fn {
             return fn_offsets(std::get<0>(it.args));
         }
 
-        template <auto F, class... Args>
-        auto do_ilift(Args &&... args) {
-            return lifted_iter<F, std::tuple<std::remove_reference_t<Args>...>>{
-                std::tuple(std::forward<Args>(args)...)};
-        }
         template <class F, class... Args>
         constexpr auto fn_default(builtins::ilift, F, Args... args) {
-            using res_t = decltype(F::value(args...));
-            if constexpr (meta::is_instantiation_of<std::tuple, res_t>())
-                return tuple_util::transform(
-                    [&]<class I>(I) {
-                        constexpr auto f = [](auto const &... args) { return std::get<I::value>(F::value(args...)); };
-                        return do_ilift<f>(args...);
-                    },
-                    meta::make_indices<std::tuple_size<res_t>, std::tuple>());
-            else
-                return do_ilift<F::value>(std::move(args...));
+            return lifted_iter<F::value, std::tuple<Args...>>{std::tuple(std::move(args)...)};
         }
 
         template <class T>
@@ -129,8 +115,9 @@ namespace gridtools::fn {
         constexpr decltype(auto) get_offsets(auto const &arg, ...) { return offsets(arg); }
 
         template <class F, class Init, class... Args>
-        constexpr auto fn_default(builtins::reduce, F, Init, Args &&... args) {
-            auto res = Init::value;
+        constexpr auto fn_default(builtins::reduce, F, Init, Args const &... args) {
+            auto res = Init::value(
+                decltype(builtin_fun(builtins::deref(), builtin_fun(builtins::shift(), meta::constant<0>, args))){}...);
             auto const &offsets = get_offsets(args...);
             tuple_util::for_each(
                 [&]<class I>(int offset, I) {
@@ -176,7 +163,7 @@ namespace gridtools::fn {
 
         template <class I, class Arg>
         constexpr decltype(auto) fn_default(builtins::tuple_get, I, Arg &&arg) {
-            return std::get<I::value>(std::forward<Arg>(arg));
+            return tuple_util::get<I::value>(std::forward<Arg>(arg));
         }
 
         template <class Tag, class... Args>

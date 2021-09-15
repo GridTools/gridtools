@@ -21,7 +21,7 @@ using namespace fn;
 template <auto D>
 struct dim {
     static constexpr auto ldif = lambda<[](auto const &in) { return minus(deref(in), deref(shift<D, -1>(in))); }>;
-    static constexpr auto rdif = lambda<[](auto const &in) { return ldif(shift<D, 1>(in)); }>;
+    static constexpr auto rdif = [](auto const &in) { return ldif(shift<D, 1>(in)); };
 
     template <bool UseTmp>
     static constexpr auto dif2 = lambda<[](auto const &in) { return ldif(lift<rdif, UseTmp>(in)); }>;
@@ -56,7 +56,7 @@ TYPED_TEST(lift_test, lap) {
         return in[i + 1][j][k] + in[i - 1][j][k] + in[i][j + 1][k] + in[i][j - 1][k] - 4 * in[i][j][k];
     };
 
-    using stage_t = make_stage<lap<TypeParam>, std::identity{}, meta::val<0>, 1>;
+    using stage_t = make_stage<lap<TypeParam>, std::identity{}, 0, 1>;
     constexpr auto testee = fencil<naive, stage_t>;
     constexpr auto domain = cartesian(std::tuple(8_c, 8_c, 3_c), std::array{1_c, 1_c});
     testee(domain, actual, in);

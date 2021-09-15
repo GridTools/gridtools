@@ -34,25 +34,23 @@ namespace gridtools::fn {
 
     } // namespace unstructured_naive_impl_
 
-    template <auto Stencil, class Sizes, class Offsets, class Horizontal, class Outputs, class Inputs>
+    template <auto Stencil, class Sizes, class Offsets, class Horizontal, class Output, class Inputs>
     void fn_apply(naive,
         unstructured<Sizes, Offsets, Horizontal> const &domain,
         meta::val<Stencil>,
-        Outputs &&outputs,
+        Output &output,
         Inputs &&inputs) {
         using namespace unstructured_naive_impl_;
         pos_t pos;
-        auto new_outputs = tuple_util::transform(
-            sid::rename_dimensions<Horizontal, unstructured_naive_impl_::hor>, std::forward<Outputs>(outputs));
+        auto new_output = sid::rename_dimensions<Horizontal, unstructured_naive_impl_::hor>(output);
         naive_apply<Stencil>(replace_horizontal<Horizontal>(domain.sizes),
             replace_horizontal<Horizontal>(domain.offsets),
-            new_outputs,
+            new_output,
             std::forward<Inputs>(inputs),
-            [&](auto out_tags, auto in_tags, auto &&outs, auto &&ins) {
-                using keys_t = meta::rename<sid::composite::keys,
-                    meta::push_back<meta::concat<decltype(out_tags), decltype(in_tags)>, pos_t>>;
-                return tuple_util::convert_to<keys_t::template values>(tuple_util::push_back(
-                    tuple_util::concat(std::forward<decltype(outs)>(outs), std::forward<decltype(ins)>(ins)), pos));
+            [&]<class OutTag, class InTags, class Out, class Ins>(OutTag, InTags, Out & out, Ins && ins) {
+                using keys_t = meta::rename<sid::composite::keys, meta::push_back<InTags, pos_t, OutTag>>;
+                return tuple_util::convert_to<keys_t::template values>(
+                    tuple_util::push_back(std::forward<Ins>(ins), pos, out));
             },
             [](auto &&ptr, auto const &strides) {
                 return [index = *at_key<pos_t>(ptr), &ptr, &strides](

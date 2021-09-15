@@ -18,22 +18,42 @@ using namespace gridtools;
 using namespace fn;
 using namespace literals;
 
-inline constexpr auto sum = reduce<plus, 0.>;
-inline constexpr auto dot = reduce<[](auto acc, auto x, auto y) { return plus(acc, multiplies(x, y)); }, 0.>;
+constexpr auto zero = []<class T>(T) { return T{}; };
+constexpr auto sum = reduce<plus, zero>;
+
+constexpr auto tuple_dot_fun = [](auto acc, auto z, auto sign) {
+    return make_tuple(plus(tuple_get<0>(acc), multiplies(tuple_get<0>(z), sign)),
+        plus(tuple_get<1>(acc), multiplies(tuple_get<1>(z), sign)));
+};
+constexpr auto tuple_dot_init = [](auto z, auto sign) {
+    return decltype(make_tuple(multiplies(tuple_get<0>(z), sign), multiplies(tuple_get<1>(z), sign))){};
+};
+constexpr auto tuple_dot = reduce<tuple_dot_fun, tuple_dot_init>;
 
 template <auto E2V>
-inline constexpr auto zavg = lambda<[](auto pp, auto sx, auto sy) {
-    return lambda<[](auto tmp, auto sx, auto sy) { return make_tuple(multiplies(tmp, sx), multiplies(tmp, sy)); }>(
-        divides(sum(shift<E2V>(pp)), 2_c), deref(sx), deref(sy));
-}>;
+constexpr auto zavg = [](auto &&pp, auto &&s) {
+    // auto tmp = sum(shift<E2V>(pp)) / 2;
+    // auto ss = deref(s);
+    // return std::tuple {
+    //   tmp * std::get<0>(ss),
+    //   tmp * std::get<1>(ss)
+    // };
+    return lambda<[](auto &&tmp, auto &&s) {
+        return make_tuple(multiplies(tmp, tuple_get<0>(s)), multiplies(tmp, tuple_get<1>(s)));
+    }>(divides(sum(shift<E2V>(std::forward<decltype(pp)>(pp))), 2_c), deref(std::forward<decltype(s)>(s)));
+};
 
 template <auto E2V, auto V2E>
-inline constexpr auto nabla = lambda<[](auto pp, auto sx, auto sy, auto sign, auto vol) {
-    return lambda<[](auto z, auto s, auto v) {
-        return make_tuple(
-            divides(dot(shift<V2E>(tuple_get<0>(z)), s), v), divides(dot(shift<V2E>(tuple_get<1>(z)), s), v));
-    }>(ilift<zavg<E2V>>(pp, sx, sy), deref(sign), deref(vol));
-}>;
+constexpr auto nabla = [](auto &&pp, auto &&s, auto &&sign, auto &&vol) {
+    // auto tmp = tuple_dot(shift<V2E>(ilift<zavg<E2V>>(pp, s)), deref(sign));
+    // auto v = deref(vol);
+    // return std::tuple { std::get<0>(tmp) / v, std::get<1>(tmp) / v };
+    return lambda<[](auto &&tmp, auto &&vol) {
+        return make_tuple(divides(tuple_get<0>(tmp), vol), divides(tuple_get<1>(tmp), vol));
+    }>(tuple_dot(shift<V2E>(ilift<zavg<E2V>>(std::forward<decltype(pp)>(pp), std::forward<decltype(s)>(s))),
+           deref(std::forward<decltype(sign)>(sign))),
+        deref(std::forward<decltype(vol)>(vol)));
+};
 
 /*
  *          (2)
@@ -59,8 +79,7 @@ constexpr std::array<int, 6> v2e[7] = {{0, 2, 4, 6, 8, 10},
 TEST(fn, nabla) {
 
     double pp[7][3];
-    double sx[12][3];
-    double sy[12][3];
+    std::tuple<double, double> s[12][3];
     std::array<int, 6> sign[7];
     double vol[7];
 
@@ -72,17 +91,15 @@ TEST(fn, nabla) {
             pp[h][v] = rand() % 100;
     }
     for (int h = 0; h < 12; ++h)
-        for (int v = 0; v < 3; ++v) {
-            sx[h][v] = rand() % 100;
-            sy[h][v] = rand() % 100;
-        }
+        for (int v = 0; v < 3; ++v)
+            s[h][v] = {rand() % 100, rand() % 100};
 
     auto zavg = [&](int h, int v) -> std::array<double, 2> {
         auto tmp = 0.;
         for (auto vertex : e2v[h])
             tmp += pp[vertex][v];
         tmp /= 2;
-        return {tmp * sx[h][v], tmp * sy[h][v]};
+        return {tmp * std::get<0>(s[h][v]), tmp * std::get<1>(s[h][v])};
     };
 
     auto expected = [&](int h, int v) {
@@ -99,18 +116,18 @@ TEST(fn, nabla) {
         return res;
     };
 
-    double actual_x[7][3] = {};
-    double actual_y[7][3] = {};
+    std::tuple<double, double> actual[7][3] = {};
 
-    using stage_t = make_stage<nabla<e2v, v2e>, std::identity{}, meta::val<0, 1>, 2, 3, 4, 5, 6>;
+    using stage_t = make_stage<nabla<e2v, v2e>, std::identity{}, 0, 1, 2, 3, 4>;
     constexpr auto testee = fencil<naive, stage_t>;
     constexpr auto domain = unstructured(std::tuple(7_c, 3_c));
-    testee(domain, actual_x, actual_y, pp, sx, sy, sign, vol);
+    testee(domain, actual, pp, s, sign, vol);
 
     for (int h = 0; h < 7; ++h)
         for (int v = 0; v < 3; ++v) {
             auto exp = expected(h, v);
-            EXPECT_DOUBLE_EQ(actual_x[h][v], exp[0]);
-            EXPECT_DOUBLE_EQ(actual_y[h][v], exp[1]);
+            auto act = actual[h][v];
+            EXPECT_DOUBLE_EQ(std::get<0>(act), exp[0]);
+            EXPECT_DOUBLE_EQ(std::get<1>(act), exp[1]);
         }
 }

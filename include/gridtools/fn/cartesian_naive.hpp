@@ -112,16 +112,16 @@ namespace gridtools::fn {
         template <class Spec,
             class OffsetsList = meta::second<Spec>,
             class Stencil = meta::third<Spec>,
-            class Outs = meta::at_c<Spec, 3>,
+            class Out = meta::at_c<Spec, 3>,
             class Ins = meta::at_c<Spec, 4>>
-        using make_stage_from_spec = stage<Stencil, meta::val<domain_extender<OffsetsList>>, Outs, Ins>;
+        using make_stage_from_spec = stage<Stencil, meta::val<domain_extender<OffsetsList>>, Out, Ins>;
 
     } // namespace cartesian_naive_impl_
-    template <auto Stencil, class Sizes, class Offsets, class Outputs, class... Inputs>
+    template <auto Stencil, class Sizes, class Offsets, class Output, class... Inputs>
     void fn_apply(naive,
         cartesian<Sizes, Offsets> const &domain,
         meta::val<Stencil>,
-        Outputs &&outputs,
+        Output &output,
         std::tuple<Inputs...> inputs) {
 
         if constexpr (ast::has_tmps<Stencil, Inputs...>) {
@@ -132,17 +132,16 @@ namespace gridtools::fn {
 
             auto alloc = sid::make_allocator(&std::make_unique<char[]>);
             auto tmps = cartesian_naive_impl_::make_tmps<meta::pop_back<specs_t>>(alloc, domain);
-            exec_stages(naive(), stages_t(), domain, tuple_util::concat(inputs, tmps, outputs));
+            exec_stages(naive(), stages_t(), domain, tuple_util::push_back(tuple_util::concat(inputs, tmps), output));
         } else {
             naive_apply<Stencil>(domain.sizes,
                 domain.offsets,
-                std::forward<Outputs>(outputs),
+                output,
                 std::move(inputs),
-                [](auto out_tags, auto in_tags, auto &&outs, auto &&ins) {
-                    using keys_t =
-                        meta::rename<sid::composite::keys, meta::concat<decltype(out_tags), decltype(in_tags)>>;
+                []<class OutTag, class InTags, class Out, class Ins>(OutTag, InTags, Out & out, Ins && ins) {
+                    using keys_t = meta::rename<sid::composite::keys, meta::push_back<InTags, OutTag>>;
                     return tuple_util::convert_to<keys_t::template values>(
-                        tuple_util::concat(std::forward<decltype(outs)>(outs), std::forward<decltype(ins)>(ins)));
+                        tuple_util::push_back(std::forward<Ins>(ins), out));
                 },
                 [](auto &&ptr, auto const &strides) {
                     return [&](auto tag) { return strided_iter(tag, ptr, strides); };

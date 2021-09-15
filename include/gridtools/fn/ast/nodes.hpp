@@ -45,10 +45,4 @@ namespace gridtools::fn::ast {
 
     template <class T>
     using deref = builtin<builtins::deref, T>;
-
-    template <class... Trees>
-    using make_tuple = builtin<builtins::make_tuple, Trees...>;
-
-    template <class I, class Tree>
-    using tuple_get = builtin<builtins::tuple_get, I, Tree>;
 } // namespace gridtools::fn::ast

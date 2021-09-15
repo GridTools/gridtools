@@ -23,10 +23,10 @@ namespace gridtools::fn {
         template <class...>
         struct stage {};
 
-        template <auto Stencil, auto Domain, class Outs, size_t... Ins>
+        template <auto Stencil, auto Domain, size_t Out, size_t... Ins>
         using make_stage = stage<meta::val<Stencil>,
             meta::val<Domain>,
-            meta::vl_split<Outs>,
+            std::integral_constant<size_t, Out>,
             meta::list<std::integral_constant<size_t, Ins>...>>;
 
         template <class Backend, template <class...> class L, class... Stages, class Domain, class Refs>
@@ -35,7 +35,7 @@ namespace gridtools::fn {
                 (fn_apply(be,
                     meta::second<Stages>::value(domain),
                     meta::first<Stages>(),
-                    select(meta::third<Stages>(), refs),
+                    std::get<meta::third<Stages>::value>(refs),
                     select(meta::at_c<Stages, 3>(), refs))));
         }
 

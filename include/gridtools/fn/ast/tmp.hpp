@@ -162,16 +162,6 @@ namespace gridtools::fn::ast {
             using type = typename expand<lambda<F, shifted<Trees, Offsets>...>>::type;
         };
 
-        template <class I, class F, class... Trees>
-        struct expand<deref<tuple_get<I, inlined<F, Trees...>>>> {
-            using type = typename expand<tuple_get<I, lambda<F, Trees...>>>::type;
-        };
-
-        template <class I, class Offsets, class F, class... Trees>
-        struct expand<deref<shifted<tuple_get<I, inlined<F, Trees...>>, Offsets>>> {
-            using type = typename expand<tuple_get<I, lambda<F, shifted<Trees, Offsets>...>>>::type;
-        };
-
         template <class Tree>
         using popup_tmps = typename collapse<typename expand<normailze_shifts<Tree>>::type>::type;
 
@@ -233,16 +223,6 @@ namespace gridtools::fn::ast {
             using type = typename collect_offsets<Tmp, lambda<F, shifted<Trees, Offsets>...>>::type;
         };
 
-        template <class I, class Tmp, class F, class... Trees>
-        struct collect_offsets<Tmp, deref<tuple_get<I, inlined<F, Trees...>>>> {
-            using type = typename collect_offsets<Tmp, lambda<F, Trees...>>::type;
-        };
-
-        template <class I, class Tmp, class Offsets, class F, class... Trees>
-        struct collect_offsets<Tmp, deref<shifted<tuple_get<I, inlined<F, Trees...>>, Offsets>>> {
-            using type = typename collect_offsets<Tmp, lambda<F, shifted<Trees, Offsets>...>>::type;
-        };
-
         template <class T>
         struct dummy_iter {
             friend T fn_builtin(builtins::deref, dummy_iter) { return {}; }
@@ -289,7 +269,7 @@ namespace gridtools::fn::ast {
             using apply = meta::list<meta::third<Item>,
                 typename collect_offsets<Tmp, Tree>::type,
                 typename get_fun<Tmp>::type,
-                meta::list<meta::second<Item>>,
+                meta::second<Item>,
                 meta::transform<arg_num_f<Map>::template apply, typename get_args<Tmp>::type>>;
         };
 
