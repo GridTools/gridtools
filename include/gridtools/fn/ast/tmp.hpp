@@ -11,6 +11,7 @@
 
 #include "../../meta.hpp"
 #include "../builtins.hpp"
+#include "../connectivity.hpp"
 #include "generate.hpp"
 #include "nodes.hpp"
 #include "parse.hpp"
@@ -223,6 +224,28 @@ namespace gridtools::fn::ast {
             using type = typename collect_offsets<Tmp, lambda<F, shifted<Trees, Offsets>...>>::type;
         };
 
+        template <class Tmp, class Arg>
+        struct collect_reduce_offsets_f {
+            template <class N>
+            using apply =
+                typename collect_offsets<Tmp, normailze_shifts<deref<shifted<Arg, meta::val<N::value>>>>>::type;
+        };
+
+        template <class Tmp, class F, class Init, class... Trees>
+        struct collect_offsets<Tmp, builtin<builtins::reduce, F, Init, Trees...>> {
+            static_assert(sizeof...(Trees) > 1);
+            using tree_t = meta::first<meta::list<Trees...>>;
+            static_assert(meta::is_instantiation_of<builtin, tree_t>::value);
+            static_assert(std::is_same_v<meta::first<tree_t>, builtins::shift>);
+            using offsets_t = meta::vl_split<meta::second<tree_t>>;
+            static_assert(!meta::is_empty<offsets_t>::value);
+            using conn_t = typename meta::last<offsets_t>::type;
+            static_assert(Connectivity<conn_t>);
+            using type = meta::dedup<
+                meta::concat<meta::flatten<meta::transform<collect_reduce_offsets_f<Tmp, Trees>::template apply,
+                    meta::make_indices<neighbours_num<conn_t>>>>...>>;
+        };
+
         template <class T>
         struct dummy_iter {
             friend T fn_builtin(builtins::deref, dummy_iter) { return {}; }
@@ -267,7 +290,7 @@ namespace gridtools::fn::ast {
         struct make_tmp_record_f {
             template <class Tmp, class Item = meta::mp_find<Map, Tmp>>
             using apply = meta::list<meta::third<Item>,
-                typename collect_offsets<Tmp, Tree>::type,
+                meta::if_<std::is_same<Tmp, Tree>, meta::list<meta::val<>>, typename collect_offsets<Tmp, Tree>::type>,
                 typename get_fun<Tmp>::type,
                 meta::second<Item>,
                 meta::transform<arg_num_f<Map>::template apply, typename get_args<Tmp>::type>>;

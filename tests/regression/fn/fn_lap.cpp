@@ -11,8 +11,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/compose.hpp>
 #include <gridtools/fn.hpp>
+#include <gridtools/fn/backend/naive.hpp>
 
 using namespace gridtools;
 using namespace literals;

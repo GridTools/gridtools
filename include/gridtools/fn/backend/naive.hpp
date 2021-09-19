@@ -9,6 +9,7 @@
  */
 #pragma once
 
-namespace gridtools::fn {
-    struct naive {};
-} // namespace gridtools::fn
+#include "naive/cartesian.hpp"
+#include "naive/fencil.hpp"
+#include "naive/tag.hpp"
+#include "naive/ustructured.hpp"

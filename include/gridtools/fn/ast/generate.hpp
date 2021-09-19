@@ -17,9 +17,6 @@
 #include "nodes.hpp"
 
 namespace gridtools::fn::ast {
-    template <class Tree>
-    constexpr auto generate = generator(Tree());
-
     template <auto F, auto... Fs>
     constexpr auto apply = [](auto const &... args) -> decltype(auto) { return F(Fs(args...)...); };
 
@@ -27,6 +24,9 @@ namespace gridtools::fn::ast {
     consteval auto generator(V) {
         return [](...) { return V(); };
     }
+
+    template <class Tree>
+    constexpr auto generate = generator(Tree());
 
     template <class I>
     consteval auto generator(in<I>) {

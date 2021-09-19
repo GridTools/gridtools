@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/fn.hpp>
+#include <gridtools/fn/backend/naive.hpp>
 
 using namespace gridtools;
 using namespace fn;
@@ -43,14 +44,14 @@ constexpr auto zavg = [](auto &&pp, auto &&s) {
     }>(divides(sum(shift<E2V>(std::forward<decltype(pp)>(pp))), 2_c), deref(std::forward<decltype(s)>(s)));
 };
 
-template <auto E2V, auto V2E>
+template <auto E2V, auto V2E, bool UseTmp>
 constexpr auto nabla = [](auto &&pp, auto &&s, auto &&sign, auto &&vol) {
-    // auto tmp = tuple_dot(shift<V2E>(ilift<zavg<E2V>>(pp, s)), deref(sign));
+    // auto tmp = tuple_dot(shift<V2E>(lift<zavg<E2V>>(pp, s)), deref(sign));
     // auto v = deref(vol);
     // return std::tuple { std::get<0>(tmp) / v, std::get<1>(tmp) / v };
     return lambda<[](auto &&tmp, auto &&vol) {
         return make_tuple(divides(tuple_get<0>(tmp), vol), divides(tuple_get<1>(tmp), vol));
-    }>(tuple_dot(shift<V2E>(ilift<zavg<E2V>>(std::forward<decltype(pp)>(pp), std::forward<decltype(s)>(s))),
+    }>(tuple_dot(shift<V2E>(lift<zavg<E2V>, UseTmp>(std::forward<decltype(pp)>(pp), std::forward<decltype(s)>(s))),
            deref(std::forward<decltype(sign)>(sign))),
         deref(std::forward<decltype(vol)>(vol)));
 };
@@ -76,8 +77,14 @@ constexpr std::array<int, 6> v2e[7] = {{0, 2, 4, 6, 8, 10},
     {7, 8, 9, -1, -1, -1},
     {9, 10, 11, -1, -1, -1}};
 
-TEST(fn, nabla) {
+template <class>
+using lift_test = testing::Test;
 
+using params_t = testing::Types<std::false_type, std::true_type>;
+
+TYPED_TEST_SUITE(lift_test, params_t);
+
+TYPED_TEST(lift_test, nabla) {
     double pp[7][3];
     std::tuple<double, double> s[12][3];
     std::array<int, 6> sign[7];
@@ -118,16 +125,13 @@ TEST(fn, nabla) {
 
     std::tuple<double, double> actual[7][3] = {};
 
-    using stage_t = make_stage<nabla<e2v, v2e>, std::identity{}, 0, 1, 2, 3, 4>;
+    using stage_t = make_stage<nabla<e2v, v2e, TypeParam::value>, std::identity{}, 0, 1, 2, 3, 4>;
     constexpr auto testee = fencil<naive, stage_t>;
     constexpr auto domain = unstructured(std::tuple(7_c, 3_c));
     testee(domain, actual, pp, s, sign, vol);
 
     for (int h = 0; h < 7; ++h)
-        for (int v = 0; v < 3; ++v) {
-            auto exp = expected(h, v);
-            auto act = actual[h][v];
-            EXPECT_DOUBLE_EQ(std::get<0>(act), exp[0]);
-            EXPECT_DOUBLE_EQ(std::get<1>(act), exp[1]);
-        }
+        for (int v = 0; v < 3; ++v)
+            tuple_util::for_each(
+                [](auto actual, auto expected) { EXPECT_DOUBLE_EQ(actual, expected); }, actual[h][v], expected(h, v));
 }

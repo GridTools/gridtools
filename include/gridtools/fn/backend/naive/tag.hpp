@@ -9,9 +9,6 @@
  */
 #pragma once
 
-#include "fn/ast.hpp"
-#include "fn/builtins.hpp"
-#include "fn/cartesian.hpp"
-#include "fn/fencil.hpp"
-#include "fn/lambda.hpp"
-#include "fn/offsets.hpp"
+namespace gridtools::fn {
+    struct naive {};
+} // namespace gridtools::fn

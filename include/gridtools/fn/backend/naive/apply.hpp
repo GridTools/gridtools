@@ -13,12 +13,12 @@
 #include <type_traits>
 #include <utility>
 
-#include "../common/hymap.hpp"
-#include "../common/tuple_util.hpp"
-#include "../meta.hpp"
-#include "../sid/concept.hpp"
-#include "../sid/loop.hpp"
-#include "../sid/multi_shift.hpp"
+#include "gridtools/common/hymap.hpp"
+#include "gridtools/common/tuple_util.hpp"
+#include "gridtools/meta.hpp"
+#include "gridtools/sid/concept.hpp"
+#include "gridtools/sid/loop.hpp"
+#include "gridtools/sid/multi_shift.hpp"
 
 namespace gridtools::fn {
     namespace naive_apply_impl_ {
