@@ -313,12 +313,6 @@ namespace gridtools::fn::ast {
         using add_to_arg_map =
             meta::push_back<Map, meta::list<Tmp, typename meta::length<Map>::type, typename ret_type<Map, Tmp>::type>>;
 
-        template <class V>
-        struct add_f {
-            template <class T>
-            using apply = std::integral_constant<typename T::value_type, V::value + T::value>;
-        };
-
         template <class Tree,
             class InputTypes,
             class Nodes = typename flatten_nodes<Tree>::type,
