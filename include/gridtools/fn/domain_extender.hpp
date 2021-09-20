@@ -129,16 +129,22 @@ namespace gridtools::fn {
             }
         };
 
+        template <class Horizontal, class Map>
+        auto replace_horizontal(Map const &map, int val) {
+            if constexpr (has_key<Map, Horizontal>())
+                return hymap::transform(change_horizontal_f<Horizontal>{val}, map);
+            else
+                return hymap::concat(typename hymap::keys<Horizontal>::template values<int>(val), map);
+        }
+
         template <class OffsetsList, class Sizes, class Offsets, class Horizontal>
         constexpr auto extend(OffsetsList, unstructured<Sizes, Offsets, Horizontal> const &domain) {
             static_assert(has_key<Sizes, Horizontal>());
             auto cart_dom = extend(OffsetsList(), cartesian(domain.sizes, domain.offsets));
             auto [hor_from, hor_to] = hor_output_range<OffsetsList, Horizontal>(domain);
             assert(hor_to > hor_from);
-            return unstructured(
-                hymap::transform(change_horizontal_f<Horizontal>{hor_to - hor_from}, std::move(cart_dom.sizes)),
-                hymap::merge(
-                    typename hymap::keys<Horizontal>::template values<int>(hor_from), std::move(cart_dom.offsets)),
+            return unstructured(replace_horizontal<Horizontal>(cart_dom.sizes, hor_to - hor_from),
+                replace_horizontal<Horizontal>(cart_dom.offsets, hor_from),
                 Horizontal());
         }
 

@@ -32,6 +32,12 @@ namespace gridtools::fn {
         struct divides {};
         struct make_tuple {};
         struct tuple_get {};
+        struct if_ {};
+        struct less {};
+        struct eq {};
+        struct not_ {};
+        struct and_ {};
+        struct or_ {};
     }; // namespace builtins
 
     namespace builtins_impl_ {
@@ -166,6 +172,36 @@ namespace gridtools::fn {
             return tuple_util::get<I::value>(std::forward<Arg>(arg));
         }
 
+        template <class C, class L, class R>
+        constexpr decltype(auto) fn_default(builtins::if_, C &&c, L &&l, R &&r) {
+            return std::forward<C>(c) ? std::forward<L>(l) : std::forward<R>(r);
+        }
+
+        template <class L, class R>
+        constexpr decltype(auto) fn_default(builtins::less, L &&l, R &&r) {
+            return std::forward<L>(l) < std::forward<R>(r);
+        }
+
+        template <class L, class R>
+        constexpr decltype(auto) fn_default(builtins::eq, L &&l, R &&r) {
+            return std::forward<L>(l) == std::forward<R>(r);
+        }
+
+        template <class T>
+        constexpr decltype(auto) fn_default(builtins::not_, T &&val) {
+            return !std::forward<T>(val);
+        }
+
+        template <class... Args>
+        constexpr decltype(auto) fn_default(builtins::and_, Args &&... args) {
+            return (... && std::forward<Args>(args));
+        }
+
+        template <class... Args>
+        constexpr decltype(auto) fn_default(builtins::or_, Args &&... args) {
+            return (... || std::forward<Args>(args));
+        }
+
         template <class Tag, class... Args>
         constexpr decltype(auto) builtin_fun(Tag tag, Args &&... args) {
             if constexpr (std::is_same_v<decltype(fn_builtin(tag, std::forward<Args>(args)...)), undefined>)
@@ -188,6 +224,12 @@ namespace gridtools::fn {
     inline constexpr auto divides = builtin<builtins::divides>;
     inline constexpr auto multiplies = builtin<builtins::multiplies>;
     inline constexpr auto make_tuple = builtin<builtins::make_tuple>;
+    inline constexpr auto if_ = builtin<builtins::if_>;
+    inline constexpr auto less = builtin<builtins::less>;
+    inline constexpr auto eq = builtin<builtins::eq>;
+    inline constexpr auto not_ = builtin<builtins::not_>;
+    inline constexpr auto and_ = builtin<builtins::and_>;
+    inline constexpr auto or_ = builtin<builtins::or_>;
 
     template <size_t I>
     constexpr auto tuple_get = std::bind_front(builtin<builtins::tuple_get>, std::integral_constant<size_t, I>());

@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <cstdlib>
+#include <utility>
 
 #include <gtest/gtest.h>
 
@@ -21,7 +22,7 @@ using namespace fn;
 template <auto D>
 struct dim {
     static constexpr auto ldif = lambda<[](auto const &in) { return minus(deref(in), deref(shift<D, -1>(in))); }>;
-    static constexpr auto rdif = [](auto const &in) { return ldif(shift<D, 1>(in)); };
+    static constexpr auto rdif = [](auto &&in) { return ldif(shift<D, 1>(std::forward<decltype(in)>(in))); };
 
     template <bool UseTmp>
     static constexpr auto dif2 = lambda<[](auto const &in) { return ldif(lift<rdif, UseTmp>(in)); }>;
@@ -58,7 +59,7 @@ TYPED_TEST(lift_test, lap) {
 
     using stage_t = make_stage<lap<TypeParam>, std::identity{}, 0, 1>;
     constexpr auto testee = fencil<naive, stage_t>;
-    constexpr auto domain = cartesian(std::tuple(8_c, 8_c, 3_c), std::array{1_c, 1_c});
+    constexpr auto domain = cartesian(std::tuple(8_c, 8_c, 3_c), std::tuple(1_c, 1_c));
     testee(domain, actual, in);
 
     for (int i = 1; i < 9; ++i)

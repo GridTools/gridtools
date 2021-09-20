@@ -33,7 +33,8 @@ namespace gridtools::fn {
             using offsets_list_t = meta::second<Spec>;
             auto &&d = domain_extender<offsets_list_t>(domain);
             using kind_t = offsets_list_t;
-            return sid::shift_sid_origin(sid::make_contiguous<value_t, int, kind_t>(allocator, d.sizes), d.offsets);
+            return sid::shift_sid_origin(sid::make_contiguous<value_t, int, kind_t>(allocator, d.sizes),
+                tuple_util::transform(std::negate<>(), d.offsets));
         }
 
         template <class Specs, class Allocator, class Domain>
