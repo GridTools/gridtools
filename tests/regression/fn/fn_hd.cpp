@@ -19,19 +19,19 @@ using namespace gridtools;
 using namespace literals;
 using namespace fn;
 
-constexpr auto lap = lambda<[](auto const &in) {
+constexpr auto lap = [](auto const &in) {
     return minus(multiplies(4_c, deref(in)),
         deref(shift<i, 1>(in)),
         deref(shift<j, 1>(in)),
         deref(shift<i, -1>(in)),
         deref(shift<j, -1>(in)));
-}>;
+};
 
 template <auto D>
-constexpr auto rdif = lambda<[](auto const &in) { return minus(deref(shift<D, 1>(in)), deref(in)); }>;
+constexpr auto rdif = [](auto const &in) { return minus(deref(shift<D, 1>(in)), deref(in)); };
 
 template <auto D>
-constexpr auto ldif = lambda<[](auto &&in) { return rdif<D>(shift<D, -1>(std::forward<decltype(in)>(in))); }>;
+constexpr auto ldif = [](auto const &in) { return minus(deref(in), deref(shift<D, -1>(in))); };
 
 template <auto D>
 constexpr auto flax = [](auto const &in, auto const &lap) {
@@ -40,22 +40,18 @@ constexpr auto flax = [](auto const &in, auto const &lap) {
 };
 
 template <class Param>
-constexpr auto hd = lambda<[](auto &&coeff, auto const &in) {
-    return lambda<[](auto &&coeff, auto const &in, auto const &lap) {
-        return lambda<[](auto &&coeff, auto &&in, auto &&fi, auto &&fj) {
-            return minus(in, multiplies(coeff, plus(fi, fj)));
-        }>(std::forward<decltype(coeff)>(coeff),
-            deref(in),
-            ldif<i>(lift<flax<i>, Param::flax_i>(in, lap)),
-            ldif<j>(lift<flax<j>, Param::flax_j>(in, lap)));
-    }>(deref(std::forward<decltype(coeff)>(coeff)), in, lift<lap, Param::lap>(in));
-}>;
+constexpr auto hd = [](auto const &coeff, auto const &in) {
+    return lambda<[](auto const &coeff, auto const &in, auto const &lap) {
+        return minus(deref(in),
+            multiplies(deref(coeff), plus(ldif<i>(Param::flax_i(in, lap)), ldif<j>(Param::flax_j(in, lap)))));
+    }>(coeff, in, Param::lap(in));
+};
 
 template <bool Lap, bool FlaxI, bool FlaxJ>
 struct param {
-    static constexpr bool lap = Lap;
-    static constexpr bool flax_i = FlaxI;
-    static constexpr bool flax_j = FlaxJ;
+    static constexpr auto lap = lift<::lap, Lap>;
+    static constexpr auto flax_i = lift<flax<i>, FlaxI>;
+    static constexpr auto flax_j = lift<flax<j>, FlaxJ>;
 };
 
 template <class>

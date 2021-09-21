@@ -32,28 +32,26 @@ constexpr auto tuple_dot_init = [](auto z, auto sign) {
 constexpr auto tuple_dot = reduce<tuple_dot_fun, tuple_dot_init>;
 
 template <auto E2V>
-constexpr auto zavg = [](auto &&pp, auto &&s) {
+constexpr auto zavg = [](auto const &pp, auto const &s) {
     // auto tmp = sum(shift<E2V>(pp)) / 2;
     // auto ss = deref(s);
     // return std::tuple {
     //   tmp * std::get<0>(ss),
     //   tmp * std::get<1>(ss)
     // };
-    return lambda<[](auto &&tmp, auto &&s) {
+    return lambda<[](auto const &tmp, auto const &s) {
         return make_tuple(multiplies(tmp, tuple_get<0>(s)), multiplies(tmp, tuple_get<1>(s)));
-    }>(divides(sum(shift<E2V>(std::forward<decltype(pp)>(pp))), 2_c), deref(std::forward<decltype(s)>(s)));
+    }>(divides(sum(shift<E2V>(pp)), 2_c), deref(s));
 };
 
 template <auto E2V, auto V2E, bool UseTmp>
-constexpr auto nabla = [](auto &&pp, auto &&s, auto &&sign, auto &&vol) {
+constexpr auto nabla = [](auto const &pp, auto const &s, auto const &sign, auto const &vol) {
     // auto tmp = tuple_dot(shift<V2E>(lift<zavg<E2V>>(pp, s)), deref(sign));
     // auto v = deref(vol);
     // return std::tuple { std::get<0>(tmp) / v, std::get<1>(tmp) / v };
-    return lambda<[](auto &&tmp, auto &&vol) {
+    return lambda<[](auto tmp, auto vol) {
         return make_tuple(divides(tuple_get<0>(tmp), vol), divides(tuple_get<1>(tmp), vol));
-    }>(tuple_dot(shift<V2E>(lift<zavg<E2V>, UseTmp>(std::forward<decltype(pp)>(pp), std::forward<decltype(s)>(s))),
-           deref(std::forward<decltype(sign)>(sign))),
-        deref(std::forward<decltype(vol)>(vol)));
+    }>(tuple_dot(shift<V2E>(lift<zavg<E2V>, UseTmp>(pp, s)), deref(sign)), deref(vol));
 };
 
 /*
@@ -77,10 +75,10 @@ constexpr std::array<int, 6> v2e[7] = {{0, 2, 4, 6, 8, 10},
     {7, 8, 9, -1, -1, -1},
     {9, 10, 11, -1, -1, -1}};
 
+using params_t = testing::Types<std::false_type, std::true_type>;
+
 template <class>
 using lift_test = testing::Test;
-
-using params_t = testing::Types<std::false_type, std::true_type>;
 
 TYPED_TEST_SUITE(lift_test, params_t);
 
