@@ -42,7 +42,4 @@ namespace gridtools::fn::ast {
 
     template <class Tree, class Offsets>
     using shifted = builtin<builtins::shift, Offsets, Tree>;
-
-    template <class T>
-    using deref = builtin<builtins::deref, T>;
 } // namespace gridtools::fn::ast
