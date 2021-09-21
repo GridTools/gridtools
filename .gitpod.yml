@@ -9,9 +9,8 @@ vscode:
 tasks:
   - init: |
       mkdir .vscode
-      ln $(pwd)/.gitpod/.vscode/cmake-kits.json .vscode
-      ln $(pwd)/.gitpod/.theia/settings.json .theia
-      ln $(pwd)/.gitpod/.theia/launch.json .theia
+      ln $(pwd)/.gitpod/.vscode/settings.json .vscode
+      ln $(pwd)/.gitpod/.vscode/launch.json .vscode
       mkdir build
       cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -H/workspace/gridtools -B/workspace/gridtools/build \
       -DCMAKE_INSTALL_PREFIX:STRING=/workspace/gridtools/install -DCMAKE_BUILD_TYPE:STRING=Debug -G "Unix Makefiles"
