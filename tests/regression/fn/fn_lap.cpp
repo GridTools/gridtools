@@ -29,7 +29,7 @@ struct dim {
 };
 
 template <class Param>
-inline constexpr auto lap =
+constexpr auto lap =
     lambda<[](auto const &in) { return plus(dim<i>::dif2<Param::i>(in), dim<j>::dif2<Param::j>(in)); }>;
 
 template <class>

@@ -31,13 +31,13 @@ template <auto D>
 constexpr auto rdif = lambda<[](auto const &in) { return minus(deref(shift<D, 1>(in)), deref(in)); }>;
 
 template <auto D>
-constexpr auto ldif = [](auto &&in) { return rdif<D>(shift<D, -1>(std::forward<decltype(in)>(in))); };
+constexpr auto ldif = lambda<[](auto &&in) { return rdif<D>(shift<D, -1>(std::forward<decltype(in)>(in))); }>;
 
 template <auto D>
-constexpr auto flax = lambda<[](auto const &in, auto const &lap) {
+constexpr auto flax = [](auto const &in, auto const &lap) {
     return lambda<[](auto in, auto res) { return if_(less(multiplies(in, res), 0_c), res, 0_c); }>(
         rdif<D>(in), rdif<D>(lap));
-}>;
+};
 
 template <class Param>
 constexpr auto hd = lambda<[](auto &&coeff, auto const &in) {
