@@ -58,11 +58,19 @@ endif()
 set(REQUIRED_BOOST_VERSION 1.58)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
 
+include(FetchContent)
+FetchContent_Declare(
+        range-v3
+        GIT_REPOSITORY https://github.com/ericniebler/range-v3
+        GIT_TAG        0.11.0
+)
+FetchContent_MakeAvailable(range-v3)
+
 # setup main gridtools target
 add_library(gridtools INTERFACE)
 add_library(GridTools::gridtools ALIAS gridtools)
 target_compile_features(gridtools INTERFACE cxx_std_14)
-target_link_libraries(gridtools INTERFACE Boost::boost)
+target_link_libraries(gridtools INTERFACE Boost::boost range-v3)
 target_compile_definitions(gridtools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:BOOST_PP_VARIADICS=1>)
 target_include_directories(gridtools
         INTERFACE
