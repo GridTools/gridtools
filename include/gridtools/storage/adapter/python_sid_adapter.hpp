@@ -68,7 +68,7 @@ namespace gridtools {
             std::enable_if_t<(UnitStrideDim < tuple_util::size<std::decay_t<Strides>>::value), int> = 0>
         decltype(auto) assign_unit_stride(Strides &&strides, Shape &&shape) {
             return tuple_util::transform_index(
-                transform_strides_f<UnitStrideDim>{tuple_util::get<UnitStrideDim>(shape) > 1},
+                transform_strides_f<UnitStrideDim>{tuple_util::get<UnitStrideDim>(std::forward<Shape>(shape)) > 1},
                 tuple_util::convert_to<tuple>(std::forward<Strides>(strides)));
         }
 
