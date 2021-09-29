@@ -67,8 +67,12 @@ namespace gridtools {
             class Shape,
             std::enable_if_t<(UnitStrideDim < tuple_util::size<std::decay_t<Strides>>::value), int> = 0>
         decltype(auto) assign_unit_stride(Strides &&strides, Shape &&shape) {
-            return tuple_util::transform_index(
-                transform_strides_f<UnitStrideDim>{tuple_util::get<UnitStrideDim>(std::forward<Shape>(shape)) > 1},
+            // Numpy may shuffle array layout if the array sizes are equal to one in some dimensions.
+            // In this case the static unit stride calculation doesn't match the actual strides.
+            // Luckily we can ignore that because those strides will not be used (corresponding shape == 1).
+            // See: https://numpy.org/devdocs/release/1.8.0-notes.html#npy-relaxed-strides-checking
+            bool unit_stride_can_be_used = tuple_util::get<UnitStrideDim>(std::forward<Shape>(shape)) > 1;
+            return tuple_util::transform_index(transform_strides_f<UnitStrideDim>{unit_stride_can_be_used},
                 tuple_util::convert_to<tuple>(std::forward<Strides>(strides)));
         }
 
