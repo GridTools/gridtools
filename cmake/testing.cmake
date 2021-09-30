@@ -26,6 +26,7 @@ FetchContent_Declare(
   GIT_TAG        release-1.8.1
 )
 FetchContent_MakeAvailable(googletest)
+target_compile_options(gtest PRIVATE "-w")
 
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
