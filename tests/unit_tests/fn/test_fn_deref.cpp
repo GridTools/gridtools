@@ -61,5 +61,81 @@ namespace gridtools::fn {
                 std::cout << x << ", " << y << std::endl;
             }
         }
+
+        using namespace literals;
+
+        template <auto Get,
+            auto Pass,
+            auto Init,
+            size_t PrologueSize,
+            size_t EpilogueSize,
+            class D,
+            class Step,
+            class Out,
+            class Ptr,
+            class Strides>
+        void do_scan(size_t size, Ptr &&ptr, Strides const &strides) {
+            assert(size > PrologueSize + EpilogueSize);
+            size_t count_up = 0;
+            size_t count_down = size - 1;
+
+            auto inc = [&] {
+                sid::shift(ptr, sid::get_stride<D>(strides), Step());
+                --count_down;
+                ++count_up;
+            };
+
+            auto acc = tuple_util::fold(
+                [&]<class Acc, class N>(Acc && acc, N) {
+                    constexpr integral_constant<size_t, N::value> i;
+                    auto res = Pass(i, count_down, std::forward<Acc>(acc), ptr, strides);
+                    *at_key<Out>(ptr) = Get(acc);
+                    inc();
+                    return res;
+                },
+                Init(),
+                meta::make_indices_c<PrologueSize, std::tuple>());
+
+            for (; count_down >= EpilogueSize; inc())
+                *at_key<Out>(ptr) = Get(acc = Pass(count_up, count_down, acc, ptr, strides));
+
+            tuple_util::fold(
+                [&]<class Acc, class N>(Acc && acc, N) {
+                    constexpr integral_constant<size_t, EpilogueSize - 1 - N::value> i;
+                    auto res = Pass(count_up, i, std::forward<Acc>(acc), ptr, strides);
+                    *at_key<Out>(ptr) = Get(acc);
+                    inc();
+                    return res;
+                },
+                std::move(acc),
+                meta::make_indices_c<EpilogueSize, std::tuple>());
+        }
+
+        template <auto Get, auto Pass, class In, class End, class Out, class T>
+        void scan_body(In &in, End end, Out &out, T &acc) {
+            for (; in != end; ++in)
+                *out++ = Get(acc = Pass(acc, *in));
+        }
+
+        template <auto Prologue, auto Epilogue, auto Get, auto BodyPass, class In, class End, class Out>
+        auto my_scan(In in, End end, Out out) {
+            auto [acc, end2] = Prologue(in, end, out);
+            scan_body<Get, BodyPass>(in, end2, out, acc);
+            Epilogue(acc, in, end, out);
+        }
+
+        constexpr auto pass = []<class Num, class Acc, class T>(Num, Acc acc, T val) {
+            if constexpr (is_integral_constant_of<Num, 0>())
+                return std::tuple(val);
+            else if constexpr (is_integral_constant_of<Num, 1>())
+                return std::tuple(std::get<0>(acc), val);
+            else if constexpr (is_integral_constant_of<Num, -2>())
+                return std::tuple(std::get<1>(acc));
+            else if constexpr (is_integral_constant_of<Num, -1>())
+                return std::tuple();
+            else
+                return std::tuple(std::get<1>(acc), val);
+        };
+
     } // namespace
 } // namespace gridtools::fn
