@@ -42,7 +42,7 @@ namespace gridtools {
                 using plh_map_t = typename Stage::plh_map_t;
                 using keys_t = meta::rename<sid::composite::keys, meta::transform<meta::first, plh_map_t>>;
                 auto composite = tuple_util::convert_to<keys_t::template values>(tuple_util::transform(
-                    [&](auto info) {
+                    [&](auto info) GT_FORCE_INLINE_LAMBDA {
                         return sid::add_const(info.is_const(), at_key<decltype(info.plh())>(data_stores));
                     },
                     Stage::plh_map()));
@@ -56,20 +56,21 @@ namespace gridtools {
                     offset, sid::get_stride<dim::k>(strides), grid.k_start(Stage::interval(), Stage::execution()));
 
                 auto shift_back = -grid.k_size(Stage::interval()) * Stage::k_step();
-                auto k_sizes =
-                    tuple_util::transform([&](auto cell) { return grid.k_size(cell.interval()); }, Stage::cells());
-                auto k_loop = [k_sizes = std::move(k_sizes), shift_back](auto &ptr, auto const &strides) {
-                    tuple_util::for_each(
-                        [&ptr, &strides](auto cell, auto size) {
-                            for (int_t k = 0; k < size; ++k) {
-                                cell(ptr, strides);
-                                cell.inc_k(ptr, strides);
-                            }
-                        },
-                        Stage::cells(),
-                        k_sizes);
-                    sid::shift(ptr, sid::get_stride<dim::k>(strides), shift_back);
-                };
+                auto k_sizes = tuple_util::transform(
+                    [&](auto cell) GT_FORCE_INLINE_LAMBDA { return grid.k_size(cell.interval()); }, Stage::cells());
+                auto k_loop = [k_sizes = std::move(k_sizes), shift_back](auto &ptr, auto const &strides)
+                                  GT_FORCE_INLINE_LAMBDA {
+                                      tuple_util::for_each(
+                                          [&ptr, &strides](auto cell, auto size) GT_FORCE_INLINE_LAMBDA {
+                                              for (int_t k = 0; k < size; ++k) {
+                                                  cell(ptr, strides);
+                                                  cell.inc_k(ptr, strides);
+                                              }
+                                          },
+                                          Stage::cells(),
+                                          k_sizes);
+                                      sid::shift(ptr, sid::get_stride<dim::k>(strides), shift_back);
+                                  };
                 return [origin = sid::get_origin(composite) + offset,
                            strides = std::move(strides),
                            k_loop = std::move(k_loop)](int_t i_block, int_t j_block, int_t i_size, int_t j_size) {
@@ -120,7 +121,7 @@ namespace gridtools {
                 });
 
                 auto blocked_external_data_stores = tuple_util::transform(
-                    [&](auto &&data_store) {
+                    [&](auto &&data_store) GT_FORCE_INLINE_LAMBDA {
                         return sid::block(std::forward<decltype(data_store)>(data_store),
                             hymap::keys<dim::i, dim::j>::values<IBlockSize, JBlockSize>());
                     },
@@ -129,7 +130,8 @@ namespace gridtools {
                 auto data_stores = hymap::concat(std::move(blocked_external_data_stores), std::move(temporaries));
 
                 auto stage_loops = tuple_util::transform(
-                    [&](auto stage) { return make_stage_loop(ThreadPool(), stage, grid, data_stores); },
+                    [&](auto stage)
+                        GT_FORCE_INLINE_LAMBDA { return make_stage_loop(ThreadPool(), stage, grid, data_stores); },
                     meta::rename<tuple, stages_t>());
 
                 int_t total_i = grid.i_size();
@@ -138,11 +140,13 @@ namespace gridtools {
                 int_t NBI = (total_i + IBlockSize::value - 1) / IBlockSize::value;
                 int_t NBJ = (total_j + JBlockSize::value - 1) / JBlockSize::value;
 
-                thread_pool::parallel_for_loop(ThreadPool(),
+                thread_pool::parallel_for_loop(
+                    ThreadPool(),
                     [&](auto bj, auto bi) {
                         int_t i_size = bi + 1 == NBI ? total_i - bi * IBlockSize::value : IBlockSize::value;
                         int_t j_size = bj + 1 == NBJ ? total_j - bj * JBlockSize::value : JBlockSize::value;
-                        tuple_util::for_each([=](auto &&fun) { fun(bi, bj, i_size, j_size); }, stage_loops);
+                        tuple_util::for_each(
+                            [=](auto &&fun) GT_FORCE_INLINE_LAMBDA { fun(bi, bj, i_size, j_size); }, stage_loops);
                     },
                     NBJ,
                     NBI);
