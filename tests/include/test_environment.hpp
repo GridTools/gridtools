@@ -14,6 +14,14 @@
 #include <type_traits>
 #include <typeinfo>
 
+#include <boost/preprocessor/punctuation/remove_parens.hpp>
+#include <boost/preprocessor/seq/fold_left.hpp>
+#include <boost/preprocessor/seq/transform.hpp>
+#include <boost/preprocessor/tuple/elem.hpp>
+#include <boost/preprocessor/tuple/enum.hpp>
+#include <boost/preprocessor/tuple/pop_front.hpp>
+#include <boost/preprocessor/variadic/to_seq.hpp>
+
 #include <gtest/gtest.h>
 
 #include <gridtools/common/integral_constant.hpp>
@@ -27,17 +35,44 @@
 #include "timer_select.hpp"
 #include "verifier.hpp"
 
-#define GT_REGRESSION_TEST(name, env, backend)                                                             \
-    template <class T>                                                                                     \
-    using name = ::gridtools::test_environment_impl_::regression_test<T>;                                  \
-    using name##_types_t = meta::if_<env::is_enabled<backend>,                                             \
-        ::testing::Types<env::apply<backend, double, ::gridtools::test_environment_impl_::cmdline_params>, \
-            env::apply<backend, float, ::gridtools::test_environment_impl_::cmdline_params>,               \
-            env::apply<backend, double, ::gridtools::test_environment_impl_::inlined_params<12, 33, 61>>,  \
-            env::apply<backend, double, ::gridtools::test_environment_impl_::inlined_params<23, 11, 43>>>, \
-        ::testing::Types<>>;                                                                               \
-    TYPED_TEST_SUITE(name, name##_types_t, ::gridtools::test_environment_impl_::test_environment_names);   \
-    TYPED_TEST(name, test)
+#define GT_ENVIRONMENT_TEST_CONCAT_TUPLES_(s, state, x) (BOOST_PP_TUPLE_ENUM(state), BOOST_PP_TUPLE_ENUM(x))
+
+#define GT_ENVIRONMENT_TEST_ENUM_(seq) \
+    BOOST_PP_TUPLE_ENUM(               \
+        BOOST_PP_TUPLE_POP_FRONT(BOOST_PP_SEQ_FOLD_LEFT(GT_ENVIRONMENT_TEST_CONCAT_TUPLES_, (dummy), seq)))
+
+#define GT_ENVIRONMENT_TEST_MAKE_TEST_PARAM_(_, data, params)                                                          \
+    (BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(0, data))::apply<BOOST_PP_REMOVE_PARENS(BOOST_PP_TUPLE_ELEM(1, data)), \
+        BOOST_PP_TUPLE_ELEM(0, params),                                                                                \
+        ::gridtools::test_environment_impl_::BOOST_PP_TUPLE_ENUM(BOOST_PP_TUPLE_POP_FRONT(params))>)
+
+#define GT_ENVIRONMENT_TEST_BODY_(case, test) case##_##test##_test_body
+
+#define GT_ENVIRONMENT_TEST_SUITE(name, env, backend, ...)                                              \
+    template <class T>                                                                                  \
+    using name = ::gridtools::test_environment_impl_::regression_test<T>;                               \
+    using name##_types_t = ::testing::Types<GT_ENVIRONMENT_TEST_ENUM_(BOOST_PP_SEQ_TRANSFORM(           \
+        GT_ENVIRONMENT_TEST_MAKE_TEST_PARAM_, (env, backend), BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)))>; \
+    TYPED_TEST_SUITE(name, name##_types_t, ::gridtools::test_environment_impl_::test_environment_names)
+
+#define GT_ENVIRONMENT_TYPED_TEST(case, test)                                                          \
+    template <class, bool Enabled>                                                                     \
+    std::enable_if_t<!Enabled> GT_ENVIRONMENT_TEST_BODY_(case, test)() {}                              \
+    template <class, bool Enabled>                                                                     \
+    std::enable_if_t<Enabled> GT_ENVIRONMENT_TEST_BODY_(case, test)();                                 \
+    TYPED_TEST(case, test) { GT_ENVIRONMENT_TEST_BODY_(case, test)<TypeParam, TypeParam::enabled>(); } \
+    template <class TypeParam, bool Enabled>                                                           \
+    std::enable_if_t<Enabled> GT_ENVIRONMENT_TEST_BODY_(case, test)()
+
+#define GT_REGRESSION_TEST(name, env, backend) \
+    GT_ENVIRONMENT_TEST_SUITE(name,            \
+        env,                                   \
+        backend,                               \
+        (double, cmdline_params),              \
+        (float, cmdline_params),               \
+        (double, inlined_params<12, 33, 61>),  \
+        (double, inlined_params<23, 11, 43>)); \
+    GT_ENVIRONMENT_TYPED_TEST(name, test)
 
 namespace gridtools {
     namespace test_environment_impl_ {
@@ -145,15 +180,13 @@ namespace gridtools {
 
         template <size_t Halo, class Axis, class Pred, size_t... Is>
         struct test_environment<Halo, Axis, Pred, std::index_sequence<Is...>> {
-            template <class Backend>
-            using is_enabled = typename Pred::template apply<Backend>;
-
             template <class Backend, class FloatType, class ParamsSource>
             struct apply {
                 using backend_t = Backend;
                 using storage_traits_t = decltype(backend_storage_traits(Backend()));
                 using timer_impl_t = decltype(backend_timer_impl(Backend()));
                 using float_t = FloatType;
+                static constexpr bool enabled = Pred::template apply<Backend>::value;
 
                 static auto d(size_t i) { return ParamsSource::d(i) + (i < 2 ? Halo * 2 : 0); }
 

@@ -24,15 +24,10 @@ namespace {
 
     double in(int i, int j, int k) { return i + j + k + 1; }
 
-    using env_t = vertical_test_environment<0, axis_t>;
-
-    template <class T>
-    using test_kcache_fill = regression_test<T>;
-
-    using types_t = meta::if_<env_t::is_enabled<stencil_backend_t>,
-        testing::Types<env_t::apply<stencil_backend_t, double, inlined_params<6, 6, 2, 6, 2>>>,
-        testing::Types<>>;
-    TYPED_TEST_SUITE(test_kcache_fill, types_t);
+    GT_ENVIRONMENT_TEST_SUITE(test_kcache_fill,
+        (vertical_test_environment<0, axis_t>),
+        stencil_backend_t,
+        (double, inlined_params<6, 6, 2, 6, 2>));
 
     struct shift_acc_forward_fill {
         using in = in_accessor<0, extent<0, 0, 0, 0, -1, 1>>;
@@ -55,7 +50,7 @@ namespace {
         }
     };
 
-    TYPED_TEST(test_kcache_fill, forward) {
+    GT_ENVIRONMENT_TYPED_TEST(test_kcache_fill, forward) {
         auto out = TypeParam::make_storage();
         auto spec = [](auto in, auto out) {
             return execute_forward().k_cached(cache_io_policy::fill(), in).stage(shift_acc_forward_fill(), in, out);
@@ -96,7 +91,7 @@ namespace {
         }
     };
 
-    TYPED_TEST(test_kcache_fill, backward) {
+    GT_ENVIRONMENT_TYPED_TEST(test_kcache_fill, backward) {
         auto out = TypeParam::make_storage();
         auto spec = [](auto in, auto out) {
             return execute_backward().k_cached(cache_io_policy::fill(), in).stage(shift_acc_backward_fill(), in, out);
@@ -128,7 +123,7 @@ namespace {
         }
     };
 
-    TYPED_TEST(test_kcache_fill, fill_copy_forward) {
+    GT_ENVIRONMENT_TYPED_TEST(test_kcache_fill, fill_copy_forward) {
         auto out = TypeParam::make_storage();
         auto spec = [](auto in, auto out) {
             return execute_forward().k_cached(cache_io_policy::fill(), in).stage(copy_fill(), in, out);
