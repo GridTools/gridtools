@@ -20,7 +20,7 @@ module load cudatoolkit
 module load CMake
 
 
-export BOOST_ROOT=/project/c14/install/daint/boost/boost_1_67_0/
+export BOOST_ROOT=/apps/daint/UES/jenkins/7.0.UP02-20.11/gpu/easybuild/software/Boost/1.75.0-CrayGNU-20.11
 export CUDATOOLKIT_HOME=$CUDA_PATH
 export CUDA_ARCH=sm_60
 
