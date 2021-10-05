@@ -10,7 +10,7 @@ export CXX=$(which hipcc)
 export CC=$(which gcc)
 export FC=$(which gfortran)
 
-export GTRUN_BUILD_COMMAND='srun -p amdvega --time=03:00:00 make -j 64'
+export GTRUN_BUILD_COMMAND='make -j 8'
 export GTRUN_SBATCH_NTASKS=1
 export GTRUN_SBATCH_CPUS_PER_TASK=128
 export GTRUN_SBATCH_MEM_BIND=local
