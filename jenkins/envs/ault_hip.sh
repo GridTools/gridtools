@@ -4,7 +4,7 @@ source $(dirname "$BASH_SOURCE")/ault.sh
 
 module load rocm
 # fix for broken rocm module
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/llvm/lib"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/apps/ault/spack/opt/spack/linux-centos8-zen/gcc-8.4.1/llvm-amdgpu-4.3.0-g4mzby5emlvsxsi53tbfrarkelnzqhqc/lib/"
 
 export CXX=$(which hipcc)
 export CC=$(which gcc)
