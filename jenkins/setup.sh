@@ -11,7 +11,7 @@ envfile=./jenkins/envs/${label}_$env.sh
 if [[ $label = ault ]]; then
     venv_dir=/users/fthaler/public/jenkins/gridtools-venv
 else
-    venv_dir=/project/c14/jenkins/python-venvs/$label
+    venv_dir=/apps/$label/SSL/gridtools/jenkins/venv
 fi
 source $venv_dir/bin/activate
 
