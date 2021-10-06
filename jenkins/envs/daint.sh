@@ -20,7 +20,7 @@ module load cudatoolkit
 module load CMake
 
 
-export BOOST_ROOT=/project/c14/install/daint/boost/boost_1_67_0/
+export BOOST_ROOT=/apps/daint/SSL/gridtools/jenkins/boost_1_77_0
 export CUDATOOLKIT_HOME=$CUDA_PATH
 export CUDA_ARCH=sm_60
 
