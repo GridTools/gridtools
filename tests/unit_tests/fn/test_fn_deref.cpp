@@ -1,11 +1,10 @@
 #include <gridtools/fn/builtins.hpp>
-#include <gridtools/fn/column.hpp>
 
-#include <bits/ranges_base.h>
 #include <memory>
-#include <ranges>
 
 #include <gtest/gtest.h>
+
+#include <gridtools/sid/concept.hpp>
 
 namespace gridtools::fn {
     namespace {
@@ -39,30 +38,6 @@ namespace gridtools::fn {
             EXPECT_EQ(deref(good()), 42);
             EXPECT_FALSE(can_deref(bad()));
         }
-
-        TEST(ranges, smoke) {
-            using namespace literals;
-
-            EXPECT_EQ(plus(1, 2), 3);
-            std::vector x = {1, -2, 3, 4, -3};
-            auto in = std::views::all(x);
-            for (auto &&x : if_(less(in, 0_c), 0_c, in)) {
-                std::cout << x << std::endl;
-            }
-        }
-
-        TEST(scan, smoke) {
-            int in[] = {1, 2, 3, 4, 5, 6};
-            std::tuple init = {0, 100};
-            auto fun = [](auto acc, auto val) { return std::tuple(std::get<1>(acc), val); };
-            std::vector<decltype(init)> out;
-            std::inclusive_scan(std::begin(in), std::end(in), std::back_inserter(out), fun, init);
-            for (auto &&[x, y] : out) {
-                std::cout << x << ", " << y << std::endl;
-            }
-        }
-
-        using namespace literals;
 
         template <auto Get,
             auto Pass,

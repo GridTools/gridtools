@@ -10,12 +10,9 @@
 #pragma once
 
 #include <functional>
-#include <ranges>
 #include <tuple>
 #include <type_traits>
 #include <utility>
-
-#include <range/v3/view.hpp>
 
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
@@ -206,84 +203,12 @@ namespace gridtools::fn {
             return (... || std::forward<Args>(args));
         }
 
-        template <auto F, class Range, class Init>
-        struct scan_view : std::ranges::view_interface<scan_view<F, Range, Init>> {
-
-            using base_iterator_t = std::ranges::iterator_t<Range>;
-            using base_sentinel_t = std::ranges::sentinel_t<Range>;
-
-            Range m_base;
-            Init m_init;
-
-            struct iterator {
-                using difference_type = std::ranges::range_difference_t<Range>;
-                using value_type = Init;
-
-                base_iterator_t m_iter;
-                base_sentinel_t m_sentinel;
-                value_type m_cur;
-
-                void update() {
-                    if (m_iter != m_sentinel)
-                        m_cur = F(m_cur, *m_iter);
-                }
-
-                iterator(const Range &range, Init const &init)
-                    : m_iter(std::ranges::begin(range)), m_sentinel(std::ranges::end(range)), m_cur(init) {
-                    update();
-                }
-
-                friend constexpr bool operator==(iterator const &iter, base_sentinel_t const &end) {
-                    return iter.m_iter == end;
-                }
-
-                constexpr iterator &operator++() {
-                    ++m_iter;
-                    update();
-                    return *this;
-                }
-
-                constexpr void operator++(int) { ++(*this); }
-
-                constexpr value_type const &operator*() const { return m_cur; }
-            };
-
-            scan_view(meta::val<F>, Range range, Init init) : m_base(std::move(range)), m_init(std::move(init)) {}
-
-            iterator begin() const { return {m_base}; }
-            iterator end() const { return std::ranges::end(m_base); }
-        };
-
-        template <class F, class Init, class IsBackward, class... Args>
-        constexpr decltype(auto) fn_default(builtins::scan, F, Init, IsBackward, Args &&... args) {
-            auto zipped = ranges::zip_view(std::forward<Args>(args)...);
-            constexpr auto wrapper = [](auto acc, auto &&args) {
-                return std::apply(
-                    [acc]<class... As>(As && ... as) { return F::value(acc, std::forward<As>(as)...); }, args);
-            };
-            return scan_view(meta::constant<wrapper>, ranges::zip_view(std::forward<Args>(args)...), Init::value());
-        }
-
-        template <class Arg>
-        constexpr decltype(auto) to_range(Arg &&arg) {
-            if constexpr (std::ranges::input_range<Arg>)
-                return std::forward<Arg>(arg);
-            else
-                return ranges::views::repeat(std::forward<Arg>(arg));
-        }
-
         template <class Tag, class... Args>
         constexpr decltype(auto) builtin_fun(Tag tag, Args &&... args) {
-            if constexpr (std::is_same_v<decltype(fn_builtin(tag, std::forward<Args>(args)...)), undefined>) {
-                if constexpr ((std::ranges::input_range<Args> || ...))
-                    return ranges::zip_with_view(
-                        []<class... As>(As && ... as) { return builtin_fun(Tag(), std::forward<As>(as)...); },
-                        to_range(std::forward<Args>(args))...);
-                else
-                    return builtins_impl_::fn_default(tag, std::forward<Args>(args)...);
-            } else {
+            if constexpr (std::is_same_v<decltype(fn_builtin(tag, std::forward<Args>(args)...)), undefined>)
+                return builtins_impl_::fn_default(tag, std::forward<Args>(args)...);
+            else
                 return fn_builtin(tag, std::forward<Args>(args)...);
-            }
         }
 
         template <class Tag>

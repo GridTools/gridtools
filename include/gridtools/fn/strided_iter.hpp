@@ -16,7 +16,6 @@
 #include "../sid/concept.hpp"
 #include "../sid/multi_shift.hpp"
 #include "builtins.hpp"
-#include "column.hpp"
 
 namespace gridtools::fn {
     namespace strided_iter_impl_ {
