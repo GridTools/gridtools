@@ -136,33 +136,5 @@ namespace gridtools::fn {
             else
                 return std::tuple(std::get<1>(acc), val);
         };
-
-        constexpr size_t resize_inner_dimension(size_t size, size_t elem_size, size_t alignment) {
-            size_t unit = std::lcm(elem_size, alignment) / elem_size;
-            return (size + unit - 1) / unit * unit;
-        }
-
-        template <class T, size_t ByteAlignment>
-        struct resize {
-            using type = T;
-        };
-
-        template <class T, std::size_t ByteAlignment = 128>
-        using resize_t = typename resize<T, ByteAlignment>::type;
-
-        template <class T, size_t N, size_t ByteAlignment>
-        struct resize<T[N], ByteAlignment> {
-            using type = T[resize_inner_dimension(N, sizeof(T), ByteAlignment)];
-        };
-
-        template <class T, size_t Outer, size_t Inner, size_t ByteAlignment>
-        struct resize<T[Outer][Inner], ByteAlignment> {
-            using type = resize_t<T[Inner], ByteAlignment>[Outer];
-        };
-
-        //        GT_META_PRINT_TYPE(resize_t<double[3][4][17]>);
-
-        void foo() { std::map<char const *, int> m = {{"a", 1}, {"b", 2}, {"c", 3}}; }
-
     } // namespace
 } // namespace gridtools::fn
