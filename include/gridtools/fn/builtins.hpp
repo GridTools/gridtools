@@ -14,6 +14,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "../common/integral_constant.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "offsets.hpp"
@@ -174,8 +175,13 @@ namespace gridtools::fn {
         }
 
         template <class C, class L, class R>
-        constexpr decltype(auto) fn_default(builtins::if_, C &&c, L &&l, R &&r) {
-            return std::forward<C>(c) ? std::forward<L>(l) : std::forward<R>(r);
+        constexpr decltype(auto) fn_default(builtins::if_, C const &c, L &&l, R &&r) {
+            if constexpr (!is_integral_constant<C>())
+                return c ? std::forward<L>(l) : std::forward<R>(r);
+            else if constexpr (C::value)
+                return std::forward<L>(l);
+            else
+                return std::forward<R>(r);
         }
 
         template <class L, class R>
@@ -201,6 +207,17 @@ namespace gridtools::fn {
         template <class... Args>
         constexpr decltype(auto) fn_default(builtins::or_, Args &&... args) {
             return (... || std::forward<Args>(args));
+        }
+
+        struct dummy_scan_init_t {};
+
+        template <class Pass, class IsBackward, class... Args>
+        constexpr decltype(auto) fn_default(builtins::scan, Pass, IsBackward, Args &&... args) {
+            assert(false);
+            return Pass::value(integral_constant<size_t, 0>(),
+                integral_constant<size_t, size_t(-1)>(),
+                dummy_scan_init_t(),
+                std::forward<Args>(args)...);
         }
 
         template <class Tag, class... Args>
@@ -251,7 +268,9 @@ namespace gridtools::fn {
     template <auto F, auto Init>
     constexpr auto reduce = std::bind_front(builtin<builtins::reduce>, meta::constant<F>, meta::constant<Init>);
 
-    template <auto F, auto Init, bool IsBackward = false>
-    constexpr auto scan = std::bind_front(
-        builtin<builtins::reduce>, meta::constant<F>, meta::constant<Init>, std::bool_constant<IsBackward>());
+    template <auto F, bool IsBackward = false>
+    constexpr auto scan = []<class... Args>(Args &&... args) -> decltype(auto) {
+        return builtin<builtins::scan>(
+            meta::constant<F>, std::bool_constant<IsBackward>(), std::forward<Args>(args)...);
+    };
 } // namespace gridtools::fn

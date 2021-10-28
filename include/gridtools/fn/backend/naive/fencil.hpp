@@ -52,9 +52,15 @@ namespace gridtools::fn {
 
         template <auto Stencil, class Domain, class Output, class... Inputs>
         void process_stencil(Domain const &domain, Output &output, std::tuple<Inputs...> inputs) {
-            if constexpr (ast::has_tmps<Stencil, Inputs...>) {
+            using raw_tree_t = ast::parse<Stencil, Inputs...>;
+            if constexpr (ast::has_scans<raw_tree_t>()) {
                 using input_types_t = meta::list<sid::element_type<Inputs>...>;
-                using tree_t = ast::popup_tmps<ast::parse<Stencil, Inputs...>>;
+                using tree_t = ast::popup_tmps<raw_tree_t>;
+                using specs_t = ast::flatten_tmps_tree<tree_t, input_types_t>;
+                using stages_t = meta::transform<make_stage_from_spec, specs_t>;
+            } else if constexpr (ast::has_tmps<raw_tree_t>()) {
+                using input_types_t = meta::list<sid::element_type<Inputs>...>;
+                using tree_t = ast::popup_tmps<raw_tree_t>;
                 using specs_t = ast::flatten_tmps_tree<tree_t, input_types_t>;
                 using stages_t = meta::transform<make_stage_from_spec, specs_t>;
                 auto alloc = sid::make_allocator(&std::make_unique<char[]>);

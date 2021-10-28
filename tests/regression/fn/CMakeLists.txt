@@ -7,6 +7,10 @@ if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
     target_link_libraries(fn_hd gtest_main gmock gridtools)
     add_test(NAME fn_hd COMMAND $<TARGET_FILE:fn_hd>)
 
+    add_executable(fn_tridiag fn_tridiag.cpp)
+    target_link_libraries(fn_tridiag gtest_main gmock gridtools)
+    add_test(NAME fn_tridiag COMMAND $<TARGET_FILE:fn_tridiag>)
+
     add_executable(fn_nabla fn_nabla.cpp)
     target_link_libraries(fn_nabla gtest_main gmock gridtools)
     add_test(NAME fn_nabla COMMAND $<TARGET_FILE:fn_nabla>)

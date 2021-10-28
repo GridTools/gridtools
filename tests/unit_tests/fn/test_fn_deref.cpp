@@ -51,65 +51,43 @@ namespace gridtools::fn {
             class Strides>
         void do_scan(size_t size, Ptr &&ptr, Strides const &strides) {
             assert(size > PrologueSize + EpilogueSize);
+
             size_t count_up = 0;
             size_t count_down = size - 1;
+            auto const &v_stride = sid::get_stride<D>(strides);
 
-            auto inc = [&] {
-                sid::shift(ptr, sid::get_stride<D>(strides), Step());
+            auto next = [&](auto up, auto down, auto prev) {
+                auto cur = Pass(up, down, std::move(prev), ptr, strides);
+                *at_key<Out>(ptr) = Get(cur);
+                sid::shift(ptr, v_stride, Step());
                 --count_down;
                 ++count_up;
+                return cur;
             };
 
-            auto acc = tuple_util::fold(
-                [&]<class Acc, class N>(Acc && acc, N) {
-                    constexpr integral_constant<size_t, N::value> i;
-                    auto res = Pass(i, count_down, std::forward<Acc>(acc), ptr, strides);
-                    *at_key<Out>(ptr) = Get(acc);
-                    inc();
-                    return res;
-                },
-                Init(),
-                meta::make_indices_c<PrologueSize, std::tuple>());
+            auto prologue = [&](auto acc) {
+                using indices_t = meta::make_indices_c<PrologueSize, std::tuple>;
+                const auto f = [&]<class I>(auto acc, I) {
+                    return next(integral_constant<size_t, I::value>(), count_down, std::move(acc));
+                };
+                return tuple_util::fold(f, std::move(acc), indices_t());
+            };
 
-            for (; count_down >= EpilogueSize; inc())
-                *at_key<Out>(ptr) = Get(acc = Pass(count_up, count_down, acc, ptr, strides));
+            auto body = [&](auto acc) {
+                while (count_down >= EpilogueSize)
+                    acc = next(count_up, count_down, std::move(acc));
+                return acc;
+            };
 
-            tuple_util::fold(
-                [&]<class Acc, class N>(Acc && acc, N) {
-                    constexpr integral_constant<size_t, EpilogueSize - 1 - N::value> i;
-                    auto res = Pass(count_up, i, std::forward<Acc>(acc), ptr, strides);
-                    *at_key<Out>(ptr) = Get(acc);
-                    inc();
-                    return res;
-                },
-                std::move(acc),
-                meta::make_indices_c<EpilogueSize, std::tuple>());
+            auto epilogue = [&](auto acc) {
+                using indices_t = meta::make_indices_c<EpilogueSize, std::tuple>;
+                const auto f = [&]<class I>(auto acc, I) {
+                    return next(count_up, integral_constant<size_t, EpilogueSize - 1 - I::value>(), std::move(acc));
+                };
+                tuple_util::fold(f, std::move(acc), meta::make_indices_c<EpilogueSize, std::tuple>());
+            };
+
+            epilogue(body(prologue(Init())));
         }
-
-        template <auto Get, auto Pass, class In, class End, class Out, class T>
-        void scan_body(In &in, End end, Out &out, T &acc) {
-            for (; in != end; ++in)
-                *out++ = Get(acc = Pass(acc, *in));
-        }
-
-        template <auto Prologue, auto Epilogue, auto Get, auto BodyPass, class In, class End, class Out>
-        auto my_scan(In in, End end, Out out) {
-            auto [acc, end2] = Prologue(in, end, out);
-            scan_body<Get, BodyPass>(in, end2, out, acc);
-            Epilogue(acc, in, end, out);
-        }
-
-        constexpr auto pass = []<class Num, class Acc, class T>(Num, Acc acc, T val) {
-            if constexpr (is_integral_constant_of<Num, 0>())
-                return std::tuple(val);
-            else if constexpr (is_integral_constant_of<Num, 1>())
-                return std::tuple(std::get<0>(acc), val);
-            else if constexpr (is_integral_constant_of<Num, -2>())
-                return std::tuple(std::get<1>(acc));
-            else if constexpr (is_integral_constant_of<Num, -1>())
-                return std::tuple();
-            else
-                return std::tuple(std::get<1>(acc), val);
-        };
     } // namespace
 } // namespace gridtools::fn

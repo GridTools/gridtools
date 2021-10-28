@@ -22,8 +22,8 @@ namespace gridtools::fn::ast {
     template <class...>
     struct lambda;
 
-    template <auto F, class... Args>
-    struct lambda<meta::val<F>, Args...> {};
+    template <class F, class... Args>
+    struct lambda<F, Args...> {};
 
     template <class...>
     struct builtin;

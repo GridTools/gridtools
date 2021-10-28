@@ -335,8 +335,7 @@ namespace gridtools::fn::ast {
 
     } // namespace tmp_impl_
 
-    template <auto F, class... Args>
-    constexpr bool has_tmps = tmp_impl_::has_tmps<parse<F, Args...>>::value;
+    using tmp_impl_::has_tmps;
 
     using tmp_impl_::flatten_tmps_tree;
     using tmp_impl_::popup_tmps;
