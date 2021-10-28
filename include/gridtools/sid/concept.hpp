@@ -612,8 +612,8 @@ namespace gridtools {
             using is_sid = conjunction<
 
                 // `is_trivially_copyable` check is applied to the types that are will be passed from host to device
-                std::is_trivially_copyable<PtrHolder>,
-                std::is_trivially_copyable<StridesType>,
+                std::is_trivially_copy_constructible<PtrHolder>,
+                std::is_trivially_copy_constructible<StridesType>,
 
                 // verify that `PtrDiff` is sane
                 std::is_default_constructible<PtrDiff>,
