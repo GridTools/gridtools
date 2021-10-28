@@ -197,5 +197,5 @@ epub_exclude_files = ['search.html']
 def setup(sphinx):
     sys.path.insert(0, os.path.abspath('./'))
     from gridtools_lexer import GridToolsLexer
-    sphinx.add_lexer("gridtools", GridToolsLexer())
-    sphinx.add_stylesheet('css/cscs.css')
+    sphinx.add_lexer("gridtools", GridToolsLexer)
+    sphinx.add_css_file('css/cscs.css')

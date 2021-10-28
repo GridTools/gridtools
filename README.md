@@ -59,6 +59,11 @@ The GridTools libraries are currently nightly tested with the following compiler
 - CUDA 11.0.x has a severe issue, see https://github.com/GridTools/gridtools/issues/1522. Under certain conditions, GridTools code will not compile for this version of CUDA. CUDA 11.1.x and later should not be affected by this issue.
 - Cray Clang version 11.0.0 has a problem with the `gridtools::tuple` conversion constructor, see https://github.com/GridTools/gridtools/issues/1615.
 
+##### Partly supported (expected to work, but not tested regularly)
+
+| Compiler | Backend | Date | Comments |
+| --- | --- | --- | --- |
+| Intel 19.1.1.217 | all backends | 2021-09-30 | with `cmake . -DCMAKE_CXX_FLAGS=-qnextgen` |
 
 ##### Officially not supported (no workarounds implemented and planned)
 
@@ -74,6 +79,6 @@ The GridTools libraries are currently nightly tested with the following compiler
 
 ### Contributing
 
-Contributions to the GridTools framework are welcome. Please open an issue for any bugs that you encounter or provide a fix or enhancement as a PR. External contributions to GridTools require us a signed copy of a copyright release form to ETH Zurich. We will contact you on the PR.
+Contributions to the GridTools framework are welcome. Please open an issue for any bugs that you encounter or provide a fix or enhancement as a PR. External contributions to GridTools require us a signed copy of a [copyright release form to ETH Zurich](https://github.com/GridTools/CAA). We will contact you on the PR.
 
 [BSD.License]: https://img.shields.io/badge/License-BSD--3--Clause-blue.svg

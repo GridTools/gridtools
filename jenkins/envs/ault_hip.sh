@@ -4,13 +4,13 @@ source $(dirname "$BASH_SOURCE")/ault.sh
 
 module load rocm
 # fix for broken rocm module
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/rocm/llvm/lib"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/apps/ault/spack/opt/spack/linux-centos8-zen/gcc-8.4.1/llvm-amdgpu-4.3.0-g4mzby5emlvsxsi53tbfrarkelnzqhqc/lib/"
 
 export CXX=$(which hipcc)
 export CC=$(which gcc)
 export FC=$(which gfortran)
 
-export GTRUN_BUILD_COMMAND='srun -p amdvega --time=03:00:00 make -j 64'
+export GTRUN_BUILD_COMMAND='make -j 8'
 export GTRUN_SBATCH_NTASKS=1
 export GTRUN_SBATCH_CPUS_PER_TASK=128
 export GTRUN_SBATCH_MEM_BIND=local

@@ -1,0 +1,52 @@
+# YAML 1.2
+---
+authors: 
+  -
+    affiliation: "Swiss National Supercomputing Centre, ETH Zurich, Lugano, Switzerland"
+    family-names: Afanasyev
+    given-names: Anton
+  -
+    affiliation: "Swiss National Supercomputing Centre, ETH Zurich, Lugano, Switzerland"
+    family-names: Bianco
+    given-names: Mauro
+  -
+    affiliation: "Swiss National Supercomputing Centre, ETH Zurich, Lugano, Switzerland"
+    family-names: Mosimann
+    given-names: Lukas
+  -
+    affiliation: "Federal Institute of Meteorology and Climatology MeteoSwiss, Zurich, Switzerland"
+    family-names: Osuna
+    given-names: Carlos
+  -
+    affiliation: "Swiss National Supercomputing Centre, ETH Zurich, Lugano, Switzerland"
+    family-names: Thaler
+    given-names: Felix
+  -
+    affiliation: "Swiss National Supercomputing Centre, ETH Zurich, Lugano, Switzerland"
+    family-names: Vogt
+    given-names: Hannes
+  -
+    affiliation: "Federal Institute of Meteorology and Climatology MeteoSwiss, Zurich, Switzerland and Vulcan Inc, Seattle, United States of America"
+    family-names: Fuhrer
+    given-names: Oliver
+  -
+    affiliation: "Swiss National Supercomputing Centre, ETH Zurich, Lugano, Switzerland"
+    family-names: VandeVondele
+    given-names: Joost
+  -
+    affiliation: "Swiss National Supercomputing Centre, ETH Zurich, Lugano, Switzerland and Institute for Theoretical Physics, ETH, Zurich, Switzerland"
+    family-names: Schulthess
+    given-names: "Thomas C."
+cff-version: "1.1.0"
+doi: "10.1016/j.softx.2021.100707"
+keywords: 
+  - "C++"
+  - Weather
+  - Climate
+  - Library
+  - "Embedded DSL"
+license: "BSD-3-Clause"
+message: "If you use this software, please cite it using these metadata."
+repository-code: "https://github.com/GridTools/gridtools"
+title: "GridTools: A framework for portable weather and climate applications"
+...
