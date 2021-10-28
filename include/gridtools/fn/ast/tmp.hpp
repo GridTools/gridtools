@@ -20,21 +20,21 @@ namespace gridtools::fn::ast {
     namespace tmp_impl_ {
         namespace lazy {
             template <class Leaf>
-            struct normailze_shifts {
+            struct normalize_shifts {
                 using type = Leaf;
             };
 
             template <template <class...> class Node, class... Trees>
-            struct normailze_shifts<Node<Trees...>> {
-                using type = Node<typename normailze_shifts<Trees>::type...>;
+            struct normalize_shifts<Node<Trees...>> {
+                using type = Node<typename normalize_shifts<Trees>::type...>;
             };
 
             template <class Tree, auto... Outer, auto... Inner>
-            struct normailze_shifts<shifted<shifted<Tree, meta::val<Inner...>>, meta::val<Outer...>>> {
-                using type = typename normailze_shifts<shifted<Tree, meta::val<Inner..., Outer...>>>::type;
+            struct normalize_shifts<shifted<shifted<Tree, meta::val<Inner...>>, meta::val<Outer...>>> {
+                using type = typename normalize_shifts<shifted<Tree, meta::val<Inner..., Outer...>>>::type;
             };
         } // namespace lazy
-        GT_META_DELEGATE_TO_LAZY(normailze_shifts, class T, T);
+        GT_META_DELEGATE_TO_LAZY(normalize_shifts, class T, T);
 
         template <class>
         struct has_tmps : std::false_type {};
@@ -143,7 +143,7 @@ namespace gridtools::fn::ast {
         template <class F, class... Trees>
         struct expand<lambda<F, Trees...>> {
             using type = meta::if_<has_tmps<parse<F::value, Trees...>>,
-                typename expand<normailze_shifts<decltype(F::value(Trees()...))>>::type,
+                typename expand<normalize_shifts<decltype(F::value(Trees()...))>>::type,
                 lambda<F, typename expand<Trees>::type...>>;
         };
 
@@ -165,7 +165,7 @@ namespace gridtools::fn::ast {
         };
 
         template <class Tree>
-        using popup_tmps = typename collapse<typename expand<normailze_shifts<Tree>>::type>::type;
+        using popup_tmps = typename collapse<typename expand<normalize_shifts<Tree>>::type>::type;
 
         template <class...>
         struct flatten_nodes;
@@ -202,7 +202,7 @@ namespace gridtools::fn::ast {
 
         template <class Tmp, auto F, class... Trees>
         struct collect_offsets<Tmp, lambda<meta::val<F>, Trees...>> {
-            using type = typename collect_offsets<Tmp, normailze_shifts<decltype(F(Trees()...))>>::type;
+            using type = typename collect_offsets<Tmp, normalize_shifts<decltype(F(Trees()...))>>::type;
         };
 
         template <class Tmp, class F, class... Trees>
@@ -239,7 +239,7 @@ namespace gridtools::fn::ast {
         struct collect_reduce_offsets_f {
             template <class N>
             using apply =
-                typename collect_offsets<Tmp, normailze_shifts<deref<shifted<Arg, meta::val<N::value>>>>>::type;
+                typename collect_offsets<Tmp, normalize_shifts<deref<shifted<Arg, meta::val<N::value>>>>>::type;
         };
 
         template <class Tmp, class F, class Init, class... Trees>
