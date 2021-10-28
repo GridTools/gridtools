@@ -7,7 +7,7 @@ module load craype-x86-skylake
 module load craype-network-infiniband
 module load slurm
 
-export BOOST_ROOT=/project/c14/install/tsa/boost/boost_1_67_0/
+export BOOST_ROOT=/apps/tsa/SSL/gridtools/jenkins/boost_1_77_0
 export CUDA_ARCH=sm_70
 
 export GTRUN_BUILD_COMMAND='make -j 8'

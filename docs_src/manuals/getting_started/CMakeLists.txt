@@ -56,5 +56,6 @@ ExternalProject_Add(getting_started_cmake_test
     CMAKE_ARGS
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DGridTools_DIR=${PROJECT_BINARY_DIR} # relies on the GridToolsConfig.cmake in the build directory (the one used for export(package))
+        -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
     INSTALL_COMMAND ""
     )

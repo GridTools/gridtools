@@ -25,15 +25,10 @@ namespace {
 
     double in(int i, int j, int k) { return i + j + k + 1; }
 
-    using env_t = vertical_test_environment<0, axis_t>;
-
-    template <class T>
-    using test_kcache_local = regression_test<T>;
-
-    using types_t = meta::if_<env_t::is_enabled<stencil_backend_t>,
-        ::testing::Types<env_t::apply<stencil_backend_t, double, inlined_params<6, 6, 2, 6, 2>>>,
-        ::testing::Types<>>;
-    TYPED_TEST_SUITE(test_kcache_local, types_t);
+    GT_ENVIRONMENT_TEST_SUITE(test_kcache_local,
+        (vertical_test_environment<0, axis_t>),
+        stencil_backend_t,
+        (double, inlined_params<6, 6, 2, 6, 2>));
 
     struct shift_acc_forward {
         using in = in_accessor<0>;
@@ -55,7 +50,7 @@ namespace {
         }
     };
 
-    TYPED_TEST(test_kcache_local, forward) {
+    GT_ENVIRONMENT_TYPED_TEST(test_kcache_local, forward) {
         auto out = TypeParam::make_storage();
         auto spec = [](auto in, auto out) {
             GT_DECLARE_TMP(double, tmp);
@@ -94,7 +89,7 @@ namespace {
         }
     };
 
-    TYPED_TEST(test_kcache_local, backward) {
+    GT_ENVIRONMENT_TYPED_TEST(test_kcache_local, backward) {
         auto out = TypeParam::make_storage();
         auto spec = [](auto in, auto out) {
             GT_DECLARE_TMP(double, tmp);
@@ -145,7 +140,7 @@ namespace {
         }
     };
 
-    TYPED_TEST(test_kcache_local, biside_forward) {
+    GT_ENVIRONMENT_TYPED_TEST(test_kcache_local, biside_forward) {
         auto out = TypeParam::make_storage();
         auto spec = [](auto in, auto out) {
             GT_DECLARE_TMP(double, tmp);
@@ -204,7 +199,7 @@ namespace {
         }
     };
 
-    TYPED_TEST(test_kcache_local, biside_backward) {
+    GT_ENVIRONMENT_TYPED_TEST(test_kcache_local, biside_backward) {
         auto out = TypeParam::make_storage();
         auto spec = [](auto in, auto out) {
             GT_DECLARE_TMP(double, tmp);

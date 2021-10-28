@@ -73,16 +73,12 @@ namespace {
         }
     };
 
-    using env_t = vertical_test_environment<>;
-
-    template <class T>
-    using tridiagonal = regression_test<T>;
-    using tridiagonal_types_t = meta::if_<env_t::is_enabled<stencil_backend_t>,
-        ::testing::Types<env_t::apply<stencil_backend_t, double, inlined_params<12, 33, 6>>,
-            env_t::apply<stencil_backend_t, double, inlined_params<23, 11, 6>>>,
-        ::testing::Types<>>;
-    TYPED_TEST_SUITE(tridiagonal, tridiagonal_types_t);
-    TYPED_TEST(tridiagonal, test) {
+    GT_ENVIRONMENT_TEST_SUITE(tridiagonal,
+        vertical_test_environment<>,
+        stencil_backend_t,
+        (double, inlined_params<12, 33, 6>),
+        (double, inlined_params<23, 11, 6>));
+    GT_ENVIRONMENT_TYPED_TEST(tridiagonal, test) {
         auto out = TypeParam::make_storage();
         run(
             [](auto inf, auto diag, auto sup, auto rhs, auto out) {

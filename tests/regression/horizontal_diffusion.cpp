@@ -94,7 +94,7 @@ namespace {
         std::enable_if_t<
             !meta::is_instantiation_of<gpu_horizontal_backend::gpu_horizontal, typename Env::backend_t>::value,
             int> = 0>
-    auto get_spec(Env) {
+    auto get_spec() {
         return [](auto in, auto coeff, auto out) {
             GT_DECLARE_TMP(typename Env::float_t, lap, flx, fly);
             return execute_parallel()
@@ -110,7 +110,7 @@ namespace {
         std::enable_if_t<
             meta::is_instantiation_of<gpu_horizontal_backend::gpu_horizontal, typename Env::backend_t>::value,
             int> = 0>
-    auto get_spec(Env) {
+    auto get_spec() {
         return [](auto in, auto coeff, auto out) {
             GT_DECLARE_TMP(typename Env::float_t, inc, lap, flx, fly);
             return execute_parallel()
@@ -128,7 +128,7 @@ namespace {
         auto comp = [grid = TypeParam::make_grid(),
                         coeff = TypeParam::make_const_storage(repo.coeff),
                         in = TypeParam::make_const_storage(repo.in),
-                        &out] { run(get_spec(TypeParam()), TypeParam::backend(), grid, in, coeff, out); };
+                        &out] { run(get_spec<TypeParam>(), TypeParam::backend(), grid, in, coeff, out); };
         comp();
         TypeParam::verify(repo.out, out);
         TypeParam::benchmark("horizontal_diffusion", comp);
