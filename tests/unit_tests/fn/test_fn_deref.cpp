@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/for_each.hpp>
 #include <gridtools/sid/concept.hpp>
 
 namespace gridtools::fn {
@@ -39,6 +40,39 @@ namespace gridtools::fn {
             EXPECT_FALSE(can_deref(bad()));
         }
 
+        template <class Init,
+            class Pass,
+            class Prologue,
+            class Epilogue,
+            class D,
+            class Step,
+            class Out,
+            class Ptr,
+            class Strides>
+        void do_scan(size_t size, Ptr &&ptr, Strides const &strides) {
+            constexpr size_t min_size = 1 + meta::length<Prologue>() + meta::length<Epilogue>();
+            assert(size >= min_size);
+            auto const &v_stride = sid::get_stride<D>(strides);
+            auto inc = [&] { sid::shift(ptr, v_stride, Step()); };
+            auto init = [&]<auto Get, auto F>(meta::val<Get, F> = Init()) {
+                auto &&res = F(ptr, strides);
+                *at_key<Out>(ptr) = Get(res);
+                inc();
+                return res;
+            };
+            auto next = [&]<auto Get, auto F>(auto acc, meta::val<Get, F>) {
+                auto &&res = F(std::move(acc), ptr, strides);
+                *at_key<Out>(ptr) = Get(res);
+                inc();
+                return res;
+            };
+            auto acc = tuple_util::fold(next, init(), Prologue());
+            size_t n = size - min_size;
+            for (size_t i = 0; i != n; ++i)
+                acc = next(std::move(acc), Pass());
+            tuple_util::fold(next, std::move(acc), Epilogue());
+        }
+
         template <auto Get,
             auto Pass,
             auto Init,
@@ -49,7 +83,7 @@ namespace gridtools::fn {
             class Out,
             class Ptr,
             class Strides>
-        void do_scan(size_t size, Ptr &&ptr, Strides const &strides) {
+        void do_scan_old(size_t size, Ptr &&ptr, Strides const &strides) {
             assert(size > PrologueSize + EpilogueSize);
 
             size_t count_up = 0;
@@ -89,5 +123,6 @@ namespace gridtools::fn {
 
             epilogue(body(prologue(Init())));
         }
+
     } // namespace
 } // namespace gridtools::fn
