@@ -159,8 +159,12 @@ namespace gridtools {
         template <class T>
         using get_from_keys_values =
             decltype(::gridtools::hymap_impl_::get_from_keys_values_fun(std::declval<T const &>()));
+
+        template <class Key, class Map>
+        using element_at = tuple_util::element<meta::st_position<get_keys<Map>, Key>::value, Map>;
     } // namespace hymap_impl_
 
+    using hymap_impl_::element_at;
     using hymap_impl_::get_from_keys_values;
     using hymap_impl_::get_keys;
 
@@ -191,7 +195,8 @@ namespace gridtools {
 
         template <class MetaMap,
             template <class...> class KeyCtor = keys,
-            class KeysAndValues = meta::transpose<MetaMap>>
+            class KeysAndValues =
+                meta::if_<meta::is_empty<MetaMap>, meta::list<meta::list<>, meta::list<>>, meta::transpose<MetaMap>>>
         using from_meta_map = from_keys_values<meta::first<KeysAndValues>, meta::second<KeysAndValues>, KeyCtor>;
 
         namespace hymap_impl_ {
