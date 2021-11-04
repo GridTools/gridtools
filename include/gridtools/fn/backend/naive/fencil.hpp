@@ -53,12 +53,7 @@ namespace gridtools::fn {
         template <auto Stencil, class Domain, class Output, class... Inputs>
         void process_stencil(Domain const &domain, Output &output, std::tuple<Inputs...> inputs) {
             using raw_tree_t = ast::parse<Stencil, Inputs...>;
-            if constexpr (ast::has_scans<raw_tree_t>()) {
-                using input_types_t = meta::list<sid::element_type<Inputs>...>;
-                using tree_t = ast::popup_tmps<raw_tree_t>;
-                using specs_t = ast::flatten_tmps_tree<tree_t, input_types_t>;
-                using stages_t = meta::transform<make_stage_from_spec, specs_t>;
-            } else if constexpr (ast::has_tmps<raw_tree_t>()) {
+            if constexpr (ast::has_tmps<raw_tree_t>()) {
                 using input_types_t = meta::list<sid::element_type<Inputs>...>;
                 using tree_t = ast::popup_tmps<raw_tree_t>;
                 using specs_t = ast::flatten_tmps_tree<tree_t, input_types_t>;
@@ -67,7 +62,11 @@ namespace gridtools::fn {
                 auto tmps = make_tmps<meta::pop_back<specs_t>>(alloc, domain);
                 fn_fencil(naive(), stages_t(), domain, tuple_util::push_back(tuple_util::concat(inputs, tmps), output));
             } else {
-                fn_apply(naive(), domain, meta::constant<Stencil>, output, inputs);
+                if constexpr (ast::has_scans<raw_tree_t>()) {
+                    std::cout << ast::dump<"to_execute", Stencil, Inputs...> << std::endl;
+                } else {
+                    fn_apply(naive(), domain, meta::constant<Stencil>, output, inputs);
+                }
             }
         }
     } // namespace naive_fencil_impl_

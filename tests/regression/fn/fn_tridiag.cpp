@@ -20,7 +20,9 @@ using namespace gridtools;
 using namespace literals;
 using namespace fn;
 
-constexpr auto fwd0 = [](auto, auto b, auto c, auto d) { return make_tuple(divides(c, b), divides(d, b)); };
+constexpr auto fwd0 = [](auto, auto b, auto c, auto d) {
+    return make_tuple(divides(deref(c), deref(b)), divides(deref(d), deref(b)));
+};
 
 constexpr auto fwd = [](auto prev, auto a, auto b, auto c, auto d) {
     constexpr auto tmp = [](auto prev, auto a, auto c, auto d, auto divisor) {
@@ -36,7 +38,7 @@ constexpr auto bwd = [](auto prev, auto cd) {
 };
 
 constexpr auto tridiag = [](auto a, auto b, auto c, auto d) {
-    return scan_bwd.pass<bwd>.prologue<bwd0>(tlift<scan_fwd.pass<fwd>.prologue<fwd0>>(a, b, c, d));
+    return scan_bwd<bwd0, bwd>(tlift<scan_fwd<fwd0, fwd>>(a, b, c, d));
 };
 
 TEST(tridiag, smoke) {
@@ -46,7 +48,7 @@ TEST(tridiag, smoke) {
     using stage_t = make_stage<tridiag, std::identity{}, 0, 1, 2, 3, 4>;
     constexpr auto testee = fencil<naive, stage_t>;
     constexpr auto domain = cartesian(std::tuple(8_c, 8_c, 3_c), std::tuple(1_c, 1_c));
-    //    testee(domain, actual, a, b, c, d);
+    testee(domain, actual, a, b, c, d);
 
     std::cout << ast::dump<"tridiag", tridiag, void, void, void, void> << std::endl;
 }

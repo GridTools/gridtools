@@ -113,17 +113,29 @@ namespace gridtools::fn::ast {
             static constexpr size_t n_params = 1;
         };
 
-        template <class IsBackward, class Get, class Pass, class... Prologues, class... Epilogues, class... Args>
+        template <class IsBackward,
+            class InitPass,
+            class InitGet,
+            class Pass,
+            class Get,
+            class Prologues,
+            class Epilogues,
+            class... Args>
         struct builtin_fun<builtins::scan,
             IsBackward,
-            Get,
-            Pass,
-            meta::list<Prologues...>,
-            meta::list<Epilogues...>,
+            meta::list<InitPass, InitGet>,
+            meta::list<Pass, Get>,
+            Prologues,
+            Epilogues,
             Args...> {
             friend std::ostream &operator<<(std::ostream &s, builtin_fun) {
-                return s << "scan_" << (IsBackward::value ? "b" : "f") << "wd.pass<" << Pass() << ">.prologue<"
-                         << seq<Prologues{}...> << ">.epilogue<" << seq<Epilogues{}...> << ">.get<" << Get() << ">";
+                s << "scan_" << (IsBackward::value ? "b" : "f") << "wd<" << InitPass() << ", " << Pass() << ", "
+                  << InitGet() << ", " << Get() << ">";
+                for_each<Prologues>(
+                    [&]<class P, class G>(meta::list<P, G>) { s << ".prologue<" << P() << ", " << G() << ">"; });
+                for_each<Epilogues>(
+                    [&]<class P, class G>(meta::list<P, G>) { s << ".epilogue<" << P() << ", " << G() << ">"; });
+                return s;
             }
             static constexpr size_t n_params = 5;
         };
@@ -192,26 +204,28 @@ namespace gridtools::fn::ast {
             };
 
             template <class IsBackward,
-                class Get,
-                class Pass,
-                auto Prologue,
-                auto... Prologues,
-                auto... Epilogues,
+                auto InitPass,
+                auto InitGet,
+                auto Pass,
+                auto Get,
+                auto... ProloguePasses,
+                auto... PrologueGets,
+                auto... EpiloguePasses,
+                auto... EpilogueGets,
                 class... Args>
             struct full_parse<builtin<builtins::scan,
                 IsBackward,
-                Get,
-                Pass,
-                meta::val<Prologue, Prologues...>,
-                meta::val<Epilogues...>,
+                meta::val<InitPass, InitGet>,
+                meta::val<Pass, Get>,
+                meta::list<meta::val<ProloguePasses, PrologueGets>...>,
+                meta::list<meta::val<EpiloguePasses, EpilogueGets>...>,
                 Args...>> {
-                using get_t = make_fun<Get::value, void>;
                 using type = builtin<builtins::scan,
                     IsBackward,
-                    make_fun<Get::value, void>,
-                    make_fun<Pass::value, void, Args...>,
-                    meta::list<make_fun<Prologue, Args...>, make_fun<Prologues, void, Args...>...>,
-                    meta::list<make_fun<Epilogues, void, Args...>...>,
+                    meta::list<make_fun<InitPass, Args...>, make_fun<InitGet, void>>,
+                    meta::list<make_fun<Pass, void, Args...>, make_fun<Get, void>>,
+                    meta::list<meta::list<make_fun<ProloguePasses, void, Args...>, make_fun<PrologueGets, void>>...>,
+                    meta::list<meta::list<make_fun<EpiloguePasses, void, Args...>, make_fun<EpilogueGets, void>>...>,
                     typename full_parse<Args>::type...>;
             };
 
@@ -254,38 +268,43 @@ namespace gridtools::fn::ast {
             using type = sym<typename meta::st_position<Tbl, fun<Tree, Arity>>::type>;
         };
 
-        template <class Tbl>
-        struct replace_sym_f {
-            template <class Fun>
-            using apply = fun<typename replace_fun<meta::first<Fun>, Tbl>::type, meta::second<Fun>>;
+        template <class T>
+        struct get_body {
+            using type = T;
+        };
+
+        template <class Body, class Arity>
+        struct get_body<fun<Body, Arity>> {
+            using type = Body;
+        };
+
+        template <class T, class Tbl>
+        struct replace_fun_top {
+            using type = typename replace_fun<T, Tbl>::type;
+        };
+
+        template <template <class...> class Node, class... Trees, class Tbl>
+        struct replace_fun_top<Node<Trees...>, Tbl> {
+            using type = Node<typename replace_fun<Trees, Tbl>::type...>;
         };
 
         template <str_literal Name, auto F, class... Args>
         struct dump_t {
             friend std::ostream &operator<<(std::ostream &s, dump_t) {
                 using fun_t = make_fun<F, Args...>;
-
-                if constexpr (meta::is_instantiation_of<builtin_fun, fun_t>()) {
+                using tbl_t = typename make_tbl<typename get_body<fun_t>::type>::type;
+                if constexpr (meta::length<tbl_t>() == 0) {
                     return s << "inline constexpr auto " << Name << " = " << fun_t() << ";\n";
                 } else {
-                    using tbl_t = meta::push_back<typename make_tbl<meta::first<fun_t>>::type, fun_t>;
-                    using funs_t = meta::transform<replace_sym_f<tbl_t>::template apply, tbl_t>;
-                    constexpr auto n = meta::length<funs_t>();
-                    if constexpr (n == 1) {
-                        return s << "inline constexpr auto " << Name << " = " << meta::first<funs_t>() << ";\n";
-                    } else {
-                        size_t i = 0;
-                        s << "namespace " << Name << "_impl_ {\n";
-                        for_each<funs_t>([&](auto fun) {
-                            s << "inline constexpr auto ";
-                            if (i == meta::length<funs_t>() - 1)
-                                s << Name;
-                            else
-                                s << "f" << i++;
-                            s << " = " << fun << ";\n";
-                        });
-                        return s << "}\nusing " << Name << "_impl_::" << Name << ";\n";
-                    }
+                    constexpr auto replace = []<class Fun>(Fun)->typename replace_fun_top<Fun, tbl_t>::type {
+                        return {};
+                    };
+                    s << "namespace " << Name << "_impl_ {\n";
+                    size_t i = 0;
+                    for_each<tbl_t>(
+                        [&](auto f) { s << "inline constexpr auto f" << i++ << " = " << replace(f) << ";\n"; });
+                    s << "inline constexpr auto " << Name << " = " << replace(fun_t()) << ";\n";
+                    return s << "}\nusing " << Name << "_impl_::" << Name << ";\n";
                 }
             }
         };

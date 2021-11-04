@@ -312,12 +312,12 @@ namespace gridtools::fn::ast {
 
         template <class Map, class F, class... Args>
         struct ret_type<Map, lambda<F, Args...>> {
-            using type = decltype(F::value(dummy_iter<meta::third<meta::mp_find<Map, Args>>>()...));
+            using type = std::decay_t<decltype(F::value(dummy_iter<meta::third<meta::mp_find<Map, Args>>>()...))>;
         };
 
         template <class Map, class F, class... Args>
         struct ret_type<Map, tmp<F, Args...>> {
-            using type = decltype(F::value(dummy_iter<meta::third<meta::mp_find<Map, Args>>>()...));
+            using type = std::decay_t<decltype(F::value(dummy_iter<meta::third<meta::mp_find<Map, Args>>>()...))>;
         };
 
         template <class Map, class Tmp>

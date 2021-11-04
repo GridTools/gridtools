@@ -212,21 +212,24 @@ namespace gridtools::fn {
         }
 
         template <class IsBackward,
-            auto Get,
+            auto InitPass,
+            auto InitGet,
             auto Pass,
-            auto Prologue,
-            auto... Prologues,
-            auto... Epilogues,
+            auto Get,
+            auto... ProloguePasses,
+            auto... PrologueGets,
+            auto... EpiloguePasses,
+            auto... EpilogueGets,
             class... Args>
         constexpr decltype(auto) fn_default(builtins::scan,
             IsBackward,
-            meta::val<Get>,
-            meta::val<Pass>,
-            meta::val<Prologue, Prologues...>,
-            meta::val<Epilogues...>,
+            meta::val<InitPass, InitGet>,
+            meta::val<Pass, Get>,
+            meta::list<meta::val<ProloguePasses, PrologueGets>...>,
+            meta::list<meta::val<EpiloguePasses, EpilogueGets>...>,
             Args &&... args) {
             assert(false);
-            return Get(Prologue(std::forward<Args>(args)...));
+            return InitGet(InitPass(std::forward<Args>(args)...));
         }
 
         template <class Tag, class... Args>
@@ -242,48 +245,36 @@ namespace gridtools::fn {
             return builtin_fun(Tag(), std::forward<Args>(args)...);
         };
 
-        template <class IsBackward,
-            class Get = meta::val<std::identity{}>,
-            class Pass = void,
-            class Prologue = void,
-            class Epilogue = meta::val<>>
-        struct scan_wrapper {
+        template <class IsBackward, class Init, class Body, class Prologues, class Epilogues>
+        struct scan_wrapper;
+
+        template <class IsBackward, class Init, class Body, class... Prologues, class... Epilogues>
+        struct scan_wrapper<IsBackward, Init, Body, meta::list<Prologues...>, meta::list<Epilogues...>> {
             template <class... Args>
             decltype(auto) operator()(Args &&... args) const {
-                return builtin_fun(
-                    builtins::scan(), IsBackward(), Get(), Pass(), Prologue(), Epilogue(), std::forward<Args>(args)...);
+                return builtin_fun(builtins::scan(),
+                    IsBackward(),
+                    Init(),
+                    Body(),
+                    meta::list<Prologues...>(),
+                    meta::list<Epilogues...>(),
+                    std::forward<Args>(args)...);
             }
 
-            template <auto F>
+            template <auto Pass, auto Get = std::identity{}>
             static constexpr scan_wrapper<IsBackward,
-                Get,
-                std::enable_if_t<std::is_void_v<Pass>, meta::val<F>>,
-                Prologue,
-                Epilogue>
-                pass = {};
-
-            template <auto F>
-            static constexpr scan_wrapper<IsBackward,
-                std::enable_if_t<std::is_same_v<Get, meta::val<std::identity{}>>, meta::val<F>>,
-                Pass,
-                Prologue,
-                Epilogue>
-                get = {};
-
-            template <auto F, auto... Fs>
-            static constexpr scan_wrapper<IsBackward,
-                Get,
-                Pass,
-                std::enable_if_t<std::is_void_v<Prologue>, meta::val<F, Fs...>>,
-                Epilogue>
+                Init,
+                Body,
+                meta::list<Prologues..., meta::val<Pass, Get>>,
+                meta::list<Epilogues...>>
                 prologue = {};
 
-            template <auto F, auto... Fs>
+            template <auto Pass, auto Get = std::identity{}>
             static constexpr scan_wrapper<IsBackward,
-                Get,
-                Pass,
-                Prologue,
-                std::enable_if_t<std::is_same_v<Epilogue, meta::val<>>, meta::val<F, Fs...>>>
+                Init,
+                Body,
+                meta::list<Prologues...>,
+                meta::list<Epilogues..., meta::val<Pass, Get>>>
                 epilogue = {};
         };
 
@@ -323,6 +314,12 @@ namespace gridtools::fn {
     template <auto F, auto Init>
     constexpr auto reduce = std::bind_front(builtin<builtins::reduce>, meta::constant<F>, meta::constant<Init>);
 
-    inline constexpr builtins_impl_::scan_wrapper<std::true_type> scan_bwd{};
-    inline constexpr builtins_impl_::scan_wrapper<std::false_type> scan_fwd{};
+    template <auto InitPass, auto Pass, auto InitGet = std::identity{}, auto Get = std::identity{}>
+    constexpr builtins_impl_::
+        scan_wrapper<std::true_type, meta::val<InitPass, InitGet>, meta::val<Pass, Get>, meta::list<>, meta::list<>>
+            scan_bwd{};
+    template <auto InitPass, auto Pass, auto InitGet = std::identity{}, auto Get = std::identity{}>
+    inline constexpr builtins_impl_::
+        scan_wrapper<std::false_type, meta::val<InitPass, InitGet>, meta::val<Pass, Get>, meta::list<>, meta::list<>>
+            scan_fwd{};
 } // namespace gridtools::fn
