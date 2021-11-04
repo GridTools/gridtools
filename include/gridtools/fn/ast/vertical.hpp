@@ -32,8 +32,8 @@ namespace gridtools::fn::ast {
         template <class F, class... Trees>
         struct has_scans<tmp<F, Trees...>> : has_scans<lambda<F, Trees...>> {};
 
-        template <class... Ts>
-        struct has_scans<builtin<builtins::scan, Ts...>> : std::true_type {};
+        template <class... Ts, class... Us>
+        struct has_scans<builtin<builtins::scan<Ts...>, Us...>> : std::true_type {};
     } // namespace vertical_impl_
     using vertical_impl_::has_scans;
 } // namespace gridtools::fn::ast

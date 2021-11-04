@@ -20,7 +20,7 @@ namespace gridtools::fn {
 
         struct testee {
             template <auto I>
-            friend constexpr int const *fn_builtin(builtins::shift, meta::val<I>, testee) {
+            friend constexpr int const *fn_builtin(builtins::shift<I>, testee) {
                 return data + I;
             }
             friend constexpr bool fn_builtin(builtins::can_deref, testee) { return false; }

@@ -30,8 +30,8 @@ namespace gridtools::fn::ast {
             };
 
             template <class Tree, auto... Outer, auto... Inner>
-            struct normalize_shifts<shifted<shifted<Tree, meta::val<Inner...>>, meta::val<Outer...>>> {
-                using type = typename normalize_shifts<shifted<Tree, meta::val<Inner..., Outer...>>>::type;
+            struct normalize_shifts<shifted<shifted<Tree, Inner...>, Outer...>> {
+                using type = typename normalize_shifts<shifted<Tree, Inner..., Outer...>>::type;
             };
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(normalize_shifts, class T, T);
@@ -51,10 +51,14 @@ namespace gridtools::fn::ast {
         template <class F, class... Trees>
         struct has_tmps<tmp<F, Trees...>> : std::true_type {};
 
-        template <class T>
-        using is_arg = std::bool_constant<(meta::is_instantiation_of<builtin, T>::value &&
-                                              std::is_same_v<meta::first<T>, builtins::tlift>) ||
-                                          meta::is_instantiation_of<in, T>::value>;
+        template <class>
+        struct is_arg : std::false_type {};
+
+        template <class I>
+        struct is_arg<in<I>> : std::true_type {};
+
+        template <class F, class... Args>
+        struct is_arg<builtin<builtins::tlift<F>, Args...>> : std::true_type {};
 
         template <class>
         struct collect_args {
@@ -159,9 +163,9 @@ namespace gridtools::fn::ast {
             using type = typename expand<lambda<F, Trees...>>::type;
         };
 
-        template <class Offsets, class F, class... Trees>
-        struct expand<deref<shifted<inlined<F, Trees...>, Offsets>>> {
-            using type = typename expand<lambda<F, shifted<Trees, Offsets>...>>::type;
+        template <auto... Offsets, class F, class... Trees>
+        struct expand<deref<shifted<inlined<F, Trees...>, Offsets...>>> {
+            using type = typename expand<lambda<F, shifted<Trees, Offsets...>...>>::type;
         };
 
         template <class Tree>
@@ -210,9 +214,9 @@ namespace gridtools::fn::ast {
             using type = typename collect_offsets<Tmp, lambda<F, Trees...>>::type;
         };
 
-        template <class Tmp, class Offsets, class F, class... Trees>
-        struct collect_offsets<Tmp, deref<shifted<inlined<F, Trees...>, Offsets>>> {
-            using type = typename collect_offsets<Tmp, lambda<F, shifted<Trees, Offsets>...>>::type;
+        template <class Tmp, auto... Offsets, class F, class... Trees>
+        struct collect_offsets<Tmp, deref<shifted<inlined<F, Trees...>, Offsets...>>> {
+            using type = typename collect_offsets<Tmp, lambda<F, shifted<Trees, Offsets...>...>>::type;
         };
 
         template <class F, class... Trees>
@@ -220,9 +224,9 @@ namespace gridtools::fn::ast {
             using type = meta::list<meta::val<>>;
         };
 
-        template <class Offsets, class F, class... Trees>
-        struct collect_offsets<tmp<F, Trees...>, deref<shifted<tmp<F, Trees...>, Offsets>>> {
-            using type = meta::list<Offsets>;
+        template <auto... Offsets, class F, class... Trees>
+        struct collect_offsets<tmp<F, Trees...>, deref<shifted<tmp<F, Trees...>, Offsets...>>> {
+            using type = meta::list<meta::val<Offsets...>>;
         };
 
         template <class Tmp, class F, class... Trees>
@@ -230,25 +234,34 @@ namespace gridtools::fn::ast {
             using type = typename collect_offsets<Tmp, lambda<F, Trees...>>::type;
         };
 
-        template <class Tmp, class Offsets, class F, class... Trees>
-        struct collect_offsets<Tmp, deref<shifted<tmp<F, Trees...>, Offsets>>> {
-            using type = typename collect_offsets<Tmp, lambda<F, shifted<Trees, Offsets>...>>::type;
+        template <class Tmp, auto... Offsets, class F, class... Trees>
+        struct collect_offsets<Tmp, deref<shifted<tmp<F, Trees...>, Offsets...>>> {
+            using type = typename collect_offsets<Tmp, lambda<F, shifted<Trees, Offsets...>...>>::type;
         };
 
         template <class Tmp, class Arg>
         struct collect_reduce_offsets_f {
             template <class N>
-            using apply =
-                typename collect_offsets<Tmp, normalize_shifts<deref<shifted<Arg, meta::val<N::value>>>>>::type;
+            using apply = typename collect_offsets<Tmp, normalize_shifts<deref<shifted<Arg, N::value>>>>::type;
+        };
+
+        template <class Shift>
+        struct extract_offsets {
+            using type = meta::list<>;
+        };
+
+        template <auto... Offsets>
+        struct extract_offsets<builtins::shift<Offsets...>> {
+            using type = meta::list<meta::val<Offsets>...>;
         };
 
         template <class Tmp, class F, class Init, class... Trees>
-        struct collect_offsets<Tmp, builtin<builtins::reduce, F, Init, Trees...>> {
+        struct collect_offsets<Tmp, builtin<builtins::reduce<F, Init>, Trees...>> {
             static_assert(sizeof...(Trees) > 0);
             using tree_t = meta::first<meta::list<Trees...>>;
             static_assert(meta::is_instantiation_of<builtin, tree_t>::value);
-            static_assert(std::is_same_v<meta::first<tree_t>, builtins::shift>);
-            using offsets_t = meta::vl_split<meta::second<tree_t>>;
+            using tag_t = meta::first<tree_t>;
+            using offsets_t = typename extract_offsets<tag_t>::type;
             static_assert(!meta::is_empty<offsets_t>::value);
             using conn_t = typename meta::last<offsets_t>::type;
             static_assert(Connectivity<conn_t>);
@@ -260,7 +273,10 @@ namespace gridtools::fn::ast {
         template <class T>
         struct dummy_iter {
             friend T fn_builtin(builtins::deref, dummy_iter) { return {}; }
-            friend dummy_iter fn_builtin(builtins::shift, auto &&, dummy_iter) { return {}; }
+            template <auto... Offsets>
+            friend dummy_iter fn_builtin(builtins::shift<Offsets...>, dummy_iter) {
+                return {};
+            }
         };
 
         template <class Map>

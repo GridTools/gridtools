@@ -32,14 +32,14 @@ namespace gridtools::fn::ast {
     struct builtin<Tag, Args...> {};
 
     template <class F, class... Trees>
-    using inlined = builtin<builtins::ilift, F, Trees...>;
+    using inlined = builtin<builtins::ilift<F>, Trees...>;
 
     template <class F, class... Trees>
-    using tmp = builtin<builtins::tlift, F, Trees...>;
+    using tmp = builtin<builtins::tlift<F>, Trees...>;
 
     template <class T>
     using deref = builtin<builtins::deref, T>;
 
-    template <class Tree, class Offsets>
-    using shifted = builtin<builtins::shift, Offsets, Tree>;
+    template <class Tree, auto... Offsets>
+    using shifted = builtin<builtins::shift<Offsets...>, Tree>;
 } // namespace gridtools::fn::ast

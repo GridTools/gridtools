@@ -77,40 +77,33 @@ namespace gridtools::fn::ast {
             }
         };
 
-        template <class Tag, class... Args>
+        template <class Tag>
         struct builtin_fun {
             friend std::ostream &operator<<(std::ostream &s, builtin_fun) {
                 using namespace dump_impl_;
                 auto &&name = boost::typeindex::type_id<Tag>().pretty_name();
                 return s << name.substr(name.find_last_of(":") + 1);
             }
-            static constexpr size_t n_params = 0;
         };
 
-        template <class F, class... Args>
-        struct builtin_fun<builtins::ilift, F, Args...> {
+        template <class F>
+        struct builtin_fun<builtins::ilift<F>> {
             friend std::ostream &operator<<(std::ostream &s, builtin_fun) { return s << "ilift<" << F() << ">"; }
-            static constexpr size_t n_params = 1;
         };
 
-        template <class F, class... Args>
-        struct builtin_fun<builtins::tlift, F, Args...> {
+        template <class F>
+        struct builtin_fun<builtins::tlift<F>> {
             friend std::ostream &operator<<(std::ostream &s, builtin_fun) { return s << "tlift<" << F() << ">"; }
-            static constexpr size_t n_params = 1;
         };
 
-        template <class I, class... Args>
-        struct builtin_fun<builtins::tuple_get, I, Args...> {
-            friend std::ostream &operator<<(std::ostream &s, builtin_fun) {
-                return s << "tuple_get<" << I::value << ">";
-            }
-            static constexpr size_t n_params = 1;
+        template <size_t I>
+        struct builtin_fun<builtins::tuple_get<I>> {
+            friend std::ostream &operator<<(std::ostream &s, builtin_fun) { return s << "tuple_get<" << I << ">"; }
         };
 
-        template <auto... Vs, class Arg>
-        struct builtin_fun<builtins::shift, meta::val<Vs...>, Arg> {
+        template <auto... Vs>
+        struct builtin_fun<builtins::shift<Vs...>> {
             friend std::ostream &operator<<(std::ostream &s, builtin_fun) { return s << "shift<" << seq<Vs...> << ">"; }
-            static constexpr size_t n_params = 1;
         };
 
         template <class IsBackward,
@@ -119,15 +112,9 @@ namespace gridtools::fn::ast {
             class Pass,
             class Get,
             class Prologues,
-            class Epilogues,
-            class... Args>
-        struct builtin_fun<builtins::scan,
-            IsBackward,
-            meta::list<InitPass, InitGet>,
-            meta::list<Pass, Get>,
-            Prologues,
-            Epilogues,
-            Args...> {
+            class Epilogues>
+        struct builtin_fun<
+            builtins::scan<IsBackward, meta::list<InitPass, InitGet>, meta::list<Pass, Get>, Prologues, Epilogues>> {
             friend std::ostream &operator<<(std::ostream &s, builtin_fun) {
                 s << "scan_" << (IsBackward::value ? "b" : "f") << "wd<" << InitPass() << ", " << Pass() << ", "
                   << InitGet() << ", " << Get() << ">";
@@ -137,15 +124,13 @@ namespace gridtools::fn::ast {
                     [&]<class P, class G>(meta::list<P, G>) { s << ".epilogue<" << P() << ", " << G() << ">"; });
                 return s;
             }
-            static constexpr size_t n_params = 5;
         };
 
-        template <class F, class Init, class... Args>
-        struct builtin_fun<builtins::reduce, F, Init, Args...> {
+        template <class F, class Init>
+        struct builtin_fun<builtins::reduce<F, Init>> {
             friend std::ostream &operator<<(std::ostream &s, builtin_fun) {
                 return s << "reduce<" << F() << ", " << Init() << ">";
             }
-            static constexpr size_t n_params = 2;
         };
 
         namespace lazy {
@@ -169,10 +154,10 @@ namespace gridtools::fn::ast {
 
             template <class Tag, class... Args, class Arity>
             struct make_f<builtin<Tag, Args...>, Arity> {
-                using fun_t = builtin_fun<Tag, Args...>;
-                using args_t = meta::drop_front_c<fun_t::n_params, meta::list<Args...>>;
+                using args_t = meta::list<Args...>;
                 using params_t = meta::transform<in, meta::make_indices_for<args_t>>;
-                using type = meta::if_<std::is_same<params_t, args_t>, fun_t, fun<builtin<Tag, Args...>, Arity>>;
+                using type =
+                    meta::if_<std::is_same<params_t, args_t>, builtin_fun<Tag>, fun<builtin<Tag, Args...>, Arity>>;
             };
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(full_parse, class T, T);
@@ -213,28 +198,27 @@ namespace gridtools::fn::ast {
                 auto... EpiloguePasses,
                 auto... EpilogueGets,
                 class... Args>
-            struct full_parse<builtin<builtins::scan,
-                IsBackward,
-                meta::val<InitPass, InitGet>,
-                meta::val<Pass, Get>,
-                meta::list<meta::val<ProloguePasses, PrologueGets>...>,
-                meta::list<meta::val<EpiloguePasses, EpilogueGets>...>,
+            struct full_parse<builtin<builtins::scan<IsBackward,
+                                          meta::val<InitPass, InitGet>,
+                                          meta::val<Pass, Get>,
+                                          meta::list<meta::val<ProloguePasses, PrologueGets>...>,
+                                          meta::list<meta::val<EpiloguePasses, EpilogueGets>...>>,
                 Args...>> {
-                using type = builtin<builtins::scan,
-                    IsBackward,
-                    meta::list<make_fun<InitPass, Args...>, make_fun<InitGet, void>>,
-                    meta::list<make_fun<Pass, void, Args...>, make_fun<Get, void>>,
-                    meta::list<meta::list<make_fun<ProloguePasses, void, Args...>, make_fun<PrologueGets, void>>...>,
-                    meta::list<meta::list<make_fun<EpiloguePasses, void, Args...>, make_fun<EpilogueGets, void>>...>,
+                using type = builtin<builtins::scan<IsBackward,
+                                         meta::list<make_fun<InitPass, Args...>, make_fun<InitGet, void>>,
+                                         meta::list<make_fun<Pass, void, Args...>, make_fun<Get, void>>,
+                                         meta::list<meta::list<make_fun<ProloguePasses, void, Args...>,
+                                             make_fun<PrologueGets, void>>...>,
+                                         meta::list<meta::list<make_fun<EpiloguePasses, void, Args...>,
+                                             make_fun<EpilogueGets, void>>...>>,
                     typename full_parse<Args>::type...>;
             };
 
             template <class Pass, class Init, class... Args>
-            struct full_parse<builtin<builtins::reduce, Pass, Init, Args...>> {
-                using type = builtin<builtins::reduce,
-                    make_fun<Pass::value, void, Args...>,
-                    make_fun<Init::value, Args...>,
-                    typename full_parse<Args>::type...>;
+            struct full_parse<builtin<builtins::reduce<Pass, Init>, Args...>> {
+                using type =
+                    builtin<builtins::reduce<make_fun<Pass::value, void, Args...>, make_fun<Init::value, Args...>>,
+                        typename full_parse<Args>::type...>;
             };
         } // namespace lazy
 
@@ -327,8 +311,6 @@ namespace gridtools::fn::ast {
     template <class Tag, class... Args>
     std::ostream &operator<<(std::ostream &s, builtin<Tag, Args...>) {
         using namespace dump_impl_;
-        using fun_t = builtin_fun<Tag, Args...>;
-        using args_t = make_seq<meta::drop_front_c<fun_t::n_params, meta::list<Args...>>>;
-        return s << fun_t() << "(" << args_t() << ")";
+        return s << builtin_fun<Tag>() << "(" << make_seq<meta::list<Args...>>() << ")";
     }
 } // namespace gridtools::fn::ast
