@@ -63,7 +63,7 @@ namespace {
             run(spec, stencil_backend_t(), grid, out);
         };
         comp();
-        TypeParam::verify([](int i, int j, int k) { return 1; }, out);
+        TypeParam::verify([](int, int, int) { return 1; }, out);
     }
 #endif
 } // namespace
