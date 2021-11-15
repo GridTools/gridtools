@@ -38,7 +38,7 @@ namespace gridtools::fn {
 
         template <template <class...> class L, class... Ts>
         constexpr auto get_min(L<Ts...>) {
-            if constexpr (sizeof...(Ts))
+            if constexpr (sizeof...(Ts) != 0)
                 return std::min({Ts::value...});
             else
                 return 0;
@@ -46,7 +46,7 @@ namespace gridtools::fn {
 
         template <template <class...> class L, class... Ts>
         constexpr auto get_max(L<Ts...>) {
-            if constexpr (sizeof...(Ts))
+            if constexpr (sizeof...(Ts) != 0)
                 return std::max({Ts::value...});
             else
                 return 0;

@@ -33,19 +33,20 @@ constexpr auto rdif = [](auto const &in) { return minus(deref(shift<D, 1>(in)), 
 template <auto D>
 constexpr auto ldif = [](auto const &in) { return minus(deref(in), deref(shift<D, -1>(in))); };
 
+constexpr auto flax_helper = [](auto in, auto res) { return if_(less(multiplies(in, res), 0_c), res, 0_c); };
+
 template <auto D>
-constexpr auto flax = [](auto const &in, auto const &lap) {
-    return lambda<[](auto in, auto res) { return if_(less(multiplies(in, res), 0_c), res, 0_c); }>(
-        rdif<D>(in), rdif<D>(lap));
+constexpr auto flax = [](auto const &in, auto const &lap) { return lambda<flax_helper>(rdif<D>(in), rdif<D>(lap)); };
+
+template <class Param>
+constexpr auto hd_helper = [](auto const &coeff, auto const &in, auto const &lap) {
+    return minus(
+        deref(in), multiplies(deref(coeff), plus(ldif<i>(Param::flax_i(in, lap)), ldif<j>(Param::flax_j(in, lap)))));
 };
 
 template <class Param>
-constexpr auto hd = [](auto const &coeff, auto const &in) {
-    return lambda<[](auto const &coeff, auto const &in, auto const &lap) {
-        return minus(deref(in),
-            multiplies(deref(coeff), plus(ldif<i>(Param::flax_i(in, lap)), ldif<j>(Param::flax_j(in, lap)))));
-    }>(coeff, in, Param::lap(in));
-};
+constexpr auto hd =
+    [](auto const &coeff, auto const &in) { return lambda<hd_helper<Param>>(coeff, in, Param::lap(in)); };
 
 template <bool Lap, bool FlaxI, bool FlaxJ>
 struct param {
