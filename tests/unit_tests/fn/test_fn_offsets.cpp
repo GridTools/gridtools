@@ -30,8 +30,11 @@ namespace gridtools::fn {
         constexpr inline auto offs = offsets(testee());
         static_assert(std::is_same_v<decltype(offs), indices_t const>);
 
-        constexpr auto sum = reduce<std::plus(), 0>;
-        constexpr auto dot = reduce<[](auto acc, auto l, auto r) { return acc + l * r; }, 0>;
+        constexpr std::plus plus;
+        constexpr auto zero = [](...) { return 0; };
+        constexpr auto sum = reduce<plus, zero>;
+        constexpr auto dot_helper = [](auto acc, auto l, auto r) { return acc + l * r; };
+        constexpr auto dot = reduce<dot_helper, zero>;
 
         TEST(reduce, smoke) { EXPECT_EQ(sum(testee()), 4 + 5 + 6); }
 

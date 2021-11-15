@@ -31,6 +31,10 @@ constexpr auto tuple_dot_init = [](auto z, auto sign) {
 };
 constexpr auto tuple_dot = reduce<tuple_dot_fun, tuple_dot_init>;
 
+constexpr auto zavg_helper = [](auto const &tmp, auto const &s) {
+    return make_tuple(multiplies(tmp, tuple_get<0>(s)), multiplies(tmp, tuple_get<1>(s)));
+};
+
 template <auto E2V>
 constexpr auto zavg = [](auto const &pp, auto const &s) {
     // auto tmp = sum(shift<E2V>(pp)) / 2;
@@ -39,9 +43,11 @@ constexpr auto zavg = [](auto const &pp, auto const &s) {
     //   tmp * std::get<0>(ss),
     //   tmp * std::get<1>(ss)
     // };
-    return lambda<[](auto const &tmp, auto const &s) {
-        return make_tuple(multiplies(tmp, tuple_get<0>(s)), multiplies(tmp, tuple_get<1>(s)));
-    }>(divides(sum(shift<E2V>(pp)), 2_c), deref(s));
+    return lambda<zavg_helper>(divides(sum(shift<E2V>(pp)), 2_c), deref(s));
+};
+
+constexpr auto nabla_helper = [](auto tmp, auto vol) {
+    return make_tuple(divides(tuple_get<0>(tmp), vol), divides(tuple_get<1>(tmp), vol));
 };
 
 template <auto E2V, auto V2E, bool UseTmp>
@@ -49,9 +55,7 @@ constexpr auto nabla = [](auto const &pp, auto const &s, auto const &sign, auto 
     // auto tmp = tuple_dot(shift<V2E>(lift<zavg<E2V>>(pp, s)), deref(sign));
     // auto v = deref(vol);
     // return std::tuple { std::get<0>(tmp) / v, std::get<1>(tmp) / v };
-    return lambda<[](auto tmp, auto vol) {
-        return make_tuple(divides(tuple_get<0>(tmp), vol), divides(tuple_get<1>(tmp), vol));
-    }>(tuple_dot(shift<V2E>(lift<zavg<E2V>, UseTmp>(pp, s)), deref(sign)), deref(vol));
+    return lambda<nabla_helper>(tuple_dot(shift<V2E>(lift<zavg<E2V>, UseTmp>(pp, s)), deref(sign)), deref(vol));
 };
 
 /*
