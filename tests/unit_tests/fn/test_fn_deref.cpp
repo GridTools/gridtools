@@ -4,9 +4,6 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/for_each.hpp>
-#include <gridtools/sid/concept.hpp>
-
 namespace gridtools::fn {
     namespace {
         TEST(deref, ptr) {
@@ -39,90 +36,5 @@ namespace gridtools::fn {
             EXPECT_EQ(deref(good()), 42);
             EXPECT_FALSE(can_deref(bad()));
         }
-
-        template <class Init,
-            class Pass,
-            class Prologue,
-            class Epilogue,
-            class D,
-            class Step,
-            class Out,
-            class Ptr,
-            class Strides>
-        void do_scan(size_t size, Ptr &&ptr, Strides const &strides) {
-            constexpr size_t min_size = 1 + meta::length<Prologue>() + meta::length<Epilogue>();
-            assert(size >= min_size);
-            auto const &v_stride = sid::get_stride<D>(strides);
-            auto inc = [&] { sid::shift(ptr, v_stride, Step()); };
-            auto init = [&]<auto Get, auto F>(meta::val<Get, F> = Init()) {
-                auto &&res = F(ptr, strides);
-                *at_key<Out>(ptr) = Get(res);
-                inc();
-                return res;
-            };
-            auto next = [&]<auto Get, auto F>(auto acc, meta::val<Get, F>) {
-                auto &&res = F(std::move(acc), ptr, strides);
-                *at_key<Out>(ptr) = Get(res);
-                inc();
-                return res;
-            };
-            auto acc = tuple_util::fold(next, init(), Prologue());
-            size_t n = size - min_size;
-            for (size_t i = 0; i != n; ++i)
-                acc = next(std::move(acc), Pass());
-            tuple_util::fold(next, std::move(acc), Epilogue());
-        }
-
-        template <auto Get,
-            auto Pass,
-            auto Init,
-            size_t PrologueSize,
-            size_t EpilogueSize,
-            class D,
-            class Step,
-            class Out,
-            class Ptr,
-            class Strides>
-        void do_scan_old(size_t size, Ptr &&ptr, Strides const &strides) {
-            assert(size > PrologueSize + EpilogueSize);
-
-            size_t count_up = 0;
-            size_t count_down = size - 1;
-            auto const &v_stride = sid::get_stride<D>(strides);
-
-            auto next = [&](auto up, auto down, auto prev) {
-                auto cur = Pass(up, down, std::move(prev), ptr, strides);
-                *at_key<Out>(ptr) = Get(cur);
-                sid::shift(ptr, v_stride, Step());
-                --count_down;
-                ++count_up;
-                return cur;
-            };
-
-            auto prologue = [&](auto acc) {
-                using indices_t = meta::make_indices_c<PrologueSize, std::tuple>;
-                const auto f = [&]<class I>(auto acc, I) {
-                    return next(integral_constant<size_t, I::value>(), count_down, std::move(acc));
-                };
-                return tuple_util::fold(f, std::move(acc), indices_t());
-            };
-
-            auto body = [&](auto acc) {
-                while (count_down >= EpilogueSize)
-                    acc = next(count_up, count_down, std::move(acc));
-                return acc;
-            };
-
-            auto epilogue = [&](auto acc) {
-                using indices_t = meta::make_indices_c<EpilogueSize, std::tuple>;
-                const auto f = [&]<class I>(auto acc, I) {
-                    return next(count_up, integral_constant<size_t, EpilogueSize - 1 - I::value>(), std::move(acc));
-                };
-                tuple_util::fold(f, std::move(acc), meta::make_indices_c<EpilogueSize, std::tuple>());
-            };
-
-            epilogue(body(prologue(Init())));
-        }
-
     } // namespace
 } // namespace gridtools::fn

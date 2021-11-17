@@ -34,6 +34,15 @@ namespace gridtools::fn::ast {
 
         template <class... Ts, class... Us>
         struct has_scans<builtin<builtins::scan<Ts...>, Us...>> : std::true_type {};
+
+        template <class, class = void>
+        struct is_scan : std::false_type {};
+
+        template <class IsBackward, class Init, class Body, class Prologues, class Epilogues, class... Is>
+        struct is_scan<builtin<builtins::scan<IsBackward, Init, Body, Prologues, Epilogues>, in<Is>...>,
+            std::enable_if_t<std::is_same_v<meta::list<Is...>, meta::make_indices_c<sizeof...(Is)>>>> : std::true_type {
+        };
     } // namespace vertical_impl_
     using vertical_impl_::has_scans;
+    using vertical_impl_::is_scan;
 } // namespace gridtools::fn::ast

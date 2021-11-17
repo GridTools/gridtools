@@ -63,9 +63,10 @@ namespace gridtools::fn {
                 fn_fencil(naive(), stages_t(), domain, tuple_util::push_back(tuple_util::concat(inputs, tmps), output));
             } else {
                 if constexpr (ast::has_scans<raw_tree_t>()) {
-                    std::cout << ast::dump<"to_execute", Stencil, Inputs...> << std::endl;
+                    static_assert(ast::is_scan<raw_tree_t>());
+                    fn_apply_scan(domain, meta::first<raw_tree_t>(), output, std::move(inputs));
                 } else {
-                    fn_apply(naive(), domain, meta::constant<Stencil>, output, inputs);
+                    fn_apply(domain, meta::constant<Stencil>, output, std::move(inputs));
                 }
             }
         }
