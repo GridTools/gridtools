@@ -270,6 +270,38 @@ namespace gridtools::fn::ast {
                     meta::make_indices<neighbours_num<conn_t>>>>...>>;
         };
 
+        template <class Tmp,
+            class IsBackward,
+            auto InitPass,
+            auto InitGet,
+            auto Pass,
+            auto Get,
+            auto... ProloguePasses,
+            auto... PrologueGets,
+            auto... EpiloguePasses,
+            auto... EpilogueGets,
+            class... Trees>
+        struct collect_offsets<Tmp,
+            builtin<builtins::scan<IsBackward,
+                        meta::val<InitPass, InitGet>,
+                        meta::val<Pass, Get>,
+                        meta::list<meta::val<ProloguePasses, PrologueGets>...>,
+                        meta::list<meta::val<EpiloguePasses, EpilogueGets>...>>,
+                Trees...>> {
+
+            using init_offsets_t =
+                typename collect_offsets<Tmp, normalize_shifts<decltype(InitPass(Trees()...))>>::type;
+
+            template <auto P>
+            using pass_offsets =
+                typename collect_offsets<Tmp, normalize_shifts<decltype(P(in<void>(), Trees()...))>>::type;
+
+            using type = meta::dedup<meta::concat<init_offsets_t,
+                pass_offsets<ProloguePasses>...,
+                pass_offsets<Pass>,
+                pass_offsets<EpiloguePasses>...>>;
+        };
+
         template <class T>
         struct dummy_iter {
             friend T fn_builtin(builtins::deref, dummy_iter) { return {}; }

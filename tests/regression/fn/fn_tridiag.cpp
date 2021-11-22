@@ -16,6 +16,8 @@
 #include <gridtools/fn.hpp>
 #include <gridtools/fn/backend/naive.hpp>
 
+#include "simple_mesh.hpp"
+
 using namespace gridtools;
 using namespace literals;
 using namespace fn;
@@ -43,12 +45,14 @@ constexpr auto tridiag = [](auto a, auto b, auto c, auto d) {
     return scan_bwd<bwd0, bwd>(tlift<scan_fwd<fwd0, fwd>>(a, b, c, d));
 };
 
+using stage_t = make_stage<tridiag, std::identity{}, 0, 1, 2, 3, 4>;
+constexpr auto testee = fencil<naive, stage_t>;
+
 constexpr auto I = 3_c;
 constexpr auto J = 3_c;
 constexpr auto K = 6_c;
 
 using column_t = double[K];
-using shape_t = column_t[I][J];
 
 auto solve(column_t const &a, column_t const &b, column_t const &c, column_t const &d) {
     column_t cc, dd;
@@ -66,7 +70,8 @@ auto solve(column_t const &a, column_t const &b, column_t const &c, column_t con
     return res;
 };
 
-TEST(tridiag, smoke) {
+TEST(tridiag, catresian) {
+    using shape_t = column_t[I][J];
     shape_t actual, a, b, c, d;
 
     for (size_t i = 0; i != I; ++i)
@@ -78,15 +83,33 @@ TEST(tridiag, smoke) {
                 d[i][j][k] = std::rand();
             }
 
-    using stage_t = make_stage<tridiag, std::identity{}, 0, 1, 2, 3, 4>;
-    constexpr auto testee = fencil<naive, stage_t>;
-    constexpr auto domain = cartesian(std::tuple(I, J, K));
-    testee(domain, actual, a, b, c, d);
+    testee(cartesian(std::tuple(I, J, K)), actual, a, b, c, d);
 
     for (size_t i = 0; i != I; ++i)
         for (size_t j = 0; j != J; ++j) {
             auto expected = solve(a[i][j], b[i][j], c[i][j], d[i][j]);
             for (size_t k = 0; k != K; ++k)
-               EXPECT_DOUBLE_EQ(actual[i][j][k], expected[k]) << "i=" << i << ", j=" << j << ", k=" << k;
+                EXPECT_DOUBLE_EQ(actual[i][j][k], expected[k]) << "i=" << i << ", j=" << j << ", k=" << k;
         }
+}
+
+TEST(tridiag, unstructured) {
+    using namespace simple_mesh;
+    using shape_t = column_t[n_vertices];
+    shape_t actual, a, b, c, d;
+    for (size_t h = 0; h != n_vertices; ++h)
+        for (size_t k = 0; k != K; ++k) {
+            a[h][k] = std::rand();
+            b[h][k] = std::rand();
+            c[h][k] = std::rand();
+            d[h][k] = std::rand();
+        }
+
+    testee(unstructured(std::tuple(n_vertices, K)), actual, a, b, c, d);
+
+    for (size_t h = 0; h != n_vertices; ++h) {
+        auto expected = solve(a[h], b[h], c[h], d[h]);
+        for (size_t k = 0; k != K; ++k)
+            EXPECT_DOUBLE_EQ(actual[h][k], expected[k]) << "h=" << h << ", k=" << k;
+    }
 }
