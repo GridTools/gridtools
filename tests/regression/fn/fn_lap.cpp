@@ -26,15 +26,15 @@ template <auto D>
 constexpr auto rdif = [](auto const &in) { return lambda<ldif<D>>(shift<D, 1>(in)); };
 
 template <auto D, bool UseTmp>
-constexpr auto d2 = lambda<[](auto const &in) { return lambda<ldif<D>>(lift<rdif<D>, UseTmp>(in)); }>;
+constexpr auto d2 = [](auto const &in) { return lambda<ldif<D>>(lift<rdif<D>, UseTmp>(in)); };
 
 template <class Param>
 constexpr auto lap = [](auto const &in) { return plus(Param::d2i(in), Param::d2j(in)); };
 
 template <bool I, bool J>
 struct param {
-    static constexpr auto d2i = d2<i, I>;
-    static constexpr auto d2j = d2<j, J>;
+    static constexpr auto d2i = lambda<d2<i, I>>;
+    static constexpr auto d2j = lambda<d2<j, J>>;
 };
 
 using params_t = testing::Types<param<false, false>, param<true, false>, param<false, true>, param<true, true>>;
