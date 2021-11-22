@@ -314,5 +314,5 @@ namespace gridtools::fn {
     template <auto InitPass, auto Pass, auto InitGet = std::identity{}, auto Get = std::identity{}>
     constexpr builtins_impl_::scan_wrapper<true, meta::val<InitPass, InitGet>, meta::val<Pass, Get>> scan_bwd{};
     template <auto InitPass, auto Pass, auto InitGet = std::identity{}, auto Get = std::identity{}>
-    inline constexpr builtins_impl_::scan_wrapper<false, meta::val<InitPass, InitGet>, meta::val<Pass, Get>> scan_fwd{};
+    constexpr builtins_impl_::scan_wrapper<false, meta::val<InitPass, InitGet>, meta::val<Pass, Get>> scan_fwd{};
 } // namespace gridtools::fn
