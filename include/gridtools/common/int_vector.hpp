@@ -112,6 +112,11 @@ namespace gridtools {
                     return tuple_util::generate<generators, hymap::from_meta_map<merged_meta_map_t>>(
                         std::forward<First>(first), std::forward<Second>(second));
                 }
+
+                template <class Vec, class Scalar>
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto multiply(Vec &&vec, Scalar &&scalar) {
+                    return tuple_util::transform([&scalar](auto &&v) { return v * scalar; }, std::forward<Vec>(vec));
+                }
             } // namespace int_vector_detail
 
             using int_vector_detail::plus;
@@ -120,6 +125,8 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto plus(First && first, Rest && ...rest) {
                 return plus(std::forward<First>(first), plus(std::forward<Rest>(rest)...));
             }
+
+            using int_vector_detail::multiply;
         }
     } // namespace int_vector
 } // namespace gridtools

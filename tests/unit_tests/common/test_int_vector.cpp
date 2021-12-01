@@ -56,5 +56,23 @@ namespace gridtools {
             EXPECT_EQ(14, at_key<b>(testee));
         }
 
+        TEST(multiply, integrals) {
+            auto vec = tuple_util::make<hymap::keys<a, b>::values>(integral_constant<int, 1>{}, 2);
+
+            auto testee = int_vector::multiply(vec, 2);
+
+            EXPECT_EQ(2, at_key<a>(testee));
+            EXPECT_EQ(4, at_key<b>(testee));
+        }
+
+        TEST(multiply, integral_constants) {
+            auto vec = tuple_util::make<hymap::keys<a, b>::values>(integral_constant<int, 1>{}, 2);
+
+            auto testee = int_vector::multiply(vec, integral_constant<int, 2>{});
+
+            static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<a>(testee))>>);
+            EXPECT_EQ(4, at_key<b>(testee));
+        }
+
     } // namespace
 } // namespace gridtools
