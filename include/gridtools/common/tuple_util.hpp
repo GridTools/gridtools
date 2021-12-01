@@ -1330,8 +1330,9 @@ namespace gridtools {
              *     }
              * };
              *
-             * // We want to generate a pair of a pointer and size, that represents this string in a simple C-style
-             * manner std::string s = "Hello World!";
+             * // We want to generate a pair of a pointer and size,
+             * // that represents this string in a simple C-style manner
+             * std::string s = "Hello World!";
              * // Target-type to construct
              * using ptr_size_pair = std::pair< const char*, std::size_t >;
              *
