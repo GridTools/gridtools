@@ -22,16 +22,25 @@
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
 
+#include <cuda_test_helper.hpp>
+
 namespace gridtools {
     namespace {
         struct a;
         struct b;
         struct c;
 
-        TEST(plus, integrals) {
+        __device__ hymap::keys<a, b, c>::values<int, long int, unsigned int> plus_device(
+            hymap::keys<a, b>::values<int, long int> const &m1,
+            hymap::keys<b, c>::values<int, unsigned int> const &m2) {
+            return int_vector::plus(m1, m2);
+        }
+
+        TEST(plus, device) {
             auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2l);
             auto m2 = tuple_util::make<hymap::keys<b, c>::values>(10, 20u);
-            auto testee = int_vector::plus(m1, m2);
+
+            auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&plus_device), m1, m2);
 
             static_assert(std::is_same_v<int, std::decay_t<decltype(at_key<a>(testee))>>);
             static_assert(std::is_same_v<long int, std::decay_t<decltype(at_key<b>(testee))>>);
@@ -42,44 +51,21 @@ namespace gridtools {
             EXPECT_EQ(20, at_key<c>(testee));
         }
 
-        TEST(plus, integral_constants) {
-            auto m1 = hymap::keys<a, b>::values<integral_constant<int, 1>, integral_constant<int, 2>>{};
-            auto m2 = tuple_util::make<hymap::keys<a, b>::values>(integral_constant<int, 11>{}, 12);
-
-            auto testee = int_vector::plus(m1, m2);
-
-            static_assert(std::is_same_v<integral_constant<int, 12>, std::decay_t<decltype(at_key<a>(testee))>>);
-            static_assert(std::is_same_v<int, std::decay_t<decltype(at_key<b>(testee))>>);
-
-            EXPECT_EQ(14, at_key<b>(testee));
+        __device__ hymap::keys<a, b>::values<int, int> multiply_device(
+            hymap::keys<a, b>::values<integral_constant<int, 1>, int> const &vec, int scalar) {
+            return int_vector::multiply(vec, scalar);
         }
 
-        TEST(plus, tuple_and_arrays) {
-            auto m1 = tuple<int, int>{1, 2};
-            auto m2 = array<int, 2>{3, 4};
-            auto testee = int_vector::plus(m1, m2);
-
-            EXPECT_EQ(4, (at_key<integral_constant<int, 0>>(testee)));
-            EXPECT_EQ(6, (at_key<integral_constant<int, 1>>(testee)));
-        }
-
-        TEST(multiply, integrals) {
+        TEST(multiply, device) {
             auto vec = tuple_util::make<hymap::keys<a, b>::values>(integral_constant<int, 1>{}, 2);
 
-            auto testee = int_vector::multiply(vec, 2);
+            auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&multiply_device), vec, 2);
 
             EXPECT_EQ(2, at_key<a>(testee));
             EXPECT_EQ(4, at_key<b>(testee));
         }
 
-        TEST(multiply, integral_constants) {
-            auto vec = tuple_util::make<hymap::keys<a, b>::values>(integral_constant<int, 1>{}, 2);
-
-            auto testee = int_vector::multiply(vec, integral_constant<int, 2>{});
-
-            static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<a>(testee))>>);
-            EXPECT_EQ(4, at_key<b>(testee));
-        }
-
     } // namespace
 } // namespace gridtools
+
+#include "test_int_vector.cpp"

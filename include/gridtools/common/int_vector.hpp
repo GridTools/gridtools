@@ -40,7 +40,8 @@ namespace gridtools {
 
         template <class Key>
         struct add_f {
-            GT_FUNCTION GT_CONSTEXPR auto operator()(auto const &...args) const {
+            template <class... Ts>
+            GT_FUNCTION GT_CONSTEXPR decltype(auto) operator()(Ts const &...args) const {
                 return (host_device::at_key_with_default<Key, integral_constant<int, 0>>(args) + ...);
             }
         };
@@ -51,7 +52,7 @@ namespace gridtools {
                 meta::concat<hymap::to_meta_map<First>, hymap::to_meta_map<Second>>>;
             using keys_t = meta::transform<meta::first, merged_meta_map_t>;
             using generators = meta::transform<add_f, keys_t>;
-            return tuple_util::generate<generators, hymap::from_meta_map<merged_meta_map_t>>(
+            return tuple_util::host_device::generate<generators, hymap::from_meta_map<merged_meta_map_t>>(
                 std::forward<First>(first), std::forward<Second>(second));
         }
 
