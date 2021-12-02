@@ -81,5 +81,16 @@ namespace gridtools {
             EXPECT_EQ(4, at_key<b>(testee));
         }
 
+        TEST(normalize, smoke) {
+            auto vec = tuple_util::make<hymap::keys<a, b, c>::values>(
+                1, integral_constant<int, 0>{}, integral_constant<int, 2>{});
+
+            auto testee = int_vector::normalize(vec);
+
+            EXPECT_EQ(1, at_key<a>(testee));
+            EXPECT_FALSE((has_key<decltype(testee), b>{}));
+            static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee))>>);
+        }
+
     } // namespace
 } // namespace gridtools

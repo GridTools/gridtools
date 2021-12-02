@@ -65,6 +65,22 @@ namespace gridtools {
             EXPECT_EQ(4, at_key<b>(testee));
         }
 
+        __device__ hymap::keys<a, c>::values<int, integral_constant<int, 2>> normalize_device(
+            hymap::keys<a, b, c>::values<int, integral_constant<int, 0>, integral_constant<int, 2>> const &vec) {
+            return int_vector::normalize(vec);
+        }
+
+        TEST(normalize, device) {
+            auto vec = tuple_util::make<hymap::keys<a, b, c>::values>(
+                1, integral_constant<int, 0>{}, integral_constant<int, 2>{});
+
+            auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&normalize_device), vec);
+
+            EXPECT_EQ(1, at_key<a>(testee));
+            EXPECT_FALSE((has_key<decltype(testee), b>{}));
+            static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee))>>);
+        }
+
     } // namespace
 } // namespace gridtools
 
