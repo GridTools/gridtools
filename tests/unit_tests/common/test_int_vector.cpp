@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "gridtools/common/array.hpp"
 #include "gridtools/meta/debug.hpp"
 #include <gridtools/common/int_vector.hpp>
 
@@ -54,6 +55,15 @@ namespace gridtools {
             static_assert(std::is_same_v<int, std::decay_t<decltype(at_key<b>(testee))>>);
 
             EXPECT_EQ(14, at_key<b>(testee));
+        }
+
+        TEST(plus, tuple_and_arrays) {
+            auto m1 = tuple<int, int>{1, 2};
+            auto m2 = array<int, 2>{3, 4};
+            auto testee = int_vector::plus(m1, m2);
+
+            EXPECT_EQ(4, (at_key<integral_constant<int, 0>>(testee)));
+            EXPECT_EQ(6, (at_key<integral_constant<int, 1>>(testee)));
         }
 
         TEST(multiply, integrals) {

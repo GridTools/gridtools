@@ -33,20 +33,9 @@ namespace gridtools {
         template <class... Ts>
         struct value_t_merger;
 
-        template <class T>
-        struct value_t_merger<T> {
-            using type = T;
-        };
-
-        template <class T0, class T1>
-        struct value_t_merger<T0, T1> {
-            using V0 = meta::second<T0>;
-            using V1 = meta::second<T1>;
-            using K0 = meta::first<T0>;
-            using type = meta::list<K0,
-                meta::if_<integral_constant<bool, is_integral_constant<V0>::value && is_integral_constant<V1>::value>,
-                    decltype(V0{} + V1{}), // TODO this is specific to `plus`
-                    std::common_type_t<V0, V1>>>;
+        template <template <class...> class Item, class Key, class... Vs>
+        struct value_t_merger<Item<Key, Vs>...> {
+            using type = Item<Key, std::decay_t<decltype((Vs{} + ...))>>;
         };
 
         template <class... T>
@@ -70,23 +59,40 @@ namespace gridtools {
         GT_TARGET_NAMESPACE {
 
             namespace int_vector_detail {
-                template <class I, class Enable = void, class Key = meta::first<I>, class Type = meta::second<I>>
+                template <class I, class Key = meta::first<I>, class Type = meta::second<I>>
                 struct add_f {
                     template <class First, class Second>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Type operator()(
-                        First &&first, Second &&second) const {
-                        return at_key_with_default<Key, std::integral_constant<Type, 0>>(wstd::forward<First>(first)) +
-                               at_key_with_default<Key, std::integral_constant<Type, 0>>(wstd::forward<Second>(second));
+                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto operator()(
+                        First const &first, Second const &second) const {
+                        if constexpr (not has_key<First, Key>{})
+                            return gridtools::host_device::at_key<Key>(second);
+                        else if constexpr (not has_key<Second, Key>{})
+                            return gridtools::host_device::at_key<Key>(first);
+                        else
+                            return gridtools::host_device::at_key<Key>(first) +
+                                   gridtools::host_device::at_key<Key>(second); // TODO review namespace
                     }
                 };
-                template <class I>
-                struct add_f<I, std::enable_if_t<is_integral_constant<meta::second<I>>::value>> {
-                    template <class First, class Second>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR meta::second<I> operator()(
-                        First &&, Second &&) const {
-                        return {};
-                    }
-                };
+
+                // template <class I, class Enable = void, class Key = meta::first<I>, class Type = meta::second<I>>
+                // struct add_f {
+                //     template <class First, class Second>
+                //     GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Type operator()(
+                //         First &&first, Second &&second) const {
+                //         return at_key_with_default<Key, std::integral_constant<Type, 0>>(wstd::forward<First>(first))
+                //         +
+                //                at_key_with_default<Key, std::integral_constant<Type,
+                //                0>>(wstd::forward<Second>(second));
+                //     }
+                // };
+                // template <class I>
+                // struct add_f<I, std::enable_if_t<is_integral_constant<meta::second<I>>::value>> {
+                //     template <class First, class Second>
+                //     GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR meta::second<I> operator()(
+                //         First &&, Second &&) const {
+                //         return {};
+                //     }
+                // };
 
                 // TODO or the following?
 
@@ -114,8 +120,8 @@ namespace gridtools {
                 }
 
                 template <class Vec, class Scalar>
-                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto multiply(Vec &&vec, Scalar &&scalar) {
-                    return tuple_util::transform([&scalar](auto &&v) { return v * scalar; }, std::forward<Vec>(vec));
+                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto multiply(Vec &&vec, Scalar scalar) {
+                    return tuple_util::transform([scalar](auto v) { return v * scalar; }, std::forward<Vec>(vec));
                 }
             } // namespace int_vector_detail
 
