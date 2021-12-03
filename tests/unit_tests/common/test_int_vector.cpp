@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "gridtools/meta/debug.hpp"
 #include <gridtools/common/int_vector.hpp>
 
 #include <tuple>
@@ -119,7 +120,11 @@ namespace gridtools {
 
             EXPECT_EQ(-1, at_key<a>(testee));
             static_assert(std::is_same_v<integral_constant<int, 0>, std::decay_t<decltype(at_key<b>(testee))>>);
+#ifdef __NVCC__
+            EXPECT_EQ(-2, at_key<c>(testee));
+#else
             static_assert(std::is_same_v<integral_constant<int, -2>, std::decay_t<decltype(at_key<c>(testee))>>);
+#endif
 
             auto testee2 = +vec;
             EXPECT_EQ(1, at_key<a>(testee2));
