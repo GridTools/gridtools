@@ -98,7 +98,7 @@ namespace gridtools {
             EXPECT_EQ(4, at_key<b>(testee));
         }
 
-        TEST(normalize, smoke) {
+        TEST(prune_zeros, smoke) {
             auto vec = tuple_util::make<hymap::keys<a, b, c>::values>(
                 1, integral_constant<int, 0>{}, integral_constant<int, 2>{});
 

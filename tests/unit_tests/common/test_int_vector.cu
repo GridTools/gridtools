@@ -63,10 +63,10 @@ namespace gridtools {
 
         __device__ hymap::keys<a, c>::values<int, integral_constant<int, 2>> normalize_device(
             hymap::keys<a, b, c>::values<int, integral_constant<int, 0>, integral_constant<int, 2>> const &vec) {
-            return int_vector::normalize(vec);
+            return int_vector::prune_zeros(vec);
         }
 
-        TEST(normalize, device) {
+        TEST(prune_zeros, device) {
             auto vec = tuple_util::make<hymap::keys<a, b, c>::values>(
                 1, integral_constant<int, 0>{}, integral_constant<int, 2>{});
 
