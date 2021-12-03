@@ -16,7 +16,7 @@
  * A type `T` is `int_vector` if
  *  - `is_hymap<T>`
  *  - all value types `V` are std::is_integral<V> or is_gr_integral_constant<V>
- *  - `std::is_trivially_copy_constructible<T>` // TODO isn't that trivially satisfied by the previous conditions?
+ *  - `std::is_trivially_copy_constructible<T>`
  */
 
 #pragma once
