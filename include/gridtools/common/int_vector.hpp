@@ -89,7 +89,8 @@ namespace gridtools {
     } // namespace int_vector_impl_
 
     template <class T>
-    struct is_int_vector : std::true_type {}; // TODO proper type trait
+    struct is_int_vector : std::true_type {
+    }; // TODO proper type trait: is_hymap and (is_integral or is_gr_integral_constant)
 
     template <class T>
     inline constexpr bool is_int_vector_v = is_int_vector<T>::value;
