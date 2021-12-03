@@ -88,9 +88,46 @@ namespace gridtools {
         }
     } // namespace int_vector_impl_
 
+    template <class T>
+    struct is_int_vector : std::true_type {}; // TODO proper type trait
+
+    template <class T>
+    inline constexpr bool is_int_vector_v = is_int_vector<T>::value;
+
     namespace int_vector {
         using int_vector_impl_::multiply;
         using int_vector_impl_::normalize;
         using int_vector_impl_::plus;
+
+        namespace arithmetic {
+            template <class Vec,
+                class Scalar,
+                std::enable_if_t<is_int_vector_v<Vec> &&
+                                     (std::is_integral_v<Scalar> || is_integral_constant<Scalar>::value),
+                    bool> = true>
+            GT_FUNCTION GT_CONSTEXPR auto operator*(Vec &&vec, Scalar scalar) {
+                return multiply(std::forward<Vec>(vec), scalar);
+            }
+
+            template <class First,
+                class Second,
+                std::enable_if_t<is_int_vector_v<First> && is_int_vector_v<Second>, bool> = true>
+            GT_FUNCTION GT_CONSTEXPR auto operator+(First &&first, Second &&second) {
+                return plus(std::forward<First>(first), std::forward<Second>(second));
+            }
+
+            template <class Vec, std::enable_if_t<is_int_vector_v<Vec>, bool> = true>
+            GT_FUNCTION GT_CONSTEXPR auto operator-(Vec &&vec) {
+                return multiply(std::forward<Vec>(vec), integral_constant<int, -1>{}); // TODO not compiling with nvcc
+            }
+
+            template <class First,
+                class Second,
+                std::enable_if_t<is_int_vector_v<First> && is_int_vector_v<Second>, bool> = true>
+            GT_FUNCTION GT_CONSTEXPR auto operator-(First &&first, Second &&second) {
+                return plus(std::forward<First>(first), -std::forward<Second>(second));
+            }
+
+        } // namespace arithmetic
     } // namespace int_vector
 } // namespace gridtools
