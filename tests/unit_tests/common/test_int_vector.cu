@@ -8,11 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "gridtools/common/array.hpp"
-#include "gridtools/meta/debug.hpp"
 #include <gridtools/common/int_vector.hpp>
 
-#include <tuple>
 #include <type_traits>
 
 #include <gtest/gtest.h>
@@ -20,7 +17,6 @@
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
-#include <gridtools/meta.hpp>
 
 #include <cuda_test_helper.hpp>
 

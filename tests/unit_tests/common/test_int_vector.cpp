@@ -8,8 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "gridtools/common/array.hpp"
-#include "gridtools/meta/debug.hpp"
 #include <gridtools/common/int_vector.hpp>
 
 #include <tuple>
@@ -17,8 +15,10 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/array.hpp>
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/common/integral_constant.hpp>
+#include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
 
@@ -31,15 +31,16 @@ namespace gridtools {
         TEST(plus, integrals) {
             auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2l);
             auto m2 = tuple_util::make<hymap::keys<b, c>::values>(10, 20u);
+            auto m3 = tuple_util::make<hymap::keys<b>::values>(100);
 
-            auto testee = int_vector::plus(m1, m2);
+            auto testee = int_vector::plus(m1, m2, m3);
 
             static_assert(std::is_same_v<int, std::decay_t<decltype(at_key<a>(testee))>>);
             static_assert(std::is_same_v<long int, std::decay_t<decltype(at_key<b>(testee))>>);
             static_assert(std::is_same_v<unsigned int, std::decay_t<decltype(at_key<c>(testee))>>);
 
             EXPECT_EQ(1, at_key<a>(testee));
-            EXPECT_EQ(12, at_key<b>(testee));
+            EXPECT_EQ(112, at_key<b>(testee));
             EXPECT_EQ(20, at_key<c>(testee));
 
             using namespace int_vector::arithmetic;
@@ -101,14 +102,14 @@ namespace gridtools {
             auto vec = tuple_util::make<hymap::keys<a, b, c>::values>(
                 1, integral_constant<int, 0>{}, integral_constant<int, 2>{});
 
-            auto testee = int_vector::normalize(vec);
+            auto testee = int_vector::prune_zeros(vec);
 
             EXPECT_EQ(1, at_key<a>(testee));
             EXPECT_FALSE((has_key<decltype(testee), b>{}));
             static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee))>>);
         }
 
-        TEST(negate_op, smoke) {
+        TEST(unary_ops, smoke) {
             using namespace int_vector::arithmetic;
 
             auto vec = tuple_util::make<hymap::keys<a, b, c>::values>(
@@ -119,6 +120,11 @@ namespace gridtools {
             EXPECT_EQ(-1, at_key<a>(testee));
             static_assert(std::is_same_v<integral_constant<int, 0>, std::decay_t<decltype(at_key<b>(testee))>>);
             static_assert(std::is_same_v<integral_constant<int, -2>, std::decay_t<decltype(at_key<c>(testee))>>);
+
+            auto testee2 = +vec;
+            EXPECT_EQ(1, at_key<a>(testee2));
+            static_assert(std::is_same_v<integral_constant<int, 0>, std::decay_t<decltype(at_key<b>(testee2))>>);
+            static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee2))>>);
         }
 
         TEST(minus_op, smoke) {
