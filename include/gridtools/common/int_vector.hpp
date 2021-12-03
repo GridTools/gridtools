@@ -7,12 +7,19 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
 
 /**
- *  @file
- * TODO
+ * @file
+ *
+ * Implements operations on `int_vector`s, which are hymaps of integers (integral types or integral_constants)
+ *
+ * A type `T` is `int_vector` if
+ *  - `is_hymap<T>`
+ *  - all value types `V` are std::is_integral<V> or is_gr_integral_constant<V>
+ *  - `std::is_trivially_copy_constructible<T>` // TODO isn't that trivially satisfied by the previous conditions?
  */
+
+#pragma once
 
 #include <type_traits>
 
@@ -47,6 +54,11 @@ namespace gridtools {
             }
         };
 
+        /**
+         * @brief Returns elementwise sum of `int_vector`s
+         *
+         * The keys of the resulting `int_vector` are the union of the keys of the operands.
+         */
         template <class First, class Second>
         GT_FUNCTION GT_CONSTEXPR auto plus(First &&first, Second &&second) {
             using merged_meta_map_t = meta::mp_make<int_vector_impl_::merger_t,
@@ -57,6 +69,9 @@ namespace gridtools {
                 std::forward<First>(first), std::forward<Second>(second));
         }
 
+        /**
+         * @brief Returns `int_vector` with elements multiplied by an integral scalar
+         */
         template <class Vec, class Scalar>
         GT_FUNCTION GT_CONSTEXPR auto multiply(Vec &&vec, Scalar scalar) {
             return tuple_util::host_device::transform([scalar](auto v) { return v * scalar; }, std::forward<Vec>(vec));
@@ -78,6 +93,9 @@ namespace gridtools {
             }
         };
 
+        /**
+         * @brief Returns `int_vector` with elements removed that are `integral_constant<T, 0>`
+         */
         template <class Vec>
         GT_FUNCTION GT_CONSTEXPR auto normalize(Vec &&vec) {
             using filtered_map_t = meta::filter<meta::not_<is_integral_zero>::apply, hymap::to_meta_map<Vec>>;
@@ -107,6 +125,15 @@ namespace gridtools {
                                      (std::is_integral_v<Scalar> || is_integral_constant<Scalar>::value),
                     bool> = true>
             GT_FUNCTION GT_CONSTEXPR auto operator*(Vec &&vec, Scalar scalar) {
+                return multiply(std::forward<Vec>(vec), scalar);
+            }
+
+            template <class Vec,
+                class Scalar,
+                std::enable_if_t<is_int_vector_v<Vec> &&
+                                     (std::is_integral_v<Scalar> || is_integral_constant<Scalar>::value),
+                    bool> = true>
+            GT_FUNCTION GT_CONSTEXPR auto operator*(Scalar &&scalar, Vec vec) {
                 return multiply(std::forward<Vec>(vec), scalar);
             }
 

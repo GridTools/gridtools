@@ -82,6 +82,10 @@ namespace gridtools {
             auto testee2 = vec * 2;
             EXPECT_EQ(2, at_key<a>(testee2));
             EXPECT_EQ(4, at_key<b>(testee2));
+
+            auto testee3 = 2 * vec;
+            EXPECT_EQ(2, at_key<a>(testee3));
+            EXPECT_EQ(4, at_key<b>(testee3));
         }
 
         TEST(multiply, integral_constants) {
