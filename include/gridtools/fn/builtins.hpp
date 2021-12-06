@@ -9,28 +9,37 @@
  */
 #pragma once
 
+#include <cassert>
+
 #include <functional>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
+#include "../common/integral_constant.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "offsets.hpp"
 
 namespace gridtools::fn {
+
     namespace builtins {
         struct deref {};
         struct can_deref {};
+        template <auto...>
         struct shift {};
+        template <class>
         struct ilift {};
+        template <class>
         struct tlift {};
+        template <class F, class Init>
         struct reduce {};
         struct plus {};
         struct minus {};
         struct multiplies {};
         struct divides {};
         struct make_tuple {};
+        template <size_t>
         struct tuple_get {};
         struct if_ {};
         struct less {};
@@ -38,6 +47,8 @@ namespace gridtools::fn {
         struct not_ {};
         struct and_ {};
         struct or_ {};
+        template <class IsBackward, class Init, class Body, class Prologues, class Epilogues>
+        struct scan {};
     }; // namespace builtins
 
     namespace builtins_impl_ {
@@ -63,27 +74,21 @@ namespace gridtools::fn {
         }
 
         template <class Arg>
-        constexpr decltype(auto) fn_default(builtins::shift, meta::val<>, Arg &&arg) {
+        constexpr decltype(auto) fn_default(builtins::shift<>, Arg &&arg) {
             return std::forward<Arg>(arg);
         }
 
         template <auto V, class Arg>
-        constexpr auto fn_default(builtins::shift, meta::val<V>, Arg const &arg) {
+        constexpr auto fn_default(builtins::shift<V>, Arg const &arg) {
             return &tuple_util::get<V>(arg);
         }
 
         template <auto V0, auto V1, auto... Vs, class Arg>
-        constexpr decltype(auto) fn_default(builtins::shift, meta::val<V0, V1, Vs...>, Arg const &arg) {
-            if constexpr (!std::is_same_v<undefined,
-                              decltype(fn_builtin(builtins::shift(), meta::constant<V0, V1>, arg))>)
-                return builtin_fun(builtins::shift(),
-                    meta::constant<Vs...>,
-                    fn_builtin(builtins::shift(), meta::constant<V0, V1>, arg));
-            else if constexpr (!std::is_same_v<undefined,
-                                   decltype(fn_builtin(builtins::shift(), meta::constant<V0>, arg))>)
-                return builtin_fun(builtins::shift(),
-                    meta::constant<V1, Vs...>,
-                    fn_builtin(builtins::shift(), meta::constant<V0>, arg));
+        constexpr decltype(auto) fn_default(builtins::shift<V0, V1, Vs...>, Arg const &arg) {
+            if constexpr (!std::is_same_v<undefined, decltype(fn_builtin(builtins::shift<V0, V1>(), arg))>)
+                return builtin_fun(builtins::shift<Vs...>(), fn_builtin(builtins::shift<V0, V1>(), arg));
+            else if constexpr (!std::is_same_v<undefined, decltype(fn_builtin(builtins::shift<V0>(), arg))>)
+                return builtin_fun(builtins::shift<V1, Vs...>(), fn_builtin(builtins::shift<V0>(), arg));
         }
 
         template <auto F, class Args>
@@ -91,10 +96,10 @@ namespace gridtools::fn {
             Args args;
         };
 
-        template <class Offsets, auto F, class Args>
-        constexpr auto fn_builtin(builtins::shift, Offsets, lifted_iter<F, Args> const &it) {
+        template <auto... Offsets, auto F, class Args>
+        constexpr auto fn_builtin(builtins::shift<Offsets...>, lifted_iter<F, Args> const &it) {
             auto args = tuple_util::transform(
-                [](auto const &arg) { return builtin_fun(builtins::shift(), Offsets(), arg); }, it.args);
+                [](auto const &arg) { return builtin_fun(builtins::shift<Offsets...>(), arg); }, it.args);
             return lifted_iter<F, decltype(args)>{std::move(args)};
         }
 
@@ -109,7 +114,7 @@ namespace gridtools::fn {
         }
 
         template <class F, class... Args>
-        constexpr auto fn_default(builtins::ilift, F, Args... args) {
+        constexpr auto fn_default(builtins::ilift<F>, Args... args) {
             return lifted_iter<F::value, std::tuple<Args...>>{std::tuple(std::move(args)...)};
         }
 
@@ -121,16 +126,15 @@ namespace gridtools::fn {
         constexpr decltype(auto) get_offsets(auto const &arg, ...) { return offsets(arg); }
 
         template <class F, class Init, class... Args>
-        constexpr auto fn_default(builtins::reduce, F, Init, Args const &... args) {
-            auto res = Init::value(
-                decltype(builtin_fun(builtins::deref(), builtin_fun(builtins::shift(), meta::constant<0>, args))){}...);
+        constexpr auto fn_default(builtins::reduce<F, Init>, Args const &... args) {
+            auto res =
+                Init::value(decltype(builtin_fun(builtins::deref(), builtin_fun(builtins::shift<0>(), args))){}...);
             auto const &offsets = get_offsets(args...);
             tuple_util::for_each(
                 [&]<class I>(int offset, I) {
                     if (offset != -1)
-                        res = F::value(res,
-                            builtin_fun(
-                                builtins::deref(), builtin_fun(builtins::shift(), meta::constant<I::value>, args))...);
+                        res = F::value(
+                            res, builtin_fun(builtins::deref(), builtin_fun(builtins::shift<I::value>(), args))...);
                 },
                 offsets,
                 make_indices(offsets));
@@ -167,14 +171,19 @@ namespace gridtools::fn {
             return std::tuple(std::forward<Args>(args)...);
         }
 
-        template <class I, class Arg>
-        constexpr decltype(auto) fn_default(builtins::tuple_get, I, Arg &&arg) {
-            return tuple_util::get<I::value>(std::forward<Arg>(arg));
+        template <size_t I, class Arg>
+        constexpr decltype(auto) fn_default(builtins::tuple_get<I>, Arg &&arg) {
+            return tuple_util::get<I>(std::forward<Arg>(arg));
         }
 
         template <class C, class L, class R>
-        constexpr decltype(auto) fn_default(builtins::if_, C &&c, L &&l, R &&r) {
-            return std::forward<C>(c) ? std::forward<L>(l) : std::forward<R>(r);
+        constexpr decltype(auto) fn_default(builtins::if_, C const &c, L &&l, R &&r) {
+            if constexpr (!is_integral_constant<C>())
+                return c ? std::forward<L>(l) : std::forward<R>(r);
+            else if constexpr (C::value)
+                return std::forward<L>(l);
+            else
+                return std::forward<R>(r);
         }
 
         template <class L, class R>
@@ -202,6 +211,26 @@ namespace gridtools::fn {
             return (... || std::forward<Args>(args));
         }
 
+        template <class IsBackward,
+            auto InitPass,
+            auto InitGet,
+            auto Pass,
+            auto Get,
+            auto... ProloguePasses,
+            auto... PrologueGets,
+            auto... EpiloguePasses,
+            auto... EpilogueGets,
+            class... Args>
+        constexpr decltype(auto) fn_default(builtins::scan<IsBackward,
+                                                meta::val<InitPass, InitGet>,
+                                                meta::val<Pass, Get>,
+                                                meta::list<meta::val<ProloguePasses, PrologueGets>...>,
+                                                meta::list<meta::val<EpiloguePasses, EpilogueGets>...>>,
+            Args &&... args) {
+            assert(false);
+            return InitGet(InitPass(std::forward<Args>(args)...));
+        }
+
         template <class Tag, class... Args>
         constexpr decltype(auto) builtin_fun(Tag tag, Args &&... args) {
             if constexpr (std::is_same_v<decltype(fn_builtin(tag, std::forward<Args>(args)...)), undefined>)
@@ -214,6 +243,39 @@ namespace gridtools::fn {
         constexpr auto builtin = []<class... Args>(Args &&... args) -> decltype(auto) {
             return builtin_fun(Tag(), std::forward<Args>(args)...);
         };
+
+        template <bool IsBackward, class Init, class Body, class = meta::list<>, class = meta::list<>>
+        struct scan_wrapper;
+
+        template <bool IsBackward, class Init, class Body, class... Prologues, class... Epilogues>
+        struct scan_wrapper<IsBackward, Init, Body, meta::list<Prologues...>, meta::list<Epilogues...>> {
+            template <class... Args>
+            decltype(auto) operator()(Args &&... args) const {
+                return builtin_fun(builtins::scan<std::bool_constant<IsBackward>,
+                                       Init,
+                                       Body,
+                                       meta::list<Prologues...>,
+                                       meta::list<Epilogues...>>(),
+                    std::forward<Args>(args)...);
+            }
+
+            template <auto Pass, auto Get = std::identity{}>
+            static constexpr scan_wrapper<IsBackward,
+                Init,
+                Body,
+                meta::list<Prologues..., meta::val<Pass, Get>>,
+                meta::list<Epilogues...>>
+                prologue = {};
+
+            template <auto Pass, auto Get = std::identity{}>
+            static constexpr scan_wrapper<IsBackward,
+                Init,
+                Body,
+                meta::list<Prologues...>,
+                meta::list<Epilogues..., meta::val<Pass, Get>>>
+                epilogue = {};
+        };
+
     } // namespace builtins_impl_
     using builtins_impl_::builtin;
 
@@ -232,21 +294,25 @@ namespace gridtools::fn {
     inline constexpr auto or_ = builtin<builtins::or_>;
 
     template <size_t I>
-    constexpr auto tuple_get = std::bind_front(builtin<builtins::tuple_get>, std::integral_constant<size_t, I>());
+    constexpr auto tuple_get = builtin<builtins::tuple_get<I>>;
 
     template <auto... Vs>
-    constexpr auto shift = std::bind_front(builtin<builtins::shift>, meta::constant<Vs...>);
+    constexpr auto shift = builtin<builtins::shift<Vs...>>;
 
     template <auto F>
-    constexpr auto ilift = std::bind_front(builtin<builtins::ilift>, meta::constant<F>);
+    constexpr auto ilift = builtin<builtins::ilift<meta::val<F>>>;
 
     template <auto F>
-    constexpr auto tlift = std::bind_front(builtin<builtins::tlift>, meta::constant<F>);
+    constexpr auto tlift = builtin<builtins::tlift<meta::val<F>>>;
 
-    template <auto F, bool UseTmp = false>
-    constexpr auto lift = std::bind_front(
-        builtin<std::conditional_t<UseTmp, builtins::tlift, builtins::ilift>>, meta::constant<F>);
+    template <auto F, bool UseTmp = false, class V = meta::val<F>>
+    constexpr auto lift = builtin<std::conditional_t<UseTmp, builtins::tlift<V>, builtins::ilift<V>>>;
 
     template <auto F, auto Init>
-    constexpr auto reduce = std::bind_front(builtin<builtins::reduce>, meta::constant<F>, meta::constant<Init>);
+    constexpr auto reduce = builtin<builtins::reduce<meta::val<F>, meta::val<Init>>>;
+
+    template <auto InitPass, auto Pass, auto InitGet = std::identity{}, auto Get = std::identity{}>
+    constexpr builtins_impl_::scan_wrapper<true, meta::val<InitPass, InitGet>, meta::val<Pass, Get>> scan_bwd{};
+    template <auto InitPass, auto Pass, auto InitGet = std::identity{}, auto Get = std::identity{}>
+    constexpr builtins_impl_::scan_wrapper<false, meta::val<InitPass, InitGet>, meta::val<Pass, Get>> scan_fwd{};
 } // namespace gridtools::fn

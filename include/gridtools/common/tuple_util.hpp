@@ -839,7 +839,7 @@ namespace gridtools {
                         class Tup,
                         class AllAccessors = get_accessors<Tup>,
                         class Accessors = meta::drop_front_c<I, AllAccessors>,
-                        class Res = meta::foldl<meta_fun, State &&, Accessors>,
+                        class Res = meta::foldl<meta_fun, State, Accessors>,
                         std::enable_if_t<(I + 4 < N), int> = 0>
                     GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res impl(State &&state, Tup &&tup) const {
                         return impl<I + 5, N>(
@@ -855,7 +855,7 @@ namespace gridtools {
                     template <class State,
                         class Tup,
                         class Accessors = get_accessors<Tup>,
-                        class Res = meta::foldl<meta_fun, State &&, Accessors>>
+                        class Res = meta::foldl<meta_fun, State, Accessors>>
                     GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR Res operator()(State &&state, Tup &&tup) const {
                         return impl<0, size<std::decay_t<Tup>>::value>(
                             wstd::forward<State>(state), wstd::forward<Tup>(tup));

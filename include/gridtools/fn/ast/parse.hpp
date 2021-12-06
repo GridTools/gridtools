@@ -22,7 +22,7 @@ namespace gridtools::fn::ast {
 
         template <auto F, class... Is>
         struct parse<F, meta::list<Is...>> {
-            using type = decltype(F(in<Is>()...));
+            using type = std::decay_t<decltype(F(in<Is>()...))>;
         };
     } // namespace parse_impl_
 
