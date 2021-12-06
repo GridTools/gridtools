@@ -36,9 +36,9 @@ namespace gridtools {
 
             auto testee = int_vector::plus(m1, m2, m3);
 
-            static_assert(std::is_same_v<int, std::decay_t<decltype(at_key<a>(testee))>>);
-            static_assert(std::is_same_v<long int, std::decay_t<decltype(at_key<b>(testee))>>);
-            static_assert(std::is_same_v<unsigned int, std::decay_t<decltype(at_key<c>(testee))>>);
+            static_assert(std::is_same<int, std::decay_t<decltype(at_key<a>(testee))>>::value);
+            static_assert(std::is_same<long int, std::decay_t<decltype(at_key<b>(testee))>>::value);
+            static_assert(std::is_same<unsigned int, std::decay_t<decltype(at_key<c>(testee))>>::value);
 
             EXPECT_EQ(1, at_key<a>(testee));
             EXPECT_EQ(112, at_key<b>(testee));
@@ -57,8 +57,8 @@ namespace gridtools {
 
             auto testee = int_vector::plus(m1, m2);
 
-            static_assert(std::is_same_v<integral_constant<int, 12>, std::decay_t<decltype(at_key<a>(testee))>>);
-            static_assert(std::is_same_v<int, std::decay_t<decltype(at_key<b>(testee))>>);
+            static_assert(std::is_same<integral_constant<int, 12>, std::decay_t<decltype(at_key<a>(testee))>>::value);
+            static_assert(std::is_same<int, std::decay_t<decltype(at_key<b>(testee))>>::value);
 
             EXPECT_EQ(14, at_key<b>(testee));
         }
@@ -95,7 +95,7 @@ namespace gridtools {
 
             auto testee = int_vector::multiply(vec, integral_constant<int, 2>{});
 
-            static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<a>(testee))>>);
+            static_assert(std::is_same<integral_constant<int, 2>, std::decay_t<decltype(at_key<a>(testee))>>::value);
             EXPECT_EQ(4, at_key<b>(testee));
         }
 
@@ -107,7 +107,7 @@ namespace gridtools {
 
             EXPECT_EQ(1, at_key<a>(testee));
             EXPECT_FALSE((has_key<decltype(testee), b>{}));
-            static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee))>>);
+            static_assert(std::is_same<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee))>>::value);
         }
 
         TEST(unary_ops, smoke) {
@@ -119,17 +119,13 @@ namespace gridtools {
             auto testee = -vec;
 
             EXPECT_EQ(-1, at_key<a>(testee));
-            static_assert(std::is_same_v<integral_constant<int, 0>, std::decay_t<decltype(at_key<b>(testee))>>);
-#ifdef __NVCC__
-            EXPECT_EQ(-2, at_key<c>(testee));
-#else
-            static_assert(std::is_same_v<integral_constant<int, -2>, std::decay_t<decltype(at_key<c>(testee))>>);
-#endif
+            static_assert(std::is_same<integral_constant<int, 0>, std::decay_t<decltype(at_key<b>(testee))>>::value);
+            static_assert(std::is_same<integral_constant<int, -2>, std::decay_t<decltype(at_key<c>(testee))>>::value);
 
             auto testee2 = +vec;
             EXPECT_EQ(1, at_key<a>(testee2));
-            static_assert(std::is_same_v<integral_constant<int, 0>, std::decay_t<decltype(at_key<b>(testee2))>>);
-            static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee2))>>);
+            static_assert(std::is_same<integral_constant<int, 0>, std::decay_t<decltype(at_key<b>(testee2))>>::value);
+            static_assert(std::is_same<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee2))>>::value);
         }
 
         TEST(minus_op, smoke) {
@@ -141,7 +137,7 @@ namespace gridtools {
             auto testee = m1 - m2;
 
             EXPECT_EQ(0, at_key<a>(testee));
-            static_assert(std::is_same_v<integral_constant<int, 1>, std::decay_t<decltype(at_key<b>(testee))>>);
+            static_assert(std::is_same<integral_constant<int, 1>, std::decay_t<decltype(at_key<b>(testee))>>::value);
             EXPECT_EQ(-3, at_key<c>(testee));
         }
 

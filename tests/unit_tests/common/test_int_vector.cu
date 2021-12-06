@@ -38,9 +38,9 @@ namespace gridtools {
 
             auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&plus_device), m1, m2);
 
-            static_assert(std::is_same_v<int, std::decay_t<decltype(at_key<a>(testee))>>);
-            static_assert(std::is_same_v<long int, std::decay_t<decltype(at_key<b>(testee))>>);
-            static_assert(std::is_same_v<unsigned int, std::decay_t<decltype(at_key<c>(testee))>>);
+            static_assert(std::is_same<int, std::decay_t<decltype(at_key<a>(testee))>>::value);
+            static_assert(std::is_same<long int, std::decay_t<decltype(at_key<b>(testee))>>::value);
+            static_assert(std::is_same<unsigned int, std::decay_t<decltype(at_key<c>(testee))>>::value);
 
             EXPECT_EQ(1, at_key<a>(testee));
             EXPECT_EQ(12, at_key<b>(testee));
@@ -74,7 +74,7 @@ namespace gridtools {
 
             EXPECT_EQ(1, at_key<a>(testee));
             EXPECT_FALSE((has_key<decltype(testee), b>{}));
-            static_assert(std::is_same_v<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee))>>);
+            static_assert(std::is_same<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee))>>::value);
         }
 
     } // namespace
