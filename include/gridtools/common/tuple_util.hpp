@@ -425,7 +425,7 @@ namespace gridtools {
             struct is_getter_valid;
 
             template <class T, class Getter, class Types, class I>
-            struct is_getter_valid<T, Getter, Types, I> : std::bool_constant<
+            struct is_getter_valid<T, Getter, Types, I> : bool_constant<
                 std::is_same<decltype(Getter::template get<I::value>(std::declval<T const&>())), meta::at<Types, I> const &>::value &&
                 std::is_same<decltype(Getter::template get<I::value>(std::declval<T&>())), meta::at<Types, I>&>::value &&
                 std::is_same<decltype(Getter::template get<I::value>(std::declval<T&&>())), meta::at<Types, I>&&>::value
