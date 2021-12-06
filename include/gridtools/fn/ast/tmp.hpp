@@ -312,12 +312,6 @@ namespace gridtools::fn::ast {
         };
 
         template <class Map>
-        struct make_dummy_iter_f {
-            template <class Arg>
-            using apply = dummy_iter<meta::third<meta::mp_find<Map, Arg>>>;
-        };
-
-        template <class Map>
         struct arg_num_f {
             template <class Arg>
             using apply = meta::second<meta::mp_find<Map, Arg>>;

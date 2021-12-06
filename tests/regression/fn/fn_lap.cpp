@@ -19,10 +19,6 @@ using namespace gridtools;
 using namespace literals;
 using namespace fn;
 
-constexpr auto in = [](auto const &s) { return [](auto x) { return x; }; };
-
-constexpr auto dderef = [](auto f) { return [f](auto const &s) { return s.deref(f(s)); }; };
-
 template <auto D>
 constexpr auto ldif = [](auto const &in) { return minus(deref(in), deref(shift<D, -1>(in))); };
 
