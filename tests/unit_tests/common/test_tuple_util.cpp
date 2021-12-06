@@ -30,6 +30,26 @@ namespace custom {
 } // namespace custom
 
 namespace gridtools {
+
+    static_assert(!is_tuple_like<void>::value, "");
+    static_assert(!is_tuple_like<int>::value, "");
+    static_assert(is_tuple_like<std::array<int, 42>>::value, "");
+    static_assert(is_tuple_like<std::tuple<>>::value, "");
+    static_assert(is_tuple_like<std::tuple<int>>::value, "");
+    static_assert(is_tuple_like<std::pair<int, double>>::value, "");
+    static_assert(is_tuple_like<array<int, 42>>::value, "");
+    static_assert(is_tuple_like<pair<int, double>>::value, "");
+    static_assert(is_tuple_like<custom::foo>::value, "");
+    static_assert(is_tuple_like<std::tuple<int, int const, int&&, int&, int const&>>::value, "");
+
+#ifdef __cpp_concepts
+    static_assert(!concepts::tuple_like<int>);
+    static_assert(concepts::tuple_like<std::tuple<>>);
+    static_assert(concepts::tuple_like_of<std::tuple<>>);
+    static_assert(concepts::tuple_like_of<std::tuple<int, double>, int, double>);
+    static_assert(!concepts::tuple_like_of<std::tuple<int, double, double>, int, double>);
+#endif
+
     namespace tuple_util {
         TEST(get, std_tuple) {
             auto obj = std::make_tuple(1, 2.);

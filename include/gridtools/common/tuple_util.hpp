@@ -250,6 +250,9 @@ namespace gridtools {
 
             // from_types
 
+            template <class T>
+            meta::always<T> tuple_from_types(T); 
+
             // generic `tuple_from_types` that works for `std::tuple`, `std::pair` and its clones.
             // meta constructor 'L' is extracted and used to build the new "tuple like"
             template <template <class...> class L, class... Ts>
@@ -411,8 +414,58 @@ namespace gridtools {
             using group_indices = meta::group<group_predicate_proxy_f<Pred>::template apply,
                 extract_indices,
                 meta::zip<Types, meta::make_indices_for<Types>>>;
+
+            template <class...>
+            struct is_constructible_from_elements : std::false_type {};
+
+            template <class T, template <class...> class L, class... Ts>
+            struct is_constructible_from_elements<T, L<Ts...>> : std::is_same<decltype(T{std::declval<Ts>()...}), T> {};
+
+            template <class...>
+            struct is_getter_valid;
+
+            template <class T, class Getter, class Types, class I>
+            struct is_getter_valid<T, Getter, Types, I> : std::bool_constant<
+                std::is_same<decltype(Getter::template get<I::value>(std::declval<T const&>())), meta::at<Types, I> const &>::value &&
+                std::is_same<decltype(Getter::template get<I::value>(std::declval<T&>())), meta::at<Types, I>&>::value &&
+                std::is_same<decltype(Getter::template get<I::value>(std::declval<T&&>())), meta::at<Types, I>&&>::value
+            > {};
+
+            template <class T,
+                class Types = traits::to_types<T>,
+                class FromTypes = traits::from_types<T>,
+                class Getter = traits::getter<T>>
+            struct is_tuple_like : bool_constant<
+                meta::is_list<Types>::value &&
+                meta::all_of<meta::not_<std::is_void>::apply, Types>::value &&
+                std::is_same<meta::rename<FromTypes::template apply, Types>, T>::value &&
+                is_constructible_from_elements<T, Types>::value &&
+                meta::all_of<std::is_move_constructible, Types>::value == std::is_move_constructible<T>::value &&
+                meta::all_of<std::is_copy_constructible, Types>::value == std::is_copy_constructible<T>::value &&
+                meta::all_of<meta::curry<is_getter_valid, T, Getter, Types>::template apply, meta::make_indices_for<Types>>::value
+            > {};
         } // namespace _impl
+
+        template <class, class = void>
+        struct is_tuple_like : std::false_type {};
+
+        template <class T>
+        struct is_tuple_like<T, std::enable_if_t<_impl::is_tuple_like<T>::value>> : std::true_type {};
     }     // namespace tuple_util
+
+    using tuple_util::is_tuple_like;
+
+#ifdef __cpp_concepts
+    namespace concepts {
+        template <class T>
+        concept tuple_like = is_tuple_like<T>::value;
+
+        template <class T, class... Ts>
+        concept tuple_like_of = tuple_like<T> &&
+            std::is_same_v<meta::rename<meta::list, tuple_util::traits::to_types<T>>, meta::list<Ts...>>;
+    }
+#endif
+
 } // namespace gridtools
 
 // Now it's time to generate host/device/host_device stuff
