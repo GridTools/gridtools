@@ -19,6 +19,9 @@
 
 namespace gridtools {
     namespace {
+        static_assert(is_tuple_like<tuple<>>::value, "");
+        static_assert(is_tuple_like<tuple<int, double>>::value, "");
+        static_assert(is_tuple_like<tuple<int, int const, int&&, int&, int const& >>::value, "");
 
         template <size_t I>
         using an_empty = std::integral_constant<size_t, I>;
