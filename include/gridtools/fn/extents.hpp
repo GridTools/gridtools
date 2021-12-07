@@ -1,0 +1,85 @@
+/*
+ * GridTools
+ *
+ * Copyright (c) 2014-2021, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include <cstddef>
+
+#include "../common/int_vector.hpp"
+#include "../common/integral_constant.hpp"
+#include "../meta.hpp"
+
+namespace gridtools {
+    namespace fn {
+        template <class Dim, ptrdiff_t L, ptrdiff_t U>
+        requires(L <= U) struct extent {
+            using dim_t = Dim;
+            using lower_t = integral_constant<ptrdiff_t, L>;
+            using upper_t = integral_constant<ptrdiff_t, U>;
+            using size_t = integral_constant<std::size_t, U - L>;
+            using list_t = meta::list<Dim, lower_t, upper_t>;
+        };
+
+        template <class>
+        struct is_extent : std::false_type {};
+
+        template <class Dim, ptrdiff_t L, ptrdiff_t U>
+        struct is_extent<extent<Dim, L, U>> : std::true_type {};
+
+        template <class T>
+        concept extent_c = is_extent<T>::value;
+
+        template <extent_c... Ts>
+        requires meta::is_set<meta::list<typename Ts::dim_t...>>::value struct extents {
+            using keys_t = hymap::keys<typename Ts::dim_t...>;
+            static consteval auto offsets() {
+                return int_vector::prune_zeros(keys_t::template values<typename Ts::lower_t...>());
+            }
+            static consteval auto sizes() {
+                return int_vector::prune_zeros(keys_t::template values<typename Ts::size_t...>());
+            }
+        };
+
+        template <class T>
+        concept extents_c = meta::is_instantiation_of<extents, T>::value;
+
+        // template <extents_c Extents, int_vector_c Offsets>
+        // decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_offsets(Offsets &&src) {
+        //     using namespace int_vector;
+        //     return wtd::forward<Offsets>(src) + Extents::offsets();
+        // }
+
+        // template <extents_c Extents, int_vector_c Sizes>
+        // decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_sizes(Sizes &&src) {
+        //     using namespace int_vector;
+        //     return wstd::forward<Offsets>(src) + Extents::sizes();
+        // }
+
+        // namespace extent_impl_ {
+        //     template <class...>
+        //     struct merge_extents;
+
+        //     template <class Dim, ptrdiff_t... L, ptrdiff_t... U>
+        //     struct merge_extents<meta::list<Dim, extent<Dim, L, U>>...> {
+        //         using type = meta::list<Dim, extent<Dim, std::min({L...}), std::max({U...})>>;
+        //     };
+        // } // namespace extent_impl_
+
+        // // take any number of individual `extent`'s and produce the normalized `extents`
+        // // if some `extent`'s has the same dimension, they are merged
+        // template <extent_c... Extents>
+        // using make_extents = meta::rename<extents,
+        //     meta::transform<meta::second,
+        //         meta::mp_make<meta::force<extent_impl_::merge_extents>::template apply,
+        //             meta::list<meta::list<typename Extents::dim_t, Extents>...>>>>;
+
+        // // merge several `extents` into a one
+        // template <extents_c... Extentss>
+        // using enclosing_extents = meta::rename<make_extents, meta::concat<meta::rename<meta::list, Extentss>...>>;
+    } // namespace fn
+} // namespace gridtools
