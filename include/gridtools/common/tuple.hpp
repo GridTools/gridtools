@@ -62,7 +62,7 @@ namespace gridtools {
             }
 
             template <size_t I, class T>
-            static GT_CONSTEXPR GT_FUNCTION T get(tuple_leaf<I, T, false> &&obj) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T&& get(tuple_leaf<I, T, false> &&obj) noexcept {
                 return static_cast<T &&>(get<I>(obj));
             }
 
@@ -77,7 +77,7 @@ namespace gridtools {
             }
 
             template <size_t I, class T>
-            static GT_CONSTEXPR GT_FUNCTION T get(tuple_leaf<I, T, true> &&obj) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T&& get(tuple_leaf<I, T, true> &&obj) noexcept {
                 return static_cast<T &&>(obj);
             }
         };
@@ -159,7 +159,7 @@ namespace gridtools {
 
             template <size_t I>
             static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(tuple &&obj) noexcept {
-                return impl_::tuple_leaf_getter::get<I>(wstd::move(obj).m_impl);
+                return impl_::tuple_leaf_getter::get<I>(wstd::move(obj.m_impl));
             }
         };
         friend getter tuple_getter(tuple const &) { return {}; }
@@ -218,7 +218,7 @@ namespace gridtools {
             }
 
             template <size_t I, std::enable_if_t<I == 0, int> = 0>
-            static GT_CONSTEXPR GT_FUNCTION T get(tuple &&obj) noexcept {
+            static GT_CONSTEXPR GT_FUNCTION T &&get(tuple &&obj) noexcept {
                 return static_cast<T &&>(obj.m_value);
             }
         };

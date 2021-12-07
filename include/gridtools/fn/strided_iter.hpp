@@ -51,7 +51,7 @@ namespace gridtools::fn {
 
         template <auto... Offsets>
         friend std::enable_if_t<sizeof...(Offsets) % 2 == 0, strided_iter> fn_builtin(
-            builtins::shift, meta::val<Offsets...>, strided_iter it) {
+            builtins::shift<Offsets...>, strided_iter it) {
             sid::multi_shift<Key>(it.ptr, it.strides, strided_iter_impl_::offset_map<meta::val<Offsets>...>());
             return it;
         }

@@ -10,12 +10,12 @@ namespace gridtools::fn {
         struct dummy {};
 
         template <auto... Offsets, auto Off>
-        constexpr dummy<Offsets..., Off> fn_builtin(builtins::shift, meta::val<Off>, dummy<Offsets...>) {
+        constexpr dummy<Offsets..., Off> fn_builtin(builtins::shift<Off>, dummy<Offsets...>) {
             return {};
         }
 
         template <auto... Offsets, auto Off0, auto Off1>
-        constexpr dummy<Offsets..., Off0, Off1> fn_builtin(builtins::shift, meta::val<Off0, Off1>, dummy<Offsets...>) {
+        constexpr dummy<Offsets..., Off0, Off1> fn_builtin(builtins::shift<Off0, Off1>, dummy<Offsets...>) {
             return {};
         }
 

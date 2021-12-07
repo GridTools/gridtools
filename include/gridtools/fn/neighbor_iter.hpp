@@ -38,12 +38,12 @@ namespace gridtools::fn {
         constexpr neighbor_iter(Horizontal, int offset, Impl impl) : offset(offset), impl(std::move(impl)) {}
 
         template <auto Dim, auto Val>
-        friend constexpr neighbor_iter fn_builtin(builtins::shift, meta::val<Dim, Val>, neighbor_iter const &it) {
+        friend constexpr neighbor_iter fn_builtin(builtins::shift<Dim, Val>, neighbor_iter const &it) {
             return {it.offset, shift<Dim, Val>(it.impl)};
         }
 
         template <Connectivity ConnT, ConnT Conn, auto Offset>
-        friend constexpr neighbor_iter fn_builtin(builtins::shift, meta::val<Conn, Offset>, neighbor_iter const &it) {
+        friend constexpr neighbor_iter fn_builtin(builtins::shift<Conn, Offset>, neighbor_iter const &it) {
             return {tuple_util::get<Offset>(get_neighbour_offsets(Conn, it.offset)), it.impl};
         }
 
@@ -58,12 +58,12 @@ namespace gridtools::fn {
     }
 
     template <class Horizontal, class Offsets, class Impl, auto I>
-    constexpr auto fn_builtin(builtins::shift, meta::val<I>, neighbors_iter<Horizontal, Offsets, Impl> const &it) {
+    constexpr auto fn_builtin(builtins::shift<I>, neighbors_iter<Horizontal, Offsets, Impl> const &it) {
         return neighbor_iter(Horizontal(), tuple_util::get<I>(offsets(it)), it.impl);
     }
 
     template <class Horizontal, class Impl, Connectivity ConnT, ConnT Conn>
-    constexpr auto fn_builtin(builtins::shift, meta::val<Conn>, neighbor_iter<Horizontal, Impl> const &it) {
+    constexpr auto fn_builtin(builtins::shift<Conn>, neighbor_iter<Horizontal, Impl> const &it) {
         return neighbors_iter(Horizontal(), get_neighbour_offsets(Conn, it.offset), it.impl);
     }
 } // namespace gridtools::fn

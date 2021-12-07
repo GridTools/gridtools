@@ -1,6 +1,10 @@
 gridtools_check_compilation(test_integral_constant test_integral_constant.cpp)
 gridtools_check_compilation(test_layout_map test_layout_map.cpp)
 
+if (CMAKE_CXX_STANDARD GREATER_EQUAL 20)
+    gridtools_add_unit_test(test_str_literal SOURCES test_str_literal.cpp)
+endif()
+
 gridtools_add_unit_test(test_array SOURCES test_array.cpp)
 gridtools_add_unit_test(test_compose SOURCES test_compose.cpp)
 gridtools_add_unit_test(test_hugepage_alloc SOURCES test_hugepage_alloc.cpp)
