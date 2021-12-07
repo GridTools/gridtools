@@ -162,7 +162,28 @@ namespace gridtools {
 
         template <class Key, class Map>
         using element_at = tuple_util::element<meta::st_position<get_keys<Map>, Key>::value, Map>;
+
+        template <class T, class Keys = get_keys<T>>
+        struct keys_are_legit_sfinae : bool_constant<
+            meta::is_set<Keys>::value && meta::length<Keys>::value == tuple_util::size<T>::value> {};
+
+        template <class, class = void>
+        struct keys_are_legit : std::false_type {};
+
+        template <class T>
+        struct keys_are_legit<T, std::enable_if_t<keys_are_legit_sfinae<T>::value>> : std::true_type {};
+        
     } // namespace hymap_impl_
+
+    template <class T>
+    using is_hymap = bool_constant<is_tuple_like<T>::value && hymap_impl_::keys_are_legit<T>::value>;
+
+#ifdef __cpp_concepts
+    namespace concepts {
+        template <class T>
+        concept hymap = is_hymap<T>::value;
+    }
+#endif
 
     using hymap_impl_::element_at;
     using hymap_impl_::get_from_keys_values;

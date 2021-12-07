@@ -25,6 +25,11 @@ namespace gridtools {
         struct b;
         struct c;
 
+        static_assert(!is_hymap<void>::value, "");
+        static_assert(is_hymap<std::array<int, 3>>::value, "");
+        static_assert(is_hymap<tuple<int, double>>::value, "");
+        static_assert(is_hymap<hymap::keys<a, b>::values<int, double>>::value, "");
+
         TEST(tuple_like, smoke) {
             using testee_t = hymap::keys<a, b, c>::values<int, double, void *>;
 
