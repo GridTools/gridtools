@@ -19,6 +19,7 @@ jobs:
     - name: CMake configure expect success
       if: contains(matrix.cuda-mode, 'AUTO')
       run: >
+        cmake --version
         mkdir build && cd build
         && cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }} > out.log
         && cat out.log
