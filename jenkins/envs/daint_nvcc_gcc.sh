@@ -6,7 +6,7 @@ module swap PrgEnv-cray PrgEnv-gnu
 module load cdt-cuda
 
 if [ "$build_type" != "debug" ]; then
-  module load HPX/1.5.0-CrayGNU-20.08-cuda
+  module load HPX/1.5.0-CrayGNU-20.11-cuda
 fi
 
 export CXX=$(which CC)
