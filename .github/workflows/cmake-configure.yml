@@ -45,6 +45,9 @@ jobs:
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
+    - name: CMake version
+      run: |
+        cmake --version
     - name: CMake configure expect success
       run: >
         mkdir build && cd build
@@ -62,6 +65,9 @@ jobs:
             version: [8, 9, 10, 11]
     steps:
     - uses: actions/checkout@v2
+    - name: CMake version
+      run: |
+        cmake --version
     - name: CMake configure expect success
       if: contains(matrix.cuda-mode, 'AUTO')
       run: >
@@ -75,6 +81,9 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:gcc-9-cuda-11
     steps:
     - uses: actions/checkout@v2
+    - name: CMake version
+      run: |
+        cmake --version
     - name: CMake configure expect success
       run: >
         mkdir build && cd build
