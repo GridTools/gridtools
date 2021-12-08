@@ -1,6 +1,6 @@
 # GridTools CMake coding convention and architecture
 # The following guide is intended for CMake developers of the GridTools library,
-# users are referred to the GridTools documentation. TODO(havogt): update
+# users are referred to the GridTools documentation.
 # - GridTools cmake modules are in
 #   a) /cmake/internal: used exclusively in the GridTools CMake project
 #   b) /cmake/public: need to be available in a GridTools installation
@@ -55,13 +55,13 @@ else()
     endif()
 endif()
 
-set(REQUIRED_BOOST_VERSION 1.58)
+set(REQUIRED_BOOST_VERSION 1.65.1)
 find_package(Boost ${REQUIRED_BOOST_VERSION} REQUIRED)
 
 # setup main gridtools target
 add_library(gridtools INTERFACE)
 add_library(GridTools::gridtools ALIAS gridtools)
-target_compile_features(gridtools INTERFACE cxx_std_14)
+target_compile_features(gridtools INTERFACE cxx_std_17)
 target_link_libraries(gridtools INTERFACE Boost::boost)
 target_compile_definitions(gridtools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:BOOST_PP_VARIADICS=1>)
 target_include_directories(gridtools
@@ -103,8 +103,8 @@ else()
     set(BUILD_TESTING ${GT_BUILD_TESTING})
 endif()
 if(BUILD_TESTING)
-    set(GT_TESTS_CXX_STANDARD "DEFAULT" CACHE STRING "C++ standard for compiling tests.")
-    set_property(CACHE GT_TESTS_CXX_STANDARD PROPERTY STRINGS "DEFAULT;17;20")
+    set(GT_TESTS_CXX_STANDARD "DEFAULT" CACHE STRING "C++ standard for compiling tests (DEFAULT=17).")
+    set_property(CACHE GT_TESTS_CXX_STANDARD PROPERTY STRINGS "DEFAULT;20")
     if(NOT GT_TESTS_CXX_STANDARD STREQUAL "DEFAULT")
         set(CMAKE_CXX_STANDARD ${GT_TESTS_CXX_STANDARD})
         set(CMAKE_CUDA_STANDARD ${GT_TESTS_CXX_STANDARD})
