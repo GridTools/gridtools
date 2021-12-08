@@ -9,7 +9,7 @@ on:
 jobs:
   clang:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:clang-${{ matrix.version }}
+    container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.version }}
     strategy:
         matrix:
             version: [7, 8, 9]
@@ -35,7 +35,7 @@ jobs:
 
   clang-cuda:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:clang-${{ matrix.version }}-cuda-10.1
+    container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.version }}-cuda-10.1
     strategy:
         matrix:
             version: [9]
@@ -55,10 +55,10 @@ jobs:
 
   gcc:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:gcc-${{ matrix.version }}
+    container: ghcr.io/gridtools/gridtools-base:gcc-${{ matrix.version }}
     strategy:
         matrix:
-            version: [7, 8, 9]
+            version: [8, 9, 10, 11]
     steps:
     - uses: actions/checkout@v2
     - name: CMake configure expect success
@@ -71,7 +71,7 @@ jobs:
 
   gcc-nvcc:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:cuda-11.0
+    container: ghcr.io/gridtools/gridtools-base:gcc9-cuda-11
     steps:
     - uses: actions/checkout@v2
     - name: CMake configure expect success
