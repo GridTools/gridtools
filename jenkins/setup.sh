@@ -1,7 +1,6 @@
 #!/bin/bash
 
 source $(dirname "$0")/config.sh
-echo $label
 
 if [[ $label != "tsa" ]]; then
     export SLURM_ACCOUNT=d75
