@@ -12,7 +12,7 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.version }}
     strategy:
         matrix:
-            version: [7, 8, 9]
+            version: [9, 10, 11, 12]
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
@@ -35,13 +35,11 @@ jobs:
 
   clang-cuda:
     runs-on: ubuntu-latest
-    container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.version }}-cuda-10.1
+    container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.version }}-cuda-11
     strategy:
         matrix:
-            version: [9]
-            # TODO re-enable NVCC-CUDA: nvcc 10.1 doesn't support clang 9
-            # this never worked, but we were actually using gcc as host compiler before
-            cuda-mode: [AUTO, Clang-CUDA] #, NVCC-CUDA]
+            version: [9,11]
+            cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
     - name: CMake configure expect success
