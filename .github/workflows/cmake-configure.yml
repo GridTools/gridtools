@@ -41,7 +41,7 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.version }}-cuda-11
     strategy:
         matrix:
-            version: [9,11]
+            version: [10]
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
@@ -78,7 +78,7 @@ jobs:
 
   gcc-nvcc:
     runs-on: ubuntu-latest
-    container: ghcr.io/gridtools/gridtools-base:gcc-9-cuda-11
+    container: ghcr.io/gridtools/gridtools-base:gcc-10-cuda-11
     steps:
     - uses: actions/checkout@v2
     - name: CMake version
