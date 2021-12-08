@@ -2,7 +2,10 @@
 
 source $(dirname "$BASH_SOURCE")/base.sh
 
-module load cmake/3.14.5
+export EASYBUILD_PREFIX=/apps/daint/SSL/gridtools/jenkins/easybuild
+module use $EASYBUILD_PREFIX/modules/all
+module load CMake
+
 module load craype-x86-skylake
 module load craype-network-infiniband
 module load slurm
