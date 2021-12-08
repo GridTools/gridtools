@@ -70,18 +70,25 @@ auto solve(column_t const &a, column_t const &b, column_t const &c, column_t con
     return res;
 };
 
+auto init(column_t &a, column_t &b, column_t &c, column_t &d) {
+    // let as make b and d big, but a and c small
+    // so that solutions are close to 1.
+    // this will make minimize round errors. 
+    for (size_t k = 0; k != K; ++k) {
+        a[k] = std::rand() % 3 - 1;
+        b[k] = std::rand() % 3 + 99;
+        c[k] = std::rand() % 3 - 1;
+        d[k] = std::rand() % 3 + 99;
+    }
+}
+
 TEST(tridiag, catresian) {
     using shape_t = column_t[I][J];
     shape_t actual, a, b, c, d;
 
     for (size_t i = 0; i != I; ++i)
         for (size_t j = 0; j != J; ++j)
-            for (size_t k = 0; k != K; ++k) {
-                a[i][j][k] = std::rand();
-                b[i][j][k] = std::rand();
-                c[i][j][k] = std::rand();
-                d[i][j][k] = std::rand();
-            }
+            init(a[i][j], b[i][j], c[i][j], d[i][j]);
 
     testee(cartesian(std::tuple(I, J, K)), actual, a, b, c, d);
 
@@ -98,12 +105,7 @@ TEST(tridiag, unstructured) {
     using shape_t = column_t[n_vertices];
     shape_t actual, a, b, c, d;
     for (size_t h = 0; h != n_vertices; ++h)
-        for (size_t k = 0; k != K; ++k) {
-            a[h][k] = std::rand();
-            b[h][k] = std::rand();
-            c[h][k] = std::rand();
-            d[h][k] = std::rand();
-        }
+        init(a[h], b[h], c[h], d[h]);
 
     testee(unstructured(std::tuple(n_vertices, K)), actual, a, b, c, d);
 
