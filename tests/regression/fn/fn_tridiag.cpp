@@ -71,9 +71,9 @@ auto solve(column_t const &a, column_t const &b, column_t const &c, column_t con
 };
 
 auto init(column_t &a, column_t &b, column_t &c, column_t &d) {
-    // let as make b and d big, but a and c small
+    // let us make b and d big, but a and c small
     // so that solutions are close to 1.
-    // this will make minimize round errors. 
+    // this will minimize round errors. 
     for (size_t k = 0; k != K; ++k) {
         a[k] = std::rand() % 3 - 1;
         b[k] = std::rand() % 3 + 99;
