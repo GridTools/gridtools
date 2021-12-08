@@ -16,10 +16,12 @@ jobs:
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
+    - name: CMake version
+      run: |
+        cmake --version
     - name: CMake configure expect success
       if: contains(matrix.cuda-mode, 'AUTO')
       run: >
-        cmake --version
         mkdir build && cd build
         && cmake .. -DGT_CLANG_CUDA_MODE=${{ matrix.cuda-mode }} > out.log
         && cat out.log
