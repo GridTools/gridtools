@@ -64,14 +64,35 @@ namespace gridtools {
             }
         };
 
+        template <class T>
+        using is_integral_or_gr_integral_constant =
+            bool_constant<std::is_integral<T>::value || is_gr_integral_constant<T>::value>;
+
+        template <class T>
+        using elements_are_integral_or_gr_integral_constant =
+            meta::all<meta::transform<int_vector::impl_::is_integral_or_gr_integral_constant,
+                meta::transform<meta::second, hymap::to_meta_map<T>>>>;
+
     } // namespace int_vector::impl_
 
+    template <class T, class = void>
+    struct is_int_vector : std::false_type {};
+
     template <class T>
-    struct is_int_vector : std::true_type {
-    }; // TODO proper type trait: is_hymap and (is_integral or is_gr_integral_constant)
+    struct is_int_vector<T,
+        std::enable_if_t<is_hymap<T>::value &&
+                         int_vector::impl_::elements_are_integral_or_gr_integral_constant<T>::value>> : std::true_type {
+    };
 
     template <class T>
     constexpr bool is_int_vector_v = is_int_vector<T>::value;
+
+#ifdef __cpp_concepts
+    namespace concepts {
+        template <class T>
+        concept int_vector = is_int_vector<T>::value;
+    }
+#endif
 
     namespace int_vector {
         /**
@@ -129,24 +150,26 @@ namespace gridtools {
 
             template <class First,
                 class Second,
-                std::enable_if_t<is_int_vector_v<First> && is_int_vector_v<Second>, bool> = true>
+                std::enable_if_t<is_int_vector_v<std::decay_t<First>> && is_int_vector_v<std::decay_t<Second>>, bool> =
+                    true>
             GT_FUNCTION GT_CONSTEXPR auto operator+(First &&first, Second &&second) {
                 return plus(wstd::forward<First>(first), wstd::forward<Second>(second));
             }
 
-            template <class Vec, std::enable_if_t<is_int_vector_v<Vec>, bool> = true>
+            template <class Vec, std::enable_if_t<is_int_vector_v<std::decay_t<Vec>>, bool> = true>
             GT_FUNCTION GT_CONSTEXPR auto operator+(Vec &&vec) {
                 return vec;
             }
 
-            template <class Vec, std::enable_if_t<is_int_vector_v<Vec>, bool> = true>
+            template <class Vec, std::enable_if_t<is_int_vector_v<std::decay_t<Vec>>, bool> = true>
             GT_FUNCTION GT_CONSTEXPR auto operator-(Vec &&vec) {
                 return multiply(wstd::forward<Vec>(vec), integral_constant<int, -1>{}); // TODO not compiling with nvcc
             }
 
             template <class First,
                 class Second,
-                std::enable_if_t<is_int_vector_v<First> && is_int_vector_v<Second>, bool> = true>
+                std::enable_if_t<is_int_vector_v<std::decay_t<First>> && is_int_vector_v<std::decay_t<Second>>, bool> =
+                    true>
             GT_FUNCTION GT_CONSTEXPR auto operator-(First &&first, Second &&second) {
                 return plus(wstd::forward<First>(first), -wstd::forward<Second>(second));
             }
