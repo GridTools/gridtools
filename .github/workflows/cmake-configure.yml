@@ -41,7 +41,7 @@ jobs:
     container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.version }}-cuda-11
     strategy:
         matrix:
-            version: [10, 11, 12]
+            version: [11, 12]
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
