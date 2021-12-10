@@ -369,7 +369,7 @@ namespace gridtools {
             template <class Fun>
             struct get_fun_result {
                 template <class... Ts>
-                using apply = decltype(std::declval<Fun const &>()(std::declval<Ts>()...));
+                using apply = decltype(std::declval<std::add_lvalue_reference_t<std::add_const_t<Fun>>>()(std::declval<Ts>()...));
             };
 
             template <class Tup>
@@ -1636,13 +1636,27 @@ namespace gridtools {
              *   convert_to<std::array>(some_tuple_like);
              *   convert_to<gridtools::array, int>(some_tuple_like);
              */
-            template <template <class...> class L>
+            template <template <class...> class L
+#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5) \
+    && __cplusplus >= 201703
+            // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
+            , int = 0, class = std::void_t<L<int, int>>
+#endif
+            >
             GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::convert_to_f<_impl::to_tuple_converter_helper<L>>
             convert_to() {
                 return {};
             }
 
-            template <template <class...> class L, class Tup>
+            template <template <class...> class L
+#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5) \
+    && __cplusplus >= 201703
+            // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
+            , int = 0, class = std::void_t<L<int, int>>
+#endif
+            , class Tup>
             GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto convert_to(Tup && tup) {
                 return detail::convert_to_f<_impl::to_tuple_converter_helper<L>>{}(wstd::forward<Tup>(tup));
             }
