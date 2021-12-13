@@ -7,6 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#pragma once
 
 #include <algorithm>
 #include <cstddef>
@@ -16,11 +17,11 @@
 #include "../common/utility.hpp"
 #include "../meta.hpp"
 
-// TODO downgrade to C++17
 namespace gridtools {
     namespace fn {
         template <class Dim, ptrdiff_t L, ptrdiff_t U>
-        requires(L <= U) struct extent {
+        struct extent {
+            static_assert(L <= U);
             using dim_t = Dim;
             using lower_t = integral_constant<ptrdiff_t, L>;
             using upper_t = integral_constant<ptrdiff_t, U>;
@@ -34,35 +35,48 @@ namespace gridtools {
         template <class Dim, ptrdiff_t L, ptrdiff_t U>
         struct is_extent<extent<Dim, L, U>> : std::true_type {};
 
+#ifdef __cpp_concepts
         template <class T>
         concept extent_c = is_extent<T>::value;
+#endif
 
-        template <extent_c... Ts>
-        requires meta::is_set<meta::list<typename Ts::dim_t...>>::value struct extents {
+        template <class... Ts>
+        struct extents {
+            static_assert(meta::all_of<is_extent, meta::list<Ts...>>::value);
+            static_assert(meta::is_set<meta::list<typename Ts::dim_t...>>::value);
             using keys_t = hymap::keys<typename Ts::dim_t...>;
             static_assert(is_int_vector<typename keys_t::template values<typename Ts::lower_t...>>::value);
             static_assert(is_int_vector<typename keys_t::template values<typename Ts::upper_t...>>::value);
             static_assert(is_int_vector<typename keys_t::template values<typename Ts::size_t...>>::value);
 
-            static consteval auto offsets() {
+            static GT_CONSTEVAL auto offsets() {
                 return int_vector::prune_zeros(typename keys_t::template values<typename Ts::lower_t...>());
             }
-            static consteval auto sizes() {
+            static GT_CONSTEVAL auto sizes() {
                 return int_vector::prune_zeros(typename keys_t::template values<typename Ts::size_t...>());
             }
         };
 
         template <class T>
-        concept extents_c = meta::is_instantiation_of<extents, T>::value;
+        using is_extents = meta::is_instantiation_of<extents, T>;
 
-        template <extents_c Extents, int_vector_c Offsets>
+#ifdef __cpp_concepts
+        template <class T>
+        concept extents_c = meta::is_instantiation_of<extents, T>::value;
+#endif
+
+        template <class Extents, class Offsets>
         decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_offsets(Offsets &&src) {
+            static_assert(is_extents<Extents>::value);
+            static_assert(is_int_vector<Offsets>::value);
             using namespace int_vector::arithmetic;
             return wstd::forward<Offsets>(src) + Extents::offsets();
         }
 
-        template <extents_c Extents, int_vector_c Sizes>
+        template <class Extents, class Sizes>
         decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_sizes(Sizes &&sizes) {
+            static_assert(is_extents<Extents>::value);
+            static_assert(is_int_vector<Sizes>::value);
             using namespace int_vector::arithmetic;
             return wstd::forward<Sizes>(sizes) + Extents::sizes();
         }
@@ -79,15 +93,14 @@ namespace gridtools {
 
         // take any number of individual `extent`'s and produce the normalized `extents`
         // if some `extent`'s has the same dimension, they are merged
-        template <extent_c... Extents>
+        template <class... Extents>
         using make_extents = meta::rename<extents,
             meta::transform<meta::second,
                 meta::mp_make<meta::force<extent_impl_::merge_extents>::template apply,
                     meta::list<meta::list<typename Extents::dim_t, Extents>...>>>>;
 
         // merge several `extents` into a one
-        template <extents_c... Extentss>
-
+        template <class... Extentss>
         using enclosing_extents = meta::rename<make_extents, meta::concat<meta::rename<meta::list, Extentss>...>>;
 
     } // namespace fn
