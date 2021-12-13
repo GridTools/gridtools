@@ -8,12 +8,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <algorithm>
 #include <cstddef>
 
 #include "../common/int_vector.hpp"
 #include "../common/integral_constant.hpp"
+#include "../common/utility.hpp"
 #include "../meta.hpp"
 
+// TODO downgrade to C++17
 namespace gridtools {
     namespace fn {
         template <class Dim, ptrdiff_t L, ptrdiff_t U>
@@ -37,49 +40,55 @@ namespace gridtools {
         template <extent_c... Ts>
         requires meta::is_set<meta::list<typename Ts::dim_t...>>::value struct extents {
             using keys_t = hymap::keys<typename Ts::dim_t...>;
+            static_assert(is_int_vector<typename keys_t::template values<typename Ts::lower_t...>>::value);
+            static_assert(is_int_vector<typename keys_t::template values<typename Ts::upper_t...>>::value);
+            static_assert(is_int_vector<typename keys_t::template values<typename Ts::size_t...>>::value);
+
             static consteval auto offsets() {
-                return int_vector::prune_zeros(keys_t::template values<typename Ts::lower_t...>());
+                return int_vector::prune_zeros(typename keys_t::template values<typename Ts::lower_t...>());
             }
             static consteval auto sizes() {
-                return int_vector::prune_zeros(keys_t::template values<typename Ts::size_t...>());
+                return int_vector::prune_zeros(typename keys_t::template values<typename Ts::size_t...>());
             }
         };
 
         template <class T>
         concept extents_c = meta::is_instantiation_of<extents, T>::value;
 
-        // template <extents_c Extents, int_vector_c Offsets>
-        // decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_offsets(Offsets &&src) {
-        //     using namespace int_vector;
-        //     return wtd::forward<Offsets>(src) + Extents::offsets();
-        // }
+        template <extents_c Extents, int_vector_c Offsets>
+        decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_offsets(Offsets &&src) {
+            using namespace int_vector::arithmetic;
+            return wstd::forward<Offsets>(src) + Extents::offsets();
+        }
 
-        // template <extents_c Extents, int_vector_c Sizes>
-        // decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_sizes(Sizes &&src) {
-        //     using namespace int_vector;
-        //     return wstd::forward<Offsets>(src) + Extents::sizes();
-        // }
+        template <extents_c Extents, int_vector_c Sizes>
+        decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_sizes(Sizes &&sizes) {
+            using namespace int_vector::arithmetic;
+            return wstd::forward<Sizes>(sizes) + Extents::sizes();
+        }
 
-        // namespace extent_impl_ {
-        //     template <class...>
-        //     struct merge_extents;
+        namespace extent_impl_ {
+            template <class...>
+            struct merge_extents;
 
-        //     template <class Dim, ptrdiff_t... L, ptrdiff_t... U>
-        //     struct merge_extents<meta::list<Dim, extent<Dim, L, U>>...> {
-        //         using type = meta::list<Dim, extent<Dim, std::min({L...}), std::max({U...})>>;
-        //     };
-        // } // namespace extent_impl_
+            template <class Dim, ptrdiff_t... L, ptrdiff_t... U>
+            struct merge_extents<meta::list<Dim, extent<Dim, L, U>>...> {
+                using type = meta::list<Dim, extent<Dim, std::min({L...}), std::max({U...})>>;
+            };
+        } // namespace extent_impl_
 
-        // // take any number of individual `extent`'s and produce the normalized `extents`
-        // // if some `extent`'s has the same dimension, they are merged
-        // template <extent_c... Extents>
-        // using make_extents = meta::rename<extents,
-        //     meta::transform<meta::second,
-        //         meta::mp_make<meta::force<extent_impl_::merge_extents>::template apply,
-        //             meta::list<meta::list<typename Extents::dim_t, Extents>...>>>>;
+        // take any number of individual `extent`'s and produce the normalized `extents`
+        // if some `extent`'s has the same dimension, they are merged
+        template <extent_c... Extents>
+        using make_extents = meta::rename<extents,
+            meta::transform<meta::second,
+                meta::mp_make<meta::force<extent_impl_::merge_extents>::template apply,
+                    meta::list<meta::list<typename Extents::dim_t, Extents>...>>>>;
 
-        // // merge several `extents` into a one
-        // template <extents_c... Extentss>
-        // using enclosing_extents = meta::rename<make_extents, meta::concat<meta::rename<meta::list, Extentss>...>>;
+        // merge several `extents` into a one
+        template <extents_c... Extentss>
+
+        using enclosing_extents = meta::rename<make_extents, meta::concat<meta::rename<meta::list, Extentss>...>>;
+
     } // namespace fn
 } // namespace gridtools

@@ -73,6 +73,11 @@ namespace gridtools {
     template <class T>
     constexpr bool is_int_vector_v = is_int_vector<T>::value;
 
+#ifdef __cpp_concepts
+    template <class T>
+    concept int_vector_c = is_int_vector<T>::value;
+#endif
+
     namespace int_vector {
         /**
          * @brief Returns elementwise sum of `int_vector`s
