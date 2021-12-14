@@ -15,6 +15,7 @@
 #include "../common/functional.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
+#include "../meta/is_instantiation_of.hpp"
 #include "../sid/concept.hpp"
 
 namespace gridtools::fn {
@@ -27,10 +28,7 @@ namespace gridtools::fn {
         };
 
         template <class T>
-        struct is_scan_pass : std::false_type {};
-
-        template <class F, class P>
-        struct is_scan_pass<scan_pass<F, P>> : std::true_type {};
+        using is_scan_pass = meta::is_instantiation_of<scan_pass, T>;
 
         template <bool IsBackward>
         struct base : std::bool_constant<IsBackward> {
