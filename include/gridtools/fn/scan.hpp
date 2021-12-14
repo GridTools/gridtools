@@ -64,11 +64,11 @@ namespace gridtools::fn {
                         return res;
                     }
                 };
-                auto acc = tuple_util::fold(next, seed, Scan::prologue());
+                auto acc = tuple_util::fold(next, std::move(seed), Scan::prologue());
                 std::size_t n = size - prologue_size - epilogue_size;
                 for (std::size_t i = 0; i < n; ++i)
                     acc = next(std::move(acc), Scan::body());
-                acc = tuple_util::fold(next, acc, Scan::epilogue());
+                acc = tuple_util::fold(next, std::move(acc), Scan::epilogue());
                 return acc;
             }
         };
