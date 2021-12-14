@@ -545,36 +545,12 @@ namespace gridtools {
 
                 template <size_t I>
                 struct transform_elem_index_f {
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 10
-                    template <class Fun, class Tup>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(
-                        Fun &&fun, Tup &&tup) const {
-                        return wstd::forward<Fun>(fun).template operator()<I>(
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup>(tup)));
-                    }
-                    template <class Fun, class Tup1, class Tup2>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(
-                        Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const {
-                        return wstd::forward<Fun>(fun).template operator()<I>(
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup1>(tup1)),
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup2>(tup2)));
-                    }
-                    template <class Fun, class Tup1, class Tup2, class Tup3>
-                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(
-                        Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const {
-                        return wstd::forward<Fun>(fun).template operator()<I>(
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup1>(tup1)),
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup2>(tup2)),
-                            GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tup3>(tup3)));
-                    }
-#else
                     template <class Fun, class... Tups>
                     GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(
                         Fun &&fun, Tups &&... tups) const {
                         return wstd::forward<Fun>(fun).template operator()<I>(
                             GT_TARGET_NAMESPACE_NAME::get<I>(wstd::forward<Tups>(tups))...);
                     }
-#endif
                 };
 
                 template <class I>

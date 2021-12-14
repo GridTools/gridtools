@@ -30,7 +30,6 @@ TEST(array, iterate_empty) {
     }
 }
 
-#if !defined(__NVCC__)
 namespace constexpr_compare {
     constexpr array<uint_t, 3> a{0, 0, 0};
     constexpr array<uint_t, 3> b{0, 0, 0};
@@ -39,7 +38,6 @@ namespace constexpr_compare {
     static_assert(a == b, "");
     static_assert(a != c, "");
 } // namespace constexpr_compare
-#endif
 
 TEST(array, iterate) {
     const int N = 5;
