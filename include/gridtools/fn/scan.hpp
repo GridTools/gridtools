@@ -82,7 +82,7 @@ namespace gridtools::fn {
                 return tuple_util::host_device::fold(
                     [&](auto acc, auto stage) { return stage(wstd::move(acc), size, ptr, strides); },
                     wstd::move(seed),
-                    tuple_util::make<tuple>(ColumnStages()...));
+                    tuple(ColumnStages()...));
             }
         };
     } // namespace scan_impl_
