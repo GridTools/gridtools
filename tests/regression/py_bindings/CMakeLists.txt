@@ -4,6 +4,13 @@ if (NOT Python3_FOUND OR NOT Python3_Development_FOUND OR NOT Python3_NumPy_FOUN
     return()
 endif()
 
+# This option is mostly useful if we have a broken setup
+option(GT_TESTS_ENABLE_PYTHON_TESTS "Enable Python tests" ON)
+
+if(NOT GT_TESTS_ENABLE_PYTHON_TESTS)
+    return()
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
     pybind11
