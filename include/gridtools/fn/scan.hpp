@@ -41,13 +41,13 @@ namespace gridtools::fn {
         using fwd = base<false>;
         using bwd = base<true>;
 
-        template <class Vertical, class Scan, class MakeIterator, int Out, int... Ins>
+        template <class Vertical, class ScanOrFold, class MakeIterator, int Out, int... Ins>
         struct column_stage {
             GT_FUNCTION auto operator()(auto seed, std::size_t size, auto ptr, auto const &strides) const {
-                constexpr std::size_t prologue_size = std::tuple_size_v<decltype(Scan::prologue())>;
-                constexpr std::size_t epilogue_size = std::tuple_size_v<decltype(Scan::epilogue())>;
+                constexpr std::size_t prologue_size = std::tuple_size_v<decltype(ScanOrFold::prologue())>;
+                constexpr std::size_t epilogue_size = std::tuple_size_v<decltype(ScanOrFold::epilogue())>;
                 assert(size >= prologue_size + epilogue_size);
-                using step_t = integral_constant<int, Scan::value ? -1 : 1>;
+                using step_t = integral_constant<int, ScanOrFold::value ? -1 : 1>;
                 auto const &v_stride = sid::get_stride<Vertical>(strides);
                 auto inc = [&] { sid::shift(ptr, v_stride, step_t()); };
                 auto next = [&](auto acc, auto pass) {
@@ -64,11 +64,11 @@ namespace gridtools::fn {
                         return res;
                     }
                 };
-                auto acc = tuple_util::fold(next, std::move(seed), Scan::prologue());
+                auto acc = tuple_util::fold(next, std::move(seed), ScanOrFold::prologue());
                 std::size_t n = size - prologue_size - epilogue_size;
                 for (std::size_t i = 0; i < n; ++i)
-                    acc = next(std::move(acc), Scan::body());
-                acc = tuple_util::fold(next, std::move(acc), Scan::epilogue());
+                    acc = next(std::move(acc), ScanOrFold::body());
+                acc = tuple_util::fold(next, std::move(acc), ScanOrFold::epilogue());
                 return acc;
             }
         };
