@@ -19,13 +19,13 @@ namespace gridtools::fn {
         using sid::property;
 
         struct sum_fold : fwd {
-            static GT_FUNCTION consteval auto body() {
+            static GT_FUNCTION constexpr auto body() {
                 return [](auto acc, auto const &iter) { return acc + *iter; };
             }
         };
 
         struct sum_scan : fwd {
-            static GT_FUNCTION consteval auto body() {
+            static GT_FUNCTION constexpr auto body() {
                 return scan_pass(
                     [](auto acc, auto const &iter) {
                         return tuple_util::make<tuple>(get<0>(acc) + *iter, get<1>(acc) * *iter);
@@ -35,10 +35,10 @@ namespace gridtools::fn {
         };
 
         struct sum_fold_with_logues : sum_fold {
-            static GT_FUNCTION consteval auto prologue() {
+            static GT_FUNCTION constexpr auto prologue() {
                 return tuple_util::make<tuple>([](auto acc, auto const &iter) { return acc + 2 * *iter; });
             }
-            static GT_FUNCTION consteval auto epilogue() {
+            static GT_FUNCTION constexpr auto epilogue() {
                 return tuple_util::make<tuple>([](auto acc, auto const &iter) { return acc + 3 * *iter; });
             }
         };

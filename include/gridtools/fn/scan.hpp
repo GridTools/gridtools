@@ -32,8 +32,8 @@ namespace gridtools::fn {
 
         template <bool IsBackward>
         struct base : std::bool_constant<IsBackward> {
-            static GT_FUNCTION consteval auto prologue() { return tuple(); }
-            static GT_FUNCTION consteval auto epilogue() { return tuple(); }
+            static GT_FUNCTION constexpr auto prologue() { return tuple(); }
+            static GT_FUNCTION constexpr auto epilogue() { return tuple(); }
         };
 
         using fwd = base<false>;
