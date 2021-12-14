@@ -66,12 +66,11 @@ namespace gridtools::fn {
                 };
                 if constexpr (ScanOrFold::value)
                     sid::shift(ptr, v_stride, size - 1);
-                auto acc = tuple_util::fold(next, wstd::move(seed), ScanOrFold::prologue());
+                auto acc = tuple_util::host_device::fold(next, wstd::move(seed), ScanOrFold::prologue());
                 std::size_t n = size - prologue_size - epilogue_size;
                 for (std::size_t i = 0; i < n; ++i)
                     acc = next(wstd::move(acc), ScanOrFold::body());
-                acc = tuple_util::fold(next, wstd::move(acc), ScanOrFold::epilogue());
-                return acc;
+                return tuple_util::host_device::fold(next, wstd::move(acc), ScanOrFold::epilogue());
             }
         };
 
