@@ -51,22 +51,24 @@ namespace gridtools::fn {
                 auto next = [&](auto acc, auto pass) {
                     if constexpr (is_scan_pass<decltype(pass)>()) {
                         // scan
-                        auto res = pass.m_f(acc, MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
+                        auto res =
+                            pass.m_f(wstd::move(acc), MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
                         *at_key<integral_constant<int, Out>>(ptr) = pass.m_p(res);
                         inc();
                         return res;
                     } else {
                         // fold
-                        auto res = pass(acc, MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
+                        auto res =
+                            pass(wstd::move(acc), MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
                         inc();
                         return res;
                     }
                 };
-                auto acc = tuple_util::fold(next, std::move(seed), ScanOrFold::prologue());
+                auto acc = tuple_util::fold(next, wstd::move(seed), ScanOrFold::prologue());
                 std::size_t n = size - prologue_size - epilogue_size;
                 for (std::size_t i = 0; i < n; ++i)
-                    acc = next(std::move(acc), ScanOrFold::body());
-                acc = tuple_util::fold(next, std::move(acc), ScanOrFold::epilogue());
+                    acc = next(wstd::move(acc), ScanOrFold::body());
+                acc = tuple_util::fold(next, wstd::move(acc), ScanOrFold::epilogue());
                 return acc;
             }
         };
