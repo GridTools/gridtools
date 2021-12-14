@@ -7,9 +7,10 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include <gridtools/fn/scan.hpp>
+
 #include <gtest/gtest.h>
 
-#include <gridtools/fn/scan.hpp>
 #include <gridtools/sid/composite.hpp>
 #include <gridtools/sid/synthetic.hpp>
 
@@ -28,7 +29,7 @@ namespace gridtools::fn {
             static GT_FUNCTION constexpr auto body() {
                 return scan_pass(
                     [](auto acc, auto const &iter) {
-                        return tuple_util::make<tuple>(get<0>(acc) + *iter, get<1>(acc) * *iter);
+                        return tuple_util::host_device::make<tuple>(get<0>(acc) + *iter, get<1>(acc) * *iter);
                     },
                     [](auto acc) { return get<0>(acc); });
             }
@@ -36,10 +37,10 @@ namespace gridtools::fn {
 
         struct sum_fold_with_logues : sum_fold {
             static GT_FUNCTION constexpr auto prologue() {
-                return tuple_util::make<tuple>([](auto acc, auto const &iter) { return acc + 2 * *iter; });
+                return tuple_util::host_device::make<tuple>([](auto acc, auto const &iter) { return acc + 2 * *iter; });
             }
             static GT_FUNCTION constexpr auto epilogue() {
-                return tuple_util::make<tuple>([](auto acc, auto const &iter) { return acc + 3 * *iter; });
+                return tuple_util::host_device::make<tuple>([](auto acc, auto const &iter) { return acc + 3 * *iter; });
             }
         };
 
