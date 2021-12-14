@@ -90,32 +90,6 @@ namespace gridtools {
             struct foldr<F, S, L<T1, T2, T3, T4>> {
                 using type = F<F<F<F<S, T4>, T3>, T2>, T1>;
             };
-#if __cplusplus < 201703
-            template <template <class...> class F,
-                class S,
-                template <class...> class L,
-                class T1,
-                class T2,
-                class T3,
-                class T4,
-                class T5,
-                class... Ts>
-            struct foldl<F, S, L<T1, T2, T3, T4, T5, Ts...>> {
-                using type = typename foldl<F, F<F<F<F<F<S, T1>, T2>, T3>, T4>, T5>, L<Ts...>>::type;
-            };
-            template <template <class...> class F,
-                class S,
-                template <class...> class L,
-                class T1,
-                class T2,
-                class T3,
-                class T4,
-                class T5,
-                class... Ts>
-            struct foldr<F, S, L<T1, T2, T3, T4, T5, Ts...>> {
-                using type = F<F<F<F<F<typename foldr<F, S, L<Ts...>>::type, T5>, T4>, T3>, T2>, T1>;
-            };
-#else
             namespace fold_impl_ {
                 template <class>
                 struct id;
@@ -166,7 +140,6 @@ namespace gridtools {
                           T2>,
                         T1>;
             };
-#endif
         } // namespace lazy
     }     // namespace meta
 } // namespace gridtools

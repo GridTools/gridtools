@@ -106,8 +106,8 @@ namespace gridtools {
             auto stride = sid::get_stride<void>(strides{});
             static_assert(decltype(stride)::value == 0, "");
 
-            static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>(), "");
-            static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>(), "");
+            static_assert(std::is_void<std::void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>(), "");
+            static_assert(std::is_void<std::void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>(), "");
 
             using lower_bounds = sid::lower_bounds_type<testee>;
             static_assert(tuple_util::size<lower_bounds>() == 0, "");

@@ -425,34 +425,37 @@ namespace gridtools {
             struct is_getter_valid;
 
             template <class T, class Getter, class Types, class I>
-            struct is_getter_valid<T, Getter, Types, I> : bool_constant<
-                std::is_same<decltype(Getter::template get<I::value>(std::declval<T const&>())), meta::at<Types, I> const &>::value &&
-                std::is_same<decltype(Getter::template get<I::value>(std::declval<T&>())), meta::at<Types, I>&>::value &&
-                std::is_same<decltype(Getter::template get<I::value>(std::declval<T&&>())), meta::at<Types, I>&&>::value
-            > {};
+            struct is_getter_valid<T, Getter, Types, I>
+                : std::bool_constant<std::is_same<decltype(Getter::template get<I::value>(std::declval<T const &>())),
+                                         meta::at<Types, I> const &>::value &&
+                                     std::is_same<decltype(Getter::template get<I::value>(std::declval<T &>())),
+                                         meta::at<Types, I> &>::value &&
+                                     std::is_same<decltype(Getter::template get<I::value>(std::declval<T &&>())),
+                                         meta::at<Types, I> &&>::value> {};
 
             template <class T,
                 class Types = traits::to_types<T>,
                 class FromTypes = traits::from_types<T>,
                 class Getter = traits::getter<T>>
-            struct is_tuple_like : bool_constant<
-                // `to_types` produces a type list 
-                meta::is_list<Types>::value &&
-                // there are no `void`'s within the types 
-                meta::all_of<meta::not_<std::is_void>::apply, Types>::value &&
-                // FromTypes metafunction is responsible for producing another `tuple_like` of the given kind from the list of types.
-                // We can not check it for all possible types but we at least can ensure that if we apply it to the current element types,
-                // we will get the current `tuple_like` type back.
-                std::is_same<meta::rename<FromTypes::template apply, Types>, T>::value &&
-                // we should be able to construct `tuple_like` element wise
-                is_constructible_from_elements<T, Types>::value &&
-                // iff element types are all move_constructible, `tuple_like` is move constructible
-                meta::all_of<std::is_move_constructible, Types>::value == std::is_move_constructible<T>::value &&
-                // the same for copy_constructible
-                meta::all_of<std::is_copy_constructible, Types>::value == std::is_copy_constructible<T>::value &&
-                // check that the getters produce expected types for all indices 
-                meta::all_of<meta::curry<is_getter_valid, T, Getter, Types>::template apply, meta::make_indices_for<Types>>::value
-            > {};
+            struct is_tuple_like
+                : std::bool_constant<
+                      // `to_types` produces a type list
+                      meta::is_list<Types>::value &&
+                      // there are no `void`'s within the types
+                      meta::all_of<meta::not_<std::is_void>::apply, Types>::value &&
+                      // FromTypes metafunction is responsible for producing another `tuple_like` of the given kind from
+                      // the list of types. We can not check it for all possible types but we at least can ensure that
+                      // if we apply it to the current element types, we will get the current `tuple_like` type back.
+                      std::is_same<meta::rename<FromTypes::template apply, Types>, T>::value &&
+                      // we should be able to construct `tuple_like` element wise
+                      is_constructible_from_elements<T, Types>::value &&
+                      // iff element types are all move_constructible, `tuple_like` is move constructible
+                      meta::all_of<std::is_move_constructible, Types>::value == std::is_move_constructible<T>::value &&
+                      // the same for copy_constructible
+                      meta::all_of<std::is_copy_constructible, Types>::value == std::is_copy_constructible<T>::value &&
+                      // check that the getters produce expected types for all indices
+                      meta::all_of<meta::curry<is_getter_valid, T, Getter, Types>::template apply,
+                          meta::make_indices_for<Types>>::value> {};
         } // namespace _impl
 
         template <class, class = void>
@@ -1638,12 +1641,13 @@ namespace gridtools {
              */
             template <template <class...> class L
 #if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5) \
-    && __cplusplus >= 201703
-            // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
-            , int = 0, class = std::void_t<L<int, int>>
+    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5)
+                // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
+                ,
+                int = 0,
+                class = std::void_t<L<int, int>>
 #endif
-            >
+                >
             GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR detail::convert_to_f<_impl::to_tuple_converter_helper<L>>
             convert_to() {
                 return {};
@@ -1651,12 +1655,15 @@ namespace gridtools {
 
             template <template <class...> class L
 #if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5) \
-    && __cplusplus >= 201703
-            // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
-            , int = 0, class = std::void_t<L<int, int>>
+    (__CUDACC_VER_MAJOR__ < 11 || __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ <= 5)
+
+                // workaround against nvcc bug: https://godbolt.org/z/orrev1xnM
+                ,
+                int = 0,
+                class = std::void_t<L<int, int>>
 #endif
-            , class Tup>
+                ,
+                class Tup>
             GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto convert_to(Tup && tup) {
                 return detail::convert_to_f<_impl::to_tuple_converter_helper<L>>{}(wstd::forward<Tup>(tup));
             }

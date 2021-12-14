@@ -57,7 +57,7 @@ namespace gridtools {
 
             template <typename... IntervalSizes,
                 std::enable_if_t<sizeof...(IntervalSizes) == NIntervals &&
-                                     conjunction<std::is_convertible<IntervalSizes, int_t>...>::value,
+                                     std::conjunction<std::is_convertible<IntervalSizes, int_t>...>::value,
                     int> = 0>
             axis(IntervalSizes... interval_sizes) : interval_sizes_{static_cast<int_t>(interval_sizes)...} {}
 

@@ -19,7 +19,6 @@
 #include "../meta/list.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/push_back.hpp"
-#include "../meta/type_traits.hpp"
 #include "defs.hpp"
 
 namespace gridtools {
@@ -32,7 +31,7 @@ namespace gridtools {
 
     namespace layout_map_impl {
         template <class I>
-        using not_negative = bool_constant<(I::value >= 0)>;
+        using not_negative = std::bool_constant<(I::value >= 0)>;
         template <class A, class B>
         using integral_plus = std::integral_constant<int, A::value + B::value>;
 

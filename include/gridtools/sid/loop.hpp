@@ -19,7 +19,6 @@
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
-#include "../meta/type_traits.hpp"
 #include "concept.hpp"
 
 namespace gridtools {

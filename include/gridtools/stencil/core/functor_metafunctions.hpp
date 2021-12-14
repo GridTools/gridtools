@@ -27,7 +27,7 @@ namespace gridtools {
                 struct has_apply : std::false_type {};
 
                 template <class T>
-                struct has_apply<T, void_t<decltype(T::apply(std::declval<probe const &>()))>> : std::true_type {};
+                struct has_apply<T, std::void_t<decltype(T::apply(std::declval<probe const &>()))>> : std::true_type {};
 
                 template <class From>
                 struct to_resolver {
@@ -44,7 +44,7 @@ namespace gridtools {
                 };
 
                 template <class Functor, class From>
-                struct find_interval_parameter<Functor, From, void_t<unsafe_resolve_to<Functor, From>>> {
+                struct find_interval_parameter<Functor, From, std::void_t<unsafe_resolve_to<Functor, From>>> {
                     using type = meta::list<interval<From, unsafe_resolve_to<Functor, From>>>;
                 };
 
@@ -60,8 +60,8 @@ namespace gridtools {
                     using to_index_t = level_to_index<meta::second<Interval>>;
                     static_assert(from_index_t::value <= to_index_t::value, GT_INTERNAL_ERROR);
                     template <class Other>
-                    using apply = bool_constant<level_to_index<meta::first<Other>>::value <= to_index_t::value &&
-                                                level_to_index<meta::second<Other>>::value >= from_index_t::value>;
+                    using apply = std::bool_constant<level_to_index<meta::first<Other>>::value <= to_index_t::value &&
+                                                     level_to_index<meta::second<Other>>::value >= from_index_t::value>;
                 };
 
                 template <class From>
@@ -100,7 +100,7 @@ namespace gridtools {
 
                 template <class F, class Lhs, class Rhs>
                     struct intersection_detector
-                    : bool_constant <
+                    : std::bool_constant <
                       level_to_index<meta::second<Lhs>>::value<level_to_index<meta::first<Rhs>>::value> {
                     static_assert(intersection_detector<F, Lhs, Rhs>::value,
                         "A stencil operator with intersecting intervals was detected. Search above for "
@@ -110,16 +110,17 @@ namespace gridtools {
 
                 template <class Functor, class IntervalParameters>
                 struct has_any_apply
-                    : bool_constant<has_apply<Functor>::value || meta::length<IntervalParameters>::value != 0> {
+                    : std::bool_constant<has_apply<Functor>::value || meta::length<IntervalParameters>::value != 0> {
                     static_assert(has_any_apply<Functor, IntervalParameters>::value,
                         "A stencil operator without any apply() overload within the given interval.\nSearch above "
                         "for `has_any_apply` in this compiler error output to determine the functor and the interval.");
                 };
 
                 template <class F, class FullInterval, class Interval>
-                struct is_from_level_valid : bool_constant<meta::first<Interval>::offset != -Interval::offset_limit ||
-                                                           level_to_index<meta::first<Interval>>::value <=
-                                                               level_to_index<meta::first<FullInterval>>::value> {
+                struct is_from_level_valid
+                    : std::bool_constant<meta::first<Interval>::offset != -Interval::offset_limit ||
+                                         level_to_index<meta::first<Interval>>::value <=
+                                             level_to_index<meta::first<FullInterval>>::value> {
                     static_assert(is_from_level_valid<F, FullInterval, Interval>::value,
                         "The interval `from` level offset could be equal to `-offset_limit` only if this level is less "
                         "or equal to the `from` level of the full computation interval.\nSearch above for "
@@ -128,9 +129,10 @@ namespace gridtools {
                 };
 
                 template <class F, class FullInterval, class Interval>
-                struct is_to_level_valid : bool_constant<meta::second<Interval>::offset != Interval::offset_limit ||
-                                                         level_to_index<meta::second<Interval>>::value >=
-                                                             level_to_index<meta::second<FullInterval>>::value> {
+                struct is_to_level_valid
+                    : std::bool_constant<meta::second<Interval>::offset != Interval::offset_limit ||
+                                         level_to_index<meta::second<Interval>>::value >=
+                                             level_to_index<meta::second<FullInterval>>::value> {
                     static_assert(is_to_level_valid<F, FullInterval, Interval>::value,
                         "The interval `to` level offset could be equal to `offset_limit` only if this level is greater "
                         "or equal to the `to` level of the full computation interval.\nSearch above for "

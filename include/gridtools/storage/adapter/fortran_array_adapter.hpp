@@ -66,7 +66,7 @@ namespace gridtools {
 
         using bindgen_view_rank = std::integral_constant<size_t, data_store_t::layout_t::unmasked_length>;
         using bindgen_view_element_type = std::remove_pointer_t<data_ptr_t>;
-        using bindgen_is_acc_present = bool_constant<true>;
+        using bindgen_is_acc_present = std::bool_constant<true>;
 
         void transform_to(DataStorePtr const &dst) const {
             check_fortran_lengths(dst);

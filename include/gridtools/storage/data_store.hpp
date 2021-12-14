@@ -10,6 +10,7 @@
 #pragma once
 
 #include <memory>
+#include <numeric>
 #include <string>
 #include <type_traits>
 
@@ -18,7 +19,6 @@
 #include "../common/defs.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/layout_map.hpp"
-#include "../common/numeric.hpp"
 #include "data_view.hpp"
 #include "info.hpp"
 #include "traits.hpp"
@@ -177,7 +177,7 @@ namespace gridtools {
                 : public base<Traits, T const, Info, Kind> {
 
                 template <class>
-                struct is_host_refrenceable : bool_constant<IsHostRefrenceable> {};
+                struct is_host_refrenceable : std::bool_constant<IsHostRefrenceable> {};
 
                 template <class Initializer, std::enable_if_t<!is_host_refrenceable<Initializer>::value, int> = 0>
                 void init(Initializer const &initializer) {

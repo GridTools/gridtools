@@ -41,8 +41,9 @@ namespace gridtools {
                         meta::transform<be_api::get_execution, stages_t>>::type;
                     using enclosing_extent_t = meta::rename<enclosing_extent,
                         meta::transform<be_api::get_extent, typename stages_t::plh_map_t>>;
-                    using fuse_all_t = bool_constant<all_parrallel_t::value && enclosing_extent_t::kminus::value == 0 &&
-                                                     enclosing_extent_t::kplus::value == 0>;
+                    using fuse_all_t =
+                        std::bool_constant<all_parrallel_t::value && enclosing_extent_t::kminus::value == 0 &&
+                                           enclosing_extent_t::kplus::value == 0>;
 
                     tmp_allocator alloc;
 

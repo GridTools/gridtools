@@ -14,7 +14,6 @@
 
 #include "../common/host_device.hpp"
 #include "../meta/macros.hpp"
-#include "../meta/type_traits.hpp"
 #include "concept.hpp"
 #include "delegate.hpp"
 #include "simple_ptr_holder.hpp"

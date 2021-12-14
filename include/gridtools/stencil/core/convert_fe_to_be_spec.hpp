@@ -56,7 +56,7 @@ namespace gridtools {
                         typename is_tmp_arg<Plh>::type,
                         typename get_data_type<Plh, DataStores>::type,
                         typename get_num_colors<Plh>::type,
-                        bool_constant<Accessor::intent_v == intent::in>,
+                        std::bool_constant<Accessor::intent_v == intent::in>,
                         sum_extent<EsfExtent, typename Accessor::extent_t>,
                         typename CacheInfo::cache_io_policies_t>;
                 };
