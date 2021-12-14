@@ -41,7 +41,8 @@ namespace gridtools::fn {
 
         template <class Vertical, class ScanOrFold, class MakeIterator, int Out, int... Ins>
         struct column_stage {
-            GT_FUNCTION auto operator()(auto seed, std::size_t size, auto ptr, auto const &strides) const {
+            template <class Seed, class Ptr, class Strides>
+            GT_FUNCTION auto operator()(Seed seed, std::size_t size, Ptr ptr, Strides const &strides) const {
                 constexpr std::size_t prologue_size = std::tuple_size_v<decltype(ScanOrFold::prologue())>;
                 constexpr std::size_t epilogue_size = std::tuple_size_v<decltype(ScanOrFold::epilogue())>;
                 assert(size >= prologue_size + epilogue_size);
@@ -76,7 +77,8 @@ namespace gridtools::fn {
 
         template <class... ColumnStages>
         struct merged {
-            GT_FUNCTION auto operator()(auto seed, std::size_t size, auto ptr, auto const &strides) const {
+            template <class Seed, class Ptr, class Strides>
+            GT_FUNCTION auto operator()(Seed seed, std::size_t size, Ptr ptr, Strides const &strides) const {
                 return tuple_util::host_device::fold(
                     [&](auto acc, auto stage) { return stage(wstd::move(acc), size, ptr, strides); },
                     wstd::move(seed),
