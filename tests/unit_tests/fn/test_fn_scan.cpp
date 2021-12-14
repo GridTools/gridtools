@@ -87,6 +87,17 @@ namespace gridtools::fn {
                 auto res = cs(42, 5, ptr, strides);
                 EXPECT_EQ(res, 68);
             }
+
+            {
+                merged<column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1>,
+                    column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1>>
+                    cs;
+                auto res = cs(tuple_util::make<tuple>(0, 1), 5, ptr, strides);
+                EXPECT_EQ(get<0>(res), 2 * 15);
+                EXPECT_EQ(get<1>(res), 120 * 120);
+                for (std::size_t i = 0; i < 5; ++i)
+                    EXPECT_EQ(a[i], 15 + (i + 1) * (i + 2) / 2);
+            }
         }
 
     } // namespace

@@ -74,10 +74,21 @@ namespace gridtools::fn {
                 return acc;
             }
         };
+
+        template <class... ColumnStages>
+        struct merged {
+            GT_FUNCTION auto operator()(auto seed, std::size_t size, auto ptr, auto const &strides) const {
+                return tuple_util::host_device::fold(
+                    [&](auto acc, auto stage) { return stage(wstd::move(acc), size, ptr, strides); },
+                    wstd::move(seed),
+                    tuple_util::make<tuple>(ColumnStages()...));
+            }
+        };
     } // namespace scan_impl_
 
     using scan_impl_::bwd;
     using scan_impl_::column_stage;
     using scan_impl_::fwd;
+    using scan_impl_::merged;
     using scan_impl_::scan_pass;
 } // namespace gridtools::fn
