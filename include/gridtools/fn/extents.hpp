@@ -11,11 +11,13 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <type_traits>
 
 #include "../common/int_vector.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/utility.hpp"
 #include "../meta.hpp"
+#include "gridtools/meta/type_traits.hpp"
 
 namespace gridtools {
     namespace fn {
@@ -33,7 +35,7 @@ namespace gridtools {
         struct is_extent : std::false_type {};
 
         template <class Dim, ptrdiff_t L, ptrdiff_t U>
-        struct is_extent<extent<Dim, L, U>> : std::true_type {};
+        struct is_extent<extent<Dim, L, U>> : bool_constant<L <= U> {};
 
 #ifdef __cpp_concepts
         template <class T>
@@ -57,8 +59,12 @@ namespace gridtools {
             }
         };
 
-        template <class T>
-        using is_extents = meta::is_instantiation_of<extents, T>;
+        template <class>
+        struct is_extents : std::false_type {};
+
+        template <class... Ts>
+        struct is_extents<extents<Ts...>> : bool_constant<meta::all_of<is_extent, meta::list<Ts...>>::value &&
+                                                          meta::is_set<meta::list<typename Ts::dim_t...>>::value> {};
 
 #ifdef __cpp_concepts
         template <class T>
