@@ -49,9 +49,6 @@ namespace gridtools {
         EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
     }
 
-#if defined(__NVCC__) && defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ < 10 || __CUDACC_VER_MAJOR__ == 10 && __CUDACC_VER_MINOR__ < 2)
-#else
     namespace test_constexpr {
         struct f {
             int &dst;
@@ -67,7 +64,6 @@ namespace gridtools {
         }
         static_assert(foo() == 2, "");
     } // namespace test_constexpr
-#endif
 
     TEST(for_each, targets) {
         int *ptr = nullptr;

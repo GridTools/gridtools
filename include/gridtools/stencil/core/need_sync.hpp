@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../../meta.hpp"
 #include "../common/caches.hpp"
 #include "esf_metafunctions.hpp"
@@ -20,9 +22,9 @@ namespace gridtools {
                 template <class DirtyPlhs>
                 struct is_dirty_f {
                     template <class Item, class Extent = typename meta::second<Item>::extent_t>
-                    using apply = bool_constant<meta::st_contains<DirtyPlhs, meta::first<Item>>::value &&
-                                                (Extent::iminus::value != 0 || Extent::iplus::value != 0 ||
-                                                    Extent::jminus::value != 0 || Extent::jplus::value != 0)>;
+                    using apply = std::bool_constant<meta::st_contains<DirtyPlhs, meta::first<Item>>::value &&
+                                                     (Extent::iminus::value != 0 || Extent::iplus::value != 0 ||
+                                                         Extent::jminus::value != 0 || Extent::jplus::value != 0)>;
                 };
 
                 template <class Esf, class DirtyPlhs>

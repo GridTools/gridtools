@@ -265,8 +265,8 @@ namespace gridtools {
             // Concept checking on BCApply is not ready yet.
             // Check that the stores... are either data stores or placeholders
             static_assert(
-                conjunction<bool_constant<storage::is_data_store_ptr<typename std::decay_t<DataStores>>::value or
-                                          std::is_placeholder<std::decay_t<DataStores>>::value>...>::value,
+                std::conjunction<std::bool_constant<storage::is_data_store_ptr<typename std::decay_t<DataStores>>::value or
+                                               std::is_placeholder<std::decay_t<DataStores>>::value>...>::value,
                 "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
             return {bc_apply, std::forward_as_tuple(stores...)};
         }

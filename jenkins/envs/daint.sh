@@ -17,8 +17,10 @@ function module() {
 
 module load daint-gpu
 module load cudatoolkit
-module load CMake
 
+export EASYBUILD_PREFIX=/apps/daint/SSL/gridtools/jenkins/easybuild
+module use $EASYBUILD_PREFIX/modules/all
+module load CMake
 
 export BOOST_ROOT=/apps/daint/SSL/gridtools/jenkins/boost_1_77_0
 export CUDATOOLKIT_HOME=$CUDA_PATH

@@ -115,7 +115,8 @@ namespace gridtools {
                 }
 
                 template <class... Is,
-                    std::enable_if_t<sizeof...(Is) == ndims && conjunction<std::is_convertible<Is, int_t>...>::value,
+                    std::enable_if_t<sizeof...(Is) == ndims &&
+                                         std::conjunction<std::is_convertible<Is, int_t>...>::value,
                         int> = 0>
                 GT_FUNCTION auto index(Is... indices) const {
                     return index_from_tuple(tuple_util::host_device::make<tuple>(indices...));

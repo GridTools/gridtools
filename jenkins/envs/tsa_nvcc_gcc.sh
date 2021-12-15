@@ -2,11 +2,12 @@
 
 source $(dirname "$BASH_SOURCE")/tsa.sh
 
-module load PrgEnv-gnu/19.2
+module use /apps/common/UES/sandbox/kraushm/tsa-nvhpc/easybuild/modules/all
+module load openmpi
 
-export CXX=$(which CC)
-export CC=$(which cc)
-export FC=$(which ftn)
+export CXX=$(which g++)
+export CC=$(which gcc)
+export FC=$(which pgfortran)
 export CUDAHOSTCXX="$CXX"
 
 export GTCMAKE_CMAKE_CXX_FLAGS_RELEASE='-Ofast -DNDEBUG'

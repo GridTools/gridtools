@@ -45,11 +45,11 @@ namespace gridtools {
                 struct is_expr<expr<Ts...>> : std::true_type {};
 
                 template <class Arg>
-                using expr_or_accessor = bool_constant<is_expr<Arg>::value || is_accessor<Arg>::value>;
+                using expr_or_accessor = std::bool_constant<is_expr<Arg>::value || is_accessor<Arg>::value>;
 
                 template <class Op,
                     class... Args,
-                    std::enable_if_t<disjunction<expr_or_accessor<Args>...>::value, int> = 0>
+                    std::enable_if_t<std::disjunction<expr_or_accessor<Args>...>::value, int> = 0>
                 GT_FUNCTION GT_CONSTEXPR expr<Op, Args...> make_expr(Op, Args... args) {
                     return {args...};
                 }

@@ -15,14 +15,13 @@
 #include "filter.hpp"
 #include "first.hpp"
 #include "macros.hpp"
-#include "type_traits.hpp"
 
 namespace gridtools {
     namespace meta {
         template <class Key>
         struct mp_remove_helper {
             template <class T>
-            using apply = negation<std::is_same<typename lazy::first<T>::type, Key>>;
+            using apply = std::negation<std::is_same<typename lazy::first<T>::type, Key>>;
         };
 
         template <class Map, class Key>
