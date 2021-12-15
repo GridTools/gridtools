@@ -10,9 +10,9 @@
 #pragma once
 
 #include <memory>
-#include <numeric>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include "../common/array.hpp"
 #include "../common/array_addons.hpp"
