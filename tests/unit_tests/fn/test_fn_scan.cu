@@ -49,7 +49,7 @@ namespace gridtools::fn {
             auto a = cuda_util::cuda_malloc<int>(5);
             auto b = cuda_util::cuda_malloc<int>(5);
             int bh[5] = {1, 2, 3, 4, 5};
-            cudaMemcpy(bh, b, 5 * sizeof(int), cudaMemcpyHostToDevice);
+            cudaMemcpy(bh, b.get(), 5 * sizeof(int), cudaMemcpyHostToDevice);
             auto composite = sid::composite::make<integral_constant<int, 0>, integral_constant<int, 1>>(
                 sid::synthetic()
                     .set<property::origin>(sid::host_device::make_simple_ptr_holder(a.get()))
