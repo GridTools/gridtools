@@ -25,5 +25,10 @@ namespace gridtools {
         static_assert(1'000_c == 1000, "");
 
         static_assert(2_c + 3_c == 5_c, "");
+
+        static_assert(is_integral_constant<integral_constant<int, 42>>::value, "");
+        static_assert(is_integral_constant<std::integral_constant<int, 42>>::value, "");
+        static_assert(is_gr_integral_constant<integral_constant<int, 42>>::value, "");
+        static_assert(!is_gr_integral_constant<std::integral_constant<int, 42>>::value, "");
     } // namespace
 } // namespace gridtools

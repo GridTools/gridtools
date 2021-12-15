@@ -41,6 +41,16 @@ namespace gridtools {
         constexpr GT_FUNCTION operator T() const noexcept { return V; }
     };
 
+    // This predicate checks if the the class has `gridtools::integral_constant` as a public base, which has arithmetic
+    // operators defined.
+    template <class, class = void>
+    struct is_gr_integral_constant : std::false_type {};
+
+    template <class T>
+    struct is_gr_integral_constant<T,
+        std::enable_if_t<std::is_base_of<integral_constant<typename T::value_type, T::value>, T>::value>>
+        : std::true_type {};
+
 #define GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(op, type)                                                           \
     template <class T, T V>                                                                                            \
     constexpr GT_FUNCTION integral_constant<decltype(op V), (op V)> operator op(integral_constant<T, V> &&) noexcept { \
