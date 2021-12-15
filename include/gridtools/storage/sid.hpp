@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cassert>
+#include <type_traits>
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"

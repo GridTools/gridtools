@@ -11,6 +11,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <numeric>
 #include <type_traits>
 
 #include "../common/ct_dispatch.hpp"

@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <type_traits>
 #include <utility>
 
 #include "../../common/defs.hpp"

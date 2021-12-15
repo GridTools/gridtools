@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../../common/defs.hpp"
 #include "../../meta.hpp"
 #include "../be_api.hpp"

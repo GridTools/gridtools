@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../../meta.hpp"
 #include "../common/caches.hpp"
 #include "esf_metafunctions.hpp"

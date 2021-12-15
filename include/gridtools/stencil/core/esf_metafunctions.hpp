@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../../meta.hpp"
 #include "../common/intent.hpp"
 #include "esf.hpp"
