@@ -54,7 +54,7 @@ namespace gridtools::fn {
                         // scan
                         auto res =
                             pass.m_f(wstd::move(acc), MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
-                        *at_key<integral_constant<int, Out>>(ptr) = pass.m_p(res);
+                        *host_device::at_key<integral_constant<int, Out>>(ptr) = pass.m_p(res);
                         inc();
                         return res;
                     } else {
