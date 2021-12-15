@@ -18,7 +18,6 @@
 #include "rename.hpp"
 #include "repeat.hpp"
 #include "transform.hpp"
-#include "type_traits.hpp"
 
 namespace gridtools {
     namespace meta {
@@ -34,7 +33,7 @@ namespace gridtools {
             repeat_c<GT_SIZEOF_3_DOTS(Ts), list<std::true_type>>>;
 
         template <class... Ts>
-        using disjunction_fast = negation<conjunction_fast<negation<Ts>...>>;
+        using disjunction_fast = std::negation<conjunction_fast<std::negation<Ts>...>>;
 
         /**
          *   all elements in lists are true

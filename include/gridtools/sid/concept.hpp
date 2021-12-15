@@ -22,7 +22,6 @@
 #include "../meta/logical.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/push_front.hpp"
-#include "../meta/type_traits.hpp"
 #include "simple_ptr_holder.hpp"
 
 /**
@@ -386,8 +385,9 @@ namespace gridtools {
              *  If stride of offset are zero or the target has no state, we don't need to shift
              */
             template <class T, class Stride, class Offset>
-            using need_shift = bool_constant<!(std::is_empty<T>::value || is_integral_constant_of<Stride, 0>::value ||
-                                               is_integral_constant_of<Offset, 0>::value)>;
+            using need_shift =
+                std::bool_constant<!(std::is_empty<T>::value || is_integral_constant_of<Stride, 0>::value ||
+                                     is_integral_constant_of<Offset, 0>::value)>;
 
             /**
              *  additional proxy is used here to ensure that evaluation context of `obj += stride * offset`
@@ -404,7 +404,7 @@ namespace gridtools {
             template <class T, class Stride>
             struct is_default_shiftable<T,
                 Stride,
-                void_t<decltype(::gridtools::sid::concept_impl_::default_shift(
+                std::void_t<decltype(::gridtools::sid::concept_impl_::default_shift(
                     std::declval<T &>(), std::declval<Stride const &>()))>> : std::true_type {};
 
             template <class T>
@@ -416,7 +416,7 @@ namespace gridtools {
             template <class T, class = void>
             struct has_inc : std::false_type {};
             template <class T>
-            struct has_inc<T, void_t<decltype(::gridtools::sid::concept_impl_::inc_operator(std::declval<T &>()))>>
+            struct has_inc<T, std::void_t<decltype(::gridtools::sid::concept_impl_::inc_operator(std::declval<T &>()))>>
                 : std::true_type {};
 
             template <class T>
@@ -428,7 +428,7 @@ namespace gridtools {
             template <class T, class = void>
             struct has_dec : std::false_type {};
             template <class T>
-            struct has_dec<T, void_t<decltype(::gridtools::sid::concept_impl_::dec_operator(std::declval<T &>()))>>
+            struct has_dec<T, std::void_t<decltype(::gridtools::sid::concept_impl_::dec_operator(std::declval<T &>()))>>
                 : std::true_type {};
 
             template <class T, class Arg>
@@ -442,7 +442,7 @@ namespace gridtools {
             template <class T, class Arg>
             struct has_dec_assignment<T,
                 Arg,
-                void_t<decltype(::gridtools::sid::concept_impl_::dec_assignment_operator(
+                std::void_t<decltype(::gridtools::sid::concept_impl_::dec_assignment_operator(
                     std::declval<T &>(), std::declval<Arg const &>()))>> : std::true_type {};
 
             /**
@@ -579,7 +579,7 @@ namespace gridtools {
                 struct apply : std::false_type {};
                 template <class Stride>
                 struct apply<Stride,
-                    void_t<decltype(::gridtools::sid::concept_impl_::shift(
+                    std::void_t<decltype(::gridtools::sid::concept_impl_::shift(
                         std::declval<T &>(), std::declval<Stride &>(), int_t{}))>> : std::true_type {};
             };
 
@@ -609,7 +609,7 @@ namespace gridtools {
                 class StridesKind = strides_kind<Sid>,
                 class LowerBoundsType = lower_bounds_type<Sid>,
                 class UpperBoundsType = upper_bounds_type<Sid>>
-            using is_sid = conjunction<
+            using is_sid = std::conjunction<
 
                 // `is_trivially_copyable` check is applied to the types that are will be passed from host to device
                 std::is_trivially_copy_constructible<PtrHolder>,
@@ -627,7 +627,7 @@ namespace gridtools {
                     PtrHolder>,
 
                 // verify that `Reference` is sane
-                negation<std::is_void<ReferenceType>>,
+                std::negation<std::is_void<ReferenceType>>,
 
                 // all strides must be applied via `shift` with both `Ptr` and `PtrDiff`
                 are_valid_strides<StrideTypeList, Ptr>,

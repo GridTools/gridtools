@@ -65,7 +65,7 @@ namespace gridtools {
                 };
 
                 template <class... Ts>
-                using are_ints = conjunction<std::is_convertible<Ts, int_t>...>;
+                using are_ints = std::conjunction<std::is_convertible<Ts, int_t>...>;
 
                 template <size_t Dim, size_t I, std::enable_if_t<(I > Dim), int> = 0>
                 GT_FUNCTION GT_CONSTEXPR int_t out_of_range_dim(dimension<I> obj) {
@@ -135,7 +135,7 @@ namespace gridtools {
                 using extent_t = Extent;
 
                 template <class... Ts,
-                    std::enable_if_t<sizeof...(Ts) < Dim && conjunction<std::is_convertible<Ts, int_t>...>::value,
+                    std::enable_if_t<sizeof...(Ts) < Dim && std::conjunction<std::is_convertible<Ts, int_t>...>::value,
                         int> = 0>
                 GT_FUNCTION GT_CONSTEXPR accessor(Ts... offsets) : base_t({offsets...}) {
                     static_assert(sizeof...(Ts) >= accessor_impl_::minimal_requried_args<Extent>::value,

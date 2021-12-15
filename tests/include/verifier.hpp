@@ -73,7 +73,8 @@ namespace gridtools {
         template <class F, size_t N>
         struct is_view_compatible<F,
             N,
-            void_t<decltype(verify_impl_::apply(std::declval<F const &>(), array<size_t, N>{}))>> : std::true_type {};
+            std::void_t<decltype(verify_impl_::apply(std::declval<F const &>(), array<size_t, N>{}))>>
+            : std::true_type {};
 
         struct float_equal_to {
             template <class T>

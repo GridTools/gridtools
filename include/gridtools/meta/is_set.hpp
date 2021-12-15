@@ -16,7 +16,6 @@
 #include "id.hpp"
 #include "internal/inherit.hpp"
 #include "macros.hpp"
-#include "type_traits.hpp"
 
 namespace gridtools {
     namespace meta {
@@ -40,6 +39,6 @@ namespace gridtools {
         struct is_set_fast : std::false_type {};
 
         template <template <class...> class L, class... Ts>
-        struct is_set_fast<L<Ts...>, void_t<decltype(internal::inherit<lazy::id<Ts>...>{})>> : std::true_type {};
+        struct is_set_fast<L<Ts...>, std::void_t<decltype(internal::inherit<lazy::id<Ts>...>{})>> : std::true_type {};
     } // namespace meta
 } // namespace gridtools
