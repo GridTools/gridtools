@@ -11,8 +11,8 @@
 #   the environment from which GridTools was installed is irrelevant for the installation.
 #   Therefore, we use the same macro to setup CMake targets in the main CMakeLists.txt (this file) and in the
 #   GridToolsConfig.cmake of an installation (see cmake/public/gridtools_setup_target.cmake)
-cmake_minimum_required(VERSION 3.14.5)
-cmake_policy(VERSION 3.14.5)
+cmake_minimum_required(VERSION 3.18.1)
+cmake_policy(VERSION 3.18.1)
 
 file(STRINGS "version.txt" __GT_VERSION)
 project(GridTools VERSION ${__GT_VERSION} LANGUAGES CXX)
