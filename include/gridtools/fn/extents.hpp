@@ -17,7 +17,6 @@
 #include "../common/integral_constant.hpp"
 #include "../common/utility.hpp"
 #include "../meta.hpp"
-#include "gridtools/meta/type_traits.hpp"
 
 namespace gridtools {
     namespace fn {
@@ -35,7 +34,7 @@ namespace gridtools {
         struct is_extent : std::false_type {};
 
         template <class Dim, ptrdiff_t L, ptrdiff_t U>
-        struct is_extent<extent<Dim, L, U>> : bool_constant<L <= U> {};
+        struct is_extent<extent<Dim, L, U>> : std::bool_constant<L <= U> {};
 
 #ifdef __cpp_concepts
         template <class T>
@@ -51,10 +50,10 @@ namespace gridtools {
             static_assert(is_int_vector<typename keys_t::template values<typename Ts::upper_t...>>::value);
             static_assert(is_int_vector<typename keys_t::template values<typename Ts::size_t...>>::value);
 
-            static GT_CONSTEVAL auto offsets() {
+            static GT_CONSTEVAL GT_FUNCTION auto offsets() {
                 return int_vector::prune_zeros(typename keys_t::template values<typename Ts::lower_t...>());
             }
-            static GT_CONSTEVAL auto sizes() {
+            static GT_CONSTEVAL GT_FUNCTION auto sizes() {
                 return int_vector::prune_zeros(typename keys_t::template values<typename Ts::size_t...>());
             }
         };
@@ -63,8 +62,9 @@ namespace gridtools {
         struct is_extents : std::false_type {};
 
         template <class... Ts>
-        struct is_extents<extents<Ts...>> : bool_constant<meta::all_of<is_extent, meta::list<Ts...>>::value &&
-                                                          meta::is_set<meta::list<typename Ts::dim_t...>>::value> {};
+        struct is_extents<extents<Ts...>> : std::bool_constant<meta::all_of<is_extent, meta::list<Ts...>>::value &&
+                                                               meta::is_set<meta::list<typename Ts::dim_t...>>::value> {
+        };
 
 #ifdef __cpp_concepts
         template <class T>
@@ -74,7 +74,7 @@ namespace gridtools {
         template <class Extents, class Offsets>
         decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_offsets(Offsets &&src) {
             static_assert(is_extents<Extents>::value);
-            static_assert(is_int_vector<Offsets>::value);
+            static_assert(is_int_vector<std::decay_t<Offsets>>::value);
             using namespace int_vector::arithmetic;
             return wstd::forward<Offsets>(src) + Extents::offsets();
         }
@@ -82,7 +82,7 @@ namespace gridtools {
         template <class Extents, class Sizes>
         decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_sizes(Sizes &&sizes) {
             static_assert(is_extents<Extents>::value);
-            static_assert(is_int_vector<Sizes>::value);
+            static_assert(is_int_vector<std::decay_t<Sizes>>::value);
             using namespace int_vector::arithmetic;
             return wstd::forward<Sizes>(sizes) + Extents::sizes();
         }
