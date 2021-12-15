@@ -364,17 +364,12 @@ function(gridtools_set_gpu_arch_on_target tgt arch)
         if(need_cuda)
             _gt_depends_on_nvcc(need_nvcc ${tgt})
             if(need_nvcc)
-                if(${CMAKE_VERSION} VERSION_LESS "3.18.0")
-                    # TODO once we bump minimum required version to 3.18,  we should:
-                    # - remove the following line
-                    # - set Clang as CUDA compiler instead of using the current manual setup
-                    #   (currently we set it as CXX compiler and enable cuda mode ourselves)
-                    # - only manage HIP ourselves
-                    target_compile_options(${tgt} PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:${GT_CUDA_ARCH_FLAG}=${arch}>)
-                else()
-                    gt_cuda_arch_to_cuda_arch_version(${arch} _cuda_arch_version)
-                    set_property(TARGET ${tgt} PROPERTY CUDA_ARCHITECTURES ${_cuda_arch_version})
-                endif()
+                # TODO
+                # - set Clang as CUDA compiler instead of using the current manual setup
+                #   (currently we set it as CXX compiler and enable cuda mode ourselves)
+                # - only manage HIP ourselves
+                gt_cuda_arch_to_cuda_arch_version(${arch} _cuda_arch_version)
+                set_property(TARGET ${tgt} PROPERTY CUDA_ARCHITECTURES ${_cuda_arch_version})
             else()
                 target_compile_options(${tgt} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${GT_CUDA_ARCH_FLAG}=${arch}>)
             endif()
