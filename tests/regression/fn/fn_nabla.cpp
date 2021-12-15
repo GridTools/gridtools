@@ -15,6 +15,8 @@
 #include <gridtools/fn.hpp>
 #include <gridtools/fn/backend/naive.hpp>
 
+#include "simple_mesh.hpp"
+
 using namespace gridtools;
 using namespace fn;
 using namespace literals;
@@ -58,26 +60,9 @@ constexpr auto nabla = [](auto const &pp, auto const &s, auto const &sign, auto 
     return lambda<nabla_helper>(tuple_dot(shift<V2E>(lift<zavg<E2V>, UseTmp>(pp, s)), deref(sign)), deref(vol));
 };
 
-/*
- *          (2)
- *       1   2    3
- *   (1)  0     4   (3)
- *   11     (0)      5
- *   (6) 10      6  (4)
- *      9    8   7
- *          (5)
- */
-
-constexpr std::array<int, 2> e2v[12] = {
-    {0, 1}, {1, 2}, {2, 0}, {2, 3}, {3, 0}, {3, 5}, {4, 0}, {4, 5}, {5, 0}, {5, 6}, {6, 0}, {6, 1}};
-
-constexpr std::array<int, 6> v2e[7] = {{0, 2, 4, 6, 8, 10},
-    {0, 1, 11, -1, -1, -1},
-    {1, 2, 3, -1, -1, -1},
-    {3, 4, 5, -1, -1, -1},
-    {5, 6, 7, -1, -1, -1},
-    {7, 8, 9, -1, -1, -1},
-    {9, 10, 11, -1, -1, -1}};
+using namespace simple_mesh;
+constexpr auto K = 3_c;
+constexpr auto n_v2e = neighbours_num<decltype(v2e)>::value;
 
 using params_t = testing::Types<std::false_type, std::true_type>;
 
@@ -87,21 +72,24 @@ using lift_test = testing::Test;
 TYPED_TEST_SUITE(lift_test, params_t);
 
 TYPED_TEST(lift_test, nabla) {
-    double pp[7][3];
-    std::tuple<double, double> s[12][3];
-    std::array<int, 6> sign[7];
-    double vol[7];
+    double pp[n_vertices][K];
+    for (auto& ppp : pp)
+        for (auto& p : ppp)
+            p = rand() % 100;
 
-    for (int h = 0; h < 7; ++h) {
-        for (int i = 0; i < 6; ++i)
-            sign[h][i] = rand() % 2 ? 1 : -1;
-        vol[h] = rand() % 2 + 1;
-        for (int v = 0; v < 3; ++v)
-            pp[h][v] = rand() % 100;
-    }
-    for (int h = 0; h < 12; ++h)
-        for (int v = 0; v < 3; ++v)
-            s[h][v] = {rand() % 100, rand() % 100};
+    std::array<int, n_v2e> sign[n_vertices];
+    for (auto &&ss : sign)
+        for (auto &s : ss)
+            s = rand() % 2 ? 1 : -1;
+
+    double vol[n_vertices];
+    for (auto &v : vol)
+        v = rand() % 2 + 1;
+
+    std::tuple<double, double> s[n_edges][K];
+    for (auto& ss : s)
+        for (auto& sss : ss)
+            sss = {rand() % 100, rand() % 100};
 
     auto zavg = [&](int h, int v) -> std::array<double, 2> {
         auto tmp = 0.;
@@ -114,7 +102,7 @@ TYPED_TEST(lift_test, nabla) {
     auto expected = [&](int h, int v) {
         auto res = std::array{0., 0.};
         for (int i = 0; i != 2; ++i) {
-            for (int j = 0; j != 6; ++j) {
+            for (int j = 0; j != n_v2e; ++j) {
                 auto edge = v2e[h][j];
                 if (edge == -1)
                     break;
@@ -125,15 +113,15 @@ TYPED_TEST(lift_test, nabla) {
         return res;
     };
 
-    std::tuple<double, double> actual[7][3] = {};
+    std::tuple<double, double> actual[n_edges][K] = {};
 
     using stage_t = make_stage<nabla<e2v, v2e, TypeParam::value>, std::identity{}, 0, 1, 2, 3, 4>;
     constexpr auto testee = fencil<naive, stage_t>;
-    constexpr auto domain = unstructured(std::tuple(7_c, 3_c));
+    constexpr auto domain = unstructured(std::tuple(n_vertices, K));
     testee(domain, actual, pp, s, sign, vol);
 
-    for (int h = 0; h < 7; ++h)
-        for (int v = 0; v < 3; ++v)
+    for (int h = 0; h < n_vertices; ++h)
+        for (int v = 0; v < K; ++v)
             tuple_util::for_each(
                 [](auto actual, auto expected) { EXPECT_DOUBLE_EQ(actual, expected); }, actual[h][v], expected(h, v));
 }

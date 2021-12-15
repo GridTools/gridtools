@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "../../meta.hpp"
 #include "../common/extent.hpp"
 #include "esf_metafunctions.hpp"
@@ -38,7 +40,7 @@ namespace gridtools {
                 template <intent Intent>
                 struct has_intent {
                     template <class Item, class Param = meta::second<Item>>
-                    using apply = bool_constant<Param::intent_v == Intent>;
+                    using apply = std::bool_constant<Param::intent_v == Intent>;
                 };
 
                 template <class Esf>

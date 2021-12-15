@@ -12,14 +12,9 @@
 
 #include <cstddef>
 
-#include "macros.hpp"
-
-#if __cplusplus < 201703
-#include "push_back.hpp"
-#else
 #include "fold.hpp"
+#include "macros.hpp"
 #include "push_front.hpp"
-#endif
 
 namespace gridtools {
     namespace meta {
@@ -61,18 +56,6 @@ namespace gridtools {
             struct reverse<L<T0, T1, T2, T3, T4, T5>> {
                 using type = L<T5, T4, T3, T2, T1, T0>;
             };
-#if __cplusplus < 201703
-            template <template <class...> class L,
-                class T0,
-                class T1,
-                class T2,
-                class T3,
-                class T4,
-                class T5,
-                class... Ts>
-            struct reverse<L<T0, T1, T2, T3, T4, T5, Ts...>>
-                : push_back<typename reverse<L<Ts...>>::type, T5, T4, T3, T2, T1, T0> {};
-#else
             template <template <class...> class L,
                 class T0,
                 class T1,
@@ -83,7 +66,6 @@ namespace gridtools {
                 class... Ts>
             struct reverse<L<T0, T1, T2, T3, T4, T5, Ts...>>
                 : foldl<meta::push_front, L<T5, T4, T3, T2, T1, T0>, L<Ts...>> {};
-#endif
         } // namespace lazy
         GT_META_DELEGATE_TO_LAZY(reverse, class List, List);
     } // namespace meta

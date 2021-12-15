@@ -11,6 +11,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <numeric>
 #include <type_traits>
 
 #include "../common/ct_dispatch.hpp"
@@ -18,7 +19,6 @@
 #include "../common/cuda_util.hpp"
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
-#include "../common/numeric.hpp"
 #include "../meta.hpp"
 #include "functions.hpp"
 
@@ -312,7 +312,7 @@ namespace gridtools {
             inline size_t get_threads(size_t n) {
                 assert(is_pow2(max_threads()));
                 assert(n % 2 == 0);
-                return gcd(n / 2, max_threads());
+                return std::gcd(n / 2, max_threads());
             }
 
             template <class T>
@@ -407,7 +407,7 @@ namespace gridtools {
             void reduction_fill(gpu, T const &val, T *dst, size_t data_size, size_t rounded_size, bool has_holes) {
                 if (!has_holes && data_size == rounded_size)
                     return;
-                auto threads = gcd(rounded_size, max_threads());
+                auto threads = std::gcd(rounded_size, max_threads());
                 fill<<<rounded_size / threads, threads>>>(dst, val);
                 GT_CUDA_CHECK(cudaGetLastError());
             }

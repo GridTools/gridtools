@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14.5)
+cmake_minimum_required(VERSION 3.18.1)
 
 project(GridTools-laplacian LANGUAGES CXX)
 

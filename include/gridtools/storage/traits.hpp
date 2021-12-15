@@ -9,9 +9,9 @@
  */
 #pragma once
 
+#include <numeric>
 #include <type_traits>
 
-#include "../common/numeric.hpp"
 #include "../common/tuple_util.hpp"
 #include "../meta.hpp"
 #include "../sid/unknown_kind.hpp"
@@ -29,7 +29,7 @@ namespace gridtools {
             constexpr size_t byte_alignment = decltype(storage_alignment(std::declval<Traits>()))::value;
 
             template <class Traits, class T, size_t ByteAlignment = byte_alignment<Traits>>
-            constexpr size_t elem_alignment = ByteAlignment / gcd(sizeof(T), ByteAlignment);
+            constexpr size_t elem_alignment = ByteAlignment / std::gcd(sizeof(T), ByteAlignment);
 
             template <class Traits, size_t Dims>
             using layout_type =

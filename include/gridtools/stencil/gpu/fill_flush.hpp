@@ -219,7 +219,7 @@ namespace gridtools {
                     template <uint_t Splitter, int_t OffsetLimit, int_t FromOffset, int_t ToOffset, int_t Lim>
                     struct levels_are_close<be_api::level<Splitter, FromOffset, OffsetLimit>,
                         be_api::level<Splitter, ToOffset, OffsetLimit>,
-                        Lim> : bool_constant<(real_offset(ToOffset) - real_offset(FromOffset) < Lim)> {};
+                        Lim> : std::bool_constant<(real_offset(ToOffset) - real_offset(FromOffset) < Lim)> {};
 
                     template <class PlhInfo,
                         class Execution,
@@ -343,7 +343,7 @@ namespace gridtools {
                     template <class DataStore>
                     struct is_missing_f {
                         template <class Plh>
-                        using apply = negation<has_key<DataStore, Plh>>;
+                        using apply = std::negation<has_key<DataStore, Plh>>;
                     };
 
                     template <class PlhMap, class DataStores>

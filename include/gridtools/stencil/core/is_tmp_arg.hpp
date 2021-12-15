@@ -20,7 +20,7 @@ namespace gridtools {
             struct is_tmp_arg : std::false_type {};
 
             template <class T>
-            struct is_tmp_arg<T, void_t<typename T::tmp_tag>> : std::true_type {};
+            struct is_tmp_arg<T, std::void_t<typename T::tmp_tag>> : std::true_type {};
         } // namespace core
     }     // namespace stencil
 } // namespace gridtools

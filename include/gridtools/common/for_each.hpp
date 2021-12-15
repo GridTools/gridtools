@@ -27,22 +27,6 @@ namespace gridtools {
             template <class>
             struct for_each_f;
 
-#if __cplusplus < 201703
-            template <template <class...> class L>
-            struct for_each_f<L<>> {
-                template <class F>
-                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void operator()(F &&) const {}
-            };
-
-            template <template <class...> class L, class... Ts>
-            struct for_each_f<L<Ts...>> {
-                template <class F>
-                GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR void operator()(F &&f) const {
-                    using array_t = int[sizeof...(Ts)];
-                    (void)array_t{((void)f(Ts()), 0)...};
-                }
-            };
-#else
             template <template <class...> class L, class... Ts>
             struct for_each_f<L<Ts...>> {
                 template <class F>
@@ -50,7 +34,6 @@ namespace gridtools {
                     (..., f(Ts()));
                 }
             };
-#endif
         } // namespace for_each_impl_
 
         template <class L>

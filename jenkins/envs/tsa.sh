@@ -2,9 +2,10 @@
 
 source $(dirname "$BASH_SOURCE")/base.sh
 
-module load cmake/3.14.5
-module load craype-x86-skylake
-module load craype-network-infiniband
+export EASYBUILD_PREFIX=/apps/tsa/SSL/gridtools/jenkins/easybuild
+module use $EASYBUILD_PREFIX/modules/all
+module load cmake
+
 module load slurm
 
 export BOOST_ROOT=/apps/tsa/SSL/gridtools/jenkins/boost_1_77_0

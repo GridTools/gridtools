@@ -8,7 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <gridtools/meta/type_traits.hpp>
+#include <type_traits>
+
 #include <gridtools/stencil/cartesian.hpp>
 #include <gridtools/stencil/naive.hpp>
 

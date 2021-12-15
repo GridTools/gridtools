@@ -121,7 +121,7 @@ namespace gridtools {
                         IsTmp,
                         Data,
                         NumColors,
-                        typename conjunction<IsConsts...>::type,
+                        typename std::conjunction<IsConsts...>::type,
                         enclosing_extent<Extents...>,
                         meta::dedup<meta::concat<CacheIoPolicyLists...>>>;
                 };
@@ -215,7 +215,7 @@ namespace gridtools {
             struct can_fuse_need_syncs;
 
             template <class First, class... NeedSyncs>
-            struct can_fuse_need_syncs<First, NeedSyncs...> : conjunction<negation<NeedSyncs>...> {};
+            struct can_fuse_need_syncs<First, NeedSyncs...> : std::conjunction<std::negation<NeedSyncs>...> {};
 
             template <class... Funs, class Interval, class... PlhMaps, class Extent, class Execution, class... NeedSync>
             struct can_fuse_stages<cell<Funs, Interval, PlhMaps, Extent, Execution, NeedSync>...>
@@ -245,7 +245,7 @@ namespace gridtools {
                         merge_plh_maps<PlhMaps...>,
                         Extent,
                         Execution,
-                        disjunction<NeedSync...>>;
+                        std::disjunction<NeedSync...>>;
                 };
             } // namespace lazy
             GT_META_DELEGATE_TO_LAZY(fuse_intervals, class... Ts, Ts...);
@@ -267,7 +267,7 @@ namespace gridtools {
             };
 
             template <class Cells>
-            using has_funs = negation<meta::all_of<is_cell_empty, Cells>>;
+            using has_funs = std::negation<meta::all_of<is_cell_empty, Cells>>;
 
             template <template <class...> class Pred, template <class...> class F, class Matrix>
             using fuse_rows = meta::group<row_predicate_f<Pred>::template apply, row_fuse_f<F>::template apply, Matrix>;
@@ -325,8 +325,8 @@ namespace gridtools {
             template <class... IntervalInfos>
             class fused_view_item {
                 static_assert(sizeof...(IntervalInfos) > 0, GT_INTERNAL_ERROR);
-                static_assert(
-                    conjunction<meta::is_instantiation_of<interval_info, IntervalInfos>...>::value, GT_INTERNAL_ERROR);
+                static_assert(std::conjunction<meta::is_instantiation_of<interval_info, IntervalInfos>...>::value,
+                    GT_INTERNAL_ERROR);
                 static_assert(meta::are_same<typename meta::length<IntervalInfos>::type...>::value, GT_INTERNAL_ERROR);
 
                 using item_t = meta::first<meta::list<IntervalInfos...>>;

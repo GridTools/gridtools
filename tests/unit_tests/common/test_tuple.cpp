@@ -19,6 +19,9 @@
 
 namespace gridtools {
     namespace {
+        static_assert(is_tuple_like<tuple<>>::value, "");
+        static_assert(is_tuple_like<tuple<int, double>>::value, "");
+        static_assert(is_tuple_like<tuple<int, int const, int&&, int&, int const& >>::value, "");
 
         template <size_t I>
         using an_empty = std::integral_constant<size_t, I>;
@@ -323,12 +326,10 @@ namespace gridtools {
 
         TEST(nested_empty, regression) { EXPECT_EQ(42, get<0>(get<0>(tuple<tuple<an_empty<42>>>())).value); }
 
-#if __cplusplus >= 201703
         TEST(structured_bindings, functional) {
             auto [a, b] = tuple<int, double>(42, 2.5);
             EXPECT_EQ(a, 42);
             EXPECT_EQ(b, 2.5);
         }
-#endif
     } // namespace
 } // namespace gridtools

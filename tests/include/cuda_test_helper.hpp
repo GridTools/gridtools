@@ -15,9 +15,10 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <gridtools/common/cuda_util.hpp>
 #include <gridtools/common/integral_constant.hpp>
-#include <gridtools/meta/type_traits.hpp>
 
 namespace gridtools {
     namespace on_device {
@@ -43,7 +44,7 @@ namespace gridtools {
         template <class Fun, class... Args>
         auto exec_with_shared_memory(size_t shm_size, Fun fun, Args... args) {
             static_assert(!std::is_pointer<Fun>::value, "");
-            static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");
+            static_assert(std::conjunction<std::negation<std::is_pointer<Args>>...>::value, "");
             using res_t = std::decay_t<decltype(fun(args...))>;
             static_assert(std::is_trivially_copyable<res_t>::value, "");
             auto res = cuda_util::cuda_malloc<res_t>();

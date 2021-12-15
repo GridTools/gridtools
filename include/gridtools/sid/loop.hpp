@@ -19,7 +19,6 @@
 #include "../common/host_device.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
-#include "../meta/type_traits.hpp"
 #include "concept.hpp"
 
 namespace gridtools {
@@ -589,7 +588,7 @@ namespace gridtools {
             class T = std::common_type_t<T1, T2>,
             std::enable_if_t<std::is_integral<T1>::value && std::is_integral<T2>::value, int> = 0>
         GT_CONSTEXPR GT_FUNCTION loop_impl_::generic_loop<Key, std::make_signed_t<T>> make_loop(T1 num_steps, T2 step) {
-            return {num_steps, step};
+            return {std::make_signed_t<T>(num_steps), step};
         }
 
         template <class Key,
@@ -600,7 +599,7 @@ namespace gridtools {
             std::enable_if_t<std::is_integral<T1>::value, int> = 0>
         GT_CONSTEXPR GT_FUNCTION loop_impl_::known_step_loop<Key, std::make_signed_t<T>, Step> make_loop(
             T1 num_steps, std::integral_constant<T2, Step> = {}) {
-            return {num_steps};
+            return {std::make_signed_t<T>(num_steps)};
         }
 
         template <class Key,

@@ -18,11 +18,14 @@ namespace gridtools::fn {
     using hor_t = integral_constant<int, 0>;
     inline constexpr hor_t hor = {};
 
-    template <class Sizes, class Offsets = std::tuple<>, class Horizontal = hor_t>
+    using vert_t = integral_constant<int, 1>;
+    inline constexpr vert_t vert = {};
+
+    template <class Sizes, class Offsets = std::tuple<>, class Horizontal = hor_t, class Vertical = vert_t>
     struct unstructured {
         Sizes sizes;
         Offsets offsets;
-        constexpr unstructured(Sizes sizes, Offsets offsets = {}, Horizontal = {})
+        constexpr unstructured(Sizes sizes, Offsets offsets = {}, Horizontal = {}, Vertical = {})
             : sizes(sizes), offsets(std::move(offsets)) {}
     };
 } // namespace gridtools::fn

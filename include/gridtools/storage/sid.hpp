@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cassert>
+#include <type_traits>
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
@@ -56,7 +57,7 @@ namespace gridtools {
             auto filter_unmasked_bounds(layout_map<Is...>, Bounds const &bounds) {
                 using all_keys_t = get_keys<Bounds>;
                 using all_values_t = tuple_util::traits::to_types<Bounds>;
-                using is_unmasked_t = meta::list<bool_constant<Is >= 0>...>;
+                using is_unmasked_t = meta::list<std::bool_constant<Is >= 0>...>;
                 using all_items_t = meta::zip<is_unmasked_t, all_keys_t, all_values_t>;
                 using items_t = meta::filter<meta::first, all_items_t>;
                 using keys_t = meta::transform<meta::second, items_t>;

@@ -64,11 +64,25 @@ namespace gridtools {
             }
         };
 
+        template <class T>
+        using is_integral_or_gr_integral_constant =
+            std::bool_constant<std::is_integral<T>::value || is_gr_integral_constant<T>::value>;
+
+        template <class T>
+        using elements_are_integral_or_gr_integral_constant =
+            meta::all_of<is_integral_or_gr_integral_constant, tuple_util::traits::to_types<T>>;
+
+        template <class T, class = void>
+        struct is_int_vector : std::false_type {};
+
+        template <class T>
+        struct is_int_vector<T,
+            std::enable_if_t<is_hymap<T>::value &&
+                             int_vector::impl_::elements_are_integral_or_gr_integral_constant<T>::value>>
+            : std::true_type {};
     } // namespace int_vector::impl_
 
-    template <class T>
-    struct is_int_vector : std::true_type {
-    }; // TODO proper type trait: is_hymap and (is_integral or is_gr_integral_constant)
+    using int_vector::impl_::is_int_vector;
 
     template <class T>
     constexpr bool is_int_vector_v = is_int_vector<T>::value;
@@ -85,7 +99,7 @@ namespace gridtools {
          * The keys of the resulting `int_vector` are the union of the keys of the operands.
          */
         template <class... Vecs>
-        GT_FUNCTION GT_CONSTEXPR auto plus(Vecs &&...vecs) {
+        GT_FUNCTION GT_CONSTEXPR auto plus(Vecs && ...vecs) {
             using merged_meta_map_t = meta::mp_make<impl_::merger_t, meta::concat<hymap::to_meta_map<Vecs>...>>;
             using keys_t = meta::transform<meta::first, merged_meta_map_t>;
             using generators = meta::transform<impl_::add_f, keys_t>;
@@ -97,7 +111,7 @@ namespace gridtools {
          * @brief Returns `int_vector` with elements multiplied by an integral scalar
          */
         template <class Vec, class Scalar>
-        GT_FUNCTION GT_CONSTEXPR auto multiply(Vec &&vec, Scalar scalar) {
+        GT_FUNCTION GT_CONSTEXPR auto multiply(Vec && vec, Scalar scalar) {
             return tuple_util::host_device::transform([scalar](auto v) { return v * scalar; }, wstd::forward<Vec>(vec));
         }
 
@@ -105,7 +119,7 @@ namespace gridtools {
          * @brief Returns `int_vector` with elements removed that are `integral_constant<T, 0>`
          */
         template <class Vec>
-        GT_FUNCTION GT_CONSTEXPR auto prune_zeros(Vec &&vec) {
+        GT_FUNCTION GT_CONSTEXPR auto prune_zeros(Vec && vec) {
             using filtered_map_t = meta::filter<meta::not_<impl_::is_constant_zero>::apply, hymap::to_meta_map<Vec>>;
             using keys_t = meta::transform<meta::first, filtered_map_t>;
             using generators = meta::transform<impl_::at_key_f, keys_t>;
@@ -117,7 +131,7 @@ namespace gridtools {
             template <class Vec,
                 class Scalar,
                 std::enable_if_t<is_int_vector_v<std::decay_t<Vec>> &&
-                                     (std::is_integral_v<Scalar> || is_integral_constant<Scalar>::value),
+                                     impl_::is_integral_or_gr_integral_constant<Scalar>::value,
                     bool> = true>
             GT_FUNCTION GT_CONSTEXPR auto operator*(Vec &&vec, Scalar scalar) {
                 return multiply(wstd::forward<Vec>(vec), scalar);
@@ -126,7 +140,7 @@ namespace gridtools {
             template <class Vec,
                 class Scalar,
                 std::enable_if_t<is_int_vector_v<std::decay_t<Vec>> &&
-                                     (std::is_integral_v<Scalar> || is_integral_constant<Scalar>::value),
+                                     impl_::is_integral_or_gr_integral_constant<Scalar>::value,
                     bool> = true>
             GT_FUNCTION GT_CONSTEXPR auto operator*(Scalar scalar, Vec &&vec) {
                 return multiply(wstd::forward<Vec>(vec), scalar);
@@ -134,24 +148,26 @@ namespace gridtools {
 
             template <class First,
                 class Second,
-                std::enable_if_t<is_int_vector_v<First> && is_int_vector_v<Second>, bool> = true>
+                std::enable_if_t<is_int_vector_v<std::decay_t<First>> && is_int_vector_v<std::decay_t<Second>>, bool> =
+                    true>
             GT_FUNCTION GT_CONSTEXPR auto operator+(First &&first, Second &&second) {
                 return plus(wstd::forward<First>(first), wstd::forward<Second>(second));
             }
 
-            template <class Vec, std::enable_if_t<is_int_vector_v<Vec>, bool> = true>
+            template <class Vec, std::enable_if_t<is_int_vector_v<std::decay_t<Vec>>, bool> = true>
             GT_FUNCTION GT_CONSTEXPR auto operator+(Vec &&vec) {
                 return vec;
             }
 
-            template <class Vec, std::enable_if_t<is_int_vector_v<Vec>, bool> = true>
+            template <class Vec, std::enable_if_t<is_int_vector_v<std::decay_t<Vec>>, bool> = true>
             GT_FUNCTION GT_CONSTEXPR auto operator-(Vec &&vec) {
-                return multiply(wstd::forward<Vec>(vec), integral_constant<int, -1>{}); // TODO not compiling with nvcc
+                return multiply(wstd::forward<Vec>(vec), integral_constant<int, -1>{});
             }
 
             template <class First,
                 class Second,
-                std::enable_if_t<is_int_vector_v<First> && is_int_vector_v<Second>, bool> = true>
+                std::enable_if_t<is_int_vector_v<std::decay_t<First>> && is_int_vector_v<std::decay_t<Second>>, bool> =
+                    true>
             GT_FUNCTION GT_CONSTEXPR auto operator-(First &&first, Second &&second) {
                 return plus(wstd::forward<First>(first), -wstd::forward<Second>(second));
             }
