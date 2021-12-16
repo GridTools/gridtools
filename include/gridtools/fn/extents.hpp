@@ -7,6 +7,20 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+/**
+ * @file
+ *
+ * Utility to handle extents.
+ *
+ * An `extent` is a compile-time type with
+ * - a dimension tag
+ * - a pair of integral_constants representing relative lower and upper extents
+ *
+ * An `extents` type is a set of `extent`s.
+ * `extents` can be used to extend an int_vector representing offsets (`extend_offsets`) or sizes (`extend_sizes`).
+ */
+
 #pragma once
 
 #include <algorithm>
@@ -97,15 +111,15 @@ namespace gridtools {
             };
         } // namespace extent_impl_
 
-        // take any number of individual `extent`'s and produce the normalized `extents`
-        // if some `extent`'s has the same dimension, they are merged
+        // T any number of individual `extent`s and produce the normalized `extents`.
+        // If some `extent`s have the same dimension, they are merged.
         template <class... Extents>
         using make_extents = meta::rename<extents,
             meta::transform<meta::second,
                 meta::mp_make<meta::force<extent_impl_::merge_extents>::template apply,
                     meta::list<meta::list<typename Extents::dim_t, Extents>...>>>>;
 
-        // merge several `extents` into a one
+        // Merge several `extents`s into one
         template <class... Extentss>
         using enclosing_extents = meta::rename<make_extents, meta::concat<meta::rename<meta::list, Extentss>...>>;
 
