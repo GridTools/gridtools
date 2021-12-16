@@ -122,7 +122,7 @@ namespace gridtools {
                         class... Args,
                         std::enable_if_t<std::is_constructible<std::tuple<Vals...>, Arg &&, Args &&...>::value, int> =
                             0>
-                    constexpr values(Arg &&arg, Args &&... args) noexcept
+                    constexpr values(Arg &&arg, Args &&...args) noexcept
                         : m_vals{std::forward<Arg>(arg), std::forward<Args>(args)...} {}
 
                     values() = default;
@@ -270,22 +270,22 @@ namespace gridtools {
                 }
 
                 template <class... Args>
-                auto dimensions(Args const &... values) const {
+                auto dimensions(Args const &...values) const {
                     static_assert(!has<param::lengths>::value, "storage dimensions are set twice");
                     static_assert(conjunction<std::is_convertible<Args const &, uint_t>...>::value,
                         "builder.dimensions(...) arguments should be convertible to unsigned int");
                     check_dimensions_number<sizeof...(Args)>();
                     return add_value<param::lengths>(
-                        tuple_util::make<tuple>(normalize_dimension(values, is_integral_constant<Args>())...));
+                        tuple(normalize_dimension(values, is_integral_constant<Args>())...));
                 }
 
                 template <class... Args>
-                auto halos(Args const &... values) const {
+                auto halos(Args const &...values) const {
                     static_assert(!has<param::halos>::value, "storage dimensions are set twice");
                     static_assert(conjunction<std::is_convertible<Args const &, int>...>::value,
                         "builder.halos(...) arguments should be convertible to int");
                     check_dimensions_number<sizeof...(Args)>();
-                    return add_value<param::halos>(tuple_util::make<array, int>(values...));
+                    return add_value<param::halos>(array{static_cast<int>(values)...});
                 }
 
                 template <class Fun>

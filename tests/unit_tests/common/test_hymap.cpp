@@ -28,6 +28,8 @@ namespace gridtools {
         static_assert(!is_hymap<void>::value, "");
         static_assert(is_hymap<std::array<int, 3>>::value, "");
         static_assert(is_hymap<tuple<int, double>>::value, "");
+        static_assert(is_hymap<hymap::keys<>::values<>>::value, "");
+        static_assert(is_hymap<hymap::keys<a>::values<int>>::value, "");
         static_assert(is_hymap<hymap::keys<a, b>::values<int, double>>::value, "");
 
         TEST(tuple_like, smoke) {
@@ -86,15 +88,19 @@ namespace gridtools {
             EXPECT_EQ(7.3, at_key<b>(dst));
         }
 
-        TEST(make_hymap, smoke) {
-            auto testee = tuple_util::make<hymap::keys<a, b>::values>(42, 5.3);
+        TEST(deduction, smoke) {
+            auto testee = hymap::keys<a, b>::values(42, 5.3);
 
             EXPECT_EQ(42, at_key<a>(testee));
             EXPECT_EQ(5.3, at_key<b>(testee));
+
+            EXPECT_EQ(42, at_key<a>(hymap::keys<a>::values(42)));
         }
 
+        TEST(deduction, empty) { hymap::keys<>::values(); }
+
         TEST(convert_hymap, smoke) {
-            hymap::keys<a, b>::values<int, double> src = {42, 5.3};
+            auto src = hymap::keys<a, b>::values(42, 5.3);
 
             auto dst = tuple_util::convert_to<hymap::keys<b, c>::values>(src);
 
@@ -161,8 +167,8 @@ namespace gridtools {
         }
 
         TEST(merge, smoke) {
-            auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2);
-            auto m2 = tuple_util::make<hymap::keys<b, c>::values>(3.5, 16);
+            auto m1 = hymap::keys<a, b>::values(1, 2);
+            auto m2 = hymap::keys<b, c>::values(3.5, 16);
             auto testee = hymap::merge(m1, m2);
 
             EXPECT_EQ(1, at_key<a>(testee));
@@ -171,8 +177,8 @@ namespace gridtools {
         }
 
         TEST(concat, smoke) {
-            auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2);
-            auto m2 = tuple_util::make<hymap::keys<c>::values>(3.5);
+            auto m1 = hymap::keys<a, b>::values(1, 2);
+            auto m2 = hymap::keys<c>::values(3.5);
 
             auto testee = hymap::concat(m1, m2);
             EXPECT_EQ(1, at_key<a>(testee));

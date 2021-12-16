@@ -29,10 +29,10 @@ namespace gridtools {
 
             auto src = sid::synthetic()
                            .set<property::origin>(sid::make_simple_ptr_holder(&data[0][0][0]))
-                           .set<property::strides>(tu::make<tuple>(5_c * 7_c, 7_c, 1_c))
-                           .set<property::upper_bounds>(tu::make<tuple>(3));
+                           .set<property::strides>(tuple(5_c * 7_c, 7_c, 1_c))
+                           .set<property::upper_bounds>(tuple(3));
 
-            auto offset = tuple_util::make<tuple>(1_c, 2);
+            auto offset = tuple(1_c, 2);
             auto testee = sid::shift_sid_origin(src, offset);
 
             static_assert(is_sid<decltype(testee)>(), "");
@@ -46,7 +46,7 @@ namespace gridtools {
         TEST(shift_sid_origin, c_array) {
             double data[3][5][7];
 
-            auto offset = tuple_util::make<tuple>(1_c, 2);
+            auto offset = tuple(1_c, 2);
             auto testee = sid::shift_sid_origin(data, offset);
 
             static_assert(is_sid<decltype(testee)>(), "");

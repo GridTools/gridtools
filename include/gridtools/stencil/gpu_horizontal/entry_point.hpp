@@ -176,8 +176,7 @@ namespace gridtools {
                             [&](std::false_type, auto info) {
                                 return sid::add_const(info.is_const(),
                                     sid::block(at_key<decltype(info.plh())>(data_stores),
-                                        tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
-                                            IBlockSize(), JBlockSize())));
+                                        hymap::keys<dim::i, dim::j>::values(IBlockSize(), JBlockSize())));
                             }),
                         meta::transform<be_api::get_is_tmp, plh_map_t>(),
                         plh_map_t()));

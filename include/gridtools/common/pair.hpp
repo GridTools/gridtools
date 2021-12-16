@@ -40,6 +40,8 @@ namespace gridtools {
         template <class U1, class U2>
         GT_CONSTEXPR GT_FUNCTION pair(std::pair<U1, U2> &&p) : pair(wstd::move(p.first), wstd::move(p.second)) {}
 
+        GT_CONSTEXPR GT_FUNCTION pair(T1 const &t1_, T2 const &t2_) : first(t1_), second(t2_) {}
+
         template <class U1, class U2>
         GT_CONSTEXPR GT_FUNCTION pair(U1 &&t1_, U2 &&t2_)
             : first(wstd::forward<U1>(t1_)), second(wstd::forward<U2>(t2_)) {}

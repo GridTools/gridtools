@@ -73,12 +73,12 @@ namespace gridtools {
             double three[4][3][5] = {};
             char four[4][3][5] = {};
 
-            auto my_strides = tu::make<array>(1, 5, 15);
+            auto my_strides = array{1, 5, 15};
 
             auto testee = sid::composite::make<a, b, c, d>(                                           //
                 sid::synthetic()                                                                      //
                     .set<property::origin>(sid::host_device::make_simple_ptr_holder(&one[0]))         //
-                    .set<property::strides>(tuple_util::make<tuple>(1_c))                             //
+                    .set<property::strides>(tuple(1_c))                                               //
                 ,                                                                                     //
                 sid::synthetic()                                                                      //
                     .set<property::origin>(sid::host_device::make_simple_ptr_holder(&two))            //
@@ -155,15 +155,15 @@ namespace gridtools {
 
         TEST(composite, custom_dims) {
             double const one[5] = {0, 10, 20, 30, 40};
-            auto strides_one = tu::make<hymap::keys<dim_x>::values>(1_c);
+            auto strides_one = hymap::keys<dim_x>::values(1_c);
 
             double two = -1;
 
             double three[4][3][5] = {};
-            auto strides_three = tu::make<hymap::keys<dim_z, dim_y, dim_x>::values>(1_c, 5_c, 15_c);
+            auto strides_three = hymap::keys<dim_z, dim_y, dim_x>::values(1_c, 5_c, 15_c);
 
             char four[6][4][5] = {};
-            auto strides_four = tu::make<hymap::keys<dim_y, dim_z, dim_x>::values>(1_c, 5_c, 20_c);
+            auto strides_four = hymap::keys<dim_y, dim_z, dim_x>::values(1_c, 5_c, 20_c);
 
             auto testee = sid::composite::make<a, b, c, d>(                                           //
                 sid::synthetic()                                                                      //
@@ -206,11 +206,11 @@ namespace gridtools {
             auto testee = sid::composite::make<a, b>(                                            //
                 sid::synthetic()                                                                 //
                     .set<property::origin>(sid::host_device::make_simple_ptr_holder(&one[0]))    //
-                    .set<property::strides>(tuple_util::make<tuple>(1))                          //
+                    .set<property::strides>(tuple(1))                                            //
                     .set<property::strides_kind, sid::unknown_kind>(),                           //
                 sid::synthetic()                                                                 //
                     .set<property::origin>(sid::host_device::make_simple_ptr_holder(&two[0][0])) //
-                    .set<property::strides>(tuple_util::make<tuple>(1, 1))                       //
+                    .set<property::strides>(tuple(1, 1))                                         //
                     .set<property::strides_kind, sid::unknown_kind>());
 
             auto &&strides = sid::get_strides(testee);

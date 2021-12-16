@@ -19,7 +19,6 @@
 #include <gtest/gtest.h>
 
 using namespace gridtools;
-using tuple_util::make;
 
 class hypercube_iteration : public ::testing::Test {
     using range_t = std::array<size_t, 2>;
@@ -48,27 +47,27 @@ class hypercube_iteration : public ::testing::Test {
 
 TEST_F(hypercube_iteration, view_from_array_of_ranges) {
     expect_ranges({1, 3}, {4, 8}, {2, 10});
-    call_testee(make<array>(make<pair>(1, 3), make<pair>(4, 8), make<pair>(2, 10)));
+    call_testee(array{pair(1, 3), pair(4, 8), pair(2, 10)});
 }
 
 TEST_F(hypercube_iteration, view_from_tuple_of_ranges) {
     expect_ranges({1, 3}, {4, 8}, {2, 10});
-    call_testee(make<tuple>(make<pair>(1, 3), make<pair>(4, 8), make<pair>(2, 10)));
+    call_testee(tuple(pair(1, 3), pair(4, 8), pair(2, 10)));
 }
 
 TEST_F(hypercube_iteration, from_array_of_integers) {
     expect_ranges({0, 3}, {0, 8}, {0, 10});
-    call_testee(make<array>(3, 8, 10));
+    call_testee(array{3, 8, 10});
 }
 
 TEST_F(hypercube_iteration, from_zero_to_zero) {
     expect_ranges({}, {}, {});
-    call_testee(make<array>(make<pair>(0, 0), make<pair>(0, 0), make<pair>(0, 0)));
+    call_testee(array{pair(0, 0), pair(0, 0), pair(0, 0)});
 }
 
 TEST_F(hypercube_iteration, from_one_to_one) {
     expect_ranges({}, {}, {});
-    call_testee(make<array>(0, 0, 0));
+    call_testee(array{0, 0, 0});
 }
 
 TEST(hypercube_view_empty_iteration_space, zero_dimensional_range) {

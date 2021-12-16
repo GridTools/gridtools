@@ -26,7 +26,7 @@ namespace gridtools {
             namespace tu = tuple_util;
 
             TEST(make_strides_from_sizes, smoke) {
-                auto testee = make_strides_from_sizes(tu::make<tuple>(20, 30, 40));
+                auto testee = make_strides_from_sizes(tuple(20, 30, 40));
                 static_assert(std::is_same<decltype(testee), tuple<integral_constant<int, 1>, int, int>>{}, "");
 
                 EXPECT_EQ(1, tu::get<0>(testee));
@@ -35,7 +35,7 @@ namespace gridtools {
             }
 
             TEST(make_strides_from_sizes, integral_constants) {
-                auto testee = make_strides_from_sizes(tu::make<tuple>(20_c, 30_c, 40));
+                auto testee = make_strides_from_sizes(tuple(20_c, 30_c, 40));
                 static_assert(
                     std::is_same<decltype(testee),
                         tuple<integral_constant<int, 1>, integral_constant<int, 20>, integral_constant<int, 600>>>{},
@@ -51,7 +51,7 @@ namespace gridtools {
             struct c;
 
             TEST(make_strides_from_sizes, hymap) {
-                auto testee = make_strides_from_sizes(tu::make<hymap::keys<a, b, c>::values>(20, 30, 40));
+                auto testee = make_strides_from_sizes(hymap::keys<a, b, c>::values(20, 30, 40));
                 static_assert(
                     std::is_same<decltype(testee), hymap::keys<a, b, c>::values<integral_constant<int, 1>, int, int>>{},
                     "");
@@ -62,12 +62,12 @@ namespace gridtools {
             }
 
             TEST(total_size, smoke) {
-                auto testee = total_size(tu::make<tuple>(20, 30, 40));
+                auto testee = total_size(tuple(20, 30, 40));
                 EXPECT_EQ(24000, testee);
             }
 
             TEST(total_size, integral_constants) {
-                auto testee = total_size(tu::make<tuple>(20_c, 30_c, 40_c));
+                auto testee = total_size(tuple(20_c, 30_c, 40_c));
                 static_assert(std::is_same<decltype(testee), integral_constant<int, 24000>>{}, "");
 
                 EXPECT_EQ(24000, testee);

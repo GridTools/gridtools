@@ -60,7 +60,7 @@ namespace gridtools {
             auto make_reducible(T const &neutral_value, Dims... dims) {
                 auto alloc = sid::host_device::make_cached_allocator(
                     [](size_t size) { return storage::traits::allocate<StorageTraits, char>(size); });
-                auto lengths = tuple_util::make<tuple>(dims...);
+                auto lengths = tuple(dims...);
                 auto info = storage::traits::make_info<StorageTraits, T>(lengths);
                 auto strides = info.native_strides();
                 size_t data_size = info.length();

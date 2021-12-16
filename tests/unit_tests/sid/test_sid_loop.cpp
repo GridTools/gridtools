@@ -15,12 +15,10 @@
 #include <gridtools/common/compose.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
-#include <gridtools/common/tuple_util.hpp>
 
 namespace gridtools {
     namespace {
         using namespace literals;
-        namespace tu = tuple_util::host_device;
 
         struct assignment_f {
             double m_val;
@@ -35,7 +33,7 @@ namespace gridtools {
 
         TEST(make_loop, smoke) {
             double data[10][10] = {};
-            auto strides = tu::make<tuple>(10_c, 1_c);
+            auto strides = tuple(10_c, 1_c);
 
             double *ptr = &data[0][0];
             sid::make_loop<i_t>(5, 1)(assignment_f{42})(ptr, strides);
@@ -63,7 +61,7 @@ namespace gridtools {
         TEST(nest_loops, smoke) {
             double data[10][10] = {};
             double *ptr = &data[0][0];
-            auto strides = tu::make<tuple>(10_c, 1_c);
+            auto strides = tuple(10_c, 1_c);
 
             auto testee = host_device::compose(sid::make_loop<i_t>(10_c), sid::make_loop<j_t>(10_c));
 
@@ -77,7 +75,7 @@ namespace gridtools {
         TEST(range, smoke) {
             double data[10][10] = {};
             double *ptr = &data[0][0];
-            auto strides = tu::make<tuple>(10_c, 1_c);
+            auto strides = tuple(10_c, 1_c);
 
             auto testee = sid::make_range(ptr, strides, sid::make_loop<i_t>(10_c), sid::make_loop<j_t>(10_c));
 

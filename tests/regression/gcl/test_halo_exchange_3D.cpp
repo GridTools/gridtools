@@ -99,7 +99,7 @@ class halo_exchange_3D_test : public testing::TestWithParam<test_spec> {
                     })
                     .build();
         };
-        return tuple_util::make<array>(make_storage(0), make_storage(1), make_storage(2));
+        return array{make_storage(0), make_storage(1), make_storage(2)};
     }
 
     template <class Storages>

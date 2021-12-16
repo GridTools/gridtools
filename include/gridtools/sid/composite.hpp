@@ -173,8 +173,11 @@ namespace gridtools {
                     static_assert(sizeof...(Keys) == sizeof...(Ptrs), GT_INTERNAL_ERROR);
 
                     tuple<Ptrs...> m_vals;
-                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
+
                     GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
+                    
+                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
+
                     GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
                         return tuple_util::host_device::convert_to<hymap::keys<Keys...>::template values>(
                             tuple_util::host_device::transform([](auto const &ptr)

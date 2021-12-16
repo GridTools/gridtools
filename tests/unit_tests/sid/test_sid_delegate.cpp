@@ -47,7 +47,7 @@ namespace gridtools {
             double data[3][5];
             auto src = sid::synthetic()
                            .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0]))
-                           .set<property::strides>(tu::make<tuple>(5_c, 1_c));
+                           .set<property::strides>(tuple(5_c, 1_c));
             EXPECT_EQ(&data[0][0], sid::get_origin(src)());
 
             auto testee = i_shift(std::move(src));
@@ -78,7 +78,7 @@ namespace gridtools {
             double data[3][5];
             auto src = sid::synthetic()
                            .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0]))
-                           .set<property::strides>(tu::make<tuple>(5_c, 1_c));
+                           .set<property::strides>(tuple(5_c, 1_c));
             auto testee = just_delegate(src);
             static_assert(is_sid<decltype(testee)>(), "");
         }
