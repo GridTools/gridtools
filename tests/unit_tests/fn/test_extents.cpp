@@ -52,9 +52,9 @@ namespace gridtools::fn {
 
             auto testee = extend_offsets<ext>(offsets);
 
-            ASSERT_EQ(at_key<a>(testee), -1);
-            ASSERT_EQ(at_key<b>(testee), 1);
-            ASSERT_EQ(at_key<c>(testee), 3);
+            EXPECT_EQ(at_key<a>(testee), -1);
+            EXPECT_EQ(at_key<b>(testee), 1);
+            EXPECT_EQ(at_key<c>(testee), 3);
         }
 
         TEST(extents, extend_sizes) {
@@ -63,9 +63,9 @@ namespace gridtools::fn {
 
             auto testee = extend_sizes<ext>(sizes);
 
-            ASSERT_EQ(at_key<a>(testee), 5);
-            ASSERT_EQ(at_key<b>(testee), 7);
-            ASSERT_EQ(at_key<c>(testee), 6);
+            EXPECT_EQ(at_key<a>(testee), 5);
+            EXPECT_EQ(at_key<b>(testee), 7);
+            EXPECT_EQ(at_key<c>(testee), 6);
         }
 
         namespace extends_make_extends {

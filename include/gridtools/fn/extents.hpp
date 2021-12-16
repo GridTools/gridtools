@@ -68,7 +68,7 @@ namespace gridtools {
 
 #ifdef __cpp_concepts
         template <class T>
-        concept extents_c = meta::is_instantiation_of<extents, T>::value;
+        concept extents_c = is_extents<T>::value;
 #endif
 
         template <class Extents, class Offsets>
