@@ -15,7 +15,7 @@ for domain in 128 256; do
   ./build/pyutils/driver.py -v -l $logfile perftest run -s $domain $domain 80 -o $result || { echo 'Running failed'; rm -rf $tmpdir; exit 1; }
 
   # create directory for reports
-  mkdir reports
+  mkdir -p reports
   # find references for same configuration
   reference=./pyutils/perftest/references/${label}_$env/$domain.json
   if [[ -f $reference ]]; then
