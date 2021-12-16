@@ -18,6 +18,10 @@ for domain in 128 256; do
   mkdir reports
   # find references for same configuration
   reference=./pyutils/perftest/references/${label}_$env/$domain.json
+  if [[ ! -f $reference ]]; then
+    reference=""
+    echo "WARNING: no reference found for config ${label}_$env, domain size $domain" | tee $logfile
+  fi
   # plot comparison of current result with references
   ./build/pyutils/driver.py -v -l $logfile perftest plot compare -i $reference $result -o reports/reference-comparison-$domain || { echo 'Plotting failed'; rm -rf $tmpdir; exit 1; }
   # plot comparison between backends
