@@ -10,8 +10,6 @@
 
 #pragma once
 
-#if __cplusplus >= 201703
-
 #include "list.hpp"
 #include "macros.hpp"
 
@@ -81,5 +79,3 @@ namespace gridtools::meta {
     GT_META_DELEGATE_TO_LAZY(vl_split, class T, T);
     GT_META_DELEGATE_TO_LAZY(vl_merge, class T, T);
 } // namespace gridtools::meta
-
-#endif

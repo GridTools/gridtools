@@ -10,8 +10,9 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "macros.hpp"
-#include "type_traits.hpp"
 
 namespace gridtools {
     namespace meta {
@@ -21,7 +22,7 @@ namespace gridtools {
         template <template <class...> class Pred>
         struct not_ {
             template <class T>
-            using apply = negation<Pred<T>>;
+            using apply = std::negation<Pred<T>>;
         };
     } // namespace meta
 } // namespace gridtools

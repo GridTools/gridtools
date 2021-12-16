@@ -9,13 +9,16 @@ on:
 jobs:
   clang:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:clang-${{ matrix.version }}
+    container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.version }}
     strategy:
         matrix:
-            version: [7, 8, 9]
+            version: [9, 10]
             cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
+    - name: CMake version
+      run: |
+        cmake --version
     - name: CMake configure expect success
       if: contains(matrix.cuda-mode, 'AUTO')
       run: >
@@ -35,15 +38,16 @@ jobs:
 
   clang-cuda:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:clang-${{ matrix.version }}-cuda-10.1
+    container: ghcr.io/gridtools/gridtools-base:clang-${{ matrix.version }}-cuda-11
     strategy:
         matrix:
-            version: [9]
-            # TODO re-enable NVCC-CUDA: nvcc 10.1 doesn't support clang 9
-            # this never worked, but we were actually using gcc as host compiler before
-            cuda-mode: [AUTO, Clang-CUDA] #, NVCC-CUDA]
+            version: [11, 12]
+            cuda-mode: [AUTO, Clang-CUDA, NVCC-CUDA]
     steps:
     - uses: actions/checkout@v2
+    - name: CMake version
+      run: |
+        cmake --version
     - name: CMake configure expect success
       run: >
         mkdir build && cd build
@@ -55,12 +59,15 @@ jobs:
 
   gcc:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:gcc-${{ matrix.version }}
+    container: ghcr.io/gridtools/gridtools-base:gcc-${{ matrix.version }}
     strategy:
         matrix:
-            version: [7, 8, 9]
+            version: [8, 9, 10, 11]
     steps:
     - uses: actions/checkout@v2
+    - name: CMake version
+      run: |
+        cmake --version
     - name: CMake configure expect success
       if: contains(matrix.cuda-mode, 'AUTO')
       run: >
@@ -71,9 +78,12 @@ jobs:
 
   gcc-nvcc:
     runs-on: ubuntu-latest
-    container: mrtravis/gridtools:cuda-11.0
+    container: ghcr.io/gridtools/gridtools-base:gcc-10-cuda-11
     steps:
     - uses: actions/checkout@v2
+    - name: CMake version
+      run: |
+        cmake --version
     - name: CMake configure expect success
       run: >
         mkdir build && cd build

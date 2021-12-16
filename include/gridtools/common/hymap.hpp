@@ -165,7 +165,8 @@ namespace gridtools {
 
         template <class T, class Keys = get_keys<T>>
         struct keys_are_legit_sfinae
-            : bool_constant<meta::is_set<Keys>::value && meta::length<Keys>::value == tuple_util::size<T>::value> {};
+            : std::bool_constant<meta::is_set<Keys>::value && meta::length<Keys>::value == tuple_util::size<T>::value> {
+        };
 
         template <class, class = void>
         struct keys_are_legit : std::false_type {};
@@ -176,7 +177,7 @@ namespace gridtools {
     } // namespace hymap_impl_
 
     template <class T>
-    using is_hymap = bool_constant<is_tuple_like<T>::value && hymap_impl_::keys_are_legit<T>::value>;
+    using is_hymap = std::bool_constant<is_tuple_like<T>::value && hymap_impl_::keys_are_legit<T>::value>;
 
 #ifdef __cpp_concepts
     namespace concepts {

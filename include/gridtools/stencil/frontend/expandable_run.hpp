@@ -148,8 +148,8 @@ namespace gridtools {
             }
 
             template <size_t Factor, class Comp, class Backend, class Grid, class... Fields, size_t... Is>
-            auto run_impl(Comp comp, Backend &&be, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields)
-                -> void_t<decltype(comp(make_arg<Is, Fields>()...))> {
+            auto run_impl(Comp comp, Backend &&be, Grid const &grid, std::index_sequence<Is...>, Fields &&...fields)
+                -> std::void_t<decltype(comp(make_arg<Is, Fields>()...))> {
                 using spec_t = decltype(comp(make_arg<Is, Fields>()...));
                 static_assert(meta::is_instantiation_of<frontend_impl_::spec, spec_t>::value,
                     "Invalid stencil composition specification.");

@@ -51,7 +51,7 @@ namespace gridtools {
                 template <class... Items>
                 struct check_strides_of_the_same_kind : std::true_type {
                     static_assert(meta::are_same<meta::second<Items>...>() ||
-                                      conjunction<std::is_same<meta::first<Items>, unknown_kind>...>(),
+                                      std::conjunction<std::is_same<meta::first<Items>, unknown_kind>...>(),
                         "SIDs with the same strides kinds must have the same strides types");
                 };
 
@@ -100,7 +100,7 @@ namespace gridtools {
                     template <class Args, class Res = tuple_util::element<PrimaryIndex::value, Args>>
                     decltype(auto) operator()(Args const &args) const noexcept {
                         static_assert(
-                            conjunction<
+                            std::conjunction<
                                 std::is_same<tuple_util::element<SecondaryIndices::value, Args>, Res>...>::value,
                             GT_INTERNAL_ERROR);
                         assert((are_secondaries_equal_to_primary<SecondaryIndices...>(
@@ -326,7 +326,7 @@ namespace gridtools {
                     static_assert(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 1
 #else
-                    static_assert(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
+                    static_assert(std::conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 #endif
                     static_assert(meta::all<meta::mp_make<impl_::check_strides_of_the_same_kind,
                                       meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>(),
