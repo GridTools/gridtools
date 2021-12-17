@@ -7,7 +7,7 @@ source $(dirname "$0")/setup.sh
 
 for domain in 128 256; do
   # result directory, create if it does not exist yet
-  resultdir=/project/c14/jenkins/gridtools-performance-history-gt2/${label}_$env/$domain
+  resultdir=$GT_PERFORMANCE_HISTORY_PATH_PREFIX/$env/$domain
   mkdir -p $resultdir
 
   # name result file by date/time

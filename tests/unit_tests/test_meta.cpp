@@ -260,23 +260,6 @@ namespace gridtools {
                           f<void, void, void, int, double, void, void>>::value,
             "");
 
-        // void_t (CWG 1558 https://wg21.cmeerw.net/cwg/issue1558)
-        namespace defect_cwg_1558 {
-            template <class, class = void_t<>>
-            struct has_type_member : std::false_type {};
-
-            // specialization recognizes types that do have a nested ::type member:
-            template <class T>
-            struct has_type_member<T, void_t<typename T::type>> : std::true_type {};
-
-            struct X {
-                using type = void;
-            };
-
-            static_assert(!has_type_member<int>::value, "");
-            static_assert(has_type_member<X>::value, "");
-        } // namespace defect_cwg_1558
-
         // group
         static_assert(std::is_same<group<are_same, g, f<>>, f<>>::value, "");
         static_assert(std::is_same<group<are_same, g, f<int>>, f<g<int>>>::value, "");

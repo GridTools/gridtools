@@ -15,7 +15,6 @@
 #include <type_traits>
 
 #include "../meta/at.hpp"
-#include "../meta/type_traits.hpp"
 #include "defs.hpp"
 #include "host_device.hpp"
 #include "utility.hpp"
@@ -109,7 +108,7 @@ namespace gridtools {
 
             template <class... Args,
                 std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                     conjunction<std::is_assignable<Ts &, Args const &>...>::value,
+                                     std::conjunction<std::is_assignable<Ts &, Args const &>...>::value,
                     int> = 0>
             GT_CONSTEXPR GT_FUNCTION void assign(tuple_impl<std::index_sequence<Is...>, Args...> const &src) noexcept {
                 using loop_t = int[sizeof...(Is)];
@@ -118,7 +117,7 @@ namespace gridtools {
 
             template <class... Args,
                 std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                     conjunction<std::is_assignable<Ts &, Args &&>...>::value,
+                                     std::conjunction<std::is_assignable<Ts &, Args &&>...>::value,
                     int> = 0>
             GT_CONSTEXPR GT_FUNCTION void assign(tuple_impl<std::index_sequence<Is...>, Args...> &&src) noexcept {
                 using loop_t = int[sizeof...(Is)];
@@ -178,19 +177,19 @@ namespace gridtools {
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                 conjunction<std::is_constructible<Ts, Args &&>...>::value,
+                                 std::conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
-        GT_CONSTEXPR GT_FUNCTION tuple(Args &&... args) noexcept : m_impl(wstd::forward<Args>(args)...) {}
+        GT_CONSTEXPR GT_FUNCTION tuple(Args &&...args) noexcept : m_impl(wstd::forward<Args>(args)...) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                 conjunction<std::is_constructible<Ts, Args const &>...>::value,
+                                 std::conjunction<std::is_constructible<Ts, Args const &>...>::value,
                 int> = 0>
         GT_CONSTEXPR GT_FUNCTION tuple(tuple<Args...> const &src) noexcept : m_impl(src.m_impl) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                 conjunction<std::is_constructible<Ts, Args &&>...>::value,
+                                 std::conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
         GT_CONSTEXPR GT_FUNCTION tuple(tuple<Args...> &&src) noexcept : m_impl(wstd::move(src).m_impl) {}
 

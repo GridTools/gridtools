@@ -88,11 +88,7 @@ namespace gridtools {
 
                 template <class T, class... Ts>
                 struct concat_intervals<T, Ts...> {
-#if __cplusplus < 201703
-                    using type = meta::combine<meta::force<concat_folder>::apply, meta::list<T, Ts...>>;
-#else
                     using type = meta::foldl<meta::force<concat_folder>::apply, T, meta::list<Ts...>>;
-#endif
                 };
 
                 template <class...>
@@ -116,11 +112,7 @@ namespace gridtools {
 
                 template <class T, class... Ts>
                 struct enclosing_interval<T, Ts...> {
-#if __cplusplus < 201703
-                    using type = meta::combine<meta::force<enclosing_folder>::apply, meta::list<T, Ts...>>;
-#else
                     using type = meta::foldl<meta::force<enclosing_folder>::apply, T, meta::list<Ts...>>;
-#endif
                 };
             } // namespace interval_impl
             using interval_impl::interval;

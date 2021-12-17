@@ -26,11 +26,7 @@ namespace gridtools {
 #endif
 #endif
 
-#ifdef __NVCC__
-#define GT_CONSTEXPR
-#else
 #define GT_CONSTEXPR constexpr
-#endif
 
 #define GT_INTERNAL_ERROR                                                                                       \
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \

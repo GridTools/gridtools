@@ -272,7 +272,7 @@ namespace gridtools {
                 template <class... Args>
                 auto dimensions(Args const &... values) const {
                     static_assert(!has<param::lengths>::value, "storage dimensions are set twice");
-                    static_assert(conjunction<std::is_convertible<Args const &, uint_t>...>::value,
+                    static_assert(std::conjunction<std::is_convertible<Args const &, uint_t>...>::value,
                         "builder.dimensions(...) arguments should be convertible to unsigned int");
                     check_dimensions_number<sizeof...(Args)>();
                     return add_value<param::lengths>(
@@ -282,7 +282,7 @@ namespace gridtools {
                 template <class... Args>
                 auto halos(Args const &... values) const {
                     static_assert(!has<param::halos>::value, "storage dimensions are set twice");
-                    static_assert(conjunction<std::is_convertible<Args const &, int>...>::value,
+                    static_assert(std::conjunction<std::is_convertible<Args const &, int>...>::value,
                         "builder.halos(...) arguments should be convertible to int");
                     check_dimensions_number<sizeof...(Args)>();
                     return add_value<param::halos>(tuple_util::make<array, int>(values...));

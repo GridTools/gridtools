@@ -38,7 +38,7 @@ namespace gridtools {
             struct has_param_list : std::false_type {};
 
             template <class T>
-            struct has_param_list<T, void_t<typename T::param_list>> : std::true_type {};
+            struct has_param_list<T, std::void_t<typename T::param_list>> : std::true_type {};
 
             template <class, class = void>
             struct is_accessor : std::false_type {};
@@ -116,7 +116,7 @@ namespace gridtools {
                     static_assert(
                         meta::is_set<meta::list<typename Caches::plh_t..., Args...>>::value, "Duplicated caches.");
                     static_assert(
-                        conjunction<core::is_tmp_arg<Args>...>::value, "Only temporary args can be IJ-cached.");
+                        std::conjunction<core::is_tmp_arg<Args>...>::value, "Only temporary args can be IJ-cached.");
                     return {};
                 }
                 template <class... Args>
@@ -125,7 +125,7 @@ namespace gridtools {
                     static_assert(meta::is_set<meta::list<Args...>>::value, "Duplicated arguments.");
                     static_assert(
                         meta::is_set<meta::list<typename Caches::plh_t..., Args...>>::value, "Duplicated caches.");
-                    static_assert(conjunction<core::is_tmp_arg<Args>...>::value,
+                    static_assert(std::conjunction<core::is_tmp_arg<Args>...>::value,
                         "Only temporary args can be K-cached without fill or flush policies.");
                     return {};
                 }
@@ -199,8 +199,8 @@ namespace gridtools {
             };
 
             template <class Comp, class Backend, class Grid, class... Fields, size_t... Is>
-            auto run_impl(Comp comp, Backend &&be, Grid const &grid, std::index_sequence<Is...>, Fields &&... fields)
-                -> void_t<decltype(comp(arg<Is>()...))> {
+            auto run_impl(Comp comp, Backend &&be, Grid const &grid, std::index_sequence<Is...>, Fields &&...fields)
+                -> std::void_t<decltype(comp(arg<Is>()...))> {
                 using spec_t = decltype(comp(arg<Is>()...));
                 static_assert(
                     meta::is_instantiation_of<spec, spec_t>::value, "Invalid stencil composition specification.");
@@ -241,7 +241,7 @@ namespace gridtools {
             template <class Comp, class Backend, class Grid, class... Fields>
             void run(Comp comp, Backend &&be, Grid const &grid, Fields &&... fields) {
                 static_assert(
-                    conjunction<is_sid<Fields>...>::value, "All computation fields must satisfy SID concept.");
+                    std::conjunction<is_sid<Fields>...>::value, "All computation fields must satisfy SID concept.");
                 run_impl(comp,
                     std::forward<Backend>(be),
                     grid,

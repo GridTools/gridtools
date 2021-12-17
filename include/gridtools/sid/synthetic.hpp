@@ -14,7 +14,6 @@
 
 #include "../common/defs.hpp"
 #include "../meta/id.hpp"
-#include "../meta/type_traits.hpp"
 
 namespace gridtools {
     namespace sid {

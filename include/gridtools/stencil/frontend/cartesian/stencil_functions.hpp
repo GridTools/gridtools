@@ -131,7 +131,7 @@ namespace gridtools {
                                              ReturnType> {};
 
                 template <class Accessor>
-                using is_out_param = bool_constant<Accessor::intent_v == intent::inout>;
+                using is_out_param = std::bool_constant<Accessor::intent_v == intent::inout>;
             } // namespace call_interfaces_impl_
 
             /** Main interface for calling stencil operators as functions.
