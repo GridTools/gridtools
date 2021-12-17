@@ -88,7 +88,7 @@ namespace gridtools::fn {
             }
 
             {
-                merged<column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1>,
+                merged_column_stage<column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1>,
                     column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1>>
                     cs;
                 auto res = cs(tuple(0, 1), 5, ptr, strides);

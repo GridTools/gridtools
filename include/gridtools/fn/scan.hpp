@@ -76,7 +76,7 @@ namespace gridtools::fn {
         };
 
         template <class... ColumnStages>
-        struct merged {
+        struct merged_column_stage {
             template <class Seed, class Ptr, class Strides>
             GT_FUNCTION auto operator()(Seed seed, std::size_t size, Ptr ptr, Strides const &strides) const {
                 return tuple_util::host_device::fold(
@@ -90,6 +90,6 @@ namespace gridtools::fn {
     using scan_impl_::bwd;
     using scan_impl_::column_stage;
     using scan_impl_::fwd;
-    using scan_impl_::merged;
+    using scan_impl_::merged_column_stage;
     using scan_impl_::scan_pass;
 } // namespace gridtools::fn
