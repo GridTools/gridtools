@@ -34,12 +34,12 @@
 
 namespace gridtools {
     namespace fn {
-        template <class Dim, ptrdiff_t L, ptrdiff_t U>
+        template <class Dim, std::ptrdiff_t L, std::ptrdiff_t U>
         struct extent {
             static_assert(L <= U);
             using dim_t = Dim;
-            using lower_t = integral_constant<ptrdiff_t, L>;
-            using upper_t = integral_constant<ptrdiff_t, U>;
+            using lower_t = integral_constant<std::ptrdiff_t, L>;
+            using upper_t = integral_constant<std::ptrdiff_t, U>;
             using size_t = integral_constant<std::size_t, U - L>;
             using list_t = meta::list<Dim, lower_t, upper_t>;
         };
@@ -47,7 +47,7 @@ namespace gridtools {
         template <class>
         struct is_extent : std::false_type {};
 
-        template <class Dim, ptrdiff_t L, ptrdiff_t U>
+        template <class Dim, std::ptrdiff_t L, std::ptrdiff_t U>
         struct is_extent<extent<Dim, L, U>> : std::bool_constant<L <= U> {};
 
 #ifdef __cpp_concepts
@@ -60,25 +60,25 @@ namespace gridtools {
             static_assert(meta::all_of<is_extent, meta::list<Ts...>>::value);
             static_assert(meta::is_set<meta::list<typename Ts::dim_t...>>::value);
             using keys_t = hymap::keys<typename Ts::dim_t...>;
-            static_assert(is_int_vector<typename keys_t::template values<typename Ts::lower_t...>>::value);
-            static_assert(is_int_vector<typename keys_t::template values<typename Ts::upper_t...>>::value);
-            static_assert(is_int_vector<typename keys_t::template values<typename Ts::size_t...>>::value);
 
             static GT_CONSTEVAL GT_FUNCTION auto offsets() {
                 return int_vector::prune_zeros(typename keys_t::template values<typename Ts::lower_t...>());
             }
+            using offsets_t = decltype(offsets());
+
             static GT_CONSTEVAL GT_FUNCTION auto sizes() {
                 return int_vector::prune_zeros(typename keys_t::template values<typename Ts::size_t...>());
             }
+            using sizes_t = decltype(sizes());
         };
 
-        template <class>
+        template <class, class = void>
         struct is_extents : std::false_type {};
 
         template <class... Ts>
-        struct is_extents<extents<Ts...>> : std::bool_constant<meta::all_of<is_extent, meta::list<Ts...>>::value &&
-                                                               meta::is_set<meta::list<typename Ts::dim_t...>>::value> {
-        };
+        struct is_extents<extents<Ts...>,
+            std::enable_if_t<meta::all_of<is_extent, meta::list<Ts...>>::value &&
+                             meta::is_set<meta::list<typename Ts::dim_t...>>::value>> : std::true_type {};
 
 #ifdef __cpp_concepts
         template <class T>
@@ -105,7 +105,7 @@ namespace gridtools {
             template <class...>
             struct merge_extents;
 
-            template <class Dim, ptrdiff_t... L, ptrdiff_t... U>
+            template <class Dim, std::ptrdiff_t... L, std::ptrdiff_t... U>
             struct merge_extents<meta::list<Dim, extent<Dim, L, U>>...> {
                 using type = meta::list<Dim, extent<Dim, std::min({L...}), std::max({U...})>>;
             };

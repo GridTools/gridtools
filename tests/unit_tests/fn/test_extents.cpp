@@ -26,10 +26,13 @@ namespace gridtools::fn {
 
         static_assert(is_extent<extent<a, 0, 0>>::value);
         static_assert(is_extent<extent<a, -1, 1>>::value);
+        static_assert(!is_extent<a>::value);
+        static_assert(!is_extent<extent<a, 1, 0>>::value);
 
-        namespace {
-            using testee = extents<extent<a, 0, 0>, extent<b, 0, 0>>;
-        }
+        static_assert(is_extents<extents<extent<a, 0, 0>, extent<b, 0, 0>>>::value);
+        static_assert(!is_extents<extents<extent<a, 0, 0>, extent<a, 0, 0>>>::value);
+        static_assert(!is_extents<extents<void>>::value);
+        static_assert(!is_extents<a>::value);
 
         namespace extents_offsets {
             using testee = decltype(extents<extent<a, -1, 0>, extent<b, 0, 2>>::offsets());
@@ -71,10 +74,10 @@ namespace gridtools::fn {
         namespace extends_make_extends {
             using testee = make_extents<extent<a, -1, 1>, extent<b, -1, 1>, extent<a, -2, 0>, extent<b, 0, 3>>;
 
-            static_assert(element_at<a, decltype(testee::offsets())>::value == -2);
-            static_assert(element_at<a, decltype(testee::sizes())>::value == 3);
-            static_assert(element_at<b, decltype(testee::offsets())>::value == -1);
-            static_assert(element_at<b, decltype(testee::sizes())>::value == 4);
+            static_assert(element_at<a, testee::offsets_t>::value == -2);
+            static_assert(element_at<a, testee::sizes_t>::value == 3);
+            static_assert(element_at<b, testee::offsets_t>::value == -1);
+            static_assert(element_at<b, testee::sizes_t>::value == 4);
         } // namespace extends_make_extends
 
         namespace extents_enclosing_extents {
@@ -82,10 +85,10 @@ namespace gridtools::fn {
             using bar = extents<extent<a, -2, 0>, extent<b, 0, 3>>;
             using testee = enclosing_extents<foo, bar>;
 
-            static_assert(element_at<a, decltype(testee::offsets())>::value == -2);
-            static_assert(element_at<a, decltype(testee::sizes())>::value == 3);
-            static_assert(element_at<b, decltype(testee::offsets())>::value == -1);
-            static_assert(element_at<b, decltype(testee::sizes())>::value == 4);
+            static_assert(element_at<a, testee::offsets_t>::value == -2);
+            static_assert(element_at<a, testee::sizes_t>::value == 3);
+            static_assert(element_at<b, testee::offsets_t>::value == -1);
+            static_assert(element_at<b, testee::sizes_t>::value == 4);
         } // namespace extents_enclosing_extents
 
     } // namespace
