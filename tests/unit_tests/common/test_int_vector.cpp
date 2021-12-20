@@ -97,7 +97,7 @@ namespace gridtools {
             auto testee = int_vector::multiply(vec, 2_c);
 
             using testee_t = decltype(testee);
-            static_assert(std::is_same_v<integral_constant<int, 2>, element_at<a, testee_t>>);
+            static_assert(element_at<a, testee_t>::value == 2);
             EXPECT_EQ(4, at_key<b>(testee));
         }
 
@@ -109,7 +109,7 @@ namespace gridtools {
             EXPECT_EQ(1, at_key<a>(testee));
             using testee_t = decltype(testee);
             static_assert(!has_key<testee_t, b>());
-            static_assert(std::is_same_v<integral_constant<int, 2>, element_at<c, testee_t>>);
+            static_assert(element_at<c, testee_t>::value == 2);
         }
 
         TEST(unary_ops, smoke) {
@@ -121,14 +121,14 @@ namespace gridtools {
 
             EXPECT_EQ(-1, at_key<a>(testee));
             using testee_t = decltype(testee);
-            static_assert(std::is_same_v<integral_constant<int, 0>, element_at<b, testee_t>>);
-            static_assert(std::is_same_v<integral_constant<int, -2>, element_at<c, testee_t>>);
+            static_assert(element_at<b, testee_t>::value == 0);
+            static_assert(element_at<c, testee_t>::value == -2);
 
             auto testee2 = +vec;
             EXPECT_EQ(1, at_key<a>(testee2));
             using testee2_t = decltype(testee2);
-            static_assert(std::is_same_v<integral_constant<int, 0>, element_at<b, testee2_t>>);
-            static_assert(std::is_same_v<integral_constant<int, 2>, element_at<c, testee2_t>>);
+            static_assert(element_at<b, testee2_t>::value == 0);
+            static_assert(element_at<c, testee2_t>::value == 2);
         }
 
         TEST(minus_op, smoke) {
@@ -141,9 +141,8 @@ namespace gridtools {
 
             EXPECT_EQ(0, at_key<a>(testee));
             using testee_t = decltype(testee);
-            static_assert(std::is_same_v<integral_constant<int, 1>, element_at<b, testee_t>>);
+            static_assert(element_at<b, testee_t>::value == 1);
             EXPECT_EQ(-3, at_key<c>(testee));
         }
-
     } // namespace
 } // namespace gridtools
