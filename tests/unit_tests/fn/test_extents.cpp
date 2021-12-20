@@ -14,8 +14,8 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/hymap.hpp>
 #include <gridtools/common/integral_constant.hpp>
-#include <gridtools/common/tuple_util.hpp>
 
 namespace gridtools::fn {
     namespace {
@@ -51,7 +51,7 @@ namespace gridtools::fn {
 
         TEST(extents, extend_offsets) {
             using ext = extents<extent<a, -1, 0>, extent<b, 0, 2>, extent<c, 1, 1>>;
-            auto offsets = tuple_util::make<hymap::keys<a, b, c>::values>(0, 1, 2);
+            auto offsets = hymap::keys<a, b, c>::make_values(0, 1, 2);
 
             auto testee = extend_offsets<ext>(offsets);
 
@@ -62,7 +62,7 @@ namespace gridtools::fn {
 
         TEST(extents, extend_sizes) {
             using ext = extents<extent<a, -1, 0>, extent<b, 0, 2>, extent<c, 1, 1>>;
-            auto sizes = tuple_util::make<hymap::keys<a, b, c>::values>(4, 5, 6);
+            auto sizes = hymap::keys<a, b, c>::make_values(4, 5, 6);
 
             auto testee = extend_sizes<ext>(sizes);
 

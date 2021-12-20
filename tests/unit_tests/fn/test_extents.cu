@@ -33,7 +33,7 @@ namespace gridtools::fn {
 
         TEST(extend_offsets, device) {
             using ext = extents<extent<a, -1, 0>, extent<b, 0, 2>, extent<c, 1, 1>>;
-            auto offsets = tuple_util::make<hymap::keys<a, b, c>::values>(0, 1, 2);
+            auto offsets = hymap::keys<a, b, c>::make_values(0, 1, 2);
 
             auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&extend_offsets_device<ext>), offsets);
 
@@ -50,7 +50,7 @@ namespace gridtools::fn {
 
         TEST(extend_sizes, device) {
             using ext = extents<extent<a, -1, 0>, extent<b, 0, 2>, extent<c, 1, 1>>;
-            auto sizes = tuple_util::make<hymap::keys<a, b, c>::values>(4, 5, 6);
+            auto sizes = hymap::keys<a, b, c>::make_values(4, 5, 6);
 
             auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&extend_sizes_device<ext>), sizes);
 
