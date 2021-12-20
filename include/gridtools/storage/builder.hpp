@@ -285,7 +285,7 @@ namespace gridtools {
                     static_assert(std::conjunction<std::is_convertible<Args const &, int>...>::value,
                         "builder.halos(...) arguments should be convertible to int");
                     check_dimensions_number<sizeof...(Args)>();
-                    return add_value<param::halos>(array{static_cast<int>(values)...});
+                    return add_value<param::halos>(array<int, sizeof...(Args)>{static_cast<int>(values)...});
                 }
 
                 template <class Fun>

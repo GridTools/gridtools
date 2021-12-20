@@ -228,7 +228,7 @@ namespace gridtools {
             template <typename FirstJob>
             static auto collect_stores(
                 FirstJob const &first_job, std::enable_if_t<not is_bound_bc<FirstJob>::value, void *> = nullptr) {
-                return std::tuple(first_job);
+                return std::make_tuple(first_job);
             }
 
             template <typename Stores, uint_t... Ids>

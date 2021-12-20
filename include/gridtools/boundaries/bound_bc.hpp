@@ -82,20 +82,19 @@ namespace gridtools {
             */
             template <typename ROTuple, typename AllTuple, std::size_t... IDs>
             auto substitute_placeholders(ROTuple const &ro_tuple, AllTuple const &all, std::index_sequence<IDs...>) {
-                return std::tuple(select_element<IDs>(ro_tuple,
+                return std::make_tuple(select_element<IDs>(ro_tuple,
                     all,
                     typename PlcOrNot<std::is_placeholder<std::tuple_element_t<IDs, AllTuple>>::value>::type{})...);
             }
 
-            template <typename... Elems>
-            std::tuple<> rest_tuple(std::tuple<Elems...> const&, std::index_sequence<>) { return {}; }
+            inline std::tuple<> rest_tuple(std::tuple<>, std::index_sequence<>) { return {}; }
 
             /** \internal
-                Small facility to obtain a tuple with the elements of an input  tuple execpt the first.
+                Small facility to obtain a tuple with the elements of am input  tuple execpt the first.
             */
             template <typename... Elems, std::size_t... IDs>
             auto rest_tuple(std::tuple<Elems...> const &x, std::index_sequence<IDs...>) {
-                return std::tuple(std::get<IDs + 1u>(x)...);
+                return std::make_tuple(std::get<IDs + 1u>(x)...);
             }
 
             /**
@@ -230,7 +229,7 @@ namespace gridtools {
              */
             template <typename... ReadOnly>
             auto associate(ReadOnly &&... ro_stores) const -> bound_bc<BCApply,
-                decltype(_impl::substitute_placeholders(std::tuple(ro_stores...),
+                decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
                     m_stores,
                     std::make_index_sequence<std::tuple_size<decltype(m_stores)>::value>{})),
                 typename _impl::comm_indices<stores_type>::type> {
