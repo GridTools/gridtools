@@ -28,6 +28,12 @@ namespace gridtools {
 
 #define GT_CONSTEXPR constexpr
 
+#ifdef __cpp_consteval
+#define GT_CONSTEVAL consteval
+#else
+#define GT_CONSTEVAL constexpr
+#endif
+
 #define GT_INTERNAL_ERROR                                                                                       \
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
     "GridTools Development Team."
