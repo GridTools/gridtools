@@ -35,8 +35,8 @@ namespace gridtools {
 
             auto src = sid::synthetic()
                            .set<property::origin>(sid::make_simple_ptr_holder(&data[0][0][0]))
-                           .set<property::strides>(hymap::keys<a, b, c>::values(5_c * 7_c, 7_c, 1_c))
-                           .set<property::upper_bounds>(hymap::keys<a, b>::values(3, 5));
+                           .set<property::strides>(hymap::keys<a, b, c>::make_values(5_c * 7_c, 7_c, 1_c))
+                           .set<property::upper_bounds>(hymap::keys<a, b>::make_values(3, 5));
 
             auto testee = sid::rename_dimensions<b, d>(src);
             using testee_t = decltype(testee);
@@ -78,11 +78,11 @@ namespace gridtools {
             double data[3][5][7];
             auto src = sid::synthetic()
                            .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0][0]))
-                           .set<property::strides>(hymap::keys<a, b, c>::values(5_c * 7_c, 7_c, 1_c))
-                           .set<property::upper_bounds>(hymap::keys<a, b>::values(3, 5));
+                           .set<property::strides>(hymap::keys<a, b, c>::make_values(5_c * 7_c, 7_c, 1_c))
+                           .set<property::upper_bounds>(hymap::keys<a, b>::make_values(3, 5));
             auto testee = sid::rename_dimensions<a, c, b, d>(src);
             static_assert(sid::is_sid<decltype(testee)>::value, "");
-            auto composite = tu::make<sid::composite::keys<void>::values>(testee);
+            auto composite = sid::composite::keys<void>::make_values(testee);
             static_assert(sid::is_sid<decltype(composite)>::value, "");
             sid::get_origin(composite);
         }

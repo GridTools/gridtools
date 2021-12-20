@@ -89,7 +89,7 @@ namespace gridtools {
                 }
 
                 auto origin() const {
-                    return hymap::keys<dim::i, dim::j, dim::k>::values(m_i_start, m_j_start, offset());
+                    return hymap::keys<dim::i, dim::j, dim::k>::make_values(m_i_start, m_j_start, offset());
                 }
 
                 template <class Extent = extent<>>
@@ -122,7 +122,9 @@ namespace gridtools {
                     return extent.extend(dim::k(), 1_c + splitter_size(x) + offset(To()) - offset(From()));
                 }
 
-                auto size() const { return hymap::keys<dim::i, dim::j, dim::k>::values(i_size(), j_size(), k_size()); }
+                auto size() const {
+                    return hymap::keys<dim::i, dim::j, dim::k>::make_values(i_size(), j_size(), k_size());
+                }
             };
 
             template <class T>

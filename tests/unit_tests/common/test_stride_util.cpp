@@ -51,7 +51,7 @@ namespace gridtools {
             struct c;
 
             TEST(make_strides_from_sizes, hymap) {
-                auto testee = make_strides_from_sizes(hymap::keys<a, b, c>::values(20, 30, 40));
+                auto testee = make_strides_from_sizes(hymap::keys<a, b, c>::make_values(20, 30, 40));
                 static_assert(
                     std::is_same<decltype(testee), hymap::keys<a, b, c>::values<integral_constant<int, 1>, int, int>>{},
                     "");

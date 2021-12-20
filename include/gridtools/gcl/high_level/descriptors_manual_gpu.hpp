@@ -345,32 +345,32 @@ namespace gridtools {
                 auto ints = std::make_integer_sequence<unsigned int, sizeof...(Pointers)>{};
                 if (send_size[translate()(0, 0, -1)]) {
                     m_packZL_variadic(
-                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::tuple(fields...), ints);
                 }
 
                 if (send_size[translate()(0, 0, 1)]) {
                     m_packZU_variadic(
-                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::tuple(fields...), ints);
                 }
 
                 if (send_size[translate()(0, -1, 0)]) {
                     m_packYL_variadic(
-                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::tuple(fields...), ints);
                 }
 
                 if (send_size[translate()(0, 1, 0)]) {
                     m_packYU_variadic(
-                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::tuple(fields...), ints);
                 }
 
                 if (send_size[translate()(-1, 0, 0)]) {
                     m_packXL_variadic(
-                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::tuple(fields...), ints);
                 }
 
                 if (send_size[translate()(1, 0, 0)]) {
                     m_packXU_variadic(
-                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+                        d_send_buffer, d_send_size, dangeroushalo, halo_d, std::tuple(fields...), ints);
                 }
 
                 for (int ii = -1; ii <= 1; ++ii)
@@ -406,27 +406,27 @@ namespace gridtools {
                 typedef translate_t<3> translate;
                 if (recv_size[translate()(0, 0, -1)]) {
                     m_unpackZL_variadic(
-                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::tuple(fields...), ints);
                 }
                 if (recv_size[translate()(0, 0, 1)]) {
                     m_unpackZU_variadic(
-                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::tuple(fields...), ints);
                 }
                 if (recv_size[translate()(0, -1, 0)]) {
                     m_unpackYL_variadic(
-                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::tuple(fields...), ints);
                 }
                 if (recv_size[translate()(0, 1, 0)]) {
                     m_unpackYU_variadic(
-                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::tuple(fields...), ints);
                 }
                 if (recv_size[translate()(-1, 0, 0)]) {
                     m_unpackXL_variadic(
-                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::tuple(fields...), ints);
                 }
                 if (recv_size[translate()(1, 0, 0)]) {
                     m_unpackXU_variadic(
-                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+                        d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::tuple(fields...), ints);
                 }
             }
 

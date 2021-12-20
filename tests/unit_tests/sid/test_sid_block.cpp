@@ -35,7 +35,7 @@ namespace gridtools {
             constexpr int block_size_i = 3;
             const int block_size_j = 7;
 
-            auto blocks = hymap::keys<dim::i, dim::j, some_dim>::values(
+            auto blocks = hymap::keys<dim::i, dim::j, some_dim>::make_values(
                 integral_constant<int_t, block_size_i>{}, block_size_j, 5);
 
             positional_t s;
@@ -73,9 +73,10 @@ namespace gridtools {
             const int domain_size = 20;
             const int block_size_1 = 5;
             const int block_size_2 = 2;
-            auto blocked_s = sid::block(s, hymap::keys<dim::i>::values(block_size_1));
+            auto blocked_s = sid::block(s, hymap::keys<dim::i>::make_values(block_size_1));
             static_assert(is_sid<decltype(blocked_s)>(), "");
-            auto blocked_blocked_s = sid::block(blocked_s, hymap::keys<sid::blocked_dim<dim::i>>::values(block_size_2));
+            auto blocked_blocked_s =
+                sid::block(blocked_s, hymap::keys<sid::blocked_dim<dim::i>>::make_values(block_size_2));
             static_assert(is_sid<decltype(blocked_blocked_s)>(), "");
 
             auto ptr = sid::get_origin(blocked_blocked_s)();
@@ -99,7 +100,7 @@ namespace gridtools {
         TEST(sid_block, do_nothing) {
             positional_t s;
 
-            auto same_s = sid::block(s, hymap::keys<some_dim>::values(42));
+            auto same_s = sid::block(s, hymap::keys<some_dim>::make_values(42));
             static_assert(std::is_same<decltype(s), decltype(same_s)>(), "");
         }
 
@@ -108,7 +109,7 @@ namespace gridtools {
 
             const int domain_size = 20;
             const int block_size = 5;
-            auto blocked_s = sid::block(std::ref(s), hymap::keys<dim::i>::values(block_size));
+            auto blocked_s = sid::block(std::ref(s), hymap::keys<dim::i>::make_values(block_size));
             static_assert(is_sid<decltype(blocked_s)>(), "");
 
             auto ptr = sid::get_origin(blocked_s)();
@@ -130,8 +131,8 @@ namespace gridtools {
 
             using dims_t = hymap::keys<dim::i, dim::j, dim::k, some_dim>;
 
-            auto strides = dims_t::values(1, 2, 4_c, 8_c);
-            auto blocks = dims_t::values(2, 2_c, 2, 2_c);
+            auto strides = dims_t::make_values(1, 2, 4_c, 8_c);
+            auto blocks = dims_t::make_values(2, 2_c, 2, 2_c);
 
             auto s = sid::synthetic()
                          .set<sid::property::origin>(sid::simple_ptr_holder<int *>{nullptr})

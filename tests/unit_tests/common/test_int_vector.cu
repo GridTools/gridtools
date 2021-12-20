@@ -16,12 +16,12 @@
 
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/common/integral_constant.hpp>
-#include <gridtools/common/tuple_util.hpp>
 
 #include <cuda_test_helper.hpp>
 
 namespace gridtools {
     namespace {
+        using namespace literals;
         struct a;
         struct b;
         struct c;
@@ -33,8 +33,8 @@ namespace gridtools {
         }
 
         TEST(plus, device) {
-            auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2l);
-            auto m2 = tuple_util::make<hymap::keys<b, c>::values>(10, 20u);
+            auto m1 = hymap::keys<a, b>::make_values(1, 2l);
+            auto m2 = hymap::keys<b, c>::make_values(10, 20u);
 
             auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&plus_device), m1, m2);
 
@@ -53,7 +53,7 @@ namespace gridtools {
         }
 
         TEST(multiply, device) {
-            auto vec = tuple_util::make<hymap::keys<a, b>::values>(integral_constant<int, 1>{}, 2);
+            auto vec = hymap::keys<a, b>::make_values(1_c, 2);
 
             auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&multiply_device), vec, 2);
 
@@ -67,13 +67,12 @@ namespace gridtools {
         }
 
         TEST(prune_zeros, device) {
-            auto vec = tuple_util::make<hymap::keys<a, b, c>::values>(
-                1, integral_constant<int, 0>{}, integral_constant<int, 2>{});
+            auto vec = hymap::keys<a, b, c>::make_values(1, 0_c, 2_c);
 
             auto testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&normalize_device), vec);
 
             EXPECT_EQ(1, at_key<a>(testee));
-            EXPECT_FALSE((has_key<decltype(testee), b>{}));
+            static_assert(!has_key<decltype(testee), b>());
             static_assert(std::is_same<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee))>>::value);
         }
 

@@ -22,8 +22,8 @@ namespace gt = gridtools;
 namespace bd = gt::boundaries;
 
 TEST(DistributedBoundaries, SelectElement) {
-    auto all = std::make_tuple(1, _1, 3, _2);
-    auto sub = std::make_tuple(2, 4);
+    auto all = std::tuple(1, _1, 3, _2);
+    auto sub = std::tuple(2, 4);
 
     EXPECT_EQ(bd::_impl::select_element<0>(sub, all, bd::_impl::NotPlc{}), 1);
     EXPECT_EQ(bd::_impl::select_element<1>(sub, all, bd::_impl::Plc{}), 2);
@@ -43,15 +43,15 @@ namespace collect_indices {
 } // namespace collect_indices
 
 TEST(DistributedBoundaries, RestTuple) {
-    EXPECT_EQ(bd::_impl::rest_tuple(std::make_tuple(), std::make_index_sequence<0>{}), std::make_tuple());
-    EXPECT_EQ(bd::_impl::rest_tuple(std::make_tuple(1), std::make_index_sequence<0>{}), std::make_tuple());
-    EXPECT_EQ(bd::_impl::rest_tuple(std::make_tuple(1, 2), std::make_index_sequence<1>{}), std::make_tuple(2));
+    EXPECT_EQ(bd::_impl::rest_tuple(std::tuple<>(), std::make_index_sequence<0>{}), std::tuple<>());
+    EXPECT_EQ(bd::_impl::rest_tuple(std::tuple(1), std::make_index_sequence<0>{}), std::tuple<>());
+    EXPECT_EQ(bd::_impl::rest_tuple(std::tuple(1, 2), std::make_index_sequence<1>{}), std::tuple(2));
 }
 
-static_assert(!bd::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, 5))>::value, "");
-static_assert(!bd::_impl::contains_placeholders<decltype(std::make_tuple())>::value, "");
-static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, 4, _1))>::value, "");
-static_assert(bd::_impl::contains_placeholders<decltype(std::make_tuple(3, _2, 5))>::value, "");
+static_assert(!bd::_impl::contains_placeholders<decltype(std::tuple(3, 4, 5))>::value, "");
+static_assert(!bd::_impl::contains_placeholders<decltype(std::tuple<>())>::value, "");
+static_assert(bd::_impl::contains_placeholders<decltype(std::tuple(3, 4, _1))>::value, "");
+static_assert(bd::_impl::contains_placeholders<decltype(std::tuple(3, _2, 5))>::value, "");
 
 TEST(DistributedBoundaries, BoundBC) {
     const auto builder = gt::storage::builder<gt::storage::cpu_kfirst>.type<double>().dimensions(3, 3, 3);
@@ -63,7 +63,7 @@ TEST(DistributedBoundaries, BoundBC) {
     using ds = decltype(a);
 
     bd::bound_bc<bd::zero_boundary, std::tuple<ds, ds, ds>, std::index_sequence<1>> bbc{
-        bd::zero_boundary{}, std::make_tuple(a, b, c)};
+        bd::zero_boundary{}, std::tuple(a, b, c)};
 
     auto x = bbc.stores();
 

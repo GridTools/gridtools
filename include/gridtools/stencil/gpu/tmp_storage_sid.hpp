@@ -40,7 +40,7 @@ namespace gridtools {
                     int_t k_size) {
                     return hymap::
                         keys<dim::i, dim::j, dim::c, sid::blocked_dim<dim::i>, sid::blocked_dim<dim::j>, dim::k>::
-                            values(Extent::extend(dim::i(), i_block_size),
+                            make_values(Extent::extend(dim::i(), i_block_size),
                                 Extent::extend(dim::j(), j_block_size),
                                 num_colors,
                                 n_blocks_i,

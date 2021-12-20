@@ -39,10 +39,10 @@ namespace gridtools {
                     auto extent = info.extent();
                     auto interval = stages_t::interval();
                     auto num_colors = info.num_colors();
-                    auto offsets = hymap::keys<dim::i, dim::j, dim::k>::values(-extent.minus(dim::i()),
+                    auto offsets = hymap::keys<dim::i, dim::j, dim::k>::make_values(-extent.minus(dim::i()),
                         -extent.minus(dim::j()),
                         -grid.k_start(interval) - extent.minus(dim::k()));
-                    auto sizes = hymap::keys<dim::c, dim::k, dim::j, dim::i>::values(
+                    auto sizes = hymap::keys<dim::c, dim::k, dim::j, dim::i>::make_values(
                         num_colors, grid.k_size(interval, extent), grid.j_size(extent), grid.i_size(extent));
                     using stride_kind = meta::list<decltype(extent), decltype(num_colors)>;
                     return sid::shift_sid_origin(

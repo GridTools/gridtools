@@ -99,6 +99,7 @@
 
 #include "../meta.hpp"
 #include "defs.hpp"
+#include "enable_maker.hpp"
 #include "host_device.hpp"
 #include "integral_constant.hpp"
 #include "tuple.hpp"
@@ -195,14 +196,16 @@ namespace gridtools {
 
     namespace hymap {
         template <class...>
-        struct keys {
+        struct keys : private enable_maker {
             template <class...>
             struct values;
 
 #if defined(__clang__) && __clang_major__ <= 13
             template <class... Vs>
-            values(Vs const&...) -> values<Vs...>;
-#endif            
+            values(Vs const &...) -> values<Vs...>;
+#endif
+
+            static constexpr maker<values> make_values = {};
         };
 
         template <class... Keys>
@@ -217,8 +220,8 @@ namespace gridtools {
 
             constexpr GT_FUNCTION values(Vals const &...args) noexcept : m_vals(args...) {}
 
-            constexpr GT_FUNCTION values(tuple<Vals...>&& args) noexcept : m_vals(wstd::move(args)) {}
-            constexpr GT_FUNCTION values(tuple<Vals...> const & args) noexcept : m_vals(args) {}
+            constexpr GT_FUNCTION values(tuple<Vals...> &&args) noexcept : m_vals(wstd::move(args)) {}
+            constexpr GT_FUNCTION values(tuple<Vals...> const &args) noexcept : m_vals(args) {}
 
             values() = default;
             values(values const &) = default;

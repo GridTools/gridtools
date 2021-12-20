@@ -25,12 +25,12 @@ namespace gridtools {
             namespace ij_cache_impl_ {
                 template <class Extent>
                 auto origin_offset(Extent) {
-                    return hymap::keys<dim::i, dim::j>::values(-Extent::minus(dim::i()), -Extent::minus(dim::j()));
+                    return hymap::keys<dim::i, dim::j>::make_values(-Extent::minus(dim::i()), -Extent::minus(dim::j()));
                 }
 
                 template <class NumColors, class IBlockSize, class JBlockSize, class Extent>
                 auto sizes(NumColors num_colors, IBlockSize i_block_size, JBlockSize j_block_size, Extent) {
-                    return hymap::keys<dim::c, dim::i, dim::j>::values(
+                    return hymap::keys<dim::c, dim::i, dim::j>::make_values(
                         num_colors, Extent::extend(dim::i(), i_block_size), Extent::extend(dim::j(), j_block_size));
                 }
 

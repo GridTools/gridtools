@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "gridtools/meta/debug.hpp"
 #include <gridtools/common/int_vector.hpp>
 
 #include <tuple>
@@ -20,25 +19,26 @@
 #include <gridtools/common/hymap.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
-#include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
 
 namespace gridtools {
     namespace {
+        using namespace literals;
         struct a;
         struct b;
         struct c;
 
         TEST(plus, integrals) {
-            auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, 2l);
-            auto m2 = tuple_util::make<hymap::keys<b, c>::values>(10, 20u);
-            auto m3 = tuple_util::make<hymap::keys<b>::values>(100);
+            auto m1 = hymap::keys<a, b>::make_values(1, 2l);
+            auto m2 = hymap::keys<b, c>::make_values(10, 20u);
+            auto m3 = hymap::keys<b>::make_values(100);
 
             auto testee = int_vector::plus(m1, m2, m3);
 
-            static_assert(std::is_same<int, std::decay_t<decltype(at_key<a>(testee))>>::value);
-            static_assert(std::is_same<long int, std::decay_t<decltype(at_key<b>(testee))>>::value);
-            static_assert(std::is_same<unsigned int, std::decay_t<decltype(at_key<c>(testee))>>::value);
+            using testee_t = decltype(testee);
+            static_assert(std::is_same_v<int, element_at<a, testee_t>>);
+            static_assert(std::is_same_v<long int, element_at<b, testee_t>>);
+            static_assert(std::is_same_v<unsigned int, element_at<c, testee_t>>);
 
             EXPECT_EQ(1, at_key<a>(testee));
             EXPECT_EQ(112, at_key<b>(testee));
@@ -52,13 +52,14 @@ namespace gridtools {
         }
 
         TEST(plus, integral_constants) {
-            auto m1 = hymap::keys<a, b>::values<integral_constant<int, 1>, integral_constant<int, 2>>{};
-            auto m2 = tuple_util::make<hymap::keys<a, b>::values>(integral_constant<int, 11>{}, 12);
+            auto m1 = hymap::keys<a, b>::make_values(1_c, 2_c);
+            auto m2 = hymap::keys<a, b>::make_values(11_c, 12);
 
             auto testee = int_vector::plus(m1, m2);
 
-            static_assert(std::is_same<integral_constant<int, 12>, std::decay_t<decltype(at_key<a>(testee))>>::value);
-            static_assert(std::is_same<int, std::decay_t<decltype(at_key<b>(testee))>>::value);
+            using testee_t = decltype(testee);
+            static_assert(std::is_same_v<integral_constant<int, 12>, element_at<a, testee_t>>);
+            static_assert(std::is_same_v<int, element_at<b, testee_t>>);
 
             EXPECT_EQ(14, at_key<b>(testee));
         }
@@ -73,7 +74,7 @@ namespace gridtools {
         }
 
         TEST(multiply, integrals) {
-            auto vec = tuple_util::make<hymap::keys<a, b>::values>(integral_constant<int, 1>{}, 2);
+            auto vec = hymap::keys<a, b>::make_values(1_c, 2);
 
             auto testee = int_vector::multiply(vec, 2);
 
@@ -91,53 +92,56 @@ namespace gridtools {
         }
 
         TEST(multiply, integral_constants) {
-            auto vec = tuple_util::make<hymap::keys<a, b>::values>(integral_constant<int, 1>{}, 2);
+            auto vec = hymap::keys<a, b>::make_values(1_c, 2);
 
-            auto testee = int_vector::multiply(vec, integral_constant<int, 2>{});
+            auto testee = int_vector::multiply(vec, 2_c);
 
-            static_assert(std::is_same<integral_constant<int, 2>, std::decay_t<decltype(at_key<a>(testee))>>::value);
+            using testee_t = decltype(testee);
+            static_assert(std::is_same_v<integral_constant<int, 2>, element_at<a, testee_t>>);
             EXPECT_EQ(4, at_key<b>(testee));
         }
 
         TEST(prune_zeros, smoke) {
-            auto vec = tuple_util::make<hymap::keys<a, b, c>::values>(
-                1, integral_constant<int, 0>{}, integral_constant<int, 2>{});
+            auto vec = hymap::keys<a, b, c>::make_values(1, 0_c, 2_c);
 
             auto testee = int_vector::prune_zeros(vec);
 
             EXPECT_EQ(1, at_key<a>(testee));
-            EXPECT_FALSE((has_key<decltype(testee), b>{}));
-            static_assert(std::is_same<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee))>>::value);
+            using testee_t = decltype(testee);
+            static_assert(!has_key<testee_t, b>());
+            static_assert(std::is_same_v<integral_constant<int, 2>, element_at<c, testee_t>>);
         }
 
         TEST(unary_ops, smoke) {
             using namespace int_vector::arithmetic;
 
-            auto vec = tuple_util::make<hymap::keys<a, b, c>::values>(
-                1, integral_constant<int, 0>{}, integral_constant<int, 2>{});
+            auto vec = hymap::keys<a, b, c>::make_values(1, 0_c, 2_c);
 
             auto testee = -vec;
 
             EXPECT_EQ(-1, at_key<a>(testee));
-            static_assert(std::is_same<integral_constant<int, 0>, std::decay_t<decltype(at_key<b>(testee))>>::value);
-            static_assert(std::is_same<integral_constant<int, -2>, std::decay_t<decltype(at_key<c>(testee))>>::value);
+            using testee_t = decltype(testee);
+            static_assert(std::is_same_v<integral_constant<int, 0>, element_at<b, testee_t>>);
+            static_assert(std::is_same_v<integral_constant<int, -2>, element_at<c, testee_t>>);
 
             auto testee2 = +vec;
             EXPECT_EQ(1, at_key<a>(testee2));
-            static_assert(std::is_same<integral_constant<int, 0>, std::decay_t<decltype(at_key<b>(testee2))>>::value);
-            static_assert(std::is_same<integral_constant<int, 2>, std::decay_t<decltype(at_key<c>(testee2))>>::value);
+            using testee2_t = decltype(testee2);
+            static_assert(std::is_same_v<integral_constant<int, 0>, element_at<b, testee2_t>>);
+            static_assert(std::is_same_v<integral_constant<int, 2>, element_at<c, testee2_t>>);
         }
 
         TEST(minus_op, smoke) {
             using namespace int_vector::arithmetic;
 
-            auto m1 = tuple_util::make<hymap::keys<a, b>::values>(1, integral_constant<int, 2>{});
-            auto m2 = tuple_util::make<hymap::keys<a, b, c>::values>(1, integral_constant<int, 1>{}, 3);
+            auto m1 = hymap::keys<a, b>::make_values(1, 2_c);
+            auto m2 = hymap::keys<a, b, c>::make_values(1, 1_c, 3);
 
             auto testee = m1 - m2;
 
             EXPECT_EQ(0, at_key<a>(testee));
-            static_assert(std::is_same<integral_constant<int, 1>, std::decay_t<decltype(at_key<b>(testee))>>::value);
+            using testee_t = decltype(testee);
+            static_assert(std::is_same_v<integral_constant<int, 1>, element_at<b, testee_t>>);
             EXPECT_EQ(-3, at_key<c>(testee));
         }
 

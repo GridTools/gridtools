@@ -24,6 +24,7 @@ function(gridtools_add_unit_test tgt)
     if(NOT ARGS_NO_NVCC AND TARGET _gridtools_nvcc AND NOT nvcc_compilation_checked)
         _gt_convert_to_cuda_source(sources ${ARGS_SOURCES})
         add_library(${tgt}_nvcc OBJECT ${sources})
+        target_compile_options(${tgt}_nvcc PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
         target_link_libraries(${tgt}_nvcc GridToolsTest gtest_main gmock ${ARGS_LIBRARIES})
     endif()
 
