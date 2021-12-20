@@ -45,7 +45,9 @@ namespace gridtools {
 
 #if !defined(__NVCC__)
         TEST(composite, deduction) {
+#if defined(__clang__) || defined(__GNUC__) && __GNUC__ > 8
             sid::composite::keys<>::values();
+#endif
             double const src = 42;
             double dst = 0;
             sid::composite::keys<a, b>::values(

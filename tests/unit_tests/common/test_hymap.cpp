@@ -97,8 +97,9 @@ namespace gridtools {
 
             EXPECT_EQ(42, at_key<a>(hymap::keys<a>::values(42)));
         }
-
+#if defined(__clang__) || defined(__GNUC__) && __GNUC__ > 8
         TEST(deduction, empty) { hymap::keys<>::values(); }
+#endif
 #endif
 
         TEST(convert_hymap, smoke) {
