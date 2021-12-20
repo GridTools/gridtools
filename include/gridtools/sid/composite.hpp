@@ -190,7 +190,8 @@ namespace gridtools {
 
                 tuple<Ptrs...> m_vals;
 
-                template <class... Args, std::enable_if_t<(... && std::is_constructible_v<Ptrs, Args>), int> = 0>
+                template <class... Args,
+                    std::enable_if_t<std::conjunction_v<std::is_constructible<Ptrs, Args>...>, int> = 0>
                 constexpr GT_FUNCTION composite_ptr(Args &&...args) noexcept : m_vals{wstd::forward<Args>(args)...} {}
 
                 constexpr GT_FUNCTION composite_ptr(Ptrs const &...args) noexcept : m_vals(args...) {}
@@ -229,7 +230,8 @@ namespace gridtools {
 
                 tuple<PtrHolders...> m_vals;
 
-                template <class... Args, std::enable_if_t<(... && std::is_constructible_v<PtrHolders, Args>), int> = 0>
+                template <class... Args,
+                    std::enable_if_t<std::conjunction_v<std::is_constructible<PtrHolders, Args>...>, int> = 0>
                 constexpr GT_FUNCTION composite_ptr_holder(Args &&...args) noexcept
                     : m_vals{wstd::forward<Args>(args)...} {}
 
@@ -450,7 +452,8 @@ namespace gridtools {
                 };
                 friend getter tuple_getter(values const &) { return {}; }
 
-                template <class... Args, std::enable_if_t<(... && std::is_constructible_v<Sids, Args>), int> = 0>
+                template <class... Args,
+                    std::enable_if_t<std::conjunction_v<std::is_constructible<Sids, Args>...>, int> = 0>
                 constexpr values(Args &&...args) noexcept : m_sids{std::forward<Args>(args)...} {}
 
                 constexpr values(Sids const &...args) noexcept : m_sids(args...) {}

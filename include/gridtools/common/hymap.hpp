@@ -215,7 +215,8 @@ namespace gridtools {
 
             tuple<Vals...> m_vals;
 
-            template <class... Args, std::enable_if_t<(... && std::is_constructible_v<Vals, Args>), int> = 0>
+            template <class... Args,
+                std::enable_if_t<std::conjunction_v<std::is_constructible<Vals, Args>...>, int> = 0>
             constexpr GT_FUNCTION values(Args &&...args) noexcept : m_vals{wstd::forward<Args>(args)...} {}
 
             constexpr GT_FUNCTION values(Vals const &...args) noexcept : m_vals(args...) {}
