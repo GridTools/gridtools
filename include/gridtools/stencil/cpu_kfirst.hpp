@@ -121,7 +121,7 @@ namespace gridtools {
                 auto blocked_external_data_stores = tuple_util::transform(
                     [&](auto &&data_store) GT_FORCE_INLINE_LAMBDA {
                         return sid::block(std::forward<decltype(data_store)>(data_store),
-                            hymap::keys<dim::i, dim::j>::make_values<IBlockSize, JBlockSize>());
+                            hymap::keys<dim::i, dim::j>::values<IBlockSize, JBlockSize>());
                     },
                     std::move(external_data_stores));
 
