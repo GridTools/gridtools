@@ -12,6 +12,14 @@
 @file
 @brief Implementation of an array class
 */
+
+#include <array>
+
+namespace gridtools {
+    using std::array;
+}
+
+#if 0
 #include <algorithm>
 #include <cassert>
 #include <iterator>
@@ -199,3 +207,4 @@ namespace std {
         using type = T;
     };
 } // namespace std
+#endif

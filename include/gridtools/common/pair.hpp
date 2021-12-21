@@ -8,7 +8,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+#include <utility>
 
+namespace gridtools{
+    using std::pair;
+}
+
+#if 0
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
@@ -192,3 +198,4 @@ namespace std {
         using type = T2;
     };
 } // namespace std
+#endif

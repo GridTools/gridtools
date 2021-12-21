@@ -10,6 +10,12 @@
 
 #pragma once
 
+#include <tuple>
+
+namespace gridtools {
+    using ::std::tuple;
+}
+#if 0
 #include <cstdlib>
 #include <tuple>
 #include <type_traits>
@@ -308,3 +314,4 @@ namespace std {
         using type = gridtools::meta::at_c<::gridtools::tuple<Ts...>, I>;
     };
 } // namespace std
+#endif

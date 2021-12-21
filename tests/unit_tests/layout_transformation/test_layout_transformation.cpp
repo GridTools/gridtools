@@ -58,6 +58,8 @@ namespace {
     using envs_t = meta::list<host>;
 #endif
 
+    static constexpr size_t one = 1;
+
     TEST(layout_transformation, 3D_reverse_layout) {
         for_each<envs_t>([](auto env) {
             constexpr size_t Nx = 4, Ny = 5, Nz = 6;
@@ -68,7 +70,7 @@ namespace {
                 src[i[0]][i[1]][i[2]] = 100 * i[0] + 10 * i[1] + i[2];
                 dst[i[2]][i[1]][i[0]] = -1;
             }
-            testee(env, dst, src, dims, array{1, Nx, Nx * Ny}, array{Ny * Nz, Nz, 1});
+            testee(env, dst, src, dims, array{one, Nx, Nx * Ny}, array{Ny * Nz, Nz, one});
             for (auto i : make_hypercube_view(dims))
                 EXPECT_DOUBLE_EQ(dst[i[2]][i[1]][i[0]], src[i[0]][i[1]][i[2]]);
         });
@@ -84,7 +86,7 @@ namespace {
                 src[i[0]][i[1]][i[2]][i[3]] = 1000 * i[0] + 100 * i[1] + 10 * i[2] + i[3];
                 dst[i[3]][i[2]][i[1]][i[0]] = -1;
             }
-            testee(env, dst, src, dims, array{1, Nx, Nx * Ny, Nx * Ny * Nz}, array{Ny * Nz * Nw, Nz * Nw, Nw, 1});
+            testee(env, dst, src, dims, array{one, Nx, Nx * Ny, Nx * Ny * Nz}, array{Ny * Nz * Nw, Nz * Nw, Nw, one});
             for (auto i : make_hypercube_view(dims))
                 EXPECT_DOUBLE_EQ(dst[i[3]][i[2]][i[1]][i[0]], src[i[0]][i[1]][i[2]][i[3]]);
         });
@@ -100,7 +102,7 @@ namespace {
                 src[i[0]][i[1]] = 100 * i[0] + 10 * i[1];
                 dst[i[1]][i[0]] = -1;
             }
-            testee(env, dst, src, dims, array{1, Nx}, array{Ny, 1});
+            testee(env, dst, src, dims, array{one, Nx}, array{Ny, one});
             for (auto i : make_hypercube_view(dims))
                 EXPECT_DOUBLE_EQ(dst[i[1]][i[0]], src[i[0]][i[1]]);
         });

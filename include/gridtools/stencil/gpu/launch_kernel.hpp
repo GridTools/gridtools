@@ -142,7 +142,7 @@ namespace gridtools {
                     static_assert(Extent::iminus::value <= 0, GT_INTERNAL_ERROR);
                     static_assert(Extent::iplus::value >= 0, GT_INTERNAL_ERROR);
 
-                    static_assert(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
+                    static_assert(std::is_trivially_copy_constructible_v<Fun>, GT_INTERNAL_ERROR);
 
                     static constexpr auto halo_lines = Extent::jplus::value - Extent::jminus::value +
                                                        (Extent::iminus::value < 0 ? 1 : 0) +
@@ -171,7 +171,7 @@ namespace gridtools {
                     std::enable_if_t<is_empty_ij_extents<Extent>(), int> = 0>
                 void launch_kernel(int_t i_size, int_t j_size, uint_t zblocks, Fun fun, size_t shared_memory_size = 0) {
 
-                    static_assert(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
+                    static_assert(std::is_trivially_copy_constructible_v<Fun>, GT_INTERNAL_ERROR);
 
                     static const size_t num_threads = BlockSizeI * BlockSizeJ;
 

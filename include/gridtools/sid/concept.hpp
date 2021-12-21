@@ -611,7 +611,7 @@ namespace gridtools {
                 class UpperBoundsType = upper_bounds_type<Sid>>
             using is_sid = std::conjunction<
 
-                // `is_trivially_copyable` check is applied to the types that are will be passed from host to device
+                // `is_trivially_copy_constructible` check is applied to the types that are will be passed from host to device
                 std::is_trivially_copy_constructible<PtrHolder>,
                 std::is_trivially_copy_constructible<StridesType>,
 

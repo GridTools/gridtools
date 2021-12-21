@@ -9,7 +9,16 @@
  */
 
 #pragma once
+#include <utility>
 
+namespace gridtools {
+    namespace wstd {
+        using ::std::forward;
+        using ::std::move;
+    } // namespace wstd
+} // namespace gridtools
+
+#if 0
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -42,3 +51,4 @@ namespace gridtools {
 
     } // namespace wstd
 } // namespace gridtools
+#endif
