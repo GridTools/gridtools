@@ -12,6 +12,8 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/defs.hpp>
+
 using namespace gridtools;
 
 TEST(array, test_copyctr) {

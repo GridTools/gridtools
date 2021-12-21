@@ -13,13 +13,6 @@
 @brief Implementation of an array class
 */
 
-#include <array>
-
-namespace gridtools {
-    using std::array;
-}
-
-#if 0
 #include <algorithm>
 #include <cassert>
 #include <iterator>
@@ -31,9 +24,6 @@ namespace gridtools {
 #include "../meta/list.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/repeat.hpp"
-#include "defs.hpp"
-#include "host_device.hpp"
-#include "utility.hpp"
 
 namespace gridtools {
 
@@ -69,32 +59,32 @@ namespace gridtools {
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        GT_FUNCTION constexpr T const *begin() const { return &m_array[0]; }
+        constexpr T const *begin() const { return &m_array[0]; }
 
-        GT_FUNCTION constexpr T *begin() { return &m_array[0]; }
+        constexpr T *begin() { return &m_array[0]; }
 
-        GT_FUNCTION constexpr T const *end() const { return &m_array[D]; }
+        constexpr T const *end() const { return &m_array[D]; }
 
-        GT_FUNCTION constexpr T *end() { return &m_array[D]; }
+        constexpr T *end() { return &m_array[D]; }
 
-        GT_FUNCTION constexpr const T *data() const noexcept { return m_array; }
-        GT_FUNCTION constexpr T *data() noexcept { return m_array; }
+        constexpr const T *data() const noexcept { return m_array; }
+        constexpr T *data() noexcept { return m_array; }
 
-        GT_FUNCTION GT_CONSTEXPR T const &operator[](size_t i) const { return m_array[i]; }
+        constexpr T const &operator[](size_t i) const { return m_array[i]; }
 
-        GT_FUNCTION T &operator[](size_t i) {
+        constexpr T &operator[](size_t i) {
             assert(i < D);
             return m_array[i];
         }
 
         template <typename A>
-        GT_FUNCTION array &operator=(A const &a) {
+        constexpr array &operator=(A const &a) {
             assert(a.size() == D);
             std::copy(a.begin(), a.end(), m_array);
             return *this;
         }
 
-        GT_FUNCTION static constexpr size_t size() { return D; }
+        static constexpr size_t size() { return D; }
     };
 
     template <class T, class... Ts>
@@ -116,21 +106,21 @@ namespace gridtools {
 
         struct getter {
             template <size_t I, typename T, size_t D>
-            static GT_FUNCTION GT_CONSTEXPR T &get(array<T, D> &arr) noexcept {
+            static constexpr T &get(array<T, D> &arr) noexcept {
                 static_assert(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
 
             template <size_t I, typename T, size_t D>
-            static GT_FUNCTION GT_CONSTEXPR const T &get(const array<T, D> &arr) noexcept {
+            static constexpr const T &get(const array<T, D> &arr) noexcept {
                 static_assert(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
 
             template <size_t I, typename T, size_t D>
-            static GT_FUNCTION GT_CONSTEXPR T &&get(array<T, D> &&arr) noexcept {
+            static constexpr T &&get(array<T, D> &&arr) noexcept {
                 static_assert(I < D, "index is out of bounds");
-                return wstd::move(arr.m_array[I]);
+                return std::move(arr.m_array[I]);
             }
         };
     } // namespace array_impl_
@@ -146,7 +136,7 @@ namespace gridtools {
 
     // in case we need a constexpr version we need to implement a recursive one for c++11
     template <typename T, typename U, size_t D>
-    GT_CONSTEXPR GT_FUNCTION bool operator==(array<T, D> const &a, array<U, D> const &b) {
+    constexpr bool operator==(array<T, D> const &a, array<U, D> const &b) {
 #ifndef __GNUC__
 #pragma unroll
 #endif
@@ -158,7 +148,7 @@ namespace gridtools {
     }
 
     template <typename T, typename U, size_t D>
-    GT_CONSTEXPR GT_FUNCTION bool operator!=(array<T, D> const &a, array<U, D> const &b) {
+    constexpr bool operator!=(array<T, D> const &a, array<U, D> const &b) {
         return !(a == b);
     }
 
@@ -175,21 +165,21 @@ namespace gridtools {
     struct is_array_of<array<Value, D>, Value> : std::true_type {};
 
     template <size_t I, typename T, size_t D>
-    GT_FUNCTION T &get(array<T, D> &arr) noexcept {
+    constexpr T &get(array<T, D> &arr) noexcept {
         static_assert(I < D, "index is out of bounds");
         return arr.m_array[I];
     }
 
     template <size_t I, typename T, size_t D>
-    GT_FUNCTION GT_CONSTEXPR const T &get(const array<T, D> &arr) noexcept {
+    constexpr const T &get(const array<T, D> &arr) noexcept {
         static_assert(I < D, "index is out of bounds");
         return arr.m_array[I];
     }
 
     template <size_t I, typename T, size_t D>
-    GT_FUNCTION GT_CONSTEXPR T &&get(array<T, D> &&arr) noexcept {
+    constexpr T &&get(array<T, D> &&arr) noexcept {
         static_assert(I < D, "index is out of bounds");
-        return wstd::move(get<I>(arr));
+        return std::move(get<I>(arr));
     }
 
     /** @} */
@@ -207,4 +197,3 @@ namespace std {
         using type = T;
     };
 } // namespace std
-#endif
