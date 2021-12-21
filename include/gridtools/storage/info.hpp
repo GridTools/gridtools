@@ -119,7 +119,7 @@ namespace gridtools {
                                          std::conjunction<std::is_convertible<Is, int_t>...>::value,
                         int> = 0>
                 GT_FUNCTION auto index(Is... indices) const {
-                    return index_from_tuple(tuple_util::host_device::make<tuple>(indices...));
+                    return index_from_tuple(tuple(indices...));
                 }
 
                 template <class Indices>

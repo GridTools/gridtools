@@ -179,7 +179,7 @@ namespace gridtools {
                     return tuple_util::transform(
                         [=](auto &&src) {
                             return sid::block(std::forward<decltype(src)>(src),
-                                tuple_util::make<hymap::keys<dim::i, dim::j>::values>(IBlockSize(), JBlockSize()));
+                                hymap::keys<dim::i, dim::j>::make_values(IBlockSize(), JBlockSize()));
                         },
                         std::move(data_stores));
                 }

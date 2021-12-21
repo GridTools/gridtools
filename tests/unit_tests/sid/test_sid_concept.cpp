@@ -133,9 +133,8 @@ namespace gridtools {
         };
 
         TEST(shift, default_overloads) {
-            namespace tu = tuple_util;
-            auto samples = tu::host_device::make<tuple>(2, 3, -2_c, -1_c, 0_c, 1_c, 2_c);
-            tu::host::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
+            auto samples = tuple(2, 3, -2_c, -1_c, 0_c, 1_c, 2_c);
+            tuple_util::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
         }
 
         TEST(shift, noop) {

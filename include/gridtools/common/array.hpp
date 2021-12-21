@@ -89,6 +89,9 @@ namespace gridtools {
         GT_FUNCTION static constexpr size_t size() { return D; }
     };
 
+    template <class T, class... Ts>
+    array(T, Ts...) -> array<T, 1 + sizeof...(Ts)>;
+
     namespace array_impl_ {
         template <class... Ts>
         struct deduce_array_type : std::common_type<Ts...> {};

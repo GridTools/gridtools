@@ -85,7 +85,7 @@
  *  - transforming the values of the hymap:
  *    `auto dst_hymap = tuple_util::transform(change_value_functor, src_hymap);`
  *  - making a map:
- *    `auto a_map = tuple_util::make<hymap::keys<a, b>::values>('a', 42)`
+ *    `auto a_map = hymap::keys<a, b>::values('a', 42)`
  *  - converting to a map:
  *    `auto a_map = tuple_util::convert_to<hymap::keys<a, b>::values>(a_tuple_with_values)`
  */
@@ -99,6 +99,7 @@
 
 #include "../meta.hpp"
 #include "defs.hpp"
+#include "enable_maker.hpp"
 #include "host_device.hpp"
 #include "integral_constant.hpp"
 #include "tuple.hpp"
@@ -173,7 +174,7 @@ namespace gridtools {
 
         template <class T>
         struct keys_are_legit<T, std::enable_if_t<keys_are_legit_sfinae<T>::value>> : std::true_type {};
-        
+
     } // namespace hymap_impl_
 
     template <class T>
@@ -194,19 +195,50 @@ namespace gridtools {
     using has_key = meta::st_contains<hymap_impl_::get_keys<Map>, Key>;
 
     namespace hymap {
+        template <class...>
+        struct keys : private enable_maker {
+            template <class...>
+            struct values;
+
+#if !defined(__NVCC__) && defined(__clang__) && __clang_major__ <= 13
+            template <class... Vs>
+            values(Vs const &...) -> values<Vs...>;
+#endif
+
+            static constexpr maker<values> make_values = {};
+        };
+
         template <class... Keys>
-        struct keys {
-            template <class... Vals>
-            struct values {
-                static_assert(sizeof...(Vals) == sizeof...(Keys), "invalid hymap");
+        template <class... Vals>
+        struct keys<Keys...>::values {
+            static_assert(sizeof...(Vals) == sizeof...(Keys), "invalid hymap");
 
-                tuple<Vals...> m_vals;
+            tuple<Vals...> m_vals;
 
-                GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(values, m_vals);
-                GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_vals);
+            template <class... Args,
+                std::enable_if_t<std::conjunction_v<std::is_constructible<Vals, Args>...>, int> = 0>
+            constexpr GT_FUNCTION values(Args &&...args) noexcept : m_vals{wstd::forward<Args>(args)...} {}
 
-                friend keys hymap_get_keys(values const &) { return {}; }
-            };
+            constexpr GT_FUNCTION values(Vals const &...args) noexcept : m_vals(args...) {}
+
+            constexpr GT_FUNCTION values(tuple<Vals...> &&args) noexcept : m_vals(wstd::move(args)) {}
+            constexpr GT_FUNCTION values(tuple<Vals...> const &args) noexcept : m_vals(args) {}
+
+            values() = default;
+            values(values const &) = default;
+            values(values &&) = default;
+            values &operator=(values const &) = default;
+            values &operator=(values &&) = default;
+
+            GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(values, m_vals);
+
+            friend keys hymap_get_keys(values const &) { return {}; }
+        };
+
+        template <>
+        template <>
+        struct keys<>::values<> {
+            friend values tuple_getter(values const &) { return {}; }
         };
 
         template <class HyMap>

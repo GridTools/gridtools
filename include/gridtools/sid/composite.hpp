@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "../common/defs.hpp"
+#include "../common/enable_maker.hpp"
 #include "../common/for_each.hpp"
 #include "../common/host_device.hpp"
 #include "../common/hymap.hpp"
@@ -165,267 +166,321 @@ namespace gridtools {
              * This  means that the composite stride doesn't hold duplicate strides.
              *
              */
+            template <class...>
+            struct keys : private enable_maker {
+                template <class...>
+                struct composite_ptr;
+                template <class...>
+                struct composite_ptr_holder;
+                template <class>
+                struct compressed;
+                template <class...>
+                struct values;
+#if !defined(__NVCC__) && defined(__clang__) && __clang_major__ <= 13
+                template <class... Sids>
+                values(Sids const &...) -> values<Sids...>;
+#endif
+                static constexpr maker<values> make_values = {};
+            };
+
             template <class... Keys>
-            struct keys {
+            template <class... Ptrs>
+            struct keys<Keys...>::composite_ptr {
+                static_assert(sizeof...(Keys) == sizeof...(Ptrs), GT_INTERNAL_ERROR);
 
-                template <class... Ptrs>
-                struct composite_ptr {
-                    static_assert(sizeof...(Keys) == sizeof...(Ptrs), GT_INTERNAL_ERROR);
+                tuple<Ptrs...> m_vals;
 
-                    tuple<Ptrs...> m_vals;
-                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
-                    GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
-                    GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
-                        return tuple_util::host_device::convert_to<hymap::keys<Keys...>::template values>(
-                            tuple_util::host_device::transform([](auto const &ptr)
+                template <class... Args,
+                    std::enable_if_t<std::conjunction_v<std::is_constructible<Ptrs, Args>...>, int> = 0>
+                constexpr GT_FUNCTION composite_ptr(Args &&...args) noexcept : m_vals{wstd::forward<Args>(args)...} {}
+
+                constexpr GT_FUNCTION composite_ptr(Ptrs const &...args) noexcept : m_vals(args...) {}
+
+                constexpr GT_FUNCTION composite_ptr(tuple<Ptrs...> &&args) noexcept : m_vals(wstd::move(args)) {}
+                constexpr GT_FUNCTION composite_ptr(tuple<Ptrs...> const &args) noexcept : m_vals(args) {}
+
+                composite_ptr() = default;
+                composite_ptr(composite_ptr const &) = default;
+                composite_ptr(composite_ptr &&) = default;
+                composite_ptr &operator=(composite_ptr const &) = default;
+                composite_ptr &operator=(composite_ptr &&) = default;
+
+                GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
+
+                GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
+                    return tuple_util::host_device::convert_to<hymap::keys<Keys...>::template values>(
+                        tuple_util::host_device::transform([](auto const &ptr)
 // Workaround for GCC 9 bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333
 // The failure is observed with 9.3 as well even though they say it was already fixed there.
 // gcc 10.1, 10.2 fails here as well. Disabling for all gcc 9 and 10 versions...
 #if defined(__clang__) || !defined(__GNUC__) || (__GNUC__ != 9 && __GNUC__ != 10)
-                                                                   GT_FORCE_INLINE_LAMBDA
+                                                               GT_FORCE_INLINE_LAMBDA
 #endif
-                                -> decltype(auto) { return *ptr; },
-                                m_vals));
-                    }
+                            -> decltype(auto) { return *ptr; },
+                            m_vals));
+                }
 
-                    friend keys hymap_get_keys(composite_ptr const &) { return {}; }
-                };
+                friend keys hymap_get_keys(composite_ptr const &) { return {}; }
+            };
 
-                template <class... PtrHolders>
-                struct composite_ptr_holder {
-                    static_assert(sizeof...(Keys) == sizeof...(PtrHolders), GT_INTERNAL_ERROR);
+            template <class... Keys>
+            template <class... PtrHolders>
+            struct keys<Keys...>::composite_ptr_holder {
+                static_assert(sizeof...(Keys) == sizeof...(PtrHolders), GT_INTERNAL_ERROR);
 
-                    tuple<PtrHolders...> m_vals;
-                    GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
-                    GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr_holder, m_vals);
+                tuple<PtrHolders...> m_vals;
 
-                    GT_CONSTEXPR GT_FUNCTION auto operator()() const {
-                        return tuple_util::host_device::convert_to<composite_ptr>(tuple_util::host_device::transform(
-                            [](auto const &obj) GT_FORCE_INLINE_LAMBDA { return obj(); }, m_vals));
-                    }
+                template <class... Args,
+                    std::enable_if_t<std::conjunction_v<std::is_constructible<PtrHolders, Args>...>, int> = 0>
+                constexpr GT_FUNCTION composite_ptr_holder(Args &&...args) noexcept
+                    : m_vals{wstd::forward<Args>(args)...} {}
 
-                    friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
-                };
+                constexpr GT_FUNCTION composite_ptr_holder(PtrHolders const &...args) noexcept : m_vals(args...) {}
 
+                constexpr GT_FUNCTION composite_ptr_holder(tuple<PtrHolders...> &&args) noexcept
+                    : m_vals(wstd::move(args)) {}
+                constexpr GT_FUNCTION composite_ptr_holder(tuple<PtrHolders...> const &args) noexcept : m_vals(args) {}
+
+                composite_ptr_holder() = default;
+                composite_ptr_holder(composite_ptr_holder const &) = default;
+                composite_ptr_holder(composite_ptr_holder &&) = default;
+                composite_ptr_holder &operator=(composite_ptr_holder const &) = default;
+                composite_ptr_holder &operator=(composite_ptr_holder &&) = default;
+
+                GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
+
+                GT_CONSTEXPR GT_FUNCTION auto operator()() const {
+                    return tuple_util::host_device::convert_to<composite_ptr>(tuple_util::host_device::transform(
+                        [](auto const &obj) GT_FORCE_INLINE_LAMBDA { return obj(); }, m_vals));
+                }
+
+                friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
+            };
+
+            /**
+             *  Implements strides and ptr_diffs compression based on skipping the objects of the
+             *  same kind.
+             *
+             *  `composite` objects pretend to be a tuples of `uncompressed` types (aka external tuple), but
+             * internally they store a tuple of `compressed` types (aka internal tuple).
+             *
+             *  @tparam Map - compile time map from the index in external tuple to the index of internal tuple.
+             *                `compile time map` here is a tuple of tuples: `tuple<tuple<Key, Value>...>`
+             */
+            template <class... Keys>
+            template <class Map>
+            struct keys<Keys...>::compressed {
                 /**
-                 *  Implements strides and ptr_diffs compression based on skipping the objects of the
-                 *  same kind.
+                 *  Inverse map is like that: tuple<tuple<Value, Keys...>...>, where values and keys are taken
+                 *  from the source.
                  *
-                 *  `composite` objects pretend to be a tuples of `uncompressed` types (aka external tuple), but
-                 * internally they store a tuple of `compressed` types (aka internal tuple).
+                 *  In the concrete case of the map of indices it would be:
+                 *  tuple<tuple<CompressedIndex, UncompressedIndices...>>
                  *
-                 *  @tparam Map - compile time map from the index in external tuple to the index of internal tuple.
-                 *                `compile time map` here is a tuple of tuples: `tuple<tuple<Key, Value>...>`
+                 *  Note that it could be several UncompressedIndices per one CompressedIndex
+                 *
                  */
-                template <class Map>
-                struct compressed {
-                    /**
-                     *  Inverse map is like that: tuple<tuple<Value, Keys...>...>, where values and keys are taken
-                     *  from the source.
-                     *
-                     *  In the concrete case of the map of indices it would be:
-                     *  tuple<tuple<CompressedIndex, UncompressedIndices...>>
-                     *
-                     *  Note that it could be several UncompressedIndices per one CompressedIndex
-                     *
-                     */
-                    using inversed_map_t = meta::mp_inverse<Map>;
-                    /**
-                     *  A tuple of the first of UncompressedIndices per each CompressedIndex
-                     */
-                    using primary_indices_t = meta::transform<meta::second, inversed_map_t>;
+                using inversed_map_t = meta::mp_inverse<Map>;
+                /**
+                 *  A tuple of the first of UncompressedIndices per each CompressedIndex
+                 */
+                using primary_indices_t = meta::transform<meta::second, inversed_map_t>;
 
-                    using generators_t = meta::transform<impl_::item_generator, inversed_map_t>;
+                using generators_t = meta::transform<impl_::item_generator, inversed_map_t>;
 
-                    template <size_t I,
-                        class T,
-                        class Item = meta::mp_find<Map, std::integral_constant<size_t, I>>,
-                        class Pos = meta::second<Item>>
-                    static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(T &&obj) {
-                        return tuple_util::host_device::get<Pos::value>(wstd::forward<T>(obj).m_vals);
+                template <size_t I,
+                    class T,
+                    class Item = meta::mp_find<Map, std::integral_constant<size_t, I>>,
+                    class Pos = meta::second<Item>>
+                static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(T &&obj) {
+                    return tuple_util::host_device::get<Pos::value>(wstd::forward<T>(obj).m_vals);
+                }
+
+                template <class... Ts>
+                struct composite_entity {
+                    static_assert(sizeof...(Keys) == sizeof...(Ts), GT_INTERNAL_ERROR);
+
+                    template <class I>
+                    using get_compressed_type = meta::at<meta::list<Ts...>, I>;
+
+                    using vals_t = meta::transform<get_compressed_type, primary_indices_t>;
+
+                    vals_t m_vals;
+
+                    template <template <class...> class L, class... Args>
+                    composite_entity(impl_::ctor_tag, L<Args...> &&tup) noexcept
+                        : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {
+                        static_assert(sizeof...(Args) == sizeof...(Keys), GT_INTERNAL_ERROR);
                     }
 
-                    template <class... Ts>
-                    struct composite_entity {
-                        static_assert(sizeof...(Keys) == sizeof...(Ts), GT_INTERNAL_ERROR);
+                    composite_entity() = default;
+                    composite_entity(composite_entity const &) = default;
+                    composite_entity(composite_entity &&) noexcept = default;
+                    composite_entity &operator=(composite_entity const &) = default;
+                    composite_entity &operator=(composite_entity &&) noexcept = default;
 
-                        template <class I>
-                        using get_compressed_type = meta::at<meta::list<Ts...>, I>;
+                    friend compressed tuple_getter(composite_entity const &) { return {}; }
 
-                        using vals_t = meta::transform<get_compressed_type, primary_indices_t>;
-
-                        vals_t m_vals;
-
-                        template <template <class...> class L, class... Args>
-                        composite_entity(impl_::ctor_tag, L<Args...> &&tup) noexcept
-                            : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {
-                            static_assert(sizeof...(Args) == sizeof...(Keys), GT_INTERNAL_ERROR);
-                        }
-
-                        composite_entity() = default;
-                        composite_entity(composite_entity const &) = default;
-                        composite_entity(composite_entity &&) noexcept = default;
-                        composite_entity &operator=(composite_entity const &) = default;
-                        composite_entity &operator=(composite_entity &&) noexcept = default;
-
-                        friend compressed tuple_getter(composite_entity const &) { return {}; }
-
-                        template <class... Ptrs>
-                        friend GT_CONSTEXPR GT_FUNCTION composite_ptr<Ptrs...> operator+(
-                            composite_ptr<Ptrs...> const &lhs, composite_entity const &rhs) {
-                            return tuple_util::host_device::transform(impl_::sum(), lhs, rhs);
-                        }
-
-                        template <class... PtrHolders>
-                        friend composite_ptr_holder<PtrHolders...> operator+(
-                            composite_ptr_holder<PtrHolders...> const &lhs, composite_entity const &rhs) {
-                            return tuple_util::transform(impl_::sum(), lhs, rhs);
-                        }
-
-                        template <class... Ptrs, class Offset>
-                        friend GT_FUNCTION void sid_shift(
-                            composite_ptr<Ptrs...> &ptr, composite_entity const &stride, Offset offset) {
-                            impl_::composite_shift_impl(ptr.m_vals, stride, offset);
-                        }
-
-                        template <class... Ptrs, class Offset>
-                        friend GT_FUNCTION void sid_shift(
-                            composite_ptr<Ptrs...> &ptr, composite_entity &&stride, Offset offset) {
-                            impl_::composite_shift_impl(ptr.m_vals, wstd::move(stride), offset);
-                        }
-
-                        friend keys hymap_get_keys(composite_entity const &) { return {}; }
-                    };
-
-                    template <class... PtrDiffs, class... Strides, class Offset>
-                    friend GT_FUNCTION void sid_shift(composite_entity<PtrDiffs...> &ptr_diff,
-                        composite_entity<Strides...> const &stride,
-                        Offset offset) {
-                        impl_::composite_shift_impl(ptr_diff.m_vals, stride.m_vals, offset);
+                    template <class... Ptrs>
+                    friend GT_CONSTEXPR GT_FUNCTION composite_ptr<Ptrs...> operator+(
+                        composite_ptr<Ptrs...> const &lhs, composite_entity const &rhs) {
+                        return tuple_util::host_device::transform(impl_::sum(), lhs, rhs);
                     }
 
-                    template <class... PtrDiffs, class... Strides, class Offset>
+                    template <class... PtrHolders>
+                    friend composite_ptr_holder<PtrHolders...> operator+(
+                        composite_ptr_holder<PtrHolders...> const &lhs, composite_entity const &rhs) {
+                        return tuple_util::transform(impl_::sum(), lhs, rhs);
+                    }
+
+                    template <class... Ptrs, class Offset>
                     friend GT_FUNCTION void sid_shift(
-                        composite_entity<PtrDiffs...> &ptr_diff, composite_entity<Strides...> &&stride, Offset offset) {
-                        impl_::composite_shift_impl(ptr_diff.m_vals, wstd::move(stride.m_vals), offset);
+                        composite_ptr<Ptrs...> &ptr, composite_entity const &stride, Offset offset) {
+                        impl_::composite_shift_impl(ptr.m_vals, stride, offset);
                     }
 
-                    struct convert_f {
-                        template <template <class...> class L, class... Ts>
-                        composite_entity<std::remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
-                            return {impl_::ctor_tag(), std::move(tup)};
-                        }
-                    };
+                    template <class... Ptrs, class Offset>
+                    friend GT_FUNCTION void sid_shift(
+                        composite_ptr<Ptrs...> &ptr, composite_entity &&stride, Offset offset) {
+                        impl_::composite_shift_impl(ptr.m_vals, wstd::move(stride), offset);
+                    }
+
+                    friend keys hymap_get_keys(composite_entity const &) { return {}; }
                 };
 
-                template <class... Sids>
-                struct values {
-                    static_assert(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
+                template <class... PtrDiffs, class... Strides, class Offset>
+                friend GT_FUNCTION void sid_shift(composite_entity<PtrDiffs...> &ptr_diff,
+                    composite_entity<Strides...> const &stride,
+                    Offset offset) {
+                    impl_::composite_shift_impl(ptr_diff.m_vals, stride.m_vals, offset);
+                }
+
+                template <class... PtrDiffs, class... Strides, class Offset>
+                friend GT_FUNCTION void sid_shift(
+                    composite_entity<PtrDiffs...> &ptr_diff, composite_entity<Strides...> &&stride, Offset offset) {
+                    impl_::composite_shift_impl(ptr_diff.m_vals, wstd::move(stride.m_vals), offset);
+                }
+
+                struct convert_f {
+                    template <template <class...> class L, class... Ts>
+                    composite_entity<std::remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
+                        return {impl_::ctor_tag(), std::move(tup)};
+                    }
+                };
+            };
+
+            template <class... Keys>
+            template <class... Sids>
+            struct keys<Keys...>::values {
+                static_assert(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 1
 #else
-                    static_assert(std::conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
+                static_assert(std::conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 #endif
-                    static_assert(meta::all<meta::mp_make<impl_::check_strides_of_the_same_kind,
-                                      meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>(),
-                        "");
+                static_assert(meta::all<meta::mp_make<impl_::check_strides_of_the_same_kind,
+                                  meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>(),
+                    "");
 
-                    tuple<Sids...> m_sids;
+                tuple<Sids...> m_sids;
 
-                    // Extracted lists of raw kinds (uncompressed)
-                    using strides_kinds_t = meta::list<strides_kind<Sids>...>;
+                // Extracted lists of raw kinds (uncompressed)
+                using strides_kinds_t = meta::list<strides_kind<Sids>...>;
 
-                    // The index map that is needed to build compressed composite objects
-                    using map_t = impl_::make_index_map<impl_::replace_unknown_kinds<strides_kinds_t>>;
-                    using compressed_t = compressed<map_t>;
+                // The index map that is needed to build compressed composite objects
+                using map_t = impl_::make_index_map<impl_::replace_unknown_kinds<strides_kinds_t>>;
+                using compressed_t = compressed<map_t>;
 
-                    template <class... Ts>
-                    using compress = typename compressed_t::template composite_entity<Ts...>;
+                template <class... Ts>
+                using compress = typename compressed_t::template composite_entity<Ts...>;
 
-                    using stride_keys_t = meta::dedup<meta::concat<get_keys<strides_type<Sids>>...>>;
+                using stride_keys_t = meta::dedup<meta::concat<get_keys<strides_type<Sids>>...>>;
 
-                    using stride_hymap_keys_t = meta::rename<hymap::keys, stride_keys_t>;
+                using stride_hymap_keys_t = meta::rename<hymap::keys, stride_keys_t>;
 
-                    template <class... Values>
-                    using stride_hymap_ctor = typename stride_hymap_keys_t::template values<Values...>;
+                template <class... Values>
+                using stride_hymap_ctor = typename stride_hymap_keys_t::template values<Values...>;
 
-                    // A helper for generating strides_t
-                    // It is a meta function from the stride key to the stride type
-                    template <class Key>
-                    using get_stride_type =
-                        compress<impl_::normalized_stride_type<Key, std::decay_t<strides_type<Sids>>>...>;
+                // A helper for generating strides_t
+                // It is a meta function from the stride key to the stride type
+                template <class Key>
+                using get_stride_type =
+                    compress<impl_::normalized_stride_type<Key, std::decay_t<strides_type<Sids>>>...>;
 
-                    // all `SID` types are here
-                    using ptr_holder_t = composite_ptr_holder<ptr_holder_type<Sids>...>;
-                    using ptr_t = composite_ptr<ptr_type<Sids>...>;
-                    using strides_t = meta::rename<stride_hymap_ctor, meta::transform<get_stride_type, stride_keys_t>>;
-                    using ptr_diff_t = compress<ptr_diff_type<Sids>...>;
+                // all `SID` types are here
+                using ptr_holder_t = composite_ptr_holder<ptr_holder_type<Sids>...>;
+                using ptr_t = composite_ptr<ptr_type<Sids>...>;
+                using strides_t = meta::rename<stride_hymap_ctor, meta::transform<get_stride_type, stride_keys_t>>;
+                using ptr_diff_t = compress<ptr_diff_type<Sids>...>;
 
-                    // Here the `SID` concept is modeled
+                // Here the `SID` concept is modeled
 
-                    friend ptr_holder_t sid_get_origin(values &obj) {
-                        return tuple_util::transform(
-                            [](auto &obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids);
-                    }
-
-                    template <class U = strides_t, std::enable_if_t<!meta::is_empty<U>::value, int> = 0>
-                    friend strides_t sid_get_strides(values const &obj) {
-                        return tuple_util::transform(typename compressed_t::convert_f(),
-                            tuple_util::transpose(
-                                tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>(), obj.m_sids)));
-                    }
-
-                    template <class U = strides_t, std::enable_if_t<meta::is_empty<U>::value, int> = 0>
-                    friend strides_t sid_get_strides(values const &) {
-                        return {};
-                    }
-
-                    friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
-
-                    friend unknown_kind sid_get_strides_kind(values const &) { return {}; }
-
-                    // Here the `tuple_like` concept is modeled
-                    struct getter {
-                        template <size_t I>
-                        static decltype(auto) get(values const &obj) noexcept {
-                            return tuple_util::get<I>(obj.m_sids);
-                        }
-                        template <size_t I>
-                        static decltype(auto) get(values &obj) noexcept {
-                            return tuple_util::get<I>(obj.m_sids);
-                        }
-                        template <size_t I>
-                        static decltype(auto) get(values &&obj) noexcept {
-                            return tuple_util::get<I>(std::move(obj).m_sids);
-                        }
-                    };
-                    friend getter tuple_getter(values const &) { return {}; }
-
-                    template <class Arg,
-                        class... Args,
-                        std::enable_if_t<std::is_constructible<tuple<Sids...>, Arg &&, Args &&...>::value, int> = 0>
-                    values(Arg &&arg, Args &&... args) noexcept
-                        : m_sids(std::forward<Arg>(arg), std::forward<Args>(args)...) {}
-                    values() = default;
-                    values(values const &) = default;
-                    values(values &&) = default;
-                    values &operator=(values const &) = default;
-                    values &operator=(values &&) = default;
-
-                    // hymap concept
-                    friend keys hymap_get_keys(values const &) { return {}; }
-                };
-            };
-
-            template <class... Keys>
-            struct make_f {
-                template <class... Sids>
-                constexpr auto operator()(Sids &&... sids) const {
-                    return tuple_util::make<keys<Keys...>::template values>(std::forward<Sids>(sids)...);
+                friend ptr_holder_t sid_get_origin(values &obj) {
+                    return tuple_util::transform(
+                        [](auto &obj) GT_FORCE_INLINE_LAMBDA { return get_origin(obj); }, obj.m_sids);
                 }
+
+                template <class U = strides_t, std::enable_if_t<!meta::is_empty<U>::value, int> = 0>
+                friend strides_t sid_get_strides(values const &obj) {
+                    return tuple_util::transform(typename compressed_t::convert_f(),
+                        tuple_util::transpose(
+                            tuple_util::transform(impl_::normalize_strides_f<stride_keys_t>(), obj.m_sids)));
+                }
+
+                template <class U = strides_t, std::enable_if_t<meta::is_empty<U>::value, int> = 0>
+                friend strides_t sid_get_strides(values const &) {
+                    return {};
+                }
+
+                friend ptr_diff_t sid_get_ptr_diff(values const &) { return {}; }
+
+                friend unknown_kind sid_get_strides_kind(values const &) { return {}; }
+
+                // Here the `tuple_like` concept is modeled
+                struct getter {
+                    template <size_t I>
+                    static decltype(auto) get(values const &obj) noexcept {
+                        return tuple_util::get<I>(obj.m_sids);
+                    }
+                    template <size_t I>
+                    static decltype(auto) get(values &obj) noexcept {
+                        return tuple_util::get<I>(obj.m_sids);
+                    }
+                    template <size_t I>
+                    static decltype(auto) get(values &&obj) noexcept {
+                        return tuple_util::get<I>(std::move(obj).m_sids);
+                    }
+                };
+                friend getter tuple_getter(values const &) { return {}; }
+
+                template <class... Args,
+                    std::enable_if_t<std::conjunction_v<std::is_constructible<Sids, Args>...>, int> = 0>
+                constexpr values(Args &&...args) noexcept : m_sids{std::forward<Args>(args)...} {}
+
+                constexpr values(Sids const &...args) noexcept : m_sids(args...) {}
+
+                constexpr values(tuple<Sids...> &&args) noexcept : m_sids(std::move(args)) {}
+                constexpr values(tuple<Sids...> const &args) noexcept : m_sids(args) {}
+
+                values() = default;
+                values(values const &) = default;
+                values(values &&) = default;
+                values &operator=(values const &) = default;
+                values &operator=(values &&) = default;
+
+                // hymap concept
+                friend keys hymap_get_keys(values const &) { return {}; }
             };
 
-            template <class... Keys>
-            constexpr make_f<Keys...> make = {};
+            template <>
+            template <>
+            struct keys<>::values<> {
+                constexpr GT_FUNCTION values operator()() const { return {}; }
+                constexpr GT_FUNCTION values operator*() const { return {}; }
+                friend constexpr GT_FUNCTION values operator+(values, values) { return {}; }
+                friend values sid_get_origin(values) { return {}; }
+                friend values sid_get_ptr_diff(values) { return {}; }
+                friend values tuple_getter(values) { return {}; }
+            };
         } // namespace composite
     }     // namespace sid
 } // namespace gridtools

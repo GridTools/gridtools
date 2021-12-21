@@ -63,7 +63,7 @@ namespace gridtools {
                         });
 
                     auto blocked_externals = tuple_util::transform(
-                        [block_size = tuple_util::make<hymap::keys<dim::i, dim::j>::values>(
+                        [block_size = hymap::keys<dim::i, dim::j>::make_values(
                              info.i_block_size(), info.j_block_size())](auto &&data_store) {
                             return sid::block(std::forward<decltype(data_store)>(data_store), block_size);
                         },

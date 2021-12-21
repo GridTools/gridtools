@@ -35,7 +35,7 @@ namespace gridtools {
                     }
 
                     if (ssz == 0)
-                        return std::make_pair(MPI_INT, false);
+                        return {MPI_INT, false};
 
                     MPI_Datatype res;
                     MPI_Type_create_subarray(d,
@@ -46,7 +46,7 @@ namespace gridtools {
                         type(),
                         &res);
                     MPI_Type_commit(&res);
-                    return std::make_pair(res, true);
+                    return {res, true};
                 }
 
                 template <typename arraytype, typename arraytype2>
@@ -64,7 +64,7 @@ namespace gridtools {
                     }
 
                     if (ssz == 0)
-                        return std::make_pair(MPI_INT, false);
+                        return {MPI_INT, false};
 
                     MPI_Datatype res;
                     MPI_Type_create_subarray(d,
@@ -75,7 +75,7 @@ namespace gridtools {
                         type(),
                         &res);
                     MPI_Type_commit(&res);
-                    return std::make_pair(res, true);
+                    return {res, true};
                 }
             };
 
