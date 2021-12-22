@@ -73,8 +73,8 @@ namespace gridtools {
 
                     template <class Key, class Offset>
                     GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
-                        return Deref()(Key(),
-                            sid::multi_shifted<Key>(host_device::at_key<Key>(m_ptr), m_strides, wstd::move(offset)));
+                        return Deref()(
+                            Key(), sid::multi_shifted<Key>(at_key<Key>(m_ptr), m_strides, wstd::move(offset)));
                     }
 
                     template <class Accessor>
@@ -97,7 +97,7 @@ namespace gridtools {
                             std::conjunction<
                                 std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>::value,
                             "All accessors should be of the same location");
-                        host_device::for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
+                        for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
                             [&](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });
                     }
                 };
@@ -109,7 +109,7 @@ namespace gridtools {
                     template <class Deref = void, class Ptr, class Strides>
                     GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
                         using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
-                        host_device::for_each<meta::make_indices<location_t>>([&](auto color) {
+                        for_each<meta::make_indices<location_t>>([&](auto color) {
                             using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
                             Functor::apply(eval_t{ptr, strides});
                         });

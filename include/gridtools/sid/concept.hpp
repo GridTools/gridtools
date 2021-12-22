@@ -11,6 +11,7 @@
 
 #include <limits>
 #include <type_traits>
+#include <utility>
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
@@ -215,7 +216,7 @@ namespace gridtools {
              *  C-array specialization
              */
             template <class T, class Res = std::add_pointer_t<std::remove_all_extents_t<T>>>
-            std::enable_if_t<std::is_array<T>::value, host_device::simple_ptr_holder<Res>> get_origin(T &obj) {
+            std::enable_if_t<std::is_array<T>::value, simple_ptr_holder<Res>> get_origin(T &obj) {
                 return {(Res)obj};
             }
 
@@ -449,8 +450,8 @@ namespace gridtools {
              *  noop `shift` overload
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION std::enable_if_t<!(std::is_lvalue_reference<T>::value &&
-                                           need_shift<std::remove_reference_t<T>, std::decay_t<Stride>, Offset>::value)>
+            constexpr std::enable_if_t<!(std::is_lvalue_reference<T>::value &&
+                                         need_shift<std::remove_reference_t<T>, std::decay_t<Stride>, Offset>::value)>
             shift(T &&, Stride &&, Offset) {}
 
             /**
@@ -464,8 +465,8 @@ namespace gridtools {
                 std::enable_if_t<need_shift<T, std::decay_t<Stride>, Offset>::value &&
                                      !is_default_shiftable<T, std::decay_t<Stride>>::value,
                     int> = 0>
-            GT_FUNCTION decltype(auto) shift(T &obj, Stride &&stride, Offset offset) {
-                return sid_shift(obj, wstd::forward<Stride>(stride), offset);
+            constexpr decltype(auto) shift(T &obj, Stride &&stride, Offset offset) {
+                return sid_shift(obj, std::forward<Stride>(stride), offset);
             }
 
             /**
@@ -475,10 +476,10 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
-            GT_FUNCTION
-                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                 !(has_inc<T>::value && PtrOffset == 1) && !(has_dec<T>::value && PtrOffset == -1)>
-                shift(T &obj, Stride, Offset) {
+            constexpr std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                       !(has_inc<T>::value && PtrOffset == 1) &&
+                                       !(has_dec<T>::value && PtrOffset == -1)>
+            shift(T &obj, Stride, Offset) {
                 obj += integral_constant<int_t, PtrOffset>{};
             }
 
@@ -489,8 +490,8 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
-            GT_FUNCTION std::enable_if_t<need_shift<T, Stride, Offset>::value &&
-                                         is_default_shiftable<T, Stride>::value && has_inc<T>::value && PtrOffset == 1>
+            constexpr std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                       has_inc<T>::value && PtrOffset == 1>
             shift(T &obj, Stride, Offset) {
                 ++obj;
             }
@@ -502,8 +503,8 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
-            GT_FUNCTION std::enable_if_t<need_shift<T, Stride, Offset>::value &&
-                                         is_default_shiftable<T, Stride>::value && has_dec<T>::value && PtrOffset == -1>
+            constexpr std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                       has_dec<T>::value && PtrOffset == -1>
             shift(T &obj, Stride, Offset) {
                 --obj;
             }
@@ -512,10 +513,10 @@ namespace gridtools {
              *  `shift` overload where the offset is 1
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION
-                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                 !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
-                shift(T &obj, Stride const &stride, Offset) {
+            constexpr std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                       !is_integral_constant<Stride>::value &&
+                                       is_integral_constant_of<Offset, 1>::value>
+            shift(T &obj, Stride const &stride, Offset) {
                 obj += stride;
             }
 
@@ -523,11 +524,11 @@ namespace gridtools {
              *  `shift` overload where the offset is -1
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION
-                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                 !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, -1>::value &&
-                                 has_dec_assignment<T, Stride>::value>
-                shift(T &obj, Stride const &stride, Offset) {
+            constexpr std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                       !is_integral_constant<Stride>::value &&
+                                       is_integral_constant_of<Offset, -1>::value &&
+                                       has_dec_assignment<T, Stride>::value>
+            shift(T &obj, Stride const &stride, Offset) {
                 obj -= stride;
             }
 
@@ -535,10 +536,10 @@ namespace gridtools {
              *  `shift` overload where the stride is 1
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION
-                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                 is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
-                shift(T &obj, Stride, Offset offset) {
+            constexpr std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                       is_integral_constant_of<Stride, 1>::value &&
+                                       !is_integral_constant<Offset>::value>
+            shift(T &obj, Stride, Offset offset) {
                 obj += offset;
             }
 
@@ -546,11 +547,10 @@ namespace gridtools {
              *  `shift` overload where the stride is -1
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION
-                std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                 is_integral_constant_of<Stride, -1>::value && !is_integral_constant<Offset>::value &&
-                                 has_dec_assignment<T, Stride>::value>
-                shift(T &obj, Stride, Offset offset) {
+            constexpr std::enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                       is_integral_constant_of<Stride, -1>::value &&
+                                       !is_integral_constant<Offset>::value && has_dec_assignment<T, Stride>::value>
+            shift(T &obj, Stride, Offset offset) {
                 obj -= offset;
             }
 
@@ -558,14 +558,14 @@ namespace gridtools {
              *  `shift` overload, default version
              */
             template <class T, class Stride, class Offset, class Decayed = std::decay_t<Stride>>
-            GT_FUNCTION std::enable_if_t<
+            constexpr std::enable_if_t<
                 need_shift<T, Decayed, Offset>::value && is_default_shiftable<T, Decayed>::value &&
                 !(is_integral_constant<Decayed>::value && is_integral_constant<Offset>::value) &&
                 !(is_integral_constant_of<Decayed, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
                 !(has_dec_assignment<T, Decayed>::value &&
                     (is_integral_constant_of<Decayed, -1>::value || is_integral_constant_of<Offset, -1>::value))>
             shift(T &obj, Stride &&stride, Offset offset) {
-                obj += wstd::forward<Stride>(stride) * offset;
+                obj += std::forward<Stride>(stride) * offset;
             }
 
             // END `shift` PART
@@ -611,7 +611,8 @@ namespace gridtools {
                 class UpperBoundsType = upper_bounds_type<Sid>>
             using is_sid = std::conjunction<
 
-                // `is_trivially_copy_constructible` check is applied to the types that are will be passed from host to device
+                // `is_trivially_copy_constructible` check is applied to the types that are will be passed from host to
+                // device
                 std::is_trivially_copy_constructible<PtrHolder>,
                 std::is_trivially_copy_constructible<StridesType>,
 
@@ -692,8 +693,8 @@ namespace gridtools {
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <class Key, class Strides>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride(Strides &&strides) {
-            return gridtools::host_device::at_key_with_default<Key, default_stride>(wstd::forward<Strides>(strides));
+        constexpr decltype(auto) get_stride(Strides &&strides) {
+            return at_key_with_default<Key, default_stride>(std::forward<Strides>(strides));
         }
 
         /**
@@ -704,16 +705,15 @@ namespace gridtools {
             class Dim,
             class Strides,
             std::enable_if_t<has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION decltype(auto) get_stride_element(Strides &&strides) {
-            return gridtools::host_device::at_key<Key>(
-                gridtools::host_device::at_key<Dim>(wstd::forward<Strides>(strides)));
+        constexpr decltype(auto) get_stride_element(Strides &&strides) {
+            return at_key<Key>(at_key<Dim>(std::forward<Strides>(strides)));
         }
 
         template <class Key,
             class Dim,
             class Strides,
             std::enable_if_t<!has_key<std::decay_t<Strides>, Dim>::value, int> = 0>
-        GT_CONSTEXPR GT_FUNCTION integral_constant<int_t, 0> get_stride_element(Strides &&) {
+        constexpr integral_constant<int_t, 0> get_stride_element(Strides &&) {
             return {};
         }
 
@@ -724,17 +724,17 @@ namespace gridtools {
          */
         template <class Key, class Bounds>
         decltype(auto) get_lower_bound(Bounds &&bounds) {
-            return gridtools::host_device::at_key_with_default<Key,
-                integral_constant<int_t, std::numeric_limits<int_t>::min()>>(wstd::forward<Bounds>(bounds));
+            return at_key_with_default<Key, integral_constant<int_t, std::numeric_limits<int_t>::min()>>(
+                std::forward<Bounds>(bounds));
         }
         template <class Key, class Bounds>
         decltype(auto) get_upper_bound(Bounds &&bounds) {
-            return gridtools::host_device::at_key_with_default<Key,
-                integral_constant<int_t, std::numeric_limits<int_t>::max()>>(wstd::forward<Bounds>(bounds));
+            return at_key_with_default<Key, integral_constant<int_t, std::numeric_limits<int_t>::max()>>(
+                std::forward<Bounds>(bounds));
         }
 
         template <class T, class Stride, class Offset>
-        GT_FUNCTION T shifted(T obj, Stride const &stride, Offset offset) {
+        constexpr T shifted(T obj, Stride const &stride, Offset offset) {
             shift(obj, stride, offset);
             return obj;
         }

@@ -113,7 +113,7 @@ namespace gridtools {
 
         TEST(transform, gt_array) {
             auto src = gridtools::array{42, 5};
-            auto res = host_device::transform(add_2_f{}, src);
+            auto res = transform(add_2_f{}, src);
             static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
             EXPECT_THAT(res, testing::ElementsAre(44, 7));
         }

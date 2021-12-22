@@ -58,7 +58,7 @@ namespace gridtools {
 
             template <class Backend, class StorageTraits, class Id = void, class T, class... Dims>
             auto make_reducible(T const &neutral_value, Dims... dims) {
-                auto alloc = sid::host_device::make_cached_allocator(
+                auto alloc = sid::cached_allocator(
                     [](size_t size) { return storage::traits::allocate<StorageTraits, char>(size); });
                 auto lengths = tuple(dims...);
                 auto info = storage::traits::make_info<StorageTraits, T>(lengths);

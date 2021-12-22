@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include <utility>
+#include <type_traits>
+
 #include "array.hpp"
 #include "defs.hpp"
 #include "host_device.hpp"
@@ -92,9 +95,9 @@ namespace gridtools {
         std::enable_if_t<OuterD != 0 && meta::all_of<impl_::is_pair_like, tuple_util::traits::to_types<Decayed>>::value,
             int> = 0>
     GT_FUNCTION impl_::hypercube_view<OuterD> make_hypercube_view(Container &&cube) {
-        auto &&transposed = tuple_util::host_device::transpose(wstd::forward<Container>(cube));
-        return {tuple_util::host_device::convert_to<array, size_t>(tuple_util::host_device::get<0>(transposed)),
-            tuple_util::host_device::convert_to<array, size_t>(tuple_util::host_device::get<1>(transposed))};
+        auto &&transposed = tuple_util::transpose(std::forward<Container>(cube));
+        return {tuple_util::convert_to<array, size_t>(tuple_util::get<0>(transposed)),
+            tuple_util::convert_to<array, size_t>(tuple_util::get<1>(transposed))};
     }
 
     /**
@@ -117,6 +120,6 @@ namespace gridtools {
         std::enable_if_t<D != 0 && meta::all_of<impl_::is_size_t_like, tuple_util::traits::to_types<Decayed>>::value,
             int> = 0>
     GT_FUNCTION impl_::hypercube_view<D> make_hypercube_view(Container &&sizes) {
-        return {tuple_util::host_device::convert_to<array, size_t>(wstd::forward<Container>(sizes))};
+        return {tuple_util::convert_to<array, size_t>(std::forward<Container>(sizes))};
     }
 } // namespace gridtools

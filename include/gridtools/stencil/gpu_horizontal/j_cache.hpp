@@ -90,20 +90,19 @@ namespace gridtools {
 
                   public:
                     GT_FUNCTION_DEVICE auto ptr() {
-                        return tuple_util::device::transform(
+                        return tuple_util::transform(
                             [](auto &storage) GT_FORCE_INLINE_LAMBDA { return storage.ptr(); }, m_storages);
                     }
 
                     GT_FUNCTION_DEVICE void slide() {
-                        tuple_util::device::for_each(
-                            [](auto &storage) GT_FORCE_INLINE_LAMBDA { storage.slide(); }, m_storages);
+                        tuple_util::for_each([](auto &storage) GT_FORCE_INLINE_LAMBDA { storage.slide(); }, m_storages);
                     }
 
                     template <class Ptr, class Dim, class Offset>
                     static GT_FUNCTION_DEVICE void shift(Dim, Ptr &ptr, Offset offset) {
                         using strides_t =
                             meta::rename<tuple, meta::transform<get_stride_f<Dim>::template apply, Storages>>;
-                        tuple_util::device::for_each(
+                        tuple_util::for_each(
                             [offset](auto &ptr, auto stride) { sid::shift(ptr, stride, offset); }, ptr, strides_t());
                     }
                 };

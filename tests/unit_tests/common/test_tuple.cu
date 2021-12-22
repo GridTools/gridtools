@@ -21,16 +21,16 @@
 namespace gridtools {
     TEST(tuple, get) {
         tuple<int, double> src{42, 2.5};
-        EXPECT_EQ(42, on_device::exec(tuple_util::host_device::get_nth_f<0>{}, src));
-        EXPECT_EQ(2.5, on_device::exec(tuple_util::host_device::get_nth_f<1>{}, src));
+        EXPECT_EQ(42, on_device::exec(tuple_util::get_nth_f<0>{}, src));
+        EXPECT_EQ(2.5, on_device::exec(tuple_util::get_nth_f<1>{}, src));
     }
 
     __device__ tuple<int, double> element_wise_ctor(int x, double y) { return {x, y}; }
 
     TEST(tuple, element_wise_ctor) {
         tuple<int, double> testee = on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&element_wise_ctor), 42, 2.5);
-        EXPECT_EQ(42, tuple_util::host::get<0>(testee));
-        EXPECT_EQ(2.5, tuple_util::host::get<1>(testee));
+        EXPECT_EQ(42, tuple_util::get<0>(testee));
+        EXPECT_EQ(2.5, tuple_util::get<1>(testee));
     }
 
 #if defined(__clang__) && (__clang_major__ == 11 && __clang_minor__ == 0 && __clang_patchlevel__ == 0)
@@ -41,8 +41,8 @@ namespace gridtools {
     TEST(tuple, element_wise_conversion_ctor) {
         tuple<int, double> testee =
             on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&element_wise_conversion_ctor), 'a', 'b');
-        EXPECT_EQ('a', tuple_util::host::get<0>(testee));
-        EXPECT_EQ('b', tuple_util::host::get<1>(testee));
+        EXPECT_EQ('a', tuple_util::get<0>(testee));
+        EXPECT_EQ('b', tuple_util::get<1>(testee));
     }
 
     __device__ tuple<int, double> tuple_conversion_ctor(tuple<char, char> const &src) { return src; }
@@ -50,8 +50,8 @@ namespace gridtools {
     TEST(tuple, tuple_conversion_ctor) {
         tuple<int, double> testee =
             on_device::exec(GT_MAKE_INTEGRAL_CONSTANT_FROM_VALUE(&tuple_conversion_ctor), tuple<char, char>{'a', 'b'});
-        EXPECT_EQ('a', tuple_util::host::get<0>(testee));
-        EXPECT_EQ('b', tuple_util::host::get<1>(testee));
+        EXPECT_EQ('a', tuple_util::get<0>(testee));
+        EXPECT_EQ('b', tuple_util::get<1>(testee));
     }
 #endif
 } // namespace gridtools

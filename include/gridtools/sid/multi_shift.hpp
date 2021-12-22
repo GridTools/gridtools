@@ -10,6 +10,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
@@ -27,8 +28,7 @@ namespace gridtools {
                 template <class Ptr, class Strides, class Offsets>
                 GT_FUNCTION for_each_dim(Ptr &ptr, Strides const &strides, Offsets offsets) {
                     using array_t = int[sizeof...(Dims)];
-                    (void)array_t{
-                        (shift(ptr, get_stride<Dims>(strides), gridtools::host_device::at_key<Dims>(offsets)), 0)...};
+                    (void)array_t{(shift(ptr, get_stride<Dims>(strides), at_key<Dims>(offsets)), 0)...};
                 }
             };
 
@@ -45,18 +45,8 @@ namespace gridtools {
             struct for_each_dim_a<Arg, L<Dims...>> {
                 template <class Ptr, class Strides, class Offsets>
                 GT_FUNCTION for_each_dim_a(Ptr &ptr, Strides const &strides, Offsets offsets) {
-                    using array_t = int[sizeof...(Dims)];
-                    (void)array_t{(
-                        shift(
-                            ptr, get_stride_element<Arg, Dims>(strides), gridtools::host_device::at_key<Dims>(offsets)),
-                        0)...};
+                    (..., shift(ptr, get_stride_element<Arg, Dims>(strides), at_key<Dims>(offsets)));
                 }
-            };
-
-            template <class Arg, template <class...> class L>
-            struct for_each_dim_a<Arg, L<>> {
-                template <class Ptr, class Strides, class Offsets>
-                GT_FUNCTION for_each_dim_a(Ptr &ptr, Strides const &strides, Offsets offsets) {}
             };
         } // namespace multi_shift_impl_
 
@@ -66,12 +56,12 @@ namespace gridtools {
          */
         template <class Ptr, class Strides, class Offsets>
         GT_FUNCTION void multi_shift(Ptr &ptr, Strides const &strides, Offsets offsets) {
-            multi_shift_impl_::for_each_dim<get_keys<Offsets>>(ptr, strides, wstd::move(offsets));
+            multi_shift_impl_::for_each_dim<get_keys<Offsets>>(ptr, strides, std::move(offsets));
         }
 
         template <class Ptr, class Strides, class Offsets>
         GT_FUNCTION Ptr multi_shifted(Ptr ptr, Strides const &strides, Offsets offsets) {
-            multi_shift(ptr, strides, wstd::move(offsets));
+            multi_shift(ptr, strides, std::move(offsets));
             return ptr;
         }
 
@@ -80,12 +70,12 @@ namespace gridtools {
          */
         template <class Arg, class Ptr, class Strides, class Offsets>
         GT_FUNCTION void multi_shift(Ptr &ptr, Strides const &strides, Offsets offsets) {
-            multi_shift_impl_::for_each_dim_a<Arg, get_keys<Offsets>>(ptr, strides, wstd::move(offsets));
+            multi_shift_impl_::for_each_dim_a<Arg, get_keys<Offsets>>(ptr, strides, std::move(offsets));
         }
 
         template <class Arg, class Ptr, class Strides, class Offsets>
         GT_FUNCTION Ptr multi_shifted(Ptr ptr, Strides const &strides, Offsets offsets) {
-            multi_shift<Arg>(ptr, strides, wstd::move(offsets));
+            multi_shift<Arg>(ptr, strides, std::move(offsets));
             return ptr;
         }
     } // namespace sid

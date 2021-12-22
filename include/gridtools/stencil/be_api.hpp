@@ -192,7 +192,7 @@ namespace gridtools {
 
                 template <class Deref = void, class Ptr, class Strides>
                 GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
-                    host_device::for_each<Funs>(run_f<Deref, Ptr, Strides>{ptr, strides});
+                    for_each<Funs>(run_f<Deref, Ptr, Strides>{ptr, strides});
                 }
 
                 template <class Ptr, class Strides>

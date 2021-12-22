@@ -55,7 +55,7 @@ namespace gridtools {
         static_assert(std::is_same<tuple_util::element<1, tuple<int, char, double, char>>, char>(), "");
         static_assert(std::is_same<tuple_util::element<0, tuple<int>>, int>(), "");
 
-        using tuple_util::host_device::get;
+        using tuple_util::get;
 
         TEST(tuple, get) {
             tuple<int, double, an_empty<59>> testee;

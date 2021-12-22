@@ -30,9 +30,6 @@
 #elif defined(__GNUC__)
 #define GT_FORCE_INLINE inline __attribute__((always_inline))
 #define GT_FORCE_INLINE_LAMBDA __attribute__((always_inline))
-#elif defined(_MSC_VER)
-#define GT_FORCE_INLINE inline __forceinline
-#define GT_FORCE_INLINE_LAMBDA
 #else
 #define GT_FORCE_INLINE inline
 #define GT_FORCE_INLINE_LAMBDA
@@ -49,11 +46,6 @@
 /**
  * @def GT_FUNCTION_DEVICE
  * Function attribute macro to be used for device-only functions.
- */
-/**
- * @def GT_FUNCTION_WARNING
- * Function attribute macro to be used for host-only functions that might call a host-device
- * function. This macro is only needed to supress NVCC warnings.
  */
 
 #ifdef GT_CUDACC
@@ -72,10 +64,6 @@
 
 #ifndef GT_FUNCTION
 #define GT_FUNCTION GT_HOST_DEVICE GT_FORCE_INLINE
-#endif
-
-#ifndef GT_FUNCTION_WARNING
-#define GT_FUNCTION_WARNING GT_HOST_DEVICE GT_FORCE_INLINE
 #endif
 
 #ifndef GT_FUNCTION_HOST

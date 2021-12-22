@@ -53,7 +53,7 @@ namespace gridtools {
 
                 template <class Validator>
                 GT_FUNCTION_DEVICE void operator()(int_t i_block, int_t j_block, Validator const &validator) const {
-                    (void)(int[]){(tuple_util::device::get<Is>(m_funs)(i_block, j_block, validator), 0)...};
+                    (void)(int[]){(tuple_util::get<Is>(m_funs)(i_block, j_block, validator), 0)...};
                 }
             };
 
@@ -243,7 +243,7 @@ namespace gridtools {
 
                 template <class Msses, class Grid, class DataStores>
                 static void entry_point(Grid const &grid, DataStores external_data_stores) {
-                    auto cuda_alloc = sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char[]>);
+                    auto cuda_alloc = sid::cached_allocator(&cuda_util::cuda_malloc<char[]>);
                     auto data_stores = hymap::concat(
                         block(std::move(external_data_stores)), make_temporaries<Msses>(grid, cuda_alloc));
                     using const_keys_t =

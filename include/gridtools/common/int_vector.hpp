@@ -49,7 +49,7 @@ namespace gridtools {
         struct add_f {
             template <class... Ts>
             GT_FUNCTION GT_CONSTEXPR decltype(auto) operator()(Ts const &...args) const {
-                return (host_device::at_key_with_default<Key, integral_constant<int, 0>>(args) + ...);
+                return (at_key_with_default<Key, integral_constant<int, 0>>(args) + ...);
             }
         };
 
@@ -60,7 +60,7 @@ namespace gridtools {
         struct at_key_f {
             template <class T>
             GT_FUNCTION GT_CONSTEXPR decltype(auto) operator()(T const &arg) const {
-                return host_device::at_key<Key>(arg);
+                return at_key<Key>(arg);
             }
         };
 
@@ -103,7 +103,7 @@ namespace gridtools {
             using merged_meta_map_t = meta::mp_make<impl_::merger_t, meta::concat<hymap::to_meta_map<Vecs>...>>;
             using keys_t = meta::transform<meta::first, merged_meta_map_t>;
             using generators = meta::transform<impl_::add_f, keys_t>;
-            return tuple_util::host_device::generate<generators, hymap::from_meta_map<merged_meta_map_t>>(
+            return tuple_util::generate<generators, hymap::from_meta_map<merged_meta_map_t>>(
                 wstd::forward<Vecs>(vecs)...);
         }
 
@@ -112,7 +112,7 @@ namespace gridtools {
          */
         template <class Vec, class Scalar>
         GT_FUNCTION GT_CONSTEXPR auto multiply(Vec && vec, Scalar scalar) {
-            return tuple_util::host_device::transform([scalar](auto v) { return v * scalar; }, wstd::forward<Vec>(vec));
+            return tuple_util::transform([scalar](auto v) { return v * scalar; }, wstd::forward<Vec>(vec));
         }
 
         /**
@@ -123,8 +123,7 @@ namespace gridtools {
             using filtered_map_t = meta::filter<meta::not_<impl_::is_constant_zero>::apply, hymap::to_meta_map<Vec>>;
             using keys_t = meta::transform<meta::first, filtered_map_t>;
             using generators = meta::transform<impl_::at_key_f, keys_t>;
-            return tuple_util::host_device::generate<generators, hymap::from_meta_map<filtered_map_t>>(
-                wstd::forward<Vec>(vec));
+            return tuple_util::generate<generators, hymap::from_meta_map<filtered_map_t>>(wstd::forward<Vec>(vec));
         }
 
         namespace arithmetic {

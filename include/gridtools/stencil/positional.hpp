@@ -23,14 +23,14 @@ namespace gridtools {
         struct positional {
             int_t m_val;
 
-            GT_FUNCTION positional(int_t val = 0) : m_val{val} {}
+            GT_FORCE_INLINE constexpr positional(int_t val = 0) : m_val{val} {}
 
-            GT_FUNCTION int operator*() const { return m_val; }
-            GT_FUNCTION positional const &operator()() const { return *this; }
+            GT_FORCE_INLINE constexpr int operator*() const { return m_val; }
+            GT_FORCE_INLINE constexpr positional const &operator()() const { return *this; }
         };
 
         template <class Dim>
-        GT_FUNCTION positional<Dim> operator+(positional<Dim> lhs, positional<Dim> rhs) {
+        GT_FORCE_INLINE constexpr positional<Dim> operator+(positional<Dim> lhs, positional<Dim> rhs) {
             return {lhs.m_val + rhs.m_val};
         }
 
@@ -40,7 +40,7 @@ namespace gridtools {
         }
 
         template <class Dim>
-        GT_FUNCTION void sid_shift(positional<Dim> &p, positional_stride, int_t offset) {
+        GT_FORCE_INLINE constexpr void sid_shift(positional<Dim> &p, positional_stride, int_t offset) {
             p.m_val += offset;
         }
 

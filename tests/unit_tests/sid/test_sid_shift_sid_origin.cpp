@@ -28,14 +28,14 @@ namespace gridtools {
             double data[3][5][7];
 
             auto src = sid::synthetic()
-                           .set<property::origin>(sid::make_simple_ptr_holder(&data[0][0][0]))
+                           .set<property::origin>(sid::simple_ptr_holder(&data[0][0][0]))
                            .set<property::strides>(tuple(5_c * 7_c, 7_c, 1_c))
                            .set<property::upper_bounds>(tuple(3));
 
             auto offset = tuple(1_c, 2);
             auto testee = sid::shift_sid_origin(src, offset);
 
-            static_assert(is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>());
 
             EXPECT_EQ(&data[0][0][0], sid::get_origin(src)());
             EXPECT_EQ(&data[1][2][0], sid::get_origin(testee)());

@@ -48,7 +48,7 @@
 #define GT_TARGET_NAMESPACE_NAME host_device
 #define GT_TARGET_NAMESPACE namespace host_device
 #define GT_TARGET GT_HOST_DEVICE
-#define GT_TARGET_CONSTEXPR
+#define GT_TARGET_CONSTEXPR constexpr
 #define GT_TARGET_HAS_DEVICE
 #include GT_FILENAME
 #undef GT_TARGET_HAS_DEVICE
@@ -61,13 +61,13 @@
 #define GT_TARGET_NAMESPACE namespace device
 #define GT_TARGET GT_DEVICE
 #define GT_TARGET_HAS_DEVICE
-#define GT_TARGET_CONSTEXPR
+#define GT_TARGET_CONSTEXPR constexpr
 #include GT_FILENAME
 #undef GT_TARGET_HAS_DEVICE
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE
 #undef GT_TARGET_NAMESPACE_NAME
-#undef GT_TARGET_CONSTEXPR
+#undef GT_TARGET_CONSTEXPR 
 
 #else
 

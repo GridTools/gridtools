@@ -65,7 +65,7 @@ namespace gridtools {
 
                     template <class Ptrs>
                     GT_FUNCTION int_t get_k_pos(Ptrs const &ptrs) {
-                        return *host_device::at_key<meta::list<k_pos_key>>(ptrs);
+                        return *at_key<meta::list<k_pos_key>>(ptrs);
                     }
 
                     template <class PlhInfo, class Ptr, class Strides, class Offset>
@@ -81,12 +81,12 @@ namespace gridtools {
 
                     template <class PlhInfo, class Ptrs>
                     GT_FUNCTION auto get_orig(Ptrs const &ptrs) {
-                        return host_device::at_key<meta::list<typename PlhInfo::plh_t>>(ptrs);
+                        return at_key<meta::list<typename PlhInfo::plh_t>>(ptrs);
                     }
 
                     template <class PlhInfo, class Ptrs>
                     GT_FUNCTION auto get_cached(Ptrs const &ptrs) {
-                        return host_device::at_key<typename PlhInfo::key_t>(ptrs);
+                        return at_key<typename PlhInfo::key_t>(ptrs);
                     }
 
                     template <class PlhInfo,
@@ -130,7 +130,7 @@ namespace gridtools {
                             using namespace literals;
                             auto orig = get_orig<PlhInfo>(ptrs);
                             auto cached = get_cached<PlhInfo>(ptrs);
-                            auto lim = *host_device::at_key<bound_key_t>(ptrs);
+                            auto lim = *at_key<bound_key_t>(ptrs);
 
                             using from_t = meta::if_c<Range == range::plus,
                                 typename PlhInfo::extent_t::kplus,
@@ -138,7 +138,7 @@ namespace gridtools {
 
                             shift_orig<PlhInfo>(orig, strides, from_t());
                             shift_cached<PlhInfo>(cached, strides, from_t());
-                            int_t k = *host_device::at_key<pos_key_t>(ptrs) + from_t::value;
+                            int_t k = *at_key<pos_key_t>(ptrs) + from_t::value;
 
                             static constexpr int_t size = Range == range::all ? PlhInfo::extent_t::kplus::value -
                                                                                     PlhInfo::extent_t::kminus::value + 1
@@ -258,14 +258,15 @@ namespace gridtools {
                             !sync_all || std::is_same<meta::first<CurInterval>, meta::second<CurInterval>>::value,
                             "offset_limit too small");
 
-                        static constexpr range range_v =
-                            minus == plus ? range::minus
-                                          : sync_all ? range::all : is_forward == is_fill ? range::plus : range::minus;
+                        static constexpr range range_v = minus == plus           ? range::minus
+                                                         : sync_all              ? range::all
+                                                         : is_forward == is_fill ? range::plus
+                                                                                 : range::minus;
 
-                        static constexpr check check_v =
-                            minus == plus || PlhInfo::is_tmp_t::value
-                                ? check::none
-                                : close_to_first ? check::lo : close_to_last ? check::hi : check::none;
+                        static constexpr check check_v = minus == plus || PlhInfo::is_tmp_t::value ? check::none
+                                                         : close_to_first                          ? check::lo
+                                                         : close_to_last                           ? check::hi
+                                                                                                   : check::none;
 
                         using type = sync_fun<PlhInfo, range_v, check_v>;
                     };

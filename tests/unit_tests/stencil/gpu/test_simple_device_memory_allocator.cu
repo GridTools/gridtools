@@ -31,7 +31,7 @@ namespace gridtools {
         __global__ void test_allocated(PtrHolder testee, bool *result) {}
 
         TEST(simple_device_memory_allocator, test) {
-            sid::device::allocator<GT_INTEGRAL_CONSTANT_FROM_VALUE(&cuda_util::cuda_malloc<char[]>)> alloc;
+            sid::allocator<GT_INTEGRAL_CONSTANT_FROM_VALUE(&cuda_util::cuda_malloc<char[]>)> alloc;
             auto ptr_holder = allocate(alloc, meta::lazy::id<double>{}, 1);
 
             auto result = gridtools::on_device::exec(

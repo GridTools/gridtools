@@ -54,7 +54,7 @@ namespace gridtools {
             struct bounds_validator_kind;
 
             struct testee {
-                friend sid::host_device::simple_ptr_holder<ptr> sid_get_origin(testee &) { return {}; }
+                friend sid::simple_ptr_holder<ptr> sid_get_origin(testee &) { return {}; }
                 friend strides sid_get_strides(testee const &) { return {}; }
 
                 friend ptr_diff sid_get_ptr_diff(testee);
@@ -86,7 +86,7 @@ namespace gridtools {
         namespace fallbacks {
 
             struct testee {
-                friend sid::host_device::simple_ptr_holder<testee *> sid_get_origin(testee &obj) { return {&obj}; }
+                friend sid::simple_ptr_holder<testee *> sid_get_origin(testee &obj) { return {&obj}; }
             };
 
             static_assert(is_sid<testee>(), "");
@@ -149,7 +149,7 @@ namespace gridtools {
 
             struct testee {};
 
-            sid::host_device::simple_ptr_holder<testee *> sid_get_origin(testee &obj) { return {&obj}; }
+            sid::simple_ptr_holder<testee *> sid_get_origin(testee &obj) { return {&obj}; }
             tuple<stride> sid_get_strides(testee const &) { return {}; }
             GT_FUNCTION int operator*(stride, int) { return 100; }
             integral_constant<int, 42> sid_get_strides_kind(testee const &);
