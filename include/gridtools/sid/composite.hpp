@@ -22,7 +22,6 @@
 #include "../common/hymap.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
-#include "../common/utility.hpp"
 #include "../meta.hpp"
 #include "concept.hpp"
 #include "unknown_kind.hpp"
@@ -117,9 +116,9 @@ namespace gridtools {
                     ObjTup &obj_tup, StrideTup &&stride_tup, Offset offset) {
                     tuple_util::for_each(
                         [offset](auto &obj, auto &&stride)
-                            GT_FORCE_INLINE_LAMBDA { shift(obj, wstd::forward<decltype(stride)>(stride), offset); },
+                            GT_FORCE_INLINE_LAMBDA { shift(obj, std::forward<decltype(stride)>(stride), offset); },
                         obj_tup,
-                        wstd::forward<StrideTup>(stride_tup));
+                        std::forward<StrideTup>(stride_tup));
                 }
 
                 template <class Key, class Strides, class I = meta::st_position<get_keys<Strides>, Key>>
@@ -189,11 +188,11 @@ namespace gridtools {
                 template <class... Args,
                     std::enable_if_t<std::conjunction_v<std::is_constructible<Ptrs, Args>...>, int> = 0>
                 GT_FORCE_INLINE constexpr composite_ptr(Args &&...args) noexcept
-                    : m_vals{wstd::forward<Args>(args)...} {}
+                    : m_vals{std::forward<Args>(args)...} {}
 
                 GT_FORCE_INLINE constexpr composite_ptr(Ptrs const &...args) noexcept : m_vals(args...) {}
 
-                GT_FORCE_INLINE constexpr composite_ptr(tuple<Ptrs...> &&args) noexcept : m_vals(wstd::move(args)) {}
+                GT_FORCE_INLINE constexpr composite_ptr(tuple<Ptrs...> &&args) noexcept : m_vals(std::move(args)) {}
                 GT_FORCE_INLINE constexpr composite_ptr(tuple<Ptrs...> const &args) noexcept : m_vals(args) {}
 
                 composite_ptr() = default;
@@ -252,7 +251,7 @@ namespace gridtools {
 
                 GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
 
-                GT_FUNCTION constexpr auto operator()() const {
+                GT_FORCE_INLINE constexpr auto operator()() const {
                     return tuple_util::apply(
                         [](auto const &...holders) {
                             return composite_ptr<std::decay_t<decltype(holders())>...>(holders()...);
@@ -299,7 +298,7 @@ namespace gridtools {
                     class Item = meta::mp_find<Map, std::integral_constant<size_t, I>>,
                     class Pos = meta::second<Item>>
                 static GT_FORCE_INLINE constexpr decltype(auto) get(T &&obj) {
-                    return tuple_util::get<Pos::value>(wstd::forward<T>(obj).m_vals);
+                    return tuple_util::get<Pos::value>(std::forward<T>(obj).m_vals);
                 }
 
                 template <class... Ts>
@@ -348,7 +347,7 @@ namespace gridtools {
                     template <class... Ptrs, class Offset>
                     friend GT_FORCE_INLINE constexpr void sid_shift(
                         composite_ptr<Ptrs...> &ptr, composite_entity &&stride, Offset offset) {
-                        impl_::composite_shift_impl(ptr.m_vals, wstd::move(stride), offset);
+                        impl_::composite_shift_impl(ptr.m_vals, std::move(stride), offset);
                     }
 
                     friend keys hymap_get_keys(composite_entity const &) { return {}; }
@@ -364,7 +363,7 @@ namespace gridtools {
                 template <class... PtrDiffs, class... Strides, class Offset>
                 friend GT_FORCE_INLINE constexpr void sid_shift(
                     composite_entity<PtrDiffs...> &ptr_diff, composite_entity<Strides...> &&stride, Offset offset) {
-                    impl_::composite_shift_impl(ptr_diff.m_vals, wstd::move(stride.m_vals), offset);
+                    impl_::composite_shift_impl(ptr_diff.m_vals, std::move(stride.m_vals), offset);
                 }
 
                 struct convert_f {
@@ -382,11 +381,10 @@ namespace gridtools {
                 static_assert(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 1
 #else
-                static_assert(std::conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
+                static_assert(std::conjunction_v<is_sid<Sids>...>, GT_INTERNAL_ERROR);
 #endif
                 static_assert(meta::all<meta::mp_make<impl_::check_strides_of_the_same_kind,
-                                  meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>(),
-                    "");
+                        meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>());
 
                 tuple<Sids...> m_sids;
 

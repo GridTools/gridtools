@@ -21,7 +21,7 @@ namespace gridtools {
         template <template <class...> class L>
         struct maker {
             template <class... Args>
-            constexpr GT_FUNCTION L<Args...> operator()(Args const &...args) const {
+            GT_FORCE_INLINE constexpr L<Args...> operator()(Args const &...args) const {
                 return {args...};
             }
         };

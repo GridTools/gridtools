@@ -26,8 +26,6 @@ namespace gridtools {
 #endif
 #endif
 
-#define GT_CONSTEXPR constexpr
-
 #ifdef __cpp_consteval
 #define GT_CONSTEVAL consteval
 #else

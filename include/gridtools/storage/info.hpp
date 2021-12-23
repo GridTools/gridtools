@@ -91,7 +91,7 @@ namespace gridtools {
             class info<Lengths, Strides, std::index_sequence<Dims...>> : tuple<Lengths, Strides> {
                 static_assert(tuple_util::size<Lengths>::value == tuple_util::size<Strides>::value, GT_INTERNAL_ERROR);
 
-                GT_FUNCTION tuple<Lengths, Strides> const &base() const { return *this; }
+                GT_FORCE_INLINE constexpr tuple<Lengths, Strides> const &base() const { return *this; }
 
               public:
                 static constexpr size_t ndims = tuple_util::size<Lengths>::value;
@@ -99,19 +99,19 @@ namespace gridtools {
                 info(Lengths lengths, Strides strides)
                     : tuple<Lengths, Strides>{std::move(lengths), std::move(strides)} {}
 
-                GT_FUNCTION auto const &native_lengths() const { return tuple_util::get<0>(base()); }
-                GT_FUNCTION auto const &native_strides() const { return tuple_util::get<1>(base()); }
-                GT_FUNCTION int length() const {
+                GT_FORCE_INLINE constexpr auto const &native_lengths() const { return tuple_util::get<0>(base()); }
+                GT_FORCE_INLINE constexpr auto const &native_strides() const { return tuple_util::get<1>(base()); }
+                GT_FORCE_INLINE constexpr int length() const {
                     using tuple_util::get;
                     bool is_empty = false;
                     for (auto empty_dim : {(get<Dims>(native_lengths()) == 0)...})
                         is_empty = is_empty || empty_dim;
                     return is_empty ? 0 : index((get<Dims>(native_lengths()) - integral_constant<int_t, 1>())...) + 1;
                 }
-                GT_FUNCTION array<uint_t, ndims> lengths() const {
+                GT_FORCE_INLINE constexpr array<uint_t, ndims> lengths() const {
                     return {(uint_t)tuple_util::get<Dims>(native_lengths())...};
                 }
-                GT_FUNCTION array<uint_t, ndims> strides() const {
+                GT_FORCE_INLINE constexpr array<uint_t, ndims> strides() const {
                     return {(uint_t)tuple_util::get<Dims>(native_strides())...};
                 }
 
@@ -119,12 +119,12 @@ namespace gridtools {
                     std::enable_if_t<sizeof...(Is) == ndims &&
                                          std::conjunction<std::is_convertible<Is, int_t>...>::value,
                         int> = 0>
-                GT_FUNCTION auto index(Is... indices) const {
+                GT_FORCE_INLINE constexpr auto index(Is... indices) const {
                     return index_from_tuple(tuple(indices...));
                 }
 
                 template <class Indices>
-                GT_FUNCTION auto index_from_tuple(Indices &&indices) const {
+                GT_FORCE_INLINE constexpr auto index_from_tuple(Indices &&indices) const {
                     using namespace tuple_util;
 #ifndef NDEBUG
                     tuple_util::for_each(

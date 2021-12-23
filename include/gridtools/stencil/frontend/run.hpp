@@ -125,7 +125,7 @@ namespace gridtools {
                     static_assert(meta::is_set<meta::list<Args...>>::value, "Duplicated arguments.");
                     static_assert(
                         meta::is_set<meta::list<typename Caches::plh_t..., Args...>>::value, "Duplicated caches.");
-                    static_assert(std::conjunction<core::is_tmp_arg<Args>...>::value,
+                    static_assert(std::conjunction_v<core::is_tmp_arg<Args>...>,
                         "Only temporary args can be K-cached without fill or flush policies.");
                     return {};
                 }
@@ -239,7 +239,7 @@ namespace gridtools {
             }
 
             template <class Comp, class Backend, class Grid, class... Fields>
-            void run(Comp comp, Backend &&be, Grid const &grid, Fields &&... fields) {
+            void run(Comp comp, Backend &&be, Grid const &grid, Fields &&...fields) {
                 static_assert(
                     std::conjunction<is_sid<Fields>...>::value, "All computation fields must satisfy SID concept.");
                 run_impl(comp,
@@ -250,7 +250,7 @@ namespace gridtools {
             }
 
             template <class F, class Backend, class Grid, class... Fields>
-            void run_single_stage(F, Backend &&be, Grid const &grid, Fields &&... fields) {
+            void run_single_stage(F, Backend &&be, Grid const &grid, Fields &&...fields) {
                 return run([](auto... args) { return execute_parallel().stage(F(), args...); },
                     std::forward<Backend>(be),
                     grid,

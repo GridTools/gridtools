@@ -36,15 +36,15 @@ namespace intervals {
 
     template <class T, uint_t FromSplitter, int_t FromOffset, uint_t ToSplitter, int_t ToOffset>
     constexpr bool testee =
-        std::is_same<T, interval<level_t<FromSplitter, FromOffset>, level_t<ToSplitter, ToOffset>>>::value;
+        std::is_same_v<T, interval<level_t<FromSplitter, FromOffset>, level_t<ToSplitter, ToOffset>>>;
 
     // full interval
-    static_assert(testee<axis_t::full_interval, 0, 1, 3, -1>, "");
+    static_assert(testee<axis_t::full_interval, 0, 1, 3, -1>);
 
     // intervals by id
-    static_assert(testee<axis_t::get_interval<0>, 0, 1, 1, -1>, "");
-    static_assert(testee<axis_t::get_interval<1>, 1, 1, 2, -1>, "");
+    static_assert(testee<axis_t::get_interval<0>, 0, 1, 1, -1>);
+    static_assert(testee<axis_t::get_interval<1>, 1, 1, 2, -1>);
 
     // hull of multiple intervals
-    static_assert(testee<axis_t::get_interval<1, 2>, 1, 1, 3, -1>, "");
+    static_assert(testee<axis_t::get_interval<1, 2>, 1, 1, 3, -1>);
 } // namespace intervals

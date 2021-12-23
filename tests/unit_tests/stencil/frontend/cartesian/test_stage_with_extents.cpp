@@ -34,12 +34,12 @@ namespace gridtools {
                                           .stage(stage(), c(), d());
 
                 template <class Arg, int_t... Is>
-                constexpr bool testee = std::is_same<decltype(get_arg_extent(spec, Arg())), extent<Is...>>::value;
+                constexpr bool testee = std::is_same_v<decltype(get_arg_extent(spec, Arg())), extent<Is...>>;
 
-                static_assert(testee<a, -6, 6>, "");
-                static_assert(testee<b, -5, 5>, "");
-                static_assert(testee<c, -3, 3>, "");
-                static_assert(testee<d>, "");
+                static_assert(testee<a, -6, 6>);
+                static_assert(testee<b, -5, 5>);
+                static_assert(testee<c, -3, 3>);
+                static_assert(testee<d>);
             } // namespace
         }     // namespace cartesian
     }         // namespace stencil

@@ -34,10 +34,10 @@ namespace gridtools {
 
         TEST(composite, empty) {
             using testee_t = sid::composite::keys<>::values<>;
-            static_assert(is_sid<testee_t>(), "");
-            static_assert(tu::size<sid::strides_type<testee_t>>::value == 0, "");
-            static_assert(tu::size<sid::ptr_holder_type<testee_t>>::value == 0, "");
-            static_assert(tu::size<sid::ptr_type<testee_t>>::value == 0, "");
+            static_assert(is_sid<testee_t>());
+            static_assert(tu::size<sid::strides_type<testee_t>>::value == 0);
+            static_assert(tu::size<sid::ptr_holder_type<testee_t>>::value == 0);
+            static_assert(tu::size<sid::ptr_type<testee_t>>::value == 0);
             testee_t testee;
             sid::get_strides(testee);
             *sid::get_origin(testee)();
@@ -62,7 +62,7 @@ namespace gridtools {
             auto testee = sid::composite::keys<a, b>::make_values(
                 sid::synthetic().set<property::origin>(sid::simple_ptr_holder(&src)),
                 sid::synthetic().set<property::origin>(sid::simple_ptr_holder(&dst)));
-            static_assert(is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>());
 
             auto ptrs = sid::get_origin(testee)();
             EXPECT_EQ(&src, at_key<a>(ptrs));
@@ -105,7 +105,7 @@ namespace gridtools {
                     .set<property::strides>(my_strides)                             //
                     .set<property::strides_kind, my_strides_kind>()                 //
             );
-            static_assert(is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>());
 
             auto &&strides = sid::get_strides(testee);
             auto &&stride_i = sid::get_stride<dim_i>(strides);

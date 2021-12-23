@@ -12,12 +12,12 @@
 struct wrap_argument {
     int data[27];
 
-    GT_FUNCTION wrap_argument(int const *ptr) {
+    constexpr wrap_argument(int const *ptr) {
         for (int i = 0; i < 27; ++i)
             data[i] = ptr[i];
     }
 
-    GT_FUNCTION int &operator[](int i) { return data[i]; }
+    constexpr int &operator[](int i) { return data[i]; }
 
-    GT_FUNCTION int const &operator[](int i) const { return data[i]; }
+    constexpr int const &operator[](int i) const { return data[i]; }
 };

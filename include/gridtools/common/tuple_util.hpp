@@ -143,7 +143,7 @@ test_kcache_flush_gpu
         }                                                                                 \
     };                                                                                    \
     friend class_name##_tuple_util_getter tuple_getter(class_name const &) { return {}; } \
-    static_assert(1, "")
+    static_assert(1)
 
 #define GT_STRUCT_TUPLE_IMPL_DECL_(r, data, elem) BOOST_PP_TUPLE_ELEM(0, elem) BOOST_PP_TUPLE_ELEM(1, elem);
 #define GT_STRUCT_TUPLE_IMPL_TYPE_(s, data, elem) BOOST_PP_TUPLE_ELEM(0, elem)
@@ -205,7 +205,7 @@ test_kcache_flush_gpu
     GT_FORCE_INLINE constexpr decltype(auto) name(Args &&...args) { \
         return functor()(std::forward<Args>(args)...);              \
     }                                                               \
-    static_assert(1, "")
+    static_assert(1)
 #ifdef __NVCC__
 #define DEFINE_TEMPLATED_FUNCTOR_INSTANCE(name, functor) GT_DEVICE constexpr functor name = {}
 #else
@@ -476,6 +476,14 @@ namespace gridtools {
         template <class T>
         struct is_tuple_like<T, std::enable_if_t<impl_::is_tuple_like<T>::value>> : std::true_type {};
 
+        template <size_t I>
+        struct get_f {
+            template <class T, class Getter = traits::getter<std::decay_t<T>>>
+            GT_FORCE_INLINE constexpr decltype(auto) operator()(T &&obj) const noexcept {
+                return Getter::template get<I>(std::forward<T>(obj));
+            }
+        };
+
         /**
          * @brief Tuple element accessor like std::get.
          *
@@ -483,18 +491,8 @@ namespace gridtools {
          * @tparam T Tuple-like type.
          * @param obj Tuple-like object.
          */
-        template <size_t I, class T, class Getter = traits::getter<std::decay_t<T>>>
-        GT_FORCE_INLINE constexpr decltype(auto) get(T &&obj) noexcept {
-            return Getter::template get<I>(std::forward<T>(obj));
-        }
-
         template <size_t I>
-        struct get_nth_f {
-            template <class T, class Getter = traits::getter<std::decay_t<T>>>
-            GT_FORCE_INLINE constexpr decltype(auto) operator()(T &&obj) const noexcept {
-                return Getter::template get<I>(std::forward<T>(obj));
-            }
-        };
+        DEFINE_TEMPLATED_FUNCTOR_INSTANCE(get, get_f<I>);
 
         namespace impl_ {
             template <size_t I>
@@ -676,7 +674,7 @@ namespace gridtools {
             template <size_t N>
             struct drop_front_f {
                 template <class I>
-                using get_drop_front_generator = get_nth_f<N + I::value>;
+                using get_drop_front_generator = get_f<N + I::value>;
 
                 template <class Tup,
                     class Accessors = get_accessors<Tup>,
@@ -848,55 +846,6 @@ namespace gridtools {
                 }
             };
 
-            template <class Fun>
-            struct all_of_f {
-                Fun m_fun;
-
-                template <size_t I, size_t N, class... Tups, std::enable_if_t<I == N, int> = 0>
-                GT_FORCE_INLINE constexpr bool impl(Tups &&...) const {
-                    return true;
-                }
-
-                template <size_t I, size_t N, class... Tups, std::enable_if_t<I + 1 == N, int> = 0>
-                GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
-                    return m_fun(get<I>(std::forward<Tups>(tups))...);
-                }
-
-                template <size_t I, size_t N, class... Tups, std::enable_if_t<I + 2 == N, int> = 0>
-                GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
-                    return m_fun(get<I>(std::forward<Tups>(tups))...) && m_fun(get<I + 1>(std::forward<Tups>(tups))...);
-                }
-
-                template <size_t I, size_t N, class... Tups, std::enable_if_t<I + 3 == N, int> = 0>
-                GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
-                    return m_fun(get<I>(std::forward<Tups>(tups))...) &&
-                           m_fun(get<I + 1>(std::forward<Tups>(tups))...) &&
-                           m_fun(get<I + 2>(std::forward<Tups>(tups))...);
-                }
-
-                template <size_t I, size_t N, class... Tups, std::enable_if_t<I + 4 == N, int> = 0>
-                GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
-                    return m_fun(get<I>(std::forward<Tups>(tups))...) &&
-                           m_fun(get<I + 1>(std::forward<Tups>(tups))...) &&
-                           m_fun(get<I + 2>(std::forward<Tups>(tups))...) &&
-                           m_fun(get<I + 3>(std::forward<Tups>(tups))...);
-                }
-
-                template <size_t I, size_t N, class... Tups, std::enable_if_t<(I + 4 < N), int> = 0>
-                GT_FORCE_INLINE constexpr bool impl(Tups &&...tups) const {
-                    return m_fun(get<I>(std::forward<Tups>(tups))...) &&
-                           m_fun(get<I + 1>(std::forward<Tups>(tups))...) &&
-                           m_fun(get<I + 2>(std::forward<Tups>(tups))...) &&
-                           m_fun(get<I + 3>(std::forward<Tups>(tups))...) &&
-                           impl<I + 4, N>(std::forward<Tups>(tups)...);
-                }
-
-                template <class Tup, class... Tups>
-                GT_FORCE_INLINE constexpr bool operator()(Tup &&tup, Tups &&...tups) const {
-                    return impl<0, size<std::decay_t<Tup>>::value>(std::forward<Tup>(tup), std::forward<Tups>(tups)...);
-                }
-            };
-
             template <class To, class Index>
             struct implicit_convert_to_f {
                 using type = implicit_convert_to_f;
@@ -926,7 +875,7 @@ namespace gridtools {
                 };
 
                 template <class I>
-                using get_generator = transform_f<get_nth_f<I::value>>;
+                using get_generator = transform_f<get_f<I::value>>;
 
                 template <class Tup>
                 GT_FORCE_INLINE constexpr std::enable_if_t<tuple_util::size<std::decay_t<Tup>>::value == 0> operator()(
@@ -952,7 +901,7 @@ namespace gridtools {
                 template <class N>
                 struct generator_f {
                     template <class I>
-                    using apply = get_nth_f<N::value - 1 - I::value>;
+                    using apply = get_f<N::value - 1 - I::value>;
                 };
 
                 template <class Tup,
@@ -1434,16 +1383,6 @@ namespace gridtools {
         template <class Fun>
         GT_FORCE_INLINE constexpr impl_::fold_f<Fun> fold(Fun fun) {
             return {std::move(fun)};
-        }
-
-        template <class Pred, class... Tups>
-        GT_FORCE_INLINE constexpr bool all_of(Pred &&pred, Tups &&...tups) {
-            return impl_::all_of_f<Pred>{std::forward<Pred>(pred)}(std::forward<Tups>(tups)...);
-        }
-
-        template <class Pred>
-        GT_FORCE_INLINE constexpr impl_::all_of_f<Pred> all_of(Pred pred) {
-            return {std::move(pred)};
         }
 
         /**

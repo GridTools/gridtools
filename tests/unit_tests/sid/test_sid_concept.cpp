@@ -24,10 +24,10 @@ namespace gridtools {
         using namespace literals;
 
         // several primitive not sids
-        static_assert(!is_sid<void>(), "");
-        static_assert(!is_sid<int>(), "");
+        static_assert(!is_sid<void>());
+        static_assert(!is_sid<int>());
         struct garbage {};
-        static_assert(!is_sid<garbage>(), "");
+        static_assert(!is_sid<garbage>());
 
         // fully custom defined sid
         namespace custom {
@@ -37,12 +37,12 @@ namespace gridtools {
             };
             struct ptr {
                 element *val;
-                GT_FUNCTION element &operator*() const { return *val; }
-                friend GT_FUNCTION ptr operator+(ptr, ptr_diff) { return {}; }
+                constexpr element &operator*() const { return *val; }
+                friend constexpr ptr operator+(ptr, ptr_diff) { return {}; }
             };
             struct stride {
-                friend GT_FUNCTION std::true_type sid_shift(ptr &, stride const &, int) { return {}; }
-                friend GT_FUNCTION std::false_type sid_shift(ptr_diff &, stride const &, int) { return {}; }
+                friend constexpr std::true_type sid_shift(ptr &, stride const &, int) { return {}; }
+                friend constexpr std::false_type sid_shift(ptr_diff &, stride const &, int) { return {}; }
             };
 
             struct dim_0;
@@ -62,25 +62,24 @@ namespace gridtools {
                 friend bounds_validator_kind sid_get_bounds_validator_kind(testee);
             };
 
-            static_assert(sid::concept_impl_::is_sid<testee>(), "");
-            static_assert(std::is_same<sid::ptr_diff_type<testee>, ptr_diff>(), "");
-            static_assert(std::is_same<sid::reference_type<testee>, element &>(), "");
-            static_assert(std::is_same<sid::element_type<testee>, element>(), "");
-            static_assert(std::is_same<sid::const_reference_type<testee>, element const &>(), "");
-            static_assert(std::is_same<sid::strides_kind<testee>, strides_kind>(), "");
+            static_assert(sid::concept_impl_::is_sid<testee>());
+            static_assert(std::is_same_v<sid::ptr_diff_type<testee>, ptr_diff>);
+            static_assert(std::is_same_v<sid::reference_type<testee>, element &>);
+            static_assert(std::is_same_v<sid::element_type<testee>, element>);
+            static_assert(std::is_same_v<sid::const_reference_type<testee>, element const &>);
+            static_assert(std::is_same_v<sid::strides_kind<testee>, strides_kind>);
 
+            static_assert(std::is_same_v<std::decay_t<decltype(sid::get_origin(std::declval<testee &>())())>, ptr>);
+            static_assert(std::is_same_v<decltype(sid::get_strides(testee{})), strides>);
+
+            static_assert(std::is_same_v<std::decay_t<decltype(sid::get_stride<dim_0>(strides{}))>, stride>);
+            static_assert(std::is_same_v<std::decay_t<decltype(sid::get_stride<dim_1>(strides{}))>, stride>);
+            static_assert(decltype(sid::get_stride<void>(strides()))::value == 0);
+            static_assert(decltype(sid::get_stride<void *>(strides()))::value == 0);
+
+            static_assert(std::is_same_v<decltype(sid::shift(std::declval<ptr &>(), stride{}, 0)), std::true_type>);
             static_assert(
-                std::is_same<std::decay_t<decltype(sid::get_origin(std::declval<testee &>())())>, ptr>::value, "");
-            static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
-
-            static_assert(std::is_same<std::decay_t<decltype(sid::get_stride<dim_0>(strides{}))>, stride>(), "");
-            static_assert(std::is_same<std::decay_t<decltype(sid::get_stride<dim_1>(strides{}))>, stride>(), "");
-            static_assert(decltype(sid::get_stride<void>(strides()))::value == 0, "");
-            static_assert(decltype(sid::get_stride<void *>(strides()))::value == 0, "");
-
-            static_assert(std::is_same<decltype(sid::shift(std::declval<ptr &>(), stride{}, 0)), std::true_type>(), "");
-            static_assert(
-                std::is_same<decltype(sid::shift(std::declval<ptr_diff &>(), stride{}, 0)), std::false_type>(), "");
+                std::is_same_v<decltype(sid::shift(std::declval<ptr_diff &>(), stride{}, 0)), std::false_type>);
         } // namespace custom
 
         namespace fallbacks {
@@ -89,31 +88,31 @@ namespace gridtools {
                 friend sid::simple_ptr_holder<testee *> sid_get_origin(testee &obj) { return {&obj}; }
             };
 
-            static_assert(is_sid<testee>(), "");
-            static_assert(std::is_same<sid::ptr_type<testee>, testee *>(), "");
-            static_assert(std::is_same<sid::ptr_diff_type<testee>, ptrdiff_t>(), "");
-            static_assert(std::is_same<sid::reference_type<testee>, testee &>(), "");
-            static_assert(std::is_same<sid::element_type<testee>, testee>(), "");
-            static_assert(std::is_same<sid::const_reference_type<testee>, testee const &>(), "");
+            static_assert(is_sid<testee>());
+            static_assert(std::is_same_v<sid::ptr_type<testee>, testee *>);
+            static_assert(std::is_same_v<sid::ptr_diff_type<testee>, ptrdiff_t>);
+            static_assert(std::is_same_v<sid::reference_type<testee>, testee &>);
+            static_assert(std::is_same_v<sid::element_type<testee>, testee>);
+            static_assert(std::is_same_v<sid::const_reference_type<testee>, testee const &>);
 
             using strides = sid::strides_type<testee>;
-            static_assert(tuple_util::size<strides>() == 0, "");
+            static_assert(tuple_util::size<strides>() == 0);
 
             static_assert(
-                std::is_same<std::decay_t<decltype(sid::get_origin(std::declval<testee &>())())>, testee *>(), "");
-            static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
+                std::is_same_v<std::decay_t<decltype(sid::get_origin(std::declval<testee &>())())>, testee *>);
+            static_assert(std::is_same_v<decltype(sid::get_strides(testee{})), strides>);
 
             auto stride = sid::get_stride<void>(strides{});
-            static_assert(decltype(stride)::value == 0, "");
+            static_assert(decltype(stride)::value == 0);
 
-            static_assert(std::is_void<std::void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>(), "");
-            static_assert(std::is_void<std::void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>(), "");
+            static_assert(std::is_void_v<std::void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>);
+            static_assert(std::is_void_v<std::void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>);
 
             using lower_bounds = sid::lower_bounds_type<testee>;
-            static_assert(tuple_util::size<lower_bounds>() == 0, "");
+            static_assert(tuple_util::size<lower_bounds>() == 0);
 
             using upper_bounds = sid::upper_bounds_type<testee>;
-            static_assert(tuple_util::size<upper_bounds>() == 0, "");
+            static_assert(tuple_util::size<upper_bounds>() == 0);
         } // namespace fallbacks
 
         template <class T, class Stride, class Offset>
@@ -151,10 +150,10 @@ namespace gridtools {
 
             sid::simple_ptr_holder<testee *> sid_get_origin(testee &obj) { return {&obj}; }
             tuple<stride> sid_get_strides(testee const &) { return {}; }
-            GT_FUNCTION int operator*(stride, int) { return 100; }
+            constexpr int operator*(stride, int) { return 100; }
             integral_constant<int, 42> sid_get_strides_kind(testee const &);
 
-            static_assert(is_sid<testee>(), "");
+            static_assert(is_sid<testee>());
 
             TEST(non_static_value, shift) {
                 ptrdiff_t val = 22;
@@ -168,7 +167,7 @@ namespace gridtools {
 
         TEST(c_array, smoke) {
             double testee[15][43] = {};
-            static_assert(is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>());
 
             EXPECT_EQ(&testee[0][0], sid::get_origin(testee)());
 
@@ -178,13 +177,13 @@ namespace gridtools {
 
             using strides_t = decltype(strides);
 
-            static_assert(tuple_util::size<strides_t>::value == 2, "");
+            static_assert(tuple_util::size<strides_t>::value == 2);
 
             using stride_0_t = tuple_util::element<0, strides_t>;
             using stride_1_t = tuple_util::element<1, strides_t>;
 
-            static_assert(stride_0_t::value == 43, "");
-            static_assert(stride_1_t::value == 1, "");
+            static_assert(stride_0_t::value == 43);
+            static_assert(stride_1_t::value == 1);
 
             testee[7][8] = 555;
 
@@ -205,7 +204,7 @@ namespace gridtools {
 
         TEST(c_array, 4D) {
             double testee[2][3][4][5] = {};
-            static_assert(is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>());
 
             EXPECT_EQ(&testee[0][0][0][0], sid::get_origin(testee)());
 

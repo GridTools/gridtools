@@ -37,8 +37,6 @@ namespace gridtools {
     template <class T, T V>
     struct integral_constant : std::integral_constant<T, V> {
         using type = integral_constant;
-
-        constexpr GT_FUNCTION operator T() const noexcept { return V; }
     };
 
     // This predicate checks if the the class has `gridtools::integral_constant` as a public base, which has arithmetic
@@ -51,12 +49,13 @@ namespace gridtools {
         std::enable_if_t<std::is_base_of<integral_constant<typename T::value_type, T::value>, T>::value>>
         : std::true_type {};
 
-#define GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(op, type)                                                           \
-    template <class T, T V>                                                                                            \
-    constexpr GT_FUNCTION integral_constant<decltype(op V), (op V)> operator op(integral_constant<T, V> &&) noexcept { \
-        return {};                                                                                                     \
-    }                                                                                                                  \
-    static_assert(1, "")
+#define GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(op, type)                         \
+    template <class T, T V>                                                          \
+    GT_FORCE_INLINE constexpr integral_constant<decltype(op V), (op V)> operator op( \
+        integral_constant<T, V> &&) noexcept {                                       \
+        return {};                                                                   \
+    }                                                                                \
+    static_assert(1)
 
     GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(+, T);
     GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(-, T);
@@ -65,13 +64,13 @@ namespace gridtools {
 
 #undef GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR
 
-#define GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(op, type)                            \
-    template <class T, T TV, class U, U UV>                                              \
-    constexpr GT_FUNCTION integral_constant<decltype(TV op UV), (TV op UV)> operator op( \
-        integral_constant<T, TV>, integral_constant<U, UV>) noexcept {                   \
-        return {};                                                                       \
-    }                                                                                    \
-    static_assert(1, "")
+#define GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(op, type)                                \
+    template <class T, T TV, class U, U UV>                                                  \
+    GT_FORCE_INLINE constexpr integral_constant<decltype(TV op UV), (TV op UV)> operator op( \
+        integral_constant<T, TV>, integral_constant<U, UV>) noexcept {                       \
+        return {};                                                                           \
+    }                                                                                        \
+    static_assert(1)
 
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(+, (std::common_type_t<T, U>));
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(-, (std::common_type_t<T, U>));
@@ -115,10 +114,10 @@ namespace gridtools {
             }
             template <>
             constexpr literal_int_t to_int<16>(char c) {
-                return c >= 'A' && c <= 'F'
-                           ? c - 'A' + 10
-                           : c >= 'a' && c <= 'f' ? c - 'a' + 10
-                                                  : c >= '0' && c <= '9' ? c - '0' : throw "invalid hex _c literal";
+                return c >= 'A' && c <= 'F'   ? c - 'A' + 10
+                       : c >= 'a' && c <= 'f' ? c - 'a' + 10
+                       : c >= '0' && c <= '9' ? c - '0'
+                                              : throw "invalid hex _c literal";
             }
 
             template <literal_int_t Base>
@@ -150,7 +149,8 @@ namespace gridtools {
         } // namespace literals_impl_
 
         template <char... Chars>
-        constexpr GT_FUNCTION integral_constant<literals_impl_::literal_int_t, literals_impl_::parser<Chars...>::value>
+        GT_FORCE_INLINE constexpr integral_constant<literals_impl_::literal_int_t,
+            literals_impl_::parser<Chars...>::value>
         operator"" _c() {
             return {};
         }

@@ -30,7 +30,7 @@ namespace gridtools {
                 const point_t &m_begin;
                 const point_t &m_end;
 
-                GT_FUNCTION grid_iterator &operator++() {
+                GT_FORCE_INLINE constexpr grid_iterator &operator++() {
                     // The CUDA compiler is very sensitive in properly unrolling the following loop, please change with
                     // care. The kernel in test_layout_transformation_cuda should use 0 stack frame (and about 14
                     // registers) if this loop is properly unrolled.
@@ -52,23 +52,23 @@ namespace gridtools {
                     return *this;
                 }
 
-                GT_FUNCTION grid_iterator operator++(int) {
+                GT_FORCE_INLINE constexpr grid_iterator operator++(int) {
                     grid_iterator tmp(*this);
                     operator++();
                     return tmp;
                 }
 
-                GT_FUNCTION point_t const &operator*() const { return m_pos; }
+                GT_FORCE_INLINE constexpr point_t const &operator*() const { return m_pos; }
 
-                GT_FUNCTION bool operator!=(const grid_iterator &other) const { return m_pos != other.m_pos; }
+                GT_FORCE_INLINE constexpr bool operator!=(const grid_iterator &other) const { return m_pos != other.m_pos; }
             };
 
           public:
-            GT_FUNCTION hypercube_view(const point_t &begin, const point_t &end) : m_begin(begin), m_end(end) {}
-            GT_FUNCTION hypercube_view(const point_t &end) : m_end(end) {}
+            GT_FORCE_INLINE constexpr hypercube_view(const point_t &begin, const point_t &end) : m_begin(begin), m_end(end) {}
+            GT_FORCE_INLINE constexpr hypercube_view(const point_t &end) : m_end(end) {}
 
-            GT_FUNCTION grid_iterator begin() const { return grid_iterator{m_begin, m_begin, m_end}; }
-            GT_FUNCTION grid_iterator end() const { return grid_iterator{m_end, m_begin, m_end}; }
+            GT_FORCE_INLINE constexpr grid_iterator begin() const { return grid_iterator{m_begin, m_begin, m_end}; }
+            GT_FORCE_INLINE constexpr grid_iterator end() const { return grid_iterator{m_end, m_begin, m_end}; }
 
           private:
             point_t m_begin = {};
@@ -94,7 +94,7 @@ namespace gridtools {
         size_t OuterD = tuple_util::size<Decayed>::value,
         std::enable_if_t<OuterD != 0 && meta::all_of<impl_::is_pair_like, tuple_util::traits::to_types<Decayed>>::value,
             int> = 0>
-    GT_FUNCTION impl_::hypercube_view<OuterD> make_hypercube_view(Container &&cube) {
+    GT_FORCE_INLINE constexpr impl_::hypercube_view<OuterD> make_hypercube_view(Container &&cube) {
         auto &&transposed = tuple_util::transpose(std::forward<Container>(cube));
         return {tuple_util::convert_to<array, size_t>(tuple_util::get<0>(transposed)),
             tuple_util::convert_to<array, size_t>(tuple_util::get<1>(transposed))};
@@ -106,7 +106,7 @@ namespace gridtools {
     template <typename Container,
         size_t D = tuple_util::size<std::decay_t<Container>>::value,
         std::enable_if_t<D == 0, int> = 0>
-    GT_FUNCTION array<array<size_t, 0>, 1> make_hypercube_view(Container &&) {
+    GT_FORCE_INLINE constexpr array<array<size_t, 0>, 1> make_hypercube_view(Container &&) {
         return {{}};
     }
 
@@ -119,7 +119,7 @@ namespace gridtools {
         size_t D = tuple_util::size<Decayed>::value,
         std::enable_if_t<D != 0 && meta::all_of<impl_::is_size_t_like, tuple_util::traits::to_types<Decayed>>::value,
             int> = 0>
-    GT_FUNCTION impl_::hypercube_view<D> make_hypercube_view(Container &&sizes) {
+    GT_FORCE_INLINE constexpr impl_::hypercube_view<D> make_hypercube_view(Container &&sizes) {
         return {tuple_util::convert_to<array, size_t>(std::forward<Container>(sizes))};
     }
 } // namespace gridtools

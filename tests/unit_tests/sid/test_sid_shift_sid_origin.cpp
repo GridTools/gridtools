@@ -49,7 +49,7 @@ namespace gridtools {
             auto offset = tuple(1_c, 2);
             auto testee = sid::shift_sid_origin(data, offset);
 
-            static_assert(is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>());
 
             EXPECT_EQ(&data[1][2][0], sid::get_origin(testee)());
 

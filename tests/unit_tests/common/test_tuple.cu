@@ -21,8 +21,8 @@
 namespace gridtools {
     TEST(tuple, get) {
         tuple<int, double> src{42, 2.5};
-        EXPECT_EQ(42, on_device::exec(tuple_util::get_nth_f<0>{}, src));
-        EXPECT_EQ(2.5, on_device::exec(tuple_util::get_nth_f<1>{}, src));
+        EXPECT_EQ(42, on_device::exec(tuple_util::get_f<0>{}, src));
+        EXPECT_EQ(2.5, on_device::exec(tuple_util::get_f<1>{}, src));
     }
 
     __device__ tuple<int, double> element_wise_ctor(int x, double y) { return {x, y}; }

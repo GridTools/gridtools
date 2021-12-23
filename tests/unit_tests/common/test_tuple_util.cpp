@@ -20,7 +20,6 @@
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/host_device.hpp>
-#include <gridtools/common/pair.hpp>
 #include <gridtools/meta.hpp>
 
 namespace custom {
@@ -31,16 +30,15 @@ namespace custom {
 
 namespace gridtools {
 
-    static_assert(!is_tuple_like<void>::value, "");
-    static_assert(!is_tuple_like<int>::value, "");
-    static_assert(is_tuple_like<std::array<int, 42>>::value, "");
-    static_assert(is_tuple_like<std::tuple<>>::value, "");
-    static_assert(is_tuple_like<std::tuple<int>>::value, "");
-    static_assert(is_tuple_like<std::pair<int, double>>::value, "");
-    static_assert(is_tuple_like<array<int, 42>>::value, "");
-    static_assert(is_tuple_like<pair<int, double>>::value, "");
-    static_assert(is_tuple_like<custom::foo>::value, "");
-    static_assert(is_tuple_like<std::tuple<int, int const, int &&, int &, int const &>>::value, "");
+    static_assert(!is_tuple_like<void>::value);
+    static_assert(!is_tuple_like<int>::value);
+    static_assert(is_tuple_like<std::array<int, 42>>::value);
+    static_assert(is_tuple_like<std::tuple<>>::value);
+    static_assert(is_tuple_like<std::tuple<int>>::value);
+    static_assert(is_tuple_like<std::pair<int, double>>::value);
+    static_assert(is_tuple_like<array<int, 42>>::value);
+    static_assert(is_tuple_like<custom::foo>::value);
+    static_assert(is_tuple_like<std::tuple<int, int const, int &&, int &, int const &>>::value);
 
 #ifdef __cpp_concepts
     static_assert(!concepts::tuple_like<int>);
@@ -77,7 +75,7 @@ namespace gridtools {
 
         struct add_2_f {
             template <class T>
-            GT_FUNCTION GT_CONSTEXPR T operator()(T val) const {
+            constexpr T operator()(T val) const {
                 return val + 2;
             }
         };
@@ -92,7 +90,7 @@ namespace gridtools {
             EXPECT_EQ(size<custom::foo>::value, 2);
 
             auto res = transform(add_2_f{}, custom::foo{42, 5.3});
-            static_assert(std::is_same<decltype(res), custom::foo>{}, "");
+            static_assert(std::is_same_v<decltype(res), custom::foo>);
             EXPECT_EQ(res.a, 44);
             EXPECT_EQ(res.b, 7.3);
         }
@@ -100,21 +98,21 @@ namespace gridtools {
         TEST(transform, functional) {
             auto src = std::tuple(42, 5.3);
             auto res = transform(add_2_f{}, src);
-            static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
+            static_assert(std::is_same_v<decltype(res), decltype(src)>);
             EXPECT_EQ(res, std::tuple(44, 7.3));
         }
 
         TEST(transform, array) {
             auto src = std::array{42, 5};
             auto res = transform(add_2_f{}, src);
-            static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
+            static_assert(std::is_same_v<decltype(res), decltype(src)>);
             EXPECT_THAT(res, testing::ElementsAre(44, 7));
         }
 
         TEST(transform, gt_array) {
             auto src = gridtools::array{42, 5};
             auto res = transform(add_2_f{}, src);
-            static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
+            static_assert(std::is_same_v<decltype(res), decltype(src)>);
             EXPECT_THAT(res, testing::ElementsAre(44, 7));
         }
 
@@ -130,7 +128,7 @@ namespace gridtools {
 
         struct add_index_f {
             template <size_t I, class T>
-            GT_FUNCTION GT_CONSTEXPR T operator()(T val) const {
+            constexpr T operator()(T val) const {
                 return val + I;
             }
         };
@@ -138,7 +136,7 @@ namespace gridtools {
         TEST(transform_index, functional) {
             auto src = std::tuple(42, 5.3);
             auto res = transform_index(add_index_f{}, src);
-            static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
+            static_assert(std::is_same_v<decltype(res), decltype(src)>);
             EXPECT_EQ(res, std::tuple(42, 6.3));
         }
 
@@ -285,7 +283,6 @@ namespace gridtools {
 
         TEST(convert_to, tuple) {
             EXPECT_EQ(std::tuple(1, 2), convert_to<std::tuple>(std::array{1, 2}));
-            EXPECT_EQ(std::tuple(1, 2), convert_to<std::tuple>(gridtools::pair(1, 2)));
             EXPECT_EQ(std::pair(1, 2), convert_to<std::pair>(gridtools::array{1, 2}));
         }
 
@@ -301,14 +298,6 @@ namespace gridtools {
         TEST(transpose, functional) {
             EXPECT_EQ(transpose(std::array{std::pair(1, 10), std::pair(2, 20), std::pair(3, 30)}),
                 std::pair(std::array{1, 2, 3}, std::array{10, 20, 30}));
-        }
-
-        TEST(all_of, functional) {
-            auto testee = all_of([](int i) { return i % 2; });
-            EXPECT_TRUE(testee(std::tuple(1, 3, 99, 7)));
-            EXPECT_FALSE(testee(std::tuple(1, 3, 2, 7, 100)));
-
-            EXPECT_TRUE(all_of([](int l, int r) { return l == r; }, std::tuple(1, 3, 99, 7), std::tuple(1, 3, 99, 7)));
         }
 
         TEST(reverse, functional) { EXPECT_TRUE(reverse(std::tuple(1, 'a', 42.5)) == std::tuple(42.5, 'a', 1)); }

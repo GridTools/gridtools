@@ -64,28 +64,28 @@ namespace gridtools {
                     enum class check { none, lo, hi };
 
                     template <class Ptrs>
-                    GT_FUNCTION int_t get_k_pos(Ptrs const &ptrs) {
+                    GT_FORCE_INLINE constexpr int_t get_k_pos(Ptrs const &ptrs) {
                         return *at_key<meta::list<k_pos_key>>(ptrs);
                     }
 
                     template <class PlhInfo, class Ptr, class Strides, class Offset>
-                    GT_FUNCTION void shift_orig(Ptr &ptr, Strides const &strides, Offset offset) {
+                    GT_FORCE_INLINE constexpr void shift_orig(Ptr &ptr, Strides const &strides, Offset offset) {
                         sid::shift(
                             ptr, sid::get_stride_element<meta::list<typename PlhInfo::plh_t>, dim::k>(strides), offset);
                     }
 
                     template <class PlhInfo, class Ptr, class Strides, class Offset>
-                    GT_FUNCTION void shift_cached(Ptr &ptr, Strides const &strides, Offset offset) {
+                    GT_FORCE_INLINE constexpr void shift_cached(Ptr &ptr, Strides const &strides, Offset offset) {
                         sid::shift(ptr, sid::get_stride_element<typename PlhInfo::key_t, dim::k>(strides), offset);
                     }
 
                     template <class PlhInfo, class Ptrs>
-                    GT_FUNCTION auto get_orig(Ptrs const &ptrs) {
+                    GT_FORCE_INLINE constexpr auto get_orig(Ptrs const &ptrs) {
                         return at_key<meta::list<typename PlhInfo::plh_t>>(ptrs);
                     }
 
                     template <class PlhInfo, class Ptrs>
-                    GT_FUNCTION auto get_cached(Ptrs const &ptrs) {
+                    GT_FORCE_INLINE constexpr auto get_cached(Ptrs const &ptrs) {
                         return at_key<typename PlhInfo::key_t>(ptrs);
                     }
 
@@ -95,7 +95,7 @@ namespace gridtools {
                         std::enable_if_t<std::is_same<typename PlhInfo::cache_io_policies_t,
                                              meta::list<cache_io_policy::fill>>::value,
                             int> = 0>
-                    GT_FUNCTION void sync(Cached cached, Orig orig) {
+                    GT_FORCE_INLINE constexpr void sync(Cached cached, Orig orig) {
                         *cached = *orig;
                     }
 
@@ -105,18 +105,18 @@ namespace gridtools {
                         std::enable_if_t<std::is_same<typename PlhInfo::cache_io_policies_t,
                                              meta::list<cache_io_policy::flush>>::value,
                             int> = 0>
-                    GT_FUNCTION void sync(Cached cached, Orig orig) {
+                    GT_FORCE_INLINE constexpr void sync(Cached cached, Orig orig) {
                         *orig = *cached;
                     }
 
                     template <class Plh, check>
                     struct bound {};
 
-                    GT_FUNCTION bool is_k_valid(integral_constant<check, check::lo>, int_t k, int_t lim) {
+                    GT_FORCE_INLINE constexpr bool is_k_valid(integral_constant<check, check::lo>, int_t k, int_t lim) {
                         return k >= lim;
                     }
 
-                    GT_FUNCTION bool is_k_valid(integral_constant<check, check::hi>, int_t k, int_t lim) {
+                    GT_FORCE_INLINE constexpr bool is_k_valid(integral_constant<check, check::hi>, int_t k, int_t lim) {
                         return k < lim;
                     }
 
@@ -326,13 +326,13 @@ namespace gridtools {
 
                     template <class Plh, class DataStores>
                     auto make_data_store(bound<Plh, check::lo>, DataStores const &data_stores) {
-                        return make_global_parameter(
+                        return global_parameter(
                             sid::get_lower_bound<dim::k>(sid::get_lower_bounds(at_key<Plh>(data_stores))));
                     }
 
                     template <class Plh, class DataStores>
                     auto make_data_store(bound<Plh, check::hi>, DataStores const &data_stores) {
-                        return make_global_parameter(
+                        return global_parameter(
                             sid::get_upper_bound<dim::k>(sid::get_upper_bounds(at_key<Plh>(data_stores))));
                     }
 

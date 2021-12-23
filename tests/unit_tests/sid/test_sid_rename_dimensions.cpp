@@ -47,7 +47,7 @@ namespace gridtools {
             EXPECT_EQ(1, sid::get_stride<c>(strides));
             EXPECT_EQ(7, sid::get_stride<d>(strides));
 
-            static_assert(meta::is_empty<get_keys<sid::lower_bounds_type<testee_t>>>(), "");
+            static_assert(meta::is_empty<get_keys<sid::lower_bounds_type<testee_t>>>());
             auto u_bound = sid::get_upper_bounds(testee);
             EXPECT_EQ(3, at_key<a>(u_bound));
             EXPECT_EQ(5, at_key<d>(u_bound));

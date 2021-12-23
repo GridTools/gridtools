@@ -40,7 +40,7 @@ namespace gridtools {
 
             positional_t s;
             auto blocked_s = sid::block(s, blocks);
-            static_assert(is_sid<decltype(blocked_s)>(), "");
+            static_assert(is_sid<decltype(blocked_s)>());
 
             auto strides = sid::get_strides(blocked_s);
             for (int ib = 0; ib < domain_size_i; ib += block_size_i) {
@@ -74,10 +74,10 @@ namespace gridtools {
             const int block_size_1 = 5;
             const int block_size_2 = 2;
             auto blocked_s = sid::block(s, hymap::keys<dim::i>::make_values(block_size_1));
-            static_assert(is_sid<decltype(blocked_s)>(), "");
+            static_assert(is_sid<decltype(blocked_s)>());
             auto blocked_blocked_s =
                 sid::block(blocked_s, hymap::keys<sid::blocked_dim<dim::i>>::make_values(block_size_2));
-            static_assert(is_sid<decltype(blocked_blocked_s)>(), "");
+            static_assert(is_sid<decltype(blocked_blocked_s)>());
 
             auto ptr = sid::get_origin(blocked_blocked_s)();
             auto strides = sid::get_strides(blocked_blocked_s);
@@ -101,7 +101,7 @@ namespace gridtools {
             positional_t s;
 
             auto same_s = sid::block(s, hymap::keys<some_dim>::make_values(42));
-            static_assert(std::is_same<decltype(s), decltype(same_s)>(), "");
+            static_assert(std::is_same_v<decltype(s), decltype(same_s)>);
         }
 
         TEST(sid_block, reference_wrapper) {
@@ -110,7 +110,7 @@ namespace gridtools {
             const int domain_size = 20;
             const int block_size = 5;
             auto blocked_s = sid::block(std::ref(s), hymap::keys<dim::i>::make_values(block_size));
-            static_assert(is_sid<decltype(blocked_s)>(), "");
+            static_assert(is_sid<decltype(blocked_s)>());
 
             auto ptr = sid::get_origin(blocked_s)();
             auto strides = sid::get_strides(blocked_s);
@@ -138,10 +138,10 @@ namespace gridtools {
                          .set<sid::property::origin>(sid::simple_ptr_holder<int *>{nullptr})
                          .set<sid::property::strides>(strides)
                          .set<sid::property::strides_kind, void>();
-            static_assert(is_sid<decltype(s)>(), "");
+            static_assert(is_sid<decltype(s)>());
 
             auto blocked_s = sid::block(s, blocks);
-            static_assert(is_sid<decltype(blocked_s)>(), "");
+            static_assert(is_sid<decltype(blocked_s)>());
 
             auto blocked_strides = sid::get_strides(blocked_s);
             EXPECT_EQ(sid::get_stride<sid::blocked_dim<dim::i>>(blocked_strides), 2);

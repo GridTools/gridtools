@@ -20,13 +20,13 @@ namespace gridtools::fn {
         using sid::property;
 
         struct sum_fold : fwd {
-            static GT_FUNCTION constexpr auto body() {
+            static constexpr auto body() {
                 return [](auto acc, auto const &iter) { return acc + *iter; };
             }
         };
 
         struct sum_scan : fwd {
-            static GT_FUNCTION constexpr auto body() {
+            static constexpr auto body() {
                 return scan_pass(
                     [](auto acc, auto const &iter) { return tuple(get<0>(acc) + *iter, get<1>(acc) * *iter); },
                     [](auto acc) { return get<0>(acc); });
@@ -34,17 +34,17 @@ namespace gridtools::fn {
         };
 
         struct sum_fold_with_logues : sum_fold {
-            static GT_FUNCTION constexpr auto prologue() {
+            static constexpr auto prologue() {
                 return tuple([](auto acc, auto const &iter) { return acc + 2 * *iter; });
             }
-            static GT_FUNCTION constexpr auto epilogue() {
+            static constexpr auto epilogue() {
                 return tuple([](auto acc, auto const &iter) { return acc + 3 * *iter; });
             }
         };
 
         struct make_iterator_mock {
-            auto operator()() const {
-                return [](auto tag, auto const &ptr, auto const &strides) { return at_key<decltype(tag)>(ptr); };
+            auto constexpr operator()() const {
+                return [](auto tag, auto const &ptr, auto const &) { return at_key<decltype(tag)>(ptr); };
             }
         };
 

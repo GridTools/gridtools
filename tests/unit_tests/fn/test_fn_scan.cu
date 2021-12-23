@@ -23,21 +23,21 @@ namespace gridtools::fn {
         using sid::property;
 
         struct sum_scan : fwd {
-            static GT_FUNCTION constexpr auto body() {
+            static constexpr auto body() {
                 return scan_pass(
                     [](auto acc, auto const &iter) { return tuple(get<0>(acc) + *iter, get<1>(acc) * *iter); },
                     [](auto acc) { return get<0>(acc); });
             }
         };
         struct make_iterator_mock {
-            GT_FUNCTION auto operator()() const {
-                return [](auto tag, auto const &ptr, auto const &strides) { return at_key<decltype(tag)>(ptr); };
+            constexpr auto operator()() const {
+                return [](auto tag, auto const &ptr, auto const &) { return at_key<decltype(tag)>(ptr); };
             }
         };
 
         struct device_fun {
             template <class Ptr, class Strides>
-            GT_FUNCTION auto operator()(Ptr ptr, Strides strides) const {
+            constexpr auto operator()(Ptr ptr, Strides strides) const {
                 using vdim_t = integral_constant<int, 0>;
                 return column_stage<vdim_t, sum_scan, make_iterator_mock, 0, 1>()(tuple(42, 1), 5, ptr, strides);
             }

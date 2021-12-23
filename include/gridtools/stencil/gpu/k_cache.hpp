@@ -46,12 +46,12 @@ namespace gridtools {
                 };
 
                 struct fake {
-                    GT_FUNCTION fake operator()() const { return {}; }
+                    constexpr fake operator()() const { return {}; }
                     fake operator*() const;
                 };
                 fake sid_get_ptr_diff(fake);
                 inline fake sid_get_origin(fake) { return {}; }
-                GT_FUNCTION fake operator+(fake, fake) { return {}; }
+                constexpr fake operator+(fake, fake) { return {}; }
                 inline hymap::keys<dim::k>::values<integral_constant<int_t, 1>> sid_get_strides(fake) { return {}; }
 
                 static_assert(is_sid<fake>(), GT_INTERNAL_ERROR);

@@ -45,8 +45,8 @@ namespace gridtools {
         }
         template <class Fun, class... Args>
         auto exec_with_shared_memory(size_t shm_size, Fun fun, Args... args) {
-            static_assert(!std::is_pointer<Fun>::value, "");
-            static_assert(std::conjunction<std::negation<std::is_pointer<Args>>...>::value, "");
+            static_assert(!std::is_pointer<Fun>::value);
+            static_assert(std::conjunction_v<std::negation<std::is_pointer<Args>>...>);
             using res_t = std::decay_t<decltype(fun(args...))>;
             static_assert(std::is_trivially_copy_constructible_v<res_t>);
             auto res = cuda_util::cuda_malloc<res_t>();
@@ -56,7 +56,7 @@ namespace gridtools {
         }
 
         template <class Fun, class... Args>
-        auto exec(Fun &&fun, Args &&... args) {
+        auto exec(Fun &&fun, Args &&...args) {
             return exec_with_shared_memory(0, std::forward<Fun>(fun), std::forward<Args>(args)...);
         }
     } // namespace on_device

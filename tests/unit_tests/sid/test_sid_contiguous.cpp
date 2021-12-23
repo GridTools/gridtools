@@ -44,8 +44,8 @@ namespace gridtools {
             using strides_kind_t = sid::strides_kind<testee_t>;
 
             static_assert(is_sid<testee_t>());
-            static_assert(std::is_same<ptrdiff_t, ptr_diff_t>());
-            static_assert(std::is_same<strides_kind_t, strides_t>());
+            static_assert(std::is_same_v<ptrdiff_t, ptr_diff_t>);
+            static_assert(std::is_same_v<strides_kind_t, strides_t>);
 
             auto lower_bounds = sid::get_lower_bounds(testee);
             EXPECT_EQ(0, at_key<a>(lower_bounds));

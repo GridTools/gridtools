@@ -203,7 +203,7 @@ namespace {
     GT_REGRESSION_TEST(horizontal_diffusion_functions_##v, test_environment<2>, stencil_backend_t) { \
         do_test<TypeParam, variation::v>();                                                          \
     }                                                                                                \
-    static_assert(1, "")
+    static_assert(1)
 
     TEST_VARIATION(monolithic);
     TEST_VARIATION(call);

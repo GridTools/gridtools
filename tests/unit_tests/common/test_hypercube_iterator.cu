@@ -13,7 +13,7 @@
 
 static const size_t Size = 2;
 
-GT_FUNCTION int linear_index(gridtools::array<size_t, 2> &index) { return index[0] * Size + index[1]; }
+constexpr int linear_index(gridtools::array<size_t, 2> &index) { return index[0] * Size + index[1]; }
 
 __global__ void test_kernel(int *out_ptr) {
     for (size_t i = 0; i < Size * Size; ++i)

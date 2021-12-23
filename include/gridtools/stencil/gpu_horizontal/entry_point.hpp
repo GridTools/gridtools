@@ -21,7 +21,6 @@
 #include "../../common/hymap.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple_util.hpp"
-#include "../../common/utility.hpp"
 #include "../../meta.hpp"
 #include "../../sid/as_const.hpp"
 #include "../../sid/block.hpp"
@@ -44,13 +43,13 @@ namespace gridtools {
             struct deref_f {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
                 template <class Key, class T>
-                GT_FUNCTION std::enable_if_t<is_texture_type<T>::value && meta::st_contains<Keys, Key>::value, T>
+                GT_FORCE_INLINE constexpr std::enable_if_t<is_texture_type<T>::value && meta::st_contains<Keys, Key>::value, T>
                 operator()(Key, T const *ptr) const {
                     return __ldg(ptr);
                 }
 #endif
                 template <class Key, class Ptr>
-                GT_FUNCTION decltype(auto) operator()(Key, Ptr ptr) const {
+                GT_FORCE_INLINE constexpr decltype(auto) operator()(Key, Ptr ptr) const {
                     return *ptr;
                 }
             };
@@ -71,7 +70,7 @@ namespace gridtools {
 
                     using j_caches_t = j_caches_type<Info>;
                     j_caches_t j_caches;
-                    auto mixed_ptr = hymap::merge(j_caches.ptr(), wstd::move(ptr));
+                    auto mixed_ptr = hymap::merge(j_caches.ptr(), std::move(ptr));
 
                     auto shift_mixed_ptr = [&](auto dim, auto offset) {
                         sid::shift(mixed_ptr.secondary(), sid::get_stride<decltype(dim)>(strides), offset);

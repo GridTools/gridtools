@@ -28,7 +28,7 @@ namespace {
     template <class T, class U, size_t N, size_t M, class Dims, class DstStrides, class SrcSrides>
     void testee(
         host, T (&dst)[N], U (&src)[M], Dims const &dims, DstStrides const &dst_strides, SrcSrides const &src_strides) {
-        static_assert(std::is_same<std::remove_all_extents_t<T>, std::remove_all_extents_t<U>>::value, "");
+        static_assert(std::is_same_v<std::remove_all_extents_t<T>, std::remove_all_extents_t<U>>);
         using data_t = std::remove_all_extents_t<T>;
         transform_layout((data_t *)dst, (data_t const *)src, dims, dst_strides, src_strides);
     }
@@ -43,7 +43,7 @@ namespace {
         Dims const &dims,
         DstStrides const &dst_strides,
         SrcSrides const &src_strides) {
-        static_assert(std::is_same<std::remove_all_extents_t<T>, std::remove_all_extents_t<U>>::value, "");
+        static_assert(std::is_same_v<std::remove_all_extents_t<T>, std::remove_all_extents_t<U>>);
         using data_t = std::remove_all_extents_t<T>;
         auto &src_arr = reinterpret_cast<array<U, M> &>(src);
         auto &dst_arr = reinterpret_cast<array<T, N> &>(dst);

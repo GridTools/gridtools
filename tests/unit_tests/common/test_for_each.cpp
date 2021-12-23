@@ -60,6 +60,6 @@ namespace gridtools {
             for_each<lst<my_int_t<2>>>(f{res});
             return res;
         }
-        static_assert(foo() == 2, "");
+        static_assert(foo() == 2);
     } // namespace test_constexpr
 } // namespace gridtools

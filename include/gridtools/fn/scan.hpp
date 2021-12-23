@@ -16,6 +16,7 @@
 #include "../common/functional.hpp"
 #include "../common/integral_constant.hpp"
 #include "../common/tuple.hpp"
+#include "../common/host_device.hpp"
 #include "../meta/is_instantiation_of.hpp"
 #include "../sid/concept.hpp"
 
@@ -33,8 +34,8 @@ namespace gridtools::fn {
 
         template <bool IsBackward>
         struct base : std::bool_constant<IsBackward> {
-            static GT_FUNCTION constexpr auto prologue() { return tuple<>(); }
-            static GT_FUNCTION constexpr auto epilogue() { return tuple<>(); }
+            static GT_FORCE_INLINE constexpr auto prologue() { return tuple<>(); }
+            static GT_FORCE_INLINE constexpr auto epilogue() { return tuple<>(); }
         };
 
         using fwd = base<false>;
@@ -46,7 +47,8 @@ namespace gridtools::fn {
             GT_FUNCTION auto operator()(Seed seed, std::size_t size, Ptr ptr, Strides const &strides) const {
                 constexpr std::size_t prologue_size = std::tuple_size_v<decltype(ScanOrFold::prologue())>;
                 constexpr std::size_t epilogue_size = std::tuple_size_v<decltype(ScanOrFold::epilogue())>;
-                assert(size >= prologue_size + epilogue_size);
+                if constexpr (prologue_size + epilogue_size)
+                    assert(size >= prologue_size + epilogue_size);
                 using step_t = integral_constant<int, ScanOrFold::value ? -1 : 1>;
                 auto const &v_stride = sid::get_stride<Vertical>(strides);
                 auto inc = [&] { sid::shift(ptr, v_stride, step_t()); };

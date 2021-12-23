@@ -134,13 +134,13 @@ namespace gridtools {
             struct deref_f {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
                 template <class Key, class T>
-                GT_FUNCTION std::enable_if_t<is_texture_type<T>::value && meta::st_contains<Keys, Key>::value, T>
+                GT_FORCE_INLINE constexpr std::enable_if_t<is_texture_type<T>::value && meta::st_contains<Keys, Key>::value, T>
                 operator()(Key, T const *ptr) const {
                     return __ldg(ptr);
                 }
 #endif
                 template <class Key, class Ptr>
-                GT_FUNCTION decltype(auto) operator()(Key, Ptr ptr) const {
+                GT_FORCE_INLINE constexpr decltype(auto) operator()(Key, Ptr ptr) const {
                     return *ptr;
                 }
             };

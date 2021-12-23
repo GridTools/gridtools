@@ -82,15 +82,15 @@ namespace gridtools {
                 using extent_t = Extent;
                 using cache_io_policies_t = meta::list<CacheIoPolicies...>;
 
-                static GT_FUNCTION key_t key() { return {}; }
-                static GT_FUNCTION plh_t plh() { return {}; }
-                static GT_FUNCTION caches_t caches() { return {}; }
-                static GT_FUNCTION is_tmp_t is_tmp() { return {}; }
+                static GT_FORCE_INLINE constexpr key_t key() { return {}; }
+                static GT_FORCE_INLINE constexpr plh_t plh() { return {}; }
+                static GT_FORCE_INLINE constexpr caches_t caches() { return {}; }
+                static GT_FORCE_INLINE constexpr is_tmp_t is_tmp() { return {}; }
                 static data_t data();
-                static GT_FUNCTION num_colors_t num_colors() { return {}; }
-                static GT_FUNCTION is_const_t is_const() { return {}; }
-                static GT_FUNCTION extent_t extent() { return {}; }
-                static GT_FUNCTION cache_io_policies_t cache_io_policies() { return {}; }
+                static GT_FORCE_INLINE constexpr num_colors_t num_colors() { return {}; }
+                static GT_FORCE_INLINE constexpr is_const_t is_const() { return {}; }
+                static GT_FORCE_INLINE constexpr extent_t extent() { return {}; }
+                static GT_FORCE_INLINE constexpr cache_io_policies_t cache_io_policies() { return {}; }
             };
 
             template <template <class...> class GetKey = get_plh, class PlhMap, class Fun>
@@ -180,15 +180,15 @@ namespace gridtools {
                 using plhs_t = meta::transform<get_plh, plh_map_t>;
                 using k_step_t = integral_constant<int_t, core::is_backward<Execution>::value ? -1 : 1>;
 
-                static GT_FUNCTION Funs funs() { return {}; }
-                static GT_FUNCTION Interval interval() { return {}; }
-                static GT_FUNCTION PlhMap plh_map() { return {}; }
-                static GT_FUNCTION Extent extent() { return {}; }
-                static GT_FUNCTION Execution execution() { return {}; }
-                static GT_FUNCTION NeedSync need_sync() { return {}; }
+                static GT_FORCE_INLINE constexpr Funs funs() { return {}; }
+                static GT_FORCE_INLINE constexpr Interval interval() { return {}; }
+                static GT_FORCE_INLINE constexpr PlhMap plh_map() { return {}; }
+                static GT_FORCE_INLINE constexpr Extent extent() { return {}; }
+                static GT_FORCE_INLINE constexpr Execution execution() { return {}; }
+                static GT_FORCE_INLINE constexpr NeedSync need_sync() { return {}; }
 
-                static GT_FUNCTION plhs_t plhs() { return {}; }
-                static GT_FUNCTION k_step_t k_step() { return {}; }
+                static GT_FORCE_INLINE constexpr plhs_t plhs() { return {}; }
+                static GT_FORCE_INLINE constexpr k_step_t k_step() { return {}; }
 
                 template <class Deref = void, class Ptr, class Strides>
                 GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
@@ -196,7 +196,7 @@ namespace gridtools {
                 }
 
                 template <class Ptr, class Strides>
-                static GT_FUNCTION void inc_k(Ptr &ptr, Strides const &strides) {
+                static GT_FORCE_INLINE constexpr void inc_k(Ptr &ptr, Strides const &strides) {
                     sid::shift(ptr, sid::get_stride<dim::k>(strides), k_step());
                 }
             };
@@ -308,16 +308,16 @@ namespace gridtools {
 
                 using cells_t = meta::rename<tuple, meta::filter<meta::not_<is_cell_empty>::apply, interval_info>>;
 
-                static GT_FUNCTION execution_t execution() { return {}; }
-                static GT_FUNCTION extent_t extent() { return {}; }
-                static GT_FUNCTION plh_map_t plh_map() { return {}; }
-                static GT_FUNCTION plhs_t plhs() { return {}; }
-                static GT_FUNCTION interval_t interval() { return {}; }
-                static GT_FUNCTION k_step_t k_step() { return {}; }
-                static GT_FUNCTION cells_t cells() { return {}; }
+                static GT_FORCE_INLINE constexpr execution_t execution() { return {}; }
+                static GT_FORCE_INLINE constexpr extent_t extent() { return {}; }
+                static GT_FORCE_INLINE constexpr plh_map_t plh_map() { return {}; }
+                static GT_FORCE_INLINE constexpr plhs_t plhs() { return {}; }
+                static GT_FORCE_INLINE constexpr interval_t interval() { return {}; }
+                static GT_FORCE_INLINE constexpr k_step_t k_step() { return {}; }
+                static GT_FORCE_INLINE constexpr cells_t cells() { return {}; }
 
                 template <class Ptr, class Strides>
-                static GT_FUNCTION void inc_k(Ptr &ptr, Strides const &strides) {
+                static GT_FORCE_INLINE constexpr void inc_k(Ptr &ptr, Strides const &strides) {
                     sid::shift(ptr, sid::get_stride<dim::k>(strides), k_step());
                 }
             };
@@ -325,8 +325,8 @@ namespace gridtools {
             template <class... IntervalInfos>
             class fused_view_item {
                 static_assert(sizeof...(IntervalInfos) > 0, GT_INTERNAL_ERROR);
-                static_assert(std::conjunction<meta::is_instantiation_of<interval_info, IntervalInfos>...>::value,
-                    GT_INTERNAL_ERROR);
+                static_assert(
+                    std::conjunction_v<meta::is_instantiation_of<interval_info, IntervalInfos>...>, GT_INTERNAL_ERROR);
                 static_assert(meta::are_same<typename meta::length<IntervalInfos>::type...>::value, GT_INTERNAL_ERROR);
 
                 using item_t = meta::first<meta::list<IntervalInfos...>>;
@@ -344,14 +344,14 @@ namespace gridtools {
                     meta::reverse<meta::rename<tuple, fused_view_item>>,
                     meta::rename<tuple, fused_view_item>>;
 
-                static GT_FUNCTION execution_t execution() { return {}; }
-                static GT_FUNCTION extent_t extent() { return {}; }
-                static GT_FUNCTION plh_map_t plh_map() { return {}; }
-                static GT_FUNCTION plhs_t plhs() { return {}; }
-                static GT_FUNCTION interval_t interval() { return {}; }
-                static GT_FUNCTION k_step_t k_step() { return {}; }
+                static GT_FORCE_INLINE constexpr execution_t execution() { return {}; }
+                static GT_FORCE_INLINE constexpr extent_t extent() { return {}; }
+                static GT_FORCE_INLINE constexpr plh_map_t plh_map() { return {}; }
+                static GT_FORCE_INLINE constexpr plhs_t plhs() { return {}; }
+                static GT_FORCE_INLINE constexpr interval_t interval() { return {}; }
+                static GT_FORCE_INLINE constexpr k_step_t k_step() { return {}; }
 
-                static GT_FUNCTION interval_infos_t interval_infos() { return {}; }
+                static GT_FORCE_INLINE constexpr interval_infos_t interval_infos() { return {}; }
             };
 
             template <class... Cells>
@@ -371,14 +371,14 @@ namespace gridtools {
                     meta::reverse<meta::rename<tuple, split_view_item>>,
                     meta::rename<tuple, split_view_item>>;
 
-                static GT_FUNCTION execution_t execution() { return {}; }
-                static GT_FUNCTION extent_t extent() { return {}; }
-                static GT_FUNCTION plh_map_t plh_map() { return {}; }
-                static GT_FUNCTION plhs_t plhs() { return {}; }
-                static GT_FUNCTION interval_t interval() { return {}; }
-                static GT_FUNCTION k_step_t k_step() { return {}; }
+                static GT_FORCE_INLINE constexpr execution_t execution() { return {}; }
+                static GT_FORCE_INLINE constexpr extent_t extent() { return {}; }
+                static GT_FORCE_INLINE constexpr plh_map_t plh_map() { return {}; }
+                static GT_FORCE_INLINE constexpr plhs_t plhs() { return {}; }
+                static GT_FORCE_INLINE constexpr interval_t interval() { return {}; }
+                static GT_FORCE_INLINE constexpr k_step_t k_step() { return {}; }
 
-                static GT_FUNCTION cells_t cells() { return {}; }
+                static GT_FORCE_INLINE constexpr cells_t cells() { return {}; }
             };
 
             template <class... Items>
@@ -392,8 +392,8 @@ namespace gridtools {
 
                 using interval_t = core::enclosing_interval<typename Items::interval_t...>;
 
-                static GT_FUNCTION tmp_plh_map_t tmp_plh_map() { return {}; }
-                static GT_FUNCTION interval_t interval() { return {}; }
+                static GT_FORCE_INLINE constexpr tmp_plh_map_t tmp_plh_map() { return {}; }
+                static GT_FORCE_INLINE constexpr interval_t interval() { return {}; }
             };
 
             template <class Matrix>

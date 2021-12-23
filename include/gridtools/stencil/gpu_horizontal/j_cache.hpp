@@ -63,7 +63,7 @@ namespace gridtools {
 
                 template <class Extent, class NumColors>
                 struct fake {
-                    GT_FUNCTION fake operator()() const { return {}; }
+                    constexpr fake operator()() const { return {}; }
                     fake operator*() const;
                 };
                 template <class Extent, class NumColors>
@@ -75,7 +75,7 @@ namespace gridtools {
                 }
 
                 template <class Extent, class NumColors>
-                GT_FUNCTION fake<Extent, NumColors> operator+(fake<Extent, NumColors>, fake<Extent, NumColors>) {
+                constexpr fake<Extent, NumColors> operator+(fake<Extent, NumColors>, fake<Extent, NumColors>) {
                     return {};
                 }
 
