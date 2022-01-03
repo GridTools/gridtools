@@ -15,6 +15,7 @@
 #include <type_traits>
 
 #include "../meta/at.hpp"
+#include "host_device.hpp"
 
 namespace gridtools {
 
@@ -28,10 +29,10 @@ namespace gridtools {
             tuple_leaf &operator=(tuple_leaf const &) = default;
             tuple_leaf &operator=(tuple_leaf &&) = default;
 
-            constexpr tuple_leaf() noexcept : m_value() {}
+            GT_FORCE_INLINE constexpr tuple_leaf() noexcept : m_value() {}
 
             template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
-            constexpr tuple_leaf(Arg &&arg) noexcept : m_value(std::forward<Arg>(arg)) {}
+            GT_FORCE_INLINE constexpr tuple_leaf(Arg &&arg) noexcept : m_value(std::forward<Arg>(arg)) {}
         };
 
         template <size_t I, class T>
@@ -43,37 +44,37 @@ namespace gridtools {
             tuple_leaf &operator=(tuple_leaf &&) = default;
 
             template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
-            constexpr tuple_leaf(Arg &&arg) noexcept : T(std::forward<Arg>(arg)) {}
+            GT_FORCE_INLINE constexpr tuple_leaf(Arg &&arg) noexcept : T(std::forward<Arg>(arg)) {}
         };
 
         struct tuple_leaf_getter {
             template <size_t I, class T>
-            static constexpr T const &get(tuple_leaf<I, T, false> const &obj) noexcept {
+            static GT_FORCE_INLINE constexpr T const &get(tuple_leaf<I, T, false> const &obj) noexcept {
                 return obj.m_value;
             }
 
             template <size_t I, class T>
-            static constexpr T &get(tuple_leaf<I, T, false> &obj) noexcept {
+            static GT_FORCE_INLINE constexpr T &get(tuple_leaf<I, T, false> &obj) noexcept {
                 return obj.m_value;
             }
 
             template <size_t I, class T>
-            static constexpr T&& get(tuple_leaf<I, T, false> &&obj) noexcept {
+            static GT_FORCE_INLINE constexpr T &&get(tuple_leaf<I, T, false> &&obj) noexcept {
                 return static_cast<T &&>(get<I>(obj));
             }
 
             template <size_t I, class T>
-            static constexpr T const &get(tuple_leaf<I, T, true> const &obj) noexcept {
+            static GT_FORCE_INLINE constexpr T const &get(tuple_leaf<I, T, true> const &obj) noexcept {
                 return obj;
             }
 
             template <size_t I, class T>
-            static constexpr T &get(tuple_leaf<I, T, true> &obj) noexcept {
+            static GT_FORCE_INLINE constexpr T &get(tuple_leaf<I, T, true> &obj) noexcept {
                 return obj;
             }
 
             template <size_t I, class T>
-            static constexpr T&& get(tuple_leaf<I, T, true> &&obj) noexcept {
+            static GT_FORCE_INLINE constexpr T &&get(tuple_leaf<I, T, true> &&obj) noexcept {
                 return static_cast<T &&>(obj);
             }
         };
@@ -90,14 +91,14 @@ namespace gridtools {
             tuple_impl &operator=(tuple_impl &&) = default;
 
             template <class... Args>
-            constexpr tuple_impl(Args &&... args) noexcept
+            GT_FORCE_INLINE constexpr tuple_impl(Args &&...args) noexcept
                 : tuple_leaf<Is, Ts>(std::forward<Args>(args))... {}
 
             template <class Src>
-            constexpr tuple_impl(Src &&src) noexcept
+            GT_FORCE_INLINE constexpr tuple_impl(Src &&src) noexcept
                 : tuple_leaf<Is, Ts>(tuple_leaf_getter::get<Is>(std::forward<Src>(src)))... {}
 
-            constexpr void swap(tuple_impl &other) noexcept {
+            GT_FORCE_INLINE constexpr void swap(tuple_impl &other) noexcept {
                 using std::swap;
                 (..., swap(tuple_leaf_getter::get<Is>(*this), tuple_leaf_getter::get<Is>(other)));
             }
@@ -106,18 +107,16 @@ namespace gridtools {
                 std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                                      std::conjunction<std::is_assignable<Ts &, Args const &>...>::value,
                     int> = 0>
-            constexpr void assign(tuple_impl<std::index_sequence<Is...>, Args...> const &src) noexcept {
-                using loop_t = int[sizeof...(Is)];
-                void(loop_t{(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(src), 0)...});
+            GT_FORCE_INLINE constexpr void assign(tuple_impl<std::index_sequence<Is...>, Args...> const &src) noexcept {
+                (..., (tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(src)));
             }
 
             template <class... Args,
                 std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                                      std::conjunction<std::is_assignable<Ts &, Args &&>...>::value,
                     int> = 0>
-            constexpr void assign(tuple_impl<std::index_sequence<Is...>, Args...> &&src) noexcept {
-                using loop_t = int[sizeof...(Is)];
-                void(loop_t{(tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(std::move(src)), 0)...});
+            GT_FORCE_INLINE constexpr void assign(tuple_impl<std::index_sequence<Is...>, Args...> &&src) noexcept {
+                (..., (tuple_leaf_getter::get<Is>(*this) = tuple_leaf_getter::get<Is>(std::move(src))));
             }
         };
     } // namespace impl_
@@ -143,17 +142,17 @@ namespace gridtools {
 
         struct getter {
             template <size_t I>
-            static constexpr decltype(auto) get(tuple const &obj) noexcept {
+            static GT_FORCE_INLINE constexpr decltype(auto) get(tuple const &obj) noexcept {
                 return impl_::tuple_leaf_getter::get<I>(obj.m_impl);
             }
 
             template <size_t I>
-            static constexpr decltype(auto) get(tuple &obj) noexcept {
+            static GT_FORCE_INLINE constexpr decltype(auto) get(tuple &obj) noexcept {
                 return impl_::tuple_leaf_getter::get<I>(obj.m_impl);
             }
 
             template <size_t I>
-            static constexpr decltype(auto) get(tuple &&obj) noexcept {
+            static GT_FORCE_INLINE constexpr decltype(auto) get(tuple &&obj) noexcept {
                 return impl_::tuple_leaf_getter::get<I>(std::move(obj.m_impl));
             }
         };
@@ -169,30 +168,30 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-        constexpr tuple(Ts const &... args) noexcept : m_impl(args...) {}
+        GT_FORCE_INLINE constexpr tuple(Ts const &...args) noexcept : m_impl(args...) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                                  std::conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
-        constexpr tuple(Args &&...args) noexcept : m_impl(std::forward<Args>(args)...) {}
+        GT_FORCE_INLINE constexpr tuple(Args &&...args) noexcept : m_impl(std::forward<Args>(args)...) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                                  std::conjunction<std::is_constructible<Ts, Args const &>...>::value,
                 int> = 0>
-        constexpr tuple(tuple<Args...> const &src) noexcept : m_impl(src.m_impl) {}
+        GT_FORCE_INLINE constexpr tuple(tuple<Args...> const &src) noexcept : m_impl(src.m_impl) {}
 
         template <class... Args,
             std::enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                                  std::conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
-        constexpr tuple(tuple<Args...> &&src) noexcept : m_impl(std::move(src).m_impl) {}
+        GT_FORCE_INLINE constexpr tuple(tuple<Args...> &&src) noexcept : m_impl(std::move(src).m_impl) {}
 
-        constexpr void swap(tuple &other) noexcept { m_impl.swap(other.m_impl); }
+        GT_FORCE_INLINE constexpr void swap(tuple &other) noexcept { m_impl.swap(other.m_impl); }
 
         template <class Other>
-        constexpr tuple &operator=(Other &&other) {
+        GT_FORCE_INLINE constexpr tuple &operator=(Other &&other) {
             m_impl.assign(std::forward<Other>(other).m_impl);
             return *this;
         }
@@ -203,64 +202,64 @@ namespace gridtools {
         T m_value;
         struct getter {
             template <size_t I, std::enable_if_t<I == 0, int> = 0>
-            static constexpr T const &get(tuple const &obj) noexcept {
+            static GT_FORCE_INLINE constexpr T const &get(tuple const &obj) noexcept {
                 return obj.m_value;
             }
 
             template <size_t I, std::enable_if_t<I == 0, int> = 0>
-            static constexpr T &get(tuple &obj) noexcept {
+            static GT_FORCE_INLINE constexpr T &get(tuple &obj) noexcept {
                 return obj.m_value;
             }
 
             template <size_t I, std::enable_if_t<I == 0, int> = 0>
-            static constexpr T &&get(tuple &&obj) noexcept {
+            static GT_FORCE_INLINE constexpr T &&get(tuple &&obj) noexcept {
                 return static_cast<T &&>(obj.m_value);
             }
         };
         friend getter tuple_getter(tuple const &) { return {}; }
 
-        template <class...> 
+        template <class...>
         friend class tuple;
 
       public:
-        constexpr tuple() noexcept : m_value() {}
+        GT_FORCE_INLINE constexpr tuple() noexcept : m_value() {}
 
         tuple(tuple const &) = default;
         tuple(tuple &&) = default;
         tuple &operator=(tuple const &) = default;
-        tuple &operator=(tuple &&) = default; 
+        tuple &operator=(tuple &&) = default;
 
-        constexpr tuple(T const &arg) noexcept : m_value(arg) {}
+        GT_FORCE_INLINE constexpr tuple(T const &arg) noexcept : m_value(arg) {}
 
         template <class Arg, std::enable_if_t<std::is_constructible<T, Arg &&>::value, int> = 0>
-        constexpr tuple(Arg &&arg) noexcept : m_value(std::forward<Arg>(arg)) {}
+        GT_FORCE_INLINE constexpr tuple(Arg &&arg) noexcept : m_value(std::forward<Arg>(arg)) {}
 
         template <class Arg,
             std::enable_if_t<std::is_constructible<T, Arg const &>::value &&
                                  !std::is_convertible<tuple<Arg> const &, T>::value &&
                                  !std::is_constructible<T, tuple<Arg> const &>::value && !std::is_same<T, Arg>::value,
                 int> = 0>
-        constexpr tuple(tuple<Arg> const &src) noexcept : m_value(src.m_value) {}
+        GT_FORCE_INLINE constexpr tuple(tuple<Arg> const &src) noexcept : m_value(src.m_value) {}
 
         template <class Arg,
             std::enable_if_t<std::is_constructible<T, Arg &&>::value && !std::is_convertible<tuple<Arg>, T>::value &&
                                  !std::is_constructible<T, tuple<Arg>>::value && !std::is_same<T, Arg>::value,
                 int> = 0>
-        constexpr tuple(tuple<Arg> &&src) noexcept : m_value(std::move(src).m_value) {}
+        GT_FORCE_INLINE constexpr tuple(tuple<Arg> &&src) noexcept : m_value(std::move(src).m_value) {}
 
-        constexpr void swap(tuple &other) noexcept {
+        GT_FORCE_INLINE constexpr void swap(tuple &other) noexcept {
             using std::swap;
             swap(m_value, other.m_value);
         }
 
         template <class Arg, std::enable_if_t<std::is_assignable<T &, Arg const &>::value, int> = 0>
-        constexpr tuple &operator=(tuple<Arg> const &src) noexcept {
+        GT_FORCE_INLINE constexpr tuple &operator=(tuple<Arg> const &src) noexcept {
             m_value = src.m_value;
             return *this;
         }
 
         template <class Arg, std::enable_if_t<std::is_assignable<T &, Arg &&>::value, int> = 0>
-        constexpr tuple &operator=(tuple<Arg> &&src) noexcept {
+        GT_FORCE_INLINE constexpr tuple &operator=(tuple<Arg> &&src) noexcept {
             m_value = std::move(src).m_value;
             return *this;
         }
@@ -271,26 +270,26 @@ namespace gridtools {
         friend tuple tuple_getter(tuple const &) { return {}; }
 
       public:
-        constexpr void swap(tuple &) noexcept {}
+        GT_FORCE_INLINE constexpr void swap(tuple &) noexcept {}
     };
 
     template <class... Ts>
-    constexpr void swap(tuple<Ts...> &lhs, tuple<Ts...> &rhs) noexcept {
+    GT_FORCE_INLINE constexpr void swap(tuple<Ts...> &lhs, tuple<Ts...> &rhs) noexcept {
         lhs.swap(rhs);
     }
 
     template <size_t I, class... Ts>
-    constexpr decltype(auto) get(tuple<Ts...> const &obj) noexcept {
+    GT_FORCE_INLINE constexpr decltype(auto) get(tuple<Ts...> const &obj) noexcept {
         return decltype(tuple_getter(obj))::template get<I>(obj);
     }
 
     template <size_t I, class... Ts>
-    constexpr decltype(auto) get(tuple<Ts...> &obj) noexcept {
+    GT_FORCE_INLINE constexpr decltype(auto) get(tuple<Ts...> &obj) noexcept {
         return decltype(tuple_getter(std::declval<tuple<Ts...> const &>()))::template get<I>(obj);
     }
 
     template <size_t I, class... Ts>
-    constexpr decltype(auto) get(tuple<Ts...> &&obj) noexcept {
+    GT_FORCE_INLINE constexpr decltype(auto) get(tuple<Ts...> &&obj) noexcept {
         return decltype(tuple_getter(std::declval<tuple<Ts...> const &>()))::template get<I>(std::move(obj));
     }
 } // namespace gridtools

@@ -23,6 +23,7 @@
 #include "../meta/list.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/repeat.hpp"
+#include "host_device.hpp"
 
 namespace gridtools {
 
@@ -58,28 +59,28 @@ namespace gridtools {
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        constexpr T const *begin() const { return &m_array[0]; }
+        GT_FORCE_INLINE constexpr T const *begin() const { return &m_array[0]; }
 
-        constexpr T *begin() { return &m_array[0]; }
+        GT_FORCE_INLINE constexpr T *begin() { return &m_array[0]; }
 
-        constexpr T const *end() const { return &m_array[D]; }
+        GT_FORCE_INLINE constexpr T const *end() const { return &m_array[D]; }
 
-        constexpr T *end() { return &m_array[D]; }
+        GT_FORCE_INLINE constexpr T *end() { return &m_array[D]; }
 
-        constexpr const T *data() const noexcept { return m_array; }
-        constexpr T *data() noexcept { return m_array; }
+        GT_FORCE_INLINE constexpr const T *data() const noexcept { return m_array; }
+        GT_FORCE_INLINE constexpr T *data() noexcept { return m_array; }
 
-        constexpr T const &operator[](size_t i) const { return m_array[i]; }
+        GT_FORCE_INLINE constexpr T const &operator[](size_t i) const { return m_array[i]; }
 
-        constexpr T &operator[](size_t i) { return m_array[i]; }
+        GT_FORCE_INLINE constexpr T &operator[](size_t i) { return m_array[i]; }
 
         template <typename A>
-        constexpr array &operator=(A const &a) {
+        GT_FORCE_INLINE constexpr array &operator=(A const &a) {
             std::copy(a.begin(), a.end(), m_array);
             return *this;
         }
 
-        static constexpr size_t size() { return D; }
+        static GT_FORCE_INLINE constexpr size_t size() { return D; }
     };
 
     template <class T, class... Ts>
@@ -101,19 +102,19 @@ namespace gridtools {
 
         struct getter {
             template <size_t I, typename T, size_t D>
-            static constexpr T &get(array<T, D> &arr) noexcept {
+            static GT_FORCE_INLINE constexpr T &get(array<T, D> &arr) noexcept {
                 static_assert(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
 
             template <size_t I, typename T, size_t D>
-            static constexpr const T &get(const array<T, D> &arr) noexcept {
+            static GT_FORCE_INLINE constexpr const T &get(const array<T, D> &arr) noexcept {
                 static_assert(I < D, "index is out of bounds");
                 return arr.m_array[I];
             }
 
             template <size_t I, typename T, size_t D>
-            static constexpr T &&get(array<T, D> &&arr) noexcept {
+            static GT_FORCE_INLINE constexpr T &&get(array<T, D> &&arr) noexcept {
                 static_assert(I < D, "index is out of bounds");
                 return std::move(arr.m_array[I]);
             }
@@ -131,7 +132,7 @@ namespace gridtools {
 
     // in case we need a constexpr version we need to implement a recursive one for c++11
     template <typename T, typename U, size_t D>
-    constexpr bool operator==(array<T, D> const &a, array<U, D> const &b) {
+    GT_FORCE_INLINE constexpr bool operator==(array<T, D> const &a, array<U, D> const &b) {
 #ifndef __GNUC__
 #pragma unroll
 #endif
@@ -143,7 +144,7 @@ namespace gridtools {
     }
 
     template <typename T, typename U, size_t D>
-    constexpr bool operator!=(array<T, D> const &a, array<U, D> const &b) {
+    GT_FORCE_INLINE constexpr bool operator!=(array<T, D> const &a, array<U, D> const &b) {
         return !(a == b);
     }
 
@@ -160,19 +161,19 @@ namespace gridtools {
     struct is_array_of<array<Value, D>, Value> : std::true_type {};
 
     template <size_t I, typename T, size_t D>
-    constexpr T &get(array<T, D> &arr) noexcept {
+    GT_FORCE_INLINE constexpr T &get(array<T, D> &arr) noexcept {
         static_assert(I < D, "index is out of bounds");
         return arr.m_array[I];
     }
 
     template <size_t I, typename T, size_t D>
-    constexpr const T &get(const array<T, D> &arr) noexcept {
+    GT_FORCE_INLINE constexpr const T &get(const array<T, D> &arr) noexcept {
         static_assert(I < D, "index is out of bounds");
         return arr.m_array[I];
     }
 
     template <size_t I, typename T, size_t D>
-    constexpr T &&get(array<T, D> &&arr) noexcept {
+    GT_FORCE_INLINE constexpr T &&get(array<T, D> &&arr) noexcept {
         static_assert(I < D, "index is out of bounds");
         return std::move(get<I>(arr));
     }
