@@ -340,7 +340,7 @@ namespace gridtools {
 
             using sid::property;
             return sid::synthetic()
-                .template set<property::origin>(sid::host_device::simple_ptr_holder<T *>{ptr})
+                .template set<property::origin>(sid::simple_ptr_holder<T *>{ptr})
                 .template set<property::strides>(assign_unit_stride<UnitStrideDim>(std::move(strides), shape))
                 .template set<property::strides_kind, kind<Dim, Kind>>()
                 .template set<property::lower_bounds>(array<integral_constant<size_t, 0>, Dim>())

@@ -14,7 +14,6 @@
 */
 
 #include <algorithm>
-#include <cassert>
 #include <iterator>
 #include <tuple>
 #include <type_traits>
@@ -72,14 +71,10 @@ namespace gridtools {
 
         constexpr T const &operator[](size_t i) const { return m_array[i]; }
 
-        constexpr T &operator[](size_t i) {
-            assert(i < D);
-            return m_array[i];
-        }
+        constexpr T &operator[](size_t i) { return m_array[i]; }
 
         template <typename A>
         constexpr array &operator=(A const &a) {
-            assert(a.size() == D);
             std::copy(a.begin(), a.end(), m_array);
             return *this;
         }

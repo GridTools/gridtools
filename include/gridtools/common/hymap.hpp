@@ -45,8 +45,7 @@
  *
  *  User API
  *  --------
- *  Run time: a single function `target_name::at_key<Key>(hymap_obj)` is provided where `target_name` is `host`,
- * `device` or `host_device`. `at_key` without `target_name` is an alias of `host::at_key`.
+ *  Run time: a single function `at_key<Key>(hymap_obj)` is provided.
  *
  *  Compile time:
  *  - `get_keys` metafunction. Usage: `get_keys<Hymap>`
