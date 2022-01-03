@@ -10,9 +10,11 @@
 #pragma once
 
 #include <cassert>
+#include <functional>
 #include <type_traits>
 #include <utility>
 
+#include "../common/compose.hpp"
 #include "../common/defs.hpp"
 #include "../common/enable_maker.hpp"
 #include "../common/for_each.hpp"
@@ -20,7 +22,6 @@
 #include "../common/hymap.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
-#include "../common/utility.hpp"
 #include "../meta.hpp"
 #include "concept.hpp"
 #include "unknown_kind.hpp"
@@ -111,12 +112,13 @@ namespace gridtools {
                 };
 
                 template <class ObjTup, class StrideTup, class Offset>
-                GT_FUNCTION void composite_shift_impl(ObjTup &obj_tup, StrideTup &&stride_tup, Offset offset) {
-                    tuple_util::host_device::for_each(
+                GT_FORCE_INLINE constexpr void composite_shift_impl(
+                    ObjTup &obj_tup, StrideTup &&stride_tup, Offset offset) {
+                    tuple_util::for_each(
                         [offset](auto &obj, auto &&stride)
-                            GT_FORCE_INLINE_LAMBDA { shift(obj, wstd::forward<decltype(stride)>(stride), offset); },
+                            GT_FORCE_INLINE_LAMBDA { shift(obj, std::forward<decltype(stride)>(stride), offset); },
                         obj_tup,
-                        wstd::forward<StrideTup>(stride_tup));
+                        std::forward<StrideTup>(stride_tup));
                 }
 
                 template <class Key, class Strides, class I = meta::st_position<get_keys<Strides>, Key>>
@@ -137,13 +139,6 @@ namespace gridtools {
                 };
 
                 struct ctor_tag {};
-
-                struct sum {
-                    template <class Lhs, class Rhs>
-                    GT_FUNCTION GT_CONSTEXPR auto operator()(Lhs &&lhs, Rhs &&rhs) const {
-                        return wstd::forward<Lhs>(lhs) + wstd::forward<Rhs>(rhs);
-                    }
-                };
             } // namespace impl_
 
             /**
@@ -192,12 +187,13 @@ namespace gridtools {
 
                 template <class... Args,
                     std::enable_if_t<std::conjunction_v<std::is_constructible<Ptrs, Args>...>, int> = 0>
-                constexpr GT_FUNCTION composite_ptr(Args &&...args) noexcept : m_vals{wstd::forward<Args>(args)...} {}
+                GT_FORCE_INLINE constexpr composite_ptr(Args &&...args) noexcept
+                    : m_vals{std::forward<Args>(args)...} {}
 
-                constexpr GT_FUNCTION composite_ptr(Ptrs const &...args) noexcept : m_vals(args...) {}
+                GT_FORCE_INLINE constexpr composite_ptr(Ptrs const &...args) noexcept : m_vals(args...) {}
 
-                constexpr GT_FUNCTION composite_ptr(tuple<Ptrs...> &&args) noexcept : m_vals(wstd::move(args)) {}
-                constexpr GT_FUNCTION composite_ptr(tuple<Ptrs...> const &args) noexcept : m_vals(args) {}
+                GT_FORCE_INLINE constexpr composite_ptr(tuple<Ptrs...> &&args) noexcept : m_vals(std::move(args)) {}
+                GT_FORCE_INLINE constexpr composite_ptr(tuple<Ptrs...> const &args) noexcept : m_vals(args) {}
 
                 composite_ptr() = default;
                 composite_ptr(composite_ptr const &) = default;
@@ -207,14 +203,14 @@ namespace gridtools {
 
                 GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
 
-                GT_CONSTEXPR GT_FUNCTION decltype(auto) operator*() const {
-                    return tuple_util::host_device::convert_to<hymap::keys<Keys...>::template values>(
-                        tuple_util::host_device::transform([](auto const &ptr)
+                GT_FORCE_INLINE constexpr decltype(auto) operator*() const {
+                    return tuple_util::convert_to<hymap::keys<Keys...>::template values>(
+                        tuple_util::transform([](auto const &ptr)
 // Workaround for GCC 9 bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90333
 // The failure is observed with 9.3 as well even though they say it was already fixed there.
 // gcc 10.1, 10.2 fails here as well. Disabling for all gcc 9 and 10 versions...
 #if defined(__clang__) || !defined(__GNUC__) || (__GNUC__ != 9 && __GNUC__ != 10)
-                                                               GT_FORCE_INLINE_LAMBDA
+                                                  GT_FORCE_INLINE_LAMBDA
 #endif
                             -> decltype(auto) { return *ptr; },
                             m_vals));
@@ -222,6 +218,11 @@ namespace gridtools {
 
                 friend keys hymap_get_keys(composite_ptr const &) { return {}; }
             };
+
+            template <class Fun, class Tup, std::size_t... Is>
+            GT_FORCE_INLINE constexpr decltype(auto) my_apply_impl(Fun &&f, Tup &&tup, std::index_sequence<Is...>) {
+                return std::forward<Fun>(f)(get<Is>(std::forward<Tup>(tup))...);
+            }
 
             template <class... Keys>
             template <class... PtrHolders>
@@ -232,14 +233,15 @@ namespace gridtools {
 
                 template <class... Args,
                     std::enable_if_t<std::conjunction_v<std::is_constructible<PtrHolders, Args>...>, int> = 0>
-                constexpr GT_FUNCTION composite_ptr_holder(Args &&...args) noexcept
-                    : m_vals{wstd::forward<Args>(args)...} {}
+                GT_FORCE_INLINE constexpr composite_ptr_holder(Args &&...args) noexcept
+                    : m_vals{std::forward<Args>(args)...} {}
 
-                constexpr GT_FUNCTION composite_ptr_holder(PtrHolders const &...args) noexcept : m_vals(args...) {}
+                GT_FORCE_INLINE constexpr composite_ptr_holder(PtrHolders const &...args) noexcept : m_vals(args...) {}
 
-                constexpr GT_FUNCTION composite_ptr_holder(tuple<PtrHolders...> &&args) noexcept
-                    : m_vals(wstd::move(args)) {}
-                constexpr GT_FUNCTION composite_ptr_holder(tuple<PtrHolders...> const &args) noexcept : m_vals(args) {}
+                GT_FORCE_INLINE constexpr composite_ptr_holder(tuple<PtrHolders...> &&args) noexcept
+                    : m_vals(std::move(args)) {}
+                GT_FORCE_INLINE constexpr composite_ptr_holder(tuple<PtrHolders...> const &args) noexcept
+                    : m_vals(args) {}
 
                 composite_ptr_holder() = default;
                 composite_ptr_holder(composite_ptr_holder const &) = default;
@@ -249,9 +251,12 @@ namespace gridtools {
 
                 GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr_holder, m_vals);
 
-                GT_CONSTEXPR GT_FUNCTION auto operator()() const {
-                    return tuple_util::host_device::convert_to<composite_ptr>(tuple_util::host_device::transform(
-                        [](auto const &obj) GT_FORCE_INLINE_LAMBDA { return obj(); }, m_vals));
+                GT_FORCE_INLINE constexpr auto operator()() const {
+                    return tuple_util::apply(
+                        [](auto const &...holders) {
+                            return composite_ptr<std::decay_t<decltype(holders())>...>(holders()...);
+                        },
+                        m_vals);
                 }
 
                 friend keys hymap_get_keys(composite_ptr_holder const &) { return {}; }
@@ -292,8 +297,8 @@ namespace gridtools {
                     class T,
                     class Item = meta::mp_find<Map, std::integral_constant<size_t, I>>,
                     class Pos = meta::second<Item>>
-                static GT_CONSTEXPR GT_FUNCTION decltype(auto) get(T &&obj) {
-                    return tuple_util::host_device::get<Pos::value>(wstd::forward<T>(obj).m_vals);
+                static GT_FORCE_INLINE constexpr decltype(auto) get(T &&obj) {
+                    return tuple_util::get<Pos::value>(std::forward<T>(obj).m_vals);
                 }
 
                 template <class... Ts>
@@ -308,7 +313,7 @@ namespace gridtools {
                     vals_t m_vals;
 
                     template <template <class...> class L, class... Args>
-                    composite_entity(impl_::ctor_tag, L<Args...> &&tup) noexcept
+                    GT_FORCE_INLINE constexpr composite_entity(impl_::ctor_tag, L<Args...> &&tup) noexcept
                         : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {
                         static_assert(sizeof...(Args) == sizeof...(Keys), GT_INTERNAL_ERROR);
                     }
@@ -322,48 +327,49 @@ namespace gridtools {
                     friend compressed tuple_getter(composite_entity const &) { return {}; }
 
                     template <class... Ptrs>
-                    friend GT_CONSTEXPR GT_FUNCTION composite_ptr<Ptrs...> operator+(
+                    friend GT_FORCE_INLINE constexpr composite_ptr<Ptrs...> operator+(
                         composite_ptr<Ptrs...> const &lhs, composite_entity const &rhs) {
-                        return tuple_util::host_device::transform(impl_::sum(), lhs, rhs);
+                        return tuple_util::transform(std::plus<>(), lhs, rhs);
                     }
 
                     template <class... PtrHolders>
-                    friend composite_ptr_holder<PtrHolders...> operator+(
+                    friend GT_FORCE_INLINE constexpr composite_ptr_holder<PtrHolders...> operator+(
                         composite_ptr_holder<PtrHolders...> const &lhs, composite_entity const &rhs) {
-                        return tuple_util::transform(impl_::sum(), lhs, rhs);
+                        return tuple_util::transform(std::plus<>(), lhs, rhs);
                     }
 
                     template <class... Ptrs, class Offset>
-                    friend GT_FUNCTION void sid_shift(
+                    friend GT_FORCE_INLINE constexpr void sid_shift(
                         composite_ptr<Ptrs...> &ptr, composite_entity const &stride, Offset offset) {
                         impl_::composite_shift_impl(ptr.m_vals, stride, offset);
                     }
 
                     template <class... Ptrs, class Offset>
-                    friend GT_FUNCTION void sid_shift(
+                    friend GT_FORCE_INLINE constexpr void sid_shift(
                         composite_ptr<Ptrs...> &ptr, composite_entity &&stride, Offset offset) {
-                        impl_::composite_shift_impl(ptr.m_vals, wstd::move(stride), offset);
+                        impl_::composite_shift_impl(ptr.m_vals, std::move(stride), offset);
                     }
 
                     friend keys hymap_get_keys(composite_entity const &) { return {}; }
                 };
 
                 template <class... PtrDiffs, class... Strides, class Offset>
-                friend GT_FUNCTION void sid_shift(composite_entity<PtrDiffs...> &ptr_diff,
+                friend GT_FORCE_INLINE constexpr void sid_shift(composite_entity<PtrDiffs...> &ptr_diff,
                     composite_entity<Strides...> const &stride,
                     Offset offset) {
                     impl_::composite_shift_impl(ptr_diff.m_vals, stride.m_vals, offset);
                 }
 
                 template <class... PtrDiffs, class... Strides, class Offset>
-                friend GT_FUNCTION void sid_shift(
+                friend GT_FORCE_INLINE constexpr void sid_shift(
                     composite_entity<PtrDiffs...> &ptr_diff, composite_entity<Strides...> &&stride, Offset offset) {
-                    impl_::composite_shift_impl(ptr_diff.m_vals, wstd::move(stride.m_vals), offset);
+                    impl_::composite_shift_impl(ptr_diff.m_vals, std::move(stride.m_vals), offset);
                 }
 
                 struct convert_f {
                     template <template <class...> class L, class... Ts>
-                    composite_entity<std::remove_reference_t<Ts>...> operator()(L<Ts...> &&tup) const {
+                    GT_FORCE_INLINE constexpr composite_entity<std::remove_reference_t<Ts>...> operator()(
+                        L<Ts...> &&tup) const {
                         return {impl_::ctor_tag(), std::move(tup)};
                     }
                 };
@@ -375,11 +381,10 @@ namespace gridtools {
                 static_assert(sizeof...(Keys) == sizeof...(Sids), GT_INTERNAL_ERROR);
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 1
 #else
-                static_assert(std::conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
+                static_assert(std::conjunction_v<is_sid<Sids>...>, GT_INTERNAL_ERROR);
 #endif
                 static_assert(meta::all<meta::mp_make<impl_::check_strides_of_the_same_kind,
-                                  meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>(),
-                    "");
+                        meta::list<meta::list<strides_kind<Sids>, strides_type<Sids>>...>>>());
 
                 tuple<Sids...> m_sids;
 
@@ -474,9 +479,9 @@ namespace gridtools {
             template <>
             template <>
             struct keys<>::values<> {
-                constexpr GT_FUNCTION values operator()() const { return {}; }
-                constexpr GT_FUNCTION values operator*() const { return {}; }
-                friend constexpr GT_FUNCTION values operator+(values, values) { return {}; }
+                constexpr values operator()() const { return {}; }
+                constexpr values operator*() const { return {}; }
+                friend constexpr values operator+(values, values) { return {}; }
                 friend values sid_get_origin(values) { return {}; }
                 friend values sid_get_ptr_diff(values) { return {}; }
                 friend values tuple_getter(values) { return {}; }

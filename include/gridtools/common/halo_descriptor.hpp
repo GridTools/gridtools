@@ -54,12 +54,12 @@ namespace gridtools {
          * initialized values that are subsequently copy constructed (since this is a POD structure it can be copied
          * without an explicit copy constructor.
          */
-        GT_FUNCTION halo_descriptor() : halo_descriptor(0, 0, 0, 0, 1) {}
+        GT_FORCE_INLINE constexpr halo_descriptor() : halo_descriptor(0, 0, 0, 0, 1) {}
 
         /**
          * @brief simple ctor without halos and padding
          */
-        GT_FUNCTION halo_descriptor(uint_t size) : halo_descriptor(0, 0, 0, size - 1, size) {}
+        GT_FORCE_INLINE constexpr halo_descriptor(uint_t size) : halo_descriptor(0, 0, 0, size - 1, size) {}
 
         /** Main constructors where the five integers are passed.
           \code
@@ -75,7 +75,7 @@ namespace gridtools {
           \param[in] e The end parameter (inclusive)
           \param[in] l The total_length parameter
          */
-        GT_FUNCTION halo_descriptor(uint_t m, uint_t p, uint_t b, uint_t e, uint_t l)
+        GT_FORCE_INLINE constexpr halo_descriptor(uint_t m, uint_t p, uint_t b, uint_t e, uint_t l)
             : m_minus(m), m_plus(p), m_begin(b), m_end(e), m_total_length(l) {
             assert(m_minus + m_plus + (m_end - m_begin + 1) <= m_total_length);
             assert(m_begin <= m_end);
@@ -87,7 +87,7 @@ namespace gridtools {
            Begin index for the loop on the outside region.
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
         */
-        GT_FUNCTION int_t loop_low_bound_outside(
+        GT_FORCE_INLINE constexpr int_t loop_low_bound_outside(
             int_t I) const { // inside is the fact that the halos are ones outside the begin-end region
             switch (I) {
             case 0:
@@ -106,7 +106,7 @@ namespace gridtools {
            End index for the loop on the outside region.
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
          */
-        GT_FUNCTION int_t loop_high_bound_outside(
+        GT_FORCE_INLINE constexpr int_t loop_high_bound_outside(
             int_t I) const { // inside is the fact that the halos are ones outside the begin-end region
             switch (I) {
             case 0:
@@ -125,7 +125,7 @@ namespace gridtools {
            Begin index for the loop on the inside region.
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
          */
-        GT_FUNCTION int_t loop_low_bound_inside(
+        GT_FORCE_INLINE constexpr int_t loop_low_bound_inside(
             int_t I) const { // inside is the fact that the halos are ones outside the begin-end region
 
             switch (I) {
@@ -145,7 +145,7 @@ namespace gridtools {
            End index for the loop on the inside region.
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
          */
-        GT_FUNCTION int_t loop_high_bound_inside(
+        GT_FORCE_INLINE constexpr int_t loop_high_bound_inside(
             int_t I) const { // inside is the fact that the halos are ones outside the begin-end region
             switch (I) {
             case 0:
@@ -166,7 +166,7 @@ namespace gridtools {
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS
            \endlink)
         */
-        GT_FUNCTION uint_t r_length(int_t I) const {
+        GT_FORCE_INLINE constexpr uint_t r_length(int_t I) const {
             switch (I) {
             case 0:
                 return (m_end - m_begin + 1);
@@ -186,7 +186,7 @@ namespace gridtools {
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS
            \endlink)
         */
-        GT_FUNCTION uint_t s_length(int_t I) const {
+        GT_FORCE_INLINE constexpr uint_t s_length(int_t I) const {
             switch (I) {
             case 0:
                 return (m_end - m_begin + 1);
@@ -200,30 +200,30 @@ namespace gridtools {
             }
         }
 
-        GT_FUNCTION uint_t minus() const { return m_minus; }
-        GT_FUNCTION uint_t plus() const { return m_plus; }
-        GT_FUNCTION uint_t begin() const { return m_begin; }
-        GT_FUNCTION uint_t end() const { return m_end; }
-        GT_FUNCTION uint_t total_length() const { return m_total_length; }
+        GT_FORCE_INLINE constexpr uint_t minus() const { return m_minus; }
+        GT_FORCE_INLINE constexpr uint_t plus() const { return m_plus; }
+        GT_FORCE_INLINE constexpr uint_t begin() const { return m_begin; }
+        GT_FORCE_INLINE constexpr uint_t end() const { return m_end; }
+        GT_FORCE_INLINE constexpr uint_t total_length() const { return m_total_length; }
 
         /**
          * @brief sets minus halo to zero.
          * This operation is needed in the communication module.
          * Unlike a general setter this operation will always result in a valid halo_descriptor.
          */
-        GT_FUNCTION void reset_minus() { m_minus = 0; }
+        GT_FORCE_INLINE constexpr void reset_minus() { m_minus = 0; }
         /**
          * @brief sets plus halo to zero.
          * This operation, unlike a general setter, will always result in a valid halo_descriptor.
          */
-        GT_FUNCTION void reset_plus() { m_plus = 0; }
+        GT_FORCE_INLINE constexpr void reset_plus() { m_plus = 0; }
 
-        GT_FUNCTION bool operator==(const halo_descriptor &rhs) const {
+        GT_FORCE_INLINE constexpr bool operator==(const halo_descriptor &rhs) const {
             return (m_minus == rhs.m_minus) && (m_plus == rhs.m_plus) && (m_begin == rhs.m_begin) &&
                    (m_end == rhs.m_end) && (m_total_length == rhs.m_total_length);
         }
 
-        GT_FUNCTION bool operator!=(const halo_descriptor &rhs) const { return !(*this == rhs); }
+        GT_FORCE_INLINE constexpr bool operator!=(const halo_descriptor &rhs) const { return !(*this == rhs); }
     };
 
     /** @} */

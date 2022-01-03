@@ -12,6 +12,8 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/defs.hpp>
+
 using namespace gridtools;
 
 TEST(array, test_copyctr) {
@@ -35,8 +37,8 @@ namespace constexpr_compare {
     constexpr array<uint_t, 3> b{0, 0, 0};
     constexpr array<uint_t, 3> c{0, 0, 1};
 
-    static_assert(a == b, "");
-    static_assert(a != c, "");
+    static_assert(a == b);
+    static_assert(a != c);
 } // namespace constexpr_compare
 
 TEST(array, iterate) {

@@ -26,10 +26,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 
 #include "../common/int_vector.hpp"
 #include "../common/integral_constant.hpp"
-#include "../common/utility.hpp"
 #include "../meta.hpp"
 
 namespace gridtools {
@@ -61,12 +61,12 @@ namespace gridtools {
             static_assert(meta::is_set<meta::list<typename Ts::dim_t...>>::value);
             using keys_t = hymap::keys<typename Ts::dim_t...>;
 
-            static GT_CONSTEVAL GT_FUNCTION auto offsets() {
+            static GT_CONSTEVAL auto offsets() {
                 return int_vector::prune_zeros(typename keys_t::template values<typename Ts::lower_t...>());
             }
             using offsets_t = decltype(offsets());
 
-            static GT_CONSTEVAL GT_FUNCTION auto sizes() {
+            static GT_CONSTEVAL auto sizes() {
                 return int_vector::prune_zeros(typename keys_t::template values<typename Ts::size_t...>());
             }
             using sizes_t = decltype(sizes());
@@ -86,19 +86,19 @@ namespace gridtools {
 #endif
 
         template <class Extents, class Offsets>
-        decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_offsets(Offsets &&src) {
+        GT_FORCE_INLINE constexpr decltype(auto) extend_offsets(Offsets &&src) {
             static_assert(is_extents<Extents>::value);
             static_assert(is_int_vector<std::decay_t<Offsets>>::value);
             using namespace int_vector::arithmetic;
-            return wstd::forward<Offsets>(src) + Extents::offsets();
+            return std::forward<Offsets>(src) + Extents::offsets();
         }
 
         template <class Extents, class Sizes>
-        decltype(auto) GT_FUNCTION GT_CONSTEXPR extend_sizes(Sizes &&sizes) {
+        GT_FORCE_INLINE constexpr decltype(auto) extend_sizes(Sizes &&sizes) {
             static_assert(is_extents<Extents>::value);
             static_assert(is_int_vector<std::decay_t<Sizes>>::value);
             using namespace int_vector::arithmetic;
-            return wstd::forward<Sizes>(sizes) + Extents::sizes();
+            return std::forward<Sizes>(sizes) + Extents::sizes();
         }
 
         namespace extent_impl_ {

@@ -55,7 +55,7 @@ namespace gridtools {
 
                 template <int_t BlockSizeI, int_t BlockSizeJ, class Fun>
                 void launch_kernel(int_t i_size, int_t j_size, uint_t zblocks, Fun fun) {
-                    static_assert(std::is_trivially_copyable<Fun>::value, GT_INTERNAL_ERROR);
+                    static_assert(std::is_trivially_copy_constructible_v<Fun>, GT_INTERNAL_ERROR);
 
                     cuda_util::launch(
                         dim3((i_size + BlockSizeI - 1) / BlockSizeI, (j_size + BlockSizeJ - 1) / BlockSizeJ, zblocks),

@@ -32,12 +32,12 @@ bool GT_FUNCTION test_exp(Value val, Value result) {
     return expect_with_threshold(math::exp(val), result);
 }
 
-static_assert(std::is_same<decltype(math::fabs(4.0f)), float>::value, "");
-static_assert(std::is_same<decltype(math::fabs(4.0)), double>::value, "");
+static_assert(std::is_same_v<decltype(math::fabs(4.0f)), float>);
+static_assert(std::is_same_v<decltype(math::fabs(4.0)), double>);
 #ifndef __CUDA_ARCH__
-static_assert(std::is_same<decltype(math::fabs((long double)4)), long double>::value, "");
+static_assert(std::is_same_v<decltype(math::fabs((long double)4)), long double>);
 #endif
-static_assert(std::is_same<decltype(math::fabs((int)4)), double>::value, "");
+static_assert(std::is_same_v<decltype(math::fabs((int)4)), double>);
 
 bool GT_FUNCTION test_fabs() {
     if (!expect_with_threshold(math::fabs(5.6), 5.6, 1e-14))
@@ -56,16 +56,16 @@ bool GT_FUNCTION test_fabs() {
         return true;
 }
 
-static_assert(std::is_same<decltype(math::abs(4.0f)), float>::value, "");
-static_assert(std::is_same<decltype(math::abs(4.0)), double>::value, "");
+static_assert(std::is_same_v<decltype(math::abs(4.0f)), float>);
+static_assert(std::is_same_v<decltype(math::abs(4.0)), double>);
 #ifndef __CUDA_ARCH__
-static_assert(std::is_same<decltype(math::abs((long double)4)), long double>::value, "");
+static_assert(std::is_same_v<decltype(math::abs((long double)4)), long double>);
 #endif
 
 // int overloads
-static_assert(std::is_same<decltype(math::abs((int)4)), int>::value, "");
-static_assert(std::is_same<decltype(math::abs((long)4)), long>::value, "");
-static_assert(std::is_same<decltype(math::abs((long long)4)), long long>::value, "");
+static_assert(std::is_same_v<decltype(math::abs((int)4)), int>);
+static_assert(std::is_same_v<decltype(math::abs((long)4)), long>);
+static_assert(std::is_same_v<decltype(math::abs((long long)4)), long long>);
 
 GT_FUNCTION bool test_abs() {
     // float overloads

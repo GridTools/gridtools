@@ -15,15 +15,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <gridtools/common/host_device.hpp>
-
 namespace gridtools {
 
     struct f {
         int *&dst;
 
         template <class T>
-        GT_FUNCTION_WARNING void operator()(T) const {
+        void operator()(T) const {
             *(dst++) = T::value;
         }
     };
@@ -62,13 +60,6 @@ namespace gridtools {
             for_each<lst<my_int_t<2>>>(f{res});
             return res;
         }
-        static_assert(foo() == 2, "");
+        static_assert(foo() == 2);
     } // namespace test_constexpr
-
-    TEST(for_each, targets) {
-        int *ptr = nullptr;
-        for_each<lst<>>(f{ptr});
-        host::for_each<lst<>>(f{ptr});
-        host_device::for_each<lst<>>(f{ptr});
-    }
 } // namespace gridtools

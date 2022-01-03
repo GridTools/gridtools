@@ -46,12 +46,12 @@ namespace gridtools {
                 };
 
                 struct fake {
-                    GT_FUNCTION fake operator()() const { return {}; }
+                    constexpr fake operator()() const { return {}; }
                     fake operator*() const;
                 };
                 fake sid_get_ptr_diff(fake);
                 inline fake sid_get_origin(fake) { return {}; }
-                GT_FUNCTION fake operator+(fake, fake) { return {}; }
+                constexpr fake operator+(fake, fake) { return {}; }
                 inline hymap::keys<dim::k>::values<integral_constant<int_t, 1>> sid_get_strides(fake) { return {}; }
 
                 static_assert(is_sid<fake>(), GT_INTERNAL_ERROR);
@@ -62,13 +62,13 @@ namespace gridtools {
 
                   public:
                     GT_FUNCTION_DEVICE auto ptr() {
-                        return tuple_util::device::transform(
+                        return tuple_util::transform(
                             [](auto &storage) GT_FORCE_INLINE_LAMBDA { return storage.ptr(); }, m_storages);
                     }
 
                     template <class Step>
                     GT_FUNCTION_DEVICE void slide(Step step) {
-                        tuple_util::device::for_each(
+                        tuple_util::for_each(
                             [step](auto &storage) GT_FORCE_INLINE_LAMBDA { storage.slide(step); }, m_storages);
                     }
                 };

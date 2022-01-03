@@ -15,43 +15,43 @@ namespace gridtools {
     namespace reduction {
         struct plus {
             template <class T>
-            GT_FUNCTION auto operator()(T const &x, T const &y) const {
+            GT_FORCE_INLINE constexpr auto operator()(T const &x, T const &y) const {
                 return x + y;
             }
         };
         struct mul {
             template <class T>
-            GT_FUNCTION auto operator()(T const &x, T const &y) const {
+            GT_FORCE_INLINE constexpr auto operator()(T const &x, T const &y) const {
                 return x * y;
             }
         };
         struct min {
             template <class T>
-            GT_FUNCTION auto operator()(T const &x, T const &y) const {
+            GT_FORCE_INLINE constexpr auto operator()(T const &x, T const &y) const {
                 return x < y ? x : y;
             }
         };
         struct max {
             template <class T>
-            GT_FUNCTION auto operator()(T const &x, T const &y) const {
+            GT_FORCE_INLINE constexpr auto operator()(T const &x, T const &y) const {
                 return x > y ? x : y;
             }
         };
         struct bitwise_and {
             template <class T>
-            GT_FUNCTION auto operator()(T const &x, T const &y) const {
+            GT_FORCE_INLINE constexpr auto operator()(T const &x, T const &y) const {
                 return x & y;
             }
         };
         struct bitwise_or {
             template <class T>
-            GT_FUNCTION auto operator()(T const &x, T const &y) const {
+            GT_FORCE_INLINE constexpr auto operator()(T const &x, T const &y) const {
                 return x | y;
             }
         };
         struct bitwise_xor {
             template <class T>
-            GT_FUNCTION auto operator()(T const &x, T const &y) const {
+            GT_FORCE_INLINE constexpr auto operator()(T const &x, T const &y) const {
                 return x ^ y;
             }
         };

@@ -29,6 +29,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
@@ -44,7 +45,7 @@ namespace gridtools {
             namespace stage_impl_ {
                 struct default_deref_f {
                     template <class Key, class T>
-                    GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
+                    GT_FORCE_INLINE constexpr decltype(auto) operator()(Key, T ptr) const {
                         return *ptr;
                     }
                 };
@@ -55,15 +56,15 @@ namespace gridtools {
                     Strides const &m_strides;
 
                     template <class Accessor>
-                    GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
+                    GT_FORCE_INLINE constexpr decltype(auto) operator()(Accessor acc) const {
                         using key_t = meta::at_c<Keys, Accessor::index_t::value>;
-                        return apply_intent<Accessor::intent_v>(Deref()(key_t(),
-                            sid::multi_shifted<key_t>(host_device::at_key<key_t>(m_ptr), m_strides, wstd::move(acc))));
+                        return apply_intent<Accessor::intent_v>(Deref()(
+                            key_t(), sid::multi_shifted<key_t>(at_key<key_t>(m_ptr), m_strides, std::move(acc))));
                     }
 
                     template <class Op, class... Ts>
-                    GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const {
-                        return expressions::evaluation::value(*this, wstd::move(arg));
+                    GT_FORCE_INLINE constexpr auto operator()(expr<Op, Ts...> arg) const {
+                        return expressions::evaluation::value(*this, std::move(arg));
                     }
                 };
 

@@ -125,16 +125,17 @@ using mss_t = meta::first<decltype(execute_parallel()
                                        .stage(functor6(), o6(), o5(), in1(), in2()))>;
 
 template <class Arg, int_t... ExpectedExtentValues>
-using testee = std::is_same<lookup_extent_map<get_extent_map_from_mss<mss_t>, Arg>, extent<ExpectedExtentValues...>>;
+constexpr bool testee =
+    std::is_same_v<lookup_extent_map<get_extent_map_from_mss<mss_t>, Arg>, extent<ExpectedExtentValues...>>;
 
-static_assert(testee<o0, -5, 11, -10, 10, -5, 13>::value, "");
-static_assert(testee<o1, -5, 9, -10, 8, -3, 10>::value, "");
-static_assert(testee<o2, -2, 8, -8, 7, -3, 8>::value, "");
-static_assert(testee<o3, -1, 5, -5, 7, 0, 6>::value, "");
-static_assert(testee<o4, 0, 4, -5, 4, 0, 3>::value, "");
-static_assert(testee<o5, 0, 3, -3, 2, 0, 0>::value, "");
-static_assert(testee<o6, 0, 0, 0, 0, 0, 0>::value, "");
-static_assert(testee<in0, -8, 11, -13, 13, -7, 13>::value, "");
-static_assert(testee<in1, -6, 12, -10, 12, -6, 15>::value, "");
-static_assert(testee<in2, -8, 14, -11, 12, -5, 14>::value, "");
-static_assert(testee<in3, -5, 10, -11, 10, -3, 10>::value, "");
+static_assert(testee<o0, -5, 11, -10, 10, -5, 13>);
+static_assert(testee<o1, -5, 9, -10, 8, -3, 10>);
+static_assert(testee<o2, -2, 8, -8, 7, -3, 8>);
+static_assert(testee<o3, -1, 5, -5, 7, 0, 6>);
+static_assert(testee<o4, 0, 4, -5, 4, 0, 3>);
+static_assert(testee<o5, 0, 3, -3, 2, 0, 0>);
+static_assert(testee<o6, 0, 0, 0, 0, 0, 0>);
+static_assert(testee<in0, -8, 11, -13, 13, -7, 13>);
+static_assert(testee<in1, -6, 12, -10, 12, -6, 15>);
+static_assert(testee<in2, -8, 14, -11, 12, -5, 14>);
+static_assert(testee<in3, -5, 10, -11, 10, -3, 10>);

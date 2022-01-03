@@ -210,11 +210,9 @@ namespace gridtools {
                 return res;
             }
 
-            GT_FUNCTION
-            array<int, ndims> const &coordinates() const { return m_coordinates; }
+            constexpr array<int, ndims> const &coordinates() const { return m_coordinates; }
 
-            GT_FUNCTION
-            array<int, ndims> const &dimensions() const { return m_dimensions; }
+            constexpr array<int, ndims> const &dimensions() const { return m_dimensions; }
 
             /** Returns the process ID of the process with absolute coordinates specified by the input array of
                coordinates

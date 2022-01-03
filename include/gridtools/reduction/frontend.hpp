@@ -32,6 +32,11 @@ namespace gridtools {
             template <class Sizes>
             using zeros_type = decltype(zeros(std::declval<Sizes const &>()));
 
+            template <class StorageTraits>
+            struct alloc_fun {
+                auto operator()(size_t size) const { return storage::traits::allocate<StorageTraits, char>(size); }
+            };
+
             template <class Backend, class T, class Origin, class Strides, class StridesKind, class Sizes>
             struct reducible {
                 std::shared_ptr<void> m_alloc;
@@ -58,8 +63,7 @@ namespace gridtools {
 
             template <class Backend, class StorageTraits, class Id = void, class T, class... Dims>
             auto make_reducible(T const &neutral_value, Dims... dims) {
-                auto alloc = sid::host_device::make_cached_allocator(
-                    [](size_t size) { return storage::traits::allocate<StorageTraits, char>(size); });
+                sid::cached_allocator<alloc_fun<StorageTraits>> alloc;
                 auto lengths = tuple(dims...);
                 auto info = storage::traits::make_info<StorageTraits, T>(lengths);
                 auto strides = info.native_strides();

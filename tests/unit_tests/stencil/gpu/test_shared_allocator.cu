@@ -53,9 +53,9 @@ namespace gridtools {
                 template <class PtrHolderFloat, class PtrHolderInt>
                 __global__ void fill_and_check_test(
                     PtrHolderFloat holder1, PtrHolderFloat holder1_shifted, PtrHolderInt holder2, bool *result) {
-                    static_assert(std::is_same<decltype(holder1()), float *>::value, "");
-                    static_assert(std::is_same<decltype(holder1_shifted()), float *>::value, "");
-                    static_assert(std::is_same<decltype(holder2()), int16_t *>::value, "");
+                    static_assert(std::is_same_v<decltype(holder1()), float *>);
+                    static_assert(std::is_same_v<decltype(holder1_shifted()), float *>);
+                    static_assert(std::is_same_v<decltype(holder2()), int16_t *>);
 
                     auto ptr1 = holder1();
                     auto ptr1_shifted = holder1_shifted();

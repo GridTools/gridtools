@@ -32,10 +32,9 @@ namespace gridtools {
             };
 
             template <class Ptr, class Stride, class BlockSize, class Offset>
-            GT_FUNCTION decltype(auto) sid_shift(
+            GT_FORCE_INLINE constexpr decltype(auto) sid_shift(
                 Ptr &ptr, blocked_stride<Stride, BlockSize> const &stride, Offset const &offset) {
-                return shift(
-                    ptr, tuple_util::host_device::get<0>(stride), tuple_util::host_device::get<1>(stride) * offset);
+                return shift(ptr, tuple_util::get<0>(stride), tuple_util::get<1>(stride) * offset);
             }
 
             template <class Stride, class BlockSize, std::enable_if_t<!std::is_integral<Stride>::value, int> = 0>

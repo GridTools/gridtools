@@ -18,7 +18,7 @@
  *  Works also with parameter packs. I.e you can both `GT_META_PRINT_TYPE(SomeType)` and
  * `GT_META_PRINT_TYPE(SomeTypes...)`
  */
-#define GT_META_PRINT_TYPE(x) static_assert(::gridtools::meta::debug::type<BOOST_PP_REMOVE_PARENS(x)>::_, "")
+#define GT_META_PRINT_TYPE(x) static_assert(::gridtools::meta::debug::type<BOOST_PP_REMOVE_PARENS(x)>::_)
 
 /**
  *  This macro expands to the code snippet that generates a compiler error that refers to the compile time value(s) of
@@ -30,8 +30,7 @@
 #define GT_META_PRINT_VALUE(x)                                                                                \
     static_assert(                                                                                            \
         ::gridtools::meta::debug::value<decltype(::gridtools::meta::debug::first(BOOST_PP_REMOVE_PARENS(x))), \
-            BOOST_PP_REMOVE_PARENS(x)>::_,                                                                    \
-        "")
+            BOOST_PP_REMOVE_PARENS(x)>::_)
 
 namespace gridtools {
     namespace meta {

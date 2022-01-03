@@ -26,7 +26,7 @@
 #define GT_DECLARE_EXPANDABLE_ICO_TMP(type, location, ...)                                               \
     BOOST_PP_SEQ_FOR_EACH(                                                                               \
         GT_INTERNAL_DECLARE_EXPANDABLE_ICO_TMP, (type, location), BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
-    static_assert(1, "")
+    static_assert(1)
 
 #define GT_INTERNAL_DECLARE_ICO_TMP(r, type_location, name)               \
     constexpr ::gridtools::stencil::icosahedral::tmp_arg<__COUNTER__,     \
@@ -36,7 +36,7 @@
 
 #define GT_DECLARE_ICO_TMP(type, location, ...)                                                                 \
     BOOST_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_ICO_TMP, (type, location), BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
-    static_assert(1, "")
+    static_assert(1)
 
 namespace gridtools {
     namespace stencil {

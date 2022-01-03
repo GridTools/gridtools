@@ -11,6 +11,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../../../common/hymap.hpp"
 #include "../../../common/tuple.hpp"
@@ -39,24 +40,23 @@ namespace gridtools {
                 template <class Key>
                 struct sum_offset_generator_f {
 
-                    using default_t = integral_constant<int_t, 0>;
+                    using default_t = integral_constant<int, 0>;
 
                     template <class Lhs, class Rhs>
-                    GT_FUNCTION auto operator()(Lhs &&lhs, Rhs &&rhs) const {
-                        return host_device::at_key_with_default<Key, default_t>(wstd::forward<Lhs>(lhs)) +
-                               host_device::at_key_with_default<Key, default_t>(wstd::forward<Rhs>(rhs));
+                    GT_FORCE_INLINE constexpr auto operator()(Lhs &&lhs, Rhs &&rhs) const {
+                        return at_key_with_default<Key, default_t>(std::forward<Lhs>(lhs)) +
+                               at_key_with_default<Key, default_t>(std::forward<Rhs>(rhs));
                     }
                 };
 
                 template <class Res, class Lhs, class Rhs>
-                GT_FUNCTION Res sum_offsets(Lhs &&lhs, Rhs rhs) {
+                GT_FORCE_INLINE constexpr Res sum_offsets(Lhs &&lhs, Rhs rhs) {
                     using generators_t = meta::transform<sum_offset_generator_f, get_keys<Res>>;
-                    return tuple_util::host_device::generate<generators_t, Res>(
-                        wstd::forward<Lhs>(lhs), wstd::move(rhs));
+                    return tuple_util::generate<generators_t, Res>(std::forward<Lhs>(lhs), std::move(rhs));
                 }
 
                 template <int_t I, int_t J, int_t K, class Accessor>
-                GT_FUNCTION std::enable_if_t<I == 0 && J == 0 && K == 0, Accessor> get_offsets(Accessor acc) {
+                GT_FORCE_INLINE constexpr std::enable_if_t<I == 0 && J == 0 && K == 0, Accessor> get_offsets(Accessor acc) {
                     return acc;
                 }
 
@@ -65,10 +65,10 @@ namespace gridtools {
                     int_t K,
                     class Accessor,
                     class Res = array<int_t, tuple_util::size<Accessor>::value>>
-                GT_FUNCTION std::enable_if_t<I != 0 || J != 0 || K != 0, Res> get_offsets(Accessor acc) {
+                GT_FORCE_INLINE constexpr std::enable_if_t<I != 0 || J != 0 || K != 0, Res> get_offsets(Accessor acc) {
                     using offset_t = hymap::keys<dim::i, dim::j, dim::k>::
                         values<integral_constant<int_t, I>, integral_constant<int_t, J>, integral_constant<int_t, K>>;
-                    return sum_offsets<Res>(wstd::move(acc), offset_t());
+                    return sum_offsets<Res>(std::move(acc), offset_t());
                 }
 
                 template <int_t I, int_t J, int_t K, class Params, class Eval, class Args>
@@ -82,10 +82,9 @@ namespace gridtools {
                         std::enable_if_t<is_accessor<Accessor>::value && is_accessor<Arg>::value &&
                                              !(Param::intent_v == intent::inout && Arg::intent_v == intent::in),
                             int> = 0>
-                    GT_FUNCTION decltype(auto) operator()(Accessor acc) const {
+                    GT_FORCE_INLINE constexpr decltype(auto) operator()(Accessor acc) const {
                         return m_eval(sum_offsets<Arg>(
-                            get_offsets<I, J, K>(tuple_util::host_device::get<Accessor::index_t::value>(m_args)),
-                            std::move(acc)));
+                            get_offsets<I, J, K>(tuple_util::get<Accessor::index_t::value>(m_args)), std::move(acc)));
                     }
 
                     template <class Accessor,
@@ -95,25 +94,25 @@ namespace gridtools {
                                              !(Param::intent_v == intent::inout &&
                                                  std::is_const<std::remove_reference_t<Arg>>::value),
                             int> = 0>
-                    GT_FUNCTION decltype(auto) operator()(Accessor) const {
-                        return tuple_util::host_device::get<Accessor::index_t::value>(m_args);
+                    GT_FORCE_INLINE constexpr decltype(auto) operator()(Accessor) const {
+                        return tuple_util::get<Accessor::index_t::value>(m_args);
                     }
 
                     template <class Op, class... Ts>
-                    GT_FUNCTION auto operator()(expr<Op, Ts...> arg) const {
-                        return expressions::evaluation::value(*this, wstd::move(arg));
+                    GT_FORCE_INLINE constexpr auto operator()(expr<Op, Ts...> arg) const {
+                        return expressions::evaluation::value(*this, std::move(arg));
                     }
                 };
 
                 template <int_t I, int_t J, int_t K, class Params, class Eval, class Args>
-                GT_CONSTEXPR GT_FUNCTION evaluator<I, J, K, Params, Eval, Args> make_evaluator(Eval &eval, Args args) {
-                    return {eval, wstd::move(args)};
+                GT_FORCE_INLINE constexpr evaluator<I, J, K, Params, Eval, Args> make_evaluator(Eval &eval, Args args) {
+                    return {eval, std::move(args)};
                 }
 
                 template <class Functor, class Region, int_t I, int_t J, int_t K, class Eval, class Args>
                 GT_FUNCTION void evaluate_bound_functor(Eval &eval, Args args) {
                     call_functor<Functor, Region>(
-                        make_evaluator<I, J, K, typename Functor::param_list>(eval, wstd::move(args)));
+                        make_evaluator<I, J, K, typename Functor::param_list>(eval, std::move(args)));
                 }
 
                 template <class Eval, class Arg, bool = is_accessor<Arg>::value>
@@ -189,11 +188,10 @@ namespace gridtools {
                     class Res =
                         typename call_interfaces_impl_::get_result_type<Eval, ReturnType, std::decay_t<Args>...>::type,
                     std::enable_if_t<sizeof...(Args) + 1 == meta::length<params_t>::value, int> = 0>
-                GT_FUNCTION static Res with(Eval &eval, Args &&... args) {
+                GT_FUNCTION static Res with(Eval &eval, Args &&...args) {
                     Res res;
-                    call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(eval,
-                        tuple_util::host_device::insert<out_param_index>(
-                            res, tuple<Args &&...>{wstd::forward<Args>(args)...}));
+                    call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
+                        eval, tuple_util::insert<out_param_index>(res, tuple<Args &&...>{std::forward<Args>(args)...}));
                     return res;
                 }
             };
@@ -235,9 +233,9 @@ namespace gridtools {
                 template <class Eval, class... Args>
                 GT_FUNCTION static std::enable_if_t<sizeof...(Args) ==
                                                     meta::length<typename Functor::param_list>::value>
-                with(Eval &eval, Args &&... args) {
+                with(Eval &eval, Args &&...args) {
                     call_interfaces_impl_::evaluate_bound_functor<Functor, Region, OffI, OffJ, OffK>(
-                        eval, tuple<Args &&...>{wstd::forward<Args>(args)...});
+                        eval, tuple<Args &&...>{std::forward<Args>(args)...});
                 }
             };
         } // namespace cartesian

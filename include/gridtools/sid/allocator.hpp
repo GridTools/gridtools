@@ -7,10 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef GT_TARGET_ITERATING
-// DON'T USE #pragma once HERE!!!
-#ifndef GT_SID_ALLOCATOR_HPP_
-#define GT_SID_ALLOCATOR_HPP_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -47,15 +44,13 @@
  *
  *  Both are templated with the functor that takes the size in bytes and returns `std::unique_ptr`
  *
- *  There are also correspondent generators: `make_allocator` and `make_cached_allocator`.
- *
  *  Semantics:
  *    - `allocator` keeps the resources that are allocated and releases them in dtor.
  *    - `cached_allocator` keeps resources during its lifetime. On dtor it stashes the resources in the internal static
  *      storage. The newly created instances of `cached_allocator` will attempt to reuse the stashed resources.
  *
  *  To make the simplest possible allocator one can do:
- *    `auto alloc = make_allocator(&std::make_unique<char[]>);`
+ *    `auto alloc = allocator(&std::make_unique<char[]>);`
  *
  */
 
@@ -96,57 +91,35 @@ namespace gridtools {
                 }
             };
         } // namespace allocator_impl_
-    }     // namespace sid
-} // namespace gridtools
 
-#define GT_FILENAME <gridtools/sid/allocator.hpp>
-#include GT_ITERATE_ON_TARGETS()
-#undef GT_FILENAME
+        template <class Impl, class Ptr = decltype(std::declval<Impl const>()(size_t{}))>
+        class allocator;
 
-#endif
-#else
+        template <class Impl, class T, class Deleter>
+        class allocator<Impl, std::unique_ptr<T, Deleter>> {
+            Impl m_impl;
+            std::vector<std::unique_ptr<T, Deleter>> m_buffers;
 
-namespace gridtools {
-    namespace sid {
-        GT_TARGET_NAMESPACE {
-            template <class Impl, class Ptr = decltype(std::declval<Impl const>()(size_t{}))>
-            class allocator;
+          public:
+            allocator() = default;
+            allocator(Impl impl) : m_impl(std::move(impl)) {}
 
-            template <class Impl, class T, class Deleter>
-            class allocator<Impl, std::unique_ptr<T, Deleter>> {
-                Impl m_impl;
-                std::vector<std::unique_ptr<T, Deleter>> m_buffers;
-
-              public:
-                allocator() = default;
-                allocator(Impl impl) : m_impl(std::move(impl)) {}
-
-                template <class LazyT>
-                friend auto allocate(allocator &self, LazyT, size_t size) {
-                    using type = typename LazyT::type;
-                    auto ptr = self.m_impl(sizeof(type) * size);
-                    self.m_buffers.push_back(self.m_impl(sizeof(type) * size));
-                    return make_simple_ptr_holder(reinterpret_cast<type *>(self.m_buffers.back().get()));
-                }
-            };
-
-            template <class Impl>
-            struct cached_allocator : allocator<allocator_impl_::cached_proxy_f<Impl>> {
-                cached_allocator() = default;
-                cached_allocator(Impl impl) : cached_allocator::allocator({std::move(impl)}) {}
-            };
-
-            template <class Impl>
-            allocator<Impl> make_allocator(Impl impl) {
-                return {std::move(impl)};
+            template <class LazyT>
+            friend auto allocate(allocator &self, LazyT, size_t size) {
+                using type = typename LazyT::type;
+                auto ptr = self.m_impl(sizeof(type) * size);
+                self.m_buffers.push_back(self.m_impl(sizeof(type) * size));
+                return simple_ptr_holder(reinterpret_cast<type *>(self.m_buffers.back().get()));
             }
+        };
 
-            template <class Impl>
-            cached_allocator<Impl> make_cached_allocator(Impl impl) {
-                return {std::move(impl)};
-            }
-        }
+        template <class Impl>
+        allocator(Impl) -> allocator<Impl>;
+
+        template <class Impl>
+        struct cached_allocator : allocator<allocator_impl_::cached_proxy_f<Impl>> {
+            cached_allocator() = default;
+            cached_allocator(Impl impl) : cached_allocator::allocator({std::move(impl)}) {}
+        };
     } // namespace sid
 } // namespace gridtools
-
-#endif

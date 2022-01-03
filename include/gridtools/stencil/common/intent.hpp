@@ -43,7 +43,7 @@ namespace gridtools {
         using apply_intent_t = typename apply_intent_type<Intent, T>::type;
 
         template <intent Intent, class T, class Res = typename apply_intent_type<Intent, T>::type>
-        GT_FUNCTION Res apply_intent(T &&obj) {
+        GT_FORCE_INLINE constexpr Res apply_intent(T &&obj) {
             return static_cast<Res>(obj);
         }
     } // namespace stencil

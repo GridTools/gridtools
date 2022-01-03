@@ -64,29 +64,29 @@ namespace gridtools {
                     enum class check { none, lo, hi };
 
                     template <class Ptrs>
-                    GT_FUNCTION int_t get_k_pos(Ptrs const &ptrs) {
-                        return *host_device::at_key<meta::list<k_pos_key>>(ptrs);
+                    GT_FORCE_INLINE constexpr int_t get_k_pos(Ptrs const &ptrs) {
+                        return *at_key<meta::list<k_pos_key>>(ptrs);
                     }
 
                     template <class PlhInfo, class Ptr, class Strides, class Offset>
-                    GT_FUNCTION void shift_orig(Ptr &ptr, Strides const &strides, Offset offset) {
+                    GT_FORCE_INLINE constexpr void shift_orig(Ptr &ptr, Strides const &strides, Offset offset) {
                         sid::shift(
                             ptr, sid::get_stride_element<meta::list<typename PlhInfo::plh_t>, dim::k>(strides), offset);
                     }
 
                     template <class PlhInfo, class Ptr, class Strides, class Offset>
-                    GT_FUNCTION void shift_cached(Ptr &ptr, Strides const &strides, Offset offset) {
+                    GT_FORCE_INLINE constexpr void shift_cached(Ptr &ptr, Strides const &strides, Offset offset) {
                         sid::shift(ptr, sid::get_stride_element<typename PlhInfo::key_t, dim::k>(strides), offset);
                     }
 
                     template <class PlhInfo, class Ptrs>
-                    GT_FUNCTION auto get_orig(Ptrs const &ptrs) {
-                        return host_device::at_key<meta::list<typename PlhInfo::plh_t>>(ptrs);
+                    GT_FORCE_INLINE constexpr auto get_orig(Ptrs const &ptrs) {
+                        return at_key<meta::list<typename PlhInfo::plh_t>>(ptrs);
                     }
 
                     template <class PlhInfo, class Ptrs>
-                    GT_FUNCTION auto get_cached(Ptrs const &ptrs) {
-                        return host_device::at_key<typename PlhInfo::key_t>(ptrs);
+                    GT_FORCE_INLINE constexpr auto get_cached(Ptrs const &ptrs) {
+                        return at_key<typename PlhInfo::key_t>(ptrs);
                     }
 
                     template <class PlhInfo,
@@ -95,7 +95,7 @@ namespace gridtools {
                         std::enable_if_t<std::is_same<typename PlhInfo::cache_io_policies_t,
                                              meta::list<cache_io_policy::fill>>::value,
                             int> = 0>
-                    GT_FUNCTION void sync(Cached cached, Orig orig) {
+                    GT_FORCE_INLINE constexpr void sync(Cached cached, Orig orig) {
                         *cached = *orig;
                     }
 
@@ -105,18 +105,18 @@ namespace gridtools {
                         std::enable_if_t<std::is_same<typename PlhInfo::cache_io_policies_t,
                                              meta::list<cache_io_policy::flush>>::value,
                             int> = 0>
-                    GT_FUNCTION void sync(Cached cached, Orig orig) {
+                    GT_FORCE_INLINE constexpr void sync(Cached cached, Orig orig) {
                         *orig = *cached;
                     }
 
                     template <class Plh, check>
                     struct bound {};
 
-                    GT_FUNCTION bool is_k_valid(integral_constant<check, check::lo>, int_t k, int_t lim) {
+                    GT_FORCE_INLINE constexpr bool is_k_valid(integral_constant<check, check::lo>, int_t k, int_t lim) {
                         return k >= lim;
                     }
 
-                    GT_FUNCTION bool is_k_valid(integral_constant<check, check::hi>, int_t k, int_t lim) {
+                    GT_FORCE_INLINE constexpr bool is_k_valid(integral_constant<check, check::hi>, int_t k, int_t lim) {
                         return k < lim;
                     }
 
@@ -130,7 +130,7 @@ namespace gridtools {
                             using namespace literals;
                             auto orig = get_orig<PlhInfo>(ptrs);
                             auto cached = get_cached<PlhInfo>(ptrs);
-                            auto lim = *host_device::at_key<bound_key_t>(ptrs);
+                            auto lim = *at_key<bound_key_t>(ptrs);
 
                             using from_t = meta::if_c<Range == range::plus,
                                 typename PlhInfo::extent_t::kplus,
@@ -138,7 +138,7 @@ namespace gridtools {
 
                             shift_orig<PlhInfo>(orig, strides, from_t());
                             shift_cached<PlhInfo>(cached, strides, from_t());
-                            int_t k = *host_device::at_key<pos_key_t>(ptrs) + from_t::value;
+                            int_t k = *at_key<pos_key_t>(ptrs) + from_t::value;
 
                             static constexpr int_t size = Range == range::all ? PlhInfo::extent_t::kplus::value -
                                                                                     PlhInfo::extent_t::kminus::value + 1
@@ -258,14 +258,15 @@ namespace gridtools {
                             !sync_all || std::is_same<meta::first<CurInterval>, meta::second<CurInterval>>::value,
                             "offset_limit too small");
 
-                        static constexpr range range_v =
-                            minus == plus ? range::minus
-                                          : sync_all ? range::all : is_forward == is_fill ? range::plus : range::minus;
+                        static constexpr range range_v = minus == plus           ? range::minus
+                                                         : sync_all              ? range::all
+                                                         : is_forward == is_fill ? range::plus
+                                                                                 : range::minus;
 
-                        static constexpr check check_v =
-                            minus == plus || PlhInfo::is_tmp_t::value
-                                ? check::none
-                                : close_to_first ? check::lo : close_to_last ? check::hi : check::none;
+                        static constexpr check check_v = minus == plus || PlhInfo::is_tmp_t::value ? check::none
+                                                         : close_to_first                          ? check::lo
+                                                         : close_to_last                           ? check::hi
+                                                                                                   : check::none;
 
                         using type = sync_fun<PlhInfo, range_v, check_v>;
                     };
@@ -325,13 +326,13 @@ namespace gridtools {
 
                     template <class Plh, class DataStores>
                     auto make_data_store(bound<Plh, check::lo>, DataStores const &data_stores) {
-                        return make_global_parameter(
+                        return global_parameter(
                             sid::get_lower_bound<dim::k>(sid::get_lower_bounds(at_key<Plh>(data_stores))));
                     }
 
                     template <class Plh, class DataStores>
                     auto make_data_store(bound<Plh, check::hi>, DataStores const &data_stores) {
-                        return make_global_parameter(
+                        return global_parameter(
                             sid::get_upper_bound<dim::k>(sid::get_upper_bounds(at_key<Plh>(data_stores))));
                     }
 

@@ -113,8 +113,8 @@ namespace gridtools {
 
         template <class T, std::size_t Dim, class Kind = void, size_t UnitStrideDim = size_t(-1)>
         wrapper<T, Dim, Kind, UnitStrideDim> as_sid(pybind11::buffer const &src) {
-            static_assert(
-                std::is_trivially_copyable<T>::value, "as_sid should be instantiated with the trivially copyable type");
+            static_assert(std::is_trivially_copy_constructible_v<T>,
+                "as_sid should be instantiated with the trivially copy constructible type");
             constexpr bool writable = !std::is_const<T>();
             // pybind11::buffer::request accepts writable as an optional parameter (default is false).
             // if writable is true PyBUF_WRITABLE flag is added while delegating to the PyObject_GetBuffer.
@@ -266,8 +266,8 @@ namespace gridtools {
 
         template <class T, size_t Dim, class Kind = void, size_t UnitStrideDim = size_t(-1)>
         auto as_cuda_sid(pybind11::object const &src) {
-            static_assert(std::is_trivially_copyable<T>::value,
-                "as_cuda_sid should be instantiated with the trivially copyable type");
+            static_assert(std::is_trivially_copy_constructible_v<T>,
+                "as_cuda_sid should be instantiated with the trivially copy constructible type");
 
             auto iface = src.attr("__cuda_array_interface__").cast<pybind11::dict>();
 
@@ -340,7 +340,7 @@ namespace gridtools {
 
             using sid::property;
             return sid::synthetic()
-                .template set<property::origin>(sid::host_device::simple_ptr_holder<T *>{ptr})
+                .template set<property::origin>(sid::simple_ptr_holder<T *>{ptr})
                 .template set<property::strides>(assign_unit_stride<UnitStrideDim>(std::move(strides), shape))
                 .template set<property::strides_kind, kind<Dim, Kind>>()
                 .template set<property::lower_bounds>(array<integral_constant<size_t, 0>, Dim>())

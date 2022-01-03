@@ -69,7 +69,7 @@ namespace gridtools {
               private:
                 /** Computation of the bit-index in `m_predicate_values` of the given direction. */
                 template <sign I, sign J, sign K>
-                GT_FUNCTION static constexpr uint_t direction_index(direction<I, J, K>) {
+                static constexpr uint_t direction_index(direction<I, J, K>) {
                     // computation of the bit-index of the given direction
                     constexpr int_t stride_i = 9;
                     constexpr int_t stride_j = 3;
@@ -133,23 +133,12 @@ namespace gridtools {
                         }
                     }
 
-                    GT_FUNCTION
-                    uint_t max() const { return m_sorted[0]; }
-
-                    GT_FUNCTION
-                    uint_t min() const { return m_sorted[2]; }
-
-                    GT_FUNCTION
-                    uint_t median() const { return m_sorted[1]; }
-
-                    GT_FUNCTION
-                    uint_t size(uint_t i) const { return m_size[i]; }
-
-                    GT_FUNCTION
-                    uint_t perm(uint_t i) const { return m_perm[i]; }
-
-                    GT_FUNCTION
-                    uint_t start(uint_t i) const { return m_start[i]; }
+                    constexpr uint_t max() const { return m_sorted[0]; }
+                    constexpr uint_t min() const { return m_sorted[2]; }
+                    constexpr uint_t median() const { return m_sorted[1]; }
+                    constexpr uint_t size(uint_t i) const { return m_size[i]; }
+                    constexpr uint_t perm(uint_t i) const { return m_perm[i]; }
+                    constexpr uint_t start(uint_t i) const { return m_start[i]; }
                 };
 
                 array<array<array<shape_type, 3>, 3>, 3> sizes;
@@ -219,12 +208,12 @@ namespace gridtools {
                 };
 
                 template <sign I, sign J, sign K>
-                GT_FUNCTION shape_type const &shape(direction<I, J, K>) const {
+                constexpr shape_type const &shape(direction<I, J, K>) const {
                     return sizes[I + 1][J + 1][K + 1];
                 }
             };
 
-            GT_FUNCTION int thread_along_axis(int i, int j, int k, int axis) {
+            constexpr int thread_along_axis(int i, int j, int k, int axis) {
                 assert(axis >= 0 && axis < 3);
                 return axis == 0 ? i : axis == 1 ? j : k;
             }
@@ -240,7 +229,7 @@ namespace gridtools {
                 const uint_t i = blockIdx.x * apply_gpu_impl_::threads_per_block_x_t::value + threadIdx.x;
                 const uint_t j = blockIdx.y * apply_gpu_impl_::threads_per_block_y_t::value + threadIdx.y;
                 const uint_t k = blockIdx.z * apply_gpu_impl_::threads_per_block_z_t::value + threadIdx.z;
-                device::for_each<directions_t>([&](auto dir) {
+                for_each<directions_t>([&](auto dir) {
                     if (predicate(dir)) {
                         auto const &shape = conf.shape(dir);
                         if (i < shape.max() && j < shape.median() && k < shape.min()) {
@@ -299,7 +288,7 @@ namespace gridtools {
             (DataField0, Datafield1, DataField2, ...)
             */
             template <typename... DataFieldViews>
-            void apply(DataFieldViews const &... data_field_views) const {
+            void apply(DataFieldViews const &...data_field_views) const {
                 apply_gpu_impl_::loop_kernel<<<m_conf.kernel_grid_size(), m_conf.kernel_thread_block_size()>>>(
                     m_boundary_function, m_predicate, m_conf, data_field_views...);
                 GT_CUDA_CHECK(cudaGetLastError());

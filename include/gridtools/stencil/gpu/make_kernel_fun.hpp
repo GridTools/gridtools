@@ -15,7 +15,6 @@
 #include "../../common/gt_math.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/tuple_util.hpp"
-#include "../../common/utility.hpp"
 #include "../../meta.hpp"
 #include "../../sid/blocked_dim.hpp"
 #include "../../sid/concept.hpp"
@@ -33,7 +32,7 @@ namespace gridtools {
                 template <class Deref, class Info, class Ptr, class Strides, class Validator>
                 GT_FUNCTION_DEVICE void exec_cells(
                     Info, Ptr const &ptr, Strides const &strides, Validator const &validator) {
-                    device::for_each<typename Info::cells_t>([&](auto cell) GT_FORCE_INLINE_LAMBDA {
+                    for_each<typename Info::cells_t>([&](auto cell) {
                         syncthreads(cell.need_sync());
                         if (validator(cell.extent()))
                             cell.template operator()<Deref>(ptr, strides);
@@ -54,8 +53,8 @@ namespace gridtools {
                     template <class Ptr, class Strides, class Validator>
                     GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
                         k_caches_type<Mss> k_caches;
-                        auto mixed_ptr = hymap::device::merge(k_caches.ptr(), wstd::move(ptr));
-                        tuple_util::device::for_each(
+                        auto mixed_ptr = hymap::merge(k_caches.ptr(), std::move(ptr));
+                        tuple_util::for_each(
                             [&](const int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
 #ifdef __HIPCC__
 // unroll factor estimate based on GT perftests on AMD Mi50
@@ -80,7 +79,7 @@ namespace gridtools {
 
                     template <class Ptr, class Strides, class Validator>
                     GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
-                        tuple_util::device::for_each(
+                        tuple_util::for_each(
                             [&](const int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
 #ifdef __HIPCC__
 // unroll factor estimate based on GT perftests on AMD Mi50
@@ -106,7 +105,7 @@ namespace gridtools {
                     GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides, Validator validator) const {
                         int_t cur = -(int_t)blockIdx.z * BlockSize;
                         sid::shift(ptr, sid::get_stride<dim::k>(strides), -cur);
-                        tuple_util::device::for_each(
+                        tuple_util::for_each(
                             [&](int_t size, auto info) GT_FORCE_INLINE_LAMBDA {
                                 if (cur >= BlockSize)
                                     return;
@@ -138,7 +137,7 @@ namespace gridtools {
                         sid::shift(ptr, sid::get_stride<sid::blocked_dim<dim::j>>(m_strides), blockIdx.y);
                         sid::shift(ptr, sid::get_stride<dim::i>(m_strides), i_block);
                         sid::shift(ptr, sid::get_stride<dim::j>(m_strides), j_block);
-                        k_loop(wstd::move(ptr), m_strides, wstd::move(validator));
+                        k_loop(std::move(ptr), m_strides, std::move(validator));
                     }
                 };
 

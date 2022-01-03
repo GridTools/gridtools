@@ -11,6 +11,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #include "../../../common/defs.hpp"
 #include "../../../common/for_each.hpp"
@@ -61,7 +62,7 @@ namespace gridtools {
             namespace stage_impl_ {
                 struct default_deref_f {
                     template <class Key, class T>
-                    GT_FUNCTION decltype(auto) operator()(Key, T ptr) const {
+                    GT_FORCE_INLINE constexpr decltype(auto) operator()(Key, T ptr) const {
                         return *ptr;
                     }
                 };
@@ -72,21 +73,21 @@ namespace gridtools {
                     Strides const &m_strides;
 
                     template <class Key, class Offset>
-                    GT_FUNCTION decltype(auto) get_ref(Offset offset) const {
-                        return Deref()(Key(),
-                            sid::multi_shifted<Key>(host_device::at_key<Key>(m_ptr), m_strides, wstd::move(offset)));
+                    GT_FORCE_INLINE constexpr decltype(auto) get_ref(Offset offset) const {
+                        return Deref()(
+                            Key(), sid::multi_shifted<Key>(at_key<Key>(m_ptr), m_strides, std::move(offset)));
                     }
 
                     template <class Accessor>
-                    GT_FUNCTION decltype(auto) operator()(Accessor) const {
+                    GT_FORCE_INLINE constexpr decltype(auto) operator()(Accessor) const {
                         return apply_intent<Accessor::intent_v>(get_ref<meta::at_c<Keys, Accessor::index_t::value>>(
                             hymap::keys<dim::c>::values<integral_constant<int_t, Color>>()));
                     }
 
                     template <class Accessor, class Offset>
-                    GT_FUNCTION decltype(auto) neighbor(Accessor, Offset offset) const {
+                    GT_FORCE_INLINE constexpr decltype(auto) neighbor(Accessor, Offset offset) const {
                         return apply_intent<Accessor::intent_v>(
-                            get_ref<meta::at_c<Keys, Accessor::index_t::value>>(wstd::move(offset)));
+                            get_ref<meta::at_c<Keys, Accessor::index_t::value>>(std::move(offset)));
                     }
 
                     static constexpr int_t color = Color;
@@ -94,10 +95,10 @@ namespace gridtools {
                     template <class Fun, class Accessor, class... Accessors>
                     GT_FUNCTION void for_neighbors(Fun &&fun, Accessor, Accessors...) const {
                         static_assert(
-                            std::conjunction<
-                                std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>::value,
+                            std::conjunction_v<
+                                std::is_same<typename Accessor::location_t, typename Accessors::location_t>...>,
                             "All accessors should be of the same location");
-                        host_device::for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
+                        for_each<neighbor_offsets<LocationType, typename Accessor::location_t, Color>>(
                             [&](auto offset) { fun(neighbor(Accessor(), offset), neighbor(Accessors(), offset)...); });
                     }
                 };
@@ -109,7 +110,7 @@ namespace gridtools {
                     template <class Deref = void, class Ptr, class Strides>
                     GT_FUNCTION void operator()(Ptr const &ptr, Strides const &strides) const {
                         using deref_t = meta::if_<std::is_void<Deref>, default_deref_f, Deref>;
-                        host_device::for_each<meta::make_indices<location_t>>([&](auto color) {
+                        for_each<meta::make_indices<location_t>>([&](auto color) {
                             using eval_t = evaluator<Ptr, Strides, PlhMap, deref_t, location_t, decltype(color)::value>;
                             Functor::apply(eval_t{ptr, strides});
                         });

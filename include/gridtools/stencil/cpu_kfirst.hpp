@@ -97,7 +97,7 @@ namespace gridtools {
                 DataStores external_data_stores) {
                 using stages_t = be_api::make_split_view<Spec>;
 
-                auto alloc = sid::make_cached_allocator(&std::make_unique<char[]>);
+                auto alloc = sid::cached_allocator(&std::make_unique<char[]>);
 
                 using tmp_plh_map_t = be_api::remove_caches_from_plh_map<typename stages_t::tmp_plh_map_t>;
                 auto temporaries = be_api::make_data_stores(tmp_plh_map_t(), [&grid, &alloc](auto info) {

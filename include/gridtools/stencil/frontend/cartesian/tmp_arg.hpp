@@ -23,7 +23,7 @@
 
 #define GT_DECLARE_TMP(type, ...)                                                               \
     BOOST_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_TMP, type, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
-    static_assert(1, "")
+    static_assert(1)
 
 #define GT_INTERNAL_DECLARE_EXPANDABLE_TMP(r, type, name)                                    \
     constexpr ::gridtools::stencil::expandable<                                              \
@@ -32,7 +32,7 @@
 
 #define GT_DECLARE_EXPANDABLE_TMP(type, ...)                                                               \
     BOOST_PP_SEQ_FOR_EACH(GT_INTERNAL_DECLARE_EXPANDABLE_TMP, type, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)) \
-    static_assert(1, "")
+    static_assert(1)
 
 namespace gridtools {
     namespace stencil {

@@ -64,11 +64,9 @@ template <typename T>
 struct direction_bc_input {
     T value;
 
-    GT_FUNCTION
-    direction_bc_input() : value(1) {}
+    constexpr direction_bc_input() : value(1) {}
 
-    GT_FUNCTION
-    direction_bc_input(T v) : value(v) {}
+    constexpr direction_bc_input(T v) : value(v) {}
 
     // This is the primary template and it will be picked when all the other specializations below fail to be selected.
     // It is important for debugging to note that, if a needed specialization i missing, this version will be selected.

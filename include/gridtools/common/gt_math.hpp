@@ -25,20 +25,20 @@ namespace gridtools {
     */
 
     /**@brief Class in substitution of std::pow, not available in CUDA*/
-    template <uint_t Number>
+    template <size_t N>
     struct gt_pow {
-        template <typename Value>
-        GT_FUNCTION static Value constexpr apply(Value const &v) {
-            return v * gt_pow<Number - 1>::apply(v);
+        template <class T>
+        static constexpr T apply(T const &v) {
+            return v * gt_pow<N - 1>::apply(v);
         }
     };
 
     /**@brief Class in substitution of std::pow, not available in CUDA*/
     template <>
     struct gt_pow<0> {
-        template <typename Value>
-        GT_FUNCTION static Value constexpr apply(Value const &) {
-            return 1.;
+        template <class T>
+        static constexpr T apply(T const &) {
+            return 1;
         }
     };
 
@@ -47,41 +47,43 @@ namespace gridtools {
      * @param num value to ceil
      * @return ceiled value
      */
-    GT_FUNCTION GT_CONSTEXPR static int gt_ceil(float num) {
-        return (static_cast<float>(static_cast<int>(num)) == num) ? static_cast<int>(num)
-                                                                  : static_cast<int>(num) + ((num > 0) ? 1 : 0);
+    GT_FORCE_INLINE constexpr int gt_ceil(float num) {
+        int n = static_cast<int>(num);
+        return static_cast<float>(n) == num ? n : n + num > 0 ? 1 : 0;
     }
 
     namespace math {
-        template <typename Value>
-        GT_FUNCTION GT_CONSTEXPR Value const &max(Value const &val0) {
+        template <class Value>
+        GT_FORCE_INLINE constexpr Value const &max(Value const &val0) {
             return val0;
         }
 
-        template <typename Value>
-        GT_FUNCTION GT_CONSTEXPR Value const &max(Value const &val0, Value const &val1) {
+        template <class Value>
+        GT_FORCE_INLINE constexpr Value const &max(Value const &val0, Value const &val1) {
             return val0 > val1 ? val0 : val1;
         }
 
-        template <typename Value, typename... OtherValues>
-        GT_FUNCTION GT_CONSTEXPR Value const &max(Value const &val0, Value const &val1, OtherValues const &... vals) {
+        template <class Value, class... Values>
+        GT_FORCE_INLINE constexpr Value const &max(Value const &val0, Value const &val1, Values const &...vals) {
             return val0 > max(val1, vals...) ? val0 : max(val1, vals...);
         }
 
-        template <typename Value>
-        GT_FUNCTION GT_CONSTEXPR Value const &min(Value const &val0) {
+        template <class Value>
+        GT_FORCE_INLINE constexpr Value const &min(Value const &val0) {
             return val0;
         }
 
         template <typename Value>
-        GT_FUNCTION GT_CONSTEXPR Value const &min(Value const &val0, Value const &val1) {
+        GT_FORCE_INLINE constexpr Value const &min(Value const &val0, Value const &val1) {
             return val0 > val1 ? val1 : val0;
         }
 
-        template <typename Value, typename... OtherValues>
-        GT_FUNCTION GT_CONSTEXPR Value const &min(Value const &val0, Value const &val1, OtherValues const &... vals) {
+        template <typename Value, typename... Values>
+        GT_FORCE_INLINE constexpr Value const &min(Value const &val0, Value const &val1, Values const &...vals) {
             return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
         }
+
+// Note that as for C++20, std functions in <cmath>  are not constexpr. 
 
 #if defined(GT_CUDACC) && defined(__NVCC__)
         // providing the same overload pattern as the std library

@@ -53,7 +53,7 @@ namespace gridtools {
 
         template <class T, std::enable_if_t<std::is_integral<T>::value, int> = 0>
         T reduction_reduce(cpu, T res, bitwise_xor, T const *buff, size_t n) {
-#pragma omp parallel for reduction (^ : res)
+#pragma omp parallel for reduction(^ : res)
             for (size_t i = 0; i < n; i++)
                 res ^= buff[i];
             return res;
@@ -61,10 +61,10 @@ namespace gridtools {
 
         template <class F, class T>
         T reduction_reduce(cpu, T res, F, T const *buff, size_t n) {
-            static_assert(std::is_empty<F>(), "OpenMP reduction supports only stateless functors.");
+            static_assert(std::is_empty_v<F>, "OpenMP reduction supports only stateless functors.");
             static_assert(
-                std::is_default_constructible<F>(), "OpenMP reduction supports only default constructible functors.");
-#pragma omp declare reduction(gridtools_generic : T : omp_out = F()(omp_out, omp_in)) initializer(omp_priv = omp_orig)
+                std::is_default_constructible_v<F>, "OpenMP reduction supports only default constructible functors.");
+#pragma omp declare reduction(gridtools_generic:T : omp_out = F()(omp_out, omp_in)) initializer(omp_priv = omp_orig)
 #pragma omp parallel for reduction(gridtools_generic : res)
             for (size_t i = 0; i < n; i++)
                 res = F()(res, buff[i]);

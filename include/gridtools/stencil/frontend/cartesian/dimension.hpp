@@ -26,11 +26,11 @@ namespace gridtools {
             struct dimension {
                 static_assert(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
 
-                GT_FUNCTION constexpr dimension(int_t value = 0) : value(value) {}
+                GT_FORCE_INLINE constexpr dimension(int_t value = 0) : value(value) {}
                 int_t value;
 
-                friend GT_FUNCTION GT_CONSTEXPR dimension operator+(dimension, int_t offset) { return {offset}; }
-                friend GT_FUNCTION GT_CONSTEXPR dimension operator-(dimension, int_t offset) { return {-offset}; }
+                friend GT_FORCE_INLINE constexpr dimension operator+(dimension, int_t offset) { return {offset}; }
+                friend GT_FORCE_INLINE constexpr dimension operator-(dimension, int_t offset) { return {-offset}; }
             };
         } // namespace cartesian
     }     // namespace stencil

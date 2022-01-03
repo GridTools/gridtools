@@ -46,13 +46,13 @@ namespace gridtools {
         TEST(delegate, smoke) {
             double data[3][5];
             auto src = sid::synthetic()
-                           .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0]))
+                           .set<property::origin>(sid::simple_ptr_holder(&data[0][0]))
                            .set<property::strides>(tuple(5_c, 1_c));
             EXPECT_EQ(&data[0][0], sid::get_origin(src)());
 
             auto testee = i_shift(std::move(src));
 
-            static_assert(is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>());
 
             EXPECT_EQ(&data[1][0], sid::get_origin(testee)());
         }
@@ -61,7 +61,7 @@ namespace gridtools {
             double src[3][5];
             auto testee = i_shift(src);
 
-            static_assert(is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>());
 
             EXPECT_EQ(&src[1][0], sid::get_origin(testee)());
             auto strides = sid::get_strides(testee);
@@ -77,11 +77,10 @@ namespace gridtools {
         TEST(delegate, do_nothing) {
             double data[3][5];
             auto src = sid::synthetic()
-                           .set<property::origin>(sid::host_device::make_simple_ptr_holder(&data[0][0]))
+                           .set<property::origin>(sid::simple_ptr_holder(&data[0][0]))
                            .set<property::strides>(tuple(5_c, 1_c));
             auto testee = just_delegate(src);
-            static_assert(is_sid<decltype(testee)>(), "");
+            static_assert(is_sid<decltype(testee)>());
         }
-
     } // namespace
 } // namespace gridtools

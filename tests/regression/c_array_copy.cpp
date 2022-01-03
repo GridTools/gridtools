@@ -31,7 +31,7 @@ struct copy {
 
 template <class T>
 auto grid(T const &) {
-    static_assert(std::rank<T>() == 3, "");
+    static_assert(std::rank_v<T> == 3);
     return make_grid(std::extent<T, 0>(), std::extent<T, 1>(), std::extent<T, 2>());
 }
 

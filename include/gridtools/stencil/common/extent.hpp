@@ -36,16 +36,16 @@ namespace gridtools {
             using kminus = integral_constant<int_t, KMinus>;
             using kplus = integral_constant<int_t, KPlus>;
 
-            static GT_FUNCTION iminus minus(dim::i) { return {}; }
-            static GT_FUNCTION jminus minus(dim::j) { return {}; }
-            static GT_FUNCTION kminus minus(dim::k) { return {}; }
+            static GT_FORCE_INLINE constexpr iminus minus(dim::i) { return {}; }
+            static GT_FORCE_INLINE constexpr jminus minus(dim::j) { return {}; }
+            static GT_FORCE_INLINE constexpr kminus minus(dim::k) { return {}; }
 
-            static GT_FUNCTION iplus plus(dim::i) { return {}; }
-            static GT_FUNCTION jplus plus(dim::j) { return {}; }
-            static GT_FUNCTION kplus plus(dim::k) { return {}; }
+            static GT_FORCE_INLINE constexpr iplus plus(dim::i) { return {}; }
+            static GT_FORCE_INLINE constexpr jplus plus(dim::j) { return {}; }
+            static GT_FORCE_INLINE constexpr kplus plus(dim::k) { return {}; }
 
             template <class Dim, class Size>
-            static GT_FUNCTION auto extend(Dim dim, Size size) {
+            static GT_FORCE_INLINE constexpr auto extend(Dim dim, Size size) {
                 return size - minus(dim) + plus(dim);
             }
         };

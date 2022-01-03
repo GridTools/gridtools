@@ -36,7 +36,7 @@ namespace gridtools {
                 TEST(tmp_cuda_storage_sid, write_in_blocks) {
                     using index_info = multiplet<5>;
 
-                    auto alloc = sid::make_allocator(&std::make_unique<char[]>);
+                    auto alloc = sid::allocator(&std::make_unique<char[]>);
 
                     auto testee = make_tmp_storage<index_info>(
                         1_c, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);
@@ -51,11 +51,11 @@ namespace gridtools {
                                 for (int bj = 0; bj < n_blocks_j; ++bj)
                                     for (int k = 0; k < k_size; ++k) {
                                         auto ptr = origin();
-                                        sid::shift(ptr, host::at_key<dim::i>(strides), i);
-                                        sid::shift(ptr, host::at_key<dim::j>(strides), j);
-                                        sid::shift(ptr, host::at_key<sid::blocked_dim<dim::i>>(strides), bi);
-                                        sid::shift(ptr, host::at_key<sid::blocked_dim<dim::j>>(strides), bj);
-                                        sid::shift(ptr, host::at_key<dim::k>(strides), k);
+                                        sid::shift(ptr, at_key<dim::i>(strides), i);
+                                        sid::shift(ptr, at_key<dim::j>(strides), j);
+                                        sid::shift(ptr, at_key<sid::blocked_dim<dim::i>>(strides), bi);
+                                        sid::shift(ptr, at_key<sid::blocked_dim<dim::j>>(strides), bj);
+                                        sid::shift(ptr, at_key<dim::k>(strides), k);
                                         *ptr = {i, j, bi, bj, k};
                                     }
                     // validate that block id is correct, i.e. there were no overlapping memory accesses in the write
@@ -65,11 +65,11 @@ namespace gridtools {
                                 for (int bj = 0; bj < n_blocks_j; ++bj)
                                     for (int k = 0; k < k_size; ++k) {
                                         auto ptr = origin();
-                                        sid::shift(ptr, host::at_key<dim::i>(strides), i);
-                                        sid::shift(ptr, host::at_key<dim::j>(strides), j);
-                                        sid::shift(ptr, host::at_key<sid::blocked_dim<dim::i>>(strides), bi);
-                                        sid::shift(ptr, host::at_key<sid::blocked_dim<dim::j>>(strides), bj);
-                                        sid::shift(ptr, host::at_key<dim::k>(strides), k);
+                                        sid::shift(ptr, at_key<dim::i>(strides), i);
+                                        sid::shift(ptr, at_key<dim::j>(strides), j);
+                                        sid::shift(ptr, at_key<sid::blocked_dim<dim::i>>(strides), bi);
+                                        sid::shift(ptr, at_key<sid::blocked_dim<dim::j>>(strides), bj);
+                                        sid::shift(ptr, at_key<dim::k>(strides), k);
                                         EXPECT_EQ((index_info{i, j, bi, bj, k}), *ptr);
                                     }
                 }
@@ -78,7 +78,7 @@ namespace gridtools {
                 TEST(tmp_cuda_storage_sid_block, write_in_blocks) {
                     using index_info = multiplet<6>;
 
-                    auto alloc = sid::make_allocator(&std::make_unique<char[]>);
+                    auto alloc = sid::allocator(&std::make_unique<char[]>);
 
                     auto testee = make_tmp_storage<index_info>(
                         2_c, blocksize_i, blocksize_j, extent_t{}, n_blocks_i, n_blocks_j, k_size, alloc);
@@ -94,12 +94,12 @@ namespace gridtools {
                                     for (int bj = 0; bj < n_blocks_j; ++bj)
                                         for (int k = 0; k < k_size; ++k) {
                                             auto ptr = origin();
-                                            sid::shift(ptr, host::at_key<dim::i>(strides), i);
-                                            sid::shift(ptr, host::at_key<dim::j>(strides), j);
-                                            sid::shift(ptr, host::at_key<dim::c>(strides), c);
-                                            sid::shift(ptr, host::at_key<sid::blocked_dim<dim::i>>(strides), bi);
-                                            sid::shift(ptr, host::at_key<sid::blocked_dim<dim::j>>(strides), bj);
-                                            sid::shift(ptr, host::at_key<dim::k>(strides), k);
+                                            sid::shift(ptr, at_key<dim::i>(strides), i);
+                                            sid::shift(ptr, at_key<dim::j>(strides), j);
+                                            sid::shift(ptr, at_key<dim::c>(strides), c);
+                                            sid::shift(ptr, at_key<sid::blocked_dim<dim::i>>(strides), bi);
+                                            sid::shift(ptr, at_key<sid::blocked_dim<dim::j>>(strides), bj);
+                                            sid::shift(ptr, at_key<dim::k>(strides), k);
                                             *ptr = {i, j, c, bi, bj, k};
                                         }
 
@@ -111,12 +111,12 @@ namespace gridtools {
                                     for (int bj = 0; bj < n_blocks_j; ++bj)
                                         for (int k = 0; k < k_size; ++k) {
                                             auto ptr = origin();
-                                            sid::shift(ptr, host::at_key<dim::i>(strides), i);
-                                            sid::shift(ptr, host::at_key<dim::j>(strides), j);
-                                            sid::shift(ptr, host::at_key<dim::c>(strides), c);
-                                            sid::shift(ptr, host::at_key<sid::blocked_dim<dim::i>>(strides), bi);
-                                            sid::shift(ptr, host::at_key<sid::blocked_dim<dim::j>>(strides), bj);
-                                            sid::shift(ptr, host::at_key<dim::k>(strides), k);
+                                            sid::shift(ptr, at_key<dim::i>(strides), i);
+                                            sid::shift(ptr, at_key<dim::j>(strides), j);
+                                            sid::shift(ptr, at_key<dim::c>(strides), c);
+                                            sid::shift(ptr, at_key<sid::blocked_dim<dim::i>>(strides), bi);
+                                            sid::shift(ptr, at_key<sid::blocked_dim<dim::j>>(strides), bj);
+                                            sid::shift(ptr, at_key<dim::k>(strides), k);
                                             EXPECT_EQ((index_info{i, j, c, bi, bj, k}), *ptr);
                                         }
                 }

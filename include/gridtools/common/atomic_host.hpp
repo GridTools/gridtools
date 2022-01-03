@@ -8,7 +8,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
+
 #include <algorithm>
+
+#include "host_device.hpp"
+
 namespace gridtools {
 
     /** \ingroup common
@@ -27,8 +31,7 @@ namespace gridtools {
          * @param val value added to var
          * @return the old value contained in var
          */
-        GT_FUNCTION
-        static T atomic_add(T &var, const T val) {
+        static GT_FORCE_INLINE constexpr T atomic_add(T &var, const T val) {
 #if _OPENMP > 201106
             T old;
 #pragma omp atomic capture
@@ -54,8 +57,7 @@ namespace gridtools {
          * @param val value added to var
          * @return the old value contained in var
          */
-        GT_FUNCTION
-        static T atomic_sub(T &var, const T val) {
+        static GT_FORCE_INLINE constexpr T atomic_sub(T &var, const T val) {
 #if _OPENMP > 201106
             T old;
 #pragma omp atomic capture
@@ -81,8 +83,7 @@ namespace gridtools {
          * @param val value inserted in variable var
          * @return the old value contained in var
          */
-        GT_FUNCTION
-        static T atomic_exch(T &var, const T val) {
+        static GT_FORCE_INLINE constexpr T atomic_exch(T &var, const T val) {
 #if _OPENMP > 201106
             T old;
 #pragma omp atomic capture
@@ -108,8 +109,7 @@ namespace gridtools {
          * @param val value used in the min comparison
          * @return the old value contained in var
          */
-        GT_FUNCTION
-        static T atomic_min(T &var, const T val) {
+        static GT_FORCE_INLINE constexpr T atomic_min(T &var, const T val) {
             T old;
 #pragma omp critical(min)
             {
@@ -125,8 +125,7 @@ namespace gridtools {
          * @param val value used in the min comparison
          * @return the old value contained in var
          */
-        GT_FUNCTION
-        static T atomic_max(T &var, const T val) {
+        static GT_FORCE_INLINE constexpr T atomic_max(T &var, const T val) {
             T old;
 #pragma omp critical(max)
             {

@@ -28,7 +28,7 @@ namespace {
     template <class T, class U, size_t N, size_t M, class Dims, class DstStrides, class SrcSrides>
     void testee(
         host, T (&dst)[N], U (&src)[M], Dims const &dims, DstStrides const &dst_strides, SrcSrides const &src_strides) {
-        static_assert(std::is_same<std::remove_all_extents_t<T>, std::remove_all_extents_t<U>>::value, "");
+        static_assert(std::is_same_v<std::remove_all_extents_t<T>, std::remove_all_extents_t<U>>);
         using data_t = std::remove_all_extents_t<T>;
         transform_layout((data_t *)dst, (data_t const *)src, dims, dst_strides, src_strides);
     }
@@ -43,7 +43,7 @@ namespace {
         Dims const &dims,
         DstStrides const &dst_strides,
         SrcSrides const &src_strides) {
-        static_assert(std::is_same<std::remove_all_extents_t<T>, std::remove_all_extents_t<U>>::value, "");
+        static_assert(std::is_same_v<std::remove_all_extents_t<T>, std::remove_all_extents_t<U>>);
         using data_t = std::remove_all_extents_t<T>;
         auto &src_arr = reinterpret_cast<array<U, M> &>(src);
         auto &dst_arr = reinterpret_cast<array<T, N> &>(dst);
@@ -58,6 +58,8 @@ namespace {
     using envs_t = meta::list<host>;
 #endif
 
+    static constexpr size_t one = 1;
+
     TEST(layout_transformation, 3D_reverse_layout) {
         for_each<envs_t>([](auto env) {
             constexpr size_t Nx = 4, Ny = 5, Nz = 6;
@@ -68,7 +70,7 @@ namespace {
                 src[i[0]][i[1]][i[2]] = 100 * i[0] + 10 * i[1] + i[2];
                 dst[i[2]][i[1]][i[0]] = -1;
             }
-            testee(env, dst, src, dims, array{1, Nx, Nx * Ny}, array{Ny * Nz, Nz, 1});
+            testee(env, dst, src, dims, array{one, Nx, Nx * Ny}, array{Ny * Nz, Nz, one});
             for (auto i : make_hypercube_view(dims))
                 EXPECT_DOUBLE_EQ(dst[i[2]][i[1]][i[0]], src[i[0]][i[1]][i[2]]);
         });
@@ -84,7 +86,7 @@ namespace {
                 src[i[0]][i[1]][i[2]][i[3]] = 1000 * i[0] + 100 * i[1] + 10 * i[2] + i[3];
                 dst[i[3]][i[2]][i[1]][i[0]] = -1;
             }
-            testee(env, dst, src, dims, array{1, Nx, Nx * Ny, Nx * Ny * Nz}, array{Ny * Nz * Nw, Nz * Nw, Nw, 1});
+            testee(env, dst, src, dims, array{one, Nx, Nx * Ny, Nx * Ny * Nz}, array{Ny * Nz * Nw, Nz * Nw, Nw, one});
             for (auto i : make_hypercube_view(dims))
                 EXPECT_DOUBLE_EQ(dst[i[3]][i[2]][i[1]][i[0]], src[i[0]][i[1]][i[2]][i[3]]);
         });
@@ -100,7 +102,7 @@ namespace {
                 src[i[0]][i[1]] = 100 * i[0] + 10 * i[1];
                 dst[i[1]][i[0]] = -1;
             }
-            testee(env, dst, src, dims, array{1, Nx}, array{Ny, 1});
+            testee(env, dst, src, dims, array{one, Nx}, array{Ny, one});
             for (auto i : make_hypercube_view(dims))
                 EXPECT_DOUBLE_EQ(dst[i[1]][i[0]], src[i[0]][i[1]]);
         });

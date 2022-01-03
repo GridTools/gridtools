@@ -39,7 +39,7 @@ namespace gridtools {
             };
 
             TEST(tmp_cuda_storage, maker_with_device_allocator) {
-                sid::device::allocator<GT_INTEGRAL_CONSTANT_FROM_VALUE(&cuda_util::cuda_malloc<char[]>)> alloc;
+                sid::allocator<GT_INTEGRAL_CONSTANT_FROM_VALUE(&cuda_util::cuda_malloc<char[]>)> alloc;
                 auto testee = gpu_backend::make_tmp_storage<int>(1_c, 2_c, 2_c, extent<>{}, 1, 1, 2, alloc);
                 EXPECT_TRUE(on_device::exec(smoke_f{}, sid::get_origin(testee), sid::get_strides(testee)));
             }

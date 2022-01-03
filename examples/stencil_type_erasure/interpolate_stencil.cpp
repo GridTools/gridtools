@@ -48,6 +48,6 @@ namespace {
 std::function<void(inputs, outputs)> make_interpolate_stencil(grid_t grid, double weight) {
     return [grid = std::move(grid), weight](inputs in, outputs out) {
         run_single_stage(
-            interpolate_stage(), stencil_backend_t(), grid, in.in1, in.in2, make_global_parameter(weight), out.out);
+            interpolate_stage(), stencil_backend_t(), grid, in.in1, in.in2, global_parameter(weight), out.out);
     };
 }

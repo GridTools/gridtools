@@ -38,7 +38,7 @@ namespace gridtools {
                 for (auto &&i = m_hyper_cube.begin(); i != e; ++i) {
                     T *d = dst;
                     T const *__restrict__ s = src;
-                    tuple_util::device::for_each(
+                    tuple_util::for_each(
                         [&](auto i, auto d_stride, auto s_stride) {
                             d += i * d_stride;
                             s += i * s_stride;
@@ -77,19 +77,19 @@ namespace gridtools {
             OuterLoop outer_loop) {
 
             uint_t i = blockIdx.x * block_size_1d_t::value + threadIdx.x;
-            if (i >= tuple_util::device::get<0>(dims))
+            if (i >= tuple_util::get<0>(dims))
                 return;
             uint_t j = blockIdx.y * block_size_1d_t::value + threadIdx.y;
-            if (j >= tuple_util::device::get<1>(dims))
+            if (j >= tuple_util::get<1>(dims))
                 return;
             uint_t k = blockIdx.z * block_size_1d_t::value + threadIdx.z;
-            if (k >= tuple_util::device::get<2>(dims))
+            if (k >= tuple_util::get<2>(dims))
                 return;
 
-            outer_loop(dst + i * tuple_util::device::get<0>(dst_strides) + j * tuple_util::device::get<1>(dst_strides) +
-                           k * tuple_util::device::get<2>(dst_strides),
-                src + i * tuple_util::device::get<0>(src_strides) + j * tuple_util::device::get<1>(src_strides) +
-                    k * tuple_util::device::get<2>(src_strides));
+            outer_loop(dst + i * tuple_util::get<0>(dst_strides) + j * tuple_util::get<1>(dst_strides) +
+                           k * tuple_util::get<2>(dst_strides),
+                src + i * tuple_util::get<0>(src_strides) + j * tuple_util::get<1>(src_strides) +
+                    k * tuple_util::get<2>(src_strides));
         }
 
         template <class T, class Dims, class DstStrides, class SrcSrides>

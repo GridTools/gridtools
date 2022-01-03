@@ -48,8 +48,8 @@ struct copy_functor {
 // The input and output fields are passed as SIDs
 template <class From, class To>
 void copy(From &&from, To &&to) {
-    static_assert(is_sid<From>(), "");
-    static_assert(is_sid<To>(), "");
+    static_assert(is_sid<From>());
+    static_assert(is_sid<To>());
     auto &&size = sid::get_upper_bounds(to);
     run_single_stage(copy_functor(),
         naive(),
@@ -73,12 +73,12 @@ void check_cuda_sid(T &&testee,
     size_t expected_ptr,
     std::vector<size_t> const &expected_strides,
     std::vector<size_t> const &expected_dims) {
-    static_assert(is_sid<T>(), "");
+    static_assert(is_sid<T>());
     using lower_bounds_t = sid::lower_bounds_type<T>;
     using upper_bounds_t = sid::upper_bounds_type<T>;
     using strides_t = sid::strides_type<T>;
-    static_assert(tuple_util::size<lower_bounds_t>() == tuple_util::size<strides_t>(), "");
-    static_assert(tuple_util::size<upper_bounds_t>() == tuple_util::size<strides_t>(), "");
+    static_assert(tuple_util::size<lower_bounds_t>() == tuple_util::size<strides_t>());
+    static_assert(tuple_util::size<upper_bounds_t>() == tuple_util::size<strides_t>());
 
     assert(reinterpret_cast<size_t>(sid::get_origin(testee)()) == expected_ptr);
     check_hymap(sid::get_strides(testee), expected_strides);
@@ -107,7 +107,7 @@ PYBIND11_MODULE(py_implementation, m) {
         "Copy from the 1D double buffer to a 3D one.");
     m.def(
         "copy_from_scalar",
-        [](double from, py::buffer to) { copy(make_global_parameter(from), as_sid<double, 3>(to)); },
+        [](double from, py::buffer to) { copy(global_parameter(from), as_sid<double, 3>(to)); },
         "Copy from the scalar to a 3D buffer of doubles.");
     m.def(
         "check_cuda_sid",

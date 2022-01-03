@@ -10,13 +10,14 @@
 
 #include <gridtools/common/hypercube_iterator.hpp>
 
-#include <gridtools/common/pair.hpp>
-#include <gridtools/common/tuple.hpp>
-#include <gridtools/common/tuple_util.hpp>
 #include <vector>
+#include <utility>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <gridtools/common/tuple.hpp>
+#include <gridtools/common/tuple_util.hpp>
 
 using namespace gridtools;
 
@@ -47,12 +48,12 @@ class hypercube_iteration : public ::testing::Test {
 
 TEST_F(hypercube_iteration, view_from_array_of_ranges) {
     expect_ranges({1, 3}, {4, 8}, {2, 10});
-    call_testee(array{pair(1, 3), pair(4, 8), pair(2, 10)});
+    call_testee(array{std::pair(1, 3), std::pair(4, 8), std::pair(2, 10)});
 }
 
 TEST_F(hypercube_iteration, view_from_tuple_of_ranges) {
     expect_ranges({1, 3}, {4, 8}, {2, 10});
-    call_testee(tuple(pair(1, 3), pair(4, 8), pair(2, 10)));
+    call_testee(tuple(std::pair(1, 3), std::pair(4, 8), std::pair(2, 10)));
 }
 
 TEST_F(hypercube_iteration, from_array_of_integers) {
@@ -62,7 +63,7 @@ TEST_F(hypercube_iteration, from_array_of_integers) {
 
 TEST_F(hypercube_iteration, from_zero_to_zero) {
     expect_ranges({}, {}, {});
-    call_testee(array{pair(0, 0), pair(0, 0), pair(0, 0)});
+    call_testee(array{std::pair(0, 0), std::pair(0, 0), std::pair(0, 0)});
 }
 
 TEST_F(hypercube_iteration, from_one_to_one) {
@@ -72,8 +73,8 @@ TEST_F(hypercube_iteration, from_one_to_one) {
 
 TEST(hypercube_view_empty_iteration_space, zero_dimensional_range) {
     int count = 0;
-    for (auto it : make_hypercube_view(array<pair<size_t, size_t>, 0>())) {
-        static_assert(tuple_util::size<decltype(it)>::value == 0, "");
+    for (auto it : make_hypercube_view(array<std::pair<size_t, size_t>, 0>())) {
+        static_assert(tuple_util::size<decltype(it)>::value == 0);
         ++count;
     }
     EXPECT_EQ(1, count);
@@ -82,7 +83,7 @@ TEST(hypercube_view_empty_iteration_space, zero_dimensional_range) {
 TEST(hypercube_view_empty_iteration_space, zero_dimensional_size) {
     int count = 0;
     for (auto it : make_hypercube_view(array<size_t, 0>())) {
-        static_assert(tuple_util::size<decltype(it)>::value == 0, "");
+        static_assert(tuple_util::size<decltype(it)>::value == 0);
         ++count;
     }
     EXPECT_EQ(1, count);

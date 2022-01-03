@@ -19,9 +19,9 @@
 
 namespace gridtools {
     namespace {
-        static_assert(is_tuple_like<tuple<>>::value, "");
-        static_assert(is_tuple_like<tuple<int, double>>::value, "");
-        static_assert(is_tuple_like<tuple<int, int const, int&&, int&, int const& >>::value, "");
+        static_assert(is_tuple_like<tuple<>>::value);
+        static_assert(is_tuple_like<tuple<int, double>>::value);
+        static_assert(is_tuple_like<tuple<int, int const, int &&, int &, int const &>>::value);
 
         template <size_t I>
         using an_empty = std::integral_constant<size_t, I>;
@@ -42,20 +42,20 @@ namespace gridtools {
         struct take_move_only {
             int value;
             take_move_only() = default;
-            GT_FUNCTION take_move_only(move_only src) : value(src.value) {}
+            constexpr take_move_only(move_only src) : value(src.value) {}
         };
 
         // empty base optimization works
-        static_assert(sizeof(tuple<an_empty<0>, an_empty<1>, an_empty<3>>) == sizeof(an_empty<0>), "");
+        static_assert(sizeof(tuple<an_empty<0>, an_empty<1>, an_empty<3>>) == sizeof(an_empty<0>));
 
-        static_assert(tuple_util::size<tuple<int, char, double, char>>() == 4, "");
-        static_assert(tuple_util::size<tuple<int>>() == 1, "");
-        static_assert(tuple_util::size<tuple<>>() == 0, "");
+        static_assert(tuple_util::size<tuple<int, char, double, char>>() == 4);
+        static_assert(tuple_util::size<tuple<int>>() == 1);
+        static_assert(tuple_util::size<tuple<>>() == 0);
 
-        static_assert(std::is_same<tuple_util::element<1, tuple<int, char, double, char>>, char>(), "");
-        static_assert(std::is_same<tuple_util::element<0, tuple<int>>, int>(), "");
+        static_assert(std::is_same_v<tuple_util::element<1, tuple<int, char, double, char>>, char>);
+        static_assert(std::is_same_v<tuple_util::element<0, tuple<int>>, int>);
 
-        using tuple_util::host_device::get;
+        using tuple_util::get;
 
         TEST(tuple, get) {
             tuple<int, double, an_empty<59>> testee;
@@ -83,13 +83,13 @@ namespace gridtools {
 
         TEST(tuple, move_get) {
             auto val = get<1>(tuple<char, move_only>{'a', move_only{2}});
-            static_assert(std::is_same<decltype(val), move_only>(), "");
+            static_assert(std::is_same_v<decltype(val), move_only>);
             EXPECT_EQ(2, val.value);
         }
 
         TEST(one_tuple, move_get) {
             auto val = get<0>(tuple<move_only>{move_only{2}});
-            static_assert(std::is_same<decltype(val), move_only>(), "");
+            static_assert(std::is_same_v<decltype(val), move_only>);
             EXPECT_EQ(2, val.value);
         }
 
@@ -198,7 +198,7 @@ namespace gridtools {
             tuple<int, double> src = {1, 1.5};
             tuple<int, double> testee;
             auto &res = testee = src;
-            static_assert(std::is_same<decltype(res), tuple<int, double> &>(), "");
+            static_assert(std::is_same_v<decltype(res), tuple<int, double> &>);
             EXPECT_EQ(&testee, &res);
             EXPECT_EQ(1, get<0>(testee));
             EXPECT_EQ(1.5, get<1>(testee));
@@ -208,7 +208,7 @@ namespace gridtools {
             tuple<int> src = {1};
             tuple<int> testee;
             auto &res = testee = src;
-            static_assert(std::is_same<decltype(res), tuple<int> &>(), "");
+            static_assert(std::is_same_v<decltype(res), tuple<int> &>);
             EXPECT_EQ(&testee, &res);
             EXPECT_EQ(1, get<0>(testee));
         }
@@ -216,7 +216,7 @@ namespace gridtools {
         TEST(tuple, move_assign) {
             tuple<move_only, move_only> testee;
             auto &res = testee = tuple<move_only, move_only>{move_only{47}, move_only{2}};
-            static_assert(std::is_same<decltype(res), tuple<move_only, move_only> &>(), "");
+            static_assert(std::is_same_v<decltype(res), tuple<move_only, move_only> &>);
             EXPECT_EQ(&testee, &res);
             EXPECT_EQ(47, get<0>(testee).value);
             EXPECT_EQ(2, get<1>(testee).value);
@@ -225,7 +225,7 @@ namespace gridtools {
         TEST(one_tuple, move_assign) {
             tuple<take_move_only> testee;
             auto &res = testee = tuple<move_only>{move_only{47}};
-            static_assert(std::is_same<decltype(res), tuple<take_move_only> &>(), "");
+            static_assert(std::is_same_v<decltype(res), tuple<take_move_only> &>);
             EXPECT_EQ(&testee, &res);
             EXPECT_EQ(47, get<0>(testee).value);
         }
@@ -234,7 +234,7 @@ namespace gridtools {
             tuple<char, char> src = {'a', 'b'};
             tuple<int, double> testee;
             auto &res = testee = src;
-            static_assert(std::is_same<decltype(res), tuple<int, double> &>(), "");
+            static_assert(std::is_same_v<decltype(res), tuple<int, double> &>);
             EXPECT_EQ(&testee, &res);
             EXPECT_EQ('a', get<0>(testee));
             EXPECT_EQ('b', get<1>(testee));
@@ -244,7 +244,7 @@ namespace gridtools {
             tuple<char> src = {'a'};
             tuple<int> testee;
             auto &res = testee = src;
-            static_assert(std::is_same<decltype(res), tuple<int> &>(), "");
+            static_assert(std::is_same_v<decltype(res), tuple<int> &>);
             EXPECT_EQ(&testee, &res);
             EXPECT_EQ('a', get<0>(testee));
         }
@@ -252,7 +252,7 @@ namespace gridtools {
         TEST(tuple, move_conversion_assign) {
             tuple<double, move_only> testee;
             auto &res = testee = tuple<char, move_only>{'a', move_only{2}};
-            static_assert(std::is_same<decltype(res), tuple<double, move_only> &>(), "");
+            static_assert(std::is_same_v<decltype(res), tuple<double, move_only> &>);
             EXPECT_EQ(&testee, &res);
             EXPECT_EQ('a', get<0>(testee));
             EXPECT_EQ(2, get<1>(testee).value);
@@ -261,7 +261,7 @@ namespace gridtools {
         TEST(one_tuple, move_conversion_assign) {
             tuple<take_move_only> testee;
             auto &res = testee = tuple<move_only>{move_only{2}};
-            static_assert(std::is_same<decltype(res), tuple<take_move_only> &>(), "");
+            static_assert(std::is_same_v<decltype(res), tuple<take_move_only> &>);
             EXPECT_EQ(&testee, &res);
             EXPECT_EQ(2, get<0>(testee).value);
         }
@@ -303,20 +303,20 @@ namespace gridtools {
             tuple<> dst;
 
             auto copy = src;
-            static_assert(std::is_same<decltype(copy), tuple<>>(), "");
+            static_assert(std::is_same_v<decltype(copy), tuple<>>);
             EXPECT_NE(&src, &copy);
 
             auto move = tuple<>{};
-            static_assert(std::is_same<decltype(move), tuple<>>(), "");
+            static_assert(std::is_same_v<decltype(move), tuple<>>);
             // make nvcc happy
             EXPECT_EQ(&move, &move);
 
             auto &copy_assign = dst = src;
-            static_assert(std::is_same<decltype(copy_assign), tuple<> &>(), "");
+            static_assert(std::is_same_v<decltype(copy_assign), tuple<> &>);
             EXPECT_EQ(&dst, &copy_assign);
 
             auto &move_assign = dst = tuple<>{};
-            static_assert(std::is_same<decltype(move_assign), tuple<> &>(), "");
+            static_assert(std::is_same_v<decltype(move_assign), tuple<> &>);
             EXPECT_EQ(&dst, &move_assign);
 
             src.swap(dst);

@@ -46,11 +46,11 @@ namespace gridtools {
 
                 using val = accessor_mock<float>;
 
-#define EXPRESSION_TEST(name, expr)                                      \
-    GT_FUNCTION float test_##name() {                                    \
-        auto result = iterate_domain_mock()(expr);                       \
-        static_assert(std::is_same<decltype(result), float>::value, ""); \
-        return result;                                                   \
+#define EXPRESSION_TEST(name, expr)                             \
+    GT_FUNCTION float test_##name() {                           \
+        auto result = iterate_domain_mock()(expr);              \
+        static_assert(std::is_same_v<decltype(result), float>); \
+        return result;                                          \
     }
 
                 EXPRESSION_TEST(add_accessors, val{1} + val{2})
