@@ -51,7 +51,7 @@ namespace gridtools::fn::backend {
         template <class Index, class Sizes>
         GT_FUNCTION_DEVICE bool in_domain(Index const &index, Sizes const &sizes) {
             auto in_bounds = tuple_util::device::transform(std::less(), index, sizes);
-            return tuple_util::device::fold(std::logical_and(), in_bounds);
+            return tuple_util::device::fold(std::logical_and(), wstd::move(in_bounds));
         }
 
         template <class BlockSizes, class Sizes, class PtrHolder, class Strides, class Fun>
