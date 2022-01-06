@@ -102,8 +102,8 @@ namespace gridtools::fn::backend {
 
         template <class ColumnStage, class Seed>
         struct column_fun_f {
-            std::size_t m_v_size;
             Seed m_seed;
+            std::size_t m_v_size;
 
             template <class Ptr, class Strides>
             GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides) const {
@@ -130,7 +130,7 @@ namespace gridtools::fn::backend {
                 h_sizes,
                 ptr_holder,
                 strides,
-                column_fun_f<ColumnStage, Seed>{v_size, std::move(seed)});
+                column_fun_f<ColumnStage, Seed>{std::move(seed), v_size});
         }
     } // namespace gpu_impl_
 
