@@ -59,7 +59,7 @@ namespace gridtools::fn::backend {
             auto thread_idx = global_thread_index<BlockSizes, Sizes>();
             if (!in_domain(thread_idx, sizes))
                 return;
-            static_assert(meta::length<Sizes>::value <= 3);
+            static_assert(meta::length<Sizes>::value <= 3, "higher dimensional computations not implemented");
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
             fun(ptr, strides);
