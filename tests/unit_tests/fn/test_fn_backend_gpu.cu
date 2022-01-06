@@ -40,7 +40,7 @@ namespace gridtools::fn::backend {
         TEST(backend_gpu, apply_column_stage) {
             auto in = cuda_util::cuda_malloc<int>(5 * 7 * 3);
             auto out = cuda_util::cuda_malloc<int>(5 * 7 * 3);
-            int inh[5][7][3], outh[5][7][3];
+            int inh[5][7][3], outh[5][7][3] = {};
             for (int i = 0; i < 5; ++i)
                 for (int j = 0; j < 7; ++j)
                     for (int k = 0; k < 3; ++k)
