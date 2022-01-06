@@ -9,8 +9,6 @@
  */
 #include <gridtools/fn/backend2/naive.hpp>
 
-#include <cstdlib>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/fn/scan.hpp>
