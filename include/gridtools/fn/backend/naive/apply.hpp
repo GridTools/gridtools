@@ -69,13 +69,6 @@ namespace gridtools::fn {
             auto const &operator()(auto const &m) const { return at_key<Key>(m); }
         };
 
-        template <class Key, class Map>
-        auto remove_key(Map const &m) {
-            using res_t = hymap::from_meta_map<meta::mp_remove<hymap::to_meta_map<Map>, Key>>;
-            using generators_t = meta::transform<at_generator, get_keys<res_t>>;
-            return tuple_util::generate<generators_t, res_t>(m);
-        }
-
         template <class Vertical,
             class IsBackward,
             class Init,
@@ -115,7 +108,7 @@ namespace gridtools::fn {
 
             size_t n = v_size - min_v_size;
 
-            make_loops(remove_key<Vertical>(sizes))([&](auto ptr, auto const &strides) {
+            make_loops(hymap::remove_key<Vertical>(sizes))([&](auto ptr, auto const &strides) {
                 auto inc = [&] { sid::shift(ptr, v_stride, step_t()); };
                 auto first = [&]<auto Get, auto F>(meta::val<F, Get>) {
                     auto res = std::apply(F, tuple_util::transform(make_iterator(ptr, strides), in_tags_t()));

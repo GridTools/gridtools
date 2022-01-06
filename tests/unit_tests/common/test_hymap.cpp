@@ -169,6 +169,16 @@ namespace gridtools {
             EXPECT_EQ(47.3, acc);
         }
 
+        TEST(remove_key, smoke) {
+            hymap::keys<a, b>::values<int, double> src = {42, 37.5};
+            auto res = hymap::remove_key<a>(src);
+
+            static_assert(!has_key<decltype(res), a>());
+            static_assert(has_key<decltype(res), b>());
+
+            EXPECT_EQ(37.5, at_key<b>(res));
+        }
+
         TEST(merge, smoke) {
             auto m1 = hymap::keys<a, b>::make_values(1, 2);
             auto m2 = hymap::keys<b, c>::make_values(3.5, 16);
