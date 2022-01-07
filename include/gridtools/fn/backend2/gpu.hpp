@@ -34,17 +34,20 @@ namespace gridtools::fn::backend {
             static_assert(ndims_t::value > 0);
             if constexpr (ndims_t::value == 1) {
                 using block_dim_x = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 0>>;
-                return keys_t::template values<int>(blockIdx.x * block_dim_x::value + threadIdx.x);
+                using values_t = typename keys_t::template values<int>;
+                return values_t(blockIdx.x * block_dim_x::value + threadIdx.x);
             } else if constexpr (ndims_t::value == 2) {
                 using block_dim_x = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 0>>;
                 using block_dim_y = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 1>>;
-                return keys_t::template values<int, int>(
+                using values_t = typename keys_t::template values<int, int>;
+                return values_t(
                     blockIdx.x * block_dim_x::value + threadIdx.x, blockIdx.y * block_dim_y::value + threadIdx.y);
             } else {
                 using block_dim_x = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 0>>;
                 using block_dim_y = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 1>>;
                 using block_dim_z = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 2>>;
-                return keys_t::template values<int, int, int>(blockIdx.x * block_dim_x::value + threadIdx.x,
+                using values_t = typename keys_t::template values<int, int, int>;
+                return values_t(blockIdx.x * block_dim_x::value + threadIdx.x,
                     blockIdx.y * block_dim_y::value + threadIdx.y,
                     blockIdx.z * block_dim_z::value + threadIdx.z);
             }
