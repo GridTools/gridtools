@@ -24,11 +24,10 @@ namespace gridtools::fn::backend {
         template <class Sizes>
         auto make_loops(Sizes const &sizes) {
             return tuple_util::fold(
-                [&]<class Outer, class Dim>(Outer outer, Dim) {
-                    return [ outer = std::move(outer), inner = sid::make_loop<Dim>(at_key<Dim>(sizes)) ]<class... Args>(
-                        Args && ... args) {
-                        return outer(inner(std::forward<Args>(args)...));
-                    };
+                [&](auto outer, auto dim) {
+                    return
+                        [outer = std::move(outer), inner = sid::make_loop<decltype(dim)>(at_key<decltype(dim)>(sizes))](
+                            auto &&... args) { return outer(inner(std::forward<decltype(args)>(args)...)); };
                 },
                 identity(),
                 meta::rename<std::tuple, get_keys<Sizes>>());
