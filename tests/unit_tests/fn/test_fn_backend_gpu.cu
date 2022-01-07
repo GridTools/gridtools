@@ -15,6 +15,8 @@
 #include <gridtools/sid/composite.hpp>
 #include <gridtools/sid/synthetic.hpp>
 
+#include <cuda_test_helper.hpp>
+
 namespace gridtools::fn::backend {
     namespace {
         using namespace literals;
@@ -73,6 +75,52 @@ namespace gridtools::fn::backend {
                         EXPECT_EQ(outh[i][j][k], res);
                     }
                 }
+        }
+
+        struct global_tmp_check_fun {
+            template <class PtrHolder, class Strides>
+            GT_FUNCTION bool operator()(PtrHolder ptr_holder, Strides strides) const {
+                auto ptr = ptr_holder();
+                for (int i = 0; i < 5; ++i) {
+                    for (int j = 0; j < 7; ++j) {
+                        for (int k = 0; k < 3; ++k) {
+                            *ptr = 21 * i + 3 * j + k;
+                            sid::shift(ptr, sid::get_stride<int_t<2>>(strides), 1_c);
+                        }
+                        sid::shift(ptr, sid::get_stride<int_t<2>>(strides), -3_c);
+                        sid::shift(ptr, sid::get_stride<int_t<1>>(strides), 1_c);
+                    }
+                    sid::shift(ptr, sid::get_stride<int_t<1>>(strides), -7_c);
+                    sid::shift(ptr, sid::get_stride<int_t<0>>(strides), 1_c);
+                }
+                sid::shift(ptr, sid::get_stride<int_t<0>>(strides), -5_c);
+                bool correct = true;
+                for (int i = 0; i < 5; ++i) {
+                    for (int j = 0; j < 7; ++j) {
+                        for (int k = 0; k < 3; ++k) {
+                            correct &= *ptr == 21 * i + 3 * j + k;
+                            sid::shift(ptr, sid::get_stride<int_t<2>>(strides), 1_c);
+                        }
+                        sid::shift(ptr, sid::get_stride<int_t<2>>(strides), -3_c);
+                        sid::shift(ptr, sid::get_stride<int_t<1>>(strides), 1_c);
+                    }
+                    sid::shift(ptr, sid::get_stride<int_t<1>>(strides), -7_c);
+                    sid::shift(ptr, sid::get_stride<int_t<0>>(strides), 1_c);
+                }
+                return correct;
+            }
+        };
+
+        TEST(backend_gpu, global_tmp) {
+            using block_sizes_t = meta::list<meta::list<int_t<0>, int_t<4>>, meta::list<int_t<2>, int_t<2>>>;
+            auto alloc = tmp_allocator(gpu<block_sizes_t>());
+            auto sizes = hymap::keys<int_t<0>, int_t<1>, int_t<2>>::values<int_t<5>, int_t<7>, int_t<3>>();
+            auto tmp = allocate_global_tmp<int>(gpu<block_sizes_t>(), alloc, sizes);
+            static_assert(sid::is_sid<decltype(tmp)>());
+            auto ptr_holder = sid::get_origin(tmp);
+            auto strides = sid::get_strides(tmp);
+            bool success = on_device::exec(global_tmp_check_fun(), ptr_holder, strides);
+            EXPECT_TRUE(success);
         }
     } // namespace
 } // namespace gridtools::fn::backend

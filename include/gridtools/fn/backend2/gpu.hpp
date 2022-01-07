@@ -12,7 +12,9 @@
 #include "../../common/cuda_util.hpp"
 #include "../../common/hymap.hpp"
 #include "../../meta.hpp"
+#include "../../sid/allocator.hpp"
 #include "../../sid/concept.hpp"
+#include "../../sid/contiguous.hpp"
 #include "../../sid/multi_shift.hpp"
 
 namespace gridtools::fn::backend {
@@ -132,9 +134,23 @@ namespace gridtools::fn::backend {
                 strides,
                 column_fun_f<ColumnStage, Seed>{std::move(seed), v_size});
         }
+
+        template <class BlockSizes>
+        auto tmp_allocator(gpu<BlockSizes>) {
+            return sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char[]>);
+        }
+
+        template <class T, class BlockSizes, class Allocator, class Sizes>
+        auto allocate_global_tmp(gpu<BlockSizes>, Allocator &allocator, Sizes const &sizes) {
+            return sid::make_contiguous<T, int_t>(allocator, sizes);
+        }
     } // namespace gpu_impl_
+
+    using gpu_impl_::gpu;
 
     using gpu_impl_::apply_column_stage;
     using gpu_impl_::apply_stencil_stage;
-    using gpu_impl_::gpu;
+
+    using gpu_impl_::allocate_global_tmp;
+    using gpu_impl_::tmp_allocator;
 } // namespace gridtools::fn::backend
