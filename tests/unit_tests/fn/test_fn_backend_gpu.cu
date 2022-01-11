@@ -78,6 +78,39 @@ namespace gridtools::fn::backend {
                 }
         }
 
+        TEST(backend_gpu, apply_column_stage_1d) {
+            auto in = cuda_util::cuda_malloc<int>(5);
+            auto out = cuda_util::cuda_malloc<int>(5);
+            int inh[5], outh[5] = {};
+            for (int i = 0; i < 5; ++i)
+                inh[i] = i;
+            cudaMemcpy(in.get(), inh, 5 * sizeof(int), cudaMemcpyHostToDevice);
+
+            auto as_synthetic = [](int *x) {
+                return sid::synthetic()
+                    .set<property::origin>(sid::host_device::make_simple_ptr_holder(x))
+                    .set<property::strides>(tuple(1_c));
+            };
+
+            auto composite =
+                sid::composite::keys<int_t<0>, int_t<1>>::make_values(as_synthetic(out.get()), as_synthetic(in.get()));
+
+            auto sizes = hymap::keys<int_t<0>>::values<int_t<5>>();
+
+            column_stage<int_t<0>, sum_scan, make_iterator_mock, 0, 1> cs;
+
+            using block_sizes_t = meta::list<meta::list<int_t<0>, int_t<4>>, meta::list<int_t<2>, int_t<2>>>;
+
+            apply_column_stage<int_t<0>>(gpu<block_sizes_t>(), sizes, cs, composite, tuple(42, 1));
+
+            cudaMemcpy(outh, out.get(), 5 * sizeof(int), cudaMemcpyDeviceToHost);
+            int res = 42;
+            for (int i = 0; i < 5; ++i) {
+                res += inh[i];
+                EXPECT_EQ(outh[i], res);
+            }
+        }
+
         struct global_tmp_check_fun {
             template <class PtrHolder, class Strides>
             GT_FUNCTION bool operator()(PtrHolder ptr_holder, Strides strides) const {

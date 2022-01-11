@@ -16,6 +16,7 @@
 #include "../../sid/concept.hpp"
 #include "../../sid/contiguous.hpp"
 #include "../../sid/multi_shift.hpp"
+#include "./common.hpp"
 
 namespace gridtools::fn::backend {
     namespace gpu_impl_ {
@@ -24,28 +25,29 @@ namespace gridtools::fn::backend {
             using block_sizes_t = BlockSizes;
         };
 
-        template <class BlockSizes, class Dim>
-        using block_size_at_dim = meta::second<meta::mp_find<BlockSizes, Dim>>;
+        template <class BlockSizes, class Dims, int I>
+        using block_size_at_dim = meta::second<meta::mp_find<BlockSizes, meta::at_c<Dims, I>>>;
 
         template <class BlockSizes, class Sizes>
         GT_FUNCTION_DEVICE auto global_thread_index() {
-            using keys_t = get_keys<Sizes>;
-            using ndims_t = meta::length<keys_t>;
-            static_assert(ndims_t::value > 0);
-            if constexpr (ndims_t::value == 1) {
-                using block_dim_x = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 0>>;
+            using ndims_t = meta::length<Sizes>;
+            using keys_t = meta::take_c<std::min(3, (int)ndims_t::value), get_keys<Sizes>>;
+            if constexpr (ndims_t::value == 0) {
+                return hymap::keys<>::values<>();
+            } else if constexpr (ndims_t::value == 1) {
+                using block_dim_x = block_size_at_dim<BlockSizes, keys_t, 0>;
                 using values_t = typename keys_t::template values<int>;
                 return values_t(blockIdx.x * block_dim_x::value + threadIdx.x);
             } else if constexpr (ndims_t::value == 2) {
-                using block_dim_x = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 0>>;
-                using block_dim_y = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 1>>;
+                using block_dim_x = block_size_at_dim<BlockSizes, keys_t, 0>;
+                using block_dim_y = block_size_at_dim<BlockSizes, keys_t, 1>;
                 using values_t = typename keys_t::template values<int, int>;
                 return values_t(
                     blockIdx.x * block_dim_x::value + threadIdx.x, blockIdx.y * block_dim_y::value + threadIdx.y);
             } else {
-                using block_dim_x = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 0>>;
-                using block_dim_y = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 1>>;
-                using block_dim_z = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 2>>;
+                using block_dim_x = block_size_at_dim<BlockSizes, keys_t, 0>;
+                using block_dim_y = block_size_at_dim<BlockSizes, keys_t, 1>;
+                using block_dim_z = block_size_at_dim<BlockSizes, keys_t, 2>;
                 using values_t = typename keys_t::template values<int, int, int>;
                 return values_t(blockIdx.x * block_dim_x::value + threadIdx.x,
                     blockIdx.y * block_dim_y::value + threadIdx.y,
@@ -55,8 +57,7 @@ namespace gridtools::fn::backend {
 
         template <class Index, class Sizes>
         GT_FUNCTION_DEVICE bool in_domain(Index const &index, Sizes const &sizes) {
-            auto in_bounds = tuple_util::device::transform(std::less(), index, sizes);
-            return tuple_util::device::fold(std::logical_and(), wstd::move(in_bounds));
+            return tuple_util::device::all_of(std::less(), index, sizes);
         }
 
         template <class BlockSizes, class Sizes, class PtrHolder, class Strides, class Fun>
@@ -64,10 +65,13 @@ namespace gridtools::fn::backend {
             auto thread_idx = global_thread_index<BlockSizes, Sizes>();
             if (!in_domain(thread_idx, sizes))
                 return;
-            static_assert(meta::length<Sizes>::value <= 3, "higher dimensional computations not implemented");
             auto ptr = ptr_holder();
             sid::multi_shift(ptr, strides, thread_idx);
-            fun(ptr, strides);
+            if constexpr (meta::length<Sizes>::value <= 3) {
+                fun(ptr, strides);
+            } else {
+                common::make_loops(tuple_util::device::drop_front<3>(sizes))(wstd::move(fun))(ptr, strides);
+            }
         }
 
         template <class BlockSizes, class Sizes>
@@ -76,14 +80,16 @@ namespace gridtools::fn::backend {
             using ndims_t = meta::length<keys_t>;
             dim3 blocks(1, 1, 1);
             dim3 threads(1, 1, 1);
-            threads.x = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 0>>::value;
-            blocks.x = (tuple_util::get<0>(sizes) + threads.x - 1) / threads.x;
+            if constexpr (ndims_t::value >= 1) {
+                threads.x = block_size_at_dim<BlockSizes, keys_t, 0>::value;
+                blocks.x = (tuple_util::get<0>(sizes) + threads.x - 1) / threads.x;
+            }
             if constexpr (ndims_t::value >= 2) {
-                threads.y = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 1>>::value;
+                threads.y = block_size_at_dim<BlockSizes, keys_t, 1>::value;
                 blocks.y = (tuple_util::get<1>(sizes) + threads.y - 1) / threads.y;
             }
             if constexpr (ndims_t::value >= 3) {
-                threads.z = block_size_at_dim<BlockSizes, meta::at_c<keys_t, 2>>::value;
+                threads.z = block_size_at_dim<BlockSizes, keys_t, 2>::value;
                 blocks.z = (tuple_util::get<2>(sizes) + threads.z - 1) / threads.z;
             }
             return {blocks, threads};
