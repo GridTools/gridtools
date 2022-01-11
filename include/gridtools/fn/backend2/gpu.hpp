@@ -81,15 +81,15 @@ namespace gridtools::fn::backend {
             dim3 blocks(1, 1, 1);
             dim3 threads(1, 1, 1);
             if constexpr (ndims_t::value >= 1) {
-                threads.x = block_size_at_dim<BlockSizes, keys_t, 0>::value;
+                threads.x = block_size_at_dim<BlockSizes, keys_t, 0>();
                 blocks.x = (tuple_util::get<0>(sizes) + threads.x - 1) / threads.x;
             }
             if constexpr (ndims_t::value >= 2) {
-                threads.y = block_size_at_dim<BlockSizes, keys_t, 1>::value;
+                threads.y = block_size_at_dim<BlockSizes, keys_t, 1>();
                 blocks.y = (tuple_util::get<1>(sizes) + threads.y - 1) / threads.y;
             }
             if constexpr (ndims_t::value >= 3) {
-                threads.z = block_size_at_dim<BlockSizes, keys_t, 2>::value;
+                threads.z = block_size_at_dim<BlockSizes, keys_t, 2>();
                 blocks.z = (tuple_util::get<2>(sizes) + threads.z - 1) / threads.z;
             }
             return {blocks, threads};
