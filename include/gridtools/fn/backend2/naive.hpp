@@ -38,7 +38,7 @@ namespace gridtools::fn::backend {
                 })(ptr, strides);
         }
 
-        inline auto tmp_allocator(naive) { return sid::make_cached_allocator(&std::make_unique<char[]>); }
+        inline auto tmp_allocator(naive) { return sid::make_allocator(&std::make_unique<char[]>); }
 
         template <class T, class Allocator, class Sizes>
         auto allocate_global_tmp(naive, Allocator &allocator, Sizes const &sizes) {
