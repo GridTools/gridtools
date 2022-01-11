@@ -112,7 +112,7 @@ namespace gridtools::fn::backend {
 
             template <class Ptr, class Strides>
             GT_FUNCTION_DEVICE void operator()(Ptr ptr, Strides const &strides) const {
-                ColumnStage()(wstd::move(m_seed), m_v_size, wstd::move(ptr), strides);
+                ColumnStage()(m_seed, m_v_size, wstd::move(ptr), strides);
             }
         };
 
