@@ -390,7 +390,7 @@ namespace gridtools {
             }
 
             template <class Key, class Map>
-            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto remove_key(Map && map) {
+            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto canonicalize_and_remove_key(Map && map) {
                 using res_t = from_meta_map<meta::mp_remove<hymap::to_meta_map<Map>, Key>>;
                 using generators_t = meta::transform<hymap_detail::at_generator_f, get_keys<res_t>>;
                 return tuple_util::generate<generators_t, res_t>(wstd::forward<Map>(map));

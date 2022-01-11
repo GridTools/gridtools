@@ -32,7 +32,7 @@ namespace gridtools::fn::backend {
             auto ptr = sid::get_origin(composite)();
             auto strides = sid::get_strides(composite);
             auto v_size = at_key<Vertical>(sizes);
-            common::make_loops(hymap::remove_key<Vertical>(sizes))(
+            common::make_loops(hymap::canonicalize_and_remove_key<Vertical>(sizes))(
                 [v_size = std::move(v_size), seed = std::move(seed)](auto ptr, auto const &strides) {
                     ColumnStage()(seed, v_size, std::move(ptr), strides);
                 })(ptr, strides);
