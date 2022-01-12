@@ -22,16 +22,16 @@ namespace gridtools::fn::backend {
         struct naive {};
 
         template <class Sizes, class StencilStage, class Composite>
-        void apply_stencil_stage(naive, Sizes const &sizes, StencilStage, Composite composite) {
-            auto ptr = sid::get_origin(composite)();
-            auto strides = sid::get_strides(composite);
+        void apply_stencil_stage(naive, Sizes const &sizes, StencilStage, Composite &&composite) {
+            auto ptr = sid::get_origin(std::forward<Composite>(composite))();
+            auto strides = sid::get_strides(std::forward<Composite>(composite));
             common::make_loops(sizes)(StencilStage())(ptr, strides);
         }
 
         template <class Vertical, class Sizes, class ColumnStage, class Composite, class Seed>
-        void apply_column_stage(naive, Sizes const &sizes, ColumnStage, Composite composite, Seed seed) {
-            auto ptr = sid::get_origin(composite)();
-            auto strides = sid::get_strides(composite);
+        void apply_column_stage(naive, Sizes const &sizes, ColumnStage, Composite &&composite, Seed seed) {
+            auto ptr = sid::get_origin(std::forward<Composite>(composite))();
+            auto strides = sid::get_strides(std::forward<Composite>(composite));
             auto v_size = at_key<Vertical>(sizes);
             common::make_loops(hymap::canonicalize_and_remove_key<Vertical>(sizes))(
                 [v_size = std::move(v_size), seed = std::move(seed)](auto ptr, auto const &strides) {

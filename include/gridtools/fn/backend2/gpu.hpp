@@ -114,9 +114,9 @@ namespace gridtools::fn::backend {
         }
 
         template <class BlockSizes, class Sizes, class StencilStage, class Composite>
-        void apply_stencil_stage(gpu<BlockSizes>, Sizes const &sizes, StencilStage, Composite composite) {
-            auto ptr_holder = sid::get_origin(composite);
-            auto strides = sid::get_strides(composite);
+        void apply_stencil_stage(gpu<BlockSizes>, Sizes const &sizes, StencilStage, Composite &&composite) {
+            auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
+            auto strides = sid::get_strides(std::forward<Composite>(composite));
 
             auto [blocks, threads] = blocks_and_threads<BlockSizes>(sizes);
             cuda_util::launch(blocks,
@@ -141,9 +141,9 @@ namespace gridtools::fn::backend {
         };
 
         template <class Vertical, class BlockSizes, class Sizes, class ColumnStage, class Composite, class Seed>
-        void apply_column_stage(gpu<BlockSizes>, Sizes const &sizes, ColumnStage, Composite composite, Seed seed) {
-            auto ptr_holder = sid::get_origin(composite);
-            auto strides = sid::get_strides(composite);
+        void apply_column_stage(gpu<BlockSizes>, Sizes const &sizes, ColumnStage, Composite &&composite, Seed seed) {
+            auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
+            auto strides = sid::get_strides(std::forward<Composite>(composite));
             auto h_sizes = hymap::canonicalize_and_remove_key<Vertical>(sizes);
             auto v_size = at_key<Vertical>(sizes);
 
