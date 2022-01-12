@@ -169,9 +169,9 @@ namespace gridtools {
             EXPECT_EQ(47.3, acc);
         }
 
-        TEST(remove_key, smoke) {
+        TEST(canonicalize_and_remove_key, smoke) {
             hymap::keys<a, b>::values<int, double> src = {42, 37.5};
-            auto res = hymap::remove_key<a>(src);
+            auto res = hymap::canonicalize_and_remove_key<a>(src);
 
             static_assert(!has_key<decltype(res), a>());
             static_assert(has_key<decltype(res), b>());
