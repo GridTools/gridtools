@@ -164,7 +164,7 @@ namespace gridtools::fn::backend {
 
         template <class BlockSizes>
         auto tmp_allocator(gpu<BlockSizes> be) {
-            return std::tuple(be, sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char[]>));
+            return std::make_tuple(be, sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char[]>));
         }
 
         template <class T, class BlockSizes, class Allocator, class Sizes>
