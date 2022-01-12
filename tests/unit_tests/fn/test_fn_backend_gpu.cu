@@ -118,7 +118,7 @@ namespace gridtools::fn::backend {
             for (int i = 0; i < 5; ++i)
                 for (int j = 0; j < 7; ++j)
                     for (int k = 0; k < 3; ++k)
-                        for (int l = 0; l < 3; ++l)
+                        for (int l = 0; l < 2; ++l)
                             for (int m = 0; m < 3; ++m)
                                 inh[i][j][k][l][m] = 126 * i + 18 * j + 6 * k + 3 * l + m;
             cudaMemcpy(in.get(), inh, 5 * 7 * 3 * 2 * 3 * sizeof(int), cudaMemcpyHostToDevice);
