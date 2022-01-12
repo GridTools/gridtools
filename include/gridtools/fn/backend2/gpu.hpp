@@ -55,9 +55,20 @@ namespace gridtools::fn::backend {
             }
         }
 
+        template <class Key>
+        struct at_generator_f {
+            template <class Value>
+            GT_FUNCTION_DEVICE decltype(auto) operator()(Value &&value) const {
+                return device::at_key<Key>(wstd::forward<Value>(value));
+            }
+        };
+
         template <class Index, class Sizes>
         GT_FUNCTION_DEVICE bool in_domain(Index const &index, Sizes const &sizes) {
-            return tuple_util::device::all_of(std::less(), index, sizes);
+            using sizes_t = meta::rename<tuple, Index>;
+            using generators_t = meta::transform<at_generator_f, get_keys<Index>>;
+            auto indexed_sizes = tuple_util::device::generate<generators_t, sizes_t>(sizes);
+            return tuple_util::device::all_of(std::less(), index, indexed_sizes);
         }
 
         template <class BlockSizes,
