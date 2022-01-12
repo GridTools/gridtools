@@ -16,6 +16,7 @@
 #include "../../sid/concept.hpp"
 #include "../../sid/contiguous.hpp"
 #include "../../sid/multi_shift.hpp"
+#include "../../sid/unknown_kind.hpp"
 #include "./common.hpp"
 
 namespace gridtools::fn::backend {
@@ -162,13 +163,13 @@ namespace gridtools::fn::backend {
         }
 
         template <class BlockSizes>
-        auto tmp_allocator(gpu<BlockSizes>) {
-            return sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char[]>);
+        auto tmp_allocator(gpu<BlockSizes> be) {
+            return std::tuple(be, sid::device::make_cached_allocator(&cuda_util::cuda_malloc<char[]>));
         }
 
         template <class T, class BlockSizes, class Allocator, class Sizes>
-        auto allocate_global_tmp(gpu<BlockSizes>, Allocator &allocator, Sizes const &sizes) {
-            return sid::make_contiguous<T, int_t>(allocator, sizes);
+        auto allocate_global_tmp(std::tuple<gpu<BlockSizes>, Allocator> &alloc, Sizes const &sizes) {
+            return sid::make_contiguous<T, int_t, sid::unknown_kind>(std::get<1>(alloc), sizes);
         }
     } // namespace gpu_impl_
 

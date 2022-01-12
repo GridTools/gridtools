@@ -14,6 +14,7 @@
 #include "../../sid/allocator.hpp"
 #include "../../sid/concept.hpp"
 #include "../../sid/contiguous.hpp"
+#include "../../sid/unknown_kind.hpp"
 #include "./common.hpp"
 
 namespace gridtools::fn::backend {
@@ -38,11 +39,11 @@ namespace gridtools::fn::backend {
                 })(ptr, strides);
         }
 
-        inline auto tmp_allocator(naive) { return sid::make_allocator(&std::make_unique<char[]>); }
+        inline auto tmp_allocator(naive be) { return std::tuple(be, sid::make_allocator(&std::make_unique<char[]>)); }
 
         template <class T, class Allocator, class Sizes>
-        auto allocate_global_tmp(naive, Allocator &allocator, Sizes const &sizes) {
-            return sid::make_contiguous<T, int_t>(allocator, sizes);
+        auto allocate_global_tmp(std::tuple<naive, Allocator> &alloc, Sizes const &sizes) {
+            return sid::make_contiguous<T, int_t, sid::unknown_kind>(std::get<1>(alloc), sizes);
         }
     } // namespace naive_impl_
 
