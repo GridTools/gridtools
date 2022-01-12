@@ -60,7 +60,12 @@ namespace gridtools::fn::backend {
             return tuple_util::device::all_of(std::less(), index, sizes);
         }
 
-        template <class BlockSizes, class Sizes, class PtrHolder, class Strides, class Fun>
+        template <class BlockSizes,
+            class Sizes,
+            class PtrHolder,
+            class Strides,
+            class Fun,
+            class SizeKeys = get_keys<Sizes>>
         __global__ void kernel(Sizes sizes, PtrHolder ptr_holder, Strides strides, Fun fun) {
             auto thread_idx = global_thread_index<BlockSizes, Sizes>();
             if (!in_domain(thread_idx, sizes))
@@ -70,7 +75,8 @@ namespace gridtools::fn::backend {
             if constexpr (meta::length<Sizes>::value <= 3) {
                 fun(ptr, strides);
             } else {
-                common::make_loops(tuple_util::device::drop_front<3>(sizes))(wstd::move(fun))(ptr, strides);
+                using loop_dims_t = meta::drop_front_c<3, SizeKeys>;
+                common::make_loops<loop_dims_t>(sizes)(wstd::move(fun))(ptr, strides);
             }
         }
 

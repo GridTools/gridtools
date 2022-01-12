@@ -16,15 +16,21 @@
 
 namespace gridtools::fn::backend::common {
 
-    template <class Sizes>
+    template <class Dims, class Sizes>
     GT_CONSTEXPR GT_FUNCTION auto make_loops(Sizes const &sizes) {
-        return tuple_util::fold(
+        return tuple_util::host_device::fold(
             [&](auto outer, auto dim) {
-                return [outer = std::move(outer), inner = sid::make_loop<decltype(dim)>(at_key<decltype(dim)>(sizes))](
+                return [outer = std::move(outer),
+                           inner = sid::make_loop<decltype(dim)>(host_device::at_key<decltype(dim)>(sizes))](
                            auto &&... args) { return outer(inner(std::forward<decltype(args)>(args)...)); };
             },
-            identity(),
-            meta::rename<tuple, get_keys<Sizes>>());
+            host_device::identity(),
+            meta::rename<tuple, Dims>());
+    }
+
+    template <class Sizes>
+    GT_CONSTEXPR GT_FUNCTION auto make_loops(Sizes const &sizes) {
+        return make_loops<get_keys<Sizes>>(sizes);
     }
 
 } // namespace gridtools::fn::backend::common
