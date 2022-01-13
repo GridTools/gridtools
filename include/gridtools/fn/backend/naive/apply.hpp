@@ -108,7 +108,7 @@ namespace gridtools::fn {
 
             size_t n = v_size - min_v_size;
 
-            make_loops(hymap::remove_key<Vertical>(sizes))([&](auto ptr, auto const &strides) {
+            make_loops(hymap::canonicalize_and_remove_key<Vertical>(sizes))([&](auto ptr, auto const &strides) {
                 auto inc = [&] { sid::shift(ptr, v_stride, step_t()); };
                 auto first = [&]<auto Get, auto F>(meta::val<F, Get>) {
                     auto res = std::apply(F, tuple_util::transform(make_iterator(ptr, strides), in_tags_t()));
