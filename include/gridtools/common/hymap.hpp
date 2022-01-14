@@ -349,6 +349,14 @@ namespace gridtools {
                         return m_fun.template operator()<Key>(wstd::forward<Value>(value));
                     }
                 };
+
+                template <class Key>
+                struct at_generator_f {
+                    template <class Value>
+                    GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR decltype(auto) operator()(Value &&value) const {
+                        return at_key<Key>(wstd::forward<Value>(value));
+                    }
+                };
             } // namespace hymap_detail
 
             template <class Fun, class Map>
@@ -379,6 +387,13 @@ namespace gridtools {
                 class HyMapKeys = meta::rename<KeyCtor, Keys>>
             GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto convert_to(Tup && tup) {
                 return tuple_util::convert_to<HyMapKeys::template values>(wstd::forward<Tup>(tup));
+            }
+
+            template <class Key, class Map>
+            GT_TARGET GT_FORCE_INLINE GT_TARGET_CONSTEXPR auto canonicalize_and_remove_key(Map && map) {
+                using res_t = from_meta_map<meta::mp_remove<hymap::to_meta_map<Map>, Key>>;
+                using generators_t = meta::transform<hymap_detail::at_generator_f, get_keys<res_t>>;
+                return tuple_util::generate<generators_t, res_t>(wstd::forward<Map>(map));
             }
 
             // This class holds two maps and models hymap content.
