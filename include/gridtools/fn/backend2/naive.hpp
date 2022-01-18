@@ -28,8 +28,8 @@ namespace gridtools::fn::backend {
             common::make_loops(sizes)(StencilStage())(ptr, strides);
         }
 
-        template <class Vertical, class Sizes, class ColumnStage, class Composite, class Seed>
-        void apply_column_stage(naive, Sizes const &sizes, ColumnStage, Composite &&composite, Seed seed) {
+        template <class Sizes, class ColumnStage, class Composite, class Vertical, class Seed>
+        void apply_column_stage(naive, Sizes const &sizes, ColumnStage, Composite &&composite, Vertical, Seed seed) {
             auto ptr = sid::get_origin(std::forward<Composite>(composite))();
             auto strides = sid::get_strides(std::forward<Composite>(composite));
             auto v_size = at_key<Vertical>(sizes);

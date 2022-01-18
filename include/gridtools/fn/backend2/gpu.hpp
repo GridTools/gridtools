@@ -140,8 +140,9 @@ namespace gridtools::fn::backend {
             }
         };
 
-        template <class Vertical, class BlockSizes, class Sizes, class ColumnStage, class Composite, class Seed>
-        void apply_column_stage(gpu<BlockSizes>, Sizes const &sizes, ColumnStage, Composite &&composite, Seed seed) {
+        template <class BlockSizes, class Sizes, class ColumnStage, class Composite, class Vertical, class Seed>
+        void apply_column_stage(
+            gpu<BlockSizes>, Sizes const &sizes, ColumnStage, Composite &&composite, Vertical, Seed seed) {
             auto ptr_holder = sid::get_origin(std::forward<Composite>(composite));
             auto strides = sid::get_strides(std::forward<Composite>(composite));
             auto h_sizes = hymap::canonicalize_and_remove_key<Vertical>(sizes);

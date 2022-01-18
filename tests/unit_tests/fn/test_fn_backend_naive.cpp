@@ -56,7 +56,7 @@ namespace gridtools::fn::backend {
 
             column_stage<int_t<1>, sum_scan, make_iterator_mock, 0, 1> cs;
 
-            apply_column_stage<int_t<1>>(naive(), sizes, cs, composite, tuple(42, 1));
+            apply_column_stage(naive(), sizes, cs, composite, int_t<1>(), tuple(42, 1));
 
             for (int i = 0; i < 5; ++i)
                 for (int k = 0; k < 3; ++k) {
