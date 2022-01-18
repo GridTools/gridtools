@@ -27,7 +27,6 @@ namespace gridtools::fn {
         template <class Backend, class StageSpecs, class Domain, class Sids>
         void run(Backend, StageSpecs, Domain const &domain, Sids &&sids) {
             auto composite = make_composite(std::forward<Sids>(sids));
-            auto ptr = sid::get_origin(composite)();
             tuple_util::for_each(
                 [&](auto stage) { apply_stencil_stage(Backend(), domain, std::move(stage), composite); },
                 meta::rename<std::tuple, StageSpecs>());
