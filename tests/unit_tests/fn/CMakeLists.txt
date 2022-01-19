@@ -1,5 +1,6 @@
 gridtools_add_unit_test(test_extents SOURCES test_extents.cpp)
 gridtools_add_unit_test(test_fn_backend_naive SOURCES test_fn_backend_naive.cpp)
+gridtools_add_unit_test(test_fn_executor SOURCES test_fn_executor.cpp)
 gridtools_add_unit_test(test_fn_run SOURCES test_fn_run.cpp)
 gridtools_add_unit_test(test_fn_scan SOURCES test_fn_scan.cpp)
 gridtools_add_unit_test(test_fn_stencil_stage SOURCES test_fn_stencil_stage.cpp)
