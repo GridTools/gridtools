@@ -33,21 +33,26 @@ namespace gridtools::fn {
         template <class... Stages>
         struct is_stencil_stage<merged_stencil_stage<Stages...>> : std::true_type {};
 
-        template <class Backend, class Vertical, class StageSpecs, class Domain, class Sids, class Seeds>
-        void run(Backend, Vertical, StageSpecs, Domain const &domain, Sids &&sids, Seeds &&seeds) {
+        template <class Backend, class StageSpecs, class Domain, class Sids>
+        void run_stencils(Backend, StageSpecs, Domain const &domain, Sids &&sids) {
+            auto composite = make_composite(std::forward<Sids>(sids));
+            tuple_util::for_each(
+                [&](auto stage) { apply_stencil_stage(Backend(), domain, std::move(stage), composite); },
+                meta::rename<std::tuple, StageSpecs>());
+        }
+
+        template <class Backend, class StageSpecs, class Domain, class Vertical, class Sids, class Seeds>
+        void run_vertical(Backend, StageSpecs, Domain const &domain, Vertical, Sids &&sids, Seeds &&seeds) {
             auto composite = make_composite(std::forward<Sids>(sids));
             tuple_util::for_each(
                 [&](auto stage, auto seed) {
-                    if constexpr (is_stencil_stage<decltype(stage)>()) {
-                        apply_stencil_stage(Backend(), domain, std::move(stage), composite);
-                    } else {
-                        apply_column_stage(Backend(), domain, std::move(stage), composite, Vertical(), std::move(seed));
-                    }
+                    apply_column_stage(Backend(), domain, std::move(stage), composite, Vertical(), std::move(seed));
                 },
                 meta::rename<std::tuple, StageSpecs>(),
                 std::forward<Seeds>(seeds));
         }
     } // namespace run_impl_
 
-    using run_impl_::run;
+    using run_impl_::run_stencils;
+    using run_impl_::run_vertical;
 } // namespace gridtools::fn

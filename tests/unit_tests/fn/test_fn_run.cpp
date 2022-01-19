@@ -33,7 +33,13 @@ namespace gridtools::fn {
             }
         };
 
-        struct sum_scan : fwd {
+        struct fwd_sum_scan : fwd {
+            static GT_FUNCTION constexpr auto body() {
+                return scan_pass([](auto acc, auto const &iter) { return acc + *iter; }, [](auto acc) { return acc; });
+            }
+        };
+
+        struct bwd_sum_scan : bwd {
             static GT_FUNCTION constexpr auto body() {
                 return scan_pass([](auto acc, auto const &iter) { return acc + *iter; }, [](auto acc) { return acc; });
             }
@@ -72,22 +78,17 @@ namespace gridtools::fn {
             loop(b, [](auto &ptr, int i, int j) { *ptr = 0; });
             loop(c, [](auto &ptr, int i, int j) { *ptr = 3 * i + j; });
 
-            run(backend_t(),
-                int_t<1>(),
-                stages_specs_t(),
-                domain,
-                std::forward_as_tuple(a, b, c),
-                std::forward_as_tuple(std::monostate(), std::monostate()));
+            run_stencils(backend_t(), stages_specs_t(), domain, std::forward_as_tuple(a, b, c));
 
             loop(a, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, (3 * i + j) * 4); });
             loop(b, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, (3 * i + j) * 2); });
             loop(c, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, (3 * i + j) * 1); });
         }
 
-        TEST(run, scan_and_stencil) {
+        TEST(run, scans) {
             using backend_t = backend::naive;
-            using stages_specs_t = meta::list<column_stage<int_t<1>, sum_scan, make_iterator_mock, 1, 2>,
-                stencil_stage<stencil, make_iterator_mock, 0, 1>>;
+            using stages_specs_t = meta::list<column_stage<int_t<1>, fwd_sum_scan, make_iterator_mock, 1, 2>,
+                column_stage<int_t<1>, bwd_sum_scan, make_iterator_mock, 0, 1>>;
             auto domain = hymap::keys<int_t<0>, int_t<1>>::values(2_c, 3_c);
 
             auto alloc = backend::tmp_allocator(backend_t());
@@ -111,16 +112,17 @@ namespace gridtools::fn {
             loop(b, [](auto &ptr, int i, int j) { *ptr = 0; });
             loop(c, [](auto &ptr, int i, int j) { *ptr = 3 * i + j; });
 
-            run(backend_t(),
-                int_t<1>(),
+            run_vertical(backend_t(),
                 stages_specs_t(),
                 domain,
+                int_t<1>(),
                 std::forward_as_tuple(a, b, c),
-                std::forward_as_tuple(42, std::monostate()));
+                std::forward_as_tuple(42, 8));
 
-            loop(a,
-                [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, (42 + (3 * i * (j + 1) + j * (j + 1) / 2)) * 2); });
-            loop(b, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, 42 + (3 * i * (j + 1) + j * (j + 1) / 2)); });
+            loop(a, [](auto const &ptr, int i, int j) {
+                EXPECT_EQ(*ptr, -(9 * i * j * (j + 1) - 108 * i + j * j * j + 251 * j - 828) / 6);
+            });
+            loop(b, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, 42 + 3 * i * (j + 1) + j * (j + 1) / 2); });
             loop(c, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, 3 * i + j); });
         }
 
