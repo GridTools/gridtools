@@ -1,0 +1,87 @@
+/*
+ * GridTools
+ *
+ * Copyright (c) 2014-2021, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+#include "../common/tuple_util.hpp"
+#include "../sid/concept.hpp"
+#include "./backend2/common.hpp"
+#include "./executor.hpp"
+
+namespace gridtools::fn {
+    namespace impl {
+        using backend::data_type;
+
+        namespace dim {
+            using i = integral_constant<int, 0>;
+            using j = integral_constant<int, 1>;
+            using k = integral_constant<int, 2>;
+        } // namespace dim
+
+        using domain_t = hymap::keys<dim::i, dim::j, dim::k>::values<int, int, int>;
+
+        inline domain_t cartesian(int i, int j, int k) { return {i, j, k}; }
+
+        template <class Sizes>
+        domain_t cartesian(Sizes &&sizes) {
+            return {tuple_util::get<0>(sizes), tuple_util::get<1>(sizes), tuple_util::get<2>(sizes)};
+        }
+
+        template <class Tag, class Ptr, class Strides>
+        struct iterator {
+            Ptr m_ptr;
+            Strides const &m_strides;
+        };
+
+        template <class Tag, class Ptr, class Strides>
+        GT_FUNCTION auto deref(iterator<Tag, Ptr, Strides> it) {
+            return *it.m_ptr;
+        }
+
+        struct make_iterator {
+            GT_FUNCTION auto operator()() const {
+                return [](auto tag, auto const &ptr, auto const &strides) {
+                    auto tptr = host_device::at_key<decltype(tag)>(ptr);
+                    return iterator<decltype(tag), decltype(tptr), decltype(strides)>{std::move(tptr), strides};
+                };
+            }
+        };
+
+        template <class Backend>
+        using stencil_exec_t = stencil_executor<Backend, make_iterator, domain_t>;
+        template <class Backend>
+        using vertical_exec_t = vertical_executor<Backend, make_iterator, dim::k, domain_t>;
+
+        template <class Backend, class TmpAllocator>
+        struct backend {
+            domain_t m_domain;
+            TmpAllocator m_allocator;
+
+            template <class Sid>
+            auto make_tmp_like(Sid const &) {
+                using element_t = sid::element_type<Sid>;
+                return allocate_global_tmp(m_allocator, m_domain, data_type<element_t>());
+            }
+
+            auto stencil_executor() const {
+                return [&] { return stencil_exec_t<Backend>{m_domain}; };
+            }
+
+            auto vertical_executor() const {
+                return [&] { return vertical_exec_t<Backend>{m_domain}; };
+            }
+        };
+
+        template <class Backend>
+        auto make_backend(Backend, domain_t const &domain) {
+            auto allocator = tmp_allocator(Backend());
+            return backend<Backend, decltype(allocator)>{domain, std::move(allocator)};
+        }
+    } // namespace impl
+    using impl::cartesian;
+    using impl::make_backend;
+} // namespace gridtools::fn
