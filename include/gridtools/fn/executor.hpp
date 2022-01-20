@@ -16,71 +16,87 @@
 #include "./run.hpp"
 #include "./scan.hpp"
 #include "./stencil_stage.hpp"
+#include "gridtools/meta/debug.hpp"
 
 namespace gridtools::fn {
+    namespace executor_impl_ {
+        template <class MakeSpec, class RunSpecs, class Domain, class Args = std::tuple<>, class Specs = std::tuple<>>
+        struct executor {
+            Domain m_domain;
+            Args m_args = {};
+            Specs m_specs = {};
+            bool m_active = true;
 
-    template <class Backend, class MakeIterator, class Domain, class Args = std::tuple<>, class Stages = meta::list<>>
-    class stencil_executor {
-        Domain m_domain;
-        Args m_args;
+            ~executor() {
+                if (m_active)
+                    RunSpecs()(m_domain, std::move(m_args), std::move(m_specs));
+            }
 
-      public:
-        stencil_executor(Backend, MakeIterator, Domain const &domain) : m_domain(domain) {}
-        stencil_executor(Domain &&domain, Args &&args) : m_domain(std::move(domain)), m_args(std::move(args)) {}
-        stencil_executor(stencil_executor const &) = delete;
-        stencil_executor(stencil_executor &&) = default;
-        ~stencil_executor() { run_stencils(Backend(), Stages(), m_domain, std::move(m_args)); }
+            template <class Arg>
+            auto arg(Arg &&arg) && {
+                assert(m_active);
+                auto args = tuple_util::push_back(std::move(m_args), std::forward<Arg>(arg));
+                m_active = false;
+                return executor<MakeSpec, RunSpecs, Domain, decltype(args), Specs>{
+                    std::move(m_domain), std::move(args), std::move(m_specs)};
+            }
 
-        template <class Arg>
-        auto arg(Arg &&arg) && {
-            auto args = tuple_util::push_back(std::move(m_args), std::forward<Arg>(arg));
-            return stencil_executor<Backend, MakeIterator, Domain, decltype(args), Stages>{
-                std::move(m_domain), std::move(args)};
-        }
-        template <class Out, class Stencil, class... Ins>
-        auto assign(Out, Stencil, Ins...) && {
-            using stages_t = meta::push_back<Stages, stencil_stage<Stencil, MakeIterator, Out::value, Ins::value...>>;
-            return stencil_executor<Backend, MakeIterator, Domain, Args, stages_t>{
-                std::move(m_domain), std::move(m_args)};
-        }
-    };
+            template <class... SpecArgs>
+            auto assign(SpecArgs &&...args) && {
+                assert(m_active);
+                auto specs = tuple_util::deep_copy(
+                    tuple_util::push_back(std::move(m_specs), MakeSpec()(std::forward<SpecArgs>(args)...)));
+                m_active = false;
+                return executor<MakeSpec, RunSpecs, Domain, Args, decltype(specs)>{
+                    std::move(m_domain), std::move(m_args), std::move(specs)};
+            }
+        };
 
-    template <class Backend,
-        class MakeIterator,
-        class Domain,
-        class Vertical,
-        class Args = std::tuple<>,
-        class Stages = meta::list<>,
-        class Seeds = std::tuple<>>
-    class vertical_executor {
-        Domain m_domain;
-        Args m_args;
-        Seeds m_seeds;
+        template <class MakeIterator>
+        struct make_stencil_spec_f {
+            template <class Out, class Stencil, class... Ins>
+            constexpr auto operator()(Out, Stencil, Ins...) const {
+                return stencil_stage<Stencil, MakeIterator, Out::value, Ins::value...>();
+            }
+        };
 
-      public:
-        vertical_executor(Backend, MakeIterator, Domain const &domain, Vertical) : m_domain(domain) {}
-        vertical_executor(Domain &&domain, Args &&args, Seeds &&seeds)
-            : m_domain(std::move(domain)), m_args(std::move(args)), m_seeds(std::move(seeds)) {}
-        vertical_executor(vertical_executor const &) = delete;
-        vertical_executor(vertical_executor &&) = default;
-        ~vertical_executor() {
-            run_vertical(Backend(), Stages(), m_domain, Vertical(), std::move(m_args), std::move(m_seeds));
-        }
+        template <class Backend>
+        struct run_stencil_specs_f {
+            template <class Domain, class Args, class Specs>
+            constexpr auto operator()(Domain const &domain, Args args, Specs) const {
+                using stages_t = meta::rename<meta::list, Specs>;
+                run_stencils(Backend(), stages_t(), domain, std::move(args));
+            }
+        };
 
-        template <class Arg>
-        auto arg(Arg &&arg) && {
-            auto args = tuple_util::push_back(std::move(m_args), std::forward<Arg>(arg));
-            return vertical_executor<Backend, MakeIterator, Domain, Vertical, decltype(args), Stages, Seeds>{
-                std::move(m_domain), std::move(args), std::move(m_seeds)};
-        }
-        template <class Out, class Stencil, class Seed, class... Ins>
-        auto assign(Out, Stencil, Seed &&seed, Ins...) && {
-            using stages_t =
-                meta::push_back<Stages, column_stage<Vertical, Stencil, MakeIterator, Out::value, Ins::value...>>;
-            auto seeds = tuple_util::push_back(std::move(m_seeds), std::forward<Seed>(seed));
-            return vertical_executor<Backend, MakeIterator, Domain, Vertical, Args, stages_t, decltype(seeds)>{
-                std::move(m_domain), std::move(m_args), std::move(seeds)};
-        }
-    };
+        template <class Backend, class MakeIterator, class Domain>
+        using stencil_executor = executor<make_stencil_spec_f<MakeIterator>, run_stencil_specs_f<Backend>, Domain>;
 
+        template <class MakeIterator, class Vertical>
+        struct make_vertical_spec_f {
+            template <class Out, class ScanOrFold, class Seed, class... Ins>
+            constexpr auto operator()(Out, ScanOrFold, Seed &&seed, Ins...) const {
+                return std::tuple(column_stage<Vertical, ScanOrFold, MakeIterator, Out::value, Ins::value...>(),
+                    std::forward<Seed>(seed));
+            }
+        };
+
+        template <class Backend, class Vertical>
+        struct run_vertical_specs_f {
+            template <class Domain, class Args, class Specs>
+            constexpr auto operator()(Domain const &domain, Args args, Specs &&specs) const {
+                using stages_t = meta::transform<meta::first,
+                    meta::transform<std::remove_reference_t, meta::rename<meta::list, Specs>>>;
+                auto seeds = tuple_util::transform([](auto &&t) { return tuple_util::get<1>(t); }, std::move(specs));
+                run_vertical(Backend(), stages_t(), domain, Vertical(), std::move(args), std::move(seeds));
+            }
+        };
+
+        template <class Backend, class MakeIterator, class Vertical, class Domain>
+        using vertical_executor =
+            executor<make_vertical_spec_f<MakeIterator, Vertical>, run_vertical_specs_f<Backend, Vertical>, Domain>;
+    } // namespace executor_impl_
+
+    using executor_impl_::stencil_executor;
+    using executor_impl_::vertical_executor;
 } // namespace gridtools::fn

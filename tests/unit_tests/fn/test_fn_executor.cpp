@@ -72,7 +72,7 @@ namespace gridtools::fn {
             loop(c, [](auto &ptr, int i, int j) { *ptr = 3 * i + j; });
 
             {
-                stencil_executor(backend_t(), make_iterator_mock(), domain)
+                stencil_executor<backend_t, make_iterator_mock, decltype(domain)>{domain}
                     .arg(a)
                     .arg(b)
                     .arg(c)
@@ -113,7 +113,7 @@ namespace gridtools::fn {
             loop(c, [](auto &ptr, int i, int j) { *ptr = 3 * i + j; });
 
             {
-                vertical_executor(backend_t(), make_iterator_mock(), domain, int_t<1>())
+                vertical_executor<backend_t, make_iterator_mock, int_t<1>, decltype(domain)>{domain}
                     .arg(a)
                     .arg(b)
                     .arg(c)
