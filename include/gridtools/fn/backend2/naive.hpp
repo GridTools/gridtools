@@ -41,8 +41,8 @@ namespace gridtools::fn::backend {
 
         inline auto tmp_allocator(naive be) { return std::tuple(be, sid::make_allocator(&std::make_unique<char[]>)); }
 
-        template <class T, class Allocator, class Sizes>
-        auto allocate_global_tmp(std::tuple<naive, Allocator> &alloc, Sizes const &sizes) {
+        template <class Allocator, class Sizes, class T>
+        auto allocate_global_tmp(std::tuple<naive, Allocator> &alloc, Sizes const &sizes, data_type<T>) {
             return sid::make_contiguous<T, int_t, sid::unknown_kind>(std::get<1>(alloc), sizes);
         }
     } // namespace naive_impl_

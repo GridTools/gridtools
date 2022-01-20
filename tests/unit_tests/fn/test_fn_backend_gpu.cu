@@ -197,7 +197,7 @@ namespace gridtools::fn::backend {
             using block_sizes_t = meta::list<meta::list<int_t<0>, int_t<4>>, meta::list<int_t<2>, int_t<2>>>;
             auto alloc = tmp_allocator(gpu<block_sizes_t>());
             auto sizes = hymap::keys<int_t<0>, int_t<1>, int_t<2>>::values<int_t<5>, int_t<7>, int_t<3>>();
-            auto tmp = allocate_global_tmp<int>(alloc, sizes);
+            auto tmp = allocate_global_tmp(alloc, sizes, data_type<int>());
             static_assert(sid::is_sid<decltype(tmp)>());
             auto ptr_holder = sid::get_origin(tmp);
             auto strides = sid::get_strides(tmp);

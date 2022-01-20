@@ -50,10 +50,10 @@ namespace gridtools::fn {
             using backend_t = backend::naive;
             auto domain = hymap::keys<int_t<0>, int_t<1>>::values(2_c, 3_c);
 
-            auto alloc = backend::tmp_allocator(backend_t());
-            auto a = backend::allocate_global_tmp<int>(alloc, domain);
-            auto b = backend::allocate_global_tmp<int>(alloc, domain);
-            auto c = backend::allocate_global_tmp<int>(alloc, domain);
+            auto alloc = tmp_allocator(backend_t());
+            auto a = allocate_global_tmp(alloc, domain, backend::data_type<int>());
+            auto b = allocate_global_tmp(alloc, domain, backend::data_type<int>());
+            auto c = allocate_global_tmp(alloc, domain, backend::data_type<int>());
 
             auto loop = [](auto x, auto f) {
                 auto ptr = sid::get_origin(x)();
@@ -91,10 +91,10 @@ namespace gridtools::fn {
                 column_stage<int_t<1>, bwd_sum_scan, make_iterator_mock, 0, 1>>;
             auto domain = hymap::keys<int_t<0>, int_t<1>>::values(2_c, 3_c);
 
-            auto alloc = backend::tmp_allocator(backend_t());
-            auto a = backend::allocate_global_tmp<int>(alloc, domain);
-            auto b = backend::allocate_global_tmp<int>(alloc, domain);
-            auto c = backend::allocate_global_tmp<int>(alloc, domain);
+            auto alloc = tmp_allocator(backend_t());
+            auto a = allocate_global_tmp(alloc, domain, backend::data_type<int>());
+            auto b = allocate_global_tmp(alloc, domain, backend::data_type<int>());
+            auto c = allocate_global_tmp(alloc, domain, backend::data_type<int>());
 
             auto loop = [](auto x, auto f) {
                 auto ptr = sid::get_origin(x)();
