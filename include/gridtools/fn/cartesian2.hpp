@@ -13,21 +13,24 @@
 #include "./executor.hpp"
 
 namespace gridtools::fn {
-    namespace impl {
-        using backend::data_type;
-
+    namespace cartesian {
         namespace dim {
             using i = integral_constant<int, 0>;
             using j = integral_constant<int, 1>;
             using k = integral_constant<int, 2>;
         } // namespace dim
+    }     // namespace cartesian
+
+    namespace impl {
+        namespace dim = cartesian::dim;
+        using backend::data_type;
 
         using domain_t = hymap::keys<dim::i, dim::j, dim::k>::values<int, int, int>;
 
-        inline domain_t cartesian(int i, int j, int k) { return {i, j, k}; }
+        inline domain_t cartesian_domain(int i, int j, int k) { return {i, j, k}; }
 
         template <class Sizes>
-        domain_t cartesian(Sizes &&sizes) {
+        domain_t cartesian_domain(Sizes const &sizes) {
             return {tuple_util::get<0>(sizes), tuple_util::get<1>(sizes), tuple_util::get<2>(sizes)};
         }
 
@@ -38,8 +41,23 @@ namespace gridtools::fn {
         };
 
         template <class Tag, class Ptr, class Strides>
-        GT_FUNCTION auto deref(iterator<Tag, Ptr, Strides> it) {
+        GT_FUNCTION auto deref(iterator<Tag, Ptr, Strides> const &it) {
             return *it.m_ptr;
+        }
+
+        template <class Tag, class Ptr, class Strides, class Dim, class Offset, class... Offsets>
+        GT_FUNCTION void shift_impl(iterator<Tag, Ptr, Strides> &it, Dim, Offset offset, Offsets... offsets) {
+            sid::shift(it.m_ptr, at_key<Tag>(sid::get_stride<Dim>(it.m_strides)), offset);
+            shift_impl(it, offsets...);
+        }
+        template <class Tag, class Ptr, class Strides>
+        GT_FUNCTION void shift_impl(iterator<Tag, Ptr, Strides> &) {}
+
+        template <class Tag, class Ptr, class Strides, class... Offsets>
+        GT_FUNCTION auto shift(iterator<Tag, Ptr, Strides> const &it, Offsets... offsets) {
+            auto shifted = it;
+            shift_impl(shifted, offsets...);
+            return shifted;
         }
 
         struct make_iterator {
@@ -82,6 +100,6 @@ namespace gridtools::fn {
             return backend<Backend, decltype(allocator)>{domain, std::move(allocator)};
         }
     } // namespace impl
-    using impl::cartesian;
+    using impl::cartesian_domain;
     using impl::make_backend;
 } // namespace gridtools::fn

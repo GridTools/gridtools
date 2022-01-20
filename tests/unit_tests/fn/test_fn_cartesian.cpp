@@ -19,9 +19,10 @@ namespace gridtools::fn {
     namespace {
         using namespace literals;
 
-        struct copy_stencil {
+        struct stencil {
             constexpr auto operator()() const {
-                return [](auto const &in) { return deref(in); };
+                using namespace cartesian::dim;
+                return [](auto const &in) { return deref(shift(in, i(), 1_c)); };
             }
         };
 
@@ -40,16 +41,16 @@ namespace gridtools::fn {
         };
 
         TEST(cartesian, stencil) {
-            auto apply_copy_stencil = [](auto executor, auto &out, auto const &in) {
-                executor().arg(out).arg(in).assign(0_c, copy_stencil(), 1_c);
+            auto apply_stencil = [](auto executor, auto &out, auto const &in) {
+                executor().arg(out).arg(in).assign(0_c, stencil(), 1_c);
             };
 
-            auto copy_fencil = [&](auto sizes, auto &out, auto const &in) {
-                auto domain = cartesian(sizes);
+            auto fencil = [&](auto sizes, auto &out, auto const &in) {
+                auto domain = cartesian_domain(sizes);
                 auto backend = make_backend(backend::naive(), domain);
                 auto tmp = backend.make_tmp_like(out);
-                apply_copy_stencil(backend.stencil_executor(), tmp, in);
-                apply_copy_stencil(backend.stencil_executor(), out, tmp);
+                apply_stencil(backend.stencil_executor(), tmp, in);
+                apply_stencil(backend.stencil_executor(), out, tmp);
             };
 
             std::array<int, 3> sizes = {5, 3, 2};
@@ -59,12 +60,12 @@ namespace gridtools::fn {
                     for (int k = 0; k < 2; ++k)
                         in[i][j][k] = 6 * i + 2 * j + k;
 
-            copy_fencil(sizes, out, in);
+            fencil(sizes, out, in);
 
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 3; ++i)
                 for (int j = 0; j < 3; ++j)
                     for (int k = 0; k < 2; ++k)
-                        EXPECT_EQ(out[i][j][k], 6 * i + 2 * j + k);
+                        EXPECT_EQ(out[i][j][k], 6 * (i + 2) + 2 * j + k);
         }
 
         TEST(cartesian, vertical) {
@@ -78,7 +79,7 @@ namespace gridtools::fn {
             };
 
             auto double_scan = [&](auto sizes, auto &a, auto &b, auto const &c) {
-                auto domain = cartesian(sizes);
+                auto domain = cartesian_domain(sizes);
                 auto backend = make_backend(backend::naive(), domain);
                 apply_double_scan(backend.vertical_executor(), a, b, c);
             };
