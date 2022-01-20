@@ -47,7 +47,7 @@ namespace gridtools::fn {
 
         struct make_iterator_mock {
             GT_FUNCTION auto operator()() const {
-                return [](auto tag, auto const &ptr, auto const &strides) { return at_key<decltype(tag)>(ptr); };
+                return [](auto tag, auto const &ptr, auto const &) { return at_key<decltype(tag)>(ptr); };
             }
         };
 
@@ -58,31 +58,19 @@ namespace gridtools::fn {
             auto domain = hymap::keys<int_t<0>, int_t<1>>::values(2_c, 3_c);
 
             auto alloc = tmp_allocator(backend_t());
-            auto a = allocate_global_tmp(alloc, domain, backend::data_type<int>());
-            auto b = allocate_global_tmp(alloc, domain, backend::data_type<int>());
-            auto c = allocate_global_tmp(alloc, domain, backend::data_type<int>());
-
-            auto loop = [](auto x, auto f) {
-                auto ptr = sid::get_origin(x)();
-                auto strides = sid::get_strides(x);
-                for (int i = 0; i < 2; ++i) {
-                    for (int j = 0; j < 3; ++j) {
-                        f(ptr, i, j);
-                        sid::shift(ptr, sid::get_stride<int_t<1>>(strides), 1_c);
-                    }
-                    sid::shift(ptr, sid::get_stride<int_t<1>>(strides), -3_c);
-                    sid::shift(ptr, sid::get_stride<int_t<0>>(strides), 1_c);
-                }
-            };
-            loop(a, [](auto &ptr, int i, int j) { *ptr = 0; });
-            loop(b, [](auto &ptr, int i, int j) { *ptr = 0; });
-            loop(c, [](auto &ptr, int i, int j) { *ptr = 3 * i + j; });
+            int a[2][3] = {}, b[2][3] = {}, c[2][3];
+            for (int i = 0; i < 2; ++i)
+                for (int j = 0; j < 3; ++j)
+                    c[i][j] = 3 * i + j;
 
             run_stencils(backend_t(), stages_specs_t(), domain, std::forward_as_tuple(a, b, c));
 
-            loop(a, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, (3 * i + j) * 4); });
-            loop(b, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, (3 * i + j) * 2); });
-            loop(c, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, (3 * i + j) * 1); });
+            for (int i = 0; i < 2; ++i)
+                for (int j = 0; j < 3; ++j) {
+                    EXPECT_EQ(a[i][j], (3 * i + j) * 4);
+                    EXPECT_EQ(b[i][j], (3 * i + j) * 2);
+                    EXPECT_EQ(c[i][j], (3 * i + j) * 1);
+                }
         }
 
         TEST(run, scans) {
@@ -92,25 +80,10 @@ namespace gridtools::fn {
             auto domain = hymap::keys<int_t<0>, int_t<1>>::values(2_c, 3_c);
 
             auto alloc = tmp_allocator(backend_t());
-            auto a = allocate_global_tmp(alloc, domain, backend::data_type<int>());
-            auto b = allocate_global_tmp(alloc, domain, backend::data_type<int>());
-            auto c = allocate_global_tmp(alloc, domain, backend::data_type<int>());
-
-            auto loop = [](auto x, auto f) {
-                auto ptr = sid::get_origin(x)();
-                auto strides = sid::get_strides(x);
-                for (int i = 0; i < 2; ++i) {
-                    for (int j = 0; j < 3; ++j) {
-                        f(ptr, i, j);
-                        sid::shift(ptr, sid::get_stride<int_t<1>>(strides), 1_c);
-                    }
-                    sid::shift(ptr, sid::get_stride<int_t<1>>(strides), -3_c);
-                    sid::shift(ptr, sid::get_stride<int_t<0>>(strides), 1_c);
-                }
-            };
-            loop(a, [](auto &ptr, int i, int j) { *ptr = 0; });
-            loop(b, [](auto &ptr, int i, int j) { *ptr = 0; });
-            loop(c, [](auto &ptr, int i, int j) { *ptr = 3 * i + j; });
+            int a[2][3] = {}, b[2][3] = {}, c[2][3];
+            for (int i = 0; i < 2; ++i)
+                for (int j = 0; j < 3; ++j)
+                    c[i][j] = 3 * i + j;
 
             run_vertical(backend_t(),
                 stages_specs_t(),
@@ -119,11 +92,19 @@ namespace gridtools::fn {
                 std::forward_as_tuple(a, b, c),
                 std::forward_as_tuple(42, 8));
 
-            loop(a, [](auto const &ptr, int i, int j) {
-                EXPECT_EQ(*ptr, -(9 * i * j * (j + 1) - 108 * i + j * j * j + 251 * j - 828) / 6);
-            });
-            loop(b, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, 42 + 3 * i * (j + 1) + j * (j + 1) / 2); });
-            loop(c, [](auto const &ptr, int i, int j) { EXPECT_EQ(*ptr, 3 * i + j); });
+            for (int i = 0; i < 2; ++i) {
+                int res = 42;
+                for (int j = 0; j < 3; ++j) {
+                    EXPECT_EQ(c[i][j], 3 * i + j);
+                    res += c[i][j];
+                    EXPECT_EQ(b[i][j], res);
+                }
+                res = 8;
+                for (int j = 2; j >= 0; --j) {
+                    res += b[i][j];
+                    EXPECT_EQ(a[i][j], res);
+                }
+            }
         }
 
     } // namespace
