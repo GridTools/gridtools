@@ -33,7 +33,7 @@ namespace gridtools::fn::backend {
 
         struct make_iterator_mock {
             auto operator()() const {
-                return [](auto tag, auto const &ptr, auto const &strides) { return at_key<decltype(tag)>(ptr); };
+                return [](auto tag, auto const &ptr, auto const &) { return at_key<decltype(tag)>(ptr); };
             }
         };
 

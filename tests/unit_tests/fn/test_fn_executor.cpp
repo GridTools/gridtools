@@ -42,7 +42,7 @@ namespace gridtools::fn {
 
         struct make_iterator_mock {
             GT_FUNCTION auto operator()() const {
-                return [](auto tag, auto const &ptr, auto const &strides) { return at_key<decltype(tag)>(ptr); };
+                return [](auto tag, auto const &ptr, auto const &) { return at_key<decltype(tag)>(ptr); };
             }
         };
 
@@ -67,8 +67,8 @@ namespace gridtools::fn {
                     sid::shift(ptr, sid::get_stride<int_t<0>>(strides), 1_c);
                 }
             };
-            loop(a, [](auto &ptr, int i, int j) { *ptr = 0; });
-            loop(b, [](auto &ptr, int i, int j) { *ptr = 0; });
+            loop(a, [](auto &ptr, int, int) { *ptr = 0; });
+            loop(b, [](auto &ptr, int, int) { *ptr = 0; });
             loop(c, [](auto &ptr, int i, int j) { *ptr = 3 * i + j; });
 
             {
@@ -108,8 +108,8 @@ namespace gridtools::fn {
                     sid::shift(ptr, sid::get_stride<int_t<0>>(strides), 1_c);
                 }
             };
-            loop(a, [](auto &ptr, int i, int j) { *ptr = 0; });
-            loop(b, [](auto &ptr, int i, int j) { *ptr = 0; });
+            loop(a, [](auto &ptr, int, int) { *ptr = 0; });
+            loop(b, [](auto &ptr, int, int) { *ptr = 0; });
             loop(c, [](auto &ptr, int i, int j) { *ptr = 3 * i + j; });
 
             {
