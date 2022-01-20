@@ -27,6 +27,7 @@ namespace gridtools::fn {
             Specs m_specs = {};
             bool m_active = true;
 
+            executor(executor const &) = delete;
             ~executor() {
                 if (m_active)
                     RunSpecs()(m_domain, std::move(m_args), std::move(m_specs));
