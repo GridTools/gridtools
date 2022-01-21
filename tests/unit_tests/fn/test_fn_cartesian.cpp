@@ -11,7 +11,6 @@
 
 #include <gridtools/fn/backend2/naive.hpp>
 #include <gridtools/fn/cartesian2.hpp>
-#include <gridtools/stencil/positional.hpp>
 
 #include <gtest/gtest.h>
 
