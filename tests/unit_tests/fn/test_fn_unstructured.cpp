@@ -23,7 +23,7 @@ namespace gridtools::fn {
         template <class V2V>
         struct stencil {
             constexpr auto operator()() const {
-                return [](auto const &in) { /*return reduce(std::plus(), 0, shift(in, V2V()));*/
+                return [](auto const &in) {
                     int sum = deref(in);
                     if (can_deref(shift(in, V2V(), 0)))
                         sum += deref(shift(in, V2V(), 0));
