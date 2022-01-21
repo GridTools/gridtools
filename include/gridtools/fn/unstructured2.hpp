@@ -9,6 +9,7 @@
  */
 #include "../common/hymap.hpp"
 #include "../sid/concept.hpp"
+#include "../stencil/positional.hpp"
 #include "./executor.hpp"
 
 namespace gridtools::fn {
@@ -18,6 +19,7 @@ namespace gridtools::fn {
     } // namespace unstructured::dim
 
     namespace unstructured_impl_ {
+        using gridtools::stencil::positional;
         namespace dim = unstructured::dim;
 
         template <class Tag, class From, class To, class PtrHolder, class Strides, int MaxNeighbors>
@@ -117,7 +119,7 @@ namespace gridtools::fn {
             GT_FUNCTION auto operator()() const {
                 return [&](auto tag, auto const &ptr, auto const &strides) {
                     auto tptr = host_device::at_key<decltype(tag)>(ptr);
-                    int index = *host_device::at_key<integral_constant<int, 2>>(ptr);
+                    int index = *host_device::at_key<integral_constant<int, 0>>(ptr);
                     return iterator<decltype(tag), decltype(tptr), decltype(strides), Domain>{
                         std::move(tptr), strides, m_domain, index};
                 };
@@ -125,15 +127,17 @@ namespace gridtools::fn {
         };
 
         template <class Backend, class Domain>
-        using stencil_exec_t = stencil_executor<Backend, make_iterator<Domain>, decltype(Domain::m_sizes)>;
+        using stencil_exec_t = stencil_executor<Backend, make_iterator<Domain>, decltype(Domain::m_sizes), 1>;
 
         template <class Backend, class Domain>
         struct backend {
             Domain m_domain;
 
             auto stencil_executor() const {
+                using horizontal_t = meta::at_c<get_keys<std::remove_reference_t<decltype(m_domain.m_sizes)>>, 0>;
                 return [&] {
-                    return stencil_exec_t<Backend, Domain>{m_domain.m_sizes, make_iterator<Domain>{m_domain}};
+                    auto exec = stencil_exec_t<Backend, Domain>{m_domain.m_sizes, make_iterator<Domain>{m_domain}};
+                    return std::move(exec).arg(positional<horizontal_t>());
                 };
             }
         };

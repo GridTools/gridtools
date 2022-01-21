@@ -59,10 +59,11 @@ namespace gridtools::fn {
             }
         };
 
+        template <int ArgOffset>
         struct make_stencil_spec_f {
             template <class Out, class Stencil, class... Ins>
             constexpr auto operator()(Out, Stencil, Ins...) const {
-                return stencil_stage<Stencil, Out::value, Ins::value...>();
+                return stencil_stage<Stencil, Out::value + ArgOffset, Ins::value + ArgOffset...>();
             }
         };
 
@@ -75,15 +76,17 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class MakeIterator, class Domain>
-        using stencil_executor = executor<make_stencil_spec_f, run_stencil_specs_f<Backend>, Domain, MakeIterator>;
+        template <class Backend, class MakeIterator, class Domain, int ArgOffset = 0>
+        using stencil_executor =
+            executor<make_stencil_spec_f<ArgOffset>, run_stencil_specs_f<Backend>, Domain, MakeIterator>;
 
-        template <class Vertical>
+        template <class Vertical, int ArgOffset>
         struct make_vertical_spec_f {
             template <class Out, class ScanOrFold, class Seed, class... Ins>
             constexpr auto operator()(Out, ScanOrFold, Seed &&seed, Ins...) const {
                 return std::tuple(
-                    column_stage<Vertical, ScanOrFold, Out::value, Ins::value...>(), std::forward<Seed>(seed));
+                    column_stage<Vertical, ScanOrFold, Out::value + ArgOffset, Ins::value + ArgOffset...>(),
+                    std::forward<Seed>(seed));
             }
         };
 
@@ -100,9 +103,11 @@ namespace gridtools::fn {
             }
         };
 
-        template <class Backend, class MakeIterator, class Vertical, class Domain>
-        using vertical_executor =
-            executor<make_vertical_spec_f<Vertical>, run_vertical_specs_f<Backend, Vertical>, Domain, MakeIterator>;
+        template <class Backend, class MakeIterator, class Vertical, class Domain, int ArgOffset = 0>
+        using vertical_executor = executor<make_vertical_spec_f<Vertical, ArgOffset>,
+            run_vertical_specs_f<Backend, Vertical>,
+            Domain,
+            MakeIterator>;
     } // namespace executor_impl_
 
     using executor_impl_::stencil_executor;

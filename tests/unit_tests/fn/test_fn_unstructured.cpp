@@ -42,16 +42,15 @@ namespace gridtools::fn {
         struct v2e {};
 
         TEST(unstructured, v2v_sum) {
-            auto apply_stencil = [](auto executor, auto &out, auto const &in, auto const &vidx) {
-                executor().arg(out).arg(in).arg(vidx).assign(0_c, stencil<v2v, 3>(), 1_c);
+            auto apply_stencil = [](auto executor, auto &out, auto const &in) {
+                executor().arg(out).arg(in).assign(0_c, stencil<v2v, 3>(), 1_c);
             };
-            auto fencil =
-                [&](auto const &v2v_table, int nvertices, int nlevels, auto &out, auto const &in, auto const &vidx) {
-                    auto v2v_conn = connectivity<v2v, vertex, vertex>(v2v_table, 3_c);
-                    auto domain = unstructured_domain<vertex>(nvertices, nlevels, v2v_conn);
-                    auto backend = make_backend(backend::naive(), domain);
-                    apply_stencil(backend.stencil_executor(), out, in, vidx);
-                };
+            auto fencil = [&](auto const &v2v_table, int nvertices, int nlevels, auto &out, auto const &in) {
+                auto v2v_conn = connectivity<v2v, vertex, vertex>(v2v_table, 3_c);
+                auto domain = unstructured_domain<vertex>(nvertices, nlevels, v2v_conn);
+                auto backend = make_backend(backend::naive(), domain);
+                apply_stencil(backend.stencil_executor(), out, in);
+            };
 
             int v2v_table[3][3] = {{1, 2, -1}, {0, 2, -1}, {0, 1, -1}};
             auto v2v_conn =
@@ -72,9 +71,7 @@ namespace gridtools::fn {
             auto in_s = as_synthetic(in);
             auto out_s = as_synthetic(out);
 
-            auto vidx = gridtools::stencil::positional<vertex>();
-
-            fencil(v2v_conn, 3, 5, out_s, in_s, vidx);
+            fencil(v2v_conn, 3, 5, out_s, in_s);
 
             for (int v = 0; v < 3; ++v)
                 for (int k = 0; k < 5; ++k) {
@@ -89,16 +86,15 @@ namespace gridtools::fn {
         }
 
         TEST(unstructured, v2e_sum) {
-            auto apply_stencil = [](auto executor, auto &out, auto const &in, auto const &vidx) {
-                executor().arg(out).arg(in).arg(vidx).assign(0_c, stencil<v2e, 2>(), 1_c);
+            auto apply_stencil = [](auto executor, auto &out, auto const &in) {
+                executor().arg(out).arg(in).assign(0_c, stencil<v2e, 2>(), 1_c);
             };
-            auto fencil =
-                [&](auto const &v2e_table, int nvertices, int nlevels, auto &out, auto const &in, auto const &vidx) {
-                    auto v2e_conn = connectivity<v2e, vertex, edge>(v2e_table, 3_c);
-                    auto domain = unstructured_domain<vertex>(nvertices, nlevels, v2e_conn);
-                    auto backend = make_backend(backend::naive(), domain);
-                    apply_stencil(backend.stencil_executor(), out, in, vidx);
-                };
+            auto fencil = [&](auto const &v2e_table, int nvertices, int nlevels, auto &out, auto const &in) {
+                auto v2e_conn = connectivity<v2e, vertex, edge>(v2e_table, 3_c);
+                auto domain = unstructured_domain<vertex>(nvertices, nlevels, v2e_conn);
+                auto backend = make_backend(backend::naive(), domain);
+                apply_stencil(backend.stencil_executor(), out, in);
+            };
 
             int v2e_table[3][2] = {{0, 2}, {0, 1}, {1, 2}};
             auto v2e_conn =
@@ -119,9 +115,7 @@ namespace gridtools::fn {
             auto in_s = as_synthetic(in, edge());
             auto out_s = as_synthetic(out, vertex());
 
-            auto vidx = gridtools::stencil::positional<vertex>();
-
-            fencil(v2e_conn, 3, 5, out_s, in_s, vidx);
+            fencil(v2e_conn, 3, 5, out_s, in_s);
 
             for (int v = 0; v < 3; ++v)
                 for (int k = 0; k < 5; ++k) {
