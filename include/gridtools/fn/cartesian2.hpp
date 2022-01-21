@@ -13,15 +13,13 @@
 #include "./executor.hpp"
 
 namespace gridtools::fn {
-    namespace cartesian {
-        namespace dim {
-            using i = integral_constant<int, 0>;
-            using j = integral_constant<int, 1>;
-            using k = integral_constant<int, 2>;
-        } // namespace dim
-    }     // namespace cartesian
+    namespace cartesian::dim {
+        using i = integral_constant<int, 0>;
+        using j = integral_constant<int, 1>;
+        using k = integral_constant<int, 2>;
+    } // namespace cartesian::dim
 
-    namespace impl_ {
+    namespace cartesian_impl_ {
         namespace dim = cartesian::dim;
         using backend::data_type;
 
@@ -99,7 +97,7 @@ namespace gridtools::fn {
             auto allocator = tmp_allocator(Backend());
             return backend<Backend, decltype(allocator)>{domain, std::move(allocator)};
         }
-    } // namespace impl_
-    using impl_::cartesian_domain;
-    using impl_::make_backend;
+    } // namespace cartesian_impl_
+    using cartesian_impl_::cartesian_domain;
+    using cartesian_impl_::make_backend;
 } // namespace gridtools::fn
