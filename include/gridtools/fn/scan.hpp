@@ -39,10 +39,11 @@ namespace gridtools::fn {
         using fwd = base<false>;
         using bwd = base<true>;
 
-        template <class Vertical, class ScanOrFold, class MakeIterator, int Out, int... Ins>
+        template <class Vertical, class ScanOrFold, int Out, int... Ins>
         struct column_stage {
-            template <class Seed, class Ptr, class Strides>
-            GT_FUNCTION auto operator()(Seed seed, std::size_t size, Ptr ptr, Strides const &strides) const {
+            template <class Seed, class MakeIterator, class Ptr, class Strides>
+            GT_FUNCTION auto operator()(
+                Seed seed, std::size_t size, MakeIterator &&make_iterator, Ptr ptr, Strides const &strides) const {
                 constexpr std::size_t prologue_size = std::tuple_size_v<decltype(ScanOrFold::prologue())>;
                 constexpr std::size_t epilogue_size = std::tuple_size_v<decltype(ScanOrFold::epilogue())>;
                 assert(size >= prologue_size + epilogue_size);
@@ -53,14 +54,13 @@ namespace gridtools::fn {
                     if constexpr (is_scan_pass<decltype(pass)>()) {
                         // scan
                         auto res =
-                            pass.m_f(wstd::move(acc), MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
+                            pass.m_f(wstd::move(acc), make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
                         *host_device::at_key<integral_constant<int, Out>>(ptr) = pass.m_p(res);
                         inc();
                         return res;
                     } else {
                         // fold
-                        auto res =
-                            pass(wstd::move(acc), MakeIterator()()(integral_constant<int, Ins>(), ptr, strides)...);
+                        auto res = pass(wstd::move(acc), make_iterator(integral_constant<int, Ins>(), ptr, strides)...);
                         inc();
                         return res;
                     }

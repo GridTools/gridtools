@@ -84,11 +84,11 @@ namespace gridtools::fn {
             }
 
             auto stencil_executor() const {
-                return [&] { return stencil_exec_t<Backend>{m_domain}; };
+                return [&] { return stencil_exec_t<Backend>{m_domain, make_iterator{}}; };
             }
 
             auto vertical_executor() const {
-                return [&] { return vertical_exec_t<Backend>{m_domain}; };
+                return [&] { return vertical_exec_t<Backend>{m_domain, make_iterator{}}; };
             }
         };
 
