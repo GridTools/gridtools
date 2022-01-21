@@ -21,7 +21,7 @@ namespace gridtools::fn {
         } // namespace dim
     }     // namespace cartesian
 
-    namespace impl {
+    namespace impl_ {
         namespace dim = cartesian::dim;
         using backend::data_type;
 
@@ -99,7 +99,7 @@ namespace gridtools::fn {
             auto allocator = tmp_allocator(Backend());
             return backend<Backend, decltype(allocator)>{domain, std::move(allocator)};
         }
-    } // namespace impl
-    using impl::cartesian_domain;
-    using impl::make_backend;
+    } // namespace impl_
+    using impl_::cartesian_domain;
+    using impl_::make_backend;
 } // namespace gridtools::fn
