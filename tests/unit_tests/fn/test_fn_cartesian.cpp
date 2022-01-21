@@ -7,12 +7,11 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <iostream>
-
-#include <gridtools/fn/backend2/naive.hpp>
 #include <gridtools/fn/cartesian2.hpp>
 
 #include <gtest/gtest.h>
+
+#include <gridtools/fn/backend2/naive.hpp>
 
 namespace gridtools::fn {
     namespace {
